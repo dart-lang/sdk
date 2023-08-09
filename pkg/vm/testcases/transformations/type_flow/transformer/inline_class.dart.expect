@@ -12,7 +12,7 @@ class C4 extends core::Object {
     core::print([@vm.inferred-type.metadata=int] self::IC2|bar1());
   }
 }
-inline class IC2 /* declaredRepresentationType = core::int */ {
+extension type IC2(core::int id) {
   method foo1 = self::IC2|foo1;
   static method bar1 = self::IC2|bar1;
   constructor • = self::IC2|;

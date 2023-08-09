@@ -11,8 +11,28 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(OrganizeImportsBulkTest);
     defineReflectiveTests(OrganizeImportsTest);
   });
+}
+
+@reflectiveTest
+class OrganizeImportsBulkTest extends BulkFixProcessorTest {
+  Future<void> test_single_file() async {
+    await parseTestCode('''
+import 'dart:io';
+import 'dart:async';
+
+Future a;
+''');
+
+    await assertOrganize('''
+import 'dart:async';
+import 'dart:io';
+
+Future a;
+''');
+  }
 }
 
 @reflectiveTest

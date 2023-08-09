@@ -202,6 +202,11 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
+  void registerAwaitCheck() {
+    registerBackendImpact(_impacts.awaitExpression);
+  }
+
+  @override
   void registerAsync(ir.DartType elementType) {
     registerBackendImpact(_impacts.asyncBody);
     impactBuilder.registerStaticUse(StaticUse.staticInvoke(

@@ -100,7 +100,7 @@ class ExpectedError {
       if (result != 0) {
         return result;
       }
-      return second.offset - first.offset;
+      return first.offset - second.offset;
     });
     if (contextMessages.length != expectedContextMessages.length) {
       return false;

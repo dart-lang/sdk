@@ -11,7 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart' show Outline;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 
-class DocumentSymbolHandler extends LspMessageHandler<DocumentSymbolParams,
+class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
     TextDocumentDocumentSymbolResult> {
   DocumentSymbolHandler(super.server);
   @override

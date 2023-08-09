@@ -9823,7 +9823,7 @@ class DirectoryReader extends JavaScriptObject {
  * Example usage:
  *
  *     DivElement div = new DivElement();
- *     div.text = 'Here's my new DivElem
+ *     div.text = 'Here is my new DivElem';
  *     document.body.elements.add(elem);
  *
  * See also:

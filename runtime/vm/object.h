@@ -12511,6 +12511,23 @@ class ReceivePort : public Instance {
     return OFFSET_OF(UntaggedReceivePort, handler_);
   }
 
+  bool is_open() const {
+    return IsOpen::decode(Smi::Value(untag()->bitfield()));
+  }
+  void set_is_open(bool value) const {
+    const auto updated = IsOpen::update(value, Smi::Value(untag()->bitfield()));
+    untag()->set_bitfield(Smi::New(updated));
+  }
+
+  bool keep_isolate_alive() const {
+    return IsKeepIsolateAlive::decode(Smi::Value(untag()->bitfield()));
+  }
+  void set_keep_isolate_alive(bool value) const {
+    const auto updated =
+        IsKeepIsolateAlive::update(value, Smi::Value(untag()->bitfield()));
+    untag()->set_bitfield(Smi::New(updated));
+  }
+
 #if !defined(PRODUCT)
   StackTracePtr allocation_location() const {
     return untag()->allocation_location();
@@ -12527,6 +12544,10 @@ class ReceivePort : public Instance {
                             Heap::Space space = Heap::kNew);
 
  private:
+  class IsOpen : public BitField<intptr_t, bool, 0, 1> {};
+  class IsKeepIsolateAlive
+      : public BitField<intptr_t, bool, IsOpen::kNextBit, 1> {};
+
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ReceivePort, Instance);
   friend class Class;
 };

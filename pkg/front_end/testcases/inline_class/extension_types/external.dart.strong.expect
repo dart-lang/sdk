@@ -15,7 +15,7 @@ abstract class A extends core::Object {
     : super core::Object::•()
     ;
 }
-inline class B /* declaredRepresentationType = self::A */ {
+extension type B(self::A a) {
   get field = self::B|get#field;
   set field = self::B|set#field;
   method method = self::B|method;

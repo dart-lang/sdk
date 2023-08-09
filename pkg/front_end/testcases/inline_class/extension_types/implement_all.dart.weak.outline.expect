@@ -104,91 +104,91 @@ class GenericClass<T extends core::Object? = dynamic> extends core::Object {
 }
 extension Extension on core::int {
 }
-inline class ExtensionType /* declaredRepresentationType = core::int */ {
+extension type ExtensionType(core::int it) {
   constructor • = self::ExtensionType|;
   tearoff • = self::ExtensionType|_#new#tearOff;
 }
-inline class GenericExtensionType<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
+extension type GenericExtensionType<T extends core::Object? = dynamic>(T% it) {
   constructor • = self::GenericExtensionType|;
   tearoff • = self::GenericExtensionType|_#new#tearOff;
 }
-inline class ET_Null /* declaredRepresentationType = Null */ {
+extension type ET_Null(Null it) {
   constructor • = self::ET_Null|;
   tearoff • = self::ET_Null|_#new#tearOff;
 }
-inline class ET_Dynamic /* declaredRepresentationType = dynamic */ {
+extension type ET_Dynamic(dynamic it) {
   constructor • = self::ET_Dynamic|;
   tearoff • = self::ET_Dynamic|_#new#tearOff;
 }
-inline class ET_Void /* declaredRepresentationType = Never */ {
+extension type ET_Void(Never it) {
   constructor • = self::ET_Void|;
   tearoff • = self::ET_Void|_#new#tearOff;
 }
-inline class ET_Never /* declaredRepresentationType = Never */ {
+extension type ET_Never(Never it) {
   constructor • = self::ET_Never|;
   tearoff • = self::ET_Never|_#new#tearOff;
 }
-inline class ET_Object /* declaredRepresentationType = core::Object */ {
+extension type ET_Object(core::Object it) {
   constructor • = self::ET_Object|;
   tearoff • = self::ET_Object|_#new#tearOff;
 }
-inline class ET_Record /* declaredRepresentationType = core::Record */ {
+extension type ET_Record(core::Record it) {
   constructor • = self::ET_Record|;
   tearoff • = self::ET_Record|_#new#tearOff;
 }
-inline class ET_RecordType /* declaredRepresentationType =(core::int, core::String) */ {
+extension type ET_RecordType((core::int, core::String) it) {
   constructor • = self::ET_RecordType|;
   tearoff • = self::ET_RecordType|_#new#tearOff;
 }
-inline class ET_Function /* declaredRepresentationType = core::Function */ {
+extension type ET_Function(core::Function it) {
   constructor • = self::ET_Function|;
   tearoff • = self::ET_Function|_#new#tearOff;
 }
-inline class ET_FunctionType /* declaredRepresentationType = () → void */ {
+extension type ET_FunctionType(() → void it) {
   constructor • = self::ET_FunctionType|;
   tearoff • = self::ET_FunctionType|_#new#tearOff;
 }
-inline class ET_NullableInterfaceType /* declaredRepresentationType = core::String? */ {
+extension type ET_NullableInterfaceType(core::String? it) {
   constructor • = self::ET_NullableInterfaceType|;
   tearoff • = self::ET_NullableInterfaceType|_#new#tearOff;
 }
-inline class ET_NullableExtensionType /* declaredRepresentationType = self::ExtensionType? */ {
+extension type ET_NullableExtensionType(self::ExtensionType? it) {
   constructor • = self::ET_NullableExtensionType|;
   tearoff • = self::ET_NullableExtensionType|_#new#tearOff;
 }
-inline class ET_FutureOr /* declaredRepresentationType = FutureOr<core::int>*/ {
+extension type ET_FutureOr(FutureOr<core::int>it) {
   constructor • = self::ET_FutureOr|;
   tearoff • = self::ET_FutureOr|_#new#tearOff;
 }
-inline class ET_Extension /* declaredRepresentationType = Never */ {
+extension type ET_Extension(Never it) {
   constructor • = self::ET_Extension|;
   tearoff • = self::ET_Extension|_#new#tearOff;
 }
-inline class ET_TypeVariable<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
+extension type ET_TypeVariable<T extends core::Object? = dynamic>(T% it) {
   constructor • = self::ET_TypeVariable|;
   tearoff • = self::ET_TypeVariable|_#new#tearOff;
 }
-inline class ET_Class /* declaredRepresentationType = self::Class */ implements self::Class {
+extension type ET_Class(self::Class it) implements self::Class {
   constructor • = self::ET_Class|;
   tearoff • = self::ET_Class|_#new#tearOff;
 }
-inline class ET_GenericClass<T extends core::Object? = dynamic> /* declaredRepresentationType = self::GenericClass<T%> */ implements self::GenericClass<T%> {
+extension type ET_GenericClass<T extends core::Object? = dynamic>(self::GenericClass<T%> it) implements self::GenericClass<T%> {
   constructor • = self::ET_GenericClass|;
   tearoff • = self::ET_GenericClass|_#new#tearOff;
 }
-inline class ET_Alias /* declaredRepresentationType = self::Class */ implements self::Class {
+extension type ET_Alias(self::Class it) implements self::Class {
   constructor • = self::ET_Alias|;
   tearoff • = self::ET_Alias|_#new#tearOff;
 }
-inline class ET_GenericAlias<T extends core::Object? = dynamic> /* declaredRepresentationType = self::GenericClass<T%> */ implements self::GenericClass<T%> {
+extension type ET_GenericAlias<T extends core::Object? = dynamic>(self::GenericClass<T%> it) implements self::GenericClass<T%> {
   constructor • = self::ET_GenericAlias|;
   tearoff • = self::ET_GenericAlias|_#new#tearOff;
 }
-inline class ET_ExtensionType /* declaredRepresentationType = self::ExtensionType */ implements self::ExtensionType {
+extension type ET_ExtensionType(self::ExtensionType it) implements self::ExtensionType {
   constructor • = self::ET_ExtensionType|;
   tearoff • = self::ET_ExtensionType|_#new#tearOff;
 }
-inline class ET_GenericExtensionType<T extends core::Object? = dynamic> /* declaredRepresentationType = self::GenericExtensionType<T%> */ implements self::GenericExtensionType<T%> {
+extension type ET_GenericExtensionType<T extends core::Object? = dynamic>(self::GenericExtensionType<T%> it) implements self::GenericExtensionType<T%> {
   constructor • = self::ET_GenericExtensionType|;
   tearoff • = self::ET_GenericExtensionType|_#new#tearOff;
 }

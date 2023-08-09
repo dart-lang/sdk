@@ -11,23 +11,23 @@ extension ListToJSArray on core::List<self::JSAny?> {
 extension DoubleToJSNumber on core::double {
   get toJS = self::DoubleToJSNumber|get#toJS;
 }
-inline class JSAny /* declaredRepresentationType = core::Object */ {
+extension type JSAny(core::Object value) {
   constructor • = self::JSAny|;
   tearoff • = self::JSAny|_#new#tearOff;
 }
-inline class JSObject /* declaredRepresentationType = core::Object */ implements self::JSAny {
+extension type JSObject(core::Object value) implements self::JSAny {
   constructor • = self::JSObject|;
   tearoff • = self::JSObject|_#new#tearOff;
 }
-inline class JSArray /* declaredRepresentationType = core::List<self::JSAny?> */ implements self::JSObject {
+extension type JSArray(core::List<self::JSAny?> value) implements self::JSObject {
   constructor • = self::JSArray|;
   tearoff • = self::JSArray|_#new#tearOff;
 }
-inline class JSExportedDartObject /* declaredRepresentationType = core::Object */ implements self::JSObject {
+extension type JSExportedDartObject(core::Object value) implements self::JSObject {
   constructor • = self::JSExportedDartObject|;
   tearoff • = self::JSExportedDartObject|_#new#tearOff;
 }
-inline class JSNumber /* declaredRepresentationType = core::double */ implements self::JSAny {
+extension type JSNumber(core::double value) implements self::JSAny {
   constructor • = self::JSNumber|;
   tearoff • = self::JSNumber|_#new#tearOff;
 }

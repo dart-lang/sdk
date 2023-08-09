@@ -11,7 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
 class SignatureHelpHandler
-    extends LspMessageHandler<SignatureHelpParams, SignatureHelp?> {
+    extends SharedMessageHandler<SignatureHelpParams, SignatureHelp?> {
   SignatureHelpHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_signatureHelp;

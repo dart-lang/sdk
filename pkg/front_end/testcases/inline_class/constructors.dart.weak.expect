@@ -2,11 +2,11 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class Class1 /* declaredRepresentationType = core::int */ {
+extension type Class1(core::int field) {
   constructor • = self::Class1|;
   tearoff • = self::Class1|_#new#tearOff;
 }
-inline class Class2 /* declaredRepresentationType = core::int */ {
+extension type Class2(core::int field) {
   constructor • = self::Class2|;
   tearoff • = self::Class2|_#new#tearOff;
 }

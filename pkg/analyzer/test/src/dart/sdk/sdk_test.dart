@@ -239,28 +239,21 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   "async": const LibraryInfo(
       "async/async.dart",
-      categories: "Client,Server",
-      maturity: Maturity.STABLE,
-      dart2jsPatchPath: "_internal/js_runtime/lib/async_patch.dart"),
+    ),
 
   "core": const LibraryInfo(
       "core/core.dart",
-      categories: "Client,Server,Embedded",
-      maturity: Maturity.STABLE,
-      dart2jsPatchPath: "_internal/js_runtime/lib/core_patch.dart"),
+    ),
 
   "html": const LibraryInfo(
       "html/dart2js/html_dart2js.dart",
-      categories: "Client",
-      maturity: Maturity.WEB_STABLE),
+    ),
 
   "html_common": const LibraryInfo(
-      "html/html_common/html_common.dart",
-      categories: "Client",
-      maturity: Maturity.WEB_STABLE,
-      dart2jsPath: "html/html_common/html_common_dart2js.dart",
+      "html/html_common/html_common_dart2js.dart",
       documented: false,
-      implementation: true),
+      implementation: true,
+    ),
 };
 ''';
 }
@@ -280,36 +273,37 @@ class SdkLibrariesReaderTest with ResourceProviderMixin {
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',
-    categories: 'Client',
     documented: true,
-    platforms: VM_PLATFORM),
-
+  ),
   'second' : const LibraryInfo(
     'second/second.dart',
-    categories: 'Server',
     documented: false,
     implementation: true,
-    platforms: 0),
+  ),
+  '_internal': const LibraryInfo(
+    'internal/internal.dart',
+    documented: false,
+  ),
 };''');
     expect(libraryMap, isNotNull);
-    expect(libraryMap.size(), 2);
+    expect(libraryMap.size(), 3);
     var first = libraryMap.getLibrary("dart:first")!;
     expect(first, isNotNull);
-    expect(first.category, "Client");
     expect(first.path, "first/first.dart");
     expect(first.shortName, "dart:first");
-    expect(first.isDart2JsLibrary, false);
     expect(first.isDocumented, true);
     expect(first.isImplementation, false);
-    expect(first.isVmLibrary, true);
     var second = libraryMap.getLibrary("dart:second")!;
     expect(second, isNotNull);
-    expect(second.category, "Server");
     expect(second.path, "second/second.dart");
     expect(second.shortName, "dart:second");
-    expect(second.isDart2JsLibrary, false);
     expect(second.isDocumented, false);
     expect(second.isImplementation, true);
-    expect(second.isVmLibrary, false);
+    var internal = libraryMap.getLibrary("dart:_internal")!;
+    expect(internal, isNotNull);
+    expect(internal.path, "internal/internal.dart");
+    expect(internal.shortName, "dart:_internal");
+    expect(internal.isDocumented, false);
+    expect(internal.isImplementation, true);
   }
 }

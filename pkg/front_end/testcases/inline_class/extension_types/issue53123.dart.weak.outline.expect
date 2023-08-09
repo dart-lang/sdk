@@ -12,7 +12,7 @@ library;
 //
 import self as self;
 
-inline class V<T extends self::V<T> = self::V<dynamic>> /* declaredRepresentationType = T */ {
+extension type V<T extends self::V<T> = self::V<dynamic>>(T id) {
   constructor • = self::V|;
   tearoff • = self::V|_#new#tearOff;
 }

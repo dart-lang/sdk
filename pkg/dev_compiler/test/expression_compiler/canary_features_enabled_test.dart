@@ -6,13 +6,15 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 
+import '../shared_test_options.dart';
 import 'expression_compiler_e2e_suite.dart';
-import 'setup_compiler_options.dart';
 
 void main(List<String> args) async {
-  var driver = await TestDriver.init();
+  var driver = await ExpressionEvaluationTestDriver.init();
+  var setup = SetupCompilerOptions(args: args);
+  var mode = setup.canaryFeatures ? 'canary' : 'stable';
 
-  group('canary', () {
+  group('$mode mode', () {
     const source = r'''
       void main() {
         print('hello world');
@@ -28,7 +30,6 @@ void main(List<String> args) async {
     });
 
     test('is automatically set to the configuration value', () async {
-      var setup = SetupCompilerOptions(args: args);
       await driver.initSource(setup, source);
 
       expect(

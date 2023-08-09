@@ -58,6 +58,8 @@ abstract class ImpactRegistry {
 
   void registerSyncStar(ir.DartType elementType);
 
+  void registerAwaitCheck();
+
   void registerAsync(ir.DartType elementType);
 
   void registerAsyncStar(ir.DartType elementType);

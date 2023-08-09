@@ -2193,7 +2193,7 @@ DART_EXPORT bool Dart_HasLivePorts() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate);
   NoSafepointScope no_safepoint_scope;
-  return isolate->message_handler()->HasLivePorts();
+  return isolate->HasLivePorts();
 }
 
 DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {

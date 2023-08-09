@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class Class1 /* declaredRepresentationType = core::int */ {
+extension type Class1(core::int it) {
   constructor • = self::Class1|;
   tearoff • = self::Class1|_#new#tearOff;
   constructor named1 = self::Class1|named1;
@@ -18,7 +18,7 @@ inline class Class1 /* declaredRepresentationType = core::int */ {
   constructor named6 = self::Class1|named6;
   tearoff named6 = self::Class1|_#named6#tearOff;
 }
-inline class Class2<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
+extension type Class2<T extends core::Object? = dynamic>(T% it) {
   constructor • = self::Class2|;
   tearoff • = self::Class2|_#new#tearOff;
   constructor named1 = self::Class2|named1;

@@ -345,6 +345,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
   } else if (type is ExtensionType) {
     variables = type.extensionTypeDeclaration.typeParameters;
     arguments = type.typeArguments;
+    // Extension types are never allowed to be super-bounded.
     allowSuperBounded = false;
   } else if (type is FunctionType) {
     List<TypeArgumentIssue> result = <TypeArgumentIssue>[];

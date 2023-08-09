@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/non_covariant_type_parameter_position.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -687,7 +688,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
     var outerClass = _enclosingClass;
     try {
       final element = node.declaredElement!;
@@ -706,6 +709,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _constructorFieldsVerifier.enterExtensionType(node, declarationElement);
       _checkForNonCovariantTypeParameterPositionInRepresentationType(
           node, element);
+      _checkForExtensionTypeRepresentationDependsOnItself(node, element);
       // TODO(scheglov) Add checks.
 
       super.visitExtensionTypeDeclaration(node);
@@ -2886,6 +2890,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
+  void _checkForExtensionTypeRepresentationDependsOnItself(
+    ExtensionTypeDeclarationImpl node,
+    ExtensionTypeElementImpl element,
+  ) {
+    if (element.hasSelfReference) {
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
+        node.name,
+      );
+    }
+  }
+
   /// Verify that the given field formal [parameter] is in a constructor
   /// declaration.
   ///
@@ -4763,9 +4779,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
         TypeParameter? current = parameter;
         for (var step = 0; current != null; step++) {
-          var bound = current.bound;
-          if (bound is NamedType) {
-            current = elementToNode[bound.element];
+          final boundNode = current.bound;
+          if (boundNode is NamedType) {
+            var boundType = boundNode.typeOrThrow;
+            boundType = boundType.representationTypeErasureOrSelf;
+            current = elementToNode[boundType.element];
           } else {
             current = null;
           }

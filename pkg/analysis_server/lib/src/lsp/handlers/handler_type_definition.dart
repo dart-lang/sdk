@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/element/element.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 
-class TypeDefinitionHandler extends LspMessageHandler<TypeDefinitionParams,
+class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
     TextDocumentTypeDefinitionResult> with LspPluginRequestHandlerMixin {
   static const _emptyResult = TextDocumentTypeDefinitionResult.t2([]);
 

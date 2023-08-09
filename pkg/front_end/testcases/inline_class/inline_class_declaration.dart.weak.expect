@@ -9,11 +9,11 @@ class Class2 = core::Object with self::Mixin /*hasConstConstructor*/  {
     : super core::Object::•()
     ;
 }
-inline class Class1 /* declaredRepresentationType = core::int */ {
+extension type Class1(core::int it) {
   constructor • = self::Class1|;
   tearoff • = self::Class1|_#new#tearOff;
 }
-inline class Class3<T extends core::Object? = dynamic> /* declaredRepresentationType = core::List<T%> */ {
+extension type Class3<T extends core::Object? = dynamic>(core::List<T%> it) {
   constructor • = self::Class3|;
   tearoff • = self::Class3|_#new#tearOff;
 }

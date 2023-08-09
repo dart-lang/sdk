@@ -2,13 +2,13 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class Class /* declaredRepresentationType = core::int */ {
+extension type Class(core::int it) {
   constructor • = self::Class|;
   tearoff • = self::Class|_#new#tearOff;
   constructor named = self::Class|named;
   tearoff named = self::Class|_#named#tearOff;
 }
-inline class GenericClass<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
+extension type GenericClass<T extends core::Object? = dynamic>(T% it) {
   constructor • = self::GenericClass|;
   tearoff • = self::GenericClass|_#new#tearOff;
 }

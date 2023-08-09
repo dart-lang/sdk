@@ -21,7 +21,7 @@ library;
 import self as self2;
 import "dart:core" as core;
 
-inline class ExtensionType /* declaredRepresentationType = core::int */ {
+extension type ExtensionType(core::int it) {
   static field staticField = self2::ExtensionType|staticField;
   method instanceMethod = self2::ExtensionType|instanceMethod;
   tearoff instanceMethod = self2::ExtensionType|get#instanceMethod;

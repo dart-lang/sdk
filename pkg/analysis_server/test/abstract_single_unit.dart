@@ -22,6 +22,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   bool useLineEndingsForPlatform = false;
 
   late String testCode;
+  late ParsedUnitResult testParsedResult;
   late ResolvedUnitResult testAnalysisResult;
   late CompilationUnit testUnit;
   late CompilationUnitElement testUnitElement;
@@ -48,6 +49,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   @override
   Future<ParsedUnitResult> getParsedUnit(File file) async {
     var result = await super.getParsedUnit(file);
+    testParsedResult = result;
     testCode = result.content;
     testUnit = result.unit;
     findNode = FindNode(testCode, testUnit);

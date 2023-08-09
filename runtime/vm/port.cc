@@ -19,7 +19,6 @@ namespace dart {
 
 Mutex* PortMap::mutex_ = nullptr;
 PortSet<PortMap::Entry>* PortMap::ports_ = nullptr;
-MessageHandler* PortMap::deleted_entry_ = reinterpret_cast<MessageHandler*>(1);
 Random* PortMap::prng_ = nullptr;
 
 const char* PortMap::PortStateString(PortState kind) {
@@ -28,8 +27,6 @@ const char* PortMap::PortStateString(PortState kind) {
       return "live";
     case kControlPort:
       return "control";
-    case kInactivePort:
-      return "inactive";
     default:
       UNREACHABLE();
       return "UNKNOWN";
@@ -67,33 +64,6 @@ Dart_Port PortMap::AllocatePort() {
   return result;
 }
 
-void PortMap::SetPortState(Dart_Port port, PortState state) {
-  MutexLocker ml(mutex_);
-  if (ports_ == nullptr) {
-    return;
-  }
-
-  auto it = ports_->TryLookup(port);
-  ASSERT(it != ports_->end());
-
-  Entry& entry = *it;
-  PortState old_state = entry.state;
-  entry.state = state;
-  if (state == kLivePort) {
-    entry.handler->increment_live_ports();
-  } else if (state == kInactivePort && old_state == kLivePort) {
-    entry.handler->decrement_live_ports();
-  }
-  if (FLAG_trace_isolates) {
-    OS::PrintErr(
-        "[^] Port (%s) -> (%s): \n"
-        "\thandler:    %s\n"
-        "\tport:       %" Pd64 "\n",
-        PortStateString(old_state), PortStateString(state),
-        entry.handler->name(), port);
-  }
-}
-
 Dart_Port PortMap::CreatePort(MessageHandler* handler,
                               PortState initial_state) {
   ASSERT(handler != nullptr);
@@ -120,12 +90,6 @@ Dart_Port PortMap::CreatePort(MessageHandler* handler,
   entry.state = initial_state;
   ports_->Insert(entry);
 
-  if (initial_state == kLivePort) {
-    entry.handler->increment_live_ports();
-  } else {
-    ASSERT(initial_state == kInactivePort || initial_state == kControlPort);
-  }
-
   if (FLAG_trace_isolates) {
     OS::PrintErr(
         "[+] Opening port: \n"
@@ -137,7 +101,9 @@ Dart_Port PortMap::CreatePort(MessageHandler* handler,
   return entry.port;
 }
 
-bool PortMap::ClosePort(Dart_Port port) {
+bool PortMap::ClosePort(Dart_Port port, MessageHandler** message_handler) {
+  if (message_handler != nullptr) *message_handler = nullptr;
+
   MessageHandler* handler = nullptr;
   {
     MutexLocker ml(mutex_);
@@ -156,10 +122,6 @@ bool PortMap::ClosePort(Dart_Port port) {
     handler->CheckAccess();
 #endif
 
-    if (entry.state == kLivePort) {
-      handler->decrement_live_ports();
-    }
-
     // Delete the port entry before releasing the lock to avoid holding the lock
     // while flushing the messages below.
     it.Delete();
@@ -173,10 +135,7 @@ bool PortMap::ClosePort(Dart_Port port) {
     handler->ports_.Rebalance();
   }
   handler->ClosePort(port);
-  if (!handler->HasLivePorts() && handler->OwnedByPortMap()) {
-    // Delete handler as soon as it isn't busy with a task.
-    handler->RequestDeletion();
-  }
+  if (message_handler != nullptr) *message_handler = handler;
   return true;
 }
 
@@ -195,9 +154,6 @@ void PortMap::ClosePorts(MessageHandler* handler) {
       Entry entry = *it;
       ASSERT(entry.port == (*isolate_it).port);
       ASSERT(entry.handler == handler);
-      if (entry.state == kLivePort) {
-        handler->decrement_live_ports();
-      }
       it.Delete();
       isolate_it.Delete();
     }
@@ -275,6 +231,18 @@ Dart_Port PortMap::GetOriginId(Dart_Port id) {
   return isolate->origin_id();
 }
 
+#if defined(TESTING)
+bool PortMap::HasLivePorts(MessageHandler* handler) {
+  MutexLocker ml(mutex_);
+  if (ports_ == nullptr) {
+    return false;
+  }
+  // The MessageHandler::ports_ is only accessed by [PortMap], it is guarded
+  // by the [PortMap::mutex_] we already hold.
+  return !handler->ports_.IsEmpty();
+}
+#endif
+
 bool PortMap::IsReceiverInThisIsolateGroupOrClosed(Dart_Port receiver,
                                                    IsolateGroup* group) {
   MutexLocker ml(mutex_);
@@ -314,9 +282,6 @@ void PortMap::Cleanup() {
   for (auto it = ports_->begin(); it != ports_->end(); ++it) {
     const auto& entry = *it;
     ASSERT(entry.handler != nullptr);
-    if (entry.state == kLivePort) {
-      entry.handler->decrement_live_ports();
-    }
     delete entry.handler;
     it.Delete();
   }

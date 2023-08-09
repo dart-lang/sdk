@@ -378,6 +378,7 @@ dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel 
 dart_2/snapshot_version_test: RuntimeError # Please triage.
 
 [ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
+dart/awaiter_stacks/sync_async_start_pkg_test_test: SkipSlow
 dart/data_uri_spawn_test: SkipSlow
 dart/heap_snapshot_referrers_test: SkipSlow
 dart/heapsnapshot_cli_test: SkipSlow
@@ -385,6 +386,7 @@ dart/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself
 dart/kernel_determinism_test: SkipSlow
 dart/regress_48196_test: SkipSlow
 dart/regress_52703_test: SkipSlow
+dart_2/awaiter_stacks/sync_async_start_pkg_test_test: SkipSlow
 dart_2/data_uri_spawn_test: SkipSlow
 dart_2/heap_snapshot_referrers_test: SkipSlow
 dart_2/heapsnapshot_cli_test: SkipSlow

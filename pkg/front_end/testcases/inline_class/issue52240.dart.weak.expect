@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class X /* declaredRepresentationType = core::int */ {
+extension type X(core::int obj) {
   constructor • = self::X|;
   tearoff • = self::X|_#new#tearOff;
   constructor named = self::X|named;

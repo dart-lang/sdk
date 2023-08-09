@@ -2602,7 +2602,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     enterScope(typeParameters: node.typeParameters);
     writeNodeList(node.typeParameters);
     writeDartType(node.declaredRepresentationType);
-    writeStringReference(node.name);
+    writeStringReference(node.representationName);
     writeNodeList(node.implements);
     leaveScope(typeParameters: node.typeParameters);
 

@@ -238,6 +238,7 @@ import 'package:analyzer/src/dart/error/ffi_code.g.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
@@ -295,6 +296,16 @@ class FixInFileProcessor {
       return const <Fix>[];
     }
 
+    /// Helper to create a [DartFixContextImpl] for a given error.
+    DartFixContextImpl createFixContext(AnalysisError error) {
+      return DartFixContextImpl(
+        instrumentationService,
+        workspace,
+        resolveResult,
+        error,
+      );
+    }
+
     var generators = _getGenerators(error.errorCode);
 
     var fixes = <Fix>[];
@@ -303,13 +314,21 @@ class FixInFileProcessor {
         _FixState fixState = _EmptyFixState(
           ChangeBuilder(workspace: workspace),
         );
-        for (var error in errors) {
-          var fixContext = DartFixContextImpl(
-            instrumentationService,
-            workspace,
-            resolveResult,
-            error,
-          );
+
+        // First try to fix the specific error we started from. We should only
+        // include fix-all-in-file when we produce an individual fix at this
+        // location.
+        fixState = await _fixError(
+            createFixContext(error), fixState, generator(), error);
+
+        // The original error was not fixable, don't continue.
+        if (!(fixState.builder as ChangeBuilderImpl).hasEdits) {
+          continue;
+        }
+
+        // Compute fixes for the rest of the errors.
+        for (var error in errors.where((item) => item != error)) {
+          var fixContext = createFixContext(error);
           fixState = await _fixError(fixContext, fixState, generator(), error);
         }
         if (fixState is _NotEmptyFixState) {
@@ -1714,6 +1733,9 @@ class FixProcessor extends BaseProcessor {
   /// A map from error codes to a list of fix generators that work with only
   /// parsed results.
   static final Map<String, List<ProducerGenerator>> parseLintProducerMap = {
+    LintNames.prefer_generic_function_type_aliases: [
+      ConvertToGenericFunctionSyntax.new,
+    ],
     LintNames.slash_for_doc_comments: [
       ConvertDocumentationIntoLine.new,
     ],
@@ -1725,6 +1747,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_string_escapes: [
       RemoveUnnecessaryStringEscape.new,
+    ],
+    LintNames.use_function_type_syntax_for_parameters: [
+      ConvertToGenericFunctionSyntax.new,
     ],
   };
 

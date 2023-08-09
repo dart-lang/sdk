@@ -2,19 +2,19 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class ExtensionType1 /* declaredRepresentationType = core::int */ {
+extension type ExtensionType1(core::int it) {
   constructor • = self::ExtensionType1|;
   tearoff • = self::ExtensionType1|_#new#tearOff;
 }
-inline class ExtensionType2 /* declaredRepresentationType = core::int */ implements self::ExtensionType1, core::int {
+extension type ExtensionType2(core::int it) implements self::ExtensionType1, core::int {
   constructor • = self::ExtensionType2|;
   tearoff • = self::ExtensionType2|_#new#tearOff;
 }
-inline class ExtensionType3<T extends core::num> /* declaredRepresentationType = T */ {
+extension type ExtensionType3<T extends core::num>(T it) {
   constructor • = self::ExtensionType3|;
   tearoff • = self::ExtensionType3|_#new#tearOff;
 }
-inline class ExtensionType4 /* declaredRepresentationType = core::int */ {
+extension type ExtensionType4(core::int it) {
   get getter = self::ExtensionType4|get#getter;
   method method = self::ExtensionType4|method;
   tearoff method = self::ExtensionType4|get#method;
@@ -36,15 +36,15 @@ inline class ExtensionType4 /* declaredRepresentationType = core::int */ {
   static redirecting-factory redirectingFactory = self::ExtensionType4|redirectingFactory;
   static tearoff redirectingFactory = self::ExtensionType4|_#redirectingFactory#tearOff;
 }
-inline class ExtensionType5 /* declaredRepresentationType = core::int */ {
+extension type ExtensionType5(core::int it) {
   constructor • = self::ExtensionType5|;
   tearoff • = self::ExtensionType5|_#new#tearOff;
 }
-inline class ExtensionType6 /* declaredRepresentationType = core::int */ {
+extension type ExtensionType6(core::int it) {
   constructor id = self::ExtensionType6|id;
   tearoff id = self::ExtensionType6|_#id#tearOff;
 }
-inline class ExtensionType7<T extends core::num> /* declaredRepresentationType = core::int */ {
+extension type ExtensionType7<T extends core::num>(core::int it) {
   constructor id = self::ExtensionType7|id;
   tearoff id = self::ExtensionType7|_#id#tearOff;
 }

@@ -6454,6 +6454,57 @@ main() {
           ]);
         });
       });
+
+      test('unstable target', () {
+        h.addMember('C', 'd', 'D', promotable: false);
+        h.addMember('D', '_i', 'int?', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          // The value of `c.d` is cached in a temporary variable, call it `t0`.
+          c.property('d').cascade([
+            // `t0._i` could be null at this point.
+            (t0) => t0.property('_i').checkType('int?'),
+            // But now we promote it to non-null
+            (t0) => t0.property('_i').nonNullAssert,
+            // And the promotion sticks for the duration of the cascade.
+            (t0) => t0.property('_i').checkType('int'),
+          ]),
+          // Now, a new value of `c.d` is computed, and cached in a new
+          // temporary variable, call it `t1`.
+          c.property('d').cascade([
+            // even though `t0._i` was promoted above, `t1._i` could still be
+            // null at this point.
+            (t1) => t1.property('_i').checkType('int?'),
+            // But now we promote it to non-null
+            (t1) => t1.property('_i').nonNullAssert,
+            // And the promotion sticks for the duration of the cascade.
+            (t1) => t1.property('_i').checkType('int'),
+          ]),
+        ]);
+      });
+    });
+
+    test('field becomes promotable after type test', () {
+      // In this test, `C._property` is not promotable, but `D` extends `C`, and
+      // `D._property` is promotable. (This could happen if, for example,
+      // `C._property` is an abstract getter, and `D._property` is a final
+      // field). If `_property` is type-tested while the type of the target is
+      // `C`, but then `_property` is accessed while the type of the target is
+      // `D`, no promotion occurs, because the thing that is type tested is
+      // non-promotable.
+      h.addMember('C', '_property', 'int?', promotable: false);
+      h.addMember('D', '_property', 'int?', promotable: true);
+      h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+      var x = Var('x');
+      h.run([
+        declare(x, initializer: expr('C')),
+        x.property('_property').nonNullAssert,
+        x.as_('D'),
+        checkNotPromoted(x.property('_property')),
+        x.property('_property').nonNullAssert,
+        checkPromoted(x.property('_property'), 'int'),
+      ]);
     });
   });
 
@@ -9932,7 +9983,6 @@ extension on FlowModel<Type> {
                   ?.promotedTypes
                   ?.last ??
               variable.type,
-          isPromotable: true,
           isThisOrSuper: false,
           ssaNode: SsaNode(null));
 

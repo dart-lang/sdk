@@ -5,7 +5,6 @@
 import 'dart:collection';
 import 'dart:math' show min;
 
-import 'package:dart2wasm/code_generator.dart';
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/translator.dart';
 
@@ -1008,16 +1007,16 @@ class Capture {
 /// Compiler passes to find all captured variables and construct the context
 /// tree for a member.
 class Closures {
-  final CodeGenerator codeGen;
+  final Translator translator;
+  final Class? enclosingClass;
   final Map<TreeNode, Capture> captures = {};
   bool isThisCaptured = false;
   final Map<FunctionNode, Lambda> lambdas = {};
   final Map<TreeNode, Context> contexts = {};
   final Set<FunctionDeclaration> closurizedFunctions = {};
 
-  Closures(this.codeGen);
-
-  Translator get translator => codeGen.translator;
+  Closures(this.translator, Member member)
+      : this.enclosingClass = member.enclosingClass;
 
   w.ModuleBuilder get m => translator.m;
 
@@ -1062,8 +1061,9 @@ class Closures {
               w.RefType.def(context.parent!.struct, nullable: true)));
         }
         if (context.containsThis) {
-          struct.fields.add(w.FieldType(
-              codeGen.preciseThisLocal!.type.withNullability(true)));
+          assert(enclosingClass != null);
+          struct.fields.add(
+              w.FieldType(translator.classInfo[enclosingClass!]!.nullableType));
         }
         for (VariableDeclaration variable in context.variables) {
           int index = struct.fields.length;

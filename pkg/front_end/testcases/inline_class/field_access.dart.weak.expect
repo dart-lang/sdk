@@ -300,37 +300,37 @@ import "org-dartlang-testcase:///field_access_lib.dart";
 extension /* unnamed */ _extension#0 on dynamic {
   set it = self::_extension#0|set#it;
 }
-inline class InlineClass /* declaredRepresentationType = core::int */ {
+extension type InlineClass(core::int it) {
   method test = self::InlineClass|test;
   tearoff test = self::InlineClass|get#test;
   constructor • = self::InlineClass|;
   tearoff • = self::InlineClass|_#new#tearOff;
 }
-inline class GenericInlineClass<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
+extension type GenericInlineClass<T extends core::Object? = dynamic>(T% it) {
   method test = self::GenericInlineClass|test;
   tearoff test = self::GenericInlineClass|get#test;
   constructor • = self::GenericInlineClass|;
   tearoff • = self::GenericInlineClass|_#new#tearOff;
 }
-inline class FunctionInlineClass<T extends core::Object? = dynamic> /* declaredRepresentationType = () → T% */ {
+extension type FunctionInlineClass<T extends core::Object? = dynamic>(() → T% it) {
   method test = self::FunctionInlineClass|test;
   tearoff test = self::FunctionInlineClass|get#test;
   constructor • = self::FunctionInlineClass|;
   tearoff • = self::FunctionInlineClass|_#new#tearOff;
 }
-inline class GenericFunctionInlineClass /* declaredRepresentationType = <T extends core::Object? = dynamic>() → T% */ {
+extension type GenericFunctionInlineClass(<T extends core::Object? = dynamic>() → T% it) {
   method test = self::GenericFunctionInlineClass|test;
   tearoff test = self::GenericFunctionInlineClass|get#test;
   constructor • = self::GenericFunctionInlineClass|;
   tearoff • = self::GenericFunctionInlineClass|_#new#tearOff;
 }
-inline class DynamicInlineClass /* declaredRepresentationType = dynamic */ {
+extension type DynamicInlineClass(dynamic it) {
   method test = self::DynamicInlineClass|test;
   tearoff test = self::DynamicInlineClass|get#test;
   constructor • = self::DynamicInlineClass|;
   tearoff • = self::DynamicInlineClass|_#new#tearOff;
 }
-inline class ErroneousInlineClass /* declaredRepresentationType = core::int */ {
+extension type ErroneousInlineClass(core::int a) {
   method test = self::ErroneousInlineClass|test;
   tearoff test = self::ErroneousInlineClass|get#test;
   constructor • = self::ErroneousInlineClass|;
@@ -688,7 +688,7 @@ library;
 import self as self2;
 import "dart:core" as core;
 
-inline class PrivateInlineClass /* declaredRepresentationType = core::int */ {
+extension type PrivateInlineClass(core::int _it) {
   method test = self2::PrivateInlineClass|test;
   tearoff test = self2::PrivateInlineClass|get#test;
   constructor • = self2::PrivateInlineClass|;

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
@@ -24,8 +25,10 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
@@ -42,6 +45,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:collection/collection.dart';
 
+import 'organize_imports.dart';
+
 /// A fix producer that produces changes that will fix multiple diagnostics in
 /// one or more files.
 ///
@@ -55,10 +60,12 @@ class BulkFixProcessor {
   /// A list of lint codes that can be run on parsed code. These lints will all
   /// be run when the `--syntactic-fixes` flag is specified.
   static const List<String> syntacticLintCodes = [
+    LintNames.prefer_generic_function_type_aliases,
     LintNames.slash_for_doc_comments,
     LintNames.unnecessary_const,
     LintNames.unnecessary_new,
     LintNames.unnecessary_string_escapes,
+    LintNames.use_function_type_syntax_for_parameters,
   ];
 
   /// A map from an error code to a list of generators used to create multiple
@@ -269,6 +276,10 @@ class BulkFixProcessor {
     await _computeFixes(analysisContexts, stopAfterFirst: true);
     return changeMap.hasFixes;
   }
+
+  Future<BulkFixRequestResult> organizeDirectives(
+          List<AnalysisContext> contexts) =>
+      _organizeDirectives(contexts);
 
   Future<void> _applyProducer(
       CorrectionProducerContext context, CorrectionProducer producer) async {
@@ -694,6 +705,41 @@ class BulkFixProcessor {
     }
 
     return FixProcessor.canBulkFix(errorCode);
+  }
+
+  Future<BulkFixRequestResult> _organizeDirectives(
+      List<AnalysisContext> contexts) async {
+    for (var context in contexts) {
+      for (var path in context.contextRoot.analyzedFiles()) {
+        var pathContext = context.contextRoot.resourceProvider.pathContext;
+        if (!file_paths.isDart(pathContext, path) ||
+            file_paths.isGenerated(path)) {
+          continue;
+        }
+        var result =
+            context.currentSession.getParsedUnit(path) as ParsedUnitResult;
+        var code = result.content;
+        var errors = result.errors;
+        // check if there are scan/parse errors in the file
+        var hasParseErrors = errors.any((error) =>
+            error.errorCode is ScannerErrorCode ||
+            error.errorCode is ParserErrorCode);
+        if (hasParseErrors) {
+          // cannot process files with parse errors
+          continue;
+        }
+        // do organize
+        var sorter = ImportOrganizer(code, result.unit, errors);
+        var edits = sorter.organize();
+        await builder.addGenericFileEdit(path, (builder) {
+          for (var edit in edits) {
+            builder.addSimpleReplacement(
+                SourceRange(edit.offset, edit.length), edit.replacement);
+          }
+        });
+      }
+    }
+    return BulkFixRequestResult(builder);
   }
 
   /// Return the override set corresponding to the given [result], or `null` if

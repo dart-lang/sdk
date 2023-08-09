@@ -12,7 +12,7 @@ library;
 //
 import self as self;
 
-inline class Extension /* declaredRepresentationType = invalid-type */ {
+extension type Extension(invalid-type it) {
   constructor • = self::Extension|;
   tearoff • = self::Extension|_#new#tearOff;
 }

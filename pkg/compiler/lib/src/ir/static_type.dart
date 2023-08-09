@@ -1838,6 +1838,14 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     handleConstantExpression(node);
     return super.visitConstantExpression(node);
   }
+
+  void handleAwaitExpression(ir.AwaitExpression node) {}
+
+  @override
+  ir.DartType visitAwaitExpression(ir.AwaitExpression node) {
+    handleAwaitExpression(node);
+    return super.visitAwaitExpression(node);
+  }
 }
 
 class ArgumentTypes {

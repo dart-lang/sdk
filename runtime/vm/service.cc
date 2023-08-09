@@ -3653,8 +3653,8 @@ static void GetPorts(Thread* thread, JSONStream* js) {
     JSONArray arr(&jsobj, "ports");
     for (int i = 0; i < ports.Length(); ++i) {
       port ^= ports.At(i);
-      // Don't report inactive ports.
-      if (PortMap::IsLivePort(port.Id())) {
+      ASSERT(port.is_open());
+      if (port.keep_isolate_alive()) {
         arr.AddValue(port);
       }
     }

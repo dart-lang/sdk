@@ -18,6 +18,7 @@ import 'package:vm/transformations/pragma.dart'
 import 'package:vm/transformations/type_flow/analysis.dart';
 import 'package:vm/transformations/type_flow/calls.dart';
 import 'package:vm/transformations/type_flow/native_code.dart';
+import 'package:vm/transformations/type_flow/summary.dart';
 import 'package:vm/transformations/type_flow/summary_collector.dart';
 import 'package:vm/transformations/type_flow/types.dart';
 
@@ -71,6 +72,31 @@ class FakeEntryPointsListener implements EntryPointsListener {
   void recordTearOff(Member target) {}
 }
 
+class FakeSharedVariable implements SharedVariable {
+  final VariableDeclaration decl;
+  FakeSharedVariable(this.decl);
+
+  @override
+  Type getValue(TypeHierarchy typeHierarchy, CallHandler callHandler) =>
+      throw 'Not implemented';
+
+  @override
+  void setValue(Type newValue, TypeHierarchy typeHierarchy,
+          CallHandler callHandler) =>
+      throw 'Not implemented';
+
+  @override
+  String toString() => decl.name ?? '__tmp';
+}
+
+class FakeSharedVariableBuilder implements SharedVariableBuilder {
+  final Map<VariableDeclaration, SharedVariable> _sharedVariables = {};
+
+  @override
+  SharedVariable getSharedVariable(VariableDeclaration variable) =>
+      _sharedVariables[variable] ??= FakeSharedVariable(variable);
+}
+
 class PrintSummaries extends RecursiveVisitor {
   late SummaryCollector _summaryCollector;
   final StringBuffer _buf = new StringBuffer();
@@ -87,6 +113,7 @@ class PrintSummaries extends RecursiveVisitor {
         typesBuilder,
         NativeCodeOracle(coreTypes.index, annotationParser),
         GenericInterfacesInfoImpl(coreTypes, hierarchy),
+        FakeSharedVariableBuilder(),
         /*_protobufHandler=*/ null);
   }
 

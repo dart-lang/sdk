@@ -5,9 +5,22 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta_meta.dart';
+
+extension DartTypeExtension on DartType {
+  /// If `this` is an [InterfaceType] that is an instantiation of an extension
+  /// type, returns its representation type erasure. Otherwise, returns self.
+  DartType get representationTypeErasureOrSelf {
+    final self = this;
+    if (self is InterfaceTypeImpl) {
+      return self.representationTypeErasure ?? self;
+    }
+    return self;
+  }
+}
 
 extension ElementAnnotationExtensions on ElementAnnotation {
   static final Map<String, TargetKind> _targetKindsByName = {

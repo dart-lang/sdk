@@ -1623,6 +1623,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try specifying a different type, or remove the type from the list.",
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode
+      EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF = CompileTimeErrorCode(
+    'EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
+    "The extension type representation can't depend on itself.",
+    correctionMessage: "Try specifying a different type.",
+  );
+
   static const CompileTimeErrorCode EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER =
       CompileTimeErrorCode(
     'EXTERNAL_WITH_INITIALIZER',
