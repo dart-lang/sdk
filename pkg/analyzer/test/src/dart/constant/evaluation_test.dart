@@ -2847,7 +2847,12 @@ class B {
 
 const b = B('');
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 128, 5),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 128, 5,
+          contextMessages: [
+            ExpectedContextMessage(testFile.path, 105, 8,
+                text:
+                    "The exception is 'Invalid constant value.' and occurs here."),
+          ]),
     ]);
   }
 
@@ -3156,7 +3161,16 @@ class A {
 const a = const A(null);
 ''', [
       error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 31, 9),
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 56, 13),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        56,
+        13,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 24, 17,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 64, 4),
     ]);
   }
@@ -3169,7 +3183,16 @@ class A<T> {
 
 const a = const A<int?>();
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 60, 15),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        60,
+        15,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 27, 18,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
     ]);
   }
 
@@ -3198,7 +3221,16 @@ class A {
 }
 const c = const A(E.a);
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 73, 12),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        73,
+        12,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 43, 16,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
     ]);
   }
 
@@ -3377,7 +3409,16 @@ class A<T> {
 const a = const A<int>();
 ''', [
       error(CompileTimeErrorCode.INVALID_CONSTANT, 62, 1),
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 77, 14),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        77,
+        14,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 62, 1,
+              text:
+                  "The exception is 'Invalid constant value.' and occurs here."),
+        ],
+      ),
     ]);
     final result = _topLevelVar('a');
     _assertNull(result);
@@ -3510,7 +3551,16 @@ class A {
 }
 const a = const A(1);
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 71, 10),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        71,
+        10,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 31, 26,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
     ]);
   }
 
@@ -3521,7 +3571,16 @@ class A {
 }
 const a = const A();
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 56, 9),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        56,
+        9,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 23, 19,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
     ]);
   }
 
@@ -3558,7 +3617,16 @@ class A {
 }
 const a = const A(0);
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 55, 10),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        55,
+        10,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 28, 13,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
     ]);
   }
 

@@ -1623,6 +1623,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try specifying a different type, or remove the type from the list.",
   );
 
+  ///  Parameters:
+  ///  0: the name of the extension type
+  ///  1: the name of the conflicting member
+  static const CompileTimeErrorCode EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT',
+    "The extension type '{0}' has more than one distinct member named '{1}' "
+        "from implemented types.",
+    correctionMessage:
+        "Try redeclaring the corresponding member in this extension type.",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode
       EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF = CompileTimeErrorCode(

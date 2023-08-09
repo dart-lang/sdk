@@ -2354,8 +2354,6 @@ class _InstanceCreationEvaluator {
 
   final LibraryElementImpl _library;
 
-  final ErrorReporter _errorReporter;
-
   final BooleanErrorListener _externalErrorListener = BooleanErrorListener();
 
   /// An error reporter for errors determined while computing values for field
@@ -2408,7 +2406,6 @@ class _InstanceCreationEvaluator {
   _InstanceCreationEvaluator._(
     this._evaluationEngine,
     this._declaredVariables,
-    this._errorReporter,
     this._library,
     this._errorNode,
     this._constructor,
@@ -2439,9 +2436,6 @@ class _InstanceCreationEvaluator {
     var argumentCount = arguments.length;
     if (_constructor.name == "fromEnvironment") {
       if (!_checkFromEnvironmentArguments(arguments, definingType)) {
-        // TODO(kallentu): Don't report error here.
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
         return InvalidConstant(
             _errorNode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
       }
@@ -2474,9 +2468,6 @@ class _InstanceCreationEvaluator {
         definingClass == typeProvider.symbolElement &&
         argumentCount == 1) {
       if (!_checkSymbolArguments(arguments, isNullSafe: isNullSafe)) {
-        // TODO(kallentu): Don't report error here.
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
         return InvalidConstant(
             _errorNode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
       }
@@ -2522,24 +2513,6 @@ class _InstanceCreationEvaluator {
         superName: evaluationResult.superName,
         superArguments: evaluationResult.superArguments);
     if (error != null) {
-      final formattedMessage =
-          formatList(error.errorCode.problemMessage, error.arguments);
-      final contextMessage = DiagnosticMessageImpl(
-        filePath: _library.source.fullName,
-        length: error.node.length,
-        message: "The exception is '$formattedMessage' and occurs here.",
-        offset: error.node.offset,
-        url: null,
-      );
-
-      // TODO(kallentu): When removing all on-site reporting, move this error
-      // to [_InstanceCreationEvaluator.evaluate] and provide context for all
-      // constructor related errors.
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-          _errorNode,
-          [],
-          [...error.contextMessages, contextMessage]);
       return error;
     }
 
@@ -2598,11 +2571,6 @@ class _InstanceCreationEvaluator {
         // Match the value and the type.
         var fieldType = FieldMember.from(field, _constructor.returnType).type;
         if (!typeSystem.runtimeTypeMatch(fieldValue, fieldType)) {
-          // TODO(kallentu): Don't report error here.
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-              _errorNode,
-              [fieldValue.type, field.name, fieldType]);
           return InvalidConstant(_errorNode,
               CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
               arguments: [fieldValue.type, field.name, fieldType]);
@@ -2673,11 +2641,8 @@ class _InstanceCreationEvaluator {
           case DartObjectImpl():
             final fieldName = initializer.fieldName.name;
             if (_fieldMap.containsKey(fieldName)) {
-              // TODO(kallentu): Don't report error here.
-              _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
               return _InitializersEvaluationResult(
-                  InvalidConstant(_errorNode,
+                  InvalidConstant(initializerExpression,
                       CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION),
                   evaluationIsComplete: true);
             }
@@ -2686,14 +2651,9 @@ class _InstanceCreationEvaluator {
             if (getter != null) {
               final field = getter.variable;
               if (!typeSystem.runtimeTypeMatch(evaluationResult, field.type)) {
-                // TODO(kallentu): Don't report error here.
-                _errorReporter.reportErrorForNode(
-                    CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-                    _errorNode,
-                    [evaluationResult.type, fieldName, field.type]);
                 return _InitializersEvaluationResult(
                     InvalidConstant(
-                        _errorNode,
+                        initializerExpression,
                         CompileTimeErrorCode
                             .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
                         arguments: [
@@ -2705,13 +2665,7 @@ class _InstanceCreationEvaluator {
               }
             }
           case InvalidConstant():
-            // TODO(kallentu): Report the specific error we got with context of
-            // the current constructor instead of this broad error code.
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
-            return _InitializersEvaluationResult(
-                InvalidConstant(_errorNode,
-                    CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION),
+            return _InitializersEvaluationResult(evaluationResult,
                 evaluationIsComplete: true);
         }
       } else if (initializer is SuperConstructorInvocation) {
@@ -2737,14 +2691,6 @@ class _InstanceCreationEvaluator {
               _initializerVisitor,
               _externalErrorReporter,
               invocation: _invocation);
-          if (result is InvalidConstant) {
-            // TODO(kallentu): Report a better error here with context from the
-            // other error reported.
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
-            result = InvalidConstant(
-                _errorNode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
-          }
           return _InitializersEvaluationResult(result,
               evaluationIsComplete: true);
         }
@@ -2755,18 +2701,12 @@ class _InstanceCreationEvaluator {
           case DartObjectImpl():
             if (!evaluationConstant.isBool ||
                 evaluationConstant.toBoolValue() == false) {
-              // TODO(kallentu): Don't report error here.
-              _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
               return _InitializersEvaluationResult(
                   InvalidConstant(initializer,
                       CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE),
                   evaluationIsComplete: true);
             }
           case InvalidConstant():
-            // TODO(kallentu): Don't report error here.
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
             return _InitializersEvaluationResult(evaluationConstant,
                 evaluationIsComplete: true);
         }
@@ -2823,11 +2763,6 @@ class _InstanceCreationEvaluator {
       if (argumentValue != null) {
         if (!argumentValue.isInvalid &&
             !typeSystem.runtimeTypeMatch(argumentValue, parameter.type)) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-            errorTarget,
-            [argumentValue.type, parameter.type],
-          );
           return InvalidConstant(errorTarget,
               CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
               arguments: [argumentValue.type, parameter.type]);
@@ -2842,11 +2777,6 @@ class _InstanceCreationEvaluator {
               // the field.
               if (!argumentValue.isInvalid &&
                   !typeSystem.runtimeTypeMatch(argumentValue, fieldType)) {
-                _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-                  errorTarget,
-                  [argumentValue.type, fieldType],
-                );
                 return InvalidConstant(errorTarget,
                     CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
                     arguments: [argumentValue.type, fieldType]);
@@ -2854,9 +2784,6 @@ class _InstanceCreationEvaluator {
             }
             final fieldName = field.name;
             if (_fieldMap.containsKey(fieldName)) {
-              // TODO(kallentu): Don't report errors here.
-              _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
               return InvalidConstant(
                   _errorNode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
             }
@@ -3045,13 +2972,12 @@ class _InstanceCreationEvaluator {
     );
 
     constructor = _followConstantRedirectionChain(constructor);
-
+    final errorNode = evaluationEngine.configuration.errorNode(node);
     final evaluator = _InstanceCreationEvaluator._(
       evaluationEngine,
       declaredVariables,
-      errorReporter,
       library,
-      evaluationEngine.configuration.errorNode(node),
+      errorNode,
       constructor,
       typeArguments,
       namedNodes: namedNodes,
@@ -3060,15 +2986,34 @@ class _InstanceCreationEvaluator {
       invocation: invocation,
     );
 
+    Constant constant;
     if (constructor.isFactory) {
       // We couldn't find a non-factory constructor.
       // See if it's because we reached an external const factory constructor
       // that we can emulate.
-      return evaluator.evaluateFactoryConstructorCall(arguments,
+      constant = evaluator.evaluateFactoryConstructorCall(arguments,
           isNullSafe: isNullSafe);
     } else {
-      return evaluator.evaluateGenerativeConstructorCall(arguments);
+      constant = evaluator.evaluateGenerativeConstructorCall(arguments);
     }
+    if (constant is InvalidConstant) {
+      final formattedMessage =
+          formatList(constant.errorCode.problemMessage, constant.arguments);
+      final contextMessage = DiagnosticMessageImpl(
+        filePath: library.source.fullName,
+        length: constant.node.length,
+        message: "The exception is '$formattedMessage' and occurs here.",
+        offset: constant.node.offset,
+        url: null,
+      );
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        errorNode,
+        [],
+        [...constant.contextMessages, contextMessage],
+      );
+    }
+    return constant;
   }
 
   /// Attempt to follow the chain of factory redirections until a constructor is

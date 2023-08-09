@@ -14,11 +14,11 @@ class D extends C {
 const intValue = 0;
 const c = const C(0.0);
 const d = const C(intValue);
-//                ^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
-// [cfe] The argument type 'int' can't be assigned to the parameter type 'double'.
+//        ^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
 //                ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'int' can't be assigned to the parameter type 'double'.
 const e = const D(0.0);
 const f = const D(intValue);
 //        ^^^^^^^^^^^^^^^^^

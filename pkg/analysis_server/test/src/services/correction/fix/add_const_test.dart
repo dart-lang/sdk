@@ -429,13 +429,13 @@ class AddConst_PreferConstConstructorsBulkTest extends BulkFixProcessorTest {
     writeTestPackageConfig(meta: true);
     await resolveTestCode(r'''
 class C {
-  const C([C c]);
+  const C([C? c]);
 }
 var c = C(C());
 ''');
     await assertHasFix(r'''
 class C {
-  const C([C c]);
+  const C([C? c]);
 }
 var c = const C(C());
 ''');

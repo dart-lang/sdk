@@ -18,9 +18,10 @@ class A {
 int foo(String x) => 499;
 
 const a = const A(foo);
+//        ^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
 //                ^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
 // [cfe] The argument type 'int Function(String)' can't be assigned to the parameter type 'String Function(int)'.
 
 main() {
