@@ -711,6 +711,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForNonCovariantTypeParameterPositionInRepresentationType(
           node, element);
       _checkForExtensionTypeRepresentationDependsOnItself(node, element);
+      _checkForExtensionTypeImplementsItself(node, element);
       _checkForExtensionTypeMemberConflicts(
         node: node,
         element: element,
@@ -2915,6 +2916,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
+  void _checkForExtensionTypeImplementsItself(
+    ExtensionTypeDeclarationImpl node,
+    ExtensionTypeElementImpl element,
+  ) {
+    if (element.hasImplementsSelfReference) {
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF,
+        node.name,
+      );
+    }
+  }
+
   void _checkForExtensionTypeMemberConflicts({
     required ExtensionTypeDeclaration node,
     required ExtensionTypeElement element,
@@ -2958,7 +2971,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ExtensionTypeDeclarationImpl node,
     ExtensionTypeElementImpl element,
   ) {
-    if (element.hasSelfReference) {
+    if (element.hasRepresentationSelfReference) {
       errorReporter.reportErrorForToken(
         CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
         node.name,

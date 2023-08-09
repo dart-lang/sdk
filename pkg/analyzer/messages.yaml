@@ -5078,6 +5078,10 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the display string of the disallowed type
+  EXTENSION_TYPE_IMPLEMENTS_ITSELF:
+    problemMessage: "The extension type can't implement itself."
+    correctionMessage: Try removing the superinterface that references this extension type.
+    comment: No parameters.
   EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT:
     problemMessage: "The extension type '{0}' has more than one distinct member named '{1}' from implemented types."
     correctionMessage: Try redeclaring the corresponding member in this extension type.

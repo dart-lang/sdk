@@ -652,6 +652,8 @@ CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
     Offer to delete the invalid member.
 CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE:
   status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF:
+  status: noFix
 CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT:
   status: noFix
 CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF:

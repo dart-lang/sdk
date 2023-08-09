@@ -1642,6 +1642,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try specifying a different type, or remove the type from the list.",
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode EXTENSION_TYPE_IMPLEMENTS_ITSELF =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_IMPLEMENTS_ITSELF',
+    "The extension type can't implement itself.",
+    correctionMessage:
+        "Try removing the superinterface that references this extension type.",
+  );
+
   ///  Parameters:
   ///  0: the name of the extension type
   ///  1: the name of the conflicting member

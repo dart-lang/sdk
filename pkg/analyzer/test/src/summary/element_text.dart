@@ -500,7 +500,14 @@ class _ElementWriter {
 
   void _writeExtensionTypeElement(ExtensionTypeElementImpl e) {
     _sink.writeIndentedLine(() {
-      _sink.writeIf(e.hasSelfReference, 'hasSelfReference ');
+      _sink.writeIf(
+        e.hasRepresentationSelfReference,
+        'hasRepresentationSelfReference ',
+      );
+      _sink.writeIf(
+        e.hasImplementsSelfReference,
+        'hasImplementsSelfReference ',
+      );
       _writeName(e);
     });
 
