@@ -124,6 +124,7 @@ general/type_variable_in_static_context: FormatterCrash
 general/var_as_type_name: FormatterCrash
 inline_class/inline_class_declaration: FormatterCrash
 inline_class/issue52667: FormatterCrash
+inline_class/extension_types/access_non_extension_type_members: FormatterCrash
 inline_class/extension_types/annotations: FormatterCrash
 inline_class/extension_types/const_constructor: FormatterCrash
 inline_class/extension_types/constructor_access: FormatterCrash

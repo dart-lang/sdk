@@ -1032,9 +1032,10 @@ mixin StandardBounds {
         supertypes.add(type);
         for (DartType implemented in type.extensionTypeDeclaration.implements) {
           if (implemented is ExtensionType) {
-            ExtensionType supertype = hierarchy.getExtensionTypeAsInstanceOf(
-                type, implemented.extensionTypeDeclaration,
-                isNonNullableByDefault: isNonNullableByDefault)!;
+            ExtensionType supertype =
+                hierarchy.getExtensionTypeAsInstanceOfExtensionTypeDeclaration(
+                    type, implemented.extensionTypeDeclaration,
+                    isNonNullableByDefault: isNonNullableByDefault)!;
             computeSuperTypes(supertype, supertypes);
           }
         }
