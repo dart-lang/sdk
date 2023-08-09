@@ -268,6 +268,18 @@ const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
 // "referenced."
 const _Protected protected = _Protected();
 
+/// Used to annotate an instance member of an extension type that
+/// redeclares a member from a superinterface.
+///
+/// Tools, such as the analyzer, can provide feedback if
+///
+/// * the annotation is associated with anything other than a valid instance
+///   member of an extension type (a method, operator, getter, or setter) or
+/// * is applied to a member that does not redeclare a member from either the
+///   extended type or a superinterface.
+@experimental
+const _Redeclare redeclare = _Redeclare();
+
 /// Annotation for intentionally loosening restrictions on subtyping that would
 /// otherwise cause lint warnings to be produced by the `implicit_reopen` lint.
 ///
@@ -517,6 +529,16 @@ class _OptionalTypeArgs {
 
 class _Protected {
   const _Protected();
+}
+
+@Target({
+  // todo(pq): restrict to instance members only
+  TargetKind.getter,
+  TargetKind.setter,
+  TargetKind.method,
+})
+class _Redeclare {
+  const _Redeclare();
 }
 
 @Target({
