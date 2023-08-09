@@ -682,6 +682,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing the keyword 'const' from the constructor or removing the "
         "keyword 'deferred' from the import.",
+    hasPublishedDocs: true,
     uniqueName: 'CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY',
   );
 

@@ -44,9 +44,9 @@
 #   issue created for it.
 #
 # Stats:
-# -   0 "needsEvaluation"
-# - 381 "needsFix"
-# - 348 "hasFix"
+# -  19 "needsEvaluation"
+# - 372 "needsFix"
+# - 359 "hasFix"
 # - 490 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -1759,12 +1759,6 @@ FfiCode.PACKED_ANNOTATION:
 FfiCode.PACKED_ANNOTATION_ALIGNMENT:
   status: noFix
 FfiCode.SIZE_ANNOTATION_DIMENSIONS:
-  status: noFix
-FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS:
-  status: noFix
-FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS:
-  status: noFix
-FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH:
   status: noFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
   status: hasFix
