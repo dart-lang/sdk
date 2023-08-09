@@ -4,6 +4,9 @@
 
 // CHANGES:
 //
+// v0.36 Update syntax from `inline class` to `extension type`, including
+// a special case of primary constructors.
+//
 // v0.35 Change named optional parameter syntax to require '=', that is,
 // remove the support for ':' as in `void f({int i: 1})`.
 //
@@ -249,7 +252,7 @@ libraryDefinition
 topLevelDefinition
     :    classDeclaration
     |    mixinDeclaration
-    |    inlineClassDeclaration
+    |    extensionTypeDeclaration
     |    extensionDeclaration
     |    enumType
     |    typeAlias
@@ -437,13 +440,20 @@ mixinMemberDeclaration
     :    classMemberDeclaration
     ;
 
-inlineClassDeclaration
-    :    FINAL? INLINE CLASS typeWithParameters interfaces?
-         LBRACE (metadata inlineMemberDeclaration)* RBRACE
+extensionTypeDeclaration
+    :    EXTENSION TYPE CONST? typeWithParameters
+         representationDeclaration
+         interfaces?
+         LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
     ;
 
+representationDeclaration
+    :    ('.' identifierOrNew)? '(' metadata type identifier ')'
+    ;
+
+
 // TODO: We might want to make this more strict.
-inlineMemberDeclaration
+extensionTypeMemberDeclaration
     :    classMemberDeclaration
     ;
 
@@ -1629,12 +1639,12 @@ otherIdentifier
     :    ASYNC
     |    BASE
     |    HIDE
-    |    INLINE
     |    OF
     |    ON
     |    SEALED
     |    SHOW
     |    SYNC
+    |    TYPE
     |    WHEN
     ;
 
@@ -1915,10 +1925,6 @@ HIDE
     :    'hide'
     ;
 
-INLINE
-    :    'inline'
-    ;
-
 OF
     :    'of'
     ;
@@ -1937,6 +1943,10 @@ SHOW
 
 SYNC
     :    'sync'
+    ;
+
+TYPE
+    :    'type'
     ;
 
 WHEN
