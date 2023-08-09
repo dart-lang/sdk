@@ -85,7 +85,8 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
         var root = node
             .thisOrAncestorMatching((node) =>
                 node.parent is FunctionDeclaration ||
-                node.parent is MethodDeclaration)
+                node.parent is MethodDeclaration ||
+                node.parent is ConstructorDeclaration)
             ?.parent;
         if (root != null) {
           references = findLocalElementReferences(root, element);
