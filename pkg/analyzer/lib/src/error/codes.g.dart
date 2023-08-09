@@ -1600,6 +1600,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  No parameters.
   static const CompileTimeErrorCode
+      EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
+    "Extension type constructors can't declare super formal parameters.",
+    correctionMessage: "Try removing the super formal parameter declaration.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode
       EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION = CompileTimeErrorCode(
     'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
     "Extension type constructors can't include superinitializers.",

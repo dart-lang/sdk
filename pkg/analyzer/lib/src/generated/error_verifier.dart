@@ -1297,6 +1297,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitSuperFormalParameter(SuperFormalParameter node) {
     super.visitSuperFormalParameter(node);
 
+    if (_enclosingClass is ExtensionTypeElement) {
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode
+            .EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER,
+        node.superKeyword,
+      );
+      return;
+    }
+
     var constructor = node.parentFormalParameterList.parent;
     if (!(constructor is ConstructorDeclaration &&
         constructor.isNonRedirectingGenerative)) {
