@@ -5082,6 +5082,13 @@ CompileTimeErrorCode:
     problemMessage: "The extension type can't implement itself."
     correctionMessage: Try removing the superinterface that references this extension type.
     comment: No parameters.
+  EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE_OF_ERASURE:
+    problemMessage: "'{0}' is not a supertype of '{1}', the ultimate representation type."
+    correctionMessage: Try specifying a different type, or remove the type from the list.
+    comment: |-
+      Parameters:
+      0: the implemented not extension type
+      1: the ultimate representation type
   EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT:
     problemMessage: "The extension type '{0}' has more than one distinct member named '{1}' from implemented types."
     correctionMessage: Try redeclaring the corresponding member in this extension type.

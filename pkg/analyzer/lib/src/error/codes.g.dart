@@ -1652,6 +1652,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the implemented not extension type
+  ///  1: the ultimate representation type
+  static const CompileTimeErrorCode
+      EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE_OF_ERASURE = CompileTimeErrorCode(
+    'EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE_OF_ERASURE',
+    "'{0}' is not a supertype of '{1}', the ultimate representation type.",
+    correctionMessage:
+        "Try specifying a different type, or remove the type from the list.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the extension type
   ///  1: the name of the conflicting member
   static const CompileTimeErrorCode EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT =
