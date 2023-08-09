@@ -309,6 +309,11 @@ extension ExpressionExtension on Expression? {
   bool get isNullLiteral => this?.unParenthesized is NullLiteral;
 }
 
+extension FieldDeclarationExtension on FieldDeclaration {
+  bool get isInvalidExtensionTypeField =>
+      !isStatic && parent is ExtensionTypeDeclaration;
+}
+
 extension InhertanceManager3Extension on InheritanceManager3 {
   /// Returns the class member that is overridden by [member], if there is one,
   /// as defined by [getInherited].

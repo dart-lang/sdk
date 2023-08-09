@@ -95,6 +95,7 @@ class PublicMemberApiDocs extends LintRule {
     registry.addEnumConstantDeclaration(this, visitor);
     registry.addEnumDeclaration(this, visitor);
     registry.addExtensionDeclaration(this, visitor);
+    registry.addExtensionTypeDeclaration(this, visitor);
     registry.addFieldDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
     registry.addGenericTypeAlias(this, visitor);
@@ -166,6 +167,13 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    var element = node.declaredElement;
+    if (element == null || element.hasInternal) return;
+    _visitMembers(node, node.name, node.members);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     var element = node.declaredElement;
     if (element == null || element.hasInternal) return;
     _visitMembers(node, node.name, node.members);
@@ -269,6 +277,7 @@ class _Visitor extends SimpleAstVisitor {
     // todo(pq): update this to be called from the parent (like with visitMembers)
     if (node.isInternal) return;
     if (inPrivateMember(node)) return;
+    if (node.isInvalidExtensionTypeField) return;
 
     for (var field in node.fields.variables) {
       if (!isPrivate(field.name)) {

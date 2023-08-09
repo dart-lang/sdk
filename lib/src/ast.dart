@@ -108,6 +108,9 @@ SyntacticEntity getNodeToAnnotate(Declaration node) {
   if (node is VariableDeclaration) {
     return node.name;
   }
+  if (node is ExtensionTypeDeclaration) {
+    return node.name;
+  }
   assert(false, "Unaccounted for Declaration subtype: '${node.runtimeType}'");
   return node;
 }

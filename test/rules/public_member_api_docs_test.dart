@@ -10,7 +10,74 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PublicMemberApiDocsTest);
     defineReflectiveTests(PublicMemberApiDocsTestDirTest);
+    defineReflectiveTests(PublicMemberApiDocsExtensionTypesTest);
   });
+}
+
+@reflectiveTest
+class PublicMemberApiDocsExtensionTypesTest extends LintRuleTest {
+  @override
+  bool get addMetaPackageDep => true;
+
+  @override
+  List<String> get experiments => ['inline-class'];
+
+  @override
+  String get lintRule => 'public_member_api_docs';
+
+  test_extensionTypeDeclaration() async {
+    await assertDiagnostics(r'''
+extension type E(int i) { }
+''', [
+      lint(15, 1),
+    ]);
+  }
+
+  test_field_instance() async {
+    await assertDiagnostics(r'''
+/// Doc.    
+extension type E(int i) {
+  int? f;
+}
+''', [
+      // No lint.
+      // todo(pq): add compilation error once reported
+    ]);
+  }
+
+  test_field_static() async {
+    await assertDiagnostics(r'''
+/// Doc.    
+extension type E(int i) {
+  static int? f;
+}
+''', [
+      lint(53, 1),
+    ]);
+  }
+
+  test_method() async {
+    await assertDiagnostics(r'''
+/// Doc.    
+extension type E(int i) {
+  void m() { }
+}
+''', [
+      lint(46, 1),
+    ]);
+  }
+
+  test_method_private() async {
+    await assertDiagnostics(r'''
+/// Doc.    
+extension type E(int i) {
+  void _m() { }
+}
+''', [
+      // No lint
+      error(WarningCode.UNUSED_ELEMENT, 46, 2),
+    ]);
+  }
 }
 
 @reflectiveTest
