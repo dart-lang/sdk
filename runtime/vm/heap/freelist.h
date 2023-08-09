@@ -36,7 +36,6 @@ class FreeListElement {
   }
 
   static FreeListElement* AsElement(uword addr, intptr_t size);
-  static FreeListElement* AsElementNew(uword addr, intptr_t size);
 
   static void Init();
 
