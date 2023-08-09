@@ -5056,6 +5056,10 @@ CompileTimeErrorCode:
 
       If there are multiple cascaded accesses, you'll need to duplicate the
       extension override for each one.
+  EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION:
+    problemMessage: "Extension type constructors can't include superinitializers."
+    correctionMessage: Try removing the superconstructor invocation.
+    comment: No parameters.
   EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
     problemMessage: "Extension types can't declare instance fields."
     correctionMessage: Try replacing the field with a getter.

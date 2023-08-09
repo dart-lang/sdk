@@ -1599,6 +1599,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  static const CompileTimeErrorCode
+      EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION = CompileTimeErrorCode(
+    'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
+    "Extension type constructors can't include superinitializers.",
+    correctionMessage: "Try removing the superconstructor invocation.",
+  );
+
+  ///  No parameters.
   static const CompileTimeErrorCode EXTENSION_TYPE_DECLARES_INSTANCE_FIELD =
       CompileTimeErrorCode(
     'EXTENSION_TYPE_DECLARES_INSTANCE_FIELD',
