@@ -195,6 +195,58 @@ void f() {
     expect(edit.textDocument.version, 1);
   }
 
+  Future<void> test_privateUnusedParameters_notRemovedIfSave() async {
+    const content = '''
+class _MyClass {
+  int? _param;
+  _MyClass({
+    this._param,
+  });
+}
+''';
+
+    final codeAction = await expectAction(
+      content,
+      command: Commands.fixAll,
+      triggerKind: CodeActionTriggerKind.Automatic,
+    );
+    final command = codeAction.command!;
+
+    // We should not get an applyEdit call during the command execution because
+    // no edits should be produced.
+    final applyEditSubscription = requestsFromServer
+        .where((n) => n.method == Method.workspace_applyEdit)
+        .listen((_) => throw 'workspace/applyEdit was unexpectedly called');
+    final commandResponse = await executeCommand(command);
+    expect(commandResponse, isNull);
+
+    await pumpEventQueue();
+    await applyEditSubscription.cancel();
+  }
+
+  Future<void> test_privateUnusedParameters_removedByDefault() async {
+    const content = '''
+class _MyClass {
+  int? param;
+  _MyClass({
+    this.param,
+  });
+}
+''';
+    const expectedContent = '''
+class _MyClass {
+  int? param;
+  _MyClass();
+}
+''';
+
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.fixAll,
+    );
+  }
+
   Future<void> test_unavailable_outsideAnalysisRoot() async {
     final otherFile = convertPath('/other/file.dart');
     final content = '';
