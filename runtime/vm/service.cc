@@ -4562,14 +4562,44 @@ static void AddVMMappings(JSONArray* rss_children) {
   }
 
   MallocGrowableArray<VMMapping> mappings(10);
-  char line[256];
+  char* line = nullptr;
+  size_t line_buffer_size = 0;
   char path[256];
   char property[32];
   size_t start, end, size;
-  while (fgets(line, sizeof(line), fp) != nullptr) {
+  while (getline(&line, &line_buffer_size, fp) > 0) {
     if (sscanf(line, "%zx-%zx", &start, &end) == 2) {
-      // Mapping line.
-      strncpy(path, strrchr(line, ' ') + 1, sizeof(path) - 1);
+      // Each line has the following format:
+      //
+      //   start-end flags offset dev inode path
+      //
+      // We want to skip 4 fields and get to the last one (path).
+      // Note that we can't scan backwards because path might contain white
+      // space.
+      const intptr_t kPathFieldIndex = 5;
+
+      char* path_start = line;
+      intptr_t current_field = 0;
+      while (*path_start != '\0') {
+        // Field separator.
+        if (*path_start == ' ') {
+          // Skip to the first non-space.
+          while (*path_start == ' ') {
+            path_start++;
+          }
+          current_field++;
+          if (current_field == kPathFieldIndex) {
+            break;
+          }
+          continue;
+        }
+        path_start++;
+      }
+      if (current_field != kPathFieldIndex) {
+        continue;  // Malformed input.
+      }
+
+      strncpy(path, path_start, sizeof(path) - 1);
       int len = strlen(path);
       if ((len > 0) && path[len - 1] == '\n') {
         path[len - 1] = 0;
@@ -4606,6 +4636,7 @@ static void AddVMMappings(JSONArray* rss_children) {
     }
   }
   fclose(fp);
+  free(line);  // Free buffer allocated by getline.
 
   for (intptr_t i = 0; i < mappings.length(); i++) {
     JSONObject mapping(rss_children);
