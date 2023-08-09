@@ -160,7 +160,7 @@ vars = {
   "mockito_rev": "ff79de69e9ef9e8647bd6008c29c16651c9ac220",
   "native_rev": "5a1361b6d98a84f8070c97872e3d3587fc0ba435",
   "package_config_rev": "981c49dfec1e3e3e90f336dcd7c225923d2fd321",
-  "path_rev": "282dd18bd9ae2e265ea40a29b2c637194e9be8b7",
+  "path_rev": "7c2324bdb4c75a17de8a3d1e6afe8cc0756ef5f9",
   "pool_rev": "77001024a16126cc5718e654ea3e57bbf6e7fac3",
   "protobuf_rev": "217c0306ee376a8a9c05e72fc90cffab6b60e66a",
   "pub_rev": "42819a1e10f803eb7f6296692c5a976e1c647360", # disable rev_sdk_deps.dart
