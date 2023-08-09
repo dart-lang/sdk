@@ -186,7 +186,7 @@ ISOLATE_UNIT_TEST_CASE(Isolate_Ports) {
     EXPECT(port.is_open());
     EXPECT(port.keep_isolate_alive());
     EXPECT(port.Id() != ILLEGAL_PORT);
-    EXPECT(PortMap::IsLivePort(port.Id()));
+    EXPECT(PortMap::PortExists(port.Id()));
     EXPECT(isolate->HasLivePorts());
 
     // Make port not keep isolate alive.
@@ -218,7 +218,7 @@ ISOLATE_UNIT_TEST_CASE(Isolate_Ports) {
     // Make port.
     port = isolate->CreateReceivePort(String::null_string());
     EXPECT_NE(0, port.Id());
-    EXPECT(PortMap::IsLivePort(port.Id()));
+    EXPECT(PortMap::PortExists(port.Id()));
     EXPECT(isolate->HasLivePorts());
 
     // Make port not keep isolate alive.

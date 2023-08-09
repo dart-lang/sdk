@@ -89,7 +89,7 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
   IsolateLeaveScope saver(Isolate::Current());
 
   NativeMessageHandler* nmh = new NativeMessageHandler(name, handler);
-  Dart_Port port_id = PortMap::CreatePort(nmh, PortMap::kLivePort);
+  Dart_Port port_id = PortMap::CreatePort(nmh);
   if (port_id != ILLEGAL_PORT) {
     if (!nmh->Run(Dart::thread_pool(), nullptr, nullptr, 0)) {
       PortMap::ClosePort(port_id);

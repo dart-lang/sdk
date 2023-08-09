@@ -540,7 +540,7 @@ VM_UNIT_TEST_CASE(CleanupBequestNeverReceived) {
   EXPECT_EQ(parent, Dart_CurrentIsolate());
   {
     SendAndExitMessagesHandler handler(Isolate::Current());
-    Dart_Port port_id = PortMap::CreatePort(&handler, PortMap::kLivePort);
+    Dart_Port port_id = PortMap::CreatePort(&handler);
     EXPECT_EQ(PortMap::GetIsolate(port_id), Isolate::Current());
     Dart_ExitIsolate();
 
@@ -570,7 +570,7 @@ VM_UNIT_TEST_CASE(ReceivesSendAndExitMessage) {
   Dart_Isolate parent = TestCase::CreateTestIsolate("parent");
   EXPECT_EQ(parent, Dart_CurrentIsolate());
   SendAndExitMessagesHandler handler(Isolate::Current());
-  Dart_Port port_id = PortMap::CreatePort(&handler, PortMap::kLivePort);
+  Dart_Port port_id = PortMap::CreatePort(&handler);
   EXPECT_EQ(PortMap::GetIsolate(port_id), Isolate::Current());
   Dart_ExitIsolate();
 
