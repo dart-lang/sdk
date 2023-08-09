@@ -10,6 +10,9 @@ part of dart.core;
 /// introduced using an `enum` declaration.
 /// Non-platform classes cannot extend or mix in this class.
 /// Concrete classes cannot implement the interface.
+///
+/// The string name of a value is available via the `name` property                                                                                                                    
+/// exposed by the [EnumName] extension (see [EnumName.name]).                                                                                                                         
 @Since("2.14")
 abstract interface class Enum {
   /// A numeric identifier for the enumerated value.
