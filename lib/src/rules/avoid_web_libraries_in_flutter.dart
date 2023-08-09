@@ -73,16 +73,20 @@ class AvoidWebLibrariesInFlutter extends LintRule {
       return false;
     }
 
-    // Check for Flutter.
-    if ((parsedPubspec['dependencies'] ?? const {})['flutter'] == null) {
-      return false;
+    // If it has Flutter as a dependency, continue checking.
+    if (parsedPubspec['dependencies'] case {'flutter': var _?}) {
+      if (parsedPubspec['flutter']
+          case {'plugin': {'platforms': {'web': _?}}}) {
+        // Is a Flutter web plugin, allow web libraries.
+        return false;
+      } else {
+        // Is a non-web Flutter package, don't allow web libraries.
+        return true;
+      }
     }
 
-    // Check for a web plugin context declaration.
-    return (((parsedPubspec['flutter'] ?? const {})['plugin'] ??
-                const {})['platforms'] ??
-            const {})['web'] ==
-        null;
+    // Is not a Flutter package, allow web libraries.
+    return false;
   }
 
   @override

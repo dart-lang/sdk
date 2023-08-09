@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
-import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../tool/machine.dart';
@@ -14,8 +11,8 @@ void main() {
   group('machine output tests', () {
     setUp(setUpSharedTestEnvironment);
     test("ensure 'rules.json' is up to date", () async {
-      var rulesFilePath = path.join('tool', 'machine', 'rules.json');
-      var onDisk = File(rulesFilePath).readAsStringSync();
+      var rulesFile = machineJsonFile();
+      var onDisk = rulesFile.readAsStringSync();
       var generated = await generateRulesJson();
       expect(
         generated,

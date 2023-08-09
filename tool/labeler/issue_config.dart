@@ -5,28 +5,29 @@
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:http/http.dart' as http;
 import 'package:linter/src/utils.dart';
 
-/// Generate issue labeler workflow config data.
-main(List<String> args) async {
-  var client = http.Client();
-  var req = await client.get(
-      Uri.parse('https://dart-lang.github.io/linter/lints/machine/rules.json'));
+import '../machine.dart';
 
-  var machine = json.decode(req.body) as Iterable;
+/// Generate issue labeler workflow config data.
+void main(List<String> args) async {
+  var rulesFile = machineJsonFile();
+  var req = rulesFile.readAsStringSync();
+
+  var machine = json.decode(req) as Iterable<Object?>;
 
   var coreLints = <String>[];
   var recommendedLints = <String>[];
   var flutterLints = <String>[];
   for (var entry in machine) {
-    var sets = entry['sets'] as List;
-    if (sets.contains('core')) {
-      coreLints.add(entry['name'] as String);
-    } else if (sets.contains('recommended')) {
-      recommendedLints.add(entry['name'] as String);
-    } else if (sets.contains('flutter')) {
-      flutterLints.add(entry['name'] as String);
+    if (entry case {'name': String name, 'sets': List<Object?> sets}) {
+      if (sets.contains('core')) {
+        coreLints.add(name);
+      } else if (sets.contains('recommended')) {
+        recommendedLints.add(name);
+      } else if (sets.contains('flutter')) {
+        flutterLints.add(name);
+      }
     }
   }
 

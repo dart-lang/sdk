@@ -32,12 +32,17 @@ void main(List<String> args) async {
       includeSetInfo: options['sets'] == true);
 
   if (options['write'] == true) {
-    var outPath = path.join('tool', 'machine', 'rules.json');
-    printToConsole('Writing to $outPath');
-    File(outPath).writeAsStringSync(json);
+    var outFile = machineJsonFile();
+    printToConsole('Writing to ${outFile.path}');
+    outFile.writeAsStringSync(json);
   } else {
     printToConsole(json);
   }
+}
+
+File machineJsonFile() {
+  var outPath = path.join('tool', 'machine', 'rules.json');
+  return File(outPath);
 }
 
 Future<Map<String, String>> fetchFixStatusMap() async {
