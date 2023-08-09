@@ -99,8 +99,6 @@ class DocumentationValidator {
     // Produces two diagnostics when it should only produce one (see
     // https://github.com/dart-lang/sdk/issues/43051)
     'HintCode.UNNECESSARY_NULL_COMPARISON_FALSE',
-    // Also produces FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY.
-    'FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS',
 
     // Produces two diagnostics when it should only produce one (see
     // https://github.com/dart-lang/sdk/issues/43263)
@@ -274,6 +272,13 @@ class DocumentationValidator {
     for (var errorEntry in messages.entries) {
       var errorName = errorEntry.key;
       var errorCodeInfo = errorEntry.value;
+
+      // If the error code is no longer generated,
+      // the corresponding code snippets won't report it.
+      if (errorCodeInfo.isRemoved) {
+        continue;
+      }
+
       var docs = parseErrorCodeDocumentation(
           '$className.$errorName', errorCodeInfo.documentation);
       if (docs != null) {

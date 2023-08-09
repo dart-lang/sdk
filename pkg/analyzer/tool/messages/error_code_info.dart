@@ -283,15 +283,17 @@ class AliasErrorCodeInfo extends AnalyzerErrorCodeInfo {
 /// In-memory representation of error code information obtained from the
 /// analyzer's `messages.yaml` file.
 class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
-  AnalyzerErrorCodeInfo(
-      {super.comment,
-      super.correctionMessage,
-      super.deprecatedMessage,
-      super.documentation,
-      super.hasPublishedDocs,
-      super.isUnresolvedIdentifier,
-      required super.problemMessage,
-      super.sharedName});
+  AnalyzerErrorCodeInfo({
+    super.comment,
+    super.correctionMessage,
+    super.deprecatedMessage,
+    super.documentation,
+    super.hasPublishedDocs,
+    super.isUnresolvedIdentifier,
+    required super.problemMessage,
+    super.removedIn,
+    super.sharedName,
+  });
 
   AnalyzerErrorCodeInfo.fromYaml(super.yaml) : super.fromYaml();
 }
@@ -455,6 +457,10 @@ abstract class ErrorCodeInfo {
   /// The problemMessage for the error code.
   final String problemMessage;
 
+  /// If present, the SDK version this error code stopped being reported in.
+  /// If not null, error codes will not be generated for this error.
+  final String? removedIn;
+
   /// If present, indicates that this error code has a special name for
   /// presentation to the user, that is potentially shared with other error
   /// codes.
@@ -464,16 +470,18 @@ abstract class ErrorCodeInfo {
   /// [previousName] to its current name (or [sharedName]).
   final String? previousName;
 
-  ErrorCodeInfo(
-      {this.comment,
-      this.documentation,
-      this.hasPublishedDocs = false,
-      this.isUnresolvedIdentifier = false,
-      this.sharedName,
-      required this.problemMessage,
-      this.correctionMessage,
-      this.deprecatedMessage,
-      this.previousName});
+  ErrorCodeInfo({
+    this.comment,
+    this.documentation,
+    this.hasPublishedDocs = false,
+    this.isUnresolvedIdentifier = false,
+    this.sharedName,
+    required this.problemMessage,
+    this.correctionMessage,
+    this.deprecatedMessage,
+    this.previousName,
+    this.removedIn,
+  });
 
   /// Decodes an [ErrorCodeInfo] object from its YAML representation.
   ErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
@@ -487,7 +495,12 @@ abstract class ErrorCodeInfo {
                 yaml['isUnresolvedIdentifier'] as bool? ?? false,
             problemMessage: yaml['problemMessage'] as String,
             sharedName: yaml['sharedName'] as String?,
+            removedIn: yaml['removedIn'] as String?,
             previousName: yaml['previousName'] as String?);
+
+  /// If this error is no longer reported and
+  /// its error codes should no longer be generated.
+  bool get isRemoved => removedIn != null;
 
   /// Given a messages.yaml entry, come up with a mapping from placeholder
   /// patterns in its message strings to their corresponding indices.
@@ -556,6 +569,7 @@ abstract class ErrorCodeInfo {
 
   /// Encodes this object into a YAML representation.
   Map<Object?, Object?> toYaml() => {
+        if (removedIn != null) 'removedIn': removedIn,
         if (sharedName != null) 'sharedName': sharedName,
         'problemMessage': problemMessage,
         if (correctionMessage != null) 'correctionMessage': correctionMessage,

@@ -229,9 +229,9 @@ VM_UNIT_TEST_CASE(MessageHandler_CloseAllPorts) {
 VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
-  Dart_Port port1 = PortMap::CreatePort(&handler, PortMap::kLivePort);
-  Dart_Port port2 = PortMap::CreatePort(&handler, PortMap::kLivePort);
-  Dart_Port port3 = PortMap::CreatePort(&handler, PortMap::kLivePort);
+  Dart_Port port1 = PortMap::CreatePort(&handler);
+  Dart_Port port2 = PortMap::CreatePort(&handler);
+  Dart_Port port3 = PortMap::CreatePort(&handler);
   handler_peer.PostMessage(BlankMessage(port1, Message::kNormalPriority));
   handler_peer.PostMessage(BlankMessage(port2, Message::kOOBPriority));
   handler_peer.PostMessage(BlankMessage(port2, Message::kNormalPriority));
@@ -255,9 +255,9 @@ VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage_ProcessOOBAfterError) {
   };
   handler.set_results(results);
   MessageHandlerTestPeer handler_peer(&handler);
-  Dart_Port port1 = PortMap::CreatePort(&handler, PortMap::kLivePort);
-  Dart_Port port2 = PortMap::CreatePort(&handler, PortMap::kLivePort);
-  Dart_Port port3 = PortMap::CreatePort(&handler, PortMap::kLivePort);
+  Dart_Port port1 = PortMap::CreatePort(&handler);
+  Dart_Port port2 = PortMap::CreatePort(&handler);
+  Dart_Port port3 = PortMap::CreatePort(&handler);
   handler_peer.PostMessage(BlankMessage(port1, Message::kNormalPriority));
   handler_peer.PostMessage(BlankMessage(port2, Message::kOOBPriority));
   handler_peer.PostMessage(BlankMessage(port3, Message::kOOBPriority));
@@ -282,10 +282,10 @@ VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage_Shutdown) {
   };
   handler.set_results(results);
   MessageHandlerTestPeer handler_peer(&handler);
-  Dart_Port port1 = PortMap::CreatePort(&handler, PortMap::kLivePort);
-  Dart_Port port2 = PortMap::CreatePort(&handler, PortMap::kLivePort);
-  Dart_Port port3 = PortMap::CreatePort(&handler, PortMap::kLivePort);
-  Dart_Port port4 = PortMap::CreatePort(&handler, PortMap::kLivePort);
+  Dart_Port port1 = PortMap::CreatePort(&handler);
+  Dart_Port port2 = PortMap::CreatePort(&handler);
+  Dart_Port port3 = PortMap::CreatePort(&handler);
+  Dart_Port port4 = PortMap::CreatePort(&handler);
   handler_peer.PostMessage(BlankMessage(port1, Message::kNormalPriority));
   handler_peer.PostMessage(BlankMessage(port2, Message::kOOBPriority));
   handler_peer.PostMessage(BlankMessage(port3, Message::kOOBPriority));
@@ -308,10 +308,10 @@ VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage_Shutdown) {
 VM_UNIT_TEST_CASE(MessageHandler_HandleOOBMessages) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
-  Dart_Port port1 = PortMap::CreatePort(&handler, PortMap::kLivePort);
-  Dart_Port port2 = PortMap::CreatePort(&handler, PortMap::kLivePort);
-  Dart_Port port3 = PortMap::CreatePort(&handler, PortMap::kLivePort);
-  Dart_Port port4 = PortMap::CreatePort(&handler, PortMap::kLivePort);
+  Dart_Port port1 = PortMap::CreatePort(&handler);
+  Dart_Port port2 = PortMap::CreatePort(&handler);
+  Dart_Port port3 = PortMap::CreatePort(&handler);
+  Dart_Port port4 = PortMap::CreatePort(&handler);
   handler_peer.PostMessage(BlankMessage(port1, Message::kNormalPriority));
   handler_peer.PostMessage(BlankMessage(port2, Message::kNormalPriority));
   handler_peer.PostMessage(BlankMessage(port3, Message::kOOBPriority));
@@ -349,11 +349,13 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
   ThreadPool pool;
   MessageHandlerTestPeer handler_peer(&handler);
 
-  EXPECT(!PortMap::HasLivePorts(&handler));
-
   handler.Run(&pool, TestStartFunction, TestEndFunction,
               reinterpret_cast<uword>(&handler));
-  Dart_Port port = PortMap::CreatePort(&handler, PortMap::kLivePort);
+
+  EXPECT(!PortMap::HasPorts(&handler));
+  Dart_Port port = PortMap::CreatePort(&handler);
+  EXPECT(PortMap::HasPorts(&handler));
+
   handler_peer.PostMessage(BlankMessage(port, Message::kNormalPriority));
 
   // Wait for the first message to be handled.
@@ -372,7 +374,7 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
   // Start a thread which sends more messages.
   Dart_Port ports[10];
   for (int i = 0; i < 10; i++) {
-    ports[i] = PortMap::CreatePort(&handler, PortMap::kLivePort);
+    ports[i] = PortMap::CreatePort(&handler);
   }
   ThreadStartInfo info;
   info.handler = &handler;
@@ -401,7 +403,7 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
     PortMap::ClosePort(ports[i]);
   }
   PortMap::ClosePort(port);
-  EXPECT(!PortMap::HasLivePorts(&handler));
+  EXPECT(!PortMap::HasPorts(&handler));
 
   // Must join the thread or the VM shutdown is racing with any VM state the
   // thread touched.

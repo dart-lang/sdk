@@ -1791,8 +1791,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   // Setup the isolate message handler.
   result->message_handler_ = new IsolateMessageHandler(result);
 
-  result->set_main_port(
-      PortMap::CreatePort(result->message_handler(), PortMap::kControlPort));
+  result->set_main_port(PortMap::CreatePort(result->message_handler()));
 #if defined(DEBUG)
   // Verify that we are never reusing a live origin id.
   VerifyOriginId id_verifier(result->main_port());
@@ -3640,8 +3639,7 @@ bool Isolate::HasLivePorts() {
 }
 
 ReceivePortPtr Isolate::CreateReceivePort(const String& debug_name) {
-  Dart_Port port_id =
-      PortMap::CreatePort(message_handler(), PortMap::kLivePort);
+  Dart_Port port_id = PortMap::CreatePort(message_handler());
   ++open_ports_;
   ++open_ports_keepalive_;
   return ReceivePort::New(port_id, debug_name);

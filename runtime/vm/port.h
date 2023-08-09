@@ -20,18 +20,11 @@ class Isolate;
 class Message;
 class MessageHandler;
 class Mutex;
-class PortMapTestPeer;
 
 class PortMap : public AllStatic {
  public:
-  enum PortState {
-    kUnusedEntry = 0,
-    kLivePort = 1,     // a regular port (has a ReceivePort)
-    kControlPort = 2,  // a special control port
-  };
-
   // Allocate a port for the provided handler and return its VM-global id.
-  static Dart_Port CreatePort(MessageHandler* handler, PortState initial_state);
+  static Dart_Port CreatePort(MessageHandler* handler);
 
   // Close the port with id. All pending messages will be dropped.
   //
@@ -49,8 +42,6 @@ class PortMap : public AllStatic {
   static bool PostMessage(std::unique_ptr<Message> message,
                           bool before_events = false);
 
-  // Returns whether a port can receive messages.
-  static bool IsLivePort(Dart_Port id);
 
   // Returns the owning Isolate for port 'id'.
   static Isolate* GetIsolate(Dart_Port id);
@@ -59,7 +50,8 @@ class PortMap : public AllStatic {
   static Dart_Port GetOriginId(Dart_Port id);
 
 #if defined(TESTING)
-  static bool HasLivePorts(MessageHandler* handler);
+  static bool PortExists(Dart_Port id);
+  static bool HasPorts(MessageHandler* handler);
 #endif
 
   // Whether the destination port's isolate is a member of [isolate_group].
@@ -75,16 +67,11 @@ class PortMap : public AllStatic {
   static void DebugDumpForMessageHandler(MessageHandler* handler);
 
  private:
-  friend class dart::PortMapTestPeer;
-
   struct Entry : public PortSet<Entry>::Entry {
-    Entry() : handler(nullptr), state(kUnusedEntry) {}
+    Entry() : handler(nullptr) {}
 
     MessageHandler* handler;
-    PortState state;
   };
-
-  static const char* PortStateString(PortState state);
 
   // Allocate a new unique port.
   static Dart_Port AllocatePort();

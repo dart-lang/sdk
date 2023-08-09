@@ -264,7 +264,7 @@ ISOLATE_UNIT_TEST_CASE(Service_Code) {
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler, PortMap::kLivePort);
+  Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
   {
     TransitionVMToNative transition(thread);
@@ -390,7 +390,7 @@ ISOLATE_UNIT_TEST_CASE(Service_PcDescriptors) {
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler, PortMap::kLivePort);
+  Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
   {
     TransitionVMToNative transition(thread);
@@ -461,7 +461,7 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler, PortMap::kLivePort);
+  Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
   {
     TransitionVMToNative transition(thread);
@@ -522,7 +522,7 @@ ISOLATE_UNIT_TEST_CASE(Service_PersistentHandles) {
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler, PortMap::kLivePort);
+  Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
   {
     TransitionVMToNative transition(thread);
@@ -605,7 +605,7 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderRootHandler) {
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler, PortMap::kLivePort);
+  Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
   {
     TransitionVMToNative transition(thread);
@@ -651,7 +651,7 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderIsolateHandler) {
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler, PortMap::kLivePort);
+  Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
   {
     TransitionVMToNative transition(thread);
@@ -708,7 +708,7 @@ ISOLATE_UNIT_TEST_CASE(Service_Profile) {
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler, PortMap::kLivePort);
+  Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
   {
     TransitionVMToNative transition(thread);
