@@ -148,7 +148,9 @@ class SdkDescription {
   SdkDescription(this.path);
 
   @override
-  int get hashCode => path.hashCode;
+  int get hashCode {
+    return path.hashCode;
+  }
 
   @override
   bool operator ==(Object other) {
@@ -159,7 +161,9 @@ class SdkDescription {
   }
 
   @override
-  String toString() => path;
+  String toString() {
+    return path;
+  }
 }
 
 class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
@@ -171,9 +175,25 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
   /// an implementation library.
   static const String _IMPLEMENTATION = "implementation";
 
+  /// The name of the optional parameter used to specify the path used when
+  /// compiling for dart2js.
+  static const String _DART2JS_PATH = "dart2jsPath";
+
   /// The name of the optional parameter used to indicate whether the library is
   /// documented.
   static const String _DOCUMENTED = "documented";
+
+  /// The name of the optional parameter used to specify the category of the
+  /// library.
+  static const String _CATEGORIES = "categories";
+
+  /// The name of the optional parameter used to specify the platforms on which
+  /// the library can be used.
+  static const String _PLATFORMS = "platforms";
+
+  /// The value of the [PLATFORMS] parameter used to specify that the library
+  /// can be used on the VM.
+  static const String _VM_PLATFORM = "VM_PLATFORM";
 
   /// The library map that is populated by visiting the AST structure parsed
   /// from the contents of the libraries file.
@@ -182,6 +202,24 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
   /// Return the library map that was populated by visiting the AST structure
   /// parsed from the contents of the libraries file.
   LibraryMap get librariesMap => _librariesMap;
+
+  // To be backwards-compatible the new categories field is translated to
+  // an old approximation.
+  String convertCategories(String categories) {
+    switch (categories) {
+      case "":
+        return "Internal";
+      case "Client":
+        return "Client";
+      case "Server":
+        return "Server";
+      case "Client,Server":
+        return "Shared";
+      case "Client,Server,Embedded":
+        return "Shared";
+    }
+    return "Shared";
+  }
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
@@ -198,10 +236,26 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
         } else if (argument is NamedExpression) {
           String name = argument.name.label.name;
           Expression expression = argument.expression;
-          if (name == _IMPLEMENTATION) {
+          if (name == _CATEGORIES) {
+            var value = (expression as StringLiteral).stringValue!;
+            library.category = convertCategories(value);
+          } else if (name == _IMPLEMENTATION) {
             library._implementation = (expression as BooleanLiteral).value;
           } else if (name == _DOCUMENTED) {
             library.documented = (expression as BooleanLiteral).value;
+          } else if (name == _PLATFORMS) {
+            if (expression is SimpleIdentifier) {
+              String identifier = expression.name;
+              if (identifier == _VM_PLATFORM) {
+                library.setVmLibrary();
+              } else {
+                library.setDart2JsLibrary();
+              }
+            }
+          } else if (name == _DART2JS_PATH) {
+            if (expression is SimpleStringLiteral) {
+              library.path = expression.value;
+            }
           }
         }
       }
@@ -213,11 +267,9 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
 /// Represents a single library in the SDK
 abstract class SdkLibrary {
   /// Return the name of the category containing the library.
-  @deprecated
   String get category;
 
   /// Return `true` if this library can be compiled to JavaScript by dart2js.
-  @deprecated
   bool get isDart2JsLibrary;
 
   /// Return `true` if the library is documented.
@@ -231,11 +283,9 @@ abstract class SdkLibrary {
   bool get isInternal;
 
   /// Return `true` if this library can be used for both client and server.
-  @deprecated
   bool get isShared;
 
   /// Return `true` if this library can be run on the VM.
-  @deprecated
   bool get isVmLibrary;
 
   /// Return the path to the file defining the library. The path is relative to
@@ -249,6 +299,14 @@ abstract class SdkLibrary {
 
 /// The information known about a single library within the SDK.
 class SdkLibraryImpl implements SdkLibrary {
+  /// The bit mask used to access the bit representing the flag indicating
+  /// whether a library is intended to work on the dart2js platform.
+  static int DART2JS_PLATFORM = 1;
+
+  /// The bit mask used to access the bit representing the flag indicating
+  /// whether a library is intended to work on the VM platform.
+  static int VM_PLATFORM = 2;
+
   @override
   final String shortName;
 
@@ -257,18 +315,23 @@ class SdkLibraryImpl implements SdkLibrary {
   @override
   late String path;
 
+  /// The name of the category containing the library. Unless otherwise
+  /// specified in the libraries file all libraries are assumed to be shared
+  /// between server and client.
   @override
-  @deprecated
-  String category = "";
+  String category = "Shared";
 
   /// A flag indicating whether the library is documented.
   bool _documented = true;
 
   /// A flag indicating whether the library is an implementation library.
-  bool? _implementation;
+  bool _implementation = false;
+
+  /// An encoding of which platforms this library is intended to work on.
+  int _platforms = 0;
 
   /// Initialize a newly created library to represent the library with the given
-  /// [shortName].
+  /// [name].
   SdkLibraryImpl(this.shortName);
 
   /// Set whether the library is documented.
@@ -276,24 +339,31 @@ class SdkLibraryImpl implements SdkLibrary {
     _documented = documented;
   }
 
-  @deprecated
   @override
-  bool get isDart2JsLibrary => false;
+  bool get isDart2JsLibrary => (_platforms & DART2JS_PLATFORM) != 0;
 
   @override
   bool get isDocumented => _documented;
 
   @override
-  bool get isImplementation => _implementation ?? !isDocumented;
+  bool get isImplementation => _implementation;
 
   @override
-  bool get isInternal => isImplementation;
+  bool get isInternal => category == "Internal";
 
-  @deprecated
   @override
-  bool get isShared => false;
+  bool get isShared => category == "Shared";
 
-  @deprecated
   @override
-  bool get isVmLibrary => false;
+  bool get isVmLibrary => (_platforms & VM_PLATFORM) != 0;
+
+  /// Record that this library can be compiled to JavaScript by dart2js.
+  void setDart2JsLibrary() {
+    _platforms |= DART2JS_PLATFORM;
+  }
+
+  /// Record that this library can be run on the VM.
+  void setVmLibrary() {
+    _platforms |= VM_PLATFORM;
+  }
 }
