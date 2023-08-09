@@ -99,7 +99,7 @@ class PubspecWarningCode extends ErrorCode {
     'INVALID_PLATFORMS_FIELD',
     "The 'platforms' field must be a map with platforms as keys.",
     correctionMessage:
-        "Try changing the 'platforms' field to a map with plaforms as keys.",
+        "Try changing the 'platforms' field to a map with platforms as keys.",
   );
 
   ///  No parameters.

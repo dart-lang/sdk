@@ -12024,6 +12024,7 @@ variable._
 The analyzer produces this diagnostic when, within an object pattern, the
 specification of a property and the pattern used to match the property's
 value doesn't have either:
+
 - a getter name before the colon
 - a variable pattern from which the getter name can be inferred
 
@@ -17522,7 +17523,7 @@ _A map pattern can't contain a rest pattern._
 The analyzer produces this diagnostic when a map pattern contains a rest
 pattern. Map patterns match a map with more keys
 than those explicitly given in the pattern (as long as the given keys match),
-so a rest pattern is unnecesssary.
+so a rest pattern is unnecessary.
 
 #### Example
 
@@ -21323,7 +21324,7 @@ matched by an earlier `case` clause.
 #### Example
 
 The following code produces this diagnostic because the value `1` was
-matched in the preceeding case:
+matched in the preceding case:
 
 {% prettify dart tag=pre+code %}
 void f(int x) {

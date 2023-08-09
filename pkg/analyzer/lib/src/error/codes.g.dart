@@ -1308,6 +1308,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EMPTY_MAP_PATTERN',
     "A map pattern must have at least one entry.",
     correctionMessage: "Try replacing it with an object pattern 'Map()'.",
+    hasPublishedDocs: true,
   );
 
   static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
@@ -3033,6 +3034,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try specifying the getter name explicitly, or using a variable "
         "pattern.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -4493,6 +4495,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'REST_ELEMENT_IN_MAP_PATTERN',
     "A map pattern can't contain a rest pattern.",
     correctionMessage: "Try removing the rest pattern.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -6587,6 +6590,7 @@ class WarningCode extends AnalyzerErrorCode {
     "The annotation 'visibleOutsideTemplate' can only be applied to a member "
         "of a class, enum, or mixin that is annotated with "
         "'visibleForTemplate'.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
