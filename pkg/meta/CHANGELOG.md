@@ -1,3 +1,8 @@
+## 1.10.0
+
+* Introduce `@redeclare` to annotate extension type members that redeclare
+  members from a superinterface.
+
 ## 1.9.1
 
 * Update SDK constraints to `>=2.12.0 <4.0.0`.
