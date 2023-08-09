@@ -17852,6 +17852,158 @@ int f() {
 }
 {% endprettify %}
 
+### sdk_version_async_exported_from_core
+
+_The class '{0}' wasn't exported from 'dart:core' until version 2.1, but this
+code is required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when either the class `Future` or
+`Stream` is referenced in a library that doesn't import `dart:async` in
+code that has an SDK constraint whose lower bound is less than 2.1.0. In
+earlier versions, these classes weren't defined in `dart:core`, so the
+import was necessary.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.1.0:
+
+```yaml
+environment:
+  sdk: '>=2.0.0 <2.4.0'
+```
+
+In the package that has that pubspec, code like the following produces this
+diagnostic:
+
+{% prettify dart tag=pre+code %}
+void f([!Future!] f) {}
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the classes to be referenced:
+
+```yaml
+environment:
+  sdk: '>=2.1.0 <2.4.0'
+```
+
+If you need to support older versions of the SDK, then import the
+`dart:async` library.
+
+{% prettify dart tag=pre+code %}
+import 'dart:async';
+
+void f(Future f) {}
+{% endprettify %}
+
+### sdk_version_as_expression_in_const_context
+
+_The use of an as expression in a constant expression wasn't supported until
+version 2.3.2, but this code is required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when an `as` expression inside a
+[constant context][] is found in code that has an SDK constraint whose
+lower bound is less than 2.3.2. Using an `as` expression in a
+[constant context][] wasn't supported in earlier versions, so this code
+won't be able to run against earlier versions of the SDK.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.3.2:
+
+```yaml
+environment:
+  sdk: '>=2.1.0 <2.4.0'
+```
+
+In the package that has that pubspec, code like the following produces
+this diagnostic:
+
+{% prettify dart tag=pre+code %}
+const num n = 3;
+const int i = [!n as int!];
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the expression to be used:
+
+```yaml
+environment:
+  sdk: '>=2.3.2 <2.4.0'
+```
+
+If you need to support older versions of the SDK, then either rewrite the
+code to not use an `as` expression, or change the code so that the `as`
+expression isn't in a [constant context][]:
+
+{% prettify dart tag=pre+code %}
+num x = 3;
+int y = x as int;
+{% endprettify %}
+
+### sdk_version_bool_operator_in_const_context
+
+_The use of the operator '{0}' for 'bool' operands in a constant context wasn't
+supported until version 2.3.2, but this code is required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when any use of the `&`, `|`, or `^`
+operators on the class `bool` inside a [constant context][] is found in
+code that has an SDK constraint whose lower bound is less than 2.3.2. Using
+these operators in a [constant context][] wasn't supported in earlier
+versions, so this code won't be able to run against earlier versions of the
+SDK.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.3.2:
+
+```yaml
+environment:
+  sdk: '>=2.1.0 <2.4.0'
+```
+
+In the package that has that pubspec, code like the following produces this
+diagnostic:
+
+{% prettify dart tag=pre+code %}
+const bool a = true;
+const bool b = false;
+const bool c = a [!&!] b;
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the operators to be used:
+
+```yaml
+environment:
+ sdk: '>=2.3.2 <2.4.0'
+```
+
+If you need to support older versions of the SDK, then either rewrite the
+code to not use these operators, or change the code so that the expression
+isn't in a [constant context][]:
+
+{% prettify dart tag=pre+code %}
+const bool a = true;
+const bool b = false;
+bool c = a & b;
+{% endprettify %}
+
 ### sdk_version_constructor_tearoffs
 
 _Tearing off a constructor requires the 'constructor-tearoffs' language
@@ -17896,6 +18048,115 @@ not use constructor tear-offs:
 
 {% prettify dart tag=pre+code %}
 var setConstructor = () => Set.identity();
+{% endprettify %}
+
+### sdk_version_eq_eq_operator_in_const_context
+
+_Using the operator '==' for non-primitive types wasn't supported until version
+2.3.2, but this code is required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when the operator `==` is used on a
+non-primitive type inside a [constant context][] is found in code that has
+an SDK constraint whose lower bound is less than 2.3.2. Using this operator
+in a [constant context][] wasn't supported in earlier versions, so this
+code won't be able to run against earlier versions of the SDK.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.3.2:
+
+```yaml
+environment:
+  sdk: '>=2.1.0 <2.4.0'
+```
+
+In the package that has that pubspec, code like the following produces this
+diagnostic:
+
+{% prettify dart tag=pre+code %}
+class C {}
+const C a = null;
+const C b = null;
+const bool same = a [!==!] b;
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the operator to be used:
+
+```yaml
+environment:
+  sdk: '>=2.3.2 <2.4.0'
+```
+
+If you need to support older versions of the SDK, then either rewrite the
+code to not use the `==` operator, or change the code so that the
+expression isn't in a [constant context][]:
+
+{% prettify dart tag=pre+code %}
+class C {}
+const C a = null;
+const C b = null;
+bool same = a == b;
+{% endprettify %}
+
+### sdk_version_extension_methods
+
+_Extension methods weren't supported until version 2.6.0, but this code is
+required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension declaration or an
+extension override is found in code that has an SDK constraint whose lower
+bound is less than 2.6.0. Using extensions wasn't supported in earlier
+versions, so this code won't be able to run against earlier versions of the
+SDK.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.6.0:
+
+```yaml
+environment:
+ sdk: '>=2.4.0 <2.7.0'
+```
+
+In the package that has that pubspec, code like the following produces
+this diagnostic:
+
+{% prettify dart tag=pre+code %}
+[!extension!] E on String {
+  void sayHello() {
+    print('Hello $this');
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the syntax to be used:
+
+```yaml
+environment:
+  sdk: '>=2.6.0 <2.7.0'
+```
+
+If you need to support older versions of the SDK, then rewrite the code to
+not make use of extensions. The most common way to do this is to rewrite
+the members of the extension as top-level functions (or methods) that take
+the value that would have been bound to `this` as a parameter:
+
+{% prettify dart tag=pre+code %}
+void sayHello(String s) {
+  print('Hello $s');
+}
 {% endprettify %}
 
 ### sdk_version_gt_gt_gt_operator
@@ -17952,6 +18213,57 @@ int logicalShiftRight(int leftOperand, int rightOperand) {
 }
 {% endprettify %}
 
+### sdk_version_is_expression_in_const_context
+
+_The use of an is expression in a constant context wasn't supported until
+version 2.3.2, but this code is required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when an `is` expression inside a
+[constant context][] is found in code that has an SDK constraint whose
+lower bound is less than 2.3.2. Using an `is` expression in a
+[constant context][] wasn't supported in earlier versions, so this code
+won't be able to run against earlier versions of the SDK.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.3.2:
+
+```yaml
+environment:
+  sdk: '>=2.1.0 <2.4.0'
+```
+
+In the package that has that pubspec, code like the following produces
+this diagnostic:
+
+{% prettify dart tag=pre+code %}
+const Object x = 4;
+const y = [!x is int!] ? 0 : 1;
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the expression to be used:
+
+```yaml
+environment:
+  sdk: '>=2.3.2 <2.4.0'
+```
+
+If you need to support older versions of the SDK, then either rewrite the
+code to not use the `is` operator, or, if that isn't possible, change the
+code so that the `is` expression isn't in a
+[constant context][]:
+
+{% prettify dart tag=pre+code %}
+const Object x = 4;
+var y = x is int ? 0 : 1;
+{% endprettify %}
+
 ### sdk_version_never
 
 _The type 'Never' wasn't supported until version 2.12.0, but this code is
@@ -17996,6 +18308,164 @@ not reference this class:
 
 {% prettify dart tag=pre+code %}
 dynamic x;
+{% endprettify %}
+
+### sdk_version_set_literal
+
+_Set literals weren't supported until version 2.2, but this code is required to
+be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when a set literal is found in code
+that has an SDK constraint whose lower bound is less than 2.2.0. Set
+literals weren't supported in earlier versions, so this code won't be able
+to run against earlier versions of the SDK.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.2.0:
+
+```yaml
+environment:
+  sdk: '>=2.1.0 <2.4.0'
+```
+
+In the package that has that pubspec, code like the following produces this
+diagnostic:
+
+{% prettify dart tag=pre+code %}
+var s = [!<int>{}!];
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the syntax to be used:
+
+```yaml
+environment:
+  sdk: '>=2.2.0 <2.4.0'
+```
+
+If you do need to support older versions of the SDK, then replace the set
+literal with code that creates the set without the use of a literal:
+
+{% prettify dart tag=pre+code %}
+var s = new Set<int>();
+{% endprettify %}
+
+### sdk_version_ui_as_code
+
+_The for, if, and spread elements weren't supported until version 2.3.0, but
+this code is required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when a for, if, or spread element is
+found in code that has an SDK constraint whose lower bound is less than
+2.3.0. Using a for, if, or spread element wasn't supported in earlier
+versions, so this code won't be able to run against earlier versions of the
+SDK.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.3.0:
+
+```yaml
+environment:
+  sdk: '>=2.2.0 <2.4.0'
+```
+
+In the package that has that pubspec, code like the following produces
+this diagnostic:
+
+{% prettify dart tag=pre+code %}
+var digits = [[!for (int i = 0; i < 10; i++) i!]];
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the syntax to be used:
+
+```yaml
+environment:
+  sdk: '>=2.3.0 <2.4.0'
+```
+
+If you need to support older versions of the SDK, then rewrite the code to
+not make use of those elements:
+
+{% prettify dart tag=pre+code %}
+var digits = _initializeDigits();
+
+List<int> _initializeDigits() {
+  var digits = <int>[];
+  for (int i = 0; i < 10; i++) {
+    digits.add(i);
+  }
+  return digits;
+}
+{% endprettify %}
+
+### sdk_version_ui_as_code_in_const_context
+
+_The if and spread elements weren't supported in constant expressions until
+version 2.5.0, but this code is required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when an if or spread element inside
+a [constant context][] is found in code that has an SDK constraint whose
+lower bound is less than 2.5.0. Using an if or spread element inside a
+[constant context][] wasn't supported in earlier versions, so this code
+won't be able to run against earlier versions of the SDK.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.5.0:
+
+```yaml
+environment:
+  sdk: '>=2.4.0 <2.6.0'
+```
+
+In the package that has that pubspec, code like the following produces
+this diagnostic:
+
+{% prettify dart tag=pre+code %}
+const a = [1, 2];
+const b = [[!...a!]];
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the syntax to be used:
+
+```yaml
+environment:
+  sdk: '>=2.5.0 <2.6.0'
+```
+
+If you need to support older versions of the SDK, then rewrite the code to
+not make use of those elements:
+
+{% prettify dart tag=pre+code %}
+const a = [1, 2];
+const b = [1, 2];
+{% endprettify %}
+
+If that isn't possible, change the code so that the element isn't in a
+[constant context][]:
+
+{% prettify dart tag=pre+code %}
+const a = [1, 2];
+var b = [...a];
 {% endprettify %}
 
 ### set_element_type_not_assignable
