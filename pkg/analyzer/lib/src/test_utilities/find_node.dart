@@ -48,6 +48,8 @@ class FindNode {
 
   ConditionalExpression get singleConditionalExpression => _single();
 
+  ConstructorDeclaration get singleConstructorDeclaration => _single();
+
   ConstructorFieldInitializer get singleConstructorFieldInitializer =>
       _single();
 
@@ -141,6 +143,8 @@ class FindNode {
   SetOrMapLiteral get singleSetOrMapLiteral => _single();
 
   SuperConstructorInvocation get singleSuperConstructorInvocation => _single();
+
+  SuperFormalParameter get singleSuperFormalParameter => _single();
 
   SwitchCase get singleSwitchCase => _single();
 

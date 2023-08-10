@@ -47202,6 +47202,66 @@ library
 ''');
   }
 
+  test_interfaces_cycle2() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) implements B {}
+extension type B(int it) implements A {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      hasImplementsSelfReference A @15
+        representation: self::@extensionType::A::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @21
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+      hasImplementsSelfReference B @56
+        representation: self::@extensionType::B::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @62
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
+  test_interfaces_cycle_self() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) implements A {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      hasImplementsSelfReference A @15
+        representation: self::@extensionType::A::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @21
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
   test_interfaces_extensionType() async {
     var library = await buildLibrary(r'''
 extension type A(num it) {}
@@ -47510,7 +47570,7 @@ extension type B(A it) {}
 library
   definingUnit
     extensionTypes
-      hasSelfReference A @15
+      hasRepresentationSelfReference A @15
         representation: self::@extensionType::A::@field::it
         typeErasure: InvalidType
         interfaces
@@ -47521,7 +47581,7 @@ library
         accessors
           synthetic get it @-1
             returnType: InvalidType
-      hasSelfReference B @42
+      hasRepresentationSelfReference B @42
         representation: self::@extensionType::B::@field::it
         typeErasure: InvalidType
         interfaces
@@ -47558,7 +47618,7 @@ library
         accessors
           synthetic get it @-1
             returnType: B
-      hasSelfReference B @42
+      hasRepresentationSelfReference B @42
         representation: self::@extensionType::B::@field::it
         typeErasure: InvalidType
         interfaces
@@ -47582,7 +47642,7 @@ extension type A(A it) {}
 library
   definingUnit
     extensionTypes
-      hasSelfReference A @15
+      hasRepresentationSelfReference A @15
         representation: self::@extensionType::A::@field::it
         typeErasure: InvalidType
         interfaces

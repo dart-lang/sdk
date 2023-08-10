@@ -2967,8 +2967,13 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   @override
   late final DartType typeErasure;
 
-  /// Whether the element has direct or indirect reference to itself.
-  bool hasSelfReference = false;
+  /// Whether the element has direct or indirect reference to itself,
+  /// in representation.
+  bool hasRepresentationSelfReference = false;
+
+  /// Whether the element has direct or indirect reference to itself,
+  /// in implemented superinterfaces.
+  bool hasImplementsSelfReference = false;
 
   ExtensionTypeElementImpl(super.name, super.nameOffset);
 

@@ -97,16 +97,24 @@ class EnumElementFlags {
 }
 
 class ExtensionTypeElementFlags {
-  static const int _hasSelfReference = 1 << 0;
+  static const int _hasRepresentationSelfReference = 1 << 0;
+  static const int _hasImplementsSelfReference = 1 << 1;
 
   static void read(SummaryDataReader reader, ExtensionTypeElementImpl element) {
     var byte = reader.readByte();
-    element.hasSelfReference = (byte & _hasSelfReference) != 0;
+    element.hasRepresentationSelfReference =
+        (byte & _hasRepresentationSelfReference) != 0;
+    element.hasImplementsSelfReference =
+        (byte & _hasImplementsSelfReference) != 0;
   }
 
   static void write(BufferedSink sink, ExtensionTypeElementImpl element) {
     var result = 0;
-    result |= element.hasSelfReference ? _hasSelfReference : 0;
+    result |= element.hasRepresentationSelfReference
+        ? _hasRepresentationSelfReference
+        : 0;
+    result |=
+        element.hasImplementsSelfReference ? _hasImplementsSelfReference : 0;
     sink.writeByte(result);
   }
 }

@@ -25,8 +25,8 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
   tags = UntaggedObject::SizeTag::update(size, tags);
   tags = UntaggedObject::ClassIdTag::update(kFreeListElement, tags);
   ASSERT((addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset);
-  tags = UntaggedObject::AlwaysSetBit::update(true, tags);
-  tags = UntaggedObject::NotMarkedBit::update(true, tags);
+  tags = UntaggedObject::OldBit::update(true, tags);
+  tags = UntaggedObject::OldAndNotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
   tags = UntaggedObject::NewBit::update(false, tags);
   result->tags_ = tags;
@@ -38,29 +38,6 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
   return result;
   // Postcondition: the (page containing the) header of the element is
   // writable.
-}
-
-FreeListElement* FreeListElement::AsElementNew(uword addr, intptr_t size) {
-  ASSERT(size >= kObjectAlignment);
-  ASSERT(Utils::IsAligned(size, kObjectAlignment));
-
-  FreeListElement* result = reinterpret_cast<FreeListElement*>(addr);
-
-  uword tags = 0;
-  tags = UntaggedObject::SizeTag::update(size, tags);
-  tags = UntaggedObject::ClassIdTag::update(kFreeListElement, tags);
-  ASSERT((addr & kNewObjectAlignmentOffset) == kNewObjectAlignmentOffset);
-  tags = UntaggedObject::AlwaysSetBit::update(true, tags);
-  tags = UntaggedObject::NotMarkedBit::update(true, tags);
-  tags = UntaggedObject::OldAndNotRememberedBit::update(false, tags);
-  tags = UntaggedObject::NewBit::update(true, tags);
-  result->tags_ = tags;
-
-  if (size > UntaggedObject::SizeTag::kMaxSizeTag) {
-    *result->SizeAddress() = size;
-  }
-  result->set_next(nullptr);
-  return result;
 }
 
 void FreeListElement::Init() {

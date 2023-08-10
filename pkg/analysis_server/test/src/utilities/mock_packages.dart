@@ -76,7 +76,7 @@ class BlazeMockPackages {
   }
 }
 
-/// Helper for copying files from "tests/mock_packages" to memory file system.
+/// Helper for copying files from "test/mock_packages" to memory file system.
 class MockPackages {
   static final MockPackages instance = MockPackages._();
 

@@ -160,7 +160,7 @@ vars = {
   "mockito_rev": "ff79de69e9ef9e8647bd6008c29c16651c9ac220",
   "native_rev": "5a1361b6d98a84f8070c97872e3d3587fc0ba435",
   "package_config_rev": "981c49dfec1e3e3e90f336dcd7c225923d2fd321",
-  "path_rev": "282dd18bd9ae2e265ea40a29b2c637194e9be8b7",
+  "path_rev": "7c2324bdb4c75a17de8a3d1e6afe8cc0756ef5f9",
   "pool_rev": "77001024a16126cc5718e654ea3e57bbf6e7fac3",
   "protobuf_rev": "217c0306ee376a8a9c05e72fc90cffab6b60e66a",
   "pub_rev": "42819a1e10f803eb7f6296692c5a976e1c647360", # disable rev_sdk_deps.dart
@@ -185,7 +185,7 @@ vars = {
   "vector_math_rev": "88bada3c32ba3f1d53073a003085131d60b09213",
   "watcher_rev": "7457413060ed7403b90b01533a61bd959932122e",
   "web_socket_channel_rev": "4d1b5438d1bdfc6317bf99fd9d9c6e4edb7e9ec5",
-  "webdev_rev": "5081dff0952eb7163f98a508d7b2d976c1573c55", # https://github.com/dart-lang/webdev/issues/2172
+  "webdev_rev": "f8f752cb455935a7dfe626bcb357645c41749725",
   "webdriver_rev": "d0f78d004a5ea7bfc8c492639248b0a1b04c1d62",
   "webkit_inspection_protocol_rev": "39a3c297ff573635e7936b015ce4f3466e4739d6",
   "yaml_rev": "7930148a3d03d7985ce2b53bc5eb2be9c878dab8",

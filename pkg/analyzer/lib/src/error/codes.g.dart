@@ -1600,6 +1600,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  No parameters.
   static const CompileTimeErrorCode
+      EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
+    "Extension type constructors can't declare super formal parameters.",
+    correctionMessage: "Try removing the super formal parameter declaration.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode
       EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION = CompileTimeErrorCode(
     'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
     "Extension type constructors can't include superinitializers.",
@@ -1631,6 +1640,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Extension types can't implement '{0}'.",
     correctionMessage:
         "Try specifying a different type, or remove the type from the list.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode EXTENSION_TYPE_IMPLEMENTS_ITSELF =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_IMPLEMENTS_ITSELF',
+    "The extension type can't implement itself.",
+    correctionMessage:
+        "Try removing the superinterface that references this extension type.",
   );
 
   ///  Parameters:

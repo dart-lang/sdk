@@ -326,6 +326,64 @@ TypeLiteral
 ''');
   }
 
+  test_extensionType() async {
+    await assertNoErrorsInCode('''
+extension type A<T>(T it) {}
+final v = A<int>;
+''');
+
+    final node = findNode.typeLiteral('A<int>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: self::@extensionType::A
+    type: A<int>
+  staticType: Type
+''');
+  }
+
+  test_extensionType_importPrefix() async {
+    newFile('$testPackageLibPath/a.dart', '''
+extension type A<T>(T it) {}
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart' as a;
+var t = a.A<int>;
+''');
+
+    final node = findNode.typeLiteral('A<int>;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    importPrefix: ImportPrefixReference
+      name: a
+      period: .
+      element: self::@prefix::a
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: package:test/a.dart::@extensionType::A
+    type: A<int>
+  staticType: Type
+''');
+  }
+
   test_functionAlias() async {
     await assertNoErrorsInCode('''
 typedef Fn<T> = void Function(T);
