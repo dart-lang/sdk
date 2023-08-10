@@ -18,11 +18,11 @@ class ExtensionTypeDeclaresMemberOfObjectTest extends PubPackageResolutionTest {
   test_instance_differentKind() async {
     await assertErrorsInCode('''
 extension type E(int it) {
-  void hashCode() {}
+  int get hashCode => 0;
 }
 ''', [
       error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 34, 8),
+          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 37, 8),
     ]);
   }
 
