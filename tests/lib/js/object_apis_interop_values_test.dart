@@ -47,6 +47,23 @@ self.JavaScriptClass = class JavaScriptClass {
   testToStringTearoff(emptyObject);
   testEquals(emptyObject, other);
 
+  var objectWithNoProto = eval('Object.create(null)');
+  testHashCode(objectWithNoProto);
+  testRuntimeType(objectWithNoProto);
+  testNoSuchMethod(objectWithNoProto);
+  testNoSuchMethodTearoff(objectWithNoProto);
+  // These operations throwing is only testing for consistency, and does not
+  // imply a choice for the desired behavior. This is simply the state of
+  // JavaScript interop at the time this test was written.
+  Expect.throws(() => objectWithNoProto.toString());
+  Expect.throws(() {
+    // DDC will fail at the point of the tearoff.
+    var toStringTearoff = objectWithNoProto.toString;
+    // Dart2js fails if you call the tearoff.
+    toStringTearoff();
+  });
+  testEquals(objectWithNoProto, other);
+
   var jsNull = eval('null');
   testHashCode(jsNull);
   testRuntimeType(jsNull);
