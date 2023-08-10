@@ -692,9 +692,10 @@ class InheritanceManager3 {
     final extensionCandidates = <Name, List<ExecutableElement>>{};
     final notExtensionCandidates = <Name, List<ExecutableElement>>{};
     for (final interface in augmented.interfaces) {
+      final substitution = Substitution.fromInterfaceType(interface);
       for (final entry in getInterface(interface.element).map.entries) {
         final name = entry.key;
-        final executable = entry.value;
+        final executable = ExecutableMember.from2(entry.value, substitution);
         if (executable.enclosingElement is ExtensionTypeElement) {
           (extensionCandidates[name] ??= []).add(executable);
         } else {

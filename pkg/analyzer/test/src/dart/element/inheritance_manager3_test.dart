@@ -765,6 +765,34 @@ declared
 ''');
   }
 
+  test_noDeclaration_implementClass_generic_method() async {
+    final library = await buildLibrary(r'''
+class A<T> {
+  void foo(T a) {}
+}
+
+class B extends A<int> {}
+
+extension type C(B it) implements A<int> {}
+''');
+
+    final element = library.extensionType('C');
+    assertInterfaceText(element, r'''
+map
+  foo: MethodMember
+    base: self::@class::A::@method::foo
+    substitution: {T: int}
+  it: self::@extensionType::C::@getter::it
+declared
+  it: self::@extensionType::C::@getter::it
+redeclared
+  foo
+    MethodMember
+      base: self::@class::A::@method::foo
+      substitution: {T: int}
+''');
+  }
+
   test_noDeclaration_implementClass_implementExtensionType_hasConflict() async {
     final library = await buildLibrary(r'''
 class A {
@@ -929,6 +957,36 @@ declared
 redeclared
   foo=
     self::@class::A::@setter::foo
+''');
+  }
+
+  test_noDeclaration_implementExtensionType_generic_method() async {
+    final library = await buildLibrary(r'''
+extension type A<T>(T it) {
+  void foo(T a) {}
+}
+
+extension type B(int it) implements A<int> {}
+''');
+
+    final element = library.extensionType('B');
+    assertInterfaceText(element, r'''
+map
+  foo: MethodMember
+    base: self::@extensionType::A::@method::foo
+    substitution: {T: int}
+  it: self::@extensionType::B::@getter::it
+declared
+  it: self::@extensionType::B::@getter::it
+redeclared
+  foo
+    MethodMember
+      base: self::@extensionType::A::@method::foo
+      substitution: {T: int}
+  it
+    PropertyAccessorMember
+      base: self::@extensionType::A::@getter::it
+      substitution: {T: int}
 ''');
   }
 
