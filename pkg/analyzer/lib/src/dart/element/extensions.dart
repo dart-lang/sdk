@@ -11,6 +11,10 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta_meta.dart';
 
 extension DartTypeExtension on DartType {
+  bool get isExtensionType {
+    return element is ExtensionTypeElement;
+  }
+
   /// If `this` is an [InterfaceType] that is an instantiation of an extension
   /// type, returns its representation type erasure. Otherwise, returns self.
   DartType get representationTypeErasureOrSelf {
