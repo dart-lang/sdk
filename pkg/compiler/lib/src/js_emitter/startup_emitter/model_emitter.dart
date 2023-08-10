@@ -12,6 +12,7 @@ import 'package:js_runtime/synced/embedded_names.dart'
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
         DEFERRED_PART_HASHES,
+        DISPATCH_PROPERTY_NAME,
         INITIALIZATION_EVENT_LOG,
         INITIALIZE_LOADED_HUNK,
         INTERCEPTORS_BY_TAG,

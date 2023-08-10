@@ -1900,6 +1900,11 @@ class FragmentEmitter {
           js.string(RECORD_TYPE_TEST_COMBINATORS_PROPERTY), recordStubs));
     }
 
+    if (_closedWorld.backendUsage.needToInitializeDispatchProperty) {
+      globals.add(js.Property(js.string(DISPATCH_PROPERTY_NAME),
+          js.js('Symbol("dispatch_property")')));
+    }
+
     js.ObjectInitializer globalsObject =
         js.ObjectInitializer(globals, isOneLiner: false);
 
@@ -2059,22 +2064,6 @@ class FragmentEmitter {
   /// Emits data needed for native classes.
   js.Statement emitNativeSupport(Fragment fragment) {
     List<js.Statement> statements = [];
-
-    // The isolate-affinity tag must only be initialized once per program.
-    if (fragment.isMainFragment &&
-        NativeGenerator.needsIsolateAffinityTagInitialization(
-            _closedWorld.backendUsage)) {
-      statements.add(NativeGenerator.generateIsolateAffinityTagInitialization(
-          _closedWorld.backendUsage, generateEmbeddedGlobalAccess, js.js("""
-        // On V8, the 'intern' function converts a string to a symbol, which
-        // makes property access much faster.
-        // TODO(sra): Use Symbol on non-IE11 browsers.
-        function (s) {
-          var o = {};
-          o[s] = 1;
-          return Object.keys(hunkHelpers.convertToFastObject(o))[0];
-        }""", [])));
-    }
 
     Map<String, js.Expression> interceptorsByTag = {};
     Map<String, js.Expression> leafTags = {};

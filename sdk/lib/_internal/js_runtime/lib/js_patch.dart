@@ -7,7 +7,7 @@ import 'dart:collection' show HashMap, ListMixin;
 import 'dart:typed_data' show TypedData;
 
 import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
-import 'dart:_interceptors' show DART_CLOSURE_PROPERTY_NAME;
+import 'dart:_interceptors' show DART_CLOSURE_PROPERTY_NAME, JavaScriptSymbol;
 import 'dart:_internal' show patch;
 import 'dart:_js_helper'
     show
@@ -16,6 +16,10 @@ import 'dart:_js_helper'
         isJSFunction,
         JS_FUNCTION_PROPERTY_NAME;
 import 'dart:_js' show isBrowserObject, convertFromBrowserObject;
+
+// TODO(sra): Replace with an extension type when they become available.
+
+typedef _JavaScriptProperty = Object; // String | JavaScriptSymbol
 
 @patch
 JsObject get context => _context;
@@ -371,7 +375,7 @@ class JsArray<E> /*extends JsObject with ListMixin<E>*/ {
 }
 
 // property added to a Dart object referencing its JS-side DartObject proxy
-final String _DART_OBJECT_PROPERTY_NAME =
+final JavaScriptSymbol _DART_OBJECT_PROPERTY_NAME =
     getIsolateAffinityTag(r'_$dart_dartObject');
 
 // property added to a JS object referencing its Dart-side JsObject proxy
@@ -380,7 +384,7 @@ const _JS_OBJECT_PROPERTY_NAME = r'_$dart_jsObject';
 @pragma('dart2js:tryInline')
 JsObject _castToJsObject(o) => JS<JsObject>('', '#', o);
 
-bool _defineProperty(o, String name, value) {
+bool _defineProperty(o, _JavaScriptProperty name, value) {
   try {
     if (_isExtensible(o) &&
         // TODO(ahe): Calling _hasOwnProperty to work around
@@ -397,13 +401,13 @@ bool _defineProperty(o, String name, value) {
   return false;
 }
 
-bool _hasOwnProperty(o, String name) {
+bool _hasOwnProperty(o, _JavaScriptProperty name) {
   return JS('bool', 'Object.prototype.hasOwnProperty.call(#, #)', o, name);
 }
 
 bool _isExtensible(o) => JS('bool', 'Object.isExtensible(#)', o);
 
-Object? _getOwnProperty(o, String name) {
+Object? _getOwnProperty(o, _JavaScriptProperty name) {
   if (_hasOwnProperty(o, name)) {
     return JS('', '#[#]', o, name);
   }
@@ -491,8 +495,8 @@ Object _wrapToDart(o) {
       o, _DART_OBJECT_PROPERTY_NAME, (o) => JsObject._fromJs(o));
 }
 
-Object _getDartProxy(o, String propertyName, JsObject createProxy(o)) {
-  var dartProxy = _getOwnProperty(o, propertyName);
+Object _getDartProxy(o, _JavaScriptProperty property, JsObject createProxy(o)) {
+  var dartProxy = _getOwnProperty(o, property);
   // Temporary fix for dartbug.com/15193
   // In some cases it's possible to see a JavaScript object that
   // came from a different context and was previously proxied to
@@ -502,7 +506,7 @@ Object _getDartProxy(o, String propertyName, JsObject createProxy(o)) {
   // to cache proxies from multiple JS contexts and Dart isolates.
   if (dartProxy == null || !_isLocalObject(o)) {
     dartProxy = createProxy(o);
-    _defineProperty(o, propertyName, dartProxy);
+    _defineProperty(o, property, dartProxy);
   }
   return dartProxy;
 }
