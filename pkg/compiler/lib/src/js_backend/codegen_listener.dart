@@ -308,8 +308,12 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       registerInstantiation(_commonElements.jsPlainJavaScriptObjectClass);
     } else if (cls == _commonElements.jsUnknownJavaScriptObjectClass) {
       registerInstantiation(_commonElements.jsUnknownJavaScriptObjectClass);
+    } else if (cls == _commonElements.jsJavaScriptBigIntClass) {
+      registerInstantiation(_commonElements.jsJavaScriptBigIntClass);
     } else if (cls == _commonElements.jsJavaScriptFunctionClass) {
       registerInstantiation(_commonElements.jsJavaScriptFunctionClass);
+    } else if (cls == _commonElements.jsJavaScriptSymbolClass) {
+      registerInstantiation(_commonElements.jsJavaScriptSymbolClass);
     } else if (cls == _commonElements.jsIndexingBehaviorInterface) {
       _impacts.jsIndexingBehavior
           .registerImpact(impactBuilder, _elementEnvironment);

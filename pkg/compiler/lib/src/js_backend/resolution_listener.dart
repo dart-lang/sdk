@@ -400,9 +400,13 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     } else if (cls == _commonElements.jsUnknownJavaScriptObjectClass) {
       _addInterceptors(
           _commonElements.jsUnknownJavaScriptObjectClass, impactBuilder);
+    } else if (cls == _commonElements.jsJavaScriptBigIntClass) {
+      _addInterceptors(_commonElements.jsJavaScriptBigIntClass, impactBuilder);
     } else if (cls == _commonElements.jsJavaScriptFunctionClass) {
       _addInterceptors(
           _commonElements.jsJavaScriptFunctionClass, impactBuilder);
+    } else if (cls == _commonElements.jsJavaScriptSymbolClass) {
+      _addInterceptors(_commonElements.jsJavaScriptSymbolClass, impactBuilder);
     } else if (_nativeData.isNativeOrExtendsNative(cls)) {
       _interceptorData.addInterceptorsForNativeClassMembers(cls);
     } else if (cls == _commonElements.jsIndexingBehaviorInterface) {
