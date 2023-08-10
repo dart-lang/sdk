@@ -103,6 +103,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitBooleanLiteral(BooleanLiteral node) {
+    _forExpression(node);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     if (offset < node.classKeyword.offset) {
       keywordHelper.addClassModifiers(node);
@@ -142,8 +147,96 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    var separator = node.separator;
+    if (separator != null) {
+      if (offset >= separator.end && offset <= node.body.offset) {
+        collector.completionLocation = 'ConstructorDeclaration_initializer';
+        keywordHelper.addConstructorInitializerKeywords(node);
+      }
+    }
+  }
+
+  @override
   void visitDoubleLiteral(DoubleLiteral node) {
     _visitParentIfAtOrBeforeNode(node);
+  }
+
+  @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    if (!featureSet.isEnabled(Feature.enhanced_enums)) {
+      return;
+    }
+    if (offset < node.enumKeyword.offset) {
+      // There are no modifiers for enums.
+      return;
+    }
+    if (offset <= node.enumKeyword.end) {
+      keywordHelper.addKeyword(Keyword.ENUM);
+      return;
+    }
+    if (offset <= node.name.end) {
+      // TODO(brianwilkerson) Suggest a name for the mixin.
+      return;
+    }
+    if (offset <= node.leftBracket.offset) {
+      keywordHelper.addEnumDeclarationKeywords(node);
+      return;
+    }
+    var rightBracket = node.rightBracket;
+    if (!rightBracket.isSynthetic && offset >= rightBracket.end) {
+      return;
+    }
+    var semicolon = node.semicolon;
+    if (semicolon != null && offset >= semicolon.end) {
+      collector.completionLocation = 'EnumDeclaration_member';
+      _forEnumMember();
+    }
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    if (offset < node.extensionKeyword.offset) {
+      // There are no modifiers for extensions.
+      return;
+    }
+    if (offset <= node.extensionKeyword.end) {
+      keywordHelper.addKeyword(Keyword.EXTENSION);
+      return;
+    }
+    var name = node.name;
+    if (name != null && offset <= name.end) {
+      // TODO(brianwilkerson) We probably need to suggest `on`.
+      // TODO(brianwilkerson) We probably need to suggest `type` when extension
+      //  types are supported.
+      // Don't suggest a name for the extension.
+      return;
+    }
+    if (offset <= node.leftBracket.offset) {
+      if (node.onKeyword.isSynthetic) {
+        keywordHelper.addExtensionDeclarationKeywords(node);
+      } else {
+        collector.completionLocation = 'ExtensionDeclaration_extendedType';
+      }
+      return;
+    }
+    if (offset >= node.leftBracket.end && offset <= node.rightBracket.offset) {
+      collector.completionLocation = 'ExtensionDeclaration_member';
+      _forExtensionMember();
+    }
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    // If the cursor is at the beginning of the declaration, include the
+    // compilation unit keywords. See dartbug.com/41039.
+    var returnType = node.returnType;
+    if ((returnType == null || returnType.beginToken == returnType.endToken) &&
+        offset <= node.name.offset) {
+      collector.completionLocation = 'FunctionDeclaration_returnType';
+      keywordHelper.addKeyword(Keyword.DYNAMIC);
+      keywordHelper.addKeyword(Keyword.VOID);
+    }
   }
 
   @override
@@ -202,6 +295,42 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     collector.completionLocation = 'MapPatternEntry_value';
     _forPattern();
+  }
+
+  @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    if (offset < node.mixinKeyword.offset) {
+      keywordHelper.addMixinModifiers(node);
+      return;
+    }
+    if (offset <= node.mixinKeyword.end) {
+      keywordHelper.addKeyword(Keyword.MIXIN);
+      return;
+    }
+    if (offset <= node.name.end) {
+      // TODO(brianwilkerson) Suggest a name for the mixin.
+      return;
+    }
+    if (offset <= node.leftBracket.offset) {
+      keywordHelper.addMixinDeclarationKeywords(node);
+      return;
+    }
+    if (offset >= node.leftBracket.end && offset <= node.rightBracket.offset) {
+      collector.completionLocation = 'MixinDeclaration_member';
+      _forMixinMember();
+      var element = node.members.elementBefore(offset);
+      if (element is MethodDeclaration) {
+        var body = element.body;
+        if (body.isEmpty) {
+          keywordHelper.addFunctionBodyModifiers(body);
+        }
+      }
+    }
+  }
+
+  @override
+  void visitNullLiteral(NullLiteral node) {
+    _forExpression(node);
   }
 
   @override
@@ -274,6 +403,53 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     _visitParentIfAtOrBeforeNode(node);
   }
 
+  @override
+  void visitSymbolLiteral(SymbolLiteral node) {
+    _forExpression(node);
+  }
+
+  @override
+  void visitThisExpression(ThisExpression node) {
+    _forExpression(node);
+  }
+
+  @override
+  void visitThrowExpression(ThrowExpression node) {
+    collector.completionLocation = 'ThrowExpression_expression';
+    _forExpression(node);
+  }
+
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    var variableDeclarationList = node.variables;
+    var variables = variableDeclarationList.variables;
+    if (variables.isEmpty || offset > variables.first.beginToken.end) {
+      return;
+    }
+    if (node.externalKeyword == null) {
+      keywordHelper.addKeyword(Keyword.EXTERNAL);
+    }
+    if (variableDeclarationList.lateKeyword == null &&
+        featureSet.isEnabled(Feature.non_nullable)) {
+      keywordHelper.addKeyword(Keyword.LATE);
+    }
+    if (!variables.first.isConst) {
+      keywordHelper.addKeyword(Keyword.CONST);
+    }
+    if (!variables.first.isFinal) {
+      keywordHelper.addKeyword(Keyword.FINAL);
+    }
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    var equals = node.equals;
+    if (equals != null && offset >= equals.end) {
+      collector.completionLocation = 'VariableDeclaration_initializer';
+      _forExpression(node);
+    }
+  }
+
   /// Add the suggestions that are appropriate when the selection is at the
   /// beginning of a class member.
   void _forClassMember() {
@@ -305,6 +481,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
+  /// beginning of an enum member.
+  void _forEnumMember() {
+    keywordHelper.addEnumMemberKeywords();
+  }
+
+  /// Add the suggestions that are appropriate when the selection is at the
   /// beginning of an expression. The [node] provides context to determine which
   /// keywords to include.
   void _forExpression(AstNode? node) {
@@ -312,6 +494,18 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     // TODO(brianwilkerson) Suggest the variables available in the current
     //  scope.
     // _addVariablesInScope(node);
+  }
+
+  /// Add the suggestions that are appropriate when the selection is at the
+  /// beginning of an extension member.
+  void _forExtensionMember() {
+    keywordHelper.addExtensionMemberKeywords();
+  }
+
+  /// Add the suggestions that are appropriate when the selection is at the
+  /// beginning of a mixin member.
+  void _forMixinMember() {
+    keywordHelper.addMixinMemberKeywords();
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
