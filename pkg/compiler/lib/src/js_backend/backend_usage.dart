@@ -48,9 +48,6 @@ abstract class BackendUsage {
   /// `true` if `Function.apply` is used.
   bool get isFunctionApplyUsed;
 
-  /// `true` if 'dart:mirrors' features are used.
-  bool get isMirrorsUsed;
-
   /// `true` if startup timestamps are used.
   bool get requiresStartupMetrics;
 
@@ -128,9 +125,6 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 
   @override
   bool isFunctionApplyUsed = false;
-
-  /// `true` if 'dart:mirrors' features are used.
-  bool isMirrorsUsed = false;
 
   @override
   bool isNoSuchMethodUsed = false;
@@ -246,8 +240,6 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
       requiresPreamble = true;
     } else if (_commonElements.isFunctionApplyMethod(member)) {
       isFunctionApplyUsed = true;
-    } else if (member.library == _commonElements.mirrorsLibrary) {
-      isMirrorsUsed = true;
     } else if (member == _commonElements.rawStartupMetrics) {
       requiresStartupMetrics = true;
     }
@@ -288,7 +280,6 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
         requiresStartupMetrics: requiresStartupMetrics,
         runtimeTypeUses: _runtimeTypeUses,
         isFunctionApplyUsed: isFunctionApplyUsed,
-        isMirrorsUsed: isMirrorsUsed,
         isNoSuchMethodUsed: isNoSuchMethodUsed,
         isHtmlLoaded: isHtmlLoaded);
   }
@@ -326,9 +317,6 @@ class BackendUsageImpl implements BackendUsage {
   final bool isFunctionApplyUsed;
 
   @override
-  final bool isMirrorsUsed;
-
-  @override
   final bool isNoSuchMethodUsed;
 
   @override
@@ -345,7 +333,6 @@ class BackendUsageImpl implements BackendUsage {
       required this.requiresStartupMetrics,
       required Set<RuntimeTypeUse> runtimeTypeUses,
       required this.isFunctionApplyUsed,
-      required this.isMirrorsUsed,
       required this.isNoSuchMethodUsed,
       required this.isHtmlLoaded})
       : this._globalFunctionDependencies = globalFunctionDependencies,
@@ -373,7 +360,6 @@ class BackendUsageImpl implements BackendUsage {
     bool requiresPreamble = source.readBool();
     bool requiresStartupMetrics = source.readBool();
     bool isFunctionApplyUsed = source.readBool();
-    bool isMirrorsUsed = source.readBool();
     bool isNoSuchMethodUsed = source.readBool();
     bool isHtmlLoaded = source.readBool();
     source.end(tag);
@@ -388,7 +374,6 @@ class BackendUsageImpl implements BackendUsage {
         requiresPreamble: requiresPreamble,
         requiresStartupMetrics: requiresStartupMetrics,
         isFunctionApplyUsed: isFunctionApplyUsed,
-        isMirrorsUsed: isMirrorsUsed,
         isNoSuchMethodUsed: isNoSuchMethodUsed,
         isHtmlLoaded: isHtmlLoaded);
   }
@@ -410,7 +395,6 @@ class BackendUsageImpl implements BackendUsage {
     sink.writeBool(requiresPreamble);
     sink.writeBool(requiresStartupMetrics);
     sink.writeBool(isFunctionApplyUsed);
-    sink.writeBool(isMirrorsUsed);
     sink.writeBool(isNoSuchMethodUsed);
     sink.writeBool(isHtmlLoaded);
     sink.end(tag);
