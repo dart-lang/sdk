@@ -9,7 +9,54 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferFinalFieldsTest);
+    defineReflectiveTests(PreferFinalFieldsExtensionTypesTest);
   });
+}
+
+@reflectiveTest
+class PreferFinalFieldsExtensionTypesTest extends LintRuleTest {
+  @override
+  List<String> get experiments => ['inline-class'];
+
+  @override
+  String get lintRule => 'prefer_final_fields';
+
+  test_field_instance() async {
+    await assertDiagnostics(r'''
+extension type E(Object o) {
+  int _i = 0;
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 35, 2),
+      // No Lint.
+      // todo(pq): add compilation error once reported
+    ]);
+  }
+
+  test_field_static() async {
+    await assertDiagnostics(r'''
+extension type E(Object o) {
+  static int _i = 0;
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 42, 2),
+      lint(42, 6),
+    ]);
+  }
+
+  test_field_static_writtenInConstructor() async {
+    await assertDiagnostics(r'''
+extension type E(Object o) {
+  static Object _o = 0;
+  E.e(this.o) {
+    _o = o;
+  }
+}
+''', [
+      // No lint.
+      error(WarningCode.UNUSED_FIELD, 45, 2),
+    ]);
+  }
 }
 
 @reflectiveTest

@@ -109,6 +109,7 @@ class _DeclarationsCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    if (node.isInvalidExtensionTypeField) return;
     if (node.parent is EnumDeclaration) return;
     if (node.fields.isFinal || node.fields.isConst) {
       return;
