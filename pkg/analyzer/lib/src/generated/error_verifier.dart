@@ -712,6 +712,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForNonCovariantTypeParameterPositionInRepresentationType(
           node, element);
       _checkForExtensionTypeRepresentationDependsOnItself(node, element);
+      _checkForExtensionTypeImplementsDeferred(node);
       _checkForExtensionTypeImplementsItself(node, element);
       _checkForExtensionTypeMemberConflicts(
         node: node,
@@ -2912,6 +2913,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.reportErrorForToken(
         CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
         field.name,
+      );
+    }
+  }
+
+  void _checkForExtensionTypeImplementsDeferred(
+    ExtensionTypeDeclarationImpl node,
+  ) {
+    final clause = node.implementsClause;
+    if (clause == null) {
+      return;
+    }
+
+    for (final type in clause.interfaces) {
+      _checkForExtendsOrImplementsDeferredClass(
+        type,
+        CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS,
       );
     }
   }
