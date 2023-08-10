@@ -839,6 +839,16 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitAwaitExpression(ir.AwaitExpression node) {
     node.operand = _handleExpression(node.operand);
+    final runtimeCheckType = node.runtimeCheckType;
+    if (runtimeCheckType != null) {
+      visitInContext(runtimeCheckType, VariableUse.awaitCheck);
+      final typeArgument =
+          (runtimeCheckType as ir.InterfaceType).typeArguments.single;
+      visitInContext(
+          typeArgument,
+          VariableUse.constructorTypeArgument(
+              _typeEnvironment.coreTypes.futureValueFactory));
+    }
     return const EvaluationComplexity.lazy();
   }
 

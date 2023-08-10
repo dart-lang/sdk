@@ -129,22 +129,26 @@ class ExtensionTypeInheritedMemberConflictTest_notExtension
   test_conflict() async {
     await assertErrorsInCode('''
 class A {
-  int foo() => 0;
+  void foo(int a) {}
 }
 
 class B {
-  String foo() => '0';
+  void foo(String a) {}
 }
 
-extension type C(Object it) implements A, B {}
+class C implements A, B {
+  void foo(Object a) {}
+}
+
+extension type D(C it) implements A, B {}
 ''', [
       error(
         CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
-        82,
+        139,
         1,
         contextMessages: [
-          message('/home/test/lib/test.dart', 16, 3),
-          message('/home/test/lib/test.dart', 50, 3),
+          message('/home/test/lib/test.dart', 17, 3),
+          message('/home/test/lib/test.dart', 51, 3)
         ],
       ),
     ]);
@@ -153,14 +157,18 @@ extension type C(Object it) implements A, B {}
   test_noConflict_redeclared() async {
     await assertNoErrorsInCode('''
 class A {
-  int foo() => 0;
+  void foo(int a) {}
 }
 
 class B {
-  String foo() => '0';
+  void foo(String a) {}
 }
 
-extension type C(Object it) implements A, B {
+class C implements A, B {
+  void foo(Object a) {}
+}
+
+extension type D(C it) implements A, B {
   void foo() {}
 }
 ''');

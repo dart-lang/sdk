@@ -849,7 +849,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// object.
   bool get isProxy;
 
-  /// Whether the marks the associated member as being reopened.
+  /// Whether the annotation marks the associated member as redeclaring.
+  bool get isRedeclare;
+
+  /// Whether the annotation marks the associated member as being reopened.
   bool get isReopen;
 
   /// Whether the annotation marks the associated member as being required.

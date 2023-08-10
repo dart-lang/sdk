@@ -1648,15 +1648,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     final type = namedType.typeOrThrow;
 
-    if (declaration is ExtensionTypeDeclaration) {
-      final typeSystem = _libraryElement.typeSystem;
-      if (!typeSystem.isValidExtensionTypeSuperinterface(type)) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE,
-          namedType,
-          [type],
-        );
-      }
+    final enclosingElement = _namedTypeResolver.enclosingClass;
+    if (enclosingElement is ExtensionTypeElementImpl) {
+      _verifyExtensionElementImplements(enclosingElement, namedType, type);
       return;
     }
 
@@ -1767,6 +1761,35 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       element.metadata = annotations.map((annotation) {
         return annotation.elementAnnotation!;
       }).toList();
+    }
+  }
+
+  void _verifyExtensionElementImplements(
+    ExtensionTypeElementImpl declaredElement,
+    NamedTypeImpl node,
+    DartType type,
+  ) {
+    final typeSystem = _libraryElement.typeSystem;
+
+    if (!typeSystem.isValidExtensionTypeSuperinterface(type)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE,
+        node,
+        [type],
+      );
+      return;
+    }
+
+    if (type.element is! ExtensionTypeElement) {
+      final erasure = declaredElement.typeErasure;
+      if (!typeSystem.isSubtypeOf(erasure, type)) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode
+              .EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE_OF_ERASURE,
+          node,
+          [type, erasure],
+        );
+      }
     }
   }
 

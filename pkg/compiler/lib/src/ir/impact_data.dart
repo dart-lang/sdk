@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
+import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
@@ -49,6 +50,8 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       this.inferEffectivelyFinalVariableTypes = true})
       : super(
             staticTypeContext.typeEnvironment, classHierarchy, staticTypeCache);
+
+  ir.CoreTypes get _coreTypes => typeEnvironment.coreTypes;
 
   @override
   VariableScopeModel get variableScopeModel => _variableScopeModel!;
@@ -607,6 +610,24 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
         .visitConstant(node.constant);
   }
 
+  @override
+  void handleAwaitExpression(ir.AwaitExpression node) {
+    final runtimeCheckType = node.runtimeCheckType;
+    if (runtimeCheckType != null) {
+      // Register the impacts which would have been registered if this were
+      // implemented directly as Dart code. Some of these may be redundant with
+      // the impacts we already register for `async` code, but we include them
+      // for completeness.
+      registerAwaitCheck();
+      registerIsCheck(runtimeCheckType);
+      final typeArgument =
+          (runtimeCheckType as ir.InterfaceType).typeArguments.single;
+      registerNew(_coreTypes.futureValueFactory, runtimeCheckType, 1, const [],
+          [typeArgument], getDeferredImport(node),
+          isConst: false);
+    }
+  }
+
   void _registerFeature(_Feature feature) {
     (_data._features ??= EnumSet<_Feature>()).add(feature);
   }
@@ -879,6 +900,11 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   @override
   void registerAsync(ir.DartType elementType) {
     _registerTypeUse(elementType, _TypeUseKind.asyncMarker);
+  }
+
+  @override
+  void registerAwaitCheck() {
+    _registerFeature(_Feature.awaitCheck);
   }
 
   @override
@@ -1395,6 +1421,9 @@ class ImpactData {
           case _Feature.intLiteral:
             registry.registerIntLiteral();
             break;
+          case _Feature.awaitCheck:
+            registry.registerAwaitCheck();
+            break;
         }
       }
     }
@@ -1903,6 +1932,7 @@ enum _Feature {
   intLiteral,
   symbolLiteral,
   doubleLiteral,
+  awaitCheck,
 }
 
 class _TypeUse {
