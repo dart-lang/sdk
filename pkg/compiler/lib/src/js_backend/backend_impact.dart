@@ -395,7 +395,9 @@ class BackendImpacts {
       _commonElements.jsJavaScriptObjectClass,
       _commonElements.jsLegacyJavaScriptObjectClass,
       _commonElements.jsPlainJavaScriptObjectClass,
-      _commonElements.jsJavaScriptFunctionClass
+      _commonElements.jsJavaScriptBigIntClass,
+      _commonElements.jsJavaScriptFunctionClass,
+      _commonElements.jsJavaScriptSymbolClass
     ],
     features: EnumSet<BackendFeature>.fromValues([
       BackendFeature.needToInitializeDispatchProperty,
@@ -460,7 +462,9 @@ class BackendImpacts {
       _commonElements.jsJavaScriptObjectClass,
       _commonElements.jsLegacyJavaScriptObjectClass,
       _commonElements.jsPlainJavaScriptObjectClass,
-      _commonElements.jsJavaScriptFunctionClass
+      _commonElements.jsJavaScriptBigIntClass,
+      _commonElements.jsJavaScriptFunctionClass,
+      _commonElements.jsJavaScriptSymbolClass
     ],
   );
 

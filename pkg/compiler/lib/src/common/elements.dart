@@ -568,8 +568,14 @@ abstract class CommonElements {
   late final ClassEntity jsUnknownJavaScriptObjectClass =
       _findInterceptorsClass('UnknownJavaScriptObject');
 
+  late final ClassEntity jsJavaScriptBigIntClass =
+      _findInterceptorsClass('JavaScriptBigInt');
+
   late final ClassEntity jsJavaScriptFunctionClass =
       _findInterceptorsClass('JavaScriptFunction');
+
+  late final ClassEntity jsJavaScriptSymbolClass =
+      _findInterceptorsClass('JavaScriptSymbol');
 
   InterfaceType get jsJavaScriptFunctionType =>
       _getRawType(jsJavaScriptFunctionClass);
