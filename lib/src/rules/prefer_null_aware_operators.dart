@@ -59,46 +59,48 @@ class _Visitor extends SimpleAstVisitor {
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     var condition = node.condition;
-    if (condition is BinaryExpression &&
-        (condition.operator.type == TokenType.EQ_EQ ||
-            condition.operator.type == TokenType.BANG_EQ)) {
-      // ensure pattern `xx == null ? null : yy` or `xx != null ? yy : null`
-      if (condition.operator.type == TokenType.EQ_EQ) {
-        if (node.thenExpression is! NullLiteral) {
-          return;
-        }
-      } else {
-        if (node.elseExpression is! NullLiteral) {
-          return;
-        }
-      }
+    if (condition is! BinaryExpression) {
+      return;
+    }
 
-      // ensure condition is a null check
-      Expression expression;
-      if (condition.leftOperand is NullLiteral) {
-        expression = condition.rightOperand;
-      } else if (condition.rightOperand is NullLiteral) {
-        expression = condition.leftOperand;
-      } else {
+    // Ensure the condition is a null check.
+    String conditionText;
+    if (condition.leftOperand is NullLiteral) {
+      conditionText = condition.rightOperand.toString();
+    } else if (condition.rightOperand is NullLiteral) {
+      conditionText = condition.leftOperand.toString();
+    } else {
+      return;
+    }
+
+    Expression? resultExpression;
+    if (condition.operator.type == TokenType.EQ_EQ) {
+      // Ensure the expression is `x == null ? null : y`.
+      if (node.thenExpression is! NullLiteral) return;
+
+      resultExpression = node.elseExpression;
+    } else if (condition.operator.type == TokenType.BANG_EQ) {
+      // Ensure the expression is `x != null ? y : null`.
+      if (node.elseExpression is! NullLiteral) return;
+
+      resultExpression = node.thenExpression;
+    } else {
+      return;
+    }
+
+    while (resultExpression != null) {
+      resultExpression = switch (resultExpression) {
+        PrefixedIdentifier() => resultExpression.prefix,
+        MethodInvocation() => resultExpression.target,
+        PostfixExpression()
+            when resultExpression.operator.type == TokenType.BANG =>
+          resultExpression.operand,
+        PropertyAccess() => resultExpression.target,
+        _ => null,
+      };
+      if (resultExpression.toString() == conditionText) {
+        rule.reportLint(node);
         return;
-      }
-
-      Expression? exp = condition.operator.type == TokenType.EQ_EQ
-          ? node.elseExpression
-          : node.thenExpression;
-      while (exp is PrefixedIdentifier ||
-          exp is MethodInvocation ||
-          exp is PropertyAccess) {
-        if (exp is PrefixedIdentifier) {
-          exp = exp.prefix;
-        } else if (exp is MethodInvocation) {
-          exp = exp.target;
-        } else if (exp is PropertyAccess) {
-          exp = exp.target;
-        }
-        if (exp.toString() == expression.toString()) {
-          rule.reportLint(node);
-        }
       }
     }
   }
