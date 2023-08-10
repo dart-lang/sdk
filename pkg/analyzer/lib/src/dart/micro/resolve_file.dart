@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -766,6 +767,7 @@ class FileResolver {
       libraryContext = LibraryContext(
         declaredVariables: contextObjects!.declaredVariables,
         byteStore: byteStore,
+        infoDeclarationStore: const NoOpInfoDeclarationStore(),
         analysisOptions: contextObjects!.analysisOptions,
         analysisSession: contextObjects!.analysisSession,
         logger: logger,

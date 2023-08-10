@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart'
         OwnedFiles;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
+import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
@@ -73,6 +74,7 @@ class ContextBuilderImpl implements ContextBuilder {
     })? updateAnalysisOptions2,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
+    InfoDeclarationStore? infoDeclarationStore,
     MacroKernelBuilder? macroKernelBuilder,
     macro.MultiMacroExecutor? macroExecutor,
     OwnedFiles? ownedFiles,
@@ -149,6 +151,7 @@ class ContextBuilderImpl implements ContextBuilder {
       retainDataForTesting: retainDataForTesting,
       fileContentCache: fileContentCache,
       unlinkedUnitStore: unlinkedUnitStore,
+      infoDeclarationStore: infoDeclarationStore,
       macroKernelBuilder: macroKernelBuilder,
       macroExecutor: macroExecutor,
       declaredVariables: declaredVariables,

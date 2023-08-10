@@ -14,6 +14,7 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
@@ -40,6 +41,7 @@ class LibraryContext {
   final LibraryContextTestData? testData;
   final PerformanceLog logger;
   final ByteStore byteStore;
+  final InfoDeclarationStore infoDeclarationStore;
   final FileSystemState fileSystemState;
   final MacroKernelBuilder? macroKernelBuilder;
   final macro.MultiMacroExecutor? macroExecutor;
@@ -55,6 +57,7 @@ class LibraryContext {
     required AnalysisSessionImpl analysisSession,
     required this.logger,
     required this.byteStore,
+    required this.infoDeclarationStore,
     required this.fileSystemState,
     required AnalysisOptionsImpl analysisOptions,
     required DeclaredVariables declaredVariables,
@@ -81,6 +84,7 @@ class LibraryContext {
             elementFactory: elementFactory,
             resolutionBytes: bundle.resolutionBytes,
             unitsInformativeBytes: {},
+            infoDeclarationStore: infoDeclarationStore,
           ),
         );
       }
@@ -207,6 +211,7 @@ class LibraryContext {
             elementFactory: elementFactory,
             unitsInformativeBytes: unitsInformativeBytes,
             resolutionBytes: linkedBytes,
+            infoDeclarationStore: infoDeclarationStore,
           ),
         );
       }
