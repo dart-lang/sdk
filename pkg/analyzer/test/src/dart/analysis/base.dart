@@ -8,6 +8,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -24,6 +25,7 @@ import 'package:test/test.dart';
 class BaseAnalysisDriverTest with ResourceProviderMixin {
   late final DartSdk sdk;
   final ByteStore byteStore = MemoryByteStore();
+  final InfoDeclarationStore infoDeclarationStore = InfoDeclarationStoreImpl();
 
   final StringBuffer logBuffer = StringBuffer();
   late final PerformanceLog logger;
@@ -62,6 +64,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
       logger: logger,
       resourceProvider: resourceProvider,
       byteStore: byteStore,
+      infoDeclarationStore: infoDeclarationStore,
       sourceFactory: SourceFactory([
         DartUriResolver(sdk),
         generatedUriResolver,

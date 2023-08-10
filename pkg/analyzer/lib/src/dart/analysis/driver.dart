@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/file_tracker.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -107,6 +108,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ///
   /// It can be shared with other [AnalysisDriver]s.
   final ByteStore _byteStore;
+
+  /// The cache of deserialized data read from SummaryDataReader.
+  ///
+  /// It can be shared with other [AnalysisDriver]s.
+  final InfoDeclarationStore _infoDeclarationStore;
 
   /// The optional store with externally provided unlinked and corresponding
   /// linked summaries. These summaries are always added to the store for any
@@ -281,6 +287,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     this.analysisContext,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
+    InfoDeclarationStore? infoDeclarationStore,
     this.enableIndex = false,
     SummaryDataStore? externalSummaries,
     DeclaredVariables? declaredVariables,
@@ -292,6 +299,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _fileContentCache =
             fileContentCache ?? FileContentCache.ephemeral(resourceProvider),
         _unlinkedUnitStore = unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
+        _infoDeclarationStore =
+            infoDeclarationStore ?? NoOpInfoDeclarationStore(),
         _analysisOptions = analysisOptions,
         _logger = logger,
         _packages = packages,
@@ -349,6 +358,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       analysisSession: AnalysisSessionImpl(this),
       logger: _logger,
       byteStore: _byteStore,
+      infoDeclarationStore: _infoDeclarationStore,
       analysisOptions: _analysisOptions,
       declaredVariables: declaredVariables,
       sourceFactory: _sourceFactory,
