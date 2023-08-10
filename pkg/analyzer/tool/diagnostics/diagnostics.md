@@ -10630,7 +10630,7 @@ The following code produces this diagnostic because `x` will always be
 
 {% prettify dart tag=pre+code %}
 int f(Null x) {
-  return [!x!].length;
+  return x.[!length!];
 }
 {% endprettify %}
 
@@ -17661,7 +17661,7 @@ generator and is using `return` to return a value:
 
 {% prettify dart tag=pre+code %}
 Iterable<int> f() sync* {
-  [!return 3!];
+  [!return!] 3;
 }
 {% endprettify %}
 

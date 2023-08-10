@@ -8552,7 +8552,7 @@ CompileTimeErrorCode:
 
       ```dart
       int f(Null x) {
-        return [!x!].length;
+        return x.[!length!];
       }
       ```
 
@@ -14297,7 +14297,7 @@ CompileTimeErrorCode:
 
       ```dart
       Iterable<int> f() sync* {
-        [!return 3!];
+        [!return!] 3;
       }
       ```
 
