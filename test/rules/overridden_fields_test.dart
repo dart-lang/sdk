@@ -75,7 +75,7 @@ class Base {
 
 class Bad1 extends Base {
   @override
-  final x = 1, field = 'ipsum'; // LINT
+  final x = 1, field = 'ipsum';
 }
 
 class GC11 extends Bad1 {
@@ -134,19 +134,19 @@ class GC34 extends GC33 {
 ''', [
       error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 120, 1),
       lint(127, 5),
-      lint(202, 9),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 281, 4),
-      lint(351, 5),
-      lint(426, 9),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 480, 4),
-      lint(508, 9),
-      lint(550, 5),
-      lint(625, 9),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 759, 4),
-      lint(787, 9),
-      lint(829, 4),
-      lint(891, 1),
-      lint(920, 4),
+      lint(194, 9),
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 273, 4),
+      lint(343, 5),
+      lint(418, 9),
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 472, 4),
+      lint(500, 9),
+      lint(542, 5),
+      lint(617, 9),
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 751, 4),
+      lint(779, 9),
+      lint(821, 4),
+      lint(883, 1),
+      lint(912, 4),
     ]);
   }
 

@@ -244,12 +244,12 @@ import 'package:test/b.dart';
     newFile2('$testPackageLibPath/c.dart', '');
     newFile2('$testPackageLibPath/d.dart', '');
     await assertDiagnostics(r'''
-export 'd.dart'; // OK
-export 'a.dart'; // LINT
-export 'b.dart'; // OK
-export 'c.dart'; // OK
+export 'd.dart';
+export 'a.dart';
+export 'b.dart';
+export 'c.dart';
 ''', [
-      lint(23, 16),
+      lint(17, 16),
     ]);
   }
 

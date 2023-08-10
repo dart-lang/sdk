@@ -187,7 +187,7 @@ void foo() {
 void foo() {
   var buffer = '';
   for (int i = 0; i < 10; i++) {
-    buffer += 'a'; // LINT
+    buffer += 'a';
   }
 }
 ''', [
@@ -200,7 +200,7 @@ void foo() {
 void foo() {
   var buffer = '';
   while (buffer.length < 10) {
-    buffer += 'a'; // LINT
+    buffer += 'a';
   }
 }
 ''', [
