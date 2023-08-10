@@ -7,6 +7,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisGetNavigationParams;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
 import 'package:analyzer/dart/analysis/results.dart';
@@ -20,6 +21,8 @@ import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:collection/collection.dart';
+
+typedef StaticOptions = Either2<bool, DefinitionOptions>;
 
 class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
     TextDocumentDefinitionResult> with LspPluginRequestHandlerMixin {
@@ -268,4 +271,22 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
 
     return parsedLibrary.getElementDeclaration(element);
   }
+}
+
+class DefinitionRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  DefinitionRegistrations(super.info);
+
+  @override
+  ToJsonable? get options =>
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes);
+
+  @override
+  Method get registrationMethod => Method.textDocument_definition;
+
+  @override
+  StaticOptions get staticOptions => Either2.t1(true);
+
+  @override
+  bool get supportsDynamic => clientDynamic.definition;
 }

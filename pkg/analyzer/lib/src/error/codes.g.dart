@@ -521,13 +521,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the name of the class implementing the conflicting interface
-  ///  1: the first conflicting type
-  ///  2: the second conflicting type
+  ///  0: the name of the kind of the element implementing the conflicting interface
+  ///  1: the name of the element implementing the conflicting interface
+  ///  2: the first conflicting type
+  ///  3: the second conflicting type
   static const CompileTimeErrorCode CONFLICTING_GENERIC_INTERFACES =
       CompileTimeErrorCode(
     'CONFLICTING_GENERIC_INTERFACES',
-    "The class '{0}' can't implement both '{1}' and '{2}' because the type "
+    "The {0} '{1}' can't implement both '{2}' and '{3}' because the type "
         "arguments are different.",
     hasPublishedDocs: true,
   );

@@ -8,13 +8,18 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_lazy_type_hierarchy.dart'
     as type_hierarchy;
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+
+typedef StaticOptions
+    = Either3<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>;
 
 /// A handler for the initial "prepare" request for starting navigation with
 /// Type Hierarchy.
@@ -68,6 +73,25 @@ class PrepareTypeHierarchyHandler extends SharedMessageHandler<
       return success([item]);
     });
   }
+}
+
+class TypeHierarchyRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  TypeHierarchyRegistrations(super.info);
+
+  @override
+  ToJsonable? get options => TypeHierarchyRegistrationOptions(
+        documentSelector: [dartFiles],
+      );
+
+  @override
+  Method get registrationMethod => Method.textDocument_prepareTypeHierarchy;
+
+  @override
+  StaticOptions get staticOptions => Either3.t1(true);
+
+  @override
+  bool get supportsDynamic => clientDynamic.typeHierarchy;
 }
 
 class TypeHierarchySubtypesHandler extends SharedMessageHandler<

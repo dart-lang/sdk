@@ -80,7 +80,7 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
     ReferencesHandler.new,
     CodeActionHandler.new,
     ExecuteCommandHandler.new,
-    WorkspaceFoldersHandler.new,
+    ChangeWorkspaceFoldersHandler.new,
     PrepareRenameHandler.new,
     RenameHandler.new,
     FoldingHandler.new,

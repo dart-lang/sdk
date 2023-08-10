@@ -5,9 +5,14 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_color.dart'
     show ColorComputer, ColorReference;
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+
+typedef StaticOptions
+    = Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>;
 
 /// Handles textDocument/documentColor requests.
 ///
@@ -57,4 +62,22 @@ class DocumentColorHandler
     final colors = computer.compute();
     return success(colors.map(toColorInformation).toList());
   }
+}
+
+class DocumentColorRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  DocumentColorRegistrations(super.info);
+
+  @override
+  DocumentColorRegistrationOptions get options =>
+      DocumentColorRegistrationOptions(documentSelector: [dartFiles]);
+
+  @override
+  Method get registrationMethod => Method.textDocument_documentColor;
+
+  @override
+  StaticOptions get staticOptions => Either3.t3(options);
+
+  @override
+  bool get supportsDynamic => clientDynamic.colorProvider;
 }

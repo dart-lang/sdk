@@ -164,6 +164,32 @@ class KeywordHelper {
     }
   }
 
+  /// Add the keywords that are appropriate when the selection is in the
+  /// initializer list of the given [node].
+  void addConstructorInitializerKeywords(ConstructorDeclaration node) {
+    addKeyword(Keyword.ASSERT);
+    var suggestSuper = node.parent is! ExtensionTypeDeclaration;
+    var initializers = node.initializers;
+    if (initializers.isNotEmpty) {
+      var last = initializers.lastNonSynthetic;
+      if (offset >= last.end &&
+          last is! SuperConstructorInvocation &&
+          last is! RedirectingConstructorInvocation) {
+        if (suggestSuper) {
+          addKeyword(Keyword.SUPER);
+        }
+        addKeyword(Keyword.THIS);
+      }
+    } else {
+      // if (separator.end <= offset && offset <= separator.next!.offset) {
+      if (suggestSuper) {
+        addKeyword(Keyword.SUPER);
+      }
+      addKeyword(Keyword.THIS);
+      // }
+    }
+  }
+
   /// Add the keywords that are appropriate when the selection is in an enum
   /// declaration between the name of the enum and the body. The [node] is the
   /// enum declaration containing the selection point.
@@ -204,7 +230,12 @@ class KeywordHelper {
       if (node is CollectionElement && node is! Expression) {
         node = node.parent;
       }
-      return node is Expression && !node.inConstantContext;
+      if (node is Expression) {
+        return !node.inConstantContext;
+      } else if (node is VariableDeclaration) {
+        return !node.isConst;
+      }
+      return false;
     }
 
     addKeyword(Keyword.FALSE);
@@ -426,5 +457,15 @@ extension on CollectionElement? {
       }
     }
     return finalElement is IfElement && finalElement.elseKeyword == null;
+  }
+}
+
+extension on NodeList<ConstructorInitializer> {
+  ConstructorInitializer get lastNonSynthetic {
+    final last = this.last;
+    if (last.beginToken.isSynthetic && length > 1) {
+      return this[length - 2];
+    }
+    return last;
   }
 }

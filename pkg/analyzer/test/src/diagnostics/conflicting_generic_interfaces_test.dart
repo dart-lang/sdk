@@ -205,6 +205,17 @@ enum E with M1, M2 {
     ]);
   }
 
+  test_extensionType() async {
+    await assertErrorsInCode('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<num> {}
+extension type C(Never it) implements A, B {}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 87, 1),
+    ]);
+  }
+
   test_mixin_on_implements() async {
     await assertErrorsInCode('''
 class I<T> {}

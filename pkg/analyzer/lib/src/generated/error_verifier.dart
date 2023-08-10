@@ -707,6 +707,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _duplicateDefinitionVerifier.checkExtensionType(node, declarationElement);
       _checkForConflictingClassMembers();
+      _checkForConflictingGenerics(node);
       _constructorFieldsVerifier.enterExtensionType(node, declarationElement);
       _checkForNonCovariantTypeParameterPositionInRepresentationType(
           node, element);
@@ -2175,6 +2176,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
           node.name,
           [
+            _enclosingClass!.kind.displayName,
             _enclosingClass!.name,
             error.first.getDisplayString(withNullability: true),
             error.second.getDisplayString(withNullability: true),

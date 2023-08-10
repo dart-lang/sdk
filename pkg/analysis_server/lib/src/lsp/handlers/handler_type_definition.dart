@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -16,6 +18,9 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
+
+typedef StaticOptions
+    = Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>;
 
 class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
     TextDocumentTypeDefinitionResult> with LspPluginRequestHandlerMixin {
@@ -187,4 +192,23 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
 
     return node.staticType;
   }
+}
+
+class TypeDefinitionRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  TypeDefinitionRegistrations(super.info);
+
+  @override
+  ToJsonable? get options => TextDocumentRegistrationOptions(
+        documentSelector: [dartFiles], // This is currently Dart-specific
+      );
+
+  @override
+  Method get registrationMethod => Method.textDocument_typeDefinition;
+
+  @override
+  StaticOptions get staticOptions => Either3.t1(true);
+
+  @override
+  bool get supportsDynamic => clientDynamic.typeDefinition;
 }

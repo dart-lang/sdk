@@ -7,8 +7,10 @@ import 'dart:math' as math;
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
@@ -788,6 +790,66 @@ class CompletionHandler
 
     return item1Text.compareTo(item2Text);
   }
+}
+
+class CompletionRegistrations extends FeatureRegistration
+    with StaticRegistration<CompletionOptions> {
+  CompletionRegistrations(super.info);
+
+  @override
+  List<LspDynamicRegistration> get dynamicRegistrations {
+    return [
+      // Trigger and commit characters are specific to Dart, so register them
+      // separately to the others.
+      (
+        Method.textDocument_completion,
+        CompletionRegistrationOptions(
+          documentSelector: [dartFiles],
+          triggerCharacters: dartCompletionTriggerCharacters,
+          allCommitCharacters:
+              previewCommitCharacters ? dartCompletionCommitCharacters : null,
+          resolveProvider: true,
+        ),
+      ),
+      (
+        Method.textDocument_completion,
+        CompletionRegistrationOptions(
+          documentSelector: nonDartCompletionTypes,
+          resolveProvider: true,
+        ),
+      ),
+    ];
+  }
+
+  /// Types of documents we support completion for that are not Dart.
+  ///
+  /// We use two dynamic registrations because for Dart we support trigger
+  /// characters but for other kinds of files we do not.
+  List<TextDocumentFilterWithScheme> get nonDartCompletionTypes {
+    final pluginTypesExcludingDart =
+        pluginTypes.where((filter) => filter.pattern != '**/*.dart');
+
+    return {
+      ...pluginTypesExcludingDart,
+      pubspecFile,
+      analysisOptionsFile,
+      fixDataFile,
+    }.toList();
+  }
+
+  bool get previewCommitCharacters =>
+      clientConfiguration.global.previewCommitCharacters;
+
+  @override
+  CompletionOptions get staticOptions => CompletionOptions(
+        triggerCharacters: dartCompletionTriggerCharacters,
+        allCommitCharacters:
+            previewCommitCharacters ? dartCompletionCommitCharacters : null,
+        resolveProvider: true,
+      );
+
+  @override
+  bool get supportsDynamic => clientDynamic.completion;
 }
 
 /// A set of completion items split into ranked and unranked items.
