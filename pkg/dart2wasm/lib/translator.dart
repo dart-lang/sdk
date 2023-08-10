@@ -303,7 +303,7 @@ class Translator with KernelNodes {
       String? exportName = functions.getExport(reference);
 
       if (options.printKernel || options.printWasm) {
-        String header = "#${function.index}: $canonicalName";
+        String header = "#${function.name}: $canonicalName";
         if (exportName != null) {
           header = "$header (exported as $exportName)";
         }
@@ -371,7 +371,7 @@ class Translator with KernelNodes {
         _printFunction(function, info.constant);
       } else {
         if (options.printWasm) {
-          print("Global #${info.global.index}: ${info.constant}");
+          print("Global #${info.global.name}: ${info.constant}");
           final global = info.global;
           if (global is w.GlobalBuilder) {
             print(global.initializer.trace);
@@ -386,7 +386,7 @@ class Translator with KernelNodes {
 
   void _printFunction(w.BaseFunction function, Object name) {
     if (options.printWasm) {
-      print("#${function.index}: $name");
+      print("#${function.name}: $name");
       final f = function;
       if (f is w.FunctionBuilder) {
         print(f.body.trace);
