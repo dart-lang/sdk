@@ -5090,6 +5090,15 @@ CompileTimeErrorCode:
       Parameters:
       0: the implemented not extension type
       1: the ultimate representation type
+  EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE:
+    problemMessage: "'{0}', the representation type of '{1}', is not a supertype of '{2}', the representation type of '{3}'."
+    correctionMessage: Try specifying a different type, or remove the type from the list.
+    comment: |-
+      Parameters:
+      0: the representation type of the implemented extension type
+      1: the name of the implemented extension type
+      2: the representation type of the this extension type
+      3: the name of the this extension type
   EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT:
     problemMessage: "The extension type '{0}' has more than one distinct member named '{1}' from implemented types."
     correctionMessage: Try redeclaring the corresponding member in this extension type.

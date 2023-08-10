@@ -9,44 +9,41 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExtensionTypeImplementsNotSupertypeOfErasureTest);
+    defineReflectiveTests(
+        ExtensionTypeImplementsRepresentationNotSupertypeTest);
   });
 }
 
 @reflectiveTest
-class ExtensionTypeImplementsNotSupertypeOfErasureTest
+class ExtensionTypeImplementsRepresentationNotSupertypeTest
     extends PubPackageResolutionTest {
   test_notSupertype() async {
     await assertErrorsInCode('''
-extension type A(int it) implements String {}
+extension type A(String it) {}
+extension type B(int it) implements A {}
 ''', [
       error(
           CompileTimeErrorCode
-              .EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE_OF_ERASURE,
-          36,
-          6),
+              .EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE,
+          67,
+          1),
     ]);
+  }
+
+  test_supertype() async {
+    await assertNoErrorsInCode('''
+extension type A(num it) {}
+extension type B(int it) implements A {}
+''');
   }
 
   test_supertype2() async {
     await assertNoErrorsInCode('''
-extension type A(S3 it) implements S1 {}
+extension type A(S1 it) {}
+extension type B(S3 it) implements A {}
 class S1 {}
 class S2 extends S1 {}
 class S3 extends S2 {}
-''');
-  }
-
-  test_supertype_erasure() async {
-    await assertNoErrorsInCode('''
-extension type A(int it) {}
-extension type B(A it) implements num {}
-''');
-  }
-
-  test_supertype_interfaceType() async {
-    await assertNoErrorsInCode('''
-extension type A(int it) implements num {}
 ''');
   }
 }
