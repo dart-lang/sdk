@@ -59,48 +59,7 @@ abstract class BackendUsage {
   bool get isHtmlLoaded;
 }
 
-abstract class BackendUsageBuilder {
-  /// The backend must *always* call this method when enqueuing an function
-  /// element. Calls done by the backend are not seen by global
-  /// optimizations, so they would make these optimizations unsound.
-  /// Therefore we need to collect the list of methods the backend may
-  /// call.
-  // TODO(johnniwinther): Replace this with a more precise modelling; type
-  // inference of parameters of these functions is disabled.
-  void registerBackendFunctionUse(FunctionEntity element);
-
-  /// The backend must *always* call this method when instantiating a class.
-  /// Instantiations done by the backend are not seen by global optimizations,
-  /// so they would make these optimizations unsound. Therefore we need to
-  /// collect the list of classes the backend may instantiate.
-  // TODO(johnniwinther): Replace this with a more precise modelling; type
-  // inference of the instance fields of these classes is disabled.
-  void registerBackendClassUse(ClassEntity element);
-
-  void registerGlobalFunctionDependency(FunctionEntity element);
-  void registerGlobalClassDependency(ClassEntity element);
-
-  /// Collect backend use from [backendImpact].
-  void processBackendImpact(BackendImpact backendImpact);
-
-  void registerUsedMember(MemberEntity member);
-
-  /// Register use of `runtimeType`.
-  void registerRuntimeTypeUse(RuntimeTypeUse runtimeTypeUse);
-
-  /// `true` if `Function.apply` is used.
-  abstract bool isFunctionApplyUsed;
-
-  /// `true` if `noSuchMethod` is used.
-  abstract bool isNoSuchMethodUsed;
-
-  /// Register that `dart:html` is loaded.
-  void registerHtmlIsLoaded();
-
-  BackendUsage close();
-}
-
-class BackendUsageBuilderImpl implements BackendUsageBuilder {
+class BackendUsageBuilder {
   final KernelFrontendStrategy _frontendStrategy;
   // TODO(johnniwinther): Remove the need for these.
   Setlet<FunctionEntity>? _globalFunctionDependencies;
@@ -123,26 +82,37 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   /// `true` if a core-library function accesses startup timestamps.
   bool requiresStartupMetrics = false;
 
-  @override
+  /// `true` if `Function.apply` is used.
   bool isFunctionApplyUsed = false;
 
-  @override
+  /// `true` if `noSuchMethod` is used.
   bool isNoSuchMethodUsed = false;
 
   bool isHtmlLoaded = false;
 
-  BackendUsageBuilderImpl(this._frontendStrategy);
+  BackendUsageBuilder(this._frontendStrategy);
 
   KCommonElements get _commonElements => _frontendStrategy.commonElements;
 
-  @override
+  /// The backend must *always* call this method when enqueuing an function
+  /// element. Calls done by the backend are not seen by global
+  /// optimizations, so they would make these optimizations unsound.
+  /// Therefore we need to collect the list of methods the backend may
+  /// call.
+  // TODO(johnniwinther): Replace this with a more precise modelling; type
+  // inference of parameters of these functions is disabled.
   void registerBackendFunctionUse(FunctionEntity element) {
     assert(_isValidBackendUse(element, element.library),
         failedAt(element, "Backend use of $element is not allowed."));
     _helperFunctionsUsed.add(element);
   }
 
-  @override
+  /// The backend must *always* call this method when instantiating a class.
+  /// Instantiations done by the backend are not seen by global optimizations,
+  /// so they would make these optimizations unsound. Therefore we need to
+  /// collect the list of classes the backend may instantiate.
+  // TODO(johnniwinther): Replace this with a more precise modelling; type
+  // inference of the instance fields of these classes is disabled.
   void registerBackendClassUse(ClassEntity element) {
     assert(_isValidBackendUse(element, element.library),
         failedAt(element, "Backend use of $element is not allowed."));
@@ -200,7 +170,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     }
   }
 
-  @override
+  /// Collect backend use from [backendImpact].
   void processBackendImpact(BackendImpact backendImpact) {
     for (FunctionEntity staticUse in backendImpact.staticUses) {
       _processBackendStaticUse(staticUse);
@@ -232,7 +202,6 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     }
   }
 
-  @override
   void registerUsedMember(MemberEntity member) {
     if (member == _commonElements.getIsolateAffinityTagMarker) {
       _needToInitializeIsolateAffinityTag = true;
@@ -245,29 +214,26 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     }
   }
 
-  @override
   void registerGlobalFunctionDependency(FunctionEntity element) {
     _globalFunctionDependencies ??= Setlet();
     _globalFunctionDependencies!.add(element);
   }
 
-  @override
   void registerGlobalClassDependency(ClassEntity element) {
     _globalClassDependencies ??= Setlet();
     _globalClassDependencies!.add(element);
   }
 
-  @override
+  /// Register use of `runtimeType`.
   void registerRuntimeTypeUse(RuntimeTypeUse runtimeTypeUse) {
     _runtimeTypeUses.add(runtimeTypeUse);
   }
 
-  @override
+  /// Register that `dart:html` is loaded.
   void registerHtmlIsLoaded() {
     isHtmlLoaded = true;
   }
 
-  @override
   BackendUsage close() {
     return BackendUsageImpl(
         globalFunctionDependencies: _globalFunctionDependencies,
