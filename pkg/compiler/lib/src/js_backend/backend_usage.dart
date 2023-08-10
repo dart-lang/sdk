@@ -35,8 +35,6 @@ abstract class BackendUsage {
 
   Iterable<ClassEntity> get globalClassDependencies;
 
-  Iterable<ClassEntity> get helperClassesUsed;
-
   Iterable<RuntimeTypeUse> get runtimeTypeUses;
 
   /// `true` if a core-library function requires the preamble file to function.
@@ -77,18 +75,18 @@ class BackendUsageBuilder {
   bool _needToInitializeDispatchProperty = false;
 
   /// `true` if a core-library function requires the preamble file to function.
-  bool requiresPreamble = false;
+  bool _requiresPreamble = false;
 
   /// `true` if a core-library function accesses startup timestamps.
-  bool requiresStartupMetrics = false;
+  bool _requiresStartupMetrics = false;
 
   /// `true` if `Function.apply` is used.
-  bool isFunctionApplyUsed = false;
+  bool _isFunctionApplyUsed = false;
 
   /// `true` if `noSuchMethod` is used.
   bool isNoSuchMethodUsed = false;
 
-  bool isHtmlLoaded = false;
+  bool _isHtmlLoaded = false;
 
   BackendUsageBuilder(this._frontendStrategy);
 
@@ -206,11 +204,11 @@ class BackendUsageBuilder {
     if (member == _commonElements.getIsolateAffinityTagMarker) {
       _needToInitializeIsolateAffinityTag = true;
     } else if (member == _commonElements.requiresPreambleMarker) {
-      requiresPreamble = true;
+      _requiresPreamble = true;
     } else if (_commonElements.isFunctionApplyMethod(member)) {
-      isFunctionApplyUsed = true;
+      _isFunctionApplyUsed = true;
     } else if (member == _commonElements.rawStartupMetrics) {
-      requiresStartupMetrics = true;
+      _requiresStartupMetrics = true;
     }
   }
 
@@ -231,7 +229,7 @@ class BackendUsageBuilder {
 
   /// Register that `dart:html` is loaded.
   void registerHtmlIsLoaded() {
-    isHtmlLoaded = true;
+    _isHtmlLoaded = true;
   }
 
   BackendUsage close() {
@@ -242,12 +240,12 @@ class BackendUsageBuilder {
         helperClassesUsed: _helperClassesUsed,
         needToInitializeIsolateAffinityTag: _needToInitializeIsolateAffinityTag,
         needToInitializeDispatchProperty: _needToInitializeDispatchProperty,
-        requiresPreamble: requiresPreamble,
-        requiresStartupMetrics: requiresStartupMetrics,
+        requiresPreamble: _requiresPreamble,
+        requiresStartupMetrics: _requiresStartupMetrics,
         runtimeTypeUses: _runtimeTypeUses,
-        isFunctionApplyUsed: isFunctionApplyUsed,
+        isFunctionApplyUsed: _isFunctionApplyUsed,
         isNoSuchMethodUsed: isNoSuchMethodUsed,
-        isHtmlLoaded: isHtmlLoaded);
+        isHtmlLoaded: _isHtmlLoaded);
   }
 }
 
@@ -386,7 +384,6 @@ class BackendUsageImpl implements BackendUsage {
 
   Iterable<FunctionEntity> get helperFunctionsUsed => _helperFunctionsUsed;
 
-  @override
   Iterable<ClassEntity> get helperClassesUsed => _helperClassesUsed;
 
   @override
