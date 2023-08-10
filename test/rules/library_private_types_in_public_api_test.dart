@@ -9,6 +9,7 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryPrivateTypesInPublicApiEnumTest);
+    defineReflectiveTests(LibraryPrivateTypesInPublicApiExtensionTypeTest);
     defineReflectiveTests(LibraryPrivateTypesInPublicApiSuperParamTest);
   });
 }
@@ -81,6 +82,140 @@ sealed class E {
   E(_O o);
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class LibraryPrivateTypesInPublicApiExtensionTypeTest extends LintRuleTest {
+  @override
+  List<String> get experiments => ['inline-class'];
+
+  @override
+  String get lintRule => 'library_private_types_in_public_api';
+
+  test_constructorParam() async {
+    await assertDiagnostics(r'''
+class _C {}
+extension type E(Object o) {
+  E.e(_C c) : o = c;
+}
+''', [
+      lint(47, 2),
+    ]);
+  }
+
+  test_extensionTypeDeclaration_representation() async {
+    await assertDiagnostics(r'''
+class _C {}
+extension type E(_C c) {}
+''', [
+      lint(29, 2),
+    ]);
+  }
+
+  test_extensionTypeDeclaration_representation_private() async {
+    await assertNoDiagnostics(r'''
+class _C {}
+extension type E(_C _c) {}
+''');
+  }
+
+  test_extensionTypeDeclaration_typeParam() async {
+    await assertDiagnostics(r'''
+class _C {}
+extension type E<T extends _C>(Object o) {}
+''', [
+      lint(39, 2),
+    ]);
+  }
+
+  test_field_instance() async {
+    await assertDiagnostics(r'''
+class _C {}
+extension type E(Object o) {
+  _C? c;
+}
+''', [
+      // No lint.
+      // todo(pq): add compilation error once reported
+    ]);
+  }
+
+  test_field_static() async {
+    await assertDiagnostics(r'''
+class _C {}
+extension type E(Object o) {
+  static _C? c;
+}
+''', [
+      lint(50, 2),
+    ]);
+  }
+
+  test_method_instance_param() async {
+    await assertDiagnostics(r'''
+class _C {}
+extension type E(Object o) {
+  m(_C c){}
+}
+''', [
+      lint(45, 2),
+    ]);
+  }
+
+  test_method_instance_private_param() async {
+    await assertDiagnostics(r'''
+class _C {}
+extension type E(Object o) {
+  _m(_C c){}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 43, 2),
+    ]);
+  }
+
+  test_method_instance_returnType() async {
+    await assertDiagnostics(r'''
+class _C {}
+extension type E(Object o) {
+  _C? m() => null;
+}
+''', [
+      lint(43, 2),
+    ]);
+  }
+
+  test_method_static_param() async {
+    await assertDiagnostics(r'''
+class _C {}
+extension type E(Object o) {
+  static m(_C c){}
+}
+''', [
+      lint(52, 2),
+    ]);
+  }
+
+  test_method_static_private_returnType() async {
+    await assertDiagnostics(r'''
+class _C {}
+extension type E(Object o) {
+  static _C? _m() => null;
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 54, 2),
+    ]);
+  }
+
+  test_method_static_returnType() async {
+    await assertDiagnostics(r'''
+class _C {}
+extension type E(Object o) {
+  static _C? m() => null;
+}
+''', [
+      lint(50, 2),
+    ]);
   }
 }
 

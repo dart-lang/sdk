@@ -173,13 +173,6 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    var element = node.declaredElement;
-    if (element == null || element.hasInternal) return;
-    _visitMembers(node, node.name, node.members);
-  }
-
-  @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     if (!isPrivate(node.name)) {
       check(node);
@@ -270,6 +263,13 @@ class _Visitor extends SimpleAstVisitor {
 
     check(node);
     checkMethods(node.members);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    var element = node.declaredElement;
+    if (element == null || element.hasInternal) return;
+    _visitMembers(node, node.name, node.members);
   }
 
   @override

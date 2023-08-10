@@ -133,7 +133,19 @@ class Validator extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    if (Identifier.isPrivateName(node.name.lexeme)) return;
+    node.typeParameters?.accept(this);
+    var representation = node.representation;
+    if (!Identifier.isPrivateName(representation.fieldName.lexeme)) {
+      representation.fieldType.accept(this);
+    }
+    node.members.accept(this);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    if (node.isInvalidExtensionTypeField) return;
     if (node.fields.variables
         .any((field) => !Identifier.isPrivateName(field.name.lexeme))) {
       node.fields.type?.accept(this);
