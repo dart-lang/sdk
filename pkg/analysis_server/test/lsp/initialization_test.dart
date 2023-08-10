@@ -416,8 +416,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
             .any((ds) => ds.pattern == '**/analysis_options.yaml'),
         isTrue);
 
-    expect(rename,
-        equals(ServerCapabilitiesComputer.fileOperationRegistrationOptions));
+    expect(rename, equals(fileOperationRegistrationOptions));
   }
 
   Future<void> test_dynamicRegistration_notSupportedByClient() async {
@@ -463,7 +462,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.renameProvider, isNotNull);
     expect(initResult.capabilities.foldingRangeProvider, isNotNull);
     expect(initResult.capabilities.workspace!.fileOperations!.willRename,
-        equals(ServerCapabilitiesComputer.fileOperationRegistrationOptions));
+        equals(fileOperationRegistrationOptions));
     expect(initResult.capabilities.selectionRangeProvider, isNotNull);
     expect(initResult.capabilities.semanticTokensProvider, isNotNull);
 

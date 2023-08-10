@@ -7,7 +7,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
-import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 
 /// Helper for reading client dynamic registrations which may be omitted by the
 /// client.
@@ -131,197 +131,74 @@ class ClientDynamicRegistrations {
 }
 
 class ServerCapabilitiesComputer {
-  static final fileOperationRegistrationOptions =
-      FileOperationRegistrationOptions(
-    filters: [
-      FileOperationFilter(
-        scheme: 'file',
-        pattern: FileOperationPattern(
-          glob: '**/*.dart',
-          matches: FileOperationPatternKind.file,
-        ),
-      ),
-      FileOperationFilter(
-        scheme: 'file',
-        pattern: FileOperationPattern(
-          glob: '**/',
-          matches: FileOperationPatternKind.folder,
-        ),
-      )
-    ],
-  );
-
   final LspAnalysisServer _server;
 
   /// List of current registrations.
   Set<Registration> currentRegistrations = {};
   var _lastRegistrationId = 0;
 
-  final dartFiles =
-      TextDocumentFilterWithScheme(language: 'dart', scheme: 'file');
-  final pubspecFile = TextDocumentFilterWithScheme(
-      language: 'yaml', scheme: 'file', pattern: '**/pubspec.yaml');
-  final analysisOptionsFile = TextDocumentFilterWithScheme(
-      language: 'yaml', scheme: 'file', pattern: '**/analysis_options.yaml');
-  final fixDataFile = TextDocumentFilterWithScheme(
-      language: 'yaml',
-      scheme: 'file',
-      pattern: '**/lib/{fix_data.yaml,fix_data/**.yaml}');
-
   ServerCapabilitiesComputer(this._server);
+
+  List<TextDocumentFilterWithScheme> get pluginTypes => AnalysisServer
+          .supportsPlugins
+      ? _server.pluginManager.plugins
+          .expand(
+            (plugin) => plugin.currentSession?.interestingFiles ?? const [],
+          )
+          // All published plugins use something like `*.extension` as
+          // interestingFiles. Prefix a `**/` so that the glob matches nested
+          // folders as well.
+          .map((glob) =>
+              TextDocumentFilterWithScheme(scheme: 'file', pattern: '**/$glob'))
+          .toList()
+      : <TextDocumentFilterWithScheme>[];
+
   ServerCapabilities computeServerCapabilities(
-      LspClientCapabilities clientCapabilities) {
-    final codeActionLiteralSupport = clientCapabilities.literalCodeActions;
-    final renameOptionsSupport = clientCapabilities.renameValidation;
-    final enableFormatter =
-        _server.lspClientConfiguration.global.enableSdkFormatter;
-    final previewCommitCharacters =
-        _server.lspClientConfiguration.global.previewCommitCharacters;
+    LspClientCapabilities clientCapabilities,
+  ) {
+    final context = RegistrationContext(
+      clientCapabilities: clientCapabilities,
+      clientConfiguration: _server.lspClientConfiguration,
+      pluginTypes: pluginTypes,
+    );
+    final features = LspFeatures(context);
 
-    final dynamicRegistrations =
-        ClientDynamicRegistrations(clientCapabilities.raw);
-
-    // When adding new capabilities to the server that may apply to specific file
-    // types, it's important to update
-    // [InitializedMessageHandler._performDynamicRegistration()] to notify
-    // supporting clients of this. This avoids clients needing to hard-code the
-    // list of what files types we support (and allows them to avoid sending
-    // requests where we have only partial support for some types).
     return ServerCapabilities(
-      textDocumentSync: dynamicRegistrations.textSync
-          ? null
-          : Either2<TextDocumentSyncKind, TextDocumentSyncOptions>.t2(
-              TextDocumentSyncOptions(
-              // The open/close and sync kind flags are registered dynamically if the
-              // client supports them, so these static registrations are based on whether
-              // the client supports dynamic registration.
-              openClose: true,
-              change: TextDocumentSyncKind.Incremental,
-              willSave: false,
-              willSaveWaitUntil: false,
-              save: null,
-            )),
-      callHierarchyProvider: dynamicRegistrations.callHierarchy
-          ? null
-          : Either3<bool, CallHierarchyOptions,
-              CallHierarchyRegistrationOptions>.t1(true),
-      completionProvider: dynamicRegistrations.completion
-          ? null
-          : CompletionOptions(
-              triggerCharacters: dartCompletionTriggerCharacters,
-              allCommitCharacters: previewCommitCharacters
-                  ? dartCompletionCommitCharacters
-                  : null,
-              resolveProvider: true,
-            ),
-      hoverProvider: dynamicRegistrations.hover
-          ? null
-          : Either2<bool, HoverOptions>.t1(true),
-      signatureHelpProvider: dynamicRegistrations.signatureHelp
-          ? null
-          : SignatureHelpOptions(
-              triggerCharacters: dartSignatureHelpTriggerCharacters,
-              retriggerCharacters: dartSignatureHelpRetriggerCharacters,
-            ),
-      definitionProvider: dynamicRegistrations.definition
-          ? null
-          : Either2<bool, DefinitionOptions>.t1(true),
-      implementationProvider: dynamicRegistrations.implementation
-          ? null
-          : Either3<bool, ImplementationOptions,
-              ImplementationRegistrationOptions>.t1(
-              true,
-            ),
-      referencesProvider: dynamicRegistrations.references
-          ? null
-          : Either2<bool, ReferenceOptions>.t1(true),
-      documentHighlightProvider: dynamicRegistrations.documentHighlights
-          ? null
-          : Either2<bool, DocumentHighlightOptions>.t1(true),
-      documentSymbolProvider: dynamicRegistrations.documentSymbol
-          ? null
-          : Either2<bool, DocumentSymbolOptions>.t1(true),
-      // "The `CodeActionOptions` return type is only valid if the client
-      // signals code action literal support via the property
-      // `textDocument.codeAction.codeActionLiteralSupport`."
-      codeActionProvider: dynamicRegistrations.codeActions
-          ? null
-          : codeActionLiteralSupport
-              ? Either2<bool, CodeActionOptions>.t2(CodeActionOptions(
-                  codeActionKinds: DartCodeActionKind.serverSupportedKinds,
-                ))
-              : Either2<bool, CodeActionOptions>.t1(true),
-      colorProvider: dynamicRegistrations.colorProvider
-          ? null
-          : Either3<bool, DocumentColorOptions,
-                  DocumentColorRegistrationOptions>.t3(
-              DocumentColorRegistrationOptions(documentSelector: [dartFiles])),
-      documentFormattingProvider: dynamicRegistrations.formatting
-          ? null
-          : Either2<bool, DocumentFormattingOptions>.t1(enableFormatter),
-      documentOnTypeFormattingProvider: dynamicRegistrations.typeFormatting
-          ? null
-          : enableFormatter
-              ? DocumentOnTypeFormattingOptions(
-                  firstTriggerCharacter: dartTypeFormattingCharacters.first,
-                  moreTriggerCharacter:
-                      dartTypeFormattingCharacters.skip(1).toList())
-              : null,
-      documentRangeFormattingProvider: dynamicRegistrations.typeFormatting
-          ? null
-          : Either2<bool, DocumentRangeFormattingOptions>.t1(enableFormatter),
-      inlayHintProvider: dynamicRegistrations.inlayHints
-          ? null
-          : Either3<bool, InlayHintOptions, InlayHintRegistrationOptions>.t2(
-              InlayHintOptions(resolveProvider: false),
-            ),
-      renameProvider: dynamicRegistrations.rename
-          ? null
-          : renameOptionsSupport
-              ? Either2<bool, RenameOptions>.t2(
-                  RenameOptions(prepareProvider: true))
-              : Either2<bool, RenameOptions>.t1(true),
-      foldingRangeProvider: dynamicRegistrations.folding
-          ? null
-          : Either3<bool, FoldingRangeOptions,
-              FoldingRangeRegistrationOptions>.t1(
-              true,
-            ),
-      selectionRangeProvider: dynamicRegistrations.selectionRange
-          ? null
-          : Either3<bool, SelectionRangeOptions,
-              SelectionRangeRegistrationOptions>.t1(true),
-      semanticTokensProvider: dynamicRegistrations.semanticTokens
-          ? null
-          : Either2<SemanticTokensOptions,
-              SemanticTokensRegistrationOptions>.t1(
-              SemanticTokensOptions(
-                legend: semanticTokenLegend.lspLegend,
-                full: Either2<bool, SemanticTokensOptionsFull>.t2(
-                  SemanticTokensOptionsFull(delta: false),
-                ),
-                range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
-              ),
-            ),
-      typeHierarchyProvider: dynamicRegistrations.typeHierarchy
-          ? null
-          : Either3<bool, TypeHierarchyOptions,
-              TypeHierarchyRegistrationOptions>.t1(true),
-      executeCommandProvider: ExecuteCommandOptions(
-        commands: Commands.serverSupportedCommands,
-        workDoneProgress: true,
-      ),
-      workspaceSymbolProvider: Either2<bool, WorkspaceSymbolOptions>.t1(true),
+      textDocumentSync: features.textDocumentSync.staticRegistration,
+      callHierarchyProvider: features.callHierarchy.staticRegistration,
+      completionProvider: features.completion.staticRegistration,
+      hoverProvider: features.hover.staticRegistration,
+      signatureHelpProvider: features.signatureHelp.staticRegistration,
+      definitionProvider: features.definition.staticRegistration,
+      implementationProvider: features.implementation.staticRegistration,
+      referencesProvider: features.references.staticRegistration,
+      documentHighlightProvider: features.documentHighlight.staticRegistration,
+      documentSymbolProvider: features.documentSymbol.staticRegistration,
+      codeActionProvider: features.codeActions.staticRegistration,
+      colorProvider: features.colors.staticRegistration,
+      documentFormattingProvider: features.format.staticRegistration,
+      documentOnTypeFormattingProvider:
+          features.formatOnType.staticRegistration,
+      documentRangeFormattingProvider: features.formatRange.staticRegistration,
+      inlayHintProvider: features.inlayHint.staticRegistration,
+      renameProvider: features.rename.staticRegistration,
+      foldingRangeProvider: features.foldingRange.staticRegistration,
+      selectionRangeProvider: features.selectionRange.staticRegistration,
+      semanticTokensProvider: features.semanticTokens.staticRegistration,
+      typeDefinitionProvider: features.typeDefinition.staticRegistration,
+      typeHierarchyProvider: features.typeHierarchy.staticRegistration,
+      executeCommandProvider: features.executeCommand.staticRegistration,
+      workspaceSymbolProvider: features.workspaceSymbol.staticRegistration,
       workspace: ServerCapabilitiesWorkspace(
         workspaceFolders: WorkspaceFoldersServerCapabilities(
           supported: true,
-          changeNotifications: Either2<bool, String>.t1(true),
+          changeNotifications: features.changeNotifications.staticRegistration,
         ),
-        fileOperations: dynamicRegistrations.fileOperations
-            ? null
-            : FileOperationOptions(
-                willRename: fileOperationRegistrationOptions,
-              ),
+        fileOperations: !context.clientDynamic.fileOperations
+            ? FileOperationOptions(
+                willRename: features.willRename.staticRegistration,
+              )
+            : null,
       ),
     );
   }
@@ -334,247 +211,27 @@ class ServerCapabilitiesComputer {
   /// support and it will be up to them to decide which file types they will
   /// send requests for.
   Future<void> performDynamicRegistration() async {
-    final pluginTypes = AnalysisServer.supportsPlugins
-        ? _server.pluginManager.plugins
-            .expand(
-                (plugin) => plugin.currentSession?.interestingFiles ?? const [])
-            // All published plugins use something like `*.extension` as
-            // interestingFiles. Prefix a `**/` so that the glob matches nested
-            // folders as well.
-            .map((glob) => TextDocumentFilterWithScheme(
-                scheme: 'file', pattern: '**/$glob'))
-        : <TextDocumentFilterWithScheme>[];
-    final pluginTypesExcludingDart =
-        pluginTypes.where((filter) => filter.pattern != '**/*.dart');
-
-    final fullySupportedTypes = {dartFiles, ...pluginTypes}.toList();
-
-    // Add pubspec + analysis options only for synchronisation. We do not support
-    // things like hovers/formatting/etc. for these files so there's no point
-    // in having the client send those requests (plus, for things like formatting
-    // this could result in the editor reporting "multiple formatters installed"
-    // and prevent a built-in YAML formatter from being selected).
-    final synchronisedTypes = {
-      ...fullySupportedTypes,
-      pubspecFile,
-      analysisOptionsFile,
-      fixDataFile,
-    }.toList();
-
-    // Completion is supported for some synchronised files that we don't _fully_
-    // support (eg. YAML). If these gain support for things like hover, we may
-    // wish to move them to fullySupportedTypes but add an exclusion for formatting.
-    final completionSupportedTypesExcludingDart = {
-      // Dart is excluded here at it's registered separately with trigger/commit
-      // characters.
-      ...pluginTypesExcludingDart,
-      pubspecFile,
-      analysisOptionsFile,
-      fixDataFile,
-    }.toList();
-
+    final context = RegistrationContext(
+      clientCapabilities: _server.lspClientCapabilities!,
+      clientConfiguration: _server.lspClientConfiguration,
+      pluginTypes: pluginTypes,
+    );
+    final features = LspFeatures(context);
     final registrations = <Registration>[];
 
-    final enableFormatter =
-        _server.lspClientConfiguration.global.enableSdkFormatter;
-    final previewCommitCharacters =
-        _server.lspClientConfiguration.global.previewCommitCharacters;
-    final updateImportsOnRename =
-        _server.lspClientConfiguration.global.updateImportsOnRename;
-
-    /// Helper for creating registrations with IDs.
-    void register(bool condition, Method method, [ToJsonable? options]) {
-      if (condition == true) {
-        registrations.add(Registration(
-            id: (_lastRegistrationId++).toString(),
-            method: method.toString(),
-            registerOptions: options));
-      }
-    }
-
-    final dynamicRegistrations =
-        ClientDynamicRegistrations(_server.lspClientCapabilities!.raw);
-
-    register(
-      dynamicRegistrations.textSync,
-      Method.textDocument_didOpen,
-      TextDocumentRegistrationOptions(documentSelector: synchronisedTypes),
-    );
-    register(
-      dynamicRegistrations.textSync,
-      Method.textDocument_didClose,
-      TextDocumentRegistrationOptions(documentSelector: synchronisedTypes),
-    );
-    register(
-      dynamicRegistrations.textSync,
-      Method.textDocument_didChange,
-      TextDocumentChangeRegistrationOptions(
-          syncKind: TextDocumentSyncKind.Incremental,
-          documentSelector: synchronisedTypes),
-    );
-    // Trigger and commit characters are specific to Dart, so register them
-    // separately to the others.
-    register(
-      dynamicRegistrations.completion,
-      Method.textDocument_completion,
-      CompletionRegistrationOptions(
-        documentSelector: [dartFiles],
-        triggerCharacters: dartCompletionTriggerCharacters,
-        allCommitCharacters:
-            previewCommitCharacters ? dartCompletionCommitCharacters : null,
-        resolveProvider: true,
-      ),
-    );
-    register(
-      dynamicRegistrations.completion,
-      Method.textDocument_completion,
-      CompletionRegistrationOptions(
-        documentSelector: completionSupportedTypesExcludingDart,
-        resolveProvider: true,
-      ),
-    );
-    register(
-      dynamicRegistrations.hover,
-      Method.textDocument_hover,
-      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
-    );
-    register(
-      dynamicRegistrations.signatureHelp,
-      Method.textDocument_signatureHelp,
-      SignatureHelpRegistrationOptions(
-        documentSelector: fullySupportedTypes,
-        triggerCharacters: dartSignatureHelpTriggerCharacters,
-        retriggerCharacters: dartSignatureHelpRetriggerCharacters,
-      ),
-    );
-    register(
-      dynamicRegistrations.references,
-      Method.textDocument_references,
-      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
-    );
-    register(
-      dynamicRegistrations.documentHighlights,
-      Method.textDocument_documentHighlight,
-      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
-    );
-    register(
-      dynamicRegistrations.documentSymbol,
-      Method.textDocument_documentSymbol,
-      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
-    );
-    register(
-      dynamicRegistrations.colorProvider,
-      // This registration covers both documentColor and colorPresentation.
-      Method.textDocument_documentColor,
-      DocumentColorRegistrationOptions(documentSelector: [dartFiles]),
-    );
-    register(
-      enableFormatter && dynamicRegistrations.formatting,
-      Method.textDocument_formatting,
-      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
-    );
-    register(
-      enableFormatter && dynamicRegistrations.typeFormatting,
-      Method.textDocument_onTypeFormatting,
-      DocumentOnTypeFormattingRegistrationOptions(
-        documentSelector: [dartFiles], // This one is currently Dart-specific
-        firstTriggerCharacter: dartTypeFormattingCharacters.first,
-        moreTriggerCharacter: dartTypeFormattingCharacters.skip(1).toList(),
-      ),
-    );
-    register(
-      enableFormatter && dynamicRegistrations.rangeFormatting,
-      Method.textDocument_rangeFormatting,
-      DocumentRangeFormattingRegistrationOptions(
-        documentSelector: [dartFiles], // This one is currently Dart-specific
-      ),
-    );
-    register(
-      dynamicRegistrations.definition,
-      Method.textDocument_definition,
-      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
-    );
-    register(
-      dynamicRegistrations.typeDefinition,
-      Method.textDocument_typeDefinition,
-      TextDocumentRegistrationOptions(
-        documentSelector: [dartFiles], // This one is currently Dart-specific
-      ),
-    );
-    register(
-      dynamicRegistrations.implementation,
-      Method.textDocument_implementation,
-      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
-    );
-    register(
-      dynamicRegistrations.codeActions,
-      Method.textDocument_codeAction,
-      CodeActionRegistrationOptions(
-        documentSelector: fullySupportedTypes,
-        codeActionKinds: DartCodeActionKind.serverSupportedKinds,
-      ),
-    );
-    register(
-      dynamicRegistrations.rename,
-      Method.textDocument_rename,
-      RenameRegistrationOptions(
-          documentSelector: fullySupportedTypes, prepareProvider: true),
-    );
-    register(
-      dynamicRegistrations.folding,
-      Method.textDocument_foldingRange,
-      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
-    );
-    register(
-      updateImportsOnRename && dynamicRegistrations.fileOperations,
-      Method.workspace_willRenameFiles,
-      fileOperationRegistrationOptions,
-    );
-    register(
-      dynamicRegistrations.didChangeConfiguration,
-      Method.workspace_didChangeConfiguration,
-    );
-    register(
-      dynamicRegistrations.selectionRange,
-      Method.textDocument_selectionRange,
-      SelectionRangeRegistrationOptions(
-        documentSelector: [dartFiles],
-      ),
-    );
-    register(
-      dynamicRegistrations.callHierarchy,
-      Method.textDocument_prepareCallHierarchy,
-      CallHierarchyRegistrationOptions(
-        documentSelector: [dartFiles],
-      ),
-    );
-    register(
-      dynamicRegistrations.semanticTokens,
-      CustomMethods.semanticTokenDynamicRegistration,
-      SemanticTokensRegistrationOptions(
-        documentSelector: fullySupportedTypes,
-        legend: semanticTokenLegend.lspLegend,
-        full: Either2<bool, SemanticTokensOptionsFull>.t2(
-          SemanticTokensOptionsFull(delta: false),
+    // Collect dynamic registrations for all features.
+    final dynamicRegistrations = features.allFeatures
+        .where((feature) => feature.supportsDynamic)
+        .expand((feature) => feature.dynamicRegistrations);
+    for (final (method, options) in dynamicRegistrations) {
+      registrations.add(
+        Registration(
+          id: (_lastRegistrationId++).toString(),
+          method: method.toString(),
+          registerOptions: options,
         ),
-        range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
-      ),
-    );
-    register(
-      dynamicRegistrations.typeHierarchy,
-      Method.textDocument_prepareTypeHierarchy,
-      TypeHierarchyRegistrationOptions(
-        documentSelector: [dartFiles],
-      ),
-    );
-    register(
-      dynamicRegistrations.inlayHints,
-      Method.textDocument_inlayHint,
-      InlayHintRegistrationOptions(
-        documentSelector: [dartFiles],
-        resolveProvider: false,
-      ),
-    );
+      );
+    }
 
     await _applyRegistrations(registrations);
   }

@@ -7,9 +7,12 @@ import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/protocol_server.dart' show Outline;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
+
+typedef StaticOptions = Either2<bool, DocumentSymbolOptions>;
 
 class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
     TextDocumentDocumentSymbolResult> {
@@ -137,4 +140,22 @@ class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
       return success(TextDocumentDocumentSymbolResult.t2(allSymbols));
     }
   }
+}
+
+class DocumentSymbolsRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  DocumentSymbolsRegistrations(super.info);
+
+  @override
+  ToJsonable? get options =>
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes);
+
+  @override
+  Method get registrationMethod => Method.textDocument_documentSymbol;
+
+  @override
+  StaticOptions get staticOptions => Either2.t1(true);
+
+  @override
+  bool get supportsDynamic => clientDynamic.documentSymbol;
 }

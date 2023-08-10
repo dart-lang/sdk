@@ -3,9 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
+
+typedef StaticOptions = FileOperationRegistrationOptions?;
 
 class WillRenameFilesHandler
     extends LspMessageHandler<RenameFilesParams, WorkspaceEdit?> {
@@ -55,4 +59,29 @@ class WillRenameFilesHandler
 
     return success(edit);
   }
+}
+
+class WillRenameFilesRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  WillRenameFilesRegistrations(super.info);
+
+  @override
+  FileOperationRegistrationOptions? get options =>
+      fileOperationRegistrationOptions;
+
+  @override
+  Method get registrationMethod => Method.workspace_willRenameFiles;
+
+  @override
+  StaticOptions get staticOptions => options;
+
+  @override
+  bool get supportsDynamic =>
+      updateImportsOnRename && clientDynamic.fileOperations;
+
+  @override
+  bool get supportsStatic => updateImportsOnRename;
+
+  bool get updateImportsOnRename =>
+      clientConfiguration.global.updateImportsOnRename;
 }

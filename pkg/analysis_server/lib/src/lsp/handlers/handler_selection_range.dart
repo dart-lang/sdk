@@ -5,10 +5,15 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_selection_ranges.dart'
     hide SelectionRange;
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+
+typedef StaticOptions
+    = Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>;
 
 class SelectionRangeHandler
     extends LspMessageHandler<SelectionRangeParams, List<SelectionRange>?> {
@@ -71,4 +76,22 @@ class SelectionRangeHandler
         .map((offset) => _getSelectionRangesForOffset(unit.result.unit, offset))
         .toList();
   }
+}
+
+class SelectionRangeRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  SelectionRangeRegistrations(super.info);
+
+  @override
+  ToJsonable? get options =>
+      SelectionRangeRegistrationOptions(documentSelector: [dartFiles]);
+
+  @override
+  Method get registrationMethod => Method.textDocument_selectionRange;
+
+  @override
+  StaticOptions get staticOptions => Either3.t1(true);
+
+  @override
+  bool get supportsDynamic => clientDynamic.selectionRange;
 }

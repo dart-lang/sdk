@@ -4,13 +4,16 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 
-class WorkspaceFoldersHandler
+typedef StaticOptions = Either2<bool, String>;
+
+class ChangeWorkspaceFoldersHandler
     extends LspMessageHandler<DidChangeWorkspaceFoldersParams, void> {
   // Whether to update analysis roots based on the open workspace folders.
   bool updateAnalysisRoots;
 
-  WorkspaceFoldersHandler(super.server)
+  ChangeWorkspaceFoldersHandler(super.server)
       : updateAnalysisRoots =
             !server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles;
 
@@ -45,4 +48,18 @@ class WorkspaceFoldersHandler
   List<String> _convertWorkspaceFolders(List<WorkspaceFolder> folders) {
     return folders.map((wf) => pathContext.fromUri(wf.uri)).toList();
   }
+}
+
+class ChangeWorkspaceFoldersRegistrations extends FeatureRegistration
+    with StaticRegistration<StaticOptions> {
+  ChangeWorkspaceFoldersRegistrations(super.info);
+
+  @override
+  List<LspDynamicRegistration> get dynamicRegistrations => [];
+
+  @override
+  StaticOptions get staticOptions => Either2.t1(true);
+
+  @override
+  bool get supportsDynamic => false;
 }

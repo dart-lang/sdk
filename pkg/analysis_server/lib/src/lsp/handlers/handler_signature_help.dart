@@ -5,8 +5,10 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_signature.dart';
 import 'package:analysis_server/src/computer/computer_type_arguments_signature.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
@@ -128,4 +130,28 @@ class SignatureHelpHandler
 
     return typeSignature;
   }
+}
+
+class SignatureHelpRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<SignatureHelpOptions> {
+  SignatureHelpRegistrations(super.info);
+
+  @override
+  ToJsonable? get options => SignatureHelpRegistrationOptions(
+        documentSelector: fullySupportedTypes,
+        triggerCharacters: dartSignatureHelpTriggerCharacters,
+        retriggerCharacters: dartSignatureHelpRetriggerCharacters,
+      );
+
+  @override
+  Method get registrationMethod => Method.textDocument_signatureHelp;
+
+  @override
+  SignatureHelpOptions get staticOptions => SignatureHelpOptions(
+        triggerCharacters: dartSignatureHelpTriggerCharacters,
+        retriggerCharacters: dartSignatureHelpRetriggerCharacters,
+      );
+
+  @override
+  bool get supportsDynamic => clientDynamic.signatureHelp;
 }
