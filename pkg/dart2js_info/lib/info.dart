@@ -182,7 +182,7 @@ class ProgramInfo {
       required this.isRuntimeTypeUsed,
       required this.isIsolateInUse,
       required this.isFunctionApplyUsed,
-      required this.isMirrorsUsed,
+      this.isMirrorsUsed = false,
       required this.minified});
 
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitProgram(this);

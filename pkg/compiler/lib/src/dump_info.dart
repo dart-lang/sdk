@@ -1441,7 +1441,6 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         isRuntimeTypeUsed: closedWorld.backendUsage.isRuntimeTypeUsed,
         isIsolateInUse: false,
         isFunctionApplyUsed: closedWorld.backendUsage.isFunctionApplyUsed,
-        isMirrorsUsed: closedWorld.backendUsage.isMirrorsUsed,
         minified: compiler.options.enableMinification);
 
     return result;
@@ -1525,7 +1524,6 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         isRuntimeTypeUsed: closedWorld.backendUsage.isRuntimeTypeUsed,
         isIsolateInUse: false,
         isFunctionApplyUsed: closedWorld.backendUsage.isFunctionApplyUsed,
-        isMirrorsUsed: closedWorld.backendUsage.isMirrorsUsed,
         minified: compiler.options.enableMinification);
 
     return result;

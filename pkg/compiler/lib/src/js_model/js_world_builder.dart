@@ -286,7 +286,6 @@ class JClosedWorldBuilder {
         requiresStartupMetrics: backendUsage.requiresStartupMetrics,
         runtimeTypeUses: runtimeTypeUses,
         isFunctionApplyUsed: backendUsage.isFunctionApplyUsed,
-        isMirrorsUsed: backendUsage.isMirrorsUsed,
         isNoSuchMethodUsed: backendUsage.isNoSuchMethodUsed,
         isHtmlLoaded: backendUsage.isHtmlLoaded);
   }
