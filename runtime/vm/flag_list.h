@@ -246,8 +246,6 @@ constexpr bool FLAG_support_il_printer = false;
     "Enable magical pragmas for testing purposes. Use at your own risk!")      \
   R(eliminate_type_checks, true, bool, true,                                   \
     "Eliminate type checks when allowed by static type analysis.")             \
-  P(eliminate_write_barriers, bool, true,                                      \
-    "Eliminate write barriers when allowed by allocation invariants.")         \
   D(support_rr, bool, false, "Support running within RR.")                     \
   P(verify_entry_points, bool, false,                                          \
     "Throw API error on invalid member access through native API. See "        \

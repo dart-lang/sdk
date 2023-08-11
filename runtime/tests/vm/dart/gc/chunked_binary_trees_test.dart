@@ -6,7 +6,6 @@
 // VMOptions=--verify_store_buffer
 // VMOptions=--verify_after_marking
 // VMOptions=--stress_write_barrier_elimination
-// VMOptions=--no_eliminate_write_barriers
 // VMOptions=--no_inline_alloc
 
 // Stress test for write barrier elimination that leaves many stores with
