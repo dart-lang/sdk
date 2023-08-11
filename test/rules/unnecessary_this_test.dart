@@ -15,7 +15,40 @@ main() {
 @reflectiveTest
 class UnnecessaryNullChecksTest extends LintRuleTest {
   @override
+  List<String> get experiments => ['inline-class'];
+
+  @override
   String get lintRule => 'unnecessary_this';
+
+  test_extensionType_inConstructorInitializer() async {
+    await assertDiagnostics(r'''
+extension type E(int i) {
+  E.e(int i) : this.i = i.hashCode;
+}
+''', [
+      lint(41, 4),
+    ]);
+  }
+
+  test_extensionType_inMethod() async {
+    await assertDiagnostics(r'''
+extension type E(Object o) {
+  String m()=> this.toString();
+}
+''', [
+      lint(44, 15),
+    ]);
+  }
+
+  test_shadowInObjectPattern() async {
+    await assertNoDiagnostics(r'''
+class C {
+  Object? value;
+  bool equals(Object other) =>
+      switch (other) { C(:var value) => this.value == value, _ => false };
+}
+''');
+  }
 
   /// https://github.com/dart-lang/linter/issues/4457
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4457')
@@ -33,16 +66,6 @@ class C {
         break;
     }
   }
-}
-''');
-  }
-
-  test_shadowInObjectPattern() async {
-    await assertNoDiagnostics(r'''
-class C {
-  Object? value;
-  bool equals(Object other) =>
-      switch (other) { C(:var value) => this.value == value, _ => false };
 }
 ''');
   }
