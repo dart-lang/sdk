@@ -67,7 +67,9 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
 
   {
     // Check concurrent modification
-    Set set = newSet()..add(0)..add(1);
+    Set set = newSet()
+      ..add(0)
+      ..add(1);
 
     {
       // Test adding before a moveNext.
@@ -303,15 +305,33 @@ void testIdentitySet(Set create()) {
   // All compile time constants are identical to themselves.
   var constants = [
     double.infinity,
-    double.nan, -0.0, //# 01: ok
-    0.0, 42, "", null, false, true, #bif, testIdentitySet
+    double.nan,
+    -0.0,
+    0.0,
+    42,
+    "",
+    null,
+    false,
+    true,
+    #bif,
+    testIdentitySet
   ];
   set.addAll(constants);
-  Expect.equals(constants.length, set.length);
+  if (webNumbers) {
+    // 0.0 and -0.0 are identical in JS.
+    Expect.equals(constants.length - 1, set.length);
+    Expect.isTrue(
+        set.containsAll(constants.where((e) => !(e is double && e.isNaN))),
+        "constants: $set");
+  } else {
+    Expect.equals(constants.length, set.length);
+    Expect.isTrue(set.containsAll(constants), "constants: $set");
+  }
   for (var c in constants) {
+    // identical(double.nan, double.nan) == false in JS.
+    if (webNumbers && c is double && c.isNaN) continue;
     Expect.isTrue(set.contains(c), "constant: $c");
   }
-  Expect.isTrue(set.containsAll(constants), "constants: $set");
   set.clear();
 
   var m1 = new Mutable(1);
