@@ -15,6 +15,9 @@ main() {
 @reflectiveTest
 class HashAndEqualsTest extends LintRuleTest {
   @override
+  List<String> get experiments => ['inline-class'];
+
+  @override
   String get lintRule => 'hash_and_equals';
 
   test_enum_missingHash() async {
@@ -28,6 +31,17 @@ enum A {
       error(
           CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 46, 2),
       // no lint
+    ]);
+  }
+
+  test_extensionType_missingHash() async {
+    await assertDiagnostics(r'''
+extension type E(Object o) {
+  bool operator ==(Object other) => false;
+}
+''', [
+      // No lint.
+      // todo(pq): specify compilation error when it's reported.
     ]);
   }
 }
