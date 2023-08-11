@@ -2,12 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Packages=none
+library shared;
 
-library package1_test;
-
-import 'pkgs/package1/package1.dart' as p1;
-
-main() {
-  p1.main();
-}
+var output = '';

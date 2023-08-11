@@ -11,6 +11,8 @@ io/large_file_read_small_file_test: Slow, Pass # Test reads small file 1M times
 io/non_utf8_directory_test: Skip # Issue 33519. Temp files causing bots to go purple.
 io/non_utf8_file_test: Skip # Issue 33519. Temp files causing bots to go purple.
 io/non_utf8_link_test: Skip # Issue 33519. Temp files causing bots to go purple.
+package/scenarios/invalid/invalid_utf8_test: CompileTimeError
+package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
 
 [ $builder_tag == dwarf ]
 io/socket_connect_stacktrace_test: SkipByDesign # Assumes stacktrace can be inspected directly, without decoding

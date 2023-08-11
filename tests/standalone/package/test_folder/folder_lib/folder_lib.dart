@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Packages=none
+library folder_lib;
 
-library package1_test;
-
-import 'pkgs/package1/package1.dart' as p1;
-
-main() {
-  p1.main();
-}
+// This is a library that's available to folder_isolate.dart
+// but not package_isolate_test.dart
+int count = 0;

@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Packages=none
+library lib2;
 
-library package1_test;
+import 'package:shared/shared.dart';
+import 'package:lib3/sub/lib3.dart';
 
-import 'pkgs/package1/package1.dart' as p1;
-
-main() {
-  p1.main();
+void lib2() {
+  output += '|lib2';
+  lib3();
 }
