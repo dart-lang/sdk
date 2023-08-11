@@ -24,22 +24,12 @@ typedef _Td = List<String>;
 ''');
   }
 
-  test_private_genericFunctionTypeAlias_usedZeroTimes() async {
-    await assertDiagnostics(r'''
+  /// https://github.com/dart-lang/linter/issues/4665
+  test_nonFunctionTypeAlias_record() async {
+    await assertNoDiagnostics(r'''
 // ignore: unused_element
-typedef _Td = int Function();
-''', [
-      lint(34, 3),
-    ]);
-  }
-
-  test_private_genericFunctionTypeAlias_usedOneTime() async {
-    await assertDiagnostics(r'''
-typedef _Td = int Function();
-late _Td td;
-''', [
-      lint(8, 3),
-    ]);
+typedef _Record = (int a, int b);
+''');
   }
 
   test_private_genericFunctionTypeAlias_usedMultipleTimes() async {
@@ -50,26 +40,19 @@ late _Td td2;
 ''');
   }
 
-  test_private_legacyTypeAlias_usedZeroTimes() async {
-    await assertDiagnostics(r'''
-// ignore: unused_element
-typedef int _Td();
-''', [
-      lint(38, 3),
-    ]);
-  }
-
-  test_private_genericFunctionTypeAlias_usedOneTime_usedInPart() async {
-    newFile('$testPackageLibPath/part.dart', r'''
-part of 'test.dart';
-late _Td td;
-''');
-    await assertDiagnostics(r'''
-part 'part.dart';
+  test_private_genericFunctionTypeAlias_usedMultipleTimes_declaredInPart() async {
+    var lib = newFile('$testPackageLibPath/lib.dart', r'''
+part 'test.dart';
 typedef _Td = void Function();
-''', [
-      lint(26, 3),
-    ]);
+''');
+    addTestFile(r'''
+part of 'lib.dart';
+late _Td td1;
+late _Td td2;
+''');
+    await resolveTestFile();
+    var partResult = await resolveFile(lib.path);
+    await assertNoDiagnosticsIn(partResult.errors);
   }
 
   test_private_genericFunctionTypeAlias_usedMultipleTimes_usedInPart() async {
@@ -82,6 +65,15 @@ late _Td td2;
 part 'part.dart';
 typedef _Td = void Function();
 ''');
+  }
+
+  test_private_genericFunctionTypeAlias_usedOneTime() async {
+    await assertDiagnostics(r'''
+typedef _Td = int Function();
+late _Td td;
+''', [
+      lint(8, 3),
+    ]);
   }
 
   test_private_genericFunctionTypeAlias_usedOneTime_declaredInPart() async {
@@ -100,19 +92,35 @@ late _Td td;
     ]);
   }
 
-  test_private_genericFunctionTypeAlias_usedMultipleTimes_declaredInPart() async {
-    var lib = newFile('$testPackageLibPath/lib.dart', r'''
-part 'test.dart';
+  test_private_genericFunctionTypeAlias_usedOneTime_usedInPart() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+late _Td td;
+''');
+    await assertDiagnostics(r'''
+part 'part.dart';
 typedef _Td = void Function();
-''');
-    addTestFile(r'''
-part of 'lib.dart';
-late _Td td1;
-late _Td td2;
-''');
-    await resolveTestFile();
-    var partResult = await resolveFile(lib.path);
-    await assertNoDiagnosticsIn(partResult.errors);
+''', [
+      lint(26, 3),
+    ]);
+  }
+
+  test_private_genericFunctionTypeAlias_usedZeroTimes() async {
+    await assertDiagnostics(r'''
+// ignore: unused_element
+typedef _Td = int Function();
+''', [
+      lint(34, 3),
+    ]);
+  }
+
+  test_private_legacyTypeAlias_usedZeroTimes() async {
+    await assertDiagnostics(r'''
+// ignore: unused_element
+typedef int _Td();
+''', [
+      lint(38, 3),
+    ]);
   }
 
   test_public_genericFunctionTypeAlias_usedZeroTimes() async {

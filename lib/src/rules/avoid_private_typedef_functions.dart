@@ -79,6 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     if (node.typeParameters != null) return;
     if (node.type is NamedType) return;
+    if (node.type is RecordTypeAnnotation) return;
 
     _countAndReport(node.name);
   }
