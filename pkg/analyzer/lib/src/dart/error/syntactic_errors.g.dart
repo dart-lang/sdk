@@ -1703,6 +1703,12 @@ class ParserErrorCode extends ErrorCode {
         "Try making this a factory constructor, or remove the redirection.",
   );
 
+  static const ParserErrorCode REPRESENTATION_FIELD_MODIFIER = ParserErrorCode(
+    'REPRESENTATION_FIELD_MODIFIER',
+    "Representation fields can't have modifiers.",
+    correctionMessage: "Try removing the modifier.",
+  );
+
   static const ParserErrorCode SEALED_ENUM = ParserErrorCode(
     'SEALED_ENUM',
     "Enums can't be declared to be 'sealed'.",

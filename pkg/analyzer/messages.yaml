@@ -20522,6 +20522,9 @@ ParserErrorCode:
   POSITIONAL_PARAMETER_OUTSIDE_GROUP:
     problemMessage: "Positional parameters must be enclosed in square brackets ('[' and ']')."
     correctionMessage: Try surrounding the positional parameters in square brackets.
+  REPRESENTATION_FIELD_MODIFIER:
+    problemMessage: "Representation fields can't have modifiers."
+    correctionMessage: Try removing the modifier.
   SETTER_IN_FUNCTION:
     problemMessage: "Setters can't be defined within methods or functions."
     correctionMessage: Try moving the setter outside the method or function.

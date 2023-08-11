@@ -2829,6 +2829,12 @@ class AstBuilder extends StackListener {
           );
           break;
       }
+      if (firstFormalParameter.keyword case final keyword?) {
+        errorReporter.errorReporter?.reportErrorForToken(
+          ParserErrorCode.REPRESENTATION_FIELD_MODIFIER,
+          keyword,
+        );
+      }
       fieldName = firstFormalParameter.name!;
     } else {
       errorReporter.errorReporter?.reportErrorForToken(

@@ -15,6 +15,31 @@ main() {
 
 @reflectiveTest
 class ExtensionTypeDeclarationParserTest extends ParserDiagnosticsTest {
+  test_error_fieldModifier_final() {
+    final parseResult = parseStringWithErrors(r'''
+extension type A(final int it) {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.REPRESENTATION_FIELD_MODIFIER, 17, 5),
+    ]);
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   test_error_noField() {
     final parseResult = parseStringWithErrors(r'''
 extension type A() {}

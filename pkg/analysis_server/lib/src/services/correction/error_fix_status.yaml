@@ -3199,6 +3199,9 @@ ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Remove the redirection.
+ParserErrorCode.REPRESENTATION_FIELD_MODIFIER:
+  status: needsFix
+  notes: Remove it.
 ParserErrorCode.SEALED_ENUM:
   status: needsEvaluation
 ParserErrorCode.SEALED_MIXIN:
