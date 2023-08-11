@@ -166,7 +166,6 @@ void FUNCTION_NAME(SecureSocket_NewX509CertificateWrapper)(
   FATAL("This is to be used only on mac/ios platforms");
 #endif
   intptr_t x509_pointer = DartUtils::GetNativeIntptrArgument(args, 0);
-  ASSERT(x509_pointer != 0);
   X509* x509 = reinterpret_cast<X509*>(x509_pointer);
   Dart_SetReturnValue(args, X509Helper::WrappedX509Certificate(x509));
 }
