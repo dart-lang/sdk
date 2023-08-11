@@ -162,6 +162,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     var parent = node.parent;
+    if (parent is ExtensionTypeDeclaration && !node.isStatic) return;
     if (parent != null) {
       var parentIsPrivateExtension = _isPrivateExtension(parent);
       for (var variable in node.fields.variables) {

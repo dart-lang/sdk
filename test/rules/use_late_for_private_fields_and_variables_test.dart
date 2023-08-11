@@ -15,7 +15,33 @@ main() {
 @reflectiveTest
 class UseLateForPrivateFieldsAndVariablesTest extends LintRuleTest {
   @override
+  List<String> get experiments => ['inline-class'];
+
+  @override
   String get lintRule => 'use_late_for_private_fields_and_variables';
+
+  test_extensionType_instanceField() async {
+    await assertDiagnostics('''
+extension type E(int i) {
+  int? _i;
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 33, 2),
+      // No lint.
+      // todo(pq): report invalid field diagnostic when it's reported.
+    ]);
+  }
+
+  test_extensionType_staticField() async {
+    await assertDiagnostics('''
+extension type E(int i) {
+  static int? _i;
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 40, 2),
+      lint(40, 2),
+    ]);
+  }
 
   test_instanceField_private() async {
     await assertDiagnostics('''
