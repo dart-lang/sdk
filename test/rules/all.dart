@@ -21,6 +21,8 @@ import 'avoid_redundant_argument_values_test.dart'
 import 'avoid_relative_lib_imports_test.dart' as avoid_relative_lib_imports;
 import 'avoid_renaming_method_parameters_test.dart'
     as avoid_renaming_method_parameters;
+import 'avoid_return_types_on_setters_test.dart'
+    as avoid_return_types_on_setters;
 import 'avoid_returning_this_test.dart' as avoid_returning_this;
 import 'avoid_setters_without_getters_test.dart'
     as avoid_setters_without_getters;
@@ -224,6 +226,7 @@ void main() {
   avoid_redundant_argument_values.main();
   avoid_relative_lib_imports.main();
   avoid_renaming_method_parameters.main();
+  avoid_return_types_on_setters.main();
   avoid_returning_this.main();
   avoid_setters_without_getters.main();
   avoid_shadowing_type_parameters.main();
