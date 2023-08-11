@@ -498,46 +498,6 @@ class _ElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeExtensionTypeElement(ExtensionTypeElementImpl e) {
-    _sink.writeIndentedLine(() {
-      _sink.writeIf(
-        e.hasRepresentationSelfReference,
-        'hasRepresentationSelfReference ',
-      );
-      _sink.writeIf(
-        e.hasImplementsSelfReference,
-        'hasImplementsSelfReference ',
-      );
-      _writeName(e);
-    });
-
-    _sink.withIndent(() {
-      _writeDocumentation(e);
-      _writeMetadata(e);
-      _writeSinceSdkVersion(e);
-      _writeCodeRange(e);
-      _writeTypeParameterElements(e.typeParameters);
-    });
-
-    _sink.withIndent(() {
-      _elementPrinter.writeNamedElement('representation', e.representation);
-      _elementPrinter.writeNamedType('typeErasure', e.typeErasure);
-      _elementPrinter.writeTypeList('interfaces', e.interfaces);
-      _writeElements('fields', e.fields, _writePropertyInducingElement);
-      if (configuration.withConstructors) {
-        _writeElements(
-          'constructors',
-          e.constructors,
-          _writeConstructorElement,
-        );
-      }
-      _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
-      _writeMethods(e.methods);
-    });
-
-    _assertNonSyntheticElementSelf(e);
-  }
-
   void _writeFieldFormalParameterField(ParameterElement e) {
     if (e is FieldFormalParameterElement) {
       var field = e.field;
@@ -615,6 +575,16 @@ class _ElementWriter {
         case EnumElementImpl():
           _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
           _sink.write('enum ');
+        case ExtensionTypeElementImpl():
+          _sink.writeIf(
+            e.hasRepresentationSelfReference,
+            'hasRepresentationSelfReference ',
+          );
+          _sink.writeIf(
+            e.hasImplementsSelfReference,
+            'hasImplementsSelfReference ',
+          );
+          _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
         case MixinElementImpl():
           _sink.writeIf(e.isBase, 'base ');
           _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
@@ -639,6 +609,11 @@ class _ElementWriter {
             (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
           _writeType('supertype', supertype);
         }
+      }
+
+      if (e is ExtensionTypeElementImpl) {
+        _elementPrinter.writeNamedElement('representation', e.representation);
+        _elementPrinter.writeNamedType('typeErasure', e.typeErasure);
       }
 
       if (e is MixinElementImpl) {
@@ -1159,7 +1134,7 @@ class _ElementWriter {
     _writeElements(
       'extensionTypes',
       e.extensionTypes,
-      _writeExtensionTypeElement,
+      _writeInterfaceElement,
     );
     _writeElements('mixins', e.mixins, _writeInterfaceElement);
     _writeElements('typeAliases', e.typeAliases, _writeTypeAliasElement);

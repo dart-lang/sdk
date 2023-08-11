@@ -2970,6 +2970,9 @@ class ExtensionElementImpl extends InstanceElementImpl
 class ExtensionTypeElementImpl extends InterfaceElementImpl
     with _HasAugmentation<ExtensionTypeElementImpl>
     implements ExtensionTypeElement {
+  late AugmentedExtensionTypeElement augmentedInternal =
+      NotAugmentedExtensionTypeElementImpl(this);
+
   @override
   late final DartType typeErasure;
 
@@ -2985,8 +2988,12 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
   @override
   AugmentedExtensionTypeElement? get augmented {
-    // TODO(scheglov) implement
-    return NotAugmentedExtensionTypeElementImpl(this);
+    if (isAugmentation) {
+      return augmentationTarget?.augmented;
+    } else {
+      linkedData?.read(this);
+      return augmentedInternal;
+    }
   }
 
   @override

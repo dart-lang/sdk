@@ -47525,6 +47525,34 @@ library
 ''');
   }
 
+  test_notSimplyBounded_self() async {
+    var library = await buildLibrary(r'''
+extension type A<T extends A>(int it) {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      notSimplyBounded A @15
+        typeParameters
+          covariant T @17
+            bound: A<dynamic>
+            defaultType: dynamic
+        representation: self::@extensionType::A::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @34
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
   test_setter() async {
     var library = await buildLibrary(r'''
 extension type A(int it) {
