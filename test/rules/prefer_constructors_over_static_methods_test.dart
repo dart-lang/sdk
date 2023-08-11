@@ -15,7 +15,21 @@ main() {
 @reflectiveTest
 class PreferConstructorsOverStaticMethodsTest extends LintRuleTest {
   @override
+  List<String> get experiments => ['inline-class'];
+
+  @override
   String get lintRule => 'prefer_constructors_over_static_methods';
+
+  test_extensionMethod() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A.named();
+}
+extension E on A {
+  static A foo() => A.named();
+}
+''');
+  }
 
   test_factoryConstructor() async {
     await assertNoDiagnostics(r'''
@@ -50,31 +64,23 @@ class A {
     ]);
   }
 
+  test_staticMethod_expressionBody_extensionType() async {
+    // Since the check logic is shared one test should be sufficient to verify
+    // extension types are supported.
+    await assertDiagnostics(r'''
+extension type E(int i) {
+  static E make(int i) => E(i);
+}
+''', [
+      lint(37, 4),
+    ]);
+  }
+
   test_staticMethod_generic() async {
     await assertNoDiagnostics(r'''
 class A {
   A.named();
   static A generic<T>() => A.named();
-}
-''');
-  }
-
-  test_staticMethod_returnsInstantiatedInstance() async {
-    await assertNoDiagnostics(r'''
-class A<T> {
-  A.named();
-  static A<int> staticM() => A.named();
-}
-''');
-  }
-
-  test_extensionMethod() async {
-    await assertNoDiagnostics(r'''
-class A {
-  A.named();
-}
-extension E on A {
-  static A foo() => A.named();
 }
 ''');
   }
@@ -100,6 +106,15 @@ class A {
   static A staticM(int i) {
     return array[i];
   }
+}
+''');
+  }
+
+  test_staticMethod_returnsInstantiatedInstance() async {
+    await assertNoDiagnostics(r'''
+class A<T> {
+  A.named();
+  static A<int> staticM() => A.named();
 }
 ''');
   }

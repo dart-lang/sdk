@@ -41,13 +41,13 @@ class Point {
 ```
 ''';
 
-bool _hasNewInvocation(DartType returnType, FunctionBody body) =>
-    _BodyVisitor(returnType).containsInstanceCreation(body);
-
 // todo(pq): temporary; remove after renamed class is in the SDK
 // ignore: non_constant_identifier_names
 LintRule PreferConstructorsInsteadOfStaticMethods() =>
     PreferConstructorsOverStaticMethods();
+
+bool _hasNewInvocation(DartType returnType, FunctionBody body) =>
+    _BodyVisitor(returnType).containsInstanceCreation(body);
 
 class PreferConstructorsOverStaticMethods extends LintRule {
   static const LintCode code = LintCode(
@@ -101,23 +101,29 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    if (!node.isStatic) return;
+    if (node.typeParameters != null) return;
     var returnType = node.returnType?.type;
-    var parent = node.parent;
-    if (node.isStatic &&
-        parent is ClassDeclaration &&
-        returnType is InterfaceType &&
-        parent.typeParameters == null &&
-        node.typeParameters == null) {
-      var declaredElement = parent.declaredElement;
-      if (declaredElement != null) {
-        var interfaceType = declaredElement.thisType;
-        if (!context.typeSystem.isAssignableTo(returnType, interfaceType)) {
-          return;
-        }
-        if (_hasNewInvocation(returnType, node.body)) {
-          rule.reportLintForToken(node.name);
-        }
+    if (returnType is! InterfaceType) return;
+
+    var interfaceType = node.parent.typeToCheckOrNull();
+    if (interfaceType != null) {
+      if (!context.typeSystem.isAssignableTo(returnType, interfaceType)) {
+        return;
+      }
+      if (_hasNewInvocation(returnType, node.body)) {
+        rule.reportLintForToken(node.name);
       }
     }
   }
+}
+
+extension on AstNode? {
+  InterfaceType? typeToCheckOrNull() => switch (this) {
+        ExtensionTypeDeclaration e =>
+          e.typeParameters == null ? e.declaredElement?.thisType : null,
+        ClassDeclaration c =>
+          c.typeParameters == null ? c.declaredElement?.thisType : null,
+        _ => null
+      };
 }
