@@ -100,6 +100,20 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     return DartChangeWorkspace([await session]);
   }
 
+  Future<void> assertFormat(String expectedCode) async {
+    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
+    var analysisContext = contextFor(testFile);
+    tracker.addContext(analysisContext);
+    processor = BulkFixProcessor(TestInstrumentationService(), await workspace,
+        useConfigFiles: useConfigFiles);
+    await processor.formatCode([analysisContext]);
+    var change = processor.builder.sourceChange;
+    var fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
+    expect(resultCode, expectedCode);
+  }
+
   Future<void> assertHasFix(String expected, {bool isParse = false}) async {
     change = await _computeSourceChange(isParse: isParse);
 

@@ -2616,6 +2616,7 @@ class MiniAstOperations
     'error <: int': Type('error'),
     'error <: num': Type('error'),
     'int <: dynamic': Type('int'),
+    'int <: int': Type('int'),
     'int <: num': Type('int'),
     'int <: Object?': Type('int'),
     'List <: Iterable<int>': Type('List<int>'),

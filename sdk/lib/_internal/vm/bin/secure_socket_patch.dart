@@ -119,11 +119,12 @@ base class _SecureFilterImpl extends NativeFieldWrapperClass1
       }
       bool isTrusted = list[0] as bool;
       int certificatePtr = list[1] as int;
+      // Make sure certificatePtr gets released.
+      X509Certificate certificate = _newX509CertificateWrapper(certificatePtr);
       if (!isTrusted) {
         if (badCertificateCallback != null) {
           try {
-            isTrusted = badCertificateCallback!(
-                _newX509CertificateWrapper(certificatePtr));
+            isTrusted = badCertificateCallback!(certificate);
           } catch (e, st) {
             evaluatorCompleter.completeError(e, st);
             rpEvaluateResponse.close();

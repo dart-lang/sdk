@@ -585,11 +585,7 @@ COMPILER_PASS(ReorderBlocks, {
   }
 });
 
-COMPILER_PASS(EliminateWriteBarriers, {
-  if (FLAG_eliminate_write_barriers) {
-    EliminateWriteBarriers(flow_graph);
-  }
-});
+COMPILER_PASS(EliminateWriteBarriers, { EliminateWriteBarriers(flow_graph); });
 
 COMPILER_PASS(FinalizeGraph, {
   // At the end of the pipeline, force recomputing and caching graph

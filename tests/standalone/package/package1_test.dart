@@ -6,7 +6,7 @@
 
 library package1_test;
 
-import 'package:package1.dart' as p1;
+import 'pkgs/package1/package1.dart' as p1;
 
 main() {
   p1.main();

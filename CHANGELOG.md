@@ -2,6 +2,20 @@
 
 ### Language
 
+- **Breaking Change** [#53167][]: Use a more precise split point for refutable
+  patterns. Previously, in an if-case statement, if flow analysis could prove
+  that the scrutinee expression was guaranteed to throw an exception, it would
+  sometimes fail to propagate type promotions implied by the pattern to the
+  (dead) code that follows. This change makes the type promotion behavior of
+  if-case statements consistent regardless of whether the scrutinee expression
+  throws an exception.
+
+  No live code is affected by this change, but there is a small chance that the
+  change in types will cause a compile-time error to appear in some dead code in
+  the user's project, where no compile-time error appeared previously.
+
+[#53167]: https://github.com/dart-lang/sdk/issues/53167
+
 ### Libraries
 
 #### `dart:js_interop`
@@ -99,6 +113,40 @@
   parameters work, where omitted parameters are actually omitted. For example,
   calling `external void foo([int a, int b])` as `foo(0)` will now result in
   `foo(0)`, and not `foo(0, null)`.
+
+## 3.0.7 - 2023-07-26
+
+This is a patch release that:
+
+- Fixes a bug in dart2js which would cause certain uses of records to lead to
+  bad codegen causing TypeErrors/NoSuchMethodErrors at runtime (issue [#53001]).
+
+[#53001]: https://github.com/dart-lang/sdk/issues/53001
+
+## 3.0.6 - 2023-07-12
+
+This is a patch release that:
+
+- Fixes a flow in flow analysis that causes it to sometimes ignore destructuring
+  assignments (issue [#52767]).
+- Fixes an infinite loop in some web development compiles that include `is` or
+  `as` expressions involving record types with named fields (issue [#52869]).
+- Fixes a memory leak in Dart analyzer's file-watching (issue [#52791]).
+- Fixes a memory leak of file system watcher related data structures (issue [#52793]).
+
+[#52767]: https://github.com/dart-lang/sdk/issues/52767
+[#52869]: https://github.com/dart-lang/sdk/issues/52869
+[#52791]: https://github.com/dart-lang/sdk/issues/52791
+[#52793]: https://github.com/dart-lang/sdk/issues/52793
+
+## 3.0.5 - 2023-06-14
+
+This is a patch release that:
+
+- Fixes a bad cast in the frontend which can manifest as a crash in the dart2js
+  `ListFactorySpecializer` during Flutter web builds (issue [#52403]).
+
+[#52403]: https://github.com/dart-lang/sdk/issues/52403
 
 ## 3.0.4 - 2023-06-07
 
@@ -308,10 +356,15 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
   declaration. If you haven't upgraded a class to Dart 3.0, you can still use it
   as a mixin.
 
-- **Breaking Change** [#50902][]: Dart reports a compile-time error if a
+- **Breaking change** [#50902][]: Dart reports a compile-time error if a
   `continue` statement targets a [label] that is not a loop (`for`, `do` and
   `while` statements) or a `switch` member. Fix this by changing the `continue`
   to target a valid labeled statement.
+
+- **Breaking change** [language/#2357][]: Starting in language version 3.0,
+  Dart reports a compile-time error if a colon (`:`) is used as the
+  separator before the default value of an optional named parameter.
+  Fix this by changing the colon (`:`) to an equal sign (`=`).
 
 [records]: https://dart.dev/language/records
 [tuples]: https://en.wikipedia.org/wiki/Tuple
@@ -327,6 +380,7 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 [mixin class]: https://dart.dev/language/mixins#class-mixin-or-mixin-class
 [#50902]: https://github.com/dart-lang/sdk/issues/50902
 [label]: https://dart.dev/language/branches#switch
+[language/#2357][]: https://github.com/dart-lang/language/issues/2357
 
 ### Libraries
 

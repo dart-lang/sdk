@@ -38,11 +38,6 @@ class DocumentationValidator {
     'CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.CONST_DEFERRED_CLASS',
-    // These docs need to be published until there are few enough users that
-    // are on a pre-3.0 SDK that we're OK with the possibility of them
-    // encountering a broken link.
-    // todo(pq): remove (some time) post 3.0
-    'CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR',
     // The mock SDK doesn't define any internal libraries.
     'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
     // Also reports CompileTimeErrorCode.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED

@@ -45,7 +45,7 @@ void main() {
   }
 }
 
-void isolate_main(SendPort replyTo) {
+void isolate_main(dynamic replyTo) {
   shared.output = 'isolate';
-  replyTo.send(shared.output);
+  (replyTo as SendPort).send(shared.output);
 }

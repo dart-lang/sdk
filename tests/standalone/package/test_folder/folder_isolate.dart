@@ -5,11 +5,11 @@
 library folder_isolate;
 
 // This is a package that's not available to the main isolate
-import 'package:folder_lib.dart' as isolate_package;
+import 'package:folder_lib/folder_lib.dart' as isolate_package;
 import 'dart:isolate';
 
 // This file is spawned from package_isolate_test.dart
-main(List<String> args, Sendport replyTo) {
+main(List<String> args, SendPort? replyTo) {
   isolate_package.count = 1;
-  replyTo.send('isolate');
+  replyTo?.send('isolate');
 }

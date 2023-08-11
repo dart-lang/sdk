@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
+import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
@@ -266,6 +267,11 @@ class BulkFixProcessor {
           List<AnalysisContext> contexts) =>
       _computeFixesUsingParsedResult(contexts);
 
+  /// Return a [BulkFixRequestResult] that includes a change builder that has
+  /// been used to format the dart files in the given [contexts].
+  Future<BulkFixRequestResult> formatCode(List<AnalysisContext> contexts) =>
+      _formatCode(contexts);
+
   /// Checks whether any diagnostics are bulk fixable.
   ///
   /// This is faster than calling [fixErrors] if the only requirement is to
@@ -276,6 +282,9 @@ class BulkFixProcessor {
     return changeMap.hasFixes;
   }
 
+  /// Return a [BulkFixRequestResult] that includes a change builder that has
+  /// been used to organize the directives in the dart files in the given
+  /// [contexts].
   Future<BulkFixRequestResult> organizeDirectives(
           List<AnalysisContext> contexts) =>
       _organizeDirectives(contexts);
@@ -675,6 +684,46 @@ class BulkFixProcessor {
       throw CaughtException.withMessage(
           'Exception generating fix for $codeName in ${result.path}', e, s);
     }
+  }
+
+  Future<BulkFixRequestResult> _formatCode(
+      List<AnalysisContext> contexts) async {
+    for (var context in contexts) {
+      for (var path in context.contextRoot.analyzedFiles()) {
+        var pathContext = context.contextRoot.resourceProvider.pathContext;
+        if (!file_paths.isDart(pathContext, path) ||
+            file_paths.isGenerated(path)) {
+          continue;
+        }
+        var result =
+            context.currentSession.getParsedUnit(path) as ParsedUnitResult;
+        if (result.errors.isNotEmpty) {
+          continue;
+        }
+
+        var formatResult = generateEditsForFormatting(result, null);
+        if (formatResult.isError) {
+          continue;
+        }
+        var edits = formatResult.result ?? [];
+        if (edits.isNotEmpty) {
+          await builder.addGenericFileEdit(path, (builder) {
+            for (var edit in edits) {
+              var lineInfo = result.lineInfo;
+              var startOffset =
+                  lineInfo.getOffsetOfLine(edit.range.start.line) +
+                      edit.range.start.character;
+              var endOffset = lineInfo.getOffsetOfLine(edit.range.end.line) +
+                  edit.range.end.character;
+              builder.addSimpleReplacement(
+                  SourceRange(startOffset, endOffset - startOffset),
+                  edit.newText);
+            }
+          });
+        }
+      }
+    }
+    return BulkFixRequestResult(builder);
   }
 
   Future<void> _generateFix(CorrectionProducerContext context,

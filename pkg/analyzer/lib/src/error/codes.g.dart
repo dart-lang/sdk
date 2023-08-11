@@ -1116,17 +1116,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const CompileTimeErrorCode DEFAULT_LIST_CONSTRUCTOR =
-      CompileTimeErrorCode(
-    'DEFAULT_LIST_CONSTRUCTOR',
-    "The default 'List' constructor isn't available when null safety is "
-        "enabled.",
-    correctionMessage:
-        "Try using a list literal, 'List.filled' or 'List.generate'.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
   static const CompileTimeErrorCode
       DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR = CompileTimeErrorCode(
     'DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR',

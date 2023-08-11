@@ -1349,9 +1349,6 @@ class TypeSystemImpl implements TypeSystem {
       if (type.isDartAsyncFutureOr) {
         return isNullable(type.typeArguments[0]);
       }
-      if (type.representationType case final representationType?) {
-        return isNullable(representationType);
-      }
     }
     return false;
   }
