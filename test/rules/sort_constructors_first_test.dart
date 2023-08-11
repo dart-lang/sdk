@@ -15,6 +15,9 @@ main() {
 @reflectiveTest
 class SortConstructorsFirstTest extends LintRuleTest {
   @override
+  List<String> get experiments => ['inline-class'];
+
+  @override
   String get lintRule => 'sort_constructors_first';
 
   test_constructorBeforeMethod() async {
@@ -45,6 +48,19 @@ abstract class A {
 }
 ''', [
       lint(39, 1),
+    ]);
+  }
+
+  test_methodBeforeConstructor_extensionType() async {
+    // Since the check logic is shared w/ classes and enums, one test should
+    // provide sufficient coverage for extension types.
+    await assertDiagnostics(r'''
+extension type E(Object o) {
+  void f() {}
+  E.e(this.o);
+}
+''', [
+      lint(45, 1),
     ]);
   }
 
