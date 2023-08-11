@@ -100,6 +100,40 @@
   calling `external void foo([int a, int b])` as `foo(0)` will now result in
   `foo(0)`, and not `foo(0, null)`.
 
+## 3.0.7 - 2023-07-26
+
+This is a patch release that:
+
+- Fixes a bug in dart2js which would cause certain uses of records to lead to
+  bad codegen causing TypeErrors/NoSuchMethodErrors at runtime (issue [#53001]).
+
+[#53001]: https://github.com/dart-lang/sdk/issues/53001
+
+## 3.0.6 - 2023-07-12
+
+This is a patch release that:
+
+- Fixes a flow in flow analysis that causes it to sometimes ignore destructuring
+  assignments (issue [#52767]).
+- Fixes an infinite loop in some web development compiles that include `is` or
+  `as` expressions involving record types with named fields (issue [#52869]).
+- Fixes a memory leak in Dart analyzer's file-watching (issue [#52791]).
+- Fixes a memory leak of file system watcher related data structures (issue [#52793]).
+
+[#52767]: https://github.com/dart-lang/sdk/issues/52767
+[#52869]: https://github.com/dart-lang/sdk/issues/52869
+[#52791]: https://github.com/dart-lang/sdk/issues/52791
+[#52793]: https://github.com/dart-lang/sdk/issues/52793
+
+## 3.0.5 - 2023-06-14
+
+This is a patch release that:
+
+- Fixes a bad cast in the frontend which can manifest as a crash in the dart2js
+  `ListFactorySpecializer` during Flutter web builds (issue [#52403]).
+
+[#52403]: https://github.com/dart-lang/sdk/issues/52403
+
 ## 3.0.4 - 2023-06-07
 
 This is a patch release that:
