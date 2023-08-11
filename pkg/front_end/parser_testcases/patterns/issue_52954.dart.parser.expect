@@ -1,0 +1,13 @@
+main() {
+final record = ((a: 1, b: 2), 3);
+final ((:a, :b), c) = record;
+print("a = $a; b = $b, c = $c");
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+final[KeywordToken] record[StringToken] =[SimpleToken] ([BeginToken]([BeginToken]a[StringToken]:[SimpleToken] 1[StringToken],[SimpleToken] b[StringToken]:[SimpleToken] 2[StringToken])[SimpleToken],[SimpleToken] 3[StringToken])[SimpleToken];[SimpleToken]
+final[KeywordToken] ([BeginToken]([BeginToken]:[SimpleToken]a[StringToken],[SimpleToken] :[SimpleToken]b[StringToken])[SimpleToken],[SimpleToken] c[StringToken])[SimpleToken] =[SimpleToken] record[StringToken];[SimpleToken]
+print[StringToken]([BeginToken]"a = [StringToken]$[SimpleToken]a[StringToken]; b = [StringToken]$[SimpleToken]b[StringToken], c = [StringToken]$[SimpleToken]c[StringToken]"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]
