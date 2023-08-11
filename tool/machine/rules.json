@@ -1388,7 +1388,7 @@
     "sets": [],
     "fixStatus": "needsFix",
     "details": "**DO** use super parameter names that match their corresponding super\nconstructor's parameter names.\n\n**BAD:**\n\n```dart\nclass Rectangle {\n  final int width;\n  final int height;\n  \n  Rectangle(this.width, this.height);\n}\n\nclass ColoredRectangle extends Rectangle {\n  final Color color;\n  \n  ColoredRectangle(\n    this.color,\n    super.height, // Bad, actually corresponds to the `width` parameter.\n    super.width, // Bad, actually corresponds to the `height` parameter.\n  ); \n}\n```\n\n**GOOD:**\n\n```dart\nclass Rectangle {\n  final int width;\n  final int height;\n  \n  Rectangle(this.width, this.height);\n}\n\nclass ColoredRectangle extends Rectangle {\n  final Color color;\n  \n  ColoredRectangle(\n    this.color,\n    super.width,\n    super.height, \n  ); \n}\n```\n",
-    "sinceDartSdk": "3.1.0-wip"
+    "sinceDartSdk": "3.0.0"
   },
   {
     "name": "missing_whitespace_between_adjacent_strings",
@@ -1449,7 +1449,7 @@
     "sets": [],
     "fixStatus": "hasFix",
     "details": "From [Effective Dart](https://dart.dev/effective-dart/usage#dont-use-true-or-false-in-equality-operations):\n\n**DON'T** use `true` or `false` in equality operations.\n\nThis lint applies only if the expression is of a non-nullable `bool` type.\n\n**BAD:**\n```dart\nif (someBool == true) {\n}\nwhile (someBool == false) {\n}\n```\n\n**GOOD:**\n```dart\nif (someBool) {\n}\nwhile (!someBool) {\n}\n```\n",
-    "sinceDartSdk": "3.1.0-wip"
+    "sinceDartSdk": "3.0.0"
   },
   {
     "name": "no_runtimeType_toString",

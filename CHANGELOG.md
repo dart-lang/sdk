@@ -3,6 +3,21 @@
 - new lint: `no_self_assignments`
 - new lint: `no_wildcard_variable_uses`
 
+# 3.0.0
+
+- new lint: `implicit_reopen`
+- new lint: `unnecessary_breaks`
+- new lint: `type_literal_in_constant_pattern`
+- new lint: `invalid_case_patterns`
+- new lint: `matching_super_parameters`
+- new lint: `no_literal_bool_comparisons`
+
+- removed lint: `enable_null_safety`
+- removed lint: `invariant_booleans`
+- removed lint: `prefer_bool_in_asserts`
+- removed lint: `prefer_equal_for_default_values`
+- removed lint: `super_goes_last`
+
 ---
 
 # 1.35.0

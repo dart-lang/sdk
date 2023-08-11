@@ -92,14 +92,14 @@ library_private_types_in_public_api: 2.14.0
 lines_longer_than_80_chars: 2.0.0
 list_remove_unrelated_type: 2.0.0
 literal_only_boolean_expressions: 2.0.0
-matching_super_parameters: 3.1.0-wip
+matching_super_parameters: 3.0.0
 missing_whitespace_between_adjacent_strings: 2.8.1
 no_adjacent_strings_in_list: 2.0.0
 no_default_cases: 2.9.0
 no_duplicate_case_values: 2.0.0
 no_leading_underscores_for_library_prefixes: 2.16.0
 no_leading_underscores_for_local_identifiers: 2.16.0
-no_literal_bool_comparisons: 3.1.0-wip
+no_literal_bool_comparisons: 3.0.0
 no_logic_in_create_state: 2.8.1
 no_runtimeType_toString: 2.8.1
 no_self_assignments: 3.1.0-wip
