@@ -2587,6 +2587,12 @@ CompileTimeErrorCode:
   CONST_EVAL_FOR_ELEMENT:
     problemMessage: "Constant expressions don't support 'for' elements."
     correctionMessage: "Try replacing the 'for' element with a spread, or removing 'const'."
+  CONST_EVAL_PROPERTY_ACCESS:
+    problemMessage: "The property '{0}' can't be accessed on the type '{1}' in a constant expression."
+    comment: |-
+      Parameters:
+      0: the name of the property being accessed
+      1: the type with the property being accessed
   CONST_EVAL_METHOD_INVOCATION:
     problemMessage: "Methods can't be invoked in constant expressions."
   CONST_EVAL_THROWS_EXCEPTION:

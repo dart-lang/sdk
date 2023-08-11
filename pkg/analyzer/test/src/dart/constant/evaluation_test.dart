@@ -1736,6 +1736,29 @@ void Function(int)
 ''');
   }
 
+  test_visitPropertyAccess_length_invalidTarget() async {
+    await assertErrorsInCode('''
+void main() {
+  const RequiresNonEmptyList([1]);
+}
+
+class RequiresNonEmptyList {
+  const RequiresNonEmptyList(List<int> numbers) : assert(numbers.length > 0);
+}
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        16,
+        31,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 138, 14,
+              text:
+                  "The exception is 'The property 'length' can't be accessed on the type 'List<int>' in a constant expression.' and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
   test_visitRecordLiteral_objectField_generic() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
@@ -2834,7 +2857,7 @@ bool true
 ''');
   }
 
-  test_visitPropertyAccess_fromExtension() async {
+  test_visitPropertyAccess_length_extension() async {
     await assertErrorsInCode('''
 extension ExtObject on Object {
   int get length => 4;
@@ -2847,12 +2870,16 @@ class B {
 
 const b = B('');
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 128, 5,
-          contextMessages: [
-            ExpectedContextMessage(testFile.path, 105, 8,
-                text:
-                    "The exception is 'Invalid constant value.' and occurs here."),
-          ]),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        128,
+        5,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 105, 8,
+              text:
+                  "The exception is 'Extension methods can't be used in constant expressions.' and occurs here."),
+        ],
+      ),
     ]);
   }
 
