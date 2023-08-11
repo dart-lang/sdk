@@ -66,6 +66,144 @@ main() {
 // test support for evaluation in legacy (pre-null safety) code.
 void runNullSafeSharedTests(
     SetupCompilerOptions setup, ExpressionEvaluationTestDriver driver) {
+  group('JS interop with static interop', () {
+    const interopSource = r'''
+      @JS()
+      library debug_static_interop;
+
+      import 'dart:html';
+
+      import 'dart:_js_annotations' show staticInterop;
+      import 'dart:js_util';
+      import 'dart:js_interop';
+
+      @JSExport()
+      class Counter {
+        int value = 0;
+        @JSExport('increment')
+        void renamedIncrement() {
+          value++;
+        }
+      }
+
+      @JS()
+      @staticInterop
+      class JSCounter {}
+
+      extension on JSCounter {
+        external int get value;
+        external void increment();
+      }
+
+      void main() {
+        var dartCounter = Counter();
+        var jsCounter =
+            createDartExport<Counter>(dartCounter) as JSCounter;
+
+        dartCounter.renamedIncrement();
+        jsCounter.increment();
+
+        // Breakpoint: bp
+        print('jsCounter: ${jsCounter.value}');
+      }
+    ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, interopSource,
+          experiments: {'inline-class': true});
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('call extension methods of existing JS object', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'dartCounter.value',
+          expectedResult: '2');
+
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'jsCounter.value',
+          expectedResult: '2');
+    });
+
+    test('call extension methods of a new JS object', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression:
+              '(createDartExport<Counter>(dartCounter) as JSCounter).value',
+          expectedResult: '2');
+    });
+  });
+
+  group('JS interop with extension types', () {
+    const interopSource = r'''
+      // @dart=3.2
+
+      @JS()
+      library debug_static_interop;
+
+      import 'dart:_js_annotations' show staticInterop;
+      import 'dart:js_util';
+      import 'dart:js_interop';
+
+      @JSExport()
+      class Counter {
+        int value = 0;
+        @JSExport('increment')
+        void renamedIncrement() {
+          value++;
+        }
+      }
+
+      extension type JSCounter(JSObject _) {
+        external int get value;
+        external void increment();
+      }
+
+      void main() {
+        var dartCounter = Counter();
+        var jsCounter = createDartExport<Counter>(dartCounter) as JSCounter;
+
+        jsCounter.increment();
+        dartCounter.renamedIncrement();
+
+        // Breakpoint: bp
+        print('JS: ${jsCounter.value}'); // prints '2'
+      }
+    ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, interopSource,
+          experiments: {'inline-class': true});
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('call extension getters on existing JS object', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'dartCounter.value',
+          expectedResult: '2');
+
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'jsCounter.value',
+          expectedResult: '2');
+    });
+
+    test('call extension getters on a new JS object', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'JSCounter(createDartExport<Counter>(dartCounter)).value',
+          expectedResult: '2');
+    });
+  });
+
   group('Exceptions', () {
     const exceptionSource = r'''
     void main() {
