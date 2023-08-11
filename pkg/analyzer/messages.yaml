@@ -3296,6 +3296,7 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the non-type element
   DEFAULT_LIST_CONSTRUCTOR:
+    removedIn: "3.2"
     problemMessage: "The default 'List' constructor isn't available when null safety is enabled."
     correctionMessage: "Try using a list literal, 'List.filled' or 'List.generate'."
     hasPublishedDocs: true

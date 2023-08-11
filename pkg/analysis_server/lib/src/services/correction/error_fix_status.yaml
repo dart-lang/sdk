@@ -457,10 +457,6 @@ CompileTimeErrorCode.CONTINUE_LABEL_INVALID:
   status: noFix
 CompileTimeErrorCode.COULD_NOT_INFER:
   status: noFix
-CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0.
 CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR:
   status: needsFix
   notes: |-
