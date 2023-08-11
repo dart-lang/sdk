@@ -295,7 +295,19 @@ class IsNullableTest extends AbstractTypeSystemTest {
     );
 
     isNullable(
+      interfaceTypeQuestion(
+        extensionType('A', representationType: intNone),
+      ),
+    );
+
+    isNotNullable(
       interfaceTypeNone(
+        extensionType('A', representationType: intQuestion),
+      ),
+    );
+
+    isNullable(
+      interfaceTypeQuestion(
         extensionType('A', representationType: intQuestion),
       ),
     );
@@ -429,7 +441,7 @@ class IsPotentiallyNonNullableTest extends AbstractTypeSystemTest {
       ),
     );
 
-    isNotPotentiallyNonNullable(
+    isPotentiallyNonNullable(
       interfaceTypeNone(
         extensionType('A', representationType: intQuestion),
       ),
@@ -495,7 +507,19 @@ class IsPotentiallyNullableTest extends AbstractTypeSystemTest {
     );
 
     isPotentiallyNullable(
+      interfaceTypeQuestion(
+        extensionType('A', representationType: intNone),
+      ),
+    );
+
+    isPotentiallyNullable(
       interfaceTypeNone(
+        extensionType('A', representationType: intQuestion),
+      ),
+    );
+
+    isPotentiallyNullable(
+      interfaceTypeQuestion(
         extensionType('A', representationType: intQuestion),
       ),
     );
