@@ -8,12 +8,12 @@ extension type I(core::int _i) {
   constructor • = self::I|;
   tearoff • = self::I|_#new#tearOff;
 }
-static inline-class-member method I|(dynamic _i) → self::I {
-  lowered final self::I #this = _i;
+static inline-class-member method I|(dynamic _i) → self::I /* = core::int */ {
+  lowered final self::I /* = core::int */ #this = _i;
   return #this;
 }
-static inline-class-member method I|_#new#tearOff(dynamic _i) → self::I
+static inline-class-member method I|_#new#tearOff(dynamic _i) → self::I /* = core::int */
   return self::I|(_i);
-static inline-class-member method I|get#i(lowered final self::I #this) → core::int
+static inline-class-member method I|get#i(lowered final self::I /* = core::int */ #this) → core::int
   return 0;
-static inline-class-member method I|set#i(lowered final self::I #this, core::int val) → void {}
+static inline-class-member method I|set#i(lowered final self::I /* = core::int */ #this, core::int val) → void {}

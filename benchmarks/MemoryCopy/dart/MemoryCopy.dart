@@ -13,6 +13,59 @@ import 'package:ffi/ffi.dart';
 
 const maxSizeInBytes = 10 * 1024 * 1024;
 
+final argParser = ArgParser()
+  ..addMultiOption('length',
+      abbr: 'l',
+      help: 'Byte length to benchmark',
+      valueHelp: 'INT',
+      defaultsTo: const [])
+  ..addFlag('mebibytes-per-second',
+      abbr: 'm', help: 'Show MiB/s', defaultsTo: false)
+  ..addFlag('nanoseconds-per-byte',
+      abbr: 'n', help: 'Show ns/byte', defaultsTo: false)
+  ..addFlag('bytes-per-second',
+      abbr: 'b', help: 'Show byte/s', defaultsTo: true)
+  ..addFlag('verbose', abbr: 'v', help: 'Verbose output', defaultsTo: false)
+  ..addFlag('aligned',
+      abbr: 'a', help: 'Align results on initial numbers', defaultsTo: false);
+
+class Emitter {
+  final bool bytesPerSecond;
+  final bool nanosecondsPerByte;
+  final bool mebibytesPerSecond;
+  final bool _alignedOutput;
+
+  Emitter(ArgResults results)
+      : bytesPerSecond = results['bytes-per-second'] || results['verbose'],
+        nanosecondsPerByte =
+            results['nanoseconds-per-byte'] || results['verbose'],
+        mebibytesPerSecond =
+            results['mebibytes-per-second'] || results['verbose'],
+        _alignedOutput = results['aligned'];
+
+  static final kValueRegexp = RegExp(r'^([0-9]+)');
+  static final kMaxLabelLength =
+      'MemoryCopy.1048576.setRange.TypedData.Double(NanosecondsPerChar)'.length;
+  // Maximum expected number of digits on either side of the decimal point.
+  static final kMaxDigits = 16;
+
+  void printLabeledValue(String label, double value) {
+    final valueString = value.toString();
+    final buffer = StringBuffer();
+    buffer
+      ..write(label)
+      ..write(': ');
+    if (_alignedOutput) {
+      final matches = kValueRegexp.firstMatch(valueString)!;
+      final valuePadding = (kMaxLabelLength - label.length) +
+          max<int>(kMaxDigits - matches[1]!.length, 0);
+      buffer..write(' ' * valuePadding);
+    }
+    buffer.write(valueString);
+    print(buffer.toString());
+  }
+}
+
 // A modified version of BenchmarkBase from package:benchmark_harness where
 // - the run() method takes a number of rounds, so that there is only one run()
 //   call per measurement and thus the overhead of calling the run() method is
@@ -72,12 +125,6 @@ abstract class MemoryCopyBenchmark {
     }
   }
 
-  static final kValueRegexp = RegExp(r'^([0-9]+)');
-  static final kMaxLabelLength =
-      'MemoryCopy.1048576.setRange.TypedData.Double(NanosecondsPerChar)'.length;
-  // Maximum expected number of digits on either side of the decimal point.
-  static final kMaxDigits = 16;
-
   double measure() {
     setup();
 
@@ -91,29 +138,22 @@ abstract class MemoryCopyBenchmark {
     return result;
   }
 
-  void report({bool verbose = false, bool aligned = false}) {
+  void report(Emitter emitter) {
     final bytesPerSecond = measure();
 
-    void printLine(String label, String content) {
-      String contentPadding = ' ';
-      if (aligned) {
-        final matches = kValueRegexp.firstMatch(content)!;
-        final contentPaddingLength = 1 +
-            (kMaxLabelLength - label.length) +
-            max<int>(kMaxDigits - matches[1]!.length, 0);
-        contentPadding = ' ' * contentPaddingLength;
-      }
-      print('$label:$contentPadding$content');
+    if (emitter.bytesPerSecond) {
+      emitter.printLabeledValue('$name(BytesPerSecond)', bytesPerSecond);
     }
-
-    printLine('$name(BytesPerSecond)', '$bytesPerSecond');
-    if (verbose) {
+    if (emitter.nanosecondsPerByte) {
       const nanoSecondsPerSecond = 1000 * 1000 * 1000;
       final nanosecondsPerByte = nanoSecondsPerSecond / bytesPerSecond;
-      printLine('$name(NanosecondsPerChar)', '$nanosecondsPerByte');
+      emitter.printLabeledValue(
+          '$name(NanosecondsPerChar)', nanosecondsPerByte);
+    }
+    if (emitter.mebibytesPerSecond) {
       const bytesPerMebibyte = 1024 * 1024;
       final mibPerSecond = bytesPerSecond / bytesPerMebibyte;
-      printLine('$name(MebibytesPerSecond)', '$mibPerSecond');
+      emitter.printLabeledValue('$name(MebibytesPerSecond)', mibPerSecond);
     }
   }
 
@@ -316,15 +356,21 @@ class PointerUint8CopyViaSetRangeBenchmark extends PointerUint8CopyBenchmark {
 }
 
 @Native<Void Function(Pointer<Void>, Pointer<Void>, Size)>(isLeaf: true)
-external void memcpy(Pointer<Void> to, Pointer<Void> from, int size);
+external void memmove(Pointer<Void> to, Pointer<Void> from, int size);
 
-class PointerUint8CopyViaMemcpyBenchmark extends PointerUint8CopyBenchmark {
-  PointerUint8CopyViaMemcpyBenchmark(int bytes) : super('memcpy', bytes);
+class PointerUint8CopyViaMemmoveBenchmark extends PointerUint8CopyBenchmark {
+  // This particular benchmark was originally written using memcpy, but a
+  // better comparison is against memmove. While our benchmarks don't use
+  // to and from memory that overlaps, in general this case must be handled.
+  //
+  // In order to not have to change the benchmark suite in golem, we keep the
+  // old name for this result.
+  PointerUint8CopyViaMemmoveBenchmark(int bytes) : super('memcpy', bytes);
 
   @override
   void run(int rounds) {
     for (int r = 0; r < rounds; r++) {
-      memcpy(result.cast(), input.cast(), count);
+      memmove(result.cast(), input.cast(), count);
     }
   }
 }
@@ -398,23 +444,22 @@ class PointerDoubleCopyViaSetRangeBenchmark extends PointerDoubleCopyBenchmark {
   }
 }
 
-final argParser = ArgParser()
-  ..addFlag('verbose', abbr: 'v', help: 'Verbose output', defaultsTo: false)
-  ..addFlag('aligned',
-      abbr: 'a', help: 'Align results on initial numbers', defaultsTo: false);
-
 final defaultLengthsInBytes = [8, 64, 512, 4 * 1024, 1024 * 1024];
 
 void main(List<String> args) {
   final results = argParser.parse(args);
   List<int> lengthsInBytes = defaultLengthsInBytes;
-  if (results.rest.isNotEmpty) {
-    lengthsInBytes =
-        results.rest.map(int.parse).where((i) => i <= maxSizeInBytes).toList();
+  final emitter = Emitter(results);
+  if (results['length'].isNotEmpty) {
+    lengthsInBytes = (results['length'] as List<String>)
+        .map(int.parse)
+        .where((i) => i <= maxSizeInBytes)
+        .toList();
   }
+  final filter = results.rest.firstOrNull;
   final benchmarks = [
     for (int bytes in lengthsInBytes) ...[
-      PointerUint8CopyViaMemcpyBenchmark(bytes),
+      PointerUint8CopyViaMemmoveBenchmark(bytes),
       PointerUint8CopyViaLoopBenchmark(bytes),
       PointerDoubleCopyViaLoopBenchmark(bytes),
       Uint8ListCopyViaLoopBenchmark(bytes),
@@ -426,6 +471,8 @@ void main(List<String> args) {
     ],
   ];
   for (var bench in benchmarks) {
-    bench.report(verbose: results['verbose'], aligned: results['aligned']);
+    if (filter == null || bench.name.contains(filter)) {
+      bench.report(emitter);
+    }
   }
 }

@@ -4502,6 +4502,32 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
+    Scope outerScope = nameScope;
+    try {
+      final element = node.declaredElement!;
+      node.metadata.accept(this);
+
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+      );
+      _setNodeNameScope(node, nameScope);
+      node.typeParameters?.accept(this);
+      node.representation.accept(this);
+      node.implementsClause?.accept(this);
+
+      nameScope = InterfaceScope(nameScope, element);
+      node.documentationComment?.accept(this);
+      node.members.accept(this);
+    } finally {
+      nameScope = outerScope;
+    }
+  }
+
+  @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     //
     // We visit the iterator before the loop variable because the loop variable

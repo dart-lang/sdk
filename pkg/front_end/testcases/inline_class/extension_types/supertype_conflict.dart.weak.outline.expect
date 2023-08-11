@@ -25,7 +25,7 @@ extension type C<T extends core::Object? = dynamic>(self::A<T%> it) {
   constructor • = self::C|;
   tearoff • = self::C|_#new#tearOff;
 }
-extension type D(self::A<Never> it) implements self::A<core::int>, self::B<core::String> {
+extension type D(self::A<Never> it) implements self::A<core::int>, self::B<core::String> /* = self::A<core::String> */ {
   constructor • = self::D|;
   tearoff • = self::D|_#new#tearOff;
 }
@@ -33,19 +33,19 @@ extension type E(self::A<Never> it) {
   constructor • = self::E|;
   tearoff • = self::E|_#new#tearOff;
 }
-static inline-class-member method B|<T extends core::Object? = dynamic>(dynamic it) → self::B<self::B|::T%>
+static inline-class-member method B|<T extends core::Object? = dynamic>(dynamic it) → self::B<self::B|::T%> /* = self::A<self::B|::T%> */
   ;
-static inline-class-member method B|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::B<self::B|_#new#tearOff::T%>
+static inline-class-member method B|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::B<self::B|_#new#tearOff::T%> /* = self::A<self::B|_#new#tearOff::T%> */
   return self::B|<self::B|_#new#tearOff::T%>(it);
-static inline-class-member method C|<T extends core::Object? = dynamic>(dynamic it) → self::C<self::C|::T%>
+static inline-class-member method C|<T extends core::Object? = dynamic>(dynamic it) → self::C<self::C|::T%> /* = self::A<self::C|::T%> */
   ;
-static inline-class-member method C|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::C<self::C|_#new#tearOff::T%>
+static inline-class-member method C|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::C<self::C|_#new#tearOff::T%> /* = self::A<self::C|_#new#tearOff::T%> */
   return self::C|<self::C|_#new#tearOff::T%>(it);
-static inline-class-member method D|(dynamic it) → self::D
+static inline-class-member method D|(dynamic it) → self::D /* = self::A<Never> */
   ;
-static inline-class-member method D|_#new#tearOff(dynamic it) → self::D
+static inline-class-member method D|_#new#tearOff(dynamic it) → self::D /* = self::A<Never> */
   return self::D|(it);
-static inline-class-member method E|(dynamic it) → self::E
+static inline-class-member method E|(dynamic it) → self::E /* = self::A<Never> */
   ;
-static inline-class-member method E|_#new#tearOff(dynamic it) → self::E
+static inline-class-member method E|_#new#tearOff(dynamic it) → self::E /* = self::A<Never> */
   return self::E|(it);

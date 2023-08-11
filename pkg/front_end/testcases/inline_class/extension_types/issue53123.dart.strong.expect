@@ -21,16 +21,16 @@ library;
 import self as self;
 import "dart:core" as core;
 
-extension type V<T extends self::V<T> = self::V<dynamic>>(T id) {
+extension type V<T extends self::V<T> /* = T */ = self::V<dynamic> /* = dynamic */>(T id) {
   constructor • = self::V|;
   tearoff • = self::V|_#new#tearOff;
 }
-static inline-class-member method V|<T extends self::V<self::V|::T> = dynamic>(dynamic id) → self::V<self::V|::T> {
-  lowered final self::V<self::V|::T> #this = id;
+static inline-class-member method V|<T extends self::V<self::V|::T> /* = self::V|::T */ = dynamic>(dynamic id) → self::V<self::V|::T> /* = self::V|::T */ {
+  lowered final self::V<self::V|::T> /* = self::V|::T */ #this = id;
   return #this;
 }
-static inline-class-member method V|_#new#tearOff<T extends self::V<self::V|_#new#tearOff::T> = dynamic>(dynamic id) → self::V<self::V|_#new#tearOff::T>
+static inline-class-member method V|_#new#tearOff<T extends self::V<self::V|_#new#tearOff::T> /* = self::V|_#new#tearOff::T */ = dynamic>(dynamic id) → self::V<self::V|_#new#tearOff::T> /* = self::V|_#new#tearOff::T */
   return self::V|<self::V|_#new#tearOff::T>(id);
-static method test(self::V<self::V<dynamic>> v) → dynamic {
-  core::List<self::V<self::V<dynamic>>> l = <self::V<self::V<dynamic>>>[v];
+static method test(self::V<self::V<dynamic> /* = dynamic */> /* = dynamic */ v) → dynamic {
+  core::List<self::V<self::V<dynamic> /* = dynamic */> /* = dynamic */> l = <self::V<self::V<dynamic> /* = dynamic */> /* = dynamic */>[v];
 }

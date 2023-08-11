@@ -43,35 +43,35 @@ extension type ExtensionType(core::int it) {
   static tearoff redirectingFactory = self2::ExtensionType|_#redirectingFactory#tearOff;
 }
 static field core::int ExtensionType|staticField;
-static inline-class-member method ExtensionType|(dynamic it) → self2::ExtensionType
+static inline-class-member method ExtensionType|(dynamic it) → self2::ExtensionType /* = core::int */
   ;
-static inline-class-member method ExtensionType|_#new#tearOff(dynamic it) → self2::ExtensionType
+static inline-class-member method ExtensionType|_#new#tearOff(dynamic it) → self2::ExtensionType /* = core::int */
   return self2::ExtensionType|(it);
-static inline-class-member method ExtensionType|named(core::int it) → self2::ExtensionType
+static inline-class-member method ExtensionType|named(core::int it) → self2::ExtensionType /* = core::int */
   ;
-static inline-class-member method ExtensionType|_#named#tearOff(core::int it) → self2::ExtensionType
+static inline-class-member method ExtensionType|_#named#tearOff(core::int it) → self2::ExtensionType /* = core::int */
   return self2::ExtensionType|named(it);
-static inline-class-member method ExtensionType|redirectingGenerative(core::int it) → self2::ExtensionType
+static inline-class-member method ExtensionType|redirectingGenerative(core::int it) → self2::ExtensionType /* = core::int */
   ;
-static inline-class-member method ExtensionType|_#redirectingGenerative#tearOff(core::int it) → self2::ExtensionType
+static inline-class-member method ExtensionType|_#redirectingGenerative#tearOff(core::int it) → self2::ExtensionType /* = core::int */
   return self2::ExtensionType|redirectingGenerative(it);
-static inline-class-member method ExtensionType|fact(core::int it) → self2::ExtensionType
+static inline-class-member method ExtensionType|fact(core::int it) → self2::ExtensionType /* = core::int */
   ;
-static inline-class-member method ExtensionType|_#fact#tearOff(core::int it) → self2::ExtensionType
+static inline-class-member method ExtensionType|_#fact#tearOff(core::int it) → self2::ExtensionType /* = core::int */
   return self2::ExtensionType|fact(it);
-static inline-class-member method ExtensionType|redirectingFactory(core::int it) → self2::ExtensionType /* redirection-target: self2::ExtensionType| */
+static inline-class-member method ExtensionType|redirectingFactory(core::int it) → self2::ExtensionType /* = core::int */ /* redirection-target: self2::ExtensionType| */
   return self2::ExtensionType|(it);
-static inline-class-member method ExtensionType|_#redirectingFactory#tearOff(core::int it) → self2::ExtensionType
+static inline-class-member method ExtensionType|_#redirectingFactory#tearOff(core::int it) → self2::ExtensionType /* = core::int */
   return self2::ExtensionType|(it);
-static inline-class-member method ExtensionType|instanceMethod(lowered final self2::ExtensionType #this) → core::int
+static inline-class-member method ExtensionType|instanceMethod(lowered final self2::ExtensionType /* = core::int */ #this) → core::int
   ;
-static inline-class-member method ExtensionType|get#instanceMethod(lowered final self2::ExtensionType #this) → () → core::int
+static inline-class-member method ExtensionType|get#instanceMethod(lowered final self2::ExtensionType /* = core::int */ #this) → () → core::int
   return () → core::int => self2::ExtensionType|instanceMethod(#this);
-static inline-class-member method ExtensionType|+(lowered final self2::ExtensionType #this, core::int i) → core::int
+static inline-class-member method ExtensionType|+(lowered final self2::ExtensionType /* = core::int */ #this, core::int i) → core::int
   ;
-static inline-class-member method ExtensionType|get#instanceGetter(lowered final self2::ExtensionType #this) → core::int
+static inline-class-member method ExtensionType|get#instanceGetter(lowered final self2::ExtensionType /* = core::int */ #this) → core::int
   ;
-static inline-class-member method ExtensionType|set#instanceSetter(lowered final self2::ExtensionType #this, core::int value) → void
+static inline-class-member method ExtensionType|set#instanceSetter(lowered final self2::ExtensionType /* = core::int */ #this, core::int value) → void
   ;
 static inline-class-member method ExtensionType|staticMethod() → core::int
   ;

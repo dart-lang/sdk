@@ -220,6 +220,65 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_method_generic() async {
+    await assertNoErrorsInCode(r'''
+extension type A<T>(int it) {
+  void foo<U>(T t, U u) {
+    T;
+    U;
+  }
+}
+''');
+
+    final node = findNode.singleMethodDeclaration;
+    assertResolvedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: T
+        element: T@17
+        type: T
+      name: t
+      declaredElement: self::@extensionType::A::@method::foo::@parameter::t
+        type: T
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: U
+        element: U@41
+        type: U
+      name: u
+      declaredElement: self::@extensionType::A::@method::foo::@parameter::u
+        type: U
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: T
+            staticElement: T@17
+            staticType: Type
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: U
+            staticElement: U@41
+            staticType: Type
+          semicolon: ;
+      rightBracket: }
+  declaredElement: self::@extensionType::A::@method::foo
+    type: void Function<U>(T, U)
+''');
+  }
+
   test_typeParameters() async {
     await assertNoErrorsInCode(r'''
 extension type A<T, U>(Map<T, U> it) {}

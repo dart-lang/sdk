@@ -106,6 +106,62 @@ ImplementsClause
 ''');
   }
 
+  test_extensionType_implements_class() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {}
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart' deferred as a;
+extension type B(a.A it) implements a.A {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3),
+    ]);
+
+    final node = findNode.singleImplementsClause;
+    assertResolvedNodeText(node, r'''
+ImplementsClause
+  implementsKeyword: implements
+  interfaces
+    NamedType
+      importPrefix: ImportPrefixReference
+        name: a
+        period: .
+        element: self::@prefix::a
+      name: A
+      element: package:test/a.dart::@class::A
+      type: A
+''');
+  }
+
+  test_extensionType_implements_extensionType() async {
+    newFile('$testPackageLibPath/a.dart', '''
+extension type A(int it) {}
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart' deferred as a;
+extension type B(int it) implements a.A {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3),
+    ]);
+
+    final node = findNode.singleImplementsClause;
+    assertResolvedNodeText(node, r'''
+ImplementsClause
+  implementsKeyword: implements
+  interfaces
+    NamedType
+      importPrefix: ImportPrefixReference
+        name: a
+        period: .
+        element: self::@prefix::a
+      name: A
+      element: package:test/a.dart::@extensionType::A
+      type: A
+''');
+  }
+
   test_mixin() async {
     await assertErrorsInCode(r'''
 import 'dart:math' deferred as math;

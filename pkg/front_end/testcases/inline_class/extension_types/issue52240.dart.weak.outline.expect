@@ -10,17 +10,17 @@ extension type X(core::int obj) {
   constructor named = self::X|named;
   tearoff named = self::X|_#named#tearOff;
 }
-static inline-class-member method X|_(dynamic obj) → self::X
+static inline-class-member method X|_(dynamic obj) → self::X /* = core::int */
   ;
-static inline-class-member method X|_#_#tearOff(dynamic obj) → self::X
+static inline-class-member method X|_#_#tearOff(dynamic obj) → self::X /* = core::int */
   return self::X|_(obj);
-static inline-class-member method X|() → self::X
+static inline-class-member method X|() → self::X /* = core::int */
   ;
-static inline-class-member method X|_#new#tearOff() → self::X
+static inline-class-member method X|_#new#tearOff() → self::X /* = core::int */
   return self::X|();
-static inline-class-member method X|named() → self::X
+static inline-class-member method X|named() → self::X /* = core::int */
   ;
-static inline-class-member method X|_#named#tearOff() → self::X
+static inline-class-member method X|_#named#tearOff() → self::X /* = core::int */
   return self::X|named();
 static method main() → void
   ;

@@ -53,39 +53,39 @@ extension type F(core::int it) {
   constructor • = self::F|;
   tearoff • = self::F|_#new#tearOff;
 }
-static inline-class-member method A|(dynamic it) → self::A {
-  lowered final self::A #this = it;
+static inline-class-member method A|(dynamic it) → self::A /* = core::int */ {
+  lowered final self::A /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method A|_#new#tearOff(dynamic it) → self::A
+static inline-class-member method A|_#new#tearOff(dynamic it) → self::A /* = core::int */
   return self::A|(it);
-static inline-class-member method B|(dynamic it) → self::B {
-  lowered final self::B #this = it;
+static inline-class-member method B|(dynamic it) → self::B /* = core::int */ {
+  lowered final self::B /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method B|_#new#tearOff(dynamic it) → self::B
+static inline-class-member method B|_#new#tearOff(dynamic it) → self::B /* = core::int */
   return self::B|(it);
-static inline-class-member method C|(dynamic it) → self::C {
-  lowered final self::C #this = it;
+static inline-class-member method C|(dynamic it) → self::C /* = core::int */ {
+  lowered final self::C /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method C|_#new#tearOff(dynamic it) → self::C
+static inline-class-member method C|_#new#tearOff(dynamic it) → self::C /* = core::int */
   return self::C|(it);
-static inline-class-member method D|(dynamic it) → self::D {
-  lowered final self::D #this = it;
+static inline-class-member method D|(dynamic it) → self::D /* = core::int */ {
+  lowered final self::D /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method D|_#new#tearOff(dynamic it) → self::D
+static inline-class-member method D|_#new#tearOff(dynamic it) → self::D /* = core::int */
   return self::D|(it);
-static inline-class-member method E|(dynamic it) → self::E {
-  lowered final self::E #this = it;
+static inline-class-member method E|(dynamic it) → self::E /* = core::int */ {
+  lowered final self::E /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method E|_#new#tearOff(dynamic it) → self::E
+static inline-class-member method E|_#new#tearOff(dynamic it) → self::E /* = core::int */
   return self::E|(it);
-static inline-class-member method F|(dynamic it) → self::F {
-  lowered final self::F #this = it;
+static inline-class-member method F|(dynamic it) → self::F /* = core::int */ {
+  lowered final self::F /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method F|_#new#tearOff(dynamic it) → self::F
+static inline-class-member method F|_#new#tearOff(dynamic it) → self::F /* = core::int */
   return self::F|(it);

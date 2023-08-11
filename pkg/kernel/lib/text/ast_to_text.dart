@@ -2654,6 +2654,10 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       state = Printer.WORD;
     }
     writeNullability(node.declaredNullability);
+
+    writeWord("/* =");
+    writeType(node.instantiatedRepresentationType);
+    writeWord("*/");
   }
 
   @override
@@ -2708,8 +2712,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeType(node.left);
     writeSpaced('&');
     writeType(node.right);
-    writeWord("/* '");
 
+    writeWord("/* '");
     writeDartTypeNullability(node.left, inComment: true);
     writeWord("' & '");
     writeDartTypeNullability(node.right, inComment: true);

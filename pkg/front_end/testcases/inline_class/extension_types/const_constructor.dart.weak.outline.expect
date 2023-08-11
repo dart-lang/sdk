@@ -14,25 +14,25 @@ extension type Class(core::int i) {
   static redirecting-factory redirect2 = self::Class|redirect2;
   static tearoff redirect2 = self::Class|_#redirect2#tearOff;
 }
-static inline-class-member method Class|(dynamic i) → self::Class
+static inline-class-member method Class|(dynamic i) → self::Class /* = core::int */
   ;
-static inline-class-member method Class|_#new#tearOff(dynamic i) → self::Class
+static inline-class-member method Class|_#new#tearOff(dynamic i) → self::Class /* = core::int */
   return self::Class|(i);
-static inline-class-member method Class|named(core::int i) → self::Class
+static inline-class-member method Class|named(core::int i) → self::Class /* = core::int */
   ;
-static inline-class-member method Class|_#named#tearOff(core::int i) → self::Class
+static inline-class-member method Class|_#named#tearOff(core::int i) → self::Class /* = core::int */
   return self::Class|named(i);
-static inline-class-member method Class|redirect(core::int i) → self::Class /* redirection-target: self::Class| */
+static inline-class-member method Class|redirect(core::int i) → self::Class /* = core::int */ /* redirection-target: self::Class| */
   return self::Class|(i);
-static inline-class-member method Class|_#redirect#tearOff(core::int i) → self::Class
+static inline-class-member method Class|_#redirect#tearOff(core::int i) → self::Class /* = core::int */
   return self::Class|(i);
-static inline-class-member method Class|fact(core::int i) → self::Class
+static inline-class-member method Class|fact(core::int i) → self::Class /* = core::int */
   ;
-static inline-class-member method Class|_#fact#tearOff(core::int i) → self::Class
+static inline-class-member method Class|_#fact#tearOff(core::int i) → self::Class /* = core::int */
   return self::Class|fact(i);
-static inline-class-member method Class|redirect2(core::int i) → self::Class /* redirection-target: self::Class| */
+static inline-class-member method Class|redirect2(core::int i) → self::Class /* = core::int */ /* redirection-target: self::Class| */
   return self::Class|(i);
-static inline-class-member method Class|_#redirect2#tearOff(core::int i) → self::Class
+static inline-class-member method Class|_#redirect2#tearOff(core::int i) → self::Class /* = core::int */
   return self::Class|(i);
 static method test() → dynamic
   ;

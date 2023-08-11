@@ -337,13 +337,13 @@ extension type ErroneousInlineClass(core::int a) {
   tearoff • = self::ErroneousInlineClass|_#new#tearOff;
 }
 static extension-member method _extension#0|set#it(lowered final dynamic #this, dynamic value) → void {}
-static inline-class-member method InlineClass|(core::int it) → self::InlineClass {
-  lowered final self::InlineClass #this = it;
+static inline-class-member method InlineClass|(core::int it) → self::InlineClass /* = core::int */ {
+  lowered final self::InlineClass /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method InlineClass|_#new#tearOff(core::int it) → self::InlineClass
+static inline-class-member method InlineClass|_#new#tearOff(core::int it) → self::InlineClass /* = core::int */
   return self::InlineClass|(it);
-static inline-class-member method InlineClass|test(lowered final self::InlineClass #this) → void {
+static inline-class-member method InlineClass|test(lowered final self::InlineClass /* = core::int */ #this) → void {
   core::int a1 = #this as{Unchecked} core::int;
   core::int a2 = #this as{Unchecked} core::int;
   invalid-type b1 = invalid-expression "pkg/front_end/testcases/inline_class/field_access.dart:19:21: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int'.
@@ -363,15 +363,15 @@ Try correcting the name to the name of an existing setter, or defining a setter 
     var c2 = it = 42; // Error, should not resolve to extension method.
              ^^" in #this{<unresolved>}.it = 42;
 }
-static inline-class-member method InlineClass|get#test(lowered final self::InlineClass #this) → () → void
+static inline-class-member method InlineClass|get#test(lowered final self::InlineClass /* = core::int */ #this) → () → void
   return () → void => self::InlineClass|test(#this);
-static inline-class-member method GenericInlineClass|<T extends core::Object? = dynamic>(self::GenericInlineClass|::T% it) → self::GenericInlineClass<self::GenericInlineClass|::T%> {
-  lowered final self::GenericInlineClass<self::GenericInlineClass|::T%> #this = it;
+static inline-class-member method GenericInlineClass|<T extends core::Object? = dynamic>(self::GenericInlineClass|::T% it) → self::GenericInlineClass<self::GenericInlineClass|::T%> /* = self::GenericInlineClass|::T% */ {
+  lowered final self::GenericInlineClass<self::GenericInlineClass|::T%> /* = self::GenericInlineClass|::T% */ #this = it;
   return #this;
 }
-static inline-class-member method GenericInlineClass|_#new#tearOff<T extends core::Object? = dynamic>(self::GenericInlineClass|_#new#tearOff::T% it) → self::GenericInlineClass<self::GenericInlineClass|_#new#tearOff::T%>
+static inline-class-member method GenericInlineClass|_#new#tearOff<T extends core::Object? = dynamic>(self::GenericInlineClass|_#new#tearOff::T% it) → self::GenericInlineClass<self::GenericInlineClass|_#new#tearOff::T%> /* = self::GenericInlineClass|_#new#tearOff::T% */
   return self::GenericInlineClass|<self::GenericInlineClass|_#new#tearOff::T%>(it);
-static inline-class-member method GenericInlineClass|test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|test::T%> #this, self::GenericInlineClass|test::T% t) → void {
+static inline-class-member method GenericInlineClass|test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|test::T%> /* = self::GenericInlineClass|test::T% */ #this, self::GenericInlineClass|test::T% t) → void {
   self::GenericInlineClass|test::T% a1 = #this as{Unchecked} self::GenericInlineClass|test::T%;
   self::GenericInlineClass|test::T% a2 = #this as{Unchecked} self::GenericInlineClass|test::T%;
   invalid-type b1 = invalid-expression "pkg/front_end/testcases/inline_class/field_access.dart:34:21: Error: The static type of the explicit instantiation operand must be a generic function type but is 'T'.
@@ -391,15 +391,15 @@ Try correcting the name to the name of an existing setter, or defining a setter 
     var c2 = it = t; // Error, should not resolve to extension method.
              ^^" in #this{<unresolved>}.it = t;
 }
-static inline-class-member method GenericInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|get#test::T%> #this) → (self::GenericInlineClass|get#test::T%) → void
+static inline-class-member method GenericInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|get#test::T%> /* = self::GenericInlineClass|get#test::T% */ #this) → (self::GenericInlineClass|get#test::T%) → void
   return (self::GenericInlineClass|get#test::T% t) → void => self::GenericInlineClass|test<self::GenericInlineClass|get#test::T%>(#this, t);
-static inline-class-member method FunctionInlineClass|<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|::T%> {
-  lowered final self::FunctionInlineClass<self::FunctionInlineClass|::T%> #this = it;
+static inline-class-member method FunctionInlineClass|<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|::T%> /* = () → self::FunctionInlineClass|::T% */ {
+  lowered final self::FunctionInlineClass<self::FunctionInlineClass|::T%> /* = () → self::FunctionInlineClass|::T% */ #this = it;
   return #this;
 }
-static inline-class-member method FunctionInlineClass|_#new#tearOff<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|_#new#tearOff::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|_#new#tearOff::T%>
+static inline-class-member method FunctionInlineClass|_#new#tearOff<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|_#new#tearOff::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|_#new#tearOff::T%> /* = () → self::FunctionInlineClass|_#new#tearOff::T% */
   return self::FunctionInlineClass|<self::FunctionInlineClass|_#new#tearOff::T%>(it);
-static inline-class-member method FunctionInlineClass|test<T extends core::Object? = dynamic>(lowered final self::FunctionInlineClass<self::FunctionInlineClass|test::T%> #this, () → self::FunctionInlineClass|test::T% t) → void {
+static inline-class-member method FunctionInlineClass|test<T extends core::Object? = dynamic>(lowered final self::FunctionInlineClass<self::FunctionInlineClass|test::T%> /* = () → self::FunctionInlineClass|test::T% */ #this, () → self::FunctionInlineClass|test::T% t) → void {
   () → self::FunctionInlineClass|test::T% a1 = #this as{Unchecked} () → self::FunctionInlineClass|test::T%;
   () → self::FunctionInlineClass|test::T% a2 = #this as{Unchecked} () → self::FunctionInlineClass|test::T%;
   invalid-type b1 = invalid-expression "pkg/front_end/testcases/inline_class/field_access.dart:49:21: Error: The static type of the explicit instantiation operand must be a generic function type but is 'T Function()'.
@@ -423,15 +423,15 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   self::FunctionInlineClass|test::T% d3 = (#this as{Unchecked} () → self::FunctionInlineClass|test::T%)(){() → self::FunctionInlineClass|test::T%};
   self::FunctionInlineClass|test::T% d4 = (#this as{Unchecked} () → self::FunctionInlineClass|test::T%)(){() → self::FunctionInlineClass|test::T%};
 }
-static inline-class-member method FunctionInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::FunctionInlineClass<self::FunctionInlineClass|get#test::T%> #this) → (() → self::FunctionInlineClass|get#test::T%) → void
+static inline-class-member method FunctionInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::FunctionInlineClass<self::FunctionInlineClass|get#test::T%> /* = () → self::FunctionInlineClass|get#test::T% */ #this) → (() → self::FunctionInlineClass|get#test::T%) → void
   return (() → self::FunctionInlineClass|get#test::T% t) → void => self::FunctionInlineClass|test<self::FunctionInlineClass|get#test::T%>(#this, t);
-static inline-class-member method GenericFunctionInlineClass|(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass {
-  lowered final self::GenericFunctionInlineClass #this = it;
+static inline-class-member method GenericFunctionInlineClass|(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */ {
+  lowered final self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */ #this = it;
   return #this;
 }
-static inline-class-member method GenericFunctionInlineClass|_#new#tearOff(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass
+static inline-class-member method GenericFunctionInlineClass|_#new#tearOff(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */
   return self::GenericFunctionInlineClass|(it);
-static inline-class-member method GenericFunctionInlineClass|test(lowered final self::GenericFunctionInlineClass #this) → void {
+static inline-class-member method GenericFunctionInlineClass|test(lowered final self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */ #this) → void {
   <T extends core::Object? = dynamic>() → T% a1 = #this as{Unchecked} <T extends core::Object? = dynamic>() → T%;
   <T extends core::Object? = dynamic>() → T% a2 = #this as{Unchecked} <T extends core::Object? = dynamic>() → T%;
   () → core::int a3 = (#this as{Unchecked} <T extends core::Object? = dynamic>() → T%)<core::int>;
@@ -459,15 +459,15 @@ Try correcting the name to the name of an existing getter, or defining a getter 
   core::int e1 = (#this as{Unchecked} <T extends core::Object? = dynamic>() → T%)<core::int>(){() → core::int};
   core::int e2 = (#this as{Unchecked} <T extends core::Object? = dynamic>() → T%)<core::int>(){() → core::int};
 }
-static inline-class-member method GenericFunctionInlineClass|get#test(lowered final self::GenericFunctionInlineClass #this) → () → void
+static inline-class-member method GenericFunctionInlineClass|get#test(lowered final self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */ #this) → () → void
   return () → void => self::GenericFunctionInlineClass|test(#this);
-static inline-class-member method DynamicInlineClass|(dynamic it) → self::DynamicInlineClass {
-  lowered final self::DynamicInlineClass #this = it;
+static inline-class-member method DynamicInlineClass|(dynamic it) → self::DynamicInlineClass /* = dynamic */ {
+  lowered final self::DynamicInlineClass /* = dynamic */ #this = it;
   return #this;
 }
-static inline-class-member method DynamicInlineClass|_#new#tearOff(dynamic it) → self::DynamicInlineClass
+static inline-class-member method DynamicInlineClass|_#new#tearOff(dynamic it) → self::DynamicInlineClass /* = dynamic */
   return self::DynamicInlineClass|(it);
-static inline-class-member method DynamicInlineClass|test(lowered final self::DynamicInlineClass #this) → void {
+static inline-class-member method DynamicInlineClass|test(lowered final self::DynamicInlineClass /* = dynamic */ #this) → void {
   dynamic a1 = #this as{Unchecked} dynamic;
   dynamic a2 = #this as{Unchecked} dynamic;
   invalid-type b1 = invalid-expression "pkg/front_end/testcases/inline_class/field_access.dart:92:21: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
@@ -491,15 +491,15 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   dynamic d3 = (#this as{Unchecked} dynamic){dynamic}.call();
   dynamic d4 = (#this as{Unchecked} dynamic){dynamic}.call();
 }
-static inline-class-member method DynamicInlineClass|get#test(lowered final self::DynamicInlineClass #this) → () → void
+static inline-class-member method DynamicInlineClass|get#test(lowered final self::DynamicInlineClass /* = dynamic */ #this) → () → void
   return () → void => self::DynamicInlineClass|test(#this);
-static inline-class-member method ErroneousInlineClass|(core::int a, core::String b) → self::ErroneousInlineClass {
-  lowered final self::ErroneousInlineClass #this = b;
+static inline-class-member method ErroneousInlineClass|(core::int a, core::String b) → self::ErroneousInlineClass /* = core::int */ {
+  lowered final self::ErroneousInlineClass /* = core::int */ #this = b;
   return #this;
 }
-static inline-class-member method ErroneousInlineClass|_#new#tearOff(core::int a, core::String b) → self::ErroneousInlineClass
+static inline-class-member method ErroneousInlineClass|_#new#tearOff(core::int a, core::String b) → self::ErroneousInlineClass /* = core::int */
   return self::ErroneousInlineClass|(a, b);
-static inline-class-member method ErroneousInlineClass|test(lowered final self::ErroneousInlineClass #this) → void {
+static inline-class-member method ErroneousInlineClass|test(lowered final self::ErroneousInlineClass /* = core::int */ #this) → void {
   core::int a1 = #this as{Unchecked} core::int;
   core::int a2 = #this as{Unchecked} core::int;
   dynamic a3 = invalid-expression "pkg/front_end/testcases/inline_class/field_access.dart:112:19: Error: The getter 'b' isn't defined for the class 'ErroneousInlineClass'.
@@ -575,9 +575,9 @@ Try correcting the name to the name of an existing getter, or defining a getter 
     var e4 = b.call(); // Error
              ^" in #this{<unresolved>}.b{dynamic}.call();
 }
-static inline-class-member method ErroneousInlineClass|get#test(lowered final self::ErroneousInlineClass #this) → () → void
+static inline-class-member method ErroneousInlineClass|get#test(lowered final self::ErroneousInlineClass /* = core::int */ #this) → () → void
   return () → void => self::ErroneousInlineClass|test(#this);
-static method test(self::InlineClass inlineClass, self::GenericInlineClass<core::String> genericInlineClass, self::FunctionInlineClass<core::String> functionInlineClass, self::GenericFunctionInlineClass genericFunctionInlineClass, self::DynamicInlineClass dynamicInlineClass, self::ErroneousInlineClass erroneousInlineClass, #lib1::PrivateInlineClass privateInlineClass) → void {
+static method test(self::InlineClass /* = core::int */ inlineClass, self::GenericInlineClass<core::String> /* = core::String */ genericInlineClass, self::FunctionInlineClass<core::String> /* = () → core::String */ functionInlineClass, self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */ genericFunctionInlineClass, self::DynamicInlineClass /* = dynamic */ dynamicInlineClass, self::ErroneousInlineClass /* = core::int */ erroneousInlineClass, #lib1::PrivateInlineClass /* = core::int */ privateInlineClass) → void {
   core::int a1 = inlineClass as{Unchecked} core::int;
   invalid-type a2 = invalid-expression "pkg/front_end/testcases/inline_class/field_access.dart:143:26: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int'.
 Try changing the operand or remove the type arguments.
@@ -694,13 +694,13 @@ extension type PrivateInlineClass(core::int _it) {
   constructor • = self2::PrivateInlineClass|;
   tearoff • = self2::PrivateInlineClass|_#new#tearOff;
 }
-static inline-class-member method PrivateInlineClass|(core::int _it) → self2::PrivateInlineClass {
-  lowered final self2::PrivateInlineClass #this = _it;
+static inline-class-member method PrivateInlineClass|(core::int _it) → self2::PrivateInlineClass /* = core::int */ {
+  lowered final self2::PrivateInlineClass /* = core::int */ #this = _it;
   return #this;
 }
-static inline-class-member method PrivateInlineClass|_#new#tearOff(core::int _it) → self2::PrivateInlineClass
+static inline-class-member method PrivateInlineClass|_#new#tearOff(core::int _it) → self2::PrivateInlineClass /* = core::int */
   return self2::PrivateInlineClass|(_it);
-static inline-class-member method PrivateInlineClass|test(lowered final self2::PrivateInlineClass #this) → void {
+static inline-class-member method PrivateInlineClass|test(lowered final self2::PrivateInlineClass /* = core::int */ #this) → void {
   core::int a1 = #this as{Unchecked} core::int;
   core::int a2 = #this as{Unchecked} core::int;
   invalid-type b1 = invalid-expression "pkg/front_end/testcases/inline_class/field_access_lib.dart:13:22: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int'.
@@ -720,5 +720,5 @@ Try correcting the name to the name of an existing setter, or defining a setter 
     var c2 = _it = 42; // Error, should not resolve to extension method.
              ^^^" in #this{<unresolved>}._it = 42;
 }
-static inline-class-member method PrivateInlineClass|get#test(lowered final self2::PrivateInlineClass #this) → () → void
+static inline-class-member method PrivateInlineClass|get#test(lowered final self2::PrivateInlineClass /* = core::int */ #this) → () → void
   return () → void => self2::PrivateInlineClass|test(#this);

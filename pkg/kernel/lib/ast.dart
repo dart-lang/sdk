@@ -11690,20 +11690,17 @@ class ExtensionType extends DartType {
       Reference extensionTypeDeclarationReference,
       List<DartType> typeArguments,
       Nullability declaredNullability) {
-    // TODO(johnniwinther): Handle transitive dependencies.
     ExtensionTypeDeclaration extensionTypeDeclaration =
         extensionTypeDeclarationReference.asExtensionTypeDeclaration;
-    if (extensionTypeDeclaration.typeParameters.isEmpty) {
-      return extensionTypeDeclaration.declaredRepresentationType;
-    } else {
-      assert(extensionTypeDeclaration.typeParameters.length ==
-          typeArguments.length);
-      return Substitution.fromPairs(
-              extensionTypeDeclaration.typeParameters, typeArguments)
-          .substituteType(extensionTypeDeclaration.declaredRepresentationType)
-          .withDeclaredNullability(uniteNullabilities(declaredNullability,
-              extensionTypeDeclaration.declaredRepresentationType.nullability));
+    DartType result = Substitution.fromPairs(
+            extensionTypeDeclaration.typeParameters, typeArguments)
+        .substituteType(extensionTypeDeclaration.declaredRepresentationType);
+    if (result is ExtensionType) {
+      result = result.instantiatedRepresentationType;
     }
+    result = result.withDeclaredNullability(combineNullabilitiesForSubstitution(
+        result.nullability, declaredNullability));
+    return result;
   }
 
   @override

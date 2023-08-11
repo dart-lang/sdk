@@ -31,15 +31,15 @@ extension type Duplicate(core::bool instanceField) {
   constructor • = self::Duplicate|;
   tearoff • = self::Duplicate|_#new#tearOff;
 }
-static inline-class-member method Missing|() → self::Missing
+static inline-class-member method Missing|() → self::Missing /* = invalid-type */
   ;
-static inline-class-member method Missing|_#new#tearOff() → self::Missing
+static inline-class-member method Missing|_#new#tearOff() → self::Missing /* = invalid-type */
   return self::Missing|();
-static inline-class-member method Multiple|(dynamic instanceField1, dynamic instanceField2) → self::Multiple
+static inline-class-member method Multiple|(dynamic instanceField1, dynamic instanceField2) → self::Multiple /* = core::bool */
   ;
-static inline-class-member method Multiple|_#new#tearOff(dynamic instanceField1, dynamic instanceField2) → self::Multiple
+static inline-class-member method Multiple|_#new#tearOff(dynamic instanceField1, dynamic instanceField2) → self::Multiple /* = core::bool */
   return self::Multiple|(instanceField1, instanceField2);
-static inline-class-member method Duplicate|(dynamic instanceField, dynamic instanceField) → self::Duplicate
+static inline-class-member method Duplicate|(dynamic instanceField, dynamic instanceField) → self::Duplicate /* = core::bool */
   ;
-static inline-class-member method Duplicate|_#new#tearOff(dynamic instanceField, dynamic instanceField) → self::Duplicate
+static inline-class-member method Duplicate|_#new#tearOff(dynamic instanceField, dynamic instanceField) → self::Duplicate /* = core::bool */
   return self::Duplicate|(instanceField, instanceField);

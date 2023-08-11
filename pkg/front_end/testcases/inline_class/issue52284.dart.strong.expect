@@ -14,21 +14,21 @@ extension type Id(core::int _id) {
   constructor • = self::Id|;
   tearoff • = self::Id|_#new#tearOff;
 }
-static inline-class-member method Id|(core::int id) → self::Id {
-  lowered final self::Id #this = id;
+static inline-class-member method Id|(core::int id) → self::Id /* = core::int */ {
+  lowered final self::Id /* = core::int */ #this = id;
   return #this;
 }
-static inline-class-member method Id|_#new#tearOff(core::int id) → self::Id
+static inline-class-member method Id|_#new#tearOff(core::int id) → self::Id /* = core::int */
   return self::Id|(id);
 static method test() → dynamic {
-  self::Id c = self::Id|(2);
+  self::Id /* = core::int */ c = self::Id|(2);
   core::print(invalid-expression "pkg/front_end/testcases/inline_class/issue52284.dart:12:11: Error: The getter 'unresolved' isn't defined for the class 'Id'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
   print(c.unresolved); // Error
           ^^^^^^^^^^" in c{<unresolved>}.unresolved);
 }
 static method main() → dynamic {
-  self::Id c = self::Id|(2);
+  self::Id /* = core::int */ c = self::Id|(2);
   self::expect(#C1, c.{core::Object::runtimeType}{core::Type});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {

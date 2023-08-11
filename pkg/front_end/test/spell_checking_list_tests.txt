@@ -291,6 +291,7 @@ expansive
 explainer
 extern
 f\u
+fa
 fac
 faking
 falling
@@ -349,9 +350,12 @@ greeting
 gtgt
 gulp
 gunk
+ha
 hackish
 hardcoding
 hardly
+hb
+hc
 hest
 heuristics
 hi
@@ -411,6 +415,8 @@ ish
 it'll
 italic
 iter
+ja
+jc
 jlcontreras
 joo
 jumped

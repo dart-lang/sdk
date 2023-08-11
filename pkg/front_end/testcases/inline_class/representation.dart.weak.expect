@@ -42,24 +42,24 @@ extension type Duplicate(core::bool instanceField) {
   tearoff • = self::Duplicate|_#new#tearOff;
 }
 static field core::int Static|staticField = 42;
-static inline-class-member method Static|(core::bool instanceField) → self::Static {
-  lowered final self::Static #this = instanceField;
+static inline-class-member method Static|(core::bool instanceField) → self::Static /* = core::bool */ {
+  lowered final self::Static /* = core::bool */ #this = instanceField;
   return #this;
 }
-static inline-class-member method Static|_#new#tearOff(core::bool instanceField) → self::Static
+static inline-class-member method Static|_#new#tearOff(core::bool instanceField) → self::Static /* = core::bool */
   return self::Static|(instanceField);
-static inline-class-member method Multiple|(core::bool instanceField1) → self::Multiple {
-  lowered final self::Multiple #this = instanceField1;
+static inline-class-member method Multiple|(core::bool instanceField1) → self::Multiple /* = core::bool */ {
+  lowered final self::Multiple /* = core::bool */ #this = instanceField1;
   return #this;
 }
-static inline-class-member method Multiple|_#new#tearOff(core::bool instanceField1) → self::Multiple
+static inline-class-member method Multiple|_#new#tearOff(core::bool instanceField1) → self::Multiple /* = core::bool */
   return self::Multiple|(instanceField1);
-static inline-class-member method Duplicate|(core::int instanceField) → self::Duplicate {
-  lowered final self::Duplicate #this;
+static inline-class-member method Duplicate|(core::int instanceField) → self::Duplicate /* = core::bool */ {
+  lowered final self::Duplicate /* = core::bool */ #this;
   final dynamic #t1 = invalid-expression "pkg/front_end/testcases/inline_class/representation.dart:25:18: Error: Can't use 'instanceField' because it is declared more than once.
   Duplicate(this.instanceField);
                  ^^^^^^^^^^^^^";
   return #this;
 }
-static inline-class-member method Duplicate|_#new#tearOff(core::int instanceField) → self::Duplicate
+static inline-class-member method Duplicate|_#new#tearOff(core::int instanceField) → self::Duplicate /* = core::bool */
   return self::Duplicate|(instanceField);

@@ -9942,7 +9942,9 @@ class Parser {
         wasValidRecord = true;
         listener.handleNoName(token);
         colon = token = next;
-      } else if (optional(':', next.next!)) {
+      } else if (!optional('(', next) && optional(':', next.next!)) {
+        // We don't allow `next` to be `(` here because
+        // `((:a, :b), :c, :d)` (and similar) is fine.
         // Record with named expression.
         wasRecord = true;
         token = ensureIdentifier(
@@ -10010,6 +10012,9 @@ class Parser {
         listener.handleNoName(token);
         colon = token = next;
       } else if (optional(':', next.next!)) {
+        // This is different from `parseParenthesizedPatternOrRecordPattern`
+        // because this isn't valid because of the missing name:
+        // `var Point((:x, :y), :z) = Point((x: 1, y: 2), 3);`
         token =
             ensureIdentifier(token, IdentifierContext.namedArgumentReference)
                 .next!;

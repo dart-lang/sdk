@@ -18,10 +18,11 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 /// the class ID of the masquerade.
 class TypeCategory {
   static const abstractClass = 0;
-  static const function = 1;
-  static const record = 2;
-  static const notMasqueraded = 3;
-  static const minMasqueradeClassId = 4;
+  static const object = 1;
+  static const function = 2;
+  static const record = 3;
+  static const notMasqueraded = 4;
+  static const minMasqueradeClassId = 5;
   static const maxMasqueradeClassId = 63; // Leaves 2 unused bits for future use
 }
 
@@ -279,6 +280,8 @@ class Types {
       int category;
       if (cls == null || cls.isAbstract) {
         category = TypeCategory.abstractClass;
+      } else if (cls == coreTypes.objectClass) {
+        category = TypeCategory.object;
       } else if (cls == translator.closureClass) {
         category = TypeCategory.function;
       } else if (recordClasses.contains(cls)) {
@@ -355,6 +358,15 @@ class Types {
     } else if (type is FutureOrType) {
       return translator.futureOrTypeClass;
     } else if (type is InterfaceType) {
+      if (type.classNode == coreTypes.objectClass) {
+        return translator.objectTypeClass;
+      }
+      if (type.classNode == coreTypes.functionClass) {
+        return translator.abstractFunctionTypeClass;
+      }
+      if (type.classNode == coreTypes.recordClass) {
+        return translator.abstractRecordTypeClass;
+      }
       return translator.interfaceTypeClass;
     } else if (type is FunctionType) {
       return translator.functionTypeClass;
@@ -370,6 +382,12 @@ class Types {
       return translator.recordTypeClass;
     }
     throw "Unexpected DartType: $type";
+  }
+
+  bool isSpecializedClass(Class cls) {
+    return cls == coreTypes.objectClass ||
+        cls == coreTypes.functionClass ||
+        cls == coreTypes.recordClass;
   }
 
   /// Allocates a `List<_Type>` from [types] and pushes it to the stack.
@@ -414,10 +432,12 @@ class Types {
 
     final s = normalize(type.typeArgument);
 
-    // `coreTypes.isTope` and `coreTypes.isObject` take into account the
-    // normalization rules of `futureOr`.
+    // `coreTypes.isTop` and `coreTypes.isObject` take into account the
+    // normalization rules of `FutureOr`.
     if (coreTypes.isTop(type) || coreTypes.isObject(type)) {
-      return s;
+      return type.declaredNullability == Nullability.nullable
+          ? s.withDeclaredNullability(Nullability.nullable)
+          : s;
     } else if (s is NeverType) {
       return InterfaceType(coreTypes.futureClass, Nullability.nonNullable,
           const [const NeverType.nonNullable()]);

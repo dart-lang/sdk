@@ -1149,6 +1149,7 @@ class Intrinsifier {
       w.Label notMasqueraded = b.block();
       w.Label recordType = b.block();
       w.Label functionType = b.block();
+      w.Label objectType = b.block();
       w.Label abstractClass = b.block();
 
       // Look up the type category by class ID and switch on it.
@@ -1161,6 +1162,7 @@ class Intrinsifier {
       b.local_tee(resultClassId);
       b.br_table([
         abstractClass,
+        objectType,
         functionType,
         recordType,
         if (masqueraded) notMasqueraded
@@ -1169,6 +1171,16 @@ class Intrinsifier {
       b.end(); // abstractClass
       // We should never see class IDs for abstract types.
       b.unreachable();
+
+      b.end(); // objectType
+      ClassInfo objectTypeInfo =
+          translator.classInfo[translator.objectTypeClass]!;
+      b.i32_const(objectTypeInfo.classId);
+      b.i32_const(initialIdentityHash);
+      // Runtime types are never nullable.
+      b.i32_const(0);
+      b.struct_new(objectTypeInfo.struct);
+      b.return_();
 
       b.end(); // functionType
       w.StructType closureBase = translator.closureLayouter.closureBaseStruct;

@@ -13,7 +13,6 @@ part of 'core_patch.dart';
 // file:
 //   * [_Type.asNonNullable]
 //   * [_FutureOrType.asFuture].
-// TODO(joshualitt): Make `Function` a canonical type.
 abstract class _Type implements Type {
   final bool isDeclaredNullable;
 
@@ -30,7 +29,10 @@ abstract class _Type implements Type {
       _testID(ClassID.cidInterfaceTypeParameterType);
   bool get isFunctionTypeParameterType =>
       _testID(ClassID.cidFunctionTypeParameterType);
+  bool get isObject => _testID(ClassID.cidObjectType);
+  bool get isAbstractFunction => _testID(ClassID.cidAbstractFunctionType);
   bool get isFunction => _testID(ClassID.cidFunctionType);
+  bool get isAbstractRecord => _testID(ClassID.cidAbstractRecordType);
   bool get isRecord => _testID(ClassID.cidRecordType);
 
   T as<T>() => unsafeCast<T>(this);
@@ -308,6 +310,57 @@ class _NamedParameter {
   }
 }
 
+class _ObjectType extends _Type {
+  @pragma("wasm:entry-point")
+  const _ObjectType(super.isDeclaredNullable);
+
+  @override
+  _Type get _asNonNullable => _ObjectType(false);
+
+  @override
+  _Type get _asNullable => _ObjectType(true);
+
+  @override
+  bool operator ==(Object o) {
+    if (!(super == o)) return false;
+    _ObjectType other = unsafeCast<_ObjectType>(o);
+    return isDeclaredNullable == other.isDeclaredNullable;
+  }
+
+  @override
+  int get hashCode {
+    int hash = super.hashCode;
+    return mix64(hash ^ (isDeclaredNullable ? 1 : 0));
+  }
+
+  @override
+  String toString() {
+    StringBuffer s = StringBuffer();
+    s.write("Object");
+    if (isDeclaredNullable) s.write("?");
+    return s.toString();
+  }
+}
+
+class _AbstractFunctionType extends _Type {
+  @pragma("wasm:entry-point")
+  const _AbstractFunctionType(super.isDeclaredNullable);
+
+  @override
+  _Type get _asNonNullable => _AbstractFunctionType(false);
+
+  @override
+  _Type get _asNullable => _AbstractFunctionType(true);
+
+  @override
+  String toString() {
+    StringBuffer s = StringBuffer();
+    s.write("Function");
+    if (isDeclaredNullable) s.write("?");
+    return s.toString();
+  }
+}
+
 class _FunctionType extends _Type {
   // TODO(askesc): The [typeParameterOffset] is 0 except in the rare case where
   // the function type contains a nested generic function type that contains a
@@ -434,6 +487,25 @@ class _FunctionType extends _Type {
     s.write(")");
     s.write(" => ");
     s.write(returnType);
+    return s.toString();
+  }
+}
+
+class _AbstractRecordType extends _Type {
+  @pragma("wasm:entry-point")
+  const _AbstractRecordType(super.isDeclaredNullable);
+
+  @override
+  _Type get _asNonNullable => _AbstractRecordType(false);
+
+  @override
+  _Type get _asNullable => _AbstractRecordType(true);
+
+  @override
+  String toString() {
+    StringBuffer s = StringBuffer();
+    s.write("Record");
+    if (isDeclaredNullable) s.write("?");
     return s.toString();
   }
 }
@@ -575,29 +647,19 @@ class _TypeUniverse {
     return _TypeUniverse._(_getTypeRulesSupers(), _getTypeRulesSubstitutions());
   }
 
-  static bool isSpecificInterfaceType(_Type t, int classId) {
-    if (!t.isInterface) return false;
-    _InterfaceType type = t.as<_InterfaceType>();
-    return type.classId == classId;
+  static bool isTopType(_Type type) {
+    return type.isObject && type.isDeclaredNullable ||
+        type.isDynamic ||
+        type.isVoid;
   }
 
-  static bool isObjectQuestionType(_Type t) =>
-      isObjectType(t) && t.isDeclaredNullable;
-
-  static bool isObjectType(_Type t) =>
-      isSpecificInterfaceType(t, ClassID.cidObject);
-
-  static bool isTopType(_Type type) {
-    return isObjectQuestionType(type) || type.isDynamic || type.isVoid;
+  static bool isObjectOrTopType(_Type type) {
+    return type.isObject || type.isDynamic || type.isVoid;
   }
 
   static bool isBottomType(_Type type) {
     return type.isNever;
   }
-
-  static bool isFunctionType(_Type t) =>
-      isSpecificInterfaceType(t, ClassID.cidFunction) ||
-      isSpecificInterfaceType(t, ClassID.cid_Closure);
 
   static _Type substituteInterfaceTypeParameter(
       _InterfaceTypeParameterType typeParameter, List<_Type> substitutions) {
@@ -643,7 +705,11 @@ class _TypeUniverse {
   /// substituted.
   static _Type substituteTypeArgument(
       _Type type, List<_Type> substitutions, _FunctionType? rootFunction) {
-    if (type.isNever || type.isDynamic || type.isVoid || type.isNull) {
+    if (type.isNever ||
+        type.isDynamic ||
+        type.isVoid ||
+        type.isNull ||
+        type.isObject) {
       return type;
     } else if (type.isFutureOr) {
       return createNormalizedFutureOrType(
@@ -725,8 +791,8 @@ class _TypeUniverse {
 
   static _Type createNormalizedFutureOrType(
       bool isDeclaredNullable, _Type typeArgument) {
-    if (isTopType(typeArgument) || isObjectType(typeArgument)) {
-      return typeArgument;
+    if (isObjectOrTopType(typeArgument)) {
+      return isDeclaredNullable ? typeArgument.asNullable : typeArgument;
     } else if (typeArgument.isNever) {
       return _InterfaceType(
           ClassID.cidFuture, isDeclaredNullable, [const _NeverType()]);
@@ -927,6 +993,16 @@ class _TypeUniverse {
           return true;
         }
       }
+
+      // A function type parameter type is a subtype of `FutureOr<T>` if it's a
+      // subtype of `T`.
+      if (t.isFutureOr) {
+        _FutureOrType tFutureOr = t.as<_FutureOrType>();
+        if (isSubtype(s, sEnv, tFutureOr.typeArgument, tEnv)) {
+          return true;
+        }
+      }
+
       // Otherwise, compare the bound to the other type.
       _Type bound = sEnvAdjusted.lookupAdjusted(sTypeParam);
       return isSubtype(bound, sEnvAdjusted, t, tEnv);
@@ -940,7 +1016,7 @@ class _TypeUniverse {
     }
 
     // Right Object:
-    if (isObjectType(t)) {
+    if (t.isObject) {
       if (s.isFutureOr) {
         return isSubtype(s.as<_FutureOrType>().typeArgument, sEnv, t, tEnv);
       }
@@ -984,7 +1060,7 @@ class _TypeUniverse {
     // Left Promoted Variable does not apply at runtime.
 
     // Function Type / Function:
-    if (s.isFunction && isFunctionType(t)) {
+    if (s.isFunction && t.isAbstractFunction) {
       return true;
     }
 
@@ -1000,9 +1076,8 @@ class _TypeUniverse {
     }
 
     // Records are subtypes of the `Record` type:
-    if (s.isRecord && t.isInterface) {
-      final tInterfaceType = t.as<_InterfaceType>();
-      return tInterfaceType.classId == ClassID.cidRecord;
+    if (s.isRecord && t.isAbstractRecord) {
+      return true;
     }
 
     // Interface Compositionality + Super-Interface:

@@ -15,23 +15,23 @@ extension type FooBaz(core::int i) implements self::Foo {
   constructor • = self::FooBaz|;
   tearoff • = self::FooBaz|_#new#tearOff;
 }
-static inline-class-member method FooBar|(dynamic i) → self::FooBar {
-  lowered final self::FooBar #this = i;
+static inline-class-member method FooBar|(dynamic i) → self::FooBar /* = core::int */ {
+  lowered final self::FooBar /* = core::int */ #this = i;
   return #this;
 }
-static inline-class-member method FooBar|_#new#tearOff(dynamic i) → self::FooBar
+static inline-class-member method FooBar|_#new#tearOff(dynamic i) → self::FooBar /* = core::int */
   return self::FooBar|(i);
-static inline-class-member method FooBaz|(dynamic i) → self::FooBaz {
-  lowered final self::FooBaz #this = i;
+static inline-class-member method FooBaz|(dynamic i) → self::FooBaz /* = core::int */ {
+  lowered final self::FooBaz /* = core::int */ #this = i;
   return #this;
 }
-static inline-class-member method FooBaz|_#new#tearOff(dynamic i) → self::FooBaz
+static inline-class-member method FooBaz|_#new#tearOff(dynamic i) → self::FooBaz /* = core::int */
   return self::FooBaz|(i);
 static method main() → void {
-  final self::FooBar a = self::FooBar|(0);
+  final self::FooBar /* = core::int */ a = self::FooBar|(0);
   #L1:
   {
-    final synthesized self::FooBar #0#0 = a;
+    final synthesized self::FooBar /* = core::int */ #0#0 = a;
     {
       final hoisted core::int a;
       if(let final dynamic #t1 = a = #0#0 as{Unchecked} core::int in true) {

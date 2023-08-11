@@ -194,23 +194,23 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef Alias9 = self::E9;
-typedef Alias10<unrelated T extends core::Object? = dynamic> = self::E10<T%>;
-typedef Alias11 = () → self::E11;
-typedef Alias12 = (self::E12) → void;
-typedef Alias13 = <T extends self::E13 = dynamic>() → void;
+typedef Alias9 = self::E9 /* = invalid-type */;
+typedef Alias10<unrelated T extends core::Object? = dynamic> = self::E10<T%> /* = invalid-type */;
+typedef Alias11 = () → self::E11 /* = invalid-type */;
+typedef Alias12 = (self::E12 /* = invalid-type */) → void;
+typedef Alias13 = <T extends self::E13 /* = invalid-type */ = dynamic>() → void;
 typedef Alias14<unrelated T extends core::Object? = dynamic> = core::int;
 typedef Alias15<T extends core::Object? = dynamic> = core::List<T%>;
-typedef Alias16a<unrelated T extends core::Object? = dynamic> = core::List<self::E16b>;
-typedef Alias16b<unrelated T extends core::Object? = dynamic> = core::List<self::E16a>;
-typedef Alias18a<unrelated T extends core::Object? = dynamic> = (self::E18) → void;
+typedef Alias16a<unrelated T extends core::Object? = dynamic> = core::List<self::E16b /* = invalid-type */>;
+typedef Alias16b<unrelated T extends core::Object? = dynamic> = core::List<self::E16a /* = invalid-type */>;
+typedef Alias18a<unrelated T extends core::Object? = dynamic> = (self::E18 /* = invalid-type */) → void;
 typedef Alias18b<contravariant T extends core::Object? = dynamic> = (T%) → void;
 typedef Alias20 = invalid-type;
 typedef Alias21 = core::int;
 typedef Alias22a = invalid-type;
 typedef Alias22b = core::int;
-typedef Alias23<T extends self::E23> = core::List<T>;
-typedef Alias24<T extends self::E24<T> = self::E24<dynamic>> = core::List<T>;
+typedef Alias23<T extends self::E23 /* = invalid-type */> = core::List<T>;
+typedef Alias24<T extends self::E24<T> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */> = core::List<T>;
 extension type E1(invalid-type it) {
   constructor • = self::E1|;
   tearoff • = self::E1|_#new#tearOff;
@@ -303,7 +303,7 @@ extension type E18(invalid-type it) {
   constructor • = self::E18|;
   tearoff • = self::E18|_#new#tearOff;
 }
-extension type E19a((self::E19b, self::E19b) it) {
+extension type E19a((self::E19b /* = core::int */, self::E19b /* = core::int */) it) {
   constructor • = self::E19a|;
   tearoff • = self::E19a|_#new#tearOff;
 }
@@ -331,235 +331,235 @@ extension type E24<T extends core::Object? = dynamic>(invalid-type it) {
   constructor • = self::E24|;
   tearoff • = self::E24|_#new#tearOff;
 }
-static inline-class-member method E1|(dynamic it) → self::E1 {
-  lowered final self::E1 #this = it;
+static inline-class-member method E1|(dynamic it) → self::E1 /* = invalid-type */ {
+  lowered final self::E1 /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E1|_#new#tearOff(dynamic it) → self::E1
+static inline-class-member method E1|_#new#tearOff(dynamic it) → self::E1 /* = invalid-type */
   return self::E1|(it);
-static inline-class-member method E2a|(dynamic it) → self::E2a {
-  lowered final self::E2a #this = it;
+static inline-class-member method E2a|(dynamic it) → self::E2a /* = invalid-type */ {
+  lowered final self::E2a /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E2a|_#new#tearOff(dynamic it) → self::E2a
+static inline-class-member method E2a|_#new#tearOff(dynamic it) → self::E2a /* = invalid-type */
   return self::E2a|(it);
-static inline-class-member method E2b|(dynamic it) → self::E2b {
-  lowered final self::E2b #this = it;
+static inline-class-member method E2b|(dynamic it) → self::E2b /* = invalid-type */ {
+  lowered final self::E2b /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E2b|_#new#tearOff(dynamic it) → self::E2b
+static inline-class-member method E2b|_#new#tearOff(dynamic it) → self::E2b /* = invalid-type */
   return self::E2b|(it);
-static inline-class-member method E3a|(dynamic it) → self::E3a {
-  lowered final self::E3a #this = it;
+static inline-class-member method E3a|(dynamic it) → self::E3a /* = invalid-type */ {
+  lowered final self::E3a /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E3a|_#new#tearOff(dynamic it) → self::E3a
+static inline-class-member method E3a|_#new#tearOff(dynamic it) → self::E3a /* = invalid-type */
   return self::E3a|(it);
-static inline-class-member method E3b|(dynamic it) → self::E3b {
-  lowered final self::E3b #this = it;
+static inline-class-member method E3b|(dynamic it) → self::E3b /* = invalid-type */ {
+  lowered final self::E3b /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E3b|_#new#tearOff(dynamic it) → self::E3b
+static inline-class-member method E3b|_#new#tearOff(dynamic it) → self::E3b /* = invalid-type */
   return self::E3b|(it);
-static inline-class-member method E3c|(dynamic it) → self::E3c {
-  lowered final self::E3c #this = it;
+static inline-class-member method E3c|(dynamic it) → self::E3c /* = invalid-type */ {
+  lowered final self::E3c /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E3c|_#new#tearOff(dynamic it) → self::E3c
+static inline-class-member method E3c|_#new#tearOff(dynamic it) → self::E3c /* = invalid-type */
   return self::E3c|(it);
-static inline-class-member method E4|(dynamic it) → self::E4 {
-  lowered final self::E4 #this = it;
+static inline-class-member method E4|(dynamic it) → self::E4 /* = invalid-type */ {
+  lowered final self::E4 /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E4|_#new#tearOff(dynamic it) → self::E4
+static inline-class-member method E4|_#new#tearOff(dynamic it) → self::E4 /* = invalid-type */
   return self::E4|(it);
-static inline-class-member method E5|(dynamic it) → self::E5 {
-  lowered final self::E5 #this = it;
+static inline-class-member method E5|(dynamic it) → self::E5 /* = invalid-type */ {
+  lowered final self::E5 /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E5|_#new#tearOff(dynamic it) → self::E5
+static inline-class-member method E5|_#new#tearOff(dynamic it) → self::E5 /* = invalid-type */
   return self::E5|(it);
-static inline-class-member method E6|(dynamic it) → self::E6 {
-  lowered final self::E6 #this = it;
+static inline-class-member method E6|(dynamic it) → self::E6 /* = invalid-type */ {
+  lowered final self::E6 /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E6|_#new#tearOff(dynamic it) → self::E6
+static inline-class-member method E6|_#new#tearOff(dynamic it) → self::E6 /* = invalid-type */
   return self::E6|(it);
-static inline-class-member method E7|_#new#tearOff(dynamic it) → self::E7
+static inline-class-member method E7|_#new#tearOff(dynamic it) → self::E7 /* = invalid-type */
   return self::E7|(it);
-static inline-class-member method E7|(dynamic it) → self::E7 {
-  lowered final self::E7 #this = it;
+static inline-class-member method E7|(dynamic it) → self::E7 /* = invalid-type */ {
+  lowered final self::E7 /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E8|<T extends core::Object? = dynamic>(dynamic it) → self::E8<self::E8|::T%> {
-  lowered final self::E8<self::E8|::T%> #this = it;
+static inline-class-member method E8|<T extends core::Object? = dynamic>(dynamic it) → self::E8<self::E8|::T%> /* = invalid-type */ {
+  lowered final self::E8<self::E8|::T%> /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E8|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::E8<self::E8|_#new#tearOff::T%>
+static inline-class-member method E8|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::E8<self::E8|_#new#tearOff::T%> /* = invalid-type */
   return self::E8|<self::E8|_#new#tearOff::T%>(it);
-static inline-class-member method E9|(dynamic it) → self::E9 {
-  lowered final self::E9 #this = it;
+static inline-class-member method E9|(dynamic it) → self::E9 /* = invalid-type */ {
+  lowered final self::E9 /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E9|_#new#tearOff(dynamic it) → self::E9
+static inline-class-member method E9|_#new#tearOff(dynamic it) → self::E9 /* = invalid-type */
   return self::E9|(it);
-static inline-class-member method E10|<T extends core::Object? = dynamic>(dynamic it) → self::E10<self::E10|::T%> {
-  lowered final self::E10<self::E10|::T%> #this = it;
+static inline-class-member method E10|<T extends core::Object? = dynamic>(dynamic it) → self::E10<self::E10|::T%> /* = invalid-type */ {
+  lowered final self::E10<self::E10|::T%> /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E10|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::E10<self::E10|_#new#tearOff::T%>
+static inline-class-member method E10|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::E10<self::E10|_#new#tearOff::T%> /* = invalid-type */
   return self::E10|<self::E10|_#new#tearOff::T%>(it);
-static inline-class-member method E11|(dynamic it) → self::E11 {
-  lowered final self::E11 #this = it;
+static inline-class-member method E11|(dynamic it) → self::E11 /* = invalid-type */ {
+  lowered final self::E11 /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E11|_#new#tearOff(dynamic it) → self::E11
+static inline-class-member method E11|_#new#tearOff(dynamic it) → self::E11 /* = invalid-type */
   return self::E11|(it);
-static inline-class-member method E12|(dynamic it) → self::E12 {
-  lowered final self::E12 #this = it;
+static inline-class-member method E12|(dynamic it) → self::E12 /* = invalid-type */ {
+  lowered final self::E12 /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E12|_#new#tearOff(dynamic it) → self::E12
+static inline-class-member method E12|_#new#tearOff(dynamic it) → self::E12 /* = invalid-type */
   return self::E12|(it);
-static inline-class-member method E13|(dynamic it) → self::E13 {
-  lowered final self::E13 #this = it;
+static inline-class-member method E13|(dynamic it) → self::E13 /* = invalid-type */ {
+  lowered final self::E13 /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E13|_#new#tearOff(dynamic it) → self::E13
+static inline-class-member method E13|_#new#tearOff(dynamic it) → self::E13 /* = invalid-type */
   return self::E13|(it);
-static inline-class-member method E14|(dynamic it) → self::E14 {
-  lowered final self::E14 #this = it;
+static inline-class-member method E14|(dynamic it) → self::E14 /* = core::int */ {
+  lowered final self::E14 /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method E14|_#new#tearOff(dynamic it) → self::E14
+static inline-class-member method E14|_#new#tearOff(dynamic it) → self::E14 /* = core::int */
   return self::E14|(it);
-static inline-class-member method E15a|(dynamic it) → self::E15a {
-  lowered final self::E15a #this = it;
+static inline-class-member method E15a|(dynamic it) → self::E15a /* = invalid-type */ {
+  lowered final self::E15a /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E15a|_#new#tearOff(dynamic it) → self::E15a
+static inline-class-member method E15a|_#new#tearOff(dynamic it) → self::E15a /* = invalid-type */
   return self::E15a|(it);
-static inline-class-member method E15b|(dynamic it) → self::E15b {
-  lowered final self::E15b #this = it;
+static inline-class-member method E15b|(dynamic it) → self::E15b /* = invalid-type */ {
+  lowered final self::E15b /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E15b|_#new#tearOff(dynamic it) → self::E15b
+static inline-class-member method E15b|_#new#tearOff(dynamic it) → self::E15b /* = invalid-type */
   return self::E15b|(it);
-static inline-class-member method E16a|(dynamic it) → self::E16a {
-  lowered final self::E16a #this = it;
+static inline-class-member method E16a|(dynamic it) → self::E16a /* = invalid-type */ {
+  lowered final self::E16a /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E16a|_#new#tearOff(dynamic it) → self::E16a
+static inline-class-member method E16a|_#new#tearOff(dynamic it) → self::E16a /* = invalid-type */
   return self::E16a|(it);
-static inline-class-member method E16b|(dynamic it) → self::E16b {
-  lowered final self::E16b #this = it;
+static inline-class-member method E16b|(dynamic it) → self::E16b /* = invalid-type */ {
+  lowered final self::E16b /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E16b|_#new#tearOff(dynamic it) → self::E16b
+static inline-class-member method E16b|_#new#tearOff(dynamic it) → self::E16b /* = invalid-type */
   return self::E16b|(it);
-static inline-class-member method E17|(dynamic it) → self::E17 {
-  lowered final self::E17 #this = it;
+static inline-class-member method E17|(dynamic it) → self::E17 /* = invalid-type */ {
+  lowered final self::E17 /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E17|_#new#tearOff(dynamic it) → self::E17
+static inline-class-member method E17|_#new#tearOff(dynamic it) → self::E17 /* = invalid-type */
   return self::E17|(it);
-static inline-class-member method E18|(dynamic it) → self::E18 {
-  lowered final self::E18 #this = it;
+static inline-class-member method E18|(dynamic it) → self::E18 /* = invalid-type */ {
+  lowered final self::E18 /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E18|_#new#tearOff(dynamic it) → self::E18
+static inline-class-member method E18|_#new#tearOff(dynamic it) → self::E18 /* = invalid-type */
   return self::E18|(it);
-static inline-class-member method E19a|(dynamic it) → self::E19a {
-  lowered final self::E19a #this = it;
+static inline-class-member method E19a|(dynamic it) → self::E19a /* =(self::E19b /* = core::int */, self::E19b /* = core::int */) */ {
+  lowered final self::E19a /* =(self::E19b /* = core::int */, self::E19b /* = core::int */) */ #this = it;
   return #this;
 }
-static inline-class-member method E19a|_#new#tearOff(dynamic it) → self::E19a
+static inline-class-member method E19a|_#new#tearOff(dynamic it) → self::E19a /* =(self::E19b /* = core::int */, self::E19b /* = core::int */) */
   return self::E19a|(it);
-static inline-class-member method E19b|(dynamic it) → self::E19b {
-  lowered final self::E19b #this = it;
+static inline-class-member method E19b|(dynamic it) → self::E19b /* = core::int */ {
+  lowered final self::E19b /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method E19b|_#new#tearOff(dynamic it) → self::E19b
+static inline-class-member method E19b|_#new#tearOff(dynamic it) → self::E19b /* = core::int */
   return self::E19b|(it);
-static inline-class-member method E20|(dynamic it) → self::E20 {
-  lowered final self::E20 #this = it;
+static inline-class-member method E20|(dynamic it) → self::E20 /* = invalid-type */ {
+  lowered final self::E20 /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E20|_#new#tearOff(dynamic it) → self::E20
+static inline-class-member method E20|_#new#tearOff(dynamic it) → self::E20 /* = invalid-type */
   return self::E20|(it);
-static inline-class-member method E21|(dynamic it) → self::E21 {
-  lowered final self::E21 #this = it;
+static inline-class-member method E21|(dynamic it) → self::E21 /* = invalid-type */ {
+  lowered final self::E21 /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E21|_#new#tearOff(dynamic it) → self::E21
+static inline-class-member method E21|_#new#tearOff(dynamic it) → self::E21 /* = invalid-type */
   return self::E21|(it);
-static inline-class-member method E22|(dynamic it) → self::E22 {
-  lowered final self::E22 #this = it;
+static inline-class-member method E22|(dynamic it) → self::E22 /* = invalid-type */ {
+  lowered final self::E22 /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E22|_#new#tearOff(dynamic it) → self::E22
+static inline-class-member method E22|_#new#tearOff(dynamic it) → self::E22 /* = invalid-type */
   return self::E22|(it);
-static inline-class-member method E23|(dynamic it) → self::E23 {
-  lowered final self::E23 #this = it;
+static inline-class-member method E23|(dynamic it) → self::E23 /* = invalid-type */ {
+  lowered final self::E23 /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E23|_#new#tearOff(dynamic it) → self::E23
+static inline-class-member method E23|_#new#tearOff(dynamic it) → self::E23 /* = invalid-type */
   return self::E23|(it);
-static inline-class-member method E24|<T extends core::Object? = dynamic>(dynamic it) → self::E24<self::E24|::T%> {
-  lowered final self::E24<self::E24|::T%> #this = it;
+static inline-class-member method E24|<T extends core::Object? = dynamic>(dynamic it) → self::E24<self::E24|::T%> /* = invalid-type */ {
+  lowered final self::E24<self::E24|::T%> /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method E24|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::E24<self::E24|_#new#tearOff::T%>
+static inline-class-member method E24|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::E24<self::E24|_#new#tearOff::T%> /* = invalid-type */
   return self::E24|<self::E24|_#new#tearOff::T%>(it);
 static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#Alias14#fromEnvironment#tearOff<unrelated T extends core::Object? = dynamic>(core::String name, {core::int defaultValue = #C1}) → core::int
   return core::int::fromEnvironment(name, defaultValue: defaultValue);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#filled#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, self::E16b fill, {core::bool growable = #C2}) → core::List<self::E16b>
-  return core::List::filled<self::E16b>(length, fill, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#empty#tearOff<unrelated T extends core::Object? = dynamic>({core::bool growable = #C2}) → core::List<self::E16b>
-  return core::List::empty<self::E16b>(growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#from#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements, {core::bool growable = #C3}) → core::List<self::E16b>
-  return core::List::from<self::E16b>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#of#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<self::E16b> elements, {core::bool growable = #C3}) → core::List<self::E16b>
-  return core::List::of<self::E16b>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#generate#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, (core::int) → self::E16b generator, {core::bool growable = #C3}) → core::List<self::E16b>
-  return core::List::generate<self::E16b>(length, generator, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#unmodifiable#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements) → core::List<self::E16b>
-  return core::List::unmodifiable<self::E16b>(elements);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#filled#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, self::E16a fill, {core::bool growable = #C2}) → core::List<self::E16a>
-  return core::List::filled<self::E16a>(length, fill, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#empty#tearOff<unrelated T extends core::Object? = dynamic>({core::bool growable = #C2}) → core::List<self::E16a>
-  return core::List::empty<self::E16a>(growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#from#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements, {core::bool growable = #C3}) → core::List<self::E16a>
-  return core::List::from<self::E16a>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#of#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<self::E16a> elements, {core::bool growable = #C3}) → core::List<self::E16a>
-  return core::List::of<self::E16a>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#generate#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, (core::int) → self::E16a generator, {core::bool growable = #C3}) → core::List<self::E16a>
-  return core::List::generate<self::E16a>(length, generator, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#unmodifiable#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements) → core::List<self::E16a>
-  return core::List::unmodifiable<self::E16a>(elements);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#filled#tearOff<T extends self::E23>(core::int length, self::_#Alias23#filled#tearOff::T fill, {core::bool growable = #C2}) → core::List<self::_#Alias23#filled#tearOff::T>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#filled#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, self::E16b /* = invalid-type */ fill, {core::bool growable = #C2}) → core::List<self::E16b /* = invalid-type */>
+  return core::List::filled<self::E16b /* = invalid-type */>(length, fill, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#empty#tearOff<unrelated T extends core::Object? = dynamic>({core::bool growable = #C2}) → core::List<self::E16b /* = invalid-type */>
+  return core::List::empty<self::E16b /* = invalid-type */>(growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#from#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements, {core::bool growable = #C3}) → core::List<self::E16b /* = invalid-type */>
+  return core::List::from<self::E16b /* = invalid-type */>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#of#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<self::E16b /* = invalid-type */> elements, {core::bool growable = #C3}) → core::List<self::E16b /* = invalid-type */>
+  return core::List::of<self::E16b /* = invalid-type */>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#generate#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, (core::int) → self::E16b /* = invalid-type */ generator, {core::bool growable = #C3}) → core::List<self::E16b /* = invalid-type */>
+  return core::List::generate<self::E16b /* = invalid-type */>(length, generator, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#unmodifiable#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements) → core::List<self::E16b /* = invalid-type */>
+  return core::List::unmodifiable<self::E16b /* = invalid-type */>(elements);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#filled#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, self::E16a /* = invalid-type */ fill, {core::bool growable = #C2}) → core::List<self::E16a /* = invalid-type */>
+  return core::List::filled<self::E16a /* = invalid-type */>(length, fill, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#empty#tearOff<unrelated T extends core::Object? = dynamic>({core::bool growable = #C2}) → core::List<self::E16a /* = invalid-type */>
+  return core::List::empty<self::E16a /* = invalid-type */>(growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#from#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements, {core::bool growable = #C3}) → core::List<self::E16a /* = invalid-type */>
+  return core::List::from<self::E16a /* = invalid-type */>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#of#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<self::E16a /* = invalid-type */> elements, {core::bool growable = #C3}) → core::List<self::E16a /* = invalid-type */>
+  return core::List::of<self::E16a /* = invalid-type */>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#generate#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, (core::int) → self::E16a /* = invalid-type */ generator, {core::bool growable = #C3}) → core::List<self::E16a /* = invalid-type */>
+  return core::List::generate<self::E16a /* = invalid-type */>(length, generator, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#unmodifiable#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements) → core::List<self::E16a /* = invalid-type */>
+  return core::List::unmodifiable<self::E16a /* = invalid-type */>(elements);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#filled#tearOff<T extends self::E23 /* = invalid-type */>(core::int length, self::_#Alias23#filled#tearOff::T fill, {core::bool growable = #C2}) → core::List<self::_#Alias23#filled#tearOff::T>
   return core::List::filled<self::_#Alias23#filled#tearOff::T>(length, fill, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#empty#tearOff<T extends self::E23>({core::bool growable = #C2}) → core::List<self::_#Alias23#empty#tearOff::T>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#empty#tearOff<T extends self::E23 /* = invalid-type */>({core::bool growable = #C2}) → core::List<self::_#Alias23#empty#tearOff::T>
   return core::List::empty<self::_#Alias23#empty#tearOff::T>(growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#from#tearOff<T extends self::E23>(core::Iterable<dynamic> elements, {core::bool growable = #C3}) → core::List<self::_#Alias23#from#tearOff::T>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#from#tearOff<T extends self::E23 /* = invalid-type */>(core::Iterable<dynamic> elements, {core::bool growable = #C3}) → core::List<self::_#Alias23#from#tearOff::T>
   return core::List::from<self::_#Alias23#from#tearOff::T>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#of#tearOff<T extends self::E23>(core::Iterable<self::_#Alias23#of#tearOff::T> elements, {core::bool growable = #C3}) → core::List<self::_#Alias23#of#tearOff::T>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#of#tearOff<T extends self::E23 /* = invalid-type */>(core::Iterable<self::_#Alias23#of#tearOff::T> elements, {core::bool growable = #C3}) → core::List<self::_#Alias23#of#tearOff::T>
   return core::List::of<self::_#Alias23#of#tearOff::T>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#generate#tearOff<T extends self::E23>(core::int length, (core::int) → self::_#Alias23#generate#tearOff::T generator, {core::bool growable = #C3}) → core::List<self::_#Alias23#generate#tearOff::T>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#generate#tearOff<T extends self::E23 /* = invalid-type */>(core::int length, (core::int) → self::_#Alias23#generate#tearOff::T generator, {core::bool growable = #C3}) → core::List<self::_#Alias23#generate#tearOff::T>
   return core::List::generate<self::_#Alias23#generate#tearOff::T>(length, generator, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#unmodifiable#tearOff<T extends self::E23>(core::Iterable<dynamic> elements) → core::List<self::_#Alias23#unmodifiable#tearOff::T>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#unmodifiable#tearOff<T extends self::E23 /* = invalid-type */>(core::Iterable<dynamic> elements) → core::List<self::_#Alias23#unmodifiable#tearOff::T>
   return core::List::unmodifiable<self::_#Alias23#unmodifiable#tearOff::T>(elements);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#filled#tearOff<T extends self::E24<self::_#Alias24#filled#tearOff::T> = self::E24<dynamic>>(core::int length, self::_#Alias24#filled#tearOff::T fill, {core::bool growable = #C2}) → core::List<self::_#Alias24#filled#tearOff::T>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#filled#tearOff<T extends self::E24<self::_#Alias24#filled#tearOff::T> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>(core::int length, self::_#Alias24#filled#tearOff::T fill, {core::bool growable = #C2}) → core::List<self::_#Alias24#filled#tearOff::T>
   return core::List::filled<self::_#Alias24#filled#tearOff::T>(length, fill, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#empty#tearOff<T extends self::E24<self::_#Alias24#empty#tearOff::T> = self::E24<dynamic>>({core::bool growable = #C2}) → core::List<self::_#Alias24#empty#tearOff::T>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#empty#tearOff<T extends self::E24<self::_#Alias24#empty#tearOff::T> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>({core::bool growable = #C2}) → core::List<self::_#Alias24#empty#tearOff::T>
   return core::List::empty<self::_#Alias24#empty#tearOff::T>(growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#from#tearOff<T extends self::E24<self::_#Alias24#from#tearOff::T> = self::E24<dynamic>>(core::Iterable<dynamic> elements, {core::bool growable = #C3}) → core::List<self::_#Alias24#from#tearOff::T>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#from#tearOff<T extends self::E24<self::_#Alias24#from#tearOff::T> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>(core::Iterable<dynamic> elements, {core::bool growable = #C3}) → core::List<self::_#Alias24#from#tearOff::T>
   return core::List::from<self::_#Alias24#from#tearOff::T>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#of#tearOff<T extends self::E24<self::_#Alias24#of#tearOff::T> = self::E24<dynamic>>(core::Iterable<self::_#Alias24#of#tearOff::T> elements, {core::bool growable = #C3}) → core::List<self::_#Alias24#of#tearOff::T>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#of#tearOff<T extends self::E24<self::_#Alias24#of#tearOff::T> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>(core::Iterable<self::_#Alias24#of#tearOff::T> elements, {core::bool growable = #C3}) → core::List<self::_#Alias24#of#tearOff::T>
   return core::List::of<self::_#Alias24#of#tearOff::T>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#generate#tearOff<T extends self::E24<self::_#Alias24#generate#tearOff::T> = self::E24<dynamic>>(core::int length, (core::int) → self::_#Alias24#generate#tearOff::T generator, {core::bool growable = #C3}) → core::List<self::_#Alias24#generate#tearOff::T>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#generate#tearOff<T extends self::E24<self::_#Alias24#generate#tearOff::T> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>(core::int length, (core::int) → self::_#Alias24#generate#tearOff::T generator, {core::bool growable = #C3}) → core::List<self::_#Alias24#generate#tearOff::T>
   return core::List::generate<self::_#Alias24#generate#tearOff::T>(length, generator, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#unmodifiable#tearOff<T extends self::E24<self::_#Alias24#unmodifiable#tearOff::T> = self::E24<dynamic>>(core::Iterable<dynamic> elements) → core::List<self::_#Alias24#unmodifiable#tearOff::T>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#unmodifiable#tearOff<T extends self::E24<self::_#Alias24#unmodifiable#tearOff::T> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>(core::Iterable<dynamic> elements) → core::List<self::_#Alias24#unmodifiable#tearOff::T>
   return core::List::unmodifiable<self::_#Alias24#unmodifiable#tearOff::T>(elements);
 
 constants  {

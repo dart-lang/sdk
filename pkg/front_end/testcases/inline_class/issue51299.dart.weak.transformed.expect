@@ -6,6 +6,6 @@ extension type I(invalid-type #) {
   get i = self::I|get#i;
   set i = self::I|set#i;
 }
-static inline-class-member method I|get#i(lowered final self::I #this) → core::int
+static inline-class-member method I|get#i(lowered final self::I /* = invalid-type */ #this) → core::int
   return 0;
-static inline-class-member method I|set#i(lowered final self::I #this, core::int val) → void {}
+static inline-class-member method I|set#i(lowered final self::I /* = invalid-type */ #this, core::int val) → void {}

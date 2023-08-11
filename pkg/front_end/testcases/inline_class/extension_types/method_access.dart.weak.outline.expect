@@ -28,37 +28,37 @@ static extension-member method _extension#0|get#setter(lowered final core::Objec
   ;
 static extension-member method _extension#0|set#getter(lowered final core::Object #this, core::int value) → void
   ;
-static inline-class-member method InlineClass|(dynamic it) → self::InlineClass
+static inline-class-member method InlineClass|(dynamic it) → self::InlineClass /* = core::int */
   ;
-static inline-class-member method InlineClass|_#new#tearOff(dynamic it) → self::InlineClass
+static inline-class-member method InlineClass|_#new#tearOff(dynamic it) → self::InlineClass /* = core::int */
   return self::InlineClass|(it);
-static inline-class-member method InlineClass|test(lowered final self::InlineClass #this) → dynamic
+static inline-class-member method InlineClass|test(lowered final self::InlineClass /* = core::int */ #this) → dynamic
   ;
-static inline-class-member method InlineClass|get#test(lowered final self::InlineClass #this) → () → dynamic
+static inline-class-member method InlineClass|get#test(lowered final self::InlineClass /* = core::int */ #this) → () → dynamic
   return () → dynamic => self::InlineClass|test(#this);
-static inline-class-member method InlineClass|+(lowered final self::InlineClass #this, core::int other) → core::int
+static inline-class-member method InlineClass|+(lowered final self::InlineClass /* = core::int */ #this, core::int other) → core::int
   ;
-static inline-class-member method InlineClass|unary-(lowered final self::InlineClass #this) → core::int
+static inline-class-member method InlineClass|unary-(lowered final self::InlineClass /* = core::int */ #this) → core::int
   ;
-static inline-class-member method InlineClass|[](lowered final self::InlineClass #this, core::int index) → core::int
+static inline-class-member method InlineClass|[](lowered final self::InlineClass /* = core::int */ #this, core::int index) → core::int
   ;
-static inline-class-member method InlineClass|[]=(lowered final self::InlineClass #this, core::int index, core::int value) → void
+static inline-class-member method InlineClass|[]=(lowered final self::InlineClass /* = core::int */ #this, core::int index, core::int value) → void
   ;
-static inline-class-member method InlineClass|get#getter(lowered final self::InlineClass #this) → core::int
+static inline-class-member method InlineClass|get#getter(lowered final self::InlineClass /* = core::int */ #this) → core::int
   ;
-static inline-class-member method InlineClass|method(lowered final self::InlineClass #this) → core::int
+static inline-class-member method InlineClass|method(lowered final self::InlineClass /* = core::int */ #this) → core::int
   ;
-static inline-class-member method InlineClass|get#method(lowered final self::InlineClass #this) → () → core::int
+static inline-class-member method InlineClass|get#method(lowered final self::InlineClass /* = core::int */ #this) → () → core::int
   return () → core::int => self::InlineClass|method(#this);
-static inline-class-member method InlineClass|set#setter(lowered final self::InlineClass #this, core::int value) → void
+static inline-class-member method InlineClass|set#setter(lowered final self::InlineClass /* = core::int */ #this, core::int value) → void
   ;
-static inline-class-member method InlineClass|genericMethod<T extends core::Object? = dynamic>(lowered final self::InlineClass #this, self::InlineClass|genericMethod::T% t) → self::InlineClass|genericMethod::T%
+static inline-class-member method InlineClass|genericMethod<T extends core::Object? = dynamic>(lowered final self::InlineClass /* = core::int */ #this, self::InlineClass|genericMethod::T% t) → self::InlineClass|genericMethod::T%
   ;
-static inline-class-member method InlineClass|get#genericMethod(lowered final self::InlineClass #this) → <T extends core::Object? = dynamic>(T%) → T%
+static inline-class-member method InlineClass|get#genericMethod(lowered final self::InlineClass /* = core::int */ #this) → <T extends core::Object? = dynamic>(T%) → T%
   return <T extends core::Object? = dynamic>(T% t) → T% => self::InlineClass|genericMethod<T%>(#this, t);
-static inline-class-member method InlineClass|call(lowered final self::InlineClass #this) → core::int
+static inline-class-member method InlineClass|call(lowered final self::InlineClass /* = core::int */ #this) → core::int
   ;
-static inline-class-member method InlineClass|get#call(lowered final self::InlineClass #this) → () → core::int
+static inline-class-member method InlineClass|get#call(lowered final self::InlineClass /* = core::int */ #this) → () → core::int
   return () → core::int => self::InlineClass|call(#this);
-static method test(self::InlineClass ic) → dynamic
+static method test(self::InlineClass /* = core::int */ ic) → dynamic
   ;

@@ -16,9 +16,9 @@ extension type C(core::int i) { // from org-dartlang-testcase:///has_part_of_lib
   constructor • = has::C|;
   tearoff • = has::_#new#tearOff;
 }
-static inline-class-member method /* from org-dartlang-testcase:///has_part_of_lib.dart */ C|(core::int i) → has::C {
-  lowered final has::C #this = i;
+static inline-class-member method /* from org-dartlang-testcase:///has_part_of_lib.dart */ C|(core::int i) → has::C /* = core::int */ {
+  lowered final has::C /* = core::int */ #this = i;
   return #this;
 }
-static inline-class-member method /* from org-dartlang-testcase:///has_part_of_lib.dart */ _#new#tearOff(core::int i) → has::C
+static inline-class-member method /* from org-dartlang-testcase:///has_part_of_lib.dart */ _#new#tearOff(core::int i) → has::C /* = core::int */
   return has::C|(i);
