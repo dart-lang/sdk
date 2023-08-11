@@ -801,7 +801,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
     ClassInfo info = translator.classInfo[types.classForType(type)]!;
     translator.functions.allocateClass(info.classId);
-    if (type is InterfaceType) {
+    if (type is InterfaceType && !types.isSpecializedClass(type.classNode)) {
       return _makeInterfaceType(constant, type, info);
     } else if (type is FutureOrType) {
       return _makeFutureOrType(constant, type, info);
@@ -861,7 +861,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       assert(type is VoidType ||
           type is NeverType ||
           type is NullType ||
-          type is DynamicType);
+          type is DynamicType ||
+          type is InterfaceType && types.isSpecializedClass(type.classNode));
       return createConstant(constant, info.nonNullableType, (function, b) {
         b.i32_const(info.classId);
         b.i32_const(initialIdentityHash);

@@ -506,6 +506,11 @@ class ClassInfoCollector {
   void collect() {
     _initializeTop();
 
+    // Initialize the record base class early to give enough space for special
+    // values in the type category table before the first masquerade class
+    // (which is `Type`).
+    _initialize(translator.coreTypes.recordClass);
+
     // Subclasses of the `_Closure` class are generated on the fly as fields
     // with function types are encountered. Therefore, `_Closure` class must
     // be early in the initialization order.
@@ -524,11 +529,6 @@ class ClassInfoCollector {
     // Initialize masquerade classes to make sure they have low class IDs.
     for (Class cls in _masquerades.values) {
       _initialize(cls);
-    }
-
-    // Initialize the record base class if we have record classes.
-    if (translator.recordClasses.isNotEmpty) {
-      _initialize(translator.coreTypes.recordClass);
     }
 
     for (Library library in translator.component.libraries) {

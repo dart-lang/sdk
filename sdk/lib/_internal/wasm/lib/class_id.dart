@@ -58,12 +58,18 @@ class ClassID {
   external static int get cidFutureOrType;
   @pragma("wasm:class-id", "dart.core#_InterfaceType")
   external static int get cidInterfaceType;
+  @pragma("wasm:class-id", "dart.core#_ObjectType")
+  external static int get cidObjectType;
+  @pragma("wasm:class-id", "dart.core#_AbstractFunctionType")
+  external static int get cidAbstractFunctionType;
   @pragma("wasm:class-id", "dart.core#_FunctionType")
   external static int get cidFunctionType;
   @pragma("wasm:class-id", "dart.core#_FunctionTypeParameterType")
   external static int get cidFunctionTypeParameterType;
   @pragma("wasm:class-id", "dart.core#_InterfaceTypeParameterType")
   external static int get cidInterfaceTypeParameterType;
+  @pragma("wasm:class-id", "dart.core#_AbstractRecordType")
+  external static int get cidAbstractRecordType;
   @pragma("wasm:class-id", "dart.core#_RecordType")
   external static int get cidRecordType;
 

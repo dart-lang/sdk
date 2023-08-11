@@ -68,6 +68,9 @@ mixin KernelNodes {
   late final Class typeClass = index.getClass("dart:core", "_Type");
   late final Class dynamicTypeClass =
       index.getClass("dart:core", "_DynamicType");
+  late final Class objectTypeClass = index.getClass("dart:core", "_ObjectType");
+  late final Class abstractFunctionTypeClass =
+      index.getClass("dart:core", "_AbstractFunctionType");
   late final Class functionTypeClass =
       index.getClass("dart:core", "_FunctionType");
   late final Class functionTypeParameterTypeClass =
@@ -86,6 +89,8 @@ mixin KernelNodes {
   late final Class stackTraceClass = index.getClass("dart:core", "StackTrace");
   late final Class typeUniverseClass =
       index.getClass("dart:core", "_TypeUniverse");
+  late final Class abstractRecordTypeClass =
+      index.getClass("dart:core", "_AbstractRecordType");
   late final Class recordTypeClass = index.getClass("dart:core", "_RecordType");
 
   // dart:core sync* support classes
