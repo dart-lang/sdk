@@ -11,19 +11,19 @@ extension type A(core::int i) {
   constructor constructor = self::A|constructor;
   tearoff constructor = self::A|_#constructor#tearOff;
 }
-static inline-class-member method A|(dynamic i) → self::A
+static inline-class-member method A|(dynamic i) → self::A /* = core::int */
   ;
-static inline-class-member method A|_#new#tearOff(dynamic i) → self::A
+static inline-class-member method A|_#new#tearOff(dynamic i) → self::A /* = core::int */
   return self::A|(i);
 @core::Deprecated::•("")
-static inline-class-member method A|constructor(core::int i) → self::A
+static inline-class-member method A|constructor(core::int i) → self::A /* = core::int */
   ;
-static inline-class-member method A|_#constructor#tearOff(core::int i) → self::A
+static inline-class-member method A|_#constructor#tearOff(core::int i) → self::A /* = core::int */
   return self::A|constructor(i);
 @core::Deprecated::•("")
-static inline-class-member method A|m(lowered final self::A #this) → void
+static inline-class-member method A|m(lowered final self::A /* = core::int */ #this) → void
   ;
-static inline-class-member method A|get#m(lowered final self::A #this) → () → void
+static inline-class-member method A|get#m(lowered final self::A /* = core::int */ #this) → () → void
   return () → void => self::A|m(#this);
 
 

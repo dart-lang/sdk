@@ -6,9 +6,9 @@ extension type Id(core::int id) {
   constructor • = self::Id|;
   tearoff • = self::Id|_#new#tearOff;
 }
-static inline-class-member method Id|(dynamic id) → self::Id
+static inline-class-member method Id|(dynamic id) → self::Id /* = core::int */
   ;
-static inline-class-member method Id|_#new#tearOff(dynamic id) → self::Id
+static inline-class-member method Id|_#new#tearOff(dynamic id) → self::Id /* = core::int */
   return self::Id|(id);
 static method test() → dynamic
   ;

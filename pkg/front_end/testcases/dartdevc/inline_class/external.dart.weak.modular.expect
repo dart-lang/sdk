@@ -37,41 +37,41 @@ extension type B(self::A a) {
   constructor named = self::B|named;
   tearoff named = self::B|_#named#tearOff;
 }
-external static inline-class-member method B|(self::A a) → self::B;
-static inline-class-member method B|_#new#tearOff(self::A a) → self::B
+external static inline-class-member method B|(self::A a) → self::B /* = self::A */;
+static inline-class-member method B|_#new#tearOff(self::A a) → self::B /* = self::A */
   return self::B|(a);
-external static inline-class-member method B|named(core::int i) → self::B;
-static inline-class-member method B|_#named#tearOff(core::int i) → self::B
+external static inline-class-member method B|named(core::int i) → self::B /* = self::A */;
+static inline-class-member method B|_#named#tearOff(core::int i) → self::B /* = self::A */
   return self::B|named(i);
 external static inline-class-member method B|get#field(lowered self::A #this) → self::A;
 external static inline-class-member method B|set#field(lowered self::A #this, self::A #externalFieldValue) → void;
-external static inline-class-member method B|method(lowered final self::B #this) → self::A;
-static inline-class-member method B|get#method(lowered final self::B #this) → () → self::A
+external static inline-class-member method B|method(lowered final self::B /* = self::A */ #this) → self::A;
+static inline-class-member method B|get#method(lowered final self::B /* = self::A */ #this) → () → self::A
   return () → self::A => self::B|method(#this);
-external static inline-class-member method B|genericMethod<T extends self::B>(lowered final self::B #this, self::B|genericMethod::T t) → self::B|genericMethod::T;
-static inline-class-member method B|get#genericMethod(lowered final self::B #this) → <T extends self::B>(T) → T
-  return <T extends self::B>(T t) → T => self::B|genericMethod<T>(#this, t);
-external static inline-class-member method B|get#getter(lowered final self::B #this) → self::B;
-external static inline-class-member method B|set#setter(lowered final self::B #this, self::B b) → void;
+external static inline-class-member method B|genericMethod<T extends self::B /* = self::A */>(lowered final self::B /* = self::A */ #this, self::B|genericMethod::T t) → self::B|genericMethod::T;
+static inline-class-member method B|get#genericMethod(lowered final self::B /* = self::A */ #this) → <T extends self::B /* = self::A */>(T) → T
+  return <T extends self::B /* = self::A */>(T t) → T => self::B|genericMethod<T>(#this, t);
+external static inline-class-member method B|get#getter(lowered final self::B /* = self::A */ #this) → self::B /* = self::A */;
+external static inline-class-member method B|set#setter(lowered final self::B /* = self::A */ #this, self::B /* = self::A */ b) → void;
 external static inline-class-member get B|staticField() → self::A;
 external static inline-class-member set B|staticField(self::A #externalFieldValue) → void;
 external static inline-class-member method B|staticMethod() → self::A;
-external static inline-class-member method B|staticGenericMethod<T extends self::B>(self::B|staticGenericMethod::T t) → self::B|staticGenericMethod::T;
-external static inline-class-member get B|staticGetter() → self::B;
-external static inline-class-member set B|staticSetter(self::B b) → void;
+external static inline-class-member method B|staticGenericMethod<T extends self::B /* = self::A */>(self::B|staticGenericMethod::T t) → self::B|staticGenericMethod::T;
+external static inline-class-member get B|staticGetter() → self::B /* = self::A */;
+external static inline-class-member set B|staticSetter(self::B /* = self::A */ b) → void;
 static method method(self::A a) → void {
-  self::B b1 = self::B|(a);
-  self::B b2 = self::B|named(0);
+  self::B /* = self::A */ b1 = self::B|(a);
+  self::B /* = self::A */ b2 = self::B|named(0);
   a = self::B|get#field(b1);
   self::B|set#field(b1, a);
   a = self::B|method(b1);
-  b2 = self::B|genericMethod<self::B>(b2, b2);
+  b2 = self::B|genericMethod<self::B /* = self::A */>(b2, b2);
   b1 = self::B|get#getter(b2);
   self::B|set#setter(b1, b2);
   a = self::B|staticField;
   self::B|staticField = a;
   a = self::B|staticMethod();
-  b2 = self::B|staticGenericMethod<self::B>(b2);
+  b2 = self::B|staticGenericMethod<self::B /* = self::A */>(b2);
   b1 = self::B|staticGetter;
   self::B|staticSetter = b2;
 }

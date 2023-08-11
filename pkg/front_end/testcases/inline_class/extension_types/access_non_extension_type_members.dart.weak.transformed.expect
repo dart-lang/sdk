@@ -24,26 +24,26 @@ extension type E(self::B it) implements self::B {
   constructor • = self::E|;
   tearoff • = self::E|_#new#tearOff;
 }
-extension type F(self::B it) implements self::E {
+extension type F(self::B it) implements self::E /* = self::B */ {
   constructor • = self::F|;
   tearoff • = self::F|_#new#tearOff;
 }
-static inline-class-member method E|(dynamic it) → self::E {
-  lowered final self::E #this = it;
+static inline-class-member method E|(dynamic it) → self::E /* = self::B */ {
+  lowered final self::E /* = self::B */ #this = it;
   return #this;
 }
-static inline-class-member method E|_#new#tearOff(dynamic it) → self::E
+static inline-class-member method E|_#new#tearOff(dynamic it) → self::E /* = self::B */
   return self::E|(it);
-static inline-class-member method F|(dynamic it) → self::F {
-  lowered final self::F #this = it;
+static inline-class-member method F|(dynamic it) → self::F /* = self::B */ {
+  lowered final self::F /* = self::B */ #this = it;
   return #this;
 }
-static inline-class-member method F|_#new#tearOff(dynamic it) → self::F
+static inline-class-member method F|_#new#tearOff(dynamic it) → self::F /* = self::B */
   return self::F|(it);
 static method main() → dynamic {
   self::B b = new self::B::•();
-  self::E e = self::E|(b);
-  self::F f = self::F|(b);
+  self::E /* = self::B */ e = self::E|(b);
+  self::F /* = self::B */ f = self::F|(b);
   self::expect(42, b.{self::A::field}{core::int});
   self::expect(42, e.{self::A::field}{core::int});
   self::expect(42, f.{self::A::field}{core::int});

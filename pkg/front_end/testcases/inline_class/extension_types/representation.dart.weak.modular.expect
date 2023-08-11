@@ -44,20 +44,20 @@ extension type Duplicate(core::bool instanceField) {
   constructor • = self::Duplicate|;
   tearoff • = self::Duplicate|_#new#tearOff;
 }
-static inline-class-member method Missing|() → self::Missing {
-  lowered final self::Missing #this;
+static inline-class-member method Missing|() → self::Missing /* = invalid-type */ {
+  lowered final self::Missing /* = invalid-type */ #this;
   return #this;
 }
-static inline-class-member method Missing|_#new#tearOff() → self::Missing
+static inline-class-member method Missing|_#new#tearOff() → self::Missing /* = invalid-type */
   return self::Missing|();
-static inline-class-member method Multiple|(dynamic instanceField1, dynamic instanceField2) → self::Multiple {
-  lowered final self::Multiple #this = instanceField2;
+static inline-class-member method Multiple|(dynamic instanceField1, dynamic instanceField2) → self::Multiple /* = core::bool */ {
+  lowered final self::Multiple /* = core::bool */ #this = instanceField2;
   return #this;
 }
-static inline-class-member method Multiple|_#new#tearOff(dynamic instanceField1, dynamic instanceField2) → self::Multiple
+static inline-class-member method Multiple|_#new#tearOff(dynamic instanceField1, dynamic instanceField2) → self::Multiple /* = core::bool */
   return self::Multiple|(instanceField1, instanceField2);
-static inline-class-member method Duplicate|(dynamic instanceField, dynamic instanceField) → self::Duplicate {
-  lowered final self::Duplicate #this;
+static inline-class-member method Duplicate|(dynamic instanceField, dynamic instanceField) → self::Duplicate /* = core::bool */ {
+  lowered final self::Duplicate /* = core::bool */ #this;
   final dynamic #t1 = invalid-expression "pkg/front_end/testcases/inline_class/extension_types/representation.dart:9:31: Error: Can't use 'instanceField' because it is declared more than once.
 extension type Duplicate(bool instanceField, int instanceField) {} // Error
                               ^^^^^^^^^^^^^";
@@ -66,5 +66,5 @@ extension type Duplicate(bool instanceField, int instanceField) {} // Error
                                                  ^^^^^^^^^^^^^";
   return #this;
 }
-static inline-class-member method Duplicate|_#new#tearOff(dynamic instanceField, dynamic instanceField) → self::Duplicate
+static inline-class-member method Duplicate|_#new#tearOff(dynamic instanceField, dynamic instanceField) → self::Duplicate /* = core::bool */
   return self::Duplicate|(instanceField, instanceField);

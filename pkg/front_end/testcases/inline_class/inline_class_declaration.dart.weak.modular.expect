@@ -17,16 +17,16 @@ extension type Class3<T extends core::Object? = dynamic>(core::List<T%> it) {
   constructor • = self::Class3|;
   tearoff • = self::Class3|_#new#tearOff;
 }
-static inline-class-member method Class1|(core::int it) → self::Class1 {
-  lowered final self::Class1 #this = it;
+static inline-class-member method Class1|(core::int it) → self::Class1 /* = core::int */ {
+  lowered final self::Class1 /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method Class1|_#new#tearOff(core::int it) → self::Class1
+static inline-class-member method Class1|_#new#tearOff(core::int it) → self::Class1 /* = core::int */
   return self::Class1|(it);
-static inline-class-member method Class3|<T extends core::Object? = dynamic>(core::List<self::Class3|::T%> it) → self::Class3<self::Class3|::T%> {
-  lowered final self::Class3<self::Class3|::T%> #this = it;
+static inline-class-member method Class3|<T extends core::Object? = dynamic>(core::List<self::Class3|::T%> it) → self::Class3<self::Class3|::T%> /* = core::List<self::Class3|::T%> */ {
+  lowered final self::Class3<self::Class3|::T%> /* = core::List<self::Class3|::T%> */ #this = it;
   return #this;
 }
-static inline-class-member method Class3|_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::Class3|_#new#tearOff::T%> it) → self::Class3<self::Class3|_#new#tearOff::T%>
+static inline-class-member method Class3|_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::Class3|_#new#tearOff::T%> it) → self::Class3<self::Class3|_#new#tearOff::T%> /* = core::List<self::Class3|_#new#tearOff::T%> */
   return self::Class3|<self::Class3|_#new#tearOff::T%>(it);
-static method method(self::Class1 c1, self::Class3<core::int> c3) → dynamic {}
+static method method(self::Class1 /* = core::int */ c1, self::Class3<core::int> /* = core::List<core::int> */ c3) → dynamic {}

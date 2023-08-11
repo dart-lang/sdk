@@ -97,75 +97,75 @@ extension type ET_CovariantAlias2<T extends core::Object? = dynamic>(((T%) → v
   constructor • = self::ET_CovariantAlias2|;
   tearoff • = self::ET_CovariantAlias2|_#new#tearOff;
 }
-static inline-class-member method ET_Contravariant|<T extends core::Object? = dynamic>(dynamic f) → self::ET_Contravariant<self::ET_Contravariant|::T%> {
-  lowered final self::ET_Contravariant<self::ET_Contravariant|::T%> #this = f;
+static inline-class-member method ET_Contravariant|<T extends core::Object? = dynamic>(dynamic f) → self::ET_Contravariant<self::ET_Contravariant|::T%> /* = (self::ET_Contravariant|::T%) → void */ {
+  lowered final self::ET_Contravariant<self::ET_Contravariant|::T%> /* = (self::ET_Contravariant|::T%) → void */ #this = f;
   return #this;
 }
-static inline-class-member method ET_Contravariant|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_Contravariant<self::ET_Contravariant|_#new#tearOff::T%>
+static inline-class-member method ET_Contravariant|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_Contravariant<self::ET_Contravariant|_#new#tearOff::T%> /* = (self::ET_Contravariant|_#new#tearOff::T%) → void */
   return self::ET_Contravariant|<self::ET_Contravariant|_#new#tearOff::T%>(f);
-static inline-class-member method ET_Invariant|<T extends core::Object? = dynamic>(dynamic f) → self::ET_Invariant<self::ET_Invariant|::T%> {
-  lowered final self::ET_Invariant<self::ET_Invariant|::T%> #this = f;
+static inline-class-member method ET_Invariant|<T extends core::Object? = dynamic>(dynamic f) → self::ET_Invariant<self::ET_Invariant|::T%> /* = <S extends self::ET_Invariant|::T% = dynamic>() → void */ {
+  lowered final self::ET_Invariant<self::ET_Invariant|::T%> /* = <S extends self::ET_Invariant|::T% = dynamic>() → void */ #this = f;
   return #this;
 }
-static inline-class-member method ET_Invariant|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_Invariant<self::ET_Invariant|_#new#tearOff::T%>
+static inline-class-member method ET_Invariant|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_Invariant<self::ET_Invariant|_#new#tearOff::T%> /* = <S extends self::ET_Invariant|_#new#tearOff::T% = dynamic>() → void */
   return self::ET_Invariant|<self::ET_Invariant|_#new#tearOff::T%>(f);
-static inline-class-member method ET_Covariant|<T extends core::Object? = dynamic>(dynamic f) → self::ET_Covariant<self::ET_Covariant|::T%> {
-  lowered final self::ET_Covariant<self::ET_Covariant|::T%> #this = f;
+static inline-class-member method ET_Covariant|<T extends core::Object? = dynamic>(dynamic f) → self::ET_Covariant<self::ET_Covariant|::T%> /* = () → self::ET_Covariant|::T% */ {
+  lowered final self::ET_Covariant<self::ET_Covariant|::T%> /* = () → self::ET_Covariant|::T% */ #this = f;
   return #this;
 }
-static inline-class-member method ET_Covariant|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_Covariant<self::ET_Covariant|_#new#tearOff::T%>
+static inline-class-member method ET_Covariant|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_Covariant<self::ET_Covariant|_#new#tearOff::T%> /* = () → self::ET_Covariant|_#new#tearOff::T% */
   return self::ET_Covariant|<self::ET_Covariant|_#new#tearOff::T%>(f);
-static inline-class-member method ET_Bivariant|<T extends core::Object? = dynamic>(dynamic f) → self::ET_Bivariant<self::ET_Bivariant|::T%> {
-  lowered final self::ET_Bivariant<self::ET_Bivariant|::T%> #this = f;
+static inline-class-member method ET_Bivariant|<T extends core::Object? = dynamic>(dynamic f) → self::ET_Bivariant<self::ET_Bivariant|::T%> /* = (self::ET_Bivariant|::T%) → self::ET_Bivariant|::T% */ {
+  lowered final self::ET_Bivariant<self::ET_Bivariant|::T%> /* = (self::ET_Bivariant|::T%) → self::ET_Bivariant|::T% */ #this = f;
   return #this;
 }
-static inline-class-member method ET_Bivariant|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_Bivariant<self::ET_Bivariant|_#new#tearOff::T%>
+static inline-class-member method ET_Bivariant|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_Bivariant<self::ET_Bivariant|_#new#tearOff::T%> /* = (self::ET_Bivariant|_#new#tearOff::T%) → self::ET_Bivariant|_#new#tearOff::T% */
   return self::ET_Bivariant|<self::ET_Bivariant|_#new#tearOff::T%>(f);
-static inline-class-member method ET_ContravariantAlias|<T extends core::Object? = dynamic>(dynamic f) → self::ET_ContravariantAlias<self::ET_ContravariantAlias|::T%> {
-  lowered final self::ET_ContravariantAlias<self::ET_ContravariantAlias|::T%> #this = f;
+static inline-class-member method ET_ContravariantAlias|<T extends core::Object? = dynamic>(dynamic f) → self::ET_ContravariantAlias<self::ET_ContravariantAlias|::T%> /* = (self::ET_ContravariantAlias|::T%) → void */ {
+  lowered final self::ET_ContravariantAlias<self::ET_ContravariantAlias|::T%> /* = (self::ET_ContravariantAlias|::T%) → void */ #this = f;
   return #this;
 }
-static inline-class-member method ET_ContravariantAlias|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_ContravariantAlias<self::ET_ContravariantAlias|_#new#tearOff::T%>
+static inline-class-member method ET_ContravariantAlias|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_ContravariantAlias<self::ET_ContravariantAlias|_#new#tearOff::T%> /* = (self::ET_ContravariantAlias|_#new#tearOff::T%) → void */
   return self::ET_ContravariantAlias|<self::ET_ContravariantAlias|_#new#tearOff::T%>(f);
-static inline-class-member method ET_InvariantAlias|<T extends core::Object? = dynamic>(dynamic f) → self::ET_InvariantAlias<self::ET_InvariantAlias|::T%> {
-  lowered final self::ET_InvariantAlias<self::ET_InvariantAlias|::T%> #this = f;
+static inline-class-member method ET_InvariantAlias|<T extends core::Object? = dynamic>(dynamic f) → self::ET_InvariantAlias<self::ET_InvariantAlias|::T%> /* = <S extends self::ET_InvariantAlias|::T% = dynamic>() → void */ {
+  lowered final self::ET_InvariantAlias<self::ET_InvariantAlias|::T%> /* = <S extends self::ET_InvariantAlias|::T% = dynamic>() → void */ #this = f;
   return #this;
 }
-static inline-class-member method ET_InvariantAlias|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_InvariantAlias<self::ET_InvariantAlias|_#new#tearOff::T%>
+static inline-class-member method ET_InvariantAlias|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_InvariantAlias<self::ET_InvariantAlias|_#new#tearOff::T%> /* = <S extends self::ET_InvariantAlias|_#new#tearOff::T% = dynamic>() → void */
   return self::ET_InvariantAlias|<self::ET_InvariantAlias|_#new#tearOff::T%>(f);
-static inline-class-member method ET_CovariantAlias|<T extends core::Object? = dynamic>(dynamic f) → self::ET_CovariantAlias<self::ET_CovariantAlias|::T%> {
-  lowered final self::ET_CovariantAlias<self::ET_CovariantAlias|::T%> #this = f;
+static inline-class-member method ET_CovariantAlias|<T extends core::Object? = dynamic>(dynamic f) → self::ET_CovariantAlias<self::ET_CovariantAlias|::T%> /* = () → self::ET_CovariantAlias|::T% */ {
+  lowered final self::ET_CovariantAlias<self::ET_CovariantAlias|::T%> /* = () → self::ET_CovariantAlias|::T% */ #this = f;
   return #this;
 }
-static inline-class-member method ET_CovariantAlias|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_CovariantAlias<self::ET_CovariantAlias|_#new#tearOff::T%>
+static inline-class-member method ET_CovariantAlias|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_CovariantAlias<self::ET_CovariantAlias|_#new#tearOff::T%> /* = () → self::ET_CovariantAlias|_#new#tearOff::T% */
   return self::ET_CovariantAlias|<self::ET_CovariantAlias|_#new#tearOff::T%>(f);
-static inline-class-member method ET_BivariantAlias|<T extends core::Object? = dynamic>(dynamic f) → self::ET_BivariantAlias<self::ET_BivariantAlias|::T%> {
-  lowered final self::ET_BivariantAlias<self::ET_BivariantAlias|::T%> #this = f;
+static inline-class-member method ET_BivariantAlias|<T extends core::Object? = dynamic>(dynamic f) → self::ET_BivariantAlias<self::ET_BivariantAlias|::T%> /* = (self::ET_BivariantAlias|::T%) → self::ET_BivariantAlias|::T% */ {
+  lowered final self::ET_BivariantAlias<self::ET_BivariantAlias|::T%> /* = (self::ET_BivariantAlias|::T%) → self::ET_BivariantAlias|::T% */ #this = f;
   return #this;
 }
-static inline-class-member method ET_BivariantAlias|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_BivariantAlias<self::ET_BivariantAlias|_#new#tearOff::T%>
+static inline-class-member method ET_BivariantAlias|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_BivariantAlias<self::ET_BivariantAlias|_#new#tearOff::T%> /* = (self::ET_BivariantAlias|_#new#tearOff::T%) → self::ET_BivariantAlias|_#new#tearOff::T% */
   return self::ET_BivariantAlias|<self::ET_BivariantAlias|_#new#tearOff::T%>(f);
-static inline-class-member method ET_ContravariantAlias1|<T extends core::Object? = dynamic>(dynamic f) → self::ET_ContravariantAlias1<self::ET_ContravariantAlias1|::T%> {
-  lowered final self::ET_ContravariantAlias1<self::ET_ContravariantAlias1|::T%> #this = f;
+static inline-class-member method ET_ContravariantAlias1|<T extends core::Object? = dynamic>(dynamic f) → self::ET_ContravariantAlias1<self::ET_ContravariantAlias1|::T%> /* = () → (self::ET_ContravariantAlias1|::T%) → void */ {
+  lowered final self::ET_ContravariantAlias1<self::ET_ContravariantAlias1|::T%> /* = () → (self::ET_ContravariantAlias1|::T%) → void */ #this = f;
   return #this;
 }
-static inline-class-member method ET_ContravariantAlias1|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_ContravariantAlias1<self::ET_ContravariantAlias1|_#new#tearOff::T%>
+static inline-class-member method ET_ContravariantAlias1|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_ContravariantAlias1<self::ET_ContravariantAlias1|_#new#tearOff::T%> /* = () → (self::ET_ContravariantAlias1|_#new#tearOff::T%) → void */
   return self::ET_ContravariantAlias1|<self::ET_ContravariantAlias1|_#new#tearOff::T%>(f);
-static inline-class-member method ET_ContravariantAlias2|<T extends core::Object? = dynamic>(dynamic f) → self::ET_ContravariantAlias2<self::ET_ContravariantAlias2|::T%> {
-  lowered final self::ET_ContravariantAlias2<self::ET_ContravariantAlias2|::T%> #this = f;
+static inline-class-member method ET_ContravariantAlias2|<T extends core::Object? = dynamic>(dynamic f) → self::ET_ContravariantAlias2<self::ET_ContravariantAlias2|::T%> /* = (() → self::ET_ContravariantAlias2|::T%) → void */ {
+  lowered final self::ET_ContravariantAlias2<self::ET_ContravariantAlias2|::T%> /* = (() → self::ET_ContravariantAlias2|::T%) → void */ #this = f;
   return #this;
 }
-static inline-class-member method ET_ContravariantAlias2|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_ContravariantAlias2<self::ET_ContravariantAlias2|_#new#tearOff::T%>
+static inline-class-member method ET_ContravariantAlias2|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_ContravariantAlias2<self::ET_ContravariantAlias2|_#new#tearOff::T%> /* = (() → self::ET_ContravariantAlias2|_#new#tearOff::T%) → void */
   return self::ET_ContravariantAlias2|<self::ET_ContravariantAlias2|_#new#tearOff::T%>(f);
-static inline-class-member method ET_CovariantAlias1|<T extends core::Object? = dynamic>(dynamic f) → self::ET_CovariantAlias1<self::ET_CovariantAlias1|::T%> {
-  lowered final self::ET_CovariantAlias1<self::ET_CovariantAlias1|::T%> #this = f;
+static inline-class-member method ET_CovariantAlias1|<T extends core::Object? = dynamic>(dynamic f) → self::ET_CovariantAlias1<self::ET_CovariantAlias1|::T%> /* = () → () → self::ET_CovariantAlias1|::T% */ {
+  lowered final self::ET_CovariantAlias1<self::ET_CovariantAlias1|::T%> /* = () → () → self::ET_CovariantAlias1|::T% */ #this = f;
   return #this;
 }
-static inline-class-member method ET_CovariantAlias1|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_CovariantAlias1<self::ET_CovariantAlias1|_#new#tearOff::T%>
+static inline-class-member method ET_CovariantAlias1|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_CovariantAlias1<self::ET_CovariantAlias1|_#new#tearOff::T%> /* = () → () → self::ET_CovariantAlias1|_#new#tearOff::T% */
   return self::ET_CovariantAlias1|<self::ET_CovariantAlias1|_#new#tearOff::T%>(f);
-static inline-class-member method ET_CovariantAlias2|<T extends core::Object? = dynamic>(dynamic f) → self::ET_CovariantAlias2<self::ET_CovariantAlias2|::T%> {
-  lowered final self::ET_CovariantAlias2<self::ET_CovariantAlias2|::T%> #this = f;
+static inline-class-member method ET_CovariantAlias2|<T extends core::Object? = dynamic>(dynamic f) → self::ET_CovariantAlias2<self::ET_CovariantAlias2|::T%> /* = ((self::ET_CovariantAlias2|::T%) → void) → void */ {
+  lowered final self::ET_CovariantAlias2<self::ET_CovariantAlias2|::T%> /* = ((self::ET_CovariantAlias2|::T%) → void) → void */ #this = f;
   return #this;
 }
-static inline-class-member method ET_CovariantAlias2|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_CovariantAlias2<self::ET_CovariantAlias2|_#new#tearOff::T%>
+static inline-class-member method ET_CovariantAlias2|_#new#tearOff<T extends core::Object? = dynamic>(dynamic f) → self::ET_CovariantAlias2<self::ET_CovariantAlias2|_#new#tearOff::T%> /* = ((self::ET_CovariantAlias2|_#new#tearOff::T%) → void) → void */
   return self::ET_CovariantAlias2|<self::ET_CovariantAlias2|_#new#tearOff::T%>(f);

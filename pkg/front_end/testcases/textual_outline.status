@@ -155,6 +155,7 @@ inline_class/extension_types/method_access: FormatterCrash
 inline_class/extension_types/non_covariant_type_parameter: FormatterCrash
 inline_class/extension_types/procedures: FormatterCrash
 inline_class/extension_types/representation: FormatterCrash
+inline_class/extension_types/representation_type: FormatterCrash
 inline_class/extension_types/supertype_conflict: FormatterCrash
 inline_class/extension_types/super_extension_type_conflict: FormatterCrash
 inline_class/extension_types/unresolved_type_extension_type_this: FormatterCrash

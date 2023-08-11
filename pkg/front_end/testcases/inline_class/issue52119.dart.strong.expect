@@ -37,61 +37,61 @@ extension type Bar<T extends core::Object? = dynamic>(T% i) {
   constructor _ = self::Bar|_;
   tearoff _ = self::Bar|_#_#tearOff;
 }
-static inline-class-member method Foo|(core::int i) → self::Foo {
-  lowered final self::Foo #this;
+static inline-class-member method Foo|(core::int i) → self::Foo /* = core::int */ {
+  lowered final self::Foo /* = core::int */ #this;
   #this = self::Foo|_(i.{core::num::+}(2){(core::num) → core::int});
   return #this;
 }
-static inline-class-member method Foo|_#new#tearOff(core::int i) → self::Foo
+static inline-class-member method Foo|_#new#tearOff(core::int i) → self::Foo /* = core::int */
   return self::Foo|(i);
-static inline-class-member method Foo|_(core::int i) → self::Foo {
-  lowered final self::Foo #this = i;
+static inline-class-member method Foo|_(core::int i) → self::Foo /* = core::int */ {
+  lowered final self::Foo /* = core::int */ #this = i;
   return #this;
 }
-static inline-class-member method Foo|_#_#tearOff(core::int i) → self::Foo
+static inline-class-member method Foo|_#_#tearOff(core::int i) → self::Foo /* = core::int */
   return self::Foo|_(i);
-static inline-class-member method Foo|redirectNamed1(core::int a, core::int b) → self::Foo {
-  lowered final self::Foo #this;
+static inline-class-member method Foo|redirectNamed1(core::int a, core::int b) → self::Foo /* = core::int */ {
+  lowered final self::Foo /* = core::int */ #this;
   #this = self::Foo|named(a, subtract: b);
   return #this;
 }
-static inline-class-member method Foo|_#redirectNamed1#tearOff(core::int a, core::int b) → self::Foo
+static inline-class-member method Foo|_#redirectNamed1#tearOff(core::int a, core::int b) → self::Foo /* = core::int */
   return self::Foo|redirectNamed1(a, b);
-static inline-class-member method Foo|redirectNamed2(core::int a, core::int b) → self::Foo {
-  lowered final self::Foo #this;
+static inline-class-member method Foo|redirectNamed2(core::int a, core::int b) → self::Foo /* = core::int */ {
+  lowered final self::Foo /* = core::int */ #this;
   final core::int #t1 = b;
   #this = self::Foo|named(a, subtract: #t1);
   return #this;
 }
-static inline-class-member method Foo|_#redirectNamed2#tearOff(core::int a, core::int b) → self::Foo
+static inline-class-member method Foo|_#redirectNamed2#tearOff(core::int a, core::int b) → self::Foo /* = core::int */
   return self::Foo|redirectNamed2(a, b);
-static inline-class-member method Foo|named(core::int value, {required core::int subtract = #C1}) → self::Foo {
-  lowered final self::Foo #this = value.{core::num::-}(subtract){(core::num) → core::int};
+static inline-class-member method Foo|named(core::int value, {required core::int subtract = #C1}) → self::Foo /* = core::int */ {
+  lowered final self::Foo /* = core::int */ #this = value.{core::num::-}(subtract){(core::num) → core::int};
   return #this;
 }
-static inline-class-member method Foo|_#named#tearOff(core::int value, {required core::int subtract}) → self::Foo
+static inline-class-member method Foo|_#named#tearOff(core::int value, {required core::int subtract}) → self::Foo /* = core::int */
   return self::Foo|named(value, subtract: subtract);
-static inline-class-member method Foo|erroneous() → self::Foo {
-  lowered final self::Foo #this;
+static inline-class-member method Foo|erroneous() → self::Foo /* = core::int */ {
+  lowered final self::Foo /* = core::int */ #this;
   final dynamic #t2 = invalid-expression "pkg/front_end/testcases/inline_class/issue52119.dart:15:26: Error: Couldn't find constructor 'Foo.unresolved'.
   Foo.erroneous() : this.unresolved();
                          ^^^^^^^^^^";
   return #this;
 }
-static inline-class-member method Foo|_#erroneous#tearOff() → self::Foo
+static inline-class-member method Foo|_#erroneous#tearOff() → self::Foo /* = core::int */
   return self::Foo|erroneous();
-static inline-class-member method Bar|<T extends core::Object? = dynamic>(self::Bar|::T% i) → self::Bar<self::Bar|::T%> {
-  lowered final self::Bar<self::Bar|::T%> #this;
+static inline-class-member method Bar|<T extends core::Object? = dynamic>(self::Bar|::T% i) → self::Bar<self::Bar|::T%> /* = self::Bar|::T% */ {
+  lowered final self::Bar<self::Bar|::T%> /* = self::Bar|::T% */ #this;
   #this = self::Bar|_<self::Bar|::T%>(i);
   return #this;
 }
-static inline-class-member method Bar|_#new#tearOff<T extends core::Object? = dynamic>(self::Bar|_#new#tearOff::T% i) → self::Bar<self::Bar|_#new#tearOff::T%>
+static inline-class-member method Bar|_#new#tearOff<T extends core::Object? = dynamic>(self::Bar|_#new#tearOff::T% i) → self::Bar<self::Bar|_#new#tearOff::T%> /* = self::Bar|_#new#tearOff::T% */
   return self::Bar|<self::Bar|_#new#tearOff::T%>(i);
-static inline-class-member method Bar|_<T extends core::Object? = dynamic>(self::Bar|_::T% i) → self::Bar<self::Bar|_::T%> {
-  lowered final self::Bar<self::Bar|_::T%> #this = i;
+static inline-class-member method Bar|_<T extends core::Object? = dynamic>(self::Bar|_::T% i) → self::Bar<self::Bar|_::T%> /* = self::Bar|_::T% */ {
+  lowered final self::Bar<self::Bar|_::T%> /* = self::Bar|_::T% */ #this = i;
   return #this;
 }
-static inline-class-member method Bar|_#_#tearOff<T extends core::Object? = dynamic>(self::Bar|_#_#tearOff::T% i) → self::Bar<self::Bar|_#_#tearOff::T%>
+static inline-class-member method Bar|_#_#tearOff<T extends core::Object? = dynamic>(self::Bar|_#_#tearOff::T% i) → self::Bar<self::Bar|_#_#tearOff::T%> /* = self::Bar|_#_#tearOff::T% */
   return self::Bar|_<self::Bar|_#_#tearOff::T%>(i);
 static method main() → dynamic {
   self::expect(44, self::Foo|(42) as{Unchecked} core::int);

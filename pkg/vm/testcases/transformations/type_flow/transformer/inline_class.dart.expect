@@ -17,16 +17,16 @@ extension type IC2(core::int id) {
   static method bar1 = self::IC2|bar1;
   constructor • = self::IC2|;
 }
-[@vm.unboxing-info.metadata=(i)->i]static inline-class-member method IC2|([@vm.inferred-type.metadata=int] core::int id) → self::IC2 {
-  lowered final self::IC2 #this = id;
+[@vm.unboxing-info.metadata=(i)->i]static inline-class-member method IC2|([@vm.inferred-type.metadata=int] core::int id) → self::IC2 /* = core::int */ {
+  lowered final self::IC2 /* = core::int */ #this = id;
   return #this;
 }
-[@vm.unboxing-info.metadata=(i)->i]static inline-class-member method IC2|foo1([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] lowered final self::IC2 #this) → core::int
+[@vm.unboxing-info.metadata=(i)->i]static inline-class-member method IC2|foo1([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] lowered final self::IC2 /* = core::int */ #this) → core::int
   return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] _in::unsafeCast<core::int>(#this).{core::num::+}(1){(core::num) → core::int};
-[@vm.unboxing-info.metadata=()->i]static inline-class-member method IC2|bar1() → self::IC2
+[@vm.unboxing-info.metadata=()->i]static inline-class-member method IC2|bar1() → self::IC2 /* = core::int */
   return [@vm.inferred-type.metadata=int] self::IC2|([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] _in::unsafeCast<core::int>(#C1).{core::num::+}(1){(core::num) → core::int});
 static method main() → dynamic {
-  let final self::C4 #t1 = new self::C4::•() in let final self::IC2 #t2 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] self::IC2|(42) in [@vm.direct-call.metadata=#lib::C4.foo3] [@vm.inferred-type.metadata=!? (skip check)] #t1.{self::C4::foo3}(){(self::IC2) → dynamic};
+  let final self::C4 #t1 = new self::C4::•() in let final self::IC2 /* = core::int */ #t2 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] self::IC2|(42) in [@vm.direct-call.metadata=#lib::C4.foo3] [@vm.inferred-type.metadata=!? (skip check)] #t1.{self::C4::foo3}(){(self::IC2 /* = core::int */) → dynamic};
 }
 constants  {
   #C1 = 42

@@ -12,7 +12,7 @@ extension type Extension(invalid-type it) {
   constructor • = self::Extension|;
   tearoff • = self::Extension|_#new#tearOff;
 }
-static inline-class-member method Extension|(dynamic it) → self::Extension
+static inline-class-member method Extension|(dynamic it) → self::Extension /* = invalid-type */
   ;
-static inline-class-member method Extension|_#new#tearOff(dynamic it) → self::Extension
+static inline-class-member method Extension|_#new#tearOff(dynamic it) → self::Extension /* = invalid-type */
   return self::Extension|(it);
