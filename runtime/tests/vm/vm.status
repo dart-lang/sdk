@@ -171,6 +171,7 @@ dart_2/transferable_throws_oom_test: SkipByDesign # This test tries to allocate 
 [ $sanitizer == tsan ]
 dart/analyze_snapshot_binary_test: SkipSlow
 dart/appjit_cha_deopt_test: SkipSlow
+dart/flutter_regress_93676_test: Pass, Slow
 dart/gc/chunked_binary_trees_array_test: SkipSlow
 dart/gc/chunked_binary_trees_test: SkipSlow
 dart/gc/fragmentation*: Skip # Uses too much memory with TSAN overhead and kills bot

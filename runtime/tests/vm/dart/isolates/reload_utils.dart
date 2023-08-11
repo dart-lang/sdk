@@ -181,6 +181,12 @@ class Reloader {
     await _process.stdin.flush();
   }
 
+  Future<Map> invokeServiceExtension(String method, [Object? arguments]) async {
+    arguments ??= {'isolateId': await _remoteVm.mainId};
+    print('Invoking "$method" service extension');
+    return await _remoteVm.rpc.sendRequest(method, arguments);
+  }
+
   Future<Map> reload(String file) async {
     print('Reload $file (version: ${_reloadVersion++})');
     final Map reloadResult = await _remoteVm.reload(Uri.parse(file));
