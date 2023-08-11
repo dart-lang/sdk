@@ -92,7 +92,8 @@ class TypePropertyResolver {
     }
 
     if (_isNonNullableByDefault &&
-        _typeSystem.isPotentiallyNullable(receiverType)) {
+        _typeSystem.isPotentiallyNullable(receiverType) &&
+        !receiverType.isExtensionType) {
       _lookupInterfaceType(_typeProvider.objectType);
       if (_hasGetterOrSetter) {
         return _toResult();

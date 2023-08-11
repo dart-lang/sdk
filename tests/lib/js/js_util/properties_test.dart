@@ -12,6 +12,9 @@ import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
 import 'package:expect/minitest.dart';
 
+@JS('Object.setPrototypeOf')
+external Object objectSetPrototypeOf(Object obj, Object? proto);
+
 @JS()
 external String jsFunction();
 
@@ -248,7 +251,7 @@ main() {
       expect(js_util.hasProperty(f, 'bar'), isTrue);
       expect(js_util.hasProperty(f, 'b'), isFalse);
       expect(js_util.hasProperty(f, 'toString'), isTrue);
-      js_util.setProperty(f, '__proto__', null);
+      objectSetPrototypeOf(f, null);
       expect(js_util.hasProperty(f, 'toString'), isFalse);
     });
 
@@ -284,7 +287,7 @@ main() {
       expect(js_util.getProperty(f, 'list') is List, isTrue);
       expect(js_util.getProperty(f, 'objectProperty') is Object, isTrue);
       expect(js_util.getProperty(f, 'toString') is Function, isTrue);
-      js_util.setProperty(f, '__proto__', null);
+      objectSetPrototypeOf(f, null);
       expect(js_util.getProperty(f, 'toString'), isNull);
     });
 

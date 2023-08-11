@@ -252,6 +252,8 @@ import 'extension_type_implements_itself_test.dart'
     as extension_type_implements_itself;
 import 'extension_type_implements_not_supertype_of_erasure_test.dart'
     as extension_type_implements_not_supertype_of_erasure;
+import 'extension_type_implements_representation_not_supertype_test.dart'
+    as extension_type_implements_representation_not_supertype;
 import 'extension_type_inherited_member_conflict_test.dart'
     as extension_type_inherited_member_conflict;
 import 'extension_type_representation_depends_on_itself_test.dart'
@@ -1061,6 +1063,7 @@ main() {
     extension_type_implements_disallowed_type.main();
     extension_type_implements_itself.main();
     extension_type_implements_not_supertype_of_erasure.main();
+    extension_type_implements_representation_not_supertype.main();
     extension_type_inherited_member_conflict.main();
     extension_type_representation_depends_on_itself.main();
     external_field_constructor_initializer.main();

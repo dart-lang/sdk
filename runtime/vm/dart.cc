@@ -39,6 +39,7 @@
 #include "vm/object_store.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
+#include "vm/raw_object_fields.h"
 #include "vm/reverse_pc_lookup_cache.h"
 #include "vm/service_isolate.h"
 #include "vm/simulator.h"

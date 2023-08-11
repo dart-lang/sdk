@@ -842,6 +842,37 @@ MethodInvocation
 ''');
   }
 
+  test_hasReceiver_interfaceType_extensionType_declared_nullableRepresentation() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int? it) {
+  void foo() {}
+}
+
+void f(A a) {
+  a.foo();
+}
+''');
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionType::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
   test_hasReceiver_interfaceType_extensionType_exposed() async {
     await assertNoErrorsInCode(r'''
 class A {

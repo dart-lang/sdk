@@ -966,10 +966,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     body = [classDef];
     _emitStaticFieldsAndAccessors(c, body);
     if (finishGenericTypeTest != null) body.add(finishGenericTypeTest);
-    for (var peer in jsPeerNames) {
-      _registerExtensionType(c, peer, body);
+    if (c == _coreTypes.objectClass) {
+      // Avoid polluting the native JavaScript Object prototype with the members
+      // of the Dart Core Object class.
+      // Instead, just assign the identity equals method.
+      body.add(runtimeStatement('_installIdentityEquals()'));
+    } else {
+      for (var peer in jsPeerNames) {
+        _registerExtensionType(c, peer, body);
+      }
     }
-
     _classProperties = savedClassProperties;
     return js_ast.Statement.from(body);
   }
@@ -5269,6 +5275,54 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         node.receiver, node.interfaceTarget, node.value, node.name.text);
   }
 
+  /// True when the result of evaluating [e] is not known to have the Object
+  /// members installed so a helper method should be called instead of a direct
+  /// instance invocation.
+  ///
+  /// This is a best effort approach determined by the static type information
+  /// and may return `true` when the evaluation result does in fact have the
+  /// members at runtime.
+  bool _shouldCallObjectMemberHelper(Expression e) {
+    if (isNullable(e)) return true;
+    var type = e.getStaticType(_staticTypeContext);
+    if (type is RecordType || type is FunctionType) return false;
+    if (type is InterfaceType) {
+      // TODO(nshahan): This could be expanded to any classes where we know all
+      // implementations at compile time and none of them are JS interop.
+      var cls = type.classNode;
+      // NOTE: This is not guaranteed to always be true. Currently in the SDK
+      // none of the final classes or their subtypes use JavaScript interop.
+      // If that was to ever change, this check will need to be updated.
+      // For now, this is a shortcut since all subclasses of a class are not
+      // immediately accessible.
+      if (cls.isFinal && cls.enclosingLibrary.importUri.isScheme('dart')) {
+        return false;
+      }
+    }
+    // Constants have a static type known at compile time that will not be a
+    // subtype at runtime.
+    return !_triviallyConstNoInterop(e);
+  }
+
+  /// True when [e] is known to evaluate to a constant that has an interface
+  /// type that is not a JavaScript interop type.
+  ///
+  /// This is a simple approach and not an exhaustive search.
+  bool _triviallyConstNoInterop(Expression? e) {
+    if (e is ConstantExpression) {
+      var type = e.constant.getType(_staticTypeContext);
+      if (type is InterfaceType) return !usesJSInterop(type.classNode);
+    } else if (e is StaticGet && e.target.isConst) {
+      var target = e.target;
+      if (target is Field) {
+        return _triviallyConstNoInterop(target.initializer);
+      }
+    } else if (e is VariableGet && e.variable.isConst) {
+      return _triviallyConstNoInterop(e.variable.initializer);
+    }
+    return false;
+  }
+
   js_ast.Expression _emitPropertyGet(
       Expression receiver, Member? member, String memberName) {
     // TODO(jmesserly): should tearoff of `.call` on a function type be
@@ -5286,13 +5340,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // they can be hovered. Unfortunately this is not possible as Kernel does
     // not store this data.
     if (_isObjectMember(memberName)) {
-      if (isNullable(receiver)) {
-        // If the receiver is nullable, use a helper so calls like
-        // `null.hashCode` and `null.runtimeType` will work.
-        // Also method tearoffs like `null.toString`.
+      if (_shouldCallObjectMemberHelper(receiver)) {
         if (_isObjectMethodTearoff(memberName)) {
-          return runtimeCall('bind(#, #)', [jsReceiver, jsName]);
+          if (memberName == 'toString') {
+            return runtimeCall('toStringTearoff(#)', [jsReceiver]);
+          }
+          if (memberName == 'noSuchMethod') {
+            return runtimeCall('noSuchMethodTearoff(#)', [jsReceiver]);
+          }
+          assert(false, 'Unexpected Object method tearoff: $memberName');
         }
+        // The names of the static helper methods in the runtime must match the
+        // names of the Object instance members.
         return runtimeCall('#(#)', [memberName, jsReceiver]);
       }
       // Otherwise generate this as a normal typed property get.
@@ -5541,11 +5600,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var jsName = _emitMemberName(name, member: target);
 
-    // Handle Object methods that are supported by `null`.
+    // Handle Object methods that are supported by `null` and potentially
+    // JavaScript interop values.
     if (_isObjectMethodCall(name, arguments)) {
-      if (isNullable(receiver)) {
-        // If the receiver is nullable, use a helper so calls like
-        // `null.toString()` will work.
+      if (_shouldCallObjectMemberHelper(receiver)) {
+        // The names of the static helper methods in the runtime must match the
+        // names of the Object instance members.
         return runtimeCall('#(#, #)', [name, jsReceiver, args]);
       }
       // Otherwise generate this as a normal typed method call.
@@ -5945,18 +6005,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return _emitCoreIdenticalCall([left, right], negated: negated);
     }
 
-    // If the left side is nullable, we need to use a runtime helper to check
-    // for null. We could inline the null check, but it did not seem to have
-    // a measurable performance effect (possibly the helper is simple enough to
-    // be inlined).
-    if (isNullable(left)) {
+    if (_shouldCallObjectMemberHelper(left)) {
+      // The LHS isn't guaranteed to have an equals method we need to use a
+      // runtime helper.
       return js.call(negated ? '!#' : '#', [
         runtimeCall(
             'equals(#, #)', [_visitExpression(left), _visitExpression(right)])
       ]);
     }
-
-    // Otherwise we emit a call to the == method.
+    // Otherwise it is safe to call the equals method on the LHS directly.
     return js.call(negated ? '!#[#](#)' : '#[#](#)', [
       _visitExpression(left),
       _emitMemberName('==', memberClass: targetClass),
@@ -6883,11 +6940,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         continue;
       }
       var type = e.getStaticType(_staticTypeContext);
-      parts.add(DartTypeEquivalence(_coreTypes, ignoreTopLevelNullability: true)
-                  .areEqual(type, _coreTypes.stringNonNullableRawType) &&
-              !isNullable(e)
-          ? jsExpr
-          : runtimeCall('str(#)', [jsExpr]));
+      if (DartTypeEquivalence(_coreTypes, ignoreTopLevelNullability: true)
+              .areEqual(type, _coreTypes.stringNonNullableRawType) &&
+          !isNullable(e)) {
+        parts.add(jsExpr);
+      } else if (_shouldCallObjectMemberHelper(e)) {
+        parts.add(runtimeCall('str(#)', [jsExpr]));
+      } else {
+        // It is safe to call a version of `str()` that does not probe for the
+        // toString method before calling it.
+        parts.add(runtimeCall('strSafe(#)', [jsExpr]));
+      }
     }
     if (parts.isEmpty) return js.string('');
     return js_ast.Expression.binary(parts, '+');

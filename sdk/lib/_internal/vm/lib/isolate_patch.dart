@@ -411,12 +411,12 @@ final class Isolate {
     if (automaticPackageResolution) {
       if (packageRoot != null) {
         throw new ArgumentError("Cannot simultaneously request "
-            "automaticPackageResolution and specify a"
+            "automaticPackageResolution and specify a "
             "packageRoot.");
       }
       if (packageConfig != null) {
         throw new ArgumentError("Cannot simultaneously request "
-            "automaticPackageResolution and specify a"
+            "automaticPackageResolution and specify a "
             "packageConfig.");
       }
     } else {

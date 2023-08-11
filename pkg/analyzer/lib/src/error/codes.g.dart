@@ -1664,6 +1664,21 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the representation type of the implemented extension type
+  ///  1: the name of the implemented extension type
+  ///  2: the representation type of the this extension type
+  ///  3: the name of the this extension type
+  static const CompileTimeErrorCode
+      EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE',
+    "'{0}', the representation type of '{1}', is not a supertype of '{2}', the "
+        "representation type of '{3}'.",
+    correctionMessage:
+        "Try specifying a different type, or remove the type from the list.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the extension type
   ///  1: the name of the conflicting member
   static const CompileTimeErrorCode EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT =

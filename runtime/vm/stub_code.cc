@@ -6,7 +6,6 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "vm/app_snapshot.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/flags.h"
 #include "vm/heap/safepoint.h"
