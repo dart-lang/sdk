@@ -9863,6 +9863,97 @@ main() {
             []),
       ]);
     });
+
+    group('Split points:', () {
+      test('Guarded', () {
+        // This test verifies that for a guarded pattern, the join of the two
+        // "unmatched" control flow paths corresponds to a split point at the
+        // beginning of the pattern.
+        var i = Var('i');
+        h.run([
+          declare(i, initializer: expr('int?')),
+          ifCase(
+              second(throw_(expr('Object')), expr('int')).checkType('int'),
+              objectPattern(requiredType: 'int', fields: [])
+                  .when(i.eq(nullLiteral)),
+              [],
+              [
+                // There is a join point here, joining the flow control paths
+                // where (a) the pattern `int()` failed to match and (b) the
+                // guard `i == null` was not satisfied. Since the scrutinee has
+                // type `int`, and the pattern is `int()`, the pattern is
+                // guaranteed to match, so path (a) is unreachable. Path (b) is
+                // also unreachable due to the fact that the scrutinee throws,
+                // but since the split point is the beginning of the pattern,
+                // path (b) is reachable from the split point. So the promotion
+                // implied by (b) is preserved after the join.
+                checkPromoted(i, 'int'),
+                // Note that due to the `throw` in the scrutinee, this code is
+                // unreachable.
+                checkReachable(false),
+              ]),
+        ]);
+      });
+
+      test('Logical-or', () {
+        // This test verifies that for a logical-or pattern, the join of the two
+        // "matched" control flow paths corresponds to a split point at the
+        // beginning of the top level pattern.
+        var x = Var('x');
+        h.run([
+          ifCase(
+              expr('(Null, Null, int?)'),
+              recordPattern([
+                relationalPattern('!=', nullLiteral).recordField(),
+                wildcard().recordField(),
+                wildcard().recordField()
+              ])
+                  // At this point, control flow is unreachable due to the fact
+                  // that the `!= null` pattern in the first field of the
+                  // record pattern above can never match the type `Null`.
+                  .and(recordPattern([
+                    wildcard().recordField(),
+                    relationalPattern('!=', nullLiteral).recordField(),
+                    wildcard().recordField()
+                  ])
+                          // At this point, control flow is unreachable for a
+                          // second reason: because the `!= null` pattern in the
+                          // second field of the record pattern above can never
+                          // match the type `Null`.
+                          .or(recordPattern([
+                    wildcard().recordField(),
+                    wildcard().recordField(),
+                    wildcard().nullCheck.recordField()
+                  ])
+                              // At this point, the third field of the scrutinee
+                              // is promoted from `int?` to `int`, due to the
+                              // null check pattern.
+                              )
+                      // At this point, there is a control flow join between the
+                      // two branches of the logical-or pattern. Since the split
+                      // point corresponding to the control flow join is at the
+                      // beginning of the top level pattern, both branches are
+                      // considered unreachable, so neither is favored in the
+                      // join, and therefore, the promotion from the second
+                      // branch is lost.
+                      )
+                  .and(
+                      // The record pattern below matches `x` to the unpromoted
+                      // type of the third field of the scrutinee, so we just
+                      // have to verify that it has the expected type of `int?`.
+                      recordPattern([
+                    wildcard().recordField(),
+                    wildcard().recordField(),
+                    x.pattern(expectInferredType: 'int?').recordField()
+                  ])),
+              [
+                // As a sanity check, confirm that the overall pattern
+                // can't ever match.
+                checkReachable(false),
+              ]),
+        ]);
+      });
+    });
   });
 }
 

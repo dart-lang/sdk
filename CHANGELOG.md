@@ -2,6 +2,20 @@
 
 ### Language
 
+- **Breaking Change** [#53167][]: Use a more precise split point for refutable
+  patterns. Previously, in an if-case statement, if flow analysis could prove
+  that the scrutinee expression was guaranteed to throw an exception, it would
+  sometimes fail to propagate type promotions implied by the pattern to the
+  (dead) code that follows. This change makes the type promotion behavior of
+  if-case statements consistent regardless of whether the scrutinee expression
+  throws an exception.
+
+  No live code is affected by this change, but there is a small chance that the
+  change in types will cause a compile-time error to appear in some dead code in
+  the user's project, where no compile-time error appeared previously.
+
+[#53167]: https://github.com/dart-lang/sdk/issues/53167
+
 ### Libraries
 
 #### `dart:js_interop`

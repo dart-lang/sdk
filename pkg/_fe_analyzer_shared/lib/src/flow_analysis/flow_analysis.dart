@@ -5483,7 +5483,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       _current = guardInfo.ifTrue;
       unmatched = _join(unmatched, guardInfo.ifFalse);
     }
-    return unmatched;
+    _current = _current.unsplit();
+    return unmatched.unsplit();
   }
 
   void _popScrutinee() {
@@ -5496,6 +5497,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// into a pattern or subpattern match.  [matchedValueInfo] should be the
   /// [EqualityInfo] representing the value being matched.
   void _pushPattern(_Reference<Type> matchedValueInfo) {
+    _current = _current.split();
     _stack.add(new _TopPatternContext<Type>(matchedValueInfo, _unmatched));
     _unmatched = _current.setUnreachable();
   }
