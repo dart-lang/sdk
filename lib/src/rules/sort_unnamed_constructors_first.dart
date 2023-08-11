@@ -54,6 +54,7 @@ class SortUnnamedConstructorsFirst extends LintRule {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addEnumDeclaration(this, visitor);
+    registry.addExtensionTypeDeclaration(this, visitor);
   }
 }
 
@@ -85,6 +86,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
+    check(node.members);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    if (node.representation.constructorName == null) return;
     check(node.members);
   }
 }

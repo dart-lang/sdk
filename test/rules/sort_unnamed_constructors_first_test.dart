@@ -15,6 +15,9 @@ main() {
 @reflectiveTest
 class SortUnnamedConstructorsFirstTest extends LintRuleTest {
   @override
+  List<String> get experiments => ['inline-class'];
+
+  @override
   String get lintRule => 'sort_unnamed_constructors_first';
 
   test_class_sorted() async {
@@ -60,6 +63,30 @@ enum A {
 }
 ''', [
       lint(47, 1),
+    ]);
+  }
+
+  test_extensionType() async {
+    await assertDiagnostics(r'''
+extension type E.a(Object o) {
+  void m() { }
+  E.b(this.o);
+  E(this.o);
+}
+''', [
+      lint(63, 1),
+    ]);
+  }
+
+  test_extensionType_invalidConstructor() async {
+    await assertDiagnostics(r'''
+extension type E(Object o) {
+  void m() { }
+  E(this.o);
+}
+''', [
+      // No lint.
+      // todo(pq): Add `duplicate_constructor` diagnostic when it is reported.
     ]);
   }
 }
