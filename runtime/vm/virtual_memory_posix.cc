@@ -367,6 +367,13 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   if (dual_mapping) {
     int fd = memfd_create(name, MFD_CLOEXEC);
     if (fd == -1) {
+      int error = errno;
+      if (error != ENOMEM) {
+        const int kBufferSize = 1024;
+        char error_buf[kBufferSize];
+        FATAL("memfd_create failed: %d (%s)", error,
+              Utils::StrError(error, error_buf, kBufferSize));
+      }
       return nullptr;
     }
     if (ftruncate(fd, size) == -1) {
