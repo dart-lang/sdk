@@ -342,10 +342,15 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
   declaration. If you haven't upgraded a class to Dart 3.0, you can still use it
   as a mixin.
 
-- **Breaking Change** [#50902][]: Dart reports a compile-time error if a
+- **Breaking change** [#50902][]: Dart reports a compile-time error if a
   `continue` statement targets a [label] that is not a loop (`for`, `do` and
   `while` statements) or a `switch` member. Fix this by changing the `continue`
   to target a valid labeled statement.
+
+- **Breaking change** [language/#2357][]: Starting in language version 3.0,
+  Dart reports a compile-time error if a colon (`:`) is used as the
+  separator before the default value of an optional named parameter.
+  Fix this by changing the colon (`:`) to an equal sign (`=`).
 
 [records]: https://dart.dev/language/records
 [tuples]: https://en.wikipedia.org/wiki/Tuple
@@ -361,6 +366,7 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 [mixin class]: https://dart.dev/language/mixins#class-mixin-or-mixin-class
 [#50902]: https://github.com/dart-lang/sdk/issues/50902
 [label]: https://dart.dev/language/branches#switch
+[language/#2357][]: https://github.com/dart-lang/language/issues/2357
 
 ### Libraries
 
