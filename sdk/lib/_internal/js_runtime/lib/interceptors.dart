@@ -66,17 +66,17 @@ part 'js_array.dart';
 part 'js_number.dart';
 part 'js_string.dart';
 
-final JavaScriptSymbol DART_CLOSURE_PROPERTY_NAME =
+final String DART_CLOSURE_PROPERTY_NAME =
     getIsolateAffinityTag(r'_$dart_dartClosure');
 
 getDispatchProperty(object) {
-  return JS('', '#[#]', object,
-      JS_EMBEDDED_GLOBAL('JavaScriptSymbol', DISPATCH_PROPERTY_NAME));
+  return JS(
+      '', '#[#]', object, JS_EMBEDDED_GLOBAL('String', DISPATCH_PROPERTY_NAME));
 }
 
 setDispatchProperty(object, value) {
-  defineProperty(object,
-      JS_EMBEDDED_GLOBAL('JavaScriptSymbol', DISPATCH_PROPERTY_NAME), value);
+  defineProperty(
+      object, JS_EMBEDDED_GLOBAL('String', DISPATCH_PROPERTY_NAME), value);
 }
 
 // Avoid inlining this method because inlining gives us multiple allocation
@@ -191,8 +191,11 @@ getNativeInterceptor(object) {
   return JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject);
 }
 
-final JavaScriptSymbol JS_INTEROP_INTERCEPTOR_TAG =
-    getIsolateAffinityTag(r'_$dart_js');
+// A JS String or Symbol.
+dynamic _JS_INTEROP_INTERCEPTOR_TAG = null;
+get JS_INTEROP_INTERCEPTOR_TAG {
+  return _JS_INTEROP_INTERCEPTOR_TAG ??= getIsolateAffinityTag(r'_$dart_js');
+}
 
 lookupInterceptorByConstructor(constructor) {
   return constructor == null

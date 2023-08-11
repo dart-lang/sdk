@@ -68,8 +68,7 @@ String toStringForNativeObject(var obj) {
 int hashCodeForNativeObject(object) => Primitives.objectHashCode(object);
 
 /// Sets a JavaScript property on an object.
-void defineProperty(
-    var obj, Object /*String | JavaScriptSymbol*/ property, var value) {
+void defineProperty(var obj, String property, var value) {
   JS(
       'void',
       'Object.defineProperty(#, #, '

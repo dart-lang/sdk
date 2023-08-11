@@ -2808,12 +2808,15 @@ String jsonEncodeNative(String string) {
   return JS('String', 'JSON.stringify(#)', string);
 }
 
-/// Returns a property symbol for this isolate to place private data on
-/// JavaScript objects where we need to avoid other isolates from seeing the
-/// data.  This happens when multiple programs are loaded in the same JavaScript
-/// context (i.e. page).  The property is based on [name].
-JavaScriptSymbol getIsolateAffinityTag(String name) {
-  return JS('JavaScriptSymbol', 'Symbol(#)', name);
+/// Returns a property name for placing data on JavaScript objects shared
+/// between DOM isolates.  This happens when multiple programs are loaded in the
+/// same JavaScript context (i.e. page).  The name is based on [name] but with
+/// an additional part that is unique for each isolate.
+///
+/// The form of the name is '___dart_$name_$id'.
+String getIsolateAffinityTag(String name) {
+  var isolateTagGetter = JS_EMBEDDED_GLOBAL('', GET_ISOLATE_TAG);
+  return JS('String', '#(#)', isolateTagGetter, name);
 }
 
 final Map<String, Completer<Null>?> _loadingLibraries = {};
