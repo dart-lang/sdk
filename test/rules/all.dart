@@ -56,6 +56,7 @@ import 'directives_ordering_test.dart' as directives_ordering;
 import 'discarded_futures_test.dart' as discarded_futures;
 import 'do_not_use_environment_test.dart' as do_not_use_environment;
 import 'empty_catches_test.dart' as empty_catches;
+import 'empty_constructor_bodies_test.dart' as empty_constructor_bodies;
 import 'empty_statements_test.dart' as empty_statements;
 import 'eol_at_end_of_file_test.dart' as eol_at_end_of_file;
 import 'exhaustive_cases_test.dart' as exhaustive_cases;
@@ -249,6 +250,7 @@ void main() {
   discarded_futures.main();
   do_not_use_environment.main();
   empty_catches.main();
+  empty_constructor_bodies.main();
   empty_statements.main();
   eol_at_end_of_file.main();
   exhaustive_cases.main();
