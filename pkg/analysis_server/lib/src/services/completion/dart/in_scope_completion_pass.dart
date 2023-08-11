@@ -8,8 +8,10 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_collecto
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 
 /// A completion pass that will create candidate suggestions based on the
 /// elements in scope in the library containing the selection, as well as
@@ -108,6 +110,18 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitCascadeExpression(CascadeExpression node) {
+    collector.completionLocation = 'CascadeExpression_cascadeSection';
+    _forExpression(node);
+  }
+
+  @override
+  void visitCaseClause(CaseClause node) {
+    collector.completionLocation = 'CaseClause_pattern';
+    _forPattern();
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     if (offset < node.classKeyword.offset) {
       keywordHelper.addClassModifiers(node);
@@ -139,6 +153,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitConditionalExpression(ConditionalExpression node) {
+    // TODO(brianwilkerson) Consider adding a location for the condition.
+    if (offset >= node.question.end && offset <= node.colon.offset) {
+      collector.completionLocation = 'ConditionalExpression_thenExpression';
+    } else if (offset >= node.colon.end) {
+      collector.completionLocation = 'ConditionalExpression_elseExpression';
+    }
+    _forExpression(node);
+  }
+
+  @override
   void visitConstantPattern(ConstantPattern node) {
     var expression = node.expression;
     if (expression is SimpleIdentifier) {
@@ -154,6 +179,41 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         collector.completionLocation = 'ConstructorDeclaration_initializer';
         keywordHelper.addConstructorInitializerKeywords(node);
       }
+    }
+  }
+
+  @override
+  void visitConstructorReference(ConstructorReference node) {
+    _forExpression(node);
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    var name = node.name;
+    if (name is SyntheticStringToken) {
+      return;
+    }
+    if (node.keyword != null) {
+      var type = node.type;
+      if (!type.isSimpleIdentifier && name.coversOffset(offset)) {
+        // Don't suggest a name for the variable.
+        return;
+      }
+      // Otherwise it's possible that the type is actually the name and the name
+      // is the going to be the keyword `when`.
+    }
+    var parent = node.parent;
+    if (!(parent is GuardedPattern && parent.hasWhen)) {
+      keywordHelper.addKeyword(Keyword.WHEN);
+    }
+  }
+
+  @override
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    var defaultValue = node.defaultValue;
+    if (defaultValue is Expression && defaultValue.coversOffset(offset)) {
+      collector.completionLocation = 'DefaultFormalParameter_defaultValue';
+      _forExpression(defaultValue);
     }
   }
 
@@ -195,6 +255,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    var expression = node.expression;
+    if (offset >= node.functionDefinition.end && offset <= expression.end) {
+      collector.completionLocation = 'ExpressionFunctionBody_expression';
+      _forExpression(expression);
+    }
+  }
+
+  @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     if (offset < node.extensionKeyword.offset) {
       // There are no modifiers for extensions.
@@ -227,6 +296,21 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    _forExpression(node);
+  }
+
+  @override
+  void visitForElement(ForElement node) {
+    var literal = node.thisOrAncestorOfType<TypedLiteral>();
+    if (literal is ListLiteral) {
+      _forCollectionElement(literal, literal.elements);
+    } else if (literal is SetOrMapLiteral) {
+      _forCollectionElement(literal, literal.elements);
+    }
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     // If the cursor is at the beginning of the declaration, include the
     // compilation unit keywords. See dartbug.com/41039.
@@ -240,8 +324,50 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    _forExpression(node);
+  }
+
+  @override
+  void visitFunctionReference(FunctionReference node) {
+    _forExpression(node);
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    if (offset >= node.equals.end && offset <= node.semicolon.offset) {
+      keywordHelper.addKeyword(Keyword.DYNAMIC);
+      keywordHelper.addKeyword(Keyword.VOID);
+    }
+  }
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    _forExpression(node);
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    var keyword = node.keyword;
+    if (keyword != null && offset > keyword.end) {
+      // no keywords in 'new ^' expression
+    } else {
+      _forExpression(node);
+    }
+  }
+
+  @override
   void visitIntegerLiteral(IntegerLiteral node) {
     _visitParentIfAtOrBeforeNode(node);
+  }
+
+  @override
+  void visitIsExpression(IsExpression node) {
+    if (node.isOperator.coversOffset(offset)) {
+      keywordHelper.addKeyword(Keyword.IS);
+    } else {
+      _forExpression(node);
+    }
   }
 
   @override
@@ -329,7 +455,31 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitNamedExpression(NamedExpression node) {
+    if (offset >= node.name.end) {
+      _forExpression(node);
+    }
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node) {
+    _forExpression(node);
+  }
+
+  @override
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
+    var expression = node.expression;
+    if (expression is Identifier || expression is PropertyAccess) {
+      if (offset == node.rightParenthesis.offset) {
+        var next = expression.endToken.next;
+        if (next?.type == TokenType.IDENTIFIER) {
+          // Fasta parses `if (x i^)` as `if (x ^)` where the `i` is in the
+          // token stream but not part of the `ParenthesizedExpression`.
+          keywordHelper.addKeyword(Keyword.IS);
+          return;
+        }
+      }
+    }
     _forExpression(node);
   }
 
@@ -337,6 +487,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitParenthesizedPattern(ParenthesizedPattern node) {
     collector.completionLocation = 'ParenthesizedPattern_expression';
     _forPattern();
+  }
+
+  @override
+  void visitPatternAssignment(PatternAssignment node) {
+    _forExpression(node);
   }
 
   @override
@@ -357,6 +512,36 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       _forVariablePattern();
     } else {
       _forPattern();
+    }
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    _forExpression(node);
+  }
+
+  @override
+  void visitPostfixExpression(PostfixExpression node) {
+    _forExpression(node);
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (offset <= node.period.offset) {
+      _forExpression(node);
+    }
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    _forExpression(node);
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    // suggestions before '.' but not after
+    if (offset <= node.operator.offset) {
+      _forExpression(node);
     }
   }
 
@@ -404,6 +589,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitSwitchExpression(SwitchExpression node) {
+    if (offset >= node.leftParenthesis.end &&
+        offset <= node.rightParenthesis.offset) {
+      _forExpression(node);
+    }
+  }
+
+  @override
   void visitSymbolLiteral(SymbolLiteral node) {
     _forExpression(node);
   }
@@ -442,10 +635,29 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitTypeArgumentList(TypeArgumentList node) {
+    keywordHelper.addKeyword(Keyword.DYNAMIC);
+    keywordHelper.addKeyword(Keyword.VOID);
+  }
+
+  @override
+  void visitTypeLiteral(TypeLiteral node) {
+    _forExpression(node);
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     var equals = node.equals;
     if (equals != null && offset >= equals.end) {
       collector.completionLocation = 'VariableDeclaration_initializer';
+      _forExpression(node);
+    }
+  }
+
+  @override
+  void visitWhenClause(WhenClause node) {
+    var whenKeyword = node.whenKeyword;
+    if (!whenKeyword.isSynthetic && offset > whenKeyword.end) {
       _forExpression(node);
     }
   }
@@ -528,5 +740,42 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset <= node.offset) {
       node.parent?.accept(this);
     }
+  }
+}
+
+extension on GuardedPattern {
+  /// Return `true` if this pattern has, or might have, a `when` keyword.
+  bool get hasWhen {
+    if (whenClause != null) {
+      return true;
+    }
+    var pattern = this.pattern;
+    if (pattern is DeclaredVariablePattern) {
+      if (pattern.name.lexeme == 'when') {
+        final type = pattern.type;
+        if (type is NamedType && type.typeArguments == null) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+}
+
+extension on SyntacticEntity? {
+  /// Return `true` if the receiver covers the [offset].
+  bool coversOffset(int offset) {
+    final self = this;
+    return self != null && self.offset <= offset && self.end >= offset;
+  }
+}
+
+extension on TypeAnnotation? {
+  bool get isSimpleIdentifier {
+    var self = this;
+    return self is NamedType &&
+        self.question == null &&
+        self.typeArguments == null &&
+        self.importPrefix == null;
   }
 }
