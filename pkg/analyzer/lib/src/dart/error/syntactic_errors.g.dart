@@ -1500,6 +1500,13 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try combining all of the groups into a single group.",
   );
 
+  static const ParserErrorCode MULTIPLE_REPRESENTATION_FIELDS = ParserErrorCode(
+    'MULTIPLE_REPRESENTATION_FIELDS',
+    "Each extension type should have exactly one representation field.",
+    correctionMessage:
+        "Try combining fields into a record, or removing extra fields.",
+  );
+
   ///  Parameters:
   ///  0: the number of variables being declared
   static const ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = ParserErrorCode(

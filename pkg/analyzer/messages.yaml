@@ -20475,6 +20475,9 @@ ParserErrorCode:
   MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
     problemMessage: "Can't have multiple groups of positional parameters in a single parameter list."
     correctionMessage: Try combining all of the groups into a single group.
+  MULTIPLE_REPRESENTATION_FIELDS:
+    problemMessage: Each extension type should have exactly one representation field.
+    correctionMessage: Try combining fields into a record, or removing extra fields.
   MULTIPLE_VARIABLES_IN_FOR_EACH:
     problemMessage: "A single loop variable must be declared in a for-each loop before the 'in', but {0} were found."
     correctionMessage: Try moving all but one of the declarations inside the loop body.

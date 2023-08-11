@@ -3114,6 +3114,11 @@ ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
   status: needsFix
   notes: |-
     Merge the groups.
+ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS:
+  status: needsFix
+  notes: |-
+    Remove extra fields.
+    Maybe wrap into a record.
 ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH:
   status: noFix
 ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS:

@@ -2836,6 +2836,14 @@ class AstBuilder extends StackListener {
         );
       }
       fieldName = firstFormalParameter.name!;
+      // Check for multiple fields.
+      final maybeComma = firstFormalParameter.endToken.next;
+      if (maybeComma != null && maybeComma != formalParameterList.endToken) {
+        errorReporter.errorReporter?.reportErrorForToken(
+          ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS,
+          maybeComma,
+        );
+      }
     } else {
       errorReporter.errorReporter?.reportErrorForToken(
         ParserErrorCode.EXPECTED_REPRESENTATION_FIELD,
