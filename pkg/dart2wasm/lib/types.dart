@@ -432,10 +432,12 @@ class Types {
 
     final s = normalize(type.typeArgument);
 
-    // `coreTypes.isTope` and `coreTypes.isObject` take into account the
-    // normalization rules of `futureOr`.
+    // `coreTypes.isTop` and `coreTypes.isObject` take into account the
+    // normalization rules of `FutureOr`.
     if (coreTypes.isTop(type) || coreTypes.isObject(type)) {
-      return s;
+      return type.declaredNullability == Nullability.nullable
+          ? s.withDeclaredNullability(Nullability.nullable)
+          : s;
     } else if (s is NeverType) {
       return InterfaceType(coreTypes.futureClass, Nullability.nonNullable,
           const [const NeverType.nonNullable()]);

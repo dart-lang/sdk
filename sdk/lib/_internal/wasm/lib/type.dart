@@ -792,7 +792,7 @@ class _TypeUniverse {
   static _Type createNormalizedFutureOrType(
       bool isDeclaredNullable, _Type typeArgument) {
     if (isObjectOrTopType(typeArgument)) {
-      return typeArgument;
+      return isDeclaredNullable ? typeArgument.asNullable : typeArgument;
     } else if (typeArgument.isNever) {
       return _InterfaceType(
           ClassID.cidFuture, isDeclaredNullable, [const _NeverType()]);
