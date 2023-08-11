@@ -993,6 +993,16 @@ class _TypeUniverse {
           return true;
         }
       }
+
+      // A function type parameter type is a subtype of `FutureOr<T>` if it's a
+      // subtype of `T`.
+      if (t.isFutureOr) {
+        _FutureOrType tFutureOr = t.as<_FutureOrType>();
+        if (isSubtype(s, sEnv, tFutureOr.typeArgument, tEnv)) {
+          return true;
+        }
+      }
+
       // Otherwise, compare the bound to the other type.
       _Type bound = sEnvAdjusted.lookupAdjusted(sTypeParam);
       return isSubtype(bound, sEnvAdjusted, t, tEnv);
