@@ -124,6 +124,8 @@ import 'prefer_if_elements_to_conditional_expressions_test.dart'
 import 'prefer_inlined_adds_test.dart' as prefer_inlined_adds;
 import 'prefer_interpolation_to_compose_strings_test.dart'
     as prefer_interpolation_to_compose_strings;
+// ignore: library_prefixes
+import 'prefer_iterable_whereType_test.dart' as prefer_iterable_whereType;
 import 'prefer_mixin_test.dart' as prefer_mixin;
 import 'prefer_null_aware_method_calls_test.dart'
     as prefer_null_aware_method_calls;
@@ -301,6 +303,7 @@ void main() {
   prefer_if_elements_to_conditional_expressions.main();
   prefer_inlined_adds.main();
   prefer_interpolation_to_compose_strings.main();
+  prefer_iterable_whereType.main();
   prefer_mixin.main();
   prefer_null_aware_method_calls.main();
   prefer_null_aware_operators.main();
