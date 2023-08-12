@@ -12,6 +12,31 @@ bool get hasUnsoundNullSafety => const <Null>[] is List<Object>;
 /// Whether the program is running with sound null safety.
 bool get hasSoundNullSafety => !hasUnsoundNullSafety;
 
+/// Whether the test was compiled by Dart2JS as production web code.
+///
+/// Production code unsafely omits some type checks that are required by the
+/// language, under the assumption that production code will have no type
+/// errors.
+///
+/// For example an invalid implicit down-cast like
+/// `dynamic d = 3; String s = d;` might not be caught in production code.
+final dart2jsProductionMode = const bool.fromEnvironment(
+    'dart.tool.dart2js.types:trust',
+    defaultValue: false);
+
+/// Whether the test is running in a web environment, using JavaScript numbers.
+///
+/// In web compiled code, Dart integers are compiled to JavaScript numbers,
+/// and have different ranges and behaviors of some operations, compared to
+/// native compiled code (see [int] for more details about the difference
+/// between native numbers and numbers on the web).
+///
+/// For example, using JavaScript numbers, an `int` value like `1` also
+/// implements `double` and is the same object as `1.0`. In native numbers,
+/// those values are two different objects, and integers do not implement
+/// `double`.
+final bool webNumbers = identical(1, 1.0);
+
 /// Expect is used for tests that do not want to make use of the
 /// Dart unit test library - for example, the core language tests.
 /// Third parties are discouraged from using this, and should use

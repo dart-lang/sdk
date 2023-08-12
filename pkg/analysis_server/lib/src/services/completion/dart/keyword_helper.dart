@@ -232,8 +232,15 @@ class KeywordHelper {
       }
       if (node is Expression) {
         return !node.inConstantContext;
+      } else if (node is PatternVariableDeclaration) {
+        return true;
+      } else if (node is RecordPattern) {
+        // This might be a parenthesized pattern.
+        return node.fields.isEmpty;
       } else if (node is VariableDeclaration) {
         return !node.isConst;
+      } else if (node is WhenClause) {
+        return true;
       }
       return false;
     }

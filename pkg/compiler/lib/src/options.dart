@@ -1231,6 +1231,14 @@ class CompilerOptions implements DiagnosticOptions {
     }
 
     environment['dart.web.assertions_enabled'] = '$enableUserAssertions';
+    environment['dart.tool.dart2js'] = '${true}';
+    // Eventually pragmas and commandline flags should be aligned so that users
+    // setting these flag is equivalent to setting the relevant pragmas
+    // globally.
+    // See: https://github.com/dart-lang/sdk/issues/49475
+    // https://github.com/dart-lang/sdk/blob/main/pkg/compiler/doc/pragmas.md
+    environment['dart.tool.dart2js.primitives:trust'] = '$trustPrimitives';
+    environment['dart.tool.dart2js.types:trust'] = '$omitImplicitChecks';
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.

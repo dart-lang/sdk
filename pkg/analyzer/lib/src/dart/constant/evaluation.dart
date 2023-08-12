@@ -1050,8 +1050,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   @override
   Constant visitPrefixedIdentifier(PrefixedIdentifier node) {
-    SimpleIdentifier prefixNode = node.prefix;
-    var prefixElement = prefixNode.staticElement;
+    final prefixNode = node.prefix;
+    final prefixElement = prefixNode.staticElement;
 
     // importPrefix.CONST
     if (prefixElement is PrefixElement) {
@@ -1060,15 +1060,17 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT);
       }
     } else if (prefixElement is! ExtensionElement) {
-      var prefixResult = _getConstant(prefixNode);
+      final prefixResult = _getConstant(prefixNode);
       if (prefixResult is! DartObjectImpl) {
         return prefixResult;
       }
 
       // String.length
       if (prefixElement is! InterfaceElement) {
-        if (_isStringLength(prefixResult, node.identifier)) {
-          return prefixResult.stringLength(typeSystem);
+        final stringLengthResult =
+            _evaluateStringLength(prefixResult, node.identifier, node);
+        if (stringLengthResult != null) {
+          return stringLengthResult;
         }
       }
     }
@@ -1113,12 +1115,15 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   Constant visitPropertyAccess(PropertyAccess node) {
     var target = node.target;
     if (target != null) {
-      var prefixResult = _getConstant(target);
+      final prefixResult = _getConstant(target);
       if (prefixResult is! DartObjectImpl) {
         return prefixResult;
       }
-      if (_isStringLength(prefixResult, node.propertyName)) {
-        return prefixResult.stringLength(typeSystem);
+
+      final stringLengthResult =
+          _evaluateStringLength(prefixResult, node.propertyName, node);
+      if (stringLengthResult != null) {
+        return stringLengthResult;
       }
     }
     return _getConstantValue(
@@ -1508,6 +1513,39 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     _errorReporter.reportErrorForNode(code, node);
   }
 
+  /// Attempt to evaluate a constant that reads the length of a `String`.
+  ///
+  /// Return a valid [DartObjectImpl] if the given [targetResult] represents a
+  /// `String` and the [identifier] is `length`, an [InvalidConstant] if there's
+  /// an error, and `null` otherwise.
+  Constant? _evaluateStringLength(DartObjectImpl targetResult,
+      SimpleIdentifier identifier, AstNode errorNode) {
+    if (identifier.staticElement?.enclosingElement is ExtensionElement) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, errorNode);
+      return InvalidConstant(
+          errorNode, CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD);
+    }
+
+    if (identifier.name == 'length') {
+      final targetType = targetResult.type;
+      if (!(targetType is InterfaceType && targetType.isDartCoreString)) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
+            errorNode,
+            [identifier.name, targetType]);
+        return InvalidConstant(
+            errorNode, CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
+            arguments: [identifier.name, targetType]);
+      }
+      return targetResult.stringLength(typeSystem);
+    }
+
+    // TODO(kallentu): Make a more specific error here if we aren't accessing
+    // the '.length' property.
+    return null;
+  }
+
   /// Return a [Constant], evaluated by the [ConstantVisitor].
   ///
   /// The [ConstantVisitor] shouldn't return any `null` values even though
@@ -1785,19 +1823,6 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
     }
     return value;
-  }
-
-  /// Return `true` if the given [targetResult] represents a string and the
-  /// [identifier] is "length".
-  bool _isStringLength(
-      DartObjectImpl targetResult, SimpleIdentifier identifier) {
-    final targetType = targetResult.type;
-    if (!(targetType is InterfaceType &&
-        targetType.element == _typeProvider.stringElement)) {
-      return false;
-    }
-    return identifier.name == 'length' &&
-        identifier.staticElement?.enclosingElement is! ExtensionElement;
   }
 
   /// Returns the first not-potentially constant error found with [node] or

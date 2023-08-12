@@ -58,17 +58,6 @@ class KeywordContributor extends DartCompletionContributor {
 
 /// A visitor for generating keyword suggestions.
 class _KeywordVisitor extends SimpleAstVisitor<void> {
-  /// The keywords that are valid at the beginning of a pattern (and hence a
-  /// guarded pattern).
-  static const List<Keyword> patternKeywords = [
-    Keyword.CONST,
-    Keyword.FALSE,
-    Keyword.FINAL,
-    Keyword.NULL,
-    Keyword.TRUE,
-    Keyword.VAR,
-  ];
-
   final DartCompletionRequest request;
 
   final SuggestionBuilder builder;
@@ -171,16 +160,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitCascadeExpression(CascadeExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitCaseClause(CaseClause node) {
-    _addSuggestions(patternKeywords);
-  }
-
-  @override
   void visitCompilationUnit(CompilationUnit node) {
     SyntacticEntity? previousMember;
     for (var member in node.childEntities) {
@@ -239,46 +218,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
       }
       _addCompilationUnitKeywords();
     }
-  }
-
-  @override
-  void visitConditionalExpression(ConditionalExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitConstructorReference(ConstructorReference node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    if (node.name is SyntheticStringToken) {
-      return;
-    }
-    var parent = node.parent;
-    if (!(parent is GuardedPattern && parent.hasWhen)) {
-      _addSuggestion(Keyword.WHEN);
-    }
-  }
-
-  @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    if (entity == node.defaultValue) {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    if (entity == node.expression) {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitExtensionOverride(ExtensionOverride node) {
-    _addExpressionKeywords(node);
   }
 
   @override
@@ -345,12 +284,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   @override
   void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
     _visitForEachParts(node);
-  }
-
-  @override
-  void visitForElement(ForElement node) {
-    _addCollectionElementKeywords();
-    _addExpressionKeywords(node);
   }
 
   @override
@@ -497,24 +430,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitFunctionReference(FunctionReference node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
-    if (entity == node.type) {
-      _addSuggestion(Keyword.DYNAMIC);
-      _addSuggestion(Keyword.VOID);
-    }
-  }
-
-  @override
   void visitIfElement(IfElement node) {
     if (entity == node.rightParenthesis) {
       var caseClause = node.caseClause;
@@ -578,29 +493,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitIndexExpression(IndexExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (entity == node.constructorName) {
-      // no keywords in 'new ^' expression
-    } else {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitIsExpression(IsExpression node) {
-    if (entity == node.isOperator) {
-      _addSuggestion(Keyword.IS);
-    } else {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
   void visitLibraryIdentifier(LibraryIdentifier node) {
     // no suggestions
   }
@@ -640,65 +532,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
       _addSuggestion(Keyword.DYNAMIC);
       _addSuggestion(Keyword.VOID);
     } else {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitNamedExpression(NamedExpression node) {
-    if (entity is SimpleIdentifier && entity == node.expression) {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitParenthesizedExpression(ParenthesizedExpression node) {
-    var expression = node.expression;
-    if (expression is Identifier || expression is PropertyAccess) {
-      if (entity == node.rightParenthesis) {
-        var next = expression.endToken.next;
-        if (next == entity || next == droppedToken) {
-          // Fasta parses `if (x i^)` as `if (x ^) where the `i` is in the token
-          // stream but not part of the ParenthesizedExpression.
-          _addSuggestion(Keyword.IS);
-          return;
-        }
-      }
-    }
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitPatternAssignment(PatternAssignment node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitPostfixExpression(PostfixExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (entity != node.identifier) {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitPrefixExpression(PrefixExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    // suggestions before '.' but not after
-    if (entity != node.propertyName) {
       _addExpressionKeywords(node);
     }
   }
@@ -747,13 +580,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   @override
   void visitSwitchCase(SwitchCase node) {
     _addStatementKeywords(node);
-  }
-
-  @override
-  void visitSwitchExpression(SwitchExpression node) {
-    if (entity == node.expression) {
-      _addExpressionKeywords(node);
-    }
   }
 
   @override
@@ -817,17 +643,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitTypeArgumentList(TypeArgumentList node) {
-    _addSuggestion(Keyword.DYNAMIC);
-    _addSuggestion(Keyword.VOID);
-  }
-
-  @override
-  void visitTypeLiteral(TypeLiteral node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     var keyword = node.keyword;
     var variables = node.variables;
@@ -841,14 +656,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
         // which case the user might be typing `in`.
         _addSuggestion(Keyword.IN);
       }
-    }
-  }
-
-  @override
-  void visitWhenClause(WhenClause node) {
-    var whenKeyword = node.whenKeyword;
-    if (!whenKeyword.isSynthetic && request.offset > whenKeyword.end) {
-      _addExpressionKeywords(node);
     }
   }
 

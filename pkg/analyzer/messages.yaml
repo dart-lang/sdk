@@ -2587,6 +2587,12 @@ CompileTimeErrorCode:
   CONST_EVAL_FOR_ELEMENT:
     problemMessage: "Constant expressions don't support 'for' elements."
     correctionMessage: "Try replacing the 'for' element with a spread, or removing 'const'."
+  CONST_EVAL_PROPERTY_ACCESS:
+    problemMessage: "The property '{0}' can't be accessed on the type '{1}' in a constant expression."
+    comment: |-
+      Parameters:
+      0: the name of the property being accessed
+      1: the type with the property being accessed
   CONST_EVAL_METHOD_INVOCATION:
     problemMessage: "Methods can't be invoked in constant expressions."
   CONST_EVAL_THROWS_EXCEPTION:
@@ -20475,6 +20481,9 @@ ParserErrorCode:
   MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
     problemMessage: "Can't have multiple groups of positional parameters in a single parameter list."
     correctionMessage: Try combining all of the groups into a single group.
+  MULTIPLE_REPRESENTATION_FIELDS:
+    problemMessage: Each extension type should have exactly one representation field.
+    correctionMessage: Try combining fields into a record, or removing extra fields.
   MULTIPLE_VARIABLES_IN_FOR_EACH:
     problemMessage: "A single loop variable must be declared in a for-each loop before the 'in', but {0} were found."
     correctionMessage: Try moving all but one of the declarations inside the loop body.
@@ -20522,6 +20531,9 @@ ParserErrorCode:
   POSITIONAL_PARAMETER_OUTSIDE_GROUP:
     problemMessage: "Positional parameters must be enclosed in square brackets ('[' and ']')."
     correctionMessage: Try surrounding the positional parameters in square brackets.
+  REPRESENTATION_FIELD_MODIFIER:
+    problemMessage: "Representation fields can't have modifiers."
+    correctionMessage: Try removing the modifier.
   SETTER_IN_FUNCTION:
     problemMessage: "Setters can't be defined within methods or functions."
     correctionMessage: Try moving the setter outside the method or function.

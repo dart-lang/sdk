@@ -773,6 +773,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    _addSubtype(
+      node.name.lexeme,
+      implementsClause: node.implementsClause,
+      memberNodes: node.members,
+    );
+
+    final declaredElement = node.declaredElement!;
+    recordIsAncestorOf(declaredElement);
+
+    super.visitExtensionTypeDeclaration(node);
+  }
+
+  @override
   visitFieldFormalParameter(FieldFormalParameter node) {
     var element = node.declaredElement;
     if (element is FieldFormalParameterElement) {

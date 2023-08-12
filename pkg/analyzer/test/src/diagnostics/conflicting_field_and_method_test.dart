@@ -100,7 +100,7 @@ enum E with M {
   }
 
   test_extensionType_getter() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 extension type A(int it) {
   void foo() {}
 }
@@ -108,9 +108,7 @@ extension type A(int it) {
 extension type B(int it) implements A {
   int get foo => 0;
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 96, 3),
-    ]);
+''');
   }
 
   test_extensionType_setter() async {

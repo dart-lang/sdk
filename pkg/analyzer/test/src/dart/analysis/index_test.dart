@@ -325,6 +325,33 @@ enum E implements A { // 2
 ''');
   }
 
+  test_isImplementedBy_extensionType_class() async {
+    await _indexTestUnit('''
+class A {}
+extension type B(A it) implements A {}
+''');
+    final element = findElement.class_('A');
+    assertElementIndexText(element, r'''
+26 2:16 |B| IS_ANCESTOR_OF
+28 2:18 |A| IS_REFERENCED_BY
+45 2:35 |A| IS_IMPLEMENTED_BY
+45 2:35 |A| IS_REFERENCED_BY
+''');
+  }
+
+  test_isImplementedBy_extensionType_extensionType() async {
+    await _indexTestUnit('''
+extension type A(int it) {}
+extension type B(int it) implements A {}
+''');
+    final element = findElement.extensionType('A');
+    assertElementIndexText(element, r'''
+43 2:16 |B| IS_ANCESTOR_OF
+64 2:37 |A| IS_IMPLEMENTED_BY
+64 2:37 |A| IS_REFERENCED_BY
+''');
+  }
+
   test_isImplementedBy_MixinDeclaration_implementsClause() async {
     await _indexTestUnit('''
 class A {} // 1
@@ -408,6 +435,22 @@ void f(E e) {
 54 5:10 |foo| IS_INVOKED_BY qualified
 71 6:5 |foo| IS_INVOKED_BY
 108 10:5 |foo| IS_INVOKED_BY qualified
+''');
+  }
+
+  test_isInvokedBy_MethodElement_extensionType() async {
+    await _indexTestUnit('''
+extension type A(int it) {
+  void foo() {}
+  void m() {
+    this.foo();
+    foo();
+  }
+}''');
+    final element = findElement.method('foo');
+    assertElementIndexText(element, r'''
+65 4:10 |foo| IS_INVOKED_BY qualified
+76 5:5 |foo| IS_INVOKED_BY
 ''');
   }
 
@@ -1301,6 +1344,88 @@ enum E {
 ''');
   }
 
+  test_isReferencedBy_ConstructorElement_extensionType_primary_named() async {
+    await _indexTestUnit('''
+/// [new A.foo]
+extension type A.foo(int it) {
+  A.bar() : this.foo(0);
+}
+void f() {
+  A.foo();
+  A.foo;
+}
+''');
+    final element = findElement.constructor('foo');
+    assertElementIndexText(element, r'''
+10 1:11 |.foo| IS_REFERENCED_BY qualified
+63 3:17 |.foo| IS_INVOKED_BY qualified
+88 6:4 |.foo| IS_INVOKED_BY qualified
+99 7:4 |.foo| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+''');
+  }
+
+  test_isReferencedBy_ConstructorElement_extensionType_primary_unnamed() async {
+    await _indexTestUnit('''
+/// [new A]
+extension type A(int it) {
+  A.bar() : this(0);
+}
+void f() {
+  A();
+  A.new;
+}
+''');
+    final element = findElement.unnamedConstructor('A');
+    assertElementIndexText(element, r'''
+10 1:11 || IS_REFERENCED_BY qualified
+55 3:17 || IS_INVOKED_BY qualified
+76 6:4 || IS_INVOKED_BY qualified
+83 7:4 |.new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+''');
+  }
+
+  test_isReferencedBy_ConstructorElement_extensionType_secondary_named() async {
+    await _indexTestUnit('''
+/// [new A.foo]
+extension type A(int it) {
+  A.foo(this.it);
+  A.bar() : this.foo(0);
+}
+void f() {
+  A.foo();
+  A.foo;
+}
+''');
+    final element = findElement.constructor('foo');
+    assertElementIndexText(element, r'''
+10 1:11 |.foo| IS_REFERENCED_BY qualified
+77 4:17 |.foo| IS_INVOKED_BY qualified
+102 7:4 |.foo| IS_INVOKED_BY qualified
+113 8:4 |.foo| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+''');
+  }
+
+  test_isReferencedBy_ConstructorElement_extensionType_secondary_unnamed() async {
+    await _indexTestUnit('''
+/// [new A]
+extension type A.named(int it) {
+  A(this.it);
+  A.bar() : this(0);
+}
+void f() {
+  A();
+  A.new;
+}
+''');
+    final element = findElement.unnamedConstructor('A');
+    assertElementIndexText(element, r'''
+10 1:11 || IS_REFERENCED_BY qualified
+75 4:17 || IS_INVOKED_BY qualified
+96 7:4 || IS_INVOKED_BY qualified
+103 8:4 |.new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+''');
+  }
+
   test_isReferencedBy_DynamicElement() async {
     await _indexTestUnit('''
 dynamic f() {
@@ -1422,6 +1547,28 @@ void f() {
     final element = findElement.extension_('E');
     assertElementIndexText(element, r'''
 53 6:3 |E| IS_REFERENCED_BY
+''');
+  }
+
+  test_isReferencedBy_extensionType() async {
+    await _indexTestUnit('''
+extension type A(int it) {
+  static var field;
+}
+void f(A p) {
+  A v;
+  new A();
+  A.field = 1;
+  A.field;
+}
+''');
+    final element = findElement.extensionType('A');
+    assertElementIndexText(element, r'''
+56 4:8 |A| IS_REFERENCED_BY
+65 5:3 |A| IS_REFERENCED_BY
+76 6:7 |A| IS_REFERENCED_BY
+83 7:3 |A| IS_REFERENCED_BY
+98 8:3 |A| IS_REFERENCED_BY
 ''');
   }
 
@@ -1654,6 +1801,35 @@ enum E {
     final element = findElement.field('f');
     assertElementIndexText(element, r'''
 22 3:9 |f| IS_WRITTEN_BY qualified
+''');
+  }
+
+  test_isReferencedBy_FieldElement_extensionType() async {
+    await _indexTestUnit('''
+extension type A(int it) {
+  static int field = 0;
+  void f() {
+    field = 0;
+    field;
+  }
+}
+void f() {
+  A.field = 0;
+  A.field;
+}
+''');
+    final field = findElement.field('field');
+    final getter = field.getter!;
+    final setter = field.setter!;
+
+    assertElementIndexText(getter, r'''
+83 5:5 |field| IS_REFERENCED_BY
+126 10:5 |field| IS_REFERENCED_BY qualified
+''');
+
+    assertElementIndexText(setter, r'''
+68 4:5 |field| IS_REFERENCED_BY
+111 9:5 |field| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -2391,6 +2567,52 @@ enum E with M {
 
     expect(index.subtypes, hasLength(1));
     _assertSubtype(0, '$libP;M', 'E', ['foo']);
+  }
+
+  test_subtypes_extensionType_class() async {
+    String libP = 'package:test/lib.dart;package:test/lib.dart';
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {
+  void method1() {}
+  void method2() {}
+}
+''');
+    await _indexTestUnit('''
+import 'lib.dart';
+
+extension type X(A it) implements A {
+  void method1() {}
+  void method3() {}
+}
+''');
+
+    expect(index.supertypes, hasLength(1));
+    expect(index.subtypes, hasLength(1));
+
+    _assertSubtype(0, '$libP;A', 'X', ['method1', 'method3']);
+  }
+
+  test_subtypes_extensionType_extensionType() async {
+    String libP = 'package:test/lib.dart;package:test/lib.dart';
+    newFile('$testPackageLibPath/lib.dart', '''
+extension type A(int it) {
+  void method1() {}
+  void method2() {}
+}
+''');
+    await _indexTestUnit('''
+import 'lib.dart';
+
+extension type X(int it) implements A {
+  void method1() {}
+  void method3() {}
+}
+''');
+
+    expect(index.supertypes, hasLength(1));
+    expect(index.subtypes, hasLength(1));
+
+    _assertSubtype(0, '$libP;A', 'X', ['method1', 'method3']);
   }
 
   test_subtypes_mixinDeclaration() async {

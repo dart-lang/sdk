@@ -448,6 +448,29 @@ const a = const A();
     ]);
   }
 
+  test_property_length_invalidTarget() async {
+    await assertErrorsInCode('''
+void main() {
+  const RequiresNonEmptyList([1]);
+}
+
+class RequiresNonEmptyList {
+  const RequiresNonEmptyList(List<int> numbers) : assert(numbers.length > 0);
+}
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        16,
+        31,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 138, 14,
+              text:
+                  "The exception is 'The property 'length' can't be accessed on the type 'List<int>' in a constant expression.' and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
   test_redirectingConstructor_paramTypeMismatch() async {
     await assertErrorsInCode(r'''
 class A {

@@ -2048,6 +2048,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           inherited.enclosingElement.displayName,
         ]);
       } else if (inherited is PropertyAccessorElement) {
+        // Extension type methods redeclare getters with the same name.
+        if (_enclosingClass is ExtensionTypeElement && inherited.isGetter) {
+          continue;
+        }
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, method, [
           _enclosingClass!.displayName,
@@ -2075,6 +2079,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           inherited.enclosingElement.displayName,
         ]);
       } else if (inherited is MethodElement) {
+        // Extension type getters redeclare methods with the same name.
+        if (_enclosingClass is ExtensionTypeElement && accessor.isGetter) {
+          continue;
+        }
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, accessor, [
           _enclosingClass!.displayName,

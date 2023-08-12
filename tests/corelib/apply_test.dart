@@ -72,6 +72,11 @@ main() {
 
   // Test that apply works on callable objects when it is passed to a method
   // that expects Function (and not dynamic).
-  Expect.throws(() => testList(42, new Callable(), [13, 29])); //# 01: ok
-  testListTyped(42, new Callable(), [13, 29]); //# 02: ok
+  if (dart2jsProductionMode) {
+    testList(42, new Callable(), [13, 29]);
+  } else {
+    Expect.throws(() => testList(42, new Callable(), [13, 29]));
+  }
+
+  testListTyped(42, new Callable(), [13, 29]);
 }

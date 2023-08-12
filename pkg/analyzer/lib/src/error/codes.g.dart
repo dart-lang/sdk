@@ -843,6 +843,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Methods can't be invoked in constant expressions.",
   );
 
+  ///  Parameters:
+  ///  0: the name of the property being accessed
+  ///  1: the type with the property being accessed
+  static const CompileTimeErrorCode CONST_EVAL_PROPERTY_ACCESS =
+      CompileTimeErrorCode(
+    'CONST_EVAL_PROPERTY_ACCESS',
+    "The property '{0}' can't be accessed on the type '{1}' in a constant "
+        "expression.",
+  );
+
   ///  16.12.2 Const: It is a compile-time error if evaluation of a constant
   ///  object results in an uncaught exception being thrown.
   static const CompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION =
