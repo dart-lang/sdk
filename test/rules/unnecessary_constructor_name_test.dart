@@ -15,6 +15,9 @@ main() {
 @reflectiveTest
 class UnnecessaryConstructorNameTest extends LintRuleTest {
   @override
+  List<String> get experiments => ['inline-class'];
+
+  @override
   String get lintRule => 'unnecessary_constructor_name';
 
   test_constructorDeclaration_named() async {
@@ -35,12 +38,57 @@ class A {
     ]);
   }
 
+  @FailingTest(
+      reason:
+          'https://github.com/dart-lang/linter/pull/4677#discussion_r1291784807')
+  test_constructorDeclaration_new_alreadyDefined() async {
+    await assertDiagnostics(r'''
+class A {
+  A();
+  A.new();
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 19, 5),
+      // A lint should likely not get reported here since we're already
+      // producing a compilation error.
+    ]);
+  }
+
   test_constructorTearoff_new() async {
     await assertNoDiagnostics(r'''
 class A {
 }
 var makeA = A.new;
 ''');
+  }
+
+  test_extensionTypeDeclaration() async {
+    await assertDiagnostics(r'''
+extension type E(int i) {
+  E.new(this.i);
+}
+''', [
+      // No lint.
+      // Specify `duplicate_constructor` diagnostic once reported.
+    ]);
+  }
+
+  test_extensionTypeDeclaration_primaryNamed() async {
+    await assertDiagnostics(r'''
+extension type E.a(int i) {
+  E.new(this.i);
+}
+''', [
+      lint(32, 3),
+    ]);
+  }
+
+  test_extensionTypeDeclaration_primaryNamedNew() async {
+    await assertDiagnostics(r'''
+extension type E.new(int i) { }
+''', [
+      lint(17, 3),
+    ]);
   }
 
   test_instanceCreation_named() async {
