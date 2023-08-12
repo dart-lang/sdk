@@ -1117,6 +1117,8 @@ String str(obj) {
 /// Only called from generated code for string interpolation.
 @notNull
 String strSafe(obj) {
+  // TODO(nshahan) Remove after internal test is fixed b/295486966.
+  if (obj == null) return "null";
   // TODO(40614): Declare `result` as String once non-nullability is sound.
   final result = JS('', '#[#]()', obj, extensionSymbol('toString'));
   if (result is String) return result;
