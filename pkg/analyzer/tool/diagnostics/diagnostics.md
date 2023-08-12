@@ -2333,7 +2333,7 @@ Rename either the member or the constructor.
 
 ### conflicting_generic_interfaces
 
-_The class '{0}' can't implement both '{1}' and '{2}' because the type arguments
+_The {0} '{1}' can't implement both '{2}' and '{3}' because the type arguments
 are different._
 
 #### Description
