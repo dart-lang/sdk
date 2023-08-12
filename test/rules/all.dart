@@ -191,6 +191,7 @@ import 'unrelated_type_equality_checks_test.dart'
     as unrelated_type_equality_checks;
 import 'use_build_context_synchronously_test.dart'
     as use_build_context_synchronously;
+import 'use_colored_box_test.dart' as use_colored_box;
 import 'use_enums_test.dart' as use_enums;
 import 'use_full_hex_values_for_flutter_colors_test.dart'
     as use_full_hex_values_for_flutter_colors;
@@ -354,6 +355,7 @@ void main() {
   unreachable_from_main.main();
   unrelated_type_equality_checks.main();
   use_build_context_synchronously.main();
+  use_colored_box.main();
   use_enums.main();
   use_full_hex_values_for_flutter_colors.main();
   use_function_type_syntax_for_parameters.main();

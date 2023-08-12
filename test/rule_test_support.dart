@@ -451,21 +451,42 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   static void addFlutterPackageFiles(Folder rootFolder) {
     var libFolder = rootFolder.getChildAssumingFolder('lib');
     libFolder.getChildAssumingFile('widgets.dart').writeAsStringSync(r'''
+export 'src/widgets/container.dart';
 export 'src/widgets/framework.dart';
 ''');
 
     libFolder
         .getChildAssumingFolder('src')
         .getChildAssumingFolder('widgets')
-        .getChildAssumingFile('framework.dart')
-        .writeAsStringSync(r'''   
-abstract class BuildContext {
-  Widget get widget;
-  bool get mounted;
+        .getChildAssumingFile('container.dart')
+        .writeAsStringSync(r'''
+import 'framework.dart';
+
+// This is found in dart:ui.
+class Color {
+  Color(int value);
 }
 
 class Container extends StatelessWidget {
-  const Container({super.key});
+  const Container({
+    super.key,
+    Color? color,
+    double? width,
+    Widget? child,
+  });
+}
+
+class SizedBox implements Widget {}
+''');
+
+    libFolder
+        .getChildAssumingFolder('src')
+        .getChildAssumingFolder('widgets')
+        .getChildAssumingFile('framework.dart')
+        .writeAsStringSync(r'''
+abstract class BuildContext {
+  Widget get widget;
+  bool get mounted;
 }
 
 class Key {
@@ -494,12 +515,6 @@ abstract class StatelessWidget extends Widget {
 
   @protected
   Widget build(BuildContext context);
-}
-
-abstract class Widget {
-  final Key? key;
-
-  const Widget({thi.key});
 }
 ''');
   }
