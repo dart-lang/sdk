@@ -123,7 +123,7 @@ vars = {
   "characters_rev": "ec844db851b940d9013719f8474f064e35a01d0f",
   "cli_util_rev": "9b7ce784c2889d62be0d6f66022331cb1e53b5b6",
   "clock_rev": "263e508a36ed90e4d85b60dd70552d20e71a9ae9",
-  "collection_rev": "0a2885a90717cc9322faaa6a7365b69e06b531dc",
+  "collection_rev": "1ed009ea55434f58747209458a21faf8693fc6f7",
   "convert_rev": "79ee174280149817f9925db0613983aadb46eeca",
   "crypto_rev": "8b704c601f4843050624cd334e3b74f6c17315a4",
   "csslib_rev": "7e91228c2c2428455e5bc63bbf89c7bf0f3401b0",
