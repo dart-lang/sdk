@@ -98,6 +98,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         _checkForShadowing(typeParameters, parent.typeParameters, 'enum');
       } else if (parent is ExtensionDeclaration) {
         _checkForShadowing(typeParameters, parent.typeParameters, 'extension');
+      } else if (parent is ExtensionTypeDeclaration) {
+        _checkForShadowing(
+            typeParameters, parent.typeParameters, 'extension type');
       } else if (parent is MethodDeclaration) {
         _checkForShadowing(typeParameters, parent.typeParameters, 'method');
       } else if (parent is MixinDeclaration) {
