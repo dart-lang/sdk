@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.37 Correct `libraryExport` to use `configurableUri`, not `uri`.
+//
 // v0.36 Update syntax from `inline class` to `extension type`, including
 // a special case of primary constructors.
 //
@@ -1371,7 +1373,7 @@ libraryImport
     ;
 
 importSpecification
-    :    IMPORT configurableUri (DEFERRED? AS identifier)? combinator* ';'
+    :    IMPORT configurableUri (DEFERRED? AS typeIdentifier)? combinator* ';'
     ;
 
 combinator
@@ -1384,7 +1386,7 @@ identifierList
     ;
 
 libraryExport
-    :    metadata EXPORT uri combinator* ';'
+    :    metadata EXPORT configurableUri combinator* ';'
     ;
 
 partDirective
