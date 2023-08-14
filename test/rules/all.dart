@@ -34,6 +34,8 @@ import 'avoid_single_cascade_in_expression_statements_test.dart'
     as avoid_single_cascade_in_expression_statements;
 import 'avoid_types_as_parameter_names_test.dart'
     as avoid_types_as_parameter_names;
+import 'avoid_types_on_closure_parameters_test.dart'
+    as avoid_types_on_closure_parameters;
 import 'avoid_unused_constructor_parameters_test.dart'
     as avoid_unused_constructor_parameters;
 import 'avoid_void_async_test.dart' as avoid_void_async;
@@ -243,6 +245,7 @@ void main() {
   avoid_shadowing_type_parameters.main();
   avoid_single_cascade_in_expression_statements.main();
   avoid_types_as_parameter_names.main();
+  avoid_types_on_closure_parameters.main();
   avoid_unused_constructor_parameters.main();
   avoid_void_async.main();
   await_only_futures.main();
