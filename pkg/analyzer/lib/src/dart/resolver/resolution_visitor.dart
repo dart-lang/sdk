@@ -1810,12 +1810,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    final erasure = declaredElement.typeErasure;
-    if (!typeSystem.isSubtypeOf(erasure, type)) {
+    final declaredRepresentation = declaredElement.representation.type;
+    if (!typeSystem.isSubtypeOf(declaredRepresentation, type)) {
       _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE_OF_ERASURE,
+        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
         node,
-        [type, erasure],
+        [type, declaredRepresentation],
       );
     }
   }

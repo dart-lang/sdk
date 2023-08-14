@@ -5090,8 +5090,8 @@ CompileTimeErrorCode:
     problemMessage: "The extension type can't implement itself."
     correctionMessage: Try removing the superinterface that references this extension type.
     comment: No parameters.
-  EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE_OF_ERASURE:
-    problemMessage: "'{0}' is not a supertype of '{1}', the ultimate representation type."
+  EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE:
+    problemMessage: "'{0}' is not a supertype of '{1}', the representation type."
     correctionMessage: Try specifying a different type, or remove the type from the list.
     comment: |-
       Parameters:
