@@ -1,0 +1,9 @@
+import augment 'multiple_augment_class_lib1.dart';
+import augment 'multiple_augment_class_lib2.dart';
+class Class {
+  external int method1();
+  external int method2();
+  external int method3();
+}
+expect(expected, actual) {}
+main() {}

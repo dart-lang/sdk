@@ -1,0 +1,15 @@
+---- unknown chunk starts ----
+extension type I._(int it) {
+---- unknown chunk ends ----
+I(int x, [int? y]) : it = x + (y ?? 42);
+void m(String s, [int i = 1]) {}
+---- unknown chunk starts ----
+} extension type I2._(int it) {
+---- unknown chunk ends ----
+I2(int x, {int? y}) : it = x + (y ?? 87);
+void m(String s, {int i = 1}) {}
+---- unknown chunk starts ----
+}
+---- unknown chunk ends ----
+expect(expected, actual) {}
+main() {}

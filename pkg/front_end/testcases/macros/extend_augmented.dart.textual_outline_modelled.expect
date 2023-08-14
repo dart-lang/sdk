@@ -1,0 +1,8 @@
+import augment 'extend_augmented_lib.dart';
+class Class {
+  void augmentedMethod() {}
+}
+class Subclass implements Class {
+  void augmentedMethod() {}
+}
+main() {}

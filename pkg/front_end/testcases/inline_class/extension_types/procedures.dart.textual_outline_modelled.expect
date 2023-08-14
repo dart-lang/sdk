@@ -1,0 +1,21 @@
+---- unknown chunk starts ----
+extension type Class._(int it) {
+---- unknown chunk ends ----
+S genericInstanceMethod<S>(S s) => s;
+int get instanceGetter => 42;
+static S genericStaticMethod<S>(S s) => s;
+static void staticMethod() {}
+void instanceMethod() {}
+void instanceMethod2(String s, [int i = 42]) {}
+---- unknown chunk starts ----
+} extension type GenericClass<T>._(T it) {
+---- unknown chunk ends ----
+S genericInstanceMethod<S>(S s) => s;
+T get instanceGetter => throw '';
+static S genericStaticMethod<S>(S s) => s;
+static void staticMethod() {}
+void instanceMethod() {}
+void instanceMethod2(String s, {int i = 42}) {}
+---- unknown chunk starts ----
+}
+---- unknown chunk ends ----

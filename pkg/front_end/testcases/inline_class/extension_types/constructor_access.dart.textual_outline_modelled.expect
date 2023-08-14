@@ -1,0 +1,9 @@
+---- unknown chunk starts ----
+extension type Class(int it) {
+---- unknown chunk ends ----
+Class.named(int it) : this.it = it + 1;
+---- unknown chunk starts ----
+} extension type GenericClass<T>(T it) {}
+---- unknown chunk ends ----
+expect(expected, actual) {}
+main() {}

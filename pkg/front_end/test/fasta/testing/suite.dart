@@ -13,18 +13,13 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show LibraryInfo;
-import 'package:_fe_analyzer_shared/src/util/options.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:compiler/src/options.dart' as dart2jsOptions
     show CompilerOptions;
 import 'package:dart2wasm/target.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show
-        CompilerOptions,
-        DiagnosticMessage,
-        parseExperimentalArguments,
-        parseExperimentalFlags;
+    show CompilerOptions, DiagnosticMessage;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     show ConstantEvaluator, ErrorReporter, EvaluationMode;
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
@@ -32,7 +27,6 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
         AllowedExperimentalFlags,
         ExperimentalFlag,
         LibraryFeatures,
-        defaultAllowedExperimentalFlags,
         isExperimentEnabled;
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
@@ -40,7 +34,6 @@ import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
-import 'package:front_end/src/base/command_line_options.dart';
 import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -96,7 +89,6 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart'
     show RecursiveResultVisitor, loadComponentFromBytes;
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
-
 import 'package:kernel/src/equivalence.dart'
     show
         EquivalenceResult,
@@ -104,7 +96,6 @@ import 'package:kernel/src/equivalence.dart'
         EquivalenceVisitor,
         ReferenceName,
         checkEquivalence;
-
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart'
@@ -117,7 +108,6 @@ import 'package:kernel/target/targets.dart'
         TestTargetFlags,
         TestTargetMixin,
         TestTargetWrapper;
-
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, TypeEnvironment;
 import 'package:kernel/verifier.dart' show VerificationStage;
@@ -134,7 +124,6 @@ import 'package:testing/testing.dart'
 import 'package:vm/target/vm.dart' show VmTarget;
 
 import '../../incremental_suite.dart' show TestRecorderForTesting;
-
 import '../../testing_utils.dart' show checkEnvironment;
 import '../../utils/kernel_chain.dart'
     show
@@ -146,6 +135,8 @@ import '../../utils/kernel_chain.dart'
         WriteDill;
 import '../../utils/validating_instrumentation.dart'
     show ValidatingInstrumentation;
+import 'folder_options.dart';
+import 'test_options.dart';
 
 export 'package:testing/testing.dart' show Chain, runMe;
 
@@ -207,37 +198,6 @@ final Expectation runtimeError =
     ExpectationSet.defaultExpectations["RuntimeError"];
 
 const String experimentalFlagOptions = '--enable-experiment=';
-const Option<String?> overwriteCurrentSdkVersion =
-    const Option('--overwrite-current-sdk-version', const StringValue());
-const Option<bool> noVerifyCmd =
-    const Option('--no-verify', const BoolValue(false));
-
-const List<Option> folderOptionsSpecification = [
-  Options.enableExperiment,
-  Options.enableUnscheduledExperiments,
-  Options.forceLateLoweringSentinel,
-  overwriteCurrentSdkVersion,
-  Options.forceLateLowering,
-  Options.forceStaticFieldLowering,
-  Options.forceNoExplicitGetterCalls,
-  Options.forceConstructorTearOffLowering,
-  Options.nnbdAgnosticMode,
-  Options.noDefines,
-  noVerifyCmd,
-  Options.target,
-  Options.defines,
-  Options.showOffsets,
-];
-
-const Option<bool> fixNnbdReleaseVersion =
-    const Option('--fix-nnbd-release-version', const BoolValue(false));
-
-const List<Option> testOptionsSpecification = [
-  Options.nnbdAgnosticMode,
-  Options.nnbdStrongMode,
-  Options.nnbdWeakMode,
-  fixNnbdReleaseVersion,
-];
 
 final ExpectationSet staticExpectationSet =
     new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
@@ -246,89 +206,22 @@ final Expectation semiFuzzFailureOnForceRebuildBodies =
     staticExpectationSet["semiFuzzFailureOnForceRebuildBodies"];
 final Expectation semiFuzzCrash = staticExpectationSet["SemiFuzzCrash"];
 
-/// Options used for all tests within a given folder.
-///
-/// This is used for instance for defining target, mode, and experiment specific
-/// test folders.
-class FolderOptions {
-  final Map<ExperimentalFlag, bool> _explicitExperimentalFlags;
-  final bool? enableUnscheduledExperiments;
-  final int? forceLateLowerings;
-  final bool? forceLateLoweringSentinel;
-  final bool? forceStaticFieldLowering;
-  final bool? forceNoExplicitGetterCalls;
-  final int? forceConstructorTearOffLowering;
-  final bool nnbdAgnosticMode;
-  final Map<String, String>? defines;
-  final bool noVerify;
-  final String target;
-  final String? overwriteCurrentSdkVersion;
-  final bool showOffsets;
-
-  FolderOptions(this._explicitExperimentalFlags,
-      {this.enableUnscheduledExperiments,
-      this.forceLateLowerings,
-      this.forceLateLoweringSentinel,
-      this.forceStaticFieldLowering,
-      this.forceNoExplicitGetterCalls,
-      this.forceConstructorTearOffLowering,
-      this.nnbdAgnosticMode = false,
-      this.defines = const {},
-      this.noVerify = false,
-      this.target = "vm",
-      // can be null
-      this.overwriteCurrentSdkVersion,
-      this.showOffsets = false})
-      : assert(
-            // no this doesn't make any sense but left to underline
-            // that this is allowed to be null!
-            defines != null || defines == null);
-
-  Map<ExperimentalFlag, bool> computeExplicitExperimentalFlags(
-      Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
-    Map<ExperimentalFlag, bool> flags = {};
-    flags.addAll(_explicitExperimentalFlags);
-    flags.addAll(forcedExperimentalFlags);
-    return flags;
-  }
-}
-
-/// Options for a single test located within its own subfolder.
-///
-/// This is used for instance for defining custom link dependencies and
-/// setting up custom experimental flag defaults for a single test.
-class TestOptions {
-  final Set<Uri> linkDependencies;
-  final NnbdMode? nnbdMode;
-  final AllowedExperimentalFlags? allowedExperimentalFlags;
-  final Map<ExperimentalFlag, Version>? experimentEnabledVersion;
-  final Map<ExperimentalFlag, Version>? experimentReleasedVersion;
-  Component? component;
-  List<Iterable<String>>? errors;
-
-  TestOptions(this.linkDependencies,
-      {required this.nnbdMode,
-      required this.allowedExperimentalFlags,
-      required this.experimentEnabledVersion,
-      required this.experimentReleasedVersion});
-}
-
 class FastaContext extends ChainContext with MatchContext {
   final Uri baseUri;
   @override
   final List<Step> steps;
   final Uri vm;
   final bool onlyCrashes;
-  final Map<ExperimentalFlag, bool> explicitExperimentalFlags;
+  final Map<ExperimentalFlag, bool> forcedExperimentalFlags;
   final bool skipVm;
   final bool semiFuzz;
   final bool verify;
   final bool soundNullSafety;
   final Uri platformBinaries;
   final Map<UriConfiguration, UriTranslator> _uriTranslators = {};
-  final Map<Uri, FolderOptions> _folderOptions = {};
-  final Map<Uri, TestOptions> _testOptions = {};
   final Map<Uri, Uri?> _librariesJson = {};
+  final SuiteFolderOptions suiteFolderOptions;
+  final SuiteTestOptions suiteTestOptions;
 
   @override
   final bool updateExpectations;
@@ -349,7 +242,7 @@ class FastaContext extends ChainContext with MatchContext {
       this.vm,
       this.platformBinaries,
       this.onlyCrashes,
-      this.explicitExperimentalFlags,
+      this.forcedExperimentalFlags,
       bool ignoreExpectations,
       this.updateExpectations,
       bool updateComments,
@@ -364,7 +257,9 @@ class FastaContext extends ChainContext with MatchContext {
           new Verify(compileMode == CompileMode.full
               ? VerificationStage.afterConstantEvaluation
               : VerificationStage.outline)
-        ] {
+        ],
+        suiteFolderOptions = new SuiteFolderOptions(baseUri),
+        suiteTestOptions = new SuiteTestOptions() {
     String prefix;
     String infix;
     if (soundNullSafety) {
@@ -433,104 +328,6 @@ class FastaContext extends ChainContext with MatchContext {
     }
   }
 
-  FolderOptions _computeFolderOptions(Directory directory) {
-    FolderOptions? folderOptions = _folderOptions[directory.uri];
-    if (folderOptions == null) {
-      bool? enableUnscheduledExperiments;
-      int? forceLateLowering;
-      bool? forceLateLoweringSentinel;
-      bool? forceStaticFieldLowering;
-      bool? forceNoExplicitGetterCalls;
-      int? forceConstructorTearOffLowering;
-      bool nnbdAgnosticMode = false;
-      bool noVerify = false;
-      Map<String, String>? defines = {};
-      String target = "vm";
-      bool showOffsets = false;
-      if (directory.uri == baseUri) {
-        folderOptions = new FolderOptions({},
-            enableUnscheduledExperiments: enableUnscheduledExperiments,
-            forceLateLowerings: forceLateLowering,
-            forceLateLoweringSentinel: forceLateLoweringSentinel,
-            forceStaticFieldLowering: forceStaticFieldLowering,
-            forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
-            forceConstructorTearOffLowering: forceConstructorTearOffLowering,
-            nnbdAgnosticMode: nnbdAgnosticMode,
-            defines: defines,
-            noVerify: noVerify,
-            target: target,
-            showOffsets: showOffsets);
-      } else {
-        File optionsFile =
-            new File.fromUri(directory.uri.resolve('folder.options'));
-        if (optionsFile.existsSync()) {
-          List<String> arguments =
-              ParsedOptions.readOptionsFile(optionsFile.readAsStringSync());
-          ParsedOptions parsedOptions =
-              ParsedOptions.parse(arguments, folderOptionsSpecification);
-          List<String> experimentalFlagsArguments =
-              Options.enableExperiment.read(parsedOptions) ?? <String>[];
-          String? overwriteCurrentSdkVersionArgument =
-              overwriteCurrentSdkVersion.read(parsedOptions);
-          enableUnscheduledExperiments =
-              Options.enableUnscheduledExperiments.read(parsedOptions);
-          forceLateLoweringSentinel =
-              Options.forceLateLoweringSentinel.read(parsedOptions);
-          forceLateLowering = Options.forceLateLowering.read(parsedOptions);
-          forceStaticFieldLowering =
-              Options.forceStaticFieldLowering.read(parsedOptions);
-          forceNoExplicitGetterCalls =
-              Options.forceNoExplicitGetterCalls.read(parsedOptions);
-          forceConstructorTearOffLowering =
-              Options.forceConstructorTearOffLowering.read(parsedOptions);
-          nnbdAgnosticMode = Options.nnbdAgnosticMode.read(parsedOptions);
-          defines = parsedOptions.defines;
-          showOffsets = Options.showOffsets.read(parsedOptions);
-          if (Options.noDefines.read(parsedOptions)) {
-            if (defines.isNotEmpty) {
-              throw "Can't have no defines and specific defines "
-                  "at the same time.";
-            }
-            defines = null;
-          }
-          noVerify = noVerifyCmd.read(parsedOptions);
-          target = Options.target.read(parsedOptions);
-          folderOptions = new FolderOptions(
-              parseExperimentalFlags(
-                  parseExperimentalArguments(experimentalFlagsArguments),
-                  onError: (String message) => throw new ArgumentError(message),
-                  onWarning: (String message) =>
-                      throw new ArgumentError(message)),
-              enableUnscheduledExperiments: enableUnscheduledExperiments,
-              forceLateLowerings: forceLateLowering,
-              forceLateLoweringSentinel: forceLateLoweringSentinel,
-              forceStaticFieldLowering: forceStaticFieldLowering,
-              forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
-              forceConstructorTearOffLowering: forceConstructorTearOffLowering,
-              nnbdAgnosticMode: nnbdAgnosticMode,
-              defines: defines,
-              noVerify: noVerify,
-              target: target,
-              overwriteCurrentSdkVersion: overwriteCurrentSdkVersionArgument,
-              showOffsets: showOffsets);
-        } else {
-          folderOptions = _computeFolderOptions(directory.parent);
-        }
-      }
-      _folderOptions[directory.uri] = folderOptions;
-    }
-    return folderOptions;
-  }
-
-  /// Computes the experimental flag for [description].
-  ///
-  /// [forcedExperimentalFlags] is used to override the default flags for
-  /// [description].
-  FolderOptions computeFolderOptions(TestDescription description) {
-    Directory directory = new File.fromUri(description.uri).parent;
-    return _computeFolderOptions(directory);
-  }
-
   Future<UriTranslator> computeUriTranslator(
       TestDescription description) async {
     UriConfiguration uriConfiguration = computeUriConfiguration(description);
@@ -538,7 +335,8 @@ class FastaContext extends ChainContext with MatchContext {
     if (uriTranslator == null) {
       Uri sdk = Uri.base.resolve("sdk/");
       Uri packages = Uri.base.resolve(".dart_tool/package_config.json");
-      FolderOptions folderOptions = computeFolderOptions(description);
+      FolderOptions folderOptions =
+          suiteFolderOptions.computeFolderOptions(description);
       CompilerOptions compilerOptions = new CompilerOptions()
         ..onDiagnostic = (DiagnosticMessage message) {
           throw message.plainTextFormatted.join("\n");
@@ -549,7 +347,7 @@ class FastaContext extends ChainContext with MatchContext {
             folderOptions.enableUnscheduledExperiments ?? false
         ..environmentDefines = folderOptions.defines
         ..explicitExperimentalFlags = folderOptions
-            .computeExplicitExperimentalFlags(explicitExperimentalFlags)
+            .computeExplicitExperimentalFlags(forcedExperimentalFlags)
         ..nnbdMode = soundNullSafety
             ? (folderOptions.nnbdAgnosticMode
                 ? NnbdMode.Agnostic
@@ -566,81 +364,6 @@ class FastaContext extends ChainContext with MatchContext {
       _uriTranslators[uriConfiguration] = uriTranslator;
     }
     return uriTranslator;
-  }
-
-  /// Computes the test for [description].
-  TestOptions computeTestOptions(TestDescription description) {
-    Directory directory = new File.fromUri(description.uri).parent;
-    TestOptions? testOptions = _testOptions[directory.uri];
-    if (testOptions == null) {
-      File optionsFile =
-          new File.fromUri(directory.uri.resolve('test.options'));
-      Set<Uri> linkDependencies = new Set<Uri>();
-      NnbdMode? nnbdMode;
-      AllowedExperimentalFlags? allowedExperimentalFlags;
-      Map<ExperimentalFlag, Version>? experimentEnabledVersion;
-      Map<ExperimentalFlag, Version>? experimentReleasedVersion;
-      if (optionsFile.existsSync()) {
-        List<String> arguments =
-            ParsedOptions.readOptionsFile(optionsFile.readAsStringSync());
-        ParsedOptions parsedOptions =
-            ParsedOptions.parse(arguments, testOptionsSpecification);
-        if (Options.nnbdAgnosticMode.read(parsedOptions)) {
-          nnbdMode = NnbdMode.Agnostic;
-        }
-        if (Options.nnbdStrongMode.read(parsedOptions)) {
-          if (nnbdMode != null) {
-            throw new UnsupportedError(
-                'Nnbd mode $nnbdMode already specified.');
-          }
-          nnbdMode = NnbdMode.Strong;
-        }
-        if (Options.nnbdWeakMode.read(parsedOptions)) {
-          if (nnbdMode != null) {
-            throw new UnsupportedError(
-                'Nnbd mode $nnbdMode already specified.');
-          }
-          nnbdMode = NnbdMode.Weak;
-        }
-        if (fixNnbdReleaseVersion.read(parsedOptions)) {
-          // Allow package:allowed_package to use nnbd features from version
-          // 2.9.
-          allowedExperimentalFlags = new AllowedExperimentalFlags(
-              sdkDefaultExperiments:
-                  defaultAllowedExperimentalFlags.sdkDefaultExperiments,
-              sdkLibraryExperiments:
-                  defaultAllowedExperimentalFlags.sdkLibraryExperiments,
-              packageExperiments: {
-                ...defaultAllowedExperimentalFlags.packageExperiments,
-                'allowed_package': {ExperimentalFlag.nonNullable}
-              });
-          experimentEnabledVersion = const {
-            ExperimentalFlag.nonNullable: const Version(2, 10)
-          };
-          experimentReleasedVersion = const {
-            ExperimentalFlag.nonNullable: const Version(2, 9)
-          };
-        }
-        for (String argument in parsedOptions.arguments) {
-          Uri uri = description.uri.resolve(argument);
-          if (!uri.isScheme('package')) {
-            File f = new File.fromUri(uri);
-            if (!f.existsSync()) {
-              throw new UnsupportedError("No file found: $f ($argument)");
-            }
-            uri = f.uri;
-          }
-          linkDependencies.add(uri);
-        }
-      }
-      testOptions = new TestOptions(linkDependencies,
-          nnbdMode: nnbdMode,
-          allowedExperimentalFlags: allowedExperimentalFlags,
-          experimentEnabledVersion: experimentEnabledVersion,
-          experimentReleasedVersion: experimentReleasedVersion);
-      _testOptions[directory.uri] = testOptions;
-    }
-    return testOptions;
   }
 
   /// Libraries json for [description].
@@ -765,23 +488,8 @@ class FastaContext extends ChainContext with MatchContext {
     String resolvedExecutable = Platform.environment['resolvedExecutable'] ??
         Platform.resolvedExecutable;
     Uri vm = Uri.base.resolveUri(new Uri.file(resolvedExecutable));
-    Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{
-      // Force enable features in development.
-      ExperimentalFlag.records: true,
-      ExperimentalFlag.patterns: true,
-      ExperimentalFlag.sealedClass: true,
-    };
-
-    void addForcedExperimentalFlag(String name, ExperimentalFlag flag) {
-      if (environment.containsKey(name)) {
-        experimentalFlags[flag] = environment[name] == "true";
-      }
-    }
-
-    addForcedExperimentalFlag(
-        "enableExtensionMethods", ExperimentalFlag.extensionMethods);
-    addForcedExperimentalFlag(
-        "enableNonNullable", ExperimentalFlag.nonNullable);
+    Map<ExperimentalFlag, bool> experimentalFlags =
+        SuiteFolderOptions.computeForcedExperimentalFlags(environment);
 
     bool soundNullSafety = environment["soundNullSafety"] == "true";
     bool onlyCrashes = environment["onlyCrashes"] == "true";
@@ -835,7 +543,7 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
     File generated = new File.fromUri(result.outputUri!);
     try {
       FolderOptions folderOptions =
-          context.computeFolderOptions(result.description);
+          context.suiteFolderOptions.computeFolderOptions(result.description);
       switch (folderOptions.target) {
         case "vm":
           if (context._platforms.isEmpty) {
@@ -1103,10 +811,12 @@ CompilationSetup createCompilationSetup(
 
   Uri? librariesSpecificationUri =
       context.computeLibrariesSpecificationUri(description);
-  TestOptions testOptions = context.computeTestOptions(description);
-  FolderOptions folderOptions = context.computeFolderOptions(description);
+  TestOptions testOptions =
+      context.suiteTestOptions.computeTestOptions(description);
+  FolderOptions folderOptions =
+      context.suiteFolderOptions.computeFolderOptions(description);
   Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
-      .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
+      .computeExplicitExperimentalFlags(context.forcedExperimentalFlags);
   NnbdMode nnbdMode = !context.soundNullSafety ||
           !isExperimentEnabled(ExperimentalFlag.nonNullable,
               explicitExperimentalFlags: experimentalFlags)
@@ -1173,9 +883,9 @@ class FuzzCompiles
   @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
-    bool? originalFlag = context.explicitExperimentalFlags[
+    bool? originalFlag = context.forcedExperimentalFlags[
         ExperimentalFlag.alternativeInvalidationStrategy];
-    context.explicitExperimentalFlags[
+    context.forcedExperimentalFlags[
         ExperimentalFlag.alternativeInvalidationStrategy] = true;
 
     CompilationSetup compilationSetup =
@@ -1254,10 +964,10 @@ class FuzzCompiles
           "Crashed with '$e' when fuzz compiling.\n\n$st");
     } finally {
       if (originalFlag != null) {
-        context.explicitExperimentalFlags[
+        context.forcedExperimentalFlags[
             ExperimentalFlag.alternativeInvalidationStrategy] = originalFlag;
       } else {
-        context.explicitExperimentalFlags
+        context.forcedExperimentalFlags
             .remove(ExperimentalFlag.alternativeInvalidationStrategy);
       }
     }
@@ -2500,7 +2210,7 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
     FolderOptions folderOptions =
-        context.computeFolderOptions(result.description);
+        context.suiteFolderOptions.computeFolderOptions(result.description);
 
     if (folderOptions.noVerify) {
       return pass(result);

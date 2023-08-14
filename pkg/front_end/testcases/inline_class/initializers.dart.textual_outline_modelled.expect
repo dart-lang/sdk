@@ -2,26 +2,21 @@ inline class Class1 {
   Class1(this.field);
   final int field;
 }
-
 inline class Class2 {
   Class2(int field) : this.field = field;
   final int field;
 }
-
 inline class Class3 {
   final int field;
 }
-
 inline class Class4 {
   Class4(this.field, this.nonexisting);
   final int field;
 }
-
 inline class Class5 {
   Class5(this.field) : this.field = 42;
   final int field;
 }
-
 inline class Class6 {
   Class6(this.field) : this.nonexisting = 42;
   final int field;

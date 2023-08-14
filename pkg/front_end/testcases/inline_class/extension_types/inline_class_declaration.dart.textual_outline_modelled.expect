@@ -1,0 +1,5 @@
+mixin Mixin {}
+---- unknown chunk starts ----
+extension type Class1(int it) {} extension type Class3<T>(List<T> it) {}
+---- unknown chunk ends ----
+method(Class1 c1, Class3<int> c3) {}

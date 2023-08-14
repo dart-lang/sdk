@@ -3,5 +3,4 @@ inline class IC1 {
   factory IC1.f(int id) = IC1;
   final int id;
 }
-
 main() {}

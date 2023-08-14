@@ -1,0 +1,32 @@
+import 'field_access_lib.dart';
+extension on dynamic {
+  void set it(value) {}
+}
+---- unknown chunk starts ----
+extension type InlineClass(int it) {
+---- unknown chunk ends ----
+void test() {}
+---- unknown chunk starts ----
+} extension type GenericInlineClass<T>(T it) {
+---- unknown chunk ends ----
+void test(T t) {}
+---- unknown chunk starts ----
+} extension type FunctionInlineClass<T>(T Function() it) {
+---- unknown chunk ends ----
+void test(T Function() t) {}
+---- unknown chunk starts ----
+} extension type GenericFunctionInlineClass(T Function<T>() it) {
+---- unknown chunk ends ----
+void test() {}
+---- unknown chunk starts ----
+} extension type DynamicInlineClass(dynamic it) {
+---- unknown chunk ends ----
+void test() {}
+---- unknown chunk starts ----
+} extension type ErroneousInlineClass(int a, String b) {
+---- unknown chunk ends ----
+void test() {}
+---- unknown chunk starts ----
+}
+---- unknown chunk ends ----
+void test( InlineClass inlineClass, GenericInlineClass<String> genericInlineClass, FunctionInlineClass<String> functionInlineClass, GenericFunctionInlineClass genericFunctionInlineClass, DynamicInlineClass dynamicInlineClass, ErroneousInlineClass erroneousInlineClass, PrivateInlineClass privateInlineClass) {}

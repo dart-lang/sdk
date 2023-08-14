@@ -7,7 +7,6 @@ inline class Class {
   void instanceMethod() {}
   void instanceMethod2(String s, [int i = 42]) {}
 }
-
 inline class GenericClass<T> {
   S genericInstanceMethod<S>(S s) => s;
   T get instanceGetter => throw '';

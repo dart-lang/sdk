@@ -1,0 +1,20 @@
+---- unknown chunk starts ----
+extension type ExtensionType1(int it) {} extension type ExtensionType2(int it) implements ExtensionType1, int {} extension type ExtensionType3<T extends num>(T it) {} extension type ExtensionType4(int it) {
+---- unknown chunk ends ----
+const ExtensionType4.constructor(this.it);
+const ExtensionType4.redirect(int it) : this(it);
+factory ExtensionType4.fact(int it) => ExtensionType4(it);
+factory ExtensionType4.redirectingFactory(int it) = ExtensionType4;
+final int field = 42;
+int get getter => it;
+int method() => it;
+int operator[](int index) => it;
+static int get staticGetter => 42;
+static int staticField = 42;
+static int staticMethod() => 42;
+static void set staticSetter(int value) {}
+void operator[]=(int index, int value) {}
+void set setter(int value) {}
+---- unknown chunk starts ----
+} extension type ExtensionType5.new(int it) {} extension type ExtensionType6.id(int it) {} extension type ExtensionType7<T extends num>.id(int it) {}
+---- unknown chunk ends ----

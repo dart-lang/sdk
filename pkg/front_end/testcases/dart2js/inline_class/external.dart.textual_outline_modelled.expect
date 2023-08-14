@@ -1,12 +1,9 @@
 @JS()
 library static_interop;
-
 import 'dart:js_interop';
-
 @JS()
 @staticInterop
 class A {}
-
 @JS()
 inline class B {
   external A field;
@@ -23,5 +20,4 @@ inline class B {
   external void set setter(B b);
   final A a;
 }
-
 void method(A a) {}

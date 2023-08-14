@@ -1,11 +1,9 @@
 expect(expected, actual) {}
-
 inline class Bar<T> {
   Bar(T i) : this._(i);
   Bar._(this.i);
   final T i;
 }
-
 inline class Foo {
   Foo(int i) : this._(i + 2);
   Foo._(this.i);
@@ -15,5 +13,4 @@ inline class Foo {
   Foo.redirectNamed2(int a, int b) : this.named(subtract: b, a);
   final int i;
 }
-
 main() {}

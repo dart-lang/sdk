@@ -2,7 +2,6 @@ extension on Object {
   int get setter => 42;
   void set getter(int value) {}
 }
-
 inline class InlineClass {
   InlineClass(this.it);
   T genericMethod<T>(T t) => t;
@@ -17,5 +16,4 @@ inline class InlineClass {
   void operator []=(int index, int value) {}
   void set setter(int value) {}
 }
-
 test(InlineClass ic) {}

@@ -1,5 +1,4 @@
 abstract class A {}
-
 inline class B {
   external A field;
   external A method();
@@ -15,5 +14,4 @@ inline class B {
   external void set setter(B b);
   final A a;
 }
-
 void method(A a) {}

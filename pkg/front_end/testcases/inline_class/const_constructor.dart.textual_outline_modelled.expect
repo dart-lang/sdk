@@ -1,5 +1,4 @@
 expect(expected, actual) {}
-
 inline class Class {
   Class.named(this.i);
   const Class(this.i);
@@ -8,6 +7,5 @@ inline class Class {
   factory Class.redirect2(int i) = Class;
   final int i;
 }
-
 main() {}
 test() {}
