@@ -206,6 +206,14 @@ final class NativeCallable<T extends Function> {
   ///
   /// It is safe to call [close] inside the [callback].
   external void close();
+
+  /// Whether this [NativeCallable] keeps its [Isolate] alive.
+  ///
+  /// By default, [NativeCallable]s keep the [Isolate] that created them alive
+  /// until [close] is called. If [keepIsolateAlive] is set to `false`, the
+  /// isolate may close while the port is still open.
+  external bool get keepIsolateAlive;
+  external void set keepIsolateAlive(bool value);
 }
 
 //

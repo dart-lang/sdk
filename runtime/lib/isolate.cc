@@ -83,6 +83,11 @@ DEFINE_NATIVE_ENTRY(RawReceivePort_setActive, 0, 2) {
   return Object::null();
 }
 
+DEFINE_NATIVE_ENTRY(RawReceivePort_getActive, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
+  return Bool::Get(port.keep_isolate_alive()).ptr();
+}
+
 DEFINE_NATIVE_ENTRY(SendPort_get_id, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   return Integer::New(port.Id());
