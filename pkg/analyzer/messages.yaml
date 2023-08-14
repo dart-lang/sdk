@@ -12290,17 +12290,17 @@ CompileTimeErrorCode:
       7.9 Superclasses: It is a compile-time error to specify an extends clause
       for class Object.
   OBSOLETE_COLON_FOR_DEFAULT_VALUE:
-    problemMessage: Using a colon as a separator before a default value is no longer supported.
+    problemMessage: Using a colon as the separator before a default value is no longer supported.
     correctionMessage: Try replacing the colon with an equal sign.
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a colon is used as the
-      separator before the default value of an optional parameter. While this
-      syntax used to be allowed, it's deprecated in favor of using an equal
-      sign.
+      The analyzer produces this diagnostic when a colon (`:`) is used as the
+      separator before the default value of an optional named parameter.
+      While this syntax used to be allowed, it was removed in favor of
+      using an equal sign (`=`).
 
       #### Example
 
@@ -19615,7 +19615,7 @@ HintCode:
       Note: Since this diagnostic is only produced in pre-null safe code, we do
       not plan to go through the exercise of converting it to a Warning.
   DEPRECATED_COLON_FOR_DEFAULT_VALUE:
-    problemMessage: Using a colon as a separator before a default value is deprecated and will not be supported in language version 3.0 and later.
+    problemMessage: Using a colon as the separator before a default value is deprecated and will not be supported in language version 3.0 and later.
     correctionMessage: Try replacing the colon with an equal sign.
     hasPublishedDocs: true
     comment: |-
@@ -19626,9 +19626,10 @@ HintCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a colon is used as the
-      separator before the default value of an optional parameter. While this
-      syntax is allowed, it's being deprecated in favor of using an equal sign.
+      The analyzer produces this diagnostic when a colon (`:`) is used as the
+      separator before the default value of an optional named parameter.
+      While this syntax is allowed, it is deprecated in favor of
+      using an equal sign (`=`).
 
       #### Example
 

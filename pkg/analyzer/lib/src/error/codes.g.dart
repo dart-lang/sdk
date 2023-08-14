@@ -4034,7 +4034,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode OBSOLETE_COLON_FOR_DEFAULT_VALUE =
       CompileTimeErrorCode(
     'OBSOLETE_COLON_FOR_DEFAULT_VALUE',
-    "Using a colon as a separator before a default value is no longer "
+    "Using a colon as the separator before a default value is no longer "
         "supported.",
     correctionMessage: "Try replacing the colon with an equal sign.",
     hasPublishedDocs: true,

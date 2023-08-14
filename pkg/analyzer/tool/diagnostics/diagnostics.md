@@ -3930,14 +3930,15 @@ dependencies:
 
 ### deprecated_colon_for_default_value
 
-_Using a colon as a separator before a default value is deprecated and will not
-be supported in language version 3.0 and later._
+_Using a colon as the separator before a default value is deprecated and will
+not be supported in language version 3.0 and later._
 
 #### Description
 
-The analyzer produces this diagnostic when a colon is used as the
-separator before the default value of an optional parameter. While this
-syntax is allowed, it's being deprecated in favor of using an equal sign.
+The analyzer produces this diagnostic when a colon (`:`) is used as the
+separator before the default value of an optional named parameter.
+While this syntax is allowed, it is deprecated in favor of
+using an equal sign (`=`).
 
 #### Example
 
@@ -15578,14 +15579,14 @@ Null g() => null;
 
 ### obsolete_colon_for_default_value
 
-_Using a colon as a separator before a default value is no longer supported._
+_Using a colon as the separator before a default value is no longer supported._
 
 #### Description
 
-The analyzer produces this diagnostic when a colon is used as the
-separator before the default value of an optional parameter. While this
-syntax used to be allowed, it's deprecated in favor of using an equal
-sign.
+The analyzer produces this diagnostic when a colon (`:`) is used as the
+separator before the default value of an optional named parameter.
+While this syntax used to be allowed, it was removed in favor of
+using an equal sign (`=`).
 
 #### Example
 

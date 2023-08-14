@@ -39,7 +39,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  plan to go through the exercise of converting it to a Warning.
   static const HintCode DEPRECATED_COLON_FOR_DEFAULT_VALUE = HintCode(
     'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
-    "Using a colon as a separator before a default value is deprecated and "
+    "Using a colon as the separator before a default value is deprecated and "
         "will not be supported in language version 3.0 and later.",
     correctionMessage: "Try replacing the colon with an equal sign.",
     hasPublishedDocs: true,
