@@ -4,9 +4,21 @@ class A {
   A(this.field1, this.field2);
 }
 
-exhaustiveDirect(A a) => switch (a) {};
-exhaustiveWithWildcards(A a) => switch (a) {};
-exhaustiveWithFields(A a) => switch (a) {};
-exhaustiveWithTypedFields(A a) => switch (a) {};
-nonExhaustiveFixedField(A a) => switch (a) {};
-nonExhaustiveTypedField(A a) => switch (a) {};
+exhaustiveDirect(A a) => switch (a) {
+      A() => 0,
+    };
+exhaustiveWithWildcards(A a) => switch (a) {
+      A(field1: _, field2: _) => 0,
+    };
+exhaustiveWithFields(A a) => switch (a) {
+      A(:var field1, :var field2) => 0,
+    };
+exhaustiveWithTypedFields(A a) => switch (a) {
+      A(:int field1, :num field2) => 0,
+    };
+nonExhaustiveFixedField(A a) => switch (a) {
+      A(field1: 5) => 0,
+    };
+nonExhaustiveTypedField(A a) => switch (a) {
+      A(:int field2) => 0,
+    };

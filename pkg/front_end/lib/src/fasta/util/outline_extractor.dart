@@ -138,7 +138,8 @@ class _Processor {
         enableNonNullable: true,
         enableTripleShift: true);
     textualOutlineStopwatch.start();
-    final String? outlined = textualOutline(bytes, configuration);
+    final String? outlined =
+        textualOutline(bytes, configuration, enablePatterns: true);
     textualOutlineStopwatch.stop();
     if (outlined == null) throw "Textual outline returned null";
     final List<int> bytes2 = utf8.encode(outlined);

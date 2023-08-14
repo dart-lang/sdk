@@ -1,2 +1,10 @@
 void main() {}
-Iterable<(Iterable<A>, Iterable<A>)> split<A>(Iterable<A> it) => switch (it) {};
+Iterable<(Iterable<A>, Iterable<A>)> split<A>(Iterable<A> it) => switch (it) {
+      Iterable<A>(isEmpty: true) => [
+          (Iterable<A>.empty(), Iterable<A>.empty())
+        ],
+      Iterable<A>(first: var x) => () sync* {
+          yield (Iterable<A>.empty(), it);
+          for (var (ls, rs) in split(it.skip(1))) yield ([x, ...ls], rs);
+        }(),
+    };

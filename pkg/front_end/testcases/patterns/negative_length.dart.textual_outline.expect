@@ -9,6 +9,10 @@ class NegativeLengthList<E> with ListMixin<E> {
   void operator []=(int index, E value) {}
 }
 
-int switchList(List<int> list) => switch (list) {};
+int switchList(List<int> list) => switch (list) {
+      [_, _, ...] => 2,
+      [_] => 1,
+      [] => 0,
+    };
 main() {}
 expect(expected, actual) {}

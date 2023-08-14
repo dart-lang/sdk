@@ -1,5 +1,1 @@
-f(x) => 
-switch(x) {}
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
+f(x) => switch (x) { _ when true => 0 };

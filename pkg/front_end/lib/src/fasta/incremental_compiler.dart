@@ -63,6 +63,7 @@ import 'package:kernel/target/changed_structure_notifier.dart'
 
 import 'package:package_config/package_config.dart' show Package, PackageConfig;
 
+import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
 
 import '../api_prototype/incremental_kernel_generator.dart'
@@ -1257,8 +1258,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 /* should this be on the library? */
                 /* this is effectively what the constant evaluator does */
                 context.options.globalFeatures.tripleShift.isEnabled);
+        bool enablePatterns = builder.library.languageVersion >=
+            ExperimentalFlag.patterns.enabledVersion;
         String? before = textualOutline(previousSource, scannerConfiguration,
-            performModelling: true);
+            performModelling: true, enablePatterns: enablePatterns);
         if (before == null) {
           recorderForTesting?.recordAdvancedInvalidationResult(
               AdvancedInvalidationResult.noPreviousOutline);
@@ -1268,7 +1271,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         FileSystemEntity entity = c.options.fileSystem.entityForUri(uri);
         if (await entity.exists()) {
           now = textualOutline(await entity.readAsBytes(), scannerConfiguration,
-              performModelling: true);
+              performModelling: true, enablePatterns: enablePatterns);
         }
         if (before != now) {
           recorderForTesting?.recordAdvancedInvalidationResult(

@@ -10,7 +10,14 @@ extension<T> on I<T> {
   num get member {}
 }
 
-num method1(I<num> i) => switch (i) {};
-num method2(A<num> i) => switch (i) {};
+num method1(I<num> i) => switch (i) {
+      I<num>(:var member) when member < 0 => member,
+      I<int>(:var member) when member < 0 => member,
+      I<num>(:var member) => -member,
+    };
+num method2(A<num> i) => switch (i) {
+      I<num>(:int member) => member,
+      J<num>(:double member) => member,
+    };
 main() {}
 expect(expected, actual) {}

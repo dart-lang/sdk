@@ -2,21 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart._boxed_double;
-
-import 'dart:_double_helper' as double_helper;
-import 'dart:_int_helper' as int_helper;
 import 'dart:_internal' show doubleToIntBits, intBitsToDouble;
 import 'dart:_js_helper' show JS;
 
 @pragma("wasm:entry-point")
-final class BoxedDouble extends double {
+final class _BoxedDouble extends double {
   // A boxed double contains an unboxed double.
   @pragma("wasm:entry-point")
   double value = 0.0;
 
   /// Dummy factory to silence error about missing superclass constructor.
-  external factory BoxedDouble();
+  external factory _BoxedDouble();
 
   static const int _mantissaBits = 52;
   static const int _exponentBits = 11;
@@ -29,9 +25,9 @@ final class BoxedDouble extends double {
 
   static int _doubleHashCode(double value) {
     const int maxInt = 0x7FFFFFFFFFFFFFFF;
-    int intValue = double_helper.toInt(value);
+    int intValue = value._toInt();
     if (intValue.toDouble() == value && intValue != maxInt) {
-      return int_helper.intHashCode(intValue);
+      return _intHashCode(intValue);
     }
     int bits = doubleToIntBits(value);
     return (bits ^ (bits >>> 32)) & 0x3FFFFFFF;
@@ -99,10 +95,10 @@ final class BoxedDouble extends double {
       return (a * b) / (a * b);
     }
 
-    if (int_helper.le_u(aBits << 1, bBits << 1)) {
+    if ((aBits << 1)._le_u(bBits << 1)) {
       if ((aBits << 1) == (bBits << 1)) {
         // abs(a) == abs(b), so remainder = +/- 0.0 depending on sign of a
-        return double_helper.copysign(0.0, a);
+        return 0.0._copysign(a);
       }
 
       // abs(a) < abs(b), so b = 0 * a rem. a
@@ -141,7 +137,7 @@ final class BoxedDouble extends double {
         // remainder is positive
         if (remainder == 0) {
           // a divides into b exactly, so remainder = +/- 0.0 depending on sign of a
-          return double_helper.copysign(0.0, a);
+          return 0.0._copysign(a);
         }
 
         aBits = remainder;
@@ -157,7 +153,7 @@ final class BoxedDouble extends double {
       // remainder is positive
       if (remainder == 0) {
         // a divides into b exactly, so remainder = +/- 0.0 depending on sign of a
-        return double_helper.copysign(0.0, a);
+        return 0.0._copysign(a);
       }
 
       aBits = remainder;
@@ -207,7 +203,7 @@ final class BoxedDouble extends double {
   bool get isNegative {
     // Sign bit set, not NaN
     int bits = doubleToIntBits(this);
-    return int_helper.le_u(bits ^ _signMask, _exponentMask);
+    return (bits ^ _signMask)._le_u(_exponentMask);
   }
 
   @pragma("wasm:prefer-inline")
@@ -233,7 +229,7 @@ final class BoxedDouble extends double {
 
   @pragma("wasm:prefer-inline")
   double abs() {
-    return double_helper.copysign(value, 0.0);
+    return value._copysign(0.0);
   }
 
   @pragma("wasm:prefer-inline")
@@ -275,8 +271,8 @@ final class BoxedDouble extends double {
 
     // Add 0.5 to the absolute value of the number and truncate the result.
     final int shift = (_exponentBias + _mantissaBits - 1) - exponent;
-    final int adjust = int_helper.shl(1, shift);
-    final int mask = int_helper.shl(-2, shift);
+    final int adjust = 1._shl(shift);
+    final int mask = (-2)._shl(shift);
     final int rounded = (bits + adjust) & mask;
     return intBitsToDouble(rounded);
   }
@@ -300,7 +296,7 @@ final class BoxedDouble extends double {
     if (!isFinite) {
       throw UnsupportedError("Infinity or NaN toInt");
     }
-    return double_helper.toInt(value);
+    return value._toInt();
   }
 
   @pragma("wasm:prefer-inline")
@@ -474,7 +470,7 @@ final class BoxedDouble extends double {
             return GREATER;
           }
         }
-        return double_helper.toInt(value).compareTo(other);
+        return value._toInt().compareTo(other);
       } else {
         return EQUAL;
       }
