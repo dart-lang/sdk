@@ -1,3 +1,7 @@
+## 6.2.0
+* Improvements for extension types.
+* Heap usage improvements.
+
 ## 6.1.0
 * Added `InstanceElement`, a super-interface for `InterfaceElement`
   and `ExtensionElement`.
