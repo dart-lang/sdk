@@ -999,6 +999,14 @@ abstract interface class RawReceivePort {
 
   /// Returns a [SendPort] that sends messages to this raw receive port.
   SendPort get sendPort;
+
+  /// Whether this [RawReceivePort] keeps its [Isolate] alive.
+  ///
+  /// By default, receive ports keep the [Isolate] that created them alive until
+  /// [close] is called. If [keepIsolateAlive] is set to `false`, the isolate
+  /// may close while the port is still open. The port is closed when the
+  /// isolate closes, and further messages sent by the [sendPort] are ignored.
+  abstract bool keepIsolateAlive;
 }
 
 /// Description of an error from another isolate.

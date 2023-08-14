@@ -213,6 +213,14 @@ final class NativeCallable<T extends Function> {
     _deleteAsyncFunctionPointer(_pointer);
     _pointer = nullptr;
   }
+
+  @patch
+  void set keepIsolateAlive(bool value) {
+    _port.keepIsolateAlive = value;
+  }
+
+  @patch
+  bool get keepIsolateAlive => _port.keepIsolateAlive;
 }
 
 @patch
