@@ -143,6 +143,7 @@ import 'provide_deprecation_message_test.dart' as provide_deprecation_message;
 import 'public_member_api_docs_test.dart' as public_member_api_docs;
 import 'recursive_getters_test.dart' as recursive_getters;
 import 'secure_pubspec_urls_test.dart' as secure_pubspec_urls;
+import 'sized_box_for_whitespace_test.dart' as sized_box_for_whitespace;
 import 'slash_for_doc_comments_test.dart' as slash_for_doc_comments;
 import 'sort_constructors_first_test.dart' as sort_constructors_first;
 import 'sort_pub_dependencies_test.dart' as sort_pub_dependencies;
@@ -322,6 +323,7 @@ void main() {
   public_member_api_docs.main();
   recursive_getters.main();
   secure_pubspec_urls.main();
+  sized_box_for_whitespace.main();
   slash_for_doc_comments.main();
   sort_constructors_first.main();
   sort_pub_dependencies.main();

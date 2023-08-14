@@ -472,11 +472,14 @@ class Container extends StatelessWidget {
     super.key,
     Color? color,
     double? width,
+    double? height,
     Widget? child,
   });
 }
 
 class SizedBox implements Widget {}
+
+class Row implements Widget {}
 ''');
 
     libFolder
