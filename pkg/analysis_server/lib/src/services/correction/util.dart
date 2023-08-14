@@ -12,13 +12,13 @@ import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
@@ -28,7 +28,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
 /// Adds edits to the given [change] that ensure that all the [libraries] are
@@ -549,7 +548,7 @@ class CancelCorrectionException {
 
 class CorrectionUtils {
   final CompilationUnit unit;
-  final LibraryElement _library;
+  final LibraryElement? _library;
   final String _buffer;
 
   /// The [ClassElement] the generated code is inserted to, so we can decide if
@@ -560,9 +559,9 @@ class CorrectionUtils {
 
   String? _endOfLine;
 
-  CorrectionUtils(ResolvedUnitResult result)
+  CorrectionUtils(ParsedUnitResult result)
       : unit = result.unit,
-        _library = result.libraryElement,
+        _library = result is ResolvedUnitResult ? result.libraryElement : null,
         _buffer = result.content;
 
   /// Returns the EOL to use for this [CompilationUnit].
@@ -876,8 +875,17 @@ class CorrectionUtils {
   }
 
   /// Returns the text of the given [AstNode] in the unit.
-  String getNodeText(AstNode node) {
-    return getText(node.offset, node.length);
+  String getNodeText(
+    AstNode node, {
+    bool withLeadingComments = false,
+  }) {
+    final firstToken = withLeadingComments
+        ? node.beginToken.precedingComments ?? node.beginToken
+        : node.beginToken;
+    final offset = firstToken.offset;
+    final end = node.endToken.end;
+    final length = end - offset;
+    return getText(offset, length);
   }
 
   /// Returns the line prefix consisting of spaces and tabs on the left from the
@@ -944,6 +952,10 @@ class CorrectionUtils {
       );
     }
 
+    if (type is InvalidType) {
+      return 'dynamic';
+    }
+
     if (type is NeverType) {
       return 'Never';
     }
@@ -969,6 +981,43 @@ class CorrectionUtils {
     }
 
     throw UnimplementedError('(${type.runtimeType}) $type');
+  }
+
+  /// Splits [text] into lines, and removes one level of indent from each line.
+  /// Lines that don't start with indentation are left as is.
+  String indentLeft(String text) {
+    final buffer = StringBuffer();
+    final indent = getIndent(1);
+    final eol = endOfLine;
+    final lines = text.split(eol);
+    for (final line in lines) {
+      if (buffer.isNotEmpty) {
+        buffer.write(eol);
+      }
+      final String updatedLine;
+      if (line.startsWith(indent)) {
+        updatedLine = line.substring(indent.length);
+      } else {
+        updatedLine = line;
+      }
+      buffer.write(updatedLine);
+    }
+    return buffer.toString();
+  }
+
+  /// Splits [text] into lines, and adds [level] indents to each line.
+  String indentRight(String text, {int level = 1}) {
+    final buffer = StringBuffer();
+    final indent = getIndent(level);
+    final eol = endOfLine;
+    final lines = text.split(eol);
+    for (final line in lines) {
+      if (buffer.isNotEmpty) {
+        buffer.write(eol);
+      }
+      buffer.write('$indent$line');
+    }
+    return buffer.toString();
   }
 
   /// Indents given source left or right.
@@ -1019,22 +1068,46 @@ class CorrectionUtils {
     return TokenUtils.getTokens(trimmedText, unit.featureSet).isEmpty;
   }
 
-  InsertionLocation newCaseClauseAtEndLocation(SwitchStatement statement) {
-    var blockStartLine = getLineThis(statement.leftBracket.offset);
-    var blockEndLine = getLineThis(statement.end);
+  InsertionLocation newCaseClauseAtEndLocation({
+    required Token switchKeyword,
+    required Token leftBracket,
+    required Token rightBracket,
+  }) {
+    var blockStartLine = getLineThis(leftBracket.offset);
+    var blockEndLine = getLineThis(rightBracket.offset);
     var offset = blockEndLine;
     var prefix = '';
     var suffix = '';
     if (blockStartLine == blockEndLine) {
       // The switch body is on a single line.
       prefix = endOfLine;
-      offset = statement.leftBracket.end;
-      suffix = getLinePrefix(statement.offset);
+      offset = leftBracket.end;
+      suffix = getLinePrefix(switchKeyword.offset);
     }
     return InsertionLocation(prefix, offset, suffix);
   }
 
-  InsertionLocation? prepareEnumNewConstructorLocation(
+  ExpressionCasePattern? patternOfBoolCondition(Expression node) {
+    if (node is BinaryExpression) {
+      if (node.isNotEqNull) {
+        final expressionCode = getNodeText(node.leftOperand);
+        return ExpressionCasePattern(
+          expressionCode: expressionCode,
+          patternCode: '_?',
+        );
+      }
+    } else if (node is IsExpression) {
+      final expressionCode = getNodeText(node.expression);
+      final typeCode = getNodeText(node.type);
+      return ExpressionCasePattern(
+        expressionCode: expressionCode,
+        patternCode: '$typeCode()',
+      );
+    }
+    return null;
+  }
+
+  InsertionLocation prepareEnumNewConstructorLocation(
     EnumDeclaration enumDeclaration,
   ) {
     var indent = getIndent(1);
@@ -1246,7 +1319,11 @@ class CorrectionUtils {
   /// Return the import element used to import given [element] into the library.
   /// May be `null` if was not imported, i.e. declared in the same library.
   LibraryImportElement? _getImportElement(Element element) {
-    for (var imp in _library.libraryImports) {
+    var library = _library;
+    if (library == null) {
+      return null;
+    }
+    for (var imp in library.libraryImports) {
       var definedNames = getImportNamespace(imp);
       if (definedNames.containsValue(element)) {
         return imp;
@@ -1498,6 +1575,16 @@ class CorrectionUtils_InsertDesc {
   String suffix = '';
 }
 
+class ExpressionCasePattern {
+  final String expressionCode;
+  final String patternCode;
+
+  ExpressionCasePattern({
+    required this.expressionCode,
+    required this.patternCode,
+  });
+}
+
 class InsertionLocation {
   final String prefix;
   final int offset;
@@ -1548,6 +1635,15 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor<void> {
   final Set<String> names = <String>{};
 
   @override
+  void visitNamedType(NamedType node) {
+    if (node.importPrefix == null) {
+      names.add(node.name2.lexeme);
+    }
+
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (!_isPrefixed(node)) {
       names.add(node.name);
@@ -1590,6 +1686,13 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   final List<SimpleIdentifier> references = [];
 
   _ElementReferenceCollector(this.element);
+
+  @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    if (node.element == element) {
+      references.add(SimpleIdentifierImpl(node.name));
+    }
+  }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

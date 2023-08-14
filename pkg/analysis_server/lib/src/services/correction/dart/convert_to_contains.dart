@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ConvertToContains extends CorrectionProducer {
+class ConvertToContains extends ResolvedCorrectionProducer {
   @override
   bool get canBeAppliedInBulk => true;
 
@@ -67,8 +67,7 @@ class ConvertToContains extends CorrectionProducer {
       var startArgumentRange = _startArgumentRange(rightOperand);
       var deletionRange = range.startStart(leftOperand, rightOperand);
       var notOffset = -1;
-      var style =
-          _negationStyle(_invertedTokenType(comparison.operator.type), value);
+      var style = _negationStyle(comparison.operator.type.inverted, value);
       if (style == NegationStyle.none) {
         return;
       } else if (style == NegationStyle.negated) {
@@ -104,21 +103,6 @@ class ConvertToContains extends CorrectionProducer {
       }
     }
     return null;
-  }
-
-  TokenType _invertedTokenType(TokenType type) {
-    switch (type) {
-      case TokenType.LT_EQ:
-        return TokenType.GT_EQ;
-      case TokenType.LT:
-        return TokenType.GT;
-      case TokenType.GT:
-        return TokenType.LT;
-      case TokenType.GT_EQ:
-        return TokenType.LT_EQ;
-      default:
-        return type;
-    }
   }
 
   /// Return `true` if the given [expression] is a literal integer, possibly
@@ -180,3 +164,13 @@ class ConvertToContains extends CorrectionProducer {
 /// An indication of whether the `contains` test should be negated, not negated,
 /// or whether neither is appropriate and the code should be left unchanged.
 enum NegationStyle { none, negated, positive }
+
+extension on TokenType {
+  TokenType get inverted => switch (this) {
+        TokenType.LT_EQ => TokenType.GT_EQ,
+        TokenType.LT => TokenType.GT,
+        TokenType.GT => TokenType.LT,
+        TokenType.GT_EQ => TokenType.LT_EQ,
+        _ => this
+      };
+}

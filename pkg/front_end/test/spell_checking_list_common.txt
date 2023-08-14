@@ -204,6 +204,8 @@ asserted
 assertion
 assertions
 asserts
+asset
+assets
 assign
 assignability
 assignable
@@ -339,6 +341,7 @@ breaking
 breakpoint
 breaks
 briefly
+bring
 brittle
 broken
 browser
@@ -370,6 +373,7 @@ calculator
 call
 callable
 callback
+callbacks
 called
 caller
 calling
@@ -733,6 +737,7 @@ cyclic
 dart
 dart2js
 dart2wasm
+dart2wasm_stringref
 dartdevc
 data
 date
@@ -1118,6 +1123,7 @@ existing
 exists
 exit
 exited
+exiting
 exits
 expand
 expanding
@@ -2913,6 +2919,7 @@ stray
 stream
 strictly
 string
+stringref
 strings
 stripped
 strong
@@ -3112,6 +3119,7 @@ tokens
 too
 took
 tool
+toolchain
 tools
 top
 topologically
@@ -3310,6 +3318,7 @@ using
 utf
 utilities
 utility
+utilized
 valid
 validate
 validated
@@ -3348,6 +3357,7 @@ violate
 violates
 violation
 virtual
+visibility
 visible
 visit
 visited

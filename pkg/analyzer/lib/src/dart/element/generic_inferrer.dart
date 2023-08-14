@@ -16,6 +16,7 @@ import 'package:analyzer/dart/ast/ast.dart'
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -566,7 +567,7 @@ class GenericInferrer {
     if (errorNode is ConstructorName &&
         !(errorNode.type.type as InterfaceType).element.hasOptionalTypeArgs) {
       String constructorName = errorNode.name == null
-          ? errorNode.type.name.name
+          ? errorNode.type.qualifiedName
           : '${errorNode.type}.${errorNode.name}';
       errorReporter.reportErrorForNode(
           WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,

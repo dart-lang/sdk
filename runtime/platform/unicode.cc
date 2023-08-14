@@ -108,7 +108,7 @@ intptr_t Utf8::Length(int32_t ch) {
 }
 
 intptr_t Utf8::Encode(int32_t ch, char* dst) {
-  static const int kMask = ~(1 << 6);
+  constexpr int kMask = ~(1 << 6);
   if (ch <= kMaxOneByteChar) {
     dst[0] = ch;
     return 1;

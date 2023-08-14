@@ -159,19 +159,21 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
     }
 
    private:
-    void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
+    void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
       for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
         VisitObject(*ptr);
       }
     }
 
+#if defined(DART_COMPRESSED_POINTERS)
     void VisitCompressedPointers(uword heap_base,
                                  CompressedObjectPtr* from,
-                                 CompressedObjectPtr* to) {
+                                 CompressedObjectPtr* to) override {
       for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
         VisitObject(ptr->Decompress(heap_base));
       }
     }
+#endif
 
     WeakTable* visited_;
     MallocGrowableArray<ObjectPtr>* const working_set_;

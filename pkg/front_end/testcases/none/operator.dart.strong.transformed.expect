@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -62,20 +62,20 @@ static method add(core::num n, core::int i, core::double d, self::Class<core::St
   n.{core::num::+}(n){(core::num) → core::num};
   n.{core::num::+}(i){(core::num) → core::num};
   n.{core::num::+}(d){(core::num) → core::double};
-  n.{core::num::+}(dyn as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  n.{core::num::+}(dyn as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   core::print("InstanceInvocation");
   i.{core::num::+}(n){(core::num) → core::num};
   i.{core::num::+}(i){(core::num) → core::int};
   i.{core::num::+}(d){(core::num) → core::double};
-  i.{core::num::+}(dyn as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  i.{core::num::+}(dyn as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   core::print("InstanceInvocation");
   d.{core::double::+}(n){(core::num) → core::double};
   d.{core::double::+}(i){(core::num) → core::double};
   d.{core::double::+}(d){(core::num) → core::double};
-  i.{core::num::+}(dyn as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  i.{core::num::+}(dyn as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   core::print("InstanceInvocation");
   c.{self::Class::+}(c){(self::Class<core::String>) → self::Class<core::String>};
-  c.{self::Class::+}(dyn as{TypeError,ForDynamic,ForNonNullableByDefault} self::Class<core::String>){(self::Class<core::String>) → self::Class<core::String>};
+  c.{self::Class::+}(dyn as{TypeError,ForDynamic} self::Class<core::String>){(self::Class<core::String>) → self::Class<core::String>};
   core::print("DynamicInvocation");
   dyn{dynamic}.+(n);
   core::print("DynamicInvocation (Never)");

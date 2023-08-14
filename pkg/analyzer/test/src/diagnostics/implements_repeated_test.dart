@@ -18,36 +18,51 @@ class ImplementsRepeatedTest extends PubPackageResolutionTest {
   test_class_implements_2times() async {
     await assertErrorsInCode(r'''
 class A {}
-class B implements A, A {} // ref
+class B implements A, A {}
 ''', [
       error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 33, 1),
     ]);
 
-    var A = findElement.class_('A');
-    assertNamedType(findNode.namedType('A, A {} // ref'), A, 'A');
-    assertNamedType(findNode.namedType('A {} // ref'), A, 'A');
+    final node = findNode.singleImplementsClause;
+    assertResolvedNodeText(node, r'''
+ImplementsClause
+  implementsKeyword: implements
+  interfaces
+    NamedType
+      name: A
+      element: self::@class::A
+      type: A
+    NamedType
+      name: A
+      element: self::@class::A
+      type: A
+''');
   }
 
   test_class_implements_2times_viaTypeAlias() async {
     await assertErrorsInCode(r'''
 class A {}
 typedef B = A;
-class C implements A, B {} // ref
+class C implements A, B {}
 ''', [
       error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 48, 1),
     ]);
 
-    assertNamedType(
-      findNode.namedType('A, B {} // ref'),
-      findElement.class_('A'),
-      'A',
-    );
-
-    assertNamedType(
-      findNode.namedType('B {} // ref'),
-      findElement.typeAlias('B'),
-      'A',
-    );
+    final node = findNode.singleImplementsClause;
+    assertResolvedNodeText(node, r'''
+ImplementsClause
+  implementsKeyword: implements
+  interfaces
+    NamedType
+      name: A
+      element: self::@class::A
+      type: A
+    NamedType
+      name: B
+      element: self::@typeAlias::B
+      type: A
+        alias: self::@typeAlias::B
+''');
   }
 
   test_class_implements_4times() async {
@@ -64,16 +79,27 @@ class B implements A, A, A, A {}
   test_enum_implements_2times() async {
     await assertErrorsInCode(r'''
 class A {}
-enum E implements A, A { // ref
+enum E implements A, A {
   v
 }
 ''', [
       error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 32, 1),
     ]);
 
-    var A = findElement.class_('A');
-    assertNamedType(findNode.namedType('A, A { // ref'), A, 'A');
-    assertNamedType(findNode.namedType('A { // ref'), A, 'A');
+    final node = findNode.singleImplementsClause;
+    assertResolvedNodeText(node, r'''
+ImplementsClause
+  implementsKeyword: implements
+  interfaces
+    NamedType
+      name: A
+      element: self::@class::A
+      type: A
+    NamedType
+      name: A
+      element: self::@class::A
+      type: A
+''');
   }
 
   test_enum_implements_2times_viaTypeAlias() async {
@@ -87,17 +113,21 @@ enum E implements A, B {
       error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 47, 1),
     ]);
 
-    assertNamedType(
-      findNode.namedType('A, B {'),
-      findElement.class_('A'),
-      'A',
-    );
-
-    assertNamedType(
-      findNode.namedType('B {'),
-      findElement.typeAlias('B'),
-      'A',
-    );
+    final node = findNode.singleImplementsClause;
+    assertResolvedNodeText(node, r'''
+ImplementsClause
+  implementsKeyword: implements
+  interfaces
+    NamedType
+      name: A
+      element: self::@class::A
+      type: A
+    NamedType
+      name: B
+      element: self::@typeAlias::B
+      type: A
+        alias: self::@typeAlias::B
+''');
   }
 
   test_enum_implements_4times() async {

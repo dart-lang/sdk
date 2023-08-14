@@ -6,13 +6,26 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show Token, scanString;
-
 import 'package:expect/expect.dart' show Expect;
+import 'package:front_end/src/fasta/builder/prefix_builder.dart';
+import 'package:front_end/src/fasta/builder/type_declaration_builder.dart';
+import 'package:front_end/src/fasta/builder/type_variable_builder.dart';
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
+import 'package:front_end/src/fasta/fasta_codes.dart'
+    show Message, templateUnspecified;
+import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
+import 'package:front_end/src/fasta/kernel/body_builder_context.dart';
+import 'package:front_end/src/fasta/kernel/expression_generator.dart';
 import 'package:front_end/src/fasta/kernel/expression_generator_helper.dart';
+import 'package:front_end/src/fasta/kernel/kernel_target.dart'
+    show KernelTarget;
+import 'package:front_end/src/fasta/kernel/load_library_builder.dart';
 import 'package:front_end/src/fasta/scope.dart';
+import 'package:front_end/src/fasta/source/source_library_builder.dart'
+    show ImplicitLanguageVersion, SourceLibraryBuilder;
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
-
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -32,31 +45,7 @@ import 'package:kernel/ast.dart'
         dummyLibraryDependency;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
-
-import 'package:front_end/src/fasta/builder/type_declaration_builder.dart';
-import 'package:front_end/src/fasta/builder/prefix_builder.dart';
-import 'package:front_end/src/fasta/builder/type_variable_builder.dart';
-
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
-import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
-
-import 'package:front_end/src/fasta/kernel/load_library_builder.dart';
-
-import 'package:front_end/src/fasta/kernel/kernel_target.dart'
-    show KernelTarget;
-
-import 'package:front_end/src/fasta/fasta_codes.dart'
-    show Message, templateUnspecified;
-
-import 'package:front_end/src/fasta/kernel/expression_generator.dart';
-
-import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
-
-import 'package:front_end/src/fasta/source/source_library_builder.dart'
-    show ImplicitLanguageVersion, SourceLibraryBuilder;
 
 import '../mock_file_system.dart';
 
@@ -122,10 +111,9 @@ Future<void> main() async {
 
     BodyBuilder helper = new BodyBuilder(
         libraryBuilder: libraryBuilder,
-        isDeclarationInstanceMember: false,
+        context: new LibraryBodyBuilderContext(libraryBuilder),
         uri: uri,
         enclosingScope: new Scope.immutable(kind: ScopeKind.functionBody),
-        member: libraryBuilder,
         coreTypes: coreTypes,
         hierarchy: hierarchy,
         typeInferrer:

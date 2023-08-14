@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.4
+
+- Fix for flutter/flutter#128402 where an attempt to lookup the owner info
+node for type testing stubs would cause a null check error.
+
 ## 0.7.3-dev
 
 - Update the readme to document the current way to generate Dart AOT snapshots.

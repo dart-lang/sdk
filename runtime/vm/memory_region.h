@@ -17,7 +17,7 @@ namespace dart {
 // of the region.
 class MemoryRegion : public ValueObject {
  public:
-  MemoryRegion() : pointer_(NULL), size_(0) {}
+  MemoryRegion() : pointer_(nullptr), size_(0) {}
   MemoryRegion(void* pointer, uword size) : pointer_(pointer), size_(size) {}
   MemoryRegion(const MemoryRegion& other) : ValueObject() { *this = other; }
   MemoryRegion& operator=(const MemoryRegion& other) {

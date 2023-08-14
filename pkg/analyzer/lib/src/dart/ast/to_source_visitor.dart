@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
@@ -451,7 +450,8 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitExtensionOverride(ExtensionOverride node) {
-    _visitNode(node.extensionName);
+    _visitNode(node.importPrefix);
+    _visitToken(node.name);
     _visitNode(node.typeArguments);
     _visitNode(node.argumentList);
   }
@@ -674,7 +674,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitIfElement(IfElement node) {
     sink.write('if (');
-    _visitNode(node.condition);
+    _visitNode(node.expression);
     _visitNode(node.caseClause, prefix: ' ');
     sink.write(') ');
     _visitNode(node.thenElement);
@@ -684,7 +684,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitIfStatement(IfStatement node) {
     sink.write('if (');
-    _visitNode(node.condition);
+    _visitNode(node.expression);
     _visitNode(node.caseClause, prefix: ' ');
     sink.write(') ');
     _visitNode(node.thenStatement);
@@ -715,6 +715,12 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNode(node.prefix, prefix: ' as ');
     _visitNodeList(node.combinators, prefix: ' ', separator: ' ');
     sink.write(';');
+  }
+
+  @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    sink.write(node.name.lexeme);
+    sink.write('.');
   }
 
   @override
@@ -908,7 +914,8 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _visitNode(node.name);
+    _visitNode(node.importPrefix);
+    _visitToken(node.name2);
     _visitNode(node.typeArguments);
     if (node.question != null) {
       sink.write('?');

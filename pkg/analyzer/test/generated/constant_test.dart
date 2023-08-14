@@ -66,26 +66,6 @@ bool <unknown>
 ''');
   }
 
-  test_conditionalExpression_unknownCondition_dynamic() async {
-    await assertErrorsInCode('''
-const bool kIsWeb = identical(0, 0.0);
-const x = kIsWeb ? a : b;
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 58,
-          1),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 58, 1),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 62, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 62,
-          1),
-    ]);
-
-    var result = findElement.topVar('x').evaluationResult;
-    assertDartObjectText(result.value, r'''
-dynamic <unknown>
-  variable: self::@variable::x
-''');
-  }
-
   test_constructorInvocation_fieldInitializer() async {
     var result = await _getExpressionValue("const C(2)", context: '''
 class C {
@@ -620,7 +600,7 @@ const x = (0, f1: 10, f2: 2.3);
 
     final value = _topVarConstValue('x');
     assertDartObjectText(value, r'''
-Record
+Record(int, {int f1, double f2})
   positionalFields
     $1: int 0
   namedFields
@@ -637,7 +617,7 @@ const x = (f1: 10, f2: -3);
 
     final value = _topVarConstValue('x');
     assertDartObjectText(value, r'''
-Record
+Record({int f1, int f2})
   namedFields
     f1: int 10
     f2: int -3
@@ -652,7 +632,7 @@ const x = (20, 0, 7);
 
     final value = _topVarConstValue('x');
     assertDartObjectText(value, r'''
-Record
+Record(int, int, int)
   positionalFields
     $1: int 20
     $2: int 0

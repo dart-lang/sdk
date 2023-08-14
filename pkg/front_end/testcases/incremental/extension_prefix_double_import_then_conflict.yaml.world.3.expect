@@ -4,7 +4,7 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
   extension OnObject on dart.core::Object {
     get onObject = lib1::OnObject|get#onObject;
   }
-  static method OnObject|get#onObject(lowered final dart.core::Object #this) → dart.core::String
+  static extension-member method OnObject|get#onObject(lowered final dart.core::Object #this) → dart.core::String
     return "object #1";
 }
 library from "org-dartlang-test:///lib2.dart" as lib2 {
@@ -12,7 +12,7 @@ library from "org-dartlang-test:///lib2.dart" as lib2 {
   extension AlsoOnObject on dart.core::Object {
     get onObject = lib2::AlsoOnObject|get#onObject;
   }
-  static method AlsoOnObject|get#onObject(lowered final dart.core::Object #this) → dart.core::String
+  static extension-member method AlsoOnObject|get#onObject(lowered final dart.core::Object #this) → dart.core::String
     return "object #2";
 }
 library from "org-dartlang-test:///main.dart" as main {

@@ -163,7 +163,6 @@ void f(a, b) {
 ''');
   }
 
-  @failingTest
   Future<void> test_list_literal() async {
     await resolveTestCode('''
 void f() {
@@ -185,7 +184,6 @@ void f() {
 ''');
   }
 
-  @failingTest
   Future<void> test_map_literal() async {
     await resolveTestCode('''
 void f() {
@@ -248,7 +246,6 @@ void f(a, b) {
 ''');
   }
 
-  @failingTest
   Future<void> test_set_literal() async {
     await resolveTestCode('''
 void f() {

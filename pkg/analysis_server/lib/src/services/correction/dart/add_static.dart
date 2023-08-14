@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class AddStatic extends CorrectionProducer {
+class AddStatic extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.ADD_STATIC;
 

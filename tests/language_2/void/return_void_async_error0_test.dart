@@ -11,5 +11,8 @@ void main() {
 // Testing that a block bodied async function may not return non-void non-top
 // values
 void test() async {
-  return /*@compile-error=unspecified*/ 3;
+  return 3;
+  //     ^
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
+  // [cfe] Can't return a value from a void function.
 }

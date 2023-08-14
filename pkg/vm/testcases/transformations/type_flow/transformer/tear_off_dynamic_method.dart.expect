@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 
@@ -12,7 +12,7 @@ class B extends self::A {
     : super self::A::•()
     ;
 [@vm.procedure-attributes.metadata=hasThisUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=()->i]  method foo() → core::int
-    return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=! (skip check)] 1.{core::num::+}([@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult(){dynamic}.foo() as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num} as{ForNonNullableByDefault} core::int;
+    return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=! (skip check)] 1.{core::num::+}([@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult(){dynamic}.foo() as{TypeError,ForDynamic} core::num){(core::num) → core::num} as core::int;
 }
 class TearOffDynamicMethod extends core::Object {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  field dynamic bazz;

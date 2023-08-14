@@ -6,15 +6,17 @@
 // in the class.
 
 class C {
-  get a {
+  int get a {
     return 1;
   }
 
   set a(int val) {
+  //  ^
+  // [cfe] Conflicts with the implicit setter of the field 'a'.
     var x = val;
   }
 
-  get b {
+  int get b {
     return 2;
   }
 
@@ -22,7 +24,11 @@ class C {
     var x = val;
   }
 
-  var a;/*@compile-error=unspecified*/
+  var a;
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'a' is already declared in this scope.
+  // [cfe] Conflicts with setter 'a'.
 }
 
 class Field2Test {

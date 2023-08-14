@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -434,7 +433,7 @@ class _MixinInference {
     List<TypeParameterElement>? typeParameters;
     List<InterfaceType>? supertypeConstraints;
     InterfaceType Function(List<DartType> typeArguments)? instantiate;
-    final mixinElement = mixinNode.name.staticElement;
+    final mixinElement = mixinNode.element;
     if (mixinElement is InterfaceElement) {
       typeParameters = mixinElement.typeParameters;
       if (typeParameters.isNotEmpty) {

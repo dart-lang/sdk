@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dds/src/dap/protocol_generated.dart';
+import 'package:dap/dap.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -37,7 +37,7 @@ main() {
       final vmConnection = outputEvents.first;
       expect(vmConnection.output,
           startsWith('Connecting to VM Service at ws://127.0.0.1:'));
-      expect(vmConnection.category, equals('console'));
+      expect(vmConnection.category, anyOf('console', isNull));
 
       // Expect the normal applications output.
       final output = outputEvents.skip(1).map((e) => e.output).join();
@@ -372,12 +372,12 @@ main() {
     test('can shutdown during startup', () async {
       final testFile = dap.createTestFile(simpleArgPrintingProgram);
 
-      // Terminate the app immediately upon receiving the first Thread event.
+      // Request termination immediately upon receiving the first Thread event.
       // The DAP is also responding to this event to configure the isolate (eg.
       // set breakpoints and exception pause behaviour) and will cause it to
       // receive "Service has disappeared" responses if these are in-flight as
-      // the process terminates. These should not go unhandled since they are
-      // normal during shutdown.
+      // the process terminates. These should be silently discarded since they
+      // are normal during shutdown.
       unawaited(dap.client.event('thread').then((_) => dap.client.terminate()));
 
       // Start the program and expect termination.
@@ -405,7 +405,11 @@ main() {
           .firstWhere((event) => event.output.trim() == originalText);
 
       // Update the file and hot reload.
-      testFile.writeAsStringSync(stringPrintingProgram(newText));
+      testFile.writeAsStringSync(stringPrintingProgram(newText), flush: true);
+      // Set a future date to ensure hot reload detects it as being modified.
+      testFile.setLastModifiedSync(
+        DateTime.now().add(const Duration(seconds: 2)),
+      );
       await dap.client.hotReload();
 
       // Expect the new text.
@@ -419,6 +423,29 @@ main() {
       if (server is OutOfProcessDapTestServer) {
         await server.exitCode;
       }
+    });
+
+    test('can pause', () async {
+      final testFile = dap.createTestFile(infiniteRunningProgram);
+
+      // Start a program and hit a breakpoint.
+      final client = dap.client;
+      final threadFuture = client.threadEvents.first;
+
+      // Start the app and wait for it to start printing output.
+      await Future.wait([
+        client.initialize(),
+        client.launch(testFile.path),
+        dap.client.outputEvents
+            .firstWhere((event) => event.output.contains('Looping'))
+      ]);
+
+      // Ensure we can pause.
+      final thread = await threadFuture;
+      await Future.wait([
+        client.expectStop('pause'),
+        client.pause(thread.threadId),
+      ], eagerError: true);
     });
 
     test('forwards tool events to client', () async {

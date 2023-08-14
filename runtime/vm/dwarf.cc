@@ -66,15 +66,15 @@ class InliningNode : public ZoneAllocated {
         position(position),
         start_pc_offset(start_pc_offset),
         end_pc_offset(-1),
-        children_head(NULL),
-        children_tail(NULL),
-        children_next(NULL) {
+        children_head(nullptr),
+        children_tail(nullptr),
+        children_next(nullptr) {
     ASSERT(!function.IsNull());
     DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
   }
 
   void AppendChild(InliningNode* child) {
-    if (children_tail == NULL) {
+    if (children_tail == nullptr) {
       children_head = children_tail = child;
     } else {
       children_tail->children_next = child;
@@ -91,52 +91,9 @@ class InliningNode : public ZoneAllocated {
   InliningNode* children_next;
 };
 
-template <typename T>
-Trie<T>* Trie<T>::AddString(Zone* zone,
-                            Trie<T>* trie,
-                            const char* key,
-                            const T* value) {
-  ASSERT(key != nullptr);
-  if (trie == nullptr) {
-    trie = new (zone) Trie<T>();
-  }
-  if (*key == '\0') {
-    ASSERT(trie->value_ == nullptr);
-    trie->value_ = value;
-  } else {
-    auto const index = ChildIndex(*key);
-    ASSERT(index >= 0 && index < kNumValidChars);
-    trie->children_[index] =
-        AddString(zone, trie->children_[index], key + 1, value);
-  }
-
-  return trie;
-}
-
-template <typename T>
-const T* Trie<T>::Lookup(const Trie<T>* trie, const char* key, intptr_t* end) {
-  intptr_t i = 0;
-  for (; key[i] != '\0'; i++) {
-    auto const index = ChildIndex(key[i]);
-    ASSERT(index < kNumValidChars);
-    if (index < 0) {
-      if (end == nullptr) return nullptr;
-      break;
-    }
-    // Still find the longest valid trie prefix when no stored value.
-    if (trie == nullptr) continue;
-    trie = trie->children_[index];
-  }
-  if (end != nullptr) {
-    *end = i;
-  }
-  if (trie == nullptr) return nullptr;
-  return trie->value_;
-}
-
-Dwarf::Dwarf(Zone* zone)
+Dwarf::Dwarf(Zone* zone, const Trie<const char>* deobfuscation_trie)
     : zone_(zone),
-      reverse_obfuscation_trie_(CreateReverseObfuscationTrie(zone)),
+      deobfuscation_trie_(deobfuscation_trie),
       codes_(zone, 1024),
       code_to_label_(zone),
       functions_(zone, 1024),
@@ -181,7 +138,7 @@ void Dwarf::AddCode(const Code& orig_code, intptr_t label) {
 intptr_t Dwarf::AddFunction(const Function& function) {
   RELEASE_ASSERT(!function.IsNull());
   FunctionIndexPair* pair = function_to_index_.Lookup(&function);
-  if (pair != NULL) {
+  if (pair != nullptr) {
     return pair->index_;
   }
   intptr_t index = functions_.length();
@@ -196,7 +153,7 @@ intptr_t Dwarf::AddFunction(const Function& function) {
 intptr_t Dwarf::AddScript(const Script& script) {
   RELEASE_ASSERT(!script.IsNull());
   ScriptIndexPair* pair = script_to_index_.Lookup(&script);
-  if (pair != NULL) {
+  if (pair != nullptr) {
     return pair->index_;
   }
   // DWARF file numbers start from 1.
@@ -210,7 +167,7 @@ intptr_t Dwarf::AddScript(const Script& script) {
 intptr_t Dwarf::LookupFunction(const Function& function) {
   RELEASE_ASSERT(!function.IsNull());
   FunctionIndexPair* pair = function_to_index_.Lookup(&function);
-  if (pair == NULL) {
+  if (pair == nullptr) {
     FATAL("Function detected too late during DWARF generation: %s",
           function.ToCString());
   }
@@ -220,7 +177,7 @@ intptr_t Dwarf::LookupFunction(const Function& function) {
 intptr_t Dwarf::LookupScript(const Script& script) {
   RELEASE_ASSERT(!script.IsNull());
   ScriptIndexPair* pair = script_to_index_.Lookup(&script);
-  if (pair == NULL) {
+  if (pair == nullptr) {
     FATAL("Script detected too late during DWARF generation: %s",
           script.ToCString());
   }
@@ -365,7 +322,8 @@ void Dwarf::WriteAbstractFunctions(DwarfWriteStream* stream) {
     name = function.QualifiedUserVisibleName();
     script = function.script();
     const intptr_t file = LookupScript(script);
-    auto const name_cstr = Deobfuscate(name.ToCString());
+    auto const name_cstr =
+        ImageWriter::Deobfuscate(zone_, deobfuscation_trie_, name.ToCString());
 
     stream->RegisterAbstractOrigin(i);
     stream->uleb128(kAbstractFunction);
@@ -405,8 +363,8 @@ void Dwarf::WriteConcreteFunctions(DwarfWriteStream* stream) {
     stream->u1(function.is_visible() ? 0 : 1);
 
     InliningNode* node = ExpandInliningTree(code);
-    if (node != NULL) {
-      for (InliningNode* child = node->children_head; child != NULL;
+    if (node != nullptr) {
+      for (InliningNode* child = node->children_head; child != nullptr;
            child = child->children_next) {
         WriteInliningNode(stream, child, label, script);
       }
@@ -424,7 +382,7 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
   const CodeSourceMap& map =
       CodeSourceMap::Handle(zone_, code.code_source_map());
   if (map.IsNull()) {
-    return NULL;
+    return nullptr;
   }
   const Array& functions = Array::Handle(zone_, code.inlined_id_to_function());
   const Function& root_function = Function::ZoneHandle(zone_, code.function());
@@ -521,7 +479,7 @@ void Dwarf::WriteInliningNode(DwarfWriteStream* stream,
   // DW_at_call_column
   stream->uleb128(node->position.column());
 
-  for (InliningNode* child = node->children_head; child != NULL;
+  for (InliningNode* child = node->children_head; child != nullptr;
        child = child->children_next) {
     WriteInliningNode(stream, child, root_label, script);
   }
@@ -906,7 +864,8 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
         } else {
           uri = script.url();
           ASSERT(!uri.IsNull());
-          uri_cstr = Deobfuscate(uri.ToCString());
+          uri_cstr = ImageWriter::Deobfuscate(zone_, deobfuscation_trie_,
+                                              uri.ToCString());
         }
         RELEASE_ASSERT(strlen(uri_cstr) != 0);
 
@@ -945,49 +904,6 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
       lnp_writer.MarkEnd();
     }
   });
-}
-
-const char* Dwarf::Deobfuscate(const char* cstr) {
-  if (reverse_obfuscation_trie_ == nullptr) return cstr;
-  TextBuffer buffer(256);
-  // Used to avoid Zone-allocating strings if no deobfuscation was performed.
-  bool changed = false;
-  intptr_t i = 0;
-  while (cstr[i] != '\0') {
-    intptr_t offset;
-    auto const value = reverse_obfuscation_trie_->Lookup(cstr + i, &offset);
-    if (offset == 0) {
-      // The first character was an invalid key element (that isn't the null
-      // terminator due to the while condition), copy it and skip to the next.
-      buffer.AddChar(cstr[i++]);
-    } else if (value != nullptr) {
-      changed = true;
-      buffer.AddString(value);
-    } else {
-      buffer.AddRaw(reinterpret_cast<const uint8_t*>(cstr + i), offset);
-    }
-    i += offset;
-  }
-  if (!changed) return cstr;
-  return OS::SCreate(zone_, "%s", buffer.buffer());
-}
-
-Trie<const char>* Dwarf::CreateReverseObfuscationTrie(Zone* zone) {
-  auto const map_array = IsolateGroup::Current()->obfuscation_map();
-  if (map_array == nullptr) return nullptr;
-
-  Trie<const char>* trie = nullptr;
-  for (intptr_t i = 0; map_array[i] != nullptr; i += 2) {
-    auto const key = map_array[i];
-    auto const value = map_array[i + 1];
-    ASSERT(value != nullptr);
-    // Don't include identity mappings.
-    if (strcmp(key, value) == 0) continue;
-    // Otherwise, any value in the obfuscation map should be a valid key.
-    ASSERT(Trie<const char>::IsValidKey(value));
-    trie = Trie<const char>::AddString(zone, trie, value, key);
-  }
-  return trie;
 }
 
 #endif  // DART_PRECOMPILER

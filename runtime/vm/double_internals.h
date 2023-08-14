@@ -17,7 +17,7 @@ static uint64_t double_to_uint64(double d) {
 // Helper functions for doubles.
 class DoubleInternals {
  public:
-  static const int kSignificandSize = 53;
+  static constexpr int kSignificandSize = 53;
 
   explicit DoubleInternals(double d) : d64_(double_to_uint64(d)) {}
 
@@ -62,15 +62,18 @@ class DoubleInternals {
   }
 
  private:
-  static const uint64_t kSignMask = DART_2PART_UINT64_C(0x80000000, 00000000);
-  static const uint64_t kExponentMask =
+  static constexpr uint64_t kSignMask =
+      DART_2PART_UINT64_C(0x80000000, 00000000);
+  static constexpr uint64_t kExponentMask =
       DART_2PART_UINT64_C(0x7FF00000, 00000000);
-  static const uint64_t kSignificandMask =
+  static constexpr uint64_t kSignificandMask =
       DART_2PART_UINT64_C(0x000FFFFF, FFFFFFFF);
-  static const uint64_t kHiddenBit = DART_2PART_UINT64_C(0x00100000, 00000000);
-  static const int kPhysicalSignificandSize = 52;  // Excludes the hidden bit.
-  static const int kExponentBias = 0x3FF + kPhysicalSignificandSize;
-  static const int kDenormalExponent = -kExponentBias + 1;
+  static constexpr uint64_t kHiddenBit =
+      DART_2PART_UINT64_C(0x00100000, 00000000);
+  static constexpr int kPhysicalSignificandSize =
+      52;  // Excludes the hidden bit.
+  static constexpr int kExponentBias = 0x3FF + kPhysicalSignificandSize;
+  static constexpr int kDenormalExponent = -kExponentBias + 1;
 
   const uint64_t d64_;
 };

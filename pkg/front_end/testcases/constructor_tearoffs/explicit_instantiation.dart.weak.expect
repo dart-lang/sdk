@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -61,13 +61,13 @@ extension Ext on self::C {
 }
 static method top<T extends core::Object? = dynamic>(self::top::T% value) → self::top::T%
   return value;
-static method Ext|estat<T extends core::Object? = dynamic>(self::Ext|estat::T% value) → self::Ext|estat::T%
+static extension-member method Ext|estat<T extends core::Object? = dynamic>(self::Ext|estat::T% value) → self::Ext|estat::T%
   return value;
-static method Ext|einst<T extends core::Object? = dynamic>(lowered final self::C #this, self::Ext|einst::T% value) → self::Ext|einst::T%
+static extension-member method Ext|einst<T extends core::Object? = dynamic>(lowered final self::C #this, self::Ext|einst::T% value) → self::Ext|einst::T%
   return value;
-static method Ext|get#einst(lowered final self::C #this) → <T extends core::Object? = dynamic>(T%) → T%
+static extension-member method Ext|get#einst(lowered final self::C #this) → <T extends core::Object? = dynamic>(T%) → T%
   return <T extends core::Object? = dynamic>(T% value) → T% => self::Ext|einst<T%>(#this, value);
-static method Ext|emethod(lowered final self::C #this) → void {
+static extension-member method Ext|emethod(lowered final self::C #this) → void {
   (core::int) → core::int f1 = #C6;
   core::String f1TypeName = #C6.{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
   (core::int) → core::int f2 = self::Ext|get#einst(#this)<core::int>;
@@ -75,7 +75,7 @@ static method Ext|emethod(lowered final self::C #this) → void {
   (core::int) → core::int f3 = self::Ext|get#einst(#this)<core::int>;
   core::String f3TypeName = (self::Ext|get#einst(#this)<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
 }
-static method Ext|get#emethod(lowered final self::C #this) → () → void
+static extension-member method Ext|get#emethod(lowered final self::C #this) → () → void
   return () → void => self::Ext|emethod(#this);
 static method main() → void {
   core::Type t1 = #C7;

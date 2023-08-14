@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=records,patterns
-
 import 'invalid_const_pattern_binary_test.dart' as prefix;
 
 const value = 1;
@@ -430,8 +428,6 @@ method<T>(o) {
 
   switch (o) {
     case ++o: // Error
-    //   ^^^
-    // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
     //     ^
     // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
     // [cfe] Not a constant expression.
@@ -439,8 +435,6 @@ method<T>(o) {
 
   switch (o) {
     case --o: // Error
-    //   ^^^
-    // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
     //     ^
     // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
     // [cfe] Not a constant expression.

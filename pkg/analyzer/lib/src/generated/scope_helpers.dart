@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
@@ -16,54 +16,56 @@ mixin ScopeHelpers {
 
   void reportDeprecatedExportUse({
     required ScopeLookupResult scopeLookupResult,
-    required SimpleIdentifier node,
+    required Token nameToken,
     required bool hasRead,
     required bool hasWrite,
   }) {
     if (hasRead) {
       reportDeprecatedExportUseGetter(
         scopeLookupResult: scopeLookupResult,
-        node: node,
+        nameToken: nameToken,
       );
     }
 
     if (hasWrite) {
       reportDeprecatedExportUseSetter(
         scopeLookupResult: scopeLookupResult,
-        node: node,
+        nameToken: nameToken,
       );
     }
   }
 
   void reportDeprecatedExportUseGetter({
     required ScopeLookupResult scopeLookupResult,
-    required SimpleIdentifier node,
+    required Token nameToken,
   }) {
     if (scopeLookupResult is PrefixScopeLookupResult &&
         scopeLookupResult.getterIsFromDeprecatedExport) {
       _reportDeprecatedExportUse(
-        node: node,
+        nameToken: nameToken,
       );
     }
   }
 
   void reportDeprecatedExportUseSetter({
     required ScopeLookupResult scopeLookupResult,
-    required SimpleIdentifier node,
+    required Token nameToken,
   }) {
     if (scopeLookupResult is PrefixScopeLookupResult &&
         scopeLookupResult.setterIsFromDeprecatedExport) {
       _reportDeprecatedExportUse(
-        node: node,
+        nameToken: nameToken,
       );
     }
   }
 
-  void _reportDeprecatedExportUse({required SimpleIdentifier node}) {
-    errorReporter.reportErrorForNode(
+  void _reportDeprecatedExportUse({
+    required Token nameToken,
+  }) {
+    errorReporter.reportErrorForToken(
       HintCode.DEPRECATED_EXPORT_USE,
-      node,
-      [node.name],
+      nameToken,
+      [nameToken.lexeme],
     );
   }
 }

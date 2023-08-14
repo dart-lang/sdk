@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ReplaceConditionalWithIfElse extends CorrectionProducer {
+class ReplaceConditionalWithIfElse extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE;
 

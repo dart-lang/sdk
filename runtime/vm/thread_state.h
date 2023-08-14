@@ -23,7 +23,7 @@ class Zone;
 // restrictions.
 class ThreadState : public BaseThread {
  public:
-  // The currently executing thread, or NULL if not yet initialized.
+  // The currently executing thread, or nullptr if not yet initialized.
   static ThreadState* Current() {
     return OSThread::CurrentVMThread();
   }

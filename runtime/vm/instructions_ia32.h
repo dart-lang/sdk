@@ -38,7 +38,7 @@ class InstructionPattern : public ValueObject {
   // array of integers 'data'. 'data' elements are either a byte or -1, which
   // represents any byte.
   bool TestBytesWith(const int* data, int num_bytes) const {
-    ASSERT(data != NULL);
+    ASSERT(data != nullptr);
     const uint8_t* byte_array = reinterpret_cast<const uint8_t*>(start_);
     for (int i = 0; i < num_bytes; i++) {
       // Skip comparison for data[i] < 0.
@@ -77,7 +77,7 @@ class CallPattern : public InstructionPattern<CallPattern> {
   }
 
  private:
-  static const int kLengthInBytes = 5;
+  static constexpr int kLengthInBytes = 5;
   DISALLOW_COPY_AND_ASSIGN(CallPattern);
 };
 
@@ -92,7 +92,7 @@ class ReturnPattern : public InstructionPattern<ReturnPattern> {
   static int pattern_length_in_bytes() { return kLengthInBytes; }
 
  private:
-  static const int kLengthInBytes = 1;
+  static constexpr int kLengthInBytes = 1;
 };
 
 // push ebp
@@ -109,7 +109,7 @@ class ProloguePattern : public InstructionPattern<ProloguePattern> {
   static int pattern_length_in_bytes() { return kLengthInBytes; }
 
  private:
-  static const int kLengthInBytes = 3;
+  static constexpr int kLengthInBytes = 3;
 };
 
 // mov ebp, esp
@@ -126,7 +126,7 @@ class SetFramePointerPattern
   static int pattern_length_in_bytes() { return kLengthInBytes; }
 
  private:
-  static const int kLengthInBytes = 2;
+  static constexpr int kLengthInBytes = 2;
 };
 
 }  // namespace dart

@@ -13,12 +13,13 @@ import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
 
-const int LINE_A = 22;
-const int LINE_B = 24;
+const int LINE_0 = 22;
+const int LINE_A = 23;
+const int LINE_B = 25;
 
 // This tests the asyncNext command.
 asyncFunction() async {
-  debugger();
+  debugger(); // LINE_0
   print('a'); // LINE_A
   await new Future.delayed(new Duration(seconds: 2));
   print('b'); // LINE_B
@@ -29,6 +30,9 @@ testMain() {
 }
 
 var tests = <IsolateTest>[
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   stepOver, // At new Duration().

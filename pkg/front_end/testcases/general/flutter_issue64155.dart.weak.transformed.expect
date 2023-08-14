@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -7,15 +7,15 @@ abstract class TestMixin<R extends core::Object* = dynamic, T extends core::Obje
   method test(covariant-by-class asy::Future<self::TestMixin::R*>* fetch) → asy::Future<self::TestMixin::T*>* async /* futureValueType= self::TestMixin::T* */ {
     final self::TestMixin::R* response = await fetch;
     self::TestMixin::T* result;
-    if(response is self::Response<dynamic>*) {
-      result = response{self::TestMixin::R* & self::Response<dynamic>* /* '*' & '*' = '*' */}.{self::Response::data}{dynamic} as{TypeError,ForDynamic} self::TestMixin::T*;
+    if(response is{ForLegacy} self::Response<dynamic>*) {
+      result = response{self::TestMixin::R* & self::Response<dynamic>* /* '*' & '*' = '*' */}.{self::Response::data}{dynamic} as{TypeError,ForDynamic,ForLegacy} self::TestMixin::T*;
     }
     else
-      if(response is self::PagingResponse<dynamic>*) {
-        result = response{self::TestMixin::R* & self::PagingResponse<dynamic>* /* '*' & '*' = '*' */}.{self::PagingResponse::data}{self::PagingResponseData<dynamic>*}.{self::PagingResponseData::data}{core::List<dynamic>*} as self::TestMixin::T*;
+      if(response is{ForLegacy} self::PagingResponse<dynamic>*) {
+        result = response{self::TestMixin::R* & self::PagingResponse<dynamic>* /* '*' & '*' = '*' */}.{self::PagingResponse::data}{self::PagingResponseData<dynamic>*}.{self::PagingResponseData::data}{core::List<dynamic>*} as{ForLegacy} self::TestMixin::T*;
       }
       else
-        if(response is self::TestMixin::T*) {
+        if(response is{ForLegacy} self::TestMixin::T*) {
           result = response{self::TestMixin::R* & self::TestMixin::T* /* '*' & '*' = '*' */};
         }
         else {
@@ -90,15 +90,15 @@ abstract class _Class1&Object&TestMixin extends core::Object implements self::Te
   method test(covariant-by-class asy::Future<self::Response<core::String*>*>* fetch) → asy::Future<core::String*>* async /* futureValueType= core::String* */ {
     final self::Response<core::String*>* response = await fetch;
     core::String* result;
-    if(response is self::Response<dynamic>*) {
-      result = response{self::Response<core::String*>*}.{self::Response::data}{dynamic} as{TypeError,ForDynamic} core::String*;
+    if(response is{ForLegacy} self::Response<dynamic>*) {
+      result = response{self::Response<core::String*>*}.{self::Response::data}{dynamic} as{TypeError,ForDynamic,ForLegacy} core::String*;
     }
     else
-      if(response is self::PagingResponse<dynamic>*) {
-        result = response{self::Response<core::String*>*}.{self::PagingResponse::data}{self::PagingResponseData<dynamic>*}.{self::PagingResponseData::data}{core::List<dynamic>*} as core::String*;
+      if(response is{ForLegacy} self::PagingResponse<dynamic>*) {
+        result = response{self::Response<core::String*>*}.{self::PagingResponse::data}{self::PagingResponseData<dynamic>*}.{self::PagingResponseData::data}{core::List<dynamic>*} as{ForLegacy} core::String*;
       }
       else
-        if(response is core::String*) {
+        if(response is{ForLegacy} core::String*) {
           result = response{self::Response<core::String*>*};
         }
         else {
@@ -133,15 +133,15 @@ abstract class _Class2&Object&TestMixin extends core::Object implements self::Te
   method test(covariant-by-class asy::Future<self::PagingResponse<core::String*>*>* fetch) → asy::Future<core::String*>* async /* futureValueType= core::String* */ {
     final self::PagingResponse<core::String*>* response = await fetch;
     core::String* result;
-    if(response is self::Response<dynamic>*) {
-      result = response{self::PagingResponse<core::String*>*}.{self::Response::data}{dynamic} as{TypeError,ForDynamic} core::String*;
+    if(response is{ForLegacy} self::Response<dynamic>*) {
+      result = response{self::PagingResponse<core::String*>*}.{self::Response::data}{dynamic} as{TypeError,ForDynamic,ForLegacy} core::String*;
     }
     else
-      if(response is self::PagingResponse<dynamic>*) {
-        result = response{self::PagingResponse<core::String*>*}.{self::PagingResponse::data}{self::PagingResponseData<dynamic>*}.{self::PagingResponseData::data}{core::List<dynamic>*} as core::String*;
+      if(response is{ForLegacy} self::PagingResponse<dynamic>*) {
+        result = response{self::PagingResponse<core::String*>*}.{self::PagingResponse::data}{self::PagingResponseData<dynamic>*}.{self::PagingResponseData::data}{core::List<dynamic>*} as{ForLegacy} core::String*;
       }
       else
-        if(response is core::String*) {
+        if(response is{ForLegacy} core::String*) {
           result = response{self::PagingResponse<core::String*>*};
         }
         else {

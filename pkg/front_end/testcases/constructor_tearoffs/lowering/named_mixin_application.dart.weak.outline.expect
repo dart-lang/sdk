@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -9,7 +9,6 @@ abstract class Interface extends core::Object {
 }
 class Class<T extends core::Object? = dynamic> extends core::Object implements self::Interface {
   field core::int field;
-  static final field dynamic _redirecting# = <dynamic>[self::Class::redirectingFactory]/*isLegacy*/;
   constructor •([core::int field = 0]) → self::Class<self::Class::T%>
     ;
   constructor named(core::int field) → self::Class<self::Class::T%>
@@ -26,7 +25,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object implements s
     ;
   static method _#fact#tearOff<T extends core::Object? = dynamic>(core::int field) → self::Class<self::Class::_#fact#tearOff::T%>
     return self::Class::fact<self::Class::_#fact#tearOff::T%>(field);
-  static factory redirectingFactory<T extends core::Object? = dynamic>(core::int field) → self::Class<self::Class::redirectingFactory::T%>
+  static factory redirectingFactory<T extends core::Object? = dynamic>(core::int field) → self::Class<self::Class::redirectingFactory::T%> /* redirection-target: self::Class::•<self::Class::redirectingFactory::T%>*/
     return new self::Class::•<self::Class::redirectingFactory::T%>(field);
   static method _#redirectingFactory#tearOff<T extends core::Object? = dynamic>(core::int field) → self::Class<self::Class::_#redirectingFactory#tearOff::T%>
     return new self::Class::•<self::Class::_#redirectingFactory#tearOff::T%>(field);
@@ -68,8 +67,3 @@ static method test() → dynamic
   ;
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///named_mixin_application.dart:9:7 -> ConstructorTearOffConstant(Class.redirectingFactory)
-Extra constant evaluation: evaluated: 26, effectively constant: 1

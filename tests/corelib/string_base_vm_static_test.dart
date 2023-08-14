@@ -6,5 +6,8 @@
 import "package:expect/expect.dart";
 
 void main() {
-  String s4 = new String.fromCharCodes([/*@compile-error=unspecified*/ 0.0]);
+  String s4 = new String.fromCharCodes([0.0]);
+  //                                    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] A value of type 'double' can't be assigned to a variable of type 'int'.
 }

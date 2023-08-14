@@ -7,7 +7,10 @@
 // Test that an unresolved identifier at the top level causes a compile-time
 // error.
 
-var a = b; /*@compile-error=unspecified*/
+var a = b;
+//      ^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [cfe] Undefined name 'b'.
 
 main() {
   print(a);

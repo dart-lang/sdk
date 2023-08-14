@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -362,22 +361,20 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     // add regions
-    var typeName = node.type;
+    var namedType = node.type;
     // [prefix].ClassName
     {
-      var name = typeName.name;
-      var className = name;
-      if (name is PrefixedIdentifier) {
-        name.prefix.accept(this);
-        className = name.identifier;
+      final importPrefix = namedType.importPrefix;
+      if (importPrefix != null) {
+        computer._addRegionForToken(importPrefix.name, importPrefix.element);
       }
       // For a named constructor, the class name points at the class.
       var classNameTargetElement =
-          node.name != null ? className.staticElement : element;
-      computer._addRegionForNode(className, classNameTargetElement);
+          node.name != null ? namedType.element : element;
+      computer._addRegionForToken(namedType.name2, classNameTargetElement);
     }
     // <TypeA, TypeB>
-    typeName.typeArguments?.accept(this);
+    namedType.typeArguments?.accept(this);
     // optional "name"
     if (node.name != null) {
       computer._addRegionForNode(node.name, element);
@@ -453,6 +450,11 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    computer._addRegionForToken(node.name, node.element);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     super.visitIndexExpression(node);
     var element = node.writeOrReadElement;
@@ -469,6 +471,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     computer._addRegionForToken(node.name, node.declaredElement);
     super.visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitNamedType(NamedType node) {
+    node.importPrefix?.accept(this);
+    computer._addRegionForToken(node.name2, node.element);
+    node.typeArguments?.accept(this);
   }
 
   @override

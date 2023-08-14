@@ -113,26 +113,39 @@ extension E on int {
     }
   }
 
+  Future<void> test_fuzzyMatch() async {
+    addTestFile(r'''
+class MyClassFirst {}
+class MyClassSecond {}
+class OtherClass {}
+''');
+    await _getDeclarations(pattern: r'MyClass');
+
+    assertHas('MyClassFirst', ElementKind.CLASS);
+    assertHas('MyClassSecond', ElementKind.CLASS);
+    assertNo('OtherClass');
+  }
+
   Future<void> test_maxResults() async {
     newFile('$testPackageLibPath/a.dart', r'''
-class A {}
-class B {}
+class MyClass1 {}
+class MyClass2 {}
 ''').path;
     newFile('$testPackageLibPath/b.dart', r'''
-class C {}
-class D {}
+class MyClass3 {}
+class MyClass4 {}
 ''').path;
 
     // Limit to exactly one file.
-    await _getDeclarations(pattern: r'^[A-D]$', maxResults: 2);
+    await _getDeclarations(pattern: r'MyClass', maxResults: 2);
     expect(declarationsResult.declarations, hasLength(2));
 
     // Limit in the middle of the second file.
-    await _getDeclarations(pattern: r'^[A-D]$', maxResults: 3);
+    await _getDeclarations(pattern: r'MyClass', maxResults: 3);
     expect(declarationsResult.declarations, hasLength(3));
 
     // No limit.
-    await _getDeclarations(pattern: r'^[A-D]$');
+    await _getDeclarations(pattern: r'MyClass');
     expect(declarationsResult.declarations, hasLength(4));
   }
 
@@ -230,21 +243,6 @@ class A {}
     expect(declaration.offset, 24);
     expect(declaration.line, 2);
     expect(declaration.column, 7);
-  }
-
-  Future<void> test_regExp() async {
-    addTestFile(r'''
-class A {}
-class B {}
-class C {}
-class D {}
-''');
-    await _getDeclarations(pattern: r'[A-C]');
-
-    assertHas('A', ElementKind.CLASS);
-    assertHas('B', ElementKind.CLASS);
-    assertHas('C', ElementKind.CLASS);
-    assertNo('D');
   }
 
   Future<void> test_top() async {

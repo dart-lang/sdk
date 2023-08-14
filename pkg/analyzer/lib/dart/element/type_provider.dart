@@ -96,6 +96,12 @@ abstract class TypeProvider {
   /// Return the type representing the built-in type `num`.
   InterfaceType get numType;
 
+  /// Return the element representing the built-in class `Object`.
+  ClassElement get objectElement;
+
+  /// Return the type representing the built-in type `Object?`.
+  InterfaceType get objectQuestionType;
+
   /// Return the type representing the built-in type `Object`.
   InterfaceType get objectType;
 

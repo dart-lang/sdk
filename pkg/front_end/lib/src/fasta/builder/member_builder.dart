@@ -84,6 +84,10 @@ abstract class MemberBuilder implements ModifierBuilder {
 
   /// The builder for the enclosing class, if any.
   ClassBuilder? get classBuilder;
+
+  /// Returns the [Annotatable] nodes that hold the annotations declared on this
+  /// member.
+  Iterable<Annotatable> get annotatables;
 }
 
 abstract class MemberBuilderImpl extends ModifierBuilderImpl
@@ -188,10 +192,7 @@ abstract class BuilderClassMember implements ClassMember {
   String get fullName {
     String suffix = isSetter ? "=" : "";
     String className = classBuilder.fullNameForErrors;
-    // ignore: unnecessary_null_comparison
-    return className == null
-        ? "${fullNameForErrors}$suffix"
-        : "${className}.${fullNameForErrors}$suffix";
+    return "${className}.${fullNameForErrors}$suffix";
   }
 
   @override

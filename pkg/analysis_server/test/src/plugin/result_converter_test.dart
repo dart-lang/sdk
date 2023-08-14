@@ -24,10 +24,8 @@ class ResultConverterTest extends ProtocolTestUtilities {
   void test_convertAnalysisErrorFixes() {
     var error = analysisError(0, 0);
     var change = sourceChange(4, 4);
-    var initial = plugin.AnalysisErrorFixes(error,
-        fixes: <plugin.PrioritizedSourceChange>[
-          plugin.PrioritizedSourceChange(100, change)
-        ]);
+    var initial = plugin.AnalysisErrorFixes(error, fixes: <plugin
+        .PrioritizedSourceChange>[plugin.PrioritizedSourceChange(100, change)]);
     var expected =
         server.AnalysisErrorFixes(error, fixes: <SourceChange>[change]);
     expect(converter.convertAnalysisErrorFixes(initial), expected);

@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -19,7 +19,7 @@ static const field core::int* shiftNegative3 = 2.{core::int::>>}(1.{core::int::u
 static const field core::int* modZero = 2.{core::num::%}(0){(core::num*) →* core::int*};
 static const field core::int* divZero = invalid-expression "pkg/front_end/testcases/general/constants/js_semantics/number_folds_opt_out.dart:10:23: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
 const int divZero = 2 / 0;
-                      ^" in 2.{core::num::/}(0){(core::num*) →* core::double*} as{TypeError} core::int*;
+                      ^" in 2.{core::num::/}(0){(core::num*) →* core::double*} as{TypeError,ForLegacy} core::int*;
 static const field core::int* intdivZero = 2.{core::num::~/}(0){(core::num*) →* core::int*};
 static const field core::int* unaryMinus = 2.{core::int::unary-}(){() →* core::int*};
 static const field core::int* unaryTilde = 2.{core::int::~}(){() →* core::int*};

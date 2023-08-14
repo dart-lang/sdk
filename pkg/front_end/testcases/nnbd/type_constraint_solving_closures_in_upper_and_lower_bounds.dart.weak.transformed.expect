@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -21,6 +21,6 @@ static method test() → void {
   core::int x = self::check<core::int>(new self::C::•<core::List<core::int>>((core::List<core::int> x) → void {}));
   core::String s = invalid-expression "pkg/front_end/testcases/nnbd/type_constraint_solving_closures_in_upper_and_lower_bounds.dart:15:14: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   String s = x; // Should be an error, `T` should be int.
-             ^" in x as{TypeError,ForNonNullableByDefault} core::String;
+             ^" in x as{TypeError} core::String;
 }
 static method main() → dynamic {}

@@ -33,7 +33,7 @@ TEST_CASE(DirectChainedHashMap) {
   EXPECT(map.LookupValue(&v2) == &v2);
   EXPECT(map.LookupValue(&v3) == &v1);
   EXPECT(map.Remove(&v1));
-  EXPECT(map.Lookup(&v1) == NULL);
+  EXPECT(map.Lookup(&v1) == nullptr);
   map.Insert(&v1);
   DirectChainedHashMap<PointerSetKeyValueTrait<TestValue>> map2(map);
   EXPECT(map2.LookupValue(&v1) == &v1);
@@ -52,7 +52,7 @@ TEST_CASE(DirectChainedHashMapInsertRemove) {
   map.Insert(&v1);
   EXPECT(map.LookupValue(&v1) == &v1);
   EXPECT(map.Remove(&v1));
-  EXPECT(map.Lookup(&v1) == NULL);
+  EXPECT(map.Lookup(&v1) == nullptr);
 
   // Inserting v2 first should put it at the head of the list.
   map.Insert(&v2);
@@ -62,7 +62,7 @@ TEST_CASE(DirectChainedHashMapInsertRemove) {
 
   // Check to see if removing the head of the list causes issues.
   EXPECT(map.Remove(&v2));
-  EXPECT(map.Lookup(&v2) == NULL);
+  EXPECT(map.Lookup(&v2) == nullptr);
   EXPECT(map.LookupValue(&v1) == &v1);
 
   // Reinsert v2, which will place it at the back of the hash map list.
@@ -71,9 +71,9 @@ TEST_CASE(DirectChainedHashMapInsertRemove) {
 
   // Remove from the back of the hash map list.
   EXPECT(map.Remove(&v2));
-  EXPECT(map.Lookup(&v2) == NULL);
+  EXPECT(map.Lookup(&v2) == nullptr);
   EXPECT(map.Remove(&v1));
-  EXPECT(map.Lookup(&v1) == NULL);
+  EXPECT(map.Lookup(&v1) == nullptr);
 
   // Check to see that removing an invalid element returns false.
   EXPECT(!map.Remove(&v1));
@@ -89,7 +89,7 @@ TEST_CASE(DirectChainedHashMapInsertRemove) {
 
   EXPECT(map.Remove(&v2));
   EXPECT(map.LookupValue(&v1) == &v1);
-  EXPECT(map.Lookup(&v2) == NULL);
+  EXPECT(map.Lookup(&v2) == nullptr);
   EXPECT(map.LookupValue(&v3) == &v3);
 
   EXPECT(map.Remove(&v1));
@@ -164,7 +164,7 @@ TEST_CASE(DirectChainedHashMapIterator) {
   EXPECT(map.IsEmpty());
   DirectChainedHashMap<NumbersKeyValueTrait<IntptrPair> >::Iterator it =
       map.GetIterator();
-  EXPECT(it.Next() == NULL);
+  EXPECT(it.Next() == nullptr);
   it.Reset();
 
   map.Insert(p1);
@@ -179,7 +179,7 @@ TEST_CASE(DirectChainedHashMapIterator) {
   intptr_t sum = 0;
   while (true) {
     IntptrPair* p = it.Next();
-    if (p == NULL) {
+    if (p == nullptr) {
       break;
     }
     count++;

@@ -20,6 +20,7 @@
 #include "vm/class_table.h"
 #include "vm/dispatch_table.h"
 #include "vm/exceptions.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/field_table.h"
 #include "vm/fixed_cache.h"
 #include "vm/growable_array.h"
@@ -36,10 +37,6 @@
 #include "vm/thread_stack_resource.h"
 #include "vm/token_position.h"
 #include "vm/virtual_memory.h"
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-#include "vm/ffi_callback_trampolines.h"
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -61,7 +58,6 @@ class IsolateGroupReloadContext;
 class IsolateObjectStore;
 class IsolateProfilerData;
 class ProgramReloadContext;
-class ReloadHandler;
 class Log;
 class Message;
 class MessageHandler;
@@ -339,12 +335,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   void RunWithLockedGroup(std::function<void()> fun);
 
-  Monitor* threads_lock() const;
   ThreadRegistry* thread_registry() const { return thread_registry_.get(); }
   SafepointHandler* safepoint_handler() { return safepoint_handler_.get(); }
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  ReloadHandler* reload_handler() { return reload_handler_.get(); }
-#endif
 
   void CreateHeap(bool is_vm_isolate, bool is_service_or_kernel_isolate);
   void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
@@ -573,21 +565,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return thread == nullptr ? nullptr : thread->isolate_group();
   }
 
-  Thread* ScheduleThreadLocked(MonitorLocker* ml,
-                               Thread* existing_mutator_thread,
-                               bool is_vm_isolate,
-                               bool is_mutator,
-                               bool bypass_safepoint = false);
-  void UnscheduleThreadLocked(MonitorLocker* ml,
-                              Thread* thread,
-                              bool is_mutator,
-                              bool bypass_safepoint = false);
-
-  Thread* ScheduleThread(bool bypass_safepoint = false);
-  void UnscheduleThread(Thread* thread,
-                        bool is_mutator,
-                        bool bypass_safepoint = false);
-
   void IncreaseMutatorCount(Isolate* mutator, bool is_nested_reenter);
   void DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit);
   intptr_t MutatorCount() const {
@@ -790,6 +767,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void RegisterStaticField(const Field& field, const Object& initial_value);
   void FreeStaticField(const Field& field);
 
+  Isolate* EnterTemporaryIsolate();
+  static void ExitTemporaryIsolate();
+
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;
@@ -878,9 +858,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::unique_ptr<ApiState> api_state_;
   std::unique_ptr<ThreadRegistry> thread_registry_;
   std::unique_ptr<SafepointHandler> safepoint_handler_;
-
-  NOT_IN_PRODUCT(
-      NOT_IN_PRECOMPILED(std::unique_ptr<ReloadHandler> reload_handler_));
 
   static RwLock* isolate_groups_rwlock_;
   static IntrusiveDList<IsolateGroup>* isolate_groups_;
@@ -1014,10 +991,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return isolate_object_store_.get();
   }
 
-  static intptr_t ic_miss_code_offset() {
-    return OFFSET_OF(Isolate, ic_miss_code_);
-  }
-
   Dart_MessageNotifyCallback message_notify_callback() const {
     return message_notify_callback_.load(std::memory_order_relaxed);
   }
@@ -1070,6 +1043,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   uint64_t terminate_capability() const { return terminate_capability_; }
 
   void SendInternalLibMessage(LibMsgId msg_id, uint64_t capability);
+  static bool SendInternalLibMessage(Dart_Port main_port,
+                                     LibMsgId msg_id,
+                                     uint64_t capability);
 
   void set_init_callback_data(void* value) { init_callback_data_ = value; }
   void* init_callback_data() const { return init_callback_data_; }
@@ -1078,12 +1054,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   static intptr_t finalizers_offset() {
     return OFFSET_OF(Isolate, finalizers_);
   }
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  NativeCallbackTrampolines* native_callback_trampolines() {
-    return &native_callback_trampolines_;
-  }
-#endif
 
   Dart_EnvironmentCallback environment_callback() const {
     return environment_callback_;
@@ -1272,6 +1242,20 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     deopt_context_ = value;
   }
 
+  FfiCallbackMetadata::Trampoline CreateSyncFfiCallback(
+      Zone* zone,
+      const Function& function);
+  FfiCallbackMetadata::Trampoline CreateAsyncFfiCallback(
+      Zone* zone,
+      const Function& function,
+      Dart_Port send_port);
+  void DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback);
+
+  // Visible for testing.
+  FfiCallbackMetadata::Metadata* ffi_callback_list_head() {
+    return ffi_callback_list_head_;
+  }
+
   intptr_t BlockClassFinalization() {
     ASSERT(defer_finalization_count_ >= 0);
     return defer_finalization_count_++;
@@ -1293,6 +1277,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // Creates an object with the total heap memory usage statistics for this
   // isolate.
   void PrintMemoryUsageJSON(JSONStream* stream);
+
+  void PrintPauseEventJSON(JSONStream* stream);
 #endif
 
 #if !defined(PRODUCT)
@@ -1339,8 +1325,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   UserTagPtr default_tag() const { return default_tag_; }
   void set_default_tag(const UserTag& tag);
 
-  void set_ic_miss_code(const Code& code);
-
   // Also sends a paused at exit event over the service protocol.
   void SetStickyError(ErrorPtr sticky_error);
 
@@ -1386,10 +1370,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
   void set_is_service_registered(bool value) {
     UpdateIsolateFlagsBit<IsServiceRegisteredBit>(value);
-  }
-
-  const DispatchTable* dispatch_table() const {
-    return group()->dispatch_table();
   }
 
   // Isolate-specific flag handling.
@@ -1537,14 +1517,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
       const GrowableObjectArray& value);
 #endif  // !defined(PRODUCT)
 
-  Thread* ScheduleThread(bool is_mutator,
-                         bool is_nested_reenter,
-                         bool bypass_safepoint);
-  void UnscheduleThread(Thread* thread,
-                        bool is_mutator,
-                        bool is_nested_exit,
-                        bool bypass_safepoint);
-
   // DEPRECATED: Use Thread's methods instead. During migration, these default
   // to using the mutator thread (which must also be the current thread).
   Zone* current_zone() const {
@@ -1561,7 +1533,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   uword user_tag_ = 0;
   UserTagPtr current_tag_;
   UserTagPtr default_tag_;
-  CodePtr ic_miss_code_;
   FieldTable* field_table_ = nullptr;
   // Used to clear out `UntaggedFinalizerBase::isolate_` pointers on isolate
   // shutdown to prevent usage of dangling pointers.
@@ -1574,10 +1545,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   IsolateGroup* isolate_group_;
   IdleTimeHandler idle_time_handler_;
   std::unique_ptr<IsolateObjectStore> isolate_object_store_;
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  NativeCallbackTrampolines native_callback_trampolines_;
-#endif
 
 #define ISOLATE_FLAG_BITS(V)                                                   \
   V(ErrorsFatal)                                                               \
@@ -1676,6 +1643,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   MessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
   DeoptContext* deopt_context_ = nullptr;
+  FfiCallbackMetadata::Metadata* ffi_callback_list_head_ = nullptr;
 
   GrowableObjectArrayPtr tag_table_;
 

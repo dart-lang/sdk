@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ReplaceWithDecoratedBox extends CorrectionProducer {
+class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
   @override
   bool get canBeAppliedInBulk => true;
 
@@ -113,7 +113,7 @@ class ReplaceWithDecoratedBox extends CorrectionProducer {
   /// producer.
   bool _hasLint(InstanceCreationExpression expression) {
     var constructorName = expression.constructorName;
-    return resolvedResult.errors.any((error) {
+    return unitResult.errors.any((error) {
       var errorCode = error.errorCode;
       return errorCode.type == ErrorType.LINT &&
           errorCode.name == LintNames.use_decorated_box &&

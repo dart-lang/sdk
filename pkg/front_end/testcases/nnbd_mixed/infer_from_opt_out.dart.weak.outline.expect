@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -9,7 +9,7 @@ static method reify<T extends core::Object? = dynamic>(self::reify::T% arg) → 
 static method main() → dynamic
   ;
 
-library;
+library /*isLegacy*/;
 import self as self2;
 import "dart:core" as core;
 

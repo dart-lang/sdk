@@ -1,0 +1,75 @@
+{
+  // This is a checked-in VSCode workspace configuration file that can be used
+  // instead of directly opening $SDK_DIR in VSCode.
+  //
+  // It's an opt-in workspace configuration that contains settings for:
+  //  - vscode itself
+  //  - Dart analyzer
+  //  - etc.
+  //
+  // In terms of precedence, VSCode uses the following order in which settings
+  // are applied (merged together).
+  //
+  //  0) default settings
+  //  1) user's settings
+  //  2) remote machine settings
+  //  3) workspace settings  (this file)
+  //  4) workspace folder settings
+  //
+  //
+  // For details, see:
+  // https://code.visualstudio.com/docs/getstarted/settings#_settings-precedence
+  //
+  ////////
+  // VSCode Workspace Contents
+  //
+  // These are the workspace folders, and general VSCode workspace
+  // configuration itself.
+  //
+  // See https://code.visualstudio.com/docs/editor/workspaces for more
+  // information on this section of the file.
+  //
+  ////////
+  // For more inspiration on what else we can do with this file, see:
+  // https://fuchsia.googlesource.com/fuchsia/+/main/fuchsia.code-workspace
+  //
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "extensions": {
+    "recommendations": [
+      // Official Dart support, provides analyzer integration.
+      "Dart-Code.dart-code",
+    ]
+  },
+  "settings": {
+    "dart.analysisExcludedFolders": [
+      // These "tests" folders include invalid Dart code which
+      // will show as analyzer warnings/errors we don't intend to fix.
+      "tests",
+      "runtime/tests",
+      "runtime/observatory/tests",
+      "runtime/observatory_2/tests",
+
+      // We don't control the third_party code, so don't analyze it.
+      // It includes old Dart examples (e.g. protobuf) or README.dart
+      // files which don't actually contain dart code and thus don't
+      // analyze cleanly.
+      "third_party",
+      "runtime/third_party",
+
+      // We probably can include 'lib', but it currently shows too many errors.
+      // We would need to ignore import_internal_library, and other warnings
+      // on a per-file basis, since the analyzer is designed to work with
+      // user code not sdk code.
+      "sdk/lib",
+
+      // I would have expected the analyzer to automatically exclude these
+      // since it's in .gitignore, but it doesn't seem to.
+      "xcodebuild",
+      "out",
+    ],
+  },
+}

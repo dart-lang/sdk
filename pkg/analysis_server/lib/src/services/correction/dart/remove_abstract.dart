@@ -86,7 +86,7 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
   Future<void> _computeAbstractClassMember(ChangeBuilder builder) async {
     // 'abstract' keyword does not exist in AST
     var offset = diagnostic.problemMessage.offset;
-    var content = resolvedResult.content;
+    var content = unitResult.content;
     var i = offset + 'abstract '.length;
     while (content[i].trim().isEmpty) {
       i++;

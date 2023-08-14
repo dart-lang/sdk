@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -15,13 +15,13 @@ extension /* unnamed */ _extension#1 on self::Class {
   get property2 = self::_extension#1|get#property2;
   set property2 = self::_extension#1|set#property2;
 }
-static method _extension#0|get#property1(lowered final self::Class #this) → core::int?
+static extension-member method _extension#0|get#property1(lowered final self::Class #this) → core::int?
   ;
-static method _extension#0|set#property1(lowered final self::Class #this, core::int? value) → void
+static extension-member method _extension#0|set#property1(lowered final self::Class #this, core::int? value) → void
   ;
-static method _extension#1|get#property2(lowered final self::Class #this) → core::int?
+static extension-member method _extension#1|get#property2(lowered final self::Class #this) → core::int?
   ;
-static method _extension#1|set#property2(lowered final self::Class #this, core::int? value) → void
+static extension-member method _extension#1|set#property2(lowered final self::Class #this, core::int? value) → void
   ;
 static method main() → dynamic
   ;

@@ -73,10 +73,10 @@ class ObjectLocator : public ObjectVisitor {
   explicit ObjectLocator(IsolateGroupReloadContext* context)
       : context_(context), count_(0) {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     InstanceMorpher* morpher =
         context_->instance_morpher_by_cid_.LookupValue(obj->GetClassId());
-    if (morpher != NULL) {
+    if (morpher != nullptr) {
       morpher->AddObject(obj);
       count_++;
     }
@@ -529,7 +529,7 @@ ErrorPtr ReasonForCancelling::ToError() {
 
 StringPtr ReasonForCancelling::ToString() {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void ReasonForCancelling::AppendTo(JSONArray* array) {
@@ -680,7 +680,7 @@ ProgramReloadContext::ProgramReloadContext(
   // NOTE: DO NOT ALLOCATE ANY RAW OBJECTS HERE. The ProgramReloadContext is not
   // associated with the isolate yet and if a GC is triggered here the raw
   // objects will not be properly accounted for.
-  ASSERT(zone_ != NULL);
+  ASSERT(zone_ != nullptr);
 }
 
 ProgramReloadContext::~ProgramReloadContext() {
@@ -794,6 +794,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   TIMELINE_SCOPE(Reload);
 
   Thread* thread = Thread::Current();
+  ASSERT(thread->OwnsReloadSafepoint());
 
   Heap* heap = IG->heap();
   num_old_libs_ =
@@ -820,7 +821,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     // ReadKernelFromFile checks to see if the file at
     // root_script_url is a valid .dill file. If that's the case, a Program*
     // is returned. Otherwise, this is likely a source file that needs to be
-    // compiled, so ReadKernelFromFile returns NULL.
+    // compiled, so ReadKernelFromFile returns nullptr.
     kernel_program = kernel::Program::ReadFromFile(root_script_url);
     if (kernel_program != nullptr) {
       num_received_libs_ = kernel_program->library_count();
@@ -828,7 +829,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       p_num_received_classes = &num_received_classes_;
       p_num_received_procedures = &num_received_procedures_;
     } else {
-      if (kernel_buffer == NULL || kernel_buffer_size == 0) {
+      if (kernel_buffer == nullptr || kernel_buffer_size == 0) {
         char* error = CompileToKernel(force_reload, packages_url,
                                       &kernel_buffer, &kernel_buffer_size);
         did_kernel_compilation = true;
@@ -903,9 +904,6 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   intptr_t number_of_isolates = 0;
   isolate_group_->ForEachIsolate(
       [&](Isolate* isolate) { number_of_isolates++; });
-
-  // Disable the background compiler while we are performing the reload.
-  NoBackgroundCompilerScope stop_bg_compiler(thread);
 
   // Wait for any concurrent marking tasks to finish and turn off the
   // concurrent marker during reload as we might be allocating new instances
@@ -1429,6 +1427,9 @@ void ProgramReloadContext::EnsuredUnoptimizedCodeForStack() {
 
   IG->ForEachIsolate([](Isolate* isolate) {
     auto thread = isolate->mutator_thread();
+    if (thread == nullptr) {
+      return;
+    }
     StackFrameIterator it(ValidationPolicy::kDontValidateFrames, thread,
                           StackFrameIterator::kAllowCrossThreadIteration);
 
@@ -1539,7 +1540,7 @@ Dart_FileModifiedCallback IsolateGroupReloadContext::file_modified_callback_ =
 
 bool IsolateGroupReloadContext::ScriptModifiedSince(const Script& script,
                                                     int64_t since) {
-  if (IsolateGroupReloadContext::file_modified_callback_ == NULL) {
+  if (IsolateGroupReloadContext::file_modified_callback_ == nullptr) {
     return true;
   }
   // We use the resolved url to determine if the script has been modified.
@@ -1607,8 +1608,8 @@ void IsolateGroupReloadContext::FindModifiedSources(
 
   // In addition to all sources, we need to check if the .packages file
   // contents have been modified.
-  if (packages_url != NULL) {
-    if (IsolateGroupReloadContext::file_modified_callback_ == NULL ||
+  if (packages_url != nullptr) {
+    if (IsolateGroupReloadContext::file_modified_callback_ == nullptr ||
         (*IsolateGroupReloadContext::file_modified_callback_)(packages_url,
                                                               last_reload)) {
       modified_sources_uris.Add(packages_url);
@@ -1623,7 +1624,7 @@ void IsolateGroupReloadContext::FindModifiedSources(
   *modified_sources = Z->Alloc<Dart_SourceFile>(*count);
   for (intptr_t i = 0; i < *count; ++i) {
     (*modified_sources)[i].uri = modified_sources_uris[i];
-    (*modified_sources)[i].source = NULL;
+    (*modified_sources)[i].source = nullptr;
   }
 }
 
@@ -2005,6 +2006,9 @@ void ProgramReloadContext::ResetUnoptimizedICsOnStack() {
   CallSiteResetter resetter(zone);
 
   IG->ForEachIsolate([&](Isolate* isolate) {
+    if (isolate->mutator_thread() == nullptr) {
+      return;
+    }
     DartFrameIterator iterator(isolate->mutator_thread(),
                                StackFrameIterator::kAllowCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
@@ -2052,7 +2056,7 @@ class InvalidationCollector : public ObjectVisitor {
         instances_(instances) {}
   virtual ~InvalidationCollector() {}
 
-  void VisitObject(ObjectPtr obj) {
+  void VisitObject(ObjectPtr obj) override {
     intptr_t cid = obj->GetClassId();
     if (cid == kFunctionCid) {
       const Function& func =
@@ -2085,8 +2089,6 @@ class InvalidationCollector : public ObjectVisitor {
   GrowableArray<const SuspendState*>* const suspend_states_;
   GrowableArray<const Instance*>* const instances_;
 };
-
-typedef UnorderedHashMap<SmiTraits> IntHashMap;
 
 void ProgramReloadContext::RunInvalidationVisitors() {
   TIR_Print("---- RUNNING INVALIDATION HEAP VISITORS\n");
@@ -2278,7 +2280,7 @@ class FieldInvalidator {
         instance_(Instance::Handle(zone)),
         type_(AbstractType::Handle(zone)),
         cache_(SubtypeTestCache::Handle(zone)),
-        entries_(Array::Handle(zone)),
+        result_(Bool::Handle(zone)),
         closure_function_(Function::Handle(zone)),
         instantiator_type_arguments_(TypeArguments::Handle(zone)),
         function_type_arguments_(TypeArguments::Handle(zone)),
@@ -2374,8 +2376,7 @@ class FieldInvalidator {
   DART_FORCE_INLINE
   bool CheckAssignabilityUsingCache(bool null_safety,
                                     const Object& value,
-                                    const AbstractType& type,
-                                    const Field& field) {
+                                    const AbstractType& type) {
     ASSERT(!value.IsSentinel());
     if (!null_safety && value.IsNull()) {
       return true;
@@ -2387,7 +2388,7 @@ class FieldInvalidator {
 
     if (type.IsRecordType()) {
       return CheckAssignabilityForRecordType(null_safety, value,
-                                             RecordType::Cast(type), field);
+                                             RecordType::Cast(type));
     }
 
     cls_ = value.clazz();
@@ -2410,33 +2411,16 @@ class FieldInvalidator {
       delayed_function_type_arguments_ = TypeArguments::null();
     }
 
-    cache_ = field.type_test_cache();
     if (cache_.IsNull()) {
-      cache_ = SubtypeTestCache::New();
-      field.set_type_test_cache(cache_);
+      // Use a cache that will check all inputs.
+      cache_ = SubtypeTestCache::New(SubtypeTestCache::kMaxInputs);
     }
-    entries_ = cache_.cache();
-
-    for (intptr_t i = 0; entries_.At(i) != Object::null();
-         i += SubtypeTestCache::kTestEntryLength) {
-      if ((entries_.At(i + SubtypeTestCache::kInstanceCidOrSignature) ==
-           instance_cid_or_signature_.ptr()) &&
-          (entries_.At(i + SubtypeTestCache::kDestinationType) == type.ptr()) &&
-          (entries_.At(i + SubtypeTestCache::kInstanceTypeArguments) ==
-           instance_type_arguments_.ptr()) &&
-          (entries_.At(i + SubtypeTestCache::kInstantiatorTypeArguments) ==
-           instantiator_type_arguments_.ptr()) &&
-          (entries_.At(i + SubtypeTestCache::kFunctionTypeArguments) ==
-           function_type_arguments_.ptr()) &&
-          (entries_.At(
-               i + SubtypeTestCache::kInstanceParentFunctionTypeArguments) ==
-           parent_function_type_arguments_.ptr()) &&
-          (entries_.At(
-               i + SubtypeTestCache::kInstanceDelayedFunctionTypeArguments) ==
-           delayed_function_type_arguments_.ptr())) {
-        return entries_.At(i + SubtypeTestCache::kTestResult) ==
-               Bool::True().ptr();
-      }
+    if (cache_.HasCheck(
+            instance_cid_or_signature_, type, instance_type_arguments_,
+            instantiator_type_arguments_, function_type_arguments_,
+            parent_function_type_arguments_, delayed_function_type_arguments_,
+            /*index=*/nullptr, &result_)) {
+      return result_.value();
     }
 
     instance_ ^= value.ptr();
@@ -2459,8 +2443,7 @@ class FieldInvalidator {
 
   bool CheckAssignabilityForRecordType(bool null_safety,
                                        const Object& value,
-                                       const RecordType& type,
-                                       const Field& field) {
+                                       const RecordType& type) {
     if (!value.IsRecord()) {
       return false;
     }
@@ -2477,8 +2460,7 @@ class FieldInvalidator {
     for (intptr_t i = 0; i < num_fields; ++i) {
       field_value = record.FieldAt(i);
       field_type = type.FieldTypeAt(i);
-      if (!CheckAssignabilityUsingCache(null_safety, field_value, field_type,
-                                        field)) {
+      if (!CheckAssignabilityUsingCache(null_safety, field_value, field_type)) {
         return false;
       }
     }
@@ -2494,7 +2476,7 @@ class FieldInvalidator {
       return;
     }
     type_ = field.type();
-    if (!CheckAssignabilityUsingCache(null_safety, value, type_, field)) {
+    if (!CheckAssignabilityUsingCache(null_safety, value, type_)) {
       // Even if doing an identity reload, type check can fail if hot reload
       // happens while constructor is still running and field is not
       // initialized yet, so it has a null value.
@@ -2520,7 +2502,7 @@ class FieldInvalidator {
   Instance& instance_;
   AbstractType& type_;
   SubtypeTestCache& cache_;
-  Array& entries_;
+  Bool& result_;
   Function& closure_function_;
   TypeArguments& instantiator_type_arguments_;
   TypeArguments& function_type_arguments_;
@@ -2830,114 +2812,6 @@ void ProgramReloadContext::RebuildDirectSubclasses() {
         }
       }
     }
-  }
-}
-
-void ReloadHandler::RegisterIsolate() {
-  SafepointMonitorLocker ml(&monitor_);
-  ParticipateIfReloadRequested(&ml, /*is_registered=*/false,
-                               /*allow_later_retry=*/false);
-  ASSERT(reloading_thread_ == nullptr);
-  ++registered_isolate_count_;
-}
-
-void ReloadHandler::UnregisterIsolate() {
-  SafepointMonitorLocker ml(&monitor_);
-  ParticipateIfReloadRequested(&ml, /*is_registered=*/true,
-                               /*allow_later_retry=*/false);
-  ASSERT(reloading_thread_ == nullptr);
-  --registered_isolate_count_;
-}
-
-void ReloadHandler::CheckForReload() {
-  SafepointMonitorLocker ml(&monitor_);
-  ParticipateIfReloadRequested(&ml, /*is_registered=*/true,
-                               /*allow_later_retry=*/true);
-}
-
-void ReloadHandler::ParticipateIfReloadRequested(SafepointMonitorLocker* ml,
-                                                 bool is_registered,
-                                                 bool allow_later_retry) {
-  if (reloading_thread_ != nullptr) {
-    auto thread = Thread::Current();
-    auto isolate = thread->isolate();
-
-    // If the current thread is in a no reload scope, we'll not participate here
-    // and instead delay to a point (further up the stack, namely in the main
-    // message handling loop) where this isolate can participate.
-    if (thread->IsInNoReloadScope()) {
-      RELEASE_ASSERT(allow_later_retry);
-      isolate->SendInternalLibMessage(Isolate::kCheckForReload, /*ignored=*/-1);
-      return;
-    }
-
-    if (is_registered) {
-      SafepointMonitorLocker ml(&checkin_monitor_);
-      ++isolates_checked_in_;
-      ml.NotifyAll();
-    }
-    // While we're waiting for the reload to be performed, we'll exit the
-    // isolate. That will transition into a safepoint - which a blocking `Wait`
-    // would also do - but it does something in addition: It will release it's
-    // current TLAB and decrease the mutator count. We want this in order to let
-    // all isolates in the group participate in the reload, despite our parallel
-    // mutator limit.
-    while (reloading_thread_ != nullptr) {
-      SafepointMonitorUnlockScope ml_unlocker(ml);
-      Thread::ExitIsolate(/*nested=*/true);
-      {
-        MonitorLocker ml(&monitor_);
-        while (reloading_thread_ != nullptr) {
-          ml.Wait();
-        }
-      }
-      Thread::EnterIsolate(isolate, /*nested=*/true);
-    }
-    if (is_registered) {
-      SafepointMonitorLocker ml(&checkin_monitor_);
-      --isolates_checked_in_;
-    }
-  }
-}
-
-void ReloadHandler::PauseIsolatesForReloadLocked() {
-  intptr_t registered = -1;
-  {
-    SafepointMonitorLocker ml(&monitor_);
-
-    // Maybe participate in existing reload requested by another isolate.
-    ParticipateIfReloadRequested(&ml, /*registered=*/true,
-                                 /*allow_later_retry=*/false);
-
-    // Now it's our turn to request reload.
-    ASSERT(reloading_thread_ == nullptr);
-    reloading_thread_ = Thread::Current();
-
-    // At this point no isolate register/unregister, so we save the current
-    // number of registered isolates.
-    registered = registered_isolate_count_;
-  }
-
-  // Send OOB to a superset of all registered isolates and make them participate
-  // in this reload.
-  reloading_thread_->isolate_group()->ForEachIsolate([](Isolate* isolate) {
-    isolate->SendInternalLibMessage(Isolate::kCheckForReload, /*ignored=*/-1);
-  });
-
-  {
-    SafepointMonitorLocker ml(&checkin_monitor_);
-    while (isolates_checked_in_ < (registered - /*reload_requester=*/1)) {
-      ml.Wait();
-    }
-  }
-}
-
-void ReloadHandler::ResumeIsolatesLocked() {
-  {
-    SafepointMonitorLocker ml(&monitor_);
-    ASSERT(reloading_thread_ == Thread::Current());
-    reloading_thread_ = nullptr;
-    ml.NotifyAll();
   }
 }
 

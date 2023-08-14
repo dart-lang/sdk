@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -12,17 +12,17 @@ extension S2<X extends core::Object? = dynamic> on core::int {
   method test3 = self::S2|test3;
   tearoff test3 = self::S2|get#test3;
 }
-static method S|test(lowered final core::int #this, core::int x) → void
+static extension-member method S|test(lowered final core::int #this, core::int x) → void
   ;
-static method S|get#test(lowered final core::int #this) → (core::int) → void
+static extension-member method S|get#test(lowered final core::int #this) → (core::int) → void
   return (core::int x) → void => self::S|test(#this, x);
-static method S2|test2<X extends core::Object? = dynamic>(lowered final core::int #this, core::int x) → void
+static extension-member method S2|test2<X extends core::Object? = dynamic>(lowered final core::int #this, core::int x) → void
   ;
-static method S2|get#test2<X extends core::Object? = dynamic>(lowered final core::int #this) → (core::int) → void
+static extension-member method S2|get#test2<X extends core::Object? = dynamic>(lowered final core::int #this) → (core::int) → void
   return (core::int x) → void => self::S2|test2<self::S2|get#test2::X%>(#this, x);
-static method S2|test3<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(lowered final core::int #this, self::S2|test3::Y% y) → void
+static extension-member method S2|test3<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(lowered final core::int #this, self::S2|test3::Y% y) → void
   ;
-static method S2|get#test3<X extends core::Object? = dynamic>(lowered final core::int #this) → <Y extends core::Object? = dynamic>(Y%) → void
+static extension-member method S2|get#test3<X extends core::Object? = dynamic>(lowered final core::int #this) → <Y extends core::Object? = dynamic>(Y%) → void
   return <Y extends core::Object? = dynamic>(Y% y) → void => self::S2|test3<self::S2|get#test3::X%, Y%>(#this, y);
 static method foo() → dynamic
   ;

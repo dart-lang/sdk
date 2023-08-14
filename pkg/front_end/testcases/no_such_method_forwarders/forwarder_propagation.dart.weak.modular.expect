@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "forwarder_propagation_lib.dart" as for;
@@ -19,7 +19,7 @@ class B extends core::Object implements self::A {
     ;
   method noSuchMethod(core::Invocation _) → dynamic {}
   no-such-method-forwarder get bar() → core::int
-    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
   no-such-method-forwarder method baz(core::int x, {core::String y = #C1, core::double z = #C1}) → void
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C7: y, #C8: z}))){(core::Invocation) → dynamic};
   no-such-method-forwarder set foo(core::int value) → void
@@ -52,7 +52,7 @@ class F extends self::E {
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

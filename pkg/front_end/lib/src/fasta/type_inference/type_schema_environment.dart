@@ -240,7 +240,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // other way.
     DartType bound = parameter.bound;
     return bound is InterfaceType &&
-        identical(bound.classNode, coreTypes.objectClass) &&
+        identical(bound.classReference, coreTypes.objectClass.reference) &&
         parameter.defaultType is DynamicType;
   }
 
@@ -370,8 +370,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   bool isSpecialCasesBinaryForReceiverType(
       Procedure member, DartType receiverType,
       {required bool isNonNullableByDefault}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNonNullableByDefault != null);
     if (!isNonNullableByDefault) {
       // TODO(paulberry): this matches what is defined in the spec.  It would be
       // nice if we could change kernel to match the spec and not have to

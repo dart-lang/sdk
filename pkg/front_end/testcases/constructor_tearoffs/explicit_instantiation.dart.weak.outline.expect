@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -45,15 +45,15 @@ extension Ext on self::C {
 }
 static method top<T extends core::Object? = dynamic>(self::top::T% value) → self::top::T%
   ;
-static method Ext|estat<T extends core::Object? = dynamic>(self::Ext|estat::T% value) → self::Ext|estat::T%
+static extension-member method Ext|estat<T extends core::Object? = dynamic>(self::Ext|estat::T% value) → self::Ext|estat::T%
   ;
-static method Ext|einst<T extends core::Object? = dynamic>(lowered final self::C #this, self::Ext|einst::T% value) → self::Ext|einst::T%
+static extension-member method Ext|einst<T extends core::Object? = dynamic>(lowered final self::C #this, self::Ext|einst::T% value) → self::Ext|einst::T%
   ;
-static method Ext|get#einst(lowered final self::C #this) → <T extends core::Object? = dynamic>(T%) → T%
+static extension-member method Ext|get#einst(lowered final self::C #this) → <T extends core::Object? = dynamic>(T%) → T%
   return <T extends core::Object? = dynamic>(T% value) → T% => self::Ext|einst<T%>(#this, value);
-static method Ext|emethod(lowered final self::C #this) → void
+static extension-member method Ext|emethod(lowered final self::C #this) → void
   ;
-static method Ext|get#emethod(lowered final self::C #this) → () → void
+static extension-member method Ext|get#emethod(lowered final self::C #this) → () → void
   return () → void => self::Ext|emethod(#this);
 static method main() → void
   ;

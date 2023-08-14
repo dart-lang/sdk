@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:collection/collection.dart';
 
 /// A computer for [CompilationUnit] folding.
 class DartUnitFoldingComputer {
@@ -393,6 +392,44 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
     _computer._addRegion(
         node.leftBracket.end, node.rightBracket.offset, FoldingKind.LITERAL);
     super.visitSetOrMapLiteral(node);
+  }
+
+  @override
+  void visitSwitchCase(SwitchCase node) {
+    _computer._addRegion(node.colon.end, node.end, FoldingKind.BLOCK);
+    super.visitSwitchCase(node);
+  }
+
+  @override
+  void visitSwitchDefault(SwitchDefault node) {
+    _computer._addRegion(node.colon.end, node.end, FoldingKind.BLOCK);
+    super.visitSwitchDefault(node);
+  }
+
+  @override
+  void visitSwitchExpression(SwitchExpression node) {
+    _computer._addRegion(
+        node.leftBracket.end, node.rightBracket.end, FoldingKind.BLOCK);
+    super.visitSwitchExpression(node);
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    _computer._addRegion(node.arrow.end, node.end, FoldingKind.BLOCK);
+    super.visitSwitchExpressionCase(node);
+  }
+
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    _computer._addRegion(node.colon.end, node.end, FoldingKind.BLOCK);
+    super.visitSwitchPatternCase(node);
+  }
+
+  @override
+  void visitSwitchStatement(SwitchStatement node) {
+    _computer._addRegion(
+        node.leftBracket.end, node.rightBracket.end, FoldingKind.BLOCK);
+    super.visitSwitchStatement(node);
   }
 
   @override

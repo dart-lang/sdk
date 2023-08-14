@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+inline class IC1 /* declaredRepresentationType = core::int */ {
+  constructor • = self::IC1|;
+  tearoff • = self::IC1|_#new#tearOff;
+  static redirecting-factory f = self::IC1|f;
+  static tearoff f = self::IC1|_#f#tearOff;
+}
+static inline-class-member method IC1|(core::int id) → self::IC1
+  ;
+static inline-class-member method IC1|_#new#tearOff(core::int id) → self::IC1
+  return self::IC1|(id);
+static inline-class-member method IC1|f(core::int id) → self::IC1 /* redirection-target: self::IC1| */
+  return self::IC1|(id);
+static inline-class-member method IC1|_#f#tearOff(core::int id) → self::IC1;
+static method main() → dynamic
+  ;

@@ -6,7 +6,6 @@
 #include "platform/assert.h"
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"
-#include "vm/heap/heap.h"
 #include "vm/object.h"
 #include "vm/unit_test.h"
 #include "vm/zone.h"
@@ -20,7 +19,7 @@ ISOLATE_UNIT_TEST_CASE(AllocateZoneHandle) {
 #endif
   // The previously run stub code generation may have created zone handles.
   int initial_count = VMHandles::ZoneHandleCount();
-  static const int kNumHandles = 65;
+  const int kNumHandles = 65;
   // Create some zone handles.
   for (int i = 0; i < kNumHandles; i++) {
     const Smi& handle = Smi::ZoneHandle(Smi::New(i));
@@ -43,7 +42,7 @@ ISOLATE_UNIT_TEST_CASE(AllocateScopeHandle) {
   FLAG_trace_handles = true;
 #endif
   int32_t handle_count = VMHandles::ScopedHandleCount();
-  static const int kNumHandles = 65;
+  const int kNumHandles = 65;
   // Create some scoped handles.
   {
     Thread* thread = Thread::Current();
@@ -84,7 +83,7 @@ TEST_CASE(CheckHandleValidity) {
 #if defined(DEBUG)
   FLAG_trace_handles = true;
 #endif
-  Dart_Handle handle = NULL;
+  Dart_Handle handle = nullptr;
   // Check validity using zone handles.
   {
     TransitionNativeToVM transition(thread);
@@ -128,7 +127,7 @@ TEST_CASE(CheckHandleValidity) {
 
   // Check validity using weak persistent handle.
   handle = reinterpret_cast<Dart_Handle>(Dart_NewWeakPersistentHandle(
-      Dart_NewStringFromCString("foo"), NULL, 0, NoopCallback));
+      Dart_NewStringFromCString("foo"), nullptr, 0, NoopCallback));
 
   EXPECT_NOTNULL(handle);
   EXPECT_VALID(handle);

@@ -80,6 +80,8 @@ mixin ElementsTypesMixin {
     return interfaceTypeStar(element);
   }
 
+  DartType get invalidType => InvalidTypeImpl.instance;
+
   NeverTypeImpl get neverNone => NeverTypeImpl.instance;
 
   NeverTypeImpl get neverQuestion => NeverTypeImpl.instanceNullable;

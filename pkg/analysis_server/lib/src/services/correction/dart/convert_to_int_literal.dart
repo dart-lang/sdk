@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class ConvertToIntLiteral extends CorrectionProducer {
+class ConvertToIntLiteral extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_INT_LITERAL;
 

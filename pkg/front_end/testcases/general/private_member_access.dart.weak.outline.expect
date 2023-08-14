@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "private_member_access_lib.dart" as pri;
 
@@ -7,7 +7,7 @@ import "org-dartlang-testcase:///private_member_access_lib.dart";
 static method method(pri::Class c) → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as pri;
 import "dart:core" as core;
 

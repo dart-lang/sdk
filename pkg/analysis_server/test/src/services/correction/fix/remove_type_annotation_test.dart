@@ -22,6 +22,7 @@ void main() {
     defineReflectiveTests(SuperFormalParameterTypeIsNotSubtypeOfAssociatedTest);
     defineReflectiveTests(TypeInitFormalsBulkTest);
     defineReflectiveTests(TypeInitFormalsTest);
+    defineReflectiveTests(VarAndTypeTest);
   });
 }
 
@@ -404,6 +405,46 @@ class D extends C {
 class C {
   int f;
   C(super.f);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class VarAndTypeTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_TYPE_ANNOTATION;
+
+  Future<void> test_declaredVariablePattern() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  switch (x) {
+    case var int y:
+      y;
+  }
+}
+''');
+    await assertHasFix('''
+void f(Object? x) {
+  switch (x) {
+    case var y:
+      y;
+  }
+}
+''');
+  }
+
+  Future<void> test_variableDeclarationList() async {
+    await resolveTestCode('''
+void f() {
+  var int v = 0;
+  v;
+}
+''');
+    await assertHasFix('''
+void f() {
+  var v = 0;
+  v;
 }
 ''');
   }

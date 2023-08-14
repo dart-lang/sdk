@@ -6,5 +6,8 @@
 
 main() {
   var chars = [];
-  for (var c in "foo") chars.add(c); /*@compile-error=unspecified*/
+  for (var c in "foo") chars.add(c);
+  //            ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_TYPE
+  // [cfe] The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
 }

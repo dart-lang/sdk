@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -72,7 +72,7 @@ class G extends self::_G&Object&A&F {
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as iss;
 import "dart:core" as core;
 

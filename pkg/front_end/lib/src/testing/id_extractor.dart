@@ -83,8 +83,6 @@ abstract class DataExtractor<T> extends Visitor<void>
 
   void computeForMember(Member member) {
     MemberId id = computeMemberId(member);
-    // ignore: unnecessary_null_comparison
-    if (id == null) return;
     T? value = computeMemberValue(id, member);
     registerValue(member.fileUri, member.fileOffset, id, value, member);
   }

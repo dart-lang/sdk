@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ReplaceEmptyMapPattern extends CorrectionProducer {
+class ReplaceEmptyMapPattern extends ResolvedCorrectionProducer {
   final _Style _style;
 
   /// Initialize a newly created correction producer to create an object pattern

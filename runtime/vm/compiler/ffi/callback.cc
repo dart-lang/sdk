@@ -17,7 +17,8 @@ namespace ffi {
 
 FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
                                    const Function& dart_target,
-                                   const Instance& exceptional_return) {
+                                   const Instance& exceptional_return,
+                                   FfiCallbackKind kind) {
   Thread* const thread = Thread::Current();
   Zone* const zone = thread->zone();
   Function& function = Function::Handle(zone);
@@ -46,6 +47,7 @@ FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
   // the body.
   function.SetFfiCSignature(c_signature);
   function.SetFfiCallbackTarget(dart_target);
+  function.SetFfiCallbackKind(kind);
 
   // We need to load the exceptional return value as a constant in the generated
   // function. Even though the FE ensures that it is a constant, it could still
@@ -101,6 +103,43 @@ FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
   }
 
   return function.ptr();
+}
+
+static void EnsureFfiCallbackMetadata(Thread* thread, intptr_t callback_id) {
+  static constexpr intptr_t kInitialCallbackIdsReserved = 16;
+
+  auto object_store = thread->isolate_group()->object_store();
+  auto zone = thread->zone();
+
+  auto& code_array =
+      GrowableObjectArray::Handle(zone, object_store->ffi_callback_code());
+  if (code_array.IsNull()) {
+    code_array =
+        GrowableObjectArray::New(kInitialCallbackIdsReserved, Heap::kOld);
+    object_store->set_ffi_callback_code(code_array);
+  }
+  if (code_array.Length() <= callback_id) {
+    // Ensure we've enough space in the arrays.
+    while (!(callback_id < code_array.Length())) {
+      code_array.Add(Code::null_object());
+    }
+  }
+
+  ASSERT(callback_id < code_array.Length());
+}
+
+void SetFfiCallbackCode(Thread* thread,
+                        const Function& ffi_trampoline,
+                        const Code& code) {
+  auto zone = thread->zone();
+
+  const intptr_t callback_id = ffi_trampoline.FfiCallbackId();
+  EnsureFfiCallbackMetadata(thread, callback_id);
+
+  auto object_store = thread->isolate_group()->object_store();
+  const auto& code_array =
+      GrowableObjectArray::Handle(zone, object_store->ffi_callback_code());
+  code_array.SetAt(callback_id, code);
 }
 
 }  // namespace ffi

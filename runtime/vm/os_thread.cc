@@ -16,8 +16,8 @@ namespace dart {
 // The single thread local key which stores all the thread local data
 // for a thread.
 ThreadLocalKey OSThread::thread_key_ = kUnsetThreadLocalKey;
-OSThread* OSThread::thread_list_head_ = NULL;
-Mutex* OSThread::thread_list_lock_ = NULL;
+OSThread* OSThread::thread_list_head_ = nullptr;
+Mutex* OSThread::thread_list_lock_ = nullptr;
 bool OSThread::creation_enabled_ = false;
 
 #if defined(SUPPORT_TIMELINE)
@@ -46,14 +46,14 @@ OSThread::OSThread()
 #endif
       name_(OSThread::GetCurrentThreadName()),
       timeline_block_lock_(),
-      timeline_block_(NULL),
-      thread_list_next_(NULL),
+      timeline_block_(nullptr),
+      thread_list_next_(nullptr),
       thread_interrupt_disabled_(1),  // Thread interrupts disabled by default.
       log_(new class Log()),
       stack_base_(0),
       stack_limit_(0),
       stack_headroom_(0),
-      thread_(NULL) {
+      thread_(nullptr) {
   // Try to get accurate stack bounds from pthreads, etc.
   if (!GetCurrentStackBounds(&stack_limit_, &stack_base_)) {
     FATAL("Failed to retrieve stack bounds");
@@ -74,10 +74,10 @@ OSThread::OSThread()
 }
 
 OSThread* OSThread::CreateOSThread() {
-  ASSERT(thread_list_lock_ != NULL);
+  ASSERT(thread_list_lock_ != nullptr);
   MutexLocker ml(thread_list_lock_);
   if (!creation_enabled_) {
-    return NULL;
+    return nullptr;
   }
   OSThread* os_thread = new OSThread();
   AddThreadToListLocked(os_thread);
@@ -93,22 +93,22 @@ OSThread::~OSThread() {
   }
   RemoveThreadFromList(this);
   delete log_;
-  log_ = NULL;
+  log_ = nullptr;
 #if defined(SUPPORT_TIMELINE)
-  if (Timeline::recorder() != NULL) {
+  if (Timeline::recorder() != nullptr) {
     Timeline::recorder()->FinishBlock(timeline_block_);
   }
 #endif
-  timeline_block_ = NULL;
+  timeline_block_ = nullptr;
   free(name_);
 }
 
 void OSThread::SetName(const char* name) {
   MutexLocker ml(thread_list_lock_);
   // Clear the old thread name.
-  if (name_ != NULL) {
+  if (name_ != nullptr) {
     free(name_);
-    name_ = NULL;
+    name_ = nullptr;
   }
   ASSERT(OSThread::Current() == this);
   ASSERT(name != nullptr);
@@ -162,10 +162,10 @@ static void DeleteThread(void* thread) {
 
 void OSThread::Init() {
   // Allocate the global OSThread lock.
-  if (thread_list_lock_ == NULL) {
+  if (thread_list_lock_ == nullptr) {
     thread_list_lock_ = new Mutex();
   }
-  ASSERT(thread_list_lock_ != NULL);
+  ASSERT(thread_list_lock_ != nullptr);
 
   // Create the thread local key.
   if (thread_key_ == kUnsetThreadLocalKey) {
@@ -178,7 +178,7 @@ void OSThread::Init() {
 
   // Create a new OSThread structure and set it as the TLS.
   OSThread* os_thread = CreateOSThread();
-  ASSERT(os_thread != NULL);
+  ASSERT(os_thread != nullptr);
   OSThread::SetCurrent(os_thread);
   os_thread->SetName("Dart_Initialize");
 }
@@ -187,24 +187,24 @@ void OSThread::Cleanup() {
 // We cannot delete the thread local key and thread list lock,  yet.
 // See the note on thread_list_lock_ in os_thread.h.
 #if 0
-  if (thread_list_lock_ != NULL) {
+  if (thread_list_lock_ != nullptr) {
     // Delete the thread local key.
     ASSERT(thread_key_ != kUnsetThreadLocalKey);
     DeleteThreadLocal(thread_key_);
     thread_key_ = kUnsetThreadLocalKey;
 
     // Delete the global OSThread lock.
-    ASSERT(thread_list_lock_ != NULL);
+    ASSERT(thread_list_lock_ != nullptr);
     delete thread_list_lock_;
-    thread_list_lock_ = NULL;
+    thread_list_lock_ = nullptr;
   }
 #endif
 }
 
 OSThread* OSThread::CreateAndSetUnknownThread() {
-  ASSERT(OSThread::GetCurrentTLS() == NULL);
+  ASSERT(OSThread::GetCurrentTLS() == nullptr);
   OSThread* os_thread = CreateOSThread();
-  if (os_thread != NULL) {
+  if (os_thread != nullptr) {
     OSThread::SetCurrent(os_thread);
     if (os_thread->name() == nullptr) {
       os_thread->SetName("Unknown");
@@ -241,22 +241,22 @@ void OSThread::EnableOSThreadCreation() {
 }
 
 OSThread* OSThread::GetOSThreadFromThread(ThreadState* thread) {
-  ASSERT(thread->os_thread() != NULL);
+  ASSERT(thread->os_thread() != nullptr);
   return thread->os_thread();
 }
 
 void OSThread::AddThreadToListLocked(OSThread* thread) {
-  ASSERT(thread != NULL);
-  ASSERT(thread_list_lock_ != NULL);
+  ASSERT(thread != nullptr);
+  ASSERT(thread_list_lock_ != nullptr);
   ASSERT(OSThread::thread_list_lock_->IsOwnedByCurrentThread());
   ASSERT(creation_enabled_);
-  ASSERT(thread->thread_list_next_ == NULL);
+  ASSERT(thread->thread_list_next_ == nullptr);
 
 #if defined(DEBUG)
   {
     // Ensure that we aren't already in the list.
     OSThread* current = thread_list_head_;
-    while (current != NULL) {
+    while (current != nullptr) {
       ASSERT(current != thread);
       current = current->thread_list_next_;
     }
@@ -271,23 +271,23 @@ void OSThread::AddThreadToListLocked(OSThread* thread) {
 void OSThread::RemoveThreadFromList(OSThread* thread) {
   bool final_thread = false;
   {
-    ASSERT(thread != NULL);
-    ASSERT(thread_list_lock_ != NULL);
+    ASSERT(thread != nullptr);
+    ASSERT(thread_list_lock_ != nullptr);
     MutexLocker ml(thread_list_lock_);
     OSThread* current = thread_list_head_;
-    OSThread* previous = NULL;
+    OSThread* previous = nullptr;
 
     // Scan across list and remove |thread|.
-    while (current != NULL) {
+    while (current != nullptr) {
       if (current == thread) {
         // We found |thread|, remove from list.
-        if (previous == NULL) {
+        if (previous == nullptr) {
           thread_list_head_ = thread->thread_list_next_;
         } else {
           previous->thread_list_next_ = current->thread_list_next_;
         }
-        thread->thread_list_next_ = NULL;
-        final_thread = !creation_enabled_ && (thread_list_head_ == NULL);
+        thread->thread_list_next_ = nullptr;
+        final_thread = !creation_enabled_ && (thread_list_head_ == nullptr);
         break;
       }
       previous = current;
@@ -306,34 +306,34 @@ void OSThread::SetCurrentTLS(BaseThread* value) {
   SetThreadLocal(thread_key_, reinterpret_cast<uword>(value));
 
   // Allows the C compiler more freedom to optimize.
-  if ((value != NULL) && !value->is_os_thread()) {
+  if ((value != nullptr) && !value->is_os_thread()) {
     current_vm_thread_ = static_cast<Thread*>(value);
   } else {
-    current_vm_thread_ = NULL;
+    current_vm_thread_ = nullptr;
   }
 }
 
 OSThreadIterator::OSThreadIterator() {
-  ASSERT(OSThread::thread_list_lock_ != NULL);
+  ASSERT(OSThread::thread_list_lock_ != nullptr);
   // Lock the thread list while iterating.
   OSThread::thread_list_lock_->Lock();
   next_ = OSThread::thread_list_head_;
 }
 
 OSThreadIterator::~OSThreadIterator() {
-  ASSERT(OSThread::thread_list_lock_ != NULL);
+  ASSERT(OSThread::thread_list_lock_ != nullptr);
   // Unlock the thread list when done.
   OSThread::thread_list_lock_->Unlock();
 }
 
 bool OSThreadIterator::HasNext() const {
-  ASSERT(OSThread::thread_list_lock_ != NULL);
+  ASSERT(OSThread::thread_list_lock_ != nullptr);
   ASSERT(OSThread::thread_list_lock_->IsOwnedByCurrentThread());
-  return next_ != NULL;
+  return next_ != nullptr;
 }
 
 OSThread* OSThreadIterator::Next() {
-  ASSERT(OSThread::thread_list_lock_ != NULL);
+  ASSERT(OSThread::thread_list_lock_ != nullptr);
   ASSERT(OSThread::thread_list_lock_->IsOwnedByCurrentThread());
   OSThread* current = next_;
   next_ = next_->thread_list_next_;

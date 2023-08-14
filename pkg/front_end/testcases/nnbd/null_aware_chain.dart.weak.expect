@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -13,7 +13,7 @@ class Class extends core::Object {
     return this.{self::Class::field}{self::Class?};
 }
 static method main() → dynamic {
-  self::Class? c = new self::Class::•() as{ForNonNullableByDefault} self::Class?;
+  self::Class? c = new self::Class::•() as self::Class?;
   let final self::Class? #t1 = c in #t1 == null ?{self::Class?} null : let final self::Class? #t2 = #t1{self::Class}.{self::Class::getter1}{self::Class}.{self::Class::getter2}{self::Class?} in #t2 == null ?{self::Class?} null : let final self::Class? #t3 = #t2{self::Class}.{self::Class::getter1}{self::Class}.{self::Class::getter2}{self::Class?} in #t3 == null ?{self::Class?} null : #t3{self::Class}.{self::Class::field} = c{self::Class};
 }
 

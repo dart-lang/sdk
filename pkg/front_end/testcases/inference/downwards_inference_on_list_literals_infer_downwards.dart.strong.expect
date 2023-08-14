@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -78,10 +78,10 @@ static method main() → void {
     core::List<core::int*>* l1 = <core::int*>[3];
     core::List<core::int*>* l2 = <core::int*>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:21:50: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"
-                                                 ^" in "hello" as{TypeError} core::int*];
+                                                 ^" in "hello" as{TypeError,ForLegacy} core::int*];
     core::List<core::int*>* l3 = <core::int*>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:24:50: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
-                                                 ^" in "hello" as{TypeError} core::int*, 3];
+                                                 ^" in "hello" as{TypeError,ForLegacy} core::int*, 3];
   }
   {
     core::List<dynamic>* l0 = <dynamic>[];
@@ -106,24 +106,24 @@ Change the type of the list literal or the context in which it is used.
     List<int> l2 = /*error:INVALID_CAST_LITERAL_LIST*/ <num>[
                                                             ^" in <core::num*>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:38:50: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"
-                                                 ^" in "hello" as{TypeError} core::num*];
+                                                 ^" in "hello" as{TypeError,ForLegacy} core::num*];
     core::List<core::int*>* l3 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:40:61: Error: The list literal type 'List<num>' isn't of expected type 'List<int>'.
  - 'List' is from 'dart:core'.
 Change the type of the list literal or the context in which it is used.
     List<int> l3 = /*error:INVALID_CAST_LITERAL_LIST*/ <num>[
                                                             ^" in <core::num*>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:41:50: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
-                                                 ^" in "hello" as{TypeError} core::num*, 3];
+                                                 ^" in "hello" as{TypeError,ForLegacy} core::num*, 3];
   }
   {
     core::Iterable<core::int*>* i0 = <core::int*>[];
     core::Iterable<core::int*>* i1 = <core::int*>[3];
     core::Iterable<core::int*>* i2 = <core::int*>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:49:50: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"
-                                                 ^" in "hello" as{TypeError} core::int*];
+                                                 ^" in "hello" as{TypeError,ForLegacy} core::int*];
     core::Iterable<core::int*>* i3 = <core::int*>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:52:50: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
-                                                 ^" in "hello" as{TypeError} core::int*, 3];
+                                                 ^" in "hello" as{TypeError,ForLegacy} core::int*, 3];
   }
   {
     const core::List<core::int*>* c2 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:60:89: Error: A value of type 'String' can't be assigned to a variable of type 'int'.

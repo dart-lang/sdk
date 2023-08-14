@@ -43,12 +43,12 @@ static void RemoveFromKqueue(intptr_t kqueue_fd_, DescriptorInfo* di) {
   if (!di->tracked_by_kqueue()) {
     return;
   }
-  static const intptr_t kMaxChanges = 2;
+  const intptr_t kMaxChanges = 2;
   struct kevent events[kMaxChanges];
-  EV_SET(events, di->fd(), EVFILT_READ, EV_DELETE, 0, 0, NULL);
-  VOID_NO_RETRY_EXPECTED(kevent(kqueue_fd_, events, 1, NULL, 0, NULL));
-  EV_SET(events, di->fd(), EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-  VOID_NO_RETRY_EXPECTED(kevent(kqueue_fd_, events, 1, NULL, 0, NULL));
+  EV_SET(events, di->fd(), EVFILT_READ, EV_DELETE, 0, 0, nullptr);
+  VOID_NO_RETRY_EXPECTED(kevent(kqueue_fd_, events, 1, nullptr, 0, nullptr));
+  EV_SET(events, di->fd(), EVFILT_WRITE, EV_DELETE, 0, 0, nullptr);
+  VOID_NO_RETRY_EXPECTED(kevent(kqueue_fd_, events, 1, nullptr, 0, nullptr));
   di->set_tracked_by_kqueue(false);
 }
 
@@ -56,7 +56,7 @@ static void RemoveFromKqueue(intptr_t kqueue_fd_, DescriptorInfo* di) {
 // the events currently of interest.
 static void AddToKqueue(intptr_t kqueue_fd_, DescriptorInfo* di) {
   ASSERT(!di->tracked_by_kqueue());
-  static const intptr_t kMaxChanges = 2;
+  const intptr_t kMaxChanges = 2;
   intptr_t changes = 0;
   struct kevent events[kMaxChanges];
   int flags = EV_ADD;
@@ -78,8 +78,8 @@ static void AddToKqueue(intptr_t kqueue_fd_, DescriptorInfo* di) {
   }
   ASSERT(changes > 0);
   ASSERT(changes <= kMaxChanges);
-  int status =
-      NO_RETRY_EXPECTED(kevent(kqueue_fd_, events, changes, NULL, 0, NULL));
+  int status = NO_RETRY_EXPECTED(
+      kevent(kqueue_fd_, events, changes, nullptr, 0, nullptr));
   if (status == -1) {
     // TODO(dart:io): Verify that the dart end is handling this correctly.
 
@@ -120,8 +120,9 @@ EventHandlerImplementation::EventHandlerImplementation()
   }
   // Register the interrupt_fd with the kqueue.
   struct kevent event;
-  EV_SET(&event, interrupt_fds_[0], EVFILT_READ, EV_ADD, 0, 0, NULL);
-  int status = NO_RETRY_EXPECTED(kevent(kqueue_fd_, &event, 1, NULL, 0, NULL));
+  EV_SET(&event, interrupt_fds_[0], EVFILT_READ, EV_ADD, 0, 0, nullptr);
+  int status =
+      NO_RETRY_EXPECTED(kevent(kqueue_fd_, &event, 1, nullptr, 0, nullptr));
   if (status == -1) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
@@ -163,9 +164,9 @@ DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
   ASSERT(fd >= 0);
   SimpleHashMap::Entry* entry = socket_map_.Lookup(
       GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd), true);
-  ASSERT(entry != NULL);
+  ASSERT(entry != nullptr);
   DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(entry->value);
-  if (di == NULL) {
+  if (di == nullptr) {
     // If there is no data in the hash map for this file descriptor a
     // new DescriptorInfo for the file descriptor is inserted.
     if (is_listening) {
@@ -193,9 +194,12 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
       FDUtils::WriteToBlocking(interrupt_fds_[1], &msg, kInterruptMessageSize);
   if (result != kInterruptMessageSize) {
     if (result == -1) {
-      perror("Interrupt message failure:");
+      FATAL("Interrupt message failure: %s", strerror(errno));
+    } else {
+      FATAL("Interrupt message failure: expected to write %" Pd
+            " bytes, but wrote %" Pd ".",
+            kInterruptMessageSize, result);
     }
-    FATAL("Interrupt message failure. Wrote %" Pd " bytes.", result);
   }
 }
 
@@ -382,7 +386,7 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events, int size) {
       Utils::StrError(events[i].data, error_message, kBufferSize);
       FATAL("kevent failed %s\n", error_message);
     }
-    if (events[i].udata == NULL) {
+    if (events[i].udata == nullptr) {
       interrupt_seen = true;
     } else {
       DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(events[i].udata);
@@ -427,11 +431,11 @@ void EventHandlerImplementation::HandleTimeout() {
 }
 
 void EventHandlerImplementation::EventHandlerEntry(uword args) {
-  static const intptr_t kMaxEvents = 16;
+  const intptr_t kMaxEvents = 16;
   struct kevent events[kMaxEvents];
   EventHandler* handler = reinterpret_cast<EventHandler*>(args);
   EventHandlerImplementation* handler_impl = &handler->delegate_;
-  ASSERT(handler_impl != NULL);
+  ASSERT(handler_impl != nullptr);
 
   while (!handler_impl->shutdown_) {
     int64_t millis = handler_impl->GetTimeout();
@@ -439,9 +443,9 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
     if (millis > kMaxInt32) {
       millis = kMaxInt32;
     }
-    // NULL pointer timespec for infinite timeout.
+    // nullptr pointer timespec for infinite timeout.
     ASSERT(kInfinityTimeout < 0);
-    struct timespec* timeout = NULL;
+    struct timespec* timeout = nullptr;
     struct timespec ts;
     if (millis >= 0) {
       int32_t millis32 = static_cast<int32_t>(millis);
@@ -452,8 +456,8 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
     }
     // We have to use TEMP_FAILURE_RETRY for mac, as kevent can modify the
     // current sigmask.
-    intptr_t result = TEMP_FAILURE_RETRY(
-        kevent(handler_impl->kqueue_fd_, NULL, 0, events, kMaxEvents, timeout));
+    intptr_t result = TEMP_FAILURE_RETRY(kevent(
+        handler_impl->kqueue_fd_, nullptr, 0, events, kMaxEvents, timeout));
     if (result == -1) {
       const int kBufferSize = 1024;
       char error_message[kBufferSize];

@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "non_nullable_from_opt_out_lib.dart" as non;
 import "dart:core" as core;
@@ -30,7 +30,7 @@ static method main() → dynamic {
   non::method<Null>(true, null, null);
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as non;
 import "dart:core" as core;
 import "dart:_internal" as _in;

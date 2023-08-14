@@ -25,8 +25,8 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   @override
   AnalysisServerOptions get serverOptions => AnalysisServerOptions()
     ..enabledExperiments = [
-      EnableString.records,
-      EnableString.patterns,
+      EnableString.inline_class,
+      EnableString.macros,
     ];
 
   /// Checks whether the correct types of documentation are returned in a Hover

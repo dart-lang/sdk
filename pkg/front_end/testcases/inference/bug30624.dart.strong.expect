@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -17,7 +17,7 @@ class C<E extends core::Object* = dynamic> extends core::Object {
     self::foo<self::C::E*>(this, let final (self::C::E*, self::C::E*) →* core::int* #t1 = cmp in #t1 == null ?{(self::C::E*, self::C::E*) →* core::int*} #C2 : #t1);
   }
   method barB([(self::C::E*, self::C::E*) →* core::int* cmp = #C1]) → void {
-    self::foo<self::C::E*>(this, let final (self::C::E*, self::C::E*) →* core::int* #t2 = cmp in #t2 == null ?{(self::C::E*, self::C::E*) →* core::int*} #C2 as (self::C::E*, self::C::E*) →* core::int* : #t2);
+    self::foo<self::C::E*>(this, let final (self::C::E*, self::C::E*) →* core::int* #t2 = cmp in #t2 == null ?{(self::C::E*, self::C::E*) →* core::int*} #C2 as{ForLegacy} (self::C::E*, self::C::E*) →* core::int* : #t2);
   }
   method barC([(self::C::E*, self::C::E*) →* core::int* cmp = #C1]) → void {
     (self::C::E*, self::C::E*) →* core::int* v = #C2;

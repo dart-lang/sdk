@@ -8,7 +8,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class RemoveUnnecessaryRawString extends CorrectionProducer {
+class RemoveUnnecessaryRawString extends ResolvedCorrectionProducer {
   @override
   bool get canBeAppliedInBulk => true;
 

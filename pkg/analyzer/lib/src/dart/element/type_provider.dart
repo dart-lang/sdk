@@ -143,6 +143,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType? _numType;
   InterfaceType? _numTypeQuestion;
   InterfaceType? _objectType;
+  InterfaceType? _objectQuestionType;
   InterfaceType? _recordType;
   InterfaceType? _stackTraceType;
   InterfaceType? _streamDynamicType;
@@ -384,13 +385,25 @@ class TypeProviderImpl extends TypeProviderBase {
       _numTypeQuestion ??= (numType as InterfaceTypeImpl)
           .withNullability(NullabilitySuffix.question);
 
+  @override
   ClassElement get objectElement {
     return _objectElement ??= _getClassElement(_coreLibrary, 'Object');
   }
 
   @override
+  InterfaceType get objectQuestionType {
+    return _objectQuestionType ??= objectElement.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  @override
   InterfaceType get objectType {
-    return _objectType ??= _getType(_coreLibrary, "Object");
+    return _objectType ??= objectElement.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
   }
 
   @override

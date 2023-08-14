@@ -82,7 +82,7 @@ import 'a/bb/my_lib.dart';
   }
 
   Future<void> test_forImport_inPackage_test() async {
-    testFile = convertPath('/home/test/test/test.dart');
+    testFilePath = convertPath('/home/test/test/test.dart');
     await resolveTestCode('''
 import 'a/bb/my_lib.dart';
 ''');

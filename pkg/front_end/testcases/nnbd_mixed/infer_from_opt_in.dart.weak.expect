@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "infer_from_opt_in_lib.dart" as inf;
@@ -17,7 +17,7 @@ static method main() → dynamic {
   core::print(self::reify<() → inf::Foo>(z));
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as inf;
 import "dart:core" as core;
 

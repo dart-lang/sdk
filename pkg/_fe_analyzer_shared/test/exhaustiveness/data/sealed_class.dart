@@ -266,3 +266,15 @@ void unreachableCase3(A? a) {
       break;
   }
 }
+
+exhaustiveNullableByNullability(
+        A? a) => /*
+ checkingOrder={A?,A,Null,B,C,D},
+ expandedSubtypes={B,C,D,Null},
+ subtypes={A,Null},
+ type=A?
+*/
+    switch (a) {
+      A() /*space=A*/ => 0,
+      null /*space=Null*/ => 1,
+    };

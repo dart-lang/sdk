@@ -37,6 +37,13 @@ void main() {
   testFromFunctionTearOff();
   testFromFunctionAbstract();
   testFromFunctionFunctionExceptionValueMustBeConst();
+  testNativeCallableGeneric();
+  testNativeCallableGeneric2();
+  testNativeCallableWrongNativeFunctionSignature();
+  testNativeCallableTypeMismatch();
+  testNativeCallableClosure();
+  testNativeCallableAbstract();
+  testNativeCallableMustReturnVoid();
   testLookupFunctionGeneric();
   testLookupFunctionGeneric2();
   testLookupFunctionWrongNativeFunctionSignature();
@@ -276,6 +283,58 @@ void testFromFunctionFunctionExceptionValueMustBeConst() {
   final notAConst = 1.1;
   Pointer<NativeFunction<NativeDoubleUnOp>> p;
   p = Pointer.fromFunction(myTimesThree, notAConst); //# 77: compile-time error
+}
+
+typedef NativeVoidFunc = Void Function();
+typedef VoidFunc = void Function();
+
+void myVoidFunc() { print("Hello World"); }
+void myVoidFunc2(int x) { print("x = $x"); }
+
+void testNativeCallableGeneric() {
+  NativeCallable? generic<T extends Function>(T f) {
+    NativeCallable<NativeVoidFunc>? result;
+    result = NativeCallable.listener(f); //# 2100: compile-time error
+    return result;
+  }
+
+  generic(myVoidFunc);
+}
+
+void testNativeCallableGeneric2() {
+  NativeCallable<T>? generic<T extends Function>() {
+    NativeCallable<T>? result;
+    result = NativeCallable.listener(myVoidFunc); //# 2101: compile-time error
+    return result;
+  }
+
+  generic<NativeVoidFunc>();
+}
+
+void testNativeCallableWrongNativeFunctionSignature() {
+  NativeCallable<NativeVoidFunc>.listener( //# 2102: compile-time error
+      myVoidFunc2); //# 2102: compile-time error
+}
+
+void testNativeCallableTypeMismatch() {
+  NativeCallable<NativeVoidFunc> p;
+  p = NativeCallable.listener(myVoidFunc2); //# 2103: compile-time error
+}
+
+void testNativeCallableClosure() {
+  VoidFunc someClosure = () => print("Closure");
+  NativeCallable<NativeVoidFunc> p;
+  p = NativeCallable.listener(someClosure); //# 2104: compile-time error
+}
+
+void testNativeCallableAbstract() {
+  NativeCallable<Function>.listener(//# 2105: compile-time error
+      testNativeCallableAbstract); //# 2105: compile-time error
+}
+
+void testNativeCallableMustReturnVoid() {
+  NativeCallable<NativeDoubleUnOp>.listener( //# 2106: compile-time error
+      myTimesThree); //# 2106: compile-time error
 }
 
 void testLookupFunctionGeneric() {

@@ -244,8 +244,6 @@ class ForwardingNode {
   void _createForwardingImplIfNeeded(FunctionNode function, Name name,
       Class enclosingClass, Member? superTarget,
       {required bool isForwardingStub}) {
-    // ignore: unnecessary_null_comparison
-    assert(isForwardingStub != null);
     if (function.body != null) {
       // There is already an implementation; nothing further needs to be done.
       return;
@@ -268,9 +266,6 @@ class ForwardingNode {
     bool isForwardingSemiStub = isForwardingStub && !procedure.isSynthetic;
     bool needsSignatureType = false;
     Expression superCall;
-    // ignore: unnecessary_null_comparison
-    assert(superTarget != null,
-        "No super target found for '${name}' in ${enclosingClass}.");
     assert(
         !superTarget.isAbstract,
         "Abstract super target $superTarget found for '${name}' in "

@@ -83,6 +83,7 @@ class ExpressionCompilerWorker {
   final ProcessedOptions _processedOptions;
   final CompilerOptions _compilerOptions;
   final ModuleFormat _moduleFormat;
+  final bool _canaryFeatures;
   final Component _sdkComponent;
 
   void Function()? onDone;
@@ -91,6 +92,7 @@ class ExpressionCompilerWorker {
     this._processedOptions,
     this._compilerOptions,
     this._moduleFormat,
+    this._canaryFeatures,
     this._sdkComponent,
     this.requestStream,
     this.sendResponse,
@@ -194,6 +196,7 @@ class ExpressionCompilerWorker {
       trackWidgetCreation: parsedArgs['track-widget-creation'] as bool,
       soundNullSafety: parsedArgs['sound-null-safety'] as bool,
       moduleFormat: moduleFormat,
+      canaryFeatures: parsedArgs['canary'] as bool,
       verbose: parsedArgs['verbose'] as bool,
       requestStream: requestStream,
       sendResponse: sendResponse,
@@ -219,6 +222,7 @@ class ExpressionCompilerWorker {
     bool trackWidgetCreation = false,
     bool soundNullSafety = false,
     ModuleFormat moduleFormat = ModuleFormat.amd,
+    bool canaryFeatures = false,
     bool verbose = false,
     Stream<Map<String, dynamic>>? requestStream, // Defaults to read from stdin
     void Function(Map<String, dynamic>)?
@@ -258,8 +262,15 @@ class ExpressionCompilerWorker {
     if (sdkComponent == null) {
       throw Exception('Could not load SDK component: $sdkSummary');
     }
-    return ExpressionCompilerWorker._(processedOptions, compilerOptions,
-        moduleFormat, sdkComponent, requestStream, sendResponse, onDone)
+    return ExpressionCompilerWorker._(
+        processedOptions,
+        compilerOptions,
+        moduleFormat,
+        canaryFeatures,
+        sdkComponent,
+        requestStream,
+        sendResponse,
+        onDone)
       .._updateCache(sdkComponent, dartSdkModule, true);
   }
 
@@ -436,11 +447,13 @@ class ExpressionCompilerWorker {
       finalComponent,
       hierarchy,
       SharedCompilerOptions(
-          sourceMap: true,
-          summarizeApi: false,
-          moduleName: moduleName,
-          soundNullSafety: _compilerOptions.nnbdMode == NnbdMode.Strong,
-          enableAsserts: _enableAsserts),
+        sourceMap: true,
+        summarizeApi: false,
+        moduleName: moduleName,
+        soundNullSafety: _compilerOptions.nnbdMode == NnbdMode.Strong,
+        enableAsserts: _enableAsserts,
+        canaryFeatures: _canaryFeatures,
+      ),
       _moduleCache.componentForLibrary,
       _moduleCache.moduleNameForComponent,
       coreTypes: coreTypes,
@@ -776,6 +789,7 @@ final argParser = ArgParser()
   ..addOption('module-format', defaultsTo: 'amd')
   ..addFlag('track-widget-creation', defaultsTo: false)
   ..addFlag('sound-null-safety', negatable: true, defaultsTo: true)
+  ..addFlag('canary', negatable: true, defaultsTo: false)
   ..addFlag('verbose', defaultsTo: false);
 
 Uri? _argToUri(String? uriArg) =>

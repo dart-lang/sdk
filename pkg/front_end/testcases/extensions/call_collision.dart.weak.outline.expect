@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -15,11 +15,11 @@ extension /* unnamed */ _extension#1 on self::Class? {
   method call = self::_extension#1|call;
   tearoff call = self::_extension#1|get#call;
 }
-static method _extension#0|set#call(lowered final dynamic #this, dynamic _) → void
+static extension-member method _extension#0|set#call(lowered final dynamic #this, dynamic _) → void
   ;
-static method _extension#1|call(lowered final self::Class? #this) → void
+static extension-member method _extension#1|call(lowered final self::Class? #this) → void
   ;
-static method _extension#1|get#call(lowered final self::Class? #this) → () → void
+static extension-member method _extension#1|get#call(lowered final self::Class? #this) → () → void
   return () → void => self::_extension#1|call(#this);
 static method method(core::Function f1, () → void f2, self::Class c1, self::Class? c2) → dynamic
   ;

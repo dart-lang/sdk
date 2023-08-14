@@ -388,7 +388,7 @@ class TypeSystem {
     // Left Top: if T0 is dynamic or void then T0 <: T1 if Object? <: T1
     if (t0 is PrimaryType &&
         t0.args.isEmpty &&
-        (t0.name == 'dynamic' || t0.name == 'void')) {
+        (t0.name == 'dynamic' || t0.name == 'error' || t0.name == 'void')) {
       return isSubtype(_objectQuestionType, t1);
     }
 
@@ -423,6 +423,7 @@ class TypeSystem {
               t0.args.isEmpty &&
               (t0.name == 'Null' ||
                   t0.name == 'dynamic' ||
+                  t0.name == 'error' ||
                   t0.name == 'void') ||
           t0 is QuestionType) {
         return false;
@@ -706,7 +707,8 @@ class TypeSystem {
 
   bool _isTop(Type t) {
     if (t is PrimaryType) {
-      return t.args.isEmpty && (t.name == 'dynamic' || t.name == 'void');
+      return t.args.isEmpty &&
+          (t.name == 'dynamic' || t.name == 'error' || t.name == 'void');
     } else if (t is QuestionType) {
       var innerType = t.innerType;
       return innerType is PrimaryType &&

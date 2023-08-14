@@ -444,13 +444,6 @@ Future<int >  f(Future<int >  x) {
             '&gt;<span class="region informative-region"> </span>'));
   }
 
-  UnitInfo unit(String path, String content,
-      {required List<RegionInfo> regions}) {
-    return UnitInfo(convertPath(path))
-      ..content = content
-      ..regions.addAll(regions);
-  }
-
   /// Strip out data attributes which are not being tested here.
   String _stripDataAttributes(String html) =>
       html.replaceAll(RegExp(' data-[^=]+="[^"]+"'), '');

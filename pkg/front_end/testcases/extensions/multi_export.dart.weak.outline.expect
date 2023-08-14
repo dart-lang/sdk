@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///multi_export_lib1.dart" as lib;
@@ -9,7 +9,7 @@ import "org-dartlang-testcase:///multi_export_lib4.dart" as lib;
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "multi_export_lib.dart" as mul;
 
@@ -20,7 +20,7 @@ class SubClass1 extends mul::Class {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self3;
 import "multi_export_lib.dart" as mul;
 additionalExports = (mul::Extension)
@@ -33,7 +33,7 @@ class SubClass2 extends mul::Class {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self4;
 import "multi_export_lib.dart" as mul;
 additionalExports = (mul::Extension)
@@ -46,7 +46,7 @@ class SubClass3 extends mul::Class {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self5;
 import "multi_export_lib.dart" as mul;
 additionalExports = (mul::Extension)
@@ -59,7 +59,7 @@ class SubClass4 extends mul::Class {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mul;
 import "dart:core" as core;
 
@@ -71,7 +71,7 @@ extension Extension<T extends mul::Class> on T {
   method method = mul::Extension|method;
   tearoff method = mul::Extension|get#method;
 }
-static method Extension|method<T extends mul::Class>(lowered final mul::Extension|method::T #this) → dynamic
+static extension-member method Extension|method<T extends mul::Class>(lowered final mul::Extension|method::T #this) → dynamic
   ;
-static method Extension|get#method<T extends mul::Class>(lowered final mul::Extension|get#method::T #this) → () → dynamic
+static extension-member method Extension|get#method<T extends mul::Class>(lowered final mul::Extension|get#method::T #this) → () → dynamic
   return () → dynamic => mul::Extension|method<mul::Extension|get#method::T>(#this);

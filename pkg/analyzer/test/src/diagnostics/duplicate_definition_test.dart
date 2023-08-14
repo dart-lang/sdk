@@ -1497,7 +1497,7 @@ Map _globalMap = {
   'b' : () {}
 };
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 4, 10),
+      error(WarningCode.UNUSED_ELEMENT, 4, 10),
     ]);
   }
 
@@ -1568,7 +1568,7 @@ main() {
   };
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 11, 1),
+      error(WarningCode.UNUSED_ELEMENT, 11, 1),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 27, 1,
           contextMessages: [message('/home/test/lib/test.dart', 17, 1)]),
     ]);
@@ -1597,7 +1597,7 @@ f(int a, double a) {}
 
   test_switchCase_localVariable_localVariable() async {
     await assertErrorsInCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 void f() {
   switch (0) {
     case 0:

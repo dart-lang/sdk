@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -13,13 +13,13 @@ export "org-dartlang-testcase:///map.dart" show main;
 
 static const field dynamic _exports# = "{\"main\":\"'main' is exported from both 'pkg/front_end/testcases/general/hello.dart' and 'pkg/front_end/testcases/general/map.dart'.\"}" /*isLegacy*/;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self3;
 
 static method main() → dynamic

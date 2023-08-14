@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=class-modifiers
-
 // Library declarations used by final_class_part_test.dart.
 
 part of 'final_class_part_test.dart';

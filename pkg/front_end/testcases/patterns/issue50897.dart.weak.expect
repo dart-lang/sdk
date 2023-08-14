@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -31,7 +31,7 @@ static method test(core::Map<dynamic, dynamic> map) → core::String {
     #L1:
     {
       {
-        if(#0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && (#0#3 is{ForNonNullableByDefault} self::Square && (let final dynamic #t2 = #0#3{self::Square}.{self::Square::size}{self::Unit} in true))) {
+        if(#0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && (#0#3 is self::Square && (let final dynamic #t2 = #0#3{self::Square}.{self::Square::size}{self::Unit} in true))) {
           #t1 = "object";
           break #L1;
         }

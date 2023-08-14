@@ -370,7 +370,7 @@ class TestingServers {
     }
     if (file.path.endsWith('.html')) {
       response.headers.set('Content-Type', 'text/html');
-    } else if (file.path.endsWith('.js')) {
+    } else if (file.path.endsWith('.js') || file.path.endsWith('.mjs')) {
       response.headers.set('Content-Type', 'application/javascript');
     } else if (file.path.endsWith('.dart')) {
       response.headers.set('Content-Type', 'application/dart');
@@ -378,6 +378,8 @@ class TestingServers {
       response.headers.set('Content-Type', 'text/css');
     } else if (file.path.endsWith('.xml')) {
       response.headers.set('Content-Type', 'text/xml');
+    } else if (file.path.endsWith('.wasm')) {
+      response.headers.set('Content-Type', 'application/wasm');
     }
     response.headers.removeAll("X-Frame-Options");
     file.openRead().cast<List<int>>().pipe(response).catchError((e) {

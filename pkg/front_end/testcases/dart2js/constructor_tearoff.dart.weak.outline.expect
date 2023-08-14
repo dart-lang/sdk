@@ -1,10 +1,9 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 typedef Alias<T extends core::num> = self::Class<T>;
 class Class<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class::redirect]/*isLegacy*/;
   constructor •() → self::Class<self::Class::T%>
     ;
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class<self::Class::_#new#tearOff::T%>
@@ -13,7 +12,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     ;
   static method _#fact#tearOff<T extends core::Object? = dynamic>() → self::Class<self::Class::_#fact#tearOff::T%>
     return self::Class::fact<self::Class::_#fact#tearOff::T%>();
-  static factory redirect<T extends core::Object? = dynamic>() → self::Class<self::Class::redirect::T%>
+  static factory redirect<T extends core::Object? = dynamic>() → self::Class<self::Class::redirect::T%> /* redirection-target: self::Class::•<self::Class::redirect::T%>*/
     return new self::Class::•<self::Class::redirect::T%>();
   static method _#redirect#tearOff<T extends core::Object? = dynamic>() → self::Class<self::Class::_#redirect#tearOff::T%>
     return new self::Class::•<self::Class::_#redirect#tearOff::T%>();
@@ -35,11 +34,10 @@ static method _#Alias#redirect#tearOff<T extends core::num>() → self::Class<se
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///constructor_tearoff.dart:7:7 -> ConstructorTearOffConstant(Class.redirect)
 Evaluated: StaticTearOff @ org-dartlang-testcase:///constructor_tearoff.dart:13:11 -> StaticTearOffConstant(Class._#new#tearOff)
 Evaluated: StaticTearOff @ org-dartlang-testcase:///constructor_tearoff.dart:14:11 -> StaticTearOffConstant(Class._#fact#tearOff)
 Evaluated: StaticTearOff @ org-dartlang-testcase:///constructor_tearoff.dart:15:11 -> StaticTearOffConstant(Class._#redirect#tearOff)
 Evaluated: StaticTearOff @ org-dartlang-testcase:///constructor_tearoff.dart:16:11 -> StaticTearOffConstant(_#Alias#new#tearOff)
 Evaluated: StaticTearOff @ org-dartlang-testcase:///constructor_tearoff.dart:17:11 -> StaticTearOffConstant(_#Alias#fact#tearOff)
 Evaluated: StaticTearOff @ org-dartlang-testcase:///constructor_tearoff.dart:18:11 -> StaticTearOffConstant(_#Alias#redirect#tearOff)
-Extra constant evaluation: evaluated: 15, effectively constant: 7
+Extra constant evaluation: evaluated: 13, effectively constant: 6

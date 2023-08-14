@@ -19,6 +19,7 @@ import '../builder/builder.dart';
 import '../source/source_field_builder.dart';
 import '../type_inference/type_inferrer.dart';
 import 'body_builder.dart';
+import 'body_builder_context.dart';
 
 abstract class InferredType extends DartType {
   Uri? get fileUri;
@@ -129,8 +130,15 @@ class _ImplicitFieldTypeRoot extends InferredType {
               enclosingClassThisType,
               fieldBuilder.libraryBuilder,
               fieldBuilder.dataForTesting?.inferenceData);
+      BodyBuilderContext bodyBuilderContext = fieldBuilder.bodyBuilderContext;
       BodyBuilder bodyBuilder = fieldBuilder.libraryBuilder.loader
-          .createBodyBuilderForField(fieldBuilder, typeInferrer);
+          .createBodyBuilderForField(
+              fieldBuilder.libraryBuilder,
+              bodyBuilderContext,
+              fieldBuilder.declarationBuilder?.scope ??
+                  fieldBuilder.libraryBuilder.scope,
+              typeInferrer,
+              fieldBuilder.fileUri);
       bodyBuilder.constantContext = fieldBuilder.isConst
           ? ConstantContext.inferred
           : ConstantContext.none;

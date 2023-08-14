@@ -92,6 +92,8 @@
   CONSTANT(RecordShape, kMaxNumFields)                                         \
   CONSTANT(RecordShape, kNumFieldsMask)                                        \
   CONSTANT(String, kMaxElements)                                               \
+  CONSTANT(OneByteString, kMaxNewSpaceElements)                                \
+  CONSTANT(TwoByteString, kMaxNewSpaceElements)                                \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
   CONSTANT(SubtypeTestCache, kInstanceCidOrSignature)                          \
   CONSTANT(SubtypeTestCache, kDestinationType)                                 \
@@ -100,9 +102,11 @@
   CONSTANT(SubtypeTestCache, kInstanceTypeArguments)                           \
   CONSTANT(SubtypeTestCache, kInstantiatorTypeArguments)                       \
   CONSTANT(SubtypeTestCache, kTestEntryLength)                                 \
+  CONSTANT(SubtypeTestCache, kMaxInputs)                                       \
   CONSTANT(SubtypeTestCache, kTestResult)                                      \
   CONSTANT(TypeArguments, kMaxElements)                                        \
   FIELD(AbstractType, flags_offset)                                            \
+  FIELD(AbstractType, hash_offset)                                             \
   FIELD(AbstractType, type_test_stub_entry_point_offset)                       \
   FIELD(ArgumentsDescriptor, count_offset)                                     \
   FIELD(ArgumentsDescriptor, size_offset)                                      \
@@ -167,7 +171,6 @@
   FIELD(Isolate, default_tag_offset)                                           \
   FIELD(Isolate, finalizers_offset)                                            \
   NOT_IN_PRODUCT(FIELD(Isolate, has_resumption_breakpoints_offset))            \
-  FIELD(Isolate, ic_miss_code_offset)                                          \
   FIELD(IsolateGroup, object_store_offset)                                     \
   FIELD(IsolateGroup, class_table_offset)                                      \
   FIELD(IsolateGroup, cached_class_table_table_offset)                         \
@@ -195,6 +198,7 @@
   FIELD(ObjectStore, record_field_names_offset)                                \
   FIELD(ObjectStore, string_type_offset)                                       \
   FIELD(ObjectStore, type_type_offset)                                         \
+  FIELD(ObjectStore, ffi_callback_code_offset)                                 \
   FIELD(ObjectStore, suspend_state_await_offset)                               \
   FIELD(ObjectStore, suspend_state_await_with_type_check_offset)               \
   FIELD(ObjectStore, suspend_state_handle_exception_offset)                    \
@@ -222,6 +226,7 @@
   FIELD(String, hash_offset)                                                   \
   FIELD(String, length_offset)                                                 \
   FIELD(SubtypeTestCache, cache_offset)                                        \
+  FIELD(SubtypeTestCache, num_inputs_offset)                                   \
   FIELD(SuspendState, FrameSizeGrowthGap)                                      \
   FIELD(SuspendState, error_callback_offset)                                   \
   FIELD(SuspendState, frame_size_offset)                                       \
@@ -340,8 +345,6 @@
   FIELD(Thread, write_barrier_entry_point_offset)                              \
   FIELD(Thread, write_barrier_mask_offset)                                     \
   COMPRESSED_ONLY(FIELD(Thread, heap_base_offset))                             \
-  FIELD(Thread, callback_code_offset)                                          \
-  FIELD(Thread, callback_stack_return_offset)                                  \
   FIELD(Thread, next_task_id_offset)                                           \
   FIELD(Thread, random_offset)                                                 \
   FIELD(Thread, jump_to_frame_entry_point_offset)                              \
@@ -354,7 +357,6 @@
   FIELD(TimelineStream, enabled_offset)                                        \
   FIELD(TwoByteString, data_offset)                                            \
   FIELD(Type, arguments_offset)                                                \
-  FIELD(Type, hash_offset)                                                     \
   FIELD(Finalizer, type_arguments_offset)                                      \
   FIELD(Finalizer, callback_offset)                                            \
   FIELD(FinalizerBase, all_entries_offset)                                     \
@@ -368,13 +370,11 @@
   FIELD(FinalizerEntry, token_offset)                                          \
   FIELD(FinalizerEntry, value_offset)                                          \
   FIELD(NativeFinalizer, callback_offset)                                      \
-  FIELD(FunctionType, hash_offset)                                             \
   FIELD(FunctionType, named_parameter_names_offset)                            \
   FIELD(FunctionType, packed_parameter_counts_offset)                          \
   FIELD(FunctionType, packed_type_parameter_counts_offset)                     \
   FIELD(FunctionType, parameter_types_offset)                                  \
   FIELD(FunctionType, type_parameters_offset)                                  \
-  FIELD(TypeParameter, parameterized_class_id_offset)                          \
   FIELD(TypeParameter, index_offset)                                           \
   FIELD(TypeArguments, hash_offset)                                            \
   FIELD(TypeArguments, instantiations_offset)                                  \
@@ -385,8 +385,6 @@
   FIELD(TypeParameters, flags_offset)                                          \
   FIELD(TypeParameters, bounds_offset)                                         \
   FIELD(TypeParameters, defaults_offset)                                       \
-  FIELD(TypeParameter, bound_offset)                                           \
-  FIELD(TypeRef, type_offset)                                                  \
   FIELD(TypedDataBase, length_offset)                                          \
   FIELD(TypedDataView, typed_data_offset)                                      \
   FIELD(TypedDataView, offset_in_bytes_offset)                                 \
@@ -478,7 +476,6 @@
   SIZEOF(Type, InstanceSize, UntaggedType)                                     \
   SIZEOF(TypeParameter, InstanceSize, UntaggedTypeParameter)                   \
   SIZEOF(TypeParameters, InstanceSize, UntaggedTypeParameters)                 \
-  SIZEOF(TypeRef, InstanceSize, UntaggedTypeRef)                               \
   SIZEOF(TypedData, HeaderSize, UntaggedTypedData)                             \
   SIZEOF(TypedDataBase, InstanceSize, UntaggedTypedDataBase)                   \
   SIZEOF(TypedDataView, InstanceSize, UntaggedTypedDataView)                   \

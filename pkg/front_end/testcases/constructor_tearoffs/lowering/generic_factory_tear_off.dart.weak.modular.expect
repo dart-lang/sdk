@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -89,7 +89,7 @@ class Class4int extends self::Class4<self::Class4int> {
   static method _#new#tearOff() → self::Class4int
     return self::Class4int::•();
 }
-static final field core::bool inSoundMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
+static final field core::bool inSoundMode = !(<core::int?>[] is core::List<core::int>);
 static method main() → dynamic {
   core::print("inSoundMode: ${self::inSoundMode}");
   self::testGeneric();
@@ -98,11 +98,11 @@ static method main() → dynamic {
 static method testGeneric() → dynamic {
   <T extends core::Object? = dynamic>() → self::Class1<T%> f1a = #C1;
   self::Class1<dynamic> c1a = f1a<dynamic>(){() → self::Class1<dynamic>};
-  self::expect(true, c1a is{ForNonNullableByDefault} self::Class1<dynamic>);
-  self::expect(false, c1a is{ForNonNullableByDefault} self::Class1<core::int>);
+  self::expect(true, c1a is self::Class1<dynamic>);
+  self::expect(false, c1a is self::Class1<core::int>);
   self::Class1<core::int> c1b = f1a<core::int>(){() → self::Class1<core::int>};
-  self::expect(true, c1b is{ForNonNullableByDefault} self::Class1<core::int>);
-  self::expect(false, c1b is{ForNonNullableByDefault} self::Class1<core::String>);
+  self::expect(true, c1b is self::Class1<core::int>);
+  self::expect(false, c1b is self::Class1<core::String>);
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_factory_tear_off.dart:27:8: Error: Expected 1 type arguments.
     f1a<int, String>(); // error
@@ -110,8 +110,8 @@ static method testGeneric() → dynamic {
   };
   () → self::Class1<core::int> f1b = f1a<core::int>;
   self::Class1<core::int> c1c = f1b(){() → self::Class1<core::int>};
-  self::expect(true, c1c is{ForNonNullableByDefault} self::Class1<core::int>);
-  self::expect(false, c1c is{ForNonNullableByDefault} self::Class1<core::String>);
+  self::expect(true, c1c is self::Class1<core::int>);
+  self::expect(false, c1c is self::Class1<core::String>);
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_factory_tear_off.dart:35:8: Error: Expected 0 type arguments.
     f1b<int>(); // error
@@ -119,18 +119,18 @@ static method testGeneric() → dynamic {
   };
   dynamic f1c = #C1;
   dynamic c1d = f1c{dynamic}.call();
-  self::expect(true, c1a is{ForNonNullableByDefault} self::Class1<dynamic>);
-  self::expect(false, c1a is{ForNonNullableByDefault} self::Class1<core::int>);
+  self::expect(true, c1a is self::Class1<dynamic>);
+  self::expect(false, c1a is self::Class1<core::int>);
   self::throws(() → dynamic => f1c{dynamic}.call<core::int, core::String>());
 }
 static method testBounded() → dynamic {
   <T extends core::num>() → self::Class2<T> f2a = #C2;
   self::Class2<core::num> c2a = f2a<core::num>(){() → self::Class2<core::num>};
-  self::expect(true, c2a is{ForNonNullableByDefault} self::Class2<core::num>);
-  self::expect(false, c2a is{ForNonNullableByDefault} self::Class2<core::int>);
+  self::expect(true, c2a is self::Class2<core::num>);
+  self::expect(false, c2a is self::Class2<core::int>);
   self::Class2<core::int> c2b = f2a<core::int>(){() → self::Class2<core::int>};
-  self::expect(true, c2b is{ForNonNullableByDefault} self::Class2<core::int>);
-  self::expect(false, c2b is{ForNonNullableByDefault} self::Class2<core::double>);
+  self::expect(true, c2b is self::Class2<core::int>);
+  self::expect(false, c2b is self::Class2<core::double>);
   () → Null {
     f2a<core::String>(){() → self::Class2<core::String>};
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_factory_tear_off.dart:75:8: Error: Expected 1 type arguments.
@@ -139,30 +139,30 @@ static method testBounded() → dynamic {
   };
   dynamic f2b = #C2;
   dynamic c2c = f2b{dynamic}.call();
-  self::expect(true, c2c is{ForNonNullableByDefault} self::Class2<core::num>);
-  self::expect(false, c2c is{ForNonNullableByDefault} self::Class2<core::int>);
+  self::expect(true, c2c is self::Class2<core::num>);
+  self::expect(false, c2c is self::Class2<core::int>);
   dynamic c2d = f2b{dynamic}.call<core::int>();
-  self::expect(true, c2d is{ForNonNullableByDefault} self::Class2<core::int>);
-  self::expect(false, c2d is{ForNonNullableByDefault} self::Class2<core::double>);
+  self::expect(true, c2d is self::Class2<core::int>);
+  self::expect(false, c2d is self::Class2<core::double>);
   self::throws(() → dynamic => f2b{dynamic}.call<core::String>());
   self::throws(() → dynamic => f2b{dynamic}.call<core::int, core::String>());
   <T extends S% = dynamic, S extends core::Object? = dynamic>() → self::Class3<T%, S%> f3a = #C3;
   self::Class3<dynamic, dynamic> c3a = f3a<dynamic, dynamic>(){() → self::Class3<dynamic, dynamic>};
-  self::expect(true, c3a is{ForNonNullableByDefault} self::Class3<dynamic, dynamic>);
-  self::expect(false, c3a is{ForNonNullableByDefault} self::Class3<core::int, core::num>);
+  self::expect(true, c3a is self::Class3<dynamic, dynamic>);
+  self::expect(false, c3a is self::Class3<core::int, core::num>);
   self::Class3<core::int, core::num> c3b = f3a<core::int, core::num>(){() → self::Class3<core::int, core::num>};
-  self::expect(true, c3b is{ForNonNullableByDefault} self::Class3<core::int, core::num>);
-  self::expect(false, c3b is{ForNonNullableByDefault} self::Class3<core::double, core::num>);
+  self::expect(true, c3b is self::Class3<core::int, core::num>);
+  self::expect(false, c3b is self::Class3<core::double, core::num>);
   () → Null {
     f3a<core::num, core::int>(){() → self::Class3<core::num, core::int>};
   };
   dynamic f3b = #C3;
   dynamic c3c = f3b{dynamic}.call();
-  self::expect(true, c3c is{ForNonNullableByDefault} self::Class3<dynamic, dynamic>);
-  self::expect(false, c3c is{ForNonNullableByDefault} self::Class3<core::int, core::num>);
+  self::expect(true, c3c is self::Class3<dynamic, dynamic>);
+  self::expect(false, c3c is self::Class3<core::int, core::num>);
   dynamic c3d = f3b{dynamic}.call<core::int, core::num>();
-  self::expect(true, c3d is{ForNonNullableByDefault} self::Class3<core::int, core::num>);
-  self::expect(false, c3d is{ForNonNullableByDefault} self::Class3<core::double, core::num>);
+  self::expect(true, c3d is self::Class3<core::int, core::num>);
+  self::expect(false, c3d is self::Class3<core::double, core::num>);
   self::throws(() → dynamic => f3b{dynamic}.call<core::num, core::int>());
   <T extends self::Class4<T> = self::Class4<dynamic>>() → self::Class4<T> f4a = #C4;
   () → Null {
@@ -171,7 +171,7 @@ static method testBounded() → dynamic {
   dynamic f4b = #C4;
   self::throws(() → dynamic => f4b{dynamic}.call());
   dynamic c4b = f4b{dynamic}.call<self::Class4int>();
-  self::expect(true, c4b is{ForNonNullableByDefault} self::Class4<self::Class4int>);
+  self::expect(true, c4b is self::Class4<self::Class4int>);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))

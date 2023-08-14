@@ -37,6 +37,50 @@ extension DdsExtension on VmService {
     });
   }
 
+  /// The [getPerfettoVMTimelineWithCpuSamples] RPC functions nearly identically
+  /// to [VmService.getPerfettoVMTimeline], except the `trace` field of the
+  /// [PerfettoTimeline] response returned by this RPC will be a Base64 string
+  /// encoding a Perfetto-format trace that includes not only all timeline
+  /// events in the specified time range, but also all CPU samples from all
+  /// isolates in the specified time range.
+  Future<PerfettoTimeline> getPerfettoVMTimelineWithCpuSamples(
+      {int? timeOriginMicros, int? timeExtentMicros}) async {
+    if (!(await _versionCheck(1, 5))) {
+      throw UnimplementedError(
+          'getPerfettoVMTimelineWithCpuSamples requires DDS version 1.5');
+    }
+    return _callHelper<PerfettoTimeline>('getPerfettoVMTimelineWithCpuSamples',
+        args: {
+          'timeOriginMicros': timeOriginMicros,
+          'timeExtentMicros': timeExtentMicros,
+        });
+  }
+
+  /// Send an event to the [stream].
+  ///
+  /// [stream] must be a registered custom stream (i.e., not a stream specified
+  /// as part of the VM service protocol).
+  ///
+  /// If [stream] is not a registered custom stream, an [RPCError] with code
+  /// [kCustomStreamDoesNotExist] will be thrown.
+  ///
+  /// If [stream] is a core stream, an [RPCError] with code
+  /// [kCoreStreamNotAllowed] will be thrown.
+  Future<void> postEvent(
+    String stream,
+    String eventKind,
+    Map<String, Object?> eventData,
+  ) async {
+    if (!(await _versionCheck(1, 6))) {
+      throw UnimplementedError('postEvent requires DDS version 1.6');
+    }
+    return _callHelper<void>('postEvent', args: {
+      'eventKind': eventKind,
+      'eventData': eventData,
+      'stream': stream,
+    });
+  }
+
   /// The [getAvailableCachedCpuSamples] RPC is used to determine which caches of CPU samples
   /// are available. Caches are associated with individual [UserTag] names and are specified
   /// when DDS is started via the `cachedUserTags` parameter.

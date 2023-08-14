@@ -105,7 +105,7 @@ const String _hexDigits = "0123456789ABCDEF";
 ///
 /// [uris]: https://dart.dev/guides/libraries/library-tour#uris
 /// [libtour]: https://dart.dev/guides/libraries/library-tour
-abstract class Uri {
+abstract interface class Uri {
   /// The natural base URI for the current platform.
   ///
   /// When running in a browser, this is the current URL of the current page
@@ -1885,8 +1885,8 @@ class _Uri implements Uri {
         if (path.length < 3 ||
             path.codeUnitAt(1) != _COLON ||
             path.codeUnitAt(2) != _BACKSLASH) {
-          throw ArgumentError(
-              r"Windows paths with \\?\ prefix must be absolute");
+          throw ArgumentError.value(
+              path, "path", r"Windows paths with \\?\ prefix must be absolute");
         }
       }
     } else {
@@ -1896,7 +1896,8 @@ class _Uri implements Uri {
     if (path.length > 1 && path.codeUnitAt(1) == _COLON) {
       _checkWindowsDriveLetter(path.codeUnitAt(0), true);
       if (path.length == 2 || path.codeUnitAt(2) != _BACKSLASH) {
-        throw ArgumentError("Windows paths with drive letter must be absolute");
+        throw ArgumentError.value(
+            path, "path", "Windows paths with drive letter must be absolute");
       }
       // Absolute file://C:/ URI.
       var pathSegments = path.split(sep);
@@ -3337,7 +3338,7 @@ class _Uri implements Uri {
 ///
 /// This class allows parsing the URI text, extracting individual parts of the
 /// URI, as well as building the URI text from structured parts.
-class UriData {
+final class UriData {
   static const int _noScheme = -1;
 
   /// Contains the text content of a `data:` URI, with or without a

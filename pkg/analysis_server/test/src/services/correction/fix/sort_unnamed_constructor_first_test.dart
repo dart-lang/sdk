@@ -70,6 +70,23 @@ class A {
 ''');
   }
 
+  Future<void> test_unnamedHasDocumentation() async {
+    await resolveTestCode('''
+class A {
+  A.a();
+  /// foo
+  A();
+}
+''');
+    await assertHasFix('''
+class A {
+  /// foo
+  A();
+  A.a();
+}
+''');
+  }
+
   Future<void> test_with_non_constructors() async {
     await resolveTestCode('''
 class A {

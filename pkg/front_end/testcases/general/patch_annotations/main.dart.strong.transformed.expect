@@ -1,0 +1,62 @@
+library;
+import self as self;
+
+import "dart:test";
+
+static method main() → dynamic {}
+
+@#C3
+@#C5
+library;
+import self as self2;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+import "dart:_internal";
+
+@#C6
+@#C8
+@#C10
+class Class<@#C12 @#C14 T extends core::Object? = dynamic> extends core::Object {
+  @#C6
+  @#C16
+  @#C18
+  external constructor •() → self2::Class<self2::Class::T%>;
+  @#C6
+  @#C20
+  @#C22
+  external method /* from org-dartlang-testcase:///patch_lib.dart */ method<@#C24 S extends core::Object? = dynamic>() → void;
+}
+
+constants  {
+  #C1 = "patch-library"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "origin-library"
+  #C5 = core::pragma {name:#C4, options:#C2}
+  #C6 = _in::_Patch {}
+  #C7 = "patch-class"
+  #C8 = core::pragma {name:#C7, options:#C2}
+  #C9 = "origin-class"
+  #C10 = core::pragma {name:#C9, options:#C2}
+  #C11 = "patch-class-type-variable"
+  #C12 = core::pragma {name:#C11, options:#C2}
+  #C13 = "origin-class-type-variable"
+  #C14 = core::pragma {name:#C13, options:#C2}
+  #C15 = "patch-constructor"
+  #C16 = core::pragma {name:#C15, options:#C2}
+  #C17 = "origin-constructor"
+  #C18 = core::pragma {name:#C17, options:#C2}
+  #C19 = "patch-procedure"
+  #C20 = core::pragma {name:#C19, options:#C2}
+  #C21 = "origin-procedure"
+  #C22 = core::pragma {name:#C21, options:#C2}
+  #C23 = "patch-method-type-variable"
+  #C24 = core::pragma {name:#C23, options:#C2}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///origin_lib.dart:
+- pragma._ (from org-dartlang-sdk:///sdk/lib/core/annotations.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

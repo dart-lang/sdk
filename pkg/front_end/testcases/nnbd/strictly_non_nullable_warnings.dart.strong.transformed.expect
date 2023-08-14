@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -125,10 +125,10 @@ extension E on core::String {
   operator []= = self::E|[]=;
   operator [] = self::E|[];
 }
-static method E|get#foo(lowered final core::String #this) → core::int
+static extension-member method E|get#foo(lowered final core::String #this) → core::int
   return 42;
-static method E|[]=(lowered final core::String #this, core::int index, core::int value) → void {}
-static method E|[](lowered final core::String #this, core::int index) → core::int
+static extension-member method E|[]=(lowered final core::String #this, core::int index, core::int value) → void {}
+static extension-member method E|[](lowered final core::String #this, core::int index) → core::int
   return 42;
 static method warning(core::String s, core::List<core::String> l, core::Map<core::String, core::int> m) → dynamic {
   let final core::String #t2 = s in #t2 == null ?{core::int?} null : #t2.{core::String::length}{core::int};

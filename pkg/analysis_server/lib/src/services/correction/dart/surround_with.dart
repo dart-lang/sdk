@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 
 class SurroundWith extends MultiCorrectionProducer {
   @override
-  Future<List<CorrectionProducer>> get producers async {
+  Future<List<ResolvedCorrectionProducer>> get producers async {
     // If the node is the CompilationUnit, the selected statements must span multiple
     // top level items and cannot be surrounded with anything.
     if (node is CompilationUnit) {
@@ -21,7 +21,7 @@ class SurroundWith extends MultiCorrectionProducer {
 
     // prepare selected statements
     var selectionAnalyzer = StatementAnalyzer(
-        resolvedResult, SourceRange(selectionOffset, selectionLength));
+        unitResult, SourceRange(selectionOffset, selectionLength));
     selectionAnalyzer.analyze();
     var selectedNodes = selectionAnalyzer.selectedNodes;
     // convert nodes to statements
@@ -70,7 +70,7 @@ class SurroundWith extends MultiCorrectionProducer {
 
 /// A correction processor that can make one of the possible changes computed by
 /// the [SurroundWith] producer.
-abstract class _SurroundWith extends CorrectionProducer {
+abstract class _SurroundWith extends ResolvedCorrectionProducer {
   final SourceRange statementsRange;
 
   final String indentOld;

@@ -57,7 +57,7 @@ void CpuId::Init() {
   GetCpuId(0x80000001, info);
   CpuId::abm_ = (info[2] & (1 << 5)) != 0;
 
-  // Brand string returned by CPUID is expected to be NULL-terminated,
+  // Brand string returned by CPUID is expected to be nullptr-terminated,
   // however we have seen cases in the wild which violate this assumption.
   // To avoid going out of bounds when trying to print this string
   // we add null-terminator ourselves, just in case.
@@ -72,13 +72,13 @@ void CpuId::Init() {
 }
 
 void CpuId::Cleanup() {
-  ASSERT(id_string_ != NULL);
+  ASSERT(id_string_ != nullptr);
   free(const_cast<char*>(id_string_));
-  id_string_ = NULL;
+  id_string_ = nullptr;
 
-  ASSERT(brand_string_ != NULL);
+  ASSERT(brand_string_ != nullptr);
   free(const_cast<char*>(brand_string_));
-  brand_string_ = NULL;
+  brand_string_ = nullptr;
 }
 
 const char* CpuId::id_string() {
@@ -120,7 +120,7 @@ const char* CpuId::field(CpuInfoIndices idx) {
     }
     default: {
       UNREACHABLE();
-      return NULL;
+      return nullptr;
     }
   }
 }

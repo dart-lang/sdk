@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -37,17 +37,17 @@ extension UniqueExtensionName on self::Class1 {
   method duplicateMethodName1 = self::UniqueExtensionName|duplicateMethodName1;
   tearoff duplicateMethodName1 = self::UniqueExtensionName|get#duplicateMethodName1;
 }
-static method DuplicateExtensionName|uniqueMethod1(lowered final self::Class1 #this) → dynamic
+static extension-member method DuplicateExtensionName|uniqueMethod1(lowered final self::Class1 #this) → dynamic
   ;
-static method DuplicateExtensionName|get#uniqueMethod1(lowered final self::Class1 #this) → () → dynamic
+static extension-member method DuplicateExtensionName|get#uniqueMethod1(lowered final self::Class1 #this) → () → dynamic
   return () → dynamic => self::DuplicateExtensionName|uniqueMethod1(#this);
-static method DuplicateExtensionName|duplicateMethodName2(lowered final self::Class1 #this) → dynamic
+static extension-member method DuplicateExtensionName|duplicateMethodName2(lowered final self::Class1 #this) → dynamic
   ;
-static method DuplicateExtensionName|get#duplicateMethodName2(lowered final self::Class1 #this) → () → dynamic
+static extension-member method DuplicateExtensionName|get#duplicateMethodName2(lowered final self::Class1 #this) → () → dynamic
   return () → dynamic => self::DuplicateExtensionName|duplicateMethodName2(#this);
-static method UniqueExtensionName|duplicateMethodName1(lowered final self::Class1 #this) → dynamic
+static extension-member method UniqueExtensionName|duplicateMethodName1(lowered final self::Class1 #this) → dynamic
   ;
-static method UniqueExtensionName|get#duplicateMethodName1(lowered final self::Class1 #this) → () → dynamic
+static extension-member method UniqueExtensionName|get#duplicateMethodName1(lowered final self::Class1 #this) → () → dynamic
   return () → dynamic => self::UniqueExtensionName|duplicateMethodName1(#this);
 static method main() → dynamic
   ;

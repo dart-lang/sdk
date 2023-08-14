@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -40,7 +40,7 @@ class Animal extends core::Object {
     : self::Animal::numberOfLegs = numberOfLegs, super core::Object::•()
     ;
   operator /*isLegacy*/ ==(core::Object other) → core::bool
-    return other is self::Animal && this.{self::Animal::numberOfLegs}{core::int} =={core::num::==}{(core::Object) → core::bool} other{self::Animal}.{self::Animal::numberOfLegs}{core::int};
+    return other is{ForLegacy} self::Animal && this.{self::Animal::numberOfLegs}{core::int} =={core::num::==}{(core::Object) → core::bool} other{self::Animal}.{self::Animal::numberOfLegs}{core::int};
   get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine("org-dartlang-testcase:///simple.dartAnimal".{core::String::hashCode}{core::int}, this.{self::Animal::numberOfLegs}{core::int}.{core::num::hashCode}{core::int}));
   method /*isLegacy*/ toString() → core::String
@@ -68,7 +68,7 @@ static method expect(core::Object? expected, core::Object? actual) → dynamic {
     throw "Expected=${expected}, actual=${actual}";
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as val;
 import "dart:core" as core;
 

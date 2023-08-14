@@ -6,15 +6,14 @@
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show
-        Message,
-        LocatedMessage,
         templateJsInteropExportDartInterfaceHasNonEmptyJSExportValue,
         templateJsInteropExportDisallowedMember,
         templateJsInteropExportMemberCollision,
         templateJsInteropExportNoExportableMembers;
+import 'package:_js_interop_checks/js_interop_checks.dart'
+    show JsInteropDiagnosticReporter;
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
 import 'package:kernel/ast.dart';
-import 'package:kernel/target/targets.dart';
 
 enum ExportStatus {
   exportError,
@@ -30,7 +29,7 @@ class GetSet {
 }
 
 class ExportChecker {
-  final DiagnosticReporter<Message, LocatedMessage> _diagnosticReporter;
+  final JsInteropDiagnosticReporter _diagnosticReporter;
   final Map<Reference, Map<String, Set<Member>>> exportClassToMemberMap = {};
   final Map<Reference, ExportStatus> exportStatus = {};
   final Class _objectClass;

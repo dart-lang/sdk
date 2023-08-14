@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -27,7 +27,7 @@ class A extends core::Object {
 }
 static method main() → dynamic {}
 static method errors() → dynamic {
-  self::A? a1 = new self::A::•() as{ForNonNullableByDefault} self::A?;
+  self::A? a1 = new self::A::•() as self::A?;
   invalid-expression "pkg/front_end/testcases/nnbd/issue41495.dart:14:6: Error: Property 'c1' cannot be accessed on 'A?' because it is potentially null.
  - 'A' is from 'pkg/front_end/testcases/nnbd/issue41495.dart'.
 Try accessing using ?. instead.

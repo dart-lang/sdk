@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -51,7 +52,7 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var labelText = node.constructorName.type.name.name;
+    var labelText = node.constructorName.type.qualifiedName;
     var name = node.constructorName.name;
     if (name != null) {
       labelText += '.${name.name}';

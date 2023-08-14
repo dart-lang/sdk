@@ -15,6 +15,7 @@ import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
 import 'package:kernel/target/targets.dart' hide DiagnosticReporter;
 
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
+import 'package:kernel/verifier.dart';
 
 import '../../compiler_api.dart' as api;
 import '../commandline_options.dart';
@@ -133,14 +134,16 @@ void _doTransformsOnKernelLoad(Component? component) {
   // containing a stub definition is invalidated, and then reloaded, because
   // we need to keep existing references to that stub valid. Here, we have the
   // whole program, and therefore do not need it.
-  StaticInteropClassEraser(ir.CoreTypes(component), null)
+  ir.CoreTypes coreTypes = ir.CoreTypes(component);
+  StaticInteropClassEraser(coreTypes, null,
+          additionalCoreLibraries: {'_js_types', 'js_interop'})
       .visitComponent(component);
 }
 
 Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
     api.CompilerInput compilerInput, String targetName) async {
   Library? entryLibrary;
-  var resolvedUri = options.compilationTarget!;
+  var resolvedUri = options.compilationTarget;
   ir.Component component = ir.Component();
   List<Uri> moduleLibraries = [];
 
@@ -152,7 +155,7 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
 
   await read(resolvedUri);
 
-  if (options.modularMode) {
+  if (options.stage.shouldComputeModularAnalysis) {
     moduleLibraries = component.libraries.map((lib) => lib.importUri).toList();
   }
 
@@ -169,9 +172,11 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
 
   // When compiling modularly, a dill for the SDK will be provided. In those
   // cases we ignore the implicit platform binary.
-  bool platformBinariesIncluded =
-      options.modularMode || options.hasModularAnalysisInputs;
-  if (options.platformBinaries != null && !platformBinariesIncluded) {
+  bool platformBinariesIncluded = options.stage.shouldComputeModularAnalysis ||
+      options.hasModularAnalysisInputs;
+  if (options.platformBinaries != null &&
+      options.stage.shouldReadPlatformBinaries &&
+      !platformBinariesIncluded) {
     var platformUri = options.platformBinaries
         ?.resolve(_getPlatformFilename(options, targetName));
     // Modular analysis can be run on the sdk by providing directly the
@@ -196,7 +201,7 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
   }
 
   // We apply global transforms when running phase 0.
-  if (options.cfeOnly) {
+  if (options.stage.shouldOnlyComputeDill) {
     _doGlobalTransforms(component);
   }
   _doTransformsOnKernelLoad(component);
@@ -256,7 +261,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
       ..fileSystem = fileSystem
       ..onDiagnostic = onDiagnostic
       ..verbosity = verbosity;
-    Uri resolvedUri = options.compilationTarget!;
+    Uri resolvedUri = options.compilationTarget;
     bool isLegacy =
         await fe.uriUsesLegacyLanguageVersion(resolvedUri, feOptions);
     if (isLegacy && options.nullSafetyMode == NullSafetyMode.sound) {
@@ -270,7 +275,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
             "the Dart 3.0 stable release)."
       }));
     }
-    sources.add(options.compilationTarget!);
+    sources.add(options.compilationTarget);
   }
 
   // If we are performing a modular compile, we expect the platform binary to be
@@ -298,6 +303,18 @@ Future<_LoadFromSourceResult> _loadFromSource(
       verbosity: verbosity);
   ir.Component? component = await fe.compile(initializedCompilerState, verbose,
       fileSystem, onDiagnostic, sources, isModularCompile);
+
+  assert(() {
+    if (component != null) {
+      // TODO(johnniwinther): Support verification of erroneous programs.
+      if (!reporter.hasReportedError) {
+        verifyComponent(
+            target, VerificationStage.afterModularTransformations, component);
+      }
+    }
+    return true;
+  }());
+
   _doTransformsOnKernelLoad(component);
 
   // We have to compute canonical names on the component here to avoid missing
@@ -319,7 +336,7 @@ Output _createOutput(
     fe.InitializedCompilerState? initializedCompilerState) {
   Uri? rootLibraryUri = null;
   Iterable<ir.Library> libraries = component.libraries;
-  if (!options.modularMode) {
+  if (!options.stage.shouldComputeModularAnalysis) {
     // For non-modular builds we should always have a [mainMethod] at this
     // point.
     if (component.mainMethod == null) {
@@ -390,7 +407,7 @@ Future<Output?> run(Input input) async {
   List<Uri> moduleLibraries = const [];
   fe.InitializedCompilerState? initializedCompilerState =
       input.initializedCompilerState;
-  if (options.fromDill) {
+  if (options.stage.shouldLoadFromDill) {
     _LoadFromKernelResult result =
         await _loadFromKernel(options, compilerInput, targetName);
     component = result.component;
@@ -409,6 +426,8 @@ Future<Output?> run(Input input) async {
     List<int> data = serializeComponent(component);
     component = ir.Component();
     BinaryBuilder(data).readComponent(component);
+    // Ensure we use the new deserialized entry point library.
+    entryLibrary = _findEntryLibrary(component, options.entryUri!);
   }
   return _createOutput(options, reporter, entryLibrary, component,
       moduleLibraries, initializedCompilerState);

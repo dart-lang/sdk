@@ -43,6 +43,50 @@ A.foo: void Function({int a})
 ''');
   }
 
+  test_getMember_fromGenericClass_method_returnType() async {
+    await resolveTestCode('''
+abstract class B<E> {
+  T foo<T>();
+}
+''');
+    final B = findElement.classOrMixin('B');
+    final foo = manager.getMember2(B, Name(null, 'foo'))!;
+    final T = foo.typeParameters.single;
+    final returnType = foo.returnType;
+    expect(returnType.element, same(T));
+  }
+
+  test_getMember_fromGenericSuper_method_returnType() async {
+    await resolveTestCode('''
+abstract class A<E> {
+  T foo<T>();
+}
+
+abstract class B<E> extends A<E> {}
+''');
+    final B = findElement.classOrMixin('B');
+    final foo = manager.getMember2(B, Name(null, 'foo'))!;
+    final T = foo.typeParameters.single;
+    final returnType = foo.returnType;
+    // Check that the return type uses the same `T` as `<T>`.
+    expect(returnType.element, same(T));
+  }
+
+  test_getMember_fromNotGenericSuper_method_returnType() async {
+    await resolveTestCode('''
+abstract class A {
+  T foo<T>();
+}
+
+abstract class B extends A {}
+''');
+    final B = findElement.classOrMixin('B');
+    final foo = manager.getMember2(B, Name(null, 'foo'))!;
+    final T = foo.typeParameters.single;
+    final returnType = foo.returnType;
+    expect(returnType.element, same(T));
+  }
+
   test_getMember_mixin_notMerge_replace() async {
     await resolveTestCode('''
 class A<T> {

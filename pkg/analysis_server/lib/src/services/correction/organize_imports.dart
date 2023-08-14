@@ -14,7 +14,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element;
-import 'package:collection/collection.dart';
 import 'package:meta/meta_meta.dart';
 
 /// Organizer of imports (and other directives) in the [unit].

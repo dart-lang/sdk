@@ -58,19 +58,19 @@ D:
   Longest path to Object: 3
   superclasses:
     Object
-  interfaces: B<T>, A, C<U>
+  interfaces: B<T%>, A, C<U%>
 
 E:
   Longest path to Object: 4
   superclasses:
     Object
-  interfaces: D<int,double>, B<int>, A, C<double>
+  interfaces: D<int!,double!>, B<int!>, A, C<double!>
 
 F:
   Longest path to Object: 4
   superclasses:
     Object
-  interfaces: D<int,bool>, B<int>, A, C<bool>
+  interfaces: D<int!,bool!>, B<int!>, A, C<bool!>
 """;
 
 void main() {

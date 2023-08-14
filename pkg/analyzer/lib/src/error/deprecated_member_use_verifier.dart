@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -35,6 +34,10 @@ abstract class BaseDeprecatedMemberUseVerifier {
     _checkForDeprecated(node.element?.exportedLibrary, node);
   }
 
+  void extensionOverride(ExtensionOverride node) {
+    _checkForDeprecated(node.element, node);
+  }
+
   void functionExpressionInvocation(FunctionExpressionInvocation node) {
     var callElement = node.staticElement;
     if (callElement is MethodElement &&
@@ -63,6 +66,10 @@ abstract class BaseDeprecatedMemberUseVerifier {
       node.methodName.staticElement,
       node.argumentList,
     );
+  }
+
+  void namedType(NamedType node) {
+    _checkForDeprecated(node.element, node);
   }
 
   void patternField(PatternField node) {
@@ -164,6 +171,10 @@ abstract class BaseDeprecatedMemberUseVerifier {
       } else if (node is PropertyAccess) {
         errorEntity = node.propertyName;
       }
+    } else if (node is ExtensionOverride) {
+      errorEntity = node.name;
+    } else if (node is NamedType) {
+      errorEntity = node.name2;
     } else if (node is NamedExpression) {
       errorEntity = node.name.label;
     } else if (node is PatternFieldImpl) {

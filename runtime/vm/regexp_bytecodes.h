@@ -71,12 +71,13 @@ V(SET_CURRENT_POSITION_FROM_END, 51, 4) /* bc8 idx24                        */
 
 // clang-format on
 
-#define DECLARE_BYTECODES(name, code, length) static const int BC_##name = code;
+#define DECLARE_BYTECODES(name, code, length)                                  \
+  static constexpr int BC_##name = code;
 BYTECODE_ITERATOR(DECLARE_BYTECODES)
 #undef DECLARE_BYTECODES
 
 #define DECLARE_BYTECODE_LENGTH(name, code, length)                            \
-  static const int BC_##name##_LENGTH = length;
+  static constexpr int BC_##name##_LENGTH = length;
 BYTECODE_ITERATOR(DECLARE_BYTECODE_LENGTH)
 #undef DECLARE_BYTECODE_LENGTH
 

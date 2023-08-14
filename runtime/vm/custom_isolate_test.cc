@@ -82,7 +82,7 @@ static const char* kCustomIsolateScriptChars =
 // An entry in our event queue.
 class Event {
  protected:
-  explicit Event(Dart_Isolate isolate) : isolate_(isolate), next_(NULL) {}
+  explicit Event(Dart_Isolate isolate) : isolate_(isolate), next_(nullptr) {}
 
  public:
   virtual ~Event() {}
@@ -99,10 +99,10 @@ class Event {
 // A simple event queue for our test.
 class EventQueue {
  public:
-  EventQueue() { head_ = NULL; }
+  EventQueue() { head_ = nullptr; }
 
   void Add(Event* event) {
-    if (head_ == NULL) {
+    if (head_ == nullptr) {
       head_ = event;
       tail_ = event;
     } else {
@@ -112,14 +112,14 @@ class EventQueue {
   }
 
   Event* Get() {
-    if (head_ == NULL) {
-      return NULL;
+    if (head_ == nullptr) {
+      return nullptr;
     }
     Event* tmp = head_;
     head_ = head_->next_;
-    if (head_ == NULL) {
+    if (head_ == nullptr) {
       // Not necessary, but why not.
-      tail_ = NULL;
+      tail_ = nullptr;
     }
 
     return tmp;
@@ -127,12 +127,12 @@ class EventQueue {
 
   void RemoveEventsForIsolate(Dart_Isolate isolate) {
     Event* cur = head_;
-    Event* prev = NULL;
-    while (cur != NULL) {
+    Event* prev = nullptr;
+    while (cur != nullptr) {
       Event* next = cur->next_;
       if (cur->isolate() == isolate) {
         // Remove matching event.
-        if (prev != NULL) {
+        if (prev != nullptr) {
           prev->next_ = next;
         } else {
           head_ = next;
@@ -174,12 +174,12 @@ void StartEvent::Process() {
   Dart_Handle lib = Dart_LookupLibrary(NewString(TestCase::url()));
   EXPECT_VALID(lib);
 
-  result = Dart_Invoke(lib, NewString(main_), 0, NULL);
+  result = Dart_Invoke(lib, NewString(main_), 0, nullptr);
   EXPECT_VALID(result);
   free(const_cast<char*>(main_));
-  main_ = NULL;
+  main_ = nullptr;
 
-  Dart_SetMessageNotifyCallback(NULL);
+  Dart_SetMessageNotifyCallback(nullptr);
   Dart_ExitScope();
   Dart_ExitIsolate();
 }
@@ -205,14 +205,14 @@ void MessageEvent::Process() {
   if (!Dart_HasLivePorts()) {
     OS::PrintErr("<< Shutting down isolate(%p)\n", isolate());
     event_queue->RemoveEventsForIsolate(isolate());
-    Dart_SetMessageNotifyCallback(NULL);
+    Dart_SetMessageNotifyCallback(nullptr);
     Dart_ExitScope();
     Dart_ShutdownIsolate();
   } else {
     Dart_ExitScope();
     Dart_ExitIsolate();
   }
-  ASSERT(Dart_CurrentIsolate() == NULL);
+  ASSERT(Dart_CurrentIsolate() == nullptr);
 }
 
 static void NotifyMessage(Dart_Isolate dest_isolate) {
@@ -224,9 +224,9 @@ static void NotifyMessage(Dart_Isolate dest_isolate) {
 static Dart_NativeFunction NativeLookup(Dart_Handle name,
                                         int argc,
                                         bool* auto_setup_scope) {
-  ASSERT(auto_setup_scope != NULL);
+  ASSERT(auto_setup_scope != nullptr);
   *auto_setup_scope = true;
-  const char* name_str = NULL;
+  const char* name_str = nullptr;
   EXPECT(Dart_IsString(name));
   EXPECT_VALID(Dart_StringToCString(name, &name_str));
   if (strcmp(name_str, "native_echo") == 0) {
@@ -234,16 +234,16 @@ static Dart_NativeFunction NativeLookup(Dart_Handle name,
   } else if (strcmp(name_str, "CustomIsolateImpl_start") == 0) {
     return &CustomIsolateImpl_start;
   }
-  return NULL;
+  return nullptr;
 }
 
-char* saved_echo = NULL;
+char* saved_echo = nullptr;
 static void native_echo(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle arg = Dart_GetNativeArgument(args, 0);
   Dart_Handle toString = Dart_ToString(arg);
   EXPECT_VALID(toString);
-  const char* c_str = NULL;
+  const char* c_str = nullptr;
   EXPECT_VALID(Dart_StringToCString(toString, &c_str));
   if (saved_echo != nullptr) {
     free(saved_echo);
@@ -263,7 +263,7 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
   Dart_Handle param = Dart_GetNativeArgument(args, 0);
   EXPECT_VALID(param);
   EXPECT(Dart_IsString(param));
-  const char* isolate_main = NULL;
+  const char* isolate_main = nullptr;
   EXPECT_VALID(Dart_StringToCString(param, &isolate_main));
   isolate_main = Utils::StrDup(isolate_main);
 
@@ -273,7 +273,7 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
 
   // Create a new Dart_Isolate.
   Dart_Isolate new_isolate = TestCase::CreateTestIsolate();
-  EXPECT(new_isolate != NULL);
+  EXPECT(new_isolate != nullptr);
   Dart_SetMessageNotifyCallback(&NotifyMessage);
   Dart_EnterScope();
   // Reload all the test classes here.
@@ -312,7 +312,7 @@ VM_UNIT_TEST_CASE(CustomIsolates) {
   event_queue = new EventQueue();
 
   Dart_Isolate dart_isolate = TestCase::CreateTestIsolate();
-  EXPECT(dart_isolate != NULL);
+  EXPECT(dart_isolate != nullptr);
   Dart_SetMessageNotifyCallback(&NotifyMessage);
   Dart_EnterScope();
   Dart_Handle result;
@@ -323,10 +323,10 @@ VM_UNIT_TEST_CASE(CustomIsolates) {
   EXPECT_VALID(lib);
 
   // Run main.
-  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   EXPECT(Dart_IsString(result));
-  const char* result_str = NULL;
+  const char* result_str = nullptr;
   EXPECT_VALID(Dart_StringToCString(result, &result_str));
   EXPECT_STREQ("success", result_str);
 
@@ -345,7 +345,7 @@ VM_UNIT_TEST_CASE(CustomIsolates) {
   free(saved_echo);
 
   delete event_queue;
-  event_queue = NULL;
+  event_queue = nullptr;
   FLAG_trace_shutdown = saved_flag;
 }
 

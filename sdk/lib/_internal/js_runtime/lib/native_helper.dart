@@ -385,7 +385,7 @@ void initHooks() {
     if (JS('bool', 'typeof # == "function"', transformers)) {
       transformers = [transformers];
     }
-    if (JS('bool', '#.constructor == Array', transformers)) {
+    if (JS('bool', 'Array.isArray(#)', transformers)) {
       for (int i = 0; i < JS('int', '#.length', transformers); i++) {
         var transformer = JS('', '#[#]', transformers, i);
         if (JS('bool', 'typeof # == "function"', transformer)) {

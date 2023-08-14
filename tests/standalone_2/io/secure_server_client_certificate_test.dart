@@ -110,6 +110,7 @@ Future testClientCertificate(
 
 main() async {
   asyncStart();
+  // Test client certificate when host is a DNS name
   HOST = (await InternetAddress.lookup("localhost")).first;
   await testClientCertificate(
       required: false, sendCert: true, certType: 'pem', password: 'dartdart');
@@ -128,5 +129,16 @@ main() async {
       required: false, sendCert: false, certType: 'p12', password: 'dartdart');
   await testClientCertificate(
       required: true, sendCert: false, certType: 'p12', password: 'dartdart');
+
+  // Test client certificate when host is an IP address
+  HOST = InternetAddress.loopbackIPv4;
+  await testClientCertificate(
+      required: false, sendCert: true, certType: 'pem', password: 'dartdart');
+  await testClientCertificate(
+      required: true, sendCert: true, certType: 'pem', password: 'dartdart');
+  await testClientCertificate(
+      required: false, sendCert: false, certType: 'pem', password: 'dartdart');
+  await testClientCertificate(
+      required: true, sendCert: false, certType: 'pem', password: 'dartdart');
   asyncEnd();
 }

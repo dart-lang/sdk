@@ -17,7 +17,6 @@ main() {
 
 @reflectiveTest
 class LogicalAndTest extends PubPackageResolutionTest with LogicalAndTestCases {
-  @failingTest
   test_downward() async {
     await resolveTestCode('''
 void f(b) {
@@ -27,8 +26,38 @@ void f(b) {
 T a<T>() => throw '';
 T b<T>() => throw '';
 ''');
-    assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
-    assertInvokeType(findNode.methodInvocation('b('), 'bool Function()');
+
+    final node = findNode.singleBinaryExpression;
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: a
+      staticElement: self::@function::a
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: bool Function()
+    staticType: bool
+    typeArgumentTypes
+      bool
+  operator: &&
+  rightOperand: FunctionExpressionInvocation
+    function: SimpleIdentifier
+      token: b
+      staticElement: self::@function::f::@parameter::b
+      staticType: dynamic
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticElement: <null>
+    staticInvokeType: dynamic
+    staticType: dynamic
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: bool
+''');
   }
 }
 
@@ -40,7 +69,43 @@ void f(bool a, bool b) {
   print(c);
 }
 ''');
-    assertType(findNode.simple('c)'), 'bool');
+
+    final node = findNode.singleBinaryExpression;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: bool
+  operator: &&
+  rightOperand: SimpleIdentifier
+    token: b
+    parameter: <null>
+    staticElement: self::@function::f::@parameter::b
+    staticType: bool
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: bool
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: bool*
+  operator: &&
+  rightOperand: SimpleIdentifier
+    token: b
+    parameter: <null>
+    staticElement: self::@function::f::@parameter::b
+    staticType: bool*
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: bool*
+''');
+    }
   }
 }
 
@@ -50,7 +115,6 @@ class LogicalAndWithoutNullSafetyTest extends PubPackageResolutionTest
 
 @reflectiveTest
 class LogicalOrTest extends PubPackageResolutionTest with LogicalOrTestCases {
-  @failingTest
   test_downward() async {
     await resolveTestCode('''
 void f(b) {
@@ -60,8 +124,38 @@ void f(b) {
 T a<T>() => throw '';
 T b<T>() => throw '';
 ''');
-    assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
-    assertInvokeType(findNode.methodInvocation('b('), 'bool Function()');
+
+    final node = findNode.singleBinaryExpression;
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: a
+      staticElement: self::@function::a
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: bool Function()
+    staticType: bool
+    typeArgumentTypes
+      bool
+  operator: ||
+  rightOperand: FunctionExpressionInvocation
+    function: SimpleIdentifier
+      token: b
+      staticElement: self::@function::f::@parameter::b
+      staticType: dynamic
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticElement: <null>
+    staticInvokeType: dynamic
+    staticType: dynamic
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: bool
+''');
   }
 }
 
@@ -73,7 +167,43 @@ void f(bool a, bool b) {
   print(c);
 }
 ''');
-    assertType(findNode.simple('c)'), 'bool');
+
+    final node = findNode.singleBinaryExpression;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: bool
+  operator: ||
+  rightOperand: SimpleIdentifier
+    token: b
+    parameter: <null>
+    staticElement: self::@function::f::@parameter::b
+    staticType: bool
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: bool
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: bool*
+  operator: ||
+  rightOperand: SimpleIdentifier
+    token: b
+    parameter: <null>
+    staticElement: self::@function::f::@parameter::b
+    staticType: bool*
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: bool*
+''');
+    }
   }
 }
 

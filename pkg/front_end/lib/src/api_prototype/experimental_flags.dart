@@ -158,8 +158,6 @@ Version getExperimentEnabledVersionInLibrary(ExperimentalFlag flag,
     }
     version ??= flag.experimentEnabledVersion;
   }
-  // ignore: unnecessary_null_comparison
-  assert(version != null, "No version for enabling $flag in $canonicalUri.");
   return version;
 }
 

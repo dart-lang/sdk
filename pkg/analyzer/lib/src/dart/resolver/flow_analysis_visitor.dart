@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -396,6 +395,9 @@ class TypeSystemOperations
   TypeSystemOperations(this.typeSystem);
 
   @override
+  DartType get boolType => typeSystem.typeProvider.boolType;
+
+  @override
   bool areStructurallyEqual(DartType type1, DartType type2) {
     return type1 == type2;
   }
@@ -427,7 +429,10 @@ class TypeSystemOperations
   }
 
   @override
-  bool isDynamic(DartType type) => type.isDynamic;
+  bool isDynamic(DartType type) => type is DynamicType;
+
+  @override
+  bool isError(DartType type) => type is InvalidType;
 
   @override
   bool isNever(DartType type) {

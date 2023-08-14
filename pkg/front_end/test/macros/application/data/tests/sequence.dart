@@ -4,28 +4,28 @@
 
 /*library: 
 Declarations Order:
- Class1:SequenceMacro.new(0)
- Class2:SequenceMacro.new(1)
- Class2:SequenceMacro.new(0)
- Class3.method:SequenceMacro.new(1)
- Class3:SequenceMacro.new(0)
- Class4.method:SequenceMacro.new(3)
- Class4.method2:SequenceMacro.new(5)
- Class4.method2:SequenceMacro.new(4)
- Class4:SequenceMacro.new(2)
- Class4:SequenceMacro.new(1)
- Class4:SequenceMacro.new(0)
- Class5a:SequenceMacro.new(0)
- Class5b:SequenceMacro.new(0)
- Class5c:SequenceMacro.new(0)
- Class6c:SequenceMacro.new(0)
- Class6a:SequenceMacro.new(0)
- Class6b:SequenceMacro.new(0)
- Class6d:SequenceMacro.new(0)
- Class7a:SequenceMacro.new(0)
- Class7b:SequenceMacro.new(0)
- Class7c:SequenceMacro.new(0)
- Class7d:SequenceMacro.new(0)*/
+ Class1:SequenceMacro.new(IntArgument:0)
+ Class2:SequenceMacro.new(IntArgument:1)
+ Class2:SequenceMacro.new(IntArgument:0)
+ Class3.method:SequenceMacro.new(IntArgument:1)
+ Class3:SequenceMacro.new(IntArgument:0)
+ Class4.method:SequenceMacro.new(IntArgument:3)
+ Class4.method2:SequenceMacro.new(IntArgument:5)
+ Class4.method2:SequenceMacro.new(IntArgument:4)
+ Class4:SequenceMacro.new(IntArgument:2)
+ Class4:SequenceMacro.new(IntArgument:1)
+ Class4:SequenceMacro.new(IntArgument:0)
+ Class5a:SequenceMacro.new(IntArgument:0)
+ Class5b:SequenceMacro.new(IntArgument:0)
+ Class5c:SequenceMacro.new(IntArgument:0)
+ Class6c:SequenceMacro.new(IntArgument:0)
+ Class6a:SequenceMacro.new(IntArgument:0)
+ Class6b:SequenceMacro.new(IntArgument:0)
+ Class6d:SequenceMacro.new(IntArgument:0)
+ Class7a:SequenceMacro.new(IntArgument:0)
+ Class7b:SequenceMacro.new(IntArgument:0)
+ Class7c:SequenceMacro.new(IntArgument:0)
+ Class7d:SequenceMacro.new(IntArgument:0)*/
 
 import 'package:macro/macro.dart';
 
@@ -130,7 +130,7 @@ class Class5a {}
 /*class: Class6d:
 declarations:
 
-augment class Class6d {
+augment abstract class Class6d {
   method2() {}
 }
 */
@@ -150,7 +150,7 @@ class Class6c {}
 /*class: Class6b:
 declarations:
 
-augment class Class6b {
+augment abstract class Class6b {
   method1() {}
 }
 */
@@ -180,7 +180,7 @@ class Class7d extends Class7b with Class7c {}
 /*class: Class7c:
 declarations:
 
-augment class Class7c {
+augment mixin Class7c {
   method() {}
 }
 */
@@ -200,7 +200,7 @@ class Class7b with Class7a {}
 /*class: Class7a:
 declarations:
 
-augment class Class7a {
+augment mixin Class7a {
   method() {}
 }
 */

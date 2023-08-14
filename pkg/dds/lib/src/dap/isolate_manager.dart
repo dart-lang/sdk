@@ -6,12 +6,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:dap/dap.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../rpc_error_codes.dart';
 import 'adapters/dart.dart';
-import 'exceptions.dart';
-import 'protocol_generated.dart';
 import 'utils.dart';
 import 'variables.dart';
 
@@ -72,7 +71,28 @@ class IsolateManager {
 
   /// Tracks client breakpoints by the ID assigned by the VM so we can look up
   /// conditions/logpoints when hitting breakpoints.
-  final Map<String, ClientBreakpoint> _clientBreakpointsByVmId = {};
+  ///
+  /// Because the VM might return the same breakpoint for multiple
+  /// `addBreakpointWithScriptUri` calls (if they immediately resolve to the
+  /// same location) there may be multiple client breakpoints for a given VM
+  /// breakpoint ID.
+  ///
+  /// When an item is added to this map, any pending events in
+  /// [_pendingBreakpointEvents] MUST be processed immediately.
+  final Map<String, List<ClientBreakpoint>> _clientBreakpointsByVmId = {};
+
+  /// Tracks `BreakpointAdded` or `BreakpointResolved` events for VM
+  /// breakpoints.
+  ///
+  /// These are kept for all breakpoints until they are removed by the VM
+  /// because it's always possible that the VM will reuse a breakpoint ID (eg.
+  /// if we add a new breakpoint that resolves to the same location as another
+  /// breakpoint).
+  ///
+  /// When new breakpoints are added by the client, we must check this map to
+  /// see it's al already-resolved breakpoint so that we can send resolution
+  /// info to the client.
+  final Map<String, vm.Event> _breakpointResolvedEventsByVmId = {};
 
   /// Tracks breakpoints created in the VM so they can be removed when the
   /// editor sends new breakpoints (currently the editor just sends a new list
@@ -260,7 +280,14 @@ class IsolateManager {
 
     final thread = _threadsByThreadId[threadId];
     if (thread == null) {
-      throw DebugAdapterException('Thread $threadId was not found');
+      if (isInvalidThreadId(threadId)) {
+        throw DebugAdapterException('Thread $threadId was not found');
+      } else {
+        // Otherwise, this thread has exited and we don't need to do anything.
+        // It's possible another debugger unpaused or we're shutting down and
+        // the VM has terminated it.
+        return;
+      }
     }
 
     // Check this thread hasn't already been resumed by another handler in the
@@ -276,13 +303,60 @@ class IsolateManager {
       resumeType = vm.StepOption.kOverAsyncSuspension;
     }
 
+    // Finally, when we're resuming, all stored objects become invalid and
+    // we can drop them to save memory.
+    thread.clearStoredData();
+
     thread.hasPendingResume = true;
     try {
       await _adapter.vmService?.resume(thread.isolate.id!, step: resumeType);
+    } on vm.SentinelException {
+      // It's possible during these async requests that the isolate went away
+      // (for example a shutdown/restart) and we no longer care about
+      // resuming it.
+    } on vm.RPCError catch (e) {
+      if (e.code == RpcErrorCodes.kIsolateMustBePaused) {
+        // It's possible something else resumed the thread (such as if another
+        // debugger is attached), we can just continue.
+      } else {
+        rethrow;
+      }
     } finally {
       thread.hasPendingResume = false;
     }
   }
+
+  /// Pauses an isolate using its client [threadId].
+  ///
+  /// This is simply a _request_ to pause. It does not change any state by
+  /// itself - we will handle the pause via an event if the pause request
+  /// succeeds.
+  Future<void> pauseThread(int threadId) async {
+    final thread = _threadsByThreadId[threadId];
+    if (thread == null) {
+      if (isInvalidThreadId(threadId)) {
+        throw DebugAdapterException('Thread $threadId was not found');
+      } else {
+        // Otherwise, this thread has recently exited so we cannot attempt
+        // to pause it.
+        return;
+      }
+    }
+
+    try {
+      await _adapter.vmService?.pause(thread.isolate.id!);
+    } on vm.SentinelException {
+      // It's possible during these async requests that the isolate went away
+      // (for example a shutdown/restart) and we no longer care about
+      // pausing it.
+    }
+  }
+
+  /// Checks whether [threadId] is invalid and has never been used.
+  ///
+  /// Returns `false` is [threadId] corresponds to either a live, or previously
+  /// exited thread.
+  bool isInvalidThreadId(int threadId) => threadId >= _nextThreadNumber;
 
   /// Sends an event informing the client that a thread is stopped at entry.
   void sendStoppedOnEntryEvent(int threadId) {
@@ -363,14 +437,20 @@ class IsolateManager {
   /// Configures a new isolate, setting it's exception-pause mode, which
   /// libraries are debuggable, and sending all breakpoints.
   Future<void> _configureIsolate(ThreadInfo thread) async {
-    // Libraries must be set as debuggable _before_ sending breakpoints, or
-    // they may fail for SDK sources.
-    await Future.wait([
-      _sendLibraryDebuggables(thread),
-      _sendExceptionPauseMode(thread),
-    ], eagerError: true);
+    try {
+      // Libraries must be set as debuggable _before_ sending breakpoints, or
+      // they may fail for SDK sources.
+      await Future.wait([
+        _sendLibraryDebuggables(thread),
+        _sendExceptionPauseMode(thread),
+      ], eagerError: true);
 
-    await _sendBreakpoints(thread);
+      await _sendBreakpoints(thread);
+    } on vm.SentinelException {
+      // It's possible during these async requests that the isolate went away
+      // (for example a shutdown/restart) and we no longer care about
+      // configuring it. State will be cleaned up by the IsolateExit event.
+    }
   }
 
   /// Evaluates an expression, returning the result if it is a [vm.InstanceRef]
@@ -392,21 +472,18 @@ class IsolateManager {
         return result;
       } else if (result is vm.ErrorRef) {
         final message = result.message ?? '<error ref>';
-        _adapter.sendOutput(
-          'console',
-          'Debugger failed to evaluate breakpoint $type "$expression": $message\n',
+        _adapter.sendConsoleOutput(
+          'Debugger failed to evaluate breakpoint $type "$expression": $message',
         );
       } else if (result is vm.Sentinel) {
         final message = result.valueAsString ?? '<collected>';
-        _adapter.sendOutput(
-          'console',
-          'Debugger failed to evaluate breakpoint $type "$expression": $message\n',
+        _adapter.sendConsoleOutput(
+          'Debugger failed to evaluate breakpoint $type "$expression": $message',
         );
       }
     } catch (e) {
-      _adapter.sendOutput(
-        'console',
-        'Debugger failed to evaluate breakpoint $type "$expression": $e\n',
+      _adapter.sendConsoleOutput(
+        'Debugger failed to evaluate breakpoint $type "$expression": $e',
       );
     }
     return null;
@@ -484,8 +561,13 @@ class IsolateManager {
         // Look up the client breakpoints that correspond to the VM breakpoint(s)
         // we hit. It's possible some of these may be missing because we could
         // hit a breakpoint that was set before we were attached.
+        //
+        // When multiple client breakpoints have been folded into a single VM
+        // breakpoint, we (arbitrarily) use the first one for conditions and
+        // logpoints.
         final clientBreakpoints = event.pauseBreakpoints!
-            .map((bp) => _clientBreakpointsByVmId[bp.id!]?.breakpoint)
+            .map((bp) =>
+                _clientBreakpointsByVmId[bp.id!]?.firstOrNull?.breakpoint)
             .toSet();
 
         // Split into logpoints (which just print messages) and breakpoints.
@@ -561,34 +643,57 @@ class IsolateManager {
 
   /// Handles 'BreakpointAdded'/'BreakpointResolved' events from the VM,
   /// informing the client of updated information about the breakpoint.
+  ///
+  /// Information about unresolved breakpoints will be ignored to avoid
+  /// overwriting resolved breakpoint info with unresolved/stale info in the
+  /// case of multiple isolates where they haven't all loaded the scripts that
+  /// we added breakpoints for.
   void _handleBreakpointAddedOrResolved(vm.Event event) {
     final breakpoint = event.breakpoint!;
     final breakpointId = breakpoint.id!;
 
-    final existingBreakpoint = _clientBreakpointsByVmId[breakpointId];
-    if (existingBreakpoint == null) {
-      // If we can't match this breakpoint up, we cannot get its ID or send
-      // events for it. This can happen if a breakpoint is being resolved just
-      // as a user changes breakpoints, so we have replaced our collection with
-      // a new set before we processed this event.
+    if (!(breakpoint.resolved ?? false)) {
+      // Unresolved breakpoint, don't need to do anything.
       return;
     }
 
-    // Location may be [SourceLocation] or [UnresolvedSourceLocaion] depending
-    // on whether this is an Added or Resolved event.
+    // Store this event so if we get any future breakpoints that resolve to this
+    // VM breakpoint, we can access the resolution info.
+    _breakpointResolvedEventsByVmId[breakpointId] = event;
+
+    // And for existing breakpoints, send (or queue) resolved events.
+    final existingBreakpoints = _clientBreakpointsByVmId[breakpointId];
+    for (final existingBreakpoint in existingBreakpoints ?? const []) {
+      queueBreakpointResolutionEvent(event, existingBreakpoint);
+    }
+  }
+
+  /// Queues a breakpoint resolution event that passes resolution info from
+  /// the VM back to the client.
+  ///
+  /// This queue will be processed only after the client has been given the ID
+  /// of this breakpoint. If that has already happened, the event will be
+  /// processed on the next task queue iteration.
+  void queueBreakpointResolutionEvent(
+    vm.Event addedOrResolvedEvent,
+    ClientBreakpoint clientBreakpoint,
+  ) {
+    assert(addedOrResolvedEvent.breakpoint != null);
+    final breakpoint = addedOrResolvedEvent.breakpoint!;
+    assert(breakpoint.resolved ?? false);
+
+    // This is always resolved because of the check above.
     final location = breakpoint.location;
-    final resolvedLocation = location is vm.SourceLocation ? location : null;
-    final unresolvedLocation =
-        location is vm.UnresolvedSourceLocation ? location : null;
+    final resolvedLocation = location as vm.SourceLocation;
     final updatedBreakpoint = Breakpoint(
-      id: existingBreakpoint.id,
-      line: resolvedLocation?.line ?? unresolvedLocation?.line,
-      column: resolvedLocation?.column ?? unresolvedLocation?.column,
-      verified: breakpoint.resolved ?? false,
+      id: clientBreakpoint.id,
+      line: resolvedLocation.line,
+      column: resolvedLocation.column,
+      verified: true,
     );
     // Ensure we don't send the breakpoint event until the client has been
-    // given the breakpoint ID.
-    existingBreakpoint.queueAction(
+    // given the breakpoint ID by queueing it.
+    clientBreakpoint.queueAction(
       () => _adapter.sendEvent(
         BreakpointEventBody(breakpoint: updatedBreakpoint, reason: 'changed'),
       ),
@@ -606,13 +711,19 @@ class IsolateManager {
   ) async {
     final isolateId = isolate.id!;
     final uriStrings = uris.map((uri) => uri.toString()).toList();
-    final res = await _adapter.vmService
-        ?.lookupResolvedPackageUris(isolateId, uriStrings, local: true);
+    try {
+      final res = await _adapter.vmService
+          ?.lookupResolvedPackageUris(isolateId, uriStrings, local: true);
 
-    return res?.uris
-        ?.cast<String?>()
-        .map((uri) => uri != null ? Uri.parse(uri) : null)
-        .toList();
+      return res?.uris
+          ?.cast<String?>()
+          .map((uri) => uri != null ? Uri.parse(uri) : null)
+          .toList();
+    } on vm.SentinelException {
+      // If the isolate disappeared before we sent this request, just return
+      // null responses.
+      return uris.map((e) => null).toList();
+    }
   }
 
   /// Interpolates and prints messages for any log points.
@@ -646,7 +757,7 @@ class IsolateManager {
 
     for (final messageResult in results) {
       // TODO(dantup): Format this using other existing code in protocol converter?
-      _adapter.sendOutput('console', '${messageResult?.valueAsString}\n');
+      _adapter.sendConsoleOutput(messageResult?.valueAsString);
     }
   }
 
@@ -687,7 +798,7 @@ class IsolateManager {
     // If we were passed a single URI, we should send breakpoints only for that
     // (this means the request came from the client), otherwise we should send
     // all of them (because this is a new/restarting isolate).
-    final uris = uri != null ? [uri] : _clientBreakpointsByUri.keys;
+    final uris = uri != null ? [uri] : _clientBreakpointsByUri.keys.toList();
 
     for (final uri in uris) {
       // Clear existing breakpoints.
@@ -729,8 +840,22 @@ class IsolateManager {
           final vmBp = await service.addBreakpointWithScriptUri(
               isolateId, vmUri.toString(), bp.breakpoint.line,
               column: bp.breakpoint.column);
-          existingBreakpointsForIsolateAndUri[vmBp.id!] = vmBp;
-          _clientBreakpointsByVmId[vmBp.id!] = bp;
+          final vmBpId = vmBp.id!;
+          existingBreakpointsForIsolateAndUri[vmBpId] = vmBp;
+
+          // Store this client breakpoint by the VM ID, so when we get events
+          // from the VM we can map them back to client breakpoints (for example
+          // to send resolved events).
+          _clientBreakpointsByVmId.putIfAbsent(vmBpId, () => []).add(bp);
+
+          // Queue any resolved events that may have already arrived
+          // (either because the VM sent them before responding to us, or
+          // because it gave us an existing VM breakpoint because it resolved to
+          // the same location as another).
+          final resolvedEvent = _breakpointResolvedEventsByVmId[vmBpId];
+          if (resolvedEvent != null) {
+            queueBreakpointResolutionEvent(resolvedEvent, bp);
+          }
         } catch (e) {
           // Swallow errors setting breakpoints rather than failing the whole
           // request as it's very easy for editors to send us breakpoints that
@@ -834,6 +959,13 @@ class IsolateManager {
     ));
 
     return results.any((result) => result);
+  }
+
+  /// Clears all data stored for [thread].
+  ///
+  /// References to stored data become invalid when a thread is resumed.
+  void clearStoredData(ThreadInfo thread) {
+    _storedData.removeWhere((_, value) => value.thread == thread);
   }
 }
 
@@ -1138,6 +1270,13 @@ class ThreadInfo {
         .replace(pathSegments: fileUri.pathSegments.sublist(0, keepSegments))
         .toFilePath();
   }
+
+  /// Clears all data stored for this thread.
+  ///
+  /// References to stored data become invalid when the thread is resumed.
+  void clearStoredData() {
+    _manager.clearStoredData(this);
+  }
 }
 
 /// A wrapper over the client-provided [SourceBreakpoint] with a unique ID.
@@ -1171,6 +1310,30 @@ class ClientBreakpoint {
 
   /// Queues an action to run after all previous actions that sent breakpoint
   /// information to the client.
+  FutureOr<T> queueAction<T>(FutureOr<T> Function() action) {
+    final actionFuture = _lastActionFuture.then((_) => action());
+    _lastActionFuture = actionFuture;
+    return actionFuture;
+  }
+}
+
+/// Tracks actions resulting from `BreakpointAdded`/`BreakpointResolved` events
+/// that arrive before the `addBreakpointWithScriptUri` request completes.
+///
+/// These events need to be chained into the end of the [ClientBreakpoint] once
+/// that request completes.
+class PendingBreakpointActions {
+  /// A completer that will trigger processing of the queue.
+  final completer = Completer<void>();
+
+  /// A [Future] that completes with the last action in the queue.
+  late Future<void> _lastActionFuture;
+
+  PendingBreakpointActions() {
+    _lastActionFuture = completer.future;
+  }
+
+  /// Queues an action to run after all previous actions.
   FutureOr<T> queueAction<T>(FutureOr<T> Function() action) {
     final actionFuture = _lastActionFuture.then((_) => action());
     _lastActionFuture = actionFuture;

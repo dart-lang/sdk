@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -125,15 +125,15 @@ static set finalTopLevelField(core::int finalTopLevelField#param) → void;
 @self::Annotation::•()
 static get finalTopLevelFieldWithInitializer() → core::int;
 @self::Annotation::•()
-static get Extension|extensionStaticField() → core::int;
+static extension-member get Extension|extensionStaticField() → core::int;
 @self::Annotation::•()
-static set Extension|extensionStaticField(core::int extensionStaticField#param) → void;
+static extension-member set Extension|extensionStaticField(core::int extensionStaticField#param) → void;
 @self::Annotation::•()
-static get Extension|finalExtensionStaticField() → core::int;
+static extension-member get Extension|finalExtensionStaticField() → core::int;
 @self::Annotation::•()
-static set Extension|finalExtensionStaticField(core::int finalExtensionStaticField#param) → void;
+static extension-member set Extension|finalExtensionStaticField(core::int finalExtensionStaticField#param) → void;
 @self::Annotation::•()
-static get Extension|finalExtensionStaticFieldWithInitializer() → core::int;
+static extension-member get Extension|finalExtensionStaticFieldWithInitializer() → core::int;
 static method main() → dynamic
   ;
 

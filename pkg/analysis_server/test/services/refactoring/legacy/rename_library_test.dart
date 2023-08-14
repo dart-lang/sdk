@@ -35,7 +35,7 @@ library my.app;
   }
 
   Future<void> test_createChange() async {
-    addSource('$testPackageLibPath/part.dart', '''
+    newFile('$testPackageLibPath/part.dart', '''
 part of my.app;
 ''');
     await indexTestUnit('''
@@ -58,7 +58,7 @@ part of the.new.name;
   }
 
   Future<void> test_createChange_hasWhitespaces() async {
-    addSource('$testPackageLibPath/part.dart', '''
+    newFile('$testPackageLibPath/part.dart', '''
 part of my .  app;
 ''');
     await indexTestUnit('''

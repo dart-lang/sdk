@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -81,7 +81,7 @@ static field core::double nonNullableVar;
 static method testOptIn() → dynamic
   ;
 
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //

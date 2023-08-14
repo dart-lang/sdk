@@ -14,6 +14,7 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/verifier.dart' show VerificationStage;
 
 import 'api_prototype/file_system.dart' show FileSystem;
 import 'api_prototype/front_end.dart' show CompilerOptions, CompilerResult;
@@ -145,10 +146,12 @@ Future<CompilerResult> _buildInternal(
   List<int>? summary = null;
   if (buildSummary) {
     if (options.verify) {
-      for (LocatedMessage error
-          in verifyComponent(summaryComponent, options.target)) {
+      List<LocatedMessage> errors = verifyComponent(
+          options.target, VerificationStage.outline, summaryComponent);
+      for (LocatedMessage error in errors) {
         options.report(error, Severity.error);
       }
+      assert(errors.isEmpty, "Verification errors found.");
     }
     if (options.debugDump) {
       printComponentText(summaryComponent,
@@ -336,8 +339,8 @@ Future<Map<Uri, ExecutorFactoryToken>> _compileMacros(
 
   Uri uri = _defaultDir.resolve('main.dart');
   MemoryFileSystem fs = new MemoryFileSystem(_defaultDir);
-  fs.entityForUri(uri).writeAsStringSync(bootstrapMacroIsolate(
-      macroDeclarations, SerializationMode.byteDataClient));
+  fs.entityForUri(uri).writeAsStringSync(
+      bootstrapMacroIsolate(macroDeclarations, SerializationMode.byteData));
 
   precompilationOptions
     ..fileSystem = new HybridFileSystem(fs, options.fileSystem);
@@ -348,8 +351,7 @@ Future<Map<Uri, ExecutorFactoryToken>> _compileMacros(
   Set<Uri> macroLibraries =
       neededPrecompilations.macroDeclarations.keys.toSet();
   ExecutorFactoryToken executorToken = macroExecutor.registerExecutorFactory(
-      () => isolatedExecutor.start(
-          SerializationMode.byteDataServer, precompiledUri),
+      () => isolatedExecutor.start(SerializationMode.byteData, precompiledUri),
       macroLibraries);
   return <Uri, ExecutorFactoryToken>{
     for (Uri library in macroLibraries) library: executorToken,

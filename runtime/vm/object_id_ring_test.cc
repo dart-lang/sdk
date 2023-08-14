@@ -126,8 +126,8 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
       "main() {\n"
       "  return [1, 2, 3];\n"
       "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   Dart_Handle moved_handle;
   intptr_t list_length = 0;
   EXPECT_VALID(result);

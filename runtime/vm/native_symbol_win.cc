@@ -15,11 +15,11 @@
 namespace dart {
 
 static bool running_ = false;
-static Mutex* lock_ = NULL;
+static Mutex* lock_ = nullptr;
 
 void NativeSymbolResolver::Init() {
   ASSERT(running_ == false);
-  if (lock_ == NULL) {
+  if (lock_ == nullptr) {
     lock_ = new Mutex();
   }
   running_ = true;
@@ -29,7 +29,7 @@ void NativeSymbolResolver::Init() {
 #ifndef DART_TARGET_OS_WINDOWS_UWP
   SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
   HANDLE hProcess = GetCurrentProcess();
-  if (!SymInitialize(hProcess, NULL, TRUE)) {
+  if (!SymInitialize(hProcess, nullptr, TRUE)) {
     DWORD error = GetLastError();
     OS::PrintErr("Failed to init NativeSymbolResolver (SymInitialize %" Pu32
                  ")\n",
@@ -58,18 +58,18 @@ void NativeSymbolResolver::Cleanup() {
 
 char* NativeSymbolResolver::LookupSymbolName(uword pc, uword* start) {
 #ifdef DART_TARGET_OS_WINDOWS_UWP
-  return NULL;
+  return nullptr;
 #else
-  static const intptr_t kMaxNameLength = 2048;
-  static const intptr_t kSymbolInfoSize = sizeof(SYMBOL_INFO);  // NOLINT.
+  const intptr_t kMaxNameLength = 2048;
+  const intptr_t kSymbolInfoSize = sizeof(SYMBOL_INFO);  // NOLINT.
   static char buffer[kSymbolInfoSize + kMaxNameLength];
   static char name_buffer[kMaxNameLength];
   MutexLocker lock(lock_);
   if (!running_) {
-    return NULL;
+    return nullptr;
   }
-  if (start != NULL) {
-    *start = NULL;
+  if (start != nullptr) {
+    *start = 0;
   }
   memset(&buffer[0], 0, sizeof(buffer));
   HANDLE hProcess = GetCurrentProcess();
@@ -80,9 +80,9 @@ char* NativeSymbolResolver::LookupSymbolName(uword pc, uword* start) {
   DWORD64 displacement;
   BOOL r = SymFromAddr(hProcess, address, &displacement, pSymbol);
   if (r == FALSE) {
-    return NULL;
+    return nullptr;
   }
-  if (start != NULL) {
+  if (start != nullptr) {
     *start = pc - displacement;
   }
   return Utils::StrDup(pSymbol->Name);

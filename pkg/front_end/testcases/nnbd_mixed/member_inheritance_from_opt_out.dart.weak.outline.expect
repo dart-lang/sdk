@@ -1,4 +1,4 @@
-library main /*isNonNullableByDefault*/;
+library main;
 import self as self;
 import "dart:core" as core;
 import "member_inheritance_from_opt_out_lib.dart" as opt;
@@ -172,7 +172,7 @@ class Class3c<S extends core::Object? = dynamic> extends opt::GenericLegacyClass
 static method main() → dynamic
   ;
 
-library opt_out;
+library opt_out /*isLegacy*/;
 import self as opt;
 import "dart:core" as core;
 

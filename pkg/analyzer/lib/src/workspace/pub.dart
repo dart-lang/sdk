@@ -68,6 +68,9 @@ class PubWorkspace extends SimpleWorkspace {
     for (var current in start.withAncestors) {
       var pubspec = current.getChildAssumingFile(file_paths.pubspecYaml);
       if (pubspec.exists) {
+        if (_isInThirdPartyDart(pubspec)) {
+          return null;
+        }
         var root = current.path;
         return PubWorkspace._(provider, packages, root, pubspec);
       }
@@ -82,6 +85,19 @@ class PubWorkspace extends SimpleWorkspace {
     } catch (_) {
       return null;
     }
+  }
+
+  /// See https://buganizer.corp.google.com/issues/273584249
+  ///
+  /// Check if `/home/workspace/third_party/dart/my/pubspec.yaml`
+  /// If so, we are in a Blaze workspace, and should not create Pub.
+  static bool _isInThirdPartyDart(File pubspec) {
+    final path = pubspec.path;
+    final pathContext = pubspec.provider.pathContext;
+    final pathComponents = pathContext.split(path);
+    return pathComponents.length > 4 &&
+        pathComponents[pathComponents.length - 3] == 'dart' &&
+        pathComponents[pathComponents.length - 4] == 'third_party';
   }
 }
 

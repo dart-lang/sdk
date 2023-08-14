@@ -137,16 +137,6 @@ Here are some details of our current code layout and what's in each file. This
 list also includes some action items (labeled AI below), which are mainly
 cleanup tasks that we have been discussing for a while:
 
-**bin folder**: some experimental command-line entrypoints, these need to be
-revisited
-
-* `bin/dart2js.dart`: is a dart2js entry point, not used today other than
-  locally for development, most of our tools launch dart2js from
-  `lib/src/dart2js.dart` instead.
-
-  AI: change how we build the SDK to launch dart2js from here, most logic might
-  remain inside `lib/src/dart2js.dart` for testing purposes.
-
 **lib folder**: API to use dart2js as a library. This is used by our
 command-line tool to launch dart2js, but also by pub to invoke dart2js as a
 library during `pub-build` and `pub-serve`.

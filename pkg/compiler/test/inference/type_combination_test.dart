@@ -785,7 +785,7 @@ runTests() async {
   patternClass = elementEnvironment.lookupClass(coreLibrary, 'Pattern');
 
   final trustedGetRuntimeTypeInterface = elementEnvironment.lookupClass(
-      commonElements.rtiLibrary, 'TrustedGetRuntimeType')!;
+      commonElements.jsHelperLibrary!, 'TrustedGetRuntimeType')!;
 
   nonPrimitive1 =
       TypeMask.nonNullSubtype(closedWorld.commonElements.mapClass, closedWorld);

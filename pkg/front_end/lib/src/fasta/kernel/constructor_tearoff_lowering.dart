@@ -122,9 +122,11 @@ Procedure? createFactoryTearOffProcedure(
     SourceLibraryBuilder compilationUnit,
     Uri fileUri,
     int fileOffset,
-    Reference? reference) {
-  if (compilationUnit
-      .loader.target.backendTarget.isFactoryTearOffLoweringEnabled) {
+    Reference? reference,
+    {bool forceCreateLowering = false}) {
+  if (forceCreateLowering ||
+      compilationUnit
+          .loader.target.backendTarget.isFactoryTearOffLoweringEnabled) {
     return _createTearOffProcedure(compilationUnit,
         constructorTearOffName(name), fileUri, fileOffset, reference);
   }
@@ -281,7 +283,6 @@ FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters(
     {required Procedure tearOff,
     required Procedure implementationConstructor,
     required SourceLibraryBuilder libraryBuilder}) {
-  assert(implementationConstructor.isRedirectingFactory);
   FunctionNode function = implementationConstructor.function;
   FreshTypeParameters freshTypeParameters =
       _createFreshTypeParameters(function.typeParameters, tearOff.function);

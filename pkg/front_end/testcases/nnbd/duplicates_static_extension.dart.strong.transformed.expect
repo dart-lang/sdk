@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -206,31 +206,31 @@ late static final [setter] field core::int Extension|staticLateFinalFieldAndSett
 static final field core::int Extension|staticDuplicateFieldAndSetter = 1;
 static final field core::int Extension|staticFieldAndDuplicateSetter = 1;
 static final field core::int Extension|staticDuplicateFieldAndDuplicateSetter = 1;
-static method Extension|staticMethod() → core::int
+static extension-member method Extension|staticMethod() → core::int
   return 1;
-static get Extension|staticGetter() → core::int
+static extension-member get Extension|staticGetter() → core::int
   return 1;
-static set Extension|staticSetter(dynamic value) → void {
+static extension-member set Extension|staticSetter(dynamic value) → void {
   self::result = 1;
 }
-static set Extension|staticDuplicateFieldAndSetter(core::int value) → void {
+static extension-member set Extension|staticDuplicateFieldAndSetter(core::int value) → void {
   self::result = 3;
 }
-static set Extension|staticFieldAndDuplicateSetter(core::int value) → void {
+static extension-member set Extension|staticFieldAndDuplicateSetter(core::int value) → void {
   self::result = 2;
 }
-static set Extension|staticDuplicateFieldAndDuplicateSetter(core::int value) → void {
+static extension-member set Extension|staticDuplicateFieldAndDuplicateSetter(core::int value) → void {
   self::result = 3;
 }
-static method Extension|staticMethodAndSetter1() → core::int
+static extension-member method Extension|staticMethodAndSetter1() → core::int
   return 1;
-static set Extension|staticMethodAndSetter1(core::int value) → void {
+static extension-member set Extension|staticMethodAndSetter1(core::int value) → void {
   self::result = 2;
 }
-static set Extension|staticMethodAndSetter2(core::int value) → void {
+static extension-member set Extension|staticMethodAndSetter2(core::int value) → void {
   self::result = 2;
 }
-static method Extension|staticMethodAndSetter2() → core::int
+static extension-member method Extension|staticMethodAndSetter2() → core::int
   return 1;
 static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static_extension.dart:85:13: Error: Can't use 'staticMethod' because it is declared more than once.

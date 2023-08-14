@@ -16,7 +16,7 @@ namespace dart {
 
 DECLARE_FLAG(bool, show_invisible_frames);
 
-static const intptr_t kDefaultStackAllocation = 8;
+static constexpr intptr_t kDefaultStackAllocation = 8;
 
 static StackTracePtr CreateStackTraceObject(
     Zone* zone,

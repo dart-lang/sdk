@@ -63,7 +63,7 @@
 // class Class5c extends ClassCb with MixinC<num?, int?> {} // error
 //       ^
 //
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -368,7 +368,7 @@ class Class5b extends self::_Class5b&ClassCb&MixinC {
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

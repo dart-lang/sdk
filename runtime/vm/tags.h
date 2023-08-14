@@ -107,9 +107,9 @@ class VMTagCounters {
 class UserTags : public AllStatic {
  public:
   // UserTag id space: [kUserTagIdOffset, kUserTagIdOffset + kMaxUserTags).
-  static const intptr_t kMaxUserTags = 256;
-  static const uword kUserTagIdOffset = 0x4096;
-  static const uword kDefaultUserTag = kUserTagIdOffset;
+  static constexpr intptr_t kMaxUserTags = 256;
+  static constexpr uword kUserTagIdOffset = 0x4096;
+  static constexpr uword kDefaultUserTag = kUserTagIdOffset;
   static const char* TagName(uword tag_id);
   static bool IsUserTag(uword tag_id) {
     return (tag_id >= kUserTagIdOffset) &&

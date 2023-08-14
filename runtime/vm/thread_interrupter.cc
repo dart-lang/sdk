@@ -20,14 +20,16 @@ namespace dart {
 // interrupted, the thread's interrupt callback is invoked. Callbacks cannot
 // rely on being executed on the interrupted thread.
 //
-// There are two mechanisms used to interrupt a thread. The first, used on OSs
-// with pthreads (Android, Linux, and Mac), is thread specific signal delivery.
-// The second, used on Windows, is explicit suspend and resume thread system
-// calls. Signal delivery forbids taking locks and allocating memory (which
-// takes a lock). Explicit suspend and resume means that the interrupt callback
-// will not be executing on the interrupted thread, making it meaningless to
-// access TLS from within the thread interrupt callback. Combining these
-// limitations, thread interrupt callbacks are forbidden from:
+// There are two mechanisms used to interrupt a thread. The first, used on Linux
+// and Android, is SIGPROF. The second, used on Windows, Fuchsia, Mac and iOS,
+// is explicit suspend and resume thread system calls. (Although Mac supports
+// SIGPROF, when the process is attached to lldb, it becomes unusably slow, and
+// signal masking is unreliable across fork-exec.) Signal delivery forbids
+// taking locks and allocating memory (which takes a lock). Explicit suspend and
+// resume means that the interrupt callback will not be executing on the
+// interrupted thread, making it meaningless to access TLS from within the
+// thread interrupt callback. Combining these limitations, thread interrupt
+// callbacks are forbidden from:
 //
 //   * Accessing TLS.
 //   * Allocating memory.
@@ -45,16 +47,16 @@ bool ThreadInterrupter::thread_running_ = false;
 bool ThreadInterrupter::woken_up_ = false;
 ThreadJoinId ThreadInterrupter::interrupter_thread_id_ =
     OSThread::kInvalidThreadJoinId;
-Monitor* ThreadInterrupter::monitor_ = NULL;
+Monitor* ThreadInterrupter::monitor_ = nullptr;
 intptr_t ThreadInterrupter::interrupt_period_ = 1000;
 intptr_t ThreadInterrupter::current_wait_time_ = Monitor::kNoTimeout;
 
 void ThreadInterrupter::Init() {
   ASSERT(!initialized_);
-  if (monitor_ == NULL) {
+  if (monitor_ == nullptr) {
     monitor_ = new Monitor();
   }
-  ASSERT(monitor_ != NULL);
+  ASSERT(monitor_ != nullptr);
   initialized_ = true;
   shutdown_ = false;
 }
@@ -121,7 +123,7 @@ void ThreadInterrupter::SetInterruptPeriod(intptr_t period) {
 }
 
 void ThreadInterrupter::WakeUp() {
-  if (monitor_ == NULL) {
+  if (monitor_ == nullptr) {
     // Early call.
     return;
   }
@@ -155,7 +157,7 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
     // Signal to main thread we are ready.
     MonitorLocker startup_ml(monitor_);
     OSThread* os_thread = OSThread::Current();
-    ASSERT(os_thread != NULL);
+    ASSERT(os_thread != nullptr);
     interrupter_thread_id_ = OSThread::GetCurrentThreadJoinId(os_thread);
     thread_running_ = true;
     startup_ml.Notify();

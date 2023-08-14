@@ -14,6 +14,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryElementTest_featureSet);
     defineReflectiveTests(LibraryElementTest_scope);
+    defineReflectiveTests(LibraryElementTest_toString);
   });
 }
 
@@ -303,6 +304,42 @@ import 'dart:math' show sin;
 
     assertElementNull(
       scope.lookup('cos').getter,
+    );
+  }
+}
+
+@reflectiveTest
+class LibraryElementTest_toString extends PubPackageResolutionTest {
+  test_hasLibraryDirective_hasName() async {
+    await assertNoErrorsInCode(r'''
+library my.name;
+''');
+
+    expect(
+      result.libraryElement.toString(),
+      'library package:test/test.dart',
+    );
+  }
+
+  test_hasLibraryDirective_noName() async {
+    await assertNoErrorsInCode(r'''
+library;
+''');
+
+    expect(
+      result.libraryElement.toString(),
+      'library package:test/test.dart',
+    );
+  }
+
+  test_noLibraryDirective() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+''');
+
+    expect(
+      result.libraryElement.toString(),
+      'library package:test/test.dart',
     );
   }
 }

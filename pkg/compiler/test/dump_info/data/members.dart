@@ -133,7 +133,28 @@ class C {
   "type": "int"
 }]*/
   static int counter = 0;
-  /*member: C.y:
+  /*spec.member: C.y:
+   function=[{
+  "id": "field/memory:sdk/tests/web/native/main.dart::C.y",
+  "kind": "field",
+  "name": "y",
+  "size": 124,
+  "outputUnit": "outputUnit/main",
+  "parent": "class/memory:sdk/tests/web/native/main.dart::C",
+  "children": [],
+  "inferredType": "[exact=JSBool]",
+  "code": "_lazy($, \"C_y\", \"$get$C_y\", () => {\n      var t1 = $.C_counter + 1;\n      $.C_counter = t1;\n      return t1 === 4;\n    });\n",
+  "type": "bool"
+}],
+   holding=[
+    {"id":"field/memory:sdk/tests/web/native/main.dart::C.counter"},
+    {"id":"field/memory:sdk/tests/web/native/main.dart::C.counter"},
+    {"id":"function/dart:_js_helper::throwCyclicInit"},
+    {"id":"function/dart:_late_helper::throwLateFieldADI"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::C.compute","mask":"inlined"},
+    {"id":"function/memory:sdk/tests/web/native/main.dart::C.compute"}]
+  */
+  /*kernel.member: C.y:
    function=[{
   "id": "field/memory:sdk/tests/web/native/main.dart::C.y",
   "kind": "field",

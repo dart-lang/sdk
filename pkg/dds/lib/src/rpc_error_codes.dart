@@ -31,7 +31,7 @@ abstract class RpcErrorCodes {
   static const kStreamNotSubscribed = 104;
 
   // static const kIsolateMustBeRunnable = 105;
-  // static const kIsolateMustBePaused = 106;
+  static const kIsolateMustBePaused = 106;
   // static const kCannotResume = 107;
   // static const kIsolateIsReloading = 108;
   // static const kIsolateReloadBarred = 109;
@@ -41,6 +41,8 @@ abstract class RpcErrorCodes {
   static const kExpressionCompilationError = 113;
 
   // static const kInvalidTimelineRequest = 114;
+  static const kCustomStreamDoesNotExist = 130;
+  static const kCoreStreamNotAllowed = 131;
 
   // Experimental (used in private rpcs).
   // static const kFileSystemAlreadyExists = 1001;
@@ -54,5 +56,7 @@ abstract class RpcErrorCodes {
     kServiceAlreadyRegistered: 'Service already registered',
     kServiceDisappeared: 'Service has disappeared',
     kExpressionCompilationError: 'Expression compilation error',
+    kCustomStreamDoesNotExist: 'Custom stream does not exist',
+    kCoreStreamNotAllowed: 'Core streams are not allowed',
   };
 }

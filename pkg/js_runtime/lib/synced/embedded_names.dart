@@ -159,6 +159,16 @@ const IS_HUNK_INITIALIZED = 'isHunkInitialized';
 /// globals don't clash with it.
 const DEFERRED_INITIALIZED = 'deferredInitialized';
 
+/// Property name for the reference to the initialization event log which is
+/// included in exceptions when deferred loading fails.
+///
+/// The event log is a JS array where each entry is a plain JS object
+/// representing event data. Each entry will be passed to JSON.stringify()
+/// before being appended to the thrown exception.
+///
+/// This embedded global is only used for deferred loading.
+const INITIALIZATION_EVENT_LOG = 'eventLog';
+
 /// An embedded global used to collect and access runtime metrics.
 const RUNTIME_METRICS = 'rm';
 

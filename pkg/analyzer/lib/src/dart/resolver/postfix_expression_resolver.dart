@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -56,8 +55,16 @@ class PostfixExpressionResolver {
     var writeElement = operandResolution.writeElement;
 
     var operand = node.operand;
-    _resolver.setReadElement(operand, readElement);
-    _resolver.setWriteElement(operand, writeElement);
+    _resolver.setReadElement(
+      operand,
+      readElement,
+      atDynamicTarget: operandResolution.atDynamicTarget,
+    );
+    _resolver.setWriteElement(
+      operand,
+      writeElement,
+      atDynamicTarget: operandResolution.atDynamicTarget,
+    );
     _resolver.migrationResolutionHooks
         ?.setCompoundAssignmentExpressionTypes(node);
 

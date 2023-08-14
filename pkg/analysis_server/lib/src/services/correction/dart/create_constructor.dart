@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class CreateConstructor extends CorrectionProducer {
+class CreateConstructor extends ResolvedCorrectionProducer {
   /// The name of the constructor being created.
   /// TODO(migration) We set this node when we have the change.
   late String _constructorName;
@@ -93,7 +93,7 @@ class CreateConstructor extends CorrectionProducer {
 
     // prepare location
     var targetLocation = CorrectionUtils(targetUnit)
-        .prepareNewConstructorLocation(resolvedResult.session, targetNode);
+        .prepareNewConstructorLocation(unitResult.session, targetNode);
     if (targetLocation == null) {
       return;
     }
@@ -132,9 +132,6 @@ class CreateConstructor extends CorrectionProducer {
     // prepare location
     var targetLocation = CorrectionUtils(targetUnit)
         .prepareEnumNewConstructorLocation(targetNode);
-    if (targetLocation == null) {
-      return;
-    }
 
     var arguments = parent.arguments;
     _constructorName =
@@ -181,7 +178,7 @@ class CreateConstructor extends CorrectionProducer {
 
     // prepare location
     var targetLocation = CorrectionUtils(targetUnit)
-        .prepareNewConstructorLocation(resolvedResult.session, targetNode);
+        .prepareNewConstructorLocation(unitResult.session, targetNode);
     if (targetLocation == null) {
       return;
     }

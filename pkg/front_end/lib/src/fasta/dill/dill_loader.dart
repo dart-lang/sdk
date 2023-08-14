@@ -32,7 +32,7 @@ import '../messages.dart'
         messagePlatformPrivateLibraryAccess,
         templateInternalProblemContextSeverity;
 
-import '../problems.dart' show internalProblem, unhandled;
+import '../problems.dart' show internalProblem;
 
 import '../source/source_loader.dart' show SourceLoader;
 
@@ -118,7 +118,6 @@ class DillLoader extends Loader {
     DillLibraryBuilder? libraryBuilder = _builders[uri];
     if (libraryBuilder == null) {
       libraryBuilder = _knownLibraryBuilders.remove(uri);
-      // ignore: unnecessary_null_comparison
       assert(libraryBuilder != null, "No library found for $uri.");
       _builders[uri] = libraryBuilder!;
       assert(libraryBuilder.loader == this);
@@ -274,7 +273,6 @@ severity: $severity
       {bool Function(Uri uri)? filter, int byteCount = 0}) {
     List<Library> componentLibraries = component.libraries;
     List<Uri> requestedLibraries = <Uri>[];
-    List<Uri> requestedLibrariesFileUri = <Uri>[];
     for (int i = 0; i < componentLibraries.length; i++) {
       Library library = componentLibraries[i];
       Uri uri = library.importUri;
@@ -282,7 +280,6 @@ severity: $severity
         libraries.add(library);
         registerKnownLibrary(library);
         requestedLibraries.add(uri);
-        requestedLibrariesFileUri.add(library.fileUri);
       }
     }
     List<DillLibraryBuilder> result = <DillLibraryBuilder>[];
@@ -313,10 +310,6 @@ severity: $severity
   }
 
   void buildOutline(DillLibraryBuilder builder) {
-    // ignore: unnecessary_null_comparison
-    if (builder.library == null) {
-      unhandled("null", "builder.library", 0, builder.fileUri);
-    }
     builder.markAsReadyToBuild();
   }
 

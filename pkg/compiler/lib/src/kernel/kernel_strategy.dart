@@ -31,6 +31,7 @@ import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/resolution_listener.dart';
 import '../js_backend/runtime_types_resolution.dart';
+import '../js_model/elements.dart';
 import '../kernel/dart2js_target.dart';
 import '../kernel/no_such_method_resolver.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
@@ -42,7 +43,6 @@ import '../universe/resolution_world_builder.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../util/enumset.dart';
-import 'kelements.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'native_basic_data.dart';
@@ -395,12 +395,12 @@ class KernelWorkItem implements WorkItem {
       }
       if (element is FieldEntity && !element.isInstanceMember) {
         _fieldAnalysis.registerStaticField(
-            element as KField, scopeModel.initializerComplexity);
+            element as JField, scopeModel.initializerComplexity);
       }
       ImpactBuilderData impactBuilderData = modularMemberData.impactBuilderData;
       return _compilerTask.measureSubtask('worldImpact', () {
         WorldImpact worldImpact = _elementMap.computeWorldImpact(
-            element as KMember,
+            element as JMember,
             _impacts,
             _nativeResolutionEnqueuer,
             _backendUsageBuilder,

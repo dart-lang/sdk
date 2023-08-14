@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -37,7 +37,7 @@ static method main() → void
 static method throws(() → dynamic f, core::String message) → dynamic
   ;
 
-library;
+library /*isLegacy*/;
 import self as self2;
 import "dart:core" as core;
 

@@ -24,8 +24,11 @@ import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:front_end/src/fasta/kernel/macro/macro.dart';
-import 'package:kernel/ast.dart' show Component, Library, Reference;
+import 'package:kernel/ast.dart'
+    show Component, Library, NonNullableByDefaultCompiledMode, Reference;
 import 'package:kernel/target/targets.dart';
+import 'package:vm/kernel_front_end.dart';
+import 'package:vm/native_assets/synthesizer.dart';
 import 'package:vm/target/flutter.dart';
 import 'package:vm/target/flutter_runner.dart';
 import 'package:vm/target/vm.dart';
@@ -118,7 +121,8 @@ final summaryArgsParser = ArgParser()
   ..addOption('macro-serialization-mode',
       help: 'The serialization mode for communicating with macros.',
       allowed: ['bytedata', 'json'],
-      defaultsTo: 'bytedata');
+      defaultsTo: 'bytedata')
+  ..addOption('native-assets', help: 'Path to native assets yaml file.');
 
 class ComputeKernelResult {
   final bool succeeded;
@@ -370,10 +374,10 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     SerializationMode serializationMode;
     switch (parsedArgs['macro-serialization-mode']) {
       case 'json':
-        serializationMode = SerializationMode.jsonServer;
+        serializationMode = SerializationMode.json;
         break;
       case 'bytedata':
-        serializationMode = SerializationMode.byteDataServer;
+        serializationMode = SerializationMode.byteData;
         break;
       default:
         throw ArgumentError('Unrecognized macro serialization mode '
@@ -428,6 +432,22 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
 
   List<int>? kernel;
   bool wroteUsedDills = false;
+  var nativeAssets = parsedArgs['native-assets'];
+  Library? nativeAssetsLibrary;
+  if (nativeAssets != null) {
+    var nativeAssetsUri = Uri.base.resolve(nativeAssets);
+
+    nativeAssetsLibrary =
+        await NativeAssetsSynthesizer.synthesizeLibraryFromYamlFile(
+      nativeAssetsUri,
+      ErrorDetector(),
+      nonNullableByDefaultCompiledMode:
+          state.options.nnbdMode == fe.NnbdMode.Strong
+              ? NonNullableByDefaultCompiledMode.Strong
+              : NonNullableByDefaultCompiledMode.Weak,
+    );
+  }
+
   if (usingIncrementalCompiler) {
     state.options.onDiagnostic = onDiagnostic;
     IncrementalCompilerResult incrementalCompilerResult =
@@ -467,10 +487,13 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       }
 
       makeStable(incrementalComponent);
+      setNativeAssetsLibrary(incrementalComponent, nativeAssetsLibrary);
 
       return Future.value(fe.serializeComponent(incrementalComponent,
           filter: excludeNonSources
-              ? (library) => sources.contains(library.importUri)
+              ? (library) =>
+                  sources.contains(library.importUri) ||
+                  library == nativeAssetsLibrary
               : null,
           includeOffsets: true));
     });
@@ -481,9 +504,12 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     Component? component = await fe
         .compileComponent(state, sources, onDiagnostic, buildSummary: summary);
     if (component != null) {
+      setNativeAssetsLibrary(component, nativeAssetsLibrary);
       kernel = fe.serializeComponent(component,
           filter: excludeNonSources
-              ? (library) => sources.contains(library.importUri)
+              ? (library) =>
+                  sources.contains(library.importUri) ||
+                  library == nativeAssetsLibrary
               : null,
           includeOffsets: true);
     }
@@ -508,6 +534,19 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   }
 
   return ComputeKernelResult(succeeded, state);
+}
+
+final _nativeAssetsLibraryUri = Uri.parse('vm:ffi:native-assets');
+
+void setNativeAssetsLibrary(
+    Component component, Library? nativeAssetsLibrary) async {
+  if (nativeAssetsLibrary == null) {
+    return;
+  }
+  assert(nativeAssetsLibrary.importUri == _nativeAssetsLibraryUri);
+  component.libraries
+      .removeWhere((l) => l.importUri == _nativeAssetsLibraryUri);
+  component.libraries.add(nativeAssetsLibrary..parent = component);
 }
 
 /// Make sure the output is stable by sorting libraries and additional exports.

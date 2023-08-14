@@ -1322,7 +1322,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   void _buildFunctionNode(
       FunctionEntity function, ir.FunctionNode functionNode) {
     if (functionNode.asyncMarker != ir.AsyncMarker.Sync) {
-      _buildGenerator(function, functionNode);
+      if (functionNode.asyncMarker == ir.AsyncMarker.SyncStar) {
+        _buildSyncStarGenerator(function, functionNode);
+      } else {
+        _buildGenerator(function, functionNode);
+      }
       return;
     }
 
@@ -1430,7 +1434,74 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     _closeFunction();
   }
 
-  /// Builds an SSA graph for a sync*/async/async* generator body.
+  /// Builds an SSA graph for a sync* method.  A sync* method is split into an
+  /// entry function and a body function. The entry function calls the body
+  /// function and wraps the result in an `_SyncStarIterable<T>`. The body
+  /// function is a separate entity (GeneratorBodyEntity) that is compiled via
+  /// SSA and the transformed into a reentrant state-machine.
+  ///
+  /// Here we generate the entry function which is approximately like this:
+  ///
+  ///     Iterable<T> foo(parameters) {
+  ///       return _makeSyncStarIterable<T>(foo$body(parameters));
+  ///     }
+  void _buildSyncStarGenerator(
+      FunctionEntity function, ir.FunctionNode functionNode) {
+    _openFunction(function,
+        functionNode: functionNode,
+        parameterStructure: function.parameterStructure,
+        checks: _checksForFunction(function));
+
+    // Prepare to call the body generator.
+
+    // Is 'buildAsyncBody' the best location for the entry?
+    var sourceInformation = _sourceInformationBuilder.buildAsyncBody();
+
+    // Forward all the parameters to the body.
+    List<HInstruction> inputs = [];
+    if (graph.thisInstruction != null) {
+      inputs.add(graph.thisInstruction!);
+    }
+    if (graph.explicitReceiverParameter != null) {
+      inputs.add(graph.explicitReceiverParameter!);
+    }
+    for (Local local in parameters.keys) {
+      if (!elidedParameters.contains(local)) {
+        inputs.add(localsHandler.readLocal(local));
+      }
+    }
+    for (Local local in _functionTypeParameterLocals) {
+      inputs.add(localsHandler.readLocal(local));
+    }
+
+    JGeneratorBody body = _elementMap.getGeneratorBody(function);
+    push(HInvokeGeneratorBody(
+        body,
+        inputs,
+        _abstractValueDomain.dynamicType, // Untyped JavaScript thunk.
+        sourceInformation));
+
+    // Call `_makeSyncStarIterable<T>(body)`. This usually gets inlined.
+
+    final elementType = _elementEnvironment.getAsyncOrSyncStarElementType(
+        function.asyncMarker, _returnType!);
+    FunctionEntity method = _commonElements.syncStarIterableFactory;
+    List<HInstruction> arguments = [pop()];
+    List<DartType> typeArguments = const [];
+    if (_rtiNeed.methodNeedsTypeArguments(method)) {
+      typeArguments = [elementType];
+      _addTypeArguments(arguments, typeArguments, sourceInformation);
+    }
+    _pushStaticInvocation(method, arguments,
+        _typeInferenceMap.getReturnTypeOf(method), typeArguments,
+        sourceInformation: sourceInformation);
+
+    _closeAndGotoExit(HReturn(_abstractValueDomain, pop(), sourceInformation));
+
+    _closeFunction();
+  }
+
+  /// Builds an SSA graph for a async/async* generator body.
   void _buildGeneratorBody(
       JGeneratorBody function, ir.FunctionNode functionNode) {
     FunctionEntity entry = function.function;
@@ -3955,13 +4026,17 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       // Only anonymous factory or inline class literal constructors involving
       // JS interop are allowed to have named parameters. Otherwise, throw an
       // error.
-      final function =
-          _elementMap.getMember(target.parent as ir.Member) as FunctionEntity;
-      if (function is ConstructorEntity &&
-              function.isFactoryConstructor &&
-              _nativeData.isAnonymousJsInteropClass(function.enclosingClass) ||
-          function.isTopLevel &&
-              _nativeData.isJsInteropObjectLiteral(function)) {
+      final member = target.parent as ir.Member;
+      final function = _elementMap.getMember(member) as FunctionEntity;
+      bool isAnonymousFactory = function is ConstructorEntity &&
+          function.isFactoryConstructor &&
+          _nativeData.isAnonymousJsInteropClass(function.enclosingClass);
+      // JS interop checks assert that the only inline class interop member that
+      // has named parameters is an object literal constructor. We could do a
+      // more robust check by visiting all inline classes and recording
+      // descriptors, but that's expensive.
+      bool isObjectLiteralConstructor = member.isInlineClassMember;
+      if (isAnonymousFactory || isObjectLiteralConstructor) {
         // TODO(sra): Have a "CompiledArguments" structure to just update with
         // what values we have rather than creating a map and de-populating it.
         Map<String, HInstruction> namedValues = _visitNamedArguments(arguments);
@@ -4409,6 +4484,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       _handleForeignGetInterceptor(invocation);
     } else if (name == 'getJSArrayInteropRti') {
       _handleForeignGetJSArrayInteropRti(invocation);
+    } else if (name == 'JS_RAW_EXCEPTION') {
+      _handleJsRawException(invocation);
     } else if (name == 'JS_STRING_CONCAT') {
       _handleJsStringConcat(invocation);
     } else if (name == '_createInvocationMirror') {
@@ -4427,6 +4504,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       _handleLateWriteOnceCheck(invocation);
     } else if (name == '_lateInitializeOnceCheck') {
       _handleLateInitializeOnceCheck(invocation);
+    } else if (name == 'HCharCodeAt') {
+      _handleCharCodeAt(invocation);
     } else {
       reporter.internalError(
           _elementMap.getSpannable(targetElement, invocation),
@@ -4726,6 +4805,27 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         {'text': "'$name' $problem."});
     stack.add(graph.addConstantNull(closedWorld)); // Result expected on stack.
     return;
+  }
+
+  void _handleJsRawException(ir.StaticInvocation invocation) {
+    if (_unexpectedForeignArguments(invocation,
+        minPositional: 0, maxPositional: 0)) {
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
+      return;
+    }
+
+    if (_rethrowableException != null) {
+      stack.add(_rethrowableException!);
+      return;
+    }
+
+    reporter.reportErrorMessage(
+        _elementMap.getSpannable(targetElement, invocation),
+        MessageKind.GENERIC,
+        {'text': "Error: JS_RAW_EXCEPTION() must be in a 'catch' block."});
+    // Result expected on stack.
+    stack.add(graph.addConstantNull(closedWorld));
   }
 
   void _handleForeignJsGetName(ir.StaticInvocation invocation) {
@@ -5076,6 +5176,17 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     push(HStringConcat(inputs[0], inputs[1], _abstractValueDomain.stringType));
   }
 
+  void _handleCharCodeAt(ir.StaticInvocation invocation) {
+    if (_unexpectedForeignArguments(invocation,
+        minPositional: 2, maxPositional: 2)) {
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
+      return;
+    }
+    List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
+    push(HCharCodeAt(inputs[0], inputs[1], _abstractValueDomain.uint31Type));
+  }
+
   void _handleForeignTypeRef(ir.StaticInvocation invocation) {
     if (_unexpectedForeignArguments(invocation,
         minPositional: 0, maxPositional: 0, typeArgumentCount: 1)) {
@@ -5364,10 +5475,18 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       FunctionEntity element, List<HInstruction?> arguments) {
     assert(closedWorld.nativeData.isJsInteropMember(element));
 
-    if (element is ConstructorEntity &&
-            element.isFactoryConstructor &&
-            _nativeData.isAnonymousJsInteropClass(element.enclosingClass) ||
-        element.isTopLevel && _nativeData.isJsInteropObjectLiteral(element)) {
+    bool isAnonymousFactory = element is ConstructorEntity &&
+        element.isFactoryConstructor &&
+        _nativeData.isAnonymousJsInteropClass(element.enclosingClass);
+    ir.Node node = _elementMap.getMemberDefinition(element).node;
+    // JS interop checks assert that the only inline class interop member that
+    // has named parameters is an object literal constructor. We could do a more
+    // robust check by visiting all inline classes and recording descriptors,
+    // but that's expensive.
+    bool isObjectLiteralConstructor = node is ir.Procedure &&
+        node.isInlineClassMember &&
+        node.function.namedParameters.isNotEmpty;
+    if (isAnonymousFactory || isObjectLiteralConstructor) {
       // Constructor that is syntactic sugar for creating a JavaScript object
       // literal.
       int i = 0;
@@ -5380,10 +5499,10 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       // (including factory constructors.)
       // TODO(johnniwinther): can we elide those parameters? This should be
       // consistent with what we do with instance methods.
-      final node =
-          _elementMap.getMemberDefinition(element).node as ir.Procedure;
+      final procedure = node as ir.Procedure;
       List<ir.VariableDeclaration> namedParameters =
-          node.function.namedParameters.toList();
+          procedure.function.namedParameters.toList();
+
       namedParameters.sort(nativeOrdering);
       for (ir.VariableDeclaration variable in namedParameters) {
         String parameterName = variable.name!;
@@ -7541,6 +7660,15 @@ class InlineWeeder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     registerRegularNode();
     data.hasLabel = true;
     node.visitChildren(this);
+  }
+
+  @override
+  visitSwitchStatement(ir.SwitchStatement node) {
+    registerRegularNode();
+    registerReductiveNode();
+    // Don't visit 'SwitchStatement.expressionType'.
+    node.expression.accept(this);
+    visitList(node.cases);
   }
 
   @override

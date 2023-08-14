@@ -8,5 +8,4 @@ part of "core_patch.dart";
 external bool identical(Object? a, Object? b);
 
 @patch
-int identityHashCode(Object? object) =>
-    object == null ? Null._HASH_CODE : object._identityHashCode;
+external int identityHashCode(Object? object);

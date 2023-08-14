@@ -1,0 +1,12 @@
+sealed class Class {
+  final int value;
+  Class(this.value);
+}
+
+class A extends Class {
+  A(super.value);
+}
+
+class B extends Class {
+  B(super.value);
+}

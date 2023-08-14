@@ -56,10 +56,13 @@ int _getNextTaskId() => 0;
 
 @patch
 void _reportTaskEvent(
-    int taskId, int type, String name, String argumentsAsJson) {}
+    int taskId, int flowId, int type, String name, String argumentsAsJson) {}
 
 @patch
 abstract final class NativeRuntime {
+  @patch
+  static String? get buildId => null;
+
   @patch
   static void writeHeapSnapshotToFile(String filepath) =>
       throw UnsupportedError(

@@ -1,0 +1,20 @@
+class I<T> {}
+
+class J<T> extends I<T> {}
+
+class A<T> extends J<T> {}
+
+extension<T> on I<T> {
+  num get member {}
+}
+
+extension<T> on A<T> {
+  void member(T t) {}
+}
+
+exhaustiveInferred(A<num> a) => switch (a) {};
+exhaustiveTyped(A<num> a) => switch (a) {};
+unreachable(A<num> a) => switch (a) {};
+nonExhaustiveRestricted(A<num> a) => switch (a) {};
+intersection(o) {}
+num exhaustiveMixed(I<num> i) => switch (i) {};

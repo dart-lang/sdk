@@ -22,9 +22,9 @@
 namespace dart {
 namespace bin {
 
-const char* Platform::executable_name_ = NULL;
+const char* Platform::executable_name_ = nullptr;
 int Platform::script_index_ = 1;
-char** Platform::argv_ = NULL;
+char** Platform::argv_ = nullptr;
 
 static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
   Syslog::PrintErr(
@@ -43,7 +43,7 @@ bool Platform::Initialize() {
   // handler error EPIPE is set instead.
   struct sigaction act = {};
   act.sa_handler = SIG_IGN;
-  if (sigaction(SIGPIPE, &act, 0) != 0) {
+  if (sigaction(SIGPIPE, &act, nullptr) != 0) {
     perror("Setting signal handler failed");
     return false;
   }
@@ -54,7 +54,7 @@ bool Platform::Initialize() {
   sigset_t signal_mask;
   sigemptyset(&signal_mask);
   sigaddset(&signal_mask, SIGTTOU);
-  if (sigprocmask(SIG_BLOCK, &signal_mask, NULL) < 0) {
+  if (sigprocmask(SIG_BLOCK, &signal_mask, nullptr) < 0) {
     perror("Setting signal handler failed");
     return false;
   }
@@ -69,19 +69,19 @@ bool Platform::Initialize() {
     perror("sigaddset() failed");
     return false;
   }
-  if (sigaction(SIGSEGV, &act, NULL) != 0) {
+  if (sigaction(SIGSEGV, &act, nullptr) != 0) {
     perror("sigaction() failed.");
     return false;
   }
-  if (sigaction(SIGBUS, &act, NULL) != 0) {
+  if (sigaction(SIGBUS, &act, nullptr) != 0) {
     perror("sigaction() failed.");
     return false;
   }
-  if (sigaction(SIGTRAP, &act, NULL) != 0) {
+  if (sigaction(SIGTRAP, &act, nullptr) != 0) {
     perror("sigaction() failed.");
     return false;
   }
-  if (sigaction(SIGILL, &act, NULL) != 0) {
+  if (sigaction(SIGILL, &act, nullptr) != 0) {
     perror("sigaction() failed.");
     return false;
   }
@@ -97,7 +97,7 @@ const char* Platform::OperatingSystemVersion() {
   int os_version_length =
       __system_property_get("ro.build.display.id", os_version);
   if (os_version_length == 0) {
-    return NULL;
+    return nullptr;
   }
   ASSERT(os_version_length <= PROP_VALUE_MAX);
   char* result = reinterpret_cast<char*>(
@@ -116,7 +116,7 @@ const char* Platform::LibraryExtension() {
 
 const char* Platform::LocaleName() {
   char* lang = getenv("LANG");
-  if (lang == NULL) {
+  if (lang == nullptr) {
     return "en_US";
   }
   return lang;
@@ -131,7 +131,7 @@ char** Platform::Environment(intptr_t* count) {
   // provide access to modifying environment variables.
   intptr_t i = 0;
   char** tmp = environ;
-  while (*(tmp++) != NULL) {
+  while (*(tmp++) != nullptr) {
     i++;
   }
   *count = i;

@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
@@ -190,10 +190,10 @@ extension Extension2 on self::Class2* {
   operator [] = self::Extension2|[];
   operator []= = self::Extension2|[]=;
 }
-static method Extension|[](lowered final core::int* #this, self::Class* cls) → self::Class*
+static extension-member method Extension|[](lowered final core::int* #this, self::Class* cls) → self::Class*
   return new self::Class::•();
-static method Extension|[]=(lowered final core::int* #this, self::Class* cls, self::Class* value) → void {}
-static method Extension2|[](lowered final self::Class2* #this, self::Class2* cls) → self::Class2*
+static extension-member method Extension|[]=(lowered final core::int* #this, self::Class* cls, self::Class* value) → void {}
+static extension-member method Extension2|[](lowered final self::Class2* #this, self::Class2* cls) → self::Class2*
   return new self::Class2::•();
-static method Extension2|[]=(lowered final self::Class2* #this, self::Class2* cls, self::Class2* value) → void {}
+static extension-member method Extension2|[]=(lowered final self::Class2* #this, self::Class2* cls, self::Class2* value) → void {}
 static method main() → dynamic {}

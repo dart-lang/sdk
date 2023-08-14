@@ -1,0 +1,9 @@
+abstract class Class {
+  Class();
+  factory Class.redirect() = ClassImpl;
+}
+
+class ClassImpl implements Class {}
+
+typedef F<T> = Class;
+test() {}

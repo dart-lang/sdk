@@ -4,7 +4,7 @@
 
 part of dart._http;
 
-final class HttpProfiler {
+abstract final class HttpProfiler {
   static const _kType = 'HttpProfile';
 
   static final Map<String, _HttpProfileData> _profile = {};

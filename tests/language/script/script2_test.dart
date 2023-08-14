@@ -4,12 +4,9 @@
 
 /// Part file has library and import directives.
 
-/*@compile-error=unspecified*/
-// TODO(rnystrom): Using the above tag instead of making this a static error
-// test because the error is reported in the part file and not in this file.
-// Static error tests only support errors reported in the main test file itself.
-part "script2_part.dart";
+// TODO(rnystrom): Using a multitest instead of making this a static error test
+// because the error is reported in the part file and not in this file. Once
+// issue #44990 is fixed, this can be a static error test.
+part "script2_part.dart"; //# 01: compile-time error
 
-main() {
-  print("Should not reach here.");
-}
+main() {}

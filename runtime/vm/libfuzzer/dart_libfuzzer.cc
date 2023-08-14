@@ -49,7 +49,7 @@ static int TestUtilities(const uint8_t* Data, size_t Size) {
   // Json writer.
   dart::JSONWriter writer(1);
   writer.OpenObject("object");
-  writer.AppendSerializedObject(Data, Size);
+  writer.AppendBytes(Data, Size);
   writer.CloseObject();
   for (size_t i = 0; i < Size; i++) {
     writer.PrintValue(static_cast<intptr_t>(Data[i]));

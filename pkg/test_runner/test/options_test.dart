@@ -19,7 +19,7 @@ void testDefaults() {
   // TODO(rnystrom): Test other options.
   var configuration = parseConfiguration([]);
   Expect.equals(Progress.compact, configuration.progress);
-  Expect.equals(NnbdMode.legacy, configuration.nnbdMode);
+  Expect.equals(NnbdMode.strong, configuration.nnbdMode);
 }
 
 void testOptions() {
@@ -105,7 +105,7 @@ void testValidation() {
 void testSelectors() {
   // Legacy suites.
   for (var arguments in [
-    <String>[],
+    ['--nnbd=legacy'],
     ['-nvm-legacy']
   ]) {
     var configuration = parseConfiguration(arguments);
@@ -125,6 +125,7 @@ void testSelectors() {
 
   // Default null safe suites.
   for (var arguments in [
+    <String>[],
     ['--nnbd=strong'],
     ['-nvm-strong']
   ]) {

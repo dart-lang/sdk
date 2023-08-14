@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class RemoveDeadIfNull extends CorrectionProducer {
+class RemoveDeadIfNull extends ResolvedCorrectionProducer {
   @override
   // This fix removes the right operand of an if-null which is not predictably
   // the right thing to do.

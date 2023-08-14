@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
@@ -7,12 +7,12 @@ static method test() → dynamic {
   core::int i = 1;
   dynamic o = 1;
   () → core::num a = () → core::int => i;
-  () → core::num b = () → core::num => o as{TypeError,ForDynamic,ForNonNullableByDefault} core::num;
+  () → core::num b = () → core::num => o as{TypeError,ForDynamic} core::num;
   () → core::num c = () → core::int {
     return i;
   };
   () → core::num d = () → core::num {
-    return o as{TypeError,ForDynamic,ForNonNullableByDefault} core::num;
+    return o as{TypeError,ForDynamic} core::num;
   };
 }
 static method main() → dynamic {}

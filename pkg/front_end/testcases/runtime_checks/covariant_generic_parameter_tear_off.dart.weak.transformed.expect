@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
@@ -13,14 +13,14 @@ class C<T extends core::Object? = dynamic> extends core::Object {
     return x.{core::Iterable::first}{self::C::T%};
 }
 static method g1(self::C<core::num> c) → (core::num) → void {
-  return c.{self::C::f1}{(core::num) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::num) → void;
+  return c.{self::C::f1}{(core::num) → void} as{TypeError,CovarianceCheck} (core::num) → void;
 }
 static method g2(self::C<core::int> c, core::Object x) → void {
-  (core::Object) → void f = self::g1(c) as{ForNonNullableByDefault} (core::Object) → void;
+  (core::Object) → void f = self::g1(c) as (core::Object) → void;
   f(x){(core::Object) → void};
 }
 static method g3(self::C<core::num> c) → (core::List<core::num>) → core::num {
-  return c.{self::C::f2}{(core::List<core::num>) → core::num} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::List<core::num>) → core::num;
+  return c.{self::C::f2}{(core::List<core::num>) → core::num} as{TypeError,CovarianceCheck} (core::List<core::num>) → core::num;
 }
 static method test() → void {
   (core::num) → void x = self::g1(new self::C::•<core::int>());

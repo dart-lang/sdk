@@ -608,6 +608,136 @@ void f(E e) {
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
+  Future<void> test_nullable_handledNull() async {
+    await resolveTestCode('''
+enum E {a, b, c}
+void f(E? e) {
+  switch (e) {
+    case E.a:
+      break;
+    case null:
+      break;
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+enum E {a, b, c}
+void f(E? e) {
+  switch (e) {
+    case E.a:
+      break;
+    case null:
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+    case E.c:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  Future<void> test_nullable_handledNull_language219() async {
+    await resolveTestCode('''
+// @dart=2.19
+enum E {a, b, c}
+void f(E? e) {
+  switch (e) {
+    case E.a:
+      break;
+    case null:
+      break;
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+// @dart=2.19
+enum E {a, b, c}
+void f(E? e) {
+  switch (e) {
+    case E.a:
+      break;
+    case null:
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+    case E.c:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
+  Future<void> test_nullable_unhandledNull() async {
+    await resolveTestCode('''
+enum E {a, b, c}
+void f(E? e) {
+  switch (e) {
+    case E.a:
+      break;
+    case E.b:
+      break;
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+enum E {a, b, c}
+void f(E? e) {
+  switch (e) {
+    case E.a:
+      break;
+    case E.b:
+      break;
+    case E.c:
+      // TODO: Handle this case.
+      break;
+    case null:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  Future<void> test_nullable_unhandledNull_language219() async {
+    await resolveTestCode('''
+// @dart=2.19
+enum E {a, b, c}
+void f(E? e) {
+  switch (e) {
+    case E.a:
+      break;
+    case E.b:
+      break;
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+// @dart=2.19
+enum E {a, b, c}
+void f(E? e) {
+  switch (e) {
+    case E.a:
+      break;
+    case E.b:
+      break;
+    case E.c:
+      // TODO: Handle this case.
+      break;
+    case null:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_static() async {
     await resolveTestCode('''
 enum E {

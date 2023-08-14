@@ -413,6 +413,14 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       var commonIndex = firstParents.indexOf(commonParent);
       return firstParents[commonIndex + 1];
     }
+    // SwitchCase, SwitchPatternCase
+    if (commonParent != null) {
+      if (commonParent is SwitchCase || commonParent is SwitchPatternCase) {
+        var firstParents = getParents(nodes[0]);
+        var commonIndex = firstParents.indexOf(commonParent);
+        return firstParents[commonIndex + 1];
+      }
+    }
     // ExpressionFunctionBody
     var expressionBody = _getEnclosingExpressionBody(commonParent);
     if (expressionBody != null) {
@@ -422,7 +430,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     AstNode? target = commonParent?.thisOrAncestorOfType<Statement>();
     while (target != null) {
       var parent = target.parent;
-      if (parent is Block) {
+      if (parent is Block ||
+          parent is SwitchCase ||
+          parent is SwitchPatternCase) {
         break;
       }
       target = parent;

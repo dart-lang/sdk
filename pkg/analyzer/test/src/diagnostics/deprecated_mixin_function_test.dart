@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class DeprecatedMixinFunctionTest extends PubPackageResolutionTest {
-  test_core() async {
+  test_class_core() async {
     await assertErrorsInCode('''
 class A extends Object with Function {}
 ''', [
@@ -23,7 +23,7 @@ class A extends Object with Function {}
     ]);
   }
 
-  test_core_language219() async {
+  test_class_core_language219() async {
     await assertErrorsInCode('''
 // @dart = 2.19
 class A extends Object with Function {}
@@ -32,7 +32,17 @@ class A extends Object with Function {}
     ]);
   }
 
-  test_local() async {
+  test_class_core_language219_viaTypedef() async {
+    await assertErrorsInCode('''
+// @dart = 2.19
+typedef F = Function;
+class A extends Object with F {}
+''', [
+      error(WarningCode.DEPRECATED_MIXIN_FUNCTION, 66, 1),
+    ]);
+  }
+
+  test_class_local() async {
     await assertErrorsInCode('''
 mixin Function {}
 class A extends Object with Function {}
@@ -41,14 +51,32 @@ class A extends Object with Function {}
     ]);
   }
 
-  test_local_language219() async {
+  test_class_local_language219() async {
     await assertErrorsInCode('''
 // @dart = 2.19
 mixin Function {}
 class A extends Object with Function {}
 ''', [
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 22, 8),
-      error(WarningCode.DEPRECATED_MIXIN_FUNCTION, 62, 8),
+    ]);
+  }
+
+  test_classAlias_core_language219() async {
+    await assertErrorsInCode('''
+// @dart = 2.19
+class A = Object with Function;
+''', [
+      error(WarningCode.DEPRECATED_MIXIN_FUNCTION, 38, 8),
+    ]);
+  }
+
+  test_classAlias_core_language219_viaTypedef() async {
+    await assertErrorsInCode('''
+// @dart = 2.19
+typedef F = Function;
+class A = Object with F;
+''', [
+      error(WarningCode.DEPRECATED_MIXIN_FUNCTION, 60, 1),
     ]);
   }
 }

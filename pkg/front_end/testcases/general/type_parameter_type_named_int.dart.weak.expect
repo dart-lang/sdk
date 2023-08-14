@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -30,6 +30,6 @@ class Bar extends core::Object implements self::Foo<core::int> {
  - 'int/*1*/' is from 'pkg/front_end/testcases/general/type_parameter_type_named_int.dart'.
  - 'int/*2*/' is from 'dart:core'.
     list = value;
-           ^" in value as{TypeError,ForNonNullableByDefault} core::List<core::int>;
+           ^" in value as{TypeError} core::List<core::int>;
   }
 }

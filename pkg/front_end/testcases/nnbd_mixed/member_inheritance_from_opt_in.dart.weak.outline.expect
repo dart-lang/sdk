@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "member_inheritance_from_opt_in_lib.dart" as mem;
 import "dart:core" as core;
@@ -85,7 +85,7 @@ class LegacyClass extends mem::Class implements mem::Interface {
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mem;
 import "dart:core" as core;
 

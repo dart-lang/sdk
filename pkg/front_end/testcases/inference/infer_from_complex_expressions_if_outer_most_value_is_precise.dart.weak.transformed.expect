@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -115,12 +115,12 @@ static method test1() → dynamic {
   self::a = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:36:36: Error: A value of type 'String' can't be assigned to a variable of type 'A'.
  - 'A' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
   a = /*error:INVALID_ASSIGNMENT*/ \"hi\";
-                                   ^" in "hi" as{TypeError,ForNonNullableByDefault} self::A;
+                                   ^" in "hi" as{TypeError} self::A;
   self::a = new self::B::•(3);
   self::b = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:38:36: Error: A value of type 'String' can't be assigned to a variable of type 'B'.
  - 'B' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
   b = /*error:INVALID_ASSIGNMENT*/ \"hi\";
-                                   ^" in "hi" as{TypeError,ForNonNullableByDefault} self::B;
+                                   ^" in "hi" as{TypeError} self::B;
   self::b = new self::B::•(3);
   self::c1 = core::_GrowableList::•<dynamic>(0);
   self::c1 = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:41:59: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'List<dynamic>'.
@@ -129,7 +129,7 @@ static method test1() → dynamic {
   c1 = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ {};
                                                           ^" in ( block {
     final core::Set<dynamic> #t2 = new col::_Set::•<dynamic>();
-  } =>#t2) as{TypeError,ForNonNullableByDefault} core::List<dynamic>;
+  } =>#t2) as{TypeError} core::List<dynamic>;
   self::c2 = core::_GrowableList::•<dynamic>(0);
   self::c2 = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:43:59: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'List<dynamic>'.
  - 'Set' is from 'dart:core'.
@@ -137,42 +137,42 @@ static method test1() → dynamic {
   c2 = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ {};
                                                           ^" in ( block {
     final core::Set<dynamic> #t3 = new col::_Set::•<dynamic>();
-  } =>#t3) as{TypeError,ForNonNullableByDefault} core::List<dynamic>;
+  } =>#t3) as{TypeError} core::List<dynamic>;
   self::d = <dynamic, dynamic>{};
   self::d = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:45:36: Error: A value of type 'int' can't be assigned to a variable of type 'Map<dynamic, dynamic>'.
  - 'Map' is from 'dart:core'.
   d = /*error:INVALID_ASSIGNMENT*/ 3;
-                                   ^" in 3 as{TypeError,ForNonNullableByDefault} core::Map<dynamic, dynamic>;
+                                   ^" in 3 as{TypeError} core::Map<dynamic, dynamic>;
   self::e = new self::A::•();
   self::e = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:47:67: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'A'.
  - 'Map' is from 'dart:core'.
  - 'A' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
   e = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic, dynamic*/ {};
-                                                                  ^" in <dynamic, dynamic>{} as{TypeError,ForNonNullableByDefault} self::A;
+                                                                  ^" in <dynamic, dynamic>{} as{TypeError} self::A;
   self::f = 3;
   self::f = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:49:36: Error: A value of type 'bool' can't be assigned to a variable of type 'int'.
   f = /*error:INVALID_ASSIGNMENT*/ false;
-                                   ^" in false as{TypeError,ForNonNullableByDefault} core::int;
+                                   ^" in false as{TypeError} core::int;
   self::g = 1;
   self::g = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:51:36: Error: A value of type 'bool' can't be assigned to a variable of type 'int'.
   g = /*error:INVALID_ASSIGNMENT*/ false;
-                                   ^" in false as{TypeError,ForNonNullableByDefault} core::int;
+                                   ^" in false as{TypeError} core::int;
   self::h = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:52:36: Error: A value of type 'bool' can't be assigned to a variable of type 'B'.
  - 'B' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
   h = /*error:INVALID_ASSIGNMENT*/ false;
-                                   ^" in false as{TypeError,ForNonNullableByDefault} self::B;
+                                   ^" in false as{TypeError} self::B;
   self::h = new self::B::•("b");
   self::i = false;
   self::j = new self::B::•("b");
   self::j = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:56:36: Error: A value of type 'bool' can't be assigned to a variable of type 'B'.
  - 'B' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
   j = /*error:INVALID_ASSIGNMENT*/ false;
-                                   ^" in false as{TypeError,ForNonNullableByDefault} self::B;
+                                   ^" in false as{TypeError} self::B;
   self::j = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:57:58: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'B'.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
   j = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ [];
-                                                         ^" in core::_GrowableList::•<dynamic>(0) as{TypeError,ForNonNullableByDefault} self::B;
+                                                         ^" in core::_GrowableList::•<dynamic>(0) as{TypeError} self::B;
 }
 static method main() → dynamic {}
 

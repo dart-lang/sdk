@@ -11,8 +11,9 @@ import 'package:dds/src/dap/logging.dart';
 import 'package:dds/src/dap/server.dart';
 import 'package:path/path.dart' as path;
 
-/// Enable to run from local source (useful in development).
-const runFromSource = false;
+/// Allow running from local source (useful in development).
+final runFromSource =
+    Platform.environment['DAP_TEST_INTEGRATION_FROM_SOURCE'] == 'true';
 
 abstract class DapTestServer {
   Future<void> stop();

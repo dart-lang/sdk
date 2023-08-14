@@ -314,11 +314,6 @@ final class Isolate {
   String? get debugName => _getDebugName(controlPort);
 
   @patch
-  static Future<Uri?> get packageRoot {
-    return Future.value(null);
-  }
-
-  @patch
   static Future<Uri?> get packageConfig {
     var hook = VMLibraryHooks.packageConfigUriFuture;
     if (hook == null) {
@@ -646,6 +641,7 @@ final class Isolate {
   @pragma("vm:external-name", "Isolate_exit_")
   external static Never _exit(SendPort? finalMessagePort, Object? message);
 
+  @patch
   static Never exit([SendPort? finalMessagePort, Object? message]) {
     _exit(finalMessagePort, message);
   }

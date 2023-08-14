@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "main_lib.dart" as mai;
 
@@ -11,7 +11,7 @@ class B extends mai::A {
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 

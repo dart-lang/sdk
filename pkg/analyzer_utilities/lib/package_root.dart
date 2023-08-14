@@ -20,11 +20,11 @@ String get packageRoot {
   }
   // Otherwise try to guess based on the script path.
   var scriptPath = pathos.fromUri(Platform.script);
-  var parts = pathos.split(scriptPath);
-  var pkgIndex = parts.indexOf('pkg');
-  if (pkgIndex != -1) {
-    return pathos.joinAll(parts.sublist(0, pkgIndex + 1)) + pathos.separator;
+  var pathFromScript = _tryGetPkgRoot(scriptPath);
+  if (pathFromScript != null) {
+    return pathFromScript;
   }
+
   // Try google3 environment. We expect that all packages that will be
   // accessed via this root are configured in the BUILD file, and located
   // inside this single root.
@@ -33,5 +33,22 @@ String get packageRoot {
   if (runFiles != null && analyzerPackagesRoot != null) {
     return pathos.join(runFiles, analyzerPackagesRoot);
   }
+
+  // Finally, try the current working directory.
+  var pathFromCwd = _tryGetPkgRoot(Directory.current.path);
+  if (pathFromCwd != null) {
+    return pathFromCwd;
+  }
+
   throw StateError('Unable to find sdk/pkg/ in $scriptPath');
+}
+
+/// Try to find the path to the pkg folder from [path].
+String? _tryGetPkgRoot(String path) {
+  var parts = pathos.split(path);
+  var pkgIndex = parts.indexOf('pkg');
+  if (pkgIndex != -1) {
+    return pathos.joinAll(parts.sublist(0, pkgIndex + 1)) + pathos.separator;
+  }
+  return null;
 }

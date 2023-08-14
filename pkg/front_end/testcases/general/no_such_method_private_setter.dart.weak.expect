@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "no_such_method_private_setter_lib.dart" as no_;
@@ -18,7 +18,7 @@ static method main() → dynamic {
   no_::baz(new self::Foo::•());
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

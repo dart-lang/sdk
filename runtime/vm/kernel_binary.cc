@@ -183,7 +183,7 @@ std::unique_ptr<Program> Program::ReadFromFile(
     const char* script_uri, const char** error /* = nullptr */) {
   Thread* thread = Thread::Current();
   auto isolate_group = thread->isolate_group();
-  if (script_uri == NULL) {
+  if (script_uri == nullptr) {
     return nullptr;
   }
   if (!isolate_group->HasTagHandler()) {

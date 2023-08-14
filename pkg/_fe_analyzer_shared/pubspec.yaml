@@ -1,12 +1,13 @@
 name: _fe_analyzer_shared
-version: 58.0.0
+version: 62.0.0
 description: Logic that is shared between the front_end and analyzer packages.
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/_fe_analyzer_shared
 
 environment:
-  sdk: '>=2.17.0 <3.0.0'
+  sdk: ^3.0.0
 
 dependencies:
+  dart_internal: ^0.2.7
   meta: ^1.0.2
 
 # We use 'any' version constraints here as we get our package versions from
@@ -15,3 +16,9 @@ dependencies:
 # See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
   test: any
+
+dependency_overrides:
+  test:
+    path: ../../third_party/pkg/test/pkgs/test/
+  analyzer:
+    path: ../analyzer

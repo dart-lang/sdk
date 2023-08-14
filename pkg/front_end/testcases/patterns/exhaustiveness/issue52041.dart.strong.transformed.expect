@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -19,7 +19,7 @@ static method f(self::B b) → dynamic {
     final synthesized self::B #0#0 = b;
     {
       hoisted core::int _i;
-      if(#0#0 is{ForNonNullableByDefault} self::C && (let final core::int #t1 = _i = #0#0{self::C}.{self::C::_i}{core::int} in true)) {
+      if(#0#0 is self::C && (let final core::int #t1 = _i = #0#0{self::C}.{self::C::_i}{core::int} in true)) {
         {
           core::print("C(${_i})");
         }

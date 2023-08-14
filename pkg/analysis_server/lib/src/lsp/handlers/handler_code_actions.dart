@@ -230,10 +230,16 @@ class _CodeActionSorter {
 
   List<Either2<CodeAction, Command>> sort(
       List<CodeActionWithPriority> actions) {
-    final dedupedCodeActions = _dedupeActions(actions, range.start);
-    dedupedCodeActions.sort(_compareCodeActions);
+    final dedupedActions = _dedupeActions(actions, range.start);
 
-    return dedupedCodeActions
+    // Add each index so we can do a stable sort on priority.
+    final dedupedActionsWithIndex = dedupedActions.indexed.map((item) {
+      final (index, action) = item;
+      return (action: action.action, priority: action.priority, index: index);
+    }).toList();
+    dedupedActionsWithIndex.sort(_compareCodeActions);
+
+    return dedupedActionsWithIndex
         .where((action) => shouldIncludeKind(action.action.kind))
         .map((action) => Either2<CodeAction, Command>.t1(action.action))
         .toList();
@@ -257,14 +263,25 @@ class _CodeActionSorter {
   int _columnDistance(Position a, Position b) =>
       (a.character - b.character).abs();
 
-  /// A function that can be used to sort [CodeActionWithPriority]s.
+  /// A function that can be used to sort [CodeActionWithPriorityAndIndex]es.
   ///
   /// The highest number priority will be sorted before lower number priorities.
-  /// Items with the same priority are sorted alphabetically by their title.
-  int _compareCodeActions(CodeActionWithPriority a, CodeActionWithPriority b) {
+  /// Items with the same priority are sorted by their index (ascending).
+  int _compareCodeActions(
+    CodeActionWithPriorityAndIndex a,
+    CodeActionWithPriorityAndIndex b,
+  ) {
+    // Priority, descending.
     if (a.priority != b.priority) {
       return b.priority - a.priority;
     }
+    // Index, ascending.
+    assert(a.index != b.index);
+    if (a.index != b.index) {
+      return a.index - b.index;
+    }
+    // We should never have the same index, but just in case - ensure the sort
+    // is stable.
     return a.action.title.compareTo(b.action.title);
   }
 
@@ -311,8 +328,8 @@ class _CodeActionSorter {
 
       // Build a new CodeAction that merges the diagnostics from each same
       // code action onto a single one.
-      return CodeActionWithPriority(
-        CodeAction(
+      return (
+        action: CodeAction(
           title: first.title,
           kind: first.kind,
           // Merge diagnostics from all of the matching CodeActions.
@@ -323,7 +340,7 @@ class _CodeActionSorter {
           edit: first.edit,
           command: first.command,
         ),
-        priority,
+        priority: priority,
       );
     }).toList();
   }

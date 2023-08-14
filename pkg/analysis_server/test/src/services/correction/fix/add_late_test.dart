@@ -40,7 +40,7 @@ class AddLateTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_LATE;
 
   Future<void> test_changeInImportedLib() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class C {
   final String s;
 }
@@ -60,7 +60,7 @@ class C {
   }
 
   Future<void> test_changeInPart() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 part 'test.dart';
 
 class C {

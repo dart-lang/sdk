@@ -84,7 +84,7 @@ class CodeStatistics {
   void Finalize();
 
  private:
-  static const int kStackSize = 8;
+  static constexpr int kStackSize = 8;
 
   compiler::Assembler* assembler_;
 

@@ -35,6 +35,17 @@ class DeprecatedLint extends LintRule {
         );
 }
 
+class DeprecatedLintWithReplacement extends LintRule {
+  DeprecatedLintWithReplacement()
+      : super(
+          name: 'deprecated_lint_with_replacement',
+          group: Group.style,
+          state: State.deprecated(replacedBy: 'replacing_lint'),
+          description: '',
+          details: '',
+        );
+}
+
 class DeprecatedSince3Lint extends LintRule {
   DeprecatedSince3Lint()
       : super(
@@ -89,8 +100,8 @@ class OptionsRuleValidatorTest
     assertErrors('''
 linter:
   rules:
-    - deprecated_lint
-      ''', [DEPRECATED_LINT_HINT]);
+    - deprecated_lint_with_replacement
+      ''', [DEPRECATED_LINT_HINT_WITH_REPLACEMENT]);
   }
 
   test_deprecated_rule_map() {
@@ -98,6 +109,14 @@ linter:
 linter:
   rules:
     deprecated_lint: false
+      ''', [DEPRECATED_LINT_HINT]);
+  }
+
+  test_deprecated_rule_withReplacement() {
+    assertErrors('''
+linter:
+  rules:
+    - deprecated_lint
       ''', [DEPRECATED_LINT_HINT]);
   }
 
@@ -247,6 +266,7 @@ mixin OptionsRuleValidatorTestMixin {
   final rules = [
     DeprecatedLint(),
     DeprecatedSince3Lint(),
+    DeprecatedLintWithReplacement(),
     StableLint(),
     RuleNeg(),
     RulePos(),

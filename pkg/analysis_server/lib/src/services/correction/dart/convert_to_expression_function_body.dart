@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ConvertToExpressionFunctionBody extends CorrectionProducer {
+class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_EXPRESSION_BODY;
 

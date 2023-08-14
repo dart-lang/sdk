@@ -1,0 +1,20 @@
+expect(expected, actual) {}
+
+inline class I {
+  factory I() => 0 as I;
+  final int i = 0;
+}
+
+inline class J {
+  J._(this.i);
+  factory J(int i) => J._(i);
+  final int i;
+}
+
+inline class K<T> {
+  K._(this.i);
+  factory K(T i) => K._(i);
+  final T i;
+}
+
+main() {}

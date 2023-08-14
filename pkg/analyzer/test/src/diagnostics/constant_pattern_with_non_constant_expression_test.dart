@@ -201,10 +201,8 @@ GuardedPattern
     expression: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: self::@class::A
-            staticType: null
+          name: A
+          element: self::@class::A
           type: A
         staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -343,7 +341,7 @@ GuardedPattern
     expression: SetOrMapLiteral
       leftBracket: {
       elements
-        SetOrMapLiteral
+        MapLiteralEntry
           key: IntegerLiteral
             literal: 0
             staticType: int
@@ -374,7 +372,7 @@ GuardedPattern
     expression: SetOrMapLiteral
       leftBracket: {
       elements
-        SetOrMapLiteral
+        MapLiteralEntry
           key: SimpleIdentifier
             token: a
             staticElement: a@20
@@ -419,7 +417,7 @@ GuardedPattern
     expression: SetOrMapLiteral
       leftBracket: {
       elements
-        SetOrMapLiteral
+        MapLiteralEntry
           key: IntegerLiteral
             literal: 0
             staticType: int
@@ -568,5 +566,48 @@ void f<T>(x) {
       error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
           28, 1),
     ]);
+  }
+
+  test_typeLiteral_typeParameter_nested() async {
+    await assertErrorsInCode(r'''
+void f<T>(Object? x) {
+  if (x case const (T)) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          43, 1),
+    ]);
+  }
+
+  test_typeLiteral_typeParameter_nested2() async {
+    await assertErrorsInCode(r'''
+void f<T>(Object? x) {
+  if (x case const (List<T>)) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          43, 7),
+    ]);
+  }
+
+  test_unresolvedIdentifier() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  if (x case foo) {}
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 33, 3),
+    ]);
+
+    final node = findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: InvalidType
+    matchedValueType: Object?
+''');
   }
 }

@@ -50,12 +50,12 @@ class TimelineTestHelper : public AllStatic {
   static void FakeThreadEvent(TimelineEventBlock* block,
                               intptr_t ftid,
                               const char* label = "fake",
-                              TimelineStream* stream = NULL) {
+                              TimelineStream* stream = nullptr) {
     TimelineEvent* event = block->StartEvent();
-    ASSERT(event != NULL);
+    ASSERT(event != nullptr);
     event->DurationBegin(label);
     event->thread_ = OSThread::ThreadIdFromIntPtr(ftid);
-    if (stream != NULL) {
+    if (stream != nullptr) {
       event->StreamInit(stream);
     }
   }
@@ -68,11 +68,11 @@ class TimelineTestHelper : public AllStatic {
                            const char* label,
                            int64_t start,
                            int64_t end) {
-    ASSERT(recorder != NULL);
+    ASSERT(recorder != nullptr);
     ASSERT(start < end);
-    ASSERT(label != NULL);
+    ASSERT(label != nullptr);
     TimelineEvent* event = recorder->StartEvent();
-    ASSERT(event != NULL);
+    ASSERT(event != nullptr);
     event->Duration(label, start, end);
     event->Complete();
   }
@@ -80,23 +80,23 @@ class TimelineTestHelper : public AllStatic {
   static void FakeBegin(TimelineEventRecorder* recorder,
                         const char* label,
                         int64_t start) {
-    ASSERT(recorder != NULL);
-    ASSERT(label != NULL);
+    ASSERT(recorder != nullptr);
+    ASSERT(label != nullptr);
     ASSERT(start >= 0);
     TimelineEvent* event = recorder->StartEvent();
-    ASSERT(event != NULL);
-    event->Begin(label, start);
+    ASSERT(event != nullptr);
+    event->Begin(label, /*id=*/-1, start);
     event->Complete();
   }
 
   static void FakeEnd(TimelineEventRecorder* recorder,
                       const char* label,
                       int64_t end) {
-    ASSERT(recorder != NULL);
-    ASSERT(label != NULL);
+    ASSERT(recorder != nullptr);
+    ASSERT(label != nullptr);
     ASSERT(end >= 0);
     TimelineEvent* event = recorder->StartEvent();
-    ASSERT(event != NULL);
+    ASSERT(event != nullptr);
     event->End(label, end);
     event->Complete();
   }
@@ -133,7 +133,7 @@ TEST_CASE(TimelineEventDuration) {
   event.DurationBegin("apple");
   // Measure the duration.
   int64_t current_duration = event.TimeDuration();
-  event.DurationEnd();
+  event.SetTimeEnd();
   // Verify that duration is larger.
   EXPECT_GE(event.TimeDuration(), current_duration);
 }
@@ -161,7 +161,7 @@ TEST_CASE(TimelineEventDurationPrintJSON) {
     // Check that dur key is present.
     EXPECT_SUBSTRING("\"dur\":", js.ToCString());
   }
-  event.DurationEnd();
+  event.SetTimeEnd();
 }
 
 #if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
@@ -229,7 +229,7 @@ TEST_CASE(TimelineEventArguments) {
   event.SetNumArguments(2);
   event.CopyArgument(0, "arg1", "value1");
   event.CopyArgument(1, "arg2", "value2");
-  event.DurationEnd();
+  event.SetTimeEnd();
 }
 
 TEST_CASE(TimelineEventArgumentsPrintJSON) {
@@ -244,7 +244,7 @@ TEST_CASE(TimelineEventArgumentsPrintJSON) {
   event.SetNumArguments(2);
   event.CopyArgument(0, "arg1", "value1");
   event.CopyArgument(1, "arg2", "value2");
-  event.DurationEnd();
+  event.SetTimeEnd();
 
   {
     // Test printing to JSON.
@@ -297,13 +297,13 @@ TEST_CASE(TimelineEventCallbackRecorderBasic) {
   // Create a test stream.
   TimelineStream stream("testStream", "testStream", false, true);
 
-  TimelineEvent* event = NULL;
+  TimelineEvent* event = nullptr;
 
   event = stream.StartEvent();
   EXPECT_EQ(0, override.recorder()->CountFor(TimelineEvent::kDuration));
   event->DurationBegin("cabbage");
   EXPECT_EQ(0, override.recorder()->CountFor(TimelineEvent::kDuration));
-  event->DurationEnd();
+  event->SetTimeEnd();
   EXPECT_EQ(0, override.recorder()->CountFor(TimelineEvent::kDuration));
   event->Complete();
   EXPECT_EQ(1, override.recorder()->CountFor(TimelineEvent::kDuration));
@@ -347,9 +347,9 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
   TimelineRecorderOverride<TimelineEventRingRecorder> override(recorder);
 
   TimelineEventBlock* block_0 = Timeline::recorder()->GetNewBlock();
-  EXPECT(block_0 != NULL);
+  EXPECT(block_0 != nullptr);
   TimelineEventBlock* block_1 = Timeline::recorder()->GetNewBlock();
-  EXPECT(block_1 != NULL);
+  EXPECT(block_1 != nullptr);
   // Test that we wrapped.
   EXPECT(block_0 == Timeline::recorder()->GetNewBlock());
 
@@ -383,15 +383,15 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
 TEST_CASE(TimelineTrackMetadataRace) {
   struct ReportMetadataArguments {
     Monitor& synchronization_monitor;
-    TimelineEventRingRecorder& recorder;
+    TimelineEventRecorder& recorder;
     ThreadJoinId join_id = OSThread::kInvalidThreadJoinId;
   };
 
   Monitor synchronization_monitor;
-  TimelineEventRingRecorder recorder;
+  TimelineEventRecorder& recorder = *Timeline::recorder();
 
-  // Try concurrently reading from / writing to the metadata map. I don't think
-  // it's possible to assert anything about the outcome, because of scheduling
+  // Try concurrently reading from / writing to the metadata map. It is not
+  // possible to assert anything about the outcome, because of scheduling
   // uncertainty. This test is just used to ensure that TSAN checks the metadata
   // map code.
   JSONStream js;
@@ -448,6 +448,8 @@ static Dart_Port expected_isolate;
 static Dart_IsolateGroupId expected_isolate_group;
 static bool saw_begin;
 static bool saw_end;
+static void* expected_isolate_data;
+static void* expected_isolate_group_data;
 
 static void TestTimelineRecorderCallback(Dart_TimelineRecorderEvent* event) {
   EXPECT_EQ(DART_TIMELINE_RECORDER_CURRENT_VERSION, event->version);
@@ -458,6 +460,8 @@ static void TestTimelineRecorderCallback(Dart_TimelineRecorderEvent* event) {
     EXPECT_NE(0, event->timestamp0);
     EXPECT_EQ(expected_isolate, event->isolate);
     EXPECT_EQ(expected_isolate_group, event->isolate_group);
+    EXPECT_EQ(expected_isolate_data, event->isolate_data);
+    EXPECT_EQ(expected_isolate_group_data, event->isolate_group_data);
     EXPECT_STREQ("Dart", event->stream);
     EXPECT_EQ(1, event->argument_count);
     EXPECT_STREQ("Dart Arguments", event->arguments[0].name);
@@ -470,6 +474,8 @@ static void TestTimelineRecorderCallback(Dart_TimelineRecorderEvent* event) {
     EXPECT_NE(0, event->timestamp0);
     EXPECT_EQ(expected_isolate, event->isolate);
     EXPECT_EQ(expected_isolate_group, event->isolate_group);
+    EXPECT_EQ(expected_isolate_data, event->isolate_data);
+    EXPECT_EQ(expected_isolate_group_data, event->isolate_group_data);
     EXPECT_STREQ("Dart", event->stream);
     EXPECT_EQ(1, event->argument_count);
     EXPECT_STREQ("Dart Arguments", event->arguments[0].name);
@@ -488,7 +494,7 @@ UNIT_TEST_CASE(DartAPI_SetTimelineRecorderCallback) {
 
   Dart_SetTimelineRecorderCallback(TestTimelineRecorderCallback);
 
-  EXPECT(Dart_SetVMFlags(argc, argv) == NULL);
+  EXPECT(Dart_SetVMFlags(argc, argv) == nullptr);
   Dart_InitializeParams params;
   memset(&params, 0, sizeof(Dart_InitializeParams));
   params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
@@ -498,34 +504,41 @@ UNIT_TEST_CASE(DartAPI_SetTimelineRecorderCallback) {
   params.cleanup_group = TesterState::group_cleanup_callback;
   params.start_kernel_isolate = true;
 
-  EXPECT(Dart_Initialize(&params) == NULL);
+  int64_t isolate_data = 0;
+
+  EXPECT(Dart_Initialize(&params) == nullptr);
   {
-    TestIsolateScope scope;
+    // Note: run_vm_tests will create and attach an instance of
+    // bin::IsolateGroupData to the newly created isolate group.
+    TestIsolateScope scope(/*isolate_group_data=*/nullptr, &isolate_data);
     const char* kScriptChars =
         "import 'dart:developer';\n"
         "main() {\n"
         "  Timeline.startSync('TestEvent', arguments: {'key':'value'});\n"
         "  Timeline.finishSync();\n"
         "}\n";
-    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
     EXPECT_VALID(lib);
 
     expected_isolate = Dart_GetMainPortId();
     EXPECT_NE(ILLEGAL_PORT, expected_isolate);
     expected_isolate_group = Dart_CurrentIsolateGroupId();
     EXPECT_NE(ILLEGAL_PORT, expected_isolate_group);
+    expected_isolate_data = &isolate_data;
+    EXPECT_EQ(expected_isolate_data, Dart_CurrentIsolateData());
+    expected_isolate_group_data = Dart_CurrentIsolateGroupData();
     saw_begin = false;
     saw_end = false;
 
-    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
 
     EXPECT(saw_begin);
     EXPECT(saw_end);
   }
-  EXPECT(Dart_Cleanup() == NULL);
+  EXPECT(Dart_Cleanup() == nullptr);
 
-  Dart_SetTimelineRecorderCallback(NULL);
+  Dart_SetTimelineRecorderCallback(nullptr);
 
   delete[] argv;
 }

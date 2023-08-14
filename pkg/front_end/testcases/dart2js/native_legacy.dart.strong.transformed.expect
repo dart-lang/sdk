@@ -4,7 +4,7 @@
 // pkg/front_end/testcases/dart2js/native_legacy.dart: Error: Only JS interop members may be 'external'.
 // Try removing the 'external' keyword or adding a JS interop annotation.
 //
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -24,7 +24,7 @@ class Class extends core::Object {
   static method _#generative#tearOff() → self::Class
     return new self::Class::generative();
   static factory fact() → self::Class
-    return (null as{ForNonNullableByDefault} dynamic) as{TypeError,ForDynamic,ForNonNullableByDefault} self::Class;
+    return (null as dynamic) as{TypeError,ForDynamic} self::Class;
   static method _#fact#tearOff() → self::Class
     return self::Class::fact();
   static method _#externalGenerative#tearOff() → self::Class
@@ -79,7 +79,7 @@ class NativeClass extends core::Object {
   static method _#generative#tearOff() → self::NativeClass
     return new self::NativeClass::generative();
   static factory fact() → self::NativeClass
-    return (null as{ForNonNullableByDefault} dynamic) as{TypeError,ForDynamic,ForNonNullableByDefault} self::NativeClass;
+    return (null as dynamic) as{TypeError,ForDynamic} self::NativeClass;
   static method _#fact#tearOff() → self::NativeClass
     return self::NativeClass::fact();
   static method _#externalGenerative#tearOff() → self::NativeClass

@@ -14,7 +14,7 @@
 //
 // For solutions, see https://dart.dev/go/unsound-null-safety
 //
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "package:opt_in_package/opt_in_lib.dart";

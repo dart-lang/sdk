@@ -19,6 +19,8 @@ accounting
 accounts
 accumulated
 accumulating
+accumulation
+accumulator
 acon
 acov
 across
@@ -190,6 +192,8 @@ cardinality
 caret
 carets
 carriage
+carrying
+cascade's
 cascades
 casing
 cast
@@ -209,6 +213,7 @@ checkpoint
 chloestefantsova
 chunks
 ci
+circuit
 circuited
 ck
 cl
@@ -377,6 +382,7 @@ dereferencing
 deregister
 descent
 descriptive
+deserializable
 deserializer
 deserializers
 deserializes
@@ -435,6 +441,7 @@ downloading
 dq
 dquote
 drawn
+ds
 dsdk
 dst
 dummy
@@ -479,6 +486,7 @@ enters
 entrypoint
 entrypointish
 enumerates
+enuum
 env
 eof
 eq
@@ -577,6 +585,7 @@ foo
 foobar
 footer
 forcefully
+forcibly
 forcing
 foreign
 formed
@@ -603,6 +612,7 @@ fvar
 g
 gardening
 garner
+gathers
 gb
 gen
 generation
@@ -633,6 +643,7 @@ growth
 gt
 guarantee
 guarded
+guides
 gypi
 gz
 gzip
@@ -723,6 +734,7 @@ inequivalences
 inequivalent
 inferable
 influence
+influences
 informative
 infos
 inhabit
@@ -745,6 +757,7 @@ integrate
 intends
 intention
 intentionally
+interacts
 interested
 interfere
 interim
@@ -758,6 +771,7 @@ interpretation
 interrupted
 intersections
 intersects
+interspersed
 interval
 intervals
 intl
@@ -839,6 +853,7 @@ lf
 lhs
 lib
 libs
+lifecycle
 lifetime
 lift
 lifted
@@ -884,6 +899,7 @@ maintaining
 malbounded
 manage
 mangled
+manipulating
 manipulation
 manipulations
 manner
@@ -893,6 +909,7 @@ masks
 master
 matchers
 materialize
+materializes
 matters
 mature
 mb
@@ -912,6 +929,8 @@ mime
 mimic
 min
 mini
+miss
+mistakes
 misuse
 mixers
 mk
@@ -932,6 +951,7 @@ mus
 mvar
 n
 na
+nagle's
 nameless
 namer
 natively
@@ -1048,6 +1068,7 @@ pattern's
 patterned
 patterns
 paulberry
+pause
 pay
 payload
 payloads
@@ -1059,6 +1080,7 @@ perf
 permanently
 permit
 permits
+persist
 pertinent
 physically
 pi
@@ -1076,6 +1098,7 @@ pointwise
 polluted
 polymorphism
 pool
+poorly
 popped
 pos
 possibility
@@ -1197,6 +1220,7 @@ rebuilt
 recalculating
 recalculation
 recall
+recalls
 received
 receivers
 recheck
@@ -1229,10 +1253,12 @@ reflectee
 reflective
 refutable
 reg
+regard
 regenerations
 regis
 registering
 rehash
+reified
 reindexed
 reinstate
 reissued
@@ -1278,6 +1304,7 @@ restriction
 restricts
 resumed
 ret
+retrieval
 reusage
 reversible
 rewinds
@@ -1477,6 +1504,7 @@ subproperties
 subscription
 subsection
 subsections
+subsequently
 subspace
 subspaces
 subst
@@ -1504,6 +1532,7 @@ supers
 suppose
 surprising
 surrounded
+surrounds
 suspended
 svar
 svg
@@ -1528,6 +1557,7 @@ talks
 tarjan
 tarjan's
 tb
+tcp
 team
 tearoff
 tearoffable
@@ -1608,6 +1638,7 @@ ui
 uint
 umbrella
 un
+unaccounted
 unaffected
 unaligned
 unaltered
@@ -1734,6 +1765,7 @@ walker
 walking
 wanting
 wants
+warned
 waste
 wasted
 watch
@@ -1748,12 +1780,14 @@ weren't
 werror
 whatnot
 whichever
+who
 widget
 widgets
 wiki
 wikipedia
 wind
 winds
+wire
 wise
 wiser
 wishes

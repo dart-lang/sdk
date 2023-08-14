@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "never_opt_out_lib.dart" as nev;
@@ -109,16 +109,16 @@ static method main() → dynamic {
   localNull = localNull;
   self::inferredOptOutNever = localNull;
   inferredLocalNever = localNull;
-  localNever = self::inferredOptOutNever as{TypeError,ForDynamic} Never*;
-  self::optOutNever = self::inferredOptOutNever as{TypeError,ForDynamic} Never*;
-  nev::optInNever = self::inferredOptOutNever as{TypeError,ForDynamic} Never;
-  localNull = self::inferredOptOutNever as{TypeError,ForDynamic} Null;
+  localNever = self::inferredOptOutNever as{TypeError,ForDynamic,ForLegacy} Never*;
+  self::optOutNever = self::inferredOptOutNever as{TypeError,ForDynamic,ForLegacy} Never*;
+  nev::optInNever = self::inferredOptOutNever as{TypeError,ForDynamic,ForLegacy} Never;
+  localNull = self::inferredOptOutNever as{TypeError,ForDynamic,ForLegacy} Null;
   self::inferredOptOutNever = self::inferredOptOutNever;
   inferredLocalNever = self::inferredOptOutNever;
-  localNever = inferredLocalNever as{TypeError,ForDynamic} Never*;
-  self::optOutNever = inferredLocalNever as{TypeError,ForDynamic} Never*;
-  nev::optInNever = inferredLocalNever as{TypeError,ForDynamic} Never;
-  localNull = inferredLocalNever as{TypeError,ForDynamic} Null;
+  localNever = inferredLocalNever as{TypeError,ForDynamic,ForLegacy} Never*;
+  self::optOutNever = inferredLocalNever as{TypeError,ForDynamic,ForLegacy} Never*;
+  nev::optInNever = inferredLocalNever as{TypeError,ForDynamic,ForLegacy} Never;
+  localNull = inferredLocalNever as{TypeError,ForDynamic,ForLegacy} Null;
   self::inferredOptOutNever = inferredLocalNever;
   inferredLocalNever = inferredLocalNever;
   self::throws(() → Null => self::optOutNever = nev::throwing());
@@ -133,7 +133,7 @@ static method main() → dynamic {
   });
   core::List<Null>* boundedGenericMethodResult2 = nev::boundedGenericMethod2<Null>();
   has-declared-initializer dynamic dyn = null;
-  nev::optInNever = dyn as{TypeError,ForDynamic} Never;
+  nev::optInNever = dyn as{TypeError,ForDynamic,ForLegacy} Never;
 }
 static method throws(() →* void f) → dynamic {
   try {
@@ -145,7 +145,7 @@ static method throws(() →* void f) → dynamic {
   throw "Expected exception";
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as nev;
 import "dart:core" as core;
 import "dart:_internal" as _in;

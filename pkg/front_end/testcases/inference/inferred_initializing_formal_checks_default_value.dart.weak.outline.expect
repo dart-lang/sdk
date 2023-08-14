@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -13,7 +13,7 @@ class Foo extends core::Object {
   field core::int x;
   constructor •([core::int x = invalid-expression "pkg/front_end/testcases/inference/inferred_initializing_formal_checks_default_value.dart:10:46: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   Foo([this.x = /*error:INVALID_ASSIGNMENT*/ \"1\"]);
-                                             ^" in "1" as{TypeError,ForNonNullableByDefault} core::int]) → self::Foo
+                                             ^" in "1" as{TypeError} core::int]) → self::Foo
     ;
 }
 static method main() → dynamic

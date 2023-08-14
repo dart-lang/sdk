@@ -246,26 +246,15 @@ class SsaFunctionCompiler implements FunctionCompiler {
       js.Expression code,
       DartType? asyncTypeParameter,
       js.Name name) {
-    final itemTypeExpression =
-        _fetchItemTypeNewRti(commonElements, registry, asyncTypeParameter);
-
     SyncStarRewriter rewriter = SyncStarRewriter(_reporter, element,
-        endOfIteration:
-            emitter.staticFunctionAccess(commonElements.endOfIteration),
-        iterableFactory: emitter
-            .staticFunctionAccess(commonElements.syncStarIterableFactory),
-        iterableFactoryTypeArguments: itemTypeExpression,
-        yieldStarExpression:
-            emitter.staticFunctionAccess(commonElements.yieldStar),
-        uncaughtErrorExpression:
-            emitter.staticFunctionAccess(commonElements.syncStarUncaughtError),
+        iteratorCurrentValueProperty: namer.instanceFieldPropertyName(
+            commonElements.syncStarIteratorCurrentField),
+        iteratorDatumProperty: namer.instanceFieldPropertyName(
+            commonElements.syncStarIteratorDatumField),
+        yieldStarSelector: namer
+            .instanceMethodName(commonElements.syncStarIteratorYieldStarMethod),
         safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
         bodyName: namer.deriveAsyncBodyName(name));
-
-    registry.registerStaticUse(StaticUse.staticInvoke(
-        commonElements.syncStarIterableFactory,
-        CallStructure.unnamed(1, 1),
-        [elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)]));
 
     return rewriter;
   }
@@ -332,13 +321,13 @@ class SsaBuilderTask extends CompilerTask {
   final SourceInformationStrategy _sourceInformationFactory;
   late SsaBuilder _builder;
 
-  final SsaMetrics _metrics;
+  final SsaMetrics _ssaMetrics;
 
   @override
-  Metrics get metrics => _metrics;
+  Metrics metrics = Metrics.none();
 
   SsaBuilderTask(super.measurer, this._backendStrategy,
-      this._sourceInformationFactory, this._metrics);
+      this._sourceInformationFactory, this._ssaMetrics);
 
   @override
   String get name => 'SSA builder';
@@ -346,6 +335,7 @@ class SsaBuilderTask extends CompilerTask {
   void onCodegenStart() {
     _builder =
         _backendStrategy.createSsaBuilder(this, _sourceInformationFactory);
+    metrics = _ssaMetrics;
   }
 
   /// Creates the [HGraph] for [member] or returns `null` if no code is needed

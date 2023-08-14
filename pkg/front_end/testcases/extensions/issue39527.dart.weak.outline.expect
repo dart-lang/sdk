@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -12,11 +12,11 @@ extension Extension1 on self::C {
   operator []= = self::Extension1|[]=;
   operator - = self::Extension1|-;
 }
-static method Extension1|[](lowered final self::C #this, core::int index) → self::C
+static extension-member method Extension1|[](lowered final self::C #this, core::int index) → self::C
   ;
-static method Extension1|[]=(lowered final self::C #this, core::int index, self::C other) → void
+static extension-member method Extension1|[]=(lowered final self::C #this, core::int index, self::C other) → void
   ;
-static method Extension1|-(lowered final self::C #this, core::int val) → self::C
+static extension-member method Extension1|-(lowered final self::C #this, core::int val) → self::C
   ;
 static method main() → dynamic
   ;

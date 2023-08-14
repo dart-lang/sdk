@@ -8,9 +8,10 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math' as math;
 
-import '../../../pkg/vm/bin/gen_kernel.dart' as gen_kernel;
 import 'package:vm_service/vm_service.dart' as vm_service;
 import 'package:vm_service/vm_service_io.dart' as vm_service_io;
+
+import '../../../pkg/vm/bin/gen_kernel.dart' as gen_kernel;
 
 const String compilerIsolateName = 'isolate-compiler';
 

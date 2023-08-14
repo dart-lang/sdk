@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 
@@ -126,10 +126,10 @@ static method use(dynamic object) → void {
 }
 static method main() → dynamic {
   final core::List<core::Object> values = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::Object>] core::_GrowableList::_literal3<core::Object>(new self::Impl1::•(), new self::BaseImpl2::•(), new self::SubImpl3::•());
-  final self::Impl1 a = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=! (skip check)] values.{core::List::[]}([@vm.inferred-type.metadata=int] core::int::parse("0")){(core::int) → core::Object} as{ForNonNullableByDefault} self::Impl1;
-  final self::BaseImpl2 b = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=! (skip check)] values.{core::List::[]}([@vm.inferred-type.metadata=int] core::int::parse("1")){(core::int) → core::Object} as{ForNonNullableByDefault} self::BaseImpl2;
-  final self::SubImpl3 c = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=! (skip check)] values.{core::List::[]}([@vm.inferred-type.metadata=int] core::int::parse("2")){(core::int) → core::Object} as{ForNonNullableByDefault} self::SubImpl3;
-  final self::Interface d = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=! (skip check)] values.{core::List::[]}([@vm.inferred-type.metadata=int] core::int::parse("2")){(core::int) → core::Object} as{ForNonNullableByDefault} self::Interface;
+  final self::Impl1 a = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=! (skip check)] values.{core::List::[]}([@vm.inferred-type.metadata=int] core::int::parse("0")){(core::int) → core::Object} as self::Impl1;
+  final self::BaseImpl2 b = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=! (skip check)] values.{core::List::[]}([@vm.inferred-type.metadata=int] core::int::parse("1")){(core::int) → core::Object} as self::BaseImpl2;
+  final self::SubImpl3 c = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=! (skip check)] values.{core::List::[]}([@vm.inferred-type.metadata=int] core::int::parse("2")){(core::int) → core::Object} as self::SubImpl3;
+  final self::Interface d = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=! (skip check)] values.{core::List::[]}([@vm.inferred-type.metadata=int] core::int::parse("2")){(core::int) → core::Object} as self::Interface;
   [@vm.direct-call.metadata=#lib::Impl1.takePositional] [@vm.inferred-type.metadata=!? (skip check)] a.{self::Impl1::takePositional}(1, 1.1, null, null, 1, null, null, new self::X::•()){(core::int?, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic) → void};
   b.{self::BaseImpl2::takePositional}(2, 2.2, 2, 2.2, 2.2, 2, new self::X::•(), new self::X::•()){(core::int?, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic) → void};
   [@vm.direct-call.metadata=#lib::SubImpl3.takePositional] [@vm.inferred-type.metadata=!? (skip check)] c.{self::SubImpl3::takePositional}([@vm.inferred-type.metadata=int] self::mint, 3.3, [@vm.inferred-type.metadata=int] self::mint, 3.3, 3.3, 3.3, new self::X::•(), new self::X::•()){(core::int?, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic) → void};

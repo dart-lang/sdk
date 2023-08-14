@@ -1,0 +1,113 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  final field core::int? _f2;
+  final field core::int? _f3;
+  final field core::int? _f4;
+  constructor •(core::int? i) → self::C
+    ;
+  static method _#new#tearOff(core::int? i) → self::C
+    return new self::C::•(i);
+}
+class A extends core::Object {
+  constructor •(core::int? i) → self::A
+    ;
+  static method _#new#tearOff(core::int? i) → self::A
+    return new self::A::•(i);
+}
+abstract class M3 extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class _D&A&M3 = self::A with self::M3 /*isAnonymousMixin*/  {
+  synthetic constructor •(core::int? i) → self::_D&A&M3
+    : super self::A::•(i)
+    ;
+}
+abstract class D extends self::_D&A&M3 {
+  final field core::int? _f4;
+  constructor •(core::int? i) → self::D
+    ;
+}
+abstract class M1 extends core::Object /*isMixinDeclaration*/  {
+  field core::int? _#M1#_f2;
+  field core::bool _#M1#_f2#isSet;
+  field core::int? _#M1#_f3;
+  field core::bool _#M1#_f3#isSet;
+  field core::int? _#M1#_f4;
+  field core::bool _#M1#_f4#isSet;
+  get _f2() → core::int?;
+  set _f2(core::int? _f2#param) → void;
+  get _f3() → core::int?;
+  set _f3(core::int? _f3#param) → void;
+  get _f4() → core::int?;
+}
+class B extends core::Object {
+  constructor •(core::int? i) → self::B
+    ;
+  static method _#new#tearOff(core::int? i) → self::B
+    return new self::B::•(i);
+}
+abstract class _E&B&M1 = self::B with self::M1 /*isAnonymousMixin*/  {
+  synthetic constructor •(core::int? i) → self::_E&B&M1
+    : super self::B::•(i)
+    ;
+  mixin-super-stub get _#M1#_f2() → core::int?
+    return super.{self::M1::_#M1#_f2};
+  mixin-super-stub set _#M1#_f2(core::int? value) → void
+    return super.{self::M1::_#M1#_f2} = value;
+  mixin-super-stub get _f2() → core::int?
+    return super.{self::M1::_f2};
+  mixin-super-stub set _f2(core::int? _f2#param) → void
+    return super.{self::M1::_f2} = _f2#param;
+  mixin-super-stub get _#M1#_f2#isSet() → core::bool
+    return super.{self::M1::_#M1#_f2#isSet};
+  mixin-super-stub set _#M1#_f2#isSet(core::bool value) → void
+    return super.{self::M1::_#M1#_f2#isSet} = value;
+  mixin-super-stub get _#M1#_f3() → core::int?
+    return super.{self::M1::_#M1#_f3};
+  mixin-super-stub set _#M1#_f3(core::int? value) → void
+    return super.{self::M1::_#M1#_f3} = value;
+  mixin-super-stub get _f3() → core::int?
+    return super.{self::M1::_f3};
+  mixin-super-stub set _f3(core::int? _f3#param) → void
+    return super.{self::M1::_f3} = _f3#param;
+  mixin-super-stub get _#M1#_f3#isSet() → core::bool
+    return super.{self::M1::_#M1#_f3#isSet};
+  mixin-super-stub set _#M1#_f3#isSet(core::bool value) → void
+    return super.{self::M1::_#M1#_f3#isSet} = value;
+  mixin-super-stub get _#M1#_f4() → core::int?
+    return super.{self::M1::_#M1#_f4};
+  mixin-super-stub set _#M1#_f4(core::int? value) → void
+    return super.{self::M1::_#M1#_f4} = value;
+  mixin-super-stub get _#M1#_f4#isSet() → core::bool
+    return super.{self::M1::_#M1#_f4#isSet};
+  mixin-super-stub set _#M1#_f4#isSet(core::bool value) → void
+    return super.{self::M1::_#M1#_f4#isSet} = value;
+  mixin-super-stub get _f4() → core::int?
+    return super.{self::M1::_f4};
+}
+class E extends self::_E&B&M1 implements self::D {
+  constructor •(core::int? i) → self::E
+    ;
+  static method _#new#tearOff(core::int? i) → self::E
+    return new self::E::•(i);
+  @core::override
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    ;
+}
+static method acceptsInt(core::int x) → void
+  ;
+static method testConflictWithNoSuchMethodForwarderIfImplementedInMixin(self::C c) → void
+  ;
+static method testNoConflictWithNoSuchMethodForwarderIfImplementedInMixin1(self::C c) → void
+  ;
+static method testNoConflictWithNoSuchMethodForwarderIfImplementedInMixin2(self::C c) → void
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///issue52452.dart:49:4 -> InstanceConstant(const _Override{})
+Extra constant evaluation: evaluated: 36, effectively constant: 1

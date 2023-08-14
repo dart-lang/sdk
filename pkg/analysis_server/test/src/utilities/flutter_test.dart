@@ -142,7 +142,6 @@ class MyWidget extends StatelessWidget {
       expect(_flutter.identifyWidgetExpression(creation), creation);
       expect(_flutter.identifyWidgetExpression(constructorName), creation);
       expect(_flutter.identifyWidgetExpression(namedType), creation);
-      expect(_flutter.identifyWidgetExpression(namedType.name), creation);
       expect(_flutter.identifyWidgetExpression(constructorName.name), creation);
       expect(_flutter.identifyWidgetExpression(argumentList), isNull);
       expect(
@@ -518,7 +517,7 @@ Text createEmptyText() => new Text('');
     }
 
     {
-      var expression = findNode.simple('Container(');
+      var expression = findNode.namedType('Container(');
       expect(_flutter.isWidgetExpression(expression), isFalse);
     }
 

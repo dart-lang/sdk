@@ -57,8 +57,8 @@ config("relative_paths") {
   # if root_build_dir is not a subdirectory //, but there isn't a better
   # option to keep all source file name references uniformly relative to
   # a single root.
-  absolute_path = rebase_path("//.")
-  relative_path = rebase_path("//.", root_build_dir)
+  absolute_path = rebase_path("//")
+  relative_path = ""
   cflags = [
     # This makes sure that the DW_AT_comp_dir string (the current
     # directory while running the compiler, which is the basis for all

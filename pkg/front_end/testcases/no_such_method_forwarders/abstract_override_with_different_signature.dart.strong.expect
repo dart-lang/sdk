@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -15,10 +15,10 @@ class MockCat extends core::Object implements self::Cat {
     ;
   method noSuchMethod(core::Invocation invocation) → dynamic {
     dynamic arg = invocation.{core::Invocation::positionalArguments}{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    return arg is{ForNonNullableByDefault} core::String && arg{core::String}.{core::String::isNotEmpty}{core::bool};
+    return arg is core::String && arg{core::String}.{core::String::isNotEmpty}{core::bool};
   }
   no-such-method-forwarder method eatFood(core::String food) → core::bool
-    return this.{self::MockCat::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+    return this.{self::MockCat::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::bool;
 }
 class MockCat2 extends self::MockCat {
   synthetic constructor •() → self::MockCat2
@@ -31,14 +31,14 @@ class MockCat3 extends self::MockCat2 implements self::Cat {
     : super self::MockCat2::•()
     ;
   no-such-method-forwarder method eatFood(core::String food, {core::double amount = #C4}) → core::bool
-    return this.{self::MockCat2::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C5: amount}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+    return this.{self::MockCat2::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C5: amount}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::bool;
 }
 class MockCat4 extends self::MockCat2 implements self::HungryCat {
   synthetic constructor •() → self::MockCat4
     : super self::MockCat2::•()
     ;
   no-such-method-forwarder method eatFood(core::String food, {core::double amount = #C4, core::double yetAnother = #C4}) → core::bool
-    return this.{self::MockCat2::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C5: amount, #C6: yetAnother}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+    return this.{self::MockCat2::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C5: amount, #C6: yetAnother}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::bool;
 }
 abstract class HungryCat extends core::Object {
   synthetic constructor •() → self::HungryCat

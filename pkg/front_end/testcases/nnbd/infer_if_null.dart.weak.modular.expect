@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -56,8 +56,8 @@ static method test4() → dynamic {
   core::List<core::String?> list = <core::String?>[null];
   core::String s = let final core::List<core::String?> #t10 = list in let final core::int #t11 = 0 in let final core::String? #t12 = #t10.{core::List::[]}(#t11){(core::int) → core::String?} in #t12 == null ?{core::String} let final core::String #t13 = "bar" in let final void #t14 = #t10.{core::List::[]=}(#t11, #t13){(core::int, core::String?) → void} in #t13 : #t12{core::String};
 }
-static method E6|[]=(lowered final core::double #this, core::int index, core::String? value) → void {}
-static method E6|[](lowered final core::double #this, core::int index) → core::String?
+static extension-member method E6|[]=(lowered final core::double #this, core::int index, core::String? value) → void {}
+static extension-member method E6|[](lowered final core::double #this, core::int index) → core::String?
   return null;
 static method test6() → dynamic {
   core::String s = let final core::double #t15 = 3.14 in let final core::int #t16 = 0 in let final core::String? #t17 = self::E6|[](#t15, #t16) in #t17 == null ?{core::String} let final core::String #t18 = "bar" in let final void #t19 = self::E6|[]=(#t15, #t16, #t18) in #t18 : #t17{core::String};

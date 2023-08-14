@@ -9,7 +9,6 @@ import 'package:front_end/src/api_prototype/terminal_color_support.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/command_line_reporting.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart';
 import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -50,7 +49,7 @@ class StaticTypeVisitorBase extends RecursiveVisitor {
 
   @override
   void visitProcedure(Procedure node) {
-    if (node.kind == ProcedureKind.Factory && isRedirectingFactory(node)) {
+    if (node.kind == ProcedureKind.Factory && node.isRedirectingFactory) {
       // Don't visit redirecting factories.
       return;
     }
@@ -61,10 +60,6 @@ class StaticTypeVisitorBase extends RecursiveVisitor {
 
   @override
   void visitField(Field node) {
-    if (isRedirectingFactoryField(node)) {
-      // Skip synthetic .dill members.
-      return;
-    }
     staticTypeContext = new StaticTypeContext(node, typeEnvironment);
     super.visitField(node);
     staticTypeContext = null;
@@ -289,7 +284,7 @@ bool cfeOnly(Uri uri) {
 List<Uri> cfeAndBackendsEntryPoints = [
   Uri.base.resolve('pkg/front_end/tool/_fasta/compile.dart'),
   Uri.base.resolve('pkg/vm/lib/kernel_front_end.dart'),
-  Uri.base.resolve('pkg/compiler/bin/dart2js.dart'),
+  Uri.base.resolve('pkg/compiler/lib/src/dart2js.dart'),
   Uri.base.resolve('pkg/dev_compiler/bin/dartdevc.dart'),
   Uri.base.resolve('pkg/frontend_server/bin/frontend_server_starter.dart'),
 ];

@@ -29,7 +29,7 @@ class BundleMacroExecutor {
   }) : kernelBytes = Uint8List.fromList(kernelBytes) {
     _executorFactoryToken = macroExecutor.registerExecutorFactory(
       () => isolated_executor.start(
-        macro.SerializationMode.byteDataServer,
+        macro.SerializationMode.byteData,
         _kernelUri,
       ),
       libraries,
@@ -104,7 +104,7 @@ class MacroKernelBuilder {
             for (final c in library.classes) c.name: c.constructors
           },
       },
-      macro.SerializationMode.byteDataClient,
+      macro.SerializationMode.byteData,
     );
 
     final macroMainPath = '${libraries.first.path}.macro';

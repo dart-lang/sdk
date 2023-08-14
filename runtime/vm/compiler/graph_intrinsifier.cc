@@ -95,13 +95,7 @@ bool GraphIntrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
     GRAPH_INTRINSICS_LIST(EMIT_CASE);
 #undef EMIT_CASE
     default:
-      if (function.IsImplicitGetterFunction()) {
-        if (!Build_ImplicitGetter(graph)) return false;
-      } else if (function.IsImplicitSetterFunction()) {
-        if (!Build_ImplicitSetter(graph)) return false;
-      } else {
-        return false;
-      }
+      return false;
   }
 
   if (FLAG_support_il_printer && FLAG_print_flow_graph &&
@@ -1019,94 +1013,6 @@ bool GraphIntrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
   Definition* result =
       CreateBoxedResultIfNeeded(&builder, unboxed_result, kUnboxedDouble);
   builder.AddReturn(new Value(result));
-  return true;
-}
-
-bool GraphIntrinsifier::Build_ImplicitGetter(FlowGraph* flow_graph) {
-  // This code will only be invoked if our assumptions have been met (see
-  // [Intrinsifier::CanIntrinsifyFieldAccessor])
-  auto zone = flow_graph->zone();
-  const auto& function = flow_graph->function();
-  ASSERT(
-      Intrinsifier::CanIntrinsifyFieldAccessor(flow_graph->parsed_function()));
-
-  auto& field = Field::Handle(zone, function.accessor_field());
-  if (CompilerState::Current().should_clone_fields()) {
-    field = field.CloneFromOriginal();
-  }
-  ASSERT(field.is_instance() && !field.is_late() && !field.needs_load_guard());
-
-  const auto& slot = Slot::Get(field, &flow_graph->parsed_function());
-
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  auto receiver = builder.AddParameter(0, /*with_frame=*/false);
-  VerifyParameterIsBoxed(&builder, 0);
-
-  Definition* field_value = builder.AddDefinition(new (zone) LoadFieldInstr(
-      new (zone) Value(receiver), slot, builder.Source()));
-
-  // We only support cases where we do not have to create a box (whose
-  // allocation could fail).
-  ASSERT(function.HasUnboxedReturnValue() || !slot.is_unboxed());
-  ASSERT(!function.has_unboxed_record_return());
-
-  // We might need to unbox the field value before returning.
-  if (function.HasUnboxedReturnValue() && !slot.is_unboxed()) {
-    ASSERT(FLAG_precompiled_mode);
-    field_value = builder.AddUnboxInstr(
-        FlowGraph::ReturnRepresentationOf(flow_graph->function()),
-        new Value(field_value), /*is_checked=*/true);
-  }
-
-  builder.AddReturn(new (zone) Value(field_value));
-  return true;
-}
-
-bool GraphIntrinsifier::Build_ImplicitSetter(FlowGraph* flow_graph) {
-  // This code will only be invoked if our assumptions have been met (see
-  // [Intrinsifier::CanIntrinsifyFieldAccessor])
-  auto zone = flow_graph->zone();
-  const auto& function = flow_graph->function();
-  ASSERT(
-      Intrinsifier::CanIntrinsifyFieldAccessor(flow_graph->parsed_function()));
-
-  auto& field = Field::Handle(zone, function.accessor_field());
-  if (CompilerState::Current().should_clone_fields()) {
-    field = field.CloneFromOriginal();
-  }
-  ASSERT(field.is_instance() && !field.is_final());
-  const auto& slot = Slot::Get(field, &flow_graph->parsed_function());
-  ASSERT(!function.HasUnboxedParameters() || slot.is_unboxed());
-
-  const auto barrier_mode =
-      slot.is_unboxed() ? kNoStoreBarrier : kEmitStoreBarrier;
-
-  flow_graph->CreateCommonConstants();
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  auto receiver = builder.AddParameter(0, /*with_frame=*/false);
-  auto value = builder.AddParameter(1, /*with_frame=*/false);
-  VerifyParameterIsBoxed(&builder, 0);
-
-  if (!function.HasUnboxedParameters() && slot.is_unboxed()) {
-    // We do not support storing to possibly guarded fields in JIT in graph
-    // intrinsics.
-    ASSERT(FLAG_precompiled_mode);
-    value =
-        builder.AddUnboxInstr(slot.UnboxedRepresentation(), new Value(value),
-                              /*is_checked=*/true);
-  }
-
-  builder.AddInstruction(new (zone) StoreFieldInstr(
-      slot, new (zone) Value(receiver), new (zone) Value(value), barrier_mode,
-      builder.Source()));
-
-  builder.AddReturn(new (zone) Value(flow_graph->constant_null()));
   return true;
 }
 

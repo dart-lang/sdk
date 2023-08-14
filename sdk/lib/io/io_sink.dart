@@ -9,6 +9,14 @@ part of dart.io;
 /// An [IOSink] combines a [StreamSink] of bytes with a [StringSink],
 /// and allows easy output of both bytes and text.
 ///
+/// An `IOSink` is intended for writing bytes.
+/// Strings written through [write] or [writeCharCode] will be converted
+/// to bytes using [encoding].
+/// Integer data added using [add] or [addStream] will be treated as byte data,
+/// and will be truncated to unsigned 8-bit values as by using [int.toUnsigned].
+/// No guarantees are given for when such a conversion happens, since it
+/// depends on the implementation behind the sink.
+///
 /// Writing text ([write]) and adding bytes ([add]) may be interleaved freely.
 ///
 /// While a stream is being added using [addStream], any further attempts
@@ -34,7 +42,7 @@ abstract interface class IOSink implements StreamSink<List<int>>, StringSink {
   /// The [encoding] does not apply to this method, and the [data] list is passed
   /// directly to the target consumer as a stream event.
   ///
-  /// This function must not be called when a stream is currently being added
+  /// This method must not be called when a stream is currently being added
   /// using [addStream].
   ///
   /// This operation is non-blocking. See [flush] or [done] for how to get any
@@ -43,6 +51,10 @@ abstract interface class IOSink implements StreamSink<List<int>>, StringSink {
   /// The data list should not be modified after it has been passed to `add`
   /// because it is not defined whether the target consumer will receive the
   /// list in the original or modified state.
+  ///
+  /// Individual values in [data] which are not in the range 0 .. 255 will be
+  /// truncated to their low eight bits, as if by [int.toUnsigned], before being
+  /// used.
   void add(List<int> data);
 
   /// Converts [object] to a String by invoking [Object.toString] and
@@ -78,7 +90,7 @@ abstract interface class IOSink implements StreamSink<List<int>>, StringSink {
 
   /// Passes the error to the target consumer as an error event.
   ///
-  /// This function must not be called when a stream is currently being added
+  /// This method must not be called when a stream is currently being added
   /// using [addStream].
   ///
   /// This operation is non-blocking. See [flush] or [done] for how to get any
@@ -93,8 +105,12 @@ abstract interface class IOSink implements StreamSink<List<int>>, StringSink {
   /// If the stream contains an error, the `addStream` ends at the error,
   /// and the returned future completes with that error.
   ///
-  /// This function must not be called when a stream is currently being added
-  /// using this function.
+  /// This method must not be called when a stream is currently being added
+  /// using this method.
+  ///
+  /// Individual values in the lists emitted by [stream] which are not in the
+  /// range 0 .. 255 will be truncated to their low eight bits, as if by
+  /// [int.toUnsigned], before being used.
   Future addStream(Stream<List<int>> stream);
 
   /// Returns a [Future] that completes once all buffered data is accepted by the

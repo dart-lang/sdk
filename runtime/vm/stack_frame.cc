@@ -154,7 +154,7 @@ bool StackFrame::IsStubFrame() const {
   ASSERT(!(IsEntryFrame() || IsExitFrame()));
 #if !defined(DART_HOST_OS_WINDOWS) && !defined(DART_HOST_OS_FUCHSIA)
   // On Windows and Fuchsia, the profiler calls this from a separate thread
-  // where Thread::Current() is NULL, so we cannot create a NoSafepointScope.
+  // where Thread::Current() is nullptr, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;
 #endif
 
@@ -178,7 +178,7 @@ const char* StackFrame::ToCString() const {
 }
 
 void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(visitor != NULL);
+  ASSERT(visitor != nullptr);
   // Visit pc marker and saved pool pointer.
   ObjectPtr* last_fixed = reinterpret_cast<ObjectPtr*>(fp()) +
                           runtime_frame_layout.first_object_from_fp;
@@ -193,7 +193,7 @@ void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(visitor != NULL);
+  ASSERT(visitor != nullptr);
   // Visit objects between SP and (FP - callee_save_area).
   ObjectPtr* first = reinterpret_cast<ObjectPtr*>(sp());
   ObjectPtr* last =
@@ -203,7 +203,7 @@ void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(visitor != NULL);
+  ASSERT(visitor != nullptr);
   // NOTE: This code runs while GC is in progress and runs within
   // a NoHandleScope block. Hence it is not ok to use regular Zone or
   // Scope handles. We use direct stack handles, the raw pointers in
@@ -338,7 +338,7 @@ CodePtr StackFrame::LookupDartCode() const {
 // that the code is called while a GC is in progress, that is ok.
 #if !defined(DART_HOST_OS_WINDOWS) && !defined(DART_HOST_OS_FUCHSIA)
   // On Windows and Fuchsia, the profiler calls this from a separate thread
-  // where Thread::Current() is NULL, so we cannot create a NoSafepointScope.
+  // where Thread::Current() is nullptr, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;
 #endif
   CodePtr code = GetCodeObject();
@@ -388,7 +388,7 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
   *is_optimized = code.is_optimized();
   HandlerInfoCache* cache = thread->isolate()->handler_info_cache();
   ExceptionHandlerInfo* info = cache->Lookup(pc());
-  if (info != NULL) {
+  if (info != nullptr) {
     *handler_pc = start + info->handler_pc_offset;
     *needs_stacktrace = (info->needs_stacktrace != 0);
     *has_catch_all = (info->has_catch_all != 0);
@@ -462,7 +462,7 @@ void StackFrame::DumpCurrentTrace() {
 }
 
 void StackFrameIterator::SetupLastExitFrameData() {
-  ASSERT(thread_ != NULL);
+  ASSERT(thread_ != nullptr);
   uword exit_marker = thread_->top_exit_frame_info();
   frames_.fp_ = exit_marker;
   frames_.sp_ = 0;
@@ -487,7 +487,7 @@ StackFrameIterator::StackFrameIterator(ValidationPolicy validation_policy,
       entry_(thread),
       exit_(thread),
       frames_(thread),
-      current_frame_(NULL),
+      current_frame_(nullptr),
       thread_(thread) {
   ASSERT(cross_thread_policy == kAllowCrossThreadIteration ||
          thread_ == Thread::Current());
@@ -502,7 +502,7 @@ StackFrameIterator::StackFrameIterator(uword last_fp,
       entry_(thread),
       exit_(thread),
       frames_(thread),
-      current_frame_(NULL),
+      current_frame_(nullptr),
       thread_(thread) {
   ASSERT(cross_thread_policy == kAllowCrossThreadIteration ||
          thread_ == Thread::Current());
@@ -522,7 +522,7 @@ StackFrameIterator::StackFrameIterator(uword fp,
       entry_(thread),
       exit_(thread),
       frames_(thread),
-      current_frame_(NULL),
+      current_frame_(nullptr),
       thread_(thread) {
   ASSERT(cross_thread_policy == kAllowCrossThreadIteration ||
          thread_ == Thread::Current());
@@ -547,20 +547,20 @@ StackFrameIterator::StackFrameIterator(const StackFrameIterator& orig)
 
 StackFrame* StackFrameIterator::NextFrame() {
   // When we are at the start of iteration after having created an
-  // iterator object, current_frame_ will be NULL as we haven't seen
+  // iterator object, current_frame_ will be nullptr as we haven't seen
   // any frames yet (unless we start iterating in the simulator from a given
   // triplet of fp, sp, and pc). At this point, if NextFrame is called, it tries
   // to set up the next exit frame by reading the top_exit_frame_info
   // from the isolate. If we do not have any dart invocations yet,
-  // top_exit_frame_info will be 0 and so we would return NULL.
+  // top_exit_frame_info will be 0 and so we would return nullptr.
 
-  // current_frame_ will also be NULL, when we are at the end of having
+  // current_frame_ will also be nullptr, when we are at the end of having
   // iterated through all the frames. If NextFrame is called at this
   // point, we will try and set up the next exit frame, but since we are
-  // at the end of the iteration, fp_ will be 0 and we would return NULL.
-  if (current_frame_ == NULL) {
+  // at the end of the iteration, fp_ will be 0 and we would return nullptr.
+  if (current_frame_ == nullptr) {
     if (!HasNextFrame()) {
-      return NULL;
+      return nullptr;
     }
     if (frames_.pc_ == 0) {
       // Iteration starts from an exit frame given by its fp.
@@ -582,7 +582,7 @@ StackFrame* StackFrameIterator::NextFrame() {
       current_frame_ = NextExitFrame();
       return current_frame_;
     }
-    current_frame_ = NULL;  // No more frames.
+    current_frame_ = nullptr;  // No more frames.
     return current_frame_;
   }
   ASSERT(!validate_ || current_frame_->IsExitFrame() ||
@@ -747,7 +747,7 @@ void ValidateFrames() {
                             Thread::Current(),
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
-  while (frame != NULL) {
+  while (frame != nullptr) {
     frame = frames.NextFrame();
   }
 }

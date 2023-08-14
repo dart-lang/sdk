@@ -71,12 +71,8 @@ class DartTypeNodeWriter
   @override
   void visitNeverType(
       ir.NeverType node, List<ir.TypeParameter> functionTypeVariables) {
-    if (node == const DoesNotCompleteType()) {
-      _sink.writeEnum(DartTypeNodeKind.doesNotComplete);
-    } else {
-      _sink.writeEnum(DartTypeNodeKind.neverType);
-      _sink.writeEnum(node.nullability);
-    }
+    _sink.writeEnum(DartTypeNodeKind.neverType);
+    _sink.writeEnum(node.nullability);
   }
 
   @override

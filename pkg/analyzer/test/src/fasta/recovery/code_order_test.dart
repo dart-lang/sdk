@@ -210,6 +210,7 @@ part 'foo.dart';
       endToken: unit.endToken,
       featureSet: unit.featureSet,
       lineInfo: unit.lineInfo,
+      invalidNodes: [],
     );
   }
 

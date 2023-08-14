@@ -110,17 +110,6 @@ void testMemberCloning() {
             "${constructor.function.body}");
   }
 
-  void testRedirectingFactories(
-      Iterable<RedirectingFactory> redirectingFactory) {
-    testMembers<RedirectingFactory>(
-        redirectingFactory,
-        (cloner, redirectingFactory) =>
-            cloner.cloneRedirectingFactory(redirectingFactory, null),
-        (redirectingFactory) =>
-            "${redirectingFactory.runtimeType}(${redirectingFactory.name}):"
-            "${redirectingFactory.function.body}");
-  }
-
   for (Library library in component.libraries) {
     testProcedures(library.procedures);
     testFields(library.fields);
@@ -128,7 +117,6 @@ void testMemberCloning() {
       testProcedures(cls.procedures);
       testFields(cls.fields);
       testConstructors(cls.constructors);
-      testRedirectingFactories(cls.redirectingFactories);
     }
   }
   Expect.isEmpty(
@@ -183,16 +171,6 @@ class MemberEquivalenceStrategy extends EquivalenceStrategy {
           visitor, node, node.reference, other, other.reference);
     }
     return super.checkConstructor(visitor, node, other);
-  }
-
-  @override
-  bool checkRedirectingFactory(
-      EquivalenceVisitor visitor, RedirectingFactory? node, Object? other) {
-    if (node is RedirectingFactory && other is RedirectingFactory) {
-      assumeClonedReferences(
-          visitor, node, node.reference, other, other.reference);
-    }
-    return super.checkRedirectingFactory(visitor, node, other);
   }
 
   @override

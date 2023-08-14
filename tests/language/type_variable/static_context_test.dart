@@ -6,9 +6,16 @@
 
 class A<T> {
   static int method() {
+  //         ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.BODY_MIGHT_COMPLETE_NORMALLY
+  // [cfe] A non-null value must be returned since the return type 'int' doesn't allow null.
+
     // error, can't reference a type variable in a static context
-    var foo =
-        new T(); /*@compile-error=unspecified*/
+    var foo = new T();
+    //            ^
+    // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    // [cfe] Couldn't find constructor 'T'.
   }
 }
 

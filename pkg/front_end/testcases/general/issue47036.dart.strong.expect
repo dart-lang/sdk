@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -9,29 +9,25 @@ class Default extends core::Object /*hasConstConstructor*/  {
     ;
 }
 class Settings extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
-  static factory •({@#C3 self::Sidebar sidebar = #C2}) → self::Settings
+  static factory •({@#C2 self::Sidebar sidebar = #C1}) → self::Settings /* redirection-target: self::_SSettings::• */
     return self::_SSettings::•(sidebar: sidebar);
 }
 class Sidebar extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C4]/*isLegacy*/;
-  static factory •() → self::Sidebar
+  static factory •() → self::Sidebar /* redirection-target: self::_SSidebar::• */
     return self::_SSidebar::•();
 }
 abstract class _SSettings extends core::Object implements self::Settings {
-  static final field dynamic _redirecting# = <dynamic>[#C5]/*isLegacy*/;
-  static factory •({self::Sidebar sidebar = #C2}) → self::_SSettings
+  static factory •({self::Sidebar sidebar = #C1}) → self::_SSettings /* redirection-target: self::_$_SSettings::• */
     return new self::_$_SSettings::•(sidebar: sidebar);
 }
 class _$_SSettings extends core::Object implements self::_SSettings /*hasConstConstructor*/  {
   final field self::Sidebar sidebar;
-  const constructor •({self::Sidebar sidebar = #C2}) → self::_$_SSettings
+  const constructor •({self::Sidebar sidebar = #C1}) → self::_$_SSettings
     : self::_$_SSettings::sidebar = sidebar, super core::Object::•()
     ;
 }
 abstract class _SSidebar extends core::Object implements self::Sidebar {
-  static final field dynamic _redirecting# = <dynamic>[#C6]/*isLegacy*/;
-  static factory •() → self::_SSidebar
+  static factory •() → self::_SSidebar /* redirection-target: self::_$_SSidebar::• */
     return new self::_$_SSidebar::•();
 }
 class _$_SSidebar extends core::Object implements self::_SSidebar /*hasConstConstructor*/  {
@@ -42,12 +38,8 @@ class _$_SSidebar extends core::Object implements self::_SSidebar /*hasConstCons
 static method main() → void {}
 
 constants  {
-  #C1 = constructor-tearoff self::Settings::•
-  #C2 = self::_$_SSidebar {}
-  #C3 = self::Default {defaultValue:#C2}
-  #C4 = constructor-tearoff self::Sidebar::•
-  #C5 = constructor-tearoff self::_SSettings::•
-  #C6 = constructor-tearoff self::_SSidebar::•
+  #C1 = self::_$_SSidebar {}
+  #C2 = self::Default {defaultValue:#C1}
 }
 
 

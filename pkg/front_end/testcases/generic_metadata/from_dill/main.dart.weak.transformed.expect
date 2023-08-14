@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "main_lib.dart" as mai;
 import "dart:core" as core;
@@ -20,7 +20,7 @@ static method main() → dynamic {
   mai::C6<<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%> c12 = new mai::C6::•<<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S%, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%>();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 

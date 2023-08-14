@@ -70,12 +70,12 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   @override
   Future<List<Either2<CodeAction, Command>>> getSourceActions() async => [];
 
-  CodeActionWithPriority _convertAssist(
-          plugin.PrioritizedSourceChange assist) =>
-      CodeActionWithPriority(
-        createAssistAction(assist.change, path, lineInfo),
-        assist.priority,
-      );
+  CodeActionWithPriority _convertAssist(plugin.PrioritizedSourceChange assist) {
+    return (
+      action: createAssistAction(assist.change, path, lineInfo),
+      priority: assist.priority,
+    );
+  }
 
   Iterable<CodeActionWithPriority> _convertFixes(
       plugin.AnalysisErrorFixes fixes) {
@@ -86,9 +86,9 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
       clientSupportsCodeDescription: supportsCodeDescription,
     );
     return fixes.fixes.map(
-      (fix) => CodeActionWithPriority(
-        createFixAction(fix.change, diagnostic, path, lineInfo),
-        fix.priority,
+      (fix) => (
+        action: createFixAction(fix.change, diagnostic, path, lineInfo),
+        priority: fix.priority,
       ),
     );
   }

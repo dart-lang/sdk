@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -77,9 +77,9 @@ extension Extension on self::Class2 {
   operator [] = self::Extension|[];
   operator []= = self::Extension|[]=;
 }
-static method Extension|[](lowered final self::Class2 #this, core::int index) → core::int
+static extension-member method Extension|[](lowered final self::Class2 #this, core::int index) → core::int
   return #this.{self::Class2::field}{core::int};
-static method Extension|[]=(lowered final self::Class2 #this, core::int index, core::int value) → void {
+static extension-member method Extension|[]=(lowered final self::Class2 #this, core::int index, core::int value) → void {
   #this.{self::Class2::field} = value;
 }
 static method main() → dynamic {

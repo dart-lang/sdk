@@ -6,7 +6,7 @@
 #define RUNTIME_VM_VIRTUAL_MEMORY_COMPRESSED_H_
 
 #include "vm/globals.h"
-#include "vm/heap/pages.h"
+#include "vm/heap/page.h"
 #include "vm/memory_region.h"
 
 namespace dart {

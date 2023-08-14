@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/legacy_analysis_server.dart';
-import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_server_base.dart';
 import '../services/completion/dart/completion_check.dart';
-import '../services/completion/dart/completion_contributor_util.dart';
 import '../services/completion/dart/completion_printer.dart' as printer;
 import '../services/completion/dart/text_expectations.dart';
 import 'impl/completion_driver.dart';
@@ -23,6 +20,8 @@ void main() {
     defineReflectiveTests(CompletionWithSuggestionsTest2);
   });
 }
+
+typedef SuggestionMatcher = bool Function(CompletionSuggestion suggestion);
 
 abstract class AbstractCompletionDriverTest
     extends PubPackageAnalysisServerTest {
@@ -50,8 +49,16 @@ abstract class AbstractCompletionDriverTest
   late printer.Configuration printerConfiguration;
 
   /// A set of identifiers that will be included in the printed version of the
-  /// selections. Individual tests can replace the default set.
+  /// suggestions. Individual tests can replace the default set.
   Set<String> allowedIdentifiers = const {};
+
+  /// A set of completion kinds that should be included in the printed version
+  /// of the suggestions. Individual tests can replace the default set.
+  Set<CompletionSuggestionKind> allowedKinds = {};
+
+  /// Return `true` if closures (suggestions starting with a left paren) should
+  /// be included in the text to be compared.
+  bool get includeClosures => false;
 
   /// Return `true` if keywords should be included in the text to be compared.
   bool get includeKeywords => true;
@@ -60,22 +67,26 @@ abstract class AbstractCompletionDriverTest
     return protocol == TestingCompletionProtocol.version1;
   }
 
+  // ignore:unreachable_from_main
   bool get isProtocolVersion2 {
     return protocol == TestingCompletionProtocol.version2;
   }
 
   TestingCompletionProtocol get protocol;
 
-  AnalysisServerOptions get serverOptions => AnalysisServerOptions();
-
   @override
   Future<List<CompletionSuggestion>> addTestFile(String content,
       {int? offset}) async {
     driver.addTestFile(content, offset: offset);
-    await getSuggestions();
+
+    // Wait after adding the test file, this might affect diagnostics.
+    await pumpEventQueue(times: 1000);
+
     // For sanity, ensure that there are no errors recorded for project files
     // since that may lead to unexpected results.
     _assertNoErrorsInProjectFiles();
+
+    await getSuggestions();
     return suggestions;
   }
 
@@ -144,6 +155,7 @@ $actual
   }
 
   /// TODO(scheglov) Use it everywhere instead of [addTestFile].
+  // ignore:unreachable_from_main
   Future<void> computeSuggestions(
     String content,
   ) async {
@@ -170,21 +182,10 @@ $actual
     switch (protocol) {
       case TestingCompletionProtocol.version1:
         suggestions = await driver.getSuggestions();
-        break;
       case TestingCompletionProtocol.version2:
         suggestions = await driver.getSuggestions2();
-        break;
     }
     return suggestions;
-  }
-
-  /// Display sorted suggestions.
-  void printSuggestions() {
-    suggestions.sort(completionComparator);
-    for (var s in suggestions) {
-      print(
-          '[${s.relevance}] ${s.completion} • ${s.element?.kind.name ?? ""} ${s.kind.name} ${s.element?.location?.file ?? ""}');
-    }
   }
 
   @override
@@ -209,10 +210,19 @@ name: test
         if (kind == CompletionSuggestionKind.IDENTIFIER ||
             kind == CompletionSuggestionKind.INVOCATION) {
           var completion = suggestion.completion;
+          if (includeClosures && completion.startsWith('(')) {
+            return true;
+          }
+          var periodIndex = completion.indexOf('.');
+          if (periodIndex > 0) {
+            completion = completion.substring(0, periodIndex);
+          }
           return RegExp(r'^_?[a-zA-Z][0-9]+$').hasMatch(completion) ||
               allowedIdentifiers.contains(completion);
         } else if (kind == CompletionSuggestionKind.KEYWORD) {
           return includeKeywords;
+        } else if (allowedKinds.contains(kind)) {
+          return true;
         }
         return true;
       },

@@ -71,7 +71,13 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
 
         final SyntacticEntity originEntity;
         DartType? type;
-        if (node is VariableDeclaration) {
+        if (node is NamedType) {
+          originEntity = node.name2;
+          final element = node.element;
+          if (element is InterfaceElement) {
+            type = element.thisType;
+          }
+        } else if (node is VariableDeclaration) {
           originEntity = node.name;
           type = node.declaredElement?.type;
         } else if (node is Expression) {

@@ -84,6 +84,9 @@ void VirtualMemory::Init() {
 void VirtualMemory::Cleanup() {
 #if defined(DART_COMPRESSED_POINTERS)
   delete compressed_heap_;
+#endif  // defined(DART_COMPRESSED_POINTERS)
+  page_size_ = 0;
+#if defined(DART_COMPRESSED_POINTERS)
   compressed_heap_ = nullptr;
   VirtualMemoryCompressedHeap::Cleanup();
 #endif  // defined(DART_COMPRESSED_POINTERS)
@@ -209,7 +212,7 @@ bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
-  ASSERT(thread == nullptr || thread->IsMutatorThread() ||
+  ASSERT(thread == nullptr || thread->IsDartMutatorThread() ||
          thread->isolate() == nullptr ||
          thread->isolate()->mutator_thread()->IsAtSafepoint());
 #endif

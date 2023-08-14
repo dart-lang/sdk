@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -23,10 +23,10 @@ import "dart:core" as core;
 static field core::int intValue = 0;
 static field core::num numValue = 0;
 static field core::double doubleValue = 0.0;
-static field invalid-type a = () → core::num => self::intValue.{core::num::+}(self::b as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+static field invalid-type a = () → core::num => self::intValue.{core::num::+}(self::b as{TypeError,ForDynamic} core::num){(core::num) → core::num};
 static field dynamic b = self::a{dynamic}.call();
-static field invalid-type c = () → core::num => self::numValue.{core::num::+}(self::d as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+static field invalid-type c = () → core::num => self::numValue.{core::num::+}(self::d as{TypeError,ForDynamic} core::num){(core::num) → core::num};
 static field dynamic d = self::c{dynamic}.call();
-static field invalid-type e = () → core::double => self::doubleValue.{core::double::+}(self::f as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::double};
+static field invalid-type e = () → core::double => self::doubleValue.{core::double::+}(self::f as{TypeError,ForDynamic} core::num){(core::num) → core::double};
 static field dynamic f = self::e{dynamic}.call();
 static method main() → dynamic {}

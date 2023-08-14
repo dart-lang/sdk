@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ConvertToCascade extends CorrectionProducer {
+class ConvertToCascade extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_CASCADE;
 

@@ -1,15 +1,14 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 import "package:expect/expect.dart";
 
 class A extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[self::A::•]/*isLegacy*/;
   const constructor empty() → self::A
     : super core::Object::•()
     ;
-  static factory •() → self::A
+  static factory •() → self::A /* redirection-target: self::B::•<core::String>*/
     return new self::B::•<core::String>();
 }
 class B<T extends core::Object? = dynamic> extends self::A /*hasConstConstructor*/  {
@@ -21,8 +20,3 @@ class B<T extends core::Object? = dynamic> extends self::A /*hasConstConstructor
 }
 static method main() → void
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirection_type_arguments.dart:10:7 -> ConstructorTearOffConstant(A.)
-Extra constant evaluation: evaluated: 3, effectively constant: 1

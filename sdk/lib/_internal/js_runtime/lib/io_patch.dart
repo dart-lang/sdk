@@ -269,11 +269,6 @@ class _Platform {
   }
 
   @patch
-  static String _packageRoot() {
-    throw new UnsupportedError("Platform._packageRoot");
-  }
-
-  @patch
   static String _packageConfig() {
     throw new UnsupportedError("Platform._packageConfig");
   }

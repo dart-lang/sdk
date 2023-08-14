@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -113,33 +113,33 @@ static set lateTopLevelField1(core::int? lateTopLevelField1#param) → void {
   self::_#lateTopLevelField1#isSet = true;
   self::_#lateTopLevelField1 = lateTopLevelField1#param;
 }
-static method Extension|lateExtensionField1Init() → core::int?
+static extension-member method Extension|lateExtensionField1Init() → core::int?
   return 87;
-static get Extension|lateExtensionField1() → core::int? {
+static extension-member get Extension|lateExtensionField1() → core::int? {
   if(!self::_#Extension|lateExtensionField1#isSet) {
     self::_#Extension|lateExtensionField1 = self::Extension|lateExtensionField1Init();
     self::_#Extension|lateExtensionField1#isSet = true;
   }
   return self::_#Extension|lateExtensionField1;
 }
-static set Extension|lateExtensionField1(core::int? lateExtensionField1#param) → void {
+static extension-member set Extension|lateExtensionField1(core::int? lateExtensionField1#param) → void {
   self::_#Extension|lateExtensionField1#isSet = true;
   self::_#Extension|lateExtensionField1 = lateExtensionField1#param;
 }
-static method Extension|lateExtensionField2Init() → core::int?
+static extension-member method Extension|lateExtensionField2Init() → core::int?
   return 42;
-static get Extension|lateExtensionField2() → core::int? {
+static extension-member get Extension|lateExtensionField2() → core::int? {
   if(!self::_#Extension|lateExtensionField2#isSet) {
     self::_#Extension|lateExtensionField2 = self::Extension|lateExtensionField2Init();
     self::_#Extension|lateExtensionField2#isSet = true;
   }
   return self::_#Extension|lateExtensionField2;
 }
-static set Extension|lateExtensionField2(core::int? lateExtensionField2#param) → void {
+static extension-member set Extension|lateExtensionField2(core::int? lateExtensionField2#param) → void {
   self::_#Extension|lateExtensionField2#isSet = true;
   self::_#Extension|lateExtensionField2 = lateExtensionField2#param;
 }
-static method Extension|staticMethod() → dynamic {
+static extension-member method Extension|staticMethod() → dynamic {
   self::expect(42, self::Extension|lateExtensionField2);
   self::Extension|lateExtensionField2 = 43;
   self::expect(43, self::Extension|lateExtensionField2);

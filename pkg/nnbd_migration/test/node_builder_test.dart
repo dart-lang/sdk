@@ -1084,7 +1084,7 @@ typedef F();
 ''');
     var decoratedType = variables
         .decoratedElementType(findElement.typeAlias('F').aliasedElement!);
-    expect(decoratedType.returnType!.type!.isDynamic, isTrue);
+    expect(decoratedType.returnType!.type is DynamicType, isTrue);
     expect(decoratedType.returnType!.node.isImmutable, false);
     expect(decoratedType.typeFormals, isEmpty);
   }
@@ -1347,7 +1347,7 @@ typedef F = Function();
         .decoratedElementType(findElement.typeAlias('F').aliasedElement!);
     expect(decoratedType,
         same(decoratedGenericFunctionTypeAnnotation('Function')));
-    expect(decoratedType.returnType!.type!.isDynamic, isTrue);
+    expect(decoratedType.returnType!.type is DynamicType, isTrue);
     expect(decoratedType.returnType!.node.isImmutable, false);
     expect(decoratedType.typeFormals, isEmpty);
   }
@@ -1808,7 +1808,7 @@ void f(x) {}
         findNode.simpleFormalParameter('x').declaredElement!);
     expect(decoratedFunctionType('f').positionalParameters![0],
         same(decoratedType));
-    expect(decoratedType.type!.isDynamic, isTrue);
+    expect(decoratedType.type is DynamicType, isTrue);
   }
 
   Future<void> test_topLevelFunction_parameterType_named_no_default() async {
@@ -1897,7 +1897,7 @@ void f(int i) {}
 f() {}
 ''');
     var decoratedType = decoratedFunctionType('f').returnType!;
-    expect(decoratedType.type!.isDynamic, isTrue);
+    expect(decoratedType.type is DynamicType, isTrue);
   }
 
   Future<void> test_topLevelFunction_returnType_simple() async {

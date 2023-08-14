@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -39,25 +39,25 @@ extension IntClassExtension on self::IntClass {
   tearoff testImplicitProperties = self::IntClassExtension|get#testImplicitProperties;
   set property = self::IntClassExtension|set#property;
 }
-static method NumberExtension|+(lowered final self::Number #this, core::Object other) → self::Number
+static extension-member method NumberExtension|+(lowered final self::Number #this, core::Object other) → self::Number
   ;
-static method NumberExtension|-(lowered final self::Number #this, core::Object other) → self::Number
+static extension-member method NumberExtension|-(lowered final self::Number #this, core::Object other) → self::Number
   ;
-static method ClassExtension|get#property(lowered final self::Class #this) → self::Number
+static extension-member method ClassExtension|get#property(lowered final self::Class #this) → self::Number
   ;
-static method ClassExtension|set#property(lowered final self::Class #this, self::Number value) → void
+static extension-member method ClassExtension|set#property(lowered final self::Class #this, self::Number value) → void
   ;
-static method ClassExtension|testImplicitProperties(lowered final self::Class #this) → dynamic
+static extension-member method ClassExtension|testImplicitProperties(lowered final self::Class #this) → dynamic
   ;
-static method ClassExtension|get#testImplicitProperties(lowered final self::Class #this) → () → dynamic
+static extension-member method ClassExtension|get#testImplicitProperties(lowered final self::Class #this) → () → dynamic
   return () → dynamic => self::ClassExtension|testImplicitProperties(#this);
-static method IntClassExtension|get#property(lowered final self::IntClass #this) → core::int
+static extension-member method IntClassExtension|get#property(lowered final self::IntClass #this) → core::int
   ;
-static method IntClassExtension|set#property(lowered final self::IntClass #this, core::int value) → void
+static extension-member method IntClassExtension|set#property(lowered final self::IntClass #this, core::int value) → void
   ;
-static method IntClassExtension|testImplicitProperties(lowered final self::IntClass #this) → dynamic
+static extension-member method IntClassExtension|testImplicitProperties(lowered final self::IntClass #this) → dynamic
   ;
-static method IntClassExtension|get#testImplicitProperties(lowered final self::IntClass #this) → () → dynamic
+static extension-member method IntClassExtension|get#testImplicitProperties(lowered final self::IntClass #this) → () → dynamic
   return () → dynamic => self::IntClassExtension|testImplicitProperties(#this);
 static method main() → dynamic
   ;

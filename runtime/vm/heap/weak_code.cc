@@ -11,7 +11,6 @@
 #include "vm/object.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
-#include "vm/thread_registry.h"
 
 namespace dart {
 
@@ -59,6 +58,9 @@ void WeakCodeReferences::DisableCode(bool are_mutators_stopped) {
     isolate_group->ForEachIsolate(
         [&](Isolate* isolate) {
           auto mutator_thread = isolate->mutator_thread();
+          if (mutator_thread == nullptr) {
+            return;
+          }
           DartFrameIterator iterator(
               mutator_thread, StackFrameIterator::kAllowCrossThreadIteration);
           StackFrame* frame = iterator.NextFrame();

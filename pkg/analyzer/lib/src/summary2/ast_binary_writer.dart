@@ -230,10 +230,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitExtensionOverride(ExtensionOverride node) {
     _writeByte(Tag.ExtensionOverride);
 
-    _writeNode(node.extensionName);
+    _writeOptionalNode(node.importPrefix);
+    _writeStringReference(node.name.lexeme);
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
 
+    _sink.writeElement(node.element);
     _sink.writeType(node.extendedType);
 
     // TODO(scheglov) typeArgumentTypes?
@@ -341,7 +343,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitIfElement(IfElement node) {
     _writeByte(Tag.IfElement);
-    _writeNode(node.condition);
+    _writeNode(node.expression);
     _writeNode(node.thenElement);
     _writeOptionalNode(node.elseElement);
   }
@@ -356,6 +358,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _sink.writeElement(node.staticElement);
 
     _storeExpression(node);
+  }
+
+  @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    _writeByte(Tag.ImportPrefixReference);
+    _writeStringReference(node.name.lexeme);
+    _sink.writeElement(node.element);
   }
 
   @override
@@ -523,9 +532,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       ),
     );
 
-    _writeNode(node.name);
+    _writeOptionalNode(node.importPrefix);
+    _writeStringReference(node.name2.lexeme);
     _writeOptionalNode(node.typeArguments);
 
+    _sink.writeElement(node.element);
     _sink.writeType(node.type);
   }
 

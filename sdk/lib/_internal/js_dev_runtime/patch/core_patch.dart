@@ -321,12 +321,12 @@ abstract class num implements Comparable<num> {
 class Error {
   @patch
   static String _objectToString(Object object) {
-    return "Instance of '${dart.typeName(dart.getReifiedType(object))}'";
+    return Primitives.safeToString(object);
   }
 
   @patch
   static String _stringToSafeString(String string) {
-    return JS("String", "JSON.stringify(#)", string);
+    return Primitives.stringSafeToString(string);
   }
 
   @patch
@@ -819,7 +819,6 @@ class NoSuchMethodError {
   final Map<Symbol, dynamic>? _namedArguments;
   final Invocation? _invocation;
 
-  @patch
   NoSuchMethodError(Object? receiver, Symbol memberName,
       List? positionalArguments, Map<Symbol, dynamic>? namedArguments)
       : _receiver = receiver,

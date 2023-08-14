@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -88,7 +88,7 @@ static method test<T1 extends core::Function, T2 extends () → core::int>(self:
   core::Function f1 = let final self::Class2<core::String> #t5 = nonNullableClass2 in #t5 == null ?{() → core::int} null : #t5.{self::Class2::call}{() → core::int};
   core::Function? f2 = invalid-expression "pkg/front_end/testcases/none/property_get.dart:67:18: Error: Can't tear off method 'call' from a potentially null value.
   Function? f2 = nullableClass2;
-                 ^" in nullableClass2 as{TypeError} core::Function?;
+                 ^" in nullableClass2 as{TypeError,ForLegacy} core::Function?;
   core::print("StaticGet");
   self::Class1::staticField;
   self::topLevelField;

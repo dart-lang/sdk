@@ -35,8 +35,8 @@ String computeMemberName(ir.Member member) {
   // This should mostly be empty except when serializing the name of nSM
   // forwarders (see dartbug.com/33732).
   String libraryPrefix = member.name.isPrivate &&
-          member.name.libraryName != member.enclosingLibrary.reference
-      ? '${member.name.libraryName?.canonicalName?.name}:'
+          member.name.libraryReference != member.enclosingLibrary.reference
+      ? '${member.name.libraryReference?.canonicalName?.name}:'
       : '';
   String name = member.name.text;
   if (member is ir.Constructor) {

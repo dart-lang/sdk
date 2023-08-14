@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -555,500 +555,500 @@ static method add<X extends core::num, Y extends core::int, Z extends core::doub
   core::num n_n = n.{core::num::+}(self::f<core::num>()){(core::num) → core::num};
   core::int n_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:10:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int n_i = n + f();
-              ^" in n.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in n.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError} core::int;
   core::double n_d = n.{core::num::+}(self::f<core::double>()){(core::num) → core::double};
   self::add::X n_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:12:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X n_x = n + f();
-            ^" in n.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::add::Y n_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:13:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y n_y = n + f();
-            ^" in n.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::add::Z n_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:14:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z n_z = n + f();
-            ^" in n.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num i_n = i.{core::num::+}(self::f<core::num>()){(core::num) → core::num};
   core::int i_i = i.{core::num::+}(self::f<core::int>()){(core::num) → core::int};
   core::double i_d = i.{core::num::+}(self::f<core::double>()){(core::num) → core::double};
   self::add::X i_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:19:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X i_x = i + f();
-            ^" in i.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::add::Y i_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:20:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y i_y = i + f();
-            ^" in i.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::add::Z i_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:21:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z i_z = i + f();
-            ^" in i.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num d_n = d.{core::double::+}(self::f<core::num>()){(core::num) → core::double};
   core::int d_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:24:15: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
   int d_i = d + f();
-              ^" in d.{core::double::+}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in d.{core::double::+}(self::f<core::num>()){(core::num) → core::double} as{TypeError} core::int;
   core::double d_d = d.{core::double::+}(self::f<core::num>()){(core::num) → core::double};
   self::add::X d_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:26:13: Error: A value of type 'double' can't be assigned to a variable of type 'X'.
   X d_x = d + f();
-            ^" in d.{core::double::+}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::double::+}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::add::Y d_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:27:13: Error: A value of type 'double' can't be assigned to a variable of type 'Y'.
   Y d_y = d + f();
-            ^" in d.{core::double::+}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::double::+}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::add::Z d_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:28:13: Error: A value of type 'double' can't be assigned to a variable of type 'Z'.
   Z d_z = d + f();
-            ^" in d.{core::double::+}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::double::+}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   core::num x_n = x.{core::num::+}(self::f<core::num>()){(core::num) → core::num};
   core::int x_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:31:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int x_i = x + f();
-              ^" in x.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in x.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError} core::int;
   core::double x_d = x.{core::num::+}(self::f<core::double>()){(core::num) → core::double};
   self::add::X x_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:33:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X x_x = x + f();
-            ^" in x.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::add::Y x_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:34:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y x_y = x + f();
-            ^" in x.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::add::Z x_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:35:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z x_z = x + f();
-            ^" in x.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num y_n = y.{core::num::+}(self::f<core::num>()){(core::num) → core::num};
   core::int y_i = y.{core::num::+}(self::f<core::int>()){(core::num) → core::int};
   core::double y_d = y.{core::num::+}(self::f<core::double>()){(core::num) → core::double};
   self::add::X y_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:40:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X y_x = y + f();
-            ^" in y.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::add::Y y_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:41:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y y_y = y + f();
-            ^" in y.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::add::Z y_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:42:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z y_z = y + f();
-            ^" in y.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::+}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num z_n = z.{core::double::+}(self::f<core::num>()){(core::num) → core::double};
   core::int z_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:45:15: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
   int z_i = z + f();
-              ^" in z.{core::double::+}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in z.{core::double::+}(self::f<core::num>()){(core::num) → core::double} as{TypeError} core::int;
   core::double z_d = z.{core::double::+}(self::f<core::num>()){(core::num) → core::double};
   self::add::X z_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:47:13: Error: A value of type 'double' can't be assigned to a variable of type 'X'.
   X z_x = z + f();
-            ^" in z.{core::double::+}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::double::+}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::add::Y z_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:48:13: Error: A value of type 'double' can't be assigned to a variable of type 'Y'.
   Y z_y = z + f();
-            ^" in z.{core::double::+}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::double::+}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::add::Z z_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:49:13: Error: A value of type 'double' can't be assigned to a variable of type 'Z'.
   Z z_z = z + f();
-            ^" in z.{core::double::+}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::double::+}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
 }
 static method sub<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::sub::X x, self::sub::Y y, self::sub::Z z) → dynamic {
   core::num n_n = n.{core::num::-}(self::f<core::num>()){(core::num) → core::num};
   core::int n_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:55:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int n_i = n - f();
-              ^" in n.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in n.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError} core::int;
   core::double n_d = n.{core::num::-}(self::f<core::double>()){(core::num) → core::double};
   self::sub::X n_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:57:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X n_x = n - f();
-            ^" in n.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::sub::Y n_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:58:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y n_y = n - f();
-            ^" in n.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::sub::Z n_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:59:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z n_z = n - f();
-            ^" in n.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num i_n = i.{core::num::-}(self::f<core::num>()){(core::num) → core::num};
   core::int i_i = i.{core::num::-}(self::f<core::int>()){(core::num) → core::int};
   core::double i_d = i.{core::num::-}(self::f<core::double>()){(core::num) → core::double};
   self::sub::X i_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:64:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X i_x = i - f();
-            ^" in i.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::sub::Y i_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:65:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y i_y = i - f();
-            ^" in i.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::sub::Z i_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:66:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z i_z = i - f();
-            ^" in i.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num d_n = d.{core::double::-}(self::f<core::num>()){(core::num) → core::double};
   core::int d_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:69:15: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
   int d_i = d - f();
-              ^" in d.{core::double::-}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in d.{core::double::-}(self::f<core::num>()){(core::num) → core::double} as{TypeError} core::int;
   core::double d_d = d.{core::double::-}(self::f<core::num>()){(core::num) → core::double};
   self::sub::X d_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:71:13: Error: A value of type 'double' can't be assigned to a variable of type 'X'.
   X d_x = d - f();
-            ^" in d.{core::double::-}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::double::-}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::sub::Y d_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:72:13: Error: A value of type 'double' can't be assigned to a variable of type 'Y'.
   Y d_y = d - f();
-            ^" in d.{core::double::-}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::double::-}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::sub::Z d_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:73:13: Error: A value of type 'double' can't be assigned to a variable of type 'Z'.
   Z d_z = d - f();
-            ^" in d.{core::double::-}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::double::-}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   core::num x_n = x.{core::num::-}(self::f<core::num>()){(core::num) → core::num};
   core::int x_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:76:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int x_i = x - f();
-              ^" in x.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in x.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError} core::int;
   core::double x_d = x.{core::num::-}(self::f<core::double>()){(core::num) → core::double};
   self::sub::X x_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:78:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X x_x = x - f();
-            ^" in x.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::sub::Y x_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:79:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y x_y = x - f();
-            ^" in x.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::sub::Z x_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:80:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z x_z = x - f();
-            ^" in x.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num y_n = y.{core::num::-}(self::f<core::num>()){(core::num) → core::num};
   core::int y_i = y.{core::num::-}(self::f<core::int>()){(core::num) → core::int};
   core::double y_d = y.{core::num::-}(self::f<core::double>()){(core::num) → core::double};
   self::sub::X y_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:85:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X y_x = y - f();
-            ^" in y.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::sub::Y y_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:86:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y y_y = y - f();
-            ^" in y.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::sub::Z y_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:87:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z y_z = y - f();
-            ^" in y.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::-}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num z_n = z.{core::double::-}(self::f<core::num>()){(core::num) → core::double};
   core::int z_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:90:15: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
   int z_i = z - f();
-              ^" in z.{core::double::-}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in z.{core::double::-}(self::f<core::num>()){(core::num) → core::double} as{TypeError} core::int;
   core::double z_d = z.{core::double::-}(self::f<core::num>()){(core::num) → core::double};
   self::sub::X z_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:92:13: Error: A value of type 'double' can't be assigned to a variable of type 'X'.
   X z_x = z - f();
-            ^" in z.{core::double::-}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::double::-}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::sub::Y z_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:93:13: Error: A value of type 'double' can't be assigned to a variable of type 'Y'.
   Y z_y = z - f();
-            ^" in z.{core::double::-}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::double::-}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::sub::Z z_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:94:13: Error: A value of type 'double' can't be assigned to a variable of type 'Z'.
   Z z_z = z - f();
-            ^" in z.{core::double::-}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::double::-}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
 }
 static method mul<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::mul::X x, self::mul::Y y, self::mul::Z z) → dynamic {
   core::num n_n = n.{core::num::*}(self::f<core::num>()){(core::num) → core::num};
   core::int n_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:100:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int n_i = n * f();
-              ^" in n.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in n.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError} core::int;
   core::double n_d = n.{core::num::*}(self::f<core::double>()){(core::num) → core::double};
   self::mul::X n_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:102:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X n_x = n * f();
-            ^" in n.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::mul::Y n_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:103:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y n_y = n * f();
-            ^" in n.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::mul::Z n_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:104:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z n_z = n * f();
-            ^" in n.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num i_n = i.{core::num::*}(self::f<core::num>()){(core::num) → core::num};
   core::int i_i = i.{core::num::*}(self::f<core::int>()){(core::num) → core::int};
   core::double i_d = i.{core::num::*}(self::f<core::double>()){(core::num) → core::double};
   self::mul::X i_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:109:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X i_x = i * f();
-            ^" in i.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::mul::Y i_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:110:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y i_y = i * f();
-            ^" in i.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::mul::Z i_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:111:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z i_z = i * f();
-            ^" in i.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num d_n = d.{core::double::*}(self::f<core::num>()){(core::num) → core::double};
   core::int d_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:114:15: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
   int d_i = d * f();
-              ^" in d.{core::double::*}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in d.{core::double::*}(self::f<core::num>()){(core::num) → core::double} as{TypeError} core::int;
   core::double d_d = d.{core::double::*}(self::f<core::num>()){(core::num) → core::double};
   self::mul::X d_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:116:13: Error: A value of type 'double' can't be assigned to a variable of type 'X'.
   X d_x = d * f();
-            ^" in d.{core::double::*}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::double::*}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::mul::Y d_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:117:13: Error: A value of type 'double' can't be assigned to a variable of type 'Y'.
   Y d_y = d * f();
-            ^" in d.{core::double::*}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::double::*}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::mul::Z d_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:118:13: Error: A value of type 'double' can't be assigned to a variable of type 'Z'.
   Z d_z = d * f();
-            ^" in d.{core::double::*}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::double::*}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   core::num x_n = x.{core::num::*}(self::f<core::num>()){(core::num) → core::num};
   core::int x_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:121:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int x_i = x * f();
-              ^" in x.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in x.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError} core::int;
   core::double x_d = x.{core::num::*}(self::f<core::double>()){(core::num) → core::double};
   self::mul::X x_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:123:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X x_x = x * f();
-            ^" in x.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::mul::Y x_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:124:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y x_y = x * f();
-            ^" in x.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::mul::Z x_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:125:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z x_z = x * f();
-            ^" in x.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num y_n = y.{core::num::*}(self::f<core::num>()){(core::num) → core::num};
   core::int y_i = y.{core::num::*}(self::f<core::int>()){(core::num) → core::int};
   core::double y_d = y.{core::num::*}(self::f<core::double>()){(core::num) → core::double};
   self::mul::X y_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:130:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X y_x = y * f();
-            ^" in y.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::mul::Y y_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:131:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y y_y = y * f();
-            ^" in y.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::mul::Z y_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:132:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z y_z = y * f();
-            ^" in y.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::*}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num z_n = z.{core::double::*}(self::f<core::num>()){(core::num) → core::double};
   core::int z_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:135:15: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
   int z_i = z * f();
-              ^" in z.{core::double::*}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in z.{core::double::*}(self::f<core::num>()){(core::num) → core::double} as{TypeError} core::int;
   core::double z_d = z.{core::double::*}(self::f<core::num>()){(core::num) → core::double};
   self::mul::X z_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:137:13: Error: A value of type 'double' can't be assigned to a variable of type 'X'.
   X z_x = z * f();
-            ^" in z.{core::double::*}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::double::*}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::mul::Y z_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:138:13: Error: A value of type 'double' can't be assigned to a variable of type 'Y'.
   Y z_y = z * f();
-            ^" in z.{core::double::*}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::double::*}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::mul::Z z_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:139:13: Error: A value of type 'double' can't be assigned to a variable of type 'Z'.
   Z z_z = z * f();
-            ^" in z.{core::double::*}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::double::*}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
 }
 static method mod<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::mod::X x, self::mod::Y y, self::mod::Z z) → dynamic {
   core::num n_n = n.{core::num::%}(self::f<core::num>()){(core::num) → core::num};
   core::int n_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:145:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int n_i = n % f();
-              ^" in n.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in n.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError} core::int;
   core::double n_d = n.{core::num::%}(self::f<core::double>()){(core::num) → core::double};
   self::mod::X n_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:147:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X n_x = n % f();
-            ^" in n.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::mod::Y n_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:148:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y n_y = n % f();
-            ^" in n.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::mod::Z n_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:149:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z n_z = n % f();
-            ^" in n.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num i_n = i.{core::num::%}(self::f<core::num>()){(core::num) → core::num};
   core::int i_i = i.{core::num::%}(self::f<core::int>()){(core::num) → core::int};
   core::double i_d = i.{core::num::%}(self::f<core::double>()){(core::num) → core::double};
   self::mod::X i_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:154:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X i_x = i % f();
-            ^" in i.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::mod::Y i_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:155:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y i_y = i % f();
-            ^" in i.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::mod::Z i_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:156:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z i_z = i % f();
-            ^" in i.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num d_n = d.{core::double::%}(self::f<core::num>()){(core::num) → core::double};
   core::int d_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:159:15: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
   int d_i = d % f();
-              ^" in d.{core::double::%}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in d.{core::double::%}(self::f<core::num>()){(core::num) → core::double} as{TypeError} core::int;
   core::double d_d = d.{core::double::%}(self::f<core::num>()){(core::num) → core::double};
   self::mod::X d_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:161:13: Error: A value of type 'double' can't be assigned to a variable of type 'X'.
   X d_x = d % f();
-            ^" in d.{core::double::%}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::double::%}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::mod::Y d_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:162:13: Error: A value of type 'double' can't be assigned to a variable of type 'Y'.
   Y d_y = d % f();
-            ^" in d.{core::double::%}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::double::%}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::mod::Z d_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:163:13: Error: A value of type 'double' can't be assigned to a variable of type 'Z'.
   Z d_z = d % f();
-            ^" in d.{core::double::%}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::double::%}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   core::num x_n = x.{core::num::%}(self::f<core::num>()){(core::num) → core::num};
   core::int x_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:166:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int x_i = x % f();
-              ^" in x.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in x.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError} core::int;
   core::double x_d = x.{core::num::%}(self::f<core::double>()){(core::num) → core::double};
   self::mod::X x_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:168:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X x_x = x % f();
-            ^" in x.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::mod::Y x_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:169:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y x_y = x % f();
-            ^" in x.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::mod::Z x_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:170:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z x_z = x % f();
-            ^" in x.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num y_n = y.{core::num::%}(self::f<core::num>()){(core::num) → core::num};
   core::int y_i = y.{core::num::%}(self::f<core::int>()){(core::num) → core::int};
   core::double y_d = y.{core::num::%}(self::f<core::double>()){(core::num) → core::double};
   self::mod::X y_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:175:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X y_x = y % f();
-            ^" in y.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::mod::Y y_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:176:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y y_y = y % f();
-            ^" in y.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::mod::Z y_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:177:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z y_z = y % f();
-            ^" in y.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::%}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num z_n = z.{core::double::%}(self::f<core::num>()){(core::num) → core::double};
   core::int z_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:180:15: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
   int z_i = z % f();
-              ^" in z.{core::double::%}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in z.{core::double::%}(self::f<core::num>()){(core::num) → core::double} as{TypeError} core::int;
   core::double z_d = z.{core::double::%}(self::f<core::num>()){(core::num) → core::double};
   self::mod::X z_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:182:13: Error: A value of type 'double' can't be assigned to a variable of type 'X'.
   X z_x = z % f();
-            ^" in z.{core::double::%}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::double::%}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::mod::Y z_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:183:13: Error: A value of type 'double' can't be assigned to a variable of type 'Y'.
   Y z_y = z % f();
-            ^" in z.{core::double::%}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::double::%}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::mod::Z z_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:184:13: Error: A value of type 'double' can't be assigned to a variable of type 'Z'.
   Z z_z = z % f();
-            ^" in z.{core::double::%}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::double::%}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
 }
 static method remainder<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::remainder::X x, self::remainder::Y y, self::remainder::Z z) → dynamic {
   core::num n_n = n.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num};
   core::int n_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:190:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int n_i = n.remainder(f());
-              ^" in n.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in n.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError} core::int;
   core::double n_d = n.{core::num::remainder}(self::f<core::double>()){(core::num) → core::double};
   self::remainder::X n_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:192:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X n_x = n.remainder(f());
-            ^" in n.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::remainder::Y n_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:193:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y n_y = n.remainder(f());
-            ^" in n.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::remainder::Z n_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:194:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z n_z = n.remainder(f());
-            ^" in n.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num i_n = i.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num};
   core::int i_i = i.{core::num::remainder}(self::f<core::int>()){(core::num) → core::int};
   core::double i_d = i.{core::num::remainder}(self::f<core::double>()){(core::num) → core::double};
   self::remainder::X i_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:199:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X i_x = i.remainder(f());
-            ^" in i.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::remainder::Y i_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:200:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y i_y = i.remainder(f());
-            ^" in i.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::remainder::Z i_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:201:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z i_z = i.remainder(f());
-            ^" in i.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::double d_n = d.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double};
   core::int d_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:204:15: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
   int d_i = d.remainder(f());
-              ^" in d.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in d.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double} as{TypeError} core::int;
   core::double d_d = d.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double};
   self::remainder::X d_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:206:13: Error: A value of type 'double' can't be assigned to a variable of type 'X'.
   X d_x = d.remainder(f());
-            ^" in d.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::remainder::Y d_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:207:13: Error: A value of type 'double' can't be assigned to a variable of type 'Y'.
   Y d_y = d.remainder(f());
-            ^" in d.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::remainder::Z d_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:208:13: Error: A value of type 'double' can't be assigned to a variable of type 'Z'.
   Z d_z = d.remainder(f());
-            ^" in d.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   core::num x_n = x.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num};
   core::int x_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:211:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int x_i = x.remainder(f());
-              ^" in x.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in x.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError} core::int;
   core::double x_d = x.{core::num::remainder}(self::f<core::double>()){(core::num) → core::double};
   self::remainder::X x_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:213:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X x_x = x.remainder(f());
-            ^" in x.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::remainder::Y x_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:214:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y x_y = x.remainder(f());
-            ^" in x.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::remainder::Z x_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:215:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z x_z = x.remainder(f());
-            ^" in x.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::num y_n = y.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num};
   core::int y_i = y.{core::num::remainder}(self::f<core::int>()){(core::num) → core::int};
   core::double y_d = y.{core::num::remainder}(self::f<core::double>()){(core::num) → core::double};
   self::remainder::X y_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:220:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X y_x = y.remainder(f());
-            ^" in y.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::remainder::Y y_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:221:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y y_y = y.remainder(f());
-            ^" in y.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   self::remainder::Z y_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:222:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z y_z = y.remainder(f());
-            ^" in y.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::remainder}(self::f<core::num>()){(core::num) → core::num} as{TypeError} Never;
   core::double z_n = z.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double};
   core::int z_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:225:15: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
   int z_i = z.remainder(f());
-              ^" in z.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in z.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double} as{TypeError} core::int;
   core::double z_d = z.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double};
   self::remainder::X z_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:227:13: Error: A value of type 'double' can't be assigned to a variable of type 'X'.
   X z_x = z.remainder(f());
-            ^" in z.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::remainder::Y z_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:228:13: Error: A value of type 'double' can't be assigned to a variable of type 'Y'.
   Y z_y = z.remainder(f());
-            ^" in z.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
   self::remainder::Z z_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:229:13: Error: A value of type 'double' can't be assigned to a variable of type 'Z'.
   Z z_z = z.remainder(f());
-            ^" in z.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::double::remainder}(self::f<core::num>()){(core::num) → core::double} as{TypeError} Never;
 }
 static method clamp<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::clamp::X x, self::clamp::Y y, self::clamp::Z z) → dynamic {
   core::num n_n = n.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num};
   core::int n_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:235:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int n_i = n.clamp(f(), f());
-              ^" in n.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in n.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} core::int;
   core::double n_d = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:236:18: Error: A value of type 'num' can't be assigned to a variable of type 'double'.
   double n_d = n.clamp(f(), f());
-                 ^" in n.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::double;
+                 ^" in n.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} core::double;
   self::clamp::X n_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:237:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X n_x = n.clamp(f(), f());
-            ^" in n.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   self::clamp::Y n_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:238:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y n_y = n.clamp(f(), f());
-            ^" in n.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   self::clamp::Z n_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:239:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z n_z = n.clamp(f(), f());
-            ^" in n.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in n.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   core::num i_n = i.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num};
   core::int i_i = i.{core::num::clamp}(self::f<core::int>(), self::f<core::int>()){(core::num, core::num) → core::int};
   core::double i_d = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:243:18: Error: A value of type 'num' can't be assigned to a variable of type 'double'.
   double i_d = i.clamp(f(), f());
-                 ^" in i.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::double;
+                 ^" in i.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} core::double;
   self::clamp::X i_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:244:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X i_x = i.clamp(f(), f());
-            ^" in i.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   self::clamp::Y i_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:245:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y i_y = i.clamp(f(), f());
-            ^" in i.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   self::clamp::Z i_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:246:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z i_z = i.clamp(f(), f());
-            ^" in i.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in i.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   core::num d_n = d.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num};
   core::int d_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:249:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int d_i = d.clamp(f(), f());
-              ^" in d.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in d.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} core::int;
   core::double d_d = d.{core::num::clamp}(self::f<core::double>(), self::f<core::double>()){(core::num, core::num) → core::double};
   self::clamp::X d_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:251:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X d_x = d.clamp(f(), f());
-            ^" in d.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   self::clamp::Y d_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:252:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y d_y = d.clamp(f(), f());
-            ^" in d.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   self::clamp::Z d_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:253:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z d_z = d.clamp(f(), f());
-            ^" in d.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in d.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   core::num x_n = x.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num};
   core::int x_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:256:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int x_i = x.clamp(f(), f());
-              ^" in x.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in x.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} core::int;
   core::double x_d = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:257:18: Error: A value of type 'num' can't be assigned to a variable of type 'double'.
   double x_d = x.clamp(f(), f());
-                 ^" in x.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::double;
+                 ^" in x.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} core::double;
   self::clamp::X x_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:258:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X x_x = x.clamp(f(), f());
-            ^" in x.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   self::clamp::Y x_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:259:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y x_y = x.clamp(f(), f());
-            ^" in x.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   self::clamp::Z x_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:260:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z x_z = x.clamp(f(), f());
-            ^" in x.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in x.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   core::num y_n = y.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num};
   core::int y_i = y.{core::num::clamp}(self::f<core::int>(), self::f<core::int>()){(core::num, core::num) → core::int};
   core::double y_d = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:264:18: Error: A value of type 'num' can't be assigned to a variable of type 'double'.
   double y_d = y.clamp(f(), f());
-                 ^" in y.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::double;
+                 ^" in y.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} core::double;
   self::clamp::X y_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:265:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X y_x = y.clamp(f(), f());
-            ^" in y.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   self::clamp::Y y_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:266:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y y_y = y.clamp(f(), f());
-            ^" in y.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   self::clamp::Z y_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:267:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z y_z = y.clamp(f(), f());
-            ^" in y.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in y.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   core::num z_n = z.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num};
   core::int z_i = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:270:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int z_i = z.clamp(f(), f());
-              ^" in z.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int;
+              ^" in z.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} core::int;
   core::double z_d = z.{core::num::clamp}(self::f<core::double>(), self::f<core::double>()){(core::num, core::num) → core::double};
   self::clamp::X z_x = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:272:13: Error: A value of type 'num' can't be assigned to a variable of type 'X'.
   X z_x = z.clamp(f(), f());
-            ^" in z.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   self::clamp::Y z_y = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:273:13: Error: A value of type 'num' can't be assigned to a variable of type 'Y'.
   Y z_y = z.clamp(f(), f());
-            ^" in z.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
   self::clamp::Z z_z = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:274:13: Error: A value of type 'num' can't be assigned to a variable of type 'Z'.
   Z z_z = z.clamp(f(), f());
-            ^" in z.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError,ForNonNullableByDefault} Never;
+            ^" in z.{core::num::clamp}(self::f<core::num>(), self::f<core::num>()){(core::num, core::num) → core::num} as{TypeError} Never;
 }
 static method main() → dynamic {}

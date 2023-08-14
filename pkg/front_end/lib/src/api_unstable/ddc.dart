@@ -68,13 +68,6 @@ export '../fasta/incremental_compiler.dart' show IncrementalCompiler;
 export '../fasta/kernel/constructor_tearoff_lowering.dart'
     show isTearOffLowering;
 
-export '../fasta/kernel/redirecting_factory_body.dart'
-    show
-        getRedirectingFactories,
-        RedirectingFactoryBody,
-        isRedirectingFactoryField,
-        redirectingName;
-
 export '../fasta/type_inference/type_schema_environment.dart'
     show TypeSchemaEnvironment;
 
@@ -89,9 +82,7 @@ class DdcResult {
   final Set<Library>? neededDillLibraries;
 
   DdcResult(this.component, this.sdkSummary, this.additionalDills,
-      this.classHierarchy, this.neededDillLibraries)
-      // ignore: unnecessary_null_comparison
-      : assert(classHierarchy != null);
+      this.classHierarchy, this.neededDillLibraries);
 
   Set<Library> computeLibrariesFromDill() {
     Set<Library> librariesFromDill = new Set<Library>();
@@ -124,8 +115,6 @@ InitializedCompilerState initializeCompiler(
     Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
     Map<String, String>? environmentDefines,
     required NnbdMode nnbdMode}) {
-  // ignore: unnecessary_null_comparison
-  assert(nnbdMode != null, "No NnbdMode provided.");
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
   if (oldState != null &&

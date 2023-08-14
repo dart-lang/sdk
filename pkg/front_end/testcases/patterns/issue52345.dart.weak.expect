@@ -1,0 +1,49 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method main() → void {
+  final core::List<core::String> works = <core::String>["b", "l"];
+  final core::List<core::String> fails = <core::String>["c"];
+  for (final core::List<core::String> test in <core::List<core::String>>[works, fails]) {
+    final void _ = block {
+      void #t1;
+      final synthesized core::List<core::String> #0#0 = test;
+      late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
+      late final synthesized core::String #0#4 = #0#0.{core::List::[]}(0){(core::int) → core::String};
+      #L1:
+      {
+        {
+          final hoisted core::String b;
+          final hoisted core::String d;
+          final hoisted core::List<core::String> x;
+          if(#0#1.{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t2 = b = #0#4 in true) && (let final dynamic #t3 = d = #0#0.{core::List::[]}(1){(core::int) → core::String} in true) && (let final dynamic #t4 = x = #0#0.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<core::String>} in true)) {
+            #t1 = core::print("${b} ${d} ${x}");
+            break #L1;
+          }
+        }
+        {
+          final hoisted core::String f;
+          final hoisted core::List<core::String> args;
+          if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && (let final dynamic #t5 = f = #0#4 in true) && (let final dynamic #t6 = args = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<core::String>} in true)) {
+            #t1 = core::print("${f} ${args}");
+            break #L1;
+          }
+        }
+        {
+          if(true) {
+            #t1 = throw new core::UnimplementedError::•();
+            break #L1;
+          }
+        }
+        throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      }
+    } =>#t1;
+  }
+}
+
+constants  {
+  #C1 = 2
+  #C2 = 1
+}

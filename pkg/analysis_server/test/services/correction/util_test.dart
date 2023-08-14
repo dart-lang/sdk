@@ -35,7 +35,7 @@ void f(bool? b4, bool? b5) {
 }
 ''');
     var ifStatement = findNode.ifStatement('if (');
-    var condition = ifStatement.condition;
+    var condition = ifStatement.expression;
     var result = CorrectionUtils(testAnalysisResult).invertCondition(condition);
     expect(result, expected);
     // For compactness we put multiple cases into one test method.
@@ -390,7 +390,7 @@ void f() {
     var change = SourceChange('');
     await addLibraryImports(testAnalysisResult.session, change,
         testLibraryElement, newLibraries.toSet());
-    var testEdit = change.getFileEdit(testFile);
+    var testEdit = change.getFileEdit(testFile.path);
     var resultCode = SourceEdit.applySequence(testCode, testEdit!.edits);
     expect(resultCode, expectedCode);
   }

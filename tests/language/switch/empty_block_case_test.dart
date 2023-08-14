@@ -17,7 +17,10 @@ class EmptyBlockCaseTest {
   static testMain() {
     var exception = null;
     switch (1) {
-      case 1: /*@compile-error=unspecified*/
+      case 1:
+//    ^^^^
+// [analyzer] COMPILE_TIME_ERROR.SWITCH_CASE_COMPLETES_NORMALLY
+// [cfe] Switch case may fall through to the next case.
         {}
       case 2:
         Expect.equals(true, false);

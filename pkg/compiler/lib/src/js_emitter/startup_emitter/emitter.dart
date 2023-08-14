@@ -193,7 +193,7 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
       finalizedFragmentsToLoad = _emitter.finalizedFragmentsToLoad;
       fragmentMerger = _emitter.fragmentMerger;
       finalizedFragmentsToLoad.values.forEach((fragments) {
-        _task.metrics.hunkListElements.add(fragments.length);
+        _task.emitterMetrics.hunkListElements.add(fragments.length);
       });
       if (retainDataForTesting) {
         preDeferredFragmentsForTesting =

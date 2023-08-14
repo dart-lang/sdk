@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -10,13 +10,11 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::•]/*isLegacy*/;
-  static factory •() → self::A
+  static factory •() → self::A /* redirection-target: self::B::• */
     return self::B::•();
   static method _#new#tearOff() → self::A;
 }
 abstract class B extends core::Object implements self::A {
-  static final field dynamic _redirecting# = <dynamic>[self::B::•]/*isLegacy*/;
   static factory •() → self::B
     return invalid-expression "pkg/front_end/testcases/dart2js/issue47916e.dart:10:23: Error: Redirection constructor target not found: 'C.named'
   const factory B() = C.named;
@@ -35,9 +33,3 @@ static method test() → dynamic
   ;
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47916e.dart:5:16 -> ConstructorTearOffConstant(A.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47916e.dart:9:16 -> ConstructorTearOffConstant(B.)
-Extra constant evaluation: evaluated: 6, effectively constant: 2

@@ -1,0 +1,40 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:math" as math;
+
+import "dart:math" show Random;
+
+static method listEquals<E extends core::Object? = dynamic>([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<self::listEquals::E%> list1, [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<self::listEquals::E%> list2) → core::bool {
+  if(core::identical(list1, list2)) {
+    return true;
+  }
+  if(!([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart.core::_GrowableList.length] [@vm.inferred-type.metadata=dart.core::_Smi] list1.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [@vm.direct-call.metadata=dart.core::_GrowableList.length] [@vm.inferred-type.metadata=dart.core::_Smi] list2.{core::List::length}{core::int})) {
+    return false;
+  }
+  for (core::int i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}([@vm.direct-call.metadata=dart.core::_GrowableList.length] [@vm.inferred-type.metadata=dart.core::_Smi] list1.{core::List::length}{core::int}){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {
+    if(!([@vm.inferred-type.metadata=dart.core::bool] [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=int (skip check)] list1.{core::List::[]}(i){(core::int) → self::listEquals::E%} =={core::Object::==}{(core::Object) → core::bool} [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=int (skip check)] list2.{core::List::[]}(i){(core::int) → self::listEquals::E%})) {
+      return false;
+    }
+  }
+  return true;
+}
+static method main() → void {
+  math::Random random = [@vm.inferred-type.metadata=dart.math::_Random] math::Random::•();
+  core::List<core::int> list1 = block {
+    final core::List<core::int> #t1 = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::•<core::int>(0);
+    for (core::int i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(#C1){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int})
+      [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dart.core::int>] [@vm.direct-call.metadata=dart.core::_GrowableList.add] [@vm.inferred-type.metadata=!? (skip check)] #t1.{core::List::add}{Invariant}([@vm.direct-call.metadata=dart.math::_Random.nextInt] [@vm.inferred-type.metadata=int (skip check)] random.{math::Random::nextInt}(256){(core::int) → core::int}){(core::int) → void};
+  } =>#t1;
+  core::List<core::int> list2 = [@vm.direct-call.metadata=dart.core::_GrowableList.toList] [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int> (skip check)] list1.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int>};
+  core::Stopwatch stopwatch = let final core::Stopwatch #t2 = new core::Stopwatch::•() in block {
+    [@vm.direct-call.metadata=dart.core::Stopwatch.start] [@vm.inferred-type.metadata=!? (skip check)] #t2.{core::Stopwatch::start}(){() → void};
+  } =>#t2;
+  core::bool result = self::listEquals<core::int>(list1, list2);
+  core::print("${result} ${[@vm.direct-call.metadata=dart.core::Stopwatch.elapsed] stopwatch.{core::Stopwatch::elapsed}{core::Duration}}");
+  core::List<core::int> list3 = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List::of<core::int>(list1);
+  core::print([@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=int (skip check)] list3.{core::List::[]}(0){(core::int) → core::int});
+}
+constants  {
+  #C1 = 100000000
+}

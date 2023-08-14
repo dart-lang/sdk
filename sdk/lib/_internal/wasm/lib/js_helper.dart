@@ -7,8 +7,8 @@ library dart._js_helper;
 
 import 'dart:_internal';
 import 'dart:_js_annotations' as js;
+import 'dart:_js_types' as js_types;
 import 'dart:_wasm';
-import 'dart:collection';
 import 'dart:js_interop';
 import 'dart:typed_data';
 
@@ -87,6 +87,8 @@ extension JSAnyToExtern on JSAny {
 bool isDartNull(WasmExternRef? ref) => ref.isNull || isJSUndefined(ref);
 
 // Extensions for [JSArray] and [JSObject].
+// TODO(joshualitt): These should be shared across backends and exposed to
+// users.
 extension JSArrayExtension on JSArray {
   external JSAny? pop();
   external JSAny? operator [](JSNumber index);
@@ -225,6 +227,11 @@ WasmExternRef? toJSBoolean(bool b) => JS<WasmExternRef?>("b => !!b", b);
 
 double objectLength(WasmExternRef? o) => JS<double>("o => o.length", o);
 
+double byteLength(WasmExternRef? o) => JS<double>("o => o.byteLength", o);
+
+double dataViewGetUint8(WasmExternRef? o, double i) =>
+    JS<double>("(o, i) => o.getUint8(i)", o, i);
+
 WasmExternRef? objectReadIndex(WasmExternRef? o, double index) =>
     JS<WasmExternRef?>("(o, i) => o[i]", o, index);
 
@@ -309,7 +316,7 @@ WasmExternRef? callMethodVarArgsRaw(
     JS<WasmExternRef?>("(o, m, a) => o[m].apply(o, a)", o, method, args);
 
 String stringify(WasmExternRef? object) =>
-    JS<String>("o => stringToDartString(String(o))", object);
+    js_types.JSStringImpl(JS<WasmExternRef?>("o => String(o)", object));
 
 void promiseThen(WasmExternRef? promise, WasmExternRef? successFunc,
         WasmExternRef? failureFunc) =>
@@ -339,6 +346,8 @@ WasmExternRef? jsifyRaw(Object? object) {
     assert(functionToJSWrapper.containsKey(object),
         'Must call `allowInterop` on functions before they flow to JS');
     return functionToJSWrapper[object]!.toExternRef;
+  } else if (object is js_types.JSStringImpl) {
+    return object.toExternRef;
   } else if (object is JSValue) {
     return object.toExternRef;
   } else if (object is String) {
@@ -384,7 +393,7 @@ Object? dartifyRaw(WasmExternRef? ref) {
   } else if (isJSNumber(ref)) {
     return toDartNumber(ref);
   } else if (isJSString(ref)) {
-    return jsStringToDartString(ref);
+    return js_types.JSStringImpl.box(ref);
   } else if (isJSInt8Array(ref)) {
     return toDartInt8List(ref);
   } else if (isJSUint8Array(ref)) {
@@ -460,15 +469,10 @@ ByteBuffer toDartByteBuffer(WasmExternRef? ref) =>
         .buffer;
 
 ByteData toDartByteData(WasmExternRef? ref) {
-  int length =
-      toDartNumber(getPropertyRaw(ref, 'byteLength'.toExternRef)).toInt();
+  int length = byteLength(ref).toInt();
   ByteData data = ByteData(length);
   for (int i = 0; i < length; i++) {
-    data.setUint8(
-        i,
-        toDartNumber(callMethodVarArgsRaw(
-                ref, 'getUint8'.toExternRef, [i].toExternRef))
-            .toInt());
+    data.setUint8(i, dataViewGetUint8(ref, i.toDouble()).toInt());
   }
   return data;
 }

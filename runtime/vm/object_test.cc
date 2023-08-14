@@ -16,6 +16,7 @@
 #include "vm/closure_functions_cache.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/il_test_helper.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/dart_api_impl.h"
@@ -32,6 +33,7 @@
 #include "vm/symbols.h"
 #include "vm/tagged_pointer.h"
 #include "vm/unit_test.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -275,8 +277,8 @@ ISOLATE_UNIT_TEST_CASE(TypeArguments) {
   OS::PrintErr("2: %s\n", type_arguments2.ToCString());
   EXPECT(type_arguments1.Equals(type_arguments2));
   TypeArguments& type_arguments3 = TypeArguments::Handle();
-  type_arguments1.Canonicalize(thread, nullptr);
-  type_arguments3 ^= type_arguments2.Canonicalize(thread, nullptr);
+  type_arguments1.Canonicalize(thread);
+  type_arguments3 ^= type_arguments2.Canonicalize(thread);
   EXPECT_EQ(type_arguments1.ptr(), type_arguments3.ptr());
 }
 
@@ -291,7 +293,7 @@ TEST_CASE(Class_EndTokenPos) {
       "  // }\n"
       "  var bar = '\\'}';\n"
       "}\n";
-  Dart_Handle lib_h = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle lib_h = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(lib_h);
   TransitionNativeToVM transition(thread);
   Library& lib = Library::Handle();
@@ -1648,7 +1650,7 @@ ISOLATE_UNIT_TEST_CASE(ExternalOneByteString) {
   intptr_t len = ARRAY_SIZE(characters);
 
   const String& str = String::Handle(ExternalOneByteString::New(
-      characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
+      characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
   EXPECT(!str.IsOneByteString());
   EXPECT(str.IsExternalOneByteString());
   EXPECT_EQ(str.Length(), len);
@@ -1698,7 +1700,7 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
   intptr_t len = ARRAY_SIZE(characters);
 
   const String& str = String::Handle(ExternalOneByteString::New(
-      characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
+      characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
   EXPECT(!str.IsOneByteString());
   EXPECT(str.IsExternalOneByteString());
   EXPECT_EQ(str.Length(), len);
@@ -1708,7 +1710,7 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
   EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
 
   const String& empty_str = String::Handle(ExternalOneByteString::New(
-      characters, 0, NULL, 0, NoopFinalizer, Heap::kNew));
+      characters, 0, nullptr, 0, NoopFinalizer, Heap::kNew));
   const String& escaped_empty_str =
       String::Handle(String::EscapeSpecialCharacters(empty_str));
   EXPECT_EQ(empty_str.Length(), 0);
@@ -1743,7 +1745,7 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
   intptr_t len = ARRAY_SIZE(characters);
 
   const String& str = String::Handle(ExternalTwoByteString::New(
-      characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
+      characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
   EXPECT(str.IsExternalTwoByteString());
   EXPECT_EQ(str.Length(), len);
   EXPECT(str.Equals("a\n\f\b\t\v\r\\$z"));
@@ -1752,7 +1754,7 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
   EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
 
   const String& empty_str = String::Handle(ExternalTwoByteString::New(
-      characters, 0, NULL, 0, NoopFinalizer, Heap::kNew));
+      characters, 0, nullptr, 0, NoopFinalizer, Heap::kNew));
   const String& escaped_empty_str =
       String::Handle(String::EscapeSpecialCharacters(empty_str));
   EXPECT_EQ(empty_str.Length(), 0);
@@ -1764,7 +1766,7 @@ ISOLATE_UNIT_TEST_CASE(ExternalTwoByteString) {
   intptr_t len = ARRAY_SIZE(characters);
 
   const String& str = String::Handle(ExternalTwoByteString::New(
-      characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
+      characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
   EXPECT(!str.IsTwoByteString());
   EXPECT(str.IsExternalTwoByteString());
   EXPECT_EQ(str.Length(), len);
@@ -1977,9 +1979,9 @@ static void TestIllegalArrayLength(intptr_t length) {
                  ", null);\n"
                  "}\n",
                  length);
-  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   Utils::SNPrint(buffer, sizeof(buffer),
                  "Unhandled exception:\n"
                  "RangeError (length): Invalid value: "
@@ -2006,9 +2008,9 @@ TEST_CASE(ArrayLengthOneTooMany) {
                  ", null);\n"
                  "}\n",
                  kOneTooMany);
-  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_ERROR(result, "Out of Memory");
 }
 
@@ -2020,9 +2022,9 @@ TEST_CASE(ArrayLengthMaxElements) {
                  ", null);\n"
                  "}\n",
                  Array::kMaxElements);
-  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   if (Dart_IsError(result)) {
     EXPECT_ERROR(result, "Out of Memory");
   } else {
@@ -2043,9 +2045,9 @@ static void TestIllegalTypedDataLength(const char* class_name,
                  ");\n"
                  "}\n",
                  class_name, length);
-  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   Utils::SNPrint(buffer, sizeof(buffer), "%" Pd, length);
   EXPECT_ERROR(result, "RangeError (length): Invalid value");
   EXPECT_ERROR(result, buffer);
@@ -2070,9 +2072,9 @@ TEST_CASE(Int8ListLengthOneTooMany) {
                  ");\n"
                  "}\n",
                  kOneTooMany);
-  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_ERROR(result, "Out of Memory");
 }
 
@@ -2086,9 +2088,9 @@ TEST_CASE(Int8ListLengthMaxElements) {
                  ");\n"
                  "}\n",
                  max_elements);
-  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   if (Dart_IsError(result)) {
     EXPECT_ERROR(result, "Out of Memory");
   } else {
@@ -2299,10 +2301,12 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   }
   Heap* heap = IsolateGroup::Current()->heap();
   GCTestHelper::CollectAllGarbage();
+  GCTestHelper::WaitForGCTasks();  // Sweeper must finish for accurate capacity.
   intptr_t capacity_before = heap->CapacityInWords(Heap::kOld);
   new_array = Array::MakeFixedLength(array);
   EXPECT_EQ(1, new_array.Length());
   GCTestHelper::CollectAllGarbage();
+  GCTestHelper::WaitForGCTasks();  // Sweeper must finish for accurate capacity.
   intptr_t capacity_after = heap->CapacityInWords(Heap::kOld);
   // Page should shrink.
   EXPECT_LT(capacity_after, capacity_before);
@@ -2514,9 +2518,9 @@ ISOLATE_UNIT_TEST_CASE(Script) {
 
   TransitionVMToNative transition(thread);
   const char* kScript = "main() {}";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(h_lib);
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 }
 
@@ -2550,7 +2554,7 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
 
   const intptr_t parent_scope_function_level = 0;
   LocalScope* parent_scope =
-      new LocalScope(NULL, parent_scope_function_level, 0);
+      new LocalScope(nullptr, parent_scope_function_level, 0);
 
   const intptr_t local_scope_function_level = 1;
   LocalScope* local_scope =
@@ -2606,7 +2610,7 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   EXPECT_EQ(parent_scope_function_level, var_c->owner()->function_level());
   // c is not in local_scope.
   EXPECT(local_scope->LocalLookupVariable(c, LocalVariable::kNoKernelOffset) ==
-         NULL);
+         nullptr);
 
   test_only = false;  // Please, insert alias.
   var_c =
@@ -2622,7 +2626,7 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   bool found_captured_vars = false;
   VariableIndex next_index = parent_scope->AllocateVariables(
       Function::null_function(), first_parameter_index, num_parameters,
-      first_local_index, NULL, &found_captured_vars);
+      first_local_index, nullptr, &found_captured_vars);
   // Variables a, c and var_ta are captured, therefore are not allocated in
   // frame.
   EXPECT_EQ(0, next_index.value() -
@@ -2651,7 +2655,7 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
 
   // var b was not captured.
   EXPECT(outer_scope->LocalLookupVariable(b, LocalVariable::kNoKernelOffset) ==
-         NULL);
+         nullptr);
 
   var_c = outer_scope->LocalLookupVariable(c, LocalVariable::kNoKernelOffset);
   EXPECT(var_c->is_captured());
@@ -3253,7 +3257,8 @@ ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
   String& class2_name = String::Handle(Symbols::New(thread, "EmptyClass2"));
   const Class& empty_class2 =
       Class::Handle(CreateDummyClass(class2_name, script));
-  SubtypeTestCache& cache = SubtypeTestCache::Handle(SubtypeTestCache::New());
+  SubtypeTestCache& cache = SubtypeTestCache::Handle(
+      SubtypeTestCache::New(SubtypeTestCache::kMaxInputs));
   EXPECT(!cache.IsNull());
   EXPECT_EQ(0, cache.NumberOfChecks());
   const Object& class_id_or_fun = Object::Handle(Smi::New(empty_class1.id()));
@@ -3482,15 +3487,15 @@ ISOLATE_UNIT_TEST_CASE(EqualsIgnoringPrivate) {
   mangled_name = OneByteString::New("foo@12345.name@12345");
   ext_mangled_name = ExternalOneByteString::New(
       reinterpret_cast<const uint8_t*>(ext_mangled_str),
-      strlen(ext_mangled_str), NULL, 0, NoopFinalizer, Heap::kNew);
+      strlen(ext_mangled_str), nullptr, 0, NoopFinalizer, Heap::kNew);
   EXPECT(ext_mangled_name.IsExternalOneByteString());
   ext_bare_name = ExternalOneByteString::New(
       reinterpret_cast<const uint8_t*>(ext_bare_str), strlen(ext_bare_str),
-      NULL, 0, NoopFinalizer, Heap::kNew);
+      nullptr, 0, NoopFinalizer, Heap::kNew);
   EXPECT(ext_bare_name.IsExternalOneByteString());
   ext_bad_bare_name = ExternalOneByteString::New(
       reinterpret_cast<const uint8_t*>(ext_bad_bare_str),
-      strlen(ext_bad_bare_str), NULL, 0, NoopFinalizer, Heap::kNew);
+      strlen(ext_bad_bare_str), nullptr, 0, NoopFinalizer, Heap::kNew);
   EXPECT(ext_bad_bare_name.IsExternalOneByteString());
 
   // str1 - OneByteString, str2 - ExternalOneByteString.
@@ -3550,9 +3555,9 @@ TEST_CASE(StackTraceFormat) {
       "main() {\n"
       "  (() => new MyClass())();\n"
       "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
 
   const char* lib_url = "file:///test-lib";
   const size_t kBufferSize = 1024;
@@ -5431,13 +5436,6 @@ REPEAT_512(FINALIZER_NATIVE_CROSS_GEN_TEST_CASE)
 
 #undef REPEAT_512
 
-static ClassPtr GetClass(const Library& lib, const char* name) {
-  const Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
-  EXPECT(!cls.IsNull());  // No ambiguity error expected.
-  return cls.ptr();
-}
-
 TEST_CASE(IsIsolateUnsendable) {
   Zone* const zone = Thread::Current()->zone();
 
@@ -5506,9 +5504,9 @@ main() {
   new FImplementation2();
 }
 )";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(h_lib);
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 
   TransitionNativeToVM transition(thread);
@@ -5594,13 +5592,6 @@ static FunctionPtr GetFunction(const Class& cls, const char* name) {
   return result.ptr();
 }
 
-static FunctionPtr GetFunction(const Library& lib, const char* name) {
-  const Function& result = Function::Handle(
-      lib.LookupLocalFunction(String::Handle(String::New(name))));
-  EXPECT(!result.IsNull());
-  return result.ptr();
-}
-
 static FunctionPtr GetStaticFunction(const Class& cls, const char* name) {
   const auto& error = cls.EnsureIsFinalized(Thread::Current());
   EXPECT(error == Error::null());
@@ -5640,6 +5631,7 @@ ISOLATE_UNIT_TEST_CASE(FindClosureIndex) {
   const String& function_name = String::Handle(Symbols::New(thread, "foo"));
   function = Function::NewClosureFunction(function_name, parent,
                                           TokenPosition::kMinSource);
+  function.set_kernel_offset(42);
   // Add closure function to class.
   {
     SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
@@ -5763,9 +5755,9 @@ TEST_CASE(Metadata) {
         TestCase::NullableTag()), std::free);
   // clang-format on
 
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars.get(), NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars.get(), nullptr);
   EXPECT_VALID(h_lib);
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   TransitionNativeToVM transition(thread);
   Library& lib = Library::Handle();
@@ -5842,7 +5834,7 @@ TEST_CASE(FunctionSourceFingerprint) {
       "    return a > 1 ? a + 1 : a;\n"
       "  }\n"
       "}";
-  TestCase::LoadTestScript(kScriptChars, NULL);
+  TestCase::LoadTestScript(kScriptChars, nullptr);
   TransitionNativeToVM transition(thread);
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
@@ -5898,11 +5890,11 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
       "  new A().b();\n"
       "}";
   const int kBreakpointLine = 5;
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
 
   // Run function A.b one time.
-  Dart_Handle result = Dart_Invoke(lib, NewString("test"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("test"), 0, nullptr);
   EXPECT_VALID(result);
 
   // With no breakpoint, function A.b is inlineable.
@@ -6516,9 +6508,9 @@ TEST_CASE(InstanceEquality) {
       "  A a = new A();\n"
       "}";
 
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(h_lib);
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 
   TransitionNativeToVM transition(thread);
@@ -6542,9 +6534,9 @@ TEST_CASE(HashCode) {
       "  return \"foo\".hashCode;\n"
       "}";
 
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(h_lib);
-  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("foo"), 0, NULL);
+  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("foo"), 0, nullptr);
   EXPECT_VALID(h_result);
 
   TransitionNativeToVM transition(thread);
@@ -6736,9 +6728,9 @@ TEST_CASE(Map_iteration) {
       "  map.remove('w');\n"
       "  return map;\n"
       "}";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(h_lib);
-  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, NULL);
+  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, nullptr);
   EXPECT_VALID(h_result);
 
   TransitionNativeToVM transition(thread);
@@ -6942,19 +6934,19 @@ bool lookupSpreadCollections(Map map) =>
 
 bool? lookupNull(Map map) => map[null];
 )";
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(lib);
   Dart_Handle non_const_result =
-      Dart_Invoke(lib, NewString("makeNonConstMap"), 0, NULL);
+      Dart_Invoke(lib, NewString("makeNonConstMap"), 0, nullptr);
   EXPECT_VALID(non_const_result);
   Dart_Handle first_key_result =
-      Dart_Invoke(lib, NewString("firstKey"), 0, NULL);
+      Dart_Invoke(lib, NewString("firstKey"), 0, nullptr);
   EXPECT_VALID(first_key_result);
   Dart_Handle first_key_hashcode_result =
-      Dart_Invoke(lib, NewString("firstKeyHashCode"), 0, NULL);
+      Dart_Invoke(lib, NewString("firstKeyHashCode"), 0, nullptr);
   EXPECT_VALID(first_key_hashcode_result);
   Dart_Handle first_key_identity_hashcode_result =
-      Dart_Invoke(lib, NewString("firstKeyIdentityHashCode"), 0, NULL);
+      Dart_Invoke(lib, NewString("firstKeyIdentityHashCode"), 0, nullptr);
   EXPECT_VALID(first_key_identity_hashcode_result);
 
   Dart_Handle const_argument;
@@ -7015,14 +7007,15 @@ static bool IsLinkedHashBase(const Object& object) {
 template <class LinkedHashBase, int kMutableCid, int kImmutableCid>
 static void HashBaseNonConstEqualsConst(const char* script,
                                         bool check_data = true) {
-  Dart_Handle lib = TestCase::LoadTestScript(script, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(script, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle init_result = Dart_Invoke(lib, NewString("init"), 0, NULL);
+  Dart_Handle init_result = Dart_Invoke(lib, NewString("init"), 0, nullptr);
   EXPECT_VALID(init_result);
   Dart_Handle non_const_result =
-      Dart_Invoke(lib, NewString("nonConstValue"), 0, NULL);
+      Dart_Invoke(lib, NewString("nonConstValue"), 0, nullptr);
   EXPECT_VALID(non_const_result);
-  Dart_Handle const_result = Dart_Invoke(lib, NewString("constValue"), 0, NULL);
+  Dart_Handle const_result =
+      Dart_Invoke(lib, NewString("constValue"), 0, nullptr);
   EXPECT_VALID(const_result);
 
   TransitionNativeToVM transition(Thread::Current());
@@ -7221,9 +7214,9 @@ makeSet() {
   return set;
 }
 )";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(h_lib);
-  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeSet"), 0, NULL);
+  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeSet"), 0, nullptr);
   EXPECT_VALID(h_result);
 
   TransitionNativeToVM transition(thread);
@@ -7276,10 +7269,10 @@ makeNonConstSet() {
 
 bool containsFive(Set set) => set.contains(5);
 )";
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(lib);
   Dart_Handle non_const_result =
-      Dart_Invoke(lib, NewString("makeNonConstSet"), 0, NULL);
+      Dart_Invoke(lib, NewString("makeNonConstSet"), 0, nullptr);
   EXPECT_VALID(non_const_result);
 
   Dart_Handle const_argument;
@@ -7413,10 +7406,10 @@ makeInternalString() {
 bool equalsAB(String a, String b) => !identical(a, b) && (a == b);
 bool equalsBA(String a, String b) => !identical(b, a) && (b == a);
 )";
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(lib);
   Dart_Handle internal_string =
-      Dart_Invoke(lib, NewString("makeInternalString"), 0, NULL);
+      Dart_Invoke(lib, NewString("makeInternalString"), 0, nullptr);
   EXPECT_VALID(internal_string);
 
   Dart_Handle external_string;
@@ -7427,7 +7420,7 @@ bool equalsBA(String a, String b) => !identical(b, a) && (b == a);
     TransitionNativeToVM transition(thread);
 
     const String& str = String::Handle(ExternalOneByteString::New(
-        characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
+        characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
     EXPECT(!str.IsOneByteString());
     EXPECT(str.IsExternalOneByteString());
 
@@ -7483,7 +7476,7 @@ ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
     intptr_t len = ARRAY_SIZE(characters);
 
     const String& str = String::Handle(ExternalOneByteString::New(
-        characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
+        characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
     const String* data[3] = {&str, &Symbols::Dot(), &str};
     CheckConcatAll(data, 3);
   }
@@ -7494,7 +7487,7 @@ ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
     intptr_t len = ARRAY_SIZE(characters);
 
     const String& str = String::Handle(ExternalTwoByteString::New(
-        characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
+        characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
     const String* data[3] = {&str, &Symbols::Dot(), &str};
     CheckConcatAll(data, 3);
   }
@@ -7504,14 +7497,14 @@ ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
     intptr_t len1 = ARRAY_SIZE(characters1);
 
     const String& str1 = String::Handle(ExternalOneByteString::New(
-        characters1, len1, NULL, 0, NoopFinalizer, Heap::kNew));
+        characters1, len1, nullptr, 0, NoopFinalizer, Heap::kNew));
 
     uint16_t characters2[] = {'a',  '\n', '\f', '\b', '\t',
                               '\v', '\r', '\\', '$',  'z'};
     intptr_t len2 = ARRAY_SIZE(characters2);
 
     const String& str2 = String::Handle(ExternalTwoByteString::New(
-        characters2, len2, NULL, 0, NoopFinalizer, Heap::kNew));
+        characters2, len2, nullptr, 0, NoopFinalizer, Heap::kNew));
     const String* data[3] = {&str1, &Symbols::Dot(), &str2};
     CheckConcatAll(data, 3);
   }
@@ -7575,7 +7568,7 @@ TEST_CASE(TypeParameterTypeRef) {
       "void bar<M extends U<M>>(M x) {}\n"
       "abstract class C<T> {}\n"
       "abstract class U<T> extends C<T> {}\n";
-  TestCase::LoadTestScript(kScriptChars, NULL);
+  TestCase::LoadTestScript(kScriptChars, nullptr);
   TransitionNativeToVM transition(thread);
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
@@ -7659,14 +7652,13 @@ ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
       Class::Handle(async_lib.LookupClass(Symbols::FutureOr()));
   auto& tav_function_nullable = TypeArguments::Handle(TypeArguments::New(1));
   tav_function_nullable.SetTypeAt(0, function_type_nullable);
-  tav_function_nullable = tav_function_nullable.Canonicalize(thread, nullptr);
+  tav_function_nullable = tav_function_nullable.Canonicalize(thread);
   auto& tav_function_legacy = TypeArguments::Handle(TypeArguments::New(1));
   tav_function_legacy.SetTypeAt(0, function_type_legacy);
-  tav_function_legacy = tav_function_legacy.Canonicalize(thread, nullptr);
+  tav_function_legacy = tav_function_legacy.Canonicalize(thread);
   auto& tav_function_nonnullable = TypeArguments::Handle(TypeArguments::New(1));
   tav_function_nonnullable.SetTypeAt(0, function_type_nonnullable);
-  tav_function_nonnullable =
-      tav_function_nonnullable.Canonicalize(thread, nullptr);
+  tav_function_nonnullable = tav_function_nonnullable.Canonicalize(thread);
 
   auto& future_or_function_type_nullable =
       Type::Handle(Type::New(future_or_class, tav_function_nullable));
@@ -7771,18 +7763,18 @@ TEST_CASE(Class_GetInstantiationOf) {
         TypeParameter::CheckedHandle(zone, decl_type_args_a1.TypeAt(1));
     auto& tav_a1_y = TypeArguments::Handle(TypeArguments::New(1));
     tav_a1_y.SetTypeAt(0, type_arg_a1_y);
-    tav_a1_y = tav_a1_y.Canonicalize(thread, nullptr);
+    tav_a1_y = tav_a1_y.Canonicalize(thread);
     auto& type_list_a1_y = Type::CheckedHandle(
         zone, decl_type_list.InstantiateFrom(tav_a1_y, null_tav, kAllFree,
                                              Heap::kNew));
-    type_list_a1_y ^= type_list_a1_y.Canonicalize(thread, nullptr);
+    type_list_a1_y ^= type_list_a1_y.Canonicalize(thread);
     auto& tav_list_a1_y = TypeArguments::Handle(TypeArguments::New(1));
     tav_list_a1_y.SetTypeAt(0, type_list_a1_y);
-    tav_list_a1_y = tav_list_a1_y.Canonicalize(thread, nullptr);
+    tav_list_a1_y = tav_list_a1_y.Canonicalize(thread);
     auto& type_b_list_a1_y = Type::CheckedHandle(
         zone, decl_type_b.InstantiateFrom(tav_list_a1_y, null_tav, kAllFree,
                                           Heap::kNew));
-    type_b_list_a1_y ^= type_b_list_a1_y.Canonicalize(thread, nullptr);
+    type_b_list_a1_y ^= type_b_list_a1_y.Canonicalize(thread);
 
     const auto& inst_b_a1 =
         Type::Handle(zone, class_a1.GetInstantiationOf(zone, class_b));
@@ -7796,21 +7788,21 @@ TEST_CASE(Class_GetInstantiationOf) {
     const auto& decl_type_args_a2 =
         TypeArguments::Handle(zone, decl_type_a2.arguments());
     const auto& type_arg_a2_x =
-        TypeParameter::CheckedHandle(zone, decl_type_args_a2.TypeAt(1));
+        TypeParameter::CheckedHandle(zone, decl_type_args_a2.TypeAt(0));
     auto& tav_a2_x = TypeArguments::Handle(TypeArguments::New(1));
     tav_a2_x.SetTypeAt(0, type_arg_a2_x);
-    tav_a2_x = tav_a2_x.Canonicalize(thread, nullptr);
+    tav_a2_x = tav_a2_x.Canonicalize(thread);
     auto& type_list_a2_x = Type::CheckedHandle(
         zone, decl_type_list.InstantiateFrom(tav_a2_x, null_tav, kAllFree,
                                              Heap::kNew));
-    type_list_a2_x ^= type_list_a2_x.Canonicalize(thread, nullptr);
+    type_list_a2_x ^= type_list_a2_x.Canonicalize(thread);
     auto& tav_list_a2_x = TypeArguments::Handle(TypeArguments::New(1));
     tav_list_a2_x.SetTypeAt(0, type_list_a2_x);
-    tav_list_a2_x = tav_list_a2_x.Canonicalize(thread, nullptr);
+    tav_list_a2_x = tav_list_a2_x.Canonicalize(thread);
     auto& type_b_list_a2_x = Type::CheckedHandle(
         zone, decl_type_b.InstantiateFrom(tav_list_a2_x, null_tav, kAllFree,
                                           Heap::kNew));
-    type_b_list_a2_x ^= type_b_list_a2_x.Canonicalize(thread, nullptr);
+    type_b_list_a2_x ^= type_b_list_a2_x.Canonicalize(thread);
 
     const auto& inst_b_a2 =
         Type::Handle(zone, class_a2.GetInstantiationOf(zone, class_b));
@@ -8235,9 +8227,9 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
   }
   buffer.AddString("}\n");
 
-  Dart_Handle api_lib = TestCase::LoadTestScript(buffer.buffer(), NULL);
+  Dart_Handle api_lib = TestCase::LoadTestScript(buffer.buffer(), nullptr);
   EXPECT_VALID(api_lib);
-  Dart_Handle result = Dart_Invoke(api_lib, NewString("main"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(api_lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 
   // D + C0...CN, where N = kNumClasses - 1
@@ -8336,8 +8328,7 @@ static void TypeArgumentsHashCacheTest(Thread* thread, intptr_t num_classes) {
       invoke_instantiate_tav_arguments.SetAt(1, instantiator_type_args);
       invoke_instantiate_tav_arguments.SetAt(2, function_type_args);
       result_type_args ^= DartEntry::InvokeCode(
-          invoke_instantiate_tav, invoke_instantiate_tav.EntryPoint(),
-          invoke_instantiate_tav_args_descriptor,
+          invoke_instantiate_tav, invoke_instantiate_tav_args_descriptor,
           invoke_instantiate_tav_arguments, thread);
       EXPECT_EQ(1, result_type_args.Length());
       result_type = result_type_args.TypeAt(0);
@@ -8406,5 +8397,369 @@ TEST_CASE(TypeArguments_Cache_ManyInstantiations) {
 #endif
 
 #undef EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT
+
+static void SubtypeTestCacheCheckContents(Zone* zone,
+                                          const SubtypeTestCache& cache) {
+  const intptr_t used_inputs = cache.num_inputs();
+  if (used_inputs < 1 || used_inputs > SubtypeTestCache::kMaxInputs) {
+    FAIL("Invalid number of used inputs: %" Pd "", used_inputs);
+    return;
+  }
+  const auto& array = Array::Handle(zone, cache.cache());
+  for (intptr_t i = 0; i < cache.NumEntries(); i++) {
+    if (!cache.IsOccupied(i)) continue;
+    const intptr_t entry_start = i * SubtypeTestCache::kTestEntryLength;
+    {
+      const intptr_t cid =
+          array.At(entry_start + SubtypeTestCache::kTestResult)
+              ->GetClassIdMayBeSmi();
+      EXPECT(cid == kNullCid || cid == kBoolCid);
+    }
+
+    // Used to make sure all the cases are in the correct order below.
+    int check_ordering = used_inputs;
+    // Input: the value of SubtypeTestCache::Entries for this input
+    // ExpectedCids is an expression where [cid] is bound to the contents cid.
+#define USED_INPUT_CASE(Input, ExpectedCids)                                   \
+  case (Input) + 1: {                                                          \
+    RELEASE_ASSERT((Input) + 1 == check_ordering);                             \
+    const intptr_t cid =                                                       \
+        array.At(entry_start + (Input))->GetClassIdMayBeSmi();                 \
+    if (!(ExpectedCids)) {                                                     \
+      FAIL("expected: " #ExpectedCids ", got: cid %" Pd "", cid);              \
+    }                                                                          \
+    --check_ordering;                                                          \
+  }
+
+    switch (used_inputs) {
+      USED_INPUT_CASE(SubtypeTestCache::kDestinationType,
+                      IsConcreteTypeClassId(cid));
+      FALL_THROUGH;
+      USED_INPUT_CASE(SubtypeTestCache::kInstanceDelayedFunctionTypeArguments,
+                      cid == kNullCid || cid == kTypeArgumentsCid);
+      FALL_THROUGH;
+      USED_INPUT_CASE(SubtypeTestCache::kInstanceParentFunctionTypeArguments,
+                      cid == kNullCid || cid == kTypeArgumentsCid);
+      FALL_THROUGH;
+      USED_INPUT_CASE(SubtypeTestCache::kFunctionTypeArguments,
+                      cid == kNullCid || cid == kTypeArgumentsCid);
+      FALL_THROUGH;
+      USED_INPUT_CASE(SubtypeTestCache::kInstantiatorTypeArguments,
+                      cid == kNullCid || cid == kTypeArgumentsCid);
+      FALL_THROUGH;
+      USED_INPUT_CASE(SubtypeTestCache::kInstanceTypeArguments,
+                      cid == kNullCid || cid == kTypeArgumentsCid);
+      FALL_THROUGH;
+      USED_INPUT_CASE(SubtypeTestCache::kInstanceCidOrSignature,
+                      cid == kSmiCid || cid == kFunctionTypeCid);
+      break;
+      default:
+        UNREACHABLE();
+    }
+
+#undef USED_INPUT_CASE
+    RELEASE_ASSERT(0 == check_ordering);
+
+    // Check that unused inputs have never been set.
+    for (intptr_t i = used_inputs; i < SubtypeTestCache::kMaxInputs; i++) {
+      // Since we sometimes use Array::NewUninitialized() for allocations of
+      // STCs and never set unused inputs, the only thing we know is that the
+      // entry is GC-safe. Since we don't expect valid values for unused inputs,
+      // we just check if it's either a Smi or null.
+      const intptr_t cid = array.At(entry_start + i)->GetClassIdMayBeSmi();
+      EXPECT(cid == kSmiCid || cid == kNullCid);
+    }
+  }
+}
+
+static void SubtypeTestCacheEntryTest(
+    Thread* thread,
+    const SubtypeTestCache& cache,
+    const Object& instance_class_id_or_signature,
+    const AbstractType& destination_type,
+    const TypeArguments& instance_type_arguments,
+    const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments,
+    const TypeArguments& parent_function_type_arguments,
+    const TypeArguments& delayed_type_arguments,
+    const Bool& expected_result,
+    Bool* got_result) {
+  const auto& tav_null = TypeArguments::null_type_arguments();
+  const intptr_t num_inputs = cache.num_inputs();
+  const bool was_hash = cache.IsHash();
+  const intptr_t old_count = cache.NumberOfChecks();
+  intptr_t expected_index, got_index;
+
+  EXPECT(!cache.HasCheck(
+      instance_class_id_or_signature, destination_type, instance_type_arguments,
+      instantiator_type_arguments, function_type_arguments,
+      parent_function_type_arguments, delayed_type_arguments, /*index=*/nullptr,
+      /*result=*/nullptr));
+  {
+    SafepointMutexLocker ml(
+        thread->isolate_group()->subtype_test_cache_mutex());
+    expected_index =
+        cache.AddCheck(instance_class_id_or_signature, destination_type,
+                       instance_type_arguments, instantiator_type_arguments,
+                       function_type_arguments, parent_function_type_arguments,
+                       delayed_type_arguments, expected_result);
+    EXPECT(expected_index >= 0);
+  }
+  EXPECT_EQ(old_count + 1, cache.NumberOfChecks());
+  EXPECT(cache.HasCheck(instance_class_id_or_signature, destination_type,
+                        instance_type_arguments, instantiator_type_arguments,
+                        function_type_arguments, parent_function_type_arguments,
+                        delayed_type_arguments, &got_index, got_result));
+  EXPECT_EQ(expected_index, got_index);
+  EXPECT(got_result->ptr() == expected_result.ptr());
+  if (num_inputs < (SubtypeTestCache::kInstanceTypeArguments + 1)) {
+    // Match replacing unused instance type arguments with null.
+    EXPECT(cache.HasCheck(instance_class_id_or_signature, destination_type,
+                          tav_null, instantiator_type_arguments,
+                          function_type_arguments,
+                          parent_function_type_arguments,
+                          delayed_type_arguments, &got_index, got_result));
+    EXPECT_EQ(expected_index, got_index);
+    EXPECT(got_result->ptr() == expected_result.ptr());
+  } else {
+    // No match replacing used instance type arguments with null.
+    EXPECT(!cache.HasCheck(
+        instance_class_id_or_signature, destination_type, tav_null,
+        instantiator_type_arguments, function_type_arguments,
+        parent_function_type_arguments, delayed_type_arguments,
+        /*index=*/nullptr, /*result=*/nullptr));
+  }
+  if (num_inputs < (SubtypeTestCache::kInstantiatorTypeArguments + 1)) {
+    // Match replacing unused instantiator type arguments with null.
+    EXPECT(cache.HasCheck(instance_class_id_or_signature, destination_type,
+                          instance_type_arguments, tav_null,
+                          function_type_arguments,
+                          parent_function_type_arguments,
+                          delayed_type_arguments, &got_index, got_result));
+    EXPECT_EQ(expected_index, got_index);
+    EXPECT(got_result->ptr() == expected_result.ptr());
+  } else {
+    // No match replacing used instantiator type arguments with null.
+    EXPECT(!cache.HasCheck(
+        instance_class_id_or_signature, destination_type,
+        instance_type_arguments, tav_null, function_type_arguments,
+        parent_function_type_arguments, delayed_type_arguments,
+        /*index=*/nullptr, /*result=*/nullptr));
+  }
+  if (num_inputs < (SubtypeTestCache::kFunctionTypeArguments + 1)) {
+    // Match replacing unused function type arguments with null.
+    EXPECT(cache.HasCheck(instance_class_id_or_signature, destination_type,
+                          instance_type_arguments, instantiator_type_arguments,
+                          tav_null, parent_function_type_arguments,
+                          delayed_type_arguments, &got_index, got_result));
+    EXPECT_EQ(expected_index, got_index);
+    EXPECT(got_result->ptr() == expected_result.ptr());
+  } else {
+    // No match replacing used function type arguments with null.
+    EXPECT(!cache.HasCheck(instance_class_id_or_signature, destination_type,
+                           instance_type_arguments, instantiator_type_arguments,
+                           tav_null, parent_function_type_arguments,
+                           delayed_type_arguments,
+                           /*index=*/nullptr, /*result=*/nullptr));
+  }
+  if (num_inputs <
+      (SubtypeTestCache::kInstanceParentFunctionTypeArguments + 1)) {
+    // Match replacing unused parent function type arguments with null.
+    EXPECT(cache.HasCheck(instance_class_id_or_signature, destination_type,
+                          instance_type_arguments, instantiator_type_arguments,
+                          function_type_arguments, tav_null,
+                          delayed_type_arguments, &got_index, got_result));
+    EXPECT_EQ(expected_index, got_index);
+    EXPECT(got_result->ptr() == expected_result.ptr());
+  } else {
+    // No match replacing used parent function type arguments with null.
+    EXPECT(!cache.HasCheck(instance_class_id_or_signature, destination_type,
+                           instance_type_arguments, instantiator_type_arguments,
+                           function_type_arguments, tav_null,
+                           delayed_type_arguments, /*index=*/nullptr,
+                           /*result=*/nullptr));
+  }
+  if (num_inputs <
+      (SubtypeTestCache::kInstanceDelayedFunctionTypeArguments + 1)) {
+    // Match replacing unused delayed type arguments with null.
+    EXPECT(cache.HasCheck(instance_class_id_or_signature, destination_type,
+                          instance_type_arguments, instantiator_type_arguments,
+                          function_type_arguments,
+                          parent_function_type_arguments, tav_null, &got_index,
+                          got_result));
+    EXPECT_EQ(expected_index, got_index);
+    EXPECT(got_result->ptr() == expected_result.ptr());
+  } else {
+    // No match replacing used delayed type arguments with null.
+    EXPECT(!cache.HasCheck(instance_class_id_or_signature, destination_type,
+                           instance_type_arguments, instantiator_type_arguments,
+                           function_type_arguments,
+                           parent_function_type_arguments, tav_null,
+                           /*index=*/nullptr, /*result=*/nullptr));
+  }
+  // Make sure we're not accidentally using the same type as the input below.
+  RELEASE_ASSERT(destination_type.ptr() != Type::VoidType());
+  if (num_inputs < (SubtypeTestCache::kDestinationType + 1)) {
+    // Match replacing unused destination type argument with the null type.
+    EXPECT(cache.HasCheck(instance_class_id_or_signature, Object::void_type(),
+                          instance_type_arguments, instantiator_type_arguments,
+                          function_type_arguments,
+                          parent_function_type_arguments,
+                          delayed_type_arguments, &got_index, got_result));
+    EXPECT_EQ(expected_index, got_index);
+    EXPECT(got_result->ptr() == expected_result.ptr());
+  } else {
+    // No match replacing used destination type argument with the null type.
+    EXPECT(!cache.HasCheck(instance_class_id_or_signature, Object::void_type(),
+                           instance_type_arguments, instantiator_type_arguments,
+                           function_type_arguments,
+                           parent_function_type_arguments,
+                           delayed_type_arguments,
+                           /*index=*/nullptr, /*result=*/nullptr));
+  }
+  // Once hash-based, should stay a hash-based cache.
+  EXPECT(!was_hash || cache.IsHash());
+}
+
+static void SubtypeTestCacheTest(Thread* thread,
+                                 intptr_t num_classes,
+                                 bool expect_hash) {
+  TextBuffer buffer(MB);
+  buffer.AddString("class D {}\n");
+  buffer.AddString("D createInstanceD() => D();");
+  buffer.AddString("D Function() createClosureD() => () => D();\n");
+  for (intptr_t i = 0; i < num_classes; i++) {
+    buffer.Printf(R"(class C%)" Pd R"( extends D {}
+)"
+                  R"(C%)" Pd R"( createInstanceC%)" Pd R"(() => C%)" Pd
+                  R"(();
+)"
+                  R"(C%)" Pd R"( Function() createClosureC%)" Pd
+                  R"(() => () => C%)" Pd
+                  R"(();
+)",
+                  i, i, i, i, i, i, i);
+  }
+
+  Dart_Handle api_lib = TestCase::LoadTestScript(buffer.buffer(), nullptr);
+  EXPECT_VALID(api_lib);
+
+  // D + C0...CN, where N = kNumClasses - 1
+  EXPECT(IsolateGroup::Current()->class_table()->NumCids() > num_classes);
+
+  TransitionNativeToVM transition(thread);
+  Zone* const zone = thread->zone();
+
+  const auto& root_lib =
+      Library::CheckedHandle(zone, Api::UnwrapHandle(api_lib));
+  EXPECT(!root_lib.IsNull());
+
+  const auto& class_d = Class::Handle(zone, GetClass(root_lib, "D"));
+  ASSERT(!class_d.IsNull());
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    ClassFinalizer::FinalizeClass(class_d);
+  }
+  const auto& instance_d =
+      Instance::CheckedHandle(zone, Invoke(root_lib, "createInstanceD"));
+  auto& type_instance_d_int =
+      Type::CheckedHandle(zone, instance_d.GetType(Heap::kNew));
+  const auto& closure_d =
+      Instance::CheckedHandle(zone, Invoke(root_lib, "createClosureD"));
+  ASSERT(!closure_d.IsNull());
+  auto& type_closure_d_int =
+      FunctionType::CheckedHandle(zone, closure_d.GetType(Heap::kNew));
+
+  // Test all the possible input values.
+  const SubtypeTestCache* stcs[SubtypeTestCache::kMaxInputs];
+  for (intptr_t i = 0; i < SubtypeTestCache::kMaxInputs; i++) {
+    stcs[i] = &SubtypeTestCache::Handle(zone, SubtypeTestCache::New(i + 1));
+  }
+
+  auto& class_c = Class::Handle(zone);
+  auto& instance_c = Instance::Handle(zone);
+  auto& closure_c = Closure::Handle(zone);
+  auto& instance_class_id_or_signature = Object::Handle(zone);
+  // Set up unique tavs for each of the TAV inputs.
+  auto& instance_type_arguments =
+      TypeArguments::Handle(zone, TypeArguments::New(1));
+  instance_type_arguments.SetTypeAt(0, Type::Handle(zone, Type::SmiType()));
+  instance_type_arguments = instance_type_arguments.Canonicalize(thread);
+  auto& instantiator_type_arguments =
+      TypeArguments::Handle(zone, TypeArguments::New(1));
+  instantiator_type_arguments.SetTypeAt(0, Type::Handle(zone, Type::IntType()));
+  instantiator_type_arguments =
+      instantiator_type_arguments.Canonicalize(thread);
+  auto& function_type_arguments =
+      TypeArguments::Handle(zone, TypeArguments::New(1));
+  function_type_arguments.SetTypeAt(0, Type::Handle(zone, Type::Double()));
+  function_type_arguments = function_type_arguments.Canonicalize(thread);
+  auto& parent_function_type_arguments =
+      TypeArguments::Handle(zone, TypeArguments::New(1));
+  parent_function_type_arguments.SetTypeAt(
+      0, Type::Handle(zone, Type::StringType()));
+  parent_function_type_arguments =
+      parent_function_type_arguments.Canonicalize(thread);
+  auto& delayed_type_arguments =
+      TypeArguments::Handle(zone, TypeArguments::New(1));
+  delayed_type_arguments.SetTypeAt(0, Type::Handle(zone, Type::BoolType()));
+  delayed_type_arguments = delayed_type_arguments.Canonicalize(thread);
+  auto& got_result = Bool::Handle(zone);
+  for (intptr_t i = 0; i < num_classes; ++i) {
+    // Just so we're testing both true and false values, as we're not actually
+    // using the results to determine subtype/assignability.
+    const auto& expected_result = (i % 2 == 0) ? Bool::True() : Bool::False();
+
+    auto const class_name = OS::SCreate(zone, "C%" Pd "", i);
+    class_c = GetClass(root_lib, class_name);
+    ASSERT(!class_c.IsNull());
+    {
+      SafepointWriteRwLocker ml(thread,
+                                thread->isolate_group()->program_lock());
+      ClassFinalizer::FinalizeClass(class_c);
+    }
+    auto const instance_name = OS::SCreate(zone, "createInstanceC%" Pd "", i);
+    instance_c ^= Invoke(root_lib, instance_name);
+    EXPECT(!instance_c.IsClosure());
+    instance_class_id_or_signature = Smi::New(instance_c.GetClassId());
+
+    for (intptr_t i = 0; i < 5; i++) {
+      SubtypeTestCacheEntryTest(
+          thread, *stcs[i], instance_class_id_or_signature, type_instance_d_int,
+          instance_type_arguments, instantiator_type_arguments,
+          function_type_arguments, parent_function_type_arguments,
+          delayed_type_arguments, expected_result, &got_result);
+    }
+
+    auto const function_name = OS::SCreate(zone, "createClosureC%" Pd "", i);
+    closure_c ^= Invoke(root_lib, function_name);
+
+    instance_class_id_or_signature = closure_c.function();
+    instance_class_id_or_signature =
+        Function::Cast(instance_class_id_or_signature).signature();
+
+    for (intptr_t i = 5; i < SubtypeTestCache::kMaxInputs; i++) {
+      SubtypeTestCacheEntryTest(
+          thread, *stcs[i], instance_class_id_or_signature, type_closure_d_int,
+          instance_type_arguments, instantiator_type_arguments,
+          function_type_arguments, parent_function_type_arguments,
+          delayed_type_arguments, expected_result, &got_result);
+    }
+  }
+  for (intptr_t i = 0; i < SubtypeTestCache::kMaxInputs; i++) {
+    SubtypeTestCacheCheckContents(zone, *stcs[i]);
+    EXPECT_EQ(expect_hash, stcs[i]->IsHash());
+  }
+}
+
+TEST_CASE(STC_LinearLookup) {
+  SubtypeTestCacheTest(thread, SubtypeTestCache::kMaxLinearCacheEntries,
+                       /*expect_hash=*/false);
+}
+
+TEST_CASE(STC_HashLookup) {
+  SubtypeTestCacheTest(thread, 2 * SubtypeTestCache::kMaxLinearCacheEntries,
+                       /*expect_hash=*/true);
+}
 
 }  // namespace dart

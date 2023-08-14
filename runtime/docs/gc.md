@@ -110,9 +110,9 @@ enum HeaderBits {
   ...
 };
 
-static const intptr_t kGenerationalBarrierMask = 1 << kNewBit;
-static const intptr_t kIncrementalBarrierMask = 1 << kOldAndNotMarkedBit;
-static const intptr_t kBarrierOverlapShift = 2;
+static constexpr intptr_t kGenerationalBarrierMask = 1 << kNewBit;
+static constexpr intptr_t kIncrementalBarrierMask = 1 << kOldAndNotMarkedBit;
+static constexpr intptr_t kBarrierOverlapShift = 2;
 COMPILE_ASSERT(kOldAndNotMarkedBit + kBarrierOverlapShift == kOldBit);
 COMPILE_ASSERT(kNewBit + kBarrierOverlapShift == kOldAndNotRememberedBit);
 
@@ -204,6 +204,22 @@ container <- AllocateObject
 <instructions that cannot directly call Dart functions>
 StoreInstanceField(container, value, NoBarrier)
 ```
+
+## Weakness
+
+The GC supports a variety of weak and ephemeral references.
+
+* Heap objects
+  * WeakReference - Weakly references a single object.
+  * WeakProperty - Weakly references a key. If the key is reachable, then the value is reachable. Also called an [ephemeron](https://en.wikipedia.org/wiki/Ephemeron). It is used to implement Expando (also called WeakMap).
+  * WeakArray - Weakly references a variable-number of objects. Used to implement weak canonical sets.
+  * Finalizers - Weakly references a single object, runs a callback when the object is collected.
+* Non heap objects
+  * Dart\_WeakPersistentHandle / Dart\_FinalizableHandle - Weakly references a single object, runs a callback when the object is collected.
+  * The object id ring - References objects that were assigned ids by the VM service. The references are strong during a minor GC and weak during a major GC.
+  * Weak tables - Weakly associate objects to integers. Used to implement Dart_GetPeer, identity hashes on 32-bit architectures, and canonicalization hashes.
+
+As GC traces through strong references, it maintains a set of weaklings encountered. Once the worklist of strong references is empty, the set of WeakProperties is examined for any reachable keys, which add the corresponding values to the worklist. This repeats until the worklist is empty. (This is quadratic in the worst case. Previous versions of the Dart VM used the watched set optimization. In practice, things are flat.)
 
 ## Finalizers
 

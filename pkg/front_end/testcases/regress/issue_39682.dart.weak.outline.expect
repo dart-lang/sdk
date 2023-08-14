@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -9,7 +9,7 @@ static method main() → dynamic
 static method __loadLibrary_foo() → core::String
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 
 static method foo() → dynamic

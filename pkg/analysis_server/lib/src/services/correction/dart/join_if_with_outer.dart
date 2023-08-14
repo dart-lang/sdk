@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class JoinIfWithOuter extends CorrectionProducer {
+class JoinIfWithOuter extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.JOIN_IF_WITH_OUTER;
 
@@ -44,8 +44,8 @@ class JoinIfWithOuter extends CorrectionProducer {
     // prepare environment
     var prefix = utils.getNodePrefix(outerIfStatement);
     // merge conditions
-    var targetCondition = targetIfStatement.condition;
-    var outerCondition = outerIfStatement.condition;
+    var targetCondition = targetIfStatement.expression;
+    var outerCondition = outerIfStatement.expression;
     var targetConditionSource = utils.getNodeText(targetCondition);
     var outerConditionSource = utils.getNodeText(outerCondition);
     if (shouldWrapParenthesisBeforeAnd(targetCondition)) {

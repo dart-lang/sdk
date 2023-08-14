@@ -182,9 +182,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       get flowAnalysis => _inferrer.flowAnalysis;
 
   /// Provides access to the [OperationsCfe] object.  This is needed by
-  /// [isAssignable].
-  Operations<VariableDeclaration, DartType> get operations =>
-      _inferrer.operations;
+  /// [isAssignable] and for caching types.
+  OperationsCfe get cfeOperations => _inferrer.operations;
 
   TypeSchemaEnvironment get typeSchemaEnvironment =>
       _inferrer.typeSchemaEnvironment;
@@ -195,6 +194,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   CoreTypes get coreTypes => engine.coreTypes;
 
+  @pragma("vm:prefer-inline")
   SourceLibraryBuilder get libraryBuilder => _inferrer.libraryBuilder;
 
   bool get isInferenceUpdate1Enabled =>
@@ -228,28 +228,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (type is NullType || type is NeverType) {
       return const NullType();
     }
-    return type.withDeclaredNullability(libraryBuilder.nullable);
+    if (libraryBuilder.isNonNullableByDefault) {
+      return cfeOperations.getNullableType(type);
+    } else {
+      return cfeOperations.getLegacyType(type);
+    }
   }
 
   Expression createReachabilityError(
       int fileOffset, Message errorMessage, Message warningMessage) {
-    if (libraryBuilder.loader.target.context.options.warnOnReachabilityCheck &&
-        // ignore: unnecessary_null_comparison
-        warningMessage != null) {
+    if (libraryBuilder.loader.target.context.options.warnOnReachabilityCheck) {
       helper.addProblem(warningMessage, fileOffset, noLength);
     }
-    Arguments arguments;
-    // ignore: unnecessary_null_comparison
-    if (errorMessage != null) {
-      arguments = new Arguments([
-        new StringLiteral(errorMessage.problemMessage)..fileOffset = fileOffset
-      ])
-        ..fileOffset = fileOffset;
-    } else {
-      arguments = new Arguments([])..fileOffset = fileOffset;
-    }
-    // ignore: unnecessary_null_comparison
-    assert(coreTypes.reachabilityErrorConstructor != null);
+    Arguments arguments = new Arguments([
+      new StringLiteral(errorMessage.problemMessage)..fileOffset = fileOffset
+    ])
+      ..fileOffset = fileOffset;
     return new Throw(
         new ConstructorInvocation(
             coreTypes.reachabilityErrorConstructor, arguments)
@@ -389,11 +383,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       typeContext = type.typeArgument;
     }
     return typeContext is InterfaceType &&
-        typeContext.classNode == coreTypes.doubleClass;
+        typeContext.classReference == coreTypes.doubleClass.reference;
   }
 
   bool isAssignable(DartType contextType, DartType expressionType) =>
-      operations.isAssignableTo(expressionType, contextType);
+      cfeOperations.isAssignableTo(expressionType, contextType);
 
   /// Ensures that [expressionType] is assignable to [contextType].
   ///
@@ -457,9 +451,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType? runtimeCheckedType,
       bool isVoidAllowed = false,
       bool coerceExpression = true}) {
-    // ignore: unnecessary_null_comparison
-    assert(contextType != null);
-
     fileOffset ??= inferenceResult.expression.fileOffset;
     contextType = computeGreatestClosure(contextType);
 
@@ -550,9 +541,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       Template<Message Function(DartType, DartType, DartType, DartType, bool)>?
           nullabilityPartErrorTemplate,
       Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
-    // ignore: unnecessary_null_comparison
-    assert(contextType != null);
-
     // [errorTemplate], [nullabilityErrorTemplate], and
     // [nullabilityPartErrorTemplate] should be provided together.
     assert((errorTemplate == null) == (nullabilityErrorTemplate == null) &&
@@ -719,9 +707,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       Template<Message Function(DartType, DartType, DartType, DartType, bool)>?
           nullabilityPartErrorTemplate,
       Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
-    // ignore: unnecessary_null_comparison
-    assert(contextType != null);
-
     if (coerceExpression) {
       ExpressionInferenceResult? coercionResult = coerceExpressionForAssignment(
           contextType, inferenceResult,
@@ -753,8 +738,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   Expression _wrapTearoffErrorExpression(Expression expression,
       DartType contextType, Template<Message Function(String)> template) {
-    // ignore: unnecessary_null_comparison
-    assert(template != null);
     Expression errorNode = new AsExpression(
         expression,
         // TODO(ahe): The outline phase doesn't correctly remove invalid
@@ -838,18 +821,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       required bool isVoidAllowed,
       required bool isExpressionTypePrecise,
       required bool coerceExpression}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNonNullableByDefault != null);
-    // ignore: unnecessary_null_comparison
-    assert(isVoidAllowed != null);
-    // ignore: unnecessary_null_comparison
-    assert(isExpressionTypePrecise != null);
-
     // If an interface type is being assigned to a function type, see if we
     // should tear off `.call`.
     // TODO(paulberry): use resolveTypeParameter.  See findInterfaceMember.
     bool needsTearoff = false;
-    if (coerceExpression && expressionType is InterfaceType) {
+    if (coerceExpression &&
+        expressionType is InterfaceType &&
+        _shouldMaybeTearOffCall(contextType)) {
       Class classNode = expressionType.classNode;
       Member? callMember =
           membersBuilder.getInterfaceMember(classNode, callName);
@@ -996,21 +974,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   /// Returns inline class member declared immediately for [inlineType].
-  ///
-  /// If none is found, [defaultTarget] is returned.
-  ObjectAccessTarget _findDirectInlineTypeMember(
-      DartType receiverType, InlineType inlineType, Name name, int fileOffset,
-      {required ObjectAccessTarget defaultTarget,
-      required bool isSetter,
-      required bool isReceiverTypePotentiallyNullable}) {
-    ObjectAccessTarget? target = _findDirectInlineTypeMemberInternal(
-        receiverType, inlineType, name, fileOffset,
-        isSetter: isSetter,
-        isReceiverTypePotentiallyNullable: isReceiverTypePotentiallyNullable);
-    return target ?? defaultTarget;
-  }
-
-  ObjectAccessTarget? _findDirectInlineTypeMemberInternal(
+  ObjectAccessTarget? _findDirectInlineTypeMember(
       DartType receiverType, InlineType inlineType, Name name, int fileOffset,
       {required bool isSetter,
       required bool isReceiverTypePotentiallyNullable}) {
@@ -1082,7 +1046,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         InlineType supertype = hierarchyBuilder.getInlineTypeAsInstanceOf(
             inlineType, implement.inlineClass,
             isNonNullableByDefault: isNonNullableByDefault)!;
-        ObjectAccessTarget? target = _findDirectInlineTypeMemberInternal(
+        ObjectAccessTarget? target = _findDirectInlineTypeMember(
             receiverType, supertype, name, fileOffset,
             isSetter: isSetter,
             isReceiverTypePotentiallyNullable:
@@ -1323,8 +1287,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       {required CallSiteAccessKind callSiteAccessKind,
       bool instrumented = true,
       bool includeExtensionMethods = false}) {
-    // ignore: unnecessary_null_comparison
-    assert(receiverType != null && isKnown(receiverType));
+    assert(isKnown(receiverType));
 
     bool isSetter = callSiteAccessKind == CallSiteAccessKind.setterInvocation;
 
@@ -1373,7 +1336,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     ObjectAccessTarget target =
         objectAccessDescriptor.findNonExtensionTarget(this);
-    if (instrumented &&
+    if (instrumentation != null &&
+        instrumented &&
         receiverBound != const DynamicType() &&
         (target.isInstanceMember || target.isObjectMember)) {
       instrumentation?.record(uriForInstrumentation, fileOffset, 'target',
@@ -1422,10 +1386,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       Name name,
       int fileOffset,
       Template<Message Function(String, DartType, bool)> errorTemplate) {
-    // ignore: unnecessary_null_comparison
-    assert(receiverType != null && isKnown(receiverType));
-    // ignore: unnecessary_null_comparison
-    if (target.isMissing && errorTemplate != null) {
+    assert(isKnown(receiverType));
+    if (target.isMissing) {
       int length = name.text.length;
       if (identical(name.text, callName.text) ||
           identical(name.text, unaryMinusName.text)) {
@@ -1813,8 +1775,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
-      // ignore: unnecessary_null_comparison
-      if (isConst && typeContext != null) {
+      if (isConst) {
         typeContext = new TypeVariableEliminator(
                 bottomType,
                 isNonNullableByDefault
@@ -1915,7 +1876,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               : legacyErasure(inferredFormalType));
     }
 
-    List<EqualityInfo<DartType>?>? identicalInfo =
+    List<ExpressionInfo<DartType>?>? identicalInfo =
         isIdentical && arguments.positional.length == 2 ? [] : null;
     int positionalIndex = 0;
     int namedIndex = 0;
@@ -2132,8 +2093,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             inferredTypes;
       }
     }
-    List<DartType> positionalArgumentTypes = [];
-    List<NamedType> namedArgumentTypes = [];
     if (!identical(calleeType, unknownFunction)) {
       LocatedMessage? argMessage = helper.checkArgumentsForType(
           calleeType, arguments, offset,
@@ -2163,13 +2122,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           bool coerceExpression;
           if (i < numPositionalArgs) {
             expression = arguments.positional[positionalShift + i];
-            positionalArgumentTypes.add(actualType);
             coerceExpression = !arguments.positionalAreSuperParameters;
           } else {
             namedExpression = arguments.named[i - numPositionalArgs];
             expression = namedExpression.value;
-            namedArgumentTypes
-                .add(new NamedType(namedExpression.name, actualType));
             coerceExpression = !(arguments.namedSuperParameterNames
                     ?.contains(namedExpression.name) ??
                 false);
@@ -2462,8 +2418,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType typeContext,
       List<VariableDeclaration>? hoistedExpressions,
       {required bool isImplicitCall}) {
-    // ignore: unnecessary_null_comparison
-    assert(isImplicitCall != null);
     InvocationInferenceResult result = inferInvocation(
         visitor, typeContext, fileOffset, unknownFunction, arguments,
         hoistedExpressions: hoistedExpressions,
@@ -2488,8 +2442,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType typeContext,
       List<VariableDeclaration>? hoistedExpressions,
       {required bool isImplicitCall}) {
-    // ignore: unnecessary_null_comparison
-    assert(isImplicitCall != null);
     InvocationInferenceResult result = inferInvocation(
         visitor, typeContext, fileOffset, unknownFunction, arguments,
         hoistedExpressions: hoistedExpressions,
@@ -2520,10 +2472,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       required bool isImplicitCall,
       Name? implicitInvocationPropertyName}) {
     assert(target.isMissing || target.isAmbiguous);
-    // ignore: unnecessary_null_comparison
-    assert(isExpressionInvocation != null);
-    // ignore: unnecessary_null_comparison
-    assert(isImplicitCall != null);
     Expression error = createMissingMethodInvocation(
         fileOffset, receiverType, name,
         receiver: receiver,
@@ -2556,8 +2504,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType typeContext,
       List<VariableDeclaration>? hoistedExpressions,
       {required bool isImplicitCall}) {
-    // ignore: unnecessary_null_comparison
-    assert(isImplicitCall != null);
     assert(target.isExtensionMember ||
         target.isNullableExtensionMember ||
         target.isInlineClassMember ||
@@ -2671,8 +2617,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType typeContext,
       List<VariableDeclaration>? hoistedExpressions,
       {required bool isImplicitCall}) {
-    // ignore: unnecessary_null_comparison
-    assert(isImplicitCall != null);
     assert(target.isCallFunction || target.isNullableCallFunction);
     FunctionType declaredFunctionType = target.getFunctionType(this);
     InvocationInferenceResult result = inferInvocation(
@@ -2777,12 +2721,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       {required bool isImplicitCall,
       required bool isSpecialCasedBinaryOperator,
       required bool isSpecialCasedTernaryOperator}) {
-    // ignore: unnecessary_null_comparison
-    assert(isImplicitCall != null);
-    // ignore: unnecessary_null_comparison
-    assert(isSpecialCasedBinaryOperator != null);
-    // ignore: unnecessary_null_comparison
-    assert(isSpecialCasedTernaryOperator != null);
     assert(target.isInstanceMember ||
         target.isObjectMember ||
         target.isNullableInstanceMember);
@@ -2944,8 +2882,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType typeContext,
       List<VariableDeclaration>? hoistedExpressions,
       {required bool isExpressionInvocation}) {
-    // ignore: unnecessary_null_comparison
-    assert(isExpressionInvocation != null);
     assert(target.isInstanceMember ||
         target.isObjectMember ||
         target.isNullableInstanceMember);
@@ -3146,8 +3082,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType typeContext,
       List<VariableDeclaration>? hoistedExpressions,
       {required bool isExpressionInvocation}) {
-    // ignore: unnecessary_null_comparison
-    assert(isExpressionInvocation != null);
     assert(target.isInstanceMember ||
         target.isObjectMember ||
         target.isNullableInstanceMember);
@@ -3193,8 +3127,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         kind, receiver, originalName,
         resultType: calleeType, interfaceTarget: originalTarget)
       ..fileOffset = fileOffset;
-    calleeType = flowAnalysis.propertyGet(originalPropertyGet, originalReceiver,
-            originalName.text, originalTarget, calleeType) ??
+    calleeType = flowAnalysis.propertyGet(
+            originalPropertyGet,
+            computePropertyTarget(originalReceiver),
+            originalName.text,
+            originalTarget,
+            calleeType) ??
         calleeType;
     originalPropertyGet.resultType = calleeType;
     Expression propertyGet = originalPropertyGet;
@@ -3303,6 +3241,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         nullAwareGuards);
   }
 
+  /// Computes an appropriate [PropertyTarget] for use in flow analysis to
+  /// represent the given [target].
+  PropertyTarget<Expression> computePropertyTarget(Expression target);
+
   /// Performs the core type inference algorithm for method invocations.
   ExpressionInferenceResult inferMethodInvocation(
       InferenceVisitor visitor,
@@ -3318,11 +3260,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       Name? implicitInvocationPropertyName,
       List<VariableDeclaration>? hoistedExpressions,
       ObjectAccessTarget? target}) {
-    // ignore: unnecessary_null_comparison
-    assert(isExpressionInvocation != null);
-    // ignore: unnecessary_null_comparison
-    assert(isImplicitCall != null);
-
     target ??= findInterfaceMember(receiverType, name, fileOffset,
         instrumented: true,
         includeExtensionMethods: true,
@@ -3601,8 +3538,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   void checkBoundsInInstantiation(
       FunctionType functionType, List<DartType> arguments, int fileOffset,
       {required bool inferred}) {
-    // ignore: unnecessary_null_comparison
-    assert(inferred != null);
     // If [arguments] were inferred, check them.
 
     libraryBuilder.checkBoundsInInstantiation(
@@ -3675,8 +3610,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       return instantiateTearOff(inferredType, typeContext, expression);
     }
-    inferredType = flowAnalysis.thisOrSuperPropertyGet(
-            expression, name.text, member, inferredType) ??
+    inferredType = flowAnalysis.propertyGet(expression,
+            SuperPropertyTarget.singleton, name.text, member, inferredType) ??
         inferredType;
     return new ExpressionInferenceResult(inferredType, expression);
   }
@@ -3813,8 +3748,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   MethodContravarianceCheckKind preCheckInvocationContravariance(
       DartType receiverType, ObjectAccessTarget target,
       {required bool isThisReceiver}) {
-    // ignore: unnecessary_null_comparison
-    assert(isThisReceiver != null);
     if (target.isInstanceMember || target.isObjectMember) {
       Member interfaceMember = target.member!;
       if (interfaceMember is Field ||
@@ -3847,7 +3780,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   /// If the given [type] is a [TypeParameterType], resolve it to its bound.
+  @pragma("vm:prefer-inline")
   DartType resolveTypeParameter(DartType type) {
+    if (type is InterfaceType || type is FunctionType) return type;
+    return _resolveTypeParameterImpl(type);
+  }
+
+  /// If the given [type] is a [TypeParameterType], resolve it to its bound.
+  DartType _resolveTypeParameterImpl(DartType type) {
     DartType? resolveOneStep(DartType type) {
       if (type is TypeParameterType) {
         return type.bound;
@@ -3889,10 +3829,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     // TODO(paulberry): If [type] is a subtype of `Future`, should we just
     // return it unmodified?
-    // ignore: unnecessary_null_comparison
-    if (type == null) {
-      return coreTypes.futureRawType(libraryBuilder.nullable);
-    }
     return new FutureOrType(type, libraryBuilder.nonNullable);
   }
 
@@ -4000,11 +3936,25 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     if (contextType is FunctionType) return true;
     if (contextType is InterfaceType &&
-        contextType.classNode == typeSchemaEnvironment.functionClass) {
+        contextType.classReference ==
+            typeSchemaEnvironment.functionClass.reference) {
       if (!typeSchemaEnvironment.isSubtypeOf(expressionType, contextType,
           SubtypeCheckMode.ignoringNullabilities)) {
         return true;
       }
+    }
+    return false;
+  }
+
+  bool _shouldMaybeTearOffCall(DartType contextType) {
+    if (contextType is FutureOrType) {
+      contextType = contextType.typeArgument;
+    }
+    if (contextType is FunctionType) return true;
+    if (contextType is InterfaceType &&
+        contextType.classReference ==
+            typeSchemaEnvironment.functionClass.reference) {
+      return true;
     }
     return false;
   }
@@ -4104,8 +4054,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       required bool isExpressionInvocation,
       Name? implicitInvocationPropertyName,
       List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
-    // ignore: unnecessary_null_comparison
-    assert(isExpressionInvocation != null);
     assert((receiver == null) == (arguments == null),
         "Receiver and arguments must be supplied together.");
     if (implicitInvocationPropertyName != null) {
@@ -4255,13 +4203,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             !isThisReceiver) {
           Member interfaceMember = readTarget.member!;
           if (interfaceMember is Procedure) {
-            DartType typeToCheck = isNonNullableByDefault
-                ? interfaceMember.function
-                    .computeFunctionType(libraryBuilder.nonNullable)
-                : interfaceMember.function.returnType;
-            checkReturn =
-                InferenceVisitorBase.returnedTypeParametersOccurNonCovariantly(
-                    interfaceMember.enclosingClass!, typeToCheck);
+            Class enclosingClass = interfaceMember.enclosingClass!;
+            if (enclosingClass.typeParameters.isEmpty) {
+              checkReturn = false;
+            } else {
+              DartType typeToCheck = isNonNullableByDefault
+                  ? interfaceMember.function
+                      .computeFunctionType(libraryBuilder.nonNullable)
+                  : interfaceMember.function.returnType;
+              checkReturn = InferenceVisitorBase
+                  .returnedTypeParametersOccurNonCovariantly(
+                      enclosingClass, typeToCheck);
+            }
           } else if (interfaceMember is Field) {
             checkReturn =
                 InferenceVisitorBase.returnedTypeParametersOccurNonCovariantly(
@@ -4351,8 +4304,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType receiverType, Name propertyName, Expression value,
       {required bool forEffect,
       List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
-    // ignore: unnecessary_null_comparison
-    assert(forEffect != null);
     Template<Message Function(String, DartType, bool)> templateMissing;
     if (receiverType is ExtensionType) {
       templateMissing = templateUndefinedExtensionSetter;
@@ -4395,8 +4346,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType receiverType, Expression index, Expression value,
       {required bool forEffect,
       List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
-    // ignore: unnecessary_null_comparison
-    assert(forEffect != null);
     Template<Message Function(String, DartType, bool)> templateMissing;
     if (receiverType is ExtensionType) {
       templateMissing = templateUndefinedExtensionOperator;
@@ -4752,7 +4701,9 @@ class _ObjectAccessDescriptor {
     bool isSetter = callSiteAccessKind == CallSiteAccessKind.setterInvocation;
     final DartType receiverBound = this.receiverBound;
 
-    if (receiverBound is FunctionType && name == callName && !isSetter) {
+    if (receiverBound is InterfaceType) {
+      // This is what happens most often: Skip the other `if`s.
+    } else if (receiverBound is FunctionType && name == callName && !isSetter) {
       return isReceiverTypePotentiallyNullable
           ? new ObjectAccessTarget.nullableCallFunction(receiverType)
           : new ObjectAccessTarget.callFunction(receiverType);
@@ -4795,11 +4746,13 @@ class _ObjectAccessDescriptor {
         }
       }
     } else if (receiverBound is InlineType) {
-      return visitor._findDirectInlineTypeMember(
+      ObjectAccessTarget? target = visitor._findDirectInlineTypeMember(
           receiverType, receiverBound, name, fileOffset,
-          defaultTarget: const ObjectAccessTarget.missing(),
           isSetter: isSetter,
           isReceiverTypePotentiallyNullable: isReceiverTypePotentiallyNullable);
+      if (target != null) {
+        return target;
+      }
     }
 
     ObjectAccessTarget? target;

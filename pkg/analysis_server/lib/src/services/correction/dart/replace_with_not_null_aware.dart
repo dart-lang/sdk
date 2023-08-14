@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ReplaceWithNotNullAware extends CorrectionProducer {
+class ReplaceWithNotNullAware extends ResolvedCorrectionProducer {
   /// The operator that will replace the existing operator.
   String _newOperator = '';
 

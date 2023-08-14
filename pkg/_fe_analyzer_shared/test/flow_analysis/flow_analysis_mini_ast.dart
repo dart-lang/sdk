@@ -29,6 +29,9 @@ class FlowAnalysisTestHarness extends Harness implements FlowModelHelper<Type> {
   final PromotionKeyStore<Var> promotionKeyStore = PromotionKeyStore();
 
   @override
+  final Type boolType = Type('bool');
+
+  @override
   Operations<Var, Type> get typeOperations => typeAnalyzer.operations;
 }
 

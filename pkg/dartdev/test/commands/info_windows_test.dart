@@ -53,8 +53,8 @@ void main() {
 
       expect(output, contains('providing this information'));
       expect(output, contains('## Process info'));
-      expect(output, contains('| Memory'));
-      expect(output, contains('| dart.exe '));
+      expect(output, contains(RegExp(r'\|\s+Memory')));
+      expect(output, contains(RegExp(r'\|\s+dart.exe ')));
     });
   }, timeout: longTimeout, skip: !Platform.isWindows);
 }

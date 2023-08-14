@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class RemoveComparison extends CorrectionProducer {
+class RemoveComparison extends ResolvedCorrectionProducer {
   @override
   final FixKind fixKind;
 
@@ -79,6 +79,8 @@ class RemoveComparison extends CorrectionProducer {
           (type == TokenType.BAR_BAR && _conditionIsFalse)) {
         await _removeOperatorAndOperand(builder, parent);
       }
+    } else if (parent is IfElement) {
+      await _ifElement(parent, builder);
     } else if (parent is IfStatement) {
       if (parent.elseStatement == null && _conditionIsTrue) {
         await _ifStatement(parent, builder);
@@ -86,30 +88,52 @@ class RemoveComparison extends CorrectionProducer {
     }
   }
 
+  Future<void> _ifElement(IfElement node, ChangeBuilder builder) async {
+    if (_conditionIsTrue) {
+      await builder.addDartFileEdit(file, (builder) {
+        final text = _textWithLeadingComments(node.thenElement);
+        final unIndented = utils.indentLeft(text);
+        builder.addSimpleReplacement(range.node(node), unIndented);
+      });
+    } else if (_conditionIsFalse) {
+      final elseElement = node.elseElement;
+      if (elseElement != null) {
+        await builder.addDartFileEdit(file, (builder) {
+          final text = _textWithLeadingComments(elseElement);
+          final unIndented = utils.indentLeft(text);
+          builder.addSimpleReplacement(range.node(node), unIndented);
+        });
+      } else {
+        final elements = node.parent.containerElements;
+        if (elements != null) {
+          await builder.addDartFileEdit(file, (builder) {
+            final nodeRange = range.nodeInList(elements, node);
+            builder.addDeletion(nodeRange);
+          });
+        }
+      }
+    }
+  }
+
   Future<void> _ifStatement(IfStatement node, ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
-      var nodeRange = utils.getLinesRangeStatements([node]);
-
-      String bodyCode;
-      var body = node.thenStatement;
+      final body = node.thenStatement;
       if (body is Block) {
-        var statements = body.statements;
-        if (statements.isEmpty) {
-          builder.addDeletion(nodeRange);
-          return;
-        } else {
-          bodyCode = utils.getRangeText(
-            utils.getLinesRangeStatements(statements),
-          );
-        }
-      } else {
-        bodyCode = utils.getRangeText(
-          utils.getLinesRangeStatements([body]),
+        final text = utils.getRangeText(
+          utils.getLinesRange(
+            range.endStart(body.leftBracket, body.rightBracket),
+          ),
         );
+        final unIndented = utils.indentLeft(text);
+        builder.addSimpleReplacement(
+          utils.getLinesRangeStatements([node]),
+          unIndented,
+        );
+      } else {
+        final text = _textWithLeadingComments(body);
+        final unIndented = utils.indentLeft(text);
+        builder.addSimpleReplacement(range.node(node), unIndented);
       }
-
-      bodyCode = utils.indentSourceLeftRight(bodyCode);
-      builder.addSimpleReplacement(nodeRange, bodyCode);
     });
   }
 
@@ -126,5 +150,21 @@ class RemoveComparison extends CorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(operatorAndOperand);
     });
+  }
+
+  String _textWithLeadingComments(AstNode node) {
+    return utils.getNodeText(node, withLeadingComments: true);
+  }
+}
+
+extension on AstNode? {
+  NodeList<AstNode>? get containerElements {
+    final self = this;
+    if (self is ListLiteral) {
+      return self.elements;
+    } else if (self is SetOrMapLiteral) {
+      return self.elements;
+    }
+    return null;
   }
 }

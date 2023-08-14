@@ -7,9 +7,15 @@
 
 class C {
   const C();
+//^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST
 
   final x = 1;
-  final y = x; /*@compile-error=unspecified*/
+  final y = x;
+  //        ^
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
+  // [cfe] Can't access 'this' in a field initializer to read 'x'.
+  // [cfe] Not a constant expression.
 }
 
 main() {

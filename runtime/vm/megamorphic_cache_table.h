@@ -11,7 +11,6 @@
 namespace dart {
 
 class Array;
-class Isolate;
 class String;
 class Thread;
 
@@ -21,7 +20,7 @@ class MegamorphicCacheTable : public AllStatic {
                                     const String& name,
                                     const Array& descriptor);
 
-  static void PrintSizes(Isolate* isolate);
+  static void PrintSizes(Thread* thread);
 };
 
 }  // namespace dart

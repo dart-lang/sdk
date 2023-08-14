@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "main_lib.dart" as mai;
 
@@ -13,7 +13,7 @@ static method main() → dynamic {
   new self::SubClass::•();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 

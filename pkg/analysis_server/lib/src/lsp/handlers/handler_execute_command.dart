@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/fix_all.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/log_action.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/organize_imports.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/refactor_command_handler.dart';
@@ -30,6 +31,7 @@ class ExecuteCommandHandler
           Commands.performRefactor: PerformRefactorCommandHandler(server),
           Commands.validateRefactor: ValidateRefactorCommandHandler(server),
           Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
+          Commands.logAction: LogActionCommandHandler(server),
           // Add commands for each of the refactorings.
           for (var entry in RefactoringProcessor.generators.entries)
             entry.key: RefactorCommandHandler(server, entry.key, entry.value),
@@ -51,7 +53,9 @@ class ExecuteCommandHandler
           '${params.command} is not a valid command identifier', null);
     }
 
-    server.analyticsManager.executedCommand(params.command);
+    if (!handler.recordsOwnAnalytics) {
+      server.analyticsManager.executedCommand(params.command);
+    }
     final workDoneToken = params.workDoneToken;
     final progress = workDoneToken != null
         ? ProgressReporter.clientProvided(server, workDoneToken)
@@ -66,10 +70,9 @@ class ExecuteCommandHandler
     // must allow them to convert a `List` to a `Map`.
     final arguments = params.arguments ?? const [];
     Map<String, Object?> commandParams;
-    if (arguments.length == 1 && arguments[0] is Map<String, Object?>) {
-      commandParams = arguments.single as Map<String, Object?>;
-    } else if (handler is PositionalArgCommandHandler) {
-      final argHandler = handler as PositionalArgCommandHandler;
+    if (arguments case [Map<String, Object?> singleArgument]) {
+      commandParams = singleArgument;
+    } else if (handler case PositionalArgCommandHandler argHandler) {
       commandParams = argHandler.parseArgList(arguments);
     } else {
       return ErrorOr.error(ResponseError(
@@ -78,6 +81,6 @@ class ExecuteCommandHandler
       ));
     }
 
-    return handler.handle(commandParams, progress, token);
+    return handler.handle(message, commandParams, progress, token);
   }
 }

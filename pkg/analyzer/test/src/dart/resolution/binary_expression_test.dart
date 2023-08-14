@@ -157,7 +157,36 @@ BinaryExpression
     staticType: int
   staticElement: <null>
   staticInvokeType: null
-  staticType: dynamic
+  staticType: InvalidType
+''');
+  }
+
+  test_gtGtGt() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A operator >>>(int amount) => this;
+}
+
+void f(A a) {
+  a >>> 3;
+}
+''');
+
+    final node = findNode.singleBinaryExpression;
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  operator: >>>
+  rightOperand: IntegerLiteral
+    literal: 3
+    parameter: self::@class::A::@method::>>>::@parameter::amount
+    staticType: int
+  staticElement: self::@class::A::@method::>>>
+  staticInvokeType: A Function(int)
+  staticType: A
 ''');
   }
 
@@ -415,6 +444,152 @@ BinaryExpression
   staticType: int
 ''');
   }
+
+  test_star_syntheticOperand_both() async {
+    await assertErrorsInCode(r'''
+void f() {
+  final v = * ;
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 23, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 25, 1),
+    ]);
+
+    final node = findNode.singleBinaryExpression;
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+    staticElement: <null>
+    staticType: InvalidType
+  operator: *
+  rightOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+    parameter: <null>
+    staticElement: <null>
+    staticType: InvalidType
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: InvalidType
+''');
+  }
+
+  test_star_syntheticOperand_left() async {
+    await assertErrorsInCode(r'''
+void f() {
+  final v = * 2;
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 23, 1),
+    ]);
+
+    final node = findNode.singleBinaryExpression;
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+    staticElement: <null>
+    staticType: InvalidType
+  operator: *
+  rightOperand: IntegerLiteral
+    literal: 2
+    parameter: <null>
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: InvalidType
+''');
+  }
+
+  test_star_syntheticOperand_right() async {
+    await assertErrorsInCode(r'''
+void f() {
+  final v = 2 * ;
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 27, 1),
+    ]);
+
+    final node = findNode.singleBinaryExpression;
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: IntegerLiteral
+    literal: 2
+    staticType: int
+  operator: *
+  rightOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+    parameter: dart:core::@class::num::@method::*::@parameter::other
+    staticElement: <null>
+    staticType: InvalidType
+  staticElement: dart:core::@class::num::@method::*
+  staticInvokeType: num Function(num)
+  staticType: double
+''');
+  }
+
+  test_superQualifier_plus() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int operator +(int other) => 0;
+}
+
+class B extends A {
+  int operator +(int other) => 0;
+
+  void f() {
+    super + 0;
+  }
+}
+''');
+
+    final node = findNode.binary('+ 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: self::@class::A::@method::+::@parameter::other
+    staticType: int
+  staticElement: self::@class::A::@method::+
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
+
+  test_thisExpression_plus() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int operator +(int other) => 0;
+
+  void f() {
+    this + 0;
+  }
+}
+''');
+
+    final node = findNode.binary('+ 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: self::@class::A::@method::+::@parameter::other
+    staticType: int
+  staticElement: self::@class::A::@method::+
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
 }
 
 mixin BinaryExpressionResolutionTestCases on PubPackageResolutionTest {
@@ -457,10 +632,7 @@ void f(int a) {
     assertResolvedNodeText(findNode.binary('!= 0'), r'''
 BinaryExpression
   leftOperand: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -470,6 +642,7 @@ BinaryExpression
           staticElement: self::@function::f::@parameter::a
           staticType: int
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: int
     staticType: null
   operator: !=
@@ -479,7 +652,7 @@ BinaryExpression
     staticType: int
   staticElement: <null>
   staticInvokeType: null
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -506,30 +679,30 @@ BinaryExpression
     staticType: int
   staticElement: <null>
   staticInvokeType: null
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
-  test_eqEq() async {
+  test_eqEq_dynamic_int() async {
     await assertNoErrorsInCode(r'''
-f(int a, int b) {
-  a == b;
+f(dynamic a) {
+  a == 0;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a == b'), r'''
+    final node = findNode.binary('a == 0');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     staticElement: self::@function::f::@parameter::a
-    staticType: int
+    staticType: dynamic
   operator: ==
-  rightOperand: SimpleIdentifier
-    token: b
-    parameter: dart:core::@class::num::@method::==::@parameter::other
-    staticElement: self::@function::f::@parameter::b
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: dart:core::@class::Object::@method::==::@parameter::other
     staticType: int
-  staticElement: dart:core::@class::num::@method::==
+  staticElement: dart:core::@class::Object::@method::==
   staticInvokeType: bool Function(Object)
   staticType: bool
 ''');
@@ -549,10 +722,7 @@ void f(int a) {
     assertResolvedNodeText(findNode.binary('== 0'), r'''
 BinaryExpression
   leftOperand: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -562,6 +732,7 @@ BinaryExpression
           staticElement: self::@function::f::@parameter::a
           staticType: int
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: int
     staticType: null
   operator: ==
@@ -571,7 +742,60 @@ BinaryExpression
     staticType: int
   staticElement: <null>
   staticInvokeType: null
-  staticType: dynamic
+  staticType: InvalidType
+''');
+  }
+
+  test_eqEq_int_int() async {
+    await assertNoErrorsInCode(r'''
+f(int a, int b) {
+  a == b;
+}
+''');
+
+    final node = findNode.binary('a == b');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: int
+  operator: ==
+  rightOperand: SimpleIdentifier
+    token: b
+    parameter: dart:core::@class::num::@method::==::@parameter::other
+    staticElement: self::@function::f::@parameter::b
+    staticType: int
+  staticElement: dart:core::@class::num::@method::==
+  staticInvokeType: bool Function(Object)
+  staticType: bool
+''');
+  }
+
+  test_eqEq_invalidType_int() async {
+    await assertErrorsInCode(r'''
+void f(A a) {
+  a == 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 1),
+    ]);
+
+    final node = findNode.binary('a == 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: InvalidType
+  operator: ==
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: dart:core::@class::Object::@method::==::@parameter::other
+    staticType: int
+  staticElement: dart:core::@class::Object::@method::==
+  staticInvokeType: bool Function(Object)
+  staticType: bool
 ''');
   }
 
@@ -598,7 +822,7 @@ BinaryExpression
     staticType: int
   staticElement: <null>
   staticInvokeType: null
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -1198,10 +1422,7 @@ f(int a, int b) {
     assertResolvedNodeText(findNode.binary('E(a) + b'), r'''
 BinaryExpression
   leftOperand: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1211,6 +1432,7 @@ BinaryExpression
           staticElement: self::@function::f::@parameter::a
           staticType: int
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: int
     staticType: null
   operator: +
@@ -1247,6 +1469,33 @@ BinaryExpression
   staticElement: dart:core::@class::num::@method::+
   staticInvokeType: num Function(num)
   staticType: num
+''');
+  }
+
+  test_plus_invalidType_int() async {
+    await assertErrorsInCode(r'''
+void f() {
+  x + 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
+    ]);
+
+    final node = findNode.binary('x + 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    staticElement: <null>
+    staticType: InvalidType
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: InvalidType
 ''');
   }
 
@@ -1423,10 +1672,7 @@ f(A a, int b) {
     assertResolvedNodeText(findNode.binary('E(a) + b'), r'''
 BinaryExpression
   leftOperand: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1436,6 +1682,7 @@ BinaryExpression
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A
     staticType: null
   operator: +

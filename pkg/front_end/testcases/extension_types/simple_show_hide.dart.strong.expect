@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -79,7 +79,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
   e3.isEven; // Error.
      ^^^^^^" in e3{<unresolved>}.isEven;
 }
-static method MyInt|get#twice(lowered final core::int #this) → core::int
+static extension-member method MyInt|get#twice(lowered final core::int #this) → core::int
   return 2.{core::num::*}(#this){(core::num) → core::int};
 static method test() → dynamic {
   self::MyInt m = 42;

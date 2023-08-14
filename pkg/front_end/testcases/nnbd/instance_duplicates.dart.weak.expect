@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -335,15 +335,15 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   c.{self::Class::methodAndFieldAndSetter4} = c.{self::Class::methodAndFieldAndSetter4}{core::int?};
   c.{self::Class::methodAndFinalFieldAndSetter1} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:88:39: Error: A value of type 'int? Function()' can't be assigned to a variable of type 'int?'.
   c.methodAndFinalFieldAndSetter1 = c.methodAndFinalFieldAndSetter1;
-                                      ^" in c.{self::Class::methodAndFinalFieldAndSetter1}{() → core::int?} as{TypeError,ForNonNullableByDefault} core::int?;
+                                      ^" in c.{self::Class::methodAndFinalFieldAndSetter1}{() → core::int?} as{TypeError} core::int?;
   c.{self::Class::methodAndFinalFieldAndSetter2} = c.{self::Class::methodAndFinalFieldAndSetter2}{core::int?};
   c.{self::Class::methodAndFinalFieldAndSetter3} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:90:39: Error: A value of type 'int? Function()' can't be assigned to a variable of type 'int?'.
   c.methodAndFinalFieldAndSetter3 = c.methodAndFinalFieldAndSetter3;
-                                      ^" in c.{self::Class::methodAndFinalFieldAndSetter3}{() → core::int?} as{TypeError,ForNonNullableByDefault} core::int?;
+                                      ^" in c.{self::Class::methodAndFinalFieldAndSetter3}{() → core::int?} as{TypeError} core::int?;
   c.{self::Class::methodAndFinalFieldAndSetter4} = c.{self::Class::methodAndFinalFieldAndSetter4}{core::int?};
   c.{self::Class::methodAndSetter1} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:92:26: Error: A value of type 'int? Function()' can't be assigned to a variable of type 'int?'.
   c.methodAndSetter1 = c.methodAndSetter1;
-                         ^" in c.{self::Class::methodAndSetter1}{() → core::int?} as{TypeError,ForNonNullableByDefault} core::int?;
+                         ^" in c.{self::Class::methodAndSetter1}{() → core::int?} as{TypeError} core::int?;
   c.{self::Class::methodAndSetter2} = c.{self::Class::methodAndSetter2}{(core::int?) → void};
   c.{self::Class::fieldAndSetter1} = c.{self::Class::fieldAndSetter1}{core::int?};
   c.{self::Class::fieldAndSetter2} = c.{self::Class::fieldAndSetter2}{core::int?};

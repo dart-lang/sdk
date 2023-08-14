@@ -16,8 +16,8 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/util.dart';
 import '../kernel/element_map.dart';
-import '../kernel/kelements.dart' show KLocalFunction;
 import '../kernel/kernel_world.dart' show KClosedWorld;
+import '../js_model/elements.dart' show JLocalFunction;
 import '../universe/use.dart';
 import '../universe/world_impact.dart' show WorldImpact;
 
@@ -125,9 +125,9 @@ class EntityDataInfoBuilder {
       if (usedEntity is MemberEntity) {
         addMember(usedEntity, import: staticUse.deferredImport);
       } else {
-        assert(usedEntity is KLocalFunction,
+        assert(usedEntity is JLocalFunction,
             failedAt(usedEntity, "Unexpected static use $staticUse."));
-        var localFunction = usedEntity as KLocalFunction;
+        var localFunction = usedEntity as JLocalFunction;
         // TODO(sra): Consult KClosedWorld to see if signature is needed.
         addTypeDependencies(localFunction.functionType);
         addLocalFunction(localFunction);
@@ -525,6 +525,15 @@ class ConstantCollector extends ir.RecursiveVisitor {
       add(literal);
     } else {
       super.visitMapLiteral(literal);
+    }
+  }
+
+  @override
+  void visitRecordLiteral(ir.RecordLiteral literal) {
+    if (literal.isConst) {
+      add(literal);
+    } else {
+      super.visitRecordLiteral(literal);
     }
   }
 

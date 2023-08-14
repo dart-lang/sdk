@@ -10,7 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CaseBlockNotTerminatedTest);
-    defineReflectiveTests(CaseBlockNotTerminatedTest_Language218);
+    defineReflectiveTests(CaseBlockNotTerminatedTest_Language219);
     defineReflectiveTests(CaseBlockNotTerminatedWithoutNullSafetyTest);
   });
 }
@@ -20,8 +20,8 @@ class CaseBlockNotTerminatedTest extends PubPackageResolutionTest
     with CaseBlockNotTerminatedTestCases {}
 
 @reflectiveTest
-class CaseBlockNotTerminatedTest_Language218 extends PubPackageResolutionTest
-    with WithLanguage218Mixin, CaseBlockNotTerminatedTestCases {}
+class CaseBlockNotTerminatedTest_Language219 extends PubPackageResolutionTest
+    with WithLanguage219Mixin, CaseBlockNotTerminatedTestCases {}
 
 mixin CaseBlockNotTerminatedTestCases on PubPackageResolutionTest {
   test_lastCase() async {

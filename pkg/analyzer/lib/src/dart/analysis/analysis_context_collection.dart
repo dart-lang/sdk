@@ -34,6 +34,9 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   /// The instance of the macro kernel builder.
   final MacroKernelBuilder macroKernelBuilder = MacroKernelBuilder();
 
+  /// The shared container into which drivers record files ownership.
+  final OwnedFiles ownedFiles = OwnedFiles();
+
   /// The list of analysis contexts.
   @override
   final List<DriverBasedAnalysisContext> contexts = [];
@@ -59,13 +62,12 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     UnlinkedUnitStore? unlinkedUnitStore,
     @Deprecated('Use updateAnalysisOptions2, which must be a function that '
         'accepts a second parameter')
-        void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
+    void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
       required ContextRoot contextRoot,
       required DartSdk sdk,
-    })?
-        updateAnalysisOptions2,
+    })? updateAnalysisOptions2,
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
@@ -111,6 +113,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         unlinkedUnitStore: unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
         macroKernelBuilder: macroKernelBuilder,
         macroExecutor: macroExecutor,
+        ownedFiles: ownedFiles,
       );
       contexts.add(context);
     }

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -15,16 +15,16 @@ extension Extension on self::Class {
   tearoff method = self::Extension|get#method;
   set property = self::Extension|set#property;
 }
-static method Extension|get#property(lowered final self::Class #this) → core::int
+static extension-member method Extension|get#property(lowered final self::Class #this) → core::int
   return #this.{self::Class::field}{core::int};
-static method Extension|get#nullableProperty(lowered final self::Class #this) → core::int?
+static extension-member method Extension|get#nullableProperty(lowered final self::Class #this) → core::int?
   return #this.{self::Class::field}{core::int};
-static method Extension|set#property(lowered final self::Class #this, core::int? value) → void {
+static extension-member method Extension|set#property(lowered final self::Class #this, core::int? value) → void {
   #this.{self::Class::field} = let final core::int? #t1 = value in #t1 == null ?{core::int} 0 : #t1{core::int};
 }
-static method Extension|method(lowered final self::Class #this) → core::int
+static extension-member method Extension|method(lowered final self::Class #this) → core::int
   return #this.{self::Class::field}{core::int};
-static method Extension|get#method(lowered final self::Class #this) → () → core::int
+static extension-member method Extension|get#method(lowered final self::Class #this) → () → core::int
   return () → core::int => self::Extension|method(#this);
 static method main() → dynamic {
   self::test(null);

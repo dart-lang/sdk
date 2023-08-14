@@ -31,11 +31,11 @@ const intptr_t SSLCertContext::kApproximateSize =
 
 void SSLCertContext::TrustBuiltinRoots() {
   // First, try to use locations specified on the command line.
-  if (root_certs_file() != NULL) {
+  if (root_certs_file() != nullptr) {
     LoadRootCertFile(root_certs_file());
     return;
   }
-  if (root_certs_cache() != NULL) {
+  if (root_certs_cache() != nullptr) {
     LoadRootCertCache(root_certs_cache());
     return;
   }

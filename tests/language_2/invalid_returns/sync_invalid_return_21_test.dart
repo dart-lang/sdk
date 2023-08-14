@@ -12,7 +12,10 @@ import 'dart:async';
 */
 int v = null;
 Future<String> test() {
-  return /*@compile-error=unspecified*/ v;
+  return v;
+  //     ^
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
+  // [cfe] A value of type 'int' can't be assigned to a variable of type 'Future<String>'.
 }
 
 void main() {

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -18,9 +18,9 @@ extension /* unnamed */ _extension#0 on core::List<core::String> {
 }
 static method test(core::List<core::String> args) → void
   ;
-static method _extension#0|foo(lowered final core::List<core::String> #this, core::String bar) → void
+static extension-member method _extension#0|foo(lowered final core::List<core::String> #this, core::String bar) → void
   ;
-static method _extension#0|get#foo(lowered final core::List<core::String> #this) → (core::String) → void
+static extension-member method _extension#0|get#foo(lowered final core::List<core::String> #this) → (core::String) → void
   return (core::String bar) → void => self::_extension#0|foo(#this, bar);
 static method main() → dynamic
   ;

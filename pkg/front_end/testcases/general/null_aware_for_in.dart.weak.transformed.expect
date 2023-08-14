@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -11,11 +11,11 @@ static method main() → dynamic {
   dynamic o;
   if(false) {
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = ((let final dynamic #t1 = o in #t1 == null ?{dynamic} null : #t1{dynamic}.iterable) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = ((let final dynamic #t1 = o in #t1 == null ?{dynamic} null : #t1{dynamic}.iterable) as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t2 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          self::Class c = #t2 as{TypeError,ForDynamic,ForNonNullableByDefault} self::Class;
+          self::Class c = #t2 as{TypeError,ForDynamic} self::Class;
         }
       }
     }

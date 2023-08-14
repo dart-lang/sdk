@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -135,7 +135,7 @@ base class IndirectBaseB2 extends self::Base implements self::BaseB2 {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 
@@ -144,7 +144,7 @@ base class A extends core::Object {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai2;
 import "dart:core" as core;
 

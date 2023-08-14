@@ -12,6 +12,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DynamicBoundedTest);
     defineReflectiveTests(FunctionBoundedTest);
+    defineReflectiveTests(InvalidBoundedTest);
   });
 }
 
@@ -236,5 +237,86 @@ class FunctionBoundedTest extends AbstractTypeSystemTest {
 
   void _assertNotFunctionBounded(DartType type) {
     expect(typeSystem.isFunctionBounded(type), isFalse);
+  }
+}
+
+@reflectiveTest
+class InvalidBoundedTest extends AbstractTypeSystemTest {
+  test_dynamic_typeParameter_hasPromotedBound_notDynamic() {
+    var T = typeParameter('T');
+
+    _assertNotInvalidBounded(
+      typeParameterTypeNone(T, promotedBound: intNone),
+    );
+  }
+
+  test_functionType() {
+    _assertNotInvalidBounded(
+      functionTypeNone(returnType: voidNone),
+    );
+
+    _assertNotInvalidBounded(
+      functionTypeNone(returnType: invalidType),
+    );
+  }
+
+  test_interfaceType() {
+    _assertNotInvalidBounded(intNone);
+    _assertNotInvalidBounded(intQuestion);
+    _assertNotInvalidBounded(intStar);
+  }
+
+  test_invalid() {
+    _assertInvalidBounded(invalidType);
+  }
+
+  test_never() {
+    _assertNotInvalidBounded(neverNone);
+    _assertNotInvalidBounded(neverQuestion);
+    _assertNotInvalidBounded(neverStar);
+  }
+
+  test_typeParameter_hasBound_invalid() {
+    var T = typeParameter('T', bound: invalidType);
+
+    _assertInvalidBounded(
+      typeParameterTypeNone(T),
+    );
+  }
+
+  test_typeParameter_hasBound_notInvalid() {
+    var T = typeParameter('T', bound: intNone);
+
+    _assertNotInvalidBounded(
+      typeParameterTypeNone(T),
+    );
+  }
+
+  test_typeParameter_hasPromotedBound_invalidType() {
+    var T = typeParameter('T');
+
+    _assertInvalidBounded(
+      typeParameterTypeNone(T, promotedBound: invalidType),
+    );
+  }
+
+  test_typeParameter_noBound() {
+    var T = typeParameter('T');
+
+    _assertNotInvalidBounded(
+      typeParameterTypeNone(T),
+    );
+  }
+
+  test_void() {
+    _assertNotInvalidBounded(voidNone);
+  }
+
+  void _assertInvalidBounded(DartType type) {
+    expect(typeSystem.isInvalidBounded(type), isTrue);
+  }
+
+  void _assertNotInvalidBounded(DartType type) {
+    expect(typeSystem.isInvalidBounded(type), isFalse);
   }
 }

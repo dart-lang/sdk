@@ -96,13 +96,10 @@ class VariableReference extends Expression {
 
 extension on Operator {
   String get displayName {
-    switch (this) {
-      case Operator.and:
-        return '&&';
-      case Operator.equal:
-        return '==';
-      case Operator.notEqual:
-        return '!=';
-    }
+    return switch (this) {
+      Operator.and => '&&',
+      Operator.equal => '==',
+      Operator.notEqual => '!='
+    };
   }
 }

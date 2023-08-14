@@ -1,10 +1,10 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 static method test(dynamic x) → dynamic {
   #L1:
-  switch(x) {
+  switch(x) /* dynamic */ {
     #L2:
     case #C1:
       {

@@ -6,9 +6,15 @@
 // There is an interface conflict here due to a loop in the class
 // hierarchy leading to an infinite set of implemented types; this loop
 // shouldn't cause non-termination.
-/*@compile-error=unspecified*/ class A<T> implements B<List<T>> {}
+class A<T> implements B<List<T>> {}
+//    ^
+// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
+// [cfe] 'A' is a supertype of itself.
 
-/*@compile-error=unspecified*/ class B<T> implements A<List<T>> {}
+class B<T> implements A<List<T>> {}
+//    ^
+// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
+// [cfe] 'B' is a supertype of itself.
 
 main() {
   new A();

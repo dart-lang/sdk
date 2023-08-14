@@ -39,11 +39,20 @@ class KernelAnnotationProcessor {
     KCommonElements commonElements = elementMap.commonElements;
     String? annotationName;
     for (ConstantValue value in metadata) {
-      String? name = readAnnotationName(commonElements.dartTypes, spannable,
-              value, commonElements.jsAnnotationClass1!, defaultValue: '') ??
-          readAnnotationName(commonElements.dartTypes, spannable, value,
-              commonElements.jsAnnotationClass2!,
+      String? name;
+      List<ClassEntity?> jsAnnotationClasses = [
+        commonElements.jsAnnotationClass1,
+        commonElements.jsAnnotationClass2,
+        commonElements.jsAnnotationClass3
+      ];
+      for (ClassEntity? jsAnnotationClass in jsAnnotationClasses) {
+        if (jsAnnotationClass != null) {
+          name = readAnnotationName(
+              commonElements.dartTypes, spannable, value, jsAnnotationClass,
               defaultValue: '');
+          if (name != null) break;
+        }
+      }
       if (annotationName == null) {
         annotationName = name;
       } else if (name != null) {
@@ -86,9 +95,7 @@ class KernelAnnotationProcessor {
             /*reporter.reportErrorMessage(
                 function, MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER);*/
           } else {
-            _nativeBasicDataBuilder.markAsJsInteropMember(function, memberName,
-                isJsInteropObjectLiteral:
-                    annotationData.isJsInteropObjectLiteral(memberNode));
+            _nativeBasicDataBuilder.markAsJsInteropMember(function, memberName);
             // TODO(johnniwinther): It is unclear whether library can be
             // implicitly js-interop. For now we allow it.
             isJsLibrary = true;
@@ -133,8 +140,7 @@ class KernelAnnotationProcessor {
               // TODO(johnniwinther): The documentation states that explicit
               // member name annotations are not allowed on instance members.
               _nativeBasicDataBuilder.markAsJsInteropMember(
-                  function, memberName,
-                  isJsInteropObjectLiteral: false);
+                  function, memberName);
             }
           }
         });
@@ -151,8 +157,7 @@ class KernelAnnotationProcessor {
             // TODO(johnniwinther): The documentation states that explicit
             // member name annotations are not allowed on instance members.
             _nativeBasicDataBuilder.markAsJsInteropMember(
-                constructor, memberName,
-                isJsInteropObjectLiteral: false);
+                constructor, memberName);
           }
         });
       }

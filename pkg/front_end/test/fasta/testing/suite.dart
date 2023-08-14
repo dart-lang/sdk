@@ -119,6 +119,7 @@ import 'package:kernel/target/targets.dart'
 
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, TypeEnvironment;
+import 'package:kernel/verifier.dart' show VerificationStage;
 import 'package:testing/testing.dart'
     show
         Chain,
@@ -277,16 +278,10 @@ class FolderOptions {
       // can be null
       this.overwriteCurrentSdkVersion,
       this.showOffsets = false})
-      // ignore: unnecessary_null_comparison
-      : assert(nnbdAgnosticMode != null),
-        assert(
+      : assert(
             // no this doesn't make any sense but left to underline
             // that this is allowed to be null!
-            defines != null || defines == null),
-        // ignore: unnecessary_null_comparison
-        assert(noVerify != null),
-        // ignore: unnecessary_null_comparison
-        assert(target != null);
+            defines != null || defines == null);
 
   Map<ExperimentalFlag, bool> computeExplicitExperimentalFlags(
       Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
@@ -314,9 +309,7 @@ class TestOptions {
       {required this.nnbdMode,
       required this.allowedExperimentalFlags,
       required this.experimentEnabledVersion,
-      required this.experimentReleasedVersion})
-      // ignore: unnecessary_null_comparison
-      : assert(linkDependencies != null);
+      required this.experimentReleasedVersion});
 }
 
 class FastaContext extends ChainContext with MatchContext {
@@ -367,7 +360,9 @@ class FastaContext extends ChainContext with MatchContext {
       : steps = <Step>[
           new Outline(compileMode, updateComments: updateComments),
           const Print(),
-          new Verify(compileMode)
+          new Verify(compileMode == CompileMode.full
+              ? VerificationStage.afterConstantEvaluation
+              : VerificationStage.outline)
         ] {
     String prefix;
     String infix;
@@ -407,7 +402,7 @@ class FastaContext extends ChainContext with MatchContext {
     switch (compileMode) {
       case CompileMode.full:
         steps.add(const Transform());
-        steps.add(const Verify(CompileMode.full));
+        steps.add(const Verify(VerificationStage.afterModularTransformations));
         steps.add(const StressConstantEvaluatorStep());
         if (!ignoreExpectations) {
           steps.add(new MatchExpectation("$prefix$infix.transformed.expect",
@@ -2332,10 +2327,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           backendTarget.performModularTransformations = true;
         }
         try {
-          // ignore: unnecessary_null_comparison
-          if (sourceTarget.loader.coreTypes != null) {
-            sourceTarget.runBuildTransformations();
-          }
+          sourceTarget.runBuildTransformations();
         } finally {
           if (backendTarget is TestTarget) {
             backendTarget.performModularTransformations = false;
@@ -2388,7 +2380,8 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
               macroApplications: buildResult.macroApplications,
               verify: compilationSetup.folderOptions.noVerify
                   ? false
-                  : context.verify);
+                  : context.verify,
+              allowVerificationErrorForTesting: true);
           p = buildResult.component!;
           instrumentation.finish();
           if (instrumentation.hasProblems) {
@@ -2460,10 +2453,7 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
         backendTarget.performModularTransformations = true;
       }
       try {
-        // ignore: unnecessary_null_comparison
-        if (sourceTarget.loader.coreTypes != null) {
-          sourceTarget.runBuildTransformations();
-        }
+        sourceTarget.runBuildTransformations();
       } finally {
         if (backendTarget is TestTarget) {
           backendTarget.performModularTransformations = false;
@@ -2486,9 +2476,9 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
 }
 
 class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
-  final CompileMode compileMode;
+  final VerificationStage stage;
 
-  const Verify(this.compileMode);
+  const Verify(this.stage);
 
   @override
   String get name => "verify";
@@ -2518,8 +2508,8 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
         result.options, (compilerContext) async {
       compilerContext.uriToSource.addAll(component.uriToSource);
       List<LocatedMessage> verificationErrors = verifyComponent(
-          component, result.options.target,
-          isOutline: compileMode == CompileMode.outline, skipPlatform: true);
+          result.options.target, stage, component,
+          skipPlatform: true);
       assert(verificationErrors.isEmpty || messages.isNotEmpty);
       if (messages.isEmpty) {
         return pass(result);

@@ -58,12 +58,12 @@ void f() {
   }
 
   Future<void> test_method_importType() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static foo() {}
 }
 ''');
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 import 'package:test/a.dart';
 
 class B extends A {}
@@ -142,12 +142,12 @@ void f() {
   }
 
   Future<void> test_property_importType() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static get foo => null;
 }
 ''');
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 import 'package:test/a.dart';
 
 class B extends A {}

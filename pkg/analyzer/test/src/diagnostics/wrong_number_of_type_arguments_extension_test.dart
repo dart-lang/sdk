@@ -32,18 +32,13 @@ void f() {
     final node = findNode.extensionOverride('E<int>');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
-  extensionName: SimpleIdentifier
-    token: E
-    staticElement: self::@extension::E
-    staticType: null
+  name: E
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -54,6 +49,7 @@ ExtensionOverride
         parameter: <null>
         staticType: int
     rightParenthesis: )
+  element: self::@extension::E
   extendedType: int
   staticType: null
 ''');
@@ -76,18 +72,13 @@ void f() {
     final node = findNode.extensionOverride('E<bool>');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
-  extensionName: SimpleIdentifier
-    token: E
-    staticElement: self::@extension::E
-    staticType: null
+  name: E
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: bool
-          staticElement: dart:core::@class::bool
-          staticType: null
+        name: bool
+        element: dart:core::@class::bool
         type: bool
     rightBracket: >
   argumentList: ArgumentList
@@ -98,6 +89,7 @@ ExtensionOverride
         parameter: <null>
         staticType: int
     rightParenthesis: )
+  element: self::@extension::E
   extendedType: int
   staticType: null
   typeArgumentTypes
@@ -123,24 +115,17 @@ void f() {
     final node = findNode.extensionOverride('E<bool, int>');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
-  extensionName: SimpleIdentifier
-    token: E
-    staticElement: self::@extension::E
-    staticType: null
+  name: E
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: bool
-          staticElement: dart:core::@class::bool
-          staticType: null
+        name: bool
+        element: dart:core::@class::bool
         type: bool
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -151,6 +136,7 @@ ExtensionOverride
         parameter: <null>
         staticType: int
     rightParenthesis: )
+  element: self::@extension::E
   extendedType: int
   staticType: null
   typeArgumentTypes

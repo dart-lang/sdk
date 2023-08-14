@@ -11,6 +11,7 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
   @override
   String buildAugmentationLibrary(
       Iterable<MacroExecutionResult> macroResults,
+      TypeDeclaration Function(Identifier) resolveDeclaration,
       ResolvedIdentifier Function(Identifier) resolveIdentifier,
       TypeAnnotation? Function(OmittedTypeAnnotation) typeInferrer,
       {Map<OmittedTypeAnnotation, String>? omittedTypes}) {
@@ -96,23 +97,65 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
       }
     }
 
-    Map<String, List<DeclarationCode>> mergedClassResults = {};
+    Map<Identifier, List<DeclarationCode>> mergedTypeResults = {};
+    Map<Identifier, List<DeclarationCode>> mergedEntryResults = {};
     for (MacroExecutionResult result in macroResults) {
       for (DeclarationCode augmentation in result.libraryAugmentations) {
         buildCode(augmentation);
         writeDirectiveStringPart('\n');
       }
-      for (MapEntry<String, Iterable<DeclarationCode>> entry
-          in result.classAugmentations.entries) {
-        mergedClassResults.update(
+      for (MapEntry<Identifier, Iterable<DeclarationCode>> entry
+          in result.enumValueAugmentations.entries) {
+        mergedEntryResults.update(
+            entry.key, (value) => value..addAll(entry.value),
+            ifAbsent: () => entry.value.toList());
+      }
+      for (MapEntry<Identifier, Iterable<DeclarationCode>> entry
+          in result.typeAugmentations.entries) {
+        mergedTypeResults.update(
             entry.key, (value) => value..addAll(entry.value),
             ifAbsent: () => entry.value.toList());
       }
     }
-    for (MapEntry<String, List<DeclarationCode>> entry
-        in mergedClassResults.entries) {
-      writeDirectiveStringPart('augment class ${entry.key} {\n');
-      for (DeclarationCode augmentation in entry.value) {
+    final Set<Identifier> mergedAugmentedTypes = {
+      ...mergedTypeResults.keys,
+      ...mergedEntryResults.keys
+    };
+    for (Identifier type in mergedAugmentedTypes) {
+      final TypeDeclaration typeDeclaration = resolveDeclaration(type);
+      String declarationKind = typeDeclaration is ClassDeclaration
+          ? 'class'
+          : typeDeclaration is EnumDeclaration
+              ? 'enum'
+              : typeDeclaration is MixinDeclaration
+                  ? 'mixin'
+                  : throw new UnsupportedError(
+                      'Unsupported augmentation type $typeDeclaration');
+      final List<String> keywords = [
+        if (typeDeclaration is ClassDeclaration) ...[
+          if (typeDeclaration.hasAbstract) 'abstract',
+          if (typeDeclaration.hasBase) 'base',
+          if (typeDeclaration.hasExternal) 'external',
+          if (typeDeclaration.hasFinal) 'final',
+          if (typeDeclaration.hasInterface) 'interface',
+          if (typeDeclaration.hasMixin) 'mixin',
+          if (typeDeclaration.hasSealed) 'sealed',
+        ] else if (typeDeclaration is MixinDeclaration &&
+            typeDeclaration.hasBase)
+          'base',
+      ];
+      // Has the effect of adding a space after the keywords
+      if (keywords.isNotEmpty) keywords.add('');
+      writeDirectiveStringPart(
+          'augment ${keywords.join(' ')}$declarationKind ${type.name} {\n');
+      if (typeDeclaration is EnumDeclaration) {
+        for (DeclarationCode entryAugmentation
+            in mergedEntryResults[type] ?? []) {
+          buildCode(entryAugmentation);
+        }
+        writeDirectiveStringPart(';\n');
+      }
+      for (DeclarationCode augmentation in mergedTypeResults[type] ?? []) {
         buildCode(augmentation);
         writeDirectiveStringPart('\n');
       }

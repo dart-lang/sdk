@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=class-modifiers
-
 // Test the behavior of mixing in classes defined in a pre 3.0 library
 // when the mixin happens in a 3.0 library.
 

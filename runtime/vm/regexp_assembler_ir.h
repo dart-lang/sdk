@@ -44,7 +44,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
                           bool sticky,
                           Zone* zone);
 
-  virtual bool IsClosed() const { return (current_instruction_ == NULL); }
+  virtual bool IsClosed() const { return (current_instruction_ == nullptr); }
 
   virtual intptr_t stack_limit_slack();
   virtual void AdvanceCurrentPosition(intptr_t by);
@@ -297,7 +297,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   inline intptr_t char_size() { return static_cast<int>(mode_); }
 
   // Equivalent to a conditional branch to the label, unless the label
-  // is NULL, in which case it is a conditional Backtrack.
+  // is nullptr, in which case it is a conditional Backtrack.
   void BranchOrBacktrack(ComparisonInstr* comparison,
                          BlockLabel* true_successor);
 
@@ -324,7 +324,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   // bookkeeping.
   void AppendInstruction(Instruction* instruction);
   // Similar to AppendInstruction, but closes the current block by
-  // setting current_instruction_ to NULL.
+  // setting current_instruction_ to nullptr.
   void CloseBlockWith(Instruction* instruction);
   // Appends definition and allocates a temp index for the result.
   Value* Bind(Definition* definition);

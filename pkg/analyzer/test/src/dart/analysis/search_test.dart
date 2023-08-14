@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -46,8 +47,10 @@ class SearchMultipleDriversTest extends PubPackageResolutionTest {
     await FindDeclarations(
       [driver, otherDriver],
       results,
+      '',
       null,
-      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: OperationPerformanceImpl('<root>'),
     ).compute();
 
     // Ensure only one result for an SDK class, and that the file was tracked as searched.
@@ -59,6 +62,9 @@ class SearchMultipleDriversTest extends PubPackageResolutionTest {
 
 @reflectiveTest
 class SearchTest extends PubPackageResolutionTest {
+  final OperationPerformanceImpl performance =
+      OperationPerformanceImpl('<root>');
+
   AnalysisDriver get driver => driverFor(testFile);
 
   String get testUriStr => 'package:test/test.dart';
@@ -190,8 +196,14 @@ class C {
 ''');
     var results = WorkspaceSymbols();
     var token = CancelableToken();
-    var searchFuture =
-        FindDeclarations([driver], results, null, null).compute(token);
+    var searchFuture = FindDeclarations(
+      [driver],
+      results,
+      '',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute(token);
     token.cancel();
     await searchFuture;
     expect(results.cancelled, isTrue);
@@ -209,7 +221,14 @@ class C {
 }
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      '',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   CLASS C
@@ -267,7 +286,14 @@ testFile
     await resolveTestCode('class T {}');
 
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      '',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
 
     assertDeclarationsText(results, {
       testFile: 'testFile',
@@ -298,7 +324,14 @@ enum E {
 ''');
 
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      '',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   ENUM E
@@ -326,7 +359,14 @@ extension E on int {
 }
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      '',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   EXTENSION E
@@ -349,6 +389,30 @@ testFile
 ''');
   }
 
+  test_declarations_fuzzyMatch() async {
+    await resolveTestCode('''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      'A',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+testFile
+  CLASS A
+    offset: 6 1:7
+    codeOffset: 0 + 10
+''');
+  }
+
   test_declarations_maxResults() async {
     await resolveTestCode('''
 class A {}
@@ -356,7 +420,14 @@ class B {}
 class C {}
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, 2).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      '',
+      2,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
     expect(results.declarations, hasLength(2));
   }
 
@@ -370,7 +441,14 @@ mixin M {
 }
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      '',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   MIXIN M
@@ -402,8 +480,15 @@ testFile
     var b = newFile('$testPackageLibPath/b.dart', 'class B {}');
 
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null, onlyForFile: b.path)
-        .compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      '',
+      null,
+      onlyForFile: b.path,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
     expect(results.files, [b.path]);
 
     assertDeclarationsText(results, {testFile: 'testFile', b: 'file_b'}, r'''
@@ -423,7 +508,14 @@ class C {
 void f(bool a, String b) {}
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      '',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   CLASS C
@@ -453,7 +545,14 @@ void f3(bool Function(int a, String b) c) {}
 void f4(bool Function(int, String) a) {}
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      '',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   FUNCTION f1
@@ -484,7 +583,14 @@ class A<T, T2> {
 }
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      '',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   CLASS A
@@ -508,29 +614,6 @@ testFile
 ''');
   }
 
-  test_declarations_regExp() async {
-    await resolveTestCode('''
-class A {}
-class B {}
-class C {}
-class D {}
-''');
-    var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, RegExp(r'[A-C]'), null).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
-testFile
-  CLASS A
-    offset: 6 1:7
-    codeOffset: 0 + 10
-  CLASS B
-    offset: 17 2:7
-    codeOffset: 11 + 10
-  CLASS C
-    offset: 28 3:7
-    codeOffset: 22 + 10
-''');
-  }
-
   test_declarations_top() async {
     await resolveTestCode('''
 int get g => 0;
@@ -541,7 +624,14 @@ typedef void tf1();
 typedef tf2<T> = int Function<S>(T tp, S sp);
 ''');
     var results = WorkspaceSymbols();
-    await FindDeclarations([driver], results, null, null).compute();
+    await FindDeclarations(
+      [driver],
+      results,
+      '',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
     assertDeclarationsText(results, {testFile: 'testFile'}, r'''
 testFile
   GETTER g
@@ -771,7 +861,7 @@ main(A p) {
   A v;
 }
 ''');
-    final element = findNode.simple('A p').staticElement!;
+    final element = findNode.namedType('A p').element!;
     await assertElementReferencesText(element, r'''
 self::@function::main::@parameter::p
   24 2:6 |A| REFERENCE
@@ -1363,15 +1453,15 @@ self::@function::bar
 import 'dart:async' as p;
 import 'dart:math' as p;
 main() {
-  p.Random;
-  p.Future;
+  p.Random r;
+  p.Future f;
 }
 ''');
     {
       final element = findElement.import('dart:async');
       await assertElementReferencesText(element, r'''
 self::@function::main
-  74 5:3 |p.| REFERENCE
+  76 5:3 |p.| REFERENCE
 ''');
     }
     {
@@ -1962,6 +2052,27 @@ self::@unit::package:test/my_part.dart::@variable::c
 self::@function::main
   76 5:3 |ppp| REFERENCE
   92 6:3 |ppp| REFERENCE
+''');
+  }
+
+  test_searchReferences_PrefixElement_extensionOverride() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension E on int {
+  void foo() {}
+}
+''');
+
+    await resolveTestCode('''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.E(0).foo();
+}
+''');
+    final element = findElement.prefix('prefix');
+    await assertElementReferencesText(element, r'''
+self::@function::f
+  41 4:3 |prefix| REFERENCE
 ''');
   }
 

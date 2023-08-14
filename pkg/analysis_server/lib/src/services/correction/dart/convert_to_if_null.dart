@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ConvertToIfNull extends CorrectionProducer {
+class ConvertToIfNull extends ResolvedCorrectionProducer {
   @override
   bool get canBeAppliedInBulk => true;
 
@@ -39,6 +39,11 @@ class ConvertToIfNull extends CorrectionProducer {
       } else {
         nullableExpression = node.thenExpression;
         defaultExpression = node.elseExpression;
+      }
+
+      if (defaultExpression is SimpleIdentifier &&
+          defaultExpression.isSynthetic) {
+        return;
       }
 
       var parentheses = defaultExpression.precedence <

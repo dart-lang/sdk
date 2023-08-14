@@ -160,10 +160,6 @@ class FlutterDataCollector extends RecursiveAstVisitor<void> {
 
 /// An object used to compute metrics for a single file or directory.
 class FlutterMetricsComputer {
-  /// The resource provider used to access the files being analyzed.
-  final PhysicalResourceProvider resourceProvider =
-      PhysicalResourceProvider.INSTANCE;
-
   /// The data that was computed.
   final FlutterData data = FlutterData();
 

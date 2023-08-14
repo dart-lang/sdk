@@ -89,14 +89,14 @@ class ParsedFunction : public ZoneAllocated {
     return function_type_arguments_;
   }
   void set_function_type_arguments(LocalVariable* function_type_arguments) {
-    ASSERT(function_type_arguments != NULL);
+    ASSERT(function_type_arguments != nullptr);
     function_type_arguments_ = function_type_arguments;
   }
   LocalVariable* parent_type_arguments() const {
     return parent_type_arguments_;
   }
   void set_parent_type_arguments(LocalVariable* parent_type_arguments) {
-    ASSERT(parent_type_arguments != NULL);
+    ASSERT(parent_type_arguments != nullptr);
     parent_type_arguments_ = parent_type_arguments;
   }
 
@@ -109,7 +109,7 @@ class ParsedFunction : public ZoneAllocated {
   void set_default_parameter_values(ZoneGrowableArray<const Instance*>* list) {
     default_parameter_values_ = list;
 #if defined(DEBUG)
-    if (list == NULL) return;
+    if (list == nullptr) return;
     for (intptr_t i = 0; i < list->length(); i++) {
       DEBUG_ASSERT(list->At(i)->IsNotTemporaryScopedHandle());
     }
@@ -117,7 +117,7 @@ class ParsedFunction : public ZoneAllocated {
   }
 
   const Instance& DefaultParameterValueAt(intptr_t i) const {
-    ASSERT(default_parameter_values_ != NULL);
+    ASSERT(default_parameter_values_ != nullptr);
     return *default_parameter_values_->At(i);
   }
 
@@ -127,7 +127,7 @@ class ParsedFunction : public ZoneAllocated {
 
   LocalVariable* current_context_var() const { return current_context_var_; }
 
-  bool has_arg_desc_var() const { return arg_desc_var_ != NULL; }
+  bool has_arg_desc_var() const { return arg_desc_var_ != nullptr; }
   LocalVariable* arg_desc_var() const { return arg_desc_var_; }
 
   LocalVariable* receiver_var() const {
@@ -149,7 +149,9 @@ class ParsedFunction : public ZoneAllocated {
     ASSERT(!has_expression_temp_var());
     expression_temp_var_ = value;
   }
-  bool has_expression_temp_var() const { return expression_temp_var_ != NULL; }
+  bool has_expression_temp_var() const {
+    return expression_temp_var_ != nullptr;
+  }
 
   LocalVariable* entry_points_temp_var() const {
     ASSERT(has_entry_points_temp_var());
@@ -160,7 +162,7 @@ class ParsedFunction : public ZoneAllocated {
     entry_points_temp_var_ = value;
   }
   bool has_entry_points_temp_var() const {
-    return entry_points_temp_var_ != NULL;
+    return entry_points_temp_var_ != nullptr;
   }
 
   LocalVariable* finally_return_temp_var() const {
@@ -172,7 +174,7 @@ class ParsedFunction : public ZoneAllocated {
     finally_return_temp_var_ = value;
   }
   bool has_finally_return_temp_var() const {
-    return finally_return_temp_var_ != NULL;
+    return finally_return_temp_var_ != nullptr;
   }
   void EnsureFinallyReturnTemp(bool is_async);
 

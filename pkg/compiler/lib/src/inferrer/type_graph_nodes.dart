@@ -13,8 +13,10 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
+import '../universe/member_hierarchy.dart';
 import '../universe/record_shape.dart' show RecordShape;
 import '../universe/selector.dart' show Selector;
+import '../util/compact_flags.dart';
 import '../util/util.dart' show Setlet;
 import 'abstract_value_domain.dart';
 import 'debug.dart' as debug;
@@ -46,35 +48,36 @@ enum _Flag {
   isInstanceMemberParameter, // 5
   isClosureParameter, // 6
   isInitializingFormal, // 7
+  isVirtual, // 8
 
   // ---Flags for [CallSiteTypeInformation]---
-  inLoop, // 8
+  inLoop, // 9
 
   // ---Flags for [DynamicCallSiteTypeInformation]---
-  isConditional, // 9
-  hasClosureCallTargets, // 10
-  targetsIncludeComplexNoSuchMethod, // 11
-  hasTargetsIncludeComplexNoSuchMethod, // 12
+  isConditional, // 10
+  hasClosureCallTargets, // 11
+  targetsIncludeComplexNoSuchMethod, // 12
+  hasTargetsIncludeComplexNoSuchMethod, // 13
 
   // ---Flags for [PhiElementTypeInformation]---
-  isTry, // 13
+  isTry, // 14
 
   // ---Flags for [ValueInMapTypeInformation]---
-  valueInMapNonNull, // 14
+  valueInMapNonNull, // 15
 
   // ---Flags for [MemberTypeInformation]---
-  isCalled, // 15
-  isCalledMoreThanOnce, // 16
+  isCalled, // 16
+  isCalledMoreThanOnce, // 17
 
   // ---Flags for [ApplyableTypeInformation]---
-  mightBePassedToFunctionApply, // 17
+  mightBePassedToFunctionApply, // 18
 
   // ---Flags for [InferredTypeInformation]---
-  inferred, // 18
+  inferred, // 19
 
   // ---Flags for [TracedTypeInformation]---
-  notBailedOut, // 19
-  analyzed, // 20
+  notBailedOut, // 20
+  analyzed, // 21
 }
 
 /// Common class for all nodes in the graph. The current nodes are:
@@ -114,25 +117,26 @@ abstract class TypeInformation {
   /// behaviours, etc.). In some case, we might resume inference in the
   /// closure tracer, which is handled by checking whether [inputs] has
   /// been set to [STOP_TRACKING_INPUTS_MARKER].
-  bool get abandonInferencing => _hasFlag(_Flag.abandonInferencing);
+  bool get abandonInferencing => _flags.hasFlag(_Flag.abandonInferencing);
   bool get mightResume => !identical(inputs, STOP_TRACKING_INPUTS_MARKER);
 
   /// Whether this [TypeInformation] is currently in the inferrer's
   /// work queue.
-  bool get inQueue => _hasFlag(_Flag.inQueue);
-  set inQueue(bool value) => _setFlagTo(_Flag.inQueue, value);
+  bool get inQueue => _flags.hasFlag(_Flag.inQueue);
+  set inQueue(bool value) => _flags = _flags.updateFlag(_Flag.inQueue, value);
 
   /// Used to disable enqueueing of type informations where we know that their
   /// type will not change for other reasons than being stable. For example,
   /// if inference is disabled for a type and it is hardwired to dynamic, this
   /// is set to true to spare recomputing dynamic again and again. Changing this
   /// to false should never change inference outcome, just make is slower.
-  bool get doNotEnqueue => _hasFlag(_Flag.doNotEnqueue);
-  set doNotEnqueue(bool value) => _setFlagTo(_Flag.doNotEnqueue, value);
+  bool get doNotEnqueue => _flags.hasFlag(_Flag.doNotEnqueue);
+  set doNotEnqueue(bool value) =>
+      _flags = _flags.updateFlag(_Flag.doNotEnqueue, value);
 
   /// Whether this [TypeInformation] has a stable [type] that will not
   /// change.
-  bool get isStable => _hasFlag(_Flag.isStable);
+  bool get isStable => _flags.hasFlag(_Flag.isStable);
 
   bool get isConcrete => false;
 
@@ -152,30 +156,13 @@ abstract class TypeInformation {
   TypeInformation.withInputs(this.type, this.context, this._inputs)
       : users = Setlet<TypeInformation>();
 
-  int _flags = 0;
+  CompactFlags _flags = emptyCompactFlags;
 
   /// Number of times this [TypeInformation] has changed type.
   int get refineCount => _flags >> NUM_TYPE_INFO_FLAGS;
 
   void incrementRefineCount() => _flags += (1 << NUM_TYPE_INFO_FLAGS);
   void clearRefineCount() => _flags &= ((1 << NUM_TYPE_INFO_FLAGS) - 1);
-
-  bool _hasFlag(_Flag flag) => ((_flags >> flag.index) & 1) == 1;
-  void _setFlagTo(_Flag flag, bool value) {
-    if (value) {
-      _setFlag(flag);
-    } else {
-      _clearFlag(flag);
-    }
-  }
-
-  void _setFlag(_Flag flag) {
-    _flags |= 1 << flag.index;
-  }
-
-  void _clearFlag(_Flag flag) {
-    _flags &= ~(1 << flag.index);
-  }
 
   void addUser(TypeInformation user) {
     assert(!user.isConcrete);
@@ -237,7 +224,7 @@ abstract class TypeInformation {
   }
 
   void giveUp(InferrerEngine inferrer, {bool clearInputs = true}) {
-    _setFlag(_Flag.abandonInferencing);
+    _flags = _flags.setFlag(_Flag.abandonInferencing);
     // Do not remove [this] as a user of nodes in [inputs],
     // because our tracing analysis could be interested in tracing
     // this node.
@@ -284,14 +271,14 @@ abstract class TypeInformation {
     // Do not remove users because the tracing analysis could be interested
     // in tracing the users of this node.
     _inputs = STOP_TRACKING_INPUTS_MARKER;
-    _setFlag(_Flag.abandonInferencing);
-    _setFlag(_Flag.isStable);
+    _flags = _flags.setFlag(_Flag.abandonInferencing);
+    _flags = _flags.setFlag(_Flag.isStable);
   }
 
   void maybeResume() {
     if (!mightResume) return;
-    _clearFlag(_Flag.abandonInferencing);
-    _clearFlag(_Flag.doNotEnqueue);
+    _flags = _flags.clearFlag(_Flag.abandonInferencing);
+    _flags = _flags.clearFlag(_Flag.doNotEnqueue);
   }
 
   /// Destroys information not needed after type inference.
@@ -314,9 +301,9 @@ abstract class TypeInformation {
 
 abstract class ApplyableTypeInformation implements TypeInformation {
   bool get mightBePassedToFunctionApply =>
-      _hasFlag(_Flag.mightBePassedToFunctionApply);
+      _flags.hasFlag(_Flag.mightBePassedToFunctionApply);
   set mightBePassedToFunctionApply(bool value) =>
-      _setFlagTo(_Flag.mightBePassedToFunctionApply, value);
+      _flags = _flags.updateFlag(_Flag.mightBePassedToFunctionApply, value);
 }
 
 /// Marker node used only during tree construction but not during actual type
@@ -459,9 +446,9 @@ abstract class ElementTypeInformation extends TypeInformation {
   /// Marker to disable inference for closures in [handleSpecialCases].
   /// Since the default is enabled, encode this flag as the inverse.
   bool get disableInferenceForClosures =>
-      !_hasFlag(_Flag.enableInferenceForClosures);
+      !_flags.hasFlag(_Flag.enableInferenceForClosures);
   set disableInferenceForClosures(bool value) =>
-      _setFlagTo(_Flag.enableInferenceForClosures, !value);
+      _flags = _flags.updateFlag(_Flag.enableInferenceForClosures, !value);
 
   ElementTypeInformation._internal(
       AbstractValueDomain abstractValueDomain, MemberTypeInformation? context)
@@ -495,7 +482,8 @@ abstract class MemberTypeInformation extends ElementTypeInformation
 
   // Updated during cleanup.
   bool get isCalledExactlyOnce =>
-      _hasFlag(_Flag.isCalled) && !_hasFlag(_Flag.isCalledMoreThanOnce);
+      _flags.hasFlag(_Flag.isCalled) &&
+      !_flags.hasFlag(_Flag.isCalledMoreThanOnce);
 
   MemberTypeInformation._internal(
       AbstractValueDomain abstractValueDomain, this._member)
@@ -507,12 +495,12 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   String get debugName => '$member';
 
   void markCalled() {
-    if (_hasFlag(_Flag.isCalled)) {
-      if (!_hasFlag(_Flag.isCalledMoreThanOnce)) {
-        _setFlag(_Flag.isCalledMoreThanOnce);
+    if (_flags.hasFlag(_Flag.isCalled)) {
+      if (!_flags.hasFlag(_Flag.isCalledMoreThanOnce)) {
+        _flags = _flags.setFlag(_Flag.isCalledMoreThanOnce);
       }
     } else {
-      _setFlag(_Flag.isCalled);
+      _flags = _flags.setFlag(_Flag.isCalled);
     }
   }
 
@@ -592,11 +580,14 @@ abstract class MemberTypeInformation extends ElementTypeInformation
 class FieldTypeInformation extends MemberTypeInformation {
   @override
   final FieldEntity _member;
-  final DartType _type;
+  final AbstractValue _type;
 
   FieldTypeInformation(
-      AbstractValueDomain abstractValueDomain, this._member, this._type)
-      : super._internal(abstractValueDomain, _member);
+      AbstractValueDomain abstractValueDomain, this._member, DartType type)
+      : _type = abstractValueDomain
+            .createFromStaticType(type, nullable: true)
+            .abstractValue,
+        super._internal(abstractValueDomain, _member);
 
   @override
   AbstractValue? handleSpecialCases(InferrerEngine inferrer) {
@@ -624,7 +615,7 @@ class FieldTypeInformation extends MemberTypeInformation {
   @override
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
-    return _narrowType(inferrer.closedWorld, mask, _type);
+    return _narrowType(inferrer.abstractValueDomain, mask, _type);
   }
 
   @override
@@ -641,11 +632,14 @@ class FieldTypeInformation extends MemberTypeInformation {
 class GetterTypeInformation extends MemberTypeInformation {
   @override
   final FunctionEntity _member;
-  final FunctionType _type;
+  final AbstractValue _type;
 
   GetterTypeInformation(
-      AbstractValueDomain abstractValueDomain, this._member, this._type)
-      : super._internal(abstractValueDomain, _member);
+      AbstractValueDomain abstractValueDomain, this._member, FunctionType type)
+      : _type = abstractValueDomain
+            .createFromStaticType(type.returnType, nullable: true)
+            .abstractValue,
+        super._internal(abstractValueDomain, _member);
 
   @override
   AbstractValue? handleSpecialCases(InferrerEngine inferrer) {
@@ -655,7 +649,7 @@ class GetterTypeInformation extends MemberTypeInformation {
   @override
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
-    return _narrowType(inferrer.closedWorld, mask, _type.returnType);
+    return _narrowType(inferrer.abstractValueDomain, mask, _type);
   }
 }
 
@@ -681,11 +675,14 @@ class SetterTypeInformation extends MemberTypeInformation {
 class MethodTypeInformation extends MemberTypeInformation {
   @override
   final FunctionEntity _member;
-  final FunctionType _type;
+  final AbstractValue _type;
 
   MethodTypeInformation(
-      AbstractValueDomain abstractValueDomain, this._member, this._type)
-      : super._internal(abstractValueDomain, _member);
+      AbstractValueDomain abstractValueDomain, this._member, FunctionType type)
+      : _type = abstractValueDomain
+            .createFromStaticType(type.returnType, nullable: true)
+            .abstractValue,
+        super._internal(abstractValueDomain, _member);
 
   @override
   AbstractValue? handleSpecialCases(InferrerEngine inferrer) {
@@ -698,7 +695,7 @@ class MethodTypeInformation extends MemberTypeInformation {
     if (inferrer.commonElements.isLateReadCheck(_member)) {
       mask = inferrer.abstractValueDomain.excludeLateSentinel(mask);
     }
-    return _narrowType(inferrer.closedWorld, mask, _type.returnType);
+    return _narrowType(inferrer.abstractValueDomain, mask, _type);
   }
 
   @override
@@ -708,11 +705,14 @@ class MethodTypeInformation extends MemberTypeInformation {
 class FactoryConstructorTypeInformation extends MemberTypeInformation {
   @override
   final ConstructorEntity _member;
-  final FunctionType _type;
+  final AbstractValue _type;
 
   FactoryConstructorTypeInformation(
-      AbstractValueDomain abstractValueDomain, this._member, this._type)
-      : super._internal(abstractValueDomain, _member);
+      AbstractValueDomain abstractValueDomain, this._member, FunctionType type)
+      : _type = abstractValueDomain
+            .createFromStaticType(type.returnType, nullable: true)
+            .abstractValue,
+        super._internal(abstractValueDomain, _member);
 
   @override
   AbstractValue? handleSpecialCases(InferrerEngine inferrer) {
@@ -736,7 +736,7 @@ class FactoryConstructorTypeInformation extends MemberTypeInformation {
   @override
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
-    return _narrowType(inferrer.closedWorld, mask, _type.returnType);
+    return _narrowType(inferrer.abstractValueDomain, mask, _type);
   }
 
   @override
@@ -779,44 +779,68 @@ class GenerativeConstructorTypeInformation extends MemberTypeInformation {
 /// the [ElementTypeInformation] factory.
 class ParameterTypeInformation extends ElementTypeInformation {
   final Local _parameter;
-  final DartType _type;
+  final AbstractValue _type;
   final FunctionEntity _method;
-  bool get _isInstanceMemberParameter =>
-      _hasFlag(_Flag.isInstanceMemberParameter);
-  bool get _isClosureParameter => _hasFlag(_Flag.isClosureParameter);
-  bool get _isInitializingFormal => _hasFlag(_Flag.isInitializingFormal);
-  bool _isTearOffClosureParameter = false;
 
-  ParameterTypeInformation.localFunction(
-      super.abstractValueDomain,
-      MemberTypeInformation super.context,
-      this._parameter,
-      this._type,
-      this._method)
-      : super._internal() {
-    _setFlag(_Flag.isClosureParameter);
+  /// The input type is calculated directly from the union of this node's
+  /// inputs (i.e. the actual arguments for this parameter). When this
+  /// parameter's static type is not trusted, an implicit check will be added
+  /// based on this type. [type] on the other hand is the type of this parameter
+  /// within the function body so it is narrowed using the static type.
+  AbstractValue _inputType;
+  bool get _isInstanceMemberParameter =>
+      _flags.hasFlag(_Flag.isInstanceMemberParameter);
+  bool get _isClosureParameter => _flags.hasFlag(_Flag.isClosureParameter);
+  bool get _isInitializingFormal => _flags.hasFlag(_Flag.isInitializingFormal);
+  bool _isTearOffClosureParameter = false;
+  bool get _isVirtual => _flags.hasFlag(_Flag.isVirtual);
+
+  ParameterTypeInformation.localFunction(super.abstractValueDomain,
+      super.context, this._parameter, DartType type, this._method)
+      : _type = abstractValueDomain
+            .createFromStaticType(type, nullable: true)
+            .abstractValue,
+        _inputType = abstractValueDomain.uncomputedType,
+        super._internal() {
+    _flags = _flags.setFlag(_Flag.isClosureParameter);
   }
 
   ParameterTypeInformation.static(
       super.abstractValueDomain,
       MemberTypeInformation super.context,
       this._parameter,
-      this._type,
+      DartType type,
       this._method,
       {bool isInitializingFormal = false})
-      : super._internal() {
-    _setFlagTo(_Flag.isInitializingFormal, isInitializingFormal);
+      : _type = abstractValueDomain
+            .createFromStaticType(type, nullable: true)
+            .abstractValue,
+        _inputType = abstractValueDomain.uncomputedType,
+        super._internal() {
+    _flags =
+        _flags.updateFlag(_Flag.isInitializingFormal, isInitializingFormal);
   }
 
-  ParameterTypeInformation.instanceMember(
-      AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation context,
-      this._parameter,
-      this._type,
-      this._method,
-      ParameterInputs inputs)
-      : super._withInputs(abstractValueDomain, context, inputs) {
-    _setFlag(_Flag.isInstanceMemberParameter);
+  ParameterTypeInformation.instanceMember(super.abstractValueDomain,
+      super.context, this._parameter, DartType type, this._method, super.inputs,
+      {required bool isVirtual})
+      : _type =
+            _createInstanceMemberStaticType(abstractValueDomain, type, _method),
+        _inputType = abstractValueDomain.uncomputedType,
+        super._withInputs() {
+    _flags = _flags.setFlag(_Flag.isInstanceMemberParameter);
+    _flags = _flags.updateFlag(_Flag.isVirtual, isVirtual);
+  }
+
+  static AbstractValue _createInstanceMemberStaticType(
+      AbstractValueDomain domain, DartType type, FunctionEntity method) {
+    final staticType =
+        domain.createFromStaticType(type, nullable: true).abstractValue;
+    // We include null in the type of `==` because it usually does not already
+    // include null. When we narrow the inferred type using this static type
+    // we want to allow for null so that downstream we can know if null flows
+    // into this parameter and add the appropriate checks.
+    return method.name == '==' ? domain.includeNull(staticType) : staticType;
   }
 
   FunctionEntity get method => _method;
@@ -888,53 +912,61 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   AbstractValue potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
-    if (inferrer.closedWorld.annotationsData
-        .getParameterCheckPolicy(method)
-        .isTrusted) {
-      // In checked or strong mode we don't trust the types of the arguments
-      // passed to a parameter. The means that the checking of a parameter is
-      // based on the actual arguments.
-      //
-      // With --trust-type-annotations or --omit-implicit-checks we _do_ trust
-      // the arguments passed to a parameter - and we never check them.
-      //
-      // In all these cases we _do_ trust the static type of a parameter within
-      // the method itself. For instance:
-      //
-      //     method(int i) => i;
-      //     main() {
-      //       dynamic f = method;
-      //       f(0); // valid call
-      //       f(''); // invalid call
-      //     }
-      //
-      // Here, in all cases, we infer the returned value of `method` to be an
-      // `int`. In checked and strong mode we infer the parameter of `method` to
-      // be either `int` or `String` and therefore insert a check at the entry
-      // of 'method'. With --trust-type-annotations or --omit-implicit-checks we
-      // (unsoundly) infer the parameter to be `int` and leave the parameter
-      // unchecked, and `method` will at runtime actually return a `String` from
-      // the second invocation.
-      //
-      // The trusting of the parameter types within the body of the method is
-      // is done through `LocalsHandler.update` called in
-      // `KernelTypeGraphBuilder.handleParameter`.
-      return _narrowType(inferrer.closedWorld, mask, _type);
-    }
-    return mask;
+    return _narrowType(inferrer.abstractValueDomain, mask, _type);
+  }
+
+  AbstractValue checkedType(InferrerEngine inferrer) {
+    // By default we don't trust the types of the arguments passed to a
+    // parameter. This means that the checking of a parameter is based on the
+    // actual arguments.
+    //
+    // With --omit-implicit-checks we _do_ trust the arguments passed to a
+    // parameter - and we never check them.
+    //
+    // In all these cases we _do_ trust the static type of a parameter within
+    // the method itself. For instance:
+    //
+    //     method(int i) => i;
+    //     main() {
+    //       dynamic f = method;
+    //       f(0); // valid call
+    //       f(''); // invalid call
+    //     }
+    //
+    // Here, in all cases, we infer the returned value of `method` to be an
+    // `int`. By default we infer the parameter of `method` to be either
+    // `int` or `String` and therefore insert a check at the entry of 'method'.
+    // With --omit-implicit-checks we (unsoundly) infer the parameter to be
+    // `int` and leave the parameter unchecked, and `method` will at runtime
+    // actually return a `String` from the second invocation.
+    //
+    // The trusting of the parameter types within the body of the method is
+    // handled by `potentiallyNarrowType` on each call to `computeType`.
+    return inferrer.closedWorld.annotationsData
+            .getParameterCheckPolicy(method)
+            .isTrusted
+        ? type
+        : _inputType;
   }
 
   @override
   AbstractValue computeType(InferrerEngine inferrer) {
     final special = handleSpecialCases(inferrer);
     if (special != null) return special;
-    return potentiallyNarrowType(
-        inferrer.types.computeTypeMask(inputs), inferrer);
+    final inputType = _inputType = inferrer.types.computeTypeMask(inputs);
+    // Virtual parameters are only inputs to other parameters (virtual or
+    // concrete) and not function bodies. The user parameters need to know the
+    // full set of inputs passed to the virtual parameter.
+    return _isVirtual ? inputType : potentiallyNarrowType(inputType, inferrer);
   }
 
   @override
   AbstractValue safeType(InferrerEngine inferrer) {
-    return potentiallyNarrowType(super.safeType(inferrer), inferrer);
+    final inputType = _inputType = super.safeType(inferrer);
+    // Virtual parameters are only inputs to other parameters (virtual or
+    // concrete) and not function bodies. The user parameters need to know the
+    // full set of inputs passed to the virtual parameter.
+    return _isVirtual ? inputType : potentiallyNarrowType(inputType, inferrer);
   }
 
   @override
@@ -977,7 +1009,7 @@ bool validCallType(CallType callType, ir.Node? call) {
 
 /// A [CallSiteTypeInformation] is a call found in the AST, or a
 /// synthesized call for implicit calls in Dart (such as forwarding
-/// factories). The [_call] field is a [ast.Node] for the former, and an
+/// factories). The [callNode] field is a [ast.Node] for the former, and an
 /// [Element] for the latter.
 ///
 /// In the inferrer graph, [CallSiteTypeInformation] nodes do not have
@@ -985,22 +1017,22 @@ bool validCallType(CallType callType, ir.Node? call) {
 /// and [selector] and [receiver] fields for dynamic calls.
 abstract class CallSiteTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
-  final ir.Node _call;
+  final ir.Node callNode;
   final MemberEntity caller;
   final Selector? selector;
   final ArgumentsTypes? arguments;
-  bool get inLoop => _hasFlag(_Flag.inLoop);
+  bool get inLoop => _flags.hasFlag(_Flag.inLoop);
 
   CallSiteTypeInformation(
       AbstractValueDomain abstractValueDomain,
       MemberTypeInformation? context,
-      this._call,
+      this.callNode,
       this.caller,
       this.selector,
       this.arguments,
       bool inLoop)
       : super.noInputs(abstractValueDomain.uncomputedType, context) {
-    _setFlagTo(_Flag.inLoop, inLoop);
+    _flags = _flags.updateFlag(_Flag.inLoop, inLoop);
   }
 
   @override
@@ -1009,10 +1041,7 @@ abstract class CallSiteTypeInformation extends TypeInformation
   /// Add [this] to the graph being computed by [engine].
   void addToGraph(InferrerEngine engine);
 
-  /// Return an iterable over the targets of this call.
-  Iterable<MemberEntity> get callees;
-
-  String get debugName => '$_call';
+  String get debugName => '$callNode';
 }
 
 class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
@@ -1021,14 +1050,14 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   StaticCallSiteTypeInformation(
       super.abstractValueDomain,
       super.context,
-      super.call,
+      super.callNode,
       super.enclosing,
       this.calledElement,
       super.selector,
       super.arguments,
       super.inLoop);
 
-  ir.StaticInvocation get invocationNode => _call as ir.StaticInvocation;
+  ir.StaticInvocation get invocationNode => callNode as ir.StaticInvocation;
 
   MemberTypeInformation _getCalledTypeInfo(InferrerEngine inferrer) {
     return inferrer.types.getInferredTypeOfMember(calledElement);
@@ -1054,7 +1083,8 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   TypeInformation _getCalledTypeInfoWithSelector(InferrerEngine inferrer) {
-    return inferrer.typeOfMemberWithSelector(calledElement, selector);
+    return inferrer.typeOfMemberWithSelector(calledElement, selector,
+        isVirtual: false);
   }
 
   @override
@@ -1066,9 +1096,6 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
       return _getCalledTypeInfoWithSelector(inferrer).type;
     }
   }
-
-  @override
-  Iterable<MemberEntity> get callees => [calledElement];
 
   @override
   accept(TypeInformationVisitor visitor) {
@@ -1099,24 +1126,24 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   final CallType _callType;
   final TypeInformation receiver;
   final AbstractValue? mask;
-  bool get isConditional => _hasFlag(_Flag.isConditional);
+  bool get isConditional => _flags.hasFlag(_Flag.isConditional);
 
   /// Cached concrete targets of this call.
-  Iterable<MemberEntity>? _concreteTargets;
+  Iterable<DynamicCallTarget>? _targets;
 
-  /// Recomputed when _concreteTargets changes.
+  /// Recomputed when [_targets] changes.
   /// [_hasTargetsIncludeComplexNoSuchMethod] indicates whether this value
   /// is stale and needs to be recomputed.
   bool get _targetsIncludeComplexNoSuchMethod =>
-      _hasFlag(_Flag.targetsIncludeComplexNoSuchMethod);
+      _flags.hasFlag(_Flag.targetsIncludeComplexNoSuchMethod);
   bool get _hasTargetsIncludeComplexNoSuchMethod =>
-      _hasFlag(_Flag.hasTargetsIncludeComplexNoSuchMethod);
+      _flags.hasFlag(_Flag.hasTargetsIncludeComplexNoSuchMethod);
 
   DynamicCallSiteTypeInformation(
       super.abstractValueDomain,
-      super.ontext,
+      super.context,
       this._callType,
-      super.call,
+      super.callNode,
       super.enclosing,
       super.selector,
       this.mask,
@@ -1124,8 +1151,21 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
       super.arguments,
       super.inLoop,
       bool isConditional) {
-    _setFlagTo(_Flag.isConditional, isConditional);
-    assert(validCallType(_callType, _call));
+    _flags = _flags.updateFlag(_Flag.isConditional, isConditional);
+    assert(validCallType(_callType, callNode));
+  }
+
+  void _handleCalledTarget(DynamicCallTarget target, InferrerEngine inferrer,
+      {required bool addToQueue, required bool remove}) {
+    MemberTypeInformation targetType = inferrer.inferredTypeOfTarget(target);
+    if (remove) {
+      targetType.removeUser(this);
+    } else {
+      targetType.addUser(this);
+    }
+    final member = target.member;
+    inferrer.updateParameterInputs(this, member, arguments, selector,
+        addToQueue: addToQueue, remove: remove, virtualCall: target.isVirtual);
   }
 
   @override
@@ -1133,35 +1173,35 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     final typeMask = computeTypedSelector(inferrer);
     _hasClosureCallTargets =
         inferrer.closedWorld.includesClosureCall(selector!, typeMask);
-    final concreteTargets = _concreteTargets =
-        inferrer.closedWorld.locateMembers(selector!, typeMask);
+    final targets = _targets =
+        inferrer.memberHierarchyBuilder.rootsForCall(typeMask, selector!);
     invalidateTargetsIncludeComplexNoSuchMethod();
     receiver.addUser(this);
     if (arguments != null) {
       arguments!.forEach((info) => info.addUser(this));
     }
-    for (MemberEntity element in concreteTargets) {
-      MemberTypeInformation callee =
-          inferrer.types.getInferredTypeOfMember(element);
-      callee.addUser(this);
-      inferrer.updateParameterInputs(this, element, arguments, selector,
-          remove: false, addToQueue: false);
+    for (final target in targets) {
+      _handleCalledTarget(target, inferrer, addToQueue: false, remove: false);
     }
   }
 
   /// `true` if this invocation can hit a 'call' method on a closure.
-  bool get hasClosureCallTargets => _hasFlag(_Flag.hasClosureCallTargets);
+  bool get hasClosureCallTargets => _flags.hasFlag(_Flag.hasClosureCallTargets);
 
   set _hasClosureCallTargets(bool value) =>
-      _setFlagTo(_Flag.hasClosureCallTargets, value);
+      _flags = _flags.updateFlag(_Flag.hasClosureCallTargets, value);
 
   /// All concrete targets of this invocation. If [hasClosureCallTargets] is
   /// `true` the invocation can additional target an unknown set of 'call'
   /// methods on closures.
-  Iterable<MemberEntity> get concreteTargets => _concreteTargets!;
+  Iterable<DynamicCallTarget> get targets => _targets!;
 
-  @override
-  Iterable<MemberEntity> get callees => _concreteTargets!;
+  void forEachConcreteTarget(
+      MemberHierarchyBuilder builder, bool Function(MemberEntity member) f) {
+    for (final target in targets) {
+      builder.forEachTargetMember(target, f);
+    }
+  }
 
   AbstractValue? computeTypedSelector(InferrerEngine inferrer) {
     AbstractValue receiverType = receiver.type;
@@ -1175,19 +1215,21 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   }
 
   void invalidateTargetsIncludeComplexNoSuchMethod() {
-    _clearFlag(_Flag.hasTargetsIncludeComplexNoSuchMethod);
+    _flags = _flags.clearFlag(_Flag.hasTargetsIncludeComplexNoSuchMethod);
   }
 
   bool targetsIncludeComplexNoSuchMethod(InferrerEngine inferrer) {
     if (!_hasTargetsIncludeComplexNoSuchMethod) {
-      _setFlag(_Flag.hasTargetsIncludeComplexNoSuchMethod);
-      final value = _concreteTargets!.any((MemberEntity e) {
-        return e.isFunction &&
-            e.isInstanceMember &&
-            e.name == Identifiers.noSuchMethod_ &&
-            inferrer.noSuchMethodData.isComplex(e as FunctionEntity);
-      });
-      _setFlagTo(_Flag.targetsIncludeComplexNoSuchMethod, value);
+      _flags = _flags.setFlag(_Flag.hasTargetsIncludeComplexNoSuchMethod);
+      final value = targets.any((target) => inferrer.memberHierarchyBuilder
+              .anyTargetMember(target, (MemberEntity e) {
+            return e.isFunction &&
+                e.isInstanceMember &&
+                e.name == Identifiers.noSuchMethod_ &&
+                inferrer.noSuchMethodData.isComplex(e as FunctionEntity);
+          }));
+      _flags =
+          _flags.updateFlag(_Flag.targetsIncludeComplexNoSuchMethod, value);
       return value;
     }
     return _targetsIncludeComplexNoSuchMethod;
@@ -1304,40 +1346,32 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   AbstractValue computeType(InferrerEngine inferrer) {
     JClosedWorld closedWorld = inferrer.closedWorld;
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
-    final oldTargets = _concreteTargets!;
+    final oldTargets = _targets!;
     final typeMask = computeTypedSelector(inferrer);
     final localSelector = selector!;
     inferrer.updateSelectorInMember(
-        caller, _callType, _call as ir.TreeNode, localSelector, typeMask);
+        caller, _callType, callNode as ir.TreeNode, localSelector, typeMask);
 
     final includesClosureCall = _hasClosureCallTargets =
         closedWorld.includesClosureCall(localSelector, typeMask);
-    final concreteTargets =
-        _concreteTargets = closedWorld.locateMembers(localSelector, typeMask);
+    final targets = _targets =
+        inferrer.memberHierarchyBuilder.rootsForCall(typeMask, localSelector);
 
     // Update the call graph if the targets could have changed.
-    if (!identical(concreteTargets, oldTargets)) {
+    if (!identical(targets, oldTargets)) {
       invalidateTargetsIncludeComplexNoSuchMethod();
       // Add calls to new targets to the graph.
-      concreteTargets
+      targets
           .where((target) => !oldTargets.contains(target))
-          .forEach((MemberEntity element) {
-        MemberTypeInformation callee =
-            inferrer.types.getInferredTypeOfMember(element);
-        callee.addUser(this);
-        inferrer.updateParameterInputs(this, element, arguments, selector,
-            remove: false, addToQueue: true);
+          .forEach((DynamicCallTarget target) {
+        _handleCalledTarget(target, inferrer, addToQueue: true, remove: false);
       });
 
       // Walk over the old targets, and remove calls that cannot happen anymore.
       oldTargets
-          .where((target) => !concreteTargets.contains(target))
-          .forEach((MemberEntity element) {
-        MemberTypeInformation callee =
-            inferrer.types.getInferredTypeOfMember(element);
-        callee.removeUser(this);
-        inferrer.updateParameterInputs(this, element, arguments, selector,
-            remove: true, addToQueue: true);
+          .where((target) => !targets.contains(target))
+          .forEach((DynamicCallTarget target) {
+        _handleCalledTarget(target, inferrer, addToQueue: true, remove: true);
       });
     }
 
@@ -1347,8 +1381,9 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     if (includesClosureCall) {
       result = abstractValueDomain.dynamicType;
     } else {
-      result = inferrer.types
-          .joinTypeMasks(concreteTargets.map((MemberEntity element) {
+      result =
+          inferrer.types.joinTypeMasks(targets.map((DynamicCallTarget target) {
+        final element = target.member;
         if (typeMask != null &&
             inferrer.returnsListElementType(localSelector, typeMask)) {
           return abstractValueDomain.getContainerElementType(receiver.type);
@@ -1391,7 +1426,10 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
           final info =
               handleIntrinsifiedSelector(localSelector, typeMask, inferrer);
           if (info != null) return info.type;
-          return inferrer.typeOfMemberWithSelector(element, selector).type;
+          return inferrer
+              .typeOfMemberWithSelector(element, selector,
+                  isVirtual: target.isVirtual)
+              .type;
         }
       }));
     }
@@ -1408,18 +1446,18 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   void giveUp(InferrerEngine inferrer, {bool clearInputs = true}) {
     if (!abandonInferencing) {
       inferrer.updateSelectorInMember(
-          caller, _callType, _call as ir.TreeNode, selector, mask);
-      final oldTargets = concreteTargets;
+          caller, _callType, callNode as ir.TreeNode, selector, mask);
+      final oldTargets = targets;
       final localSelector = selector!;
       _hasClosureCallTargets =
           inferrer.closedWorld.includesClosureCall(localSelector, mask);
-      final newConcreteTargets = _concreteTargets =
-          inferrer.closedWorld.locateMembers(localSelector, mask);
+      final newTargets = _targets =
+          inferrer.memberHierarchyBuilder.rootsForCall(mask, localSelector);
       invalidateTargetsIncludeComplexNoSuchMethod();
-      for (MemberEntity element in newConcreteTargets) {
-        if (!oldTargets.contains(element)) {
-          inferrer.updateParameterInputs(this, element, arguments, selector,
-              remove: false, addToQueue: true);
+      for (final target in newTargets) {
+        if (!oldTargets.contains(target)) {
+          _handleCalledTarget(target, inferrer,
+              addToQueue: true, remove: false);
         }
       }
     }
@@ -1428,11 +1466,12 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
 
   @override
   void removeAndClearReferences(InferrerEngine inferrer) {
-    for (MemberEntity element in concreteTargets) {
+    forEachConcreteTarget(inferrer.memberHierarchyBuilder, (element) {
       MemberTypeInformation callee =
           inferrer.types.getInferredTypeOfMember(element);
       callee.removeUser(this);
-    }
+      return true;
+    });
     if (arguments != null) {
       arguments!.forEach((info) => info.removeUser(this));
     }
@@ -1450,8 +1489,12 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   @override
   bool hasStableType(InferrerEngine inferrer) {
     return receiver.isStable &&
-        concreteTargets.every((MemberEntity element) =>
-            inferrer.types.getInferredTypeOfMember(element).isStable) &&
+        targets.every((target) => inferrer.memberHierarchyBuilder
+            .anyTargetMember(
+                target,
+                (MemberEntity element) => inferrer.types
+                    .getInferredTypeOfMember(element)
+                    .isStable)) &&
         (arguments == null || arguments!.every((info) => info.isStable)) &&
         super.hasStableType(inferrer);
   }
@@ -1463,7 +1506,7 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
   ClosureCallSiteTypeInformation(
       super.abstractValueDomain,
       super.context,
-      super.call,
+      super.callNode,
       super.enclosing,
       super.selector,
       this.closure,
@@ -1490,11 +1533,6 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
       return abstractValueDomain.emptyType;
     }
     return safeType(inferrer);
-  }
-
-  @override
-  Iterable<MemberEntity> get callees {
-    throw UnsupportedError("Cannot compute callees of a closure call.");
   }
 
   @override
@@ -1527,7 +1565,7 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
 /// type.
 class ConcreteTypeInformation extends TypeInformation {
   ConcreteTypeInformation(super.type) : super.untracked() {
-    _setFlag(_Flag.isStable);
+    _flags = _flags.setFlag(_Flag.isStable);
   }
 
   @override
@@ -1671,8 +1709,8 @@ class NarrowTypeInformation extends TypeInformation {
 /// its inputs.
 abstract class InferredTypeInformation extends TypeInformation {
   /// Whether the element type in that container has been inferred.
-  bool get inferred => _hasFlag(_Flag.inferred);
-  set inferred(bool value) => _setFlagTo(_Flag.inferred, value);
+  bool get inferred => _flags.hasFlag(_Flag.inferred);
+  set inferred(bool value) => _flags = _flags.updateFlag(_Flag.inferred, value);
 
   InferredTypeInformation(AbstractValueDomain abstractValueDomain,
       MemberTypeInformation? context, TypeInformation? parentType)
@@ -2026,12 +2064,12 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
   // [nonNull] is set to true if this value is known to be part of the map.
   // Note that only values assigned to a specific key value in dictionary
   // mode can ever be marked as [nonNull].
-  bool get nonNull => _hasFlag(_Flag.valueInMapNonNull);
+  bool get nonNull => _flags.hasFlag(_Flag.valueInMapNonNull);
 
   ValueInMapTypeInformation(
       super.abstractValueDomain, super.context, super.valueType,
       [bool nonNull = false]) {
-    _setFlagTo(_Flag.valueInMapNonNull, nonNull);
+    _flags = _flags.updateFlag(_Flag.valueInMapNonNull, nonNull);
   }
 
   @override
@@ -2054,13 +2092,11 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
 /// constants and literals.
 class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
   final RecordShape recordShape;
-  final AbstractValue originalType;
-
   final List<TypeInformation> fieldTypes;
 
-  RecordTypeInformation(MemberTypeInformation? context, this.originalType,
-      this.recordShape, this.fieldTypes)
-      : super(originalType, context) {
+  RecordTypeInformation(
+      super.type, super.context, this.recordShape, this.fieldTypes)
+      : super.noInputs() {
     for (final fieldType in fieldTypes) {
       fieldType.addUser(this);
     }
@@ -2087,8 +2123,14 @@ class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
   }
 
   @override
-  // TODO(50701): This could be a top type of the record shape.
-  AbstractValue safeType(InferrerEngine inferrer) => originalType;
+  AbstractValue safeType(InferrerEngine inferrer) {
+    final shapeClass = inferrer.closedWorld.recordData
+        .representationForShape(recordShape)
+        ?.cls;
+    return shapeClass != null
+        ? inferrer.abstractValueDomain.createNonNullSubtype(shapeClass)
+        : inferrer.abstractValueDomain.recordType;
+  }
 
   @override
   bool hasStableType(InferrerEngine inferrer) {
@@ -2138,7 +2180,11 @@ class RecordFieldAccessTypeInformation extends TypeInformation {
   @override
   AbstractValue computeType(InferrerEngine inferrer) {
     final recordType = receiver.type;
-    if (!inferrer.abstractValueDomain.isRecord(recordType)) {
+    if (inferrer.abstractValueDomain.isEmpty(recordType).isDefinitelyTrue) {
+      // These field accesses should begin at empty until we have a type for the
+      // receiver.
+      return inferrer.abstractValueDomain.emptyType;
+    } else if (!inferrer.abstractValueDomain.isRecord(recordType)) {
       return safeType(inferrer);
     }
     final getterType = inferrer.abstractValueDomain
@@ -2153,13 +2199,13 @@ class RecordFieldAccessTypeInformation extends TypeInformation {
 class PhiElementTypeInformation extends TypeInformation {
   final ir.Node? branchNode;
   final Local? variable;
-  bool get isTry => _hasFlag(_Flag.isTry);
+  bool get isTry => _flags.hasFlag(_Flag.isTry);
 
   PhiElementTypeInformation(AbstractValueDomain abstractValueDomain,
       MemberTypeInformation? context, this.branchNode, this.variable,
       {required bool isTry})
       : super(abstractValueDomain.uncomputedType, context) {
-    _setFlagTo(_Flag.isTry, isTry);
+    _flags = _flags.updateFlag(_Flag.isTry, isTry);
   }
 
   @override
@@ -2232,12 +2278,13 @@ class ClosureTypeInformation extends TypeInformation
 /// Mixin for [TypeInformation] nodes that can bail out during tracing.
 abstract class TracedTypeInformation implements TypeInformation {
   /// Set to false once analysis has succeeded.
-  bool get bailedOut => !_hasFlag(_Flag.notBailedOut);
-  set bailedOut(bool value) => _setFlagTo(_Flag.notBailedOut, !value);
+  bool get bailedOut => !_flags.hasFlag(_Flag.notBailedOut);
+  set bailedOut(bool value) =>
+      _flags = _flags.updateFlag(_Flag.notBailedOut, !value);
 
   /// Set to true once analysis is completed.
-  bool get analyzed => _hasFlag(_Flag.analyzed);
-  set analyzed(bool value) => _setFlagTo(_Flag.analyzed, value);
+  bool get analyzed => _flags.hasFlag(_Flag.analyzed);
+  set analyzed(bool value) => _flags = _flags.updateFlag(_Flag.analyzed, value);
 
   Set<TypeInformation>? _flowsInto;
 
@@ -2328,40 +2375,10 @@ abstract class TypeInformationVisitor<T> {
   T visitYieldTypeInformation(YieldTypeInformation info);
 }
 
-AbstractValue _narrowType(
-    JClosedWorld closedWorld, AbstractValue type, DartType annotation,
-    {bool isNullable = true}) {
-  AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
-
-  AbstractValue _intersectionWith(AbstractValue otherType) {
-    if (isNullable) {
-      otherType = abstractValueDomain.includeNull(otherType);
-    }
-    AbstractValue newType = abstractValueDomain.intersection(type, otherType);
-    return abstractValueDomain.isLateSentinel(type).isPotentiallyTrue
-        ? abstractValueDomain.includeLateSentinel(newType)
-        : newType;
-  }
-
-  // TODO(joshualitt): FutureOrType, TypeVariableType, and FunctionTypeVariable
-  // can be narrowed.
-  // TODO(fishythefish): Use nullability.
-  annotation = annotation.withoutNullability;
-  if (closedWorld.dartTypes.isTopType(annotation) ||
-      annotation is FutureOrType ||
-      annotation is TypeVariableType ||
-      annotation is FunctionTypeVariable) {
-    return type;
-  } else if (annotation is NeverType) {
-    return _intersectionWith(abstractValueDomain.emptyType);
-  } else if (annotation is InterfaceType) {
-    return _intersectionWith(
-        abstractValueDomain.createNonNullSubtype(annotation.element));
-  } else if (annotation is FunctionType) {
-    return _intersectionWith(abstractValueDomain.functionType);
-  } else if (annotation is RecordType) {
-    return _intersectionWith(abstractValueDomain.recordType);
-  } else {
-    throw 'Unexpected annotation type $annotation';
-  }
+AbstractValue _narrowType(AbstractValueDomain abstractValueDomain,
+    AbstractValue type, AbstractValue annotation) {
+  final narrowType = abstractValueDomain.intersection(type, annotation);
+  return abstractValueDomain.isLateSentinel(type).isPotentiallyTrue
+      ? abstractValueDomain.includeLateSentinel(narrowType)
+      : narrowType;
 }

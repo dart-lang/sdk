@@ -10,5 +10,8 @@ void main() {
 // values
 void test() async {
   Object a = 3;
-  return /*@compile-error=unspecified*/ a;
+  return a;
+  //     ^
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
+  // [cfe] A value of type 'Object' can't be returned from an async function with return type 'void'.
 }

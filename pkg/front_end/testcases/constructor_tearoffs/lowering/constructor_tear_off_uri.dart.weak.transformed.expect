@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -23,7 +23,7 @@ static method /* from org-dartlang-testcase:///constructor_tear_off_uri_part.dar
   (core::int) → self::Class f = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off_uri_part.dart:8:27: Error: A value of type 'Class Function()' can't be assigned to a variable of type 'Class Function(int)'.
  - 'Class' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off_uri.dart'.
   Class Function(int) f = Class.new;
-                          ^" in #C1 as{TypeError,ForNonNullableByDefault} (core::int) → self::Class;
+                          ^" in #C1 as{TypeError} (core::int) → self::Class;
 }
 
 constants  {

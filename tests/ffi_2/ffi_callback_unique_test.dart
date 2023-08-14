@@ -16,9 +16,6 @@ void main() {
     b.add(
         Pointer.fromFunction<Int Function()>(nativeToDartCallback, 1).address);
   }
-  // Another pointer from a different call site.
-  a.add(Pointer.fromFunction<Int Function()>(nativeToDartCallback, 0).address);
-  b.add(Pointer.fromFunction<Int Function()>(nativeToDartCallback, 1).address);
 
   ensureEqualEntries(a);
   ensureEqualEntries(b);

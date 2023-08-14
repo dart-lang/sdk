@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -8,7 +8,7 @@ static method foldInitialElements() → void {
   core::int? element1 = 1;
   core::int element2 = 2;
   core::List<core::int?> list = block {
-    final core::List<core::int?> #t1 = <core::int?>[element0 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?, element1{core::int}, element2];
+    final core::List<core::int?> #t1 = <core::int?>[element0 as{TypeError,ForDynamic} core::int?, element1{core::int}, element2];
     if(true)
       #t1.{core::List::add}{Invariant}(3){(core::int?) → void};
     #t1.{core::List::add}{Invariant}(4){(core::int?) → void};
@@ -18,7 +18,7 @@ static method foldInitialElements() → void {
   self::expect(core::List::generate<core::int?>(7, (core::int? i) → core::int? => i), list);
   core::Set<core::int?> set = block {
     final core::Set<core::int?> #t2 = col::LinkedHashSet::•<core::int?>();
-    #t2.{core::Set::add}{Invariant}(element0 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?){(core::int?) → core::bool};
+    #t2.{core::Set::add}{Invariant}(element0 as{TypeError,ForDynamic} core::int?){(core::int?) → core::bool};
     #t2.{core::Set::add}{Invariant}(element1{core::int}){(core::int?) → core::bool};
     #t2.{core::Set::add}{Invariant}(element2){(core::int?) → core::bool};
     if(true)
@@ -33,8 +33,8 @@ static method foldInitialSpread1() → void {
   dynamic initial = <core::int>[0, 1, 2];
   core::List<core::int> list = block {
     final core::List<core::int> #t3 = <core::int>[];
-    for (final has-declared-initializer dynamic #t4 in initial as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
-      final core::int #t5 = #t4 as{TypeError,ForNonNullableByDefault} core::int;
+    for (final has-declared-initializer dynamic #t4 in initial as{TypeError,ForDynamic} core::Iterable<dynamic>) {
+      final core::int #t5 = #t4 as{TypeError} core::int;
       #t3.{core::List::add}{Invariant}(#t5){(core::int) → void};
     }
     if(true)
@@ -46,8 +46,8 @@ static method foldInitialSpread1() → void {
   self::expect(core::List::generate<core::int>(7, (core::int i) → core::int => i), list);
   core::Set<core::int> set = block {
     final core::Set<core::int> #t6 = col::LinkedHashSet::•<core::int>();
-    for (final has-declared-initializer dynamic #t7 in initial as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
-      final core::int #t8 = #t7 as{TypeError,ForNonNullableByDefault} core::int;
+    for (final has-declared-initializer dynamic #t7 in initial as{TypeError,ForDynamic} core::Iterable<dynamic>) {
+      final core::int #t8 = #t7 as{TypeError} core::int;
       #t6.{core::Set::add}{Invariant}(#t8){(core::int) → core::bool};
     }
     if(true)

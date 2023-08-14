@@ -43,9 +43,6 @@ class GraphIntrinsifier : public AllStatic {
   GRAPH_INTRINSICS_LIST(DECLARE_FUNCTION)
 
 #undef DECLARE_FUNCTION
-
-  static bool Build_ImplicitGetter(FlowGraph* flow_graph);
-  static bool Build_ImplicitSetter(FlowGraph* flow_graph);
 };
 
 }  // namespace compiler

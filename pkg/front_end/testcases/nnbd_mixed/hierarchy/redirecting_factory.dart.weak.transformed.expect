@@ -1,17 +1,12 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor •() → self::Class
     : super core::Object::•()
     ;
-  static factory redirect() → self::Class
+  static factory redirect() → self::Class /* redirection-target: self::Class::• */
     return new self::Class::•();
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = constructor-tearoff self::Class::redirect
-}

@@ -13,5 +13,5 @@ class MethodMacro implements ClassDeclarationsMacro {
 
   @override
   FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
-      ClassMemberDeclarationBuilder builder) async {}
+      MemberDeclarationBuilder builder) async {}
 }

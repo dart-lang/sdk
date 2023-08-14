@@ -35,6 +35,14 @@ class B implements T {}
           58,
           1),
     ]);
+
+    final node = findNode.namedType('T {}');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: T
+  element: self::@typeAlias::T
+  type: InvalidType
+''');
   }
 
   test_class_typeParameter_withTypeArguments() async {
@@ -48,6 +56,22 @@ class B implements T<A> {}
           58,
           1),
     ]);
+
+    final node = findNode.namedType('T<A> {}');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: T
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: A
+        element: self::@class::A
+        type: A
+    rightBracket: >
+  element: self::@typeAlias::T
+  type: InvalidType
+''');
   }
 
   test_mixin_typeParameter_noTypeArguments() async {
@@ -61,5 +85,13 @@ mixin M implements T {}
           58,
           1),
     ]);
+
+    final node = findNode.namedType('T {}');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: T
+  element: self::@typeAlias::T
+  type: InvalidType
+''');
   }
 }

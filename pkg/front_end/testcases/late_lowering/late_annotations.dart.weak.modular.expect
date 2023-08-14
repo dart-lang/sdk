@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -235,18 +235,18 @@ static get finalTopLevelFieldWithInitializer() → core::int {
   return let final core::int? #t22 = self::_#finalTopLevelFieldWithInitializer in #t22{core::int};
 }
 @#C1
-static get Extension|extensionStaticField() → core::int
+static extension-member get Extension|extensionStaticField() → core::int
   return self::_#Extension|extensionStaticField#isSet ?{core::int} let final core::int? #t23 = self::_#Extension|extensionStaticField in #t23{core::int} : throw new _in::LateError::fieldNI("extensionStaticField");
 @#C1
-static set Extension|extensionStaticField(core::int extensionStaticField#param) → void {
+static extension-member set Extension|extensionStaticField(core::int extensionStaticField#param) → void {
   self::_#Extension|extensionStaticField#isSet = true;
   self::_#Extension|extensionStaticField = extensionStaticField#param;
 }
 @#C1
-static get Extension|finalExtensionStaticField() → core::int
+static extension-member get Extension|finalExtensionStaticField() → core::int
   return self::_#Extension|finalExtensionStaticField#isSet ?{core::int} let final core::int? #t24 = self::_#Extension|finalExtensionStaticField in #t24{core::int} : throw new _in::LateError::fieldNI("finalExtensionStaticField");
 @#C1
-static set Extension|finalExtensionStaticField(core::int finalExtensionStaticField#param) → void
+static extension-member set Extension|finalExtensionStaticField(core::int finalExtensionStaticField#param) → void
   if(self::_#Extension|finalExtensionStaticField#isSet)
     throw new _in::LateError::fieldAI("finalExtensionStaticField");
   else {
@@ -254,7 +254,7 @@ static set Extension|finalExtensionStaticField(core::int finalExtensionStaticFie
     self::_#Extension|finalExtensionStaticField = finalExtensionStaticField#param;
   }
 @#C1
-static get Extension|finalExtensionStaticFieldWithInitializer() → core::int {
+static extension-member get Extension|finalExtensionStaticFieldWithInitializer() → core::int {
   if(!self::_#Extension|finalExtensionStaticFieldWithInitializer#isSet) {
     final core::int #t25 = 0;
     if(self::_#Extension|finalExtensionStaticFieldWithInitializer#isSet)

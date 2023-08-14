@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -27,8 +27,8 @@ class B extends core::Object implements self::A {
     return 3;
 }
 static method foo() → dynamic {
-  core::String y = new self::B::•().{self::B::x}{dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
-  core::int z = new self::B::•().{self::B::x}{dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  core::String y = new self::B::•().{self::B::x}{dynamic} as{TypeError,ForDynamic} core::String;
+  core::int z = new self::B::•().{self::B::x}{dynamic} as{TypeError,ForDynamic} core::int;
 }
 static method main() → dynamic {
   self::foo();

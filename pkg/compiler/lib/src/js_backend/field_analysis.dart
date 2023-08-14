@@ -11,10 +11,9 @@ import '../elements/entities.dart';
 import '../elements/entity_utils.dart';
 import '../elements/types.dart';
 import '../ir/scope_visitor.dart';
-import '../js_model/elements.dart' show JField;
+import '../js_model/elements.dart' show JClass, JConstructor, JField;
 import '../js_model/js_to_frontend_map.dart' show JsToFrontendMap;
 import '../kernel/element_map.dart' show KernelToElementMap;
-import '../kernel/kelements.dart' show KClass, KField, KConstructor;
 import '../kernel/kernel_world.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
@@ -39,18 +38,18 @@ import '../universe/member_usage.dart';
 class KFieldAnalysis {
   final KernelToElementMap _elementMap;
 
-  final Map<KClass, ClassData> _classData = {};
-  final Map<KField, StaticFieldData> _staticFieldData = {};
+  final Map<JClass, ClassData> _classData = {};
+  final Map<JField, StaticFieldData> _staticFieldData = {};
 
   KFieldAnalysis(this._elementMap);
 
   // Register class during resolution. Use simple syntactic analysis to find
   // null-initialized fields.
-  void registerInstantiatedClass(KClass class_) {
+  void registerInstantiatedClass(JClass class_) {
     ir.Class classNode = _elementMap.getClassNode(class_);
 
-    List<KConstructor> constructors = [];
-    Map<KField, AllocatorData> fieldData = {};
+    List<JConstructor> constructors = [];
+    Map<JField, AllocatorData> fieldData = {};
     for (ir.Field field in classNode.fields) {
       if (!field.isInstanceMember) continue;
 
@@ -67,20 +66,20 @@ class KFieldAnalysis {
             requireConstant: false, implicitNull: true);
       }
       if (value != null && value.isConstant) {
-        fieldData[fieldElement as KField] = AllocatorData(value);
+        fieldData[fieldElement as JField] = AllocatorData(value);
       }
     }
 
     for (ir.Constructor constructor in classNode.constructors) {
-      KConstructor constructorElement =
-          _elementMap.getConstructor(constructor) as KConstructor;
+      JConstructor constructorElement =
+          _elementMap.getConstructor(constructor) as JConstructor;
       ir.StaticTypeContext staticTypeContext =
           _elementMap.getStaticTypeContext(constructorElement);
       constructors.add(constructorElement);
       for (ir.Initializer initializer in constructor.initializers) {
         if (initializer is ir.FieldInitializer) {
           AllocatorData? data =
-              fieldData[_elementMap.getField(initializer.field) as KField];
+              fieldData[_elementMap.getField(initializer.field) as JField];
           if (data == null) {
             // TODO(johnniwinther): Support initializers with side-effects?
 
@@ -130,7 +129,7 @@ class KFieldAnalysis {
     _classData[class_] = ClassData(constructors, fieldData);
   }
 
-  void registerStaticField(KField field, EvaluationComplexity complexity) {
+  void registerStaticField(JField field, EvaluationComplexity complexity) {
     ir.Field node = _elementMap.getMemberNode(field) as ir.Field;
     ir.Expression? expression = node.initializer;
     ConstantValue? value;
@@ -151,18 +150,18 @@ class KFieldAnalysis {
     _staticFieldData[field] = StaticFieldData(value, complexity);
   }
 
-  AllocatorData? getAllocatorDataForTesting(KField field) {
+  AllocatorData? getAllocatorDataForTesting(JField field) {
     return _classData[field.enclosingClass!]!.fieldData[field];
   }
 
-  StaticFieldData? getStaticFieldDataForTesting(KField field) {
+  StaticFieldData? getStaticFieldDataForTesting(JField field) {
     return _staticFieldData[field];
   }
 }
 
 class ClassData {
-  final List<KConstructor> constructors;
-  final Map<KField, AllocatorData> fieldData;
+  final List<JConstructor> constructors;
+  final Map<JField, AllocatorData> fieldData;
 
   ClassData(this.constructors, this.fieldData);
 }
@@ -178,7 +177,7 @@ class StaticFieldData {
 
 class AllocatorData {
   final ConstantValue? initialValue;
-  final Map<KConstructor, Initializer> initializers = {};
+  final Map<JConstructor, Initializer> initializers = {};
 
   AllocatorData(this.initialValue);
 
@@ -279,7 +278,7 @@ class JFieldAnalysis {
 
     closedWorld.fieldAnalysis._classData
         .forEach((ClassEntity cls, ClassData classData) {
-      classData.fieldData.forEach((KField kField, AllocatorData data) {
+      classData.fieldData.forEach((JField kField, AllocatorData data) {
         JField? jField = map.toBackendMember(kField) as JField?;
         if (jField == null) {
           return;
@@ -315,7 +314,7 @@ class JFieldAnalysis {
             memberUsage.initialConstants!.forEach(includeInitialValue);
 
             bool inAllConstructors = true;
-            for (KConstructor constructor in classData.constructors) {
+            for (JConstructor constructor in classData.constructors) {
               if (isTooComplex) {
                 break;
               }
@@ -396,14 +395,14 @@ class JFieldAnalysis {
       });
     });
 
-    List<KField> independentFields = [];
-    List<KField> dependentFields = [];
+    List<JField> independentFields = [];
+    List<JField> dependentFields = [];
 
     closedWorld.liveMemberUsage
         .forEach((MemberEntity member, MemberUsage memberUsage) {
       if (member is FieldEntity && !member.isInstanceMember) {
         StaticFieldData staticFieldData =
-            closedWorld.fieldAnalysis._staticFieldData[member as KField]!;
+            closedWorld.fieldAnalysis._staticFieldData[member as JField]!;
         if (staticFieldData.hasDependencies) {
           dependentFields.add(member);
         } else {
@@ -413,10 +412,10 @@ class JFieldAnalysis {
     });
 
     // Fields already processed.
-    Set<KField> processedFields = {};
+    Set<JField> processedFields = {};
 
     // Fields currently being processed. Use for detecting cyclic dependencies.
-    Set<KField> currentFields = {};
+    Set<JField> currentFields = {};
 
     // Index ascribed to eager fields that depend on other fields. This is
     // used to sort the field in emission to ensure that used fields have been
@@ -428,7 +427,7 @@ class JFieldAnalysis {
     ///
     /// If the data is currently been computed, that is, [kField] has a
     /// cyclic dependency, `null` is returned.
-    FieldAnalysisData? processField(KField kField) {
+    FieldAnalysisData? processField(JField kField) {
       JField? jField = map.toBackendMember(kField) as JField?;
       // TODO(johnniwinther): Can we assert that [jField] exists?
       if (jField == null) return null;
@@ -493,8 +492,8 @@ class JFieldAnalysis {
             isEager = complexity.isEager;
             if (isEager && complexity.fields != null) {
               for (ir.Field node in complexity.fields!) {
-                KField otherField =
-                    closedWorld.elementMap.getField(node) as KField;
+                JField otherField =
+                    closedWorld.elementMap.getField(node) as JField;
                 FieldAnalysisData? otherData = processField(otherField);
                 if (otherData == null) {
                   // Cyclic dependency on [otherField].
@@ -555,7 +554,7 @@ class JFieldAnalysis {
     // Process dependent fields in declaration order to make ascribed creation
     // indices stable. The emitter uses the creation indices for sorting
     // dependent fields.
-    dependentFields.sort((KField a, KField b) {
+    dependentFields.sort((JField a, JField b) {
       int result =
           compareLibrariesUris(a.library.canonicalUri, b.library.canonicalUri);
       if (result != 0) return result;

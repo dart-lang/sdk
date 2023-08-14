@@ -141,7 +141,7 @@ class BlockStack {
   Monitor monitor_;
 
   // Note: This is shared on the basis of block size.
-  static const intptr_t kMaxGlobalEmpty = 100;
+  static constexpr intptr_t kMaxGlobalEmpty = 100;
   static List* global_empty_;
   static Mutex* global_mutex_;
 
@@ -165,8 +165,8 @@ class BlockWorkList : public ValueObject {
     ASSERT(stack_ == nullptr);
   }
 
-  // Returns nullptr if no more work was found.
-  ObjectPtr Pop() {
+  // Returns false if no more work was found.
+  bool Pop(ObjectPtr* object) {
     ASSERT(local_input_ != nullptr);
     if (UNLIKELY(local_input_->IsEmpty())) {
       if (!local_output_->IsEmpty()) {
@@ -176,7 +176,7 @@ class BlockWorkList : public ValueObject {
       } else {
         Block* new_work = stack_->PopNonEmptyBlock();
         if (new_work == nullptr) {
-          return nullptr;
+          return false;
         }
         stack_->PushBlock(local_input_);
         local_input_ = new_work;
@@ -184,7 +184,8 @@ class BlockWorkList : public ValueObject {
         MSAN_UNPOISON(local_input_, sizeof(*local_input_));
       }
     }
-    return local_input_->Pop();
+    *object = local_input_->Pop();
+    return true;
   }
 
   void Push(ObjectPtr raw_obj) {
@@ -252,11 +253,11 @@ class BlockWorkList : public ValueObject {
   Stack* stack_;
 };
 
-static const int kStoreBufferBlockSize = 1024;
+static constexpr int kStoreBufferBlockSize = 1024;
 class StoreBuffer : public BlockStack<kStoreBufferBlockSize> {
  public:
   // Interrupt when crossing this threshold of non-empty blocks in the buffer.
-  static const intptr_t kMaxNonEmpty = 100;
+  static constexpr intptr_t kMaxNonEmpty = 100;
 
   enum ThresholdPolicy { kCheckThreshold, kIgnoreThreshold };
 
@@ -275,7 +276,7 @@ class StoreBuffer : public BlockStack<kStoreBufferBlockSize> {
 
 typedef StoreBuffer::Block StoreBufferBlock;
 
-static const int kMarkingStackBlockSize = 64;
+static constexpr int kMarkingStackBlockSize = 64;
 class MarkingStack : public BlockStack<kMarkingStackBlockSize> {
  public:
   // Adds and transfers ownership of the block to the buffer.
@@ -287,7 +288,7 @@ class MarkingStack : public BlockStack<kMarkingStackBlockSize> {
 typedef MarkingStack::Block MarkingStackBlock;
 typedef BlockWorkList<MarkingStack> MarkerWorkList;
 
-static const int kPromotionStackBlockSize = 64;
+static constexpr int kPromotionStackBlockSize = 64;
 class PromotionStack : public BlockStack<kPromotionStackBlockSize> {
  public:
   // Adds and transfers ownership of the block to the buffer.

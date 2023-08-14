@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -16,13 +16,13 @@ extension type ET on self::A {
   method baz = self::ET|baz;
   tearoff baz = self::ET|get#baz;
 }
-static method E|bar(lowered final self::A #this) → void
+static extension-member method E|bar(lowered final self::A #this) → void
   ;
-static method E|get#bar(lowered final self::A #this) → () → void
+static extension-member method E|get#bar(lowered final self::A #this) → () → void
   return () → void => self::E|bar(#this);
-static method ET|baz(lowered final self::A #this) → void
+static extension-member method ET|baz(lowered final self::A #this) → void
   ;
-static method ET|get#baz(lowered final self::A #this) → () → void
+static extension-member method ET|get#baz(lowered final self::A #this) → () → void
   return () → void => self::ET|baz(#this);
 static method test(self::A a, self::E e, self::ET et) → dynamic
   ;

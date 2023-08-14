@@ -1,0 +1,13 @@
+abstract class A<X> {
+  void Function(X) get g;
+}
+
+class B implements A<int> {
+  void Function(int) get g => (int i) => callCount++;
+}
+
+expect(expected, actual) {}
+int callCount = 0;
+throws(void Function() f) {}
+void foo(Object o, num value) {}
+void main() {}

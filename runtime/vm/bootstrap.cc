@@ -38,7 +38,8 @@ static const BootstrapLibProps bootstrap_libraries[] = {
 
 #undef MAKE_PROPERTIES
 
-static const intptr_t kBootstrapLibraryCount = ARRAY_SIZE(bootstrap_libraries);
+static constexpr intptr_t kBootstrapLibraryCount =
+    ARRAY_SIZE(bootstrap_libraries);
 static void Finish(Thread* thread) {
   Bootstrap::SetupNativeResolver();
   if (!ClassFinalizer::ProcessPendingClasses()) {

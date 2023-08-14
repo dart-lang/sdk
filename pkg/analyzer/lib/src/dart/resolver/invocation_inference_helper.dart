@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -86,7 +85,7 @@ class InvocationInferenceHelper {
     ConstructorElement? rawElement;
 
     var typeName = constructorName.type;
-    var typeElement = typeName.name.staticElement;
+    var typeElement = typeName.element;
     if (typeElement is InterfaceElement) {
       typeParameters = typeElement.typeParameters;
       var constructorIdentifier = constructorName.name;

@@ -16,29 +16,52 @@ import '../generated/test_support.dart';
 import '../src/util/yaml_test.dart';
 
 main() {
-  AnalysisError invalid_assignment = AnalysisError(
-      TestSource(), 0, 1, CompileTimeErrorCode.INVALID_ASSIGNMENT, [
-    ['x'],
-    ['y']
-  ]);
+  AnalysisError invalid_assignment = AnalysisError.tmp(
+    source: TestSource(),
+    offset: 0,
+    length: 1,
+    errorCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
+    arguments: [
+      ['x'],
+      ['y'],
+    ],
+  );
 
-  AnalysisError missing_return =
-      AnalysisError(TestSource(), 0, 1, WarningCode.MISSING_RETURN, [
-    ['x']
-  ]);
+  AnalysisError missing_return = AnalysisError.tmp(
+    source: TestSource(),
+    offset: 0,
+    length: 1,
+    errorCode: WarningCode.MISSING_RETURN,
+    arguments: [
+      ['x'],
+    ],
+  );
 
-  AnalysisError unused_local_variable =
-      AnalysisError(TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
-    ['x']
-  ]);
+  AnalysisError unused_local_variable = AnalysisError.tmp(
+    source: TestSource(),
+    offset: 0,
+    length: 1,
+    errorCode: HintCode.UNUSED_LOCAL_VARIABLE,
+    arguments: [
+      ['x'],
+    ],
+  );
 
-  AnalysisError use_of_void_result = AnalysisError(
-      TestSource(), 0, 1, CompileTimeErrorCode.USE_OF_VOID_RESULT, []);
+  AnalysisError use_of_void_result = AnalysisError.tmp(
+    source: TestSource(),
+    offset: 0,
+    length: 1,
+    errorCode: CompileTimeErrorCode.USE_OF_VOID_RESULT,
+  );
 
   // We in-line a lint code here in order to avoid adding a dependency on the
   // linter package.
-  AnalysisError annotate_overrides =
-      AnalysisError(TestSource(), 0, 1, LintCode('annotate_overrides', ''));
+  AnalysisError annotate_overrides = AnalysisError.tmp(
+    source: TestSource(),
+    offset: 0,
+    length: 1,
+    errorCode: LintCode('annotate_overrides', ''),
+  );
 
   group('ErrorProcessor', () {
     late _TestContext context;

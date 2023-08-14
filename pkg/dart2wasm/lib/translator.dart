@@ -39,6 +39,9 @@ class TranslatorOptions {
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
+  // If the default value for [useStringref] is changed, also update the
+  // `sdk/bin/dart2wasm` script.
+  bool useStringref = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
   List<int>? watchPoints = null;
@@ -149,6 +152,17 @@ class Translator with KernelNodes {
     w.NumType.i32: boxedBoolClass,
     w.NumType.i64: boxedIntClass,
     w.NumType.f64: boxedDoubleClass,
+  };
+
+  /// Classes whose identity hash code is their hash code rather than the
+  /// identity hash code field in the struct. Each implementation class maps to
+  /// the class containing the implementation of its `hashCode` getter.
+  late final Map<Class, Class> valueClasses = {
+    boxedIntClass: boxedIntClass,
+    boxedDoubleClass: boxedDoubleClass,
+    boxedBoolClass: coreTypes.boolClass,
+    oneByteStringClass: stringBaseClass,
+    twoByteStringClass: stringBaseClass,
   };
 
   /// Type for vtable entries for dynamic calls. These entries are used in

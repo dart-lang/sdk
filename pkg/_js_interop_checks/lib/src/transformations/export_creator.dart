@@ -5,17 +5,15 @@
 // ignore_for_file: implementation_imports
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show
-        Message,
-        LocatedMessage,
-        templateJsInteropExportClassNotMarkedExportable;
+    show templateJsInteropExportClassNotMarkedExportable;
+import 'package:_js_interop_checks/js_interop_checks.dart'
+    show JsInteropDiagnosticReporter;
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show
         templateJsInteropExportInvalidInteropTypeArgument,
         templateJsInteropExportInvalidTypeArgument;
 import 'package:kernel/ast.dart';
-import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 
 import 'export_checker.dart';
@@ -25,7 +23,7 @@ class ExportCreator extends Transformer {
   final Procedure _allowInterop;
   final Procedure _createDartExport;
   final Procedure _createStaticInteropMock;
-  final DiagnosticReporter<Message, LocatedMessage> _diagnosticReporter;
+  final JsInteropDiagnosticReporter _diagnosticReporter;
   final ExportChecker _exportChecker;
   final InterfaceType _functionType;
   final Procedure _getProperty;
@@ -194,7 +192,8 @@ class ExportCreator extends Transformer {
     }
 
     var jsExporter = VariableDeclaration('#jsExporter',
-        initializer: AsExpression(getLiteral(proto), returnType),
+        initializer: AsExpression(getLiteral(proto), returnType)
+          ..fileOffset = node.fileOffset,
         type: returnType,
         isSynthesized: true)
       ..fileOffset = node.fileOffset

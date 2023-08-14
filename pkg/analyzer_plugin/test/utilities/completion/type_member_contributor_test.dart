@@ -2911,7 +2911,7 @@ void main() {new C().^}''');
     expect(replacementLength, 0);
     assertSuggestGetter('f', 'X');
     assertSuggestGetter('_g', null);
-    assertSuggestField(r'$p', 'dynamic', relevance: DART_RELEVANCE_LOW);
+    assertSuggestField(r'$p', 'InvalidType', relevance: DART_RELEVANCE_LOW);
     assertSuggestMethod(r'$q', 'I', 'void', relevance: DART_RELEVANCE_LOW);
     assertNotSuggested('b');
     assertNotSuggested('_c');
@@ -3407,13 +3407,6 @@ void main() {C.^ print("something");}''');
   Future<void> test_PrefixedIdentifier_trailingStmt_function() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('String g() => "one"; f() {g.^ int y = 0;}');
-    await computeSuggestions();
-    assertSuggestGetter('length', 'int');
-  }
-
-  Future<void> test_PrefixedIdentifier_trailingStmt_functionTypeAlias() async {
-    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addTestSource('typedef String g(); f() {g.^ int y = 0;}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }

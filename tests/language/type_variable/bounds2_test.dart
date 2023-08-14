@@ -10,10 +10,14 @@ abstract class J<T> {}
 
 abstract class I<T extends num> {}
 
-class A</*@compile-error=unspecified*/T> implements I<T>, J<T> {}
+class A<T> implements I<T>, J<T> {}
+//                    ^
+// [cfe] Type argument 'T' doesn't conform to the bound 'num' of the type variable 'T' on 'I'.
+//                      ^
+// [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
 main() {
   // We are only interested in the instance creation, hence
   // the result is assigned to `dynamic`.
-  dynamic a = /*@compile-error=unspecified*/ new A<String>();
+  dynamic a = new A<String>();
 }

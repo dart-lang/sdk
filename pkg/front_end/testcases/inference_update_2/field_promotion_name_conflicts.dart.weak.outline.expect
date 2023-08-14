@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -51,7 +51,7 @@ extension /* unnamed */ _extension#0 on core::String {
 static field core::int? _f8;
 static get _f9() → core::int?
   ;
-static method _extension#0|get#_f10(lowered final core::String #this) → core::int?
+static extension-member method _extension#0|get#_f10(lowered final core::String #this) → core::int?
   ;
 static method acceptsInt(core::int x) → void
   ;

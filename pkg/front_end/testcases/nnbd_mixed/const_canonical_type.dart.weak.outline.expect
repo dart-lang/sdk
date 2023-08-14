@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "const_canonical_type_lib.dart" as con;
 import "dart:core" as core;
@@ -23,7 +23,7 @@ static method test1() → dynamic
 static method main() → dynamic
   ;
 
-library;
+library /*isLegacy*/;
 import self as con;
 import "dart:core" as core;
 

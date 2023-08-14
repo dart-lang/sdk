@@ -20,10 +20,7 @@ Future<T?> withErrorHandling<T>(Future<T> Function() f,
   } catch (e, trace) {
     exitCode = 1;
     stderr.writeln(e);
-    // ignore: unnecessary_null_comparison
-    if (trace != null) {
-      stderr.writeln(trace);
-    }
+    stderr.writeln(trace);
     logger?.noticeFrameworkCatchError(e, trace);
     return null;
   } finally {

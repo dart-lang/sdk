@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -70,7 +69,9 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     var operandType = node.leftOperand.staticType;
-    if (operandType == null || operandType.isDynamic) {
+    if (operandType == null ||
+        operandType is DynamicType ||
+        operandType is InvalidType) {
       return;
     }
     _checkResolved(node, node.staticElement, (node) => node is MethodElement);
@@ -124,7 +125,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   void visitIndexExpression(IndexExpression node) {
     node.visitChildren(this);
     var targetType = node.realTarget.staticType;
-    if (targetType == null || targetType.isDynamic) {
+    if (targetType == null || targetType is DynamicType) {
       return;
     }
     var parent = node.parent;
@@ -162,7 +163,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     var operandType = node.operand.staticType;
-    if (operandType == null || operandType.isDynamic) {
+    if (operandType == null || operandType is DynamicType) {
       return;
     }
     _checkResolved(node, node.staticElement, (node) => node is MethodElement);
@@ -173,7 +174,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
     SimpleIdentifier prefix = node.prefix;
     prefix.accept(this);
     var prefixType = prefix.staticType;
-    if (prefixType == null || prefixType.isDynamic) {
+    if (prefixType == null || prefixType is DynamicType) {
       return;
     }
     _checkResolved(node, node.staticElement, null);
@@ -186,7 +187,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     var operandType = node.operand.staticType;
-    if (operandType == null || operandType.isDynamic) {
+    if (operandType == null || operandType is DynamicType) {
       return;
     }
     _checkResolved(node, node.staticElement, (node) => node is MethodElement);
@@ -197,7 +198,9 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
     Expression target = node.realTarget;
     target.accept(this);
     var targetType = target.staticType;
-    if (targetType == null || targetType.isDynamic) {
+    if (targetType == null ||
+        targetType is DynamicType ||
+        targetType is InvalidType) {
       return;
     }
     var parent = node.parent;
@@ -213,14 +216,8 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (node is DeclaredSimpleIdentifier) {
-      return;
-    }
-
     var staticType = node.staticType;
-    if (staticType != null &&
-        staticType.isDynamic &&
-        node.staticElement == null) {
+    if (staticType is DynamicType && node.staticElement == null) {
       return;
     }
 
@@ -233,7 +230,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
       if (identical(invocation.methodName, node)) {
         var target = invocation.realTarget;
         var targetType = target?.staticType;
-        if (targetType == null || targetType.isDynamic) {
+        if (targetType == null || targetType is DynamicType) {
           return;
         }
       }

@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ReplaceIfElseWithConditional extends CorrectionProducer {
+class ReplaceIfElseWithConditional extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL;
 
@@ -37,7 +37,7 @@ class ReplaceIfElseWithConditional extends CorrectionProducer {
       var elseExpression = elseStatement.expression;
       if (thenExpression != null && elseExpression != null) {
         await builder.addDartFileEdit(file, (builder) {
-          var conditionSrc = utils.getNodeText(ifStatement.condition);
+          var conditionSrc = utils.getNodeText(ifStatement.expression);
           var thenSrc = utils.getNodeText(thenExpression);
           var elseSrc = utils.getNodeText(elseExpression);
           builder.addSimpleReplacement(range.node(ifStatement),
@@ -58,7 +58,7 @@ class ReplaceIfElseWithConditional extends CorrectionProducer {
           if (thenAssignment.operator.type == TokenType.EQ &&
               elseAssignment.operator.type == TokenType.EQ &&
               thenTarget == elseTarget) {
-            var conditionSrc = utils.getNodeText(ifStatement.condition);
+            var conditionSrc = utils.getNodeText(ifStatement.expression);
             var thenSrc = utils.getNodeText(thenAssignment.rightHandSide);
             var elseSrc = utils.getNodeText(elseAssignment.rightHandSide);
             builder.addSimpleReplacement(range.node(ifStatement),

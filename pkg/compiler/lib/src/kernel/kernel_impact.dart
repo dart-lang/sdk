@@ -174,7 +174,7 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
-  void registerConstructorNode(ir.Constructor constructor) {
+  void registerExternalConstructorNode(ir.Constructor constructor) {
     MemberEntity member = elementMap.getMember(constructor);
     if (constructor.isExternal && !commonElements.isForeignHelper(member)) {
       // TODO(johnniwinther): NativeDataBuilder already has the native behavior
@@ -220,7 +220,7 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
-  void registerProcedureNode(ir.Procedure procedure) {
+  void registerExternalProcedureNode(ir.Procedure procedure) {
     MemberEntity member = elementMap.getMember(procedure);
     if (procedure.isExternal && !commonElements.isForeignHelper(member)) {
       // TODO(johnniwinther): NativeDataBuilder already has the native behavior
@@ -239,27 +239,27 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
-  void registerIntLiteral(int value) {
+  void registerIntLiteral() {
     registerBackendImpact(_impacts.intLiteral);
   }
 
   @override
-  void registerDoubleLiteral(double value) {
+  void registerDoubleLiteral() {
     registerBackendImpact(_impacts.doubleLiteral);
   }
 
   @override
-  void registerBoolLiteral(bool value) {
+  void registerBoolLiteral() {
     registerBackendImpact(_impacts.boolLiteral);
   }
 
   @override
-  void registerStringLiteral(String value) {
+  void registerStringLiteral() {
     registerBackendImpact(_impacts.stringLiteral);
   }
 
   @override
-  void registerSymbolLiteral(String value) {
+  void registerSymbolLiteral() {
     registerBackendImpact(_impacts.constSymbol);
   }
 
@@ -402,7 +402,7 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
-  void registerStaticInvocationNode(ir.StaticInvocation node) {
+  void registerForeignStaticInvocationNode(ir.StaticInvocation node) {
     switch (elementMap.getForeignKind(node)) {
       case ForeignKind.JS:
         registerNativeImpact(elementMap.getNativeBehaviorForJsCall(node));

@@ -353,8 +353,8 @@ class Address : public ValueObject {
   uint32_t encoding_;
 
   OffsetKind kind_;
-  Register base_;
-  int32_t offset_;
+  Register base_ = kNoRegister;
+  int32_t offset_ = 0;
 
   friend class Assembler;
 };
@@ -431,8 +431,9 @@ class Assembler : public AssemblerBase {
   }
   void LoadAcquire(Register dst,
                    Register address,
-                   int32_t offset = 0) override {
-    LoadFromOffset(dst, Address(address, offset));
+                   int32_t offset = 0,
+                   OperandSize size = kFourBytes) override {
+    LoadFromOffset(dst, Address(address, offset), size);
     dmb();
   }
   void StoreRelease(Register src,
@@ -454,22 +455,12 @@ class Assembler : public AssemblerBase {
     cmp(value, Operand(TMP));
   }
 
-  void CompareWithMemoryValue(Register value, Address address) {
-    LoadFromOffset(TMP, address);
+  void CompareWithMemoryValue(Register value,
+                              Address address,
+                              OperandSize size = kFourBytes) override {
+    ASSERT_EQUAL(size, kFourBytes);
+    LoadFromOffset(TMP, address, size);
     cmp(value, Operand(TMP));
-  }
-
-  void LoadAbstractTypeNullability(Register dst, Register type) override {
-    ldrb(dst,
-         FieldAddress(type, compiler::target::AbstractType::flags_offset()));
-    and_(dst, dst,
-         Operand(compiler::target::UntaggedAbstractType::kNullabilityMask));
-  }
-  void CompareAbstractTypeNullabilityWith(Register type,
-                                          /*Nullability*/ int8_t value,
-                                          Register scratch) override {
-    LoadAbstractTypeNullability(scratch, type);
-    cmp(scratch, Operand(value));
   }
 
   // Misc. functionality
@@ -889,8 +880,11 @@ class Assembler : public AssemblerBase {
     }
   }
   void AndImmediate(Register rd, Register rs, int32_t imm, Condition cond = AL);
-  void AndImmediate(Register rd, int32_t imm, Condition cond = AL) {
+  void AndImmediate(Register rd, int32_t imm, Condition cond) {
     AndImmediate(rd, rd, imm, cond);
+  }
+  void AndImmediate(Register rd, int32_t imm) override {
+    AndImmediate(rd, rd, imm, AL);
   }
   void AndImmediateSetFlags(Register rd,
                             Register rn,

@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class RemoveNameFromDeclarationClause extends CorrectionProducer {
+class RemoveNameFromDeclarationClause extends ResolvedCorrectionProducer {
   String _fixMessage = '';
 
   @override
@@ -20,10 +20,7 @@ class RemoveNameFromDeclarationClause extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var type = node.parent;
-    if (type == null) {
-      return;
-    }
+    var type = node;
     var clause = type.parent;
 
     if (clause == null) {

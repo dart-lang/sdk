@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -9,7 +9,7 @@ static method test1(dynamic x) → dynamic
     {
       hoisted core::int y;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y = #0#0{core::int} in true))
+      if(#0#0 is core::int && (let final core::int #t2 = y = #0#0{core::int} in true))
         #t1.{core::Map::[]=}{Invariant}(2, y){(core::int, core::int) → void};
     }
     #t1.{core::Map::[]=}{Invariant}(3, 3){(core::int, core::int) → void};
@@ -21,7 +21,7 @@ static method test2(dynamic x) → dynamic
     {
       hoisted core::String y;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t4 = y = #0#0{core::String} in true))
+      if(#0#0 is core::String && (let final core::String #t4 = y = #0#0{core::String} in true))
         #t3.{core::Map::[]=}{Invariant}(2, y){(core::int, core::Object?) → void};
       else
         #t3.{core::Map::[]=}{Invariant}(2, null){(core::int, core::Object?) → void};
@@ -35,18 +35,18 @@ static method test3(dynamic x) → dynamic
     {
       hoisted core::bool b;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is{ForNonNullableByDefault} core::bool && (let final core::bool #t6 = b = #0#0{core::bool} in true) && b)
+      if(#0#0 is core::bool && (let final core::bool #t6 = b = #0#0{core::bool} in true) && b)
         #t5.{core::Map::[]=}{Invariant}(2, b){(core::int, core::Object) → void};
     }
     #t5.{core::Map::[]=}{Invariant}(3, 3){(core::int, core::Object) → void};
   } =>#t5;
 static method main() → dynamic {
-  self::expectEquals(self::mapToString(self::test1(0) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: 0, 3: 3}));
-  self::expectEquals(self::mapToString(self::test1("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 3: 3}));
-  self::expectEquals(self::mapToString(self::test2("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: "foo", 3: 3}));
-  self::expectEquals(self::mapToString(self::test2(false) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: null, 3: 3}));
-  self::expectEquals(self::mapToString(self::test3(true) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: true, 3: 3}));
-  self::expectEquals(self::mapToString(self::test3(false) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 3: 3}));
+  self::expectEquals(self::mapToString(self::test1(0) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: 0, 3: 3}));
+  self::expectEquals(self::mapToString(self::test1("foo") as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 3: 3}));
+  self::expectEquals(self::mapToString(self::test2("foo") as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: "foo", 3: 3}));
+  self::expectEquals(self::mapToString(self::test2(false) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: null, 3: 3}));
+  self::expectEquals(self::mapToString(self::test3(true) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: true, 3: 3}));
+  self::expectEquals(self::mapToString(self::test3(false) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 3: 3}));
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic {
   if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {

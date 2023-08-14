@@ -51,13 +51,6 @@ part "secure_socket_patch.dart";
 part "sync_socket_patch.dart";
 
 @patch
-class OSError {
-  @patch
-  @pragma("vm:external-name", "OSError_inProgressErrorCode")
-  external static int inProgressErrorCode();
-}
-
-@patch
 class _IOCrypto {
   @patch
   @pragma("vm:external-name", "Crypto_GetRandomBytes")

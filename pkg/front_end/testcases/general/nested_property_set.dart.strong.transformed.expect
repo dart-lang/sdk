@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -62,11 +62,11 @@ static method main() → dynamic {
   self::IntField* intField2 = new self::IntField::•();
   self::NumField* numField = new self::NumField::•();
   self::DoubleField* doubleField = new self::DoubleField::•();
-  intField1.{self::IntField::field} = intField2.{self::IntField::field} = numField.{self::NumField::field}{core::num*} as{TypeError} core::int*;
+  intField1.{self::IntField::field} = intField2.{self::IntField::field} = numField.{self::NumField::field}{core::num*} as{TypeError,ForLegacy} core::int*;
   intField1.{self::IntField::field} = numField.{self::NumField::field} = intField2.{self::IntField::field}{core::int*};
   try {
     numField.{self::NumField::field} = 0.5;
-    intField1.{self::IntField::field} = (doubleField.{self::DoubleField::field} = numField.{self::NumField::field}{core::num*} as{TypeError} core::double*) as{TypeError} core::int*;
+    intField1.{self::IntField::field} = (doubleField.{self::DoubleField::field} = numField.{self::NumField::field}{core::num*} as{TypeError,ForLegacy} core::double*) as{TypeError,ForLegacy} core::int*;
     throw "Should fail";
   }
   on dynamic catch(final dynamic _) {

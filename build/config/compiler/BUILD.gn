@@ -23,6 +23,7 @@ if (is_win) {
   import("//build/config/win/visual_studio_version.gni")
 }
 
+import("//build/config/c++/c++.gni")
 import("//build/toolchain/ccache.gni")
 
 # default_include_dirs ---------------------------------------------------------
@@ -134,6 +135,14 @@ config("compiler") {
     if (is_ubsan) {
       cflags += [ "-fsanitize=undefined" ]
       ldflags += [ "-fsanitize=undefined" ]
+    }
+
+    if (use_custom_libcxx) {
+      cflags_cc += [ "-nostdinc++" ]
+      include_dirs = [
+        "//buildtools/third_party/libc++/trunk/include",
+        "//buildtools/third_party/libc++abi/trunk/include",
+      ]
     }
   }
 
@@ -250,8 +259,19 @@ config("compiler") {
   }
 
   if (is_android || is_linux || is_mac || is_fuchsia) {
-    cflags += [ "-fPIE" ]
-    ldflags += [ "-fPIE" ]
+    if (use_flutter_cxx) {
+      # shared_library_config isn't transitive, so we don't automatically get
+      # another versions of libcxx with and without -fPIC. Properly setting this
+      # up so only shard libraries pay the extra cost fPIC over fPIE means
+      # something like separate GN toolchains like in the Fuchsia GN build. For
+      # now, globally enabling fPIC is okay because it is limited to test-only
+      # builds.
+      cflags += [ "-fPIC" ]
+      ldflags += [ "-fPIC" ]
+    } else {
+      cflags += [ "-fPIE" ]
+      ldflags += [ "-fPIE" ]
+    }
   }
 
   # Linux-specific compiler flags setup.
@@ -331,7 +351,6 @@ config("compiler") {
       "-ffunction-sections",
       "-funwind-tables",
       "-fno-short-enums",
-      "-nostdinc++",
     ]
     if (!is_clang) {
       # Clang doesn't support these flags.
@@ -356,15 +375,10 @@ config("compiler") {
     defines += [ "HAVE_SYS_UIO_H" ]
 
     # Use gold for Android for most CPU architectures.
-    if (current_cpu == "x86" || current_cpu == "x64" || current_cpu == "arm" ||
-        current_cpu == "arm64") {
-      ldflags += [ "-fuse-ld=gold" ]
-      if (is_clang) {
-        # Let clang find the ld.gold in the NDK.
-        toolchain_root = rebase_path(android_toolchain_root, root_build_dir)
-        ldflags += [ "--gcc-toolchain=$toolchain_root" ]
-        ldflags += [ "-B${toolchain_root}/bin" ]
-      }
+    if (is_clang) {
+      # Let clang find the ld.gold in the NDK.
+      toolchain_root = rebase_path(android_toolchain_root, root_build_dir)
+      ldflags += [ "--gcc-toolchain=$toolchain_root" ]
     }
 
     ldflags += [
@@ -372,6 +386,8 @@ config("compiler") {
       # re-exported.
       "-Wl,--exclude-libs=libgcc.a",
       "-Wl,--exclude-libs=libc++_static.a",
+
+      "-fuse-ld=lld",
     ]
 
     if (is_clang) {
@@ -422,6 +438,56 @@ config("compiler") {
   }
 }
 
+config("cxx_version_default") {
+  if (is_win) {
+    cc_std = [ "/std:c++17" ]
+  } else {
+    cc_std = [ "-std=c++17" ]
+  }
+  cflags_cc = cc_std
+  cflags_objcc = cc_std
+}
+
+config("cxx_version_11") {
+  if (is_win) {
+    cc_std = [ "/std:c++11" ]
+  } else {
+    cc_std = [ "-std=c++11" ]
+  }
+  cflags_cc = cc_std
+  cflags_objcc = cc_std
+}
+
+config("cxx_version_14") {
+  if (is_win) {
+    cc_std = [ "/std:c++14" ]
+  } else {
+    cc_std = [ "-std=c++14" ]
+  }
+  cflags_cc = cc_std
+  cflags_objcc = cc_std
+}
+
+config("cxx_version_17") {
+  if (is_win) {
+    cc_std = [ "/std:c++17" ]
+  } else {
+    cc_std = [ "-std=c++17" ]
+  }
+  cflags_cc = cc_std
+  cflags_objcc = cc_std
+}
+
+config("cxx_version_20") {
+  if (is_win) {
+    cc_std = [ "/std:c++20" ]
+  } else {
+    cc_std = [ "-std=c++20" ]
+  }
+  cflags_cc = cc_std
+  cflags_objcc = cc_std
+}
+
 # This is separate from :compiler_codegen (and not even a sub-config there)
 # so that some targets can remove it from the list with:
 #   configs -= [ "//build/config/compiler:clang_stackrealign" ]
@@ -466,6 +532,8 @@ config("compiler_arm_thumb") {
 
 config("runtime_library") {
   cflags = []
+  cflags_cc = []
+  cflags_objcc = []
   defines = []
   ldflags = []
   lib_dirs = []
@@ -484,6 +552,16 @@ config("runtime_library") {
       "_CRT_SECURE_NO_DEPRECATE",
       "_HAS_EXCEPTIONS=0",
       "_SCL_SECURE_NO_DEPRECATE",
+    ]
+  }
+
+  if (use_flutter_cxx) {
+    cflags_cc += [ "-nostdinc++" ]
+    cflags_objcc += [ "-nostdinc++" ]
+    ldflags += [ "-nostdlib++" ]
+    include_dirs = [
+      "//third_party/libcxx/include",
+      "//third_party/libcxxabi/include",
     ]
   }
 
@@ -506,25 +584,7 @@ config("runtime_library") {
       "-nostdlib",
     ]
 
-    # NOTE: The libc++ header include paths below are specified in cflags
-    # rather than include_dirs because they need to come after include_dirs.
-    # Think of them like system headers, but don't use '-isystem' because the
-    # arm-linux-androideabi-4.4.3 toolchain (circa Gingerbread) will exhibit
-    # strange errors. The include ordering here is important; change with
-    # caution.
-    cflags += [
-      "-isystem" + rebase_path("$android_libcpp_root/include", root_build_dir),
-      "-isystem" + rebase_path(
-              "$android_ndk_root/sources/cxx-stl/llvm-libc++abi/include",
-              root_build_dir),
-      "-isystem" +
-          rebase_path("$android_ndk_root/sources/android/support/include",
-                      root_build_dir),
-      "-isystem" + rebase_path(
-              "$android_ndk_root/sysroot/usr/include/$android_target_triple",
-              root_build_dir),
-      "-D__ANDROID_API__=$android_api_level",
-    ]
+    cflags += [ "-D__ANDROID_API__=$android_api_level" ]
 
     lib_dirs += [ "$android_libcpp_root/libs/$android_app_abi" ]
 

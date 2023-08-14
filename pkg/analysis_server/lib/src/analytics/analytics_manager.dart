@@ -20,6 +20,8 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:collection/collection.dart';
+import 'package:leak_tracker/src/usage_tracking/model.dart';
+import 'package:meta/meta.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 /// An interface for managing and reporting analytics.
@@ -32,6 +34,22 @@ class AnalyticsManager {
   /// A flag set during development to allow experimental data to be sent to a
   /// development-time analytics account.
   static const bool sendExperimentalData = false;
+
+  static const addedKey = 'added';
+
+  static const removedKey = 'removed';
+
+  static const commandEnumKey = 'command';
+
+  static const openWorkspacePathsKey = 'openWorkspacePaths';
+
+  static const refactoringKindEnumKey = EDIT_REQUEST_GET_REFACTORING_KIND;
+
+  static const includedKey = ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED;
+
+  static const excludedKey = ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_EXCLUDED;
+
+  static const filesKey = ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES;
 
   /// The object used to send analytics.
   final Analytics analytics;
@@ -122,9 +140,9 @@ class AnalyticsManager {
   void changedWorkspaceFolders(
       {required List<String> added, required List<String> removed}) {
     var requestData =
-        _getRequestData(Method.workspace_didChangeWorkspaceFolders.toString());
-    requestData.addValue('added', added.length);
-    requestData.addValue('removed', removed.length);
+        getRequestData(Method.workspace_didChangeWorkspaceFolders.toString());
+    requestData.addValue(addedKey, added.length);
+    requestData.addValue(removedKey, removed.length);
   }
 
   /// Record that the [contexts] have been created.
@@ -146,8 +164,14 @@ class AnalyticsManager {
   /// Record that the given [command] was executed.
   void executedCommand(String command) {
     var requestData =
-        _getRequestData(Method.workspace_executeCommand.toString());
-    requestData.addEnumValue('command', command);
+        getRequestData(Method.workspace_executeCommand.toString());
+    requestData.addEnumValue(commandEnumKey, command);
+  }
+
+  /// Return the request data for requests that have the given [method].
+  @visibleForTesting
+  RequestData getRequestData(String method) {
+    return _completedRequests.putIfAbsent(method, () => RequestData(method));
   }
 
   /// Record that the given [notification] was received and has been handled.
@@ -186,8 +210,30 @@ class AnalyticsManager {
 
   /// Record the number of [openWorkspacePaths].
   void initialized({required List<String> openWorkspacePaths}) {
-    var requestData = _getRequestData(Method.initialized.toString());
-    requestData.addValue('openWorkspacePaths', openWorkspacePaths.length);
+    var requestData = getRequestData(Method.initialized.toString());
+    requestData.addValue(openWorkspacePathsKey, openWorkspacePaths.length);
+  }
+
+  Future<void> sendMemoryUsage(MemoryUsageEvent event) async {
+    final delta = event.delta;
+    var seconds = event.period?.inSeconds;
+
+    assert((event.delta == null) == (event.period == null));
+
+    if (delta == null || seconds == null) {
+      await analytics.send(Event.memoryInfo(
+        rss: event.rss,
+      ));
+      return;
+    }
+
+    if (seconds == 0) seconds = 1;
+
+    await analytics.send(Event.memoryInfo(
+      rss: event.rss,
+      periodSec: seconds,
+      mbPerSec: delta / seconds,
+    ));
   }
 
   /// Record that the given [response] was sent to the client.
@@ -223,9 +269,8 @@ class AnalyticsManager {
 
   /// Record data from the given [params].
   void startedGetRefactoring(EditGetRefactoringParams params) {
-    var requestData = _getRequestData(EDIT_REQUEST_GET_REFACTORING);
-    requestData.addEnumValue(
-        EDIT_REQUEST_GET_REFACTORING_KIND, params.kind.name);
+    var requestData = getRequestData(EDIT_REQUEST_GET_REFACTORING);
+    requestData.addEnumValue(refactoringKindEnumKey, params.kind.name);
   }
 
   /// Record that the server started working on the give [request] at the given
@@ -246,16 +291,14 @@ class AnalyticsManager {
 
   /// Record data from the given [params].
   void startedSetAnalysisRoots(AnalysisSetAnalysisRootsParams params) {
-    var requestData = _getRequestData(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS);
-    requestData.addValue(
-        ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED, params.included.length);
-    requestData.addValue(
-        ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_EXCLUDED, params.excluded.length);
+    var requestData = getRequestData(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS);
+    requestData.addValue(includedKey, params.included.length);
+    requestData.addValue(excludedKey, params.excluded.length);
   }
 
   /// Record data from the given [params].
   void startedSetPriorityFiles(AnalysisSetPriorityFilesParams params) {
-    var requestData = _getRequestData(ANALYSIS_REQUEST_SET_PRIORITY_FILES);
+    var requestData = getRequestData(ANALYSIS_REQUEST_SET_PRIORITY_FILES);
     requestData.addValue(
         ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES, params.files.length);
   }
@@ -339,7 +382,7 @@ class AnalyticsManager {
     if (responseTimes.isNotEmpty) {
       h3('Plugin response times');
       for (var pluginEntry in responseTimes.entries) {
-        h4(pluginEntry.key.pluginId);
+        h4(pluginEntry.key.safePluginId);
         var entries = sorted(pluginEntry.value.entries);
         for (var responseEntry in entries) {
           h5(responseEntry.key);
@@ -398,11 +441,6 @@ class AnalyticsManager {
     return buffer.toString();
   }
 
-  /// Return the request data for requests that have the given [method].
-  RequestData _getRequestData(String method) {
-    return _completedRequests.putIfAbsent(method, () => RequestData(method));
-  }
-
   /// Record that the request with the given [id] was responded to at the given
   /// [sendTime].
   void _recordResponseData(String id, DateTime sendTime) {
@@ -415,7 +453,7 @@ class AnalyticsManager {
     var clientRequestTime = data.clientRequestTime;
     var startTime = data.startTime.millisecondsSinceEpoch;
 
-    var requestData = _getRequestData(method);
+    var requestData = getRequestData(method);
 
     if (clientRequestTime != null) {
       var latencyTime = startTime - clientRequestTime;
@@ -431,21 +469,20 @@ class AnalyticsManager {
   Future<void> _sendAnalysisData() async {
     var contextStructure = _contextStructure;
     if (contextStructure != null) {
-      await analytics
-          .sendEvent(eventName: DashEvent.contextStructure, eventData: {
-        'numberOfContexts': contextStructure.numberOfContexts,
-        'contextsWithoutFiles': contextStructure.contextsWithoutFiles,
-        'contextsFromPackagesFiles': contextStructure.contextsFromPackagesFiles,
-        'contextsFromOptionsFiles': contextStructure.contextsFromOptionsFiles,
-        'contextsFromBothFiles': contextStructure.contextsFromBothFiles,
-        'immediateFileCount': contextStructure.immediateFileCount,
-        'immediateFileLineCount': contextStructure.immediateFileLineCount,
-        'transitiveFileCount': contextStructure.transitiveFileCount,
-        'transitiveFileLineCount': contextStructure.transitiveFileLineCount,
-        'transitiveFileUniqueCount': contextStructure.transitiveFileUniqueCount,
-        'transitiveFileUniqueLineCount':
+      await analytics.send(Event.contextStructure(
+        numberOfContexts: contextStructure.numberOfContexts,
+        contextsWithoutFiles: contextStructure.contextsWithoutFiles,
+        contextsFromPackagesFiles: contextStructure.contextsFromPackagesFiles,
+        contextsFromOptionsFiles: contextStructure.contextsFromOptionsFiles,
+        contextsFromBothFiles: contextStructure.contextsFromBothFiles,
+        immediateFileCount: contextStructure.immediateFileCount,
+        immediateFileLineCount: contextStructure.immediateFileLineCount,
+        transitiveFileCount: contextStructure.transitiveFileCount,
+        transitiveFileLineCount: contextStructure.transitiveFileLineCount,
+        transitiveFileUniqueCount: contextStructure.transitiveFileUniqueCount,
+        transitiveFileUniqueLineCount:
             contextStructure.transitiveFileUniqueLineCount,
-      });
+      ));
     }
   }
 
@@ -453,26 +490,29 @@ class AnalyticsManager {
   /// analysis options file.
   Future<void> _sendLintUsageCounts() async {
     if (_lintUsageCounts.isNotEmpty) {
-      await analytics
-          .sendEvent(eventName: DashEvent.lintUsageCounts, eventData: {
-        'usageCounts': json.encode(_lintUsageCounts),
-      });
+      var entries = _lintUsageCounts.entries.toList();
       _lintUsageCounts.clear();
+      for (var entry in entries) {
+        await analytics.send(Event.lintUsageCount(
+          count: entry.value,
+          name: entry.key,
+        ));
+      }
     }
   }
 
   /// Send information about the notifications handled by the server.
   Future<void> _sendNotificationHandlingTimes() async {
     if (_completedNotifications.isNotEmpty) {
-      for (var data in _completedNotifications.values) {
-        await analytics
-            .sendEvent(eventName: DashEvent.clientNotification, eventData: {
-          'latency': data.latencyTimes.toAnalyticsString(),
-          'method': data.method,
-          'duration': data.handlingTimes.toAnalyticsString(),
-        });
-      }
+      var completedNotifications = _completedNotifications.values.toList();
       _completedNotifications.clear();
+      for (var data in completedNotifications) {
+        await analytics.send(Event.clientNotification(
+          latency: data.latencyTimes.toAnalyticsString(),
+          method: data.method,
+          duration: data.handlingTimes.toAnalyticsString(),
+        ));
+      }
     }
   }
 
@@ -490,36 +530,54 @@ class AnalyticsManager {
   Future<void> _sendPluginResponseTimes() async {
     var responseTimes = PluginManager.pluginResponseTimes;
     if (responseTimes.isNotEmpty) {
-      for (var pluginEntry in responseTimes.entries) {
+      var entries = responseTimes.entries.toList();
+      responseTimes.clear();
+      for (var pluginEntry in entries) {
         for (var responseEntry in pluginEntry.value.entries) {
-          await analytics
-              .sendEvent(eventName: DashEvent.pluginRequest, eventData: {
-            'pluginId': pluginEntry.key.pluginId,
-            'method': responseEntry.key,
-            'duration': responseEntry.value.toAnalyticsString(),
-          });
+          await analytics.send(Event.pluginRequest(
+            pluginId: pluginEntry.key.safePluginId,
+            method: responseEntry.key,
+            duration: responseEntry.value.toAnalyticsString(),
+          ));
         }
       }
-      PluginManager.pluginResponseTimes.clear();
     }
   }
 
   /// Send information about the response times of server.
   Future<void> _sendServerResponseTimes() async {
     if (_completedRequests.isNotEmpty) {
-      for (var data in _completedRequests.values) {
-        await analytics
-            .sendEvent(eventName: DashEvent.clientRequest, eventData: {
-          'latency': data.latencyTimes.toAnalyticsString(),
-          'method': data.method,
-          'duration': data.responseTimes.toAnalyticsString(),
-          for (var field in data.additionalPercentiles.entries)
-            field.key: field.value.toAnalyticsString(),
-          for (var field in data.additionalEnumCounts.entries)
-            field.key: json.encode(field.value),
-        });
-      }
+      var completedRequests = _completedRequests.values.toList();
       _completedRequests.clear();
+      for (var data in completedRequests) {
+        await analytics.send(Event.clientRequest(
+          latency: data.latencyTimes.toAnalyticsString(),
+          method: data.method,
+          duration: data.responseTimes.toAnalyticsString(),
+          added: data.additionalPercentiles[addedKey]?.toAnalyticsString(),
+          excluded:
+              data.additionalPercentiles[excludedKey]?.toAnalyticsString(),
+          files: data.additionalPercentiles[filesKey]?.toAnalyticsString(),
+          included:
+              data.additionalPercentiles[includedKey]?.toAnalyticsString(),
+          openWorkspacePaths: data.additionalPercentiles[openWorkspacePathsKey]
+              ?.toAnalyticsString(),
+          removed: data.additionalPercentiles[removedKey]?.toAnalyticsString(),
+        ));
+        var commandMap = data.additionalEnumCounts[commandEnumKey];
+        if (commandMap != null) {
+          for (var entry in commandMap.entries) {
+            await analytics.send(Event.commandExecuted(
+              count: entry.value,
+              name: entry.key,
+            ));
+          }
+        }
+        // TODO(brianwilkerson) We don't appear to have an event defined that we
+        //  can use to send analytics about how often old-style refactorings are
+        //  being invoked.
+        // var refactoringMap = data.additionalEnumCounts[refactoringKindEnumKey];
+      }
     }
   }
 
@@ -527,25 +585,33 @@ class AnalyticsManager {
   Future<void> _sendSessionData(SessionData sessionData) async {
     var endTime = DateTime.now().millisecondsSinceEpoch;
     var duration = endTime - sessionData.startTime.millisecondsSinceEpoch;
-    await analytics.sendEvent(eventName: DashEvent.serverSession, eventData: {
-      'flags': sessionData.commandLineArguments,
-      'parameters': sessionData.initializeParams,
-      'clientId': sessionData.clientId,
-      'clientVersion': sessionData.clientVersion,
-      'duration': duration.toString(),
-      'plugins': _pluginData.usageCountData,
-    });
+    await analytics.send(Event.serverSession(
+      flags: sessionData.commandLineArguments,
+      parameters: sessionData.initializeParams,
+      clientId: sessionData.clientId,
+      clientVersion: sessionData.clientVersion,
+      duration: duration,
+    ));
+    for (var entry in _pluginData.usageCounts.entries) {
+      await analytics.send(Event.pluginUse(
+          count: _pluginData.recordCount,
+          enabled: entry.value.toAnalyticsString(),
+          pluginId: entry.key));
+    }
   }
 
   /// Send information about the number of times that the severity of a
   /// diagnostic is changed in an analysis options file.
   Future<void> _sendSeverityAdjustments() async {
     if (_severityAdjustments.isNotEmpty) {
-      await analytics
-          .sendEvent(eventName: DashEvent.severityAdjustments, eventData: {
-        'adjustmentCounts': json.encode(_severityAdjustments),
-      });
+      var entries = _severityAdjustments.entries.toList();
       _severityAdjustments.clear();
+      for (var entry in entries) {
+        await analytics.send(Event.severityAdjustment(
+          adjustments: json.encode(entry.value),
+          diagnostic: entry.key,
+        ));
+      }
     }
   }
 }

@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
@@ -22,7 +22,7 @@ class Class<T extends core::Object* = dynamic> extends core::Object {
 static method method() → dynamic
   return null;
 static method main() → dynamic {
-  new self::Class::•<dynamic>(a: () → FutureOr<core::List<dynamic>*>* async /* futureValueType= core::List<dynamic>* */ => self::method() as{TypeError} FutureOr<core::List<dynamic>*>*);
+  new self::Class::•<dynamic>(a: () → FutureOr<core::List<dynamic>*>* async /* futureValueType= core::List<dynamic>* */ => self::method() as{TypeError,ForLegacy} FutureOr<core::List<dynamic>*>*);
 }
 
 constants  {

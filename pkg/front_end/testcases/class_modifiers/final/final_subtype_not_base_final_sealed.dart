@@ -14,6 +14,10 @@ class Extends extends FinalClass {} /* Error */
 
 class Implements implements FinalClass {} /* Error */
 
+mixin MixinImplements implements FinalClass {} /* Error */
+
+mixin MixinImplementsIndirect implements SubtypeOfFinal {} /* Error */
+
 mixin On on FinalClass {} /* Error */
 
 // Only report errors on the nearest erroneous subtype.

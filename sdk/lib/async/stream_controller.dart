@@ -256,9 +256,13 @@ abstract interface class StreamController<T> implements StreamSink<T> {
   /// This happens either when the done event has been sent,
   /// or when the subscriber on a single-subscription stream is canceled.
   ///
-  /// A broadcast stream controller will send the done event
-  /// even if listeners are paused, so some broadcast events may not have been
-  /// received yet when the returned future completes.
+  /// A stream controller will not complete the returned future until all
+  /// listeners present when the done event is sent have stopped listening.
+  /// A listener will stop listening if it is cancelled, or if it has handled
+  /// the done event.
+  /// A paused listener will not process the done even until it is resumed, so
+  /// completion of the returned Future will be delayed until all paused
+  /// listeners have been resumed or cancelled.
   ///
   /// If no one listens to a non-broadcast stream,
   /// or the listener pauses and never resumes,
@@ -271,9 +275,13 @@ abstract interface class StreamController<T> implements StreamSink<T> {
   /// This happens either when the done event has been sent, or if the
   /// subscriber on a single-subscription stream is canceled.
   ///
-  /// A broadcast stream controller will send the done event
-  /// even if listeners are paused, so some broadcast events may not have been
-  /// received yet when the returned future completes.
+  /// A stream controller will not complete the returned future until all
+  /// listeners present when the done event is sent have stopped listening.
+  /// A listener will stop listening if it is cancelled, or if it has handled
+  /// the done event.
+  /// A paused listener will not process the done even until it is resumed, so
+  /// completion of the returned Future will be delayed until all paused
+  /// listeners have been resumed or cancelled.
   ///
   /// If there is no listener on a non-broadcast stream,
   /// or the listener pauses and never resumes,

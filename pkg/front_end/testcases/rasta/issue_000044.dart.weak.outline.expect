@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -29,13 +29,12 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[self::C::good]/*isLegacy*/;
   const constructor constant() → self::C
     : super core::Object::•()
     ;
   constructor missingFactoryKeyword() → self::C
     ;
-  static factory good() → self::C
+  static factory good() → self::C /* redirection-target: self::C::constant */
     return new self::C::constant();
   method notEvenAConstructor(dynamic a) → self::C
     ;
@@ -44,8 +43,3 @@ static method b(dynamic c) → invalid-type
   ;
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue_000044.dart:9:7 -> ConstructorTearOffConstant(C.good)
-Extra constant evaluation: evaluated: 3, effectively constant: 1

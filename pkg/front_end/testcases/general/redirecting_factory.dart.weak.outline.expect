@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -12,7 +12,6 @@ import self as self;
 import "dart:core" as core;
 
 abstract class FooBase<Tf extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::FooBase::•]/*isLegacy*/;
   abstract get x() → core::int;
   static factory •<Tf extends core::Object? = dynamic>(core::int x) → self::FooBase<self::FooBase::•::Tf%>
     return invalid-expression "pkg/front_end/testcases/general/redirecting_factory.dart:7:28: Error: The constructor function type 'Foo<Tf> Function(int)' isn't a subtype of 'FooBase<Tf> Function(int)'.
@@ -22,8 +21,7 @@ abstract class FooBase<Tf extends core::Object? = dynamic> extends core::Object 
                            ^";
 }
 abstract class Foo<T extends core::Object? = dynamic> extends core::Object implements self::FooBase<dynamic> {
-  static final field dynamic _redirecting# = <dynamic>[self::Foo::•]/*isLegacy*/;
-  static factory •<T extends core::Object? = dynamic>(core::int x) → self::Foo<self::Foo::•::T%>
+  static factory •<T extends core::Object? = dynamic>(core::int x) → self::Foo<self::Foo::•::T%> /* redirection-target: self::Bar::•<core::String, self::Foo::•::T%>*/
     return new self::Bar::•<core::String, self::Foo::•::T%>(x);
 }
 class Bar<Sb extends core::Object? = dynamic, Tb extends core::Object? = dynamic> extends core::Object implements self::Foo<self::Bar::Tb%> {
@@ -38,13 +36,11 @@ class Builder<X extends core::Object? = dynamic> extends core::Object {
     ;
 }
 class SimpleCase<A extends core::Object? = dynamic, B extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::SimpleCase::•]/*isLegacy*/;
-  static factory •<A extends core::Object? = dynamic, B extends core::Object? = dynamic>() → self::SimpleCase<self::SimpleCase::•::A%, self::SimpleCase::•::B%>
+  static factory •<A extends core::Object? = dynamic, B extends core::Object? = dynamic>() → self::SimpleCase<self::SimpleCase::•::A%, self::SimpleCase::•::B%> /* redirection-target: self::SimpleCaseImpl::•<self::SimpleCase::•::A%, self::SimpleCase::•::B%>*/
     return self::SimpleCaseImpl::•<self::SimpleCase::•::A%, self::SimpleCase::•::B%>();
 }
 class SimpleCaseImpl<Ai extends core::Object? = dynamic, Bi extends core::Object? = dynamic> extends core::Object implements self::SimpleCase<self::SimpleCaseImpl::Ai%, self::SimpleCaseImpl::Bi%> {
-  static final field dynamic _redirecting# = <dynamic>[self::SimpleCaseImpl::•]/*isLegacy*/;
-  static factory •<Ai extends core::Object? = dynamic, Bi extends core::Object? = dynamic>() → self::SimpleCaseImpl<self::SimpleCaseImpl::•::Ai%, self::SimpleCaseImpl::•::Bi%>
+  static factory •<Ai extends core::Object? = dynamic, Bi extends core::Object? = dynamic>() → self::SimpleCaseImpl<self::SimpleCaseImpl::•::Ai%, self::SimpleCaseImpl::•::Bi%> /* redirection-target: self::SimpleCaseImpl2::•<self::SimpleCaseImpl::•::Ai%, self::SimpleCaseImpl::•::Bi%>*/
     return new self::SimpleCaseImpl2::•<self::SimpleCaseImpl::•::Ai%, self::SimpleCaseImpl::•::Bi%>();
 }
 class SimpleCaseImpl2<Ai2 extends core::Object? = dynamic, Bi2 extends core::Object? = dynamic> extends core::Object implements self::SimpleCaseImpl<self::SimpleCaseImpl2::Ai2%, self::SimpleCaseImpl2::Bi2%> {
@@ -64,11 +60,3 @@ class Mix<M extends core::Object? = dynamic> = self::Base<self::Mix::M%> with se
 }
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory.dart:5:16 -> ConstructorTearOffConstant(FooBase.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory.dart:10:16 -> ConstructorTearOffConstant(Foo.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory.dart:27:7 -> ConstructorTearOffConstant(SimpleCase.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory.dart:31:7 -> ConstructorTearOffConstant(SimpleCaseImpl.)
-Extra constant evaluation: evaluated: 12, effectively constant: 4

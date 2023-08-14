@@ -64,7 +64,7 @@ class AddTypeParameter extends Change<_Data> {
       if (_isInvalidIndex(typeArguments?.arguments)) {
         return null;
       }
-      return _TypeArgumentData(typeArguments, node.name.end);
+      return _TypeArgumentData(typeArguments, node.name2.end);
     }
     var parent = node.parent;
     if (parent is InvocationExpression) {
@@ -96,7 +96,7 @@ class AddTypeParameter extends Change<_Data> {
       if (_isInvalidIndex(node.arguments)) {
         return null;
       }
-      return _TypeArgumentData(node, parent.extensionName.end);
+      return _TypeArgumentData(node, parent.name.end);
     }
     return null;
   }

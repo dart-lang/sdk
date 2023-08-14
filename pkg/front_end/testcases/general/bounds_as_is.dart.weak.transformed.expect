@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -98,67 +98,67 @@ class G<X extends self::Class<self::G::X> = self::Class<dynamic>> extends core::
     ;
 }
 static method t1a(dynamic o) → dynamic
-  return o as{ForNonNullableByDefault} self::Class<dynamic>;
+  return o as self::Class<dynamic>;
 static method t2a(dynamic o) → dynamic
-  return o as{ForNonNullableByDefault} dynamic;
+  return o as dynamic;
 static method t3a(dynamic o) → dynamic
-  return o as{ForNonNullableByDefault} self::Class<dynamic>;
+  return o as self::Class<dynamic>;
 static method t4a(dynamic o) → dynamic
-  return o as{ForNonNullableByDefault} self::Class<dynamic>;
+  return o as self::Class<dynamic>;
 static method t5a(dynamic o) → dynamic
-  return o as{ForNonNullableByDefault} self::ConcreteClass;
+  return o as self::ConcreteClass;
 static method t6a(dynamic o) → dynamic
-  return o as{ForNonNullableByDefault} self::Class<self::ConcreteClass>;
+  return o as self::Class<self::ConcreteClass>;
 static method t7a(dynamic o) → dynamic
   return o;
 static method t8a(dynamic o) → dynamic
-  return o as{ForNonNullableByDefault} core::int;
+  return o as core::int;
 static method s1a(dynamic o) → dynamic
-  return o as{ForNonNullableByDefault} self::G<self::Class<dynamic>>;
+  return o as self::G<self::Class<dynamic>>;
 static method s2a(dynamic o) → dynamic
-  return o as{ForNonNullableByDefault} self::G<dynamic>;
+  return o as self::G<dynamic>;
 static method s3a(dynamic o) → dynamic
-  return o as{ForNonNullableByDefault} self::G<self::Class<dynamic>>;
+  return o as self::G<self::Class<dynamic>>;
 static method s4a(dynamic o) → dynamic
-  return o as{ForNonNullableByDefault} self::G<self::Class<dynamic>>;
+  return o as self::G<self::Class<dynamic>>;
 static method s5a(dynamic o) → dynamic
-  return o as{ForNonNullableByDefault} self::G<self::ConcreteClass>;
+  return o as self::G<self::ConcreteClass>;
 static method s6a(dynamic o) → dynamic
-  return o as{ForNonNullableByDefault} self::G<self::Class<self::ConcreteClass>>;
+  return o as self::G<self::Class<self::ConcreteClass>>;
 static method s7a(dynamic o) → dynamic
-  return o as{ForNonNullableByDefault} self::G<core::Object>;
+  return o as self::G<core::Object>;
 static method s8a(dynamic o) → dynamic
-  return o as{ForNonNullableByDefault} self::G<core::int>;
+  return o as self::G<core::int>;
 static method t1b(dynamic o) → dynamic
-  return o is{ForNonNullableByDefault} self::Class<dynamic>;
+  return o is self::Class<dynamic>;
 static method t2b(dynamic o) → dynamic
-  return o is{ForNonNullableByDefault} dynamic;
+  return o is dynamic;
 static method t3b(dynamic o) → dynamic
-  return o is{ForNonNullableByDefault} self::Class<dynamic>;
+  return o is self::Class<dynamic>;
 static method t4b(dynamic o) → dynamic
-  return o is{ForNonNullableByDefault} self::Class<dynamic>;
+  return o is self::Class<dynamic>;
 static method t5b(dynamic o) → dynamic
-  return o is{ForNonNullableByDefault} self::ConcreteClass;
+  return o is self::ConcreteClass;
 static method t6b(dynamic o) → dynamic
-  return o is{ForNonNullableByDefault} self::Class<self::ConcreteClass>;
+  return o is self::Class<self::ConcreteClass>;
 static method t7b(dynamic o) → dynamic
-  return o is{ForNonNullableByDefault} core::Object;
+  return o is core::Object;
 static method t8b(dynamic o) → dynamic
-  return o is{ForNonNullableByDefault} core::int;
+  return o is core::int;
 static method s1b(dynamic o) → dynamic
-  return o is{ForNonNullableByDefault} self::G<self::Class<dynamic>>;
+  return o is self::G<self::Class<dynamic>>;
 static method s2b(dynamic o) → dynamic
-  return o is{ForNonNullableByDefault} self::G<dynamic>;
+  return o is self::G<dynamic>;
 static method s3b(dynamic o) → dynamic
-  return o is{ForNonNullableByDefault} self::G<self::Class<dynamic>>;
+  return o is self::G<self::Class<dynamic>>;
 static method s4b(dynamic o) → dynamic
-  return o is{ForNonNullableByDefault} self::G<self::Class<dynamic>>;
+  return o is self::G<self::Class<dynamic>>;
 static method s5b(dynamic o) → dynamic
-  return o is{ForNonNullableByDefault} self::G<self::ConcreteClass>;
+  return o is self::G<self::ConcreteClass>;
 static method s6b(dynamic o) → dynamic
-  return o is{ForNonNullableByDefault} self::G<self::Class<self::ConcreteClass>>;
+  return o is self::G<self::Class<self::ConcreteClass>>;
 static method s7b(dynamic o) → dynamic
-  return o is{ForNonNullableByDefault} self::G<core::Object>;
+  return o is self::G<core::Object>;
 static method s8b(dynamic o) → dynamic
-  return o is{ForNonNullableByDefault} self::G<core::int>;
+  return o is self::G<core::int>;
 static method main() → dynamic {}

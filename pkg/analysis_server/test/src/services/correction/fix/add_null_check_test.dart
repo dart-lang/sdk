@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -14,6 +15,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddNullCheckTest);
     defineReflectiveTests(AddNullCheckReplaceWithNullAwareTest);
+    defineReflectiveTests(CastNullableToNonNullableTest);
   });
 }
 
@@ -644,5 +646,37 @@ Iterable<String> f(List<String>? args) sync* {
 ''',
         errorFilter: (AnalysisError error) =>
             error.errorCode != CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE);
+  }
+}
+
+@reflectiveTest
+class CastNullableToNonNullableTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_NULL_CHECK;
+
+  @override
+  String get lintCode => LintNames.cast_nullable_to_non_nullable;
+
+  Future<void> test_castNullable() async {
+    await resolveTestCode(r'''
+num? n;
+var i = n as int;
+''');
+    await assertHasFix(r'''
+num? n;
+var i = n! as int;
+''');
+  }
+
+  Future<void> test_castNullable_unnecessaryCast() async {
+    // todo(pq): consider removing unnecessary 'as String' cast
+    await resolveTestCode(r'''
+String? s;
+var a = s as String;
+''');
+    await assertHasFix(r'''
+String? s;
+var a = s! as String;
+''');
   }
 }

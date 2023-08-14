@@ -6,13 +6,16 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/closure_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/enum_constant_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/in_scope_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/label_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
@@ -27,10 +30,12 @@ import 'package:analysis_server/src/services/completion/dart/redirecting_contrib
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/super_formal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
+import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -129,17 +134,17 @@ class DartCompletionManager {
     request.checkAborted();
     var pathContext = request.resourceProvider.pathContext;
     if (!file_paths.isDart(pathContext, request.path)) {
-      return const <CompletionSuggestionBuilder>[];
+      return const [];
     }
 
     // Don't suggest in comments.
     if (request.target.isCommentText) {
-      return const <CompletionSuggestionBuilder>[];
+      return const [];
     }
 
     request.checkAborted();
 
-    // Request Dart specific completions from each contributor
+    // Compute the list of contributors that will be run.
     var builder =
         SuggestionBuilder(request, useFilter: useFilter, listener: listener);
     var contributors = <DartCompletionContributor>[
@@ -184,6 +189,7 @@ class DartCompletionManager {
     }
 
     try {
+      _runFirstPass(request, builder);
       for (var contributor in contributors) {
         await performance.runAsync(
           '${contributor.runtimeType}',
@@ -289,6 +295,19 @@ class DartCompletionManager {
       }
     }
   }
+
+  // Run the first pass of the code completion algorithm.
+  void _runFirstPass(DartCompletionRequest request, SuggestionBuilder builder) {
+    var collector = SuggestionCollector();
+    var selection = request.unit.select(offset: request.offset, length: 0);
+    if (selection == null) {
+      throw AbortCompletion();
+    }
+    var state = CompletionState(request.libraryElement, selection);
+    var pass = InScopeCompletionPass(state: state, collector: collector);
+    selection.coveringNode.accept(pass);
+    builder.suggestFromCandidates(collector.suggestions);
+  }
 }
 
 /// The information about a requested list of completions within a Dart file.
@@ -339,6 +358,9 @@ class DartCompletionRequest {
   /// will be resolved if they can be resolved.
   final CompletionTarget target;
 
+  /// The compilation unit in which completion is being requested.
+  final CompilationUnit unit;
+
   bool _aborted = false;
 
   factory DartCompletionRequest({
@@ -348,6 +370,7 @@ class DartCompletionRequest {
     required CompilationUnitElement unitElement,
     required AstNode enclosingNode,
     required int offset,
+    required CompilationUnit unit,
     DartdocDirectiveInfo? dartdocDirectiveInfo,
     CompletionPreference completionPreference = CompletionPreference.insert,
   }) {
@@ -383,6 +406,7 @@ class DartCompletionRequest {
       replacementRange: target.computeReplacementRange(offset),
       source: unitElement.source,
       target: target,
+      unit: unit,
     );
   }
 
@@ -399,6 +423,7 @@ class DartCompletionRequest {
       unitElement: resolvedUnit.unit.declaredElement!,
       enclosingNode: resolvedUnit.unit,
       offset: offset,
+      unit: resolvedUnit.unit,
       dartdocDirectiveInfo: dartdocDirectiveInfo,
       completionPreference: completionPreference,
     );
@@ -418,6 +443,7 @@ class DartCompletionRequest {
     required this.replacementRange,
     required this.source,
     required this.target,
+    required this.unit,
   });
 
   DriverBasedAnalysisContext get analysisContext {

@@ -55,8 +55,8 @@ class RangeBoundary : public ValueObject {
     return *this;
   }
 
-  static const int64_t kMin = kMinInt64;
-  static const int64_t kMax = kMaxInt64;
+  static constexpr int64_t kMin = kMinInt64;
+  static constexpr int64_t kMax = kMaxInt64;
 
   // Construct a RangeBoundary for a constant value.
   static RangeBoundary FromConstant(int64_t val) { return RangeBoundary(val); }

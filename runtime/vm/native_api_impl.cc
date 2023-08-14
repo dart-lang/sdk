@@ -25,13 +25,13 @@ class IsolateLeaveScope {
  public:
   explicit IsolateLeaveScope(Isolate* current_isolate)
       : saved_isolate_(current_isolate) {
-    if (current_isolate != NULL) {
+    if (current_isolate != nullptr) {
       ASSERT(current_isolate == Isolate::Current());
       Dart_ExitIsolate();
     }
   }
   ~IsolateLeaveScope() {
-    if (saved_isolate_ != NULL) {
+    if (saved_isolate_ != nullptr) {
       Dart_Isolate I = reinterpret_cast<Dart_Isolate>(saved_isolate_);
       Dart_EnterIsolate(I);
     }
@@ -74,10 +74,10 @@ DART_EXPORT bool Dart_PostInteger(Dart_Port port_id, int64_t message) {
 DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
                                          Dart_NativeMessageHandler handler,
                                          bool handle_concurrently) {
-  if (name == NULL) {
+  if (name == nullptr) {
     name = "<UnnamedNativePort>";
   }
-  if (handler == NULL) {
+  if (handler == nullptr) {
     OS::PrintErr("%s expects argument 'handler' to be non-null.\n",
                  CURRENT_FUNC);
     return ILLEGAL_PORT;
@@ -92,7 +92,7 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
   Dart_Port port_id = PortMap::CreatePort(nmh);
   if (port_id != ILLEGAL_PORT) {
     PortMap::SetPortState(port_id, PortMap::kLivePort);
-    if (!nmh->Run(Dart::thread_pool(), NULL, NULL, 0)) {
+    if (!nmh->Run(Dart::thread_pool(), nullptr, nullptr, 0)) {
       PortMap::ClosePort(port_id);
       port_id = ILLEGAL_PORT;
     }
@@ -262,7 +262,7 @@ struct RunInSafepointAndRWCodeArgs {
 DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
   if (strcmp(command, "gc-on-nth-allocation") == 0) {
     Thread* const thread = Thread::Current();
-    Isolate* isolate = (thread == NULL) ? NULL : thread->isolate();
+    Isolate* isolate = (thread == nullptr) ? nullptr : thread->isolate();
     CHECK_ISOLATE(isolate);
     TransitionNativeToVM _(thread);
     intptr_t argument = reinterpret_cast<intptr_t>(arg);
@@ -273,7 +273,7 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
   } else if (strcmp(command, "gc-now") == 0) {
     ASSERT(arg == nullptr);  // Don't pass an argument to this command.
     Thread* const thread = Thread::Current();
-    Isolate* isolate = (thread == NULL) ? NULL : thread->isolate();
+    Isolate* isolate = (thread == nullptr) ? nullptr : thread->isolate();
     CHECK_ISOLATE(isolate);
     TransitionNativeToVM _(thread);
     IsolateGroup::Current()->heap()->CollectAllGarbage(GCReason::kDebugging);
@@ -300,15 +300,18 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
         reinterpret_cast<RunInSafepointAndRWCodeArgs*>(arg);
     Isolate* const isolate = args->isolate;
     CHECK_ISOLATE(isolate);
-    Thread::EnterIsolateAsHelper(isolate, Thread::TaskKind::kUnknownTask);
+    auto isolate_group = isolate->group();
+    const bool kBypassSafepoint = false;
+    Thread::EnterIsolateGroupAsHelper(isolate_group, Thread::kUnknownTask,
+                                      kBypassSafepoint);
     Thread* const thread = Thread::Current();
     {
       GcSafepointOperationScope scope(thread);
-      args->isolate->group()->heap()->WriteProtectCode(/*read_only=*/false);
+      isolate_group->heap()->WriteProtectCode(/*read_only=*/false);
       (*args->callback)();
-      args->isolate->group()->heap()->WriteProtectCode(/*read_only=*/true);
+      isolate_group->heap()->WriteProtectCode(/*read_only=*/true);
     }
-    Thread::ExitIsolateAsHelper();
+    Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     return nullptr;
 
   } else {

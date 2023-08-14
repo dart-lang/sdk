@@ -306,6 +306,7 @@ abstract mixin class Iterable<E> {
   /// This operation will check each element in order for being equal to
   /// [element], unless it has a more efficient way to find an element
   /// equal to [element].
+  /// Stops iterating on the first equal element.
   ///
   /// The equality used to determine whether [element] is equal to an element of
   /// the iterable defaults to the [Object.==] of the element.
@@ -665,6 +666,7 @@ abstract mixin class Iterable<E> {
   /// Checks that this iterable has only one element, and returns that element.
   ///
   /// Throws a [StateError] if `this` is empty or has more than one element.
+  /// This operation will not iterate past the second element.
   E get single {
     Iterator<E> it = iterator;
     if (!it.moveNext()) throw IterableElementError.noElement();
@@ -689,6 +691,7 @@ abstract mixin class Iterable<E> {
   /// If no element satisfies [test], the result of invoking the [orElse]
   /// function is returned.
   /// If [orElse] is omitted, it defaults to throwing a [StateError].
+  /// Stops iterating on the first matching element.
   E firstWhere(bool test(E element), {E orElse()?}) {
     for (E element in this) {
       if (test(element)) return element;

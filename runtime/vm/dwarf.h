@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/hash.h"
 #include "vm/hash_map.h"
+#include "vm/image_snapshot.h"
 #include "vm/object.h"
 #include "vm/zone.h"
 
@@ -41,7 +42,7 @@ struct ScriptIndexPair {
     DEBUG_ASSERT(s->IsNotTemporaryScopedHandle());
   }
 
-  ScriptIndexPair() : script_(NULL), index_(-1) {}
+  ScriptIndexPair() : script_(nullptr), index_(-1) {}
 
   void Print() const;
 
@@ -73,7 +74,7 @@ struct FunctionIndexPair {
     DEBUG_ASSERT(f->IsNotTemporaryScopedHandle());
   }
 
-  FunctionIndexPair() : function_(NULL), index_(-1) {}
+  FunctionIndexPair() : function_(nullptr), index_(-1) {}
 
   void Print() const;
 
@@ -124,80 +125,6 @@ struct DwarfCodeKeyValueTrait {
 template <typename T>
 using DwarfCodeMap = DirectChainedHashMap<DwarfCodeKeyValueTrait<T>>;
 
-template <typename T>
-class Trie : public ZoneAllocated {
- public:
-  // Returns whether [key] is a valid trie key (that is, a C string that
-  // contains only characters for which charIndex returns a non-negative value).
-  static bool IsValidKey(const char* key) {
-    for (intptr_t i = 0; key[i] != '\0'; i++) {
-      if (ChildIndex(key[i]) < 0) return false;
-    }
-    return true;
-  }
-
-  // Adds a binding of [key] to [value] in [trie]. Assumes that the string in
-  // [key] is a valid trie key and does not already have a value in [trie].
-  //
-  // If [trie] is nullptr, then a new trie is created and a pointer to the new
-  // trie is returned. Otherwise, [trie] will be returned.
-  static Trie<T>* AddString(Zone* zone,
-                            Trie<T>* trie,
-                            const char* key,
-                            const T* value);
-
-  // Adds a binding of [key] to [value]. Assumes that the string in [key] is a
-  // valid trie key and does not already have a value in this trie.
-  void AddString(Zone* zone, const char* key, const T* value) {
-    AddString(zone, this, key, value);
-  }
-
-  // Looks up the value stored for [key] in [trie]. If one is not found, then
-  // nullptr is returned.
-  //
-  // If [end] is not nullptr, then the longest prefix of [key] that is a valid
-  // trie key prefix will be used for the lookup and the value pointed to by
-  // [end] is set to the index after that prefix. Otherwise, the whole [key]
-  // is used.
-  static const T* Lookup(const Trie<T>* trie,
-                         const char* key,
-                         intptr_t* end = nullptr);
-
-  // Looks up the value stored for [key]. If one is not found, then nullptr is
-  // returned.
-  //
-  // If [end] is not nullptr, then the longest prefix of [key] that is a valid
-  // trie key prefix will be used for the lookup and the value pointed to by
-  // [end] is set to the index after that prefix. Otherwise, the whole [key]
-  // is used.
-  const T* Lookup(const char* key, intptr_t* end = nullptr) const {
-    return Lookup(this, key, end);
-  }
-
- private:
-  // Currently, only the following characters can appear in obfuscated names:
-  // '_', '@', '0-9', 'a-z', 'A-Z'
-  static const intptr_t kNumValidChars = 64;
-
-  Trie() {
-    for (intptr_t i = 0; i < kNumValidChars; i++) {
-      children_[i] = nullptr;
-    }
-  }
-
-  static intptr_t ChildIndex(char c) {
-    if (c == '_') return 0;
-    if (c == '@') return 1;
-    if (c >= '0' && c <= '9') return ('9' - c) + 2;
-    if (c >= 'a' && c <= 'z') return ('z' - c) + 12;
-    if (c >= 'A' && c <= 'Z') return ('Z' - c) + 38;
-    return -1;
-  }
-
-  const T* value_ = nullptr;
-  Trie<T>* children_[kNumValidChars];
-};
-
 class DwarfWriteStream : public ValueObject {
  public:
   DwarfWriteStream() {}
@@ -228,7 +155,7 @@ class DwarfWriteStream : public ValueObject {
 
 class Dwarf : public ZoneAllocated {
  public:
-  explicit Dwarf(Zone* zone);
+  explicit Dwarf(Zone* zone, const Trie<const char>* deobfuscation_trie);
 
   const ZoneGrowableArray<const Code*>& codes() const { return codes_; }
 
@@ -247,55 +174,55 @@ class Dwarf : public ZoneAllocated {
  private:
   friend class LineNumberProgramWriter;
 
-  static const intptr_t DW_TAG_compile_unit = 0x11;
-  static const intptr_t DW_TAG_inlined_subroutine = 0x1d;
-  static const intptr_t DW_TAG_subprogram = 0x2e;
+  static constexpr intptr_t DW_TAG_compile_unit = 0x11;
+  static constexpr intptr_t DW_TAG_inlined_subroutine = 0x1d;
+  static constexpr intptr_t DW_TAG_subprogram = 0x2e;
 
-  static const intptr_t DW_CHILDREN_no = 0x0;
-  static const intptr_t DW_CHILDREN_yes = 0x1;
+  static constexpr intptr_t DW_CHILDREN_no = 0x0;
+  static constexpr intptr_t DW_CHILDREN_yes = 0x1;
 
-  static const intptr_t DW_AT_sibling = 0x1;
-  static const intptr_t DW_AT_name = 0x3;
-  static const intptr_t DW_AT_stmt_list = 0x10;
-  static const intptr_t DW_AT_low_pc = 0x11;
-  static const intptr_t DW_AT_high_pc = 0x12;
-  static const intptr_t DW_AT_comp_dir = 0x1b;
-  static const intptr_t DW_AT_inline = 0x20;
-  static const intptr_t DW_AT_producer = 0x25;
-  static const intptr_t DW_AT_abstract_origin = 0x31;
-  static const intptr_t DW_AT_artificial = 0x34;
-  static const intptr_t DW_AT_decl_column = 0x39;
-  static const intptr_t DW_AT_decl_file = 0x3a;
-  static const intptr_t DW_AT_decl_line = 0x3b;
-  static const intptr_t DW_AT_call_column = 0x57;
-  static const intptr_t DW_AT_call_file = 0x58;
-  static const intptr_t DW_AT_call_line = 0x59;
+  static constexpr intptr_t DW_AT_sibling = 0x1;
+  static constexpr intptr_t DW_AT_name = 0x3;
+  static constexpr intptr_t DW_AT_stmt_list = 0x10;
+  static constexpr intptr_t DW_AT_low_pc = 0x11;
+  static constexpr intptr_t DW_AT_high_pc = 0x12;
+  static constexpr intptr_t DW_AT_comp_dir = 0x1b;
+  static constexpr intptr_t DW_AT_inline = 0x20;
+  static constexpr intptr_t DW_AT_producer = 0x25;
+  static constexpr intptr_t DW_AT_abstract_origin = 0x31;
+  static constexpr intptr_t DW_AT_artificial = 0x34;
+  static constexpr intptr_t DW_AT_decl_column = 0x39;
+  static constexpr intptr_t DW_AT_decl_file = 0x3a;
+  static constexpr intptr_t DW_AT_decl_line = 0x3b;
+  static constexpr intptr_t DW_AT_call_column = 0x57;
+  static constexpr intptr_t DW_AT_call_file = 0x58;
+  static constexpr intptr_t DW_AT_call_line = 0x59;
 
-  static const intptr_t DW_FORM_addr = 0x01;
-  static const intptr_t DW_FORM_string = 0x08;
-  static const intptr_t DW_FORM_flag = 0x0c;
-  static const intptr_t DW_FORM_udata = 0x0f;
-  static const intptr_t DW_FORM_ref4 = 0x13;
-  static const intptr_t DW_FORM_ref_udata = 0x15;
-  static const intptr_t DW_FORM_sec_offset = 0x17;
+  static constexpr intptr_t DW_FORM_addr = 0x01;
+  static constexpr intptr_t DW_FORM_string = 0x08;
+  static constexpr intptr_t DW_FORM_flag = 0x0c;
+  static constexpr intptr_t DW_FORM_udata = 0x0f;
+  static constexpr intptr_t DW_FORM_ref4 = 0x13;
+  static constexpr intptr_t DW_FORM_ref_udata = 0x15;
+  static constexpr intptr_t DW_FORM_sec_offset = 0x17;
 
-  static const intptr_t DW_INL_not_inlined = 0x0;
-  static const intptr_t DW_INL_inlined = 0x1;
+  static constexpr intptr_t DW_INL_not_inlined = 0x0;
+  static constexpr intptr_t DW_INL_inlined = 0x1;
 
-  static const intptr_t DW_LNS_copy = 0x1;
-  static const intptr_t DW_LNS_advance_pc = 0x2;
-  static const intptr_t DW_LNS_advance_line = 0x3;
-  static const intptr_t DW_LNS_set_file = 0x4;
-  static const intptr_t DW_LNS_set_column = 0x5;
+  static constexpr intptr_t DW_LNS_copy = 0x1;
+  static constexpr intptr_t DW_LNS_advance_pc = 0x2;
+  static constexpr intptr_t DW_LNS_advance_line = 0x3;
+  static constexpr intptr_t DW_LNS_set_file = 0x4;
+  static constexpr intptr_t DW_LNS_set_column = 0x5;
 
-  static const intptr_t DW_LNE_end_sequence = 0x01;
-  static const intptr_t DW_LNE_set_address = 0x02;
+  static constexpr intptr_t DW_LNE_end_sequence = 0x01;
+  static constexpr intptr_t DW_LNE_set_address = 0x02;
 
  public:
   // Public because they're also used in constructing .eh_frame ELF sections.
-  static const intptr_t DW_CFA_offset = 0x80;
-  static const intptr_t DW_CFA_val_offset = 0x14;
-  static const intptr_t DW_CFA_def_cfa = 0x0c;
+  static constexpr intptr_t DW_CFA_offset = 0x80;
+  static constexpr intptr_t DW_CFA_val_offset = 0x14;
+  static constexpr intptr_t DW_CFA_def_cfa = 0x0c;
 
  private:
   enum {
@@ -317,11 +244,8 @@ class Dwarf : public ZoneAllocated {
   void WriteLineNumberProgramFromCodeSourceMaps(
       LineNumberProgramWriter* writer);
 
-  const char* Deobfuscate(const char* cstr);
-  static Trie<const char>* CreateReverseObfuscationTrie(Zone* zone);
-
   Zone* const zone_;
-  Trie<const char>* const reverse_obfuscation_trie_;
+  const Trie<const char>* const deobfuscation_trie_;
   ZoneGrowableArray<const Code*> codes_;
   DwarfCodeMap<intptr_t> code_to_label_;
   ZoneGrowableArray<const Function*> functions_;

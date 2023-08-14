@@ -86,7 +86,7 @@ class OSThread : public BaseThread {
  public:
   // The constructor of OSThread is never called directly, instead we call
   // this factory style method 'CreateOSThread' to create OSThread structures.
-  // The method can return a NULL if the Dart VM is in shutdown mode.
+  // The method can return a nullptr if the Dart VM is in shutdown mode.
   static OSThread* CreateOSThread();
   ~OSThread();
 
@@ -146,11 +146,11 @@ class OSThread : public BaseThread {
   void EnableThreadInterrupts();
   bool ThreadInterruptsEnabled();
 
-  // The currently executing thread, or NULL if not yet initialized.
+  // The currently executing thread, or nullptr if not yet initialized.
   static OSThread* TryCurrent() {
     BaseThread* thread = GetCurrentTLS();
-    OSThread* os_thread = NULL;
-    if (thread != NULL) {
+    OSThread* os_thread = nullptr;
+    if (thread != nullptr) {
       if (thread->is_os_thread()) {
         os_thread = reinterpret_cast<OSThread*>(thread);
       } else {
@@ -165,7 +165,7 @@ class OSThread : public BaseThread {
   // a new OSThread is created and returned.
   static OSThread* Current() {
     OSThread* os_thread = TryCurrent();
-    if (os_thread == NULL) {
+    if (os_thread == nullptr) {
       os_thread = CreateAndSetUnknownThread();
     }
     return os_thread;
@@ -203,7 +203,8 @@ class OSThread : public BaseThread {
                    ThreadStartFunction function,
                    uword parameter);
 
-  static ThreadLocalKey CreateThreadLocal(ThreadDestructor destructor = NULL);
+  static ThreadLocalKey CreateThreadLocal(
+      ThreadDestructor destructor = nullptr);
   static void DeleteThreadLocal(ThreadLocalKey key);
   static uword GetThreadLocal(ThreadLocalKey key) {
     return ThreadInlineImpl::GetThreadLocal(key);
@@ -228,7 +229,7 @@ class OSThread : public BaseThread {
   static void DisableOSThreadCreation();
   static void EnableOSThreadCreation();
 
-  static const intptr_t kStackSizeBufferMax = (16 * KB * kWordSize);
+  static constexpr intptr_t kStackSizeBufferMax = (16 * KB * kWordSize);
   static constexpr float kStackSizeBufferFraction = 0.5;
 
   static const ThreadId kInvalidThreadId;
@@ -310,7 +311,7 @@ class OSThread : public BaseThread {
   // initialization checks at each use.
   static inline thread_local ThreadState* current_vm_thread_ = nullptr;
 
-  friend class IsolateGroup;  // to access set_thread(Thread*).
+  friend class Thread;  // to access set_thread(Thread*).
   friend class OSThreadIterator;
   friend class ThreadInterrupterFuchsia;
   friend class ThreadInterrupterMacOS;
@@ -339,7 +340,7 @@ class Monitor {
  public:
   enum WaitResult { kNotified, kTimedOut };
 
-  static const int64_t kNoTimeout = 0;
+  static constexpr int64_t kNoTimeout = 0;
 
   Monitor();
   ~Monitor();

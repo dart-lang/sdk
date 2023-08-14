@@ -7,7 +7,10 @@
 
 class A {
   static void test(final x) {
-    x = 2; /*@compile-error=unspecified*/
+    x = 2;
+//  ^
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+// [cfe] Can't assign to the final variable 'x'.
   }
 }
 

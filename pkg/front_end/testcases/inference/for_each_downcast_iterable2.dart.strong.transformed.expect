@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -12,14 +12,14 @@ import "dart:async" as asy;
 
 static method test(dynamic o) → dynamic async /* futureValueType= dynamic */ {
   {
-    synthesized core::Iterator<dynamic>* :sync-for-iterator = (o as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+    synthesized core::Iterator<dynamic>* :sync-for-iterator = (o as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       dynamic x = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {}
     }
   }
   {
-    synthesized asy::Stream<dynamic>* :stream = o as{TypeError,ForDynamic} asy::Stream<dynamic>*;
+    synthesized asy::Stream<dynamic>* :stream = o as{TypeError,ForDynamic,ForLegacy} asy::Stream<dynamic>*;
     synthesized asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
     try
       while (let dynamic #t1 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
@@ -32,22 +32,22 @@ static method test(dynamic o) → dynamic async /* futureValueType= dynamic */ {
   }
   core::int* y;
   {
-    synthesized core::Iterator<dynamic>* :sync-for-iterator = (o as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+    synthesized core::Iterator<dynamic>* :sync-for-iterator = (o as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t2 = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {
-        y = #t2 as{TypeError,ForDynamic} core::int*;
+        y = #t2 as{TypeError,ForDynamic,ForLegacy} core::int*;
       }
     }
   }
   {
-    synthesized asy::Stream<dynamic>* :stream = o as{TypeError,ForDynamic} asy::Stream<dynamic>*;
+    synthesized asy::Stream<dynamic>* :stream = o as{TypeError,ForDynamic,ForLegacy} asy::Stream<dynamic>*;
     synthesized asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
     try
       while (let dynamic #t3 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         final dynamic #t4 = :for-iterator.{asy::_StreamIterator::current}{dynamic};
         {
-          y = #t4 as{TypeError,ForDynamic} core::int*;
+          y = #t4 as{TypeError,ForDynamic,ForLegacy} core::int*;
         }
       }
     finally

@@ -8,5 +8,5 @@ void main() {
   int? iq;
   x!; //# 00: compile-time error
   i!; //# 01: compile-time error
-  iq!; //# 02: ok
+  iq!; //# 02: runtime error
 }

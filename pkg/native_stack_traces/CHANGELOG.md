@@ -1,3 +1,8 @@
+## 0.5.6
+
+- Added retrieval of the static symbol table contents for use in Dart tests.
+- Don't require Mach-O files to contain DWARF to be read by the Mach-O reader.
+
 ## 0.5.5
 
 - Fixed issue introduced by 0.5.4.

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -36,7 +36,7 @@ static method test() → dynamic {
 }
 static method main() → dynamic {}
 
-library opted_out_lib;
+library opted_out_lib /*isLegacy*/;
 import self as opt;
 import "dart:core" as core;
 

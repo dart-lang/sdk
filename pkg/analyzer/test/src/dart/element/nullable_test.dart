@@ -104,6 +104,10 @@ class IsNonNullableTest extends AbstractTypeSystemTest {
     isNonNullable(intStar);
   }
 
+  test_invalidType() {
+    isNotNonNullable(invalidType);
+  }
+
   test_never() {
     isNonNullable(neverNone);
     isNotNonNullable(neverQuestion);
@@ -269,6 +273,10 @@ class IsNullableTest extends AbstractTypeSystemTest {
     isNotNullable(intStar);
   }
 
+  test_invalidType() {
+    isNullable(invalidType);
+  }
+
   test_never() {
     isNotNullable(neverNone);
     isNullable(neverQuestion);
@@ -386,6 +394,10 @@ class IsPotentiallyNonNullableTest extends AbstractTypeSystemTest {
     isPotentiallyNonNullable(intStar);
   }
 
+  test_invalidType() {
+    isNotPotentiallyNonNullable(invalidType);
+  }
+
   test_never() {
     isPotentiallyNonNullable(neverNone);
   }
@@ -431,6 +443,10 @@ class IsPotentiallyNullableTest extends AbstractTypeSystemTest {
     isNotPotentiallyNullable(intNone);
     isPotentiallyNullable(intQuestion);
     isNotPotentiallyNullable(intStar);
+  }
+
+  test_invalidType() {
+    isPotentiallyNullable(invalidType);
   }
 
   test_never() {
@@ -526,6 +542,10 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
     isStrictlyNonNullable(intNone);
     isNotStrictlyNonNullable(intQuestion);
     isNotStrictlyNonNullable(intStar);
+  }
+
+  test_invalidType() {
+    isNotStrictlyNonNullable(invalidType);
   }
 
   test_never() {
@@ -631,6 +651,10 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
     _check(functionQuestion, functionNone);
   }
 
+  test_invalidType() {
+    _check(invalidType, invalidType);
+  }
+
   test_never() {
     _check(neverNone, neverNone);
   }
@@ -641,6 +665,16 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
 
   test_typeParameter_bound_dynamic() {
     var element = typeParameter('T', bound: dynamicType);
+
+    _checkTypeParameter(
+      typeParameterTypeNone(element),
+      element: element,
+      promotedBound: null,
+    );
+  }
+
+  test_typeParameter_bound_invalidType() {
+    var element = typeParameter('T', bound: invalidType);
 
     _checkTypeParameter(
       typeParameterTypeNone(element),

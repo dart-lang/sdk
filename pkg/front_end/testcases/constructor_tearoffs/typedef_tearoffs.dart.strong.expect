@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -78,7 +78,7 @@ static method test9() → () → self::B<core::num>
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:33:30: Error: A value of type 'B<String> Function()' can't be returned from a function with return type 'B<num> Function()'.
  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
 B<num> Function() test9() => DB1.new; // Error.
-                             ^" in #C4 as{TypeError,ForNonNullableByDefault} () → self::B<core::num>;
+                             ^" in #C4 as{TypeError} () → self::B<core::num>;
 static method test10() → () → self::B<core::String>
   return #C6;
 static method test11() → () → self::B<core::String>
@@ -100,7 +100,7 @@ B<Y> Function<Y>() test17() => DB2.new; // Error.
                                ^" in invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:42:32: Error: A value of type 'B<X> Function<X extends num>()' can't be assigned to a variable of type 'B<Y> Function<Y>()'.
  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
 B<Y> Function<Y>() test17() => DB2.new; // Error.
-                               ^" in #C12 as{TypeError,ForNonNullableByDefault} <Y extends core::Object? = dynamic>() → self::B<Y%> as{TypeError,ForNonNullableByDefault} <Y extends core::Object? = dynamic>() → self::B<Y%>;
+                               ^" in #C12 as{TypeError} <Y extends core::Object? = dynamic>() → self::B<Y%> as{TypeError} <Y extends core::Object? = dynamic>() → self::B<Y%>;
 static method test18() → () → self::B<core::num>
   return #C9;
 static method test19() → () → self::B<core::num>
@@ -118,7 +118,7 @@ B<Y> Function<Y, Z>() test23() => DB3.new; // Error.
                                   ^" in invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:49:35: Error: A value of type 'B<X> Function<X extends num, Y extends String>()' can't be assigned to a variable of type 'B<Y> Function<Y, Z>()'.
  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
 B<Y> Function<Y, Z>() test23() => DB3.new; // Error.
-                                  ^" in #C13 as{TypeError,ForNonNullableByDefault} <Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>() → self::B<Y%> as{TypeError,ForNonNullableByDefault} <Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>() → self::B<Y%>;
+                                  ^" in #C13 as{TypeError} <Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>() → self::B<Y%> as{TypeError} <Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>() → self::B<Y%>;
 static method test24() → () → self::B<core::String>
   return #C14;
 static method main() → dynamic {}

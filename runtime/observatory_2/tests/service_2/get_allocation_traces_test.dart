@@ -23,19 +23,17 @@ class Bar {
 }
 
 void test() {
+  List l = <Object>[];
   debugger();
   // Toggled on for Foo.
-  debugger();
-  debugger();
   // Traced allocation.
-  Foo();
+  l.add(Foo());
   // Untraced allocation.
-  Bar();
+  l.add(Bar());
   // Toggled on for Bar.
   debugger();
-  debugger();
   // Traced allocation.
-  Bar();
+  l.add(Bar());
   debugger();
 }
 
@@ -55,10 +53,6 @@ var tests = <IsolateTest>[
     expect(fooClass.traceAllocations, true);
   },
 
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
-  // Extra debugger stop, continue to allow the allocation stubs to be switched
-  // over. This is a bug but low priority.
   resumeIsolate,
   hasStoppedAtBreakpoint,
 
@@ -102,8 +96,6 @@ var tests = <IsolateTest>[
       expect(node, isNotNull);
     }
   },
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     // Trace Bar.
     final barClass = await getClassFromRootLib(isolate, 'Bar');
@@ -114,10 +106,6 @@ var tests = <IsolateTest>[
     expect(barClass.traceAllocations, true);
   },
 
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
-  // Extra debugger stop, continue to allow the allocation stubs to be switched
-  // over. This is a bug but low priority.
   resumeIsolate,
   hasStoppedAtBreakpoint,
 

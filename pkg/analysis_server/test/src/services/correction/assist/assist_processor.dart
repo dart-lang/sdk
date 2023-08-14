@@ -65,7 +65,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
 
   void assertExitPosition({String? before, String? after}) {
     var exitPosition = _change.selection!;
-    expect(exitPosition.file, testFile);
+    expect(exitPosition.file, testFile.path);
     if (before != null) {
       expect(exitPosition.offset, _resultCode.indexOf(before));
     } else if (after != null) {
@@ -102,7 +102,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
       expect(_resultCode, expected);
     } else {
       expect(fileEdits, hasLength(additionallyChangedFiles.length + 1));
-      var fileEdit = _change.getFileEdit(testFile)!;
+      var fileEdit = _change.getFileEdit(testFile.path)!;
       _resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
       expect(_resultCode, expected);
       for (var additionalEntry in additionallyChangedFiles.entries) {
@@ -206,7 +206,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
     var positions = <Position>[];
     for (var search in searchStrings) {
       var offset = _resultCode.indexOf(search);
-      positions.add(Position(testFile, offset));
+      positions.add(Position(testFile.path, offset));
     }
     return positions;
   }

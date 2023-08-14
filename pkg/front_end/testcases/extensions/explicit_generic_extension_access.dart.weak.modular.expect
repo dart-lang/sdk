@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -27,38 +27,38 @@ extension Extension2<T extends core::num> on self::Class<T> {
   set field = self::Extension2|set#field;
 }
 static field core::String? Extension1|latestType;
-static method Extension1|get#field<T extends core::num>(lowered final self::Class<self::Extension1|get#field::T> #this) → self::Extension1|get#field::T {
+static extension-member method Extension1|get#field<T extends core::num>(lowered final self::Class<self::Extension1|get#field::T> #this) → self::Extension1|get#field::T {
   self::Extension1|latestType = "${self::Extension1|get#field::T}";
   return #this.{self::Class::field1}{self::Extension1|get#field::T};
 }
-static method Extension1|set#field<T extends core::num>(lowered final self::Class<self::Extension1|set#field::T> #this, self::Extension1|set#field::T value) → void {
+static extension-member method Extension1|set#field<T extends core::num>(lowered final self::Class<self::Extension1|set#field::T> #this, self::Extension1|set#field::T value) → void {
   self::Extension1|latestType = "${self::Extension1|set#field::T}";
   #this.{self::Class::field1} = value;
 }
-static method Extension1|method<T extends core::num>(lowered final self::Class<self::Extension1|method::T> #this) → self::Extension1|method::T {
+static extension-member method Extension1|method<T extends core::num>(lowered final self::Class<self::Extension1|method::T> #this) → self::Extension1|method::T {
   self::Extension1|latestType = "${self::Extension1|method::T}";
   return #this.{self::Class::field1}{self::Extension1|method::T};
 }
-static method Extension1|get#method<T extends core::num>(lowered final self::Class<self::Extension1|get#method::T> #this) → () → self::Extension1|get#method::T
+static extension-member method Extension1|get#method<T extends core::num>(lowered final self::Class<self::Extension1|get#method::T> #this) → () → self::Extension1|get#method::T
   return () → self::Extension1|get#method::T => self::Extension1|method<self::Extension1|get#method::T>(#this);
-static method Extension1|genericMethod<T extends core::num, S extends core::num>(lowered final self::Class<self::Extension1|genericMethod::T> #this, self::Extension1|genericMethod::S t) → self::Extension1|genericMethod::T {
+static extension-member method Extension1|genericMethod<T extends core::num, S extends core::num>(lowered final self::Class<self::Extension1|genericMethod::T> #this, self::Extension1|genericMethod::S t) → self::Extension1|genericMethod::T {
   self::Extension1|latestType = "${self::Extension1|genericMethod::T}:${self::Extension1|genericMethod::S}";
-  return #this.{self::Class::field1}{self::Extension1|genericMethod::T}.{core::num::+}(t){(core::num) → core::num} as{ForNonNullableByDefault} self::Extension1|genericMethod::T;
+  return #this.{self::Class::field1}{self::Extension1|genericMethod::T}.{core::num::+}(t){(core::num) → core::num} as self::Extension1|genericMethod::T;
 }
-static method Extension1|get#genericMethod<T extends core::num>(lowered final self::Class<self::Extension1|get#genericMethod::T> #this) → <S extends core::num>(S) → self::Extension1|get#genericMethod::T
+static extension-member method Extension1|get#genericMethod<T extends core::num>(lowered final self::Class<self::Extension1|get#genericMethod::T> #this) → <S extends core::num>(S) → self::Extension1|get#genericMethod::T
   return <S extends core::num>(S t) → self::Extension1|get#genericMethod::T => self::Extension1|genericMethod<self::Extension1|get#genericMethod::T, S>(#this, t);
-static method Extension2|get#field<T extends core::num>(lowered final self::Class<self::Extension2|get#field::T> #this) → self::Extension2|get#field::T
+static extension-member method Extension2|get#field<T extends core::num>(lowered final self::Class<self::Extension2|get#field::T> #this) → self::Extension2|get#field::T
   return #this.{self::Class::field2}{self::Extension2|get#field::T};
-static method Extension2|set#field<T extends core::num>(lowered final self::Class<self::Extension2|set#field::T> #this, self::Extension2|set#field::T value) → void {
+static extension-member method Extension2|set#field<T extends core::num>(lowered final self::Class<self::Extension2|set#field::T> #this, self::Extension2|set#field::T value) → void {
   #this.{self::Class::field2} = value;
 }
-static method Extension2|method<T extends core::num>(lowered final self::Class<self::Extension2|method::T> #this) → self::Extension2|method::T
+static extension-member method Extension2|method<T extends core::num>(lowered final self::Class<self::Extension2|method::T> #this) → self::Extension2|method::T
   return #this.{self::Class::field2}{self::Extension2|method::T};
-static method Extension2|get#method<T extends core::num>(lowered final self::Class<self::Extension2|get#method::T> #this) → () → self::Extension2|get#method::T
+static extension-member method Extension2|get#method<T extends core::num>(lowered final self::Class<self::Extension2|get#method::T> #this) → () → self::Extension2|get#method::T
   return () → self::Extension2|get#method::T => self::Extension2|method<self::Extension2|get#method::T>(#this);
-static method Extension2|genericMethod<T extends core::num, S extends core::num>(lowered final self::Class<self::Extension2|genericMethod::T> #this, self::Extension2|genericMethod::S t) → self::Extension2|genericMethod::T
-  return #this.{self::Class::field2}{self::Extension2|genericMethod::T}.{core::num::+}(t){(core::num) → core::num} as{ForNonNullableByDefault} self::Extension2|genericMethod::T;
-static method Extension2|get#genericMethod<T extends core::num>(lowered final self::Class<self::Extension2|get#genericMethod::T> #this) → <S extends core::num>(S) → self::Extension2|get#genericMethod::T
+static extension-member method Extension2|genericMethod<T extends core::num, S extends core::num>(lowered final self::Class<self::Extension2|genericMethod::T> #this, self::Extension2|genericMethod::S t) → self::Extension2|genericMethod::T
+  return #this.{self::Class::field2}{self::Extension2|genericMethod::T}.{core::num::+}(t){(core::num) → core::num} as self::Extension2|genericMethod::T;
+static extension-member method Extension2|get#genericMethod<T extends core::num>(lowered final self::Class<self::Extension2|get#genericMethod::T> #this) → <S extends core::num>(S) → self::Extension2|get#genericMethod::T
   return <S extends core::num>(S t) → self::Extension2|get#genericMethod::T => self::Extension2|genericMethod<self::Extension2|get#genericMethod::T, S>(#this, t);
 static method main() → dynamic {
   self::Class<core::int> c = new self::Class::•<core::int>(42, 87);

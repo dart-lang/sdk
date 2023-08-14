@@ -31,7 +31,7 @@ namespace dart {
 class NativeSymbols {
  public:
   NativeSymbols(const char* dso_name, void* buffer, size_t size)
-      : next_(NULL), dso_name_(dso_name) {
+      : next_(nullptr), dso_name_(dso_name) {
     num_entries_ = *reinterpret_cast<uint32_t*>(buffer);
     entries_ =
         reinterpret_cast<Entry*>(reinterpret_cast<uint32_t*>(buffer) + 1);
@@ -86,14 +86,14 @@ class NativeSymbols {
   DISALLOW_COPY_AND_ASSIGN(NativeSymbols);
 };
 
-static NativeSymbols* symbols_ = NULL;
+static NativeSymbols* symbols_ = nullptr;
 
 void NativeSymbolResolver::Init() {}
 
 void NativeSymbolResolver::Cleanup() {
   NativeSymbols* symbols = symbols_;
-  symbols_ = NULL;
-  while (symbols != NULL) {
+  symbols_ = nullptr;
+  while (symbols != nullptr) {
     NativeSymbols* next = symbols->next();
     delete symbols;
     symbols = next;
@@ -104,27 +104,27 @@ char* NativeSymbolResolver::LookupSymbolName(uword pc, uword* start) {
   Dl_info info;
   int r = dladdr(reinterpret_cast<void*>(pc), &info);
   if (r == 0) {
-    return NULL;
+    return nullptr;
   }
 
   auto const dso_name = info.dli_fname;
   const auto dso_base = reinterpret_cast<uword>(info.dli_fbase);
   const auto dso_offset = pc - dso_base;
 
-  for (NativeSymbols* symbols = symbols_; symbols != NULL;
+  for (NativeSymbols* symbols = symbols_; symbols != nullptr;
        symbols = symbols->next()) {
     uword symbol_start_offset;
     const char* symbol_name;
     if (symbols->Lookup(dso_name, dso_offset, &symbol_start_offset,
                         &symbol_name)) {
-      if (start != NULL) {
+      if (start != nullptr) {
         *start = symbol_start_offset + dso_base;
       }
       return strdup(symbol_name);
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void NativeSymbolResolver::FreeSymbolName(char* name) {

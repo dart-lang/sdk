@@ -2,138 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
-import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ErrorResolverTest);
-    defineReflectiveTests(PrefixedNamespaceTest);
     defineReflectiveTests(StrictModeTest);
     defineReflectiveTests(StrictModeWithoutNullSafetyTest);
     defineReflectiveTests(TypePropagationTest);
   });
-}
-
-@reflectiveTest
-class ErrorResolverTest extends PubPackageResolutionTest {
-  test_breakLabelOnSwitchMember() async {
-    await assertErrorsInCode(r'''
-class A {
-  void m(int i) {
-    switch (i) {
-      l: case 0:
-        break;
-      case 1:
-        break l;
-    }
-  }
-}''', [
-      error(CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 105, 1),
-    ]);
-  }
-
-  test_breakLabelOnSwitchMember_language218() async {
-    await assertErrorsInCode(r'''
-// @dart = 2.18
-class A {
-  void m(int i) {
-    switch (i) {
-      l: case 0:
-        break;
-      case 1:
-        break l;
-    }
-  }
-}''', [
-      error(CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 121, 1),
-    ]);
-  }
-
-  test_continueLabelOnSwitch() async {
-    await assertErrorsInCode(r'''
-class A {
-  void m(int i) {
-    l: switch (i) {
-      case 0:
-        continue l;
-    }
-  }
-}''', [
-      error(CompileTimeErrorCode.CONTINUE_LABEL_INVALID, 70, 11),
-    ]);
-  }
-
-  test_continueLabelOnSwitch_language218() async {
-    await assertErrorsInCode(r'''
-// @dart = 2.18
-class A {
-  void m(int i) {
-    l: switch (i) {
-      case 0:
-        continue l;
-    }
-  }
-}''', [
-      error(CompileTimeErrorCode.CONTINUE_LABEL_INVALID, 86, 11),
-    ]);
-  }
-
-  test_enclosingElement_invalidLocalFunction() async {
-    await assertErrorsInCode(r'''
-class C {
-  C() {
-    int get x => 0;
-  }
-}''', [
-      error(ParserErrorCode.EXPECTED_TOKEN, 26, 3),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 3),
-      error(HintCode.UNUSED_ELEMENT, 30, 1),
-      error(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 32, 2),
-    ]);
-
-    var constructor = findElement.unnamedConstructor('C');
-    var x = findElement.localFunction('x');
-    expect(x.enclosingElement, constructor);
-  }
-}
-
-@reflectiveTest
-class PrefixedNamespaceTest extends PubPackageResolutionTest {
-  void test_lookup_missing() {
-    ClassElement element = ElementFactory.classElement2('A');
-    PrefixedNamespace namespace = PrefixedNamespace('p', _toMap([element]));
-    expect(namespace.get('p.B'), isNull);
-  }
-
-  void test_lookup_missing_matchesPrefix() {
-    ClassElement element = ElementFactory.classElement2('A');
-    PrefixedNamespace namespace = PrefixedNamespace('p', _toMap([element]));
-    expect(namespace.get('p'), isNull);
-  }
-
-  void test_lookup_valid() {
-    ClassElement element = ElementFactory.classElement2('A');
-    PrefixedNamespace namespace = PrefixedNamespace('p', _toMap([element]));
-    expect(namespace.get('p.A'), same(element));
-  }
-
-  Map<String, Element> _toMap(List<Element> elements) {
-    Map<String, Element> map = HashMap<String, Element>();
-    for (Element element in elements) {
-      map[element.name!] = element;
-    }
-    return map;
-  }
 }
 
 /// The class `StrictModeTest` contains tests to ensure that the correct errors

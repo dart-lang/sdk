@@ -17,7 +17,11 @@ main() {
       isolateManager.debugSdkLibraries = false;
       isolateManager.debugExternalPackageLibraries = true;
       await isolateManager.registerIsolate(
-        adapter.mockService.isolate,
+        adapter.mockService.isolate1,
+        EventKind.kIsolateStart,
+      );
+      await isolateManager.registerIsolate(
+        adapter.mockService.isolate2,
         EventKind.kIsolateStart,
       );
     });
@@ -98,6 +102,23 @@ main() {
           contains(startsWith('setLibraryDebuggable(isolate1, libPkgLocal,')),
         ),
       );
+    });
+
+    test('clears thread data on resume', () async {
+      final thread1 = isolateManager.threads[0];
+      final thread2 = isolateManager.threads[1];
+
+      // Store some data in both threads.
+      final ref1 = thread1.storeData("test1");
+      final ref2 = thread2.storeData("test2");
+
+      // Resume thread1
+      thread1.paused = true; // Fake pause to allow resume.
+      await isolateManager.resumeThread(thread1.threadId);
+
+      // Ensure thread1 had data cleared, but thread2 did not.
+      expect(isolateManager.getStoredData(ref1), isNull);
+      expect(isolateManager.getStoredData(ref2), isNotNull);
     });
   });
 }

@@ -39,7 +39,7 @@ class SynchronousSocket {
   static void Close(intptr_t fd);
 
  private:
-  static const int kClosedFd = -1;
+  static constexpr int kClosedFd = -1;
 
   intptr_t fd_;
 

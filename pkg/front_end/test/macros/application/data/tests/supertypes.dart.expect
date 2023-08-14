@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "package:macro/macro.dart" as mac;
 import "dart:core" as core;
@@ -24,7 +24,7 @@ class B extends self::A {
   }
 }
 @#C1
-class M extends core::Object /*isMixinDeclaration*/  {
+abstract class M extends core::Object /*isMixinDeclaration*/  {
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ getSuperClass() → core::String {
     return "null";
   }

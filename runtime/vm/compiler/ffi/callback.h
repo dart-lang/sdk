@@ -11,6 +11,7 @@
 
 #include <platform/globals.h>
 
+#include "vm/object.h"
 #include "vm/raw_object.h"
 
 namespace dart {
@@ -21,7 +22,16 @@ namespace ffi {
 
 FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
                                    const Function& dart_target,
-                                   const Instance& exceptional_return);
+                                   const Instance& exceptional_return,
+                                   FfiCallbackKind kind);
+
+// Builds a mapping from `callback-id` to code object / ...
+//
+// This mapping is used when a ffi trampoline function is invoked in order to
+// find it's corresponding [Code] object as well as other metadata.
+void SetFfiCallbackCode(Thread* thread,
+                        const Function& ffi_trampoline,
+                        const Code& code);
 
 }  // namespace ffi
 

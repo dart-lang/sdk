@@ -18,12 +18,21 @@ class IsolateGroup;
 class UntaggedObject;
 
 #define OBJECT_POINTER_CORE_FUNCTIONS(type, ptr)                               \
-  type* operator->() { return this; }                                          \
-  const type* operator->() const { return this; }                              \
+  type* operator->() {                                                         \
+    return this;                                                               \
+  }                                                                            \
+  const type* operator->() const {                                             \
+    return this;                                                               \
+  }                                                                            \
   bool IsWellFormed() const {                                                  \
     const uword value = ptr;                                                   \
     return (value & kSmiTagMask) == 0 ||                                       \
            Utils::IsAligned(value - kHeapObjectTag, kWordSize);                \
+  }                                                                            \
+  bool IsImmediateObject() const {                                             \
+    ASSERT(IsWellFormed());                                                    \
+    const uword value = ptr;                                                   \
+    return (value & kSmiTagMask) != kHeapObjectTag;                            \
   }                                                                            \
   bool IsHeapObject() const {                                                  \
     ASSERT(IsWellFormed());                                                    \
@@ -37,8 +46,7 @@ class UntaggedObject;
     return (addr & kNewObjectAlignmentOffset) == kNewObjectAlignmentOffset;    \
   }                                                                            \
   bool IsNewObjectMayBeSmi() const {                                           \
-    static const uword kNewObjectBits =                                        \
-        (kNewObjectAlignmentOffset | kHeapObjectTag);                          \
+    const uword kNewObjectBits = (kNewObjectAlignmentOffset | kHeapObjectTag); \
     const uword addr = ptr;                                                    \
     return (addr & kObjectAlignmentMask) == kNewObjectBits;                    \
   }                                                                            \
@@ -50,19 +58,17 @@ class UntaggedObject;
   }                                                                            \
                                                                                \
   /* Like !IsHeapObject() || IsOldObject() but compiles to a single branch. */ \
-  bool IsSmiOrOldObject() const {                                              \
+  bool IsImmediateOrOldObject() const {                                        \
     ASSERT(IsWellFormed());                                                    \
-    static const uword kNewObjectBits =                                        \
-        (kNewObjectAlignmentOffset | kHeapObjectTag);                          \
+    const uword kNewObjectBits = (kNewObjectAlignmentOffset | kHeapObjectTag); \
     const uword addr = ptr;                                                    \
     return (addr & kObjectAlignmentMask) != kNewObjectBits;                    \
   }                                                                            \
                                                                                \
   /* Like !IsHeapObject() || IsNewObject() but compiles to a single branch. */ \
-  bool IsSmiOrNewObject() const {                                              \
+  bool IsImmediateOrNewObject() const {                                        \
     ASSERT(IsWellFormed());                                                    \
-    static const uword kOldObjectBits =                                        \
-        (kOldObjectAlignmentOffset | kHeapObjectTag);                          \
+    const uword kOldObjectBits = (kOldObjectAlignmentOffset | kHeapObjectTag); \
     const uword addr = ptr;                                                    \
     return (addr & kObjectAlignmentMask) != kOldObjectBits;                    \
   }                                                                            \
@@ -321,8 +327,12 @@ struct base_ptr_type<
   class Untagged##klass;                                                       \
   class klass##Ptr : public base##Ptr {                                        \
    public:                                                                     \
-    klass##Ptr* operator->() { return this; }                                  \
-    const klass##Ptr* operator->() const { return this; }                      \
+    klass##Ptr* operator->() {                                                 \
+      return this;                                                             \
+    }                                                                          \
+    const klass##Ptr* operator->() const {                                     \
+      return this;                                                             \
+    }                                                                          \
     Untagged##klass* untag() {                                                 \
       return reinterpret_cast<Untagged##klass*>(untagged_pointer());           \
     }                                                                          \
@@ -340,7 +350,9 @@ struct base_ptr_type<
     constexpr klass##Ptr(std::nullptr_t) : base##Ptr(nullptr) {} /* NOLINT */  \
     explicit klass##Ptr(const UntaggedObject* untagged)                        \
         : base##Ptr(reinterpret_cast<uword>(untagged) + kHeapObjectTag) {}     \
-    klass##Ptr Decompress(uword heap_base) const { return *this; }             \
+    klass##Ptr Decompress(uword heap_base) const {                             \
+      return *this;                                                            \
+    }                                                                          \
   };                                                                           \
   DEFINE_COMPRESSED_POINTER(klass, base)
 
@@ -390,7 +402,6 @@ DEFINE_TAGGED_POINTER(AbstractType, Instance)
 DEFINE_TAGGED_POINTER(Type, AbstractType)
 DEFINE_TAGGED_POINTER(FunctionType, AbstractType)
 DEFINE_TAGGED_POINTER(RecordType, AbstractType)
-DEFINE_TAGGED_POINTER(TypeRef, AbstractType)
 DEFINE_TAGGED_POINTER(TypeParameter, AbstractType)
 DEFINE_TAGGED_POINTER(Closure, Instance)
 DEFINE_TAGGED_POINTER(Number, Instance)

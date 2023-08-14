@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -31,7 +31,7 @@ class NumClass<T extends core::num, S extends self::NumClass::T = core::num> ext
     return this.{self::NumClass::field1}{self::NumClass::T}.{core::num::+}(invalid-expression "pkg/front_end/testcases/general/type_variable_bound_access.dart:22:36: Error: The getter 'length' isn't defined for the class 'num'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'length'.
   num method2() => field1 + field2.length;
-                                   ^^^^^^" in this.{self::NumClass::field2}{self::NumClass::S}{<unresolved>}.length as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+                                   ^^^^^^" in this.{self::NumClass::field2}{self::NumClass::S}{<unresolved>}.length as{TypeError,ForDynamic} core::num){(core::num) → core::num};
 }
 class Class<X5 extends self::Class::X4 = core::int, X4 extends self::Class::X3 = core::int, X3 extends self::Class::X2 = core::int, X2 extends self::Class::X1 = core::int, X1 extends self::Class::X0 = core::int, X0 extends core::int> extends core::Object {
   covariant-by-class field self::Class::X0 field0;

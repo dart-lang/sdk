@@ -1,0 +1,8 @@
+extension on int {
+  get getter => 42;
+  method() {}
+  set setter(_) {}
+}
+
+int getter = 42;
+int setter = 42;

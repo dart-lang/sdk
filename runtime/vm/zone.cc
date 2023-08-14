@@ -98,6 +98,7 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
   Segment* result = reinterpret_cast<Segment*>(memory->start());
 #ifdef DEBUG
   // Zap the entire allocated segment (including the header).
+  ASAN_UNPOISON(reinterpret_cast<void*>(result), size);
   memset(reinterpret_cast<void*>(result), kZapUninitializedByte, size);
 #endif
   result->next_ = next;
@@ -112,12 +113,13 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
 
 void Zone::Segment::DeleteSegmentList(Segment* head) {
   Segment* current = head;
-  while (current != NULL) {
+  while (current != nullptr) {
     intptr_t size = current->size();
     Segment* next = current->next();
     VirtualMemory* memory = current->memory();
 #ifdef DEBUG
     // Zap the entire current segment (including the header).
+    ASAN_UNPOISON(reinterpret_cast<void*>(current), current->size());
     memset(reinterpret_cast<void*>(current), kZapDeletedByte, current->size());
 #endif
     LSAN_UNREGISTER_ROOT_REGION(current, sizeof(*current));
@@ -166,6 +168,7 @@ void Zone::Reset() {
   segments_ = nullptr;
 
 #ifdef DEBUG
+  ASAN_UNPOISON(&buffer_, kInitialChunkSize);
   memset(&buffer_, kZapDeletedByte, kInitialChunkSize);
 #endif
   position_ = reinterpret_cast<uword>(&buffer_);
@@ -286,7 +289,7 @@ char* Zone::MakeCopyOfStringN(const char* str, intptr_t len) {
 }
 
 char* Zone::ConcatStrings(const char* a, const char* b, char join) {
-  intptr_t a_len = (a == NULL) ? 0 : strlen(a);
+  intptr_t a_len = (a == nullptr) ? 0 : strlen(a);
   const intptr_t b_len = strlen(b) + 1;  // '\0'-terminated.
   const intptr_t len = a_len + b_len;
   char* copy = Alloc<char>(len);
@@ -301,7 +304,7 @@ char* Zone::ConcatStrings(const char* a, const char* b, char join) {
 
 void Zone::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   Zone* zone = this;
-  while (zone != NULL) {
+  while (zone != nullptr) {
     zone->handles()->VisitObjectPointers(visitor);
     zone = zone->previous_;
   }

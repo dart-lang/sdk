@@ -751,53 +751,6 @@ abstract class PluginTestSupport {
     }
   }
 
-  /// Create a directory structure representing a plugin on disk, run the given
-  /// [test] function, and then remove the directory. The directory will have
-  /// the following structure:
-  /// ```
-  /// pluginDirectory
-  ///   pubspec.yaml
-  ///   bin
-  ///     plugin.dart
-  /// ```
-  /// The name of the plugin directory will be the [pluginName], if one is
-  /// provided (in order to allow more than one plugin to be created by a single
-  /// test). The 'plugin.dart' file will contain the given [content], or default
-  /// content that implements a minimal plugin if the contents are not given.
-  /// The [test] function will be passed the path of the directory that was
-  /// created.
-  Future<void> withPubspecPlugin(
-      {String? content,
-      String? pluginName,
-      required Future<void> Function(String) test}) async {
-    var tempDirectory =
-        io.Directory.systemTemp.createTempSync(pluginName ?? 'test_plugin');
-    try {
-      var pluginPath = tempDirectory.resolveSymbolicLinksSync();
-      //
-      // Create a pubspec.yaml file.
-      //
-      var pubspecFile = io.File(path.join(pluginPath, file_paths.pubspecYaml));
-      pubspecFile.writeAsStringSync(_getPubspecFileContent());
-      //
-      // Create the 'bin' directory.
-      //
-      var binPath = path.join(pluginPath, 'bin');
-      io.Directory(binPath).createSync();
-      //
-      // Create the 'plugin.dart' file.
-      //
-      var pluginFile = io.File(path.join(binPath, 'plugin.dart'));
-      pluginFile.writeAsStringSync(content ?? _defaultPluginContent());
-      //
-      // Run the actual test code.
-      //
-      await test(pluginPath);
-    } finally {
-      tempDirectory.deleteSync(recursive: true);
-    }
-  }
-
   /// Convert the [sdkPackageMap] into a plugin-specific map by applying the
   /// given relative path [delta] to each line.
   String _convertPackageMap(String sdkDirPath, List<String> sdkPackageMap) {
@@ -873,16 +826,6 @@ class MinimalPlugin extends ServerPlugin {
           _convertPackageMap(path.dirname(sdkPackagesFile.path), sdkPackageMap);
     }
     return packagesFileContent;
-  }
-
-  /// Return the content to be used for the 'pubspec.yaml' file.
-  String _getPubspecFileContent() {
-    return '''
-name: 'test'
-dependencies:
-  analyzer: any
-  analyzer_plugin: any
-''';
   }
 
   /// Return the path to the '.packages' file in the root of the SDK checkout.

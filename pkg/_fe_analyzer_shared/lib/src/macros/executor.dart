@@ -2,10 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization_extensions.dart';
+import 'package:dart_internal/extract_type_arguments.dart';
+import 'package:meta/meta.dart';
+
 import 'api.dart';
 // ignore: unused_import
 import 'bootstrap.dart'; // For doc comments only.
+import 'executor/introspection_impls.dart';
 import 'executor/serialization.dart';
+
+part 'executor/arguments.dart';
 
 /// The interface used by Dart language implementations, in order to load
 /// and execute macros, as well as produce library augmentations from those
@@ -57,6 +64,10 @@ abstract class MacroExecutor {
   /// Combines multiple [MacroExecutionResult]s into a single library
   /// augmentation file, and returns a [String] representing that file.
   ///
+  /// The [resolveDeclaration] argument should return the [TypeDeclaration] for
+  /// an [Identifier] pointing at a named type in the library being augmented
+  /// (note this could be a type that was added in the "types" phase).
+  ///
   /// The [resolveIdentifier] argument should return the import uri to be used
   /// for that identifier.
   ///
@@ -72,6 +83,7 @@ abstract class MacroExecutor {
   /// generation of fresh names for import prefixes and omitted types.
   String buildAugmentationLibrary(
       Iterable<MacroExecutionResult> macroResults,
+      TypeDeclaration Function(Identifier) resolveDeclaration,
       ResolvedIdentifier Function(Identifier) resolveIdentifier,
       TypeAnnotation? Function(OmittedTypeAnnotation) inferOmittedType,
       {Map<OmittedTypeAnnotation, String>? omittedTypes});
@@ -81,158 +93,9 @@ abstract class MacroExecutor {
   Future<void> close();
 }
 
-/// The arguments passed to a macro constructor.
-///
-/// All argument instances must be of type [Code] or a built-in value type that
-/// is serializable (num, bool, String, null, etc).
-class Arguments implements Serializable {
-  final List<Object?> positional;
-
-  final Map<String, Object?> named;
-
-  Arguments(this.positional, this.named);
-
-  factory Arguments.deserialize(Deserializer deserializer) {
-    deserializer
-      ..moveNext()
-      ..expectList();
-    List<Object?> positionalArgs = [
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
-        _deserializeArg(deserializer, alreadyMoved: true),
-    ];
-    deserializer
-      ..moveNext()
-      ..expectList();
-    Map<String, Object?> namedArgs = {
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
-        deserializer.expectString(): _deserializeArg(deserializer),
-    };
-    return new Arguments(positionalArgs, namedArgs);
-  }
-
-  static Object? _deserializeArg(Deserializer deserializer,
-      {bool alreadyMoved = false}) {
-    if (!alreadyMoved) deserializer.moveNext();
-    _ArgumentKind kind = _ArgumentKind.values[deserializer.expectInt()];
-    switch (kind) {
-      case _ArgumentKind.nil:
-        return null;
-      case _ArgumentKind.string:
-        deserializer.moveNext();
-        return deserializer.expectString();
-      case _ArgumentKind.bool:
-        deserializer.moveNext();
-        return deserializer.expectBool();
-      case _ArgumentKind.int:
-        deserializer.moveNext();
-        return deserializer.expectInt();
-      case _ArgumentKind.double:
-        deserializer.moveNext();
-        return deserializer.expectDouble();
-      case _ArgumentKind.list:
-        deserializer.moveNext();
-        deserializer.expectList();
-        return [
-          for (bool hasNext = deserializer.moveNext();
-              hasNext;
-              hasNext = deserializer.moveNext())
-            _deserializeArg(deserializer, alreadyMoved: true),
-        ];
-      case _ArgumentKind.set:
-        deserializer.moveNext();
-        deserializer.expectList();
-        return {
-          for (bool hasNext = deserializer.moveNext();
-              hasNext;
-              hasNext = deserializer.moveNext())
-            _deserializeArg(deserializer, alreadyMoved: true),
-        };
-      case _ArgumentKind.map:
-        deserializer.moveNext();
-        deserializer.expectList();
-        return {
-          for (bool hasNext = deserializer.moveNext();
-              hasNext;
-              hasNext = deserializer.moveNext())
-            _deserializeArg(deserializer, alreadyMoved: true):
-                _deserializeArg(deserializer),
-        };
-    }
-  }
-
-  @override
-  void serialize(Serializer serializer) {
-    serializer.startList();
-    for (Object? arg in positional) {
-      _serializeArg(arg, serializer);
-    }
-    serializer.endList();
-
-    serializer.startList();
-    for (MapEntry<String, Object?> arg in named.entries) {
-      serializer.addString(arg.key);
-      _serializeArg(arg.value, serializer);
-    }
-    serializer.endList();
-  }
-
-  static void _serializeArg(Object? arg, Serializer serializer) {
-    if (arg == null) {
-      serializer.addInt(_ArgumentKind.nil.index);
-    } else if (arg is String) {
-      serializer
-        ..addInt(_ArgumentKind.string.index)
-        ..addString(arg);
-    } else if (arg is int) {
-      serializer
-        ..addInt(_ArgumentKind.int.index)
-        ..addInt(arg);
-    } else if (arg is double) {
-      serializer
-        ..addInt(_ArgumentKind.double.index)
-        ..addDouble(arg);
-    } else if (arg is bool) {
-      serializer
-        ..addInt(_ArgumentKind.bool.index)
-        ..addBool(arg);
-    } else if (arg is List) {
-      serializer
-        ..addInt(_ArgumentKind.list.index)
-        ..startList();
-      for (Object? item in arg) {
-        _serializeArg(item, serializer);
-      }
-      serializer.endList();
-    } else if (arg is Set) {
-      serializer
-        ..addInt(_ArgumentKind.set.index)
-        ..startList();
-      for (Object? item in arg) {
-        _serializeArg(item, serializer);
-      }
-      serializer.endList();
-    } else if (arg is Map) {
-      serializer
-        ..addInt(_ArgumentKind.map.index)
-        ..startList();
-      for (MapEntry<Object?, Object?> entry in arg.entries) {
-        _serializeArg(entry.key, serializer);
-        _serializeArg(entry.value, serializer);
-      }
-      serializer.endList();
-    } else {
-      throw new UnsupportedError('Unsupported argument type $arg');
-    }
-  }
-}
-
 /// A resolved [Identifier], this is used when creating augmentation libraries
 /// to qualify identifiers where needed.
-class ResolvedIdentifier extends Identifier {
+class ResolvedIdentifier implements Identifier {
   /// The import URI for the library that defines the member that is referenced
   /// by this identifier.
   ///
@@ -289,9 +152,9 @@ abstract class MacroInstanceIdentifier implements Serializable {
 /// All modifications are expressed in terms of library augmentation
 /// declarations.
 abstract class MacroExecutionResult implements Serializable {
-  /// Any augmentations that should be applied to a class as a result of
-  /// executing a macro, indexed by the name of the class.
-  Map<String, Iterable<DeclarationCode>> get classAugmentations;
+  /// Any augmentations to enum values that should be applied to an enum as a
+  /// result of executing a macro, indexed by the identifier of the enum.
+  Map<Identifier, Iterable<DeclarationCode>> get enumValueAugmentations;
 
   /// Any augmentations that should be applied to the library as a result of
   /// executing a macro.
@@ -299,15 +162,22 @@ abstract class MacroExecutionResult implements Serializable {
 
   /// The names of any new types declared in [augmentations].
   Iterable<String> get newTypeNames;
+
+  /// Any augmentations that should be applied to a class as a result of
+  /// executing a macro, indexed by the identifier of the class.
+  Map<Identifier, Iterable<DeclarationCode>> get typeAugmentations;
 }
 
 /// Each of the possible types of declarations a macro can be applied to
 enum DeclarationKind {
-  clazz,
+  classType,
   constructor,
+  enumType,
+  enumValue,
   field,
   function,
   method,
+  mixinType,
   variable,
 }
 
@@ -321,16 +191,4 @@ enum Phase {
 
   /// This phase allows augmenting existing declarations.
   definitions,
-}
-
-/// Used for serializing and deserializing arguments.
-enum _ArgumentKind {
-  string,
-  bool,
-  double,
-  int,
-  list,
-  map,
-  set,
-  nil,
 }

@@ -313,9 +313,9 @@ class Label : public ZoneAllocated {
 
  private:
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
-  static const int kMaxUnresolvedBranches = 20;
+  static constexpr int kMaxUnresolvedBranches = 20;
 #else
-  static const int kMaxUnresolvedBranches = 1;  // Unused on non-Intel.
+  static constexpr int kMaxUnresolvedBranches = 1;  // Unused on non-Intel.
 #endif
   // Zero position_ means unused (neither bound nor linked to).
   // Thus we offset actual positions by the given bias to prevent zero
@@ -565,7 +565,7 @@ class AssemblerBuffer : public ValueObject {
   // The limit is set to kMinimumGap bytes before the end of the data area.
   // This leaves enough space for the longest possible instruction and allows
   // for a single, fast space check per instruction.
-  static const intptr_t kMinimumGap = 32;
+  static constexpr intptr_t kMinimumGap = 32;
 
   uword contents_;
   uword cursor_;
@@ -722,7 +722,10 @@ class AssemblerBase : public StackResource {
     kRelaxedNonAtomic,
   };
 
-  virtual void LoadAcquire(Register reg, Register address, int32_t offset) = 0;
+  virtual void LoadAcquire(Register reg,
+                           Register address,
+                           int32_t offset = 0,
+                           OperandSize size = kWordBytes) = 0;
 
   virtual void LoadFieldAddressForOffset(Register reg,
                                          Register base,
@@ -761,7 +764,7 @@ class AssemblerBase : public StackResource {
 #if defined(DART_COMPRESSED_POINTERS)
   virtual void LoadAcquireCompressed(Register dst,
                                      Register address,
-                                     int32_t offset) = 0;
+                                     int32_t offset = 0) = 0;
   virtual void LoadCompressedField(Register dst,
                                    const FieldAddress& address) = 0;
   virtual void LoadCompressedFieldFromOffset(Register dst,
@@ -781,7 +784,7 @@ class AssemblerBase : public StackResource {
 #else
   virtual void LoadAcquireCompressed(Register dst,
                                      Register address,
-                                     int32_t offset) {
+                                     int32_t offset = 0) {
     LoadAcquire(dst, address, offset);
   }
   virtual void LoadCompressedField(Register dst, const FieldAddress& address) {
@@ -814,16 +817,22 @@ class AssemblerBase : public StackResource {
                             int32_t offset = 0) = 0;
 
   // Loads nullability from an AbstractType [type] to [dst].
-  virtual void LoadAbstractTypeNullability(Register dst, Register type) = 0;
+  void LoadAbstractTypeNullability(Register dst, Register type);
   // Loads nullability from an AbstractType [type] and compares it
   // to [value]. Clobbers [scratch].
-  virtual void CompareAbstractTypeNullabilityWith(Register type,
-                                                  /*Nullability*/ int8_t value,
-                                                  Register scratch) = 0;
+  void CompareAbstractTypeNullabilityWith(Register type,
+                                          /*Nullability*/ int8_t value,
+                                          Register scratch);
 
   virtual void CompareImmediate(Register reg,
                                 target::word imm,
                                 OperandSize width = kWordBytes) = 0;
+
+  virtual void CompareWithMemoryValue(Register value,
+                                      Address address,
+                                      OperandSize size = kWordBytes) = 0;
+
+  virtual void AndImmediate(Register dst, target::word imm) = 0;
 
   virtual void LsrImmediate(Register dst, int32_t shift) = 0;
 
@@ -863,15 +872,7 @@ class AssemblerBase : public StackResource {
                                    Register hash,
                                    Register scratch = TMP) = 0;
 
-  void LoadTypeClassId(Register dst, Register src) {
-#if !defined(TARGET_ARCH_IA32)
-    EnsureHasClassIdInDEBUG(kTypeCid, src, TMP);
-#endif
-    LoadFieldFromOffset(dst, src,
-                        compiler::target::AbstractType::flags_offset(),
-                        kUnsignedFourBytes);
-    LsrImmediate(dst, compiler::target::UntaggedType::kTypeClassIdShift);
-  }
+  void LoadTypeClassId(Register dst, Register src);
 
   virtual void EnsureHasClassIdInDEBUG(intptr_t cid,
                                        Register src,

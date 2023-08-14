@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddExtensionOverride extends MultiCorrectionProducer {
   @override
-  Future<List<CorrectionProducer>> get producers async {
+  Future<List<ResolvedCorrectionProducer>> get producers async {
     final node = this.node;
     if (node is! SimpleIdentifier) return const [];
     final parent = node.parent;
@@ -21,7 +21,7 @@ class AddExtensionOverride extends MultiCorrectionProducer {
 
     var extensions =
         libraryElement.accessibleExtensions.hasMemberWithBaseName(node.name);
-    var producers = <CorrectionProducer>[];
+    var producers = <ResolvedCorrectionProducer>[];
     for (var extension in extensions) {
       var name = extension.extension.name;
       if (name != null) {
@@ -34,7 +34,7 @@ class AddExtensionOverride extends MultiCorrectionProducer {
 
 /// A correction processor that can make one of the possible changes computed by
 /// the [AddExtensionOverride] producer.
-class _AddOverride extends CorrectionProducer {
+class _AddOverride extends ResolvedCorrectionProducer {
   /// The expression around which to add the override.
   final Expression _expression;
 

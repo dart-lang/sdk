@@ -12,7 +12,9 @@ class A {
   }
 
   void set a(var val) {
-    /*@compile-error=unspecified*/
+    //     ^
+    // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+    // [cfe] 'a' is already declared in this scope.
     int i = val;
   }
 }

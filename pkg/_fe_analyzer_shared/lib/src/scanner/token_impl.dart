@@ -4,6 +4,8 @@
 
 library _fe_analyzer_shared.scanner.token;
 
+import 'dart:typed_data' show Uint8List;
+
 import 'token.dart'
     show
         DocumentationCommentToken,
@@ -67,7 +69,7 @@ class StringTokenImpl extends SimpleToken implements StringToken {
    * Creates a lazy string token. If [asciiOnly] is false, the byte array
    * is passed through a UTF-8 decoder.
    */
-  StringTokenImpl.fromUtf8Bytes(TokenType type, List<int> data, int start,
+  StringTokenImpl.fromUtf8Bytes(TokenType type, Uint8List data, int start,
       int end, bool asciiOnly, int charOffset,
       {CommentToken? precedingComments})
       : super(type, charOffset, precedingComments) {
@@ -159,7 +161,7 @@ class LanguageVersionTokenImpl extends CommentTokenImpl
             TokenType.SINGLE_LINE_COMMENT, string, start, end, tokenStart,
             canonicalize: canonicalize);
 
-  LanguageVersionTokenImpl.fromUtf8Bytes(List<int> bytes, int start, int end,
+  LanguageVersionTokenImpl.fromUtf8Bytes(Uint8List bytes, int start, int end,
       int tokenStart, this.major, this.minor)
       : super.fromUtf8Bytes(
             TokenType.SINGLE_LINE_COMMENT, bytes, start, end, true, tokenStart);
@@ -188,10 +190,10 @@ class DartDocToken extends CommentTokenImpl
 /**
  * This class represents the necessary information to compute a substring
  * lazily. The substring can either originate from a string or from
- * a [:List<int>:] of UTF-8 bytes.
+ * a [:Uint8List:] of UTF-8 bytes.
  */
 abstract class _LazySubstring {
-  /** The original data, either a string or a List<int> */
+  /** The original data, either a string or a Uint8List */
   get data;
 
   int get start;

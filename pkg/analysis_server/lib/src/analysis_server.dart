@@ -16,6 +16,7 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
+import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/protocol_server.dart' as legacy
     show MessageType;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
@@ -47,6 +48,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
@@ -66,6 +68,10 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:watcher/watcher.dart';
+
+/// The function for sending `openUri` request to the client.
+typedef OpenUriNotificationSender = FutureOr<void> Function(Uri uri);
 
 /// Implementations of [AnalysisServer] implement a server that listens
 /// on a [CommunicationChannel] for analysis messages and process them.
@@ -289,8 +295,12 @@ abstract class AnalysisServer {
   Map<Folder, analysis.AnalysisDriver> get driverMap =>
       contextManager.driverMap;
 
-  /// Whether or not the client supports openUri requests/notifications.
-  bool get supportsOpenUriNotification;
+  /// Returns the function that can send `openUri` request to the client.
+  /// Returns `null` is the client does not support it.
+  OpenUriNotificationSender? get openUriNotificationSender;
+
+  /// Returns owners of files.
+  OwnedFiles get ownedFiles => contextManager.ownedFiles;
 
   /// Whether or not the client supports showMessageRequest to show the user
   /// a message and allow them to respond by clicking buttons.
@@ -313,6 +323,10 @@ abstract class AnalysisServer {
   void afterContextsCreated() {
     isFirstAnalysisSinceContextsBuilt = true;
     addContextsToDeclarationsTracker();
+  }
+
+  void afterContextsDestroyed() {
+    declarationsTracker?.discardContexts();
   }
 
   /// Broadcast a request built from the given [params] to all of the plugins
@@ -680,9 +694,6 @@ abstract class AnalysisServer {
     return null;
   }
 
-  /// Sends a notification/request to the client asking it to open [uri].
-  FutureOr<void> sendOpenUriNotification(Uri uri);
-
   /// Sends an error notification to the user.
   void sendServerErrorNotification(
     String message,
@@ -727,6 +738,108 @@ abstract class AnalysisServer {
       }
     }
     return null;
+  }
+}
+
+/// ContextManager callbacks that operate on the base server regardless
+/// of protocol.
+abstract class CommonServerContextManagerCallbacks
+    extends ContextManagerCallbacks {
+  /// The [ResourceProvider] by which paths are converted into [Resource]s.
+  final OverlayResourceProvider resourceProvider;
+
+  /// The set of files for which notifications were sent.
+  final Set<String> filesToFlush = {};
+
+  CommonServerContextManagerCallbacks(this.resourceProvider);
+
+  AnalysisServer get analysisServer;
+
+  @override
+  @mustCallSuper
+  void afterContextsCreated() {
+    analysisServer.afterContextsCreated();
+  }
+
+  @override
+  @mustCallSuper
+  void afterContextsDestroyed() {
+    flushResults(filesToFlush.toList());
+    filesToFlush.clear();
+    analysisServer.afterContextsDestroyed();
+  }
+
+  @override
+  void afterWatchEvent(WatchEvent event) {}
+
+  @override
+  @mustCallSuper
+  void applyFileRemoved(String file) {
+    if (filesToFlush.remove(file)) {
+      flushResults([file]);
+    }
+  }
+
+  @override
+  @mustCallSuper
+  void broadcastWatchEvent(WatchEvent event) {
+    analysisServer.notifyDeclarationsTracker(event.path);
+    analysisServer.notifyFlutterWidgetDescriptions(event.path);
+    if (AnalysisServer.supportsPlugins) {
+      analysisServer.pluginManager.broadcastWatchEvent(event);
+    }
+  }
+
+  void flushResults(List<String> files);
+
+  @mustCallSuper
+  void handleFileResult(FileResult result) {
+    var path = result.path;
+    filesToFlush.add(path);
+
+    if (result is AnalysisResultWithErrors) {
+      if (analysisServer.isAnalyzed(path)) {
+        final serverErrors = server.doAnalysisError_listFromEngine(result);
+        recordAnalysisErrors(path, serverErrors);
+      }
+    }
+
+    if (result is ResolvedUnitResult) {
+      handleResolvedUnitResult(result);
+    }
+  }
+
+  void handleResolvedUnitResult(ResolvedUnitResult result);
+
+  @override
+  @mustCallSuper
+  void listenAnalysisDriver(analysis.AnalysisDriver driver) {
+    driver.results.listen((result) {
+      if (result is FileResult) {
+        handleFileResult(result);
+      }
+    });
+    driver.exceptions.listen(analysisServer.logExceptionResult);
+    driver.priorityFiles = analysisServer.priorityFiles.toList();
+  }
+
+  @override
+  void pubspecChanged(String path) {
+    analysisServer.pubPackageService
+        .fetchPackageVersionsViaPubOutdated(path, pubspecWasModified: true);
+  }
+
+  @override
+  void pubspecRemoved(String path) {
+    analysisServer.pubPackageService.flushPackageCaches(path);
+  }
+
+  @override
+  @mustCallSuper
+  void recordAnalysisErrors(String path, List<server.AnalysisError> errors) {
+    filesToFlush.add(path);
+    analysisServer.notificationManager
+        .recordAnalysisErrors(NotificationManager.serverId, path, errors);
   }
 }
 

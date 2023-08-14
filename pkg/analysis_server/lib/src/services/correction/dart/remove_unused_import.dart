@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class RemoveUnusedImport extends CorrectionProducer {
+class RemoveUnusedImport extends ResolvedCorrectionProducer {
   @override
   // Bulk application is supported by a distinct import cleanup fix phase.
   bool get canBeAppliedInBulk => false;

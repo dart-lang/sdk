@@ -34,10 +34,8 @@ CastPattern
     matchedValueType: int
   asToken: as
   type: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   matchedValueType: dynamic
 ''');
@@ -64,10 +62,8 @@ CastPattern
     matchedValueType: int
   asToken: as
   type: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   matchedValueType: dynamic
 ''');
@@ -95,10 +91,8 @@ PatternVariableDeclaration
         matchedValueType: int
       asToken: as
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       matchedValueType: dynamic
     rightParenthesis: )

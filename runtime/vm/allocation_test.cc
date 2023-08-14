@@ -95,6 +95,8 @@ ISOLATE_UNIT_TEST_CASE(StackAllocatedLongJump) {
   if (setjmp(*jump.Set()) == 0) {
     StackAllocatedLongJumpHelper(&data, &jump);
     UNREACHABLE();
+  } else {
+    ASSERT(Error::Handle(thread->StealStickyError()).IsLanguageError());
   }
   EXPECT_EQ(3, data);
 }
@@ -146,6 +148,8 @@ ISOLATE_UNIT_TEST_CASE(StackResourceLongJump) {
     if (setjmp(*jump.Set()) == 0) {
       StackResourceLongJumpHelper(&data, &jump);
       UNREACHABLE();
+    } else {
+      ASSERT(Error::Handle(thread->StealStickyError()).IsLanguageError());
     }
     EXPECT_EQ(7, data);
   }

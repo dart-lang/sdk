@@ -16,6 +16,7 @@ import '../fasta_codes.dart'
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         noLength;
+import '../kernel/body_builder_context.dart';
 import '../operator.dart';
 import '../problems.dart';
 import '../scope.dart';
@@ -89,6 +90,10 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   Extension get extension => isPatch ? origin._extension : _extension;
 
   @override
+  BodyBuilderContext get bodyBuilderContext =>
+      new ExtensionBodyBuilderContext(this);
+
+  @override
   Annotatable get annotatable => extension;
 
   /// Builds the [Extension] for this extension build and inserts the members
@@ -118,6 +123,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     switch (memberKind) {
       case BuiltMemberKind.Constructor:
       case BuiltMemberKind.RedirectingFactory:
+      case BuiltMemberKind.Factory:
       case BuiltMemberKind.Field:
       case BuiltMemberKind.Method:
       case BuiltMemberKind.InlineClassConstructor:
@@ -127,6 +133,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       case BuiltMemberKind.InlineClassOperator:
       case BuiltMemberKind.InlineClassTearOff:
       case BuiltMemberKind.InlineClassFactory:
+      case BuiltMemberKind.InlineClassRedirectingFactory:
         unhandled("${member.runtimeType}:${memberKind}", "buildMembers",
             memberBuilder.charOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
@@ -151,8 +158,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         kind = ExtensionMemberKind.TearOff;
         break;
     }
-    // ignore: unnecessary_null_comparison
-    assert(kind != null);
     extension.members.add(new ExtensionMemberDescriptor(
         name: new Name(name, libraryBuilder.library),
         member: memberReference,

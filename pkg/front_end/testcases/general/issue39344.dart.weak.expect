@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -32,39 +32,39 @@ class Class<T extends self::A> extends core::Object {
     : super core::Object::•()
     ;
   method method1a(covariant-by-class self::Class::T t) → void {
-    if(t is{ForNonNullableByDefault} self::B) {
+    if(t is self::B) {
       core::List<self::Class::T> ys = <self::Class::T>[t{self::Class::T & self::B /* '!' & '!' = '!' */}];
       self::xs = invalid-expression "pkg/front_end/testcases/general/issue39344.dart:19:12: Error: A value of type 'List<T>' can't be assigned to a variable of type 'List<B>'.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/general/issue39344.dart'.
       xs = ys;
-           ^" in ys as{TypeError,ForNonNullableByDefault} core::List<self::B>;
+           ^" in ys as{TypeError} core::List<self::B>;
     }
   }
   method method1b(covariant-by-class self::Class::T t) → void {
-    if(t is{ForNonNullableByDefault} self::B) {
+    if(t is self::B) {
       core::List<core::List<self::Class::T>> yss = <core::List<self::Class::T>>[<self::Class::T>[t{self::Class::T & self::B /* '!' & '!' = '!' */}]];
       self::xss = invalid-expression "pkg/front_end/testcases/general/issue39344.dart:31:13: Error: A value of type 'List<List<T>>' can't be assigned to a variable of type 'List<List<B>>'.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/general/issue39344.dart'.
       xss = yss;
-            ^" in yss as{TypeError,ForNonNullableByDefault} core::List<core::List<self::B>>;
+            ^" in yss as{TypeError} core::List<core::List<self::B>>;
     }
   }
   method method2a(covariant-by-class self::Class::T t) → void {
     dynamic alias;
-    if(t is{ForNonNullableByDefault} self::B) {
+    if(t is self::B) {
       core::List<self::Class::T> ys = <self::Class::T>[t{self::Class::T & self::B /* '!' & '!' = '!' */}];
       alias = ys;
-      self::xs = alias as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<self::B>;
+      self::xs = alias as{TypeError,ForDynamic} core::List<self::B>;
     }
   }
   method method2b(covariant-by-class self::Class::T t) → void {
     dynamic alias;
-    if(t is{ForNonNullableByDefault} self::B) {
+    if(t is self::B) {
       core::List<core::List<self::Class::T>> yss = <core::List<self::Class::T>>[<self::Class::T>[t{self::Class::T & self::B /* '!' & '!' = '!' */}]];
       alias = yss;
-      self::xss = alias as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::List<self::B>>;
+      self::xss = alias as{TypeError,ForDynamic} core::List<core::List<self::B>>;
     }
   }
 }

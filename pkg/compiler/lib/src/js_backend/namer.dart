@@ -20,6 +20,7 @@ import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
+import '../elements/indexed.dart' show IndexedLibrary;
 import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
@@ -238,11 +239,6 @@ class Namer extends ModularNamer {
   /// Maps private names to a library that may use that name without prefixing
   /// itself. Used for building proposed names.
   final Map<String, LibraryEntity> shortPrivateNameOwners = {};
-
-  /// Used to store unique keys for library names. Keys are not used as names,
-  /// nor are they visible in the output. The only serve as an internal
-  /// key into maps.
-  final Map<LibraryEntity, String> _libraryKeys = {};
 
   late final _TypeConstantRepresentationVisitor _typeConstantRepresenter =
       _TypeConstantRepresentationVisitor(this);
@@ -617,16 +613,8 @@ class Namer extends ModularNamer {
   /// Generates a unique key for [library].
   ///
   /// Keys are meant to be used in maps and should not be visible in the output.
-  String _generateLibraryKey(LibraryEntity library) {
-    return _libraryKeys.putIfAbsent(library, () {
-      String keyBase = library.name!;
-      int counter = 0;
-      String key = keyBase;
-      while (_libraryKeys.values.contains(key)) {
-        key = "$keyBase${counter++}";
-      }
-      return key;
-    });
+  int _generateLibraryKey(LibraryEntity library) {
+    return (library as IndexedLibrary).libraryIndex;
   }
 
   jsAst.Name _disambiguateGlobalMember(MemberEntity element) {
@@ -675,7 +663,8 @@ class Namer extends ModularNamer {
     // Build a string encoding the library name, if the name is private.
     String libraryKey = originalName.isPrivate
         ? _generateLibraryKey(_elementEnvironment
-            .lookupLibrary(originalName.uri!, required: true)!)
+                .lookupLibrary(originalName.uri!, required: true)!)
+            .toString()
         : '';
 
     // In the unique key, separate the name parts by '@'.
@@ -1329,6 +1318,24 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
+  void visitJavaScriptObject(JavaScriptObjectConstantValue constant, [_]) {
+    addRoot('Object');
+    int length = constant.length;
+    if (constant.length == 0) {
+      add('empty');
+    } else if (length * 2 > MAX_FRAGMENTS) {
+      failed = true;
+    } else {
+      for (int i = 0; i < length; i++) {
+        _visit(constant.keys[i]);
+        if (failed) break;
+        _visit(constant.values[i]);
+        if (failed) break;
+      }
+    }
+  }
+
+  @override
   void visitConstructed(ConstructedConstantValue constant, [_]) {
     addRoot(constant.type.element.name);
 
@@ -1454,6 +1461,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   static const int _seedList = 10;
   static const int _seedSet = 11;
   static const int _seedMap = 12;
+  static const int _seedJavaScriptObject = 13;
 
   ConstantCanonicalHasher(this._namer, this._closedWorld);
 
@@ -1555,6 +1563,14 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   int visitInterceptor(InterceptorConstantValue constant, [_]) {
     String typeName = constant.cls.name;
     return _hashString(_seedInterceptor, typeName);
+  }
+
+  @override
+  int visitJavaScriptObject(JavaScriptObjectConstantValue constant, [_]) {
+    int hash = _seedJavaScriptObject;
+    hash = _hashList(hash, constant.keys);
+    hash = _hashList(hash, constant.values);
+    return hash;
   }
 
   @override
@@ -2381,19 +2397,23 @@ const List<String> reservedPropertySymbols = [
 /// This set is so [DeferredHolderFinalizer] can use names like:
 /// [A-Z][_0-9a-zA-Z]* without collisions
 const Set<String> reservedCapitalizedGlobalSymbols = {
-  // Section references are from Ecma-262
+  // Section references are from Ecma-262, 13th Ed.
   // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
 
-  // 15.1.1 Value Properties of the Global Object
+  // 19.1 Value Properties of the Global Object
   "NaN", "Infinity",
 
-  // 15.1.4 Constructor Properties of the Global Object
-  "Object", "Function", "Array", "String", "Boolean", "Number", "Date",
-  "RegExp", "Symbol", "Error", "EvalError", "RangeError", "ReferenceError",
-  "SyntaxError", "TypeError", "URIError",
+  // 19.3 Constructor Properties of the Global Object
+  "AggregateError", "Array", "ArrayBuffer", "BigInt", "BigInt64Array",
+  "BigUint64Array", "Boolean", "DataView", "Date", "Error", "EvalError",
+  "FinalizationRegistry", "Float32Array", "Float64Array", "Function",
+  "Int8Array", "Int16Array", "Int32Array", "Map", "Number", "Object", "Promise",
+  "Proxy", "RangeError", "ReferenceError", "RegExp", "Set", "SharedArrayBuffer",
+  "String", "Symbol", "SyntaxError", "Uint8Array", "Uint8ClampedArray",
+  "Uint16Array", "Uint32Array", "URIError", "WeakMap", "WeakRef", "WeakSet",
 
-  // 15.1.5 Other Properties of the Global Object
-  "Math",
+  // 19.4 Other Properties of the Global Object
+  "Atomics", "JSON", "Math", "Reflect",
 
   // Window props (https://developer.mozilla.org/en/DOM/window)
   "Components",
@@ -2426,9 +2446,6 @@ const Set<String> reservedCapitalizedGlobalSymbols = {
   "Packages", "JavaObject", "JavaClass",
   "JavaArray", "JavaMember",
 
-  // ES6 collections.
-  "Map", "Set",
-
   // Some additional names
   "Isolate",
 };
@@ -2440,7 +2457,7 @@ const List<String> reservedGlobalSymbols = [
   // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
 
   // 15.1.1 Value Properties of the Global Object
-  "undefined",
+  "globalThis", "undefined",
 
   // 15.1.2 Function Properties of the Global Object
   "eval", "parseInt", "parseFloat", "isNaN", "isFinite",

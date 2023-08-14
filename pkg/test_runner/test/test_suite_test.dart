@@ -27,8 +27,8 @@ void testNnbdRequirements() {
     parseTestFile("/\/ Requirements=nnbd-strong", path: "strong_test.dart"),
   ];
 
-  expectTestCases(
-      [], testFiles, ["language/none_test", "language/legacy_test"]);
+  expectTestCases([], testFiles,
+      ["language/none_test", "language/nnbd_test", "language/strong_test"]);
 
   expectTestCases(["--nnbd=legacy"], testFiles,
       ["language/none_test", "language/legacy_test"]);

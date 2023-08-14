@@ -4,7 +4,6 @@
 //
 // @dart=2.19
 
-// SharedOptions=--enable-experiment=patterns,records
 // Enable the experiments even though the test itself is pinned to 2.19 since
 // the error messages relate to patterns.
 

@@ -131,7 +131,12 @@ const Map<String, LibraryInfo> libraries = const {
     'js_interop/js_interop.dart',
     categories: 'Client',
     maturity: Maturity.EXPERIMENTAL,
-    documented: false,
+    platforms: DART2JS_PLATFORM,
+  ),
+  'js_interop_unsafe': const LibraryInfo(
+    'js_interop_unsafe/js_interop_unsafe.dart',
+    categories: 'Client',
+    maturity: Maturity.EXPERIMENTAL,
     platforms: DART2JS_PLATFORM,
   ),
   'js_util': const LibraryInfo(
@@ -267,8 +272,8 @@ const Map<String, LibraryInfo> libraries = const {
     documented: false,
     platforms: DART2JS_PLATFORM,
   ),
-  '_async_await_error_codes': const LibraryInfo(
-    '_internal/js_runtime/lib/synced/async_await_error_codes.dart',
+  '_async_status_codes': const LibraryInfo(
+    '_internal/js_runtime/lib/synced/async_status_codes.dart',
     categories: '',
     documented: false,
     platforms: DART2JS_PLATFORM,

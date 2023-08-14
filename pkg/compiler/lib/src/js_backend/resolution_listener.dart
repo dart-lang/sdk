@@ -11,7 +11,7 @@ import '../deferred_load/deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueuerListener;
-import '../kernel/kelements.dart' show KClass;
+import '../js_model/elements.dart' show JClass;
 import '../native/enqueue.dart';
 import '../options.dart' show CompilerOptions;
 import '../universe/call_structure.dart' show CallStructure;
@@ -420,7 +420,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   @override
   WorldImpact registerInstantiatedClass(ClassEntity cls) {
-    _fieldAnalysis.registerInstantiatedClass(cls as KClass);
+    _fieldAnalysis.registerInstantiatedClass(cls as JClass);
     return _processClass(cls);
   }
 

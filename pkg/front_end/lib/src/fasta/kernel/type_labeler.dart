@@ -31,9 +31,6 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   /// pretty-printed, the returned list can be converted to its string
   /// representation (with labels on duplicated names) by the `join()` method.
   List<Object> labelType(DartType type) {
-    // TODO(askesc): Remove null check when we are completely null clean here.
-    // ignore: unnecessary_null_comparison
-    if (type == null) return ["null-type"];
     result = [];
     type.accept(this);
     return result;
@@ -44,9 +41,6 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   /// pretty-printed, the returned list can be converted to its string
   /// representation (with labels on duplicated names) by the `join()` method.
   List<Object> labelConstant(Constant constant) {
-    // TODO(askesc): Remove null check when we are completely null clean here.
-    // ignore: unnecessary_null_comparison
-    if (constant == null) return ["null-constant"];
     result = [];
     constant.accept(this);
     return result;

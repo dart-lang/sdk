@@ -95,7 +95,7 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url,
                                            intptr_t line_number);
 
 /**
- * Returns in \trace the current stack trace, or NULL if the
+ * Returns in \trace the current stack trace, or nullptr if the
  * VM is not paused.
  *
  * Requires there to be a current isolate.
@@ -147,7 +147,7 @@ DART_EXPORT Dart_Handle Dart_GetActivationFrame(Dart_StackTrace trace,
  * \col_number receives the column number in the script, or -1 if column
  *    information is not available
  *
- * Any or all of the out parameters above may be NULL.
+ * Any or all of the out parameters above may be nullptr.
  *
  * Requires there to be a current isolate.
  *

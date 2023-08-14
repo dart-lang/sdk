@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;

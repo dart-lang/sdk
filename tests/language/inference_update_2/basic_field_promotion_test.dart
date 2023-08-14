@@ -34,7 +34,7 @@ abstract class D extends C {
 
   testPrivateFinalFieldSuperAccess() {
     if (super._privateFinalField != null) {
-      var x = _privateFinalField;
+      var x = super._privateFinalField;
       // `x` has type `int` so this is ok
       acceptsInt(x);
     }

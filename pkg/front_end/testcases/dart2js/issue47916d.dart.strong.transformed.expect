@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -18,7 +18,6 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   static factory •<T extends core::Object? = dynamic>() → self::A<self::A::•::T%>
     return invalid-expression "pkg/front_end/testcases/dart2js/issue47916d.dart:6:17: Error: Cyclic definition of factory 'A'.
   const factory A() = B;
@@ -26,7 +25,6 @@ abstract class A<T extends core::Object? = dynamic> extends core::Object {
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>;
 }
 abstract class B<T extends core::Object? = dynamic> extends core::Object implements self::A<self::B::T%> {
-  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
   static factory •<T extends core::Object? = dynamic>() → self::B<self::B::•::T%>
     return invalid-expression "pkg/front_end/testcases/dart2js/issue47916d.dart:10:17: Error: Cyclic definition of factory 'B'.
   const factory B() = C;
@@ -34,7 +32,6 @@ abstract class B<T extends core::Object? = dynamic> extends core::Object impleme
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self::B<self::B::_#new#tearOff::T%>;
 }
 class C<T extends core::Object? = dynamic> extends core::Object implements self::B<self::C::T%> {
-  static final field dynamic _redirecting# = <dynamic>[#C3]/*isLegacy*/;
   static factory •<T extends core::Object? = dynamic>() → self::C<self::C::•::T%>
     return invalid-expression "pkg/front_end/testcases/dart2js/issue47916d.dart:14:17: Error: Cyclic definition of factory 'C'.
   const factory C() = A;
@@ -42,17 +39,14 @@ class C<T extends core::Object? = dynamic> extends core::Object implements self:
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self::C<self::C::_#new#tearOff::T%>;
 }
 static method test() → dynamic {
-  #C4;
-  #C5;
-  #C6;
+  #C1;
+  #C2;
+  #C3;
 }
 static method main() → dynamic {}
 
 constants  {
-  #C1 = constructor-tearoff self::A::•
-  #C2 = constructor-tearoff self::B::•
-  #C3 = constructor-tearoff self::C::•
-  #C4 = static-tearoff self::A::_#new#tearOff
-  #C5 = static-tearoff self::B::_#new#tearOff
-  #C6 = static-tearoff self::C::_#new#tearOff
+  #C1 = static-tearoff self::A::_#new#tearOff
+  #C2 = static-tearoff self::B::_#new#tearOff
+  #C3 = static-tearoff self::C::_#new#tearOff
 }

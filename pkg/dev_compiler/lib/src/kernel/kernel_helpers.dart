@@ -101,8 +101,9 @@ bool isBuiltinAnnotation(
 ///
 /// For example:
 ///
-/// - `@JS()` would return the "JS" class in "package:js".
-/// - `@anonymous` would return the "_Anonymous" class in "package:js".
+/// - `@JS()` would return the "JS" class in "dart:_js_annotations".
+/// - `@anonymous` would return the "_Anonymous" class in
+/// "dart:_js_annotations".
 ///
 /// This function works regardless of whether the CFE is evaluating constants,
 /// or whether the constant is a field reference (such as "anonymous" above).
@@ -347,4 +348,21 @@ class TypeParameterFinder extends RecursiveVisitor<void> {
   @override
   void visitTypeParameterType(TypeParameterType node) =>
       _found.add(node.parameter);
+}
+
+/// Collects [InterfaceType] nodes that appear in in a DartType.
+class InterfaceTypeExtractor extends RecursiveVisitor<DartType> {
+  final Set<InterfaceType> _found = {};
+
+  @override
+  void visitInterfaceType(InterfaceType node) {
+    _found.add(node);
+    node.visitChildren(this);
+  }
+
+  /// Returns all [InterfaceType]s that appear in [type].
+  Iterable<InterfaceType> extract(DartType type) {
+    type.accept(this);
+    return _found;
+  }
 }

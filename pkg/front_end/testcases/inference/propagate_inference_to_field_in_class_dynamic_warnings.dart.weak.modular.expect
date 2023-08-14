@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
@@ -10,7 +10,7 @@ class A extends core::Object {
 }
 static method main() → dynamic {
   dynamic a = new self::A::•();
-  self::A b = a as{TypeError,ForDynamic,ForNonNullableByDefault} self::A;
+  self::A b = a as{TypeError,ForDynamic} self::A;
   core::print(a{dynamic}.x);
   core::print(a{dynamic}.x{dynamic}.+(2));
 }

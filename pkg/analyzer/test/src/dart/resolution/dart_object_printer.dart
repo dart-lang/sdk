@@ -77,7 +77,9 @@ class DartObjectPrinter {
           }
         });
       } else if (state is RecordState) {
-        _writeRecord(state);
+        _writeRecord(type, state);
+      } else if (state is FunctionState) {
+        _writeFunction(type, state);
       } else {
         throw UnimplementedError();
       }
@@ -122,6 +124,20 @@ class DartObjectPrinter {
     _writelnWithIndent('$name: $referenceStr');
   }
 
+  void _writeFunction(DartType type, FunctionState state) {
+    final typeStr = type.getDisplayString(withNullability: true);
+    sink.writeln(typeStr);
+
+    _withIndent(() {
+      _writeElementReference('element', state.element);
+    });
+
+    final typeArguments = state.typeArguments;
+    if (typeArguments != null) {
+      _writeTypeArguments(typeArguments);
+    }
+  }
+
   void _writelnType(DartType type) {
     final typeStr = type.getDisplayString(withNullability: true);
     sink.writeln(typeStr);
@@ -147,8 +163,10 @@ class DartObjectPrinter {
     sink.writeln(line);
   }
 
-  void _writeRecord(RecordState state) {
-    sink.writeln('Record');
+  void _writeRecord(DartType type, RecordState state) {
+    final typeStr = type.getDisplayString(withNullability: true);
+    sink.writeln('Record$typeStr');
+
     _withIndent(() {
       final positionalFields = state.positionalFields;
       if (positionalFields.isNotEmpty) {

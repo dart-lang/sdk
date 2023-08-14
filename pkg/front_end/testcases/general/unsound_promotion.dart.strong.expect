@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -57,10 +57,10 @@ static field core::List<self::A*>* list;
 static method g<T extends self::A*>(self::g::T* t) → core::List<self::g::T*>* {
   self::list = <self::g::T*>[];
   core::print(self::list.{core::Object::runtimeType}{core::Type*});
-  return self::list as{TypeError} core::List<self::g::T*>*;
+  return self::list as{TypeError,ForLegacy} core::List<self::g::T*>*;
 }
 static method f<S extends core::Object* = dynamic>(self::f::S* s) → core::List<self::f::S*>* {
-  if(s is self::A*) {
+  if(s is{ForLegacy} self::A*) {
     core::List<self::f::S*>* list = self::g<self::f::S*>(s{self::f::S* & self::A* /* '*' & '*' = '*' */});
     return list;
   }
@@ -72,5 +72,5 @@ static method main() → dynamic {
   core::List<self::A*>* aList;
   aList = self::list;
   core::Object* o = aList;
-  aList = o as{TypeError} core::List<self::A*>*;
+  aList = o as{TypeError,ForLegacy} core::List<self::A*>*;
 }

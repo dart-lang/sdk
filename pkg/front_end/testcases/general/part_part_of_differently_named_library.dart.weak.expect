@@ -1,4 +1,4 @@
-library foo /*isNonNullableByDefault*/;
+library foo;
 //
 // Problems in library:
 //
@@ -15,7 +15,7 @@ import "org-dartlang-testcase:///part_part_of_differently_named_library_lib2.dar
 part part_part_of_differently_named_library_lib1.dart;
 static method main() → dynamic {}
 
-library bar /*isNonNullableByDefault*/;
+library bar;
 import self as self2;
 
 part part_part_of_differently_named_library_lib1.dart;

@@ -69,7 +69,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   bool canWriteType(DartType? type, {ExecutableElement? methodBeingCopied}) =>
-      type != null && !type.isDynamic
+      type != null && type is! DynamicType
           ? _canWriteType(type, methodBeingCopied: methodBeingCopied)
           : false;
 
@@ -273,7 +273,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(Keyword.STATIC.lexeme);
       write(' ');
     }
-    if (returnType != null && !returnType.isDynamic) {
+    if (returnType != null && returnType is! DynamicType) {
       if (writeType(returnType, groupName: returnTypeGroupName)) {
         write(' ');
       }
@@ -730,7 +730,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(name);
     }
     write('(');
-    if (parameterType != null && !parameterType.isDynamic) {
+    if (parameterType != null && parameterType is! DynamicType) {
       if (writeType(parameterType, groupName: parameterTypeGroupName)) {
         write(' ');
       }
@@ -753,7 +753,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       ExecutableElement? methodBeingCopied,
       bool required = false}) {
     var wroteType = false;
-    if (type != null && !type.isDynamic) {
+    if (type != null && type is! DynamicType) {
       if (groupName != null) {
         addLinkedEdit(groupName, (LinkedEditBuilder builder) {
           wroteType = _writeType(type, methodBeingCopied: methodBeingCopied);
@@ -879,7 +879,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type == null) {
       return false;
     }
-    if (type.isDynamic) {
+    if (type is DynamicType || type is InvalidType) {
       if (required) {
         return true;
       }
@@ -978,22 +978,18 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       name = expression.methodName.name;
     } else if (expression is InstanceCreationExpression) {
       var constructorName = expression.constructorName;
-      var typeName = constructorName.type;
-      var typeNameIdentifier = typeName.name;
+      var namedType = constructorName.type;
+      var importPrefix = namedType.importPrefix;
       // new ClassName()
-      if (typeNameIdentifier is SimpleIdentifier) {
-        return typeNameIdentifier.name;
+      if (importPrefix == null) {
+        return namedType.name2.lexeme;
       }
-      // new prefix.name();
-      if (typeNameIdentifier is PrefixedIdentifier) {
-        var prefixed = typeNameIdentifier;
-        // new prefix.ClassName()
-        if (prefixed.prefix.staticElement is PrefixElement) {
-          return prefixed.identifier.name;
-        }
-        // new ClassName.constructorName()
-        return prefixed.prefix.name;
+      // new prefix.ClassName()
+      if (importPrefix.element is PrefixElement) {
+        return namedType.name2.lexeme;
       }
+      // new ClassName.constructorName()
+      return importPrefix.name.lexeme;
     } else if (expression is IndexExpression) {
       name = _getBaseNameFromExpression(expression.realTarget);
       if (name != null) {
@@ -1096,7 +1092,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     }
     // use type
-    if (expectedType != null && !expectedType.isDynamic) {
+    if (expectedType != null && expectedType is! DynamicType) {
       if (expectedType.isDartCoreInt) {
         _addSingleCharacterName(excluded, res, $i);
       } else if (expectedType.isDartCoreDouble) {
@@ -1227,7 +1223,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type == null) {
       return false;
     }
-    if (type.isDynamic) {
+    if (type is DynamicType || type is InvalidType) {
       if (required) {
         write('dynamic');
         return true;
@@ -1364,7 +1360,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       var hasArguments = false;
       var allArgumentsVisible = true;
       for (var argument in typeArguments) {
-        hasArguments = hasArguments || !argument.isDynamic;
+        hasArguments = hasArguments || argument is! DynamicType;
         allArgumentsVisible = allArgumentsVisible &&
             _getVisibleType(argument, methodBeingCopied: methodBeingCopied) !=
                 null;
@@ -1553,9 +1549,21 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   ///
   /// If the library [element] is declared in is inside the `src` folder, will
   /// try to locate a public URI to import instead.
+  ///
+  /// If [useShow] is `true`, new imports will be added that `show` only the
+  /// requested element (or if there is a pending import for the library, added
+  /// to its `show` combinator).
   Future<void> importElementLibrary(Element element,
-      {Map<Element, LibraryElement?>? resultCache}) async {
-    if (_isDefinedLocally(element) || _getImportElement(element) != null) {
+      {Map<Element, LibraryElement?>? resultCache,
+      bool useShow = false}) async {
+    if (_isDefinedLocally(element)) {
+      return;
+    }
+
+    var existingImport = _getImportElement(element);
+    var name = element.name;
+    if (existingImport != null && name != null) {
+      existingImport.ensureShown(name);
       return;
     }
 
@@ -1563,21 +1571,23 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         await TopLevelDeclarations(resolvedUnit)
             .publiclyExporting(element, resultCache: resultCache);
     if (libraryWithElement != null) {
-      _elementLibrariesToImport[element] =
-          _importLibrary(libraryWithElement.source.uri);
+      _elementLibrariesToImport[element] = _importLibrary(
+        libraryWithElement.source.uri,
+        showName: useShow ? element.name : null,
+      );
       return;
     }
 
     // If we didn't find one, use the original URI.
     var uri = element.source?.uri;
     if (uri != null) {
-      _importLibrary(uri);
+      _importLibrary(uri, showName: useShow ? element.name : null);
     }
   }
 
   @override
-  String importLibrary(Uri uri, {String? prefix}) {
-    return _importLibrary(uri, prefix: prefix).uriText;
+  String importLibrary(Uri uri, {String? prefix, String? showName}) {
+    return _importLibrary(uri, prefix: prefix, showName: showName).uriText;
   }
 
   @override
@@ -1632,7 +1642,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // Check whether the type needs to be replaced.
     //
     var type = typeAnnotation?.type;
-    if (type == null || type.isDynamic || type.isDartAsyncFuture) {
+    if (type == null || type is DynamicType || type.isDartAsyncFuture) {
       return;
     }
 
@@ -1683,6 +1693,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         if (prefix.isNotEmpty) {
           builder.write(' as ');
           builder.write(prefix);
+        }
+        if (import.showNames.isNotEmpty) {
+          builder.write(' show ');
+          builder.write(import.showNames.join(', '));
+        }
+        if (import.hideNames.isNotEmpty) {
+          builder.write(' hide ');
+          builder.write(import.hideNames.join(', '));
         }
         builder.write(';');
       }
@@ -1889,8 +1907,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       var definedNames = import.namespace.definedNames;
       if (definedNames.containsValue(element)) {
         return _LibraryImport(
-            uriText: import.librarySource.uri.toString(),
-            prefix: import.prefix?.element.displayName ?? '');
+          uriText: import.librarySource.uri.toString(),
+          prefix: import.prefix?.element.displayName ?? '',
+        );
       }
     }
 
@@ -1949,9 +1968,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// If [prefix] is an empty string, adds the import without a prefix.
   /// If [prefix] is null, will use [importPrefixGenerator] to generate one or
   /// reuse an existing prefix for this import.
+  ///
+  /// If [showName] is supplied then any new import will show only this element,
+  /// or if an import already exists it will be added to 'show' or removed from
+  /// 'hide' if appropriate.
   _LibraryImport _importLibrary(
     Uri uri, {
     String? prefix,
+    String? showName,
     bool forceAbsolute = false,
     bool forceRelative = false,
   }) {
@@ -1960,12 +1984,19 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       if (prefix != null) {
         import.prefixes.add(prefix);
       }
+      if (showName != null) {
+        import.ensureShown(showName);
+      }
     } else {
       var uriText = _getLibraryUriText(uri,
           forceAbsolute: forceAbsolute, forceRelative: forceRelative);
       prefix ??=
           importPrefixGenerator != null ? importPrefixGenerator!(uri) : null;
-      import = _LibraryImport(uriText: uriText, prefix: prefix ?? '');
+      import = _LibraryImport(
+        uriText: uriText,
+        prefix: prefix ?? '',
+        showNames: showName != null ? {showName} : null,
+      );
       (libraryChangeBuilder ?? this).librariesToImport[uri] = import;
     }
 
@@ -2081,7 +2112,19 @@ class _LibraryImport {
   /// with other prefixes for a library that is both prefixed and unprefixed.
   final Set<String> prefixes = {};
 
-  _LibraryImport({required this.uriText, required String prefix}) {
+  /// Names this import has in its `show` combinator.
+  final Set<String> showNames;
+
+  /// Names this import has in its `hide` combinator.
+  final Set<String> hideNames;
+
+  _LibraryImport({
+    required this.uriText,
+    required String prefix,
+    Set<String>? showNames,
+    Set<String>? hideNames,
+  })  : showNames = showNames ?? {},
+        hideNames = hideNames ?? {} {
     prefixes.add(prefix);
   }
 
@@ -2098,5 +2141,16 @@ class _LibraryImport {
     return other is _LibraryImport &&
         other.uriText == uriText &&
         !const SetEquality().equals(other.prefixes, prefixes);
+  }
+
+  /// Ensures [name] is visible for this import.
+  ///
+  /// If the import already has a show combinator, this name will be added.
+  /// If the import hides this name, it will be unhidden.
+  void ensureShown(String name) {
+    if (showNames.isNotEmpty) {
+      showNames.add(name);
+    }
+    hideNames.remove(name);
   }
 }

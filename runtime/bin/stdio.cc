@@ -19,7 +19,7 @@ namespace bin {
 static bool GetIntptrArgument(Dart_NativeArguments args,
                               intptr_t idx,
                               intptr_t* value) {
-  ASSERT(value != NULL);
+  ASSERT(value != nullptr);
   int64_t v;
   Dart_Handle status = Dart_GetNativeIntegerArgument(args, 0, &v);
   if (Dart_IsError(status)) {

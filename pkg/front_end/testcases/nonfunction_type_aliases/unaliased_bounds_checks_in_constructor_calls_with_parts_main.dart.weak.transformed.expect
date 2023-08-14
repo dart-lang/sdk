@@ -1,11 +1,11 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///unaliased_bounds_checks_in_constructor_calls_with_parts_lib.dart";
 
 static method main() → dynamic {}
 
-library unaliased_bounds_checks_in_constructor_calls_with_parts_lib /*isNonNullableByDefault*/;
+library unaliased_bounds_checks_in_constructor_calls_with_parts_lib;
 //
 // Problems in library:
 //

@@ -203,7 +203,9 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
       var statement = declarationList.parent;
       if (statement is VariableDeclarationStatement) {
         var parent = statement.parent;
-        if (parent is Block || parent is SwitchCase) {
+        if (parent is Block ||
+            parent is SwitchCase ||
+            parent is SwitchPatternCase) {
           return statement;
         }
       }

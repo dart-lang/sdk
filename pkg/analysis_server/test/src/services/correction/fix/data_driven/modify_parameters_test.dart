@@ -6,9 +6,9 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/changes_
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
+import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'data_driven_test_support.dart';
@@ -334,7 +334,7 @@ class C {
       'm',
       'C'
     ], [
-      RemoveParameter(PositionalParameterReference(0)),
+      RemoveParameter(PositionalFormalParameterReference(0)),
       AddParameter(2, 'c', true, true, codeTemplate('2'))
     ], newName: 'm2'));
     await resolveTestCode('''
@@ -365,7 +365,7 @@ class C {
       'm',
       'C'
     ], [
-      RemoveParameter(PositionalParameterReference(1)),
+      RemoveParameter(PositionalFormalParameterReference(1)),
       AddParameter(0, 'a', true, true, codeTemplate('0'))
     ], newName: 'm2'));
     await resolveTestCode('''
@@ -397,8 +397,8 @@ class C {
       'C'
     ], [
       AddParameter(1, 'c', true, false, codeTemplate('3')),
-      RemoveParameter(NamedParameterReference('b')),
-      RemoveParameter(NamedParameterReference('d')),
+      RemoveParameter(NamedFormalParameterReference('b')),
+      RemoveParameter(NamedFormalParameterReference('d')),
     ], newName: 'm2'));
     await resolveTestCode('''
 import '$importUri';
@@ -428,8 +428,8 @@ class C {
       'm1',
       'C'
     ], [
-      RemoveParameter(PositionalParameterReference(0)),
-      RemoveParameter(PositionalParameterReference(1)),
+      RemoveParameter(PositionalFormalParameterReference(0)),
+      RemoveParameter(PositionalFormalParameterReference(1)),
       AddParameter(0, 'c', true, true, codeTemplate('2')),
     ], newName: 'm2'));
     await resolveTestCode('''
@@ -460,8 +460,8 @@ class C {
       'm1',
       'C'
     ], [
-      RemoveParameter(PositionalParameterReference(1)),
-      RemoveParameter(PositionalParameterReference(2)),
+      RemoveParameter(PositionalFormalParameterReference(1)),
+      RemoveParameter(PositionalFormalParameterReference(2)),
       AddParameter(1, 'd', true, true, codeTemplate('3')),
     ], newName: 'm2'));
     await resolveTestCode('''
@@ -493,8 +493,8 @@ class C {
       'C'
     ], [
       AddParameter(0, 'a', true, true, codeTemplate('0')),
-      RemoveParameter(PositionalParameterReference(1)),
-      RemoveParameter(PositionalParameterReference(3)),
+      RemoveParameter(PositionalFormalParameterReference(1)),
+      RemoveParameter(PositionalFormalParameterReference(3)),
       AddParameter(2, 'd', true, true, codeTemplate('3')),
     ], newName: 'm2'));
     await resolveTestCode('''
@@ -526,7 +526,7 @@ class C {
       'C'
     ], [
       AddParameter(0, 'b', true, false, codeTemplate('0')),
-      RemoveParameter(NamedParameterReference('a')),
+      RemoveParameter(NamedFormalParameterReference('a')),
     ], newName: 'm2'));
     await resolveTestCode('''
 import '$importUri';
@@ -557,7 +557,7 @@ class C {
       'C'
     ], [
       AddParameter(0, 'b', true, false, codeTemplate('0')),
-      RemoveParameter(NamedParameterReference('a')),
+      RemoveParameter(NamedFormalParameterReference('a')),
     ], newName: 'm2'));
     await resolveTestCode('''
 import '$importUri';
@@ -594,7 +594,7 @@ class C {
       'm',
       'C'
     ], [
-      RemoveParameter(NamedParameterReference('a')),
+      RemoveParameter(NamedFormalParameterReference('a')),
       AddParameter(1, 'b', true, false, codeTemplate('1')),
       AddParameter(2, 'd', true, false, codeTemplate('2')),
       AddParameter(3, 'e', true, false, codeTemplate('3')),
@@ -624,7 +624,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['m', 'C'], [RemoveParameter(NamedParameterReference('a'))],
+        ['m', 'C'], [RemoveParameter(NamedFormalParameterReference('a'))],
         newName: 'm2'));
     await resolveTestCode('''
 import '$importUri';
@@ -651,7 +651,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['m', 'C'], [RemoveParameter(PositionalParameterReference(0))],
+        ['m', 'C'], [RemoveParameter(PositionalFormalParameterReference(0))],
         newName: 'm2'));
     await resolveTestCode('''
 import '$importUri';
@@ -678,7 +678,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['m', 'C'], [RemoveParameter(PositionalParameterReference(0))],
+        ['m', 'C'], [RemoveParameter(PositionalFormalParameterReference(0))],
         newName: 'm2'));
     await resolveTestCode('''
 import '$importUri';
@@ -705,7 +705,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['m', 'C'], [RemoveParameter(NamedParameterReference('b'))],
+        ['m', 'C'], [RemoveParameter(NamedFormalParameterReference('b'))],
         newName: 'm2'));
     await resolveTestCode('''
 import '$importUri';
@@ -732,7 +732,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['m', 'C'], [RemoveParameter(PositionalParameterReference(1))],
+        ['m', 'C'], [RemoveParameter(PositionalFormalParameterReference(1))],
         newName: 'm2'));
     await resolveTestCode('''
 import '$importUri';
@@ -759,7 +759,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['m', 'C'], [RemoveParameter(PositionalParameterReference(1))],
+        ['m', 'C'], [RemoveParameter(PositionalFormalParameterReference(1))],
         newName: 'm2'));
     await resolveTestCode('''
 import '$importUri';
@@ -784,8 +784,8 @@ class C {
   void m({int a, @deprecated int b, int c}) {}
 }
 ''');
-    setPackageData(
-        _modify(['m', 'C'], [RemoveParameter(NamedParameterReference('b'))]));
+    setPackageData(_modify(
+        ['m', 'C'], [RemoveParameter(NamedFormalParameterReference('b'))]));
     await resolveTestCode('''
 import '$importUri';
 
@@ -814,9 +814,9 @@ class C {
       'm',
       'C'
     ], [
-      RemoveParameter(PositionalParameterReference(0)),
-      RemoveParameter(PositionalParameterReference(2)),
-      RemoveParameter(PositionalParameterReference(3)),
+      RemoveParameter(PositionalFormalParameterReference(0)),
+      RemoveParameter(PositionalFormalParameterReference(2)),
+      RemoveParameter(PositionalFormalParameterReference(3)),
     ], newName: 'm2'));
     await resolveTestCode('''
 import '$importUri';
@@ -843,7 +843,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['m', 'C'], [RemoveParameter(NamedParameterReference('a'))],
+        ['m', 'C'], [RemoveParameter(NamedFormalParameterReference('a'))],
         newName: 'm2'));
     await resolveTestCode('''
 import '$importUri';
@@ -870,7 +870,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['m', 'C'], [RemoveParameter(NamedParameterReference('a'))],
+        ['m', 'C'], [RemoveParameter(NamedFormalParameterReference('a'))],
         newName: 'm2'));
     await resolveTestCode('''
 import '$importUri';
@@ -897,7 +897,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['m', 'C'], [RemoveParameter(PositionalParameterReference(0))],
+        ['m', 'C'], [RemoveParameter(PositionalFormalParameterReference(0))],
         newName: 'm2'));
     await resolveTestCode('''
 import '$importUri';
@@ -925,7 +925,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['m', 'C'], [RemoveParameter(PositionalParameterReference(0))],
+        ['m', 'C'], [RemoveParameter(PositionalFormalParameterReference(0))],
         newName: 'm2'));
     await resolveTestCode('''
 import '$importUri';
@@ -952,7 +952,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['m', 'C'], [RemoveParameter(PositionalParameterReference(0))],
+        ['m', 'C'], [RemoveParameter(PositionalFormalParameterReference(0))],
         newName: 'm2'));
     await resolveTestCode('''
 import '$importUri';
@@ -1018,7 +1018,7 @@ void f(int a, int b) {}
 void g(int b) {}
 ''');
     setPackageData(_modify(
-        ['f'], [RemoveParameter(PositionalParameterReference(0))],
+        ['f'], [RemoveParameter(PositionalFormalParameterReference(0))],
         newName: 'g'));
     await resolveTestCode('''
 import '$importUri';

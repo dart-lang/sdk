@@ -272,7 +272,7 @@ class NullVisitor extends ScrapeVisitor {
     }
 
     String? context;
-    if (parent is IfStatement && node == parent.condition) {
+    if (parent is IfStatement && node == parent.expression) {
       context = 'if';
     } else if (parent is BinaryExpression &&
         parent.operator.type == TokenType.AMPERSAND_AMPERSAND) {

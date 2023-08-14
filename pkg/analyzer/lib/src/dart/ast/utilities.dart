@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -555,7 +554,8 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitExtensionOverride(ExtensionOverride node) {
     ExtensionOverride other = _other as ExtensionOverride;
-    return isEqualNodes(node.extensionName, other.extensionName) &&
+    return isEqualNodes(node.importPrefix, other.importPrefix) &&
+        isEqualTokens(node.name, other.name) &&
         isEqualNodes(node.typeArguments, other.typeArguments) &&
         isEqualNodes(node.argumentList, other.argumentList);
   }
@@ -781,7 +781,7 @@ class AstComparator implements AstVisitor<bool> {
     IfElement other = _other as IfElement;
     return isEqualTokens(node.ifKeyword, other.ifKeyword) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
-        isEqualNodes(node.condition, other.condition) &&
+        isEqualNodes(node.expression, other.expression) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
         isEqualNodes(node.thenElement, other.thenElement) &&
         isEqualTokens(node.elseKeyword, other.elseKeyword) &&
@@ -793,7 +793,7 @@ class AstComparator implements AstVisitor<bool> {
     IfStatement other = _other as IfStatement;
     return isEqualTokens(node.ifKeyword, other.ifKeyword) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
-        isEqualNodes(node.condition, other.condition) &&
+        isEqualNodes(node.expression, other.expression) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
         isEqualNodes(node.thenStatement, other.thenStatement) &&
         isEqualTokens(node.elseKeyword, other.elseKeyword) &&
@@ -828,6 +828,13 @@ class AstComparator implements AstVisitor<bool> {
         isEqualNodes(node.prefix, other.prefix) &&
         _isEqualNodeLists(node.combinators, other.combinators) &&
         isEqualTokens(node.semicolon, other.semicolon);
+  }
+
+  @override
+  bool? visitImportPrefixReference(ImportPrefixReference node) {
+    final other = _other as ImportPrefixReference;
+    return isEqualTokens(node.name, other.name) &&
+        isEqualTokens(node.period, other.period);
   }
 
   @override
@@ -1032,7 +1039,8 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool? visitNamedType(NamedType node) {
     NamedType other = _other as NamedType;
-    return isEqualNodes(node.name, other.name) &&
+    return isEqualNodes(node.importPrefix, other.importPrefix) &&
+        isEqualTokens(node.name2, other.name2) &&
         isEqualNodes(node.typeArguments, other.typeArguments) &&
         isEqualTokens(node.question, other.question);
   }
@@ -2444,24 +2452,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
-  bool visitExtensionOverride(ExtensionOverride node) {
-    if (identical(node.extensionName, _oldNode)) {
-      (node as ExtensionOverrideImpl).extensionName =
-          _newNode as IdentifierImpl;
-      return true;
-    } else if (identical(node.typeArguments, _oldNode)) {
-      (node as ExtensionOverrideImpl).typeArguments =
-          _newNode as TypeArgumentListImpl;
-      return true;
-    } else if (identical(node.argumentList, _oldNode)) {
-      (node as ExtensionOverrideImpl).argumentList =
-          _newNode as ArgumentListImpl;
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
   bool visitFieldDeclaration(covariant FieldDeclarationImpl node) {
     if (identical(node.fields, _oldNode)) {
       node.fields = _newNode as VariableDeclarationListImpl;
@@ -2720,7 +2710,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitIfElement(IfElement node) {
-    if (identical(node.condition, _oldNode)) {
+    if (identical(node.expression, _oldNode)) {
       (node as IfElementImpl).condition = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.thenElement, _oldNode)) {
@@ -2735,7 +2725,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitIfStatement(covariant IfStatementImpl node) {
-    if (identical(node.condition, _oldNode)) {
+    if (identical(node.expression, _oldNode)) {
       node.condition = _newNode as ExpressionImpl;
       return true;
     } else if (identical(node.thenStatement, _oldNode)) {
@@ -2968,18 +2958,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       return true;
     } else if (identical(node.expression, _oldNode)) {
       node.expression = _newNode as ExpressionImpl;
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
-  bool? visitNamedType(covariant NamedTypeImpl node) {
-    if (identical(node.name, _oldNode)) {
-      node.name = _newNode as IdentifierImpl;
-      return true;
-    } else if (identical(node.typeArguments, _oldNode)) {
-      node.typeArguments = _newNode as TypeArgumentListImpl;
       return true;
     }
     return visitNode(node);

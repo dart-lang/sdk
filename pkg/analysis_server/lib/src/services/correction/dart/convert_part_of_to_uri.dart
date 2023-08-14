@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart';
 
-class ConvertPartOfToUri extends CorrectionProducer {
+class ConvertPartOfToUri extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_PART_OF_TO_URI;
 
@@ -26,8 +26,8 @@ class ConvertPartOfToUri extends CorrectionProducer {
       return;
     }
 
-    var libraryPath = resolvedResult.libraryElement.source.fullName;
-    var partPath = resolvedResult.path;
+    var libraryPath = unitResult.libraryElement.source.fullName;
+    var partPath = unitResult.path;
     var relativePath = relative(libraryPath, from: dirname(partPath));
     var uri = Uri.file(relativePath).toString();
     var replacementRange = range.node(libraryName);

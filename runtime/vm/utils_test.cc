@@ -246,7 +246,7 @@ VM_UNIT_TEST_CASE(CountZerosWord) {
   EXPECT_EQ(kBitsPerWord - 3, Utils::CountLeadingZerosWord(0x4));
   EXPECT_EQ(0, Utils::CountTrailingZerosWord(kUwordMax));
   EXPECT_EQ(0, Utils::CountLeadingZerosWord(kUwordMax));
-  static const uword kTopBit = static_cast<uword>(1) << (kBitsPerWord - 1);
+  const uword kTopBit = static_cast<uword>(1) << (kBitsPerWord - 1);
   EXPECT_EQ(kBitsPerWord - 1, Utils::CountTrailingZerosWord(kTopBit));
   EXPECT_EQ(0, Utils::CountLeadingZerosWord(kTopBit));
 }

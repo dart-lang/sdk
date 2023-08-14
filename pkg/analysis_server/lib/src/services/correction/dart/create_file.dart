@@ -10,7 +10,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class CreateFile extends CorrectionProducer {
+class CreateFile extends ResolvedCorrectionProducer {
   String _fileName = '';
 
   @override
@@ -44,7 +44,7 @@ class CreateFile extends CorrectionProducer {
         if (source != null) {
           var pathContext = resourceProvider.pathContext;
           var relativePath = pathContext.relative(
-              resolvedResult.libraryElement.source.fullName,
+              unitResult.libraryElement.source.fullName,
               from: pathContext.dirname(source.fullName));
 
           // URIs always use forward slashes regardless of platform.

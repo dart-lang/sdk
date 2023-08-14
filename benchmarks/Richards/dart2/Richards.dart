@@ -117,7 +117,7 @@ class Scheduler {
   int currentId;
   TaskControlBlock list;
   List<TaskControlBlock> blocks =
-      List<TaskControlBlock>(Richards.NUMBER_OF_IDS);
+      List<TaskControlBlock>.filled(Richards.NUMBER_OF_IDS, null);
 
   /// Add an idle task to this scheduler.
   void addIdleTask(int id, int priority, Packet queue, int count) {
@@ -428,7 +428,7 @@ class Packet {
   int kind; // The type of this packet.
   int a1 = 0;
 
-  List<int> a2 = List(Richards.DATA_SIZE);
+  List<int> a2 = List.filled(Richards.DATA_SIZE, null);
 
   Packet(this.link, this.id, this.kind);
 

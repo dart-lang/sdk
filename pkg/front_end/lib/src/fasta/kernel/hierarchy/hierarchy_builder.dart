@@ -114,7 +114,7 @@ class ClassHierarchyBuilder
   @override
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
-    if (type.classNode == superclass) return type.typeArguments;
+    if (type.classReference == superclass.reference) return type.typeArguments;
     return asSupertypeOf(type, superclass)?.typeArguments;
   }
 
@@ -150,8 +150,6 @@ class ClassHierarchyBuilder
 
     for (int i = 0; i < nodes2.length; i++) {
       ClassHierarchyNode node = nodes2[i];
-      // ignore: unnecessary_null_comparison
-      if (node == null) continue;
       if (node.classBuilder.cls.isAnonymousMixin) {
         // Never find unnamed mixin application in least upper bound.
         continue;

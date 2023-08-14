@@ -299,6 +299,7 @@ class FunctionNodeHelper {
     kNamedParameters,
     kReturnType,
     kFutureValueType,
+    kRedirectingFactoryTarget,
     kBody,
     kEnd,
   };
@@ -596,16 +597,13 @@ class ProcedureHelper {
     kAbstract = 1 << 1,
     kExternal = 1 << 2,
     kConst = 1 << 3,  // Only for external const factories.
-
-    // TODO(29841): Remove this line after the issue is resolved.
-    kRedirectingFactory = 1 << 4,
-    kExtensionMember = 1 << 5,
-    kIsNonNullableByDefault = 1 << 6,
-    kSyntheticProcedure = 1 << 7,
-    kInternalImplementation = 1 << 8,
-    kIsAbstractFieldAccessor = 1 << 9,
-    kInlineClassMember = 1 << 10,
-    kHasWeakTearoffReferencePragma = 1 << 11,
+    kExtensionMember = 1 << 4,
+    kIsNonNullableByDefault = 1 << 5,
+    kSyntheticProcedure = 1 << 6,
+    kInternalImplementation = 1 << 7,
+    kIsAbstractFieldAccessor = 1 << 8,
+    kInlineClassMember = 1 << 9,
+    kHasWeakTearoffReferencePragma = 1 << 10,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -631,9 +629,6 @@ class ProcedureHelper {
   bool IsForwardingStub() const {
     return stub_kind_ == kAbstractForwardingStubKind ||
            stub_kind_ == kConcreteForwardingStubKind;
-  }
-  bool IsRedirectingFactory() const {
-    return (flags_ & kRedirectingFactory) != 0;
   }
   bool IsNoSuchMethodForwarder() const {
     return stub_kind_ == kNoSuchMethodForwarderStubKind;
@@ -1076,7 +1071,7 @@ class InferredTypeMetadataHelper : public MetadataHelper {
 };
 
 struct ProcedureAttributesMetadata {
-  static const int32_t kInvalidSelectorId = 0;
+  static constexpr int32_t kInvalidSelectorId = 0;
 
   bool method_or_setter_called_dynamically = true;
   bool getter_called_dynamically = true;
@@ -1185,8 +1180,8 @@ class TableSelectorMetadataHelper : public MetadataHelper {
   TableSelectorMetadata* GetTableSelectorMetadata(Zone* zone);
 
  private:
-  static const uint8_t kCalledOnNullBit = 1 << 0;
-  static const uint8_t kTornOffBit = 1 << 1;
+  static constexpr uint8_t kCalledOnNullBit = 1 << 0;
+  static constexpr uint8_t kTornOffBit = 1 << 1;
 
   void ReadTableSelectorInfo(TableSelectorInfo* info);
 
@@ -1429,16 +1424,6 @@ class ActiveClass {
     return klass->NumTypeArguments();
   }
 
-  void RecordDerivedTypeParameter(Zone* zone, const TypeParameter& derived) {
-    if (derived.bound() == AbstractType::null()) {
-      if (derived_type_parameters == nullptr) {
-        derived_type_parameters = &GrowableObjectArray::Handle(
-            zone, GrowableObjectArray::New(Heap::kOld));
-      }
-      derived_type_parameters->Add(derived);
-    }
-  }
-
   const char* ToCString() {
     return member != nullptr ? member->ToCString() : klass->ToCString();
   }
@@ -1453,8 +1438,6 @@ class ActiveClass {
   const FunctionType* enclosing;
 
   const TypeArguments* local_type_parameters;
-
-  GrowableObjectArray* derived_type_parameters = nullptr;
 };
 
 class ActiveClassScope {
@@ -1588,6 +1571,7 @@ class TypeTranslator {
   void BuildTypeParameterType();
   void BuildIntersectionType();
   void BuildInlineType();
+  void BuildFutureOrType();
 
   class TypeParameterScope {
    public:
@@ -1625,7 +1609,6 @@ class TypeTranslator {
   Zone* zone_;
   AbstractType& result_;
   bool finalize_;
-  bool refers_to_derived_type_param_;
   const bool apply_canonical_type_erasure_;
   const bool in_constant_context_;
 

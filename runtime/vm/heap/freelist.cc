@@ -357,7 +357,7 @@ FreeListElement* FreeList::TryAllocateLargeLocked(intptr_t minimum_size) {
       return current;
     } else if (tries_left-- < 0) {
       freelist_search_budget_ = kInitialFreeListSearchBudget;
-      return 0;  // Trigger allocation of new page.
+      return nullptr;  // Trigger allocation of new page.
     }
     previous = current;
     current = next;

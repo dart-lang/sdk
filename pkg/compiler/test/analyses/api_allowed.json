@@ -1,7 +1,4 @@
 {
-  "org-dartlang-sdk:///lib/_internal/js_runtime/lib/async_patch.dart": {
-    "Dynamic access of 'iterator'.": 1
-  },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_helper.dart": {
     "Dynamic access of 'length'.": 2
   },

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -28,7 +28,7 @@ static method exhaustiveByValue(Null n) → dynamic
   return block {
     core::int #t1;
     #L1:
-    switch(n) /*isExplicitlyExhaustive*/ {
+    switch(n) /* isExplicitlyExhaustive, Null */ {
       #L2:
       case #C1:
         {
@@ -93,7 +93,7 @@ static method exhaustiveNullable(core::Object? o) → dynamic
     #L7:
     {
       {
-        if(#0#0 is{ForNonNullableByDefault} core::Object) {
+        if(#0#0 is core::Object) {
           #t6 = 0;
           break #L7;
         }
@@ -114,7 +114,7 @@ static method nonExhaustiveNullable(core::Object? o) → dynamic
     #L8:
     {
       {
-        if(#0#0 is{ForNonNullableByDefault} core::Object) {
+        if(#0#0 is core::Object) {
           #t7 = 1;
           break #L8;
         }

@@ -338,23 +338,22 @@ class CollectReportPage extends DiagnosticPage {
     }
 
     // Contexts.
-    var driverMapEntries = server.driverMap.entries.toList();
+    var driverMapValues = server.driverMap.values.toList();
     var contexts = [];
     collectedData["contexts"] = contexts;
     Set<String> uniqueKnownFiles = {};
-    for (var entry in driverMapEntries) {
+    for (var data in driverMapValues) {
       var contextData = {};
       contexts.add(contextData);
-      contextData["name"] = entry.key.shortName;
-      contextData["priorityFiles"] = entry.value.priorityFiles.length;
-      contextData["addedFiles"] = entry.value.addedFiles.length;
-      contextData["knownFiles"] = entry.value.knownFiles.length;
-      uniqueKnownFiles.addAll(entry.value.knownFiles);
+      // We don't include the name as some might see that as "secret".
+      contextData["priorityFiles"] = data.priorityFiles.length;
+      contextData["addedFiles"] = data.addedFiles.length;
+      contextData["knownFiles"] = data.knownFiles.length;
+      uniqueKnownFiles.addAll(data.knownFiles);
 
       contextData["lints"] =
-          entry.value.analysisOptions.lintRules.map((e) => e.name).toList();
-      contextData["plugins"] =
-          entry.value.analysisOptions.enabledPluginNames.toList();
+          data.analysisOptions.lintRules.map((e) => e.name).toList();
+      contextData["plugins"] = data.analysisOptions.enabledPluginNames.toList();
     }
     collectedData["uniqueKnownFiles"] = uniqueKnownFiles.length;
 

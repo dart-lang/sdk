@@ -7,9 +7,11 @@ import 'dart:developer';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const int LINE_A = 23;
-const int LINE_B = 24;
-const int LINE_C = 25;
+const int LINE_A = 25;
+const int LINE_B = 26;
+const int LINE_C = 27;
+
+const int LINE_0 = 24;
 
 foo() async {}
 
@@ -19,10 +21,10 @@ doAsync(stop) async {
   // an await causes the implicit breakpoint to be set for that closure instead
   // of the async_op, resulting in the debugger falling through.
   final baz = () => print('doAsync($stop) done!');
-  if (stop) debugger();
-  await foo(); // Line A.
-  await foo(); // Line B.
-  await foo(); // Line C.
+  if (stop) debugger(); // LINE_0.
+  await foo(); // LINE_A.
+  await foo(); // LINE_B.
+  await foo(); // LINE_C.
   baz();
   return null;
 }
@@ -35,6 +37,9 @@ testMain() {
 }
 
 var tests = <IsolateTest>[
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver, // debugger()
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   stepOver, // foo()

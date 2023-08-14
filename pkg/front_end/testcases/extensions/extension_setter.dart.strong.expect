@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -55,35 +55,35 @@ extension Extension on self::Class* {
 extension GenericExtension<T extends core::Object* = dynamic> on self::GenericClass<T*>* {
   set setter = self::GenericExtension|set#setter;
 }
-static method Extension|get#simpleSetter(lowered final self::Class* #this) → core::int*
+static extension-member method Extension|get#simpleSetter(lowered final self::Class* #this) → core::int*
   return #this.{self::Class::field}{core::int*};
-static method Extension|set#simpleSetter(lowered final self::Class* #this, core::int* value) → void {
+static extension-member method Extension|set#simpleSetter(lowered final self::Class* #this, core::int* value) → void {
   #this.{self::Class::field} = value;
 }
-static method Extension|get#mutatingSetter(lowered final self::Class* #this) → core::int*
+static extension-member method Extension|get#mutatingSetter(lowered final self::Class* #this) → core::int*
   return #this.{self::Class::field}{core::int*};
-static method Extension|set#mutatingSetter(lowered final self::Class* #this, core::int* value) → void {
+static extension-member method Extension|set#mutatingSetter(lowered final self::Class* #this, core::int* value) → void {
   value = value.{core::num::+}(1){(core::num*) →* core::int*};
   #this.{self::Class::field} = value;
 }
-static method Extension|get#setterWithReturn(lowered final self::Class* #this) → core::int*
+static extension-member method Extension|get#setterWithReturn(lowered final self::Class* #this) → core::int*
   return #this.{self::Class::field}{core::int*};
-static method Extension|set#setterWithReturn(lowered final self::Class* #this, core::int* value) → void {
+static extension-member method Extension|set#setterWithReturn(lowered final self::Class* #this, core::int* value) → void {
   if(value.{core::num::<}(0){(core::num*) →* core::bool*}) {
     #this.{self::Class::field} = value.{core::int::unary-}(){() →* core::int*};
     return;
   }
   #this.{self::Class::field} = value;
 }
-static method Extension|get#setterWithClosure(lowered final self::Class* #this) → core::int*
+static extension-member method Extension|get#setterWithClosure(lowered final self::Class* #this) → core::int*
   return #this.{self::Class::field}{core::int*};
-static method Extension|set#setterWithClosure(lowered final self::Class* #this, core::int* value) → void {
+static extension-member method Extension|set#setterWithClosure(lowered final self::Class* #this, core::int* value) → void {
   function abs(dynamic value) → dynamic {
-    return value{dynamic}.<(0) as{TypeError,ForDynamic} core::bool* ?{dynamic} value{dynamic}.unary-() : value;
+    return value{dynamic}.<(0) as{TypeError,ForDynamic,ForLegacy} core::bool* ?{dynamic} value{dynamic}.unary-() : value;
   }
-  #this.{self::Class::field} = abs(value){(dynamic) →* dynamic} as{TypeError,ForDynamic} core::int*;
+  #this.{self::Class::field} = abs(value){(dynamic) →* dynamic} as{TypeError,ForDynamic,ForLegacy} core::int*;
 }
-static method Extension|testInternal(lowered final self::Class* #this) → dynamic {
+static extension-member method Extension|testInternal(lowered final self::Class* #this) → dynamic {
   self::expect(null, #this.{self::Class::field}{core::int*});
   self::Extension|set#simpleSetter(#this, 0);
   self::expect(0, #this.{self::Class::field}{core::int*});
@@ -109,9 +109,9 @@ static method Extension|testInternal(lowered final self::Class* #this) → dynam
   self::expect(4.{core::int::unary-}(){() →* core::int*}, let final core::int* #t11 = 4.{core::int::unary-}(){() →* core::int*} in let final void #t12 = self::Extension|set#setterWithClosure(#this, #t11) in #t11);
   self::expect(4, #this.{self::Class::field}{core::int*});
 }
-static method Extension|get#testInternal(lowered final self::Class* #this) → () →* dynamic
+static extension-member method Extension|get#testInternal(lowered final self::Class* #this) → () →* dynamic
   return () → dynamic => self::Extension|testInternal(#this);
-static method GenericExtension|set#setter<T extends core::Object* = dynamic>(lowered final self::GenericClass<self::GenericExtension|set#setter::T*>* #this, self::GenericExtension|set#setter::T* value) → void {}
+static extension-member method GenericExtension|set#setter<T extends core::Object* = dynamic>(lowered final self::GenericClass<self::GenericExtension|set#setter::T*>* #this, self::GenericExtension|set#setter::T* value) → void {}
 static method main() → dynamic {
   self::Class* c = new self::Class::•();
   self::expect(null, c.{self::Class::field}{core::int*});

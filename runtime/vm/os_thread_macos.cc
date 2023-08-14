@@ -129,14 +129,14 @@ static void* ThreadStart(void* data_ptr) {
 
   // Create new OSThread object and set as TLS for new thread.
   OSThread* thread = OSThread::CreateOSThread();
-  if (thread != NULL) {
+  if (thread != nullptr) {
     OSThread::SetCurrent(thread);
     thread->SetName(name);
     // Call the supplied thread start function handing it its parameters.
     function(parameter);
   }
 
-  return NULL;
+  return nullptr;
 }
 
 int OSThread::Start(const char* name,
@@ -161,9 +161,9 @@ int OSThread::Start(const char* name,
   return 0;
 }
 
-const ThreadId OSThread::kInvalidThreadId = static_cast<ThreadId>(NULL);
+const ThreadId OSThread::kInvalidThreadId = static_cast<ThreadId>(nullptr);
 const ThreadJoinId OSThread::kInvalidThreadJoinId =
-    static_cast<ThreadJoinId>(NULL);
+    static_cast<ThreadJoinId>(nullptr);
 
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   pthread_key_t key = kUnsetThreadLocalKey;
@@ -208,7 +208,7 @@ char* OSThread::GetCurrentThreadName() {
 }
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   // Make sure we're filling in the join id for the current thread.
   ASSERT(thread->id() == GetCurrentThreadId());
   // Make sure the join_id_ hasn't been set, yet.
@@ -221,7 +221,7 @@ ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
 }
 
 void OSThread::Join(ThreadJoinId id) {
-  int result = pthread_join(id, NULL);
+  int result = pthread_join(id, nullptr);
   ASSERT(result == 0);
 }
 
@@ -354,7 +354,7 @@ Monitor::Monitor() {
   result = pthread_mutexattr_destroy(&attr);
   VALIDATE_PTHREAD_RESULT(result);
 
-  result = pthread_cond_init(data_.cond(), NULL);
+  result = pthread_cond_init(data_.cond(), nullptr);
   VALIDATE_PTHREAD_RESULT(result);
 
 #if defined(DEBUG)

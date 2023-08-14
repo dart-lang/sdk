@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class AddExplicitCast extends CorrectionProducer {
+class AddExplicitCast extends ResolvedCorrectionProducer {
   @override
   bool get canBeAppliedToFile => true;
 
@@ -31,7 +31,11 @@ class AddExplicitCast extends CorrectionProducer {
       return;
     }
 
-    var fromType = target.typeOrThrow;
+    var fromType = target.staticType;
+    if (fromType == null) {
+      return;
+    }
+
     if (fromType == typeProvider.nullType) {
       // There would only be a diagnostic if the `toType` is not nullable, in
       // which case a cast won't fix the problem.

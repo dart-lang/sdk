@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -108,13 +108,13 @@ Try removing the extra positional arguments.
             ^" in b.{core::Object::toString}{<inapplicable>}.(0){(invalid-type) → invalid-type};
   core::Function f1 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:29:17: Error: Can't tear off method 'call' from a potentially null value.
   Function f1 = a;
-                ^" in a as{TypeError} core::Function;
+                ^" in a as{TypeError,ForLegacy} core::Function;
   () → void f2 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:30:24: Error: Can't tear off method 'call' from a potentially null value.
   void Function() f2 = a;
-                       ^" in a as{TypeError} () → void;
+                       ^" in a as{TypeError,ForLegacy} () → void;
   () →? void f3 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:31:25: Error: Can't tear off method 'call' from a potentially null value.
   void Function()? f3 = a;
-                        ^" in a as{TypeError} () →? void;
+                        ^" in a as{TypeError,ForLegacy} () →? void;
 }
 static method ok<T extends core::Object?>(core::String? s, self::A? a, self::ok::T% t, self::B? b, core::Invocation i) → dynamic {
   s =={core::String::==}{(core::Object) → core::bool} s;

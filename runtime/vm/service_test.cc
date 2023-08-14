@@ -32,7 +32,7 @@ DEFINE_FLAG(bool, service_testing_flag, false, "Comment");
 
 class ServiceTestMessageHandler : public MessageHandler {
  public:
-  ServiceTestMessageHandler() : _msg(NULL) {}
+  ServiceTestMessageHandler() : _msg(nullptr) {}
 
   ~ServiceTestMessageHandler() {
     PortMap::ClosePorts(this);
@@ -40,9 +40,9 @@ class ServiceTestMessageHandler : public MessageHandler {
   }
 
   MessageStatus HandleMessage(std::unique_ptr<Message> message) {
-    if (_msg != NULL) {
+    if (_msg != nullptr) {
       free(_msg);
-      _msg = NULL;
+      _msg = nullptr;
     }
 
     // Parse the message.
@@ -107,7 +107,7 @@ static ArrayPtr Eval(Dart_Handle lib, const char* expr) {
 static ArrayPtr EvalF(Dart_Handle lib, const char* fmt, ...) {
   va_list measure_args;
   va_start(measure_args, fmt);
-  intptr_t len = Utils::VSNPrint(NULL, 0, fmt, measure_args);
+  intptr_t len = Utils::VSNPrint(nullptr, 0, fmt, measure_args);
   va_end(measure_args);
 
   char* buffer = Thread::Current()->zone()->Alloc<char>(len + 1);
@@ -149,9 +149,9 @@ ISOLATE_UNIT_TEST_CASE(Service_IsolateStickyError) {
   Dart_Handle result;
   {
     TransitionVMToNative transition(thread);
-    Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+    Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
     EXPECT_VALID(lib);
-    result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT(Dart_IsUnhandledExceptionError(result));
     EXPECT(!Dart_HasStickyError());
   }
@@ -242,10 +242,10 @@ ISOLATE_UNIT_TEST_CASE(Service_Code) {
   Library& vmlib = Library::Handle();
   {
     TransitionVMToNative transition(thread);
-    lib = TestCase::LoadTestScript(kScript, NULL);
+    lib = TestCase::LoadTestScript(kScript, nullptr);
     EXPECT_VALID(lib);
     EXPECT(!Dart_IsNull(lib));
-    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
   }
   vmlib ^= Api::UnwrapHandle(lib);
@@ -367,10 +367,10 @@ ISOLATE_UNIT_TEST_CASE(Service_PcDescriptors) {
   Library& vmlib = Library::Handle();
   {
     TransitionVMToNative transition(thread);
-    lib = TestCase::LoadTestScript(kScript, NULL);
+    lib = TestCase::LoadTestScript(kScript, nullptr);
     EXPECT_VALID(lib);
     EXPECT(!Dart_IsNull(lib));
-    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
   }
   vmlib ^= Api::UnwrapHandle(lib);
@@ -438,10 +438,10 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
   Library& vmlib = Library::Handle();
   {
     TransitionVMToNative transition(thread);
-    lib = TestCase::LoadTestScript(kScript, NULL);
+    lib = TestCase::LoadTestScript(kScript, nullptr);
     EXPECT_VALID(lib);
     EXPECT(!Dart_IsNull(lib));
-    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
   }
   vmlib ^= Api::UnwrapHandle(lib);
@@ -507,9 +507,9 @@ ISOLATE_UNIT_TEST_CASE(Service_PersistentHandles) {
   Dart_WeakPersistentHandle weak_persistent_handle;
   {
     TransitionVMToNative transition(thread);
-    lib = TestCase::LoadTestScript(kScript, NULL);
+    lib = TestCase::LoadTestScript(kScript, nullptr);
     EXPECT_VALID(lib);
-    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
 
     // Create a persistent handle to global.
@@ -594,12 +594,12 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderRootHandler) {
   {
     TransitionVMToNative transition(thread);
 
-    Dart_RegisterRootServiceRequestCallback("alpha", alpha_callback, NULL);
-    Dart_RegisterRootServiceRequestCallback("beta", beta_callback, NULL);
+    Dart_RegisterRootServiceRequestCallback("alpha", alpha_callback, nullptr);
+    Dart_RegisterRootServiceRequestCallback("beta", beta_callback, nullptr);
 
-    lib = TestCase::LoadTestScript(kScript, NULL);
+    lib = TestCase::LoadTestScript(kScript, nullptr);
     EXPECT_VALID(lib);
-    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
   }
 
@@ -639,12 +639,13 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderIsolateHandler) {
   {
     TransitionVMToNative transition(thread);
 
-    Dart_RegisterIsolateServiceRequestCallback("alpha", alpha_callback, NULL);
-    Dart_RegisterIsolateServiceRequestCallback("beta", beta_callback, NULL);
+    Dart_RegisterIsolateServiceRequestCallback("alpha", alpha_callback,
+                                               nullptr);
+    Dart_RegisterIsolateServiceRequestCallback("beta", beta_callback, nullptr);
 
-    lib = TestCase::LoadTestScript(kScript, NULL);
+    lib = TestCase::LoadTestScript(kScript, nullptr);
     EXPECT_VALID(lib);
-    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
   }
 
@@ -699,9 +700,9 @@ ISOLATE_UNIT_TEST_CASE(Service_Profile) {
   {
     TransitionVMToNative transition(thread);
 
-    lib = TestCase::LoadTestScript(kScript, NULL);
+    lib = TestCase::LoadTestScript(kScript, nullptr);
     EXPECT_VALID(lib);
-    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
   }
 

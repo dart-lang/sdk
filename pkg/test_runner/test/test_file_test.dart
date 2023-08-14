@@ -29,7 +29,6 @@ void main() {
   testParsePackages();
   testParseExperiments();
   testParseMultitest();
-  testParseErrorFlags();
   testParseErrorExpectations();
   testParseContextMessages();
   testIsRuntimeTest();
@@ -256,44 +255,6 @@ void testParseMultitest() {
   main() {} /\/# 01: compile-time error
   """);
   Expect.isTrue(file.isMultitest);
-}
-
-void testParseErrorFlags() {
-  // Not present.
-  var file = parseTestFile("");
-  Expect.isFalse(file.hasSyntaxError);
-  Expect.isFalse(file.hasCompileError);
-  Expect.isFalse(file.hasRuntimeError);
-  Expect.isFalse(file.hasStaticWarning);
-  Expect.isFalse(file.hasCrash);
-
-  file = parseTestFile("@syntax\-error");
-  Expect.isTrue(file.hasSyntaxError);
-  Expect.isTrue(file.hasCompileError); // Note: true.
-  Expect.isFalse(file.hasRuntimeError);
-  Expect.isFalse(file.hasStaticWarning);
-  Expect.isFalse(file.hasCrash);
-
-  file = parseTestFile("@compile\-error");
-  Expect.isFalse(file.hasSyntaxError);
-  Expect.isTrue(file.hasCompileError);
-  Expect.isFalse(file.hasRuntimeError);
-  Expect.isFalse(file.hasStaticWarning);
-  Expect.isFalse(file.hasCrash);
-
-  file = parseTestFile("@runtime\-error");
-  Expect.isFalse(file.hasSyntaxError);
-  Expect.isFalse(file.hasCompileError);
-  Expect.isTrue(file.hasRuntimeError);
-  Expect.isFalse(file.hasStaticWarning);
-  Expect.isFalse(file.hasCrash);
-
-  file = parseTestFile("@static\-warning");
-  Expect.isFalse(file.hasSyntaxError);
-  Expect.isFalse(file.hasCompileError);
-  Expect.isFalse(file.hasRuntimeError);
-  Expect.isTrue(file.hasStaticWarning);
-  Expect.isFalse(file.hasCrash);
 }
 
 void testParseErrorExpectations() {
@@ -827,11 +788,7 @@ void testShardHash() {
   Expect.equals(
       0,
       TestFile.vmUnitTest(
-              hasCompileError: false,
-              hasCrash: false,
-              hasRuntimeError: false,
-              hasStaticWarning: false,
-              hasSyntaxError: false)
+              hasCompileError: false, hasCrash: false, hasRuntimeError: false)
           .shardHash);
 }
 

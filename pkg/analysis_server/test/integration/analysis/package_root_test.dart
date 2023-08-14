@@ -18,7 +18,8 @@ void main() {
 
 @reflectiveTest
 class SetAnalysisRootsTest extends AbstractAnalysisServerIntegrationTest {
-  Future<void> xtest_package_root() async {
+  @skippedTest
+  Future<void> test_package_root() async {
     // TODO(devoncarew): This test fails intermittently on the bots; #33879.
     var projPath = sourcePath('project');
     var mainPath = path.join(projPath, 'main.dart');

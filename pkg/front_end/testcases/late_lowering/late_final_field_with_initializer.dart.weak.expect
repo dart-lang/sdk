@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -146,10 +146,10 @@ static get lateTopLevelField1() → core::int {
   }
   return let final core::int? #t12 = self::_#lateTopLevelField1 in #t12{core::int};
 }
-static method Extension|initLateExtensionField1(core::int value) → core::int {
+static extension-member method Extension|initLateExtensionField1(core::int value) → core::int {
   return self::Extension|lateExtensionField1Init = value;
 }
-static get Extension|lateExtensionField1() → core::int {
+static extension-member get Extension|lateExtensionField1() → core::int {
   if(!self::_#Extension|lateExtensionField1#isSet) {
     final core::int #t13 = self::Extension|initLateExtensionField1(87);
     if(self::_#Extension|lateExtensionField1#isSet)
@@ -159,10 +159,10 @@ static get Extension|lateExtensionField1() → core::int {
   }
   return let final core::int? #t14 = self::_#Extension|lateExtensionField1 in #t14{core::int};
 }
-static method Extension|initLateExtensionField2(core::int value) → core::int {
+static extension-member method Extension|initLateExtensionField2(core::int value) → core::int {
   return self::Extension|lateExtensionField2Init = value;
 }
-static get Extension|lateExtensionField2() → core::int {
+static extension-member get Extension|lateExtensionField2() → core::int {
   if(!self::_#Extension|lateExtensionField2#isSet) {
     final core::int #t15 = self::Extension|initLateExtensionField2(42);
     if(self::_#Extension|lateExtensionField2#isSet)
@@ -172,7 +172,7 @@ static get Extension|lateExtensionField2() → core::int {
   }
   return let final core::int? #t16 = self::_#Extension|lateExtensionField2 in #t16{core::int};
 }
-static method Extension|staticMethod() → dynamic {
+static extension-member method Extension|staticMethod() → dynamic {
   self::expect(null, self::Extension|lateExtensionField2Init);
   self::expect(42, self::Extension|lateExtensionField2);
   self::expect(42, self::Extension|lateExtensionField2Init);

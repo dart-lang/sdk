@@ -30,6 +30,8 @@ static bool SupportsCoverage() {
 }
 
 Fragment& Fragment::operator+=(const Fragment& other) {
+  ASSERT(is_valid());
+  ASSERT(other.is_valid());
   if (entry == nullptr) {
     entry = other.entry;
     current = other.current;
@@ -46,6 +48,7 @@ Fragment& Fragment::operator+=(const Fragment& other) {
 }
 
 Fragment& Fragment::operator<<=(Instruction* next) {
+  ASSERT(is_valid());
   if (entry == nullptr) {
     entry = current = next;
   } else if (current != nullptr) {
@@ -56,6 +59,7 @@ Fragment& Fragment::operator<<=(Instruction* next) {
 }
 
 void Fragment::Prepend(Instruction* start) {
+  ASSERT(is_valid());
   if (entry == nullptr) {
     entry = current = start;
   } else {
@@ -1176,7 +1180,7 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
   } else {
     call_hook += Constant(Function::ZoneHandle(Z, closure.function()));
   }
-  call_hook += ClosureCall(TokenPosition::kNoSource,
+  call_hook += ClosureCall(Function::null_function(), TokenPosition::kNoSource,
                            /*type_args_len=*/0, /*argument_count=*/3,
                            /*argument_names=*/Array::ZoneHandle(Z));
   call_hook += Drop();                           // result of closure call
@@ -1184,7 +1188,8 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
   return call_hook;
 }
 
-Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
+Fragment BaseFlowGraphBuilder::ClosureCall(const Function& target_function,
+                                           TokenPosition position,
                                            intptr_t type_args_len,
                                            intptr_t argument_count,
                                            const Array& argument_names) {
@@ -1193,9 +1198,9 @@ Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
       (type_args_len > 0 ? 1 : 0) + argument_count +
       /*closure (bare instructions) or function (otherwise)*/ 1;
   InputsArray arguments = GetArguments(total_count);
-  ClosureCallInstr* call = new (Z)
-      ClosureCallInstr(std::move(arguments), type_args_len, argument_names,
-                       InstructionSource(position), GetNextDeoptId());
+  ClosureCallInstr* call = new (Z) ClosureCallInstr(
+      target_function, std::move(arguments), type_args_len, argument_names,
+      InstructionSource(position), GetNextDeoptId());
   Push(call);
   result <<= call;
   return result;

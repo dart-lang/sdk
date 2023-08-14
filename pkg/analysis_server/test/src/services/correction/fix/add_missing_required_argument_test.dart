@@ -104,7 +104,7 @@ void f() {
   }
 
   Future<void> test_constructor_single() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A({required int a}) {}
 }
@@ -128,7 +128,7 @@ void f() {
   }
 
   Future<void> test_constructor_single_closure() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef void VoidCallback();
 
 class A {
@@ -154,7 +154,7 @@ void f() {
   }
 
   Future<void> test_constructor_single_closure2() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef void Callback(e);
 
 class A {
@@ -180,7 +180,7 @@ void f() {
   }
 
   Future<void> test_constructor_single_closure3() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef void Callback(a,b,c);
 
 class A {
@@ -206,7 +206,7 @@ void f() {
   }
 
   Future<void> test_constructor_single_closure4() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef int Callback(int a, String b,c);
 
 class A {
@@ -232,7 +232,7 @@ void f() {
   }
 
   Future<void> test_constructor_single_closure_nnbd() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef int Callback(int? a);
 
 class A {
@@ -258,7 +258,7 @@ void f() {
   }
 
   Future<void> test_constructor_single_closure_nnbd_from_legacy() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.8
 import 'package:meta/meta.dart';
 
@@ -290,7 +290,7 @@ void f() {
 
   Future<void> test_constructor_single_closure_nnbd_into_legacy() async {
     noSoundNullSafety = false;
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef int Callback(int? a);
 
 class A {
@@ -318,7 +318,7 @@ void f() {
   }
 
   Future<void> test_constructor_single_list() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A({required List<String> names}) {}
 }
@@ -342,7 +342,7 @@ void f() {
   }
 
   Future<void> test_constructor_single_namedAnywhere() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A(int a, int b, {int? c, required int d}) {}
 }

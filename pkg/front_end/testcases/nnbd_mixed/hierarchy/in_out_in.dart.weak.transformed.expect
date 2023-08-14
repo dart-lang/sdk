@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -224,7 +224,7 @@ Try removing the extra positional arguments.
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as in_2;
 import "dart:core" as core;
 
@@ -260,7 +260,7 @@ abstract mixin class SuperQ extends core::Object {
     return i;
 }
 
-library;
+library /*isLegacy*/;
 import self as in_;
 import "in_out_in_lib1.dart" as in_2;
 import "dart:core" as core;

@@ -18,7 +18,7 @@ Random::Random() {
   uint64_t seed = FLAG_random_seed;
   if (seed == 0) {
     Dart_EntropySource callback = Dart::entropy_source_callback();
-    if (callback != NULL) {
+    if (callback != nullptr) {
       if (!callback(reinterpret_cast<uint8_t*>(&seed), sizeof(seed))) {
         // Callback failed. Reset the seed to 0.
         seed = 0;

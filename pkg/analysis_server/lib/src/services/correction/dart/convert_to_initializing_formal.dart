@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ConvertToInitializingFormal extends CorrectionProducer {
+class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
   @override
   // The fix isn't able to remove the initializer list / block function body in
   // the case where multiple initializers / statements are being removed.

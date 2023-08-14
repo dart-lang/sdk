@@ -8,12 +8,7 @@
 #include "vm/cpu.h"
 #include "vm/cpu_ia32.h"
 
-#include "vm/compiler/assembler/assembler.h"
-#include "vm/constants.h"
 #include "vm/cpuinfo.h"
-#include "vm/heap/heap.h"
-#include "vm/isolate.h"
-#include "vm/object.h"
 
 namespace dart {
 
@@ -58,9 +53,9 @@ void HostCPUFeatures::Cleanup() {
 #if defined(DEBUG)
   initialized_ = false;
 #endif
-  ASSERT(hardware_ != NULL);
+  ASSERT(hardware_ != nullptr);
   free(const_cast<char*>(hardware_));
-  hardware_ = NULL;
+  hardware_ = nullptr;
   CpuInfo::Cleanup();
 }
 

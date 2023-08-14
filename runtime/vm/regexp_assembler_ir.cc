@@ -75,14 +75,14 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
       specialization_cid_(specialization_cid),
       parsed_function_(parsed_function),
       ic_data_array_(ic_data_array),
-      current_instruction_(NULL),
-      stack_(NULL),
-      stack_pointer_(NULL),
-      current_character_(NULL),
-      current_position_(NULL),
-      string_param_(NULL),
-      string_param_length_(NULL),
-      start_index_param_(NULL),
+      current_instruction_(nullptr),
+      stack_(nullptr),
+      stack_pointer_(nullptr),
+      current_character_(nullptr),
+      current_position_(nullptr),
+      string_param_(nullptr),
+      string_param_length_(nullptr),
+      start_index_param_(nullptr),
       registers_count_(0),
       saved_registers_count_((capture_count + 1) * 2),
       // B0 is taken by GraphEntry thus block ids must start at 1.
@@ -552,7 +552,7 @@ Value* IRRegExpMacroAssembler::BindLoadLocal(const LocalVariable& local) {
 // to append to a block following a jmp. In such cases, assume that we are doing
 // the correct thing, but output a warning when tracing.
 #define HANDLE_DEAD_CODE_EMISSION()                                            \
-  if (current_instruction_ == NULL) {                                          \
+  if (current_instruction_ == nullptr) {                                       \
     if (FLAG_trace_irregexp) {                                                 \
       OS::PrintErr(                                                            \
           "WARNING: Attempting to append to a closed assembler. "              \
@@ -566,8 +566,8 @@ Value* IRRegExpMacroAssembler::BindLoadLocal(const LocalVariable& local) {
 void IRRegExpMacroAssembler::AppendInstruction(Instruction* instruction) {
   HANDLE_DEAD_CODE_EMISSION();
 
-  ASSERT(current_instruction_ != NULL);
-  ASSERT(current_instruction_->next() == NULL);
+  ASSERT(current_instruction_ != nullptr);
+  ASSERT(current_instruction_->next() == nullptr);
 
   temp_id_.Dealloc(instruction->InputCount());
 
@@ -578,17 +578,17 @@ void IRRegExpMacroAssembler::AppendInstruction(Instruction* instruction) {
 void IRRegExpMacroAssembler::CloseBlockWith(Instruction* instruction) {
   HANDLE_DEAD_CODE_EMISSION();
 
-  ASSERT(current_instruction_ != NULL);
-  ASSERT(current_instruction_->next() == NULL);
+  ASSERT(current_instruction_ != nullptr);
+  ASSERT(current_instruction_->next() == nullptr);
 
   temp_id_.Dealloc(instruction->InputCount());
 
   current_instruction_->LinkTo(instruction);
-  set_current_instruction(NULL);
+  set_current_instruction(nullptr);
 }
 
 void IRRegExpMacroAssembler::GoTo(BlockLabel* to) {
-  if (to == NULL) {
+  if (to == nullptr) {
     Backtrack();
   } else {
     to->SetLinked();
@@ -601,10 +601,10 @@ void IRRegExpMacroAssembler::GoTo(BlockLabel* to) {
 void IRRegExpMacroAssembler::GoTo(JoinEntryInstr* to) {
   HANDLE_DEAD_CODE_EMISSION();
 
-  ASSERT(current_instruction_ != NULL);
-  ASSERT(current_instruction_->next() == NULL);
+  ASSERT(current_instruction_ != nullptr);
+  ASSERT(current_instruction_->next() == nullptr);
   current_instruction_->Goto(to);
-  set_current_instruction(NULL);
+  set_current_instruction(nullptr);
 }
 
 Value* IRRegExpMacroAssembler::PushLocal(LocalVariable* local) {
@@ -669,12 +669,12 @@ void IRRegExpMacroAssembler::Backtrack() {
 // If there is a current instruction, append a goto to the bound block.
 void IRRegExpMacroAssembler::BindBlock(BlockLabel* label) {
   ASSERT(!label->is_bound());
-  ASSERT(label->block()->next() == NULL);
+  ASSERT(label->block()->next() == nullptr);
 
   label->BindTo(block_id_.Alloc());
   blocks_.Add(label->block());
 
-  if (current_instruction_ != NULL) {
+  if (current_instruction_ != nullptr) {
     GoTo(label);
   }
   set_current_instruction(label->block());
@@ -780,7 +780,7 @@ void IRRegExpMacroAssembler::CheckGreedyLoop(BlockLabel* on_equal) {
   // Pop, throwing away the value.
   Do(PopStack());
 
-  BranchOrBacktrack(NULL, on_equal);
+  BranchOrBacktrack(nullptr, on_equal);
 
   BindBlock(&fallthrough);
 }
@@ -1147,7 +1147,7 @@ void IRRegExpMacroAssembler::CheckCharacterInRange(uint16_t from,
   BranchOrBacktrack(
       Comparison(kGT, LoadLocal(current_character_), Uint64Constant(to)),
       &on_not_in_range);
-  BranchOrBacktrack(NULL, on_in_range);
+  BranchOrBacktrack(nullptr, on_in_range);
 
   BindBlock(&on_not_in_range);
 }
@@ -1313,7 +1313,7 @@ bool IRRegExpMacroAssembler::CheckSpecialCharacterClass(
                                      Uint64Constant(0x2029)),
                           &success);
       }
-      BranchOrBacktrack(NULL, on_no_match);
+      BranchOrBacktrack(nullptr, on_no_match);
       BindBlock(&success);
       return true;
     }
@@ -1616,8 +1616,8 @@ void IRRegExpMacroAssembler::CheckPosition(intptr_t cp_offset,
 
 void IRRegExpMacroAssembler::BranchOrBacktrack(ComparisonInstr* comparison,
                                                BlockLabel* true_successor) {
-  if (comparison == NULL) {  // No condition
-    if (true_successor == NULL) {
+  if (comparison == nullptr) {  // No condition
+    if (true_successor == nullptr) {
       Backtrack();
       return;
     }
@@ -1627,11 +1627,11 @@ void IRRegExpMacroAssembler::BranchOrBacktrack(ComparisonInstr* comparison,
 
   // If no successor block has been passed in, backtrack.
   JoinEntryInstr* true_successor_block = backtrack_block_;
-  if (true_successor != NULL) {
+  if (true_successor != nullptr) {
     true_successor->SetLinked();
     true_successor_block = true_successor->block();
   }
-  ASSERT(true_successor_block != NULL);
+  ASSERT(true_successor_block != nullptr);
 
   // If the condition is not true, fall through to a new block.
   BlockLabel fallthrough;

@@ -173,7 +173,7 @@ DartType instantiateToBounds(DartType type, Class objectClass,
       }
     }
     return new InterfaceType.byReference(
-        type.className,
+        type.classReference,
         type.nullability,
         calculateBounds(type.classNode.typeParameters, objectClass,
             isNonNullableByDefault: isNonNullableByDefault));
@@ -210,9 +210,6 @@ List<DartType> calculateBounds(
 List<DartType> calculateBoundsInternal(
     List<TypeParameter> typeParameters, Class objectClass,
     {required bool isNonNullableByDefault}) {
-  // ignore: unnecessary_null_comparison
-  assert(isNonNullableByDefault != null);
-
   List<DartType> bounds =
       new List<DartType>.filled(typeParameters.length, dummyDartType);
   for (int i = 0; i < typeParameters.length; i++) {
@@ -222,7 +219,8 @@ List<DartType> calculateBoundsInternal(
       bound = isNonNullableByDefault && isContravariant
           ? const NeverType.nonNullable()
           : const DynamicType();
-    } else if (bound is InterfaceType && bound.classNode == objectClass) {
+    } else if (bound is InterfaceType &&
+        bound.classReference == objectClass.reference) {
       DartType defaultType = typeParameters[i].defaultType;
       if (!(defaultType is InterfaceType &&
           defaultType.classNode == objectClass)) {
@@ -341,11 +339,6 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
     {required bool allowSuperBounded,
     required bool isNonNullableByDefault,
     required bool areGenericArgumentsAllowed}) {
-  // ignore: unnecessary_null_comparison
-  assert(isNonNullableByDefault != null);
-  // ignore: unnecessary_null_comparison
-  assert(areGenericArgumentsAllowed != null);
-
   List<TypeParameter> variables = const <TypeParameter>[];
   List<DartType> arguments = const <DartType>[];
   List<TypeArgumentIssue> typedefRhsResult = const <TypeArgumentIssue>[];
@@ -497,11 +490,6 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
     DartType bottomType,
     {required bool isNonNullableByDefault,
     required bool areGenericArgumentsAllowed}) {
-  // ignore: unnecessary_null_comparison
-  assert(isNonNullableByDefault != null);
-  // ignore: unnecessary_null_comparison
-  assert(areGenericArgumentsAllowed != null);
-
   assert(arguments.length == parameters.length);
   assert(bottomType == const NeverType.nonNullable() || bottomType is NullType);
 
@@ -549,9 +537,6 @@ String getGenericTypeName(DartType type) {
 DartType? convertSuperBoundedToRegularBounded(
     TypeEnvironment typeEnvironment, DartType type,
     {int variance = Variance.covariant, required bool isNonNullableByDefault}) {
-  // ignore: unnecessary_null_comparison
-  assert(isNonNullableByDefault != null);
-
   return type.accept1(
       new _SuperBoundedTypeInverter(typeEnvironment,
           isNonNullableByDefault: isNonNullableByDefault),
@@ -564,11 +549,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   bool isOutermost = true;
 
   _SuperBoundedTypeInverter(this.typeEnvironment,
-      {required this.isNonNullableByDefault})
-      // ignore: unnecessary_null_comparison
-      : assert(typeEnvironment != null),
-        // ignore: unnecessary_null_comparison
-        assert(isNonNullableByDefault != null);
+      {required this.isNonNullableByDefault});
 
   bool flipTop(int variance) {
     return isNonNullableByDefault

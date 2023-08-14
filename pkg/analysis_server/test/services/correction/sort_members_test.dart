@@ -1512,7 +1512,8 @@ class C {} // C
 
   Future<void> _parseTestUnit(String code) async {
     addTestSource(code);
-    var result = (await session).getParsedUnit(testFile) as ParsedUnitResult;
+    var result =
+        (await session).getParsedUnit(testFile.path) as ParsedUnitResult;
     lineInfo = result.lineInfo;
     testUnit = result.unit;
   }

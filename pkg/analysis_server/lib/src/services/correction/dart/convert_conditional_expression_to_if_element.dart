@@ -11,7 +11,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ConvertConditionalExpressionToIfElement extends CorrectionProducer {
+class ConvertConditionalExpressionToIfElement
+    extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_IF_ELEMENT;
 

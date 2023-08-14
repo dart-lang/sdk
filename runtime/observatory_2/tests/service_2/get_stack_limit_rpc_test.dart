@@ -49,10 +49,8 @@ var tests = <IsolateTest>[
     // Sanity check.
     var frames = stack['frames'];
     var asyncFrames = stack['asyncCausalFrames'];
-    var awaiterFrames = stack['awaiterFrames'];
     expect(frames.length, greaterThanOrEqualTo(12));
     expect(asyncFrames.length, greaterThan(frames.length));
-    expect(awaiterFrames.length, greaterThan(frames.length));
     expect(stack['truncated'], false);
     verifyStack(frames, [
       'bar', 'foo', 'bar', 'foo',
@@ -68,11 +66,9 @@ var tests = <IsolateTest>[
     stack = await isolate.getStack(limit: fullStackLength + 1);
     frames = stack['frames'];
     asyncFrames = stack['asyncCausalFrames'];
-    awaiterFrames = stack['awaiterFrames'];
 
     expect(frames.length, fullStackLength);
     expect(asyncFrames.length, fullStackLength + 1);
-    expect(awaiterFrames.length, fullStackLength + 1);
     expect(stack['truncated'], true);
     verifyStack(frames, [
       'bar', 'foo', 'bar', 'foo',
@@ -86,11 +82,9 @@ var tests = <IsolateTest>[
     stack = await isolate.getStack(limit: 10);
     frames = stack['frames'];
     asyncFrames = stack['asyncCausalFrames'];
-    awaiterFrames = stack['awaiterFrames'];
 
     expect(frames.length, 10);
     expect(asyncFrames.length, 10);
-    expect(awaiterFrames.length, 10);
     expect(stack['truncated'], true);
     verifyStack(frames, [
       'bar',

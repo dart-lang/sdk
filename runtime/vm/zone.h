@@ -48,7 +48,7 @@ class Zone {
   // allocated area.
   char* MakeCopyOfStringN(const char* str, intptr_t len);
 
-  // Concatenate strings |a| and |b|. |a| may be NULL. If |a| is not NULL,
+  // Concatenate strings |a| and |b|. |a| may be nullptr. If |a| is not nullptr,
   // |join| will be inserted between |a| and |b|.
   char* ConcatStrings(const char* a, const char* b, char join = ',');
 
@@ -77,7 +77,7 @@ class Zone {
   Zone* previous() const { return previous_; }
 
   bool ContainsNestedZone(Zone* other) const {
-    while (other != NULL) {
+    while (other != nullptr) {
       if (this == other) return true;
       other = other->previous_;
     }
@@ -85,7 +85,7 @@ class Zone {
   }
 
   // All pointers returned from AllocateUnsafe() and New() have this alignment.
-  static const intptr_t kAlignment = kDoubleSize;
+  static constexpr intptr_t kAlignment = kDoubleSize;
 
   static void Init();
   static void Cleanup();
@@ -98,16 +98,16 @@ class Zone {
   ~Zone();  // Delete all memory associated with the zone.
 
   // Default initial chunk size.
-  static const intptr_t kInitialChunkSize = 128;
+  static constexpr intptr_t kInitialChunkSize = 128;
 
   // Default segment size.
-  static const intptr_t kSegmentSize = 64 * KB;
+  static constexpr intptr_t kSegmentSize = 64 * KB;
 
   // Zap value used to indicate deleted zone area (debug purposes).
-  static const unsigned char kZapDeletedByte = 0x42;
+  static constexpr unsigned char kZapDeletedByte = 0x42;
 
   // Zap value used to indicate uninitialized zone area (debug purposes).
-  static const unsigned char kZapUninitializedByte = 0xab;
+  static constexpr unsigned char kZapUninitializedByte = 0xab;
 
   // Total size of current zone segments.
   static RelaxedAtomic<intptr_t> total_size_;
@@ -158,7 +158,7 @@ class Zone {
   // Total size of all segments in [head_].
   intptr_t small_segment_capacity_ = 0;
 
-  // List of all segments allocated in this zone; may be NULL.
+  // List of all segments allocated in this zone; may be nullptr.
   Segment* segments_;
 
   // Used for chaining zones in order to allow unwinding of stacks.

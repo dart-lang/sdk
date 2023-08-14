@@ -113,6 +113,8 @@ class BundleWriter {
 
     _writeExportedReferences(libraryElement.exportedReferences);
 
+    _sink.writeUint30List(libraryElement.nameUnion.mask);
+
     _libraries.add(
       _Library(
         uriStr: '${libraryElement.source.uri}',
@@ -438,9 +440,11 @@ class BundleWriter {
     }
   }
 
+  /// TODO(scheglov) Deduplicate parameter writing implementation.
   void _writeParameterElement(ParameterElement element) {
     element as ParameterElementImpl;
     _sink._writeStringReference(element.name);
+    _sink.writeBool(element is ConstVariableElement);
     _sink.writeBool(element.isInitializingFormal);
     _sink.writeBool(element.isSuperFormal);
     _sink._writeFormalParameterKind(element);
@@ -660,6 +664,9 @@ class ResolutionSink extends _SummaryDataWriter {
         _writeNullabilitySuffix(nullabilitySuffix);
       }
       _writeTypeAliasElementArguments(type);
+    } else if (type is InvalidType) {
+      writeByte(Tag.InvalidType);
+      _writeTypeAliasElementArguments(type);
     } else if (type is NeverType) {
       writeByte(Tag.NeverType);
       _writeNullabilitySuffix(type.nullabilitySuffix);
@@ -740,6 +747,7 @@ class ResolutionSink extends _SummaryDataWriter {
     writeUInt30(parameters.length);
     for (var parameter in parameters) {
       _writeFormalParameterKind(parameter);
+      writeBool(parameter is ConstVariableElement);
       writeBool(parameter.hasImplicitType);
       writeBool(parameter.isInitializingFormal);
       _writeTypeParameters(parameter.typeParameters, () {

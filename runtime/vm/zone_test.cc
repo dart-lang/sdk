@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/zone.h"
+#include "platform/address_sanitizer.h"
 #include "platform/assert.h"
+#include "platform/memory_sanitizer.h"
 #include "vm/dart.h"
 #include "vm/isolate.h"
 #include "vm/unit_test.h"
@@ -16,11 +18,11 @@ VM_UNIT_TEST_CASE(AllocateZone) {
 #endif
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
-  EXPECT(thread->zone() == NULL);
+  EXPECT(thread->zone() == nullptr);
   {
     TransitionNativeToVM transition(thread);
     StackZone stack_zone(thread);
-    EXPECT(thread->zone() != NULL);
+    EXPECT(thread->zone() != nullptr);
     Zone* zone = stack_zone.GetZone();
     uintptr_t allocated_size = 0;
 
@@ -45,29 +47,29 @@ VM_UNIT_TEST_CASE(AllocateZone) {
     EXPECT_LE(allocated_size, zone->SizeInBytes());
 
     // Test corner cases of kSegmentSize.
-    uint8_t* buffer = NULL;
+    uint8_t* buffer = nullptr;
     buffer =
         reinterpret_cast<uint8_t*>(zone->AllocUnsafe(kSegmentSize - kWordSize));
-    EXPECT(buffer != NULL);
+    EXPECT(buffer != nullptr);
     buffer[(kSegmentSize - kWordSize) - 1] = 0;
     allocated_size += (kSegmentSize - kWordSize);
     EXPECT_LE(allocated_size, zone->SizeInBytes());
 
     buffer = reinterpret_cast<uint8_t*>(
         zone->AllocUnsafe(kSegmentSize - (2 * kWordSize)));
-    EXPECT(buffer != NULL);
+    EXPECT(buffer != nullptr);
     buffer[(kSegmentSize - (2 * kWordSize)) - 1] = 0;
     allocated_size += (kSegmentSize - (2 * kWordSize));
     EXPECT_LE(allocated_size, zone->SizeInBytes());
 
     buffer =
         reinterpret_cast<uint8_t*>(zone->AllocUnsafe(kSegmentSize + kWordSize));
-    EXPECT(buffer != NULL);
+    EXPECT(buffer != nullptr);
     buffer[(kSegmentSize + kWordSize) - 1] = 0;
     allocated_size += (kSegmentSize + kWordSize);
     EXPECT_LE(allocated_size, zone->SizeInBytes());
   }
-  EXPECT(thread->zone() == NULL);
+  EXPECT(thread->zone() == nullptr);
   Dart_ShutdownIsolate();
 }
 
@@ -77,11 +79,11 @@ VM_UNIT_TEST_CASE(AllocGeneric_Success) {
 #endif
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
-  EXPECT(thread->zone() == NULL);
+  EXPECT(thread->zone() == nullptr);
   {
     TransitionNativeToVM transition(thread);
     StackZone zone(thread);
-    EXPECT(thread->zone() != NULL);
+    EXPECT(thread->zone() != nullptr);
     uintptr_t allocated_size = 0;
 
     const intptr_t kNumElements = 1000;
@@ -89,7 +91,7 @@ VM_UNIT_TEST_CASE(AllocGeneric_Success) {
     allocated_size += sizeof(uint32_t) * kNumElements;
     EXPECT_LE(allocated_size, zone.SizeInBytes());
   }
-  EXPECT(thread->zone() == NULL);
+  EXPECT(thread->zone() == nullptr);
   Dart_ShutdownIsolate();
 }
 
@@ -100,10 +102,10 @@ VM_UNIT_TEST_CASE_WITH_EXPECTATION(AllocGeneric_Overflow, "Crash") {
 #endif
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
-  EXPECT(thread->zone() == NULL);
+  EXPECT(thread->zone() == nullptr);
   {
     StackZone zone(thread);
-    EXPECT(thread->zone() != NULL);
+    EXPECT(thread->zone() != nullptr);
 
     const intptr_t kNumElements = (kIntptrMax / sizeof(uint32_t)) + 1;
     zone.GetZone()->Alloc<uint32_t>(kNumElements);
@@ -139,7 +141,7 @@ VM_UNIT_TEST_CASE(ZoneAllocated) {
 #endif
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
-  EXPECT(thread->zone() == NULL);
+  EXPECT(thread->zone() == nullptr);
   static int marker;
 
   class SimpleZoneObject : public ZoneAllocated {
@@ -159,9 +161,9 @@ VM_UNIT_TEST_CASE(ZoneAllocated) {
     StackZone zone(thread);
     EXPECT_EQ(0UL, zone.SizeInBytes());
     SimpleZoneObject* first = new SimpleZoneObject();
-    EXPECT(first != NULL);
+    EXPECT(first != nullptr);
     SimpleZoneObject* second = new SimpleZoneObject();
-    EXPECT(second != NULL);
+    EXPECT(second != nullptr);
     EXPECT(first != second);
     uintptr_t expected_size = (2 * sizeof(SimpleZoneObject));
     EXPECT_LE(expected_size, zone.SizeInBytes());
@@ -176,7 +178,7 @@ VM_UNIT_TEST_CASE(ZoneAllocated) {
     EXPECT_EQ(42, first->slot);
     EXPECT_EQ(87, second->slot);
   }
-  EXPECT(thread->zone() == NULL);
+  EXPECT(thread->zone() == nullptr);
   Dart_ShutdownIsolate();
 }
 
@@ -187,10 +189,14 @@ TEST_CASE(PrintToString) {
   EXPECT_STREQ("Hello World!", result);
 }
 
-#if !defined(PRODUCT)
-// Allow for pooling in the malloc implementation.
-static const int64_t kRssSlack = 20 * MB;
-#endif  // !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(USING_ADDRESS_SANITIZER) &&                  \
+    !defined(USING_MEMORY_SANITIZER)
+// RSS hooks absent in PRODUCT mode. Scudo quarantine interferes RSS
+// measurements under the sanitizers. Slack to allow for limited pooling
+// in the malloc implementation.
+static constexpr int64_t kRssSlack = 20 * MB;
+#define CHECK_RSS
+#endif
 
 // clang-format off
 static const size_t kSizes[] = {
@@ -210,9 +216,9 @@ static const size_t kSizes[] = {
 // clang-format on
 
 TEST_CASE(StressMallocDirectly) {
-#if !defined(PRODUCT)
+#if defined(CHECK_RSS)
   int64_t start_rss = Service::CurrentRSS();
-#endif  // !defined(PRODUCT)
+#endif
 
   void* allocations[ARRAY_SIZE(kSizes)];
   for (size_t i = 0; i < ((3u * GB) / (512u * KB)); i++) {
@@ -224,16 +230,16 @@ TEST_CASE(StressMallocDirectly) {
     }
   }
 
-#if !defined(PRODUCT)
+#if defined(CHECK_RSS)
   int64_t stop_rss = Service::CurrentRSS();
   EXPECT_LT(stop_rss, start_rss + kRssSlack);
-#endif  // !defined(PRODUCT)
+#endif
 }
 
 ISOLATE_UNIT_TEST_CASE(StressMallocThroughZones) {
-#if !defined(PRODUCT)
+#if defined(CHECK_RSS)
   int64_t start_rss = Service::CurrentRSS();
-#endif  // !defined(PRODUCT)
+#endif
 
   for (size_t i = 0; i < ((3u * GB) / (512u * KB)); i++) {
     StackZone stack_zone(Thread::Current());
@@ -243,10 +249,10 @@ ISOLATE_UNIT_TEST_CASE(StressMallocThroughZones) {
     }
   }
 
-#if !defined(PRODUCT)
+#if defined(CHECK_RSS)
   int64_t stop_rss = Service::CurrentRSS();
   EXPECT_LT(stop_rss, start_rss + kRssSlack);
-#endif  // !defined(PRODUCT)
+#endif
 }
 
 #if defined(DART_COMPRESSED_POINTERS)

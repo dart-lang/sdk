@@ -155,10 +155,6 @@ config("dart_config") {
   }
 
   include_dirs = [ "include" ]
-  if (dart_use_tcmalloc) {
-    defines += [ "DART_USE_TCMALLOC" ]
-    include_dirs += [ "../third_party/tcmalloc/gperftools/src" ]
-  }
 
   if (dart_include_sampling_heap_profiler) {
     defines += [ "FORCE_FORCE_INCLUDE_SAMPLING_HEAP_PROFILER" ]
@@ -166,6 +162,10 @@ config("dart_config") {
 
   if (dart_use_compressed_pointers) {
     defines += [ "DART_COMPRESSED_POINTERS" ]
+  }
+
+  if (dart_support_perfetto) {
+    defines += [ "SUPPORT_PERFETTO" ]
   }
 
   if (is_fuchsia) {
@@ -291,6 +291,7 @@ source_set("dart_api") {
 
 library_for_all_configs("libdart") {
   target_type = dart_component_kind
+  extra_nonproduct_deps = [ "vm:libprotozero" ]
   extra_deps = [
     ":generate_version_cc_file",
     "third_party/double-conversion/src:libdouble_conversion",

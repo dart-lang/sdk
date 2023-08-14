@@ -984,6 +984,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiLoadDoubleUnaligned:
     case MethodRecognizer::kFfiLoadPointer:
     case MethodRecognizer::kFfiNativeCallbackFunction:
+    case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
     case MethodRecognizer::kFfiStoreInt8:
     case MethodRecognizer::kFfiStoreInt16:
     case MethodRecognizer::kFfiStoreInt32:
@@ -1266,7 +1267,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       ASSERT_EQUAL(function.NumParameters(), 0);
       body += IntConstant(static_cast<int64_t>(compiler::ffi::TargetAbi()));
       break;
-    case MethodRecognizer::kFfiNativeCallbackFunction: {
+    case MethodRecognizer::kFfiNativeCallbackFunction:
+    case MethodRecognizer::kFfiNativeAsyncCallbackFunction: {
       const auto& error = String::ZoneHandle(
           Z, Symbols::New(thread_,
                           "This function should be handled on call site."));
@@ -1993,9 +1995,6 @@ void FlowGraphBuilder::BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
       type_param = dart_function.TypeParameterAt(i);
     }
     ASSERT(type_param.IsFinalized());
-    if (bound.IsTypeRef()) {
-      bound = TypeRef::Cast(bound).type();
-    }
     check_bounds +=
         AssertSubtype(TokenPosition::kNoSource, type_param, bound, name);
   }
@@ -2051,7 +2050,7 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
 
     *checks += LoadLocal(param);
     *checks += AssertAssignableLoadTypeArguments(
-        TokenPosition::kNoSource, *target_type, name,
+        param->token_pos(), *target_type, name,
         AssertAssignableInstr::kParameterCheck);
     *checks += StoreLocal(param);
     *checks += Drop();
@@ -3042,10 +3041,12 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentTypeChecks(
 
   for (intptr_t i = 0; i < info.descriptor.NamedCount(); i++) {
     const intptr_t arg_index = info.descriptor.PositionAt(i);
-    const auto& arg_name = String::ZoneHandle(Z, info.descriptor.NameAt(i));
     auto const param_index = info.vars->named_argument_parameter_indices.At(i);
-    instructions += BuildClosureCallArgumentTypeCheck(info, param_index,
-                                                      arg_index, arg_name);
+    // We have a compile-time name available, but we still want the runtime to
+    // detect that the generated AssertAssignable instruction is dynamic.
+    instructions += BuildClosureCallArgumentTypeCheck(
+        info, param_index, arg_index,
+        Symbols::dynamic_assert_assignable_stc_check());
   }
 
   return instructions;
@@ -3303,8 +3304,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
       // Lookup the function in the closure.
       body += LoadNativeField(Slot::Closure_function());
     }
-    body += ClosureCall(TokenPosition::kNoSource, descriptor.TypeArgsLen(),
-                        descriptor.Count(), *argument_names);
+    body += ClosureCall(Function::null_function(), TokenPosition::kNoSource,
+                        descriptor.TypeArgsLen(), descriptor.Count(),
+                        *argument_names);
   } else {
     const intptr_t kNumArgsChecked = 1;
     body +=
@@ -3483,7 +3485,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
           Function::ZoneHandle(Z, function.parent_function());
       const Class& owner = Class::ZoneHandle(Z, parent.Owner());
       AbstractType& type = AbstractType::ZoneHandle(Z);
-      type = Type::New(owner, TypeArguments::Handle(Z));
+      type = Type::New(owner, Object::null_type_arguments());
       type = ClassFinalizer::FinalizeType(type);
       body += Constant(type);
     } else {
@@ -3740,8 +3742,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
       // TranslateInstantiatedTypeArguments is smart enough to
       // avoid instantiation and reuse passed function type arguments
       // if there are no extra type arguments in the flattened vector.
-      const auto& instantiated_type_arguments =
-          TypeArguments::ZoneHandle(Z, result_type.arguments());
+      const auto& instantiated_type_arguments = TypeArguments::ZoneHandle(
+          Z, Type::Cast(result_type).GetInstanceTypeArguments(H.thread()));
       closure +=
           TranslateInstantiatedTypeArguments(instantiated_type_arguments);
     } else {
@@ -3760,8 +3762,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     const Class& cls = Class::ZoneHandle(Z, target.Owner());
     if (cls.NumTypeArguments() > 0) {
       if (!function.IsGeneric()) {
-        Type& cls_type = Type::Handle(Z, cls.DeclarationType());
-        closure += Constant(TypeArguments::ZoneHandle(Z, cls_type.arguments()));
+        closure += Constant(TypeArguments::ZoneHandle(
+            Z, cls.GetDeclarationInstanceTypeArguments()));
       }
       closure += AllocateObject(function.token_pos(), cls, 1);
     } else {
@@ -4290,6 +4292,39 @@ Fragment FlowGraphBuilder::IntToBool() {
   return body;
 }
 
+Fragment FlowGraphBuilder::IntRelationalOp(TokenPosition position,
+                                           Token::Kind kind) {
+  if (CompilerState::Current().is_aot()) {
+    Value* right = Pop();
+    Value* left = Pop();
+    RelationalOpInstr* instr = new (Z) RelationalOpInstr(
+        InstructionSource(position), kind, left, right, kMintCid,
+        GetNextDeoptId(), Instruction::SpeculativeMode::kNotSpeculative);
+    Push(instr);
+    return Fragment(instr);
+  }
+  const String* name = nullptr;
+  switch (kind) {
+    case Token::kLT:
+      name = &Symbols::LAngleBracket();
+      break;
+    case Token::kGT:
+      name = &Symbols::RAngleBracket();
+      break;
+    case Token::kLTE:
+      name = &Symbols::LessEqualOperator();
+      break;
+    case Token::kGTE:
+      name = &Symbols::GreaterEqualOperator();
+      break;
+    default:
+      UNREACHABLE();
+  }
+  return InstanceCall(
+      position, *name, kind, /*type_args_len=*/0, /*argument_count=*/2,
+      /*argument_names=*/Array::null_array(), /*checked_argument_count=*/2);
+}
+
 Fragment FlowGraphBuilder::NativeReturn(
     const compiler::ffi::CallbackMarshaller& marshaller) {
   auto* instr = new (Z)
@@ -4313,7 +4348,7 @@ Fragment FlowGraphBuilder::FfiPointerFromAddress() {
   // do not appear in the type arguments to a any Pointer classes in an FFI
   // signature.
   ASSERT(args.IsNull() || args.IsInstantiated());
-  args = args.Canonicalize(thread_, nullptr);
+  args = args.Canonicalize(thread_);
 
   Fragment code;
   code += Constant(args);
@@ -4706,7 +4741,11 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     const Function& function) {
   if (function.FfiCallbackTarget() != Function::null()) {
-    return BuildGraphOfFfiCallback(function);
+    if (function.GetFfiCallbackKind() == FfiCallbackKind::kSync) {
+      return BuildGraphOfSyncFfiCallback(function);
+    } else {
+      return BuildGraphOfAsyncFfiCallback(function);
+    }
   } else {
     return BuildGraphOfFfiNative(function);
   }
@@ -4892,7 +4931,33 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
                            prologue_info);
 }
 
-FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
+Fragment FlowGraphBuilder::LoadNativeArg(
+    const compiler::ffi::CallbackMarshaller& marshaller,
+    intptr_t arg_index) {
+  const intptr_t num_defs = marshaller.NumDefinitions(arg_index);
+  auto defs = new (Z) ZoneGrowableArray<LocalVariable*>(Z, num_defs);
+
+  Fragment fragment;
+  for (intptr_t j = 0; j < num_defs; j++) {
+    const intptr_t def_index = marshaller.DefinitionIndex(j, arg_index);
+    auto* parameter = new (Z) NativeParameterInstr(marshaller, def_index);
+    Push(parameter);
+    fragment <<= parameter;
+    LocalVariable* def = MakeTemporary();
+    defs->Add(def);
+  }
+
+  if (marshaller.IsCompound(arg_index)) {
+    fragment +=
+        FfiCallbackConvertCompoundArgumentToDart(marshaller, arg_index, defs);
+  } else {
+    fragment += FfiConvertPrimitiveToDart(marshaller, arg_index);
+  }
+  return fragment;
+}
+
+FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
+    const Function& function) {
   const char* error = nullptr;
   const auto marshaller_ptr =
       compiler::ffi::CallbackMarshaller::FromFunction(Z, function, &error);
@@ -4922,23 +4987,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
 
   // Box and push the arguments.
   for (intptr_t i = 0; i < marshaller.num_args(); i++) {
-    const intptr_t num_defs = marshaller.NumDefinitions(i);
-    auto defs = new (Z) ZoneGrowableArray<LocalVariable*>(Z, num_defs);
-
-    for (intptr_t j = 0; j < num_defs; j++) {
-      const intptr_t def_index = marshaller.DefinitionIndex(j, i);
-      auto* parameter = new (Z) NativeParameterInstr(marshaller, def_index);
-      Push(parameter);
-      body <<= parameter;
-      LocalVariable* def = MakeTemporary();
-      defs->Add(def);
-    }
-
-    if (marshaller.IsCompound(i)) {
-      body += FfiCallbackConvertCompoundArgumentToDart(marshaller, i, defs);
-    } else {
-      body += FfiConvertPrimitiveToDart(marshaller, i);
-    }
+    body += LoadNativeArg(marshaller, i);
   }
 
   // Call the target.
@@ -5012,6 +5061,79 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
         FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex);
   }
 
+  catch_body += NativeReturn(marshaller);
+  --catch_depth_;
+
+  PrologueInfo prologue_info(-1, -1);
+  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                           prologue_info);
+}
+
+FlowGraph* FlowGraphBuilder::BuildGraphOfAsyncFfiCallback(
+    const Function& function) {
+  const char* error = nullptr;
+  const auto marshaller_ptr =
+      compiler::ffi::CallbackMarshaller::FromFunction(Z, function, &error);
+  // AbiSpecific integers can be incomplete causing us to not know the calling
+  // convention. However, this is caught fromFunction in both JIT/AOT.
+  RELEASE_ASSERT(error == nullptr);
+  RELEASE_ASSERT(marshaller_ptr != nullptr);
+  const auto& marshaller = *marshaller_ptr;
+
+  // Currently all async FFI callbacks return void. This is enforced by the
+  // frontend.
+  ASSERT(marshaller.IsVoid(compiler::ffi::kResultIndex));
+
+  graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
+
+  auto* const native_entry =
+      new (Z) NativeEntryInstr(marshaller, graph_entry_, AllocateBlockId(),
+                               CurrentTryIndex(), GetNextDeoptId());
+
+  graph_entry_->set_normal_entry(native_entry);
+
+  Fragment function_body(native_entry);
+  function_body += CheckStackOverflowInPrologue(function.token_pos());
+
+  // Wrap the entire method in a big try/catch. This is important to ensure that
+  // the VM does not crash if the callback throws an exception.
+  const intptr_t try_handler_index = AllocateTryIndex();
+  Fragment body = TryCatch(try_handler_index);
+  ++try_depth_;
+
+  // Box and push the arguments into an array, to be sent to the target.
+  body += Constant(TypeArguments::ZoneHandle(Z, TypeArguments::null()));
+  body += IntConstant(marshaller.num_args());
+  body += CreateArray();
+  LocalVariable* array = MakeTemporary();
+  for (intptr_t i = 0; i < marshaller.num_args(); i++) {
+    body += LoadLocal(array);
+    body += IntConstant(i);
+    body += LoadNativeArg(marshaller, i);
+    body += StoreIndexed(kArrayCid);
+  }
+
+  // Send the arg array to the target. The arg array is still on the stack.
+  body += Call1ArgStub(TokenPosition::kNoSource,
+                       Call1ArgStubInstr::StubId::kFfiAsyncCallbackSend);
+
+  // All async FFI callbacks return void, so just return 0.
+  body += Drop();
+  body += UnboxedIntConstant(0, kUnboxedFfiIntPtr);
+  body += NativeReturn(marshaller);
+
+  --try_depth_;
+  function_body += body;
+
+  ++catch_depth_;
+  Fragment catch_body = CatchBlockEntry(Array::empty_array(), try_handler_index,
+                                        /*needs_stacktrace=*/false,
+                                        /*is_synthesized=*/true);
+
+  // This catch indicates there's been some sort of error, but async callbacks
+  // are fire-and-forget, and we don't guarantee delivery. So just return 0.
+  catch_body += UnboxedIntConstant(0, kUnboxedFfiIntPtr);
   catch_body += NativeReturn(marshaller);
   --catch_depth_;
 
@@ -5122,6 +5244,36 @@ Fragment FlowGraphBuilder::BuildDoubleHashCode() {
   return body;
 }
 
+SwitchHelper::SwitchHelper(Zone* zone,
+                           TokenPosition position,
+                           bool is_exhaustive,
+                           const AbstractType& expression_type,
+                           SwitchBlock* switch_block,
+                           intptr_t case_count)
+    : zone_(zone),
+      position_(position),
+      is_exhaustive_(is_exhaustive),
+      expression_type_(expression_type),
+      switch_block_(switch_block),
+      case_count_(case_count),
+      case_bodies_(case_count),
+      case_expression_counts_(case_count),
+      expressions_(case_count),
+      sorted_expressions_(case_count) {
+  case_expression_counts_.FillWith(0, 0, case_count);
+
+  if (expression_type.nullability() == Nullability::kNonNullable) {
+    if (expression_type.IsIntType() || expression_type.IsSmiType()) {
+      is_optimizable_ = true;
+    } else if (expression_type.HasTypeClass() &&
+               Class::Handle(zone_, expression_type.type_class())
+                   .is_enum_class()) {
+      is_optimizable_ = true;
+      is_enum_switch_ = true;
+    }
+  }
+}
+
 int64_t SwitchHelper::ExpressionRange() const {
   const int64_t min = expression_min().AsInt64Value();
   const int64_t max = expression_max().AsInt64Value();
@@ -5165,7 +5317,7 @@ SwitchDispatch SwitchHelper::SelectDispatchStrategy() {
   // binary search to avoid code size explosion.
   const double kJumpTableMaxHolesRatio = 1.0;
 
-  if (!is_optimizable()) {
+  if (!is_optimizable() || expressions().is_empty()) {
     // The switch is not optimizable, so we can only use linear scan.
     return kSwitchDispatchLinearScan;
   }
@@ -5309,15 +5461,10 @@ void SwitchHelper::AddExpression(intptr_t case_index,
 
   expressions_.Add(SwitchExpression(case_index, position, value));
 
-  if (is_optimizable_ || expression_class_ == nullptr) {
-    // Check the type of the expression for use in an optimized switch.
-    const Class& value_class = Class::ZoneHandle(zone_, value.clazz());
-    if (expression_class_ == nullptr) {
-      expression_class_ = &value_class;
-      // Only integer and enum expressions can be used in an optimized switch.
-      is_optimizable_ = value.IsInteger() || value_class.is_enum_class();
-    } else if (value_class.ptr() != expression_class_->ptr()) {
-      // At least one expression has a different type than the others.
+  if (is_optimizable_) {
+    // Check the type of the case expression for use in an optimized switch.
+    if (!value.IsInstanceOf(expression_type_, Object::null_type_arguments(),
+                            Object::null_type_arguments())) {
       is_optimizable_ = false;
     }
   }

@@ -41,7 +41,7 @@ class Hasher implements CodeOutputListener {
 }
 
 /// A sink used to get a digest value out of `Hash.startChunkedConversion`.
-class _DigestSink extends Sink<Digest> {
+class _DigestSink implements Sink<Digest> {
   Digest? _value;
 
   /// The value added to the sink, if any.

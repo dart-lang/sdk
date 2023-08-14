@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -20,7 +20,7 @@ extension Extension on self::Class {
 }
 static field self::Class c;
 static field dynamic missingGetter;
-static method Extension|set#setter(lowered final self::Class #this, core::int value) → void
+static extension-member method Extension|set#setter(lowered final self::Class #this, core::int value) → void
   ;
 static method main() → dynamic
   ;

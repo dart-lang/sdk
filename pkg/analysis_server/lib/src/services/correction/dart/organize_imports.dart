@@ -9,7 +9,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class OrganizeImports extends CorrectionProducer {
+class OrganizeImports extends ResolvedCorrectionProducer {
   @override
   // Bulk application is supported by a distinct import cleanup fix phase.
   bool get canBeAppliedInBulk => false;
@@ -26,7 +26,7 @@ class OrganizeImports extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var organizer =
-        ImportOrganizer(resolvedResult.content, unit, resolvedResult.errors);
+        ImportOrganizer(unitResult.content, unit, unitResult.errors);
     // todo (pq): consider restructuring organizer to allow a passed-in change
     //  builder
     for (var edit in organizer.organize()) {

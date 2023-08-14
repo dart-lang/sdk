@@ -589,8 +589,7 @@ Message _withArgumentsConstEvalInvalidBinaryOperandType(
     DartType _type,
     DartType _type2,
     bool isNonNullableByDefault) {
-  // ignore: unnecessary_null_comparison
-  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  if (stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> constantParts = labeler.labelConstant(_constant);
   List<Object> typeParts = labeler.labelType(_type);
@@ -673,8 +672,7 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidMethodInvocation(
     String stringOKEmpty, Constant _constant, bool isNonNullableByDefault) {
-  // ignore: unnecessary_null_comparison
-  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  if (stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -711,8 +709,7 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidPropertyGet(
     String stringOKEmpty, Constant _constant, bool isNonNullableByDefault) {
-  // ignore: unnecessary_null_comparison
-  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  if (stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -749,8 +746,7 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidRecordIndexGet(
     String stringOKEmpty, Constant _constant, bool isNonNullableByDefault) {
-  // ignore: unnecessary_null_comparison
-  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  if (stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -787,8 +783,7 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidRecordNameGet(
     String stringOKEmpty, Constant _constant, bool isNonNullableByDefault) {
-  // ignore: unnecessary_null_comparison
-  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  if (stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -1115,6 +1110,34 @@ Message _withArgumentsFfiExpectedNoExceptionalReturn(
   return new Message(codeFfiExpectedNoExceptionalReturn,
       problemMessage:
           """Exceptional return value cannot be provided for a native callback returning '${type}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateFfiNativeCallableListenerReturnVoid = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The return type of the function passed to NativeCallable.listener must be void rather than '#type'.""",
+        withArguments: _withArgumentsFfiNativeCallableListenerReturnVoid);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeFfiNativeCallableListenerReturnVoid =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "FfiNativeCallableListenerReturnVoid",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiNativeCallableListenerReturnVoid(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeFfiNativeCallableListenerReturnVoid,
+      problemMessage:
+          """The return type of the function passed to NativeCallable.listener must be void rather than '${type}'.""" +
               labeler.originMessages,
       arguments: {'type': _type});
 }
@@ -2039,10 +2062,6 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIndexOutOfBoundInRecordIndexGet(
     int count, int count2, DartType _type, bool isNonNullableByDefault) {
-  // ignore: unnecessary_null_comparison
-  if (count == null) throw 'No count provided';
-  // ignore: unnecessary_null_comparison
-  if (count2 == null) throw 'No count provided';
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3814,6 +3833,37 @@ Message _withArgumentsJsInteropExportInvalidTypeArgument(
               labeler.originMessages,
       correctionMessage:
           """Use a non-JS interop class that uses `@JSExport` instead.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateJsInteropFunctionToJSRequiresStaticType = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""`Function.toJS` requires a statically known function type, but Type '#type' is not a function type, e.g., `void Function()`.""",
+        correctionMessageTemplate:
+            r"""Insert an explicit cast to the expected function type.""",
+        withArguments: _withArgumentsJsInteropFunctionToJSRequiresStaticType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeJsInteropFunctionToJSRequiresStaticType =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "JsInteropFunctionToJSRequiresStaticType",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropFunctionToJSRequiresStaticType(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeJsInteropFunctionToJSRequiresStaticType,
+      problemMessage:
+          """`Function.toJS` requires a statically known function type, but Type '${type}' is not a function type, e.g., `void Function()`.""" +
+              labeler.originMessages,
+      correctionMessage: """Insert an explicit cast to the expected function type.""",
       arguments: {'type': _type});
 }
 

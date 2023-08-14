@@ -16,19 +16,26 @@ class FakeTypeIntrospector extends Fake implements TypeIntrospector {}
 
 class TestTypeIntrospector implements TypeIntrospector {
   final Map<IntrospectableType, List<ConstructorDeclaration>> constructors;
+  final Map<IntrospectableEnum, List<EnumValueDeclaration>> enumValues;
   final Map<IntrospectableType, List<FieldDeclaration>> fields;
   final Map<IntrospectableType, List<MethodDeclaration>> methods;
 
   TestTypeIntrospector({
     required this.constructors,
+    required this.enumValues,
     required this.fields,
     required this.methods,
   });
 
   @override
   Future<List<ConstructorDeclaration>> constructorsOf(
-          covariant IntrospectableType clazz) async =>
-      constructors[clazz]!;
+          covariant IntrospectableType type) async =>
+      constructors[type]!;
+
+  @override
+  Future<List<EnumValueDeclaration>> valuesOf(
+          covariant IntrospectableEnum enuum) async =>
+      enumValues[enuum]!;
 
   @override
   Future<List<FieldDeclaration>> fieldsOf(
@@ -41,7 +48,15 @@ class TestTypeIntrospector implements TypeIntrospector {
       methods[clazz]!;
 }
 
-class FakeIdentifierResolver extends Fake implements IdentifierResolver {}
+class FakeIdentifierResolver implements IdentifierResolver {
+  @override
+  Future<Identifier> resolveIdentifier(Uri library, String name) async {
+    if (library == Uri.parse('dart:core') && name == 'String') {
+      return Fixtures.stringType.identifier;
+    }
+    throw UnimplementedError('Cannot resolve the identifier $library:$name');
+  }
+}
 
 class FakeTypeDeclarationResolver extends Fake
     implements TypeDeclarationResolver {}
@@ -160,6 +175,10 @@ Matcher deepEqualsDeclaration(Declaration declaration) =>
 Matcher deepEqualsTypeAnnotation(TypeAnnotation declaration) =>
     _DeepEqualityMatcher(declaration);
 
+/// Checks if two [Arguments]s are identical
+Matcher deepEqualsArguments(Arguments arguments) =>
+    _DeepEqualityMatcher(arguments);
+
 /// Checks if two [Declaration]s, [TypeAnnotation]s, or [Code] objects are of
 /// the same type and all their fields are equal.
 class _DeepEqualityMatcher extends Matcher {
@@ -172,10 +191,11 @@ class _DeepEqualityMatcher extends Matcher {
 
   @override
   bool matches(item, Map matchState) {
-    if (item.runtimeType != instance.runtimeType) {
+    // For type promotion.
+    final instance = this.instance;
+    if (!equals(item.runtimeType).matches(instance.runtimeType, matchState)) {
       return false;
     }
-
     if (instance is Declaration || instance is TypeAnnotation) {
       var instanceReflector = reflect(instance);
       var itemReflector = reflect(item);
@@ -191,47 +211,52 @@ class _DeepEqualityMatcher extends Matcher {
         var instanceValue = instanceField.reflectee;
         var itemValue = itemField.reflectee;
 
-        // Handle lists of things
-        if (instanceValue is List) {
-          if (!_listEquals(instanceValue, itemValue, matchState)) {
-            return false;
-          }
-        } else if (instanceValue is Declaration ||
-            instanceValue is Code ||
-            instanceValue is TypeAnnotation) {
-          // Handle nested declarations and code objects
-          if (!_DeepEqualityMatcher(instanceValue)
-              .matches(itemValue, matchState)) {
-            return false;
-          }
-        } else {
-          // Handles basic values and identity
-          if (instanceValue != itemValue) {
-            return false;
-          }
+        if (!_DeepEqualityMatcher(instanceValue)
+            .matches(itemValue, matchState)) {
+          return false;
         }
       }
     } else if (instance is Code) {
-      if (!_listEquals(
-          (instance as Code).parts, (item as Code).parts, matchState)) {
+      item as Code;
+      if (!_DeepEqualityMatcher(instance.parts)
+          .matches(item.parts, matchState)) {
         return false;
+      }
+    } else if (instance is Arguments) {
+      item as Arguments;
+      if (!equals(instance.positional.length)
+          .matches(item.positional.length, matchState)) {
+        return false;
+      }
+      for (var i = 0; i < instance.positional.length; i++) {
+        if (!_DeepEqualityMatcher(instance.positional[i].value)
+            .matches(item.positional[i].value, matchState)) {
+          return false;
+        }
+      }
+      if (instance.named.length != item.named.length) return false;
+      if (!equals(instance.named.keys).matches(item.named.keys, matchState)) {
+        return false;
+      }
+      for (var key in instance.named.keys) {
+        if (!_DeepEqualityMatcher(instance.named[key]!.value)
+            .matches(item.named[key]!.value, matchState)) {
+          return false;
+        }
+      }
+    } else if (instance is List) {
+      item as List;
+      if (!equals(instance.length).matches(item.length, matchState)) {
+        return false;
+      }
+      for (var i = 0; i < instance.length; i++) {
+        if (!_DeepEqualityMatcher(instance[i]).matches(item[i], matchState)) {
+          return false;
+        }
       }
     } else {
       // Handles basic values and identity
-      if (instance != item) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool _listEquals(List instanceValue, List itemValue, Map matchState) {
-    if (instanceValue.length != itemValue.length) {
-      return false;
-    }
-    for (var i = 0; i < instanceValue.length; i++) {
-      if (!_DeepEqualityMatcher(instanceValue[i])
-          .matches(itemValue[i], matchState)) {
+      if (!equals(instance).matches(item, matchState)) {
         return false;
       }
     }
@@ -240,6 +265,10 @@ class _DeepEqualityMatcher extends Matcher {
 }
 
 class Fixtures {
+  static final library = LibraryImpl(
+      id: RemoteInstance.uniqueId,
+      languageVersion: LanguageVersionImpl(3, 0),
+      uri: Uri.parse('package:foo/bar.dart'));
   static final nullableBoolType = NamedTypeAnnotationImpl(
       id: RemoteInstance.uniqueId,
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bool'),
@@ -264,6 +293,7 @@ class Fixtures {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'world'),
+            library: Fixtures.library,
             name: 'world',
             type: stringType),
       ],
@@ -272,12 +302,14 @@ class Fixtures {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$1'),
+            library: Fixtures.library,
             name: null,
             type: stringType),
         RecordFieldDeclarationImpl(
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$2'),
+            library: Fixtures.library,
             name: 'hello',
             type: nullableBoolType),
       ]);
@@ -287,6 +319,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myFunction'),
+      library: Fixtures.library,
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -300,6 +333,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: '_myVariable'),
+      library: Fixtures.library,
       isExternal: false,
       isFinal: true,
       isLate: false,
@@ -308,6 +342,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myVariable'),
+      library: Fixtures.library,
       isAbstract: false,
       isExternal: false,
       isGetter: true,
@@ -321,6 +356,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myVariable'),
+      library: Fixtures.library,
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -332,6 +368,7 @@ class Fixtures {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'value'),
+            library: Fixtures.library,
             isNamed: false,
             isRequired: true,
             type: stringType)
@@ -365,6 +402,7 @@ class Fixtures {
   static final myClass = IntrospectableClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: myClassType.identifier,
+      library: Fixtures.library,
       typeParameters: [],
       interfaces: [myInterfaceType],
       hasAbstract: false,
@@ -380,6 +418,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myConstructor'),
+      library: Fixtures.library,
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -391,26 +430,29 @@ class Fixtures {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
+            library: Fixtures.library,
             isNamed: false,
             isRequired: true,
             type: TestOmittedTypeAnnotation(myField.type))
       ],
       returnType: myClassType,
       typeParameters: [],
-      definingClass: myClassType.identifier,
+      definingType: myClassType.identifier,
       isFactory: false);
   static final myField = FieldDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
+      library: Fixtures.library,
       isExternal: false,
       isFinal: false,
       isLate: false,
       type: stringType,
-      definingClass: myClassType.identifier,
+      definingType: myClassType.identifier,
       isStatic: false);
   static final myInterface = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: myInterfaceType.identifier,
+      library: Fixtures.library,
       typeParameters: [],
       interfaces: [],
       hasAbstract: false,
@@ -425,6 +467,7 @@ class Fixtures {
   static final myMethod = MethodDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myMethod'),
+      library: Fixtures.library,
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -434,25 +477,12 @@ class Fixtures {
       positionalParameters: [],
       returnType: recordType,
       typeParameters: [],
-      definingClass: myClassType.identifier,
+      definingType: myClassType.identifier,
       isStatic: false);
-  static final myMixin = ClassDeclarationImpl(
-      id: RemoteInstance.uniqueId,
-      identifier: myMixinType.identifier,
-      typeParameters: [],
-      interfaces: [],
-      hasAbstract: false,
-      hasBase: false,
-      hasExternal: false,
-      hasFinal: false,
-      hasInterface: false,
-      hasMixin: true,
-      hasSealed: false,
-      mixins: [],
-      superclass: null);
   static final mySuperclass = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: mySuperclassType.identifier,
+      library: Fixtures.library,
       typeParameters: [],
       interfaces: [],
       hasAbstract: false,
@@ -468,6 +498,78 @@ class Fixtures {
   static final myClassStaticType = TestNamedStaticType(
       myClassType.identifier, 'package:my_package/my_package.dart', []);
 
+  static final myEnumType = NamedTypeAnnotationImpl(
+      id: RemoteInstance.uniqueId,
+      isNullable: false,
+      identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyEnum'),
+      typeArguments: []);
+  static final myEnum = IntrospectableEnumDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier: myEnumType.identifier,
+      library: Fixtures.library,
+      typeParameters: [],
+      interfaces: [],
+      mixins: []);
+  static final myEnumValues = [
+    EnumValueDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'a'),
+      library: Fixtures.library,
+      definingEnum: myEnum.identifier,
+    ),
+  ];
+  static final myEnumConstructor = ConstructorDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier: IdentifierImpl(
+          id: RemoteInstance.uniqueId, name: 'myEnumConstructor'),
+      library: Fixtures.library,
+      isAbstract: false,
+      isExternal: false,
+      isGetter: false,
+      isOperator: false,
+      isSetter: false,
+      namedParameters: [],
+      positionalParameters: [
+        ParameterDeclarationImpl(
+            id: RemoteInstance.uniqueId,
+            identifier:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
+            library: Fixtures.library,
+            isNamed: false,
+            isRequired: true,
+            type: stringType)
+      ],
+      returnType: myEnumType,
+      typeParameters: [],
+      definingType: myEnum.identifier,
+      isFactory: false);
+
+  static final myMixin = IntrospectableMixinDeclarationImpl(
+    id: RemoteInstance.uniqueId,
+    identifier: myMixinType.identifier,
+    library: Fixtures.library,
+    typeParameters: [],
+    hasBase: false,
+    interfaces: [],
+    superclassConstraints: [myClassType],
+  );
+  static final myMixinMethod = MethodDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier:
+          IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myMixinMethod'),
+      library: Fixtures.library,
+      isAbstract: false,
+      isExternal: false,
+      isGetter: false,
+      isOperator: false,
+      isSetter: false,
+      namedParameters: [],
+      positionalParameters: [],
+      returnType: recordType,
+      typeParameters: [],
+      definingType: myMixinType.identifier,
+      isStatic: false);
+
   static final testTypeResolver = TestTypeResolver({
     stringType.identifier:
         TestNamedStaticType(stringType.identifier, 'dart:core', []),
@@ -476,16 +578,26 @@ class Fixtures {
   static final testTypeIntrospector = TestTypeIntrospector(
     constructors: {
       myClass: [myConstructor],
+      myEnum: [myEnumConstructor],
+      myMixin: [],
+    },
+    enumValues: {
+      myEnum: myEnumValues,
     },
     fields: {
       myClass: [myField],
+      myMixin: [],
+      myEnum: [],
     },
     methods: {
       myClass: [myMethod],
+      myMixin: [myMixinMethod],
+      myEnum: [],
     },
   );
   static final testTypeDeclarationResolver = TestTypeDeclarationResolver({
     myClass.identifier: myClass,
+    myEnum.identifier: myEnum,
     mySuperclass.identifier: mySuperclass,
     myInterface.identifier: myInterface,
     myMixin.identifier: myMixin

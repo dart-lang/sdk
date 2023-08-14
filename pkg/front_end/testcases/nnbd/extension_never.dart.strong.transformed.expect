@@ -1,12 +1,12 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 extension Extension on Never {
   method extensionMethod = self::Extension|extensionMethod;
   tearoff extensionMethod = self::Extension|get#extensionMethod;
 }
-static method Extension|extensionMethod(lowered final Never #this) → dynamic {}
-static method Extension|get#extensionMethod(lowered final Never #this) → () → dynamic
+static extension-member method Extension|extensionMethod(lowered final Never #this) → dynamic {}
+static extension-member method Extension|get#extensionMethod(lowered final Never #this) → () → dynamic
   return () → dynamic => self::Extension|extensionMethod(#this);
 static method implicitAccess(Never never) → dynamic {
   never{Never}.extensionMethod();

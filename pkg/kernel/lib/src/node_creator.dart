@@ -290,8 +290,6 @@ class NodeCreator {
         cls.addField(member);
       } else if (member is Constructor) {
         cls.addConstructor(member);
-      } else if (member is RedirectingFactory) {
-        cls.addRedirectingFactory(member);
       } else {
         throw new UnsupportedError(
             'Unexpected member $member (${member.runtimeType})');
@@ -523,9 +521,12 @@ class NodeCreator {
       return redirectingFactory;
     }
     Procedure redirectingFactory = Procedure(
-        Name('foo'), ProcedureKind.Method, FunctionNode(null),
-        fileUri: _uri)
-      ..isRedirectingFactory = true;
+        Name('foo'),
+        ProcedureKind.Method,
+        FunctionNode(null)
+          ..redirectingFactoryTarget =
+              new RedirectingFactoryTarget(_needConstructor(), []),
+        fileUri: _uri);
     _needClass().addProcedure(redirectingFactory);
     return redirectingFactory;
   }
@@ -1636,10 +1637,6 @@ class NodeCreator {
               fileUri: _uri)
             ..fileOffset = _needFileOffset(),
         ]);
-      case MemberKind.RedirectingFactory:
-        return RedirectingFactory(null,
-            name: _createName(), function: _createFunctionNode(), fileUri: _uri)
-          ..fileOffset = _needFileOffset();
     }
   }
 

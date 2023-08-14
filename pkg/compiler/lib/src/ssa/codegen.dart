@@ -54,7 +54,8 @@ abstract class CodegenPhase {
 class SsaCodeGeneratorTask extends CompilerTask {
   final CompilerOptions _options;
   final SourceInformationStrategy sourceInformationStrategy;
-  final _CodegenMetrics _metrics = _CodegenMetrics();
+  _CodegenMetrics? _codegenMetrics;
+  _CodegenMetrics get codegenMetrics => _codegenMetrics ??= _CodegenMetrics();
 
   SsaCodeGeneratorTask(
       Measurer super.measurer, this._options, this.sourceInformationStrategy);
@@ -63,7 +64,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   String get name => 'SSA code generator';
 
   @override
-  Metrics get metrics => _metrics;
+  Metrics get metrics => _codegenMetrics ?? Metrics.none();
 
   js.Fun buildJavaScriptFunction(bool needsAsyncRewrite, FunctionEntity element,
       List<js.Parameter> parameters, js.Block body) {
@@ -124,7 +125,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       SsaCodeGenerator codeGenerator = SsaCodeGenerator(
           this,
           _options,
-          _metrics,
+          codegenMetrics,
           emitter,
           codegen.rtiSubstitutions,
           codegen.rtiRecipeEncoder,
@@ -154,7 +155,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       SsaCodeGenerator codeGenerator = SsaCodeGenerator(
           this,
           _options,
-          _metrics,
+          codegenMetrics,
           emitter,
           codegen.rtiSubstitutions,
           codegen.rtiRecipeEncoder,
@@ -816,9 +817,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // omit the code for it.
       if (successor.isLive) {
         do {
-          visit(inputs[inputIndex]);
+          final input = inputs[inputIndex];
+          visit(input);
           currentContainer = js.Block.empty();
           cases.add(js.Case(pop(), currentContainer));
+          if (input is HConstant && input.constant is NullConstantValue) {
+            // JavaScript case expressions match on `===`, which means that the
+            // just emitted `case null:` will not catch `undefined`.
+            // Add `case void 0:` to catch `undefined`.
+            currentContainer = js.Block.empty();
+            cases.add(
+                js.Case(js.Prefix('void', js.number(0)), currentContainer));
+          }
           inputIndex++;
         } while ((successors[inputIndex - 1] == successor) &&
             (inputIndex < inputs.length));
@@ -2939,6 +2949,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         .withSourceInformation(node.sourceInformation));
   }
 
+  @override
+  void visitCharCodeAt(HCharCodeAt node) {
+    use(node.receiver);
+    js.Expression receiver = pop();
+    use(node.index);
+    push(js.js('#.charCodeAt(#)', [receiver, pop()]).withSourceInformation(
+        node.sourceInformation));
+  }
+
   void checkTypeOf(HInstruction input, String cmp, String typeName,
       SourceInformation? sourceInformation) {
     use(input);
@@ -3175,41 +3194,39 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     late js.Expression test;
     switch (node.specialization) {
       case IsTestSpecialization.isNull:
-      case IsTestSpecialization.notNull:
+      case IsTestSpecialization.isNotNull:
         // These cases should be lowered using [HIdentity] during optimization.
         failedAt(node, 'Missing lowering');
 
-      case IsTestSpecialization.string:
+      case IsTestSpecialization.isString:
         test = typeof("string");
         break;
 
-      case IsTestSpecialization.bool:
+      case IsTestSpecialization.isBool:
         test = isTest(_commonElements.specializedIsBool);
         break;
 
-      case IsTestSpecialization.num:
+      case IsTestSpecialization.isNum:
         test = typeof("number");
         break;
 
-      case IsTestSpecialization.int:
+      case IsTestSpecialization.isInt:
         test = isTest(_commonElements.specializedIsInt);
         break;
 
-      case IsTestSpecialization.arrayTop:
+      case IsTestSpecialization.isArrayTop:
         test = handleNegative(js.js('Array.isArray(#)', [value]));
         break;
 
-      case IsTestSpecialization.instanceof:
-        DartType dartType = node.dartType;
-        // We don't generate instanceof specializations for Never* and Object*.
-        assert(dartType is InterfaceType ||
-            (dartType is LegacyType &&
-                !dartType.baseType.isObject &&
-                dartType.baseType is! NeverType));
-        InterfaceType type = dartType.withoutNullability as InterfaceType;
-        _registry.registerTypeUse(TypeUse.constructorReference(type));
-        test = handleNegative(js.js('# instanceof #',
-            [value, _emitter.constructorAccess(type.element)]));
+      default:
+        if (node.specialization.isInstanceof) {
+          InterfaceType type = node.specialization.interfaceType;
+          _registry.registerTypeUse(TypeUse.constructorReference(type));
+          test = handleNegative(js.js('# instanceof #',
+              [value, _emitter.constructorAccess(type.element)]));
+        } else {
+          failedAt(node, 'Unknown specialization: ${node.specialization}');
+        }
     }
     push(test.withSourceInformation(node.sourceInformation));
   }

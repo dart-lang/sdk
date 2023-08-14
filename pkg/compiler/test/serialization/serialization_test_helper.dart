@@ -137,7 +137,25 @@ runTest(
       });
   Expect.isTrue(result2.isSuccess);
 
-  var dillUri = Uri.parse('out.dill');
+  Directory dir =
+      await Directory.systemTemp.createTemp('serialization_test_helper');
+  final cfeDillFileUri = dir.uri.resolve('cfe.dill');
+
+  OutputCollector cfeDillCollector = OutputCollector();
+  CompilationResult resultCfeDill = await runCompiler(
+      entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
+      packageConfig: packageConfig,
+      librariesSpecificationUri: librariesSpecificationUri,
+      outputProvider: cfeDillCollector,
+      options: options + ['--out=$cfeDillFileUri', Flags.cfeOnly]);
+  Expect.isTrue(resultCfeDill.isSuccess);
+  Expect.isTrue(cfeDillCollector.binaryOutputMap.containsKey(cfeDillFileUri));
+
+  File(cfeDillFileUri.path)
+      .writeAsBytesSync(cfeDillCollector.binaryOutputMap[cfeDillFileUri]!.list);
+
+  var dillUri = dir.uri.resolve('out.dill');
   var closedWorldUri = Uri.parse('world.data');
   OutputCollector collector3a = OutputCollector();
   CompilationResult result3a = await runCompiler(
@@ -146,7 +164,11 @@ runTest(
       packageConfig: packageConfig,
       librariesSpecificationUri: librariesSpecificationUri,
       options: options +
-          ['--out=$dillUri', '${Flags.writeClosedWorld}=$closedWorldUri'],
+          [
+            '--out=$dillUri',
+            '${Flags.inputDill}=$cfeDillFileUri',
+            '${Flags.writeClosedWorld}=$closedWorldUri'
+          ],
       outputProvider: collector3a,
       beforeRun: (Compiler compiler) {
         compiler.forceSerializationForTesting = true;
@@ -155,8 +177,6 @@ runTest(
   Expect.isTrue(collector3a.binaryOutputMap.containsKey(dillUri));
   Expect.isTrue(collector3a.binaryOutputMap.containsKey(closedWorldUri));
 
-  Directory dir =
-      await Directory.systemTemp.createTemp('serialization_test_helper');
   final dillFileUri = dir.uri.resolve('out.dill');
   final closedWorldFileUri = dir.uri.resolve('world.data');
   final globalDataUri = Uri.parse('global.data');

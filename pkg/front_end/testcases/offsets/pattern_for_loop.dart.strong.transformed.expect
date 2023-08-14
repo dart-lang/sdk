@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -13,7 +13,7 @@ import "dart:core" as core;
     }
 [249]    [249] final dynamic #t3 = [249] [249] a;
 [252]    [252] final dynamic #t4 = [252] [252] b;
-[239]    for ([249] dynamic a = [249] [249] #t3, [252] dynamic b = [252] [252] #t4; [265] [265] [265] [265] [263] [263] a{dynamic}.< [265]([267] 10) as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; [271] [271] a = [272] [272] [271] [271] a{dynamic}.+ [272]([272] 1)) {
+[239]    for ([249] dynamic a = [249] [249] #t3, [252] dynamic b = [252] [252] #t4; [265] [265] [265] [265] [263] [263] a{dynamic}.< [265]([267] 10) as{TypeError,ForDynamic} core::bool; [271] [271] a = [272] [272] [271] [271] a{dynamic}.+ [272]([272] 1)) {
 [297]      [282] [282] core::print [287]([296] "${[290] [290] a}, ${[294] [294] b}");
     }
   }
@@ -26,7 +26,7 @@ import "dart:core" as core;
 [318]        [318] hoisted dynamic b;
 [321]        {
 [-1]          [-1] final synthesized dynamic #1#0 = [-1] [-1] #t5;
-[321]          if([314] [314]![314]([314] [314] [314] [314] [314] [314] [314] [-1] [-1] #1#0 is{ForNonNullableByDefault} core::List<dynamic> && [314] [314] [314] [314] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [314] [314] #C1 && [315]([315] let [315] final dynamic #t6 = [315] [315] a = [314] [314] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::[]}[314]([314] 0){(core::int) → dynamic} in [315] [315] true) && [318]([318] let [318] final dynamic #t7 = [318] [318] b = [314] [314] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::[]}[314]([314] 1){(core::int) → dynamic} in [318] [318] true)))
+[321]          if([314] [314]![314]([314] [314] [314] [314] [314] [314] [314] [-1] [-1] #1#0 is core::List<dynamic> && [314] [314] [314] [314] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [314] [314] #C1 && [315]([315] let [315] final dynamic #t6 = [315] [315] a = [314] [314] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::[]}[314]([314] 0){(core::int) → dynamic} in [315] [315] true) && [318]([318] let [318] final dynamic #t7 = [318] [318] b = [314] [314] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::[]}[314]([314] 1){(core::int) → dynamic} in [318] [318] true)))
 [321]            [321] [321] throw [321] [321] new core::StateError::• [321]([321] "Pattern matching error");
         }
 [351]        [336] [336] core::print [341]([350] "${[344] [344] a}, ${[348] [348] b}");

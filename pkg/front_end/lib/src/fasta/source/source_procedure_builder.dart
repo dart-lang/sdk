@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/kernel/body_builder_context.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
@@ -390,8 +391,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     }
 
     VariableDeclaration copyParameter(
-        VariableDeclaration parameter, DartType type,
-        {required bool isOptional}) {
+        VariableDeclaration parameter, DartType type) {
       VariableDeclaration newParameter = new VariableDeclaration(parameter.name,
           type: type,
           isFinal: parameter.isFinal,
@@ -403,8 +403,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
     VariableDeclaration extensionThis = copyParameter(
         function.positionalParameters.first,
-        substitution.substituteType(function.positionalParameters.first.type),
-        isOptional: false);
+        substitution.substituteType(function.positionalParameters.first.type));
 
     DartType closureReturnType =
         substitution.substituteType(function.returnType);
@@ -421,8 +420,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
             .add(new VariableGet(extensionThis)..fileOffset = fileOffset);
       } else {
         DartType type = substitution.substituteType(parameter.type);
-        VariableDeclaration newParameter = copyParameter(parameter, type,
-            isOptional: position >= function.requiredParameterCount);
+        VariableDeclaration newParameter = copyParameter(parameter, type);
         closurePositionalParameters.add(newParameter);
         closurePositionalArguments
             .add(new VariableGet(newParameter)..fileOffset = fileOffset);
@@ -432,8 +430,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     List<NamedExpression> closureNamedArguments = [];
     for (VariableDeclaration parameter in function.namedParameters) {
       DartType type = substitution.substituteType(parameter.type);
-      VariableDeclaration newParameter =
-          copyParameter(parameter, type, isOptional: true);
+      VariableDeclaration newParameter = copyParameter(parameter, type);
       closureNamedParameters.add(newParameter);
       closureNamedArguments.add(new NamedExpression(parameter.name!,
           new VariableGet(newParameter)..fileOffset = fileOffset));
@@ -633,6 +630,23 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       for (SourceProcedureBuilder patch in patches) {
         patch.checkTypes(library, typeEnvironment);
       }
+    }
+  }
+
+  @override
+  BodyBuilderContext get bodyBuilderContext =>
+      new ProcedureBodyBuilderContext(this);
+
+  // TODO(johnniwinther): Add annotations to tear-offs.
+  @override
+  Iterable<Annotatable> get annotatables => [procedure];
+
+  @override
+  bool get isAugmented {
+    if (isPatch) {
+      return origin._patches!.last != this;
+    } else {
+      return _patches != null;
     }
   }
 }

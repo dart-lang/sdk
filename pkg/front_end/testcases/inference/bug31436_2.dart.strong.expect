@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -29,19 +29,19 @@ static method block_test(() → core::List<core::Object> g) → void {
   g = () → core::List<core::Object> {
     return <core::Object>[3];
   };
-  assert(g is{ForNonNullableByDefault} () → core::List<core::Object>);
-  assert(!(g is{ForNonNullableByDefault} () → core::List<core::int>));
+  assert(g is () → core::List<core::Object>);
+  assert(!(g is () → core::List<core::int>));
   g(){() → core::List<core::Object>}.{core::List::add}("hello"){(core::Object) → void};
   core::List<core::int> l = <core::int>[3];
   g = () → core::List<core::int> {
     return l;
   };
-  assert(g{() → core::List<core::int>} is{ForNonNullableByDefault} () → core::List<core::Object>);
-  assert(g{() → core::List<core::int>} is{ForNonNullableByDefault} () → core::List<core::int>);
+  assert(g{() → core::List<core::int>} is () → core::List<core::Object>);
+  assert(g{() → core::List<core::int>} is () → core::List<core::int>);
   try {
     g{() → core::List<core::int>}(){() → core::List<core::int>}.{core::List::add}(invalid-expression "pkg/front_end/testcases/inference/bug31436_2.dart:23:36: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
         . /*@target=List.add*/ add(\"hello\"); // runtime error
-                                   ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int){(core::int) → void};
+                                   ^" in "hello" as{TypeError} core::int){(core::int) → void};
     throw "expected a runtime error";
   }
   on core::TypeError catch(no-exception-var) {
@@ -52,11 +52,11 @@ static method block_test(() → core::List<core::Object> g) → void {
  - 'Object' is from 'dart:core'.
  - 'List' is from 'dart:core'.
     return o;
-           ^" in o as{TypeError,ForNonNullableByDefault} core::List<core::int>;
+           ^" in o as{TypeError} core::List<core::int>;
   };
-  assert(g{() → core::List<core::int>} is{ForNonNullableByDefault} () → core::List<core::Object>);
-  assert(!(g{() → core::List<core::int>} is{ForNonNullableByDefault} () → core::List<core::int>));
-  assert(!(g{() → core::List<core::int>} is{ForNonNullableByDefault} () → core::Object));
+  assert(g{() → core::List<core::int>} is () → core::List<core::Object>);
+  assert(!(g{() → core::List<core::int>} is () → core::List<core::int>));
+  assert(!(g{() → core::List<core::int>} is () → core::Object));
   g{() → core::List<core::int>}(){() → core::List<core::int>};
   o = 3;
   try {
@@ -68,17 +68,17 @@ static method block_test(() → core::List<core::Object> g) → void {
 }
 static method arrow_test(() → core::List<core::Object> g) → void {
   g = () → core::List<core::Object> => <core::Object>[3];
-  assert(g is{ForNonNullableByDefault} () → core::List<core::Object>);
-  assert(!(g is{ForNonNullableByDefault} () → core::List<core::int>));
+  assert(g is () → core::List<core::Object>);
+  assert(!(g is () → core::List<core::int>));
   g(){() → core::List<core::Object>}.{core::List::add}("hello"){(core::Object) → void};
   core::List<core::int> l = <core::int>[3];
   g = () → core::List<core::int> => l;
-  assert(g{() → core::List<core::int>} is{ForNonNullableByDefault} () → core::List<core::Object>);
-  assert(g{() → core::List<core::int>} is{ForNonNullableByDefault} () → core::List<core::int>);
+  assert(g{() → core::List<core::int>} is () → core::List<core::Object>);
+  assert(g{() → core::List<core::int>} is () → core::List<core::int>);
   try {
     g{() → core::List<core::int>}(){() → core::List<core::int>}.{core::List::add}(invalid-expression "pkg/front_end/testcases/inference/bug31436_2.dart:52:36: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
         . /*@target=List.add*/ add(\"hello\"); // runtime error
-                                   ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int){(core::int) → void};
+                                   ^" in "hello" as{TypeError} core::int){(core::int) → void};
     throw "expected a runtime error";
   }
   on core::TypeError catch(no-exception-var) {
@@ -88,10 +88,10 @@ static method arrow_test(() → core::List<core::Object> g) → void {
  - 'Object' is from 'dart:core'.
  - 'List' is from 'dart:core'.
       o; // No implicit downcast on the assignment, implicit downcast on the return
-      ^" in o as{TypeError,ForNonNullableByDefault} core::List<core::int>;
-  assert(g{() → core::List<core::int>} is{ForNonNullableByDefault} () → core::List<core::Object>);
-  assert(!(g{() → core::List<core::int>} is{ForNonNullableByDefault} () → core::List<core::int>));
-  assert(!(g{() → core::List<core::int>} is{ForNonNullableByDefault} () → core::Object));
+      ^" in o as{TypeError} core::List<core::int>;
+  assert(g{() → core::List<core::int>} is () → core::List<core::Object>);
+  assert(!(g{() → core::List<core::int>} is () → core::List<core::int>));
+  assert(!(g{() → core::List<core::int>} is () → core::Object));
   g{() → core::List<core::int>}(){() → core::List<core::int>};
   o = 3;
   try {

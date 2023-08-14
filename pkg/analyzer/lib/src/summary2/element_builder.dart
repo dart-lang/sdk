@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -99,6 +97,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.isBase = node.baseKeyword != null;
     element.isInterface = node.interfaceKeyword != null;
     element.isFinal = node.finalKeyword != null;
+    element.isInline = node.inlineKeyword != null;
     element.isMixinClass = node.mixinKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
@@ -257,15 +256,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         keyword: null,
         constructorName: ConstructorNameImpl(
           type: NamedTypeImpl(
-            name: astFactory.simpleIdentifier(
-              StringToken(TokenType.STRING, element.name, -1),
-            ),
+            importPrefix: null,
+            name2: StringToken(TokenType.STRING, element.name, -1),
             typeArguments: constant.arguments?.typeArguments,
             question: null,
           ),
           period: constructorName != null ? Tokens.period() : null,
           name: constructorName != null
-              ? astFactory.simpleIdentifier(
+              ? SimpleIdentifierImpl(
                   StringToken(TokenType.STRING, constructorName, -1),
                 )
               : null,
@@ -298,7 +296,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       field.constantInitializer = initializer;
       holder.addNonSyntheticField(field);
       valuesElements.add(
-        astFactory.simpleIdentifier(
+        SimpleIdentifierImpl(
           StringToken(TokenType.STRING, name, -1),
         ),
       );
@@ -327,19 +325,17 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         initializer: initializer,
       );
       valuesTypeNode = NamedTypeImpl(
-        name: astFactory.simpleIdentifier(
-          StringToken(TokenType.STRING, 'List', -1),
-        ),
+        importPrefix: null,
+        name2: StringToken(TokenType.STRING, 'List', -1),
         typeArguments: TypeArgumentListImpl(
           leftBracket: Tokens.lt(),
           arguments: [
             NamedTypeImpl(
-              name: astFactory.simpleIdentifier(
-                StringToken(TokenType.STRING, element.name, -1),
-              )..staticElement = element,
+              importPrefix: null,
+              name2: StringToken(TokenType.STRING, element.name, -1),
               typeArguments: null,
               question: null,
-            )
+            )..element = element,
           ],
           rightBracket: Tokens.gt(),
         ),
@@ -955,7 +951,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     ParameterElementImpl element;
     var parent = node.parent;
-    if (parent is DefaultFormalParameter) {
+    if (parent is DefaultFormalParameter &&
+        _enclosingContext.hasDefaultFormalParameters) {
       element = DefaultParameterElementImpl(
         name: name,
         nameOffset: nameOffset,
@@ -1158,7 +1155,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     FormalParameterList? formalParameters,
     TypeParameterList? typeParameters,
   }) {
-    var holder = _EnclosingContext(reference, element);
+    var holder = _EnclosingContext(
+      reference,
+      element,
+      hasDefaultFormalParameters: true,
+    );
     _withEnclosing(holder, () {
       if (formalParameters != null) {
         formalParameters.accept(this);
@@ -1348,10 +1349,17 @@ class _EnclosingContext {
   final List<TypeParameterElementImpl> _typeParameters = [];
   final bool hasConstConstructor;
 
+  /// Not all optional formal parameters can have default values.
+  /// For example, formal parameters of methods can, but formal parameters
+  /// of function types - not. This flag specifies if we should create
+  /// [ParameterElementImpl]s or [DefaultParameterElementImpl]s.
+  final bool hasDefaultFormalParameters;
+
   _EnclosingContext(
     this.reference,
     this.element, {
     this.hasConstConstructor = false,
+    this.hasDefaultFormalParameters = false,
   });
 
   List<ClassElementImpl> get classes {

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -16,7 +16,7 @@ class Enum extends core::_Enum /*isEnum*/  {
 }
 static method method(dynamic e) → dynamic {
   #L1:
-  switch(e) {
+  switch(e) /* dynamic */ {
     #L2:
     case #C1:
       {
@@ -39,7 +39,7 @@ static method method(dynamic e) → dynamic {
   {
     final synthesized dynamic #0#0 = e;
     {
-      if(#0#0 is{ForNonNullableByDefault} core::int && e{core::int} =={core::num::==}{(core::Object) → core::bool} 0) {
+      if(#0#0 is core::int && e{core::int} =={core::num::==}{(core::Object) → core::bool} 0) {
         {
           core::print(0);
           break #L5;
@@ -47,7 +47,7 @@ static method method(dynamic e) → dynamic {
       }
     }
     {
-      if(#0#0 is{ForNonNullableByDefault} core::int && e{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
+      if(#0#0 is core::int && e{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
         {
           core::print(1);
           break #L5;
@@ -55,7 +55,7 @@ static method method(dynamic e) → dynamic {
       }
     }
     {
-      if(#0#0 is{ForNonNullableByDefault} core::int && e{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
+      if(#0#0 is core::int && e{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
         {
           core::print(2);
         }
@@ -65,7 +65,7 @@ static method method(dynamic e) → dynamic {
 }
 static method method2(self::Enum e) → dynamic {
   #L6:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum */ {
     #L7:
     case #C3:
       {

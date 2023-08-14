@@ -5,7 +5,6 @@
 import 'dart:collection';
 import 'dart:math' as math;
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -194,6 +193,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    _useIdentifierElement(node.element, parent: node);
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitPatternField(PatternField node) {
     usedElements.addMember(node.element);
     usedElements.addReadMember(node.element);
@@ -250,9 +255,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       }
     } else {
       var parent = node.parent!;
-      _useIdentifierElement(node, node.readElement, parent: parent);
-      _useIdentifierElement(node, node.writeElement, parent: parent);
-      _useIdentifierElement(node, node.staticElement, parent: parent);
+      _useIdentifierElement(node.readElement, parent: parent);
+      _useIdentifierElement(node.writeElement, parent: parent);
+      _useIdentifierElement(node.staticElement, parent: parent);
       var grandparent = parent.parent;
       // If [node] is a tear-off, assume all parameters are used.
       var functionReferenceIsCall =
@@ -297,6 +302,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    _addParametersForArguments(node.argumentList);
+    super.visitSuperConstructorInvocation(node);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     node.metadata.accept(this);
     var enclosingVariableDeclarationOld = _enclosingVariableDeclaration;
@@ -327,9 +338,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Marks the [element] of [node] as used in the library.
+  /// Marks the [element] as used in the library.
   void _useIdentifierElement(
-    Identifier node,
     Element? element, {
     required AstNode parent,
   }) {
@@ -348,6 +358,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     // Ignore places where the element is not actually used.
+    // TODO(scheglov) Do we need 'parent' at all?
     if (parent is NamedType) {
       if (element is InterfaceElement) {
         var enclosingVariableDeclaration = _enclosingVariableDeclaration;
@@ -543,8 +554,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitFormalParameterList(FormalParameterList node) {
     for (var element in node.parameterElements) {
       if (!_isUsedElement(element!)) {
-        _reportErrorForElement(
-            HintCode.UNUSED_ELEMENT_PARAMETER, element, [element.displayName]);
+        _reportErrorForElement(WarningCode.UNUSED_ELEMENT_PARAMETER, element,
+            [element.displayName]);
       }
     }
     super.visitFormalParameterList(node);
@@ -876,15 +887,22 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void _reportErrorForElement(
       ErrorCode errorCode, Element? element, List<Object> arguments) {
     if (element != null) {
-      _errorListener.onError(AnalysisError(element.source!, element.nameOffset,
-          element.nameLength, errorCode, arguments));
+      _errorListener.onError(
+        AnalysisError.tmp(
+          source: element.source!,
+          offset: element.nameOffset,
+          length: element.nameLength,
+          errorCode: errorCode,
+          arguments: arguments,
+        ),
+      );
     }
   }
 
   void _visitClassElement(InterfaceElement element) {
     if (!_isUsedElement(element)) {
       _reportErrorForElement(
-          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+          WarningCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
@@ -896,7 +914,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     if (element.enclosingElement.constructors.length > 1 &&
         !_isUsedMember(element)) {
       _reportErrorForElement(
-          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+          WarningCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
@@ -910,7 +928,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void _visitFunctionElement(FunctionElement element) {
     if (!_isUsedElement(element)) {
       _reportErrorForElement(
-          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+          WarningCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
@@ -931,28 +949,28 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void _visitMethodElement(MethodElement element) {
     if (!_isUsedMember(element)) {
       _reportErrorForElement(
-          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+          WarningCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
   void _visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (!_isUsedMember(element)) {
       _reportErrorForElement(
-          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+          WarningCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
   void _visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (!_isUsedElement(element)) {
       _reportErrorForElement(
-          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+          WarningCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
   void _visitTypeAliasElement(TypeAliasElement element) {
     if (!_isUsedElement(element)) {
       _reportErrorForElement(
-          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+          WarningCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 

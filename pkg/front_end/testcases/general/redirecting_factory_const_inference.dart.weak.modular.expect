@@ -1,10 +1,9 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class _X<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
-  static factory •<T extends core::Object? = dynamic>() → self::_X<self::_X::•::T%>
+  static factory •<T extends core::Object? = dynamic>() → self::_X<self::_X::•::T%> /* redirection-target: self::_Y::•<self::_X::•::T%>*/
     return new self::_Y::•<self::_X::•::T%>();
 }
 class _Y<T extends core::Object? = dynamic> extends core::Object implements self::_X<self::_Y::T%> /*hasConstConstructor*/  {
@@ -20,19 +19,18 @@ class A<T extends core::Object? = dynamic> extends core::Object {
 }
 class B<T extends core::Object? = dynamic> extends self::A<self::B::T%> {
   constructor •() → self::B<self::B::T%>
-    : super self::A::•(#C2)
+    : super self::A::•(#C1)
     ;
 }
 static method main() → dynamic {
   dynamic x = new self::B::•<dynamic>().{self::A::x}{self::_X<dynamic>};
-  if(!(x is{ForNonNullableByDefault} self::_Y<Null>)) {
+  if(!(x is self::_Y<Null>)) {
     throw "Unexpected run-time type: `new B().x` is ${x.{core::Object::runtimeType}{core::Type}}, but `_Y<Null>` expected";
   }
 }
 
 constants  {
-  #C1 = constructor-tearoff self::_X::•
-  #C2 = self::_Y<Never*> {}
+  #C1 = self::_Y<Never*> {}
 }
 
 

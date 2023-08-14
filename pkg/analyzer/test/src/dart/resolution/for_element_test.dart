@@ -167,10 +167,10 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType a@32
-          type: dynamic
-        matchedValueType: dynamic
+          type: InvalidType
+        matchedValueType: InvalidType
       rightParenthesis: )
-      matchedValueType: dynamic
+      matchedValueType: InvalidType
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -180,7 +180,7 @@ ForElement
   body: SimpleIdentifier
     token: a
     staticElement: a@32
-    staticType: dynamic
+    staticType: InvalidType
 ''');
   }
 
@@ -203,10 +203,8 @@ ForElement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@28
@@ -332,10 +330,8 @@ ForElement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: num
-            staticElement: dart:core::@class::num
-            staticType: null
+          name: num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredElement: a@39
@@ -485,10 +481,10 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType a@44
-          type: dynamic
-        matchedValueType: dynamic
+          type: InvalidType
+        matchedValueType: InvalidType
       rightParenthesis: )
-      matchedValueType: dynamic
+      matchedValueType: InvalidType
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
@@ -498,7 +494,7 @@ ForElement
   body: SimpleIdentifier
     token: a
     staticElement: a@44
-    staticType: dynamic
+    staticType: InvalidType
 ''');
   }
 
@@ -558,10 +554,8 @@ ForElement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@40
@@ -690,10 +684,8 @@ ForElement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: num
-            staticElement: dart:core::@class::num
-            staticType: null
+          name: num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredElement: a@53

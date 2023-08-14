@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -10,11 +10,11 @@ import self as self;
 import "dart:core" as core;
 
 static method method() → dynamic {
-  core::int? q = (2 as{ForNonNullableByDefault} dynamic) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?;
+  core::int? q = (2 as dynamic) as{TypeError,ForDynamic} core::int?;
   {
     hoisted invalid-type x;
     final synthesized core::int? #0#0 = q;
-    if((let final core::int? #t1 = #0#0! in let final core::int? #t2 = x = #0#0! in true) || #0#0 is{ForNonNullableByDefault} core::String && (let final core::int? #t3 = x = #0#0 in true)) {
+    if((let final core::int? #t1 = #0#0! in let final core::int? #t2 = x = #0#0! in true) || #0#0 is core::String && (let final core::int? #t3 = x = #0#0 in true)) {
       core::print(x);
       core::print(core::_GrowableList::_literal1<dynamic>(x).{core::Object::runtimeType}{core::Type});
     }

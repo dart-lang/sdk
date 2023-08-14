@@ -33,7 +33,7 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     var topFrame = 0;
     expect(stack.type, equals('Stack'));
-    expect(await stack['frames'][topFrame].location.getLine(), 20);
+    expect(await stack['frames'][topFrame].location.getLine(), 19);
 
     Instance result = await isolate.evalFrame(topFrame, '"\$S"');
     print(result);
@@ -46,7 +46,7 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     var topFrame = 0;
     expect(stack.type, equals('Stack'));
-    expect(await stack['frames'][topFrame].location.getLine(), 14);
+    expect(await stack['frames'][topFrame].location.getLine(), 13);
 
     Instance result = await isolate.evalFrame(topFrame, '"\$T"');
     print(result);

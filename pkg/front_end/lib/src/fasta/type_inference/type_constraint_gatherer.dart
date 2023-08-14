@@ -67,6 +67,9 @@ abstract class TypeConstraintGatherer {
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass);
 
+  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
+      InlineType type, InlineClass superclass);
+
   InterfaceType futureType(DartType type, Nullability nullability);
 
   /// Returns the set of type constraints that was gathered.
@@ -148,8 +151,6 @@ abstract class TypeConstraintGatherer {
   /// type schema.
   bool _tryNullabilityAwareSubtypeMatch(DartType subtype, DartType supertype,
       {required bool constrainSupertype}) {
-    // ignore: unnecessary_null_comparison
-    assert(constrainSupertype != null);
     int baseConstraintCount = _protoConstraints.length;
     bool isMatch = _isNullabilityAwareSubtypeMatch(subtype, supertype,
         constrainSupertype: constrainSupertype);
@@ -324,13 +325,6 @@ abstract class TypeConstraintGatherer {
   /// [UnknownType], that is, to be a type schema.
   bool _isNullabilityAwareSubtypeMatch(DartType p, DartType q,
       {required bool constrainSupertype}) {
-    // ignore: unnecessary_null_comparison
-    assert(p != null);
-    // ignore: unnecessary_null_comparison
-    assert(q != null);
-    // ignore: unnecessary_null_comparison
-    assert(constrainSupertype != null);
-
     // If the type parameters being constrained occur in the supertype (that is,
     // [q]), the subtype (that is, [p]) is not allowed to contain them.  To
     // check that, the assert below uses the equivalence of the following: X ->
@@ -645,6 +639,21 @@ abstract class TypeConstraintGatherer {
       }
       if (isMatch) return true;
       _protoConstraints.length = baseConstraintCount;
+    } else if (p is InlineType &&
+        q is InlineType &&
+        p.inlineClass == q.inlineClass) {
+      assert(p.typeArguments.length == q.typeArguments.length);
+
+      final int baseConstraintCount = _protoConstraints.length;
+      bool isMatch = true;
+      for (int i = 0; isMatch && i < p.typeArguments.length; ++i) {
+        isMatch = isMatch &&
+            _isNullabilityAwareSubtypeMatch(
+                p.typeArguments[i], q.typeArguments[i],
+                constrainSupertype: constrainSupertype);
+      }
+      if (isMatch) return true;
+      _protoConstraints.length = baseConstraintCount;
     }
 
     // If P is C0<M0, ..., Mk> and Q is C1<N0, ..., Nj> then the match holds
@@ -656,6 +665,22 @@ abstract class TypeConstraintGatherer {
     if (p is InterfaceType && q is InterfaceType) {
       final List<DartType>? sArguments =
           getTypeArgumentsAsInstanceOf(p, q.classNode);
+      if (sArguments != null) {
+        assert(sArguments.length == q.typeArguments.length);
+
+        final int baseConstraintCount = _protoConstraints.length;
+        bool isMatch = true;
+        for (int i = 0; isMatch && i < sArguments.length; ++i) {
+          isMatch = isMatch &&
+              _isNullabilityAwareSubtypeMatch(sArguments[i], q.typeArguments[i],
+                  constrainSupertype: constrainSupertype);
+        }
+        if (isMatch) return true;
+        _protoConstraints.length = baseConstraintCount;
+      }
+    } else if (p is InlineType && q is InlineType) {
+      final List<DartType>? sArguments =
+          getInlineTypeArgumentsAsInstanceOf(p, q.inlineClass);
       if (sArguments != null) {
         assert(sArguments.length == q.typeArguments.length);
 
@@ -1032,18 +1057,15 @@ abstract class TypeConstraintGatherer {
       Member? callMember = getInterfaceMember(subtype.classNode, callName);
       if (callMember is Procedure && !callMember.isGetter) {
         DartType callType = callMember.getterType;
-        // ignore: unnecessary_null_comparison
-        if (callType != null) {
-          callType =
-              Substitution.fromInterfaceType(subtype).substituteType(callType);
-          // TODO(kmillikin): The subtype check will fail if the type of a
-          // generic call method is a subtype of a non-generic function type.
-          // For example, if `T call<T>(T arg)` is a subtype of `S->S` for some
-          // S.  However, explicitly tearing off that call method will work and
-          // insert an explicit instantiation, so the implicit tear off should
-          // work as well.  Figure out how to support this case.
-          return _isNullabilityObliviousSubtypeMatch(callType, supertype);
-        }
+        callType =
+            Substitution.fromInterfaceType(subtype).substituteType(callType);
+        // TODO(kmillikin): The subtype check will fail if the type of a
+        // generic call method is a subtype of a non-generic function type.
+        // For example, if `T call<T>(T arg)` is a subtype of `S->S` for some
+        // S.  However, explicitly tearing off that call method will work and
+        // insert an explicit instantiation, so the implicit tear off should
+        // work as well.  Figure out how to support this case.
+        return _isNullabilityObliviousSubtypeMatch(callType, supertype);
       }
     }
     return false;
@@ -1132,6 +1154,13 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
     return environment.getTypeArgumentsAsInstanceOf(type, superclass);
+  }
+
+  @override
+  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
+      InlineType type, InlineClass superclass) {
+    return environment.hierarchy
+        .getInlineTypeArgumentsAsInstanceOf(type, superclass);
   }
 
   @override

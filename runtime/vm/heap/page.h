@@ -17,8 +17,8 @@ namespace dart {
 class ForwardingPage;
 class ObjectVisitor;
 class ObjectPointerVisitor;
-class FindObjectVisitor;
 class Thread;
+class UnwindingRecords;
 
 // Pages are allocated with kPageSize alignment so that the Page of any object
 // can be computed by masking the object with kPageMask. This does not apply to
@@ -65,7 +65,23 @@ class Page {
   static intptr_t CachedSize();
   static void Cleanup();
 
-  enum PageType : uword { kExecutable = 0, kData, kNew };
+  enum PageFlags : uword {
+    kExecutable = 1 << 0,
+    kLarge = 1 << 1,
+    kImage = 1 << 2,
+    kVMIsolate = 1 << 3,
+    kNew = 1 << 4,
+    kEvacuationCandidate = 1 << 5,
+  };
+  bool is_executable() const { return (flags_ & kExecutable) != 0; }
+  bool is_large() const { return (flags_ & kLarge) != 0; }
+  bool is_image() const { return (flags_ & kImage) != 0; }
+  bool is_vm_isolate() const { return (flags_ & kVMIsolate) != 0; }
+  bool is_new() const { return (flags_ & kNew) != 0; }
+  bool is_old() const { return !is_new(); }
+  bool is_evacuation_candidate() const {
+    return (flags_ & kEvacuationCandidate) != 0;
+  }
 
   Page* next() const { return next_; }
   void set_next(Page* next) { next_ = next; }
@@ -76,7 +92,7 @@ class Page {
   intptr_t AliasOffset() const { return memory_->AliasOffset(); }
 
   uword object_start() const {
-    return type_ == kNew ? new_object_start() : old_object_start();
+    return is_new() ? new_object_start() : old_object_start();
   }
   uword old_object_start() const {
     return memory_->start() + OldObjectStartOffset();
@@ -91,16 +107,12 @@ class Page {
   intptr_t used() const { return object_end() - object_start(); }
 
   ForwardingPage* forwarding_page() const { return forwarding_page_; }
+  void RegisterUnwindingRecords();
+  void UnregisterUnwindingRecords();
   void AllocateForwardingPage();
-
-  PageType type() const { return type_; }
-
-  bool is_image_page() const { return !memory_->vm_owns_region(); }
 
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
-
-  ObjectPtr FindObject(FindObjectVisitor* visitor) const;
 
   void WriteProtect(bool read_only);
 
@@ -162,9 +174,9 @@ class Page {
     return obj;
   }
 
-  // 1 card = 128 slots.
-  static const intptr_t kSlotsPerCardLog2 = 7;
-  static const intptr_t kBytesPerCardLog2 =
+  // 1 card = 32 slots.
+  static constexpr intptr_t kSlotsPerCardLog2 = 5;
+  static constexpr intptr_t kBytesPerCardLog2 =
       kCompressedWordSizeLog2 + kSlotsPerCardLog2;
 
   intptr_t card_table_size() const {
@@ -174,51 +186,17 @@ class Page {
   static intptr_t card_table_offset() { return OFFSET_OF(Page, card_table_); }
 
   void RememberCard(ObjectPtr const* slot) {
-    ASSERT(Contains(reinterpret_cast<uword>(slot)));
-    if (card_table_ == nullptr) {
-      card_table_ = reinterpret_cast<uint8_t*>(
-          calloc(card_table_size(), sizeof(uint8_t)));
-    }
-    intptr_t offset =
-        reinterpret_cast<uword>(slot) - reinterpret_cast<uword>(this);
-    intptr_t index = offset >> kBytesPerCardLog2;
-    ASSERT((index >= 0) && (index < card_table_size()));
-    card_table_[index] = 1;
+    RememberCard(reinterpret_cast<uword>(slot));
   }
   bool IsCardRemembered(ObjectPtr const* slot) {
-    ASSERT(Contains(reinterpret_cast<uword>(slot)));
-    if (card_table_ == nullptr) {
-      return false;
-    }
-    intptr_t offset =
-        reinterpret_cast<uword>(slot) - reinterpret_cast<uword>(this);
-    intptr_t index = offset >> kBytesPerCardLog2;
-    ASSERT((index >= 0) && (index < card_table_size()));
-    return card_table_[index] != 0;
+    return IsCardRemembered(reinterpret_cast<uword>(slot));
   }
 #if defined(DART_COMPRESSED_POINTERS)
   void RememberCard(CompressedObjectPtr const* slot) {
-    ASSERT(Contains(reinterpret_cast<uword>(slot)));
-    if (card_table_ == nullptr) {
-      card_table_ = reinterpret_cast<uint8_t*>(
-          calloc(card_table_size(), sizeof(uint8_t)));
-    }
-    intptr_t offset =
-        reinterpret_cast<uword>(slot) - reinterpret_cast<uword>(this);
-    intptr_t index = offset >> kBytesPerCardLog2;
-    ASSERT((index >= 0) && (index < card_table_size()));
-    card_table_[index] = 1;
+    RememberCard(reinterpret_cast<uword>(slot));
   }
   bool IsCardRemembered(CompressedObjectPtr const* slot) {
-    ASSERT(Contains(reinterpret_cast<uword>(slot)));
-    if (card_table_ == nullptr) {
-      return false;
-    }
-    intptr_t offset =
-        reinterpret_cast<uword>(slot) - reinterpret_cast<uword>(this);
-    intptr_t index = offset >> kBytesPerCardLog2;
-    ASSERT((index >= 0) && (index < card_table_size()));
-    return card_table_[index] != 0;
+    return IsCardRemembered(reinterpret_cast<uword>(slot));
   }
 #endif
   void VisitRememberedCards(ObjectPointerVisitor* visitor);
@@ -291,23 +269,54 @@ class Page {
   }
 
  private:
+  void RememberCard(uword slot) {
+    ASSERT(Contains(slot));
+    if (card_table_ == nullptr) {
+      size_t size_in_bits = card_table_size();
+      size_t size_in_bytes =
+          Utils::RoundUp(size_in_bits, kBitsPerWord) >> kBitsPerByteLog2;
+      card_table_ =
+          reinterpret_cast<uword*>(calloc(size_in_bytes, sizeof(uint8_t)));
+    }
+    intptr_t offset = slot - reinterpret_cast<uword>(this);
+    intptr_t index = offset >> kBytesPerCardLog2;
+    ASSERT((index >= 0) && (index < card_table_size()));
+    intptr_t word_offset = index >> kBitsPerWordLog2;
+    intptr_t bit_offset = index & (kBitsPerWord - 1);
+    uword bit_mask = static_cast<uword>(1) << bit_offset;
+    card_table_[word_offset] |= bit_mask;
+  }
+  bool IsCardRemembered(uword slot) {
+    ASSERT(Contains(slot));
+    if (card_table_ == nullptr) {
+      return false;
+    }
+    intptr_t offset = slot - reinterpret_cast<uword>(this);
+    intptr_t index = offset >> kBytesPerCardLog2;
+    ASSERT((index >= 0) && (index < card_table_size()));
+    intptr_t word_offset = index >> kBitsPerWordLog2;
+    intptr_t bit_offset = index & (kBitsPerWord - 1);
+    uword bit_mask = static_cast<uword>(1) << bit_offset;
+    return (card_table_[word_offset] & bit_mask) != 0;
+  }
+
   void set_object_end(uword value) {
     ASSERT((value & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
     top_ = value;
   }
 
   // Returns nullptr on OOM.
-  static Page* Allocate(intptr_t size, PageType type, bool can_use_cache);
+  static Page* Allocate(intptr_t size, uword flags);
 
   // Deallocate the virtual memory backing this page. The page pointer to this
   // page becomes immediately inaccessible.
-  void Deallocate(bool can_use_cache);
+  void Deallocate();
 
-  PageType type_;
+  uword flags_;
   VirtualMemory* memory_;
   Page* next_;
   ForwardingPage* forwarding_page_;
-  uint8_t* card_table_;  // Remembered set, not marking.
+  uword* card_table_;  // Remembered set, not marking.
   RelaxedAtomic<intptr_t> progress_bar_;
 
   // The thread using this page for allocation, otherwise nullptr.
@@ -333,6 +342,7 @@ class Page {
   friend class SemiSpace;
   friend class PageSpace;
   friend class GCCompactor;
+  friend class UnwindingRecords;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Page);

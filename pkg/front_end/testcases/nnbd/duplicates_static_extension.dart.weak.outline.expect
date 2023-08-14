@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -138,25 +138,25 @@ late static final [setter] field core::int Extension|staticLateFinalFieldAndSett
 static final field core::int Extension|staticDuplicateFieldAndSetter;
 static final field core::int Extension|staticFieldAndDuplicateSetter;
 static final field core::int Extension|staticDuplicateFieldAndDuplicateSetter;
-static method Extension|staticMethod() → core::int
+static extension-member method Extension|staticMethod() → core::int
   ;
-static get Extension|staticGetter() → core::int
+static extension-member get Extension|staticGetter() → core::int
   ;
-static set Extension|staticSetter(dynamic value) → void
+static extension-member set Extension|staticSetter(dynamic value) → void
   ;
-static set Extension|staticDuplicateFieldAndSetter(core::int value) → void
+static extension-member set Extension|staticDuplicateFieldAndSetter(core::int value) → void
   ;
-static set Extension|staticFieldAndDuplicateSetter(core::int value) → void
+static extension-member set Extension|staticFieldAndDuplicateSetter(core::int value) → void
   ;
-static set Extension|staticDuplicateFieldAndDuplicateSetter(core::int value) → void
+static extension-member set Extension|staticDuplicateFieldAndDuplicateSetter(core::int value) → void
   ;
-static method Extension|staticMethodAndSetter1() → core::int
+static extension-member method Extension|staticMethodAndSetter1() → core::int
   ;
-static set Extension|staticMethodAndSetter1(core::int value) → void
+static extension-member set Extension|staticMethodAndSetter1(core::int value) → void
   ;
-static set Extension|staticMethodAndSetter2(core::int value) → void
+static extension-member set Extension|staticMethodAndSetter2(core::int value) → void
   ;
-static method Extension|staticMethodAndSetter2() → core::int
+static extension-member method Extension|staticMethodAndSetter2() → core::int
   ;
 static method test() → dynamic
   ;

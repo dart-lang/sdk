@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "constants_lib.dart" as con;
@@ -26,7 +26,7 @@ static method main() → dynamic
 static method test(dynamic expected, dynamic actual) → dynamic
   ;
 
-library;
+library /*isLegacy*/;
 import self as con;
 import "dart:core" as core;
 

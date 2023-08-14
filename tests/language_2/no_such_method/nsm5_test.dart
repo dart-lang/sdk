@@ -17,6 +17,9 @@ abstract class Foo {
   int foo();
 }
 
-/*@compile-error=unspecified*/ class WarnMe extends Mock implements Foo {}
+class WarnMe extends Mock implements Foo {}
+//    ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
+// [cfe] The non-abstract class 'WarnMe' is missing implementations for these members:
 
 main() {}

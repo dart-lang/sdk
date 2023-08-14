@@ -59,7 +59,7 @@ TEST_CASE(MessageQueue_BasicOperations) {
   EXPECT(queue.FindMessageById(reinterpret_cast<intptr_t>(msg2)) == msg2);
 
   // Lookup bad id.
-  EXPECT(queue.FindMessageById(0x1) == NULL);
+  EXPECT(queue.FindMessageById(0x1) == nullptr);
 
   // Remove message 1
   msg = queue.Dequeue();

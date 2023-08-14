@@ -6,6 +6,7 @@ library fasta.dill_member_builder;
 
 import 'package:kernel/ast.dart'
     show
+        Annotatable,
         Constructor,
         Field,
         FunctionNode,
@@ -95,6 +96,9 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
       _localSetters ??= isSetter || member is Field && member.hasSetter
           ? <ClassMember>[new DillClassMember(this, forSetter: true)]
           : const <ClassMember>[];
+
+  @override
+  Iterable<Annotatable> get annotatables => [member];
 }
 
 class DillFieldBuilder extends DillMemberBuilder implements FieldBuilder {
@@ -262,9 +266,7 @@ class DillClassMember extends BuilderClassMember {
   @override
   final bool forSetter;
 
-  DillClassMember(this.memberBuilder, {required this.forSetter})
-      // ignore: unnecessary_null_comparison
-      : assert(forSetter != null);
+  DillClassMember(this.memberBuilder, {required this.forSetter});
 
   @override
   bool get isSourceDeclaration => false;

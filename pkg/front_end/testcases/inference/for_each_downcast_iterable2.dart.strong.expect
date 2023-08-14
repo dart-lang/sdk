@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -11,16 +11,16 @@ import "dart:core" as core;
 import "dart:async" as asy;
 
 static method test(dynamic o) → dynamic async /* futureValueType= dynamic */ {
-  for (dynamic x in o as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+  for (dynamic x in o as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*) {
   }
-  await for (dynamic x in o as{TypeError,ForDynamic} asy::Stream<dynamic>*) {
+  await for (dynamic x in o as{TypeError,ForDynamic,ForLegacy} asy::Stream<dynamic>*) {
   }
   core::int* y;
-  for (final dynamic #t1 in o as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
-    y = #t1 as{TypeError,ForDynamic} core::int*;
+  for (final dynamic #t1 in o as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*) {
+    y = #t1 as{TypeError,ForDynamic,ForLegacy} core::int*;
   }
-  await for (final dynamic #t2 in o as{TypeError,ForDynamic} asy::Stream<dynamic>*) {
-    y = #t2 as{TypeError,ForDynamic} core::int*;
+  await for (final dynamic #t2 in o as{TypeError,ForDynamic,ForLegacy} asy::Stream<dynamic>*) {
+    y = #t2 as{TypeError,ForDynamic,ForLegacy} core::int*;
   }
 }
 static method main() → dynamic {}

@@ -13,8 +13,7 @@
     },
     {
       "name": "_fe_analyzer_shared",
-      "rootUri": "../../../../../_fe_analyzer_shared/lib/",
-      "languageVersion": "2.17"
+      "rootUri": "../../../../../_fe_analyzer_shared/lib/"
     }
   ]
 }

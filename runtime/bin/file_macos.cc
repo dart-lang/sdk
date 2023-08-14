@@ -156,7 +156,7 @@ MappedMemory* File::Map(MapType type,
 void MappedMemory::Unmap() {
   int result = munmap(address_, size_);
   ASSERT(result == 0);
-  address_ = 0;
+  address_ = nullptr;
   size_ = 0;
 }
 
@@ -175,7 +175,7 @@ bool File::VPrint(const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = vsnprintf(NULL, 0, format, measure_args);
+  intptr_t len = vsnprintf(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
@@ -252,7 +252,7 @@ int64_t File::Length() {
 
 File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 File* File::OpenFD(int fd) {
@@ -266,7 +266,7 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
     // Only accept regular files, character devices, and pipes.
     if (!S_ISREG(st.st_mode) && !S_ISCHR(st.st_mode) && !S_ISFIFO(st.st_mode)) {
       errno = (S_ISDIR(st.st_mode)) ? EISDIR : ENOENT;
-      return NULL;
+      return nullptr;
     }
   }
   int flags = O_RDONLY;
@@ -283,14 +283,14 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   }
   int fd = TEMP_FAILURE_RETRY(open(name, flags, 0666));
   if (fd < 0) {
-    return NULL;
+    return nullptr;
   }
   FDUtils::SetCloseOnExec(fd);
   if ((((mode & kWrite) != 0) && ((mode & kTruncate) == 0)) ||
       (((mode & kWriteOnly) != 0) && ((mode & kTruncate) == 0))) {
     int64_t position = lseek(fd, 0, SEEK_END);
     if (position < 0) {
-      return NULL;
+      return nullptr;
     }
   }
   return new File(new FileHandle(fd));
@@ -476,7 +476,7 @@ bool File::Copy(Namespace* namespc,
                 const char* new_path) {
   File::Type type = File::GetType(namespc, old_path, true);
   if (type == kIsFile || type == kIsSock || type == kIsPipe) {
-    return (copyfile(old_path, new_path, NULL, COPYFILE_ALL) == 0);
+    return (copyfile(old_path, new_path, nullptr, COPYFILE_ALL) == 0);
   }
   SetErrno(type);
   return false;
@@ -591,11 +591,11 @@ const char* File::LinkTarget(Namespace* namespc,
                              int dest_size) {
   struct stat link_stats;
   if (lstat(pathname, &link_stats) != 0) {
-    return NULL;
+    return nullptr;
   }
   if (!S_ISLNK(link_stats.st_mode)) {
     errno = ENOENT;
-    return NULL;
+    return nullptr;
   }
   // Don't rely on the link_stats.st_size for the size of the link
   // target. The link might have changed before the readlink call.
@@ -604,14 +604,14 @@ const char* File::LinkTarget(Namespace* namespc,
   size_t target_size =
       TEMP_FAILURE_RETRY(readlink(pathname, target, kBufferSize));
   if (target_size <= 0) {
-    return NULL;
+    return nullptr;
   }
-  if (dest == NULL) {
+  if (dest == nullptr) {
     dest = DartUtils::ScopedCString(target_size + 1);
   } else {
     ASSERT(dest_size > 0);
     if ((size_t)dest_size <= target_size) {
-      return NULL;
+      return nullptr;
     }
   }
   memmove(dest, target, target_size);
@@ -620,28 +620,28 @@ const char* File::LinkTarget(Namespace* namespc,
 }
 
 bool File::IsAbsolutePath(const char* pathname) {
-  return (pathname != NULL && pathname[0] == '/');
+  return (pathname != nullptr && pathname[0] == '/');
 }
 
 const char* File::GetCanonicalPath(Namespace* namespc,
                                    const char* pathname,
                                    char* dest,
                                    int dest_size) {
-  char* abs_path = NULL;
-  if (pathname != NULL) {
+  char* abs_path = nullptr;
+  if (pathname != nullptr) {
     // On some older MacOs versions the default behaviour of realpath allocating
-    // space for the dest when a NULL is passed in does not seem to work, so we
-    // explicitly allocate space.
-    if (dest == NULL) {
+    // space for the dest when a nullptr is passed in does not seem to work, so
+    // we explicitly allocate space.
+    if (dest == nullptr) {
       dest = DartUtils::ScopedCString(PATH_MAX + 1);
     } else {
       ASSERT(dest_size >= PATH_MAX);
     }
     do {
       abs_path = realpath(pathname, dest);
-    } while ((abs_path == NULL) && (errno == EINTR));
-    ASSERT((abs_path == NULL) || IsAbsolutePath(abs_path));
-    ASSERT((abs_path == NULL) || (abs_path == dest));
+    } while ((abs_path == nullptr) && (errno == EINTR));
+    ASSERT((abs_path == nullptr) || IsAbsolutePath(abs_path));
+    ASSERT((abs_path == nullptr) || (abs_path == dest));
   }
   return abs_path;
 }

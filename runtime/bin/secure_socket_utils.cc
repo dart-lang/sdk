@@ -29,7 +29,7 @@ uint32_t SecureSocketUtils::FetchErrorString(const SSL* ssl,
   const char* sep = File::PathSeparator();
   uint32_t errCode = 0;
   while (true) {
-    const char* path = NULL;
+    const char* path = nullptr;
     int line = -1;
     uint32_t error = ERR_get_error_line(&path, &line);
     if (error == 0) {
@@ -39,12 +39,12 @@ uint32_t SecureSocketUtils::FetchErrorString(const SSL* ssl,
       errCode = error;
     }
     text_buffer->Printf("\n\t%s", ERR_reason_error_string(error));
-    if ((ssl != NULL) && (ERR_GET_LIB(error) == ERR_LIB_SSL) &&
+    if ((ssl != nullptr) && (ERR_GET_LIB(error) == ERR_LIB_SSL) &&
         (ERR_GET_REASON(error) == SSL_R_CERTIFICATE_VERIFY_FAILED)) {
       intptr_t result = SSL_get_verify_result(ssl);
       text_buffer->Printf(": %s", X509_verify_cert_error_string(result));
     }
-    if ((path != NULL) && (line >= 0)) {
+    if ((path != nullptr) && (line >= 0)) {
       const char* file = strrchr(path, sep[0]);
       path = file != nullptr ? file + 1 : path;
       text_buffer->Printf("(%s:%d)", path, line);
@@ -97,7 +97,7 @@ void SecureSocketUtils::CheckStatusSSL(int status,
 void SecureSocketUtils::CheckStatus(int status,
                                     const char* type,
                                     const char* message) {
-  SecureSocketUtils::CheckStatusSSL(status, type, message, NULL);
+  SecureSocketUtils::CheckStatusSSL(status, type, message, nullptr);
 }
 
 bool SecureSocketUtils::IsCurrentTimeInsideCertValidDateRange(X509* root_cert) {

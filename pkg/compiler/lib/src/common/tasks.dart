@@ -220,6 +220,13 @@ class GenericTask extends CompilerTask {
   GenericTask(this.name, Measurer measurer) : super(measurer);
 }
 
+class GenericTaskWithMetrics extends GenericTask {
+  @override
+  final Metrics metrics;
+
+  GenericTaskWithMetrics(super.name, super.measurer, this.metrics);
+}
+
 class Measurer {
   /// Measures the total runtime from this object was constructed.
   ///

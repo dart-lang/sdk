@@ -22,9 +22,9 @@ class DataDriven extends MultiCorrectionProducer {
   static List<TransformSet>? transformSetsForTests;
 
   @override
-  Future<List<CorrectionProducer>> get producers async {
+  Future<List<ResolvedCorrectionProducer>> get producers async {
     var importedUris = <Uri>[];
-    var library = resolvedResult.libraryElement;
+    var library = unitResult.libraryElement;
     for (var importElement in library.libraryImports) {
       // TODO(brianwilkerson) Filter based on combinators to help avoid making
       //  invalid suggestions.
@@ -70,7 +70,7 @@ class DataDriven extends MultiCorrectionProducer {
 
 /// A correction processor that can make one of the possible changes computed by
 /// the [DataDriven] producer.
-class DataDrivenFix extends CorrectionProducer {
+class DataDrivenFix extends ResolvedCorrectionProducer {
   /// The transform being applied to implement this fix.
   final Transform _transform;
 

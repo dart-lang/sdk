@@ -759,8 +759,8 @@ void f() {}
 
   Future<void> _computeRegions(String sourceContent) async {
     code = TestCode.parse(sourceContent);
-    newFile(sourcePath, code.code);
-    var result = await getResolvedUnit(sourcePath);
+    final file = newFile(sourcePath, code.code);
+    var result = await getResolvedUnit(file);
     var computer = DartUnitFoldingComputer(result.lineInfo, result.unit);
     regions = computer.compute();
   }

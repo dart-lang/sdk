@@ -87,11 +87,12 @@ final v01 = 0;
 
 int f01() => 0;
 ''');
-    // TODO(scheglov) This is wrong.
     assertResponse(r'''
 suggestions
   A1
     kind: class
+  A1.named
+    kind: constructorInvocation
   c01
     kind: topLevelVariable
   f01

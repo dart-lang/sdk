@@ -1,32 +1,32 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
   final field self::Class::T% field;
   const constructor •(dynamic value) → self::Class<self::Class::T%>
-    : self::Class::field = value as{ForNonNullableByDefault} self::Class::T%, super core::Object::•()
+    : self::Class::field = value as self::Class::T%, super core::Object::•()
     ;
 }
 class ClassWithBound<T extends core::num> extends core::Object /*hasConstConstructor*/  {
   final field self::ClassWithBound::T field;
   const constructor •() → self::ClassWithBound<self::ClassWithBound::T>
-    : self::ClassWithBound::field = self::three as{ForNonNullableByDefault} self::ClassWithBound::T, super core::Object::•()
+    : self::ClassWithBound::field = self::three as self::ClassWithBound::T, super core::Object::•()
     ;
   const constructor withValue(dynamic value) → self::ClassWithBound<self::ClassWithBound::T>
-    : self::ClassWithBound::field = value as{ForNonNullableByDefault} self::ClassWithBound::T, super core::Object::•()
+    : self::ClassWithBound::field = value as self::ClassWithBound::T, super core::Object::•()
     ;
 }
 class ClassWithList<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
   final field core::List<self::ClassWithList::T%> field;
   const constructor •(dynamic value) → self::ClassWithList<self::ClassWithList::T%>
-    : self::ClassWithList::field = value as{ForNonNullableByDefault} core::List<self::ClassWithList::T%>, super core::Object::•()
+    : self::ClassWithList::field = value as core::List<self::ClassWithList::T%>, super core::Object::•()
     ;
 }
 class ClassWithFunction<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
   final field (self::ClassWithFunction::T%) → self::ClassWithFunction::T% field;
   const constructor •(dynamic value) → self::ClassWithFunction<self::ClassWithFunction::T%>
-    : self::ClassWithFunction::field = value as{ForNonNullableByDefault} (self::ClassWithFunction::T%) → self::ClassWithFunction::T%, super core::Object::•()
+    : self::ClassWithFunction::field = value as (self::ClassWithFunction::T%) → self::ClassWithFunction::T%, super core::Object::•()
     ;
 }
 static const field core::num three = 3;

@@ -76,9 +76,7 @@ abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
 
   TypeDeclarationBuilderImpl(
       this.metadata, this.modifiers, this.name, Builder? parent, int charOffset)
-      // ignore: unnecessary_null_comparison
-      : assert(modifiers != null),
-        super(parent, charOffset);
+      : super(parent, charOffset);
 
   @override
   TypeDeclarationBuilder get origin => this;

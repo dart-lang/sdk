@@ -59,13 +59,17 @@ class PercentileCalculator {
   /// Return a map that can be encoded as JSON that represents the state of this
   /// calculator.
   Map<String, Object> toJson() {
-    var percentiles = <int>[];
-    for (var p = 5; p <= 100; p += 5) {
-      percentiles.add(percentile(p));
-    }
+    // It's important the the encoded form of the list of percentile values be
+    // less than 100 characters long.
     return {
       'count': _valueCount,
-      'percentiles': percentiles,
+      'percentiles': [
+        percentile(50),
+        percentile(75),
+        percentile(90),
+        percentile(95),
+        percentile(100),
+      ],
     };
   }
 

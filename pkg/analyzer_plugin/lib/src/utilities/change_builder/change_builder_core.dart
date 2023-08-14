@@ -279,7 +279,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
   /// to the Dart file with the given [path].
   Future<DartFileEditBuilderImpl?> _createDartFileEditBuilder(String? path,
       {bool createEditsForImports = true}) async {
-    if (path == null || !(workspace.containsFile(path) ?? false)) {
+    if (path == null || !workspace.containsFile(path)) {
       return null;
     }
 
@@ -680,14 +680,14 @@ class _SingleSessionWorkspace extends ChangeWorkspace {
   ResourceProvider get resourceProvider => session.resourceProvider;
 
   @override
-  bool? containsFile(String path) {
+  bool containsFile(String path) {
     var analysisContext = session.analysisContext;
     return analysisContext.contextRoot.isAnalyzed(path);
   }
 
   @override
   AnalysisSession? getSession(String path) {
-    if (containsFile(path) ?? false) {
+    if (containsFile(path)) {
       return session;
     }
     throw StateError('Not in a context root: $path');

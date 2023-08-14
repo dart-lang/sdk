@@ -18,6 +18,7 @@ class ClassDeclarationImpl extends macro.ClassDeclarationImpl {
   ClassDeclarationImpl._({
     required super.id,
     required super.identifier,
+    required super.library,
     required super.typeParameters,
     required super.interfaces,
     required super.hasAbstract,
@@ -43,8 +44,8 @@ class DeclarationBuilder {
   /// mixins, etc.
   void transferToElements() {
     // TODO(scheglov) Make sure that these are only declarations?
-    for (final entry in fromNode._referencedIdentifierMap.entries) {
-      final element = entry.key.staticElement;
+    for (final entry in fromNode._namedTypeMap.entries) {
+      final element = entry.key.element;
       if (element != null) {
         final declaration = entry.value;
         fromElement._identifierMap[element] = declaration;
@@ -67,6 +68,7 @@ class DeclarationBuilder {
 
 class DeclarationBuilderFromElement {
   final Map<Element, IdentifierImpl> _identifierMap = Map.identity();
+  final Map<Element, LibraryImpl> _libraryMap = Map.identity();
 
   final Map<ClassElement, IntrospectableClassDeclarationImpl> _classMap =
       Map.identity();
@@ -90,6 +92,21 @@ class DeclarationBuilderFromElement {
       name: element.name!,
       element: element,
     );
+  }
+
+  macro.LibraryImpl library(Element element) {
+    var library = _libraryMap[element.library];
+    if (library == null) {
+      final version = element.library!.languageVersion.effective;
+      library = LibraryImplFromElement(
+          id: macro.RemoteInstance.uniqueId,
+          languageVersion:
+              macro.LanguageVersionImpl(version.major, version.minor),
+          uri: element.library!.source.uri,
+          element: element);
+      _libraryMap[element.library!] = library;
+    }
+    return library;
   }
 
   macro.TypeParameterDeclarationImpl typeParameter(
@@ -125,11 +142,12 @@ class DeclarationBuilderFromElement {
     return FieldDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
+      library: library(element),
       isExternal: element.isExternal,
       isFinal: element.isFinal,
       isLate: element.isLate,
       type: _dartType(element.type),
-      definingClass: identifier(enclosingClass),
+      definingType: identifier(enclosingClass),
       isStatic: element.isStatic,
     );
   }
@@ -140,6 +158,7 @@ class DeclarationBuilderFromElement {
     return IntrospectableClassDeclarationImpl._(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
+      library: library(element),
       typeParameters: element.typeParameters.map(_typeParameter).toList(),
       interfaces: element.interfaces
           .map(_dartType)
@@ -167,16 +186,17 @@ class DeclarationBuilderFromElement {
     return macro.TypeParameterDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
+      library: library(element),
       bound: element.bound.mapOrNull(_dartType),
     );
   }
 }
 
 class DeclarationBuilderFromNode {
-  final Map<ast.SimpleIdentifier, IdentifierImpl> _referencedIdentifierMap =
-      Map.identity();
+  final Map<ast.NamedType, IdentifierImpl> _namedTypeMap = Map.identity();
 
   final Map<Element, IdentifierImpl> _declaredIdentifierMap = Map.identity();
+  final Map<Element, LibraryImpl> _libraryMap = Map.identity();
 
   final Map<ast.ClassDeclaration, IntrospectableClassDeclarationImpl>
       _classMap = Map.identity();
@@ -185,6 +205,21 @@ class DeclarationBuilderFromNode {
     ast.ClassDeclaration node,
   ) {
     return _classMap[node] ??= _introspectableClassDeclaration(node);
+  }
+
+  macro.LibraryImpl library(Element element) {
+    var library = _libraryMap[element.library];
+    if (library == null) {
+      final version = element.library!.languageVersion.effective;
+      library = LibraryImplFromElement(
+          id: macro.RemoteInstance.uniqueId,
+          languageVersion:
+              macro.LanguageVersionImpl(version.major, version.minor),
+          uri: element.library!.source.uri,
+          element: element);
+      _libraryMap[element.library!] = library;
+    }
+    return library;
   }
 
   macro.IdentifierImpl _declaredIdentifier(Token name, Element element) {
@@ -225,6 +260,7 @@ class DeclarationBuilderFromNode {
     return IntrospectableClassDeclarationImpl._(
       id: macro.RemoteInstance.uniqueId,
       identifier: _declaredIdentifier(node.name, node.declaredElement!),
+      library: library(node.declaredElement!),
       typeParameters: _typeParameters(node.typeParameters),
       interfaces: _typeAnnotations(node.implementsClause?.interfaces),
       hasAbstract: node.abstractKeyword != null,
@@ -241,18 +277,11 @@ class DeclarationBuilderFromNode {
     );
   }
 
-  macro.IdentifierImpl _referencedIdentifier(ast.Identifier node) {
-    final ast.SimpleIdentifier simpleIdentifier;
-    if (node is ast.SimpleIdentifier) {
-      simpleIdentifier = node;
-    } else {
-      simpleIdentifier = (node as ast.PrefixedIdentifier).identifier;
-    }
-    return _referencedIdentifierMap[simpleIdentifier] ??=
-        _ReferencedIdentifierImpl(
+  macro.IdentifierImpl _namedTypeIdentifier(ast.NamedType node) {
+    return _namedTypeMap[node] ??= _NamedTypeIdentifierImpl(
       id: macro.RemoteInstance.uniqueId,
-      name: simpleIdentifier.name,
-      node: simpleIdentifier,
+      name: node.name2.lexeme,
+      node: node,
     );
   }
 
@@ -280,7 +309,7 @@ class DeclarationBuilderFromNode {
     } else if (node is ast.NamedType) {
       return macro.NamedTypeAnnotationImpl(
         id: macro.RemoteInstance.uniqueId,
-        identifier: _referencedIdentifier(node.name),
+        identifier: _namedTypeIdentifier(node),
         isNullable: node.question != null,
         typeArguments: _typeAnnotations(node.typeArguments?.arguments),
       ) as T;
@@ -306,6 +335,7 @@ class DeclarationBuilderFromNode {
     return macro.TypeParameterDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: _declaredIdentifier(node.name, node.declaredElement!),
+      library: library(node.declaredElement!),
       bound: node.bound.mapOrNull(_typeAnnotation),
     );
   }
@@ -325,11 +355,12 @@ class FieldDeclarationImpl extends macro.FieldDeclarationImpl {
   FieldDeclarationImpl({
     required super.id,
     required super.identifier,
+    required super.library,
     required super.isExternal,
     required super.isFinal,
     required super.isLate,
     required super.type,
-    required super.definingClass,
+    required super.definingType,
     required super.isStatic,
   });
 }
@@ -361,6 +392,7 @@ class IntrospectableClassDeclarationImpl
   IntrospectableClassDeclarationImpl._({
     required super.id,
     required super.identifier,
+    required super.library,
     required super.typeParameters,
     required super.interfaces,
     required super.hasAbstract,
@@ -375,6 +407,28 @@ class IntrospectableClassDeclarationImpl
   });
 }
 
+abstract class LibraryImpl extends macro.LibraryImpl {
+  LibraryImpl({
+    required super.id,
+    required super.languageVersion,
+    required super.uri,
+  });
+
+  Element? get element;
+}
+
+class LibraryImplFromElement extends LibraryImpl {
+  @override
+  final Element element;
+
+  LibraryImplFromElement({
+    required super.id,
+    required super.languageVersion,
+    required super.uri,
+    required this.element,
+  });
+}
+
 class _DeclaredIdentifierImpl extends IdentifierImpl {
   @override
   final Element element;
@@ -386,17 +440,17 @@ class _DeclaredIdentifierImpl extends IdentifierImpl {
   });
 }
 
-class _ReferencedIdentifierImpl extends IdentifierImpl {
-  final ast.SimpleIdentifier node;
+class _NamedTypeIdentifierImpl extends IdentifierImpl {
+  final ast.NamedType node;
 
-  _ReferencedIdentifierImpl({
+  _NamedTypeIdentifierImpl({
     required super.id,
     required super.name,
     required this.node,
   });
 
   @override
-  Element? get element => node.staticElement;
+  Element? get element => node.element;
 }
 
 extension<T> on T? {

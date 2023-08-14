@@ -22,7 +22,6 @@ class B {
   factory B() = A;
 }''', [
       error(CompileTimeErrorCode.REDIRECT_TO_NON_CLASS, 39, 1),
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 39, 1),
     ]);
   }
 

@@ -61,8 +61,8 @@ TEST_CASE(GuardFieldSimpleTest) {
       "    runBar();\n"
       "  }\n"
       "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(script_chars, NULL);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(script_chars, nullptr);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   TransitionNativeToVM transition(thread);
   Field& f1 = Field::ZoneHandle(LookupField(lib, "A", "f1"));
@@ -112,8 +112,8 @@ TEST_CASE(GuardFieldFinalListTest) {
       "    runBar();\n"
       "  }\n"
       "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(script_chars, NULL);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(script_chars, nullptr);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   TransitionNativeToVM transition(thread);
   Field& f1 = Field::ZoneHandle(LookupField(lib, "A", "f1"));
@@ -165,8 +165,8 @@ TEST_CASE(GuardFieldFinalVariableLengthListTest) {
       "    runBar();\n"
       "  }\n"
       "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(script_chars, NULL);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(script_chars, nullptr);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   TransitionNativeToVM transition(thread);
   Field& f1 = Field::ZoneHandle(LookupField(lib, "A", "f1"));
@@ -222,8 +222,8 @@ TEST_CASE(GuardFieldConstructorTest) {
       "    runBar();\n"
       "  }\n"
       "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(script_chars, NULL);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(script_chars, nullptr);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   TransitionNativeToVM transition(thread);
   Field& f1 = Field::ZoneHandle(LookupField(lib, "A", "f1"));
@@ -271,8 +271,8 @@ TEST_CASE(GuardFieldConstructor2Test) {
       "    runBar();\n"
       "  }\n"
       "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(script_chars, NULL);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(script_chars, nullptr);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   TransitionNativeToVM transition(thread);
   Field& f3 = Field::ZoneHandle(LookupField(lib, "A", "f3"));

@@ -198,7 +198,7 @@ main() {
 import 'dart:math';
 f(Point<int> x) {}
 ''');
-    var pointElement = findNode.simple('Point').staticElement as ClassElement;
+    var pointElement = findNode.namedType('Point').element as ClassElement;
     var pointElementTypeParameter = pointElement.typeParameters[0];
     expect(
         externalDecoratedTypeParameterBound[pointElementTypeParameter]!
@@ -211,7 +211,7 @@ f(Point<int> x) {}
     await analyze('''
 f(List<int> x) {}
 ''');
-    var listElement = findNode.simple('List').staticElement as ClassElement;
+    var listElement = findNode.namedType('List').element as ClassElement;
     var listElementTypeParameter = listElement.typeParameters[0];
     var typeParameterBoundNode =
         externalDecoratedTypeParameterBound[listElementTypeParameter]!.node;

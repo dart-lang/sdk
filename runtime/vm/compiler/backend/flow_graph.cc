@@ -588,7 +588,7 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
           method_name.ToCString(), receiver_class.ToCString());
     }
     if (FLAG_use_cha_deopt) {
-      cha.AddToGuardedClasses(receiver_class, subclass_count);
+      cha.AddToGuardedClassesForSubclassCount(receiver_class, subclass_count);
     }
     return receiver_maybe_null ? ToCheck::kCheckNull : ToCheck::kNoCheck;
   }
@@ -631,7 +631,8 @@ void FlowGraph::AddExactnessGuard(InstanceCallInstr* call,
   const AbstractType& type =
       AbstractType::Handle(zone(), call->ic_data()->receivers_static_type());
   ASSERT(!type.IsNull());
-  const TypeArguments& args = TypeArguments::Handle(zone(), type.arguments());
+  const TypeArguments& args = TypeArguments::Handle(
+      zone(), Type::Cast(type).GetInstanceTypeArguments(thread()));
   Instruction* guard = new (zone()) CheckConditionInstr(
       new StrictCompareInstr(call->source(), Token::kEQ_STRICT,
                              new (zone()) Value(load_type_args),

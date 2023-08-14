@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -33,9 +33,9 @@ extension Extension<K extends core::Object* = dynamic, V extends core::Object* =
   operator [] = self::Extension|[];
   operator []= = self::Extension|[]=;
 }
-static method Extension|[]<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(lowered final self::MapLike<self::Extension|[]::K*, self::Extension|[]::V*>* #this, core::Object* key) → self::Extension|[]::V*
+static extension-member method Extension|[]<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(lowered final self::MapLike<self::Extension|[]::K*, self::Extension|[]::V*>* #this, core::Object* key) → self::Extension|[]::V*
   return #this.{self::MapLike::get}(key){(core::Object*) →* self::Extension|[]::V*};
-static method Extension|[]=<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(lowered final self::MapLike<self::Extension|[]=::K*, self::Extension|[]=::V*>* #this, self::Extension|[]=::K* key, self::Extension|[]=::V* value) → void
+static extension-member method Extension|[]=<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(lowered final self::MapLike<self::Extension|[]=::K*, self::Extension|[]=::V*>* #this, self::Extension|[]=::K* key, self::Extension|[]=::V* value) → void
   return #this.{self::MapLike::put}(key, value){(self::Extension|[]=::K*, self::Extension|[]=::V*) →* self::Extension|[]=::V*};
 static method main() → dynamic {
   self::implicit();

@@ -16,7 +16,7 @@
 namespace dart {
 namespace bin {
 
-OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
+OSError::OSError() : sub_system_(kSystem), code_(0), message_(nullptr) {
   Reload();
 }
 
@@ -41,25 +41,25 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
 const char* StringUtils::ConsoleStringToUtf8(const char* str,
                                              intptr_t len,
                                              intptr_t* result_len) {
-  return NULL;
+  return nullptr;
 }
 
 const char* StringUtils::Utf8ToConsoleString(const char* utf8,
                                              intptr_t len,
                                              intptr_t* result_len) {
-  return NULL;
+  return nullptr;
 }
 
 char* StringUtils::ConsoleStringToUtf8(char* str,
                                        intptr_t len,
                                        intptr_t* result_len) {
-  return NULL;
+  return nullptr;
 }
 
 char* StringUtils::Utf8ToConsoleString(char* utf8,
                                        intptr_t len,
                                        intptr_t* result_len) {
-  return NULL;
+  return nullptr;
 }
 
 bool ShellUtils::GetUtf8Argv(int argc, char** argv) {

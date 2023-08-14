@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -15,17 +15,17 @@ extension Extension on self::Class {
   tearoff testImplicitThis = self::Extension|get#testImplicitThis;
   set property = self::Extension|set#property;
 }
-static method Extension|get#property(lowered final self::Class #this) → core::int?
+static extension-member method Extension|get#property(lowered final self::Class #this) → core::int?
   ;
-static method Extension|set#property(lowered final self::Class #this, core::int? value) → void
+static extension-member method Extension|set#property(lowered final self::Class #this, core::int? value) → void
   ;
-static method Extension|method(lowered final self::Class #this) → core::int?
+static extension-member method Extension|method(lowered final self::Class #this) → core::int?
   ;
-static method Extension|get#method(lowered final self::Class #this) → () → core::int?
+static extension-member method Extension|get#method(lowered final self::Class #this) → () → core::int?
   return () → core::int? => self::Extension|method(#this);
-static method Extension|testImplicitThis(lowered final self::Class #this) → dynamic
+static extension-member method Extension|testImplicitThis(lowered final self::Class #this) → dynamic
   ;
-static method Extension|get#testImplicitThis(lowered final self::Class #this) → () → dynamic
+static extension-member method Extension|get#testImplicitThis(lowered final self::Class #this) → () → dynamic
   return () → dynamic => self::Extension|testImplicitThis(#this);
 static method main() → dynamic
   ;

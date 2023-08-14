@@ -150,6 +150,189 @@ void f(String s) {
 ''');
   }
 
+  Future<void> test_ifElement_alwaysFalse_hasElse() async {
+    await resolveTestCode('''
+void f(int x) {
+  [
+    0,
+    if (x == null) 1 else -1,
+    2,
+  ];
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  [
+    0,
+    -1,
+    2,
+  ];
+}
+''');
+  }
+
+  Future<void> test_ifElement_alwaysFalse_hasElse_withComments() async {
+    await resolveTestCode('''
+void f(int x) {
+  [
+    0,
+    // C1
+    if (x == null)
+      // C2
+      1
+    else
+      // C3
+      -1,
+    2,
+  ];
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  [
+    0,
+    // C1
+    // C3
+    -1,
+    2,
+  ];
+}
+''');
+  }
+
+  Future<void> test_ifElement_alwaysFalse_noElse_insideList() async {
+    await resolveTestCode('''
+void f(int x) {
+  [
+    0,
+    if (x == null) 1,
+    2,
+  ];
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  [
+    0,
+    2,
+  ];
+}
+''');
+  }
+
+  Future<void>
+      test_ifElement_alwaysFalse_noElse_insideList_withComments() async {
+    await resolveTestCode('''
+void f(int x) {
+  [
+    0,
+    // C1
+    if (x == null)
+      // C2
+      1,
+    2,
+  ];
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  [
+    0,
+    2,
+  ];
+}
+''');
+  }
+
+  Future<void> test_ifElement_alwaysFalse_noElse_insideSet() async {
+    await resolveTestCode('''
+Object f(int x) {
+  return {
+    0,
+    if (x == null) 1,
+    2,
+  };
+}
+''');
+    await assertHasFix('''
+Object f(int x) {
+  return {
+    0,
+    2,
+  };
+}
+''');
+  }
+
+  Future<void> test_ifElement_alwaysTrue() async {
+    await resolveTestCode('''
+void f(int x) {
+  [
+    0,
+    if (x != null)
+      1,
+    2,
+  ];
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  [
+    0,
+    1,
+    2,
+  ];
+}
+''');
+  }
+
+  Future<void> test_ifElement_alwaysTrue_hasElse() async {
+    await resolveTestCode('''
+void f(int x) {
+  [
+    0,
+    if (x != null) 1 else -1,
+    2,
+  ];
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  [
+    0,
+    1,
+    2,
+  ];
+}
+''');
+  }
+
+  Future<void> test_ifElement_alwaysTrue_withComments() async {
+    await resolveTestCode('''
+void f(int x) {
+  [
+    0,
+    // C1
+    if (x != null)
+      // C2
+      1,
+    2,
+  ];
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  [
+    0,
+    // C1
+    // C2
+    1,
+    2,
+  ];
+}
+''');
+  }
+
   Future<void> test_ifStatement_thenBlock() async {
     await resolveTestCode('''
 void f(String s) {
@@ -178,6 +361,58 @@ void f(String s) {
 ''');
   }
 
+  Future<void> test_ifStatement_thenBlock_empty_justComment() async {
+    await resolveTestCode('''
+void f(String s) {
+  if (s != null) {
+    // comment 1
+    // comment 2
+  }
+}
+''');
+    await assertHasFix('''
+void f(String s) {
+  // comment 1
+  // comment 2
+}
+''');
+  }
+
+  Future<void> test_ifStatement_thenBlock_empty_sameLine() async {
+    await resolveTestCode('''
+void f(String s) {
+  if (s != null) {}
+}
+''');
+    await assertHasFix('''
+void f(String s) {
+}
+''');
+  }
+
+  Future<void> test_ifStatement_thenBlock_withComment() async {
+    await resolveTestCode('''
+void f(String s) {
+  if (s != null) {
+    // leading 1
+    // leading 2
+    print(s);
+    // trailing 1
+    // trailing 2
+  }
+}
+''');
+    await assertHasFix('''
+void f(String s) {
+  // leading 1
+  // leading 2
+  print(s);
+  // trailing 1
+  // trailing 2
+}
+''');
+  }
+
   Future<void> test_ifStatement_thenStatement() async {
     await resolveTestCode('''
 void f(String s) {
@@ -188,6 +423,28 @@ void f(String s) {
     await assertHasFix('''
 void f(String s) {
   print(s);
+}
+''');
+  }
+
+  Future<void> test_ifStatement_thenStatement_withComment() async {
+    await resolveTestCode('''
+void f(String s) {
+  if (s != null)
+    /// comment 1
+    /// comment 2
+    print(s);
+    /// comment 1
+    /// comment 2
+}
+''');
+    await assertHasFix('''
+void f(String s) {
+  /// comment 1
+  /// comment 2
+  print(s);
+    /// comment 1
+    /// comment 2
 }
 ''');
   }

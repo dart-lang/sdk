@@ -30,7 +30,7 @@ const int kMaxReadSize = 2048;
 static bool SetIfName(struct ifaddrs* ifaddr, int interface) {
   char buf[IFNAMSIZ] = {0};
   char* name = if_indextoname(interface, buf);
-  if (name == NULL) {
+  if (name == nullptr) {
     return false;
   }
   ifaddr->ifa_name = new char[strlen(name) + 1];
@@ -130,8 +130,8 @@ int getifaddrs(struct ifaddrs** result) {
   if (file_descriptor < 0) {
     return -1;
   }
-  struct ifaddrs* head = NULL;
-  struct ifaddrs* cur = NULL;
+  struct ifaddrs* head = nullptr;
+  struct ifaddrs* cur = nullptr;
   char buf[kMaxReadSize];
   ssize_t amount_read;
   while (true) {
@@ -160,7 +160,7 @@ int getifaddrs(struct ifaddrs** result) {
             }
             ifaddrs* next = new ifaddrs;
             memset(next, 0, sizeof(*next));
-            if (cur != NULL) {
+            if (cur != nullptr) {
               cur->ifa_next = next;
             } else {
               head = next;
@@ -187,7 +187,7 @@ int getifaddrs(struct ifaddrs** result) {
             }
             ifaddrs* next = new ifaddrs;
             memset(next, 0, sizeof(*next));
-            if (cur != NULL) {
+            if (cur != nullptr) {
               cur->ifa_next = next;
             } else {
               head = next;
@@ -214,8 +214,8 @@ int getifaddrs(struct ifaddrs** result) {
 
 void freeifaddrs(struct ifaddrs* addrs) {
   int err = errno;
-  struct ifaddrs* previous = NULL;
-  while (addrs != NULL) {
+  struct ifaddrs* previous = nullptr;
+  while (addrs != nullptr) {
     delete[] addrs->ifa_name;
     delete addrs->ifa_addr;
     delete addrs->ifa_netmask;

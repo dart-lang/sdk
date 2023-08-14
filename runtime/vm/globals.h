@@ -113,9 +113,10 @@ const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 #define NOT_IN_PRECOMPILED_RUNTIME(code) code
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#if defined(DART_ENABLE_TIMELINE) || !defined(PRODUCT) ||                      \
-    defined(DART_HOST_OS_FUCHSIA) || defined(DART_TARGET_OS_FUCHSIA) ||        \
-    defined(DART_TARGET_OS_ANDROID) || defined(DART_TARGET_OS_MACOS)
+#if !defined(DART_DISABLE_TIMELINE) &&                                         \
+    (defined(DART_ENABLE_TIMELINE) || !defined(PRODUCT) ||                     \
+     defined(DART_HOST_OS_FUCHSIA) || defined(DART_TARGET_OS_FUCHSIA) ||       \
+     defined(DART_TARGET_OS_ANDROID) || defined(DART_TARGET_OS_MACOS))
 #define SUPPORT_TIMELINE 1
 #endif
 
@@ -129,7 +130,7 @@ const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 // The expression OFFSET_OF_RETURNED_VALUE(type, accessor) computes the
 // byte-offset of the return value of the accessor to the containing type.
 //
-// None of these use 0 or NULL, which causes a problem with the compiler
+// None of these use 0 or nullptr, which causes a problem with the compiler
 // warnings we have enabled (which is also why 'offsetof' doesn't seem to work).
 // The workaround is to use the non-zero value kOffsetOfPtr.
 const intptr_t kOffsetOfPtr = 32;
@@ -173,9 +174,9 @@ typedef uword cpp_vtable;
 
 // Zap value used to indicate uninitialized handle area (debug purposes).
 #if defined(ARCH_IS_32_BIT)
-static const uword kZapUninitializedWord = 0xabababab;
+static constexpr uword kZapUninitializedWord = 0xabababab;
 #else
-static const uword kZapUninitializedWord = 0xabababababababab;
+static constexpr uword kZapUninitializedWord = 0xabababababababab;
 #endif
 
 // Macros to get the contents of the fp register.

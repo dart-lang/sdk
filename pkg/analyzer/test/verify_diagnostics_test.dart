@@ -482,6 +482,7 @@ class _SnippetTest extends PubPackageResolutionTest {
         );
       }
     }
-    writeTestPackageConfig(packageConfigBuilder, ffi: true, meta: true);
+    writeTestPackageConfig(packageConfigBuilder,
+        angularMeta: true, ffi: true, meta: true);
   }
 }

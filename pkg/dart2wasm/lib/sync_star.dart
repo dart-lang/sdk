@@ -21,18 +21,18 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 ///             initial entry target for a function body.
 ///  - [After]: After a statement, the resumption point of a [YieldStatement],
 ///             or the final state (iterator done) of a function body.
-enum _StateTargetPlacement { Inner, After }
+enum StateTargetPlacement { Inner, After }
 
 /// Representation of target in the `sync*` control flow graph.
-class _StateTarget {
+class StateTarget {
   int index;
   TreeNode node;
-  _StateTargetPlacement placement;
+  StateTargetPlacement placement;
 
-  _StateTarget(this.index, this.node, this.placement);
+  StateTarget(this.index, this.node, this.placement);
 
   String toString() {
-    String place = placement == _StateTargetPlacement.Inner ? "in" : "after";
+    String place = placement == StateTargetPlacement.Inner ? "in" : "after";
     return "$index: $place $node";
   }
 }
@@ -49,15 +49,15 @@ class _YieldFinder extends StatementVisitor<void> {
 
   _YieldFinder(this.codeGen);
 
-  List<_StateTarget> get targets => codeGen.targets;
+  List<StateTarget> get targets => codeGen.targets;
 
   void find(FunctionNode function) {
     // Initial state
-    addTarget(function.body!, _StateTargetPlacement.Inner);
+    addTarget(function.body!, StateTargetPlacement.Inner);
     assert(function.body is Block || function.body is ReturnStatement);
     recurse(function.body!);
     // Final state
-    addTarget(function.body!, _StateTargetPlacement.After);
+    addTarget(function.body!, StateTargetPlacement.After);
   }
 
   /// Recurse into a statement and then remove any targets added by the
@@ -69,8 +69,8 @@ class _YieldFinder extends StatementVisitor<void> {
     if (yieldCount == yieldCountIn) targets.length = targetsIn;
   }
 
-  void addTarget(TreeNode node, _StateTargetPlacement placement) {
-    targets.add(_StateTarget(targets.length, node, placement));
+  void addTarget(TreeNode node, StateTargetPlacement placement) {
+    targets.add(StateTarget(targets.length, node, placement));
   }
 
   @override
@@ -89,71 +89,71 @@ class _YieldFinder extends StatementVisitor<void> {
 
   @override
   void visitDoStatement(DoStatement node) {
-    addTarget(node, _StateTargetPlacement.Inner);
+    addTarget(node, StateTargetPlacement.Inner);
     recurse(node.body);
   }
 
   @override
   void visitForStatement(ForStatement node) {
-    addTarget(node, _StateTargetPlacement.Inner);
+    addTarget(node, StateTargetPlacement.Inner);
     recurse(node.body);
-    addTarget(node, _StateTargetPlacement.After);
+    addTarget(node, StateTargetPlacement.After);
   }
 
   @override
   void visitIfStatement(IfStatement node) {
     recurse(node.then);
     if (node.otherwise != null) {
-      addTarget(node, _StateTargetPlacement.Inner);
+      addTarget(node, StateTargetPlacement.Inner);
       recurse(node.otherwise!);
     }
-    addTarget(node, _StateTargetPlacement.After);
+    addTarget(node, StateTargetPlacement.After);
   }
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
     recurse(node.body);
-    addTarget(node, _StateTargetPlacement.After);
+    addTarget(node, StateTargetPlacement.After);
   }
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
     for (SwitchCase c in node.cases) {
-      addTarget(c, _StateTargetPlacement.Inner);
+      addTarget(c, StateTargetPlacement.Inner);
       recurse(c.body);
     }
-    addTarget(node, _StateTargetPlacement.After);
+    addTarget(node, StateTargetPlacement.After);
   }
 
   @override
   void visitTryCatch(TryCatch node) {
     recurse(node.body);
     for (Catch c in node.catches) {
-      addTarget(c, _StateTargetPlacement.Inner);
+      addTarget(c, StateTargetPlacement.Inner);
       recurse(c.body);
     }
-    addTarget(node, _StateTargetPlacement.After);
+    addTarget(node, StateTargetPlacement.After);
   }
 
   @override
   void visitTryFinally(TryFinally node) {
     recurse(node.body);
-    addTarget(node, _StateTargetPlacement.Inner);
+    addTarget(node, StateTargetPlacement.Inner);
     recurse(node.finalizer);
-    addTarget(node, _StateTargetPlacement.After);
+    addTarget(node, StateTargetPlacement.After);
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    addTarget(node, _StateTargetPlacement.Inner);
+    addTarget(node, StateTargetPlacement.Inner);
     recurse(node.body);
-    addTarget(node, _StateTargetPlacement.After);
+    addTarget(node, StateTargetPlacement.After);
   }
 
   @override
   void visitYieldStatement(YieldStatement node) {
     yieldCount++;
-    addTarget(node, _StateTargetPlacement.After);
+    addTarget(node, StateTargetPlacement.After);
   }
 }
 
@@ -176,11 +176,11 @@ class SyncStarCodeGenerator extends CodeGenerator {
   SyncStarCodeGenerator(super.translator, super.function, super.reference);
 
   /// Targets of the CFG, indexed by target index.
-  final List<_StateTarget> targets = [];
+  final List<StateTarget> targets = [];
 
   // Targets categorized by placement and indexed by node.
-  final Map<TreeNode, _StateTarget> innerTargets = {};
-  final Map<TreeNode, _StateTarget> afterTargets = {};
+  final Map<TreeNode, StateTarget> innerTargets = {};
+  final Map<TreeNode, StateTarget> afterTargets = {};
 
   /// The loop around the switch.
   late final w.Label masterLoop;
@@ -226,10 +226,10 @@ class SyncStarCodeGenerator extends CodeGenerator {
     _YieldFinder(this).find(functionNode);
     for (final target in targets) {
       switch (target.placement) {
-        case _StateTargetPlacement.Inner:
+        case StateTargetPlacement.Inner:
           innerTargets[target.node] = target;
           break;
-        case _StateTargetPlacement.After:
+        case StateTargetPlacement.After:
           afterTargets[target.node] = target;
           break;
       }
@@ -374,7 +374,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
     b.unreachable();
 
     // Initial state, executed on first [moveNext] on the iterator.
-    _StateTarget initialTarget = targets.first;
+    StateTarget initialTarget = targets.first;
     emitTargetLabel(initialTarget);
 
     // Clone context on first execution.
@@ -390,7 +390,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
     b.end();
   }
 
-  void emitTargetLabel(_StateTarget target) {
+  void emitTargetLabel(StateTarget target) {
     currentTargetIndex++;
     assert(target.index == currentTargetIndex);
     b.end();
@@ -407,7 +407,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
     b.return_();
   }
 
-  void jumpToTarget(_StateTarget target,
+  void jumpToTarget(StateTarget target,
       {Expression? condition, bool negated = false}) {
     if (condition == null && negated) return;
     if (target.index > currentTargetIndex) {
@@ -457,7 +457,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
 
   @override
   void visitDoStatement(DoStatement node) {
-    _StateTarget? inner = innerTargets[node];
+    StateTarget? inner = innerTargets[node];
     if (inner == null) return super.visitDoStatement(node);
 
     emitTargetLabel(inner);
@@ -468,9 +468,9 @@ class SyncStarCodeGenerator extends CodeGenerator {
 
   @override
   void visitForStatement(ForStatement node) {
-    _StateTarget? inner = innerTargets[node];
+    StateTarget? inner = innerTargets[node];
     if (inner == null) return super.visitForStatement(node);
-    _StateTarget after = afterTargets[node]!;
+    StateTarget after = afterTargets[node]!;
 
     allocateContext(node);
     for (VariableDeclaration variable in node.variables) {
@@ -488,9 +488,9 @@ class SyncStarCodeGenerator extends CodeGenerator {
 
   @override
   void visitIfStatement(IfStatement node) {
-    _StateTarget? after = afterTargets[node];
+    StateTarget? after = afterTargets[node];
     if (after == null) return super.visitIfStatement(node);
-    _StateTarget? inner = innerTargets[node];
+    StateTarget? inner = innerTargets[node];
 
     jumpToTarget(inner ?? after, condition: node.condition, negated: true);
     visitStatement(node.then);
@@ -504,7 +504,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    _StateTarget? after = afterTargets[node];
+    StateTarget? after = afterTargets[node];
     if (after == null) return super.visitLabeledStatement(node);
 
     visitStatement(node.body);
@@ -513,7 +513,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    _StateTarget? target = afterTargets[node.target];
+    StateTarget? target = afterTargets[node.target];
     if (target == null) return super.visitBreakStatement(node);
 
     jumpToTarget(target);
@@ -521,7 +521,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    _StateTarget? after = afterTargets[node];
+    StateTarget? after = afterTargets[node];
     if (after == null) return super.visitSwitchStatement(node);
 
     // TODO(51342): Implement this.
@@ -530,7 +530,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
 
   @override
   void visitTryCatch(TryCatch node) {
-    _StateTarget? after = afterTargets[node];
+    StateTarget? after = afterTargets[node];
     if (after == null) return super.visitTryCatch(node);
 
     // TODO(51343): implement this.
@@ -539,7 +539,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
 
   @override
   void visitTryFinally(TryFinally node) {
-    _StateTarget? after = afterTargets[node];
+    StateTarget? after = afterTargets[node];
     if (after == null) return super.visitTryFinally(node);
 
     // TODO(51343): implement this.
@@ -548,9 +548,9 @@ class SyncStarCodeGenerator extends CodeGenerator {
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    _StateTarget? inner = innerTargets[node];
+    StateTarget? inner = innerTargets[node];
     if (inner == null) return super.visitWhileStatement(node);
-    _StateTarget after = afterTargets[node]!;
+    StateTarget after = afterTargets[node]!;
 
     emitTargetLabel(inner);
     jumpToTarget(after, condition: node.condition, negated: true);
@@ -562,7 +562,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
 
   @override
   void visitYieldStatement(YieldStatement node) {
-    _StateTarget after = afterTargets[node]!;
+    StateTarget after = afterTargets[node]!;
 
     // Evaluate operand and store it to `_current` for `yield` or
     // `_yieldStarIterable` for `yield*`.

@@ -130,7 +130,7 @@ class ListPatternStaticType<Type extends Object>
   }
 
   @override
-  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+  void witnessToDart(DartTemplateBuffer buffer, PropertyWitness witness,
       Map<Key, PropertyWitness> witnessFields,
       {required bool forCorrection}) {
     int maxHeadSize = 0;
@@ -158,7 +158,7 @@ class ListPatternStaticType<Type extends Object>
       Key key = new HeadKey(index);
       PropertyWitness? witness = witnessFields[key];
       if (witness != null) {
-        witness.witnessToText(buffer, forCorrection: forCorrection);
+        witness.witnessToDart(buffer, forCorrection: forCorrection);
       } else {
         buffer.write('_');
       }
@@ -168,7 +168,7 @@ class ListPatternStaticType<Type extends Object>
       buffer.write(comma);
       buffer.write('...');
       if (restWitness != null) {
-        restWitness.witnessToText(buffer, forCorrection: forCorrection);
+        restWitness.witnessToDart(buffer, forCorrection: forCorrection);
       }
       comma = ', ';
     }
@@ -177,7 +177,7 @@ class ListPatternStaticType<Type extends Object>
       Key key = new TailKey(index);
       PropertyWitness? witness = witnessFields[key];
       if (witness != null) {
-        witness.witnessToText(buffer, forCorrection: forCorrection);
+        witness.witnessToDart(buffer, forCorrection: forCorrection);
       } else {
         buffer.write('_');
       }
@@ -201,7 +201,7 @@ class ListPatternStaticType<Type extends Object>
         buffer.write(key.name);
         buffer.write(': ');
         PropertyWitness field = entry.value;
-        field.witnessToText(buffer, forCorrection: forCorrection);
+        field.witnessToDart(buffer, forCorrection: forCorrection);
       }
     }
     buffer.write(additionalEnd);

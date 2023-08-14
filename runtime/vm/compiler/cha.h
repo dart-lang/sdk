@@ -46,6 +46,10 @@ class CHA : public ValueObject {
   static bool HasSingleConcreteImplementation(const Class& interface,
                                               intptr_t* implementation_cid);
 
+  // Return true if variable of static type based on [cls] may hold
+  // a Future instance.
+  static bool ClassCanBeFuture(const Class& cls);
+
   // Returns true if any subclass of 'cls' contains the function.
   // If no override was found subclass_count would contain total count of
   // finalized subclasses that CHA looked at.
@@ -55,12 +59,15 @@ class CHA : public ValueObject {
                    const String& function_name,
                    intptr_t* subclass_count);
 
-  // Adds class 'cls' to the list of guarded classes / interfaces.
+  // Adds class 'cls' to the list of guarded classes.
   // Deoptimization occurs if any of those classes gets subclassed or
   // implemented through later loaded/finalized libraries. Only classes that
   // were used for CHA optimizations are added.
-  void AddToGuardedClasses(const Class& cls, intptr_t subclass_count);
-  void AddToGuardedInterfaces(const Class& cls, intptr_t implementor_cid);
+  void AddToGuardedClassesForSubclassCount(const Class& cls,
+                                           intptr_t subclass_count);
+  void AddToGuardedClassesForImplementorCid(const Class& cls,
+                                            intptr_t implementor_cid);
+  void AddToGuardedClassesToTrackFuture(const Class& cls);
 
   // When compiling in background we need to check that no new finalized
   // subclasses were added to guarded classes.
@@ -72,6 +79,11 @@ class CHA : public ValueObject {
   bool IsGuardedClass(intptr_t cid) const;
 
  private:
+  void AddToGuardedClasses(const Class& cls,
+                           intptr_t subclass_count,
+                           intptr_t implementor_cid,
+                           bool track_future);
+
   Thread* thread_;
 
   struct GuardedClassInfo {
@@ -88,6 +100,9 @@ class CHA : public ValueObject {
     // Used to validate correctness of background compilation: if
     // any implementors were added we will discard compiled code.
     intptr_t implementor_cid;
+
+    // Whether we should track that this class cannot be future.
+    bool track_future;
   };
 
   GrowableArray<GuardedClassInfo> guarded_classes_;

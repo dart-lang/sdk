@@ -16,16 +16,6 @@ main() {
 @reflectiveTest
 class RecordLiteralOnePositionalNoTrailingCommaTest
     extends PubPackageResolutionTest {
-  test_argument() async {
-    await assertErrorsInCode('''
-void f((int,) i) {
-  f((1));
-}
-''', [
-      error(WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA, 23, 3),
-    ]);
-  }
-
   test_argument_invalid() async {
     await assertErrorsInCode('''
 void f((int,) i) {
@@ -33,6 +23,26 @@ void f((int,) i) {
 }
 ''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 24, 2),
+    ]);
+  }
+
+  test_argument_notParenthesized() async {
+    await assertErrorsInCode('''
+void f((int,) i) {
+  f(1);
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 23, 1),
+    ]);
+  }
+
+  test_argument_parenthesized() async {
+    await assertErrorsInCode('''
+void f((int,) i) {
+  f((1));
+}
+''', [
+      error(WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA, 23, 3),
     ]);
   }
 
@@ -44,16 +54,6 @@ void f((int,) i) {
 ''');
   }
 
-  test_assignment() async {
-    await assertErrorsInCode('''
-void f((int,) r) {
-  r = (1);
-}
-''', [
-      error(WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA, 25, 3),
-    ]);
-  }
-
   test_assignment_invalid() async {
     await assertErrorsInCode('''
 void f((int,) r) {
@@ -61,6 +61,26 @@ void f((int,) r) {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 25, 4),
+    ]);
+  }
+
+  test_assignment_notParenthesized() async {
+    await assertErrorsInCode('''
+void f((int,) r) {
+  r = 1;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 25, 1),
+    ]);
+  }
+
+  test_assignment_parenthesized() async {
+    await assertErrorsInCode('''
+void f((int,) r) {
+  r = (1);
+}
+''', [
+      error(WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA, 25, 3),
     ]);
   }
 
@@ -94,19 +114,23 @@ void f((int,) r) {
 ''');
   }
 
-  test_return() async {
+  test_return_blockBody_notParenthesized() async {
     await assertErrorsInCode('''
-(int,) f() { return (1); }
+(int,) f() {
+  return 1;
+}
 ''', [
-      error(WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA, 20, 3),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 22, 1),
     ]);
   }
 
-  test_return_expressionBody() async {
+  test_return_blockBody_parenthesized() async {
     await assertErrorsInCode('''
-(int,) f() => (1);
+(int,) f() {
+  return (1);
+}
 ''', [
-      error(WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA, 14, 3),
+      error(WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA, 22, 3),
     ]);
   }
 
@@ -115,6 +139,22 @@ void f((int,) r) {
 (int,) f() => ('');
 ''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 14, 4),
+    ]);
+  }
+
+  test_return_expressionBody_notParenthesized() async {
+    await assertErrorsInCode('''
+(int,) f() => 1;
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 14, 1),
+    ]);
+  }
+
+  test_return_expressionBody_parenthesized() async {
+    await assertErrorsInCode('''
+(int,) f() => (1);
+''', [
+      error(WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA, 14, 3),
     ]);
   }
 

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,6 +12,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
@@ -112,7 +112,7 @@ class BinaryExpressionResolver {
 
     var flowAnalysis = _resolver.flowAnalysis;
     var flow = flowAnalysis.flow;
-    EqualityInfo<DartType>? leftInfo;
+    ExpressionInfo<DartType>? leftInfo;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
       leftInfo = flow?.equalityOperand_end(left, left.typeOrThrow);
@@ -176,7 +176,10 @@ class BinaryExpressionResolver {
     var leftType = left.typeOrThrow;
 
     var rightContextType = contextType;
-    if (rightContextType == null || rightContextType.isDynamic) {
+    if (rightContextType == null ||
+        rightContextType is DynamicType ||
+        rightContextType is InvalidType ||
+        rightContextType is UnknownInferredType) {
       rightContextType = leftType;
     }
 
@@ -259,7 +262,7 @@ class BinaryExpressionResolver {
       {required DartType? contextType}) {
     node.leftOperand.accept(_resolver);
     node.rightOperand.accept(_resolver);
-    _inferenceHelper.recordStaticType(node, DynamicTypeImpl.instance,
+    _inferenceHelper.recordStaticType(node, InvalidTypeImpl.instance,
         contextType: contextType);
   }
 
@@ -298,8 +301,7 @@ class BinaryExpressionResolver {
     Expression leftOperand = node.leftOperand;
 
     if (leftOperand is ExtensionOverride) {
-      var extension =
-          leftOperand.extensionName.staticElement as ExtensionElement;
+      var extension = leftOperand.element;
       var member = extension.getMethod(methodName);
       if (member == null) {
         // Extension overrides can only be used with named extensions so it is
@@ -375,8 +377,12 @@ class BinaryExpressionResolver {
       return;
     }
 
-    DartType staticType =
-        node.staticInvokeType?.returnType ?? DynamicTypeImpl.instance;
+    var staticType = node.staticInvokeType?.returnType;
+    if (leftType is DynamicType) {
+      staticType ??= DynamicTypeImpl.instance;
+    } else {
+      staticType ??= InvalidTypeImpl.instance;
+    }
     if (leftOperand is! ExtensionOverride) {
       staticType = _typeSystem.refineBinaryExpressionType(
         leftType,

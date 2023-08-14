@@ -15,6 +15,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../fasta_codes.dart'
     show templateExtensionMemberConflictsWithObjectMember;
+import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
 import '../problems.dart';
 import '../scope.dart';
@@ -137,16 +138,22 @@ mixin SourceDeclarationBuilderMixin
     });
   }
 
+  BodyBuilderContext get bodyBuilderContext;
+
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    MetadataBuilder.buildAnnotations(annotatable, metadata, libraryBuilder,
-        this, null, fileUri, libraryBuilder.scope);
+    MetadataBuilder.buildAnnotations(annotatable, metadata, bodyBuilderContext,
+        libraryBuilder, fileUri, libraryBuilder.scope);
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(libraryBuilder, this, null,
-            classHierarchy, delayedActionPerformers, scope.parent!);
+        typeParameters![i].buildOutlineExpressions(
+            libraryBuilder,
+            bodyBuilderContext,
+            classHierarchy,
+            delayedActionPerformers,
+            scope.parent!);
       }
     }
 

@@ -89,9 +89,9 @@ TEST_CASE(ClassHierarchyAnalysis) {
   EXPECT(CHA::HasSubclasses(class_a));
   EXPECT(CHA::HasSubclasses(class_b));
   EXPECT(!CHA::HasSubclasses(class_c));
-  cha.AddToGuardedClasses(class_c, /*subclass_count=*/0);
+  cha.AddToGuardedClassesForSubclassCount(class_c, /*subclass_count=*/0);
   EXPECT(!CHA::HasSubclasses(class_d));
-  cha.AddToGuardedClasses(class_d, /*subclass_count=*/0);
+  cha.AddToGuardedClassesForSubclassCount(class_d, /*subclass_count=*/0);
 
   EXPECT(!cha.IsGuardedClass(class_a.id()));
   EXPECT(!cha.IsGuardedClass(class_b.id()));

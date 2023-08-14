@@ -7,12 +7,15 @@
 // @dart = 2.9
 import "package:expect/expect.dart";
 
-checkSecondFunction(String expected, StackTrace stacktrace) {
-  var topLine = stacktrace.toString().split("\n")[1];
+checkSecondFunction(
+    String expectedFileAndLine, int expectedColum, StackTrace stacktrace) {
+  var topLine = stacktrace.toString().split("\n")[0];
   int startPos = topLine.lastIndexOf("/");
   int endPos = topLine.lastIndexOf(")");
   String subs = topLine.substring(startPos + 1, endPos);
-  Expect.equals(expected, subs);
+  if (subs != expectedFileAndLine) {
+    Expect.equals("$expectedFileAndLine:$expectedColum", subs);
+  }
 }
 
 // Test that the initializer expression gets properly skipped.
@@ -29,7 +32,7 @@ class TypeTest {
       var msg = error.toString();
       Expect.isTrue(msg.contains("int")); // dstType
       Expect.isTrue(msg.contains("String")); // srcType
-      checkSecondFunction("type_cast_vm_test.dart:23:23", error.stackTrace);
+      checkSecondFunction("type_cast_vm_test.dart:28", 23, error.stackTrace);
     }
     return result;
   }
@@ -66,7 +69,7 @@ class TypeTest {
       var msg = error.toString();
       Expect.isTrue(msg.contains("int")); // dstType
       Expect.isTrue(msg.contains("String")); // srcType
-      checkSecondFunction("type_cast_vm_test.dart:60:25", error.stackTrace);
+      checkSecondFunction("type_cast_vm_test.dart:65", 25, error.stackTrace);
     }
     return result;
   }
@@ -85,7 +88,7 @@ class TypeTest {
       var msg = error.toString();
       Expect.isTrue(msg.contains("int")); // dstType
       Expect.isTrue(msg.contains("String")); // srcType
-      checkSecondFunction("type_cast_vm_test.dart:75:16", error.stackTrace);
+      checkSecondFunction("type_cast_vm_test.dart:80", 16, error.stackTrace);
     }
     return result;
   }
@@ -102,7 +105,7 @@ class TypeTest {
       var msg = error.toString();
       Expect.isTrue(msg.contains("int")); // dstType
       Expect.isTrue(msg.contains("String")); // srcType
-      checkSecondFunction("type_cast_vm_test.dart:97:13", error.stackTrace);
+      checkSecondFunction("type_cast_vm_test.dart:102", 13, error.stackTrace);
     }
     return result;
   }
@@ -120,8 +123,8 @@ class TypeTest {
       result = 1;
       var msg = error.toString();
       Expect.isTrue(msg.contains("int")); // dstType
-      Expect.isTrue(msg.contains("() => dynamic")); // srcType
-      checkSecondFunction("type_cast_vm_test.dart:116:17", error.stackTrace);
+      Expect.isTrue(msg.contains("() => Null")); // srcType
+      checkSecondFunction("type_cast_vm_test.dart:121", 17, error.stackTrace);
     }
     return result;
   }

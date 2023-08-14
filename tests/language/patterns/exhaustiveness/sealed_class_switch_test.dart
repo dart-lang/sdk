@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns,sealed-class,records
-
 sealed class A {}
 class B extends A {}
 class C extends A {}

@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class FlutterConvertToStatefulWidget extends CorrectionProducer {
+class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind =>
       DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET;

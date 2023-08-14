@@ -698,7 +698,6 @@ class NoSuchMethodError {
       NoSuchMethodError._(receiver, invocation.memberName,
           invocation.positionalArguments, invocation.namedArguments);
 
-  @patch
   NoSuchMethodError(Object? receiver, Symbol memberName,
       List? positionalArguments, Map<Symbol, dynamic>? namedArguments,
       [List? existingArgumentNames = null])
@@ -766,10 +765,19 @@ class _CompileTimeError extends Error {
 class Uri {
   @patch
   static Uri get base {
-    String? uri = Primitives.currentUri();
-    if (uri != null) return Uri.parse(uri);
-    throw new UnsupportedError("'Uri.base' is not supported");
+    final String? current = Primitives.currentUri();
+    if (current == null) throw UnsupportedError("'Uri.base' is not supported");
+    final cachedUri = _cachedBaseUri;
+    if (cachedUri != null && current == _cachedBaseString) return cachedUri;
+    final uri = Uri.parse(current);
+    // Parsing can throw, so update cache only after parsing succeeds.
+    _cachedBaseUri = uri;
+    _cachedBaseString = current;
+    return uri;
   }
+
+  static String _cachedBaseString = ''; // Valid when `[_cachedBaseUri] != null`
+  static Uri? _cachedBaseUri;
 }
 
 @patch

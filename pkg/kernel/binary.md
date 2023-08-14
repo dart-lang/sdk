@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 101;
+  UInt32 formatVersion = 106;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -332,7 +332,6 @@ type Class extends Node {
   List<Field> fields;
   List<Constructor> constructors;
   List<Procedure> procedures;
-  List<RedirectingFactory> redirectingFactories;
 
   // Class index. Offsets are used to get start (inclusive) and end (exclusive) byte positions for
   // a specific procedure. Note the "+1" to account for needing the end of the last entry.
@@ -468,33 +467,14 @@ type Procedure extends Member {
   Byte kind; // Index into the ProcedureKind enum above.
   Byte stubKind; // Index into the ProcedureStubKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst,
-              isRedirectingFactory, isExtensionMember,
-              isNonNullableByDefault, isSynthetic, isInternalImplementation,
-              isAbstractFieldAccessor, isInlineClassMember,
-              hasWeakTearoffReferencePragma);
+              isExtensionMember, isNonNullableByDefault, isSynthetic, 
+              isInternalImplementation, isAbstractFieldAccessor, 
+              isInlineClassMember, hasWeakTearoffReferencePragma);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.
   Option<FunctionType> signatureType;
   FunctionNode function;
-}
-
-type RedirectingFactory extends Member {
-  Byte tag = 108;
-  CanonicalNameReference canonicalName;
-  UriReference fileUri;
-  FileOffset fileOffset;
-  FileOffset fileEndOffset;
-  Byte flags;
-  Name name;
-  List<Expression> annotations;
-  MemberReference targetReference;
-  List<DartType> typeArguments;
-  List<TypeParameter> typeParameters;
-  UInt parameterCount; // positionalParameters.length + namedParameters.length.
-  UInt requiredParameterCount;
-  List<VariableDeclarationPlain> positionalParameters;
-  List<VariableDeclarationPlain> namedParameters;
 }
 
 abstract type Initializer extends Node {}
@@ -561,7 +541,14 @@ type FunctionNode {
   List<VariableDeclarationPlain> namedParameters;
   DartType returnType;
   Option<DartType> futureValueType;
+  Option<RedirectingFactoryTarget> redirectingFactoryTarget;
   Option<Statement> body;
+}
+
+type RedirectingFactoryTarget {
+  MemberReference targetReference;
+  Option<List<DartType>> typeArguments;
+  Option<String> errorMessage;
 }
 
 type VariableReference {
@@ -1205,6 +1192,14 @@ type ConstantExpression extends Expression {
   ConstantReference constantReference;
 }
 
+type FileUriConstantExpression extends Expression {
+  Byte tag = 108;
+  FileOffset fileOffset;
+  UriReference fileUri;
+  DartType type;
+  ConstantReference constantReference;
+}
+
 abstract type Constant extends Node {
   Byte tag;
 }
@@ -1403,6 +1398,9 @@ type SwitchStatement extends Statement {
   FileOffset fileOffset;
   Byte isExplicitlyExhaustive; // 1 if exhaustive, 0 if not.
   Expression expression;
+  // This is set during inference and will
+  // never be null in programs without compile-time errors.
+  Option<DartType> expressionType;
   List<SwitchCase> cases;
 }
 
@@ -1537,6 +1535,10 @@ type VoidType extends DartType {
   Byte tag = 92;
 }
 
+type NullType extends DartType {
+  Byte tag = 152;
+}
+
 type InterfaceType extends DartType {
   Byte tag = 93;
   Byte nullability; // Index into the Nullability enum above.
@@ -1628,6 +1630,12 @@ type TypedefType {
   Byte nullability; // Index into the Nullability enum above.
   TypedefReference typedefReference;
   List<DartType> typeArguments;
+}
+
+type FutureOrType extends DartType {
+  Byte tag = 107;
+  Byte nullability; // Index into the Nullability enum above.
+  DartType typeArgument;
 }
 
 type TypeParameter {

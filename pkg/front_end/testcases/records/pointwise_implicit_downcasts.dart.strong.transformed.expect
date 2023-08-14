@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -13,9 +13,9 @@ static method id<T extends core::Object? = dynamic>(self::id::T% x) → self::id
 static method foo() → dynamic {
   self::Callable c = new self::Callable::•();
   dynamic d = 3;
-  (core::num, core::double, (core::int) → core::int, () → void) r = (d as{TypeError,ForDynamic,ForNonNullableByDefault} core::num, 3.0, #C2, let final self::Callable #t1 = c in #t1 == null ?{() → void} null : #t1.{self::Callable::call}{() → void});
-  ({required f: (core::int) → core::int, required g: () → void, required x: core::num, required y: core::double}) r2 = let final core::num #t2 = d as{TypeError,ForDynamic,ForNonNullableByDefault} core::num in let final core::double #t3 = 3.0 in let final (core::int) → core::int #t4 = #C2 in ({f: #t4, g: let final self::Callable #t5 = c in #t5 == null ?{() → void} null : #t5.{self::Callable::call}{() → void}, x: #t2, y: #t3});
-  (core::num, core::double, {required f: (core::int) → core::int, required g: () → void}) r3 = (d as{TypeError,ForDynamic,ForNonNullableByDefault} core::num, 3.0, {f: #C2, g: let final self::Callable #t6 = c in #t6 == null ?{() → void} null : #t6.{self::Callable::call}{() → void}});
+  (core::num, core::double, (core::int) → core::int, () → void) r = (d as{TypeError,ForDynamic} core::num, 3.0, #C2, let final self::Callable #t1 = c in #t1 == null ?{() → void} null : #t1.{self::Callable::call}{() → void});
+  ({required f: (core::int) → core::int, required g: () → void, required x: core::num, required y: core::double}) r2 = let final core::num #t2 = d as{TypeError,ForDynamic} core::num in let final core::double #t3 = 3.0 in let final (core::int) → core::int #t4 = #C2 in ({f: #t4, g: let final self::Callable #t5 = c in #t5 == null ?{() → void} null : #t5.{self::Callable::call}{() → void}, x: #t2, y: #t3});
+  (core::num, core::double, {required f: (core::int) → core::int, required g: () → void}) r3 = (d as{TypeError,ForDynamic} core::num, 3.0, {f: #C2, g: let final self::Callable #t6 = c in #t6 == null ?{() → void} null : #t6.{self::Callable::call}{() → void}});
 }
 static method main() → dynamic {}
 

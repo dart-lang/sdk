@@ -114,10 +114,12 @@ class TestCompiler {
     var moduleName = 'foo.dart';
     var classHierarchy = compilerResult.classHierarchy;
     var compilerOptions = SharedCompilerOptions(
-        replCompile: true,
-        moduleName: moduleName,
-        soundNullSafety: setup.soundNullSafety,
-        moduleFormats: [setup.moduleFormat]);
+      replCompile: true,
+      moduleName: moduleName,
+      soundNullSafety: setup.soundNullSafety,
+      moduleFormats: [setup.moduleFormat],
+      canaryFeatures: false,
+    );
     var coreTypes = compilerResult.coreTypes;
 
     final importToSummary = Map<Library, Component>.identity();
@@ -277,11 +279,28 @@ void main() {
   for (var moduleFormat in [ModuleFormat.amd, ModuleFormat.ddc]) {
     group('Module format: $moduleFormat |', () {
       group('Unsound null safety |', () {
-        var options = SetupCompilerOptions(
-            soundNullSafety: false, moduleFormat: moduleFormat);
+        runUnsoundTests(moduleFormat);
+      });
+    });
+  }
 
-        group('Expression compilations on the same expression compiler |', () {
-          var source = '''
+  for (var moduleFormat in [ModuleFormat.amd, ModuleFormat.ddc]) {
+    group('Module format: $moduleFormat |', () {
+      group('Sound null safety |', () {
+        runSoundTests(moduleFormat);
+      });
+    });
+  }
+}
+
+void runUnsoundTests(ModuleFormat moduleFormat) {
+  var options = SetupCompilerOptions(
+    soundNullSafety: false,
+    moduleFormat: moduleFormat,
+  );
+
+  group('Expression compilations on the same expression compiler |', () {
+    var source = '''
           ${options.dartLangComment}
           main() {
           }
@@ -291,93 +310,93 @@ void main() {
           }
           ''';
 
-          late TestDriver driver;
+    late TestDriver driver;
 
-          setUp(() {
-            driver = TestDriver(options, source);
-          });
+    setUp(() {
+      driver = TestDriver(options, source);
+    });
 
-          tearDown(() {
-            driver.delete();
-          });
+    tearDown(() {
+      driver.delete();
+    });
 
-          test('successful expression compilations', () async {
-            var compiler = await driver.createCompiler();
-            await driver.check(
-                compiler: compiler,
-                scope: <String, String>{},
-                expression: 'true',
-                expectedResult: '''
+    test('successful expression compilations', () async {
+      var compiler = await driver.createCompiler();
+      await driver.check(
+          compiler: compiler,
+          scope: <String, String>{},
+          expression: 'true',
+          expectedResult: '''
                 (function() {
                   return true;
                 }(
                   
                 ))
                 ''');
-            await driver.check(
-                compiler: compiler,
-                scope: <String, String>{},
-                expression: 'false',
-                expectedResult: '''
+      await driver.check(
+          compiler: compiler,
+          scope: <String, String>{},
+          expression: 'false',
+          expectedResult: '''
                 (function() {
                   return false;
                 }(
                   
                 ))
                 ''');
-          });
+    });
 
-          test('some successful expression compilations', () async {
-            var compiler = await driver.createCompiler();
-            await driver.check(
-                compiler: compiler,
-                scope: <String, String>{},
-                expression: 'true',
-                expectedResult: '''
+    test('some successful expression compilations', () async {
+      var compiler = await driver.createCompiler();
+      await driver.check(
+          compiler: compiler,
+          scope: <String, String>{},
+          expression: 'true',
+          expectedResult: '''
                 (function() {
                   return true;
                 }(
                   
                 ))
                 ''');
-            await driver.check(
-              compiler: compiler,
-              scope: <String, String>{},
-              expression: 'blah',
-              expectedError: "Undefined name 'blah'",
-            );
-            await driver.check(
-                compiler: compiler,
-                scope: <String, String>{},
-                expression: 'false',
-                expectedResult: '''
+      await driver.check(
+        compiler: compiler,
+        scope: <String, String>{},
+        expression: 'blah',
+        expectedError: "Undefined name 'blah'",
+      );
+      await driver.check(
+          compiler: compiler,
+          scope: <String, String>{},
+          expression: 'false',
+          expectedResult: '''
                 (function() {
                   return false;
                 }(
                   
                 ))
                 ''');
-          });
+    });
 
-          test('failing expression compilations', () async {
-            var compiler = await driver.createCompiler();
-            await driver.check(
-              compiler: compiler,
-              scope: <String, String>{},
-              expression: 'blah1',
-              expectedError: "Undefined name 'blah1'",
-            );
-            await driver.check(
-              compiler: compiler,
-              scope: <String, String>{},
-              expression: 'blah2',
-              expectedError: "Undefined name 'blah2'",
-            );
-          });
-        });
+    test('failing expression compilations', () async {
+      var compiler = await driver.createCompiler();
+      await driver.check(
+        compiler: compiler,
+        scope: <String, String>{},
+        expression: 'blah1',
+        expectedError: "Undefined name 'blah1'",
+      );
+      await driver.check(
+        compiler: compiler,
+        scope: <String, String>{},
+        expression: 'blah2',
+        expectedError: "Undefined name 'blah2'",
+      );
+    });
+  });
 
-        group('Expression compiler import tests', () {
-          var source = '''
+  group('Expression compiler import tests', () {
+    var source = '''
           ${options.dartLangComment}
           import 'dart:io' show Directory;
           import 'dart:io' as p;
@@ -394,21 +413,21 @@ void main() {
           }
           ''';
 
-          late TestDriver driver;
+    late TestDriver driver;
 
-          setUp(() {
-            driver = TestDriver(options, source);
-          });
+    setUp(() {
+      driver = TestDriver(options, source);
+    });
 
-          tearDown(() {
-            driver.delete();
-          });
+    tearDown(() {
+      driver.delete();
+    });
 
-          test('expression referencing unnamed import', () async {
-            await driver.check(
-                scope: <String, String>{},
-                expression: 'Directory.systemTemp',
-                expectedResult: '''
+    test('expression referencing unnamed import', () async {
+      await driver.check(
+          scope: <String, String>{},
+          expression: 'Directory.systemTemp',
+          expectedResult: '''
             (function() {
               const dart_sdk = ${options.loadModule}('dart_sdk');
               const io = dart_sdk.io;
@@ -417,13 +436,13 @@ void main() {
               
             ))
             ''');
-          });
+    });
 
-          test('expression referencing named import', () async {
-            await driver.check(
-                scope: <String, String>{},
-                expression: 'p.Directory.systemTemp',
-                expectedResult: '''
+    test('expression referencing named import', () async {
+      await driver.check(
+          scope: <String, String>{},
+          expression: 'p.Directory.systemTemp',
+          expectedResult: '''
             (function() {
               const dart_sdk = ${options.loadModule}('dart_sdk');
               const io = dart_sdk.io;
@@ -432,15 +451,14 @@ void main() {
               
             ))
             ''');
-          });
+    });
 
-          test(
-              'expression referencing another library with the same named import',
-              () async {
-            await driver.check(
-                scope: <String, String>{},
-                expression: 'p.utf8.decoder',
-                expectedResult: '''
+    test('expression referencing another library with the same named import',
+        () async {
+      await driver.check(
+          scope: <String, String>{},
+          expression: 'p.utf8.decoder',
+          expectedResult: '''
             (function() {
               const dart_sdk = ${options.loadModule}('dart_sdk');
               const convert = dart_sdk.convert;
@@ -449,13 +467,12 @@ void main() {
               
             ))
             ''');
-          });
-        });
+    });
+  });
 
-        group(
-            'Expression compiler tests for interactions with module containers:',
-            () {
-          var source = '''
+  group('Expression compiler tests for interactions with module containers:',
+      () {
+    var source = '''
           ${options.dartLangComment}
           class A {
             const A();
@@ -473,22 +490,21 @@ void main() {
           void main() => foo();
           ''';
 
-          late TestDriver driver;
-          setUp(() {
-            driver = TestDriver(options, source);
-          });
+    late TestDriver driver;
+    setUp(() {
+      driver = TestDriver(options, source);
+    });
 
-          tearDown(() {
-            driver.delete();
-          });
+    tearDown(() {
+      driver.delete();
+    });
 
-          test(
-              'evaluation that non-destructively appends to the type container',
-              () async {
-            await driver.check(
-                scope: <String, String>{'a': 'null', 'check': 'null'},
-                expression: 'a is String',
-                expectedResult: '''
+    test('evaluation that non-destructively appends to the type container',
+        () async {
+      await driver.check(
+          scope: <String, String>{'a': 'null', 'check': 'null'},
+          expression: 'a is String',
+          expectedResult: '''
             (function(a, check) {
               const dart_sdk = ${options.loadModule}('dart_sdk');
               const core = dart_sdk.core;
@@ -502,13 +518,13 @@ void main() {
               null
             ))
             ''');
-          });
+    });
 
-          test('evaluation that reuses the type container', () async {
-            await driver.check(
-                scope: <String, String>{'a': 'null', 'check': 'null'},
-                expression: 'a is int',
-                expectedResult: '''
+    test('evaluation that reuses the type container', () async {
+      await driver.check(
+          scope: <String, String>{'a': 'null', 'check': 'null'},
+          expression: 'a is int',
+          expectedResult: '''
             (function(a, check) {
               const dart_sdk = ${options.loadModule}('dart_sdk');
               const core = dart_sdk.core;
@@ -522,15 +538,14 @@ void main() {
               null
             ))
             ''');
-          });
+    });
 
-          test(
-              'evaluation that non-destructively appends to the constant container',
-              () async {
-            await driver.check(
-                scope: <String, String>{'a': 'null', 'check': 'null'},
-                expression: 'const B()',
-                expectedResult: '''
+    test('evaluation that non-destructively appends to the constant container',
+        () async {
+      await driver.check(
+          scope: <String, String>{'a': 'null', 'check': 'null'},
+          expression: 'const B()',
+          expectedResult: '''
             (function(a, check) {
              const dart_sdk = ${options.loadModule}('dart_sdk');
               const dart = dart_sdk.dart;
@@ -539,9 +554,8 @@ void main() {
               const CT = Object.create(null);
               dart.defineLazy(CT, {
                 get C0() {
-                  return C[0] = dart.const({
-                    __proto__: foo.B.prototype
-                  });
+                  return C[0] = dart.const(Object.setPrototypeOf({
+                  }, foo.B.prototype));
                 }
               }, false);
               var C = [void 0];
@@ -551,15 +565,15 @@ void main() {
               null
             ))
             ''');
-          });
+    });
 
-          test(
-              'evaluation that reuses the constant container and canonicalizes properly',
-              () async {
-            await driver.check(
-                scope: <String, String>{'a': 'null', 'check': 'null'},
-                expression: 'a == const A()',
-                expectedResult: '''
+    test(
+        'evaluation that reuses the constant container and canonicalizes properly',
+        () async {
+      await driver.check(
+          scope: <String, String>{'a': 'null', 'check': 'null'},
+          expression: 'a == const A()',
+          expectedResult: '''
             (function(a, check) {
               const dart_sdk = ${options.loadModule}('dart_sdk');
               const dart = dart_sdk.dart;
@@ -568,9 +582,8 @@ void main() {
               const CT = Object.create(null);
               dart.defineLazy(CT, {
                 get C0() {
-                  return C[0] = dart.const({
-                    __proto__: foo.A.prototype
-                  });
+                  return C[0] = dart.const(Object.setPrototypeOf({
+                  }, foo.A.prototype));
                 }
               }, false);
               var C = [void 0];
@@ -580,11 +593,11 @@ void main() {
               null
             ))
             ''');
-          });
-        });
+    });
+  });
 
-        group('Expression compiler tests using extension symbols', () {
-          var source = '''
+  group('Expression compiler tests using extension symbols', () {
+    var source = '''
           ${options.dartLangComment}
           void bar() {
             /* evaluation placeholder */
@@ -593,21 +606,21 @@ void main() {
           void main() => bar();
           ''';
 
-          late TestDriver driver;
-          setUp(() {
-            driver = TestDriver(options, source);
-          });
+    late TestDriver driver;
+    setUp(() {
+      driver = TestDriver(options, source);
+    });
 
-          tearDown(() {
-            driver.delete();
-          });
+    tearDown(() {
+      driver.delete();
+    });
 
-          test('map access', () async {
-            await driver.check(
-                scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
-                expression:
-                    '(Map<String, String> params) { return params["index"]; }({})',
-                expectedResult: '''
+    test('map access', () async {
+      await driver.check(
+          scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+          expression:
+              '(Map<String, String> params) { return params["index"]; }({})',
+          expectedResult: '''
             (function() {
               const dart_sdk = ${options.loadModule}('dart_sdk');
               const core = dart_sdk.core;
@@ -627,19 +640,18 @@ void main() {
               
             ))
             ''');
-          });
-        });
-      });
     });
-  }
+  });
+}
 
-  for (var moduleFormat in [ModuleFormat.amd, ModuleFormat.ddc]) {
-    group('Module format: $moduleFormat |', () {
-      group('Sound null safety |', () {
-        var options = SetupCompilerOptions(soundNullSafety: true);
+void runSoundTests(ModuleFormat moduleFormat) {
+  var options = SetupCompilerOptions(
+    soundNullSafety: true,
+    moduleFormat: moduleFormat,
+  );
 
-        group('Expression compilations on the same expression compiler |', () {
-          var source = '''
+  group('Expression compilations on the same expression compiler |', () {
+    var source = '''
           ${options.dartLangComment}
           main() {
           }
@@ -649,93 +661,93 @@ void main() {
           }
           ''';
 
-          late TestDriver driver;
+    late TestDriver driver;
 
-          setUp(() {
-            driver = TestDriver(options, source);
-          });
+    setUp(() {
+      driver = TestDriver(options, source);
+    });
 
-          tearDown(() {
-            driver.delete();
-          });
+    tearDown(() {
+      driver.delete();
+    });
 
-          test('successful expression compilations', () async {
-            var compiler = await driver.createCompiler();
-            await driver.check(
-                compiler: compiler,
-                scope: <String, String>{},
-                expression: 'true',
-                expectedResult: '''
+    test('successful expression compilations', () async {
+      var compiler = await driver.createCompiler();
+      await driver.check(
+          compiler: compiler,
+          scope: <String, String>{},
+          expression: 'true',
+          expectedResult: '''
                 (function() {
                   return true;
                 }(
                   
                 ))
                 ''');
-            await driver.check(
-                compiler: compiler,
-                scope: <String, String>{},
-                expression: 'false',
-                expectedResult: '''
+      await driver.check(
+          compiler: compiler,
+          scope: <String, String>{},
+          expression: 'false',
+          expectedResult: '''
                 (function() {
                   return false;
                 }(
                   
                 ))
                 ''');
-          });
+    });
 
-          test('some successful expression compilations', () async {
-            var compiler = await driver.createCompiler();
-            await driver.check(
-                compiler: compiler,
-                scope: <String, String>{},
-                expression: 'true',
-                expectedResult: '''
+    test('some successful expression compilations', () async {
+      var compiler = await driver.createCompiler();
+      await driver.check(
+          compiler: compiler,
+          scope: <String, String>{},
+          expression: 'true',
+          expectedResult: '''
                 (function() {
                   return true;
                 }(
                   
                 ))
                 ''');
-            await driver.check(
-              compiler: compiler,
-              scope: <String, String>{},
-              expression: 'blah',
-              expectedError: "Undefined name 'blah'",
-            );
-            await driver.check(
-                compiler: compiler,
-                scope: <String, String>{},
-                expression: 'false',
-                expectedResult: '''
+      await driver.check(
+        compiler: compiler,
+        scope: <String, String>{},
+        expression: 'blah',
+        expectedError: "Undefined name 'blah'",
+      );
+      await driver.check(
+          compiler: compiler,
+          scope: <String, String>{},
+          expression: 'false',
+          expectedResult: '''
                 (function() {
                   return false;
                 }(
                   
                 ))
                 ''');
-          });
+    });
 
-          test('failing expression compilations', () async {
-            var compiler = await driver.createCompiler();
-            await driver.check(
-              compiler: compiler,
-              scope: <String, String>{},
-              expression: 'blah1',
-              expectedError: "Undefined name 'blah1'",
-            );
-            await driver.check(
-              compiler: compiler,
-              scope: <String, String>{},
-              expression: 'blah2',
-              expectedError: "Undefined name 'blah2'",
-            );
-          });
-        });
+    test('failing expression compilations', () async {
+      var compiler = await driver.createCompiler();
+      await driver.check(
+        compiler: compiler,
+        scope: <String, String>{},
+        expression: 'blah1',
+        expectedError: "Undefined name 'blah1'",
+      );
+      await driver.check(
+        compiler: compiler,
+        scope: <String, String>{},
+        expression: 'blah2',
+        expectedError: "Undefined name 'blah2'",
+      );
+    });
+  });
 
-        group('Expression compiler import tests', () {
-          var source = '''
+  group('Expression compiler import tests', () {
+    var source = '''
           ${options.dartLangComment}
           import 'dart:io' show Directory;
           import 'dart:io' as p;
@@ -752,21 +764,21 @@ void main() {
           }
           ''';
 
-          late TestDriver driver;
+    late TestDriver driver;
 
-          setUp(() {
-            driver = TestDriver(options, source);
-          });
+    setUp(() {
+      driver = TestDriver(options, source);
+    });
 
-          tearDown(() {
-            driver.delete();
-          });
+    tearDown(() {
+      driver.delete();
+    });
 
-          test('expression referencing unnamed import', () async {
-            await driver.check(
-                scope: <String, String>{},
-                expression: 'Directory.systemTemp',
-                expectedResult: '''
+    test('expression referencing unnamed import', () async {
+      await driver.check(
+          scope: <String, String>{},
+          expression: 'Directory.systemTemp',
+          expectedResult: '''
             (function() {
               const dart_sdk = ${options.loadModule}('dart_sdk');
               const io = dart_sdk.io;
@@ -775,13 +787,13 @@ void main() {
               
             ))
             ''');
-          });
+    });
 
-          test('expression referencing named import', () async {
-            await driver.check(
-                scope: <String, String>{},
-                expression: 'p.Directory.systemTemp',
-                expectedResult: '''
+    test('expression referencing named import', () async {
+      await driver.check(
+          scope: <String, String>{},
+          expression: 'p.Directory.systemTemp',
+          expectedResult: '''
             (function() {
               const dart_sdk = ${options.loadModule}('dart_sdk');
               const io = dart_sdk.io;
@@ -790,15 +802,14 @@ void main() {
               
             ))
             ''');
-          });
+    });
 
-          test(
-              'expression referencing another library with the same named import',
-              () async {
-            await driver.check(
-                scope: <String, String>{},
-                expression: 'p.utf8.decoder',
-                expectedResult: '''
+    test('expression referencing another library with the same named import',
+        () async {
+      await driver.check(
+          scope: <String, String>{},
+          expression: 'p.utf8.decoder',
+          expectedResult: '''
             (function() {
               const dart_sdk = ${options.loadModule}('dart_sdk');
               const convert = dart_sdk.convert;
@@ -807,12 +818,11 @@ void main() {
               
             ))
             ''');
-          });
-        });
+    });
+  });
 
-        group('Expression compiler expressions that import extension symbols',
-            () {
-          var source = '''
+  group('Expression compiler expressions that import extension symbols', () {
+    var source = '''
           ${options.dartLangComment}
           void bar() {
             /* evaluation placeholder */ 
@@ -821,21 +831,21 @@ void main() {
           void main() => bar();
           ''';
 
-          late TestDriver driver;
-          setUp(() {
-            driver = TestDriver(options, source);
-          });
+    late TestDriver driver;
+    setUp(() {
+      driver = TestDriver(options, source);
+    });
 
-          tearDown(() {
-            driver.delete();
-          });
+    tearDown(() {
+      driver.delete();
+    });
 
-          test('map access', () async {
-            await driver.check(
-                scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
-                expression:
-                    '(Map<String, String> params) { return params["index"]; }({})',
-                expectedResult: '''
+    test('map access', () async {
+      await driver.check(
+          scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+          expression:
+              '(Map<String, String> params) { return params["index"]; }({})',
+          expectedResult: '''
             (function() {
               const dart_sdk = ${options.loadModule}('dart_sdk');
               const core = dart_sdk.core;
@@ -854,9 +864,6 @@ void main() {
               
             ))
             ''');
-          });
-        });
-      });
     });
-  }
+  });
 }

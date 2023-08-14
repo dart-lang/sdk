@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
@@ -85,20 +84,8 @@ class InstanceCreationExpressionResolver {
       InstanceCreationExpressionImpl node,
       TypeArgumentListImpl typeNameTypeArguments,
       {required DartType? contextType}) {
-    var typeNameName = node.constructorName.type.name;
-    if (typeNameName is SimpleIdentifierImpl) {
-      // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
-      // [MethodInvocation].
-      _resolveInstanceCreationExpression(node, contextType: contextType);
-      return;
-    } else if (typeNameName is PrefixedIdentifierImpl) {
-      // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
-      // [MethodInvocation].
-      _resolveInstanceCreationExpression(node, contextType: contextType);
-    } else {
-      assert(
-          false, 'Unexpected typeNameName type: ${typeNameName.runtimeType}');
-      _resolveInstanceCreationExpression(node, contextType: contextType);
-    }
+    // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
+    // [MethodInvocation].
+    _resolveInstanceCreationExpression(node, contextType: contextType);
   }
 }

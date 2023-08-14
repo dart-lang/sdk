@@ -12,8 +12,8 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
-import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
+import 'package:ffi/ffi.dart';
 
 //
 // Pointer store.
@@ -574,26 +574,31 @@ class PointerInt64Mint extends BenchmarkBase {
 // Main driver.
 //
 
-void main() {
+void main(List<String> args) {
   final benchmarks = [
-    () => PointerInt8(),
-    () => PointerInt8TypedDataNew(),
-    () => PointerInt8TypedDataReuse(),
-    () => PointerUint8(),
-    () => PointerInt16(),
-    () => PointerUint16(),
-    () => PointerInt32(),
-    () => PointerUint32(),
-    () => PointerUint32Unaligned(),
-    () => PointerInt64(),
-    () => PointerInt64Mint(),
-    () => PointerUint64(),
-    () => PointerUintPtr(),
-    () => PointerFloat(),
-    () => PointerDouble(),
-    () => PointerPointer(),
+    PointerInt8.new,
+    PointerInt8TypedDataNew.new,
+    PointerInt8TypedDataReuse.new,
+    PointerUint8.new,
+    PointerInt16.new,
+    PointerUint16.new,
+    PointerInt32.new,
+    PointerUint32.new,
+    PointerUint32Unaligned.new,
+    PointerInt64.new,
+    PointerInt64Mint.new,
+    PointerUint64.new,
+    PointerUintPtr.new,
+    PointerFloat.new,
+    PointerDouble.new,
+    PointerPointer.new,
   ];
-  for (final benchmark in benchmarks) {
-    benchmark().report();
+
+  final filter = args.firstOrNull;
+  for (var constructor in benchmarks) {
+    final benchmark = constructor();
+    if (filter == null || benchmark.name.contains(filter)) {
+      benchmark.report();
+    }
   }
 }

@@ -151,7 +151,7 @@ class Foo {
       _isItem(
         CallHierarchyKind.constructor,
         'Foo',
-        testFile,
+        testFile.path,
         containerName: 'Foo',
         nameRange: rangeAtSearch('Foo(', contents, 'Foo'),
         codeRange: rangeNumbered(1, contents),
@@ -174,7 +174,7 @@ class Foo {
 }
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -199,7 +199,7 @@ extension StringExtension on String {
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
-          testFile,
+          testFile.path,
           containerName: 'StringExtension',
           nameRange: rangeAtSearch('myMethod', contents),
           codeRange: rangeNumbered(1, contents),
@@ -221,7 +221,7 @@ extension StringExtension on String {
 }
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -244,7 +244,7 @@ extension StringExtension on String {
         _isItem(
           CallHierarchyKind.function,
           'myFunction',
-          testFile,
+          testFile.path,
           containerName: 'test.dart',
           nameRange: rangeAtSearch('myFunction', contents),
           codeRange: rangeNumbered(1, contents),
@@ -261,7 +261,7 @@ extension StringExtension on String {
         _isItem(
           CallHierarchyKind.function,
           'myFunction',
-          testFile,
+          testFile.path,
           containerName: 'test.dart',
           nameRange: rangeAtSearch('myFunction', contents),
           codeRange: rangeNumbered(1, contents),
@@ -278,7 +278,7 @@ extension StringExtension on String {
         _isItem(
           CallHierarchyKind.function,
           'myFunction',
-          testFile,
+          testFile.path,
           containerName: 'test.dart',
           nameRange: rangeAtSearch('myFunction', contents),
           codeRange: rangeNumbered(1, contents),
@@ -287,10 +287,10 @@ extension StringExtension on String {
 
   Future<void> test_functionCall() async {
     final contents = '''
-import 'other.dart' as f;
+import 'other.dart' as other;
 
 void f() {
-  f.myFun^ction();
+  other.myFun^ction();
 }
     ''';
 
@@ -298,7 +298,7 @@ void f() {
 /*1*/void myFunction() {}/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -323,7 +323,7 @@ class Foo {
         _isItem(
           CallHierarchyKind.property,
           'get foo',
-          testFile,
+          testFile.path,
           containerName: 'Foo',
           nameRange: rangeAtSearch('foo', contents),
           codeRange: rangeNumbered(1, contents),
@@ -343,7 +343,7 @@ void f() {
 /*1*/String get bar => '';/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -372,7 +372,7 @@ void f() {
 /*1*/class Foo {}/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -397,7 +397,7 @@ class Foo {
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
-          testFile,
+          testFile.path,
           containerName: 'Foo',
           nameRange: rangeAtSearch('myMethod', contents),
           codeRange: rangeNumbered(1, contents),
@@ -416,7 +416,7 @@ class Foo {
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
-          testFile,
+          testFile.path,
           containerName: 'Foo',
           nameRange: rangeAtSearch('myMethod', contents),
           codeRange: rangeNumbered(1, contents),
@@ -435,7 +435,7 @@ class Foo {
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
-          testFile,
+          testFile.path,
           containerName: 'Foo',
           nameRange: rangeAtSearch('myMethod', contents),
           codeRange: rangeNumbered(1, contents),
@@ -457,7 +457,7 @@ class Foo {
 }
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -482,7 +482,7 @@ mixin Bar {
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
-          testFile,
+          testFile.path,
           containerName: 'Bar',
           nameRange: rangeAtSearch('myMethod', contents),
           codeRange: rangeNumbered(1, contents),
@@ -506,7 +506,7 @@ class Bar {
 class Foo with Bar {}
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -531,7 +531,7 @@ class Foo {
         _isItem(
           CallHierarchyKind.constructor,
           'Foo.Bar',
-          testFile,
+          testFile.path,
           containerName: 'Foo',
           nameRange: rangeAtSearch('Bar', contents),
           codeRange: rangeNumbered(1, contents),
@@ -563,7 +563,7 @@ class Foo {
 }
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -591,7 +591,7 @@ class Foo {
 }
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectNoTarget(contents);
   }
 
@@ -607,7 +607,7 @@ class Foo {
         _isItem(
           CallHierarchyKind.property,
           'set foo',
-          testFile,
+          testFile.path,
           containerName: 'Foo',
           nameRange: rangeAtSearch('foo', contents),
           codeRange: rangeNumbered(1, contents),
@@ -627,7 +627,7 @@ void f() {
 /*1*/set bar(String value) {}/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     await expectTarget(
         contents,
         _isItem(
@@ -658,7 +658,8 @@ class CallHierarchyComputerIncomingCallsTest extends AbstractCallHierarchyTest {
   Future<List<CallHierarchyCalls>> findIncomingCallsForTarget(
     CallHierarchyItem target,
   ) async {
-    final result = await getResolvedUnit(target.file);
+    final targetFile = getFile(target.file);
+    final result = await getResolvedUnit(targetFile);
     expect(result.errors, isEmpty);
 
     return DartCallHierarchyComputer(result)
@@ -670,7 +671,7 @@ class CallHierarchyComputerIncomingCallsTest extends AbstractCallHierarchyTest {
     super.setUp();
     otherFile = convertPath('$testPackageLibPath/other.dart');
     searchEngine = SearchEngineImpl([
-      driverFor(testPackageRootPath),
+      driverFor(testFile),
     ]);
   }
 
@@ -702,7 +703,7 @@ final foo1 = Foo();
     SourceRange rangeAfter(String prefix) =>
         rangeAfterPrefix(prefix, otherContents, 'Foo');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -766,7 +767,7 @@ import 'test.dart';
     SourceRange rangeAfter(String prefix) =>
         rangeAfterPrefix(prefix, otherContents, 'myMethod');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -831,7 +832,7 @@ final foo1 = myFunction();
     SourceRange rangeAfter(String prefix) =>
         rangeAfterPrefix(prefix, otherContents, 'myFunction');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -902,7 +903,7 @@ final foo1 = foo;
     SourceRange rangeAfter(String prefix) =>
         rangeAfterPrefix(prefix, otherContents, 'foo');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -969,12 +970,12 @@ final foo2 = Foo();
     SourceRange rangeAfter(String prefix, String code) =>
         rangeAfterPrefix(prefix, code, 'Foo');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.function, 'f', testFile,
+        _isResult(CallHierarchyKind.function, 'f', testFile.path,
             containerName: 'test.dart',
             nameRange: rangeAtSearch('f() {', contents, 'f'),
             codeRange: rangeNumbered(1, contents),
@@ -1012,7 +1013,7 @@ import 'test.dart';
     SourceRange rangeAfter(String prefix) =>
         rangeAfterPrefix(prefix, otherContents, 'myMethod');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -1050,7 +1051,7 @@ import 'test.dart';
     SourceRange rangeAfter(String prefix) =>
         rangeAfterPrefix(prefix, otherContents, 'myMethod');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -1085,7 +1086,7 @@ import 'test.dart';
     SourceRange rangeAfter(String prefix) =>
         rangeAfterPrefix(prefix, otherContents, 'Bar');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -1124,7 +1125,7 @@ class Bar {
     SourceRange rangeAfter(String prefix) =>
         rangeAfterPrefix(prefix, otherContents, 'foo');
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findIncomingCalls(contents);
     expect(
       calls,
@@ -1161,7 +1162,8 @@ class CallHierarchyComputerOutgoingCallsTest extends AbstractCallHierarchyTest {
   Future<List<CallHierarchyCalls>> findOutgoingCallsForTarget(
     CallHierarchyItem target,
   ) async {
-    final result = await getResolvedUnit(target.file);
+    final targetFile = getFile(target.file);
+    final result = await getResolvedUnit(targetFile);
     expect(result.errors, isEmpty);
 
     return DartCallHierarchyComputer(result).findOutgoingCalls(target);
@@ -1197,7 +1199,7 @@ class A {
 }/*2*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(
       calls,
@@ -1241,7 +1243,7 @@ extension StringExtension on String {
 }
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(
       calls,
@@ -1300,7 +1302,7 @@ void fo^o() {
 /*1*/void f() {}/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(
       calls,
@@ -1313,7 +1315,7 @@ void fo^o() {
               rangeAtSearch('f(); // 1', contents, 'f'),
               rangeAfterPrefix('tearoff = ', contents, 'f'),
             ]),
-        _isResult(CallHierarchyKind.function, 'nested', testFile,
+        _isResult(CallHierarchyKind.function, 'nested', testFile.path,
             containerName: 'foo',
             nameRange: rangeAtSearch('nested() {', contents, 'nested'),
             codeRange: rangeNumbered(1, contents),
@@ -1344,7 +1346,7 @@ String get fo^o {
 }/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(
       calls,
@@ -1386,7 +1388,7 @@ void f() {
 class Foo {}
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(calls, isEmpty);
   }
@@ -1416,7 +1418,7 @@ class Foo {
 }/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(
       calls,
@@ -1464,7 +1466,7 @@ mixin OtherMixin {
 /*1*/class A with OtherMixin {}/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(
       calls,
@@ -1510,7 +1512,7 @@ class A {
 }
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(
       calls,
@@ -1559,7 +1561,7 @@ set fo^o(String value) {
 }/*1*/
     ''';
 
-    addSource(otherFile, otherContents);
+    newFile(otherFile, otherContents);
     final calls = await findOutgoingCalls(contents);
     expect(
       calls,

@@ -39,9 +39,9 @@ namespace dart {
   } while (0)
 
 #define CHECK_AND_CAST(type, var, param)                                       \
-  type* var = NULL;                                                            \
+  type* var = nullptr;                                                         \
   do {                                                                         \
-    if (param == NULL) {                                                       \
+    if (param == nullptr) {                                                    \
       return Api::NewError("%s expects argument '%s' to be non-null.",         \
                            CURRENT_FUNC, #param);                              \
     }                                                                          \
@@ -49,13 +49,13 @@ namespace dart {
   } while (0)
 
 #define CHECK_NOT_NULL(param)                                                  \
-  if (param == NULL) {                                                         \
+  if (param == nullptr) {                                                      \
     return Api::NewError("%s expects argument '%s' to be non-null.",           \
                          CURRENT_FUNC, #param);                                \
   }
 
 #define CHECK_DEBUGGER(isolate)                                                \
-  if (isolate->debugger() == NULL) {                                           \
+  if (isolate->debugger() == nullptr) {                                        \
     return Api::NewError("%s requires debugger support.", CURRENT_FUNC);       \
   }
 
@@ -103,7 +103,7 @@ DART_EXPORT Dart_Handle Dart_GetStackTraceFromError(Dart_Handle handle,
     StackTrace& dart_stacktrace = StackTrace::Handle(Z);
     dart_stacktrace ^= error.stacktrace();
     if (dart_stacktrace.IsNull()) {
-      *trace = NULL;
+      *trace = nullptr;
     } else {
       *trace = reinterpret_cast<Dart_StackTrace>(
           DebuggerStackTrace::From(dart_stacktrace));
@@ -124,16 +124,16 @@ Dart_ActivationFrameInfo(Dart_ActivationFrame activation_frame,
                          intptr_t* column_number) {
   DARTSCOPE(Thread::Current());
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
-  if (function_name != NULL) {
+  if (function_name != nullptr) {
     *function_name = Api::NewHandle(T, frame->QualifiedFunctionName());
   }
-  if (script_url != NULL) {
+  if (script_url != nullptr) {
     *script_url = Api::NewHandle(T, frame->SourceUrl());
   }
-  if (line_number != NULL) {
+  if (line_number != nullptr) {
     *line_number = frame->LineNumber();
   }
-  if (column_number != NULL) {
+  if (column_number != nullptr) {
     *column_number = frame->ColumnNumber();
   }
   return Api::Success();
@@ -150,7 +150,7 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url_in,
 
     Debugger* debugger = I->debugger();
     bpt = debugger->SetBreakpointAtLineCol(script_url, line_number, -1);
-    if (bpt == NULL) {
+    if (bpt == nullptr) {
       return Api::NewError("%s: could not set breakpoint at line %" Pd
                            " in '%s'",
                            CURRENT_FUNC, line_number, script_url.ToCString());
@@ -218,7 +218,7 @@ DART_EXPORT Dart_Handle Dart_LibraryId(Dart_Handle library,
   if (lib.IsNull()) {
     RETURN_TYPE_ERROR(Z, library, Library);
   }
-  if (library_id == NULL) {
+  if (library_id == nullptr) {
     RETURN_NULL_ERROR(library_id);
   }
   *library_id = lib.index();

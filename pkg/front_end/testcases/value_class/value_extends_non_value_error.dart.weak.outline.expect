@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "value_class_support_lib.dart" as val;
@@ -28,7 +28,7 @@ class Cat2 extends self::Animal2 {
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as val;
 import "dart:core" as core;
 

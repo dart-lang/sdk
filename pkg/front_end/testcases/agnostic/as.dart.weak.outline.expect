@@ -1,9 +1,9 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
-static const field core::List<core::int> a = const <Null>[] as{ForNonNullableByDefault} core::List<core::int>;
-static const field core::List<core::int> b = const <core::int?>[] as{ForNonNullableByDefault} core::List<core::int>;
+static const field core::List<core::int> a = const <Null>[] as core::List<core::int>;
+static const field core::List<core::int> b = const <core::int?>[] as core::List<core::int>;
 static method main() → void
   ;
 

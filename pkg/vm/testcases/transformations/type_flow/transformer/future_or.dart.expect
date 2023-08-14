@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -60,5 +60,5 @@ static method getDynamic() → dynamic
   return self::unknown();
 static method main(core::List<core::String> args) → dynamic {
   self::foo1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] asy::Future::value<self::B>(new self::B::•()), new self::B::•(), [@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] asy::Future::value<self::B>(new self::B::•()), new self::B::•());
-  self::foo2(self::getDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::A>?, self::getDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} self::A?, self::getDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<self::A>?, self::getDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<self::A>?);
+  self::foo2(self::getDynamic() as{TypeError,ForDynamic} asy::Future<self::A>?, self::getDynamic() as{TypeError,ForDynamic} self::A?, self::getDynamic() as{TypeError,ForDynamic} FutureOr<self::A>?, self::getDynamic() as{TypeError,ForDynamic} FutureOr<self::A>?);
 }

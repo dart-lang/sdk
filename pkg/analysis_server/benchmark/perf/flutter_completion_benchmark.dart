@@ -177,7 +177,7 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
           await _completionTiming(
             test,
             filePath: '$flutterPkgPath/lib/src/material/app_bar.dart',
-            uniquePrefix: 'computeDryLayout(BoxConstraints',
+            uniquePrefix: '_handleScrollNotification(ScrollNotification',
             insertStringGenerator: _IncrementingStringGenerator().call,
             name: name,
           ),

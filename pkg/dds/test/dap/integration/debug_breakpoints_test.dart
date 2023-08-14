@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:dds/dap.dart';
+import 'package:dap/dap.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -64,19 +64,54 @@ main() {
       expect(updatedBreakpoint.line, expectedResolvedBreakpointLine);
     });
 
+    test('resolves modified breakpoints', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleMultiBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      // Start the app and hit the initial breakpoint.
+      await client.hitBreakpoint(testFile, breakpointLine);
+
+      // Collect IDs of all breakpoints that get resolved.
+      final resolvedBreakpoints = <int>{};
+      final breakpointResolveSubscription =
+          client.breakpointChangeEvents.listen((event) {
+        if (event.breakpoint.verified) {
+          resolvedBreakpoints.add(event.breakpoint.id!);
+        } else {
+          resolvedBreakpoints.remove(event.breakpoint.id!);
+        }
+      });
+
+      // Add breakpoints to the 4 lines after the current one, one at a time.
+      // Capture the IDs of all breakpoints added.
+      final breakpointLinesToSend = <int>[breakpointLine];
+      final addedBreakpoints = <int>{};
+      for (var i = 1; i <= 4; i++) {
+        breakpointLinesToSend.add(breakpointLine + i);
+        final response =
+            await client.setBreakpoints(testFile, breakpointLinesToSend);
+        for (final breakpoint in response.breakpoints) {
+          addedBreakpoints.add(breakpoint.id!);
+        }
+      }
+
+      await pumpEventQueue(times: 5000);
+      await breakpointResolveSubscription.cancel();
+
+      // Ensure every breakpoint that was added was also resolved.
+      expect(resolvedBreakpoints, addedBreakpoints);
+    });
+
     test('responds to setBreakpoints before any breakpoint events', () async {
       final client = dap.client;
-      final testFile = dap.createTestFile(simpleBreakpointResolutionProgram);
+      final testFile =
+          dap.createTestFile(simpleBreakpointProgramWith50ExtraLines);
       final setBreakpointLine = lineWith(testFile, breakpointMarker);
 
       // Run the app and get to a breakpoint. This will allow us to add new
       // breakpoints in the same file that are _immediately_ resolved.
-      await Future.wait([
-        client.initialize(),
-        client.expectStop('breakpoint'),
-        client.setBreakpoint(testFile, setBreakpointLine),
-        client.launch(testFile.path),
-      ], eagerError: true);
+      await client.hitBreakpoint(testFile, setBreakpointLine);
 
       // Call setBreakpoint again, and ensure it response before we get any
       // breakpoint change events because we require their IDs before the change
@@ -90,11 +125,12 @@ main() {
           }
         }),
         client
-            // Send 50 breakpoints for lines 1-50 to ensure we spend some time
-            // sending requests to the VM to allow events to start coming back
-            // from the VM before we complete. Without this, the test can pass
-            // even without the fix.
-            .setBreakpoints(testFile, List.generate(50, (index) => index))
+            // Send 50 breakpoints for the next 50 lines to ensure we spend some
+            // time sending requests to the VM to allow events to start coming
+            // back from the VM before we complete. Without this, the test can
+            // pass even without the fix.
+            .setBreakpoints(testFile,
+                List.generate(50, (index) => setBreakpointLine + index))
             .then((_) => setBreakpointsResponded = true),
       ]);
     });
@@ -259,6 +295,24 @@ void main(List<String> args) async {
         dap.client.expectStop('step', file: testFile, line: stepLine),
         dap.client.next(stop.threadId!, granularity: 'statement'),
       ], eagerError: true);
+    });
+
+    test('ignores resume request for an exited isolate', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(isolateSpawningProgram);
+
+      // Run the script and wait for the isolate to exit.
+      final threadExitFuture =
+          client.threadEvents.where((event) => event.reason == 'exited').first;
+      await Future.wait([
+        threadExitFuture,
+        client.initialize(),
+        client.launch(testFile.path),
+      ], eagerError: true);
+      final exitedThreadId = (await threadExitFuture).threadId;
+
+      // Try to resume the already-exited thread. It should not fail.
+      await client.continue_(exitedThreadId);
     });
 
     test(
@@ -532,6 +586,41 @@ void main(List<String> args) async {
         client.expectStop('step', file: testFile, line: stepLine),
         client.stepIn(stop.threadId!),
       ], eagerError: true);
+    });
+
+    test('does not fail if two debug clients resume the same thread', () async {
+      final testFile = dap.createTestFile(infiniteRunningProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      // Start a program and hit a breakpoint.
+      final client1 = dap.client;
+      final stop1 = await client1.hitBreakpoint(testFile, breakpointLine);
+      final vmServiceUri = (await client1.vmServiceUri)!;
+      final thread1 = stop1.threadId!;
+
+      // Attach a second debug adapter to it.
+      final dap2 = await DapTestSession.setUp();
+      final client2 = dap2.client;
+      await Future.wait([
+        // We'll still get event for existing pause.
+        client2.expectStop('breakpoint'),
+        client2.start(
+          launch: () => client2.attach(
+            vmServiceUri: vmServiceUri.toString(),
+            autoResume: false,
+            cwd: dap.testAppDir.path,
+          ),
+        ),
+      ]);
+      final thread2 = (await client2.getValidThreads()).threads.single.id;
+
+      // Send resumes to both and ensure they complete without errors.
+      await Future.wait([
+        client1.continue_(thread1),
+        client2.continue_(thread2),
+      ], eagerError: true);
+
+      await dap2.tearDown();
     });
   }, timeout: Timeout.none);
 

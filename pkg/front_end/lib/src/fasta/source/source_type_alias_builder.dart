@@ -19,6 +19,7 @@ import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../fasta_codes.dart'
     show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
+import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/kernel_helper.dart';
@@ -56,7 +57,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             (new Typedef(name, null,
                 typeParameters: TypeVariableBuilder.typeParametersFromBuilders(
                     _typeVariables),
-                fileUri: parent.library.fileUri,
+                fileUri: parent.fileUri,
                 reference: referenceFrom?.reference)
               ..fileOffset = charOffset),
         super(metadata, name, parent, charOffset);
@@ -106,27 +107,15 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     // detect cycles by detecting recursive calls to this method using an
     // instance of InvalidType that isn't identical to `const InvalidType()`.
     thisType = pendingTypeAliasMarker;
-    DartType builtType = const InvalidType();
-    TypeBuilder type = this.type;
-    // ignore: unnecessary_null_comparison
-    if (type != null) {
-      builtType = type.build(libraryBuilder, TypeUse.typedefAlias);
-      // ignore: unnecessary_null_comparison
-      if (builtType != null) {
-        if (typeVariables != null) {
-          for (TypeVariableBuilder tv in typeVariables!) {
-            // Follow bound in order to find all cycles
-            tv.bound?.build(libraryBuilder, TypeUse.typeParameterBound);
-          }
-        }
-        if (identical(thisType, cyclicTypeAliasMarker)) {
-          builtType = const InvalidType();
-        } else {
-          builtType = builtType;
-        }
-      } else {
-        builtType = const InvalidType();
+    DartType builtType = type.build(libraryBuilder, TypeUse.typedefAlias);
+    if (typeVariables != null) {
+      for (TypeVariableBuilder tv in typeVariables!) {
+        // Follow bound in order to find all cycles
+        tv.bound?.build(libraryBuilder, TypeUse.typeParameterBound);
       }
+    }
+    if (identical(thisType, cyclicTypeAliasMarker)) {
+      builtType = const InvalidType();
     }
     return thisType = typedef.type ??= builtType;
   }
@@ -186,9 +175,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               .buildAliased(
                   libraryBuilder, TypeUse.defaultTypeAsTypeArgument, hierarchy),
           growable: true);
-      if (library is SourceLibraryBuilder) {
-        library.inferredTypes.addAll(result);
-      }
       return result;
     }
 
@@ -211,18 +197,20 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         growable: true);
   }
 
+  BodyBuilderContext get bodyBuilderContext =>
+      new TypedefBodyBuilderContext(this);
+
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    MetadataBuilder.buildAnnotations(typedef, metadata, libraryBuilder, null,
-        null, fileUri, libraryBuilder.scope);
+    MetadataBuilder.buildAnnotations(typedef, metadata, bodyBuilderContext,
+        libraryBuilder, fileUri, libraryBuilder.scope);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
         typeVariables![i].buildOutlineExpressions(
             libraryBuilder,
-            null,
-            null,
+            bodyBuilderContext,
             classHierarchy,
             delayedActionPerformers,
             computeTypeParameterScope(libraryBuilder.scope));
@@ -275,6 +263,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         if (target != null) {
           if (target is Procedure && target.isRedirectingFactory) {
             target = builder.readTarget!;
+          }
+          Class targetClass = target.enclosingClass!;
+          if (target is Constructor && targetClass.isAbstract) {
+            continue;
           }
           Name targetName =
               new Name(constructorName, declaration.libraryBuilder.library);

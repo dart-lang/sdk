@@ -8,6 +8,7 @@ import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../reference_from_index.dart';
+import '../verifier.dart';
 import 'changed_structure_notifier.dart';
 
 final List<String> targetNames = targets.keys.toList();
@@ -401,12 +402,6 @@ abstract class Target {
       {required bool hasInitializer,
       required bool isFinal,
       required bool isStatic}) {
-    // ignore: unnecessary_null_comparison
-    assert(hasInitializer != null);
-    // ignore: unnecessary_null_comparison
-    assert(isFinal != null);
-    // ignore: unnecessary_null_comparison
-    assert(isStatic != null);
     int mask = LateLowering.getFieldLowering(
         hasInitializer: hasInitializer, isFinal: isFinal, isStatic: isStatic);
     return enabledLateLowerings & mask != 0;
@@ -460,12 +455,6 @@ abstract class Target {
       {required bool hasInitializer,
       required bool isFinal,
       required bool isPotentiallyNullable}) {
-    // ignore: unnecessary_null_comparison
-    assert(hasInitializer != null);
-    // ignore: unnecessary_null_comparison
-    assert(isFinal != null);
-    // ignore: unnecessary_null_comparison
-    assert(isPotentiallyNullable != null);
     int mask = LateLowering.getLocalLowering(
         hasInitializer: hasInitializer,
         isFinal: isFinal,
@@ -538,6 +527,9 @@ abstract class Target {
   Class? concreteSyncStarResultClass(CoreTypes coreTypes) => null;
 
   ConstantsBackend get constantsBackend;
+
+  /// Object that defines how AST nodes are verified for this [Target].
+  Verification get verification => const Verification();
 
   /// Returns an [DartLibrarySupport] the defines which, if any, of the
   /// `dart:` libraries supported in the platform, that should not be
@@ -652,12 +644,6 @@ class LateLowering {
       {required bool hasInitializer,
       required bool isFinal,
       required bool isPotentiallyNullable}) {
-    // ignore: unnecessary_null_comparison
-    assert(hasInitializer != null);
-    // ignore: unnecessary_null_comparison
-    assert(isFinal != null);
-    // ignore: unnecessary_null_comparison
-    assert(isPotentiallyNullable != null);
     if (hasInitializer) {
       if (isFinal) {
         if (isPotentiallyNullable) {
@@ -693,12 +679,6 @@ class LateLowering {
       {required bool hasInitializer,
       required bool isFinal,
       required bool isStatic}) {
-    // ignore: unnecessary_null_comparison
-    assert(hasInitializer != null);
-    // ignore: unnecessary_null_comparison
-    assert(isFinal != null);
-    // ignore: unnecessary_null_comparison
-    assert(isStatic != null);
     if (hasInitializer) {
       if (isFinal) {
         if (isStatic) {
@@ -1031,6 +1011,9 @@ class TargetWrapper extends Target {
   Map<String, String> updateEnvironmentDefines(Map<String, String> map) {
     return _target.updateEnvironmentDefines(map);
   }
+
+  @override
+  Verification get verification => _target.verification;
 }
 
 class TestTargetWrapper extends TargetWrapper with TestTargetMixin {

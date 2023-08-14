@@ -475,6 +475,11 @@ class MatchingExpressionVisitor
               staticTarget: staticTarget,
               typeArguments: typeArguments,
               fileOffset: field.fileOffset);
+      if (field.checkReturn) {
+        objectExpression = new CovariantCheckCacheableExpression(
+            objectExpression, field.resultType!,
+            fileOffset: field.fileOffset);
+      }
 
       DelayedExpression subExpression =
           visitPattern(field.pattern, objectExpression);
@@ -566,6 +571,8 @@ class MatchingExpressionVisitor
   @override
   DelayedExpression visitRelationalPattern(
       RelationalPattern node, CacheableExpression matchedExpression) {
+    matchedExpression = matchedExpression.promote(node.matchedValueType!);
+
     CacheableExpression constant = matchingCache.createConstantExpression(
         node.expressionValue!, node.expressionType!,
         fileOffset: node.expression.fileOffset);
@@ -675,8 +682,7 @@ class MatchingExpressionVisitor
   @override
   DelayedExpression visitVariablePattern(
       VariablePattern node, CacheableExpression matchedExpression) {
-    DartType matchedType = node.matchedValueType!;
-    matchedExpression = matchedExpression.promote(matchedType);
+    matchedExpression = matchedExpression.promote(node.matchedValueType!);
     DelayedExpression? matchingExpression;
     if (node.type != null) {
       matchingExpression = new DelayedIsExpression(

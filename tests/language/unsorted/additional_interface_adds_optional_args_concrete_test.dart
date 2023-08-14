@@ -10,7 +10,11 @@ abstract class I {
   void foo([x]);
 }
 
-class /*@compile-error=unspecified*/ B extends A implements I {
+class B extends A implements I {
+//    ^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_IMPLEMENTATION_OVERRIDE
+// [cfe] The implementation of 'foo' in the non-abstract class 'B' does not conform to its interface.
+
   // This class declaration violates soundness, since it allows `new
   // B().foo(42)`, which would lead to invalid arguments being passed to A.foo.
 }

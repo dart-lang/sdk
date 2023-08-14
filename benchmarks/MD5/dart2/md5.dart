@@ -15,7 +15,7 @@ class MD5Bench extends BenchmarkBase {
   List<int> data;
 
   MD5Bench() : super('MD5') {
-    data = List<int>(size);
+    data = List<int>.filled(size, null);
     for (int i = 0; i < data.length; i++) {
       data[i] = i % 256;
     }

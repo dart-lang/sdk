@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -16,7 +16,7 @@ static method errors() → dynamic {
   invalid-type foo;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 
@@ -26,7 +26,7 @@ class Foo extends core::Object {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self3;
 import "dart:core" as core;
 

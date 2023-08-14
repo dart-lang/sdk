@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "issue41210_lib.dart" as iss;
@@ -43,7 +43,7 @@ class G extends self::_G&Object&A&F {
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as iss;
 import "dart:core" as core;
 

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -10,5 +10,5 @@ static method producer<K extends core::Object? = dynamic>() → dynamic {
   };
 }
 static method main() → dynamic {
-  assert(self::producer<core::String>() is{ForNonNullableByDefault} <A extends core::Object? = dynamic>(core::int) → <B extends core::Object? = dynamic>(A%, core::String, B%) → core::int);
+  assert(self::producer<core::String>() is <A extends core::Object? = dynamic>(core::int) → <B extends core::Object? = dynamic>(A%, core::String, B%) → core::int);
 }

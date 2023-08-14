@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -10,7 +10,7 @@ class Foo extends core::Object {
   set first(dynamic x) → void
     return let final core::List<dynamic> #t1 = this.{self::Foo::list}{core::List<dynamic>} in let final core::int #t2 = 0 in let final dynamic #t3 = x in let final void #t4 = #t1.{core::List::[]=}(#t2, #t3){(core::int, dynamic) → void} in #t3;
   operator []=(dynamic x, dynamic y) → void
-    return let final core::List<dynamic> #t5 = this.{self::Foo::list}{core::List<dynamic>} in let final core::int #t6 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::int in let final dynamic #t7 = y in let final void #t8 = #t5.{core::List::[]=}(#t6, #t7){(core::int, dynamic) → void} in #t7;
+    return let final core::List<dynamic> #t5 = this.{self::Foo::list}{core::List<dynamic>} in let final core::int #t6 = x as{TypeError,ForDynamic} core::int in let final dynamic #t7 = y in let final void #t8 = #t5.{core::List::[]=}(#t6, #t7){(core::int, dynamic) → void} in #t7;
   method clear() → void
     return this.{self::Foo::list}{core::List<dynamic>}.{core::List::clear}(){() → void};
 }

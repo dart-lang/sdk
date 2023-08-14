@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -99,7 +99,7 @@ class Class extends core::Object {
     return new self::Class::•();
 }
 static method main() → dynamic {
-  self::Class? c = new self::Class::•() as{ForNonNullableByDefault} self::Class?;
+  self::Class? c = new self::Class::•() as self::Class?;
   c!;
   c{self::Class}!.{self::Class::field}{core::int?};
   c{self::Class}!.{self::Class::field} = 42;
@@ -111,7 +111,7 @@ static method main() → dynamic {
   c{self::Class}!.{self::Class::+}(c{self::Class}!){(self::Class) → self::Class};
   c{self::Class}.{self::Class::+}(c{self::Class}!){(self::Class) → self::Class};
   c{self::Class}.{self::Class::+}(c{self::Class}){(self::Class) → self::Class}!;
-  core::bool? o = true as{ForNonNullableByDefault} core::bool?;
+  core::bool? o = true as core::bool?;
   !o! ?{core::bool} !o{core::bool}! : !!o{core::bool}!!;
   !o{core::bool}! ?{core::bool} (!o{core::bool})! : (!(!o{core::bool})!)!;
 }

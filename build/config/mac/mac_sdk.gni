@@ -6,7 +6,11 @@ import("//build/toolchain/goma.gni")
 
 declare_args() {
   # Minimum supported version of the Mac SDK.
-  mac_sdk_min = "10.13"
+  #
+  # TODO: When the minimum supported SDK version is incremented to "10.15",
+  # remove the usage of `SecTrustEvaluate` from
+  # runtime/bin/security_context_macos.cc
+  mac_sdk_min = "10.14"
 
   # Path to a specific version of the Mac SDK, not including a backslash at
   # the end. If empty, the path to the lowest version greater than or equal to

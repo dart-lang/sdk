@@ -94,7 +94,7 @@ void f(List<String> items) {
   }
 
   Future<void> test_declaredIdentifier_addImport_dartUri() async {
-    addSource('$testPackageLibPath/my_lib.dart', r'''
+    newFile('$testPackageLibPath/my_lib.dart', r'''
 import 'dart:collection';
 List<HashMap<String, int>> getMap() => null;
 ''');
@@ -198,7 +198,7 @@ void f() {
   }
 
   Future<void> test_local_addImport_dartUri() async {
-    addSource('$testPackageLibPath/my_lib.dart', r'''
+    newFile('$testPackageLibPath/my_lib.dart', r'''
 import 'dart:collection';
 HashMap<String, int> getMap() => null;
 ''');
@@ -219,7 +219,7 @@ void f() {
   }
 
   Future<void> test_local_addImport_notLibraryUnit() async {
-    addSource('$testPackageLibPath/my_lib.dart', r'''
+    newFile('$testPackageLibPath/my_lib.dart', r'''
 import 'dart:collection';
 HashMap<String, int> getMap() => null;
 ''');
@@ -237,7 +237,7 @@ void f() {
 ''');
 
     var appPath = convertPath('$testPackageLibPath/app.dart');
-    addSource(appPath, appCode);
+    newFile(appPath, appCode);
     await analyzeTestPackageFiles();
     await resolveTestFile();
 
@@ -261,11 +261,11 @@ part 'test.dart';
   }
 
   Future<void> test_local_addImport_relUri() async {
-    testFile = convertPath('/home/test/bin/test.dart');
-    addSource('/home/test/bin/aa/bbb/lib_a.dart', r'''
+    testFilePath = convertPath('/home/test/bin/test.dart');
+    newFile('/home/test/bin/aa/bbb/lib_a.dart', r'''
 class MyClass {}
 ''');
-    addSource('/home/test/bin/ccc/lib_b.dart', r'''
+    newFile('/home/test/bin/ccc/lib_b.dart', r'''
 import '../aa/bbb/lib_a.dart';
 MyClass newMyClass() => null;
 ''');
@@ -689,6 +689,14 @@ void f() {
 ''');
   }
 
+  Future<void> test_parameter_final_type_noName() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+typedef F = void Function(final int);
+''');
+    await assertNoAssistAt('final');
+  }
+
   @FailingTest(reason: '''
 This functionality is disabled in `AddTypeAnnotation._forSimpleFormalParameter`
 because `writeType` is writing the names of the parameters when it shouldn't.
@@ -744,7 +752,7 @@ void f() {
   }
 
   Future<void> test_privateType_closureParameter() async {
-    addSource('$testPackageLibPath/my_lib.dart', '''
+    newFile('$testPackageLibPath/my_lib.dart', '''
 library my_lib;
 class A {}
 class _B extends A {}
@@ -760,7 +768,7 @@ void f() {
   }
 
   Future<void> test_privateType_declaredIdentifier() async {
-    addSource('$testPackageLibPath/my_lib.dart', '''
+    newFile('$testPackageLibPath/my_lib.dart', '''
 library my_lib;
 class A {}
 class _B extends A {}
@@ -781,7 +789,7 @@ class A<T> {
   Future<void> test_privateType_list() async {
     // This is now failing because we're suggesting "List" rather than nothing.
     // Is it really better to produce nothing?
-    addSource('$testPackageLibPath/my_lib.dart', '''
+    newFile('$testPackageLibPath/my_lib.dart', '''
 library my_lib;
 class A {}
 class _B extends A {}
@@ -819,7 +827,7 @@ void f() {
   }
 
   Future<void> test_privateType_variable() async {
-    addSource('$testPackageLibPath/my_lib.dart', '''
+    newFile('$testPackageLibPath/my_lib.dart', '''
 library my_lib;
 class A {}
 class _B extends A {}

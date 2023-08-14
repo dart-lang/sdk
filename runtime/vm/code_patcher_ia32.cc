@@ -31,9 +31,9 @@ class UnoptimizedCall : public ValueObject {
     return LoadUnaligned(reinterpret_cast<ObjectPtr*>(start_ + 1));
   }
 
-  static const int kMovInstructionSize = 5;
-  static const int kCallInstructionSize = 3;
-  static const int kPatternSize =
+  static constexpr int kMovInstructionSize = 5;
+  static constexpr int kCallInstructionSize = 3;
+  static constexpr int kPatternSize =
       2 * kMovInstructionSize + kCallInstructionSize;
 
  private:
@@ -160,8 +160,8 @@ class StaticCall : public ValueObject {
                                 target.ptr(), Thread::Current());
   }
 
-  static const int kMovInstructionSize = 5;
-  static const int kCallInstructionSize = 3;
+  static constexpr int kMovInstructionSize = 5;
+  static constexpr int kCallInstructionSize = 3;
 
  private:
   uword return_address() const {
@@ -206,7 +206,7 @@ CodePtr CodePatcher::GetInstanceCallAt(uword return_address,
                                        Object* data) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   InstanceCall call(return_address, caller_code);
-  if (data != NULL) {
+  if (data != nullptr) {
     *data = call.data();
   }
   return call.target();
@@ -246,7 +246,7 @@ FunctionPtr CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
   UnoptimizedStaticCall static_call(return_address, caller_code);
   ICData& ic_data = ICData::Handle();
   ic_data ^= static_call.ic_data();
-  if (ic_data_result != NULL) {
+  if (ic_data_result != nullptr) {
     *ic_data_result = ic_data.ptr();
   }
   return ic_data.GetTargetAt(0);
@@ -295,7 +295,7 @@ CodePtr CodePatcher::GetNativeCallAt(uword return_address,
                                      const Code& caller_code,
                                      NativeFunction* target) {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 }  // namespace dart

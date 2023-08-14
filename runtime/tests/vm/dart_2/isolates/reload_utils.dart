@@ -173,7 +173,8 @@ class Reloader {
   Future _waitUntilService() async {
     final needle = 'The Dart VM service is listening on ';
     final line = await waitUntilStdoutContains(needle);
-    final Uri uri = Uri.parse(line.substring(needle.length));
+    final start = line.indexOf(needle);
+    final Uri uri = Uri.parse(line.substring(start + needle.length));
     assert(_remoteVm == null);
     _remoteVm = RemoteVm(uri.port);
   }
@@ -190,8 +191,8 @@ class Reloader {
     return reloadResult;
   }
 
-  Future<Stream> getDebugStream() async {
-    return await _remoteVm.getEventStream('Debug');
+  Stream getDebugStream() {
+    return _remoteVm.getEventStream('Debug');
   }
 
   Future<String> getIsolateId(String name) async {
@@ -231,10 +232,23 @@ class Reloader {
   }
 
   Future<int> close() async {
-    await _remoteVm.disconnect();
-    final exitCode = await _process.exitCode;
-    print('ExitCode = $exitCode');
-    return exitCode;
+    final disconnectFuture = _remoteVm
+        .disconnect()
+        .then((_) {
+          print('Disconnected successfully');
+          return null;
+        })
+        .timeout(const Duration(seconds: 1))
+        .catchError((e, s) {
+          print('Got error while disconnecting from remote VM: $e, $s');
+        });
+
+    final processExitFuture = _process.exitCode.then((exitCode) {
+      print('Got exitCode: $exitCode');
+      return exitCode;
+    });
+
+    return (await Future.wait([disconnectFuture, processExitFuture]))[1];
   }
 
   Future<String> waitUntilStdoutContains(String needle) {

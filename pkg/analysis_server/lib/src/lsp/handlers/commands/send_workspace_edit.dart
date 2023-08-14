@@ -22,8 +22,12 @@ class SendWorkspaceEditCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Send Workspace Edit';
 
   @override
-  Future<ErrorOr<void>> handle(Map<String, Object?> parameters,
-      ProgressReporter progress, CancellationToken cancellationToken) async {
+  Future<ErrorOr<void>> handle(
+    MessageInfo message,
+    Map<String, Object?> parameters,
+    ProgressReporter progress,
+    CancellationToken cancellationToken,
+  ) async {
     if (parameters['edit'] is! Map<String, Object?>) {
       return ErrorOr.error(ResponseError(
         code: ServerErrorCodes.InvalidCommandArguments,

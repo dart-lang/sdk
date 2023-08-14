@@ -119,6 +119,16 @@ class OS {
   DART_NORETURN static void Abort();
 
   DART_NORETURN static void Exit(int code);
+
+  struct BuildId {
+    intptr_t len;
+    const uint8_t* data;
+  };
+
+  // Retrieves the build ID information for the current application isolate.
+  // If found, returns a BuildId with the length of the build ID and a pointer
+  // to its contents, otherwise returns a BuildId with contents {0, nullptr}.
+  static BuildId GetAppBuildId(const uint8_t* snapshot_instructions);
 };
 
 }  // namespace dart

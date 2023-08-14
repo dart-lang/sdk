@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -55,7 +55,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

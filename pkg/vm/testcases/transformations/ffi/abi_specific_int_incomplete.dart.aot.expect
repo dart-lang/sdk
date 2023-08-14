@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 import "dart:ffi" as ffi;
@@ -35,7 +35,7 @@ final class IncompleteArrayStruct extends ffi::Struct {
     return new ffi::Array::_<self::Incomplete>( block {
       synthesized core::Object #typedDataBase = [@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] [@vm.inferred-type.metadata=dart.ffi::Pointer] this.{ffi::_Compound::_typedDataBase}{core::Object};
       synthesized core::int #offset = #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
-    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<self::Incomplete>([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::Pointer.address] [@vm.inferred-type.metadata=int] #typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let synthesized typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in throw "Attempt to execute code removed by Dart AOT compiler (TFA)", #C20, #C25);
+    } =>#typedDataBase is{ForLegacy} ffi::Pointer<dynamic> ?{core::Object} [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<self::Incomplete>([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::Pointer.address] [@vm.inferred-type.metadata=int] #typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let synthesized typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in throw "Attempt to execute code removed by Dart AOT compiler (TFA)", #C20, #C25);
 [@vm.unboxing-info.metadata=()->i]  @#C8
   static get #sizeOf() → core::int*
     return [@vm.inferred-type.metadata=dart.core::_Smi (value: 400)] ffi::_checkAbiSpecificIntegerMapping<core::int>(#C27.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
@@ -94,22 +94,22 @@ constants  {
   #C1 = "vm:ffi:abi-specific-mapping"
   #C2 = null
   #C3 = TypeLiteralConstant(ffi::Uint32)
-  #C4 = <core::Type?>[#C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C3, #C3, #C3, #C3, #C2, #C2, #C2, #C2, #C2, #C2, #C2]
+  #C4 = <core::Type?>[#C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C3, #C3, #C3, #C3, #C2, #C2, #C2, #C2, #C2, #C2, #C2]
   #C5 = ffi::_FfiAbiSpecificMapping {nativeTypes:#C4}
   #C6 = core::pragma {name:#C1, options:#C5}
   #C7 = "vm:prefer-inline"
   #C8 = core::pragma {name:#C7, options:#C2}
   #C9 = 4
-  #C10 = <core::int*>[#C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C9, #C9, #C9, #C9, #C2, #C2, #C2, #C2, #C2, #C2, #C2]
+  #C10 = <core::int*>[#C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C9, #C9, #C9, #C9, #C2, #C2, #C2, #C2, #C2, #C2, #C2]
   #C11 = "vm:ffi:struct-fields"
   #C12 = TypeLiteralConstant(self::Incomplete)
   #C13 = <core::Type>[#C12, #C12]
   #C14 = ffi::_FfiStructLayout {fieldTypes:#C13, packing:#C2}
   #C15 = core::pragma {name:#C11, options:#C14}
   #C16 = 0
-  #C17 = <core::int*>[#C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16]
+  #C17 = <core::int*>[#C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16]
   #C18 = 8
-  #C19 = <core::int*>[#C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C18, #C18, #C18, #C18, #C2, #C2, #C2, #C2, #C2, #C2, #C2]
+  #C19 = <core::int*>[#C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C18, #C18, #C18, #C18, #C2, #C2, #C2, #C2, #C2, #C2, #C2]
   #C20 = 100
   #C21 = ffi::_FfiInlineArray {elementType:#C12, length:#C20}
   #C22 = <core::Type>[#C21]
@@ -117,6 +117,6 @@ constants  {
   #C24 = core::pragma {name:#C11, options:#C23}
   #C25 = <core::int*>[]
   #C26 = 400
-  #C27 = <core::int*>[#C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C26, #C26, #C26, #C26, #C2, #C2, #C2, #C2, #C2, #C2, #C2]
+  #C27 = <core::int*>[#C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C26, #C26, #C26, #C26, #C2, #C2, #C2, #C2, #C2, #C2, #C2]
   #C28 = self::_DummyAllocator {}
 }

@@ -10,15 +10,15 @@ import 'test_helper.dart';
 import 'dart:async';
 import 'dart:developer';
 
-const int LINE_A = 21;
+const int LINE_A = 20;
 const int LINE_B = 111;
 const int LINE_C = 11;
 
 void testFunction() {
   int i = 0;
   while (i == 0) {
-    debugger();
-    print('loop'); // Line A.
+    debugger(); // LINE_A.
+    print('loop');
     print('loop');
   }
 }

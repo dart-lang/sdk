@@ -22,7 +22,7 @@ class MoveFileTest extends RefactoringTest {
 
   Future<void> test_file_containing_imports_exports_parts() async {
     final root = '/home/test/000/1111';
-    testFile = convertPath('$root/test.dart');
+    testFilePath = convertPath('$root/test.dart');
     newFile('/absolute/uri.dart', '');
     final fileA = newFile('$root/a.dart', 'part of lib;');
     final fileB = newFile('$root/b.dart', "import 'test.dart';");
@@ -43,7 +43,7 @@ part '${toUriStr('/absolute/uri.dart')}';
     assertNoFileChange(fileA.path);
     assertFileChangeResult(fileB.path, "import '22/new_name.dart';");
     assertNoFileChange(fileC.path);
-    assertFileChangeResult(testFile, '''
+    assertFileChangeResult(testFile.path, '''
 library lib;
 import 'dart:math';
 import 'c.dart';
@@ -63,13 +63,13 @@ import 'package:test/old_name.dart';
     // Since the file being refactored isn't the test source, we set the
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
-    testAnalysisResult = await getResolvedUnit(file.path);
+    testAnalysisResult = await getResolvedUnit(file);
 
     _createRefactoring('$testPackageLibPath/222/new_name.dart',
         oldFile: file.path);
     await _assertSuccessfulRefactoring();
 
-    assertFileChangeResult(testFile, '''
+    assertFileChangeResult(testFile.path, '''
 import 'package:test/222/new_name.dart';
 ''');
   }
@@ -85,13 +85,13 @@ import 'package:test0.test1.test2/111/name.dart';
     // Since the file being refactored isn't the test source, we set the
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
-    testAnalysisResult = await getResolvedUnit(file.path);
+    testAnalysisResult = await getResolvedUnit(file);
 
     _createRefactoring('/home/test0/test1/test3/lib/111/name.dart',
         oldFile: file.path);
     await _assertSuccessfulRefactoring();
 
-    assertFileChangeResult(testFile, '''
+    assertFileChangeResult(testFile.path, '''
 import 'package:test0.test1.test3/111/name.dart';
 ''');
   }
@@ -107,13 +107,13 @@ import 'package:test0.test1.test2/111/name.dart';
     // Since the file being refactored isn't the test source, we set the
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
-    testAnalysisResult = await getResolvedUnit(file.path);
+    testAnalysisResult = await getResolvedUnit(file);
 
     _createRefactoring('/home/test0/test1/test2/test3/lib/111/name.dart',
         oldFile: file.path);
     await _assertSuccessfulRefactoring();
 
-    assertFileChangeResult(testFile, '''
+    assertFileChangeResult(testFile.path, '''
 import 'package:test0.test1.test2.test3/111/name.dart';
 ''');
   }
@@ -129,13 +129,13 @@ import 'package:test0.test1.test2/111/name.dart';
     // Since the file being refactored isn't the test source, we set the
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
-    testAnalysisResult = await getResolvedUnit(file.path);
+    testAnalysisResult = await getResolvedUnit(file);
 
     _createRefactoring('/home/test0/test1/lib/111/name.dart',
         oldFile: file.path);
     await _assertSuccessfulRefactoring();
 
-    assertFileChangeResult(testFile, '''
+    assertFileChangeResult(testFile.path, '''
 import 'package:test0.test1/111/name.dart';
 ''');
   }
@@ -150,13 +150,13 @@ import 'package:test/111/old_name.dart';
     // Since the file being refactored isn't the test source, we set the
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
-    testAnalysisResult = await getResolvedUnit(file.path);
+    testAnalysisResult = await getResolvedUnit(file);
 
     _createRefactoring('$testPackageLibPath/222/new_name.dart',
         oldFile: file.path);
     await _assertSuccessfulRefactoring();
 
-    assertFileChangeResult(testFile, '''
+    assertFileChangeResult(testFile.path, '''
 import 'package:test/222/new_name.dart';
 ''');
   }
@@ -171,20 +171,20 @@ import 'package:test/222/old_name.dart';
     // Since the file being refactored isn't the test source, we set the
     // testAnalysisResult manually here, the path is referenced through the
     // referenced File object to run on Windows:
-    testAnalysisResult = await getResolvedUnit(file.path);
+    testAnalysisResult = await getResolvedUnit(file);
 
     _createRefactoring('$testPackageLibPath/new_name.dart', oldFile: file.path);
     await _assertSuccessfulRefactoring();
 
-    assertFileChangeResult(testFile, '''
+    assertFileChangeResult(testFile.path, '''
 import 'package:test/new_name.dart';
 ''');
   }
 
   Future<void> test_file_imported_with_relative_uri_down() async {
     var pathA = convertPath('/home/test/000/1111/a.dart');
-    testFile = convertPath('/home/test/000/1111/test.dart');
-    addSource(pathA, '''
+    testFilePath = convertPath('/home/test/000/1111/test.dart');
+    newFile(pathA, '''
 import 'test.dart';
 ''');
     await analyzeTestPackageFiles();
@@ -197,28 +197,28 @@ import 'test.dart';
     assertFileChangeResult(pathA, '''
 import '22/new_name.dart';
 ''');
-    assertNoFileChange(testFile);
+    assertNoFileChange(testFile.path);
   }
 
   Future<void> test_file_imported_with_relative_uri_same_folder() async {
     // https://github.com/dart-lang/sdk/issues/45593
-    testFile = convertPath('/home/test/bin/aaa.dart');
+    testFilePath = convertPath('/home/test/bin/aaa.dart');
     var pathB = convertPath('/home/test/bin/bbb.dart');
-    addSource(pathB, '');
+    newFile(pathB, '');
     await resolveTestCode("import 'bbb.dart';");
     await analyzeTestPackageFiles();
 
     _createRefactoring('/home/test/bin/new_aaa.dart');
     await _assertSuccessfulRefactoring();
 
-    assertNoFileChange(testFile);
+    assertNoFileChange(testFile.path);
     assertNoFileChange(pathB);
   }
 
   Future<void> test_file_imported_with_relative_uri_sideways() async {
     var pathA = convertPath('/home/test/000/1111/a.dart');
-    testFile = convertPath('/home/test/000/1111/sub/folder/test.dart');
-    addSource(pathA, '''
+    testFilePath = convertPath('/home/test/000/1111/sub/folder/test.dart');
+    newFile(pathA, '''
 import 'sub/folder/test.dart';
 ''');
     await analyzeTestPackageFiles();
@@ -229,13 +229,13 @@ import 'sub/folder/test.dart';
     assertFileChangeResult(pathA, '''
 import '../new/folder/name/new_name.dart';
 ''');
-    assertNoFileChange(testFile);
+    assertNoFileChange(testFile.path);
   }
 
   Future<void> test_file_imported_with_relative_uri_up() async {
     var pathA = convertPath('/home/test/000/1111/a.dart');
-    testFile = convertPath('/home/test/000/1111/22/test.dart');
-    addSource(pathA, '''
+    testFilePath = convertPath('/home/test/000/1111/22/test.dart');
+    newFile(pathA, '''
 import '22/test.dart';
 ''');
     await analyzeTestPackageFiles();
@@ -246,12 +246,12 @@ import '22/test.dart';
     assertFileChangeResult(pathA, '''
 import 'new_name.dart';
 ''');
-    assertNoFileChange(testFile);
+    assertNoFileChange(testFile.path);
   }
 
   Future<void> test_file_moveOutOfLib() async {
     var binMainPath = convertPath('/home/test/bin/main.dart');
-    addSource(binMainPath, '''
+    newFile(binMainPath, '''
 import 'package:test/test.dart';
 
 void f() {
@@ -271,7 +271,7 @@ void f() {
   var a = new Foo();
 }
 ''');
-    assertNoFileChange(testFile);
+    assertNoFileChange(testFile.path);
   }
 
   @failingTest
@@ -280,12 +280,12 @@ void f() {
     // a library, so only one of them is updated.
     var pathA = convertPath('/home/test/000/1111/a.dart');
     var pathB = convertPath('/home/test/000/b.dart');
-    testFile = convertPath('/home/test/000/1111/22/test.dart');
-    addSource(pathA, '''
+    testFilePath = convertPath('/home/test/000/1111/22/test.dart');
+    newFile(pathA, '''
 library lib;
 part '22/test.dart';
 ''');
-    addSource(pathB, '''
+    newFile(pathB, '''
 library lib;
 part '1111/22/test.dart';
 ''');
@@ -303,13 +303,13 @@ part '22/new_name.dart';
 library lib;
 part '1111/22/new_name.dart';
 ''');
-    assertNoFileChange(testFile);
+    assertNoFileChange(testFile.path);
   }
 
   Future<void> test_file_referenced_by_part() async {
     var pathA = convertPath('/home/test/000/1111/a.dart');
-    testFile = convertPath('/home/test/000/1111/22/test.dart');
-    addSource(pathA, '''
+    testFilePath = convertPath('/home/test/000/1111/22/test.dart');
+    newFile(pathA, '''
 library lib;
 part '22/test.dart';
 ''');
@@ -325,7 +325,7 @@ part of lib;
 library lib;
 part '22/new_name.dart';
 ''');
-    assertNoFileChange(testFile);
+    assertNoFileChange(testFile.path);
   }
 
   Future<void> test_folder_inside_project() async {
@@ -333,11 +333,11 @@ part '22/new_name.dart';
     final pathB = convertPath('/home/test/lib/old/b.dart');
     final pathC = convertPath('/home/test/lib/old/nested/c.dart');
     final pathD = convertPath('/home/test/lib/old/nested/d.dart');
-    testFile = convertPath('/home/test/lib/test.dart');
-    addSource(pathA, '');
-    addSource(pathB, '');
-    addSource(pathC, '');
-    addSource(pathD, '');
+    testFilePath = convertPath('/home/test/lib/test.dart');
+    newFile(pathA, '');
+    newFile(pathB, '');
+    newFile(pathC, '');
+    newFile(pathD, '');
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 import 'old/a.dart';
@@ -350,7 +350,7 @@ import 'package:test/old/nested/d.dart';
     await _assertSuccessfulRefactoring();
     assertNoFileChange(pathA);
     assertNoFileChange(pathB);
-    assertFileChangeResult(testFile, '''
+    assertFileChangeResult(testFile.path, '''
 import 'new/a.dart';
 import 'package:test/new/b.dart';
 import 'new/nested/c.dart';
@@ -369,9 +369,9 @@ import 'package:test/new/nested/d.dart';
   }
 
   Future<void> test_folder_siblingFiles() async {
-    testFile = convertPath('/home/test/lib/old/a.dart');
+    testFilePath = convertPath('/home/test/lib/old/a.dart');
     final pathB = convertPath('/home/test/lib/old/b.dart');
-    addSource(pathB, '');
+    newFile(pathB, '');
     await resolveTestCode('''
 import 'a.dart';
 ''');
@@ -380,7 +380,7 @@ import 'a.dart';
     await _assertSuccessfulRefactoring();
     // No changes, because import was a relative path and both files are inside
     // the renamed folder.
-    assertNoFileChange(testFile);
+    assertNoFileChange(testFile.path);
     assertNoFileChange(pathB);
   }
 
@@ -413,8 +413,8 @@ import 'a.dart';
     // rather than a library name, that will need updating too (if the relative
     // path to the parent changes).
     var pathA = convertPath('/home/test/000/1111/a.dart');
-    testFile = convertPath('/home/test/000/1111/22/test.dart');
-    addSource(pathA, '''
+    testFilePath = convertPath('/home/test/000/1111/22/test.dart');
+    newFile(pathA, '''
 library lib;
 part '22/test.dart';
 ''');
@@ -430,7 +430,7 @@ part of '../a.dart';
 library lib;
 part '22/33/test.dart';
 ''');
-    assertFileChangeResult(testFile, '''
+    assertFileChangeResult(testFile.path, '''
 part of '../../a.dart';
 ''');
   }
@@ -440,8 +440,8 @@ part of '../../a.dart';
     // rather than a library name, that will need updating too (if the relative
     // path to the parent changes).
     var pathA = convertPath('/home/test/000/1111/a.dart');
-    testFile = convertPath('/home/test/000/1111/test.dart');
-    addSource(pathA, '''
+    testFilePath = convertPath('/home/test/000/1111/test.dart');
+    newFile(pathA, '''
 part of 'test.dart';
 ''');
     await resolveTestCode('''
@@ -453,7 +453,7 @@ part 'a.dart';
     assertFileChangeResult(pathA, '''
 part of '22/test.dart';
 ''');
-    assertFileChangeResult(testFile, '''
+    assertFileChangeResult(testFile.path, '''
 part '../a.dart';
 ''');
   }
@@ -463,8 +463,8 @@ part '../a.dart';
     // rather than a library name, that will need updating too (if the relative
     // path to the parent changes).
     var pathA = convertPath('/home/test/000/1111/a.dart');
-    testFile = convertPath('/home/test/000/1111/test.dart');
-    addSource(pathA, '''
+    testFilePath = convertPath('/home/test/000/1111/test.dart');
+    newFile(pathA, '''
 part of 'test.dart';
 ''');
     await resolveTestCode('''
@@ -476,7 +476,7 @@ part 'a.dart';
     assertFileChangeResult(pathA, '''
 part of 'test2.dart';
 ''');
-    assertNoFileChange(testFile);
+    assertNoFileChange(testFile.path);
   }
 
   Future<void> test_renaming_part_that_uses_uri_in_part_of_4() async {
@@ -484,8 +484,8 @@ part of 'test2.dart';
     // rather than a library name, that will need updating too (if the relative
     // path to the parent changes).
     var pathA = convertPath('/home/test/000/1111/a.dart');
-    testFile = convertPath('/home/test/000/1111/test.dart');
-    addSource(pathA, '''
+    testFilePath = convertPath('/home/test/000/1111/test.dart');
+    newFile(pathA, '''
 part 'test.dart';
 ''');
     addTestSource('''
@@ -499,7 +499,7 @@ part of 'a.dart';
     assertFileChangeResult(pathA, '''
 part '22/test.dart';
 ''');
-    assertFileChangeResult(testFile, '''
+    assertFileChangeResult(testFile.path, '''
 part of '../a.dart';
 ''');
   }
@@ -509,8 +509,8 @@ part of '../a.dart';
     // rather than a library name, that will need updating too (if the relative
     // path to the parent changes).
     var pathA = convertPath('/home/test/000/1111/a.dart');
-    testFile = convertPath('/home/test/000/1111/test.dart');
-    addSource(pathA, '''
+    testFilePath = convertPath('/home/test/000/1111/test.dart');
+    newFile(pathA, '''
 part 'test.dart';
 ''');
     addTestSource('''
@@ -524,7 +524,7 @@ part of 'a.dart';
     assertFileChangeResult(pathA, '''
 part 'test2.dart';
 ''');
-    assertNoFileChange(testFile);
+    assertNoFileChange(testFile.path);
   }
 
   Future<void> _assertFailedRefactoring(
@@ -546,7 +546,7 @@ part 'test2.dart';
         RefactoringWorkspace([driverFor(testFile)], searchEngine);
     // Allow passing an oldName for when we don't want to rename testSource,
     // but otherwise fall back to testSource.fullname
-    oldFile = convertPath(oldFile ?? testFile);
+    oldFile = convertPath(oldFile ?? testFile.path);
     refactoring =
         MoveFileRefactoring(resourceProvider, refactoringWorkspace, oldFile);
     refactoring.newFile = convertPath(newFile);

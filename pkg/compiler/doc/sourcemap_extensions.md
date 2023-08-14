@@ -21,7 +21,7 @@ share between dart2js and the deobfuscation tools:
   mappings: "AAAA,E;;ABCDE;"
   x_org_dartlang_dart2js: {
     minified_names: {...},
-    frames: [...]
+    frames: "o1WCuboBqyBuB;uCAAAA6B;"
   }
 }
 ```
@@ -127,8 +127,8 @@ function declaration can create a mismatch in the deobfuscated stack trace: the
 deobfuscated frame may show the name of a caller, but the location of an
 inlined method.
 
-The `frames` extension is a table with details about inlining information.
-Each entry in this table consists of:
+The `frames` extension is a VLQ-encoded table with details about inlining
+information.  Each entry in this table consists of:
  * An offset in the program
  * A list of one or more frame entries, which in turn can be:
     * push: indicates that we entered an inlined context
@@ -142,19 +142,15 @@ A push operation includes details about the call site, in particular:
  * the name of the inlined method (as and index in the name table), note that
    dart2js encodes instance methods as a compound name "ClassName.methodName".
 
-Here is an example of what the encoded format would look like:
+Here is an example of what the decoded VLQ in the frames section would look like:
 ```
-...
- x_org_dartlang_dart2js: {
-    ...
-    frames: [
-      [ 2310, // offset containing data
-         [2, 34, 11, 4]],  // a list encodes a push operation
-      [ 2320, [4, 4, 2, 9]],
-      [ 2330, -1], // -1 encodes a pop operation
-      [ 2333, 0]   // 0 encodes a pop-and-empty operation
-    ]
-  }
+[
+  [ 2310, // offset containing data
+     [2, 34, 11, 4]],  // a list encodes a push operation
+  [ 2320, [4, 4, 2, 9]],
+  [ 2330, -1], // -1 encodes a pop operation
+  [ 2333, 0]   // 0 encodes a pop-and-empty operation
+]
 ```
 
 A few details worth noting about the format:

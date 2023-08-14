@@ -96,18 +96,18 @@ test() {
     assertType(findNode.methodInvocation('f(').typeArgumentTypes![0],
         'int Function()');
     assertType(findNode.methodInvocation('f(').typeArgumentTypes![1],
-        _isEnabled ? 'List<int>' : 'List<dynamic>');
+        _isEnabled ? 'List<int>' : 'List<InvalidType>');
     assertType(
         findNode.methodInvocation('f(').staticInvokeType,
         _isEnabled
             ? 'List<int> Function(int Function(), '
                 'List<int> Function(int Function()))'
-            : 'List<dynamic> Function(int Function(), '
-                'List<dynamic> Function(int Function()))');
+            : 'List<InvalidType> Function(int Function(), '
+                'List<InvalidType> Function(int Function()))');
     assertType(findNode.simpleParameter('h)').declaredElement!.type,
         _isEnabled ? 'int Function()' : 'Object?');
     assertType(findNode.variableDeclaration('a =').declaredElement!.type,
-        _isEnabled ? 'List<int>' : 'List<dynamic>');
+        _isEnabled ? 'List<int>' : 'List<InvalidType>');
   }
 
   test_horizontal_inference_necessary_due_to_wrong_explicit_parameter_type() async {
@@ -127,7 +127,8 @@ test(List<int> list) {
             62,
             1),
     ]);
-    assertType(findElement.localVar('a').type, _isEnabled ? 'int' : 'dynamic');
+    assertType(
+        findElement.localVar('a').type, _isEnabled ? 'int' : 'InvalidType');
     assertType(findElement.parameter('x').type, _isEnabled ? 'int' : 'Object?');
     assertType(findElement.parameter('y').type, 'int');
     expect(findNode.binary('+ y').staticElement?.enclosingElement.name,

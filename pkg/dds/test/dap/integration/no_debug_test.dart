@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:dds/src/dap/protocol_generated.dart';
+import 'package:dap/dap.dart';
 import 'package:test/test.dart';
 
 import 'test_client.dart';

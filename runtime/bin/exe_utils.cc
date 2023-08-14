@@ -25,7 +25,7 @@ static bool StartsWithPathSeparator(const char* path,
 
 // Returns the directory portion of a given path.
 //
-// If dir is NULL, the result must be freed by the caller. Otherwise, the
+// If dir is nullptr, the result must be freed by the caller. Otherwise, the
 // result is copied into dir.
 static char* GetDirectoryFromPath(const char* path, char* dir) {
   const char* sep = File::PathSeparator();

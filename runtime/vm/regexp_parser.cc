@@ -17,13 +17,13 @@ namespace dart {
 #define Z zone()
 
 // Enables possessive quantifier syntax for testing.
-static const bool FLAG_regexp_possessive_quantifier = false;
+static constexpr bool FLAG_regexp_possessive_quantifier = false;
 
 RegExpBuilder::RegExpBuilder(RegExpFlags flags)
     : zone_(Thread::Current()->zone()),
       pending_empty_(false),
       flags_(flags),
-      characters_(NULL),
+      characters_(nullptr),
       pending_surrogate_(kNoPendingSurrogate),
       terms_(),
       text_(),
@@ -76,9 +76,9 @@ void RegExpBuilder::FlushPendingSurrogate() {
 void RegExpBuilder::FlushCharacters() {
   FlushPendingSurrogate();
   pending_empty_ = false;
-  if (characters_ != NULL) {
+  if (characters_ != nullptr) {
     RegExpTree* atom = new (Z) RegExpAtom(characters_, flags_);
-    characters_ = NULL;
+    characters_ = nullptr;
     text_.Add(atom);
     LAST(ADD_ATOM);
   }
@@ -106,7 +106,7 @@ void RegExpBuilder::AddCharacter(uint16_t c) {
   if (NeedsDesugaringForIgnoreCase(c)) {
     AddCharacterClassForDesugaring(c);
   } else {
-    if (characters_ == NULL) {
+    if (characters_ == nullptr) {
       characters_ = new (Z) ZoneGrowableArray<uint16_t>(4);
     }
     characters_->Add(c);
@@ -217,6 +217,14 @@ bool RegExpBuilder::NeedsDesugaringForUnicode(RegExpCharacterClass* cc) {
   if (ignore_case()) return true;
   ZoneGrowableArray<CharacterRange>* ranges = cc->ranges();
   CharacterRange::Canonicalize(ranges);
+
+  if (cc->is_negated()) {
+    auto negated_ranges =
+        new (Z) ZoneGrowableArray<CharacterRange>(ranges->length());
+    CharacterRange::Negate(ranges, negated_ranges);
+    ranges = negated_ranges;
+  }
+
   for (int i = ranges->length() - 1; i >= 0; i--) {
     uint32_t from = ranges->At(i).from();
     uint32_t to = ranges->At(i).to();
@@ -266,7 +274,7 @@ bool RegExpBuilder::AddQuantifierToAtom(
     return true;
   }
   RegExpTree* atom;
-  if (characters_ != NULL) {
+  if (characters_ != nullptr) {
     DEBUG_ASSERT(last_added_ == ADD_CHAR);
     // Last atom was character.
 
@@ -285,7 +293,7 @@ bool RegExpBuilder::AddQuantifierToAtom(
       tail->Add(char_vector->At(num_chars - 1));
       char_vector = tail;
     }
-    characters_ = NULL;
+    characters_ = nullptr;
     atom = new (Z) RegExpAtom(char_vector, flags_);
     FlushText();
   } else if (text_.length() > 0) {
@@ -1957,11 +1965,11 @@ RegExpTree* RegExpParser::ParseCharacterClass(const RegExpBuilder* builder) {
 void RegExpParser::ParseRegExp(const String& input,
                                RegExpFlags flags,
                                RegExpCompileData* result) {
-  ASSERT(result != NULL);
+  ASSERT(result != nullptr);
   RegExpParser parser(input, &result->error, flags);
   // Throws an exception if 'input' is not valid.
   RegExpTree* tree = parser.ParsePattern();
-  ASSERT(tree != NULL);
+  ASSERT(tree != nullptr);
   ASSERT(result->error.IsNull());
   result->tree = tree;
   intptr_t capture_count = parser.captures_started();

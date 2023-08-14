@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -15,7 +15,6 @@ import "dart:core" as core;
 
 class Class extends core::Object {
   static field () → self::Class field;
-  static final field dynamic _redirecting# = <dynamic>[self::Class::a, self::Class::b]/*isLegacy*/;
   constructor _() → self::Class
     ;
   static method _#_#tearOff() → self::Class
@@ -35,9 +34,3 @@ class Class extends core::Object {
 }
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///missing_redirecting_target.dart:5:7 -> ConstructorTearOffConstant(Class.a)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///missing_redirecting_target.dart:5:7 -> ConstructorTearOffConstant(Class.b)
-Extra constant evaluation: evaluated: 4, effectively constant: 2

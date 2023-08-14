@@ -5,12 +5,14 @@
 // @dart = 2.9
 
 import 'dart:async';
+import 'dart:math' as math;
+import 'dart:io';
 
 import 'package:expect/expect.dart';
 
 import 'reload_utils.dart';
 
-final N = runningInSimulator ? 2 : 20;
+final N = runningInSimulator ? 2 : math.min(20, Platform.numberOfProcessors);
 
 main() async {
   if (!currentVmSupportsReload) return;

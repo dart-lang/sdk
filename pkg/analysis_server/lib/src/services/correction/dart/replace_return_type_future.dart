@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class ReplaceReturnTypeFuture extends CorrectionProducer {
+class ReplaceReturnTypeFuture extends ResolvedCorrectionProducer {
   /// The text for the type argument to 'Future'.
   String _typeArgument = '';
 

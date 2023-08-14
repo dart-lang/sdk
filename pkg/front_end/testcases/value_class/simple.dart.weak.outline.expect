@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "value_class_support_lib.dart" as val;
 import "dart:core" as core;
@@ -16,7 +16,7 @@ static method main() → dynamic
 static method expect(core::Object? expected, core::Object? actual) → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as val;
 import "dart:core" as core;
 

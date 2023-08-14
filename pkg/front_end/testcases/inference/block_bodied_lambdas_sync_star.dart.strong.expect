@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -15,6 +15,6 @@ static method test() → dynamic {
     yield*<core::num*>[3, 4.0];
   };
   core::Iterable<core::num*>* g = f(){() →* core::Iterable<core::num*>*};
-  core::Iterable<core::int*>* h = f(){() →* core::Iterable<core::num*>*} as{TypeError} core::Iterable<core::int*>*;
+  core::Iterable<core::int*>* h = f(){() →* core::Iterable<core::num*>*} as{TypeError,ForLegacy} core::Iterable<core::int*>*;
 }
 static method main() → dynamic {}

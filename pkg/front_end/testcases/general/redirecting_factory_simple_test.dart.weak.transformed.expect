@@ -1,19 +1,14 @@
-library redirecting_factory_constructors.simple_test /*isNonNullableByDefault*/;
+library redirecting_factory_constructors.simple_test;
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor •() → self::A
     : super core::Object::•()
     ;
-  static factory redir() → self::A
+  static factory redir() → self::A /* redirection-target: self::A::• */
     return new self::A::•();
 }
 static method main() → dynamic {
   new self::A::•();
-}
-
-constants  {
-  #C1 = constructor-tearoff self::A::redir
 }

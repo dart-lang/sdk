@@ -33,10 +33,8 @@ ListPattern
   elements
     DeclaredVariablePattern
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredElement: a@41
@@ -94,10 +92,8 @@ ListPattern
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -216,10 +212,8 @@ ListPattern
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -298,10 +292,8 @@ ListPattern
   elements
     DeclaredVariablePattern
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredElement: a@48
@@ -357,10 +349,8 @@ ListPattern
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -394,20 +384,16 @@ ListPattern
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: num
-          staticElement: dart:core::@class::num
-          staticType: null
+        name: num
+        element: dart:core::@class::num
         type: num
     rightBracket: >
   leftBracket: [
   elements
     DeclaredVariablePattern
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredElement: a@53
@@ -437,10 +423,8 @@ ListPattern
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -508,10 +492,8 @@ PatternVariableDeclaration
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     leftBracket: [
@@ -560,10 +542,8 @@ PatternVariableDeclaration
     elements
       DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@22

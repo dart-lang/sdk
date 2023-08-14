@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -9,7 +9,7 @@ class GenericClass<T extends core::Object? = dynamic> extends core::Object {
 extension GenericExtension<T extends core::Object? = dynamic> on self::GenericClass<T%> {
   set setter = self::GenericExtension|set#setter;
 }
-static method GenericExtension|set#setter<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|set#setter::T%> #this, self::GenericExtension|set#setter::T? value) → void
+static extension-member method GenericExtension|set#setter<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|set#setter::T%> #this, self::GenericExtension|set#setter::T? value) → void
   ;
 static method main() → dynamic
   ;

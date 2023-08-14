@@ -1495,6 +1495,7 @@ const defaultKeywordRelevance = {
     'false': ProbabilityRange(lower: 0.005, upper: 0.009),
   },
   'SwitchMember_statement': {
+    'break': ProbabilityRange(lower: 0.000, upper: 0.000),
     'rethrow': ProbabilityRange(lower: 0.000, upper: 0.000),
     'try': ProbabilityRange(lower: 0.000, upper: 0.001),
     'continue': ProbabilityRange(lower: 0.001, upper: 0.001),
@@ -1510,7 +1511,6 @@ const defaultKeywordRelevance = {
     'final': ProbabilityRange(lower: 0.033, upper: 0.045),
     'if': ProbabilityRange(lower: 0.085, upper: 0.109),
     'return': ProbabilityRange(lower: 0.380, upper: 0.642),
-    'break': ProbabilityRange(lower: 0.642, upper: 1.000),
   },
   'SwitchStatement_expression': {
     'await': ProbabilityRange(lower: 0.003, upper: 0.006),

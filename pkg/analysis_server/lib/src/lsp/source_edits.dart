@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
-import 'package:analyzer_plugin/utilities/pair.dart';
 import 'package:dart_style/dart_style.dart';
 
 DartFormatter formatter = DartFormatter();
@@ -24,7 +23,8 @@ DartFormatter formatter = DartFormatter();
 ///
 /// Since the translation from line/characters to offsets needs to take previous
 /// changes into account, this will also apply the edits to [oldContent].
-ErrorOr<Pair<String, List<plugin.SourceEdit>>> applyAndConvertEditsToServer(
+ErrorOr<({String content, List<plugin.SourceEdit> edits})>
+    applyAndConvertEditsToServer(
   String oldContent,
   List<TextDocumentContentChangeEvent> changes, {
   bool failureIsCritical = false,
@@ -69,7 +69,7 @@ ErrorOr<Pair<String, List<plugin.SourceEdit>>> applyAndConvertEditsToServer(
       return ErrorOr.error(result.error);
     }
   }
-  return ErrorOr.success(Pair(newContent, serverEdits));
+  return ErrorOr.success((content: newContent, edits: serverEdits));
 }
 
 ErrorOr<List<TextEdit>?> generateEditsForFormatting(

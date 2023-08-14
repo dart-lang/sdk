@@ -1285,38 +1285,6 @@ $code
     //             [AstTestFactory.identifier3('o')])));
   }
 
-  void test_visitExtensionTypeDeclaration_empty() {
-    final code = 'extension type E on C {}';
-    final findNode = _parseStringToFindNode('''
-$code
-''');
-    _assertSource(code, findNode.extensionDeclaration(code));
-  }
-
-  void test_visitExtensionTypeDeclaration_multipleMember() {
-    final code = 'extension type E on C {static var a; static var b;}';
-    final findNode = _parseStringToFindNode('''
-$code
-''');
-    _assertSource(code, findNode.extensionDeclaration(code));
-  }
-
-  void test_visitExtensionTypeDeclaration_parameters() {
-    final code = 'extension type E<T> on C {}';
-    final findNode = _parseStringToFindNode('''
-$code
-''');
-    _assertSource(code, findNode.extensionDeclaration(code));
-  }
-
-  void test_visitExtensionTypeDeclaration_singleMember() {
-    final code = 'extension type E on C {static var a;}';
-    final findNode = _parseStringToFindNode('''
-$code
-''');
-    _assertSource(code, findNode.extensionDeclaration(code));
-  }
-
   void test_visitFieldDeclaration_abstract() {
     final code = 'abstract var a;';
     final findNode = _parseStringToFindNode('''
@@ -3390,7 +3358,7 @@ class A {
   void test_visitSwitchCase_multipleLabels() {
     final code = 'l1: l2: case a: {}';
     final findNode = _parseStringToFindNode('''
-// @dart=2.18
+// @dart = 2.19
 void f() {
   switch (x) {
     $code
@@ -3403,7 +3371,7 @@ void f() {
   void test_visitSwitchCase_multipleStatements() {
     final code = 'case a: foo(); bar();';
     final findNode = _parseStringToFindNode('''
-// @dart=2.18
+// @dart = 2.19
 void f() {
   switch (x) {
     $code
@@ -3416,7 +3384,7 @@ void f() {
   void test_visitSwitchCase_noLabels() {
     final code = 'case a: {}';
     final findNode = _parseStringToFindNode('''
-// @dart=2.18
+// @dart = 2.19
 void f() {
   switch (x) {
     $code
@@ -3429,7 +3397,7 @@ void f() {
   void test_visitSwitchCase_singleLabel() {
     final code = 'l1: case a: {}';
     final findNode = _parseStringToFindNode('''
-// @dart=2.18
+// @dart = 2.19
 void f() {
   switch (x) {
     $code

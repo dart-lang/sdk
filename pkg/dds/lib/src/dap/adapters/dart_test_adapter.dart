@@ -169,7 +169,7 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   /// to be debugged.
   @override
   Future<void> attachImpl() async {
-    sendOutput('console', '\nAttach is not supported for test runs');
+    sendConsoleOutput('Attach is not supported for test runs');
     handleSessionTerminate();
   }
 

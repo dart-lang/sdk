@@ -33,7 +33,7 @@ class TypeArgumentsVerifier {
       _libraryElement.typeSystem as TypeSystemImpl;
 
   void checkConstructorReference(ConstructorReference node) {
-    var classElement = node.constructorName.type.name.staticElement;
+    var classElement = node.constructorName.type.element;
     List<TypeParameterElement> typeParameters;
     if (classElement is TypeAliasElement) {
       typeParameters = classElement.typeParameters;
@@ -232,7 +232,7 @@ class TypeArgumentsVerifier {
         declaredType is FunctionType &&
         declaredType.typeFormals.isNotEmpty) {
       List<DartType> typeArgs = node.typeArgumentTypes!;
-      if (typeArgs.any((t) => t.isDynamic)) {
+      if (typeArgs.any((t) => t is DynamicType)) {
         // Issue an error depending on what we're trying to call.
         Expression function = node.function;
         if (function is Identifier) {
@@ -268,7 +268,8 @@ class TypeArgumentsVerifier {
     }
     DartType type = node.typeOrThrow;
     // It's an error if either the key or value was inferred as dynamic.
-    if (type is InterfaceType && type.typeArguments.any((t) => t.isDynamic)) {
+    if (type is InterfaceType &&
+        type.typeArguments.any((t) => t is DynamicType)) {
       // TODO(brianwilkerson) Add StrongModeCode.IMPLICIT_DYNAMIC_SET_LITERAL
       ErrorCode errorCode = node is ListLiteral
           ? LanguageCode.IMPLICIT_DYNAMIC_LIST_LITERAL
@@ -302,7 +303,7 @@ class TypeArgumentsVerifier {
       return;
     }
     var type = node.typeOrThrow;
-    if (_isMissingTypeArguments(node, type, node.name.staticElement)) {
+    if (_isMissingTypeArguments(node, type, node.element)) {
       AstNode unwrappedParent = parentEscapingTypeArguments(node);
       if (unwrappedParent is AsExpression ||
           unwrappedParent is CastPattern ||
@@ -552,8 +553,11 @@ class TypeArgumentsVerifier {
       NodeList<TypeAnnotation> arguments, ErrorCode errorCode) {
     for (TypeAnnotation type in arguments) {
       if (type is NamedType && type.type is TypeParameterType) {
-        _errorReporter
-            .reportErrorForNode(errorCode, type, [type.name.toSource()]);
+        _errorReporter.reportErrorForNode(
+          errorCode,
+          type,
+          [type.name2.lexeme],
+        );
       }
     }
   }
@@ -605,7 +609,7 @@ class TypeArgumentsVerifier {
 
     // Check if this type has type arguments and at least one is dynamic.
     // If so, we may need to issue a strict-raw-types error.
-    if (typeArguments.any((t) => t.isDynamic)) {
+    if (typeArguments.any((t) => t is DynamicType)) {
       if (element != null && element.hasOptionalTypeArgs) {
         return false;
       }

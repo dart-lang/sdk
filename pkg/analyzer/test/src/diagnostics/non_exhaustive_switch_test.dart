@@ -78,6 +78,14 @@ Object f(E x) {
           correctionContains: 'E.a'),
     ]);
   }
+
+  test_invalidType_empty() async {
+    await assertErrorsInCode(r'''
+void f(Unresolved x) => switch (x) {};
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 10),
+    ]);
+  }
 }
 
 @reflectiveTest
@@ -128,7 +136,7 @@ void f(bool x) {
 }
 ''', [
       error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 19, 6),
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 5),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 3),
     ]);
   }
 
@@ -237,6 +245,26 @@ void f(E x) {
 }
 ''',
     );
+  }
+
+  test_alwaysExhaustive_enum_cannotCompute() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v1(v2), v2(v1);
+  const E(Object f);
+}
+
+void f(E x) {
+  switch (x) {
+    case E.v1:
+    case E.v2:
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 11, 2),
+      error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 19, 2),
+    ]);
   }
 
   test_alwaysExhaustive_Null_hasError() async {
@@ -405,6 +433,38 @@ void f(A x) {
 ''');
   }
 
+  test_alwaysExhaustive_sealedClass_unresolvedIdentifier() async {
+    await assertErrorsInCode(r'''
+sealed class A {}
+class B extends A {}
+
+void f(A x) {
+  switch (x) {
+    case unresolved:
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 78, 10),
+    ]);
+  }
+
+  test_alwaysExhaustive_sealedClass_unresolvedObject() async {
+    await assertErrorsInCode(r'''
+sealed class A {}
+class B extends A {}
+
+void f(A x) {
+  switch (x) {
+    case Unresolved():
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 78, 10),
+    ]);
+  }
+
   test_alwaysExhaustive_typeVariable_bound_bool_true() async {
     await assertErrorsInCode(r'''
 void f<T extends bool>(T x) {
@@ -457,6 +517,16 @@ void f<T>(T x) {
   }
 }
 ''');
+  }
+
+  test_invalidType_empty() async {
+    await assertErrorsInCode(r'''
+void f(Unresolved x) {
+  switch (x) {}
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 10),
+    ]);
   }
 
   test_notAlwaysExhaustive_int() async {

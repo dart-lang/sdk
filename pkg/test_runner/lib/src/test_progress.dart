@@ -175,7 +175,7 @@ class UnexpectedCrashLogger extends EventListener {
       final kernelServiceBaseName = 'kernel-service.dart.snapshot';
       final kernelService =
           File('${binFile.parent.path}/$kernelServiceBaseName');
-      if (!archivedBinaries.containsKey(kernelService) &&
+      if (!archivedBinaries.containsKey(kernelService.path) &&
           kernelService.existsSync()) {
         final archived = "binary.${mode}_${arch}_$kernelServiceBaseName";
         TestUtils.copyFile(Path(kernelService.path), Path(archived));

@@ -51,10 +51,10 @@ class B extends A {
   }
 
   Future<void> test_importType() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {}
 ''');
-    addSource('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 import 'package:test/a.dart';
 
 class B {
@@ -304,10 +304,10 @@ class B extends A {
   }
 
   Future<void> test_importType() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {}
 ''');
-    addSource('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 import 'package:test/a.dart';
 
 class B {

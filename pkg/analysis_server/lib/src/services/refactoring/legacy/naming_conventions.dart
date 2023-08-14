@@ -120,6 +120,14 @@ RefactoringStatus validateTypeAliasName(String name) {
 /// - OK if the name is valid;
 /// - WARNING if the name is discouraged;
 /// - FATAL if the name is illegal.
+RefactoringStatus validateTypeParameter(String name) {
+  return _validateUpperCamelCase(name, 'Type parameter');
+}
+
+/// Returns the [RefactoringStatus] with severity:
+/// - OK if the name is valid;
+/// - WARNING if the name is discouraged;
+/// - FATAL if the name is illegal.
 RefactoringStatus validateVariableName(String name) {
   return _validateLowerCamelCase(name, 'Variable', allowBuiltIn: true);
 }

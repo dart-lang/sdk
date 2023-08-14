@@ -1,18 +1,18 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "dart:test";
 
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:_internal" as _in;
 import "dart:core" as core;
 
 import "dart:_internal";
 
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class extends core::Object {
   field core::int? _#Class#foo = null /* from org-dartlang-testcase:///patch_lib.dart */;
   field core::bool _#Class#foo#isSet = false /* from org-dartlang-testcase:///patch_lib.dart */;

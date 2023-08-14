@@ -500,17 +500,11 @@ class Intrinsifier {
 
       // Access the underlying array directly.
       ClassInfo info = translator.classInfo[translator.listBaseClass]!;
-      Field arrayField = translator.listBaseClass.fields
-          .firstWhere((f) => f.name.text == '_data');
-      int arrayFieldIndex = translator.fieldIndex[arrayField]!;
-      w.ArrayType arrayType =
-          (info.struct.fields[arrayFieldIndex].type as w.RefType).heapType
-              as w.ArrayType;
       codeGen.wrap(receiver, info.nonNullableType);
-      b.struct_get(info.struct, arrayFieldIndex);
+      b.struct_get(info.struct, FieldIndex.listArray);
       codeGen.wrap(arg, w.NumType.i64);
       b.i32_wrap_i64();
-      b.array_get(arrayType);
+      b.array_get(translator.listArrayType);
       return translator.topInfo.nullableType;
     }
 
@@ -1305,6 +1299,57 @@ class Intrinsifier {
       return true;
     }
 
+    if (member.enclosingLibrary == translator.coreTypes.coreLibrary &&
+        name == "identityHashCode") {
+      final w.Local arg = paramLocals[0];
+      final w.Local nonNullArg =
+          function.addLocal(translator.topInfo.nonNullableType);
+      final List<int> classIds = translator.valueClasses.keys
+          .map((cls) => translator.classInfo[cls]!.classId)
+          .toList()
+        ..sort();
+
+      // If the argument is `null`, return the hash code of `null`.
+      final w.Label notNull =
+          b.block(const [], [translator.topInfo.nonNullableType]);
+      b.local_get(arg);
+      b.br_on_non_null(notNull);
+      b.i64_const(null.hashCode);
+      b.return_();
+      b.end(); // notNull
+      b.local_set(nonNullArg);
+
+      // Branch on class ID.
+      final w.Label defaultLabel = b.block();
+      final List<w.Label> labels =
+          List.generate(classIds.length, (_) => b.block());
+      b.local_get(nonNullArg);
+      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+      int labelIndex = 0;
+      final List<w.Label> targets = List.generate(classIds.last + 1, (id) {
+        return id == classIds[labelIndex] ? labels[labelIndex++] : defaultLabel;
+      });
+      b.br_table(targets, defaultLabel);
+
+      // For value classes, dispatch to their `hashCode` implementation.
+      for (final int id in classIds.reversed) {
+        final Class cls = translator.valueClasses[translator.classes[id].cls!]!;
+        final Procedure hashCodeProcedure =
+            cls.procedures.firstWhere((p) => p.name.text == "hashCode");
+        b.end(); // Jump target for class ID
+        b.local_get(nonNullArg);
+        codeGen.call(hashCodeProcedure.reference);
+        b.return_();
+      }
+
+      // For all other classes, dispatch to the `hashCode` implementation in
+      // `Object`.
+      b.end(); // defaultLabel
+      b.local_get(nonNullArg);
+      codeGen.call(translator.objectHashCode.reference);
+      return true;
+    }
+
     // _typeArguments
     if (member.name.text == "_typeArguments") {
       Class cls = member.enclosingClass!;
@@ -1464,23 +1509,6 @@ class Intrinsifier {
         }
         throw "Unrecognized typed data getter: ${cls.name}.$name";
       }
-    }
-
-    // _asyncBridge2
-    if (member.enclosingLibrary.name == "dart.async" &&
-        name == "_asyncBridge2") {
-      w.Local args = paramLocals[0];
-      w.Local stack = paramLocals[1];
-      const int stubFieldIndex = 0;
-
-      b.local_get(args);
-      b.local_get(stack);
-      b.local_get(args);
-      b.ref_cast(w.RefType.def(translator.functions.asyncStubBaseStruct,
-          nullable: false));
-      b.struct_get(translator.functions.asyncStubBaseStruct, stubFieldIndex);
-      b.call_ref(translator.functions.asyncStubFunctionType);
-      return true;
     }
 
     // int members

@@ -24,6 +24,7 @@ part of dart.ffi;
 ///   Abi.androidArm64: Uint64(),
 ///   Abi.androidIA32: Uint32(),
 ///   Abi.androidX64: Uint64(),
+///   Abi.androidRiscv64: Uint64(),
 ///   Abi.fuchsiaArm64: Uint64(),
 ///   Abi.fuchsiaX64: Uint64(),
 ///   Abi.fuchsiaRiscv64: Uint64(),

@@ -37,7 +37,7 @@ f() {
     g() {}
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 23, 1),
+      error(WarningCode.UNUSED_ELEMENT, 23, 1),
     ]);
     var node = findNode.functionDeclaration('g() {}');
     var element = node.declaredElement!;
@@ -63,9 +63,9 @@ f(int a) {
     assertElement(findNode.methodInvocation('g();'), element);
   }
 
-  test_element_switchCase_language218() async {
+  test_element_switchCase_language219() async {
     await assertNoErrorsInCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 f(int a) {
   switch (a) {
     case 1:

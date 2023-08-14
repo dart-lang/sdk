@@ -15,6 +15,7 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter, Target;
 import 'package:kernel/transformations/value_class.dart' as valueClass;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/verifier.dart' show VerificationStage;
 import 'package:package_config/package_config.dart' hide LanguageVersion;
 
 import '../../api_prototype/experimental_flags.dart'
@@ -258,14 +259,11 @@ class KernelTarget extends TargetImplementation {
 
   void _parseCurrentSdkVersion() {
     bool good = false;
-    // ignore: unnecessary_null_comparison
-    if (currentSdkVersionString != null) {
-      List<String> dotSeparatedParts = currentSdkVersionString.split(".");
-      if (dotSeparatedParts.length >= 2) {
-        _currentSdkVersion = new Version(int.tryParse(dotSeparatedParts[0])!,
-            int.tryParse(dotSeparatedParts[1])!);
-        good = true;
-      }
+    List<String> dotSeparatedParts = currentSdkVersionString.split(".");
+    if (dotSeparatedParts.length >= 2) {
+      _currentSdkVersion = new Version(int.tryParse(dotSeparatedParts[0])!,
+          int.tryParse(dotSeparatedParts[1])!);
+      good = true;
     }
     if (!good) {
       throw new StateError(
@@ -348,7 +346,7 @@ class KernelTarget extends TargetImplementation {
         "Needed precompilations have already been computed.");
     _hasComputedNeededPrecompilations = true;
     if (loader.roots.isEmpty) return null;
-    return withCrashReporting<NeededPrecompilations?>(() async {
+    return await withCrashReporting<NeededPrecompilations?>(() async {
       benchmarker?.enterPhase(BenchmarkPhases.outline_kernelBuildOutlines);
       await loader.buildOutlines();
 
@@ -403,7 +401,7 @@ class KernelTarget extends TargetImplementation {
 
   Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {
     if (loader.roots.isEmpty) return new BuildResult();
-    return withCrashReporting<BuildResult>(() async {
+    return await withCrashReporting<BuildResult>(() async {
       if (!_hasComputedNeededPrecompilations) {
         NeededPrecompilations? neededPrecompilations =
             await computeNeededPrecompilations();
@@ -582,11 +580,12 @@ class KernelTarget extends TargetImplementation {
   /// component.
   Future<BuildResult> buildComponent(
       {required MacroApplications? macroApplications,
-      bool verify = false}) async {
+      bool verify = false,
+      bool allowVerificationErrorForTesting = false}) async {
     if (loader.roots.isEmpty) {
       return new BuildResult(macroApplications: macroApplications);
     }
-    return withCrashReporting<BuildResult>(() async {
+    return await withCrashReporting<BuildResult>(() async {
       ticker.logMs("Building component");
 
       if (macroApplications != null) {
@@ -637,9 +636,15 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.body_runBuildTransformations);
       runBuildTransformations();
 
+      if (loader.macroClass != null) {
+        checkMacroApplications(loader.hierarchy, loader.macroClass!,
+            loader.sourceLibraryBuilders, macroApplications);
+      }
+
       if (verify) {
         benchmarker?.enterPhase(BenchmarkPhases.body_verify);
-        this.verify();
+        _verify(
+            allowVerificationErrorForTesting: allowVerificationErrorForTesting);
       }
 
       benchmarker?.enterPhase(BenchmarkPhases.body_installAllComponentProblems);
@@ -852,7 +857,6 @@ class KernelTarget extends TargetImplementation {
     assert(!builder.isExtension);
     // TODO(askesc): Make this check light-weight in the absence of patches.
     if (builder.cls.constructors.isNotEmpty) return;
-    if (builder.cls.redirectingFactories.isNotEmpty) return;
     for (Procedure proc in builder.cls.procedures) {
       if (proc.isFactory) return;
     }
@@ -1057,9 +1061,9 @@ class KernelTarget extends TargetImplementation {
         isConst: isConst,
         reference: constructorReference,
         fileUri: cls.fileUri)
-      // TODO(johnniwinther): Should we add file offsets to synthesized
+      ..fileOffset = cls.fileOffset
+      // TODO(johnniwinther): Should we add file end offset to synthesized
       //  constructors?
-      //..fileOffset = cls.fileOffset
       //..fileEndOffset = cls.fileOffset
       ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
     DelayedDefaultValueCloner delayedDefaultValueCloner =
@@ -1551,8 +1555,7 @@ class KernelTarget extends TargetImplementation {
     constants.ConstantCoverage coverage = constantEvaluationData.coverage;
     coverage.constructorCoverage.forEach((Uri fileUri, Set<Reference> value) {
       Source? source = uriToSource[fileUri];
-      // ignore: unnecessary_null_comparison
-      if (source != null && fileUri != null) {
+      if (source != null) {
         source.constantCoverageConstructors ??= new Set<Reference>();
         source.constantCoverageConstructors!.addAll(value);
       }
@@ -1620,10 +1623,13 @@ class KernelTarget extends TargetImplementation {
     return constants.EvaluationMode.fromNnbdMode(loader.nnbdMode);
   }
 
-  void verify() {
+  void _verify({required bool allowVerificationErrorForTesting}) {
     // TODO(ahe): How to handle errors.
-    verifyComponent(component!, context.options.target,
+    List<LocatedMessage> errors = verifyComponent(context.options.target,
+        VerificationStage.afterModularTransformations, component!,
         skipPlatform: context.options.skipPlatformVerification);
+    assert(allowVerificationErrorForTesting || errors.isEmpty,
+        "Verification errors found.");
     ClassHierarchy hierarchy =
         new ClassHierarchy(component!, new CoreTypes(component!),
             onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {

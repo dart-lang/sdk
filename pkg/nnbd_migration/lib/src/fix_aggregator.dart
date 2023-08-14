@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -120,7 +119,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   String typeFormalToCode(TypeParameterElement formal) {
     var bound = formal.bound;
     if (bound == null ||
-        bound.isDynamic ||
+        bound is DynamicType ||
         (bound.isDartCoreObject &&
             bound.nullabilitySuffix != NullabilitySuffix.none)) {
       return formal.name;
@@ -889,8 +888,8 @@ class NodeChangeForIfElement extends NodeChange<IfElement>
 
   @override
   EditPlan _apply(IfElement node, FixAggregator aggregator) {
-    return _applyConditional(node, aggregator, node.condition, node.thenElement,
-            node.elseElement) ??
+    return _applyConditional(node, aggregator, node.expression,
+            node.thenElement, node.elseElement) ??
         aggregator.innerPlanForNode(node);
   }
 }
@@ -903,7 +902,7 @@ class NodeChangeForIfStatement extends NodeChange<IfStatement>
 
   @override
   EditPlan _apply(IfStatement node, FixAggregator aggregator) {
-    return _applyConditional(node, aggregator, node.condition,
+    return _applyConditional(node, aggregator, node.expression,
             node.thenStatement, node.elseStatement) ??
         aggregator.innerPlanForNode(node);
   }

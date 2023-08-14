@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -32,7 +32,7 @@ class C<T extends core::Object* = dynamic> extends core::Object {
 static method test() → dynamic {
   self::C<core::int*>* x = new self::C::•<core::int*>(42);
   core::num* y;
-  self::C<core::int*>* c_int = new self::C::•<core::int*>(y as{TypeError} core::int*);
+  self::C<core::int*>* c_int = new self::C::•<core::int*>(y as{TypeError,ForLegacy} core::int*);
   self::C<core::num*>* c_num = new self::C::•<core::num*>(123);
   self::C<core::num*>* c_num2 = let final self::C<core::num*>* #t1 = new self::C::•<core::num*>(456) in block {
     #t1.{self::C::t} = 1.0;
@@ -40,6 +40,6 @@ static method test() → dynamic {
   self::C<dynamic>* c_dynamic = new self::C::•<dynamic>(42);
   x.{self::C::t} = invalid-expression "pkg/front_end/testcases/inference/constructors_infer_from_arguments.dart:28:55: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   x. /*@target=C.t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
-                                                      ^" in "hello" as{TypeError} core::int*;
+                                                      ^" in "hello" as{TypeError,ForLegacy} core::int*;
 }
 static method main() → dynamic {}

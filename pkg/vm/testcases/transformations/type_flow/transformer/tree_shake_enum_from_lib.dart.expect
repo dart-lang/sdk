@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 import "tree_shake_enum_from_lib.lib.dart" as lib;
@@ -35,7 +35,7 @@ static method main() → dynamic {
   if([@vm.direct-call.metadata=dart.core::_GrowableList.isNotEmpty] [@vm.inferred-type.metadata=dart.core::bool] list.{core::Iterable::isNotEmpty}{core::bool}) {
     block {
       new lib::ConstClass::•();
-      _in::unsafeCast<dynamic>(null) as{TypeError,ForDynamic,ForNonNullableByDefault} lib::ConstEnum;
+      _in::unsafeCast<dynamic>(null) as{TypeError,ForDynamic} lib::ConstEnum;
     } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
   }
 }
@@ -44,7 +44,7 @@ constants  {
   #C2 = "usedValue"
   #C3 = self::UsedEnum {index:#C1, _name:#C2}
 }
-library tree_shake_enum_from_lib.lib.dart /*isNonNullableByDefault*/;
+library tree_shake_enum_from_lib.lib.dart;
 import self as self;
 import "dart:core" as core;
 

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "test_lib.dart" as tes;
 
@@ -8,7 +8,7 @@ static method main() → dynamic {
   tes::test();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as tes;
 import "opt_out_lib.dart" as opt;
 import "dart:core" as core;
@@ -23,7 +23,7 @@ static method test() → dynamic {
   sub.{opt::_SubClass&Class&Mixin::mixinField2} = sub.{opt::_SubClass&Class&Mixin::mixinField1}{core::int*};
 }
 
-library;
+library /*isLegacy*/;
 import self as opt;
 import "opt_in_lib.dart" as opt2;
 import "dart:core" as core;
@@ -66,7 +66,7 @@ class SubClass extends opt::_SubClass&Class&Mixin {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as opt2;
 import "dart:core" as core;
 

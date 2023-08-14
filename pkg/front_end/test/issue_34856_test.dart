@@ -29,6 +29,7 @@ import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
 
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/verifier.dart' show VerificationStage;
 
 const Map<String, String> files = const <String, String>{
   "repro.dart": """
@@ -96,8 +97,9 @@ Future<void> test() async {
 
   List<Object> errors = await CompilerContext.runWithOptions(
       new ProcessedOptions(options: options, inputs: inputs),
-      (_) => new Future<List<Object>>.value(
-          verifyComponent(component, options.target!, skipPlatform: true)));
+      (_) => new Future<List<Object>>.value(verifyComponent(options.target!,
+          VerificationStage.afterModularTransformations, component,
+          skipPlatform: true)));
 
   serializeComponent(component);
 

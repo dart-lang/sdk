@@ -22,6 +22,8 @@ ISOLATE_UNIT_TEST_CASE(LongJump) {
     if (setjmp(*jump.Set()) == 0) {
       LongJumpHelper(&jump);
       UNREACHABLE();
+    } else {
+      ASSERT(Error::Handle(thread->StealStickyError()).IsLanguageError());
     }
   }
   ASSERT(base == Thread::Current()->long_jump_base());

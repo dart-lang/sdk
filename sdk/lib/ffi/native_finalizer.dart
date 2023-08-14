@@ -387,3 +387,11 @@ abstract final class NativeFinalizer {
   /// object become inaccessible.
   void detach(Object detach);
 }
+
+// To make dart2wasm compile without patch file.
+external void _attachAsTypedListFinalizer(
+  Pointer<NativeFinalizerFunction> callback,
+  Object typedList,
+  Pointer pointer,
+  int? externalSize,
+);

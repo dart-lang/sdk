@@ -1,3 +1,77 @@
+## 3.1.0
+
+### Libraries
+
+#### `dart:async`
+
+- **Breaking change** [#52334][]:
+  - Added `interface` modifier to purely abstract classes:
+    `MultiStreamController`, `StreamConsumer`, `StreamIterator` and
+    `StreamTransformer`.
+
+[#52334]: https://dartbug.com/52334
+
+#### `dart:convert`
+
+- **Breaking change** [#52801][]:
+  - Changed return types of `utf8.encode()` and `Utf8Codec.encode()` from
+    `List<int>` to `Uint8List`.
+
+[#52801]: https://dartbug.com/52801
+
+#### `dart:core`
+
+- `Uri.base` on native platforms now respectes `IOOverrides` overriding
+   current directory ([#39796][]).
+
+[#39796]: https://darbug.com/39796
+
+#### `dart:io`
+
+- **Breaking change** [#51486][]:
+  - Added `sameSite` to the `Cookie` class.
+  - Added class `SameSite`.
+- **Breaking change** [#52027][]: `FileSystemEvent` is
+  [`sealed`](https://dart.dev/language/class-modifiers#sealed). This means
+  that `FileSystemEvent` cannot be extended or implemented.
+- Added a deprecation warning when `Platform` is instantiated.
+- Added `Platform.lineTerminator` which exposes the character or characters
+  that the operating system uses to separate lines of text, e.g.,
+  `"\r\n"` on Windows.
+
+[#51486]: https://github.com/dart-lang/sdk/issues/51486
+[#52027]: https://github.com/dart-lang/sdk/issues/52027
+
+#### `dart:isolate`
+
+- Added `Isolate.packageConfigSync` and `Isolate.resolvePackageUriSync` APIs.
+
+#### `dart:js_interop`
+
+- **Object literal constructors**:
+  `ObjectLiteral` is removed from `dart:js_interop`. It's no longer needed in
+  order to declare an object literal constructor with inline classes. As long as
+  an external constructor has at least one named parameter, it'll be treated as
+  an object literal constructor. If you want to create an object literal with no
+  named members, use `{}.jsify()`.
+
+### Other libraries
+
+#### `package:js`
+
+- **Breaking change to `@staticInterop` and `external` extension members**:
+  `external` `@staticInterop` members and `external` extension members can no
+  longer be used as tear-offs. Declare a closure or a non-`external` method that
+  calls these members, and use that instead.
+- **Breaking change to `@staticInterop` and `external` extension members**:
+  `external` `@staticInterop` members and `external` extension members will
+  generate slightly different JS code for methods that have optional parameters.
+  Whereas before, the JS code passed in the default value for missing optionals,
+  it will now pass in only the provided members. This aligns with how JS
+  parameters work, where omitted parameters are actually omitted. For example,
+  calling `external void foo([int a, int b])` as `foo(0)` will now result in
+  `foo(0)`, and not `foo(0, null)`.
+
 ## 3.0.7 - 2023-07-26
 
 This is a patch release that:
@@ -28,7 +102,7 @@ This is a patch release that:
 This is a patch release that:
 
 - Fixes a bad cast in the frontend which can manifest as a crash in the dart2js
-`ListFactorySpecializer` during Flutter web builds (issue [#52403]).
+  `ListFactorySpecializer` during Flutter web builds (issue [#52403]).
 
 [#52403]: https://github.com/dart-lang/sdk/issues/52403
 
@@ -39,8 +113,11 @@ This is a patch release that:
 - Handles formatting nullable record types with no fields (dart_style issue [#1224]).
 - Fixes error when using records when targeting the web in development mode
 (issue [#52480]).
+- Fixes a bad cast in the frontend which can manifest as a crash in the dart2js
+`ListFactorySpecializer` during Flutter web builds (issue [#52403]).
 
 [#1224]: https://github.com/dart-lang/dart_style/issues/1224
+[#52403]: https://github.com/dart-lang/sdk/issues/52403
 [#52480]: https://github.com/dart-lang/sdk/issues/52480
 
 ## 3.0.3 - 2023-02-07
@@ -112,14 +189,6 @@ This is a patch release that:
 [#52260]: https://github.com/dart-lang/sdk/issues/52260
 [#52241]: https://github.com/dart-lang/sdk/issues/52241
 [#1212]: https://github.com/dart-lang/dart_style/issues/1212
-
-### Tools
-
-#### Formatter
-
-- Don't indent parameters with metadata annotations.
-- Don't split before `.` following a record literal.
-- Don't split unnecessarily in switch expression cases following comments.
 
 ## 3.0.0 - 2023-05-10
 
@@ -222,9 +291,9 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 
   String lastName(Amigo amigo) =>
       switch (amigo) {
-        case Lucky _ => 'Day';
-        case Ned _   => 'Nederlander';
-      }
+        Lucky _ => 'Day',
+        Ned _   => 'Nederlander',
+      };
   ```
 
   In this last example, the compiler reports an error that the switch doesn't
@@ -245,10 +314,15 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
   declaration. If you haven't upgraded a class to Dart 3.0, you can still use it
   as a mixin.
 
-- **Breaking Change** [#50902][]: Dart reports a compile-time error if a
+- **Breaking change** [#50902][]: Dart reports a compile-time error if a
   `continue` statement targets a [label] that is not a loop (`for`, `do` and
   `while` statements) or a `switch` member. Fix this by changing the `continue`
   to target a valid labeled statement.
+
+- **Breaking change** [language/#2357][]: Starting in language version 3.0,
+  Dart reports a compile-time error if a colon (`:`) is used as the
+  separator before the default value of an optional named parameter.
+  Fix this by changing the colon (`:`) to an equal sign (`=`).
 
 [records]: https://dart.dev/language/records
 [tuples]: https://en.wikipedia.org/wiki/Tuple
@@ -264,6 +338,7 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 [mixin class]: https://dart.dev/language/mixins#class-mixin-or-mixin-class
 [#50902]: https://github.com/dart-lang/sdk/issues/50902
 [label]: https://dart.dev/language/branches#switch
+[language/#2357][]: https://github.com/dart-lang/language/issues/2357
 
 ### Libraries
 
@@ -540,7 +615,7 @@ information on the flag, see [NATIVE_NULL_ASSERTIONS.md][].
 Updates the Linter to `1.35.0`, which includes changes that
 
 - add new lints:
-  - `explicit_reopen`
+  - `implicit_reopen`
   - `unnecessary_breaks`
   - `type_literal_in_constant_pattern`
   - `invalid_case_patterns`
@@ -608,6 +683,11 @@ using Dart version 2.19, before upgrading to Dart version 3.0.
 - `dart pub get` and related commands will now by default also update the
   dependencies in the `example` folder (if it exists). Use `--no-example` to
   avoid this.
+- On Windows the `PUB_CACHE` has moved to `%LOCALAPPDATA%`, since Dart 2.8 the
+  `PUB_CACHE` has been created in `%LOCALAPPDATA%` when one wasn't present.
+  Hence, this only affects users with a `PUB_CACHE` created by Dart 2.7 or
+  earlier. If you have `path/to/.pub-cache/bin` in `PATH` you may need to
+  update your `PATH`.
 
 ## 2.19.6 - 2023-03-29
 
@@ -1287,13 +1367,13 @@ the new implementation carries a few subtle changes in behavior:
 
 - added quick fixes for diagnostics: `abstract_field_constructor_initializer`,
   `abstract_class_member`,
-  [`always_put_control_body_on_new_line`](https://dart-lang.github.io/linter/lints/always_put_control_body_on_new_line.html),
-  [`avoid_print`](https://dart-lang.github.io/linter/lints/avoid_print.html),
-  [`avoid_renaming_method_parameters`](https://dart-lang.github.io/linter/lints/avoid_renaming_method_parameters.html),
-  [`discarded_futures`](https://dart-lang.github.io/linter/lints/discarded_futures.html),
+  [`always_put_control_body_on_new_line`](https://dart.dev/lints/always_put_control_body_on_new_line),
+  [`avoid_print`](https://dart.dev/lints/avoid_print),
+  [`avoid_renaming_method_parameters`](https://dart.dev/lints/avoid_renaming_method_parameters),
+  [`discarded_futures`](https://dart.dev/lints/discarded_futures),
   `enum_with_abstract_member`, `non_bool_condition`,
   `super_formal_parameter_without_associated_named`,
-  [`unawaited_futures`](https://dart-lang.github.io/linter/lints/unawaited_futures.html),
+  [`unawaited_futures`](https://dart.dev/lints/unawaited_futures),
   `unnecessary_final` `unused_element_parameter`,
 - added new Hint: `deprecated_export_use`
 
@@ -1655,22 +1735,22 @@ them, you must set the lower bound on the SDK constraint for your package to
 #### Analyzer
 
 - added quick fixes for diagnostics:
-  [`always_use_package_imports`](https://dart-lang.github.io/linter/lints/always_use_package_imports.html),
-  [`avoid_void_async`](https://dart-lang.github.io/linter/lints/avoid_void_async.html),
-  [`cascade_invocations`](https://dart-lang.github.io/linter/lints/cascade_invocations.html),
+  [`always_use_package_imports`](https://dart.dev/lints/always_use_package_imports),
+  [`avoid_void_async`](https://dart.dev/lints/avoid_void_async),
+  [`cascade_invocations`](https://dart.dev/lints/cascade_invocations),
   `default_list_constructor`,
   [`must_call_super`](https://dart.dev/tools/diagnostic-messages#must_call_super),
-  [`no_leading_underscores_for_local_identifiers`](https://dart-lang.github.io/linter/lints/no_leading_underscores_for_local_identifiers.html),
-  [`null_check_on_nullable_type_parameter`](https://dart-lang.github.io/linter/lints/null_check_on_nullable_type_parameter.html),
-  [`prefer_function_declarations_over_variables`](https://dart-lang.github.io/linter/lints/prefer_function_declarations_over_variables.html),
-  [`sort_constructors_first`](https://dart-lang.github.io/linter/lints/sort_constructors_first.html),
-  [`sort_unnamed_constructors_first`](https://dart-lang.github.io/linter/lints/sort_unnamed_constructors_first.html),
+  [`no_leading_underscores_for_local_identifiers`](https://dart.dev/lints/no_leading_underscores_for_local_identifiers),
+  [`null_check_on_nullable_type_parameter`](https://dart.dev/lints/null_check_on_nullable_type_parameter),
+  [`prefer_function_declarations_over_variables`](https://dart.dev/lints/prefer_function_declarations_over_variables),
+  [`sort_constructors_first`](https://dart.dev/lints/sort_constructors_first),
+  [`sort_unnamed_constructors_first`](https://dart.dev/lints/sort_unnamed_constructors_first),
   `undefined_enum_constant`,
-  [`unnecessary_late`](https://dart-lang.github.io/linter/lints/unnecessary_late.html),
+  [`unnecessary_late`](https://dart.dev/lints/unnecessary_late),
   `unnecessary_null_aware_assignments`,
-  [`use_enums`](https://dart-lang.github.io/linter/lints/use_enums.html),
-  [`use_raw_strings`](https://dart-lang.github.io/linter/lints/use_raw_strings.html),
-  [`use_super_parameters`](https://dart-lang.github.io/linter/lints/use_super_parameters.html),
+  [`use_enums`](https://dart.dev/lints/use_enums),
+  [`use_raw_strings`](https://dart.dev/lints/use_raw_strings),
+  [`use_super_parameters`](https://dart.dev/lints/use_super_parameters),
   `var_return_type`
 - added many errors for invalid enhanced enums
 - added new Hint: [`unnecessary_final`](https://dart.dev/tools/diagnostic-messages#unnecessary_final)

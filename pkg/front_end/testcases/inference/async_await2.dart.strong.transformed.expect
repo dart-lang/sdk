@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -54,36 +54,36 @@ static method test(core::int x0, asy::Future<core::int> x1, asy::Future<asy::Fut
     return invalid-expression "pkg/front_end/testcases/inference/async_await2.dart:25:48: Error: A value of type 'Future<Future<int>>' can't be returned from an async function with return type 'Future<int>'.
  - 'Future' is from 'dart:async'.
   /*@returnType=Future<int>*/ test2() async => x2;
-                                               ^" in x2 as{TypeError,ForNonNullableByDefault} core::int;
+                                               ^" in x2 as{TypeError} core::int;
   function test3() → asy::Future<core::int> async /* futureValueType= core::int */ 
     return invalid-expression "pkg/front_end/testcases/inference/async_await2.dart:26:48: Error: A value of type 'Future<FutureOr<int>>' can't be returned from an async function with return type 'Future<int>'.
  - 'Future' is from 'dart:async'.
   /*@returnType=Future<int>*/ test3() async => x3;
-                                               ^" in x3 as{TypeError,ForNonNullableByDefault} core::int;
+                                               ^" in x3 as{TypeError} core::int;
   function test4() → asy::Future<core::int> async /* futureValueType= core::int */ 
     return invalid-expression "pkg/front_end/testcases/inference/async_await2.dart:27:48: Error: A value of type 'Future<MyFuture>' can't be returned from an async function with return type 'Future<int>'.
  - 'Future' is from 'dart:async'.
  - 'MyFuture' is from 'pkg/front_end/testcases/inference/async_await2.dart'.
   /*@returnType=Future<int>*/ test4() async => x4;
-                                               ^" in x4 as{TypeError,ForNonNullableByDefault} core::int;
+                                               ^" in x4 as{TypeError} core::int;
   function test5() → asy::Future<core::int> async /* futureValueType= core::int */ 
     return x5;
   function test6() → asy::Future<core::int> async /* futureValueType= core::int */ 
     return invalid-expression "pkg/front_end/testcases/inference/async_await2.dart:29:48: Error: A value of type 'FutureOr<Future<int>>' can't be returned from an async function with return type 'Future<int>'.
  - 'Future' is from 'dart:async'.
   /*@returnType=Future<int>*/ test6() async => x6;
-                                               ^" in x6 as{TypeError,ForNonNullableByDefault} core::int;
+                                               ^" in x6 as{TypeError} core::int;
   function test7() → asy::Future<core::int> async /* futureValueType= core::int */ 
     return invalid-expression "pkg/front_end/testcases/inference/async_await2.dart:30:48: Error: A value of type 'FutureOr<FutureOr<int>>' can't be returned from an async function with return type 'Future<int>'.
  - 'Future' is from 'dart:async'.
   /*@returnType=Future<int>*/ test7() async => x7;
-                                               ^" in x7 as{TypeError,ForNonNullableByDefault} core::int;
+                                               ^" in x7 as{TypeError} core::int;
   function test8() → asy::Future<core::int> async /* futureValueType= core::int */ 
     return invalid-expression "pkg/front_end/testcases/inference/async_await2.dart:31:48: Error: A value of type 'FutureOr<MyFuture>' can't be returned from an async function with return type 'Future<int>'.
  - 'MyFuture' is from 'pkg/front_end/testcases/inference/async_await2.dart'.
  - 'Future' is from 'dart:async'.
   /*@returnType=Future<int>*/ test8() async => x8;
-                                               ^" in x8 as{TypeError,ForNonNullableByDefault} core::int;
+                                               ^" in x8 as{TypeError} core::int;
   function test9() → asy::Future<core::int> async /* futureValueType= core::int */ 
     return x9;
   core::int y0 = await x0 /* runtimeCheckType= asy::Future<core::int> */ ;

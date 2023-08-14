@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -24,7 +24,7 @@ class A extends self::_A&Object&M implements self::I<core::int> {
   synthetic constructor •() → self::A
     ;
   no-such-method-forwarder method foo() → core::int
-    return this.{self::_A&Object&M::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+    return this.{self::_A&Object&M::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
 }
 static method main() → dynamic
   ;

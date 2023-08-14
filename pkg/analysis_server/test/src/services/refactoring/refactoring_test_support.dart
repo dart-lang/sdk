@@ -45,8 +45,16 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
     addSource(mainFilePath, testCode.code);
   }
 
-  /// Finds and executes the refactor with [title], updating [content] with
-  /// edits sent by the server.
+  void assertTextExpectation(String actual, String expected) {
+    if (actual != expected) {
+      print('-' * 64);
+      print(actual.trimRight());
+      print('-' * 64);
+    }
+    expect(actual, expected);
+  }
+
+  /// Executes the [action], updating [content] with edits sent by the server.
   Future<void> executeRefactor(CodeAction action) async {
     await executeCommandForEdits(
       action.command!,

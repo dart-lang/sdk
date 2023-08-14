@@ -11,11 +11,22 @@
 import 'dart:async';
 import 'package:expect/expect.dart';
 
-class A
-    extends FutureOr<String> /*@compile-error=unspecified*/
-    extends Object with FutureOr<bool> /*@compile-error=unspecified*/
-    implements FutureOr<int> /*@compile-error=unspecified*/
-{}
+class A extends FutureOr<String> {}
+//    ^
+// [cfe] The superclass, 'FutureOr', has no unnamed constructor that takes no arguments.
+//              ^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DISALLOWED_TYPE
 
-main() {
-}
+class B with FutureOr<bool> {}
+//    ^
+// [cfe] Can't use 'FutureOr' as a mixin because it has constructors.
+//           ^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DISALLOWED_TYPE
+
+class C implements FutureOr<int> {}
+//    ^
+// [cfe] The type 'FutureOr' can't be used in an 'implements' clause.
+//                 ^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DISALLOWED_TYPE
+
+main() {}

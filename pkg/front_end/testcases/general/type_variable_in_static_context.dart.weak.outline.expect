@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -360,14 +360,14 @@ static field invalid-type Extension|field1;
 @invalid-expression "pkg/front_end/testcases/general/type_variable_in_static_context.dart:115:4: Error: Couldn't find constructor 'T'.
   @T()
    ^"
-static method Extension|staticMethod<S extends invalid-type>(invalid-type arg) → invalid-type
+static extension-member method Extension|staticMethod<S extends invalid-type>(invalid-type arg) → invalid-type
   ;
 @invalid-expression "pkg/front_end/testcases/general/type_variable_in_static_context.dart:122:4: Error: Couldn't find constructor 'T'.
   @T()
    ^"
-static method Extension|instanceMethod<T extends core::Object? = dynamic, S extends self::Extension|instanceMethod::T% = dynamic>(lowered final self::Extension|instanceMethod::T% #this, self::Extension|instanceMethod::T% t) → self::Extension|instanceMethod::T%
+static extension-member method Extension|instanceMethod<T extends core::Object? = dynamic, S extends self::Extension|instanceMethod::T% = dynamic>(lowered final self::Extension|instanceMethod::T% #this, self::Extension|instanceMethod::T% t) → self::Extension|instanceMethod::T%
   ;
-static method Extension|get#instanceMethod<T extends core::Object? = dynamic>(lowered final self::Extension|get#instanceMethod::T% #this) → <S extends self::Extension|get#instanceMethod::T% = dynamic>(self::Extension|get#instanceMethod::T%) → self::Extension|get#instanceMethod::T%
+static extension-member method Extension|get#instanceMethod<T extends core::Object? = dynamic>(lowered final self::Extension|get#instanceMethod::T% #this) → <S extends self::Extension|get#instanceMethod::T% = dynamic>(self::Extension|get#instanceMethod::T%) → self::Extension|get#instanceMethod::T%
   return <S extends self::Extension|get#instanceMethod::T% = dynamic>(self::Extension|get#instanceMethod::T% t) → self::Extension|get#instanceMethod::T% => self::Extension|instanceMethod<self::Extension|get#instanceMethod::T%, S%>(#this, t);
 static method main() → dynamic
   ;

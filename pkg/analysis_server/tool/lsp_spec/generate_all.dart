@@ -245,6 +245,14 @@ List<LspEntity> getCustomClasses() {
       baseType: TypeReference('Uri'),
       isRename: false,
     ),
+    // The LSP Spec uses "URI" but since that's fairly generic and will show up
+    // everywhere in code completion, we rename it to "LspUri" before using
+    // a typedef onto the Dart URI class.
+    TypeAlias(
+      name: 'URI',
+      baseType: TypeReference('LSPUri'),
+      isRename: true,
+    ),
     TypeAlias(
       name: 'LSPUri',
       baseType: TypeReference('Uri'),
@@ -496,7 +504,9 @@ Future<List<LspEntity>> getSpecClasses(ArgResults args) async {
 }
 
 class AbstractGetter extends Member {
+  // ignore:unreachable_from_main
   final TypeBase type;
+
   AbstractGetter({
     required super.name,
     super.comment,

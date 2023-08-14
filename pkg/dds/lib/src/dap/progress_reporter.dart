@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dap/dap.dart';
+
 import 'adapters/dart.dart';
-import 'protocol_generated.dart';
 
 /// A reporter that can send progress notifications to the client.
 abstract class DapProgressReporter {

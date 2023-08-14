@@ -41,7 +41,7 @@ class SimpleExpressionConverter {
                             KernelReaderHelper* reader_helper)
       : translation_helper_(*translation_helper),
         zone_(translation_helper_.zone()),
-        simple_value_(NULL),
+        simple_value_(nullptr),
         helper_(reader_helper) {}
 
   bool IsSimple(intptr_t kernel_offset) {
@@ -274,7 +274,7 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
       const String& script_source = helper_.GetSourceFor(index);
       wrapper.uri = &uri_string;
       UriToSourceTableEntry* pair = uri_to_source_table.LookupValue(&wrapper);
-      if (pair != NULL) {
+      if (pair != nullptr) {
         // At least two entries with content. Unless the content is the same
         // that's not valid.
         const bool src_differ = pair->sources->CompareTo(script_source) != 0;
@@ -455,7 +455,7 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
 KernelLoader::KernelLoader(const Script& script,
                            const ExternalTypedData& kernel_data,
                            intptr_t data_program_offset)
-    : program_(NULL),
+    : program_(nullptr),
       thread_(Thread::Current()),
       zone_(thread_->zone()),
       no_active_isolate_scope_(),
@@ -1035,7 +1035,7 @@ void KernelLoader::FinishTopLevelClassLoading(
   const intptr_t field_count = helper_.ReadListLength();  // read list length.
   for (intptr_t i = 0; i < field_count; ++i) {
     intptr_t field_offset = helper_.ReaderOffset() - correction_offset_;
-    ActiveMemberScope active_member_scope(&active_class_, NULL);
+    ActiveMemberScope active_member_scope(&active_class_, nullptr);
     FieldHelper field_helper(&helper_);
     field_helper.ReadUntilExcluding(FieldHelper::kName);
 
@@ -1207,7 +1207,8 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
     if (!Api::IsFfiEnabled() &&
         target_library.url() == Symbols::DartFfi().ptr() &&
         library->url() != Symbols::DartCore().ptr() &&
-        library->url() != Symbols::DartInternal().ptr()) {
+        library->url() != Symbols::DartInternal().ptr() &&
+        library->url() != Symbols::DartFfi().ptr()) {
       H.ReportError(
           "import of dart:ffi is not supported in the current Dart runtime");
     }
@@ -1275,7 +1276,7 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   if (type_tag == kSomething) {
     AbstractType& super_type =
         T.BuildTypeWithoutFinalization();  // read super class type (part 2).
-    klass->set_super_type(super_type);
+    klass->set_super_type(Type::Cast(super_type));
   }
 
   class_helper->SetJustRead(ClassHelper::kSuperClass);
@@ -1429,7 +1430,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     int field_count = helper_.ReadListLength();  // read list length.
     for (intptr_t i = 0; i < field_count; ++i) {
       intptr_t field_offset = helper_.ReaderOffset() - correction_offset_;
-      ActiveMemberScope active_member(&active_class_, NULL);
+      ActiveMemberScope active_member(&active_class_, nullptr);
       FieldHelper field_helper(&helper_);
 
       field_helper.ReadUntilIncluding(FieldHelper::kSourceUriIndex);
@@ -1565,7 +1566,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
   int constructor_count = helper_.ReadListLength();  // read list length.
   for (intptr_t i = 0; i < constructor_count; ++i) {
     intptr_t constructor_offset = helper_.ReaderOffset() - correction_offset_;
-    ActiveMemberScope active_member_scope(&active_class_, NULL);
+    ActiveMemberScope active_member_scope(&active_class_, nullptr);
     ConstructorHelper constructor_helper(&helper_);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kAnnotations);
     intptr_t annotation_count = helper_.ReadListLength();
@@ -1743,9 +1744,12 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
 
   for (intptr_t i = 0; i < annotation_count; ++i) {
     const intptr_t tag = helper_.PeekTag();
-    if (tag == kConstantExpression) {
+    if (tag == kConstantExpression || tag == kFileUriConstantExpression) {
       helper_.ReadByte();      // Skip the tag.
       helper_.ReadPosition();  // Skip fileOffset.
+      if (tag == kFileUriConstantExpression) {
+        helper_.ReadUInt();  // Skip uri.
+      }
       helper_.SkipDartType();  // Skip type.
       const intptr_t index_in_constant_table = helper_.ReadUInt();
 
@@ -1848,7 +1852,6 @@ void KernelLoader::LoadProcedure(const Library& library,
   }
   function.set_kernel_offset(procedure_offset);
   function.set_is_extension_member(is_extension_member);
-  function.set_is_redirecting_factory(procedure_helper.IsRedirectingFactory());
   if ((library.is_dart_scheme() &&
        H.IsPrivate(procedure_helper.canonical_name_)) ||
       (function.is_static() && (library.ptr() == Library::InternalLibrary()))) {
@@ -1894,6 +1897,10 @@ void KernelLoader::LoadProcedure(const Library& library,
                             false,  // is_closure
                             &function_node_helper);
   T.SetupUnboxingInfoMetadata(function, library_kernel_offset_);
+
+  function_node_helper.ReadUntilExcluding(
+      FunctionNodeHelper::kRedirectingFactoryTarget);
+  function.set_is_redirecting_factory(helper_.ReadTag() == kSomething);
 
   // Everything else is skipped implicitly, and procedure_helper and
   // function_node_helper are no longer used.

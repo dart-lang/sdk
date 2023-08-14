@@ -19,16 +19,10 @@ main([args, port]) async {
       packageRoot: Uri.parse(SPAWN_PACKAGE_ROOT));
   p.handler = (msg) {
     p.close();
-    if (msg != null) {
-      throw "Bad package root in child isolate: $msg";
-    }
     print("SUCCESS");
   };
-  print("Spawning isolate's package root: ${await Isolate.packageRoot}");
 }
 
 testPackageRoot(port) async {
-  var packageRoot = await Isolate.packageRoot;
-  print("Spawned isolate's package root: $packageRoot");
-  port.send(packageRoot);
+  port.send('done');
 }

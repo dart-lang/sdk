@@ -217,6 +217,7 @@ export 'dart:_http'
         HeaderValue,
         HttpSession,
         ContentType,
+        SameSite,
         Cookie,
         HttpRequest,
         HttpResponse,

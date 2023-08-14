@@ -76,7 +76,8 @@ void transformLibraries(
     'dart:ffi',
     'dart:_internal',
     'dart:typed_data',
-    'dart:nativewrappers'
+    'dart:nativewrappers',
+    'dart:isolate',
   ]);
   if (!index.containsLibrary('dart:ffi')) {
     // TODO: This check doesn't make sense: "dart:ffi" is always loaded/created
@@ -268,7 +269,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       if (node.typeParameters.isNotEmpty ||
           node.procedures.where((Procedure e) => !e.isSynthetic).isNotEmpty ||
           node.fields.isNotEmpty ||
-          node.redirectingFactories.isNotEmpty ||
           node.constructors.length != 1 ||
           !node.constructors.single.isConst) {
         // We want exactly one constructor, no other members and no type arguments.

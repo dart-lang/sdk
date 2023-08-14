@@ -305,11 +305,7 @@ class NodeId implements Id {
   @override
   final IdKind kind;
 
-  const NodeId(this.value, this.kind)
-      :
-        // ignore: unnecessary_null_comparison
-        assert(value != null),
-        assert(value >= 0);
+  const NodeId(this.value, this.kind) : assert(value >= 0);
 
   @override
   bool get isGlobal => false;

@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "main_lib.dart" as mai;
@@ -11,7 +11,7 @@ static method main() → void {
   new mai::Registry::•().{mai::DynamicDispatchRegistry::register}(f){(({x: core::int*}) →* core::int*) →* ({x: core::int*}) →* core::int*};
 }
 
-library;
+library /*isLegacy*/;
 import self as mai;
 import "dart:core" as core;
 

@@ -1,11 +1,11 @@
-library test;
+library test /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
 static method main() → void {
   core::Object* o = 1;
   try {
-    for (core::int* i = 0; o as{TypeError} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
+    for (core::int* i = 0; o as{TypeError,ForLegacy} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
     }
     throw "no exception";
   }

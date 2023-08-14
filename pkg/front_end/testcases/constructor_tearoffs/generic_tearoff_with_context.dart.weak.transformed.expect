@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -75,19 +75,19 @@ static method test2() → <X extends core::Object? = dynamic>(X%) → self::A<X%
  - 'X/*1*/' is from 'unknown'.
  - 'X/*2*/' is from 'unknown'.
 A<X> Function<X>(X) test2() => A.foo2; // Error.
-                               ^" in #C2 as{TypeError,ForNonNullableByDefault} Never;
+                               ^" in #C2 as{TypeError} Never;
 static method test3() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:14:32: Error: A value of type 'A<X/*1*/> Function<X>()' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
  - 'X/*1*/' is from 'unknown'.
  - 'X/*2*/' is from 'unknown'.
 A<X> Function<X>(X) test3() => A.new; // Error.
-                               ^" in #C3 as{TypeError,ForNonNullableByDefault} Never;
+                               ^" in #C3 as{TypeError} Never;
 static method test4() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:15:32: Error: A value of type 'A<int> Function()' can't be returned from a function with return type 'A<X> Function<X>(X)'.
  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
 A<X> Function<X>(X) test4() => A<int>.new; // Error.
-                               ^" in #C4 as{TypeError,ForNonNullableByDefault} Never;
+                               ^" in #C4 as{TypeError} Never;
 static method test5() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:16:32: Error: Too many type arguments: 1 allowed, but 2 found.
 Try removing the extra type arguments.
@@ -97,7 +97,7 @@ static method test6() → <X extends core::Object? = dynamic>(X%) → self::A<X%
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:17:32: Error: A value of type 'A<int> Function(int)' can't be returned from a function with return type 'A<X> Function<X>(X)'.
  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
 A<X> Function<X>(X) test6() => A<int>.foo1; // Error.
-                               ^" in #C5 as{TypeError,ForNonNullableByDefault} Never;
+                               ^" in #C5 as{TypeError} Never;
 static method test7() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:18:32: Error: Too many type arguments: 1 allowed, but 2 found.
 Try removing the extra type arguments.
@@ -107,7 +107,7 @@ static method test8() → <X extends core::Object? = dynamic>(X%) → self::A<X%
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:19:32: Error: A value of type 'A<int> Function(int, int)' can't be returned from a function with return type 'A<X> Function<X>(X)'.
  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
 A<X> Function<X>(X) test8() => A<int>.foo2; // Error.
-                               ^" in #C6 as{TypeError,ForNonNullableByDefault} Never;
+                               ^" in #C6 as{TypeError} Never;
 static method test9() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:20:32: Error: Too many type arguments: 1 allowed, but 2 found.
 Try removing the extra type arguments.
@@ -121,7 +121,7 @@ static method test11() → <X extends core::Object? = dynamic>(X%) → self::A<X
  - 'X/*1*/' is from 'unknown'.
  - 'X/*2*/' is from 'unknown'.
 A<X> Function<X>(X) test11() => A.bar1; // Error.
-                                ^" in #C7 as{TypeError,ForNonNullableByDefault} Never;
+                                ^" in #C7 as{TypeError} Never;
 static method test12() → () → self::A<core::int>
   return #C8;
 static method test13() → () → self::A<core::int>

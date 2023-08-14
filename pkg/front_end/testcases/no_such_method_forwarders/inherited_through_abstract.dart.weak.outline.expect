@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -22,11 +22,11 @@ class Super extends core::Object {
   method noSuchMethod(core::Invocation _) → dynamic
     ;
   no-such-method-forwarder method method1() → dynamic
-    return this.{self::Super::noSuchMethod}(new core::_InvocationMirror::_withType(#method1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} dynamic;
+    return this.{self::Super::noSuchMethod}(new core::_InvocationMirror::_withType(#method1, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} dynamic;
   no-such-method-forwarder method method2(core::int i) → dynamic
-    return this.{self::Super::noSuchMethod}(new core::_InvocationMirror::_withType(#method2, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} dynamic;
+    return this.{self::Super::noSuchMethod}(new core::_InvocationMirror::_withType(#method2, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} dynamic;
   no-such-method-forwarder method method3(core::int i) → dynamic
-    return this.{self::Super::noSuchMethod}(new core::_InvocationMirror::_withType(#method3, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} dynamic;
+    return this.{self::Super::noSuchMethod}(new core::_InvocationMirror::_withType(#method3, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} dynamic;
   method method4(core::int i) → dynamic
     ;
 }
@@ -40,10 +40,10 @@ class Class extends self::Abstract {
     ;
   abstract method method1() → dynamic;
   no-such-method-forwarder method method3(core::num i) → dynamic
-    return this.{self::Super::noSuchMethod}(new core::_InvocationMirror::_withType(#method3, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} dynamic;
+    return this.{self::Super::noSuchMethod}(new core::_InvocationMirror::_withType(#method3, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} dynamic;
   abstract method method4(core::num i) → dynamic;
   no-such-method-forwarder method method2(core::num i) → dynamic
-    return this.{self::Super::noSuchMethod}(new core::_InvocationMirror::_withType(#method2, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} dynamic;
+    return this.{self::Super::noSuchMethod}(new core::_InvocationMirror::_withType(#method2, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} dynamic;
 }
 
 

@@ -95,7 +95,7 @@ part of dart.core;
 /// ```dart
 /// Function fun = (int x) => "$x";
 ///
-/// var fun2 = f.call; // Inferred type of `fun2` is `Function`.
+/// var fun2 = fun.call; // Inferred type of `fun2` is `Function`.
 ///
 /// print(fun2.call(1)); // Prints "1";
 ///

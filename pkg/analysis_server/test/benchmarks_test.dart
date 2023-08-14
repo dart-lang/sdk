@@ -4,6 +4,8 @@
 
 /// This tests the benchmarks in benchmark/benchmark.test, and ensures that our
 /// benchmarks can run.
+library;
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -31,6 +33,14 @@ void defineTests() {
       'lsp-flutter',
     };
 
+    // Since these benchmarks can take a while, allow skipping with an env
+    // variable.
+    final runBenchmarks =
+        Platform.environment['TEST_SERVER_BENCHMARKS'] != 'false';
+    final skipReason = runBenchmarks
+        ? null
+        : 'Skipped by TEST_SERVER_BENCHMARKS environment variable';
+
     for (var benchmarkId in benchmarks) {
       if (benchmarkIdsToSkip.contains(benchmarkId)) {
         continue;
@@ -50,7 +60,7 @@ void defineTests() {
         );
         expect(r.exitCode, 0,
             reason: 'exit: ${r.exitCode}\n${r.stdout}\n${r.stderr}');
-      });
+      }, skip: skipReason);
     }
   });
 }

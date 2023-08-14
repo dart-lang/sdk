@@ -430,7 +430,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   final bool enableNative;
   final bool stringExpectedAfterNative;
-  bool inAbstractClass = false;
+  bool inAbstractOrSealedClass = false;
   bool inConstructor = false;
   bool inConstructorName = false;
   int importIndex = 0;
@@ -932,7 +932,7 @@ class OutlineBuilder extends StackListenerImpl {
           .markAsClassDeclaration(name.lexeme, name.charOffset, typeVariables);
     }
     libraryBuilder.setCurrentClassName(name.lexeme);
-    inAbstractClass = abstractToken != null;
+    inAbstractOrSealedClass = abstractToken != null || sealedToken != null;
     push(abstractToken != null ? abstractMask : 0);
     push(macroToken ?? NullValues.Token);
     push(inlineToken ?? NullValues.Token);
@@ -1287,7 +1287,7 @@ class OutlineBuilder extends StackListenerImpl {
       mixinApplication.typeVariables = typeVariables;
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-    inAbstractClass = false;
+    inAbstractOrSealedClass = false;
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery) {
       libraryBuilder
@@ -1961,6 +1961,10 @@ class OutlineBuilder extends StackListenerImpl {
     }
     TypeBuilder? returnType = pop() as TypeBuilder?;
     bool isAbstract = bodyKind == MethodBody.Abstract;
+    if (isAbstract) {
+      // An error has been reported if this wasn't already sync.
+      asyncModifier = AsyncMarker.Sync;
+    }
     if (getOrSet != null && optional("set", getOrSet)) {
       if (formals == null || formals.length != 1) {
         // This isn't abstract as we'll add an error-recovery node in
@@ -2135,7 +2139,7 @@ class OutlineBuilder extends StackListenerImpl {
             endToken.charOffset,
             nativeMethodName,
             beginInitializers: beginInitializers,
-            forAbstractClass: inAbstractClass);
+            forAbstractClass: inAbstractOrSealedClass);
       } else {
         if (isConst) {
           // TODO(danrubel): consider removing this
@@ -3720,6 +3724,21 @@ class OutlineBuilder extends StackListenerImpl {
   void handleEnumNoWithClause() {
     debugEvent("EnumNoWithClause");
     push(NullValues.MixinApplicationBuilder);
+  }
+
+  @override
+  void handleMixinWithClause(Token withKeyword) {
+    debugEvent("MixinWithClause");
+    assert(checkState(withKeyword, [
+      /* mixins */ unionOfKinds([
+        ValueKinds.TypeBuilderListOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+    ]));
+
+    // This is an error case where the parser has already given an error.
+    // We just discard the data.
+    pop();
   }
 
   @override

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -16,12 +16,12 @@ static method f1(core::int x) → core::int?
 static method test() → void {
   (core::int*) → core::int* f = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue42181.dart:10:9: Error: The value 'null' can't be assigned to a variable of type 'int Function(int)' because 'int Function(int)' is not nullable.
   F f = null; // Static error
-        ^" in null as{TypeError,ForNonNullableByDefault} (core::int*) → core::int*;
+        ^" in null as{TypeError} (core::int*) → core::int*;
   f = #C1;
 }
 static method main() → dynamic {}
 
-library;
+library /*isLegacy*/;
 import self as self2;
 import "dart:core" as core;
 

@@ -27,7 +27,8 @@ A parameter type in the signature can be either a `Type`, a `FunctionType`, or a
 
 ## AbstractType
 
-The VM declares the class `AbstractType` as a placeholder to store a concrete type. The following classes extend `AbstractType`: `Type`, `FunctionType`, `TypeParameter`, and `TypeRef`. The latter one, `TypeRef` is used to break cycles in recursive type graphs. More on it later. `AbstractType` declares several virtual methods that may be overridden by concrete types. See its declaration in [object.h](https://github.com/dart-lang/sdk/blob/main/runtime/vm/object.h).
+The VM declares the class `AbstractType` as a placeholder to store a concrete type. The following classes extend `AbstractType`: `Type`, `FunctionType`, `TypeParameter`, and `RecordType`.
+`AbstractType` declares several virtual methods that may be overridden by concrete types. See its declaration in [object.h](https://github.com/dart-lang/sdk/blob/main/runtime/vm/object.h).
 
 ## TypeArguments
 
@@ -100,53 +101,6 @@ Instead of using `[List[T], T, T]`, the last overlapping `T` is collapsed and th
 Class `B` has 2 type parameters and 2 type arguments, whereas class `C` has 1 type parameter and 2 type arguments.
 
 
-## TypeRef
-
-Consider the following example:
-```dart
-class B<T> { }
-class D extends B<D> { }
-```
-Flattening the type argument vector of instances of class `D` poses a problem. Indeed, the type argument at index 0 must represent type `D`, which is the type argument of class `B`. Therefore, type `D` would need to be represented by `D[D[D[D[...]]]]` ad infinitum. To solve this problem, the `TypeRef` object extending `AbstractType` is introduced. It contains a single field `type`, which points to an `AbstractType`. Basically, `TypeRef` references another type and it is used to break cycles in type graphs. In this example, type `D` is represented as `D[TypeRef -> D]`, or graphically:
-```
-D:    D[TypeRef]
-      ^    |
-      |    |
-      +----+
-```
-
-Another example:
-```dart
-class D1 extends B<D2> { }
-class D2 extends B<D1> { }
-```
-Corresponding types and their internal representation:
-```
-D1:    D1[TypeRef -> D2]
-D2:    D2[TypeRef -> D1]
-```
-
-Note that not all declarations of types can be represented this way, but only what is called *contractive* types:
-```dart
-class D<T> extends B<D<D<int>> { }
-```
-```
-D<T>:       D[D<D<int>>, T]
-D<D<int>>:  D[TypeRef -> D<D<int>>, D<int>]
-D<int>:     D[D<D<int>>, int]
-```
-Here however is the example of a *non-contractive* type:
-```dart
-class D<T> extends B<D<D<T>> { }
-```
-```
-D<T>:       D[D<D<T>>, T]
-D<D<T>>:    D[D<D<D<T>>>, D<T>]
-D<D<D<T>>>: D[D<D<D<D<T>>>>, D<D<T>>]
-...
-```
-The representation is divergent and therefore not possible. The VM detects non-contractive types (search for `ClassFinalizer::CheckRecursiveType` in the [class finalizer](https://github.com/dart-lang/sdk/blob/main/runtime/vm/class_finalizer.cc)) and reports an error. These non-contractive types make no sense in real programs and rejecting them is not an issue at all.
-
 ## Compile Time Type
 
 The VM classes described so far are not only used to represent the runtime type of instances in the heap, but they are also used to describe types at compile time. For example, the right handside of an *instance of* type test is represented by a concrete instance of `AbstractType`. Note that the type may still be *uninstantiated* at compile time, e.g. `List<T>` still contains the `TypeParameter` `T` of a generic class in its type argument vector:
@@ -170,14 +124,14 @@ The *function type arguments* are the concatenation of the type argument vectors
 A `TypeParameter` object specifies whether it is declared by a class (it is then a *class type parameter*) or by a function (it is then a *function type parameter*), thereby selecting the vector to use for its instantiation. The index value then identifies the type argument from that specific vector to be used to substitute the type parameter. To complete the instantiation, a normalization step is applied after the substitution.
 
 The virtual method to instantiate an `AbstractType` is declared as follows:
-```dart
+```c++
   virtual AbstractTypePtr InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      TrailPtr trail = nullptr) const;
-
+      FunctionTypeMapping* function_type_mapping = nullptr,
+      intptr_t num_parent_type_args_adjustment = 0) const;
 ```
 Note how both instantiators explained above are passed in, `instantiator_type_arguments` and `function_type_arguments`. Note also that an integer `num_free_fun_type_params` is provided. Its value indicates how many type arguments in the `function_type_arguments` vector are considered to be free variables and are therefore available to substitute type parameters with an index below this value. Type parameters with an index equal or above that value remain uninstantiated.
 Here is an example:
@@ -190,33 +144,26 @@ class C<T> {
 ```
 Although method `foo` is not generic, it takes a generic function `bar<B>()` as argument and its function type refers to class type parameter `T` and function type parameter `B`. When instantiating the function type of `foo` for a particular value of `T`, the function type parameter `B` must remain uninstantiated, because only `T` is a free variable in this function type. An instantiation in the context of `C<int>` would yield `int foo(bar<B>(int t, B b))`. In this case, the `InstantiateFrom` method would be called with `num_free_fun_type_params = 0`, as no function type parameters are free in this example.
 
-## Trail
-
-Another argument passed to the `InstantiateFrom` method above is `trail`. The trail prevents infinite recursion when traversing cyclic type graphs. When building type graphs, the VM makes sure that back references to the graph creating a cycle are represented by a `TypeRef` object. During graph traversal, when a `TypeRef` node is encountered, the implementation checks that the `TypeRef` is not already in the trail, in which case a repeated traversal of the same cycle is avoided. If not yet present, the `TypeRef` node is inserted in the trail, and the trail is passed down to recursive traversal calls.
-
-There are different type graph traversal methods in the VM performing various operations. Each one of these traversals requires a trail to avoid divergence. Some take a single type graph as input, such as type instantiation and type instantiation check (whether a type is instantiated), but others take two type graphs as input, such as subtype test (whether a type is a subtype of another type) and type equivalence (whether two types are equivalent).
-
-The traversals that take two type graphs as input use the trail differently. When a `TypeRef` is encountered on the left hand side, it is inserted in the trail in association with the right hand side type node being currently traversed. The implementation calls the right hand side type node the `buddy` of the `TypeRef` node. The trail consists of pairs of nodes. The implementation checks that a particular pair is already present before inserting it.
-
 ## Type Equivalence
 
 The same virtual method `IsEquivalent` of `AbstractType` is used to traverse a pair of type graphs and decide whether they are canonically equal, syntactically equal, or equal in the context of subtype tests:
-```dart
+```c++
 enum class TypeEquality {
   kCanonical = 0,
   kSyntactical = 1,
   kInSubtypeTest = 2,
 };
 
-  virtual bool IsEquivalent(const Instance& other,
-                            TypeEquality kind,
-                            TrailPtr trail = nullptr) const;
+  virtual bool IsEquivalent(
+      const Instance& other,
+      TypeEquality kind,
+      FunctionTypeMapping* function_type_equivalence = nullptr) const;
 ```
 Instead of implementing three different traversals, the kind of type equality is passed as an argument to a single traversal method.
 
 ## Finalization
 
-Types read from kernel files (produced by the Common Front End) need finalization before being used in the VM runtime. Finalization consists in flattening type argument vectors and in assigning indices to type parameters. A generic type provided by CFE will always have as many type arguments as the number of type parameters declared by the type’s class. As explained above, type arguments get prepended to the type argument vector, so that the vector can be used unchanged in any super class of the type’s class. This is done by methods of the [class finalizer](https://github.com/dart-lang/sdk/blob/main/runtime/vm/class_finalizer.h) called `ExpandAndFinalizeTypeArguments` and `FillAndFinalizeTypeArguments`.
+Types read from kernel files (produced by the Common Front End) need finalization before being used in the VM runtime. Finalization currently assigns indices to type parameters.
 
 The index of function type parameters can be assigned immediately upon loading of the type parameter from the kernel file. This is possible because enclosing generic functions are always loaded prior to inner generic functions. Therefore the number of type parameters declared in the  enclosing scope is known. The picture is more complicated with class type parameters. Classes can reference each other and a clear order is not defined in the kernel file. Clusters of classes must be fully loaded before type arguments can be flattened, which in turn determines the indices of class type parameters.
 
@@ -225,8 +172,7 @@ As a last step of finalization, types and type argument vectors get canonicalize
 ## Canonicalization and Hash
 
 The VM keeps global tables of canonical types and type arguments. Canonicalizing a type or a type argument vector consists in a table look up using a hash code to find a candidate, and then comparing the type with the candidate using the `IsEquivalent` method mentioned above (passing `kind = kCanonical`).
-
-It is therefore imperative that two canonically equal types share the same hash code. `TypeRef` objects pose a problem in this regard. Namely, the hash of a `TypeRef` node cannot depend on the hash of the referenced type graph, otherwise, the hash code would depend on the location in the cycle where hash computation started and ended. Instead, the hash of a `TypeRef` node can only depend on information obtainable by “peeking” at the referenced type node, but not at the whole referenced type graph. See the comments in the [implementation](https://github.com/dart-lang/sdk/blob/main/runtime/vm/object.cc) of `TypeRef::Hash()` for details.
+It is therefore imperative that two canonically equal types share the same hash code.
 
 ## Cached Instantiations of TypeArguments
 

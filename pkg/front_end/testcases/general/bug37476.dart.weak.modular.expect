@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -24,14 +24,14 @@ static field self::A<core::num> a = new self::A::•<core::int>();
 static field self::B<core::num> b = new self::B::•<core::int>();
 static method main() → dynamic {
   try {
-    self::a.{self::A::foo}(){() → <S extends core::num = dynamic>(S) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} <S extends core::num = dynamic>(S) → void;
+    self::a.{self::A::foo}(){() → <S extends core::num = dynamic>(S) → void} as{TypeError,CovarianceCheck} <S extends core::num = dynamic>(S) → void;
     throw "Expected TypeError";
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print(e);
   }
   try {
-    self::b.{self::B::foo}(){() → (core::num) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::num) → void;
+    self::b.{self::B::foo}(){() → (core::num) → void} as{TypeError,CovarianceCheck} (core::num) → void;
     throw "Expected TypeError";
   }
   on core::TypeError catch(final core::TypeError e) {

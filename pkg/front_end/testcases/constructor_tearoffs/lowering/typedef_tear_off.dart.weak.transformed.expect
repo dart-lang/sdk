@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -118,11 +118,11 @@ class B<X extends core::Object? = dynamic> extends core::Object {
   static method _#bar#tearOff<X extends core::Object? = dynamic>(core::int i, core::String j) → self::B<self::B::_#bar#tearOff::X%>
     return self::B::bar<self::B::_#bar#tearOff::X%>(i, j);
 }
-static final field core::bool inSoundMode = !(core::_GrowableList::•<core::int?>(0) is{ForNonNullableByDefault} core::List<core::int>);
+static final field core::bool inSoundMode = !(core::_GrowableList::•<core::int?>(0) is core::List<core::int>);
 static method main() → dynamic {
   () → self::A f1a = #C1;
   self::A c1a = f1a(){() → self::A};
-  self::expect(true, c1a is{ForNonNullableByDefault} self::A);
+  self::expect(true, c1a is self::A);
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:34:8: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
@@ -131,11 +131,11 @@ Try removing the extra positional arguments.
   };
   dynamic f1b = #C1;
   dynamic c1b = f1b{dynamic}.call();
-  self::expect(true, c1b is{ForNonNullableByDefault} self::A);
+  self::expect(true, c1b is self::A);
   self::throws(() → dynamic => f1b{dynamic}.call(0));
   <unrelated X extends core::num>() → self::A f2a = #C2;
   self::A c2a = f2a<core::num>(){() → self::A};
-  self::expect(true, c2a is{ForNonNullableByDefault} self::A);
+  self::expect(true, c2a is self::A);
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:46:8: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
@@ -145,15 +145,15 @@ Try removing the extra positional arguments.
   };
   dynamic f2b = #C2;
   dynamic c2b = f2b{dynamic}.call();
-  self::expect(true, c2b is{ForNonNullableByDefault} self::A);
+  self::expect(true, c2b is self::A);
   dynamic c2c = f2b{dynamic}.call<core::int>();
-  self::expect(true, c2c is{ForNonNullableByDefault} self::A);
+  self::expect(true, c2c is self::A);
   self::throws(() → dynamic => f2b{dynamic}.call(0));
   self::throws(() → dynamic => f2b{dynamic}.call<core::String>());
   () → self::B<core::String> f3a = #C4;
   self::B<core::String> c3a = f3a(){() → self::B<core::String>};
-  self::expect(true, c3a is{ForNonNullableByDefault} self::B<core::String>);
-  self::expect(false, c3a is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(true, c3a is self::B<core::String>);
+  self::expect(false, c3a is self::B<core::int>);
   self::expect(0, c3a.{self::B::field1}{core::int});
   self::expect("", c3a.{self::B::field2}{core::String});
   () → Null {
@@ -167,16 +167,16 @@ Try removing the extra positional arguments.
   };
   dynamic f3b = #C4;
   dynamic c3b = f3b{dynamic}.call();
-  self::expect(true, c3b is{ForNonNullableByDefault} self::B<core::String>);
-  self::expect(false, c3b is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(true, c3b is self::B<core::String>);
+  self::expect(false, c3b is self::B<core::int>);
   self::expect(0, c3a.{self::B::field1}{core::int});
   self::expect("", c3a.{self::B::field2}{core::String});
   self::throws(() → dynamic => f3b{dynamic}.call(0));
   self::throws(() → dynamic => f3b{dynamic}.call<core::String>());
   (core::int) → self::B<core::String> f3c = #C6;
   self::B<core::String> c3c = f3c(42){(core::int) → self::B<core::String>};
-  self::expect(true, c3c is{ForNonNullableByDefault} self::B<core::String>);
-  self::expect(false, c3c is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(true, c3c is self::B<core::String>);
+  self::expect(false, c3c is self::B<core::int>);
   self::expect(42, c3c.{self::B::field1}{core::int});
   self::expect("", c3c.{self::B::field2}{core::String});
   () → Null {
@@ -193,8 +193,8 @@ Try removing the extra positional arguments.
   };
   dynamic f3d = #C6;
   dynamic c3d = f3d{dynamic}.call(42);
-  self::expect(true, c3d is{ForNonNullableByDefault} self::B<core::String>);
-  self::expect(false, c3d is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(true, c3d is self::B<core::String>);
+  self::expect(false, c3d is self::B<core::int>);
   self::expect(42, c3d{dynamic}.field1);
   self::expect("", c3d{dynamic}.field2);
   self::throws(() → dynamic => f3d{dynamic}.call());
@@ -202,8 +202,8 @@ Try removing the extra positional arguments.
   self::throws(() → dynamic => f3d{dynamic}.call<core::String>(0));
   (core::int, core::String) → self::B<core::String> f3e = #C8;
   self::B<core::String> c3e = f3e(42, "foo"){(core::int, core::String) → self::B<core::String>};
-  self::expect(true, c3e is{ForNonNullableByDefault} self::B<core::String>);
-  self::expect(false, c3e is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(true, c3e is self::B<core::String>);
+  self::expect(false, c3e is self::B<core::int>);
   self::expect(42, c3e.{self::B::field1}{core::int});
   self::expect("foo", c3e.{self::B::field2}{core::String});
   () → Null {
@@ -219,8 +219,8 @@ Try removing the extra positional arguments.
   };
   dynamic f3f = #C8;
   dynamic c3f = f3f{dynamic}.call(42, "foo");
-  self::expect(true, c3f is{ForNonNullableByDefault} self::B<core::String>);
-  self::expect(false, c3f is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(true, c3f is self::B<core::String>);
+  self::expect(false, c3f is self::B<core::int>);
   self::expect(42, c3f{dynamic}.field1);
   self::expect("foo", c3f{dynamic}.field2);
   self::throws(() → dynamic => c3f{dynamic}.call());
@@ -228,11 +228,11 @@ Try removing the extra positional arguments.
   self::throws(() → dynamic => c3f{dynamic}.call<core::String>(0));
   <X extends core::num>() → self::B<X> f4a = #C9;
   self::B<core::num> c4a = f4a<core::num>(){() → self::B<core::num>};
-  self::expect(true, c4a is{ForNonNullableByDefault} self::B<core::num>);
-  self::expect(false, c4a is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(true, c4a is self::B<core::num>);
+  self::expect(false, c4a is self::B<core::int>);
   self::B<core::int> c4b = f4a<core::int>(){() → self::B<core::int>};
-  self::expect(true, c4b is{ForNonNullableByDefault} self::B<core::int>);
-  self::expect(false, c4b is{ForNonNullableByDefault} self::B<core::double>);
+  self::expect(true, c4b is self::B<core::int>);
+  self::expect(false, c4b is self::B<core::double>);
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:130:8: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
@@ -242,20 +242,20 @@ Try removing the extra positional arguments.
   };
   dynamic f4b = #C9;
   dynamic c4c = f4b{dynamic}.call();
-  self::expect(true, c4c is{ForNonNullableByDefault} self::B<core::num>);
-  self::expect(false, c4c is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(true, c4c is self::B<core::num>);
+  self::expect(false, c4c is self::B<core::int>);
   dynamic c4d = f4b{dynamic}.call<core::int>();
-  self::expect(true, c4d is{ForNonNullableByDefault} self::B<core::int>);
-  self::expect(false, c4d is{ForNonNullableByDefault} self::B<core::double>);
+  self::expect(true, c4d is self::B<core::int>);
+  self::expect(false, c4d is self::B<core::double>);
   self::throws(() → dynamic => f4b{dynamic}.call(0));
   self::throws(() → dynamic => f4b{dynamic}.call<core::String>());
   <X extends core::num, unrelated Y extends core::String>() → self::B<X> f5a = #C10;
   self::B<core::num> c5a = f5a<core::num, core::String>(){() → self::B<core::num>};
-  self::expect(true, c5a is{ForNonNullableByDefault} self::B<core::num>);
-  self::expect(false, c5a is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(true, c5a is self::B<core::num>);
+  self::expect(false, c5a is self::B<core::int>);
   self::B<core::int> c5b = f5a<core::int, core::String>(){() → self::B<core::int>};
-  self::expect(true, c5b is{ForNonNullableByDefault} self::B<core::int>);
-  self::expect(false, c5b is{ForNonNullableByDefault} self::B<core::double>);
+  self::expect(true, c5b is self::B<core::int>);
+  self::expect(false, c5b is self::B<core::double>);
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:152:8: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
@@ -269,11 +269,11 @@ Try removing the extra positional arguments.
   };
   dynamic f5b = #C10;
   dynamic c5c = f5b{dynamic}.call();
-  self::expect(true, c5c is{ForNonNullableByDefault} self::B<core::num>);
-  self::expect(false, c5c is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(true, c5c is self::B<core::num>);
+  self::expect(false, c5c is self::B<core::int>);
   dynamic c5d = f5b{dynamic}.call<core::int, core::String>();
-  self::expect(true, c5d is{ForNonNullableByDefault} self::B<core::int>);
-  self::expect(false, c5d is{ForNonNullableByDefault} self::B<core::double>);
+  self::expect(true, c5d is self::B<core::int>);
+  self::expect(false, c5d is self::B<core::double>);
   self::throws(() → dynamic => f5b{dynamic}.call(0));
   self::throws(() → dynamic => f5b{dynamic}.call<core::String>());
   self::throws(() → dynamic => f5b{dynamic}.call<core::String, core::String>());

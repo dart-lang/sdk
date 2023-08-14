@@ -6,8 +6,10 @@ import 'dart:io';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
+import 'package:vm/target/vm.dart';
 import 'package:vm/transformations/to_string_transformer.dart'
     show transformComponent;
 
@@ -16,16 +18,19 @@ import '../common_test_utils.dart';
 final Uri pkgVmUri = Platform.script.resolve('../..');
 
 runTestCase(List<String> packageUris, String expectationName) async {
+  final target = new VmTarget(new TargetFlags());
   final testCasesUri =
       pkgVmUri.resolve('testcases/transformations/to_string_transformer/');
   final packagesFileUri =
       testCasesUri.resolve('.dart_tool/package_config.json');
   Component component = await compileTestCaseToKernelProgram(
       Uri.parse('package:to_string_transformer_test/main.dart'),
+      target: target,
       packagesFileUri: packagesFileUri);
 
   transformComponent(component, packageUris);
-  verifyComponent(component);
+  verifyComponent(
+      target, VerificationStage.afterModularTransformations, component);
 
   final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
 

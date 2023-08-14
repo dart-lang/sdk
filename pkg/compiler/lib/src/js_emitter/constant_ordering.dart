@@ -200,6 +200,14 @@ class _ConstantOrdering
     if (r != 0) return r;
     return compareLists(compareDartTypes, a.typeArguments, b.typeArguments);
   }
+
+  @override
+  int visitJavaScriptObject(
+      JavaScriptObjectConstantValue a, JavaScriptObjectConstantValue b) {
+    int r = compareLists(compareValues, a.keys, b.keys);
+    if (r != 0) return r;
+    return compareLists(compareValues, a.values, b.values);
+  }
 }
 
 /// Visitor for distinguishing types by kind.

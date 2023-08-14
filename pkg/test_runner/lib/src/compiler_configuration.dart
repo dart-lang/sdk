@@ -98,7 +98,8 @@ abstract class CompilerConfiguration {
             configuration.architecture == Architecture.simarm64c ||
             configuration.architecture == Architecture.simriscv32 ||
             configuration.architecture == Architecture.simriscv64 ||
-            configuration.system == System.android) {
+            configuration.system == System.android ||
+            configuration.useQemu) {
           return VMKernelCompilerConfiguration(configuration);
         }
         return NoneCompilerConfiguration(configuration);
@@ -593,7 +594,6 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
     final args = testFile.dartOptions;
     return [
       '--experimental-wasm-gc',
-      '--experimental-wasm-stack-switching',
       '--experimental-wasm-type-reflection',
       'pkg/dart2wasm/bin/run_wasm.js',
       '--',

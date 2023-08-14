@@ -68,7 +68,8 @@ class JsFunction extends JsObject {
 }
 
 @patch
-class JsArray<E> extends JsObject with ListMixin<E> {
+// TODO(johnniwinther): Support with clause in patches/augmentations.
+class JsArray<E> /*extends JsObject with ListMixin<E>*/ {
   @patch
   factory JsArray() => throw UnimplementedError();
 

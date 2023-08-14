@@ -24,7 +24,7 @@ NativeMessageHandler::~NativeMessageHandler() {
 
 #if defined(DEBUG)
 void NativeMessageHandler::CheckAccess() {
-  ASSERT(Isolate::Current() == NULL);
+  ASSERT(Isolate::Current() == nullptr);
 }
 #endif
 

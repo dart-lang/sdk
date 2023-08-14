@@ -176,6 +176,28 @@ class TypeSystemImpl implements TypeSystem {
       final leftElement = left.element;
       final rightElement = right.element;
 
+      // Can happen in JavaScript.
+      if (left.isDartCoreInt && right.isDartCoreDouble ||
+          left.isDartCoreDouble && right.isDartCoreInt) {
+        return true;
+      }
+
+      // FutureOr<T> = T || Future<T>
+      // So, we attempt to match both to the right.
+      if (left.isDartAsyncFutureOr) {
+        final base = futureOrBase(left);
+        final future = typeProvider.futureType(base);
+        return canBeSubtypeOf(base, right) || canBeSubtypeOf(future, right);
+      }
+
+      // FutureOr<T> = T || Future<T>
+      // So, we attempt to match both to the left.
+      if (right.isDartAsyncFutureOr) {
+        final base = futureOrBase(right);
+        final future = typeProvider.futureType(base);
+        return canBeSubtypeOf(left, base) || canBeSubtypeOf(left, future);
+      }
+
       bool canBeSubtypeOfInterfaces(InterfaceType left, InterfaceType right) {
         assert(left.element == right.element);
         final leftArguments = left.typeArguments;
@@ -205,10 +227,10 @@ class TypeSystemImpl implements TypeSystem {
       }
 
       if (leftElement is ClassElementImpl) {
-        // If the left is final, we know all subtypes, and can check them.
-        final finalSubtypes = leftElement.subtypesOfFinal;
-        if (finalSubtypes != null) {
-          for (final candidate in [left, ...finalSubtypes]) {
+        // If we know all subtypes, only they can implement the right.
+        final allSubtypes = leftElement.allSubtypes;
+        if (allSubtypes != null) {
+          for (final candidate in [left, ...allSubtypes]) {
             final asRight = candidate.asInstanceOf(rightElement);
             if (asRight != null) {
               if (_canBeEqualArguments(asRight, right)) {
@@ -221,11 +243,10 @@ class TypeSystemImpl implements TypeSystem {
       }
 
       if (rightElement is ClassElementImpl) {
-        // If the right is final, then it or one of its subtypes must
-        // implement the left.
-        final finalSubtypes = rightElement.subtypesOfFinal;
-        if (finalSubtypes != null) {
-          for (final candidate in [right, ...finalSubtypes]) {
+        // If we know all subtypes, only they can implement the left.
+        final allSubtypes = rightElement.allSubtypes;
+        if (allSubtypes != null) {
+          for (final candidate in [right, ...allSubtypes]) {
             final asLeft = candidate.asInstanceOf(leftElement);
             if (asLeft != null) {
               if (canBeSubtypeOfInterfaces(left, asLeft)) {
@@ -896,6 +917,11 @@ class TypeSystemImpl implements TypeSystem {
       return true;
     }
 
+    // Accept the invalid type, we have already reported an error for it.
+    if (fromType is InvalidType) {
+      return true;
+    }
+
     // A 'call' method tearoff.
     if (fromType is InterfaceType &&
         !isNullable(fromType) &&
@@ -915,7 +941,7 @@ class TypeSystemImpl implements TypeSystem {
 
     // Now handle NNBD default behavior, where we disable non-dynamic downcasts.
     if (isNonNullableByDefault) {
-      return fromType.isDynamic;
+      return fromType is DynamicType;
     }
 
     // Don't allow implicit downcasts between function types
@@ -1032,6 +1058,27 @@ class TypeSystemImpl implements TypeSystem {
 
       var promotedBound = type.promotedBound;
       if (promotedBound != null && isFunctionBounded(promotedBound)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /// Either [InvalidType] itself, or an intersection with it.
+  bool isInvalidBounded(DartType type) {
+    if (identical(type, InvalidTypeImpl.instance)) {
+      return true;
+    }
+
+    if (type is TypeParameterTypeImpl) {
+      var bound = type.element.bound;
+      if (bound != null && isInvalidBounded(bound)) {
+        return true;
+      }
+
+      var promotedBound = type.promotedBound;
+      if (promotedBound != null && isInvalidBounded(promotedBound)) {
         return true;
       }
     }
@@ -1172,12 +1219,14 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // MORETOP(dynamic, S) = true
-    if (identical(T, DynamicTypeImpl.instance)) {
+    if (identical(T, DynamicTypeImpl.instance) ||
+        identical(T, InvalidTypeImpl.instance)) {
       return true;
     }
 
     // MORETOP(T, dynamic) = false
-    if (identical(S, DynamicTypeImpl.instance)) {
+    if (identical(S, DynamicTypeImpl.instance) ||
+        identical(S, InvalidTypeImpl.instance)) {
       return false;
     }
 
@@ -1244,7 +1293,11 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   bool isNonNullable(DartType type) {
-    if (type.isDynamic || type is VoidType || type.isDartCoreNull) {
+    if (type is DynamicType ||
+        type is InvalidType ||
+        type is UnknownInferredType ||
+        type is VoidType ||
+        type.isDartCoreNull) {
       return false;
     } else if (type is TypeParameterTypeImpl && type.promotedBound != null) {
       return isNonNullable(type.promotedBound!);
@@ -1285,7 +1338,11 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   bool isNullable(DartType type) {
-    if (type.isDynamic || type is VoidType || type.isDartCoreNull) {
+    if (type is DynamicType ||
+        type is InvalidType ||
+        type is UnknownInferredType ||
+        type is VoidType ||
+        type.isDartCoreNull) {
       return true;
     } else if (type is TypeParameterTypeImpl && type.promotedBound != null) {
       return isNullable(type.promotedBound!);
@@ -1327,7 +1384,11 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   bool isStrictlyNonNullable(DartType type) {
-    if (type.isDynamic || type is VoidType || type.isDartCoreNull) {
+    if (type is DynamicType ||
+        type is InvalidType ||
+        type is UnknownInferredType ||
+        type is VoidType ||
+        type.isDartCoreNull) {
       return false;
     } else if (type.nullabilitySuffix != NullabilitySuffix.none) {
       return false;
@@ -1357,7 +1418,8 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // TOP(dynamic) is true
-    if (identical(type, DynamicTypeImpl.instance)) {
+    if (identical(type, DynamicTypeImpl.instance) ||
+        identical(type, InvalidTypeImpl.instance)) {
       return true;
     }
 
@@ -1683,7 +1745,7 @@ class TypeSystemImpl implements TypeSystem {
         return null;
       }
 
-      if (!bound1.isDynamic) {
+      if (bound1 is! DynamicType) {
         freshTypeParameters[i].bound = bound1;
       }
     }

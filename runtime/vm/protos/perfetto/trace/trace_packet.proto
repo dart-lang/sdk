@@ -1,0 +1,127 @@
+/*
+ * Copyright (C) 2017 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// NOTE: This is a manually minified version of Perfetto's
+// trace_packet.proto.
+
+// IMPORTANT: The coresponding .pbzero.h file must be regenerated after
+// any change is made to this file. This can be done by running
+// `dart runtime/vm/protos/tools/compile_perfetto_protos.dart` from the
+// SDK root directory.
+
+syntax = "proto2";
+
+import "protos/perfetto/trace/clock_snapshot.proto";
+import "protos/perfetto/trace/interned_data/interned_data.proto";
+import "protos/perfetto/trace/profiling/profile_packet.proto";
+import "protos/perfetto/trace/track_event/track_descriptor.proto";
+import "protos/perfetto/trace/track_event/track_event.proto";
+
+package perfetto.protos;
+
+// TracePacket is the root object of a Perfetto trace.
+// A Perfetto trace is a linear sequence of TracePacket(s).
+//
+// The tracing service guarantees that all TracePacket(s) written by a given
+// TraceWriter are seen in-order, without gaps or duplicates. If, for any
+// reason, a TraceWriter sequence becomes invalid, no more packets are returned
+// to the Consumer (or written into the trace file).
+// TracePacket(s) written by different TraceWriter(s), hence even different
+// data sources, can be seen in arbitrary order.
+// The consumer can re-establish a total order, if interested, using the packet
+// timestamps, after having synchronized the different clocks onto a global
+// clock.
+//
+// The tracing service is agnostic of the content of TracePacket, with the
+// exception of few fields (e.g.. trusted_*, trace_config) that are written by
+// the service itself.
+//
+// See the [Buffers and Dataflow](/docs/concepts/buffers.md) doc for details.
+//
+// Next reserved id: 14 (up to 15).
+// Next id: 88.
+message TracePacket {
+  // The timestamp of the TracePacket.
+  // By default this timestamps refers to the trace clock (CLOCK_BOOTTIME on
+  // Android). It can be overridden using a different timestamp_clock_id.
+  // The clock domain definition in ClockSnapshot can also override:
+  // - The unit (default: 1ns).
+  // - The absolute vs delta encoding (default: absolute timestamp).
+  optional uint64 timestamp = 8;
+
+  // Specifies the ID of the clock used for the TracePacket |timestamp|. Can be
+  // one of the built-in types from ClockSnapshot::BuiltinClocks, or a
+  // producer-defined clock id.
+  // If unspecified and if no default per-sequence value has been provided via
+  // TracePacketDefaults, it defaults to BuiltinClocks::BOOTTIME.
+  optional uint32 timestamp_clock_id = 58;
+
+  oneof data {
+    ClockSnapshot clock_snapshot = 6;
+    TrackEvent track_event = 11;
+
+    // IDs up to 15 are reserved. They take only one byte to encode their
+    // preamble so should be used for frequent events.
+
+    // Only used by TrackEvent.
+    TrackDescriptor track_descriptor = 60;
+
+    PerfSample perf_sample = 66;
+  }
+
+  // Service-assigned identifier of the packet sequence this packet belongs to.
+  // Uniquely identifies a producer + writer pair within the tracing session. A
+  // value of zero denotes an invalid ID. Keep in sync with
+  // TrustedPacket.trusted_packet_sequence_id.
+  oneof optional_trusted_packet_sequence_id {
+    uint32 trusted_packet_sequence_id = 10;
+  }
+
+  // Incrementally emitted interned data, valid only on the packet's sequence
+  // (packets with the same |trusted_packet_sequence_id|). The writer will
+  // usually emit new interned data in the same TracePacket that first refers to
+  // it (since the last reset of interning state). It may also be emitted
+  // proactively in advance of referring to them in later packets.
+  optional InternedData interned_data = 12;
+
+  enum SequenceFlags {
+    SEQ_UNSPECIFIED = 0;
+
+    // Set by the writer to indicate that it will re-emit any incremental data
+    // for the packet's sequence before referring to it again. This includes
+    // interned data as well as periodically emitted data like
+    // Process/ThreadDescriptors. This flag only affects the current packet
+    // sequence (see |trusted_packet_sequence_id|).
+    //
+    // When set, this TracePacket and subsequent TracePackets on the same
+    // sequence will not refer to any incremental data emitted before this
+    // TracePacket. For example, previously emitted interned data will be
+    // re-emitted if it is referred to again.
+    //
+    // When the reader detects packet loss (|previous_packet_dropped|), it needs
+    // to skip packets in the sequence until the next one with this flag set, to
+    // ensure intact incremental data.
+    SEQ_INCREMENTAL_STATE_CLEARED = 1;
+
+    // This packet requires incremental state, such as TracePacketDefaults or
+    // InternedData, to be parsed correctly. The trace reader should skip this
+    // packet if incremental state is not valid on this sequence, i.e. if no
+    // packet with the SEQ_INCREMENTAL_STATE_CLEARED flag has been seen on the
+    // current |trusted_packet_sequence_id|.
+    SEQ_NEEDS_INCREMENTAL_STATE = 2;
+  };
+  optional uint32 sequence_flags = 13;
+}

@@ -10,6 +10,8 @@
 ///
 /// Instances of these constant values are accessed through the
 /// [element model](../element/element.dart).
+library;
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 

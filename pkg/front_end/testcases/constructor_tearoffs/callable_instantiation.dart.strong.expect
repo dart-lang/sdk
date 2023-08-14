@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -302,17 +302,17 @@ Try changing the operand or remove the type arguments.
   f3<int>; // error
     ^";
 }
-static method Extension|call<T extends core::Object? = dynamic>(lowered final core::int #this) → dynamic {}
-static method Extension|get#call(lowered final core::int #this) → <T extends core::Object? = dynamic>() → dynamic
+static extension-member method Extension|call<T extends core::Object? = dynamic>(lowered final core::int #this) → dynamic {}
+static extension-member method Extension|get#call(lowered final core::int #this) → <T extends core::Object? = dynamic>() → dynamic
   return <T extends core::Object? = dynamic>() → dynamic => self::Extension|call<T%>(#this);
-static method ExtensionGetter|get#call(lowered final core::double #this) → <T extends core::Object? = dynamic>() → void
+static extension-member method ExtensionGetter|get#call(lowered final core::double #this) → <T extends core::Object? = dynamic>() → void
   return <T extends core::Object? = dynamic>() → void {};
-static method ExtensionSetter|set#call(lowered final core::bool #this, <T extends core::Object? = dynamic>() → void value) → void {}
-static method Ambiguous1|call<T extends core::Object? = dynamic>(lowered final core::String #this) → dynamic {}
-static method Ambiguous1|get#call(lowered final core::String #this) → <T extends core::Object? = dynamic>() → dynamic
+static extension-member method ExtensionSetter|set#call(lowered final core::bool #this, <T extends core::Object? = dynamic>() → void value) → void {}
+static extension-member method Ambiguous1|call<T extends core::Object? = dynamic>(lowered final core::String #this) → dynamic {}
+static extension-member method Ambiguous1|get#call(lowered final core::String #this) → <T extends core::Object? = dynamic>() → dynamic
   return <T extends core::Object? = dynamic>() → dynamic => self::Ambiguous1|call<T%>(#this);
-static method Ambiguous2|call<T extends core::Object? = dynamic>(lowered final core::String #this) → dynamic {}
-static method Ambiguous2|get#call(lowered final core::String #this) → <T extends core::Object? = dynamic>() → dynamic
+static extension-member method Ambiguous2|call<T extends core::Object? = dynamic>(lowered final core::String #this) → dynamic {}
+static extension-member method Ambiguous2|get#call(lowered final core::String #this) → <T extends core::Object? = dynamic>() → dynamic
   return <T extends core::Object? = dynamic>() → dynamic => self::Ambiguous2|call<T%>(#this);
 static method main() → dynamic {
   self::method<self::Class, core::int>(new self::Class::•(), 0, new self::Class::•(), 0);

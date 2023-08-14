@@ -24,8 +24,8 @@ typedef void (*TrustEvaluateHandlerFunc)(Dart_Port dest_port_id,
 class SSLCertContext : public ReferenceCounted<SSLCertContext> {
  public:
   static const intptr_t kApproximateSize;
-  static const int kSecurityContextNativeFieldIndex = 0;
-  static const int kX509NativeFieldIndex = 0;
+  static constexpr int kSecurityContextNativeFieldIndex = 0;
+  static constexpr int kX509NativeFieldIndex = 0;
 
   explicit SSLCertContext(SSL_CTX* context)
       : ReferenceCounted(),
@@ -75,7 +75,7 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
   uint8_t* alpn_protocol_string() const { return alpn_protocol_string_; }
 
   void set_alpn_protocol_string(uint8_t* protocol_string) {
-    if (alpn_protocol_string_ != NULL) {
+    if (alpn_protocol_string_ != nullptr) {
       free(alpn_protocol_string_);
     }
     alpn_protocol_string_ = protocol_string;

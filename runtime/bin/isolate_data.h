@@ -52,7 +52,7 @@ class IsolateGroupData {
   // Associate the given kernel buffer with this IsolateGroupData without
   // giving it ownership of the buffer.
   void SetKernelBufferUnowned(uint8_t* buffer, intptr_t size) {
-    ASSERT(kernel_buffer_.get() == NULL);
+    ASSERT(kernel_buffer_.get() == nullptr);
     kernel_buffer_ = std::shared_ptr<uint8_t>(buffer, FreeUnownedKernelBuffer);
     kernel_buffer_size_ = size;
   }
@@ -61,7 +61,7 @@ class IsolateGroupData {
   // ownership of the buffer. This IsolateGroupData is the first one to own the
   // buffer.
   void SetKernelBufferNewlyOwned(uint8_t* buffer, intptr_t size) {
-    ASSERT(kernel_buffer_.get() == NULL);
+    ASSERT(kernel_buffer_.get() == nullptr);
     kernel_buffer_ = std::shared_ptr<uint8_t>(buffer, free);
     kernel_buffer_size_ = size;
   }
@@ -71,7 +71,7 @@ class IsolateGroupData {
   // IsolateGroupData.
   void SetKernelBufferAlreadyOwned(std::shared_ptr<uint8_t> buffer,
                                    intptr_t size) {
-    ASSERT(kernel_buffer_.get() == NULL);
+    ASSERT(kernel_buffer_.get() == nullptr);
     kernel_buffer_ = std::move(buffer);
     kernel_buffer_size_ = size;
   }
@@ -81,9 +81,9 @@ class IsolateGroupData {
   }
 
   void set_resolved_packages_config(const char* packages_config) {
-    if (resolved_packages_config_ != NULL) {
+    if (resolved_packages_config_ != nullptr) {
       free(resolved_packages_config_);
-      resolved_packages_config_ = NULL;
+      resolved_packages_config_ = nullptr;
     }
     resolved_packages_config_ = Utils::StrDup(packages_config);
   }
@@ -136,13 +136,13 @@ class IsolateData {
   }
 
   // While loading a loader is associated with the isolate.
-  bool HasLoader() const { return loader_ != NULL; }
+  bool HasLoader() const { return loader_ != nullptr; }
   Loader* loader() const {
-    ASSERT(loader_ != NULL);
+    ASSERT(loader_ != nullptr);
     return loader_;
   }
   void set_loader(Loader* loader) {
-    ASSERT((loader_ == NULL) || (loader == NULL));
+    ASSERT((loader_ == nullptr) || (loader == nullptr));
     loader_ = loader;
   }
 

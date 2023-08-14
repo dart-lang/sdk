@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -28,7 +28,7 @@ class SubClass extends self::Class {
   set setter(core::Object o) → void {
     super.{self::SuperClass::setter} = invalid-expression "pkg/front_end/testcases/general/super_set_abstract.dart:15:24: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
     super.setter = '\$o';
-                       ^" in "${o}" as{TypeError,ForNonNullableByDefault} core::int;
+                       ^" in "${o}" as{TypeError} core::int;
   }
 }
 static method test() → dynamic {

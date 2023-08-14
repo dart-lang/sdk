@@ -64,20 +64,20 @@ class OffsetsExtractor : public AllStatic {
 
 #define PRINT_FIELD_OFFSET(Class, Name)                                        \
   std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
-               "_" #Name " = "                                                 \
+               "_" #Name " = 0x"                                               \
             << Class::Name() << ";\n";
 
 #define PRINT_ARRAY_LAYOUT(Class, Name)                                        \
   std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
-               "_elements_start_offset = "                                     \
+               "_elements_start_offset = 0x"                                   \
             << Class::ArrayTraits::elements_start_offset() << ";\n";           \
   std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
-               "_element_size = "                                              \
+               "_element_size = 0x"                                            \
             << Class::ArrayTraits::kElementSize << ";\n";
 
 #define PRINT_SIZEOF(Class, Name, What)                                        \
   std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
-               "_" #Name " = "                                                 \
+               "_" #Name " = 0x"                                               \
             << sizeof(What) << ";\n";
 
 #define PRINT_RANGE(Class, Name, Type, First, Last, Filter)                    \
@@ -89,7 +89,12 @@ class OffsetsExtractor : public AllStatic {
     for (intptr_t i = static_cast<intptr_t>(First);                            \
          i <= static_cast<intptr_t>(Last); i++) {                              \
       auto v = static_cast<Type>(i);                                           \
-      std::cout << (comma ? ", " : "") << (filter(v) ? Class::Name(v) : -1);   \
+      std::cout << (comma ? ", " : "");                                        \
+      if (filter(v)) {                                                         \
+        std::cout << "0x" << Class::Name(v);                                   \
+      } else {                                                                 \
+        std::cout << "-1";                                                     \
+      }                                                                        \
       comma = true;                                                            \
     }                                                                          \
     std::cout << "};\n";                                                       \
@@ -97,7 +102,7 @@ class OffsetsExtractor : public AllStatic {
 
 #define PRINT_CONSTANT(Class, Name)                                            \
   std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
-               "_" #Name " = "                                                 \
+               "_" #Name " = 0x"                                               \
             << Class::Name << ";\n";
 
     AOT_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
@@ -108,20 +113,20 @@ class OffsetsExtractor : public AllStatic {
 
 #define PRINT_FIELD_OFFSET(Class, Name)                                        \
   std::cout << "static constexpr dart::compiler::target::word " #Class         \
-               "_" #Name " = "                                                 \
+               "_" #Name " = 0x"                                               \
             << Class::Name() << ";\n";
 
 #define PRINT_ARRAY_LAYOUT(Class, Name)                                        \
   std::cout << "static constexpr dart::compiler::target::word " #Class         \
-               "_elements_start_offset = "                                     \
+               "_elements_start_offset = 0x"                                   \
             << Class::ArrayTraits::elements_start_offset() << ";\n";           \
   std::cout << "static constexpr dart::compiler::target::word " #Class         \
-               "_element_size = "                                              \
+               "_element_size = 0x"                                            \
             << Class::ArrayTraits::kElementSize << ";\n";
 
 #define PRINT_SIZEOF(Class, Name, What)                                        \
   std::cout << "static constexpr dart::compiler::target::word " #Class         \
-               "_" #Name " = "                                                 \
+               "_" #Name " = 0x"                                               \
             << sizeof(What) << ";\n";
 
 #define PRINT_RANGE(Class, Name, Type, First, Last, Filter)                    \
@@ -133,7 +138,12 @@ class OffsetsExtractor : public AllStatic {
     for (intptr_t i = static_cast<intptr_t>(First);                            \
          i <= static_cast<intptr_t>(Last); i++) {                              \
       auto v = static_cast<Type>(i);                                           \
-      std::cout << (comma ? ", " : "") << (filter(v) ? Class::Name(v) : -1);   \
+      std::cout << (comma ? ", " : "");                                        \
+      if (filter(v)) {                                                         \
+        std::cout << "0x" << Class::Name(v);                                   \
+      } else {                                                                 \
+        std::cout << "-1";                                                     \
+      }                                                                        \
       comma = true;                                                            \
     }                                                                          \
     std::cout << "};\n";                                                       \
@@ -141,7 +151,7 @@ class OffsetsExtractor : public AllStatic {
 
 #define PRINT_CONSTANT(Class, Name)                                            \
   std::cout << "static constexpr dart::compiler::target::word " #Class         \
-               "_" #Name " = "                                                 \
+               "_" #Name " = 0x"                                               \
             << Class::Name << ";\n";
 
     JIT_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
@@ -167,7 +177,7 @@ class OffsetsExtractor : public AllStatic {
 }  // namespace dart
 
 int main(int argc, char* argv[]) {
-  std::cout << "#if " << ARCH_DEF << std::endl;
+  std::cout << std::hex << "#if " << ARCH_DEF << std::endl;
 #if !defined(TARGET_ARCH_IA32) || !defined(DART_PRECOMPILED_RUNTIME)
   dart::OffsetsExtractor::DumpOffsets();
 #endif

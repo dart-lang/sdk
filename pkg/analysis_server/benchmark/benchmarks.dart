@@ -95,7 +95,7 @@ abstract class Benchmark {
 }
 
 class BenchMarkResult {
-  /// One of 'bytes', 'kb', 'micros', or 'compound'.
+  /// One of 'bytes', 'micros', or 'compound'.
   final String kindName;
 
   final int value;

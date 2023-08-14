@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -33,7 +33,6 @@ import self as self;
 import "dart:core" as core;
 
 class Supertype extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   static factory •() → self::Supertype
     return invalid-expression "pkg/front_end/testcases/regress/issue_35259.dart:6:25: Error: Redirection constructor target not found: 'Unresolved'
   factory Supertype() = Unresolved;
@@ -43,8 +42,4 @@ static method main() → dynamic {
   core::print(invalid-expression "pkg/front_end/testcases/regress/issue_35259.dart:11:13: Error: Can't use 'Supertype' because it is declared more than once.
   print(new Supertype());
             ^");
-}
-
-constants  {
-  #C1 = constructor-tearoff self::Supertype::•
 }

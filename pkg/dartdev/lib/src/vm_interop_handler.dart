@@ -5,6 +5,8 @@
 import 'dart:isolate';
 
 /// Contains methods used to communicate DartDev results back to the VM.
+///
+/// Messages are received in runtime/bin/dartdev_isolate.cc.
 abstract class VmInteropHandler {
   /// Initializes [VmInteropHandler] to utilize [port] to communicate with the
   /// VM.

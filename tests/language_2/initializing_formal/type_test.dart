@@ -12,7 +12,10 @@ class A {
   // Finding the type of an initializing formal: should cause an error
   // in the initializer but not the body, because the former has type
   // `int` and the latter has type `num`.
-  A(int this.x) : /*@compile-error=unspecified*/ y = x {
+  A(int this.x) : y = x {
+    //                ^
+    // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_NOT_ASSIGNABLE
+    // [cfe] A value of type 'int' can't be assigned to a variable of type 'double'.
     y = x;
   }
 }

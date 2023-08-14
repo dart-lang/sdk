@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "extension_from_dill_lib2.dart" as ext;
 
@@ -8,7 +8,7 @@ static method main() → dynamic {
   ext::Extension|foo("");
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "extension_from_dill_lib2.dart" as ext;
 additionalExports = (ext::Extension)
@@ -16,7 +16,7 @@ additionalExports = (ext::Extension)
 export "org-dartlang-testcase:///extension_from_dill_lib2.dart";
 
 
-library /*isNonNullableByDefault*/;
+library;
 import self as ext;
 import "dart:core" as core;
 
@@ -24,7 +24,7 @@ extension Extension on core::String {
   method foo = ext::Extension|foo;
   tearoff foo = ext::Extension|get#foo;
 }
-static method Extension|foo(lowered final core::String #this) → dynamic
+static extension-member method Extension|foo(lowered final core::String #this) → dynamic
   return 42;
-static method Extension|get#foo(lowered final core::String #this) → () → dynamic
+static extension-member method Extension|get#foo(lowered final core::String #this) → () → dynamic
   return () → dynamic => ext::Extension|foo(#this);

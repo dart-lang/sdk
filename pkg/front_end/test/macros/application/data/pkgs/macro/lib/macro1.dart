@@ -12,8 +12,8 @@ class Macro1 implements ClassDeclarationsMacro {
 
   @override
   FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
-      ClassMemberDeclarationBuilder builder) {
-    builder.declareInClass(new DeclarationCode.fromString('''
+      MemberDeclarationBuilder builder) {
+    builder.declareInType(new DeclarationCode.fromString('''
   get isMacro => true;
 '''));
   }

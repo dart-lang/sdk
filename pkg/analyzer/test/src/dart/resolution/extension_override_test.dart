@@ -31,10 +31,7 @@ void f(int? a) {
     assertResolvedNodeText(findNode.index('[0]'), r'''
 IndexExpression
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -44,6 +41,7 @@ IndexExpression
           staticElement: self::@function::f::@parameter::a
           staticType: int?
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: int
     staticType: null
   leftBracket: [
@@ -72,10 +70,7 @@ void f(int? a) {
 AssignmentExpression
   leftHandSide: IndexExpression
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -85,6 +80,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: int?
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: int
       staticType: null
     leftBracket: [
@@ -124,10 +120,7 @@ void f(int? a) {
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -137,6 +130,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: int?
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: int
     staticType: null
   operator: ?.
@@ -163,11 +157,30 @@ void f(int? a) {
 }
 ''');
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('?.foo'),
-      element: findElement.getter('foo'),
-      type: 'int?',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
+          staticType: int?
+      rightParenthesis: )
+    element: self::@extension::E
+    extendedType: int
+    staticType: null
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@getter::foo
+    staticType: int
+  staticType: int?
+''');
   }
 
   test_propertyAccess_setter_nullAware() async {
@@ -205,10 +218,7 @@ void f(A a) {
       assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -218,6 +228,7 @@ FunctionExpressionInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A
     staticType: null
   argumentList: ArgumentList
@@ -234,10 +245,7 @@ FunctionExpressionInvocation
       assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -247,6 +255,7 @@ FunctionExpressionInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A*
     staticType: null
   argumentList: ArgumentList
@@ -279,18 +288,13 @@ void f(A a) {
       assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: String
-            staticElement: dart:core::@class::String
-            staticType: null
+          name: String
+          element: dart:core::@class::String
           type: String
       rightBracket: >
     argumentList: ArgumentList
@@ -302,6 +306,7 @@ FunctionExpressionInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -322,18 +327,13 @@ FunctionExpressionInvocation
       assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: String
-            staticElement: dart:core::@class::String
-            staticType: null
+          name: String
+          element: dart:core::@class::String
           type: String*
       rightBracket: >
     argumentList: ArgumentList
@@ -345,6 +345,7 @@ FunctionExpressionInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A*
     staticType: null
     typeArgumentTypes
@@ -383,18 +384,11 @@ void f(p.A a) {
       assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ExtensionOverride
-    extensionName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: E
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
-      staticElement: package:test/lib.dart::@extension::E
-      staticType: null
+      element: self::@prefix::p
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -404,6 +398,7 @@ FunctionExpressionInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
   argumentList: ArgumentList
@@ -420,18 +415,11 @@ FunctionExpressionInvocation
       assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ExtensionOverride
-    extensionName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: E
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
-      staticElement: package:test/lib.dart::@extension::E
-      staticType: null
+      element: self::@prefix::p
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -441,6 +429,7 @@ FunctionExpressionInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
     extendedType: A*
     staticType: null
   argumentList: ArgumentList
@@ -476,26 +465,17 @@ void f(p.A a) {
       assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ExtensionOverride
-    extensionName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: E
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
-      staticElement: package:test/lib.dart::@extension::E
-      staticType: null
+      element: self::@prefix::p
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: String
-            staticElement: dart:core::@class::String
-            staticType: null
+          name: String
+          element: dart:core::@class::String
           type: String
       rightBracket: >
     argumentList: ArgumentList
@@ -507,6 +487,7 @@ FunctionExpressionInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -527,26 +508,17 @@ FunctionExpressionInvocation
       assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ExtensionOverride
-    extensionName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: E
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
-      staticElement: package:test/lib.dart::@extension::E
-      staticType: null
+      element: self::@prefix::p
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: String
-            staticElement: dart:core::@class::String
-            staticType: null
+          name: String
+          element: dart:core::@class::String
           type: String*
       rightBracket: >
     argumentList: ArgumentList
@@ -558,6 +530,7 @@ FunctionExpressionInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
     extendedType: A*
     staticType: null
     typeArgumentTypes
@@ -593,10 +566,7 @@ void f(A a) {
       assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -606,6 +576,7 @@ PropertyAccess
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -619,10 +590,7 @@ PropertyAccess
       assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -632,6 +600,7 @@ PropertyAccess
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A*
     staticType: null
   operator: .
@@ -663,10 +632,7 @@ void f(A a) {
 FunctionExpressionInvocation
   function: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -676,6 +642,7 @@ FunctionExpressionInvocation
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -701,10 +668,7 @@ FunctionExpressionInvocation
 FunctionExpressionInvocation
   function: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -714,6 +678,7 @@ FunctionExpressionInvocation
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A*
       staticType: null
     operator: .
@@ -753,18 +718,13 @@ void f(A a) {
       assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -776,6 +736,7 @@ PropertyAccess
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -793,18 +754,13 @@ PropertyAccess
       assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int*
       rightBracket: >
     argumentList: ArgumentList
@@ -816,6 +772,7 @@ PropertyAccess
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A*
     staticType: null
     typeArgumentTypes
@@ -851,18 +808,11 @@ void f(p.A a) {
       assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
-    extensionName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: E
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
-      staticElement: package:test/lib.dart::@extension::E
-      staticType: null
+      element: self::@prefix::p
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -872,6 +822,7 @@ PropertyAccess
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -885,18 +836,11 @@ PropertyAccess
       assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
-    extensionName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: E
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
-      staticElement: package:test/lib.dart::@extension::E
-      staticType: null
+      element: self::@prefix::p
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -906,6 +850,7 @@ PropertyAccess
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
     extendedType: A*
     staticType: null
   operator: .
@@ -937,26 +882,17 @@ void f(p.A a) {
       assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
-    extensionName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: E
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
-      staticElement: package:test/lib.dart::@extension::E
-      staticType: null
+      element: self::@prefix::p
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -968,6 +904,7 @@ PropertyAccess
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -985,26 +922,17 @@ PropertyAccess
       assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
-    extensionName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: E
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
-      staticElement: package:test/lib.dart::@extension::E
-      staticType: null
+      element: self::@prefix::p
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int*
       rightBracket: >
     argumentList: ArgumentList
@@ -1016,6 +944,7 @@ PropertyAccess
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
     extendedType: A*
     staticType: null
     typeArgumentTypes
@@ -1048,10 +977,7 @@ void f(A a) {
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1061,6 +987,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -1078,10 +1005,7 @@ MethodInvocation
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1091,6 +1015,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A*
     staticType: null
   operator: .
@@ -1123,18 +1048,13 @@ void f(A a) {
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -1146,6 +1066,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -1167,18 +1088,13 @@ MethodInvocation
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int*
       rightBracket: >
     argumentList: ArgumentList
@@ -1190,6 +1106,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A*
     staticType: null
     typeArgumentTypes
@@ -1229,18 +1146,11 @@ void f(p.A a) {
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: E
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
-      staticElement: package:test/lib.dart::@extension::E
-      staticType: null
+      element: self::@prefix::p
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1250,6 +1160,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -1267,18 +1178,11 @@ MethodInvocation
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: E
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
-      staticElement: package:test/lib.dart::@extension::E
-      staticType: null
+      element: self::@prefix::p
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1288,6 +1192,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
     extendedType: A*
     staticType: null
   operator: .
@@ -1323,26 +1228,17 @@ void f(p.A a) {
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: E
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
-      staticElement: package:test/lib.dart::@extension::E
-      staticType: null
+      element: self::@prefix::p
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -1354,6 +1250,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -1375,26 +1272,17 @@ MethodInvocation
       assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: E
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
-      staticElement: package:test/lib.dart::@extension::E
-      staticType: null
+      element: self::@prefix::p
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int*
       rightBracket: >
     argumentList: ArgumentList
@@ -1406,6 +1294,7 @@ MethodInvocation
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
     extendedType: A*
     staticType: null
     typeArgumentTypes
@@ -1442,10 +1331,7 @@ void f(A a) {
       assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1455,6 +1341,7 @@ BinaryExpression
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A
     staticType: null
   operator: +
@@ -1470,10 +1357,7 @@ BinaryExpression
       assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1483,6 +1367,7 @@ BinaryExpression
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A*
     staticType: null
   operator: +
@@ -1513,18 +1398,13 @@ void f(A a) {
       assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -1536,6 +1416,7 @@ BinaryExpression
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -1553,18 +1434,13 @@ BinaryExpression
       assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int*
       rightBracket: >
     argumentList: ArgumentList
@@ -1576,6 +1452,7 @@ BinaryExpression
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: A*
     staticType: null
     typeArgumentTypes
@@ -1612,10 +1489,7 @@ f(){
 PostfixExpression
   operand: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -1624,6 +1498,7 @@ PostfixExpression
             parameter: <null>
             staticType: int
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: int
       staticType: null
     operator: .
@@ -1634,21 +1509,18 @@ PostfixExpression
     staticType: null
   operator: ++
   readElement: self::@extension::E::@method::v
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
     } else {
       assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -1657,6 +1529,7 @@ PostfixExpression
             parameter: <null>
             staticType: int*
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: int*
       staticType: null
     operator: .
@@ -1667,11 +1540,11 @@ PostfixExpression
     staticType: null
   operator: ++
   readElement: self::@extension::E::@method::v
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
     }
   }
@@ -1695,18 +1568,11 @@ void f(p.A a) {
       assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride
-    extensionName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: E
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
-      staticElement: package:test/lib.dart::@extension::E
-      staticType: null
+      element: self::@prefix::p
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1716,6 +1582,7 @@ BinaryExpression
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
   operator: +
@@ -1731,18 +1598,11 @@ BinaryExpression
       assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride
-    extensionName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: E
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
-      staticElement: package:test/lib.dart::@extension::E
-      staticType: null
+      element: self::@prefix::p
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -1752,6 +1612,7 @@ BinaryExpression
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
     extendedType: A*
     staticType: null
   operator: +
@@ -1785,26 +1646,17 @@ void f(p.A a) {
       assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride
-    extensionName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: E
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
-      staticElement: package:test/lib.dart::@extension::E
-      staticType: null
+      element: self::@prefix::p
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -1816,6 +1668,7 @@ BinaryExpression
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -1833,26 +1686,17 @@ BinaryExpression
       assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride
-    extensionName: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
-        staticElement: self::@prefix::p
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: p
       period: .
-      identifier: SimpleIdentifier
-        token: E
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
-      staticElement: package:test/lib.dart::@extension::E
-      staticType: null
+      element: self::@prefix::p
+    name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int*
       rightBracket: >
     argumentList: ArgumentList
@@ -1864,6 +1708,7 @@ BinaryExpression
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
     extendedType: A*
     staticType: null
     typeArgumentTypes
@@ -1897,10 +1742,7 @@ void f(A a) {
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -1910,6 +1752,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -1935,10 +1778,7 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -1948,6 +1788,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A*
       staticType: null
     operator: .
@@ -1988,18 +1829,13 @@ void f(A a) {
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
       argumentList: ArgumentList
@@ -2011,6 +1847,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A
       staticType: null
       typeArgumentTypes
@@ -2042,18 +1879,13 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int*
         rightBracket: >
       argumentList: ArgumentList
@@ -2065,6 +1897,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A*
       staticType: null
       typeArgumentTypes
@@ -2114,18 +1947,11 @@ void f(p.A a) {
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: self::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: E
-          staticElement: package:test/lib.dart::@extension::E
-          staticType: null
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
+        element: self::@prefix::p
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -2135,6 +1961,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: package:test/lib.dart::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -2160,18 +1987,11 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: self::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: E
-          staticElement: package:test/lib.dart::@extension::E
-          staticType: null
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
+        element: self::@prefix::p
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -2181,6 +2001,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
+      element: package:test/lib.dart::@extension::E
       extendedType: A*
       staticType: null
     operator: .
@@ -2224,26 +2045,17 @@ void f(p.A a) {
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: self::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: E
-          staticElement: package:test/lib.dart::@extension::E
-          staticType: null
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
+        element: self::@prefix::p
+      name: E
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
       argumentList: ArgumentList
@@ -2255,6 +2067,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: package:test/lib.dart::@extension::E
       extendedType: A
       staticType: null
       typeArgumentTypes
@@ -2286,26 +2099,17 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: self::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: E
-          staticElement: package:test/lib.dart::@extension::E
-          staticType: null
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
+        element: self::@prefix::p
+      name: E
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int*
         rightBracket: >
       argumentList: ArgumentList
@@ -2317,6 +2121,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
+      element: package:test/lib.dart::@extension::E
       extendedType: A*
       staticType: null
       typeArgumentTypes
@@ -2364,10 +2169,7 @@ void f(A a) {
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -2377,6 +2179,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -2402,10 +2205,7 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -2415,6 +2215,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A*
       staticType: null
     operator: .
@@ -2460,18 +2261,13 @@ void f(A a) {
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
       argumentList: ArgumentList
@@ -2483,6 +2279,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A
       staticType: null
       typeArgumentTypes
@@ -2514,18 +2311,13 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: SimpleIdentifier
-        token: E
-        staticElement: self::@extension::E
-        staticType: null
+      name: E
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int*
         rightBracket: >
       argumentList: ArgumentList
@@ -2537,6 +2329,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
+      element: self::@extension::E
       extendedType: A*
       staticType: null
       typeArgumentTypes
@@ -2591,18 +2384,11 @@ void f(p.A a) {
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: self::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: E
-          staticElement: package:test/lib.dart::@extension::E
-          staticType: null
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
+        element: self::@prefix::p
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -2612,6 +2398,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: package:test/lib.dart::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -2637,18 +2424,11 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: self::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: E
-          staticElement: package:test/lib.dart::@extension::E
-          staticType: null
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
+        element: self::@prefix::p
+      name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments
@@ -2658,6 +2438,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
+      element: package:test/lib.dart::@extension::E
       extendedType: A*
       staticType: null
     operator: .
@@ -2706,26 +2487,17 @@ void f(p.A a) {
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: self::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: E
-          staticElement: package:test/lib.dart::@extension::E
-          staticType: null
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
+        element: self::@prefix::p
+      name: E
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
       argumentList: ArgumentList
@@ -2737,6 +2509,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
+      element: package:test/lib.dart::@extension::E
       extendedType: A
       staticType: null
       typeArgumentTypes
@@ -2768,26 +2541,17 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
-      extensionName: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: p
-          staticElement: self::@prefix::p
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: p
         period: .
-        identifier: SimpleIdentifier
-          token: E
-          staticElement: package:test/lib.dart::@extension::E
-          staticType: null
-        staticElement: package:test/lib.dart::@extension::E
-        staticType: null
+        element: self::@prefix::p
+      name: E
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int*
         rightBracket: >
       argumentList: ArgumentList
@@ -2799,6 +2563,7 @@ AssignmentExpression
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
+      element: package:test/lib.dart::@extension::E
       extendedType: A*
       staticType: null
       typeArgumentTypes
@@ -2848,10 +2613,7 @@ f(C c) => E(c).a;
       assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -2861,6 +2623,7 @@ PropertyAccess
           staticElement: self::@function::f::@parameter::c
           staticType: C
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: C
     staticType: null
   operator: .
@@ -2874,10 +2637,7 @@ PropertyAccess
       assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
@@ -2887,6 +2647,7 @@ PropertyAccess
           staticElement: self::@function::f::@parameter::c
           staticType: C*
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: C*
     staticType: null
   operator: .

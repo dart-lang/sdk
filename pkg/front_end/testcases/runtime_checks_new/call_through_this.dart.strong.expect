@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
@@ -32,7 +32,7 @@ class E extends self::C<core::num> {
   method f(covariant-by-declaration covariant-by-class core::int x) → void {}
 }
 static method test() → dynamic {
-  (core::Object) → dynamic x = (new self::D::•().{self::C::g4}(){() → (core::int) → dynamic} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::int) → dynamic) as{ForNonNullableByDefault} (core::Object) → dynamic;
+  (core::Object) → dynamic x = (new self::D::•().{self::C::g4}(){() → (core::int) → dynamic} as{TypeError,CovarianceCheck} (core::int) → dynamic) as (core::Object) → dynamic;
   x("hi"){(core::Object) → dynamic};
   new self::E::•().{self::C::g1}(1.5){(core::num) → void};
 }

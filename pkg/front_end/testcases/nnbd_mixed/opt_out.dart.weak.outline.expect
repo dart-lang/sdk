@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -32,7 +32,7 @@ static method main() → dynamic
 static method noErrors() → dynamic
   ;
 
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //

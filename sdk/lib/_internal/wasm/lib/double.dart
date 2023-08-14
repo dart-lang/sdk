@@ -68,7 +68,6 @@ final class _BoxedDouble extends double {
   static const int _mantissaMask = 0x000FFFFFFFFFFFFF;
 
   int get hashCode => _doubleHashCode(this);
-  int get _identityHashCode => _doubleHashCode(this);
 
   static int _doubleHashCode(double value) {
     const int maxInt = 0x7FFFFFFFFFFFFFFF;

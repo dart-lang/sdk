@@ -1,0 +1,12 @@
+const a1 = 'outer a1';
+const a2 = 'outer a2';
+const a3 = 'outer a3';
+const a4 = 'outer a4';
+const b1 = 'outer b1';
+const b2 = 'outer b2';
+const b3 = 'outer b3';
+const b4 = 'outer b4';
+test1(dynamic x) {}
+test2(dynamic x) {}
+test3(dynamic x) {}
+test4(dynamic x) {}

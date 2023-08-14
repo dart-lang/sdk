@@ -74,10 +74,13 @@ class SetupCompilerOptions {
   final String dartLangComment;
   final ModuleFormat moduleFormat;
   final bool soundNullSafety;
+  final bool canaryFeatures;
 
-  SetupCompilerOptions(
-      {this.soundNullSafety = true, this.moduleFormat = ModuleFormat.amd})
-      : options = getOptions(soundNullSafety),
+  SetupCompilerOptions({
+    this.soundNullSafety = true,
+    this.moduleFormat = ModuleFormat.amd,
+    this.canaryFeatures = false,
+  })  : options = getOptions(soundNullSafety),
         dartLangComment =
             soundNullSafety ? dartSoundComment : dartUnsoundComment {
     options.onDiagnostic = (DiagnosticMessage m) {

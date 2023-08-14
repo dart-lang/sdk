@@ -7,26 +7,9 @@ import("../application_snapshot.gni")
 
 group("dartdev") {
   public_deps = [
-    ":copy_dartdev_kernel",
     ":copy_dartdev_snapshot",
     ":copy_prebuilt_devtools",
   ]
-}
-
-copy("copy_dartdev_kernel") {
-  visibility = [ ":dartdev" ]
-  public_deps = [ ":generate_dartdev_kernel" ]
-  sources = [ "$root_gen_dir/dartdev.dill" ]
-  outputs = [ "$root_out_dir/dartdev.dill" ]
-}
-
-application_snapshot("generate_dartdev_kernel") {
-  dart_snapshot_kind = "kernel"
-  main_dart = "../../pkg/dartdev/bin/dartdev.dart"
-  training_args = []
-  deps = [ "../dds:dds" ]
-  vm_args = [ "--sound-null-safety" ]
-  output = "$root_gen_dir/dartdev.dill"
 }
 
 copy("copy_dartdev_snapshot") {

@@ -51,7 +51,11 @@ abstract class YamlCompletionGenerator {
     var precedingText = '';
     if (completionNode is YamlScalar) {
       var value = completionNode.value;
-      if (value is String && completionNode.style == ScalarStyle.PLAIN) {
+      if (value is String &&
+          completionNode.style == ScalarStyle.PLAIN &&
+          // It's possible that `offset` is after the end of `value` because we
+          // could be in whitespace after the value.
+          offset - completionNode.span.start.offset <= value.length) {
         precedingText =
             value.substring(0, offset - completionNode.span.start.offset);
       } else if (value != null) {

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -9,7 +9,7 @@ static method test(dynamic x) → dynamic {
     {
       lowered hoisted core::int x#case#0;
       lowered hoisted core::String x#case#1;
-      if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t1 = x#case#0 = #0#0{core::int} in true) && x#case#0.{core::num::>}(0){(core::num) → core::bool} || #0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t2 = x#case#1 = #0#0{core::String} in true) && x#case#1.{core::String::startsWith}("f"){(core::Pattern, [core::int]) → core::bool}) {
+      if(#0#0 is core::int && (let final core::int #t1 = x#case#0 = #0#0{core::int} in true) && x#case#0.{core::num::>}(0){(core::num) → core::bool} || #0#0 is core::String && (let final core::String #t2 = x#case#1 = #0#0{core::String} in true) && x#case#1.{core::String::startsWith}("f"){(core::Pattern, [core::int]) → core::bool}) {
         {
           return 1;
         }

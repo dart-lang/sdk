@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -14,7 +14,7 @@ import "dart:async";
 
 static method test() → dynamic {
   asy::Future<core::int*>* f;
-  asy::Future<core::List<core::int*>*>* b = f.{asy::Future::then}<core::List<dynamic>*>((core::int* x) → core::List<dynamic>* => <dynamic>[]){((core::int*) →* FutureOr<core::List<dynamic>*>*, {onError: core::Function*}) →* asy::Future<core::List<dynamic>*>*}.{asy::Future::whenComplete}(() → Null {}){(() →* FutureOr<void>*) →* asy::Future<core::List<dynamic>*>*} as{TypeError} asy::Future<core::List<core::int*>*>*;
+  asy::Future<core::List<core::int*>*>* b = f.{asy::Future::then}<core::List<dynamic>*>((core::int* x) → core::List<dynamic>* => <dynamic>[]){((core::int*) →* FutureOr<core::List<dynamic>*>*, {onError: core::Function*}) →* asy::Future<core::List<dynamic>*>*}.{asy::Future::whenComplete}(() → Null {}){(() →* FutureOr<void>*) →* asy::Future<core::List<dynamic>*>*} as{TypeError,ForLegacy} asy::Future<core::List<core::int*>*>*;
   b = f.{asy::Future::then}<core::List<core::int*>*>((core::int* x) → core::List<core::int*>* => <core::int*>[]){((core::int*) →* FutureOr<core::List<core::int*>*>*, {onError: core::Function*}) →* asy::Future<core::List<core::int*>*>*};
 }
 static method main() → dynamic {}

@@ -24,20 +24,16 @@ typedef T G<T>();
     final node = findNode.namedType('G<int>');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: G
-    staticElement: self::@typeAlias::G
-    staticType: null
+  name: G
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
+  element: self::@typeAlias::G
   type: int Function()
     alias: self::@typeAlias::G
       typeArguments

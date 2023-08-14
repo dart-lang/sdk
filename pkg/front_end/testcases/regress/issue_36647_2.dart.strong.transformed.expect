@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "issue_36647_2_lib1.dart" as iss;
 additionalExports = (iss::foo,
@@ -9,7 +9,7 @@ additionalExports = (iss::foo,
 export "org-dartlang-testcase:///issue_36647_2_lib1.dart";
 
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

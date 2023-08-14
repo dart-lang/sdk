@@ -1,4 +1,4 @@
-library top_level_accessors /*isNonNullableByDefault*/;
+library top_level_accessors;
 import self as self;
 import "dart:core" as core;
 

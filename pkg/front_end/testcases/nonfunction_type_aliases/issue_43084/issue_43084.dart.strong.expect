@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -17,7 +17,7 @@ static method main() → dynamic {
   core::print(x);
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as iss;
 import "dart:core" as core;
 

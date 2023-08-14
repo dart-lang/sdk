@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -13,18 +13,16 @@ class B<X extends core::Object? = dynamic> extends self::A /*hasConstConstructor
     ;
 }
 abstract class A extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
   const constructor •() → self::A
     : super core::Object::•()
     ;
-  static factory foo() → self::A
+  static factory foo() → self::A /* redirection-target: self::B::•<dynamic>*/
     return new self::B::•<dynamic>();
 }
 static method main() → dynamic {}
 
 constants  {
   #C1 = self::B<dynamic> {}
-  #C2 = constructor-tearoff self::A::foo
 }
 
 

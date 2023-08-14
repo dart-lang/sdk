@@ -6,7 +6,10 @@
 
 import "package:expect/expect.dart";
 
-int x = "milou";  /*@compile-error=unspecified*/
+int x = "milou";
+//      ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+// [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
 
 bool readXThrows() {
   try {

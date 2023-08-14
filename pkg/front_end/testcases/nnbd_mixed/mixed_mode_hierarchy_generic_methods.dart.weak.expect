@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "mixed_mode_hierarchy_generic_methods_lib.dart" as mix;
@@ -26,7 +26,7 @@ class B extends core::Object implements mix::A<core::int*> {
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mix;
 import "dart:core" as core;
 import "dart:async" as asy;

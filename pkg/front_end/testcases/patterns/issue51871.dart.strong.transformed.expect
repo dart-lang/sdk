@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -16,14 +16,14 @@ class Compare extends self::CompareBase {
     ;
   @#C1
   operator <(core::Object f) → dynamic
-    return f is{ForNonNullableByDefault} <T extends core::Object? = dynamic>(T%) → T%;
+    return f is <T extends core::Object? = dynamic>(T%) → T%;
 }
 static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
   return t;
 static method test1(self::CompareBase x) → dynamic {
   {
     final synthesized self::CompareBase #0#0 = x;
-    if(#0#0.{self::CompareBase::<}(#C3){((core::int) → core::int) → dynamic} as{ForNonNullableByDefault} core::bool) {
+    if(#0#0.{self::CompareBase::<}(#C3){((core::int) → core::int) → dynamic} as core::bool) {
       throw "\"<\" should receive instantiation, not generic function.";
     }
     else {

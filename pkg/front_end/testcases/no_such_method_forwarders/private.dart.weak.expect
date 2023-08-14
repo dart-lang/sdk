@@ -1,4 +1,4 @@
-library private /*isNonNullableByDefault*/;
+library private;
 import self as self;
 import "dart:core" as core;
 import "private_module.dart" as pri;
@@ -30,7 +30,7 @@ class Baz extends self::Foo implements pri::Fisk {
 }
 static method main() → dynamic {}
 
-library private_module /*isNonNullableByDefault*/;
+library private_module;
 import self as pri;
 import "dart:core" as core;
 

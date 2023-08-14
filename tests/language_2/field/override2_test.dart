@@ -10,12 +10,12 @@
 import "package:expect/expect.dart";
 
 class A {
-  final a = [42]; /*@compile-error=unspecified*/
+  final dynamic a = [42];
   foo() => a[0];
 }
 
 class B extends A {
-  final a = new Map();
+  final dynamic a = new Map();
 }
 
 main() {

@@ -229,7 +229,7 @@ bool StoreBuffer::Overflowed() {
 }
 
 intptr_t StoreBuffer::Size() {
-  ASSERT(Thread::Current()->IsAtSafepoint());  // No lock needed.
+  ASSERT(Thread::Current()->OwnsGCSafepoint());  // No lock needed.
   return full_.length() + partial_.length();
 }
 

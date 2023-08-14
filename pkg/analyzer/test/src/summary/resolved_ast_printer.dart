@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -24,14 +23,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   /// The target sink to print AST.
   final StringSink _sink;
 
-  final bool skipArgumentList;
-
-  /// If `true`, linking of [EnumConstantDeclaration] will be checked
-  /// TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/48380
-  final bool withCheckingLinking;
-
-  /// If `true`, [Expression.staticParameterElement] should be printed.
-  final bool withParameterElements;
+  final ResolvedNodeTextConfiguration configuration;
 
   /// If `true`, selected tokens and nodes should be printed with offsets.
   final bool _withOffsets;
@@ -45,9 +37,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     required String? selfUriStr,
     required StringSink sink,
     required String indent,
-    this.skipArgumentList = false,
-    this.withCheckingLinking = false,
-    this.withParameterElements = true,
+    required this.configuration,
     bool withOffsets = false,
     bool withResolution = true,
   })  : _selfUriStr = selfUriStr,
@@ -236,6 +226,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('CatchClause');
     _withIndent(() {
       _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitCatchClauseParameter(CatchClauseParameter node) {
+    _writeln('CatchClauseParameter');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredElement(node.declaredElement);
     });
   }
 
@@ -445,7 +444,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitEnumConstantArguments(EnumConstantArguments node) {
-    if (withCheckingLinking) {
+    if (configuration.withCheckingLinking) {
       _checkChildrenEntitiesLinking(node);
     }
     _writeln('EnumConstantArguments');
@@ -523,6 +522,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ExtensionOverride');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
       _writeType('extendedType', node.extendedType);
       _writeType('staticType', node.staticType);
       _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
@@ -776,6 +776,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    _writeln('ImportPrefixReference');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
+    });
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _writeln('IndexExpression');
     _withIndent(() {
@@ -835,6 +844,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitLabel(Label node) {
     _writeln('Label');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitLabeledStatement(LabeledStatement node) {
+    _writeln('LabeledStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -908,7 +925,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
-    _writeln('SetOrMapLiteral');
+    _writeln('MapLiteralEntry');
     _withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -986,6 +1003,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('NamedType');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
       _writeType('type', node.type);
     });
   }
@@ -1258,6 +1276,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitRethrowExpression(RethrowExpression node) {
+    _writeln('RethrowExpression');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitReturnStatement(ReturnStatement node) {
     _writeln('ReturnStatement');
     _withIndent(() {
@@ -1355,7 +1383,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
-    if (withCheckingLinking) {
+    if (configuration.withCheckingLinking) {
       _checkChildrenEntitiesLinking(node);
     }
     _writeln('SuperFormalParameter');
@@ -1827,6 +1855,13 @@ Expected parent: (${parent.runtimeType}) $parent
           var mapStr = _substitutionMapStr(map);
           _writelnWithIndent('substitution: $mapStr');
         }
+
+        if (configuration.withRedirectedConstructors) {
+          if (element is ConstructorMember) {
+            final redirected = element.redirectedConstructor;
+            _writeElement('redirectedConstructor', redirected);
+          }
+        }
       });
     } else if (element is MultiplyDefinedElement) {
       _sink.writeln('<null>');
@@ -1903,7 +1938,7 @@ Expected parent: (${parent.runtimeType}) $parent
         _writeToken(entity.name, value);
       } else if (value is AstNode) {
         _checkParentOfChild(node, value);
-        if (value is ArgumentList && skipArgumentList) {
+        if (value is ArgumentList && configuration.skipArgumentList) {
         } else {
           _writeNode(entity.name, value);
         }
@@ -1945,7 +1980,7 @@ Expected parent: (${parent.runtimeType}) $parent
   /// If [node] is at a position where it is an argument for an invocation,
   /// writes the corresponding parameter element.
   void _writeParameterElement(Expression node) {
-    if (withParameterElements) {
+    if (configuration.withParameterElements) {
       final parent = node.parent;
       if (parent is ArgumentList ||
           parent is AssignmentExpression && parent.rightHandSide == node ||
@@ -2107,4 +2142,19 @@ Expected parent: (${parent.runtimeType}) $parent
   static String _nameOfMemberClass(Member member) {
     return '${member.runtimeType}';
   }
+}
+
+class ResolvedNodeTextConfiguration {
+  bool skipArgumentList = false;
+
+  /// If `true`, linking of [EnumConstantDeclaration] will be checked
+  /// TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/48380
+  bool withCheckingLinking = false;
+
+  /// If `true`, [Expression.staticParameterElement] should be printed.
+  bool withParameterElements = true;
+
+  /// If `true`, `redirectedConstructor` properties of [ConstructorElement]s
+  /// should be printer.
+  bool withRedirectedConstructors = false;
 }

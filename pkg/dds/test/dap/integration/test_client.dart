@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:dap/dap.dart';
 import 'package:dds/src/dap/adapters/dart.dart';
 import 'package:dds/src/dap/logging.dart';
-import 'package:dds/src/dap/protocol_generated.dart';
 import 'package:dds/src/dap/protocol_stream.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' as vm;
@@ -113,6 +113,10 @@ class DapTestClient {
           BreakpointEventBody.fromJson(event.body as Map<String, Object?>))
       .where((body) => body.reason == 'changed');
 
+  /// Returns a stream of [ThreadEventBody] events.
+  Stream<ThreadEventBody> get threadEvents => events('thread')
+      .map((e) => ThreadEventBody.fromJson(e.body as Map<String, Object?>));
+
   /// Send an attachRequest to the server, asking it to attach to an existing
   /// Dart program.
   Future<Response> attach({
@@ -123,6 +127,7 @@ class DapTestClient {
     List<String>? additionalProjectPaths,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
+    bool? showGettersInDebugViews,
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
   }) async {
@@ -146,6 +151,7 @@ class DapTestClient {
         additionalProjectPaths: additionalProjectPaths,
         debugSdkLibraries: debugSdkLibraries,
         debugExternalPackageLibraries: debugExternalPackageLibraries,
+        showGettersInDebugViews: showGettersInDebugViews,
         evaluateGettersInDebugViews: evaluateGettersInDebugViews,
         evaluateToStringInDebugViews: evaluateToStringInDebugViews,
         // When running out of process, VM Service traffic won't be available
@@ -286,6 +292,7 @@ class DapTestClient {
     String? console,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
+    bool? showGettersInDebugViews,
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
@@ -303,6 +310,7 @@ class DapTestClient {
         console: console,
         debugSdkLibraries: debugSdkLibraries,
         debugExternalPackageLibraries: debugExternalPackageLibraries,
+        showGettersInDebugViews: showGettersInDebugViews,
         evaluateGettersInDebugViews: evaluateGettersInDebugViews,
         evaluateToStringInDebugViews: evaluateToStringInDebugViews,
         // When running out of process, VM Service traffic won't be available
@@ -316,6 +324,13 @@ class DapTestClient {
       overrideCommand: 'launch',
     );
   }
+
+  /// Sends a pause request for the given thread.
+  ///
+  /// Returns a Future that completes when the server returns a corresponding
+  /// response.
+  Future<Response> pause(int threadId) =>
+      sendRequest(PauseArguments(threadId: threadId));
 
   /// Sends a next (step over) request for the given thread.
   ///
@@ -424,7 +439,13 @@ class DapTestClient {
     await _subscription.cancel();
   }
 
-  Future<Response> terminate() => sendRequest(TerminateArguments());
+  /// Whether or not any `terminate()` request has been sent.
+  bool get hasSentTerminateRequest => _hasSentTerminateRequest;
+  bool _hasSentTerminateRequest = false;
+  Future<Response?> terminate() async {
+    _hasSentTerminateRequest = true;
+    return sendRequest(TerminateArguments());
+  }
 
   /// Sends a threads request to the server to request the list of active
   /// threads (isolates).
@@ -458,7 +479,8 @@ class DapTestClient {
 
   /// Handles an incoming message from the server, completing the relevant request
   /// of raising the appropriate event.
-  Future<void> _handleMessage(message) async {
+  Future<void> _handleMessage(ProtocolMessage message) async {
+    _verifyMessageOrdering(message);
     if (message is Response) {
       final pendingRequest = _pendingRequests.remove(message.requestSeq);
       if (pendingRequest == null) {
@@ -509,6 +531,53 @@ class DapTestClient {
     });
     return future.whenComplete(timer.cancel);
   }
+
+  /// Ensures that protocol messages are received in the correct order where
+  /// ordering matters.
+  void _verifyMessageOrdering(ProtocolMessage message) {
+    if (message is Event) {
+      if (message.event == 'initialized' &&
+          !_receivedResponses.contains('initialize')) {
+        throw StateError(
+          'Adapter sent "initialized" event before the "initialize" request had '
+          'been responded to',
+        );
+      }
+
+      _receivedEvents.add(message.event);
+    } else if (message is Request) {
+      if (message.command == 'runInTerminal' &&
+          !_receivedResponses.contains('launch')) {
+        throw StateError(
+          'Adapter sent a "runInTerminal" request before it had '
+          'responded to the "launch" request',
+        );
+      }
+
+      _receivedResponses.add(message.command);
+    } else if (message is Response) {
+      if (message.command == 'initialize' &&
+          _receivedEvents.contains('initialized')) {
+        throw StateError(
+          'Adapter sent a response to an "initialize" request after it had '
+          'already send the "initialized" event',
+        );
+      }
+
+      _receivedResponses.add(message.command);
+    }
+  }
+
+  /// A list of all event names that have been received during this session.
+  ///
+  /// Used by [_verifyMessageOrdering].
+  final _receivedEvents = <String>{};
+
+  /// A list of all request names that have been responded to during this
+  /// session.
+  ///
+  /// Used by [_verifyMessageOrdering].
+  final _receivedResponses = <String>{};
 
   /// Creates a [DapTestClient] that connects the server listening on
   /// [host]:[port].
@@ -603,12 +672,17 @@ extension DapTestClientExtension on DapTestClient {
   }
 
   /// Sets breakpoints at [lines] in [file].
-  Future<void> setBreakpoints(File file, List<int> lines) async {
-    await sendRequest(
+  Future<SetBreakpointsResponseBody> setBreakpoints(
+      File file, List<int> lines) async {
+    final response = await sendRequest(
       SetBreakpointsArguments(
         source: Source(path: _normalizeBreakpointPath(file.path)),
         breakpoints: lines.map((line) => SourceBreakpoint(line: line)).toList(),
       ),
+    );
+
+    return SetBreakpointsResponseBody.fromJson(
+      response.body as Map<String, Object?>,
     );
   }
 
@@ -1041,7 +1115,19 @@ extension DapTestClientExtension on DapTestClient {
         buffer.write(', $type');
       }
       if (presentationHint != null) {
-        buffer.write(', $presentationHint');
+        if (presentationHint.lazy != null) {
+          buffer.write(', lazy: ${presentationHint.lazy}');
+        }
+        if (presentationHint.kind != null) {
+          buffer.write(', kind: ${presentationHint.kind}');
+        }
+        if (presentationHint.visibility != null) {
+          buffer.write(', visibility: ${presentationHint.visibility}');
+        }
+        if (presentationHint.attributes != null) {
+          buffer.write(
+              ', attributes: ${presentationHint.attributes!.join(", ")}');
+        }
       }
 
       return buffer.toString();

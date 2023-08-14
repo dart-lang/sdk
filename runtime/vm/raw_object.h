@@ -174,9 +174,9 @@ class UntaggedObject {
     kHashTagSize = 32,
   };
 
-  static const intptr_t kGenerationalBarrierMask = 1 << kNewBit;
-  static const intptr_t kIncrementalBarrierMask = 1 << kOldAndNotMarkedBit;
-  static const intptr_t kBarrierOverlapShift = 2;
+  static constexpr intptr_t kGenerationalBarrierMask = 1 << kNewBit;
+  static constexpr intptr_t kIncrementalBarrierMask = 1 << kOldAndNotMarkedBit;
+  static constexpr intptr_t kBarrierOverlapShift = 2;
   COMPILE_ASSERT(kOldAndNotMarkedBit + kBarrierOverlapShift == kOldBit);
   COMPILE_ASSERT(kNewBit + kBarrierOverlapShift == kOldAndNotRememberedBit);
 
@@ -402,7 +402,6 @@ class UntaggedObject {
   }
 
   void Validate(IsolateGroup* isolate_group) const;
-  bool FindObject(FindObjectVisitor* visitor);
 
   // This function may access the class-ID in the header, but it cannot access
   // the actual class object, because the sliding compactor uses this function
@@ -440,7 +439,7 @@ class UntaggedObject {
   }
 
   template <class V>
-  intptr_t VisitPointersNonvirtual(V* visitor) {
+  DART_FORCE_INLINE intptr_t VisitPointersNonvirtual(V* visitor) {
     // Fall back to virtual variant for predefined classes
     intptr_t class_id = GetClassId();
     if (class_id < kNumPredefinedCids) {
@@ -995,7 +994,7 @@ class UntaggedClass : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ScriptPtr, script)
   COMPRESSED_POINTER_FIELD(LibraryPtr, library)
   COMPRESSED_POINTER_FIELD(TypeParametersPtr, type_parameters)
-  COMPRESSED_POINTER_FIELD(AbstractTypePtr, super_type)
+  COMPRESSED_POINTER_FIELD(TypePtr, super_type)
   // Canonicalized const instances of this class.
   COMPRESSED_POINTER_FIELD(ArrayPtr, constants)
   // Declaration type for this class.
@@ -1010,6 +1009,11 @@ class UntaggedClass : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(GrowableObjectArrayPtr, direct_subclasses)
 #endif  // !defined(PRODUCT) || !defined(DART_PRECOMPILED_RUNTIME)
 
+  // Cached declaration instance type arguments for this class.
+  // Not preserved in AOT snapshots.
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr,
+                           declaration_instance_type_arguments)
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Stub code for allocation of instances.
   COMPRESSED_POINTER_FIELD(CodePtr, allocation_stub)
@@ -1018,11 +1022,7 @@ class UntaggedClass : public UntaggedObject {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-#if defined(PRODUCT)
-  VISIT_TO(invocation_dispatcher_cache)
-#else
-  VISIT_TO(direct_subclasses)
-#endif  // defined(PRODUCT)
+  VISIT_TO(declaration_instance_type_arguments)
 #else
   VISIT_TO(dependent_code)
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -1050,7 +1050,7 @@ class UntaggedClass : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
 
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
@@ -1124,7 +1124,7 @@ class UntaggedPatchClass : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
 
   NOT_IN_PRECOMPILED(intptr_t library_kernel_offset_);
@@ -1314,7 +1314,7 @@ class UntaggedFunction : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
   // ICData of unoptimized code.
   COMPRESSED_POINTER_FIELD(ArrayPtr, ic_data_array);
@@ -1435,6 +1435,9 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
 
   // Whether this is a leaf call - i.e. one that doesn't call back into Dart.
   bool is_leaf_;
+
+  // The kind of callback this is. See FfiCallbackKind.
+  uint8_t callback_kind_;
 };
 
 class UntaggedField : public UntaggedObject {
@@ -1453,6 +1456,7 @@ class UntaggedField : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(SmiPtr, host_offset_or_field_id)
   COMPRESSED_POINTER_FIELD(SmiPtr, guarded_list_length)
   COMPRESSED_POINTER_FIELD(WeakArrayPtr, dependent_code)
+  VISIT_TO(dependent_code);
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
@@ -1465,15 +1469,8 @@ class UntaggedField : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
-#if defined(DART_PRECOMPILED_RUNTIME)
-  VISIT_TO(dependent_code);
-#else
-  // For type test in implicit setter.
-  COMPRESSED_POINTER_FIELD(SubtypeTestCachePtr, type_test_cache);
-  VISIT_TO(type_test_cache);
-#endif
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
   ClassIdTagType guarded_cid_;
@@ -1538,7 +1535,7 @@ class alignas(8) UntaggedScript : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -1629,7 +1626,7 @@ class UntaggedLibrary : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
   // Cache of resolved names in library scope.
   COMPRESSED_POINTER_FIELD(ArrayPtr, resolved_names);
@@ -1681,7 +1678,7 @@ class UntaggedNamespace : public UntaggedObject {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
 };
 
@@ -1999,9 +1996,10 @@ class UntaggedPcDescriptors : public UntaggedObject {
     }
 
    private:
-    static const intptr_t kKindShiftSize = 3;
-    static const intptr_t kTryIndexSize = 10;
-    static const intptr_t kYieldIndexSize = 32 - kKindShiftSize - kTryIndexSize;
+    static constexpr intptr_t kKindShiftSize = 3;
+    static constexpr intptr_t kTryIndexSize = 10;
+    static constexpr intptr_t kYieldIndexSize =
+        32 - kKindShiftSize - kTryIndexSize;
 
     class KindShiftBits
         : public BitField<uint32_t, intptr_t, 0, kKindShiftSize> {};
@@ -2472,7 +2470,7 @@ class UntaggedICData : public UntaggedCallSiteData {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
   NOT_IN_PRECOMPILED(int32_t deopt_id_);
   // Number of arguments tested in IC, deopt reasons.
@@ -2496,6 +2494,8 @@ class UntaggedSubtypeTestCache : public UntaggedObject {
   POINTER_FIELD(ArrayPtr, cache)
   VISIT_FROM(cache)
   VISIT_TO(cache)
+  uint32_t num_inputs_;
+  uint32_t num_occupied_;
 };
 
 class UntaggedLoadingUnit : public UntaggedObject {
@@ -2594,7 +2594,7 @@ class UntaggedLibraryPrefix : public UntaggedInstance {
         break;
     }
     UNREACHABLE();
-    return NULL;
+    return nullptr;
   }
   uint16_t num_imports_;  // Number of library entries in libraries_.
   bool is_deferred_load_;
@@ -2641,7 +2641,11 @@ class UntaggedAbstractType : public UntaggedInstance {
   std::atomic<uword> type_test_stub_entry_point_;
   // Accessed from generated code.
   std::atomic<uint32_t> flags_;
+#if defined(DART_COMPRESSED_POINTERS)
+  uint32_t padding_;  // Makes Windows and Posix agree on layout.
+#endif
   COMPRESSED_POINTER_FIELD(CodePtr, type_test_stub)
+  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
   VISIT_FROM(type_test_stub)
 
   uint32_t flags() const { return flags_.load(std::memory_order_relaxed); }
@@ -2652,7 +2656,6 @@ class UntaggedAbstractType : public UntaggedInstance {
  public:
   enum TypeState {
     kAllocated,                // Initial state.
-    kBeingFinalized,           // In the process of being finalized.
     kFinalizedInstantiated,    // Instantiated type ready for use.
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
   };
@@ -2682,8 +2685,7 @@ class UntaggedType : public UntaggedAbstractType {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, arguments)
-  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
-  VISIT_TO(hash)
+  VISIT_TO(arguments)
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
@@ -2707,8 +2709,7 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   COMPRESSED_POINTER_FIELD(AbstractTypePtr, result_type)
   COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_types)
   COMPRESSED_POINTER_FIELD(ArrayPtr, named_parameter_names);
-  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
-  VISIT_TO(hash)
+  VISIT_TO(named_parameter_names)
   AtomicBitFieldContainer<uint32_t> packed_parameter_counts_;
   AtomicBitFieldContainer<uint16_t> packed_type_parameter_counts_;
 
@@ -2758,30 +2759,24 @@ class UntaggedRecordType : public UntaggedAbstractType {
 
   COMPRESSED_SMI_FIELD(SmiPtr, shape)
   COMPRESSED_POINTER_FIELD(ArrayPtr, field_types)
-  COMPRESSED_SMI_FIELD(SmiPtr, hash)
-  VISIT_TO(hash)
+  VISIT_TO(field_types)
 
-  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
-};
-
-class UntaggedTypeRef : public UntaggedAbstractType {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(TypeRef);
-
-  COMPRESSED_POINTER_FIELD(AbstractTypePtr, type)  // The referenced type.
-  VISIT_TO(type)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class UntaggedTypeParameter : public UntaggedAbstractType {
+ public:
+  static constexpr intptr_t kIsFunctionTypeParameterBit =
+      TypeStateBits::kNextBit;
+  using IsFunctionTypeParameter =
+      BitField<uint32_t, bool, kIsFunctionTypeParameterBit, 1>;
+
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
-  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
-  // ObjectType if no explicit bound specified.
-  COMPRESSED_POINTER_FIELD(AbstractTypePtr, bound)
-  VISIT_TO(bound)
-  ClassIdTagType parameterized_class_id_;  // Or kFunctionCid for function tp.
+  // FunctionType or Smi (class id).
+  COMPRESSED_POINTER_FIELD(ObjectPtr, owner)
+  VISIT_TO(owner)
   uint16_t base_;   // Number of enclosing function type parameters.
   uint16_t index_;  // Keep size in sync with BuildTypeParameterTypeTestStub.
 
@@ -3305,6 +3300,8 @@ class UntaggedDynamicLibrary : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(DynamicLibrary);
   VISIT_NOTHING();
   void* handle_;
+  bool isClosed_;
+  bool canBeClosed_;
 
   friend class DynamicLibrary;
 };
@@ -3498,6 +3495,7 @@ class UntaggedWeakReference : public UntaggedInstance {
   friend class Scavenger;
   template <bool>
   friend class ScavengerVisitorBase;
+  friend class ObjectGraph;
   friend class FastObjectCopy;  // For OFFSET_OF
   friend class SlowObjectCopy;  // For OFFSET_OF
 };
@@ -3526,13 +3524,14 @@ class UntaggedFinalizerBase : public UntaggedInstance {
   COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, entries_collected)
 
   template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
+  friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
   friend class Scavenger;
   template <bool>
   friend class ScavengerVisitorBase;
+  friend class ObjectGraph;
 };
 
 class UntaggedFinalizer : public UntaggedFinalizerBase {
@@ -3550,7 +3549,7 @@ class UntaggedFinalizer : public UntaggedFinalizerBase {
   }
 
   template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
+  friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
@@ -3601,7 +3600,7 @@ class UntaggedFinalizerEntry : public UntaggedInstance {
   template <typename Type, typename PtrType>
   friend class GCLinkedList;
   template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
+  friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
@@ -3609,6 +3608,7 @@ class UntaggedFinalizerEntry : public UntaggedInstance {
   template <bool>
   friend class ScavengerVisitorBase;
   friend class ScavengerFinalizerVisitor;
+  friend class ObjectGraph;
 };
 
 // MirrorReferences are used by mirrors to hold reflectees that are VM

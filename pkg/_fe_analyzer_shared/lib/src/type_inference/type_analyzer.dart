@@ -362,6 +362,7 @@ mixin TypeAnalyzer<
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
         !operations.isDynamic(matchedType) &&
+        !operations.isError(matchedType) &&
         !operations.isSubtypeOf(matchedType, variableDeclaredType)) {
       patternTypeMismatchInIrrefutableContextError =
           errors.patternTypeMismatchInIrrefutableContext(
@@ -516,6 +517,7 @@ mixin TypeAnalyzer<
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
         !operations.isDynamic(matchedType) &&
+        !operations.isError(matchedType) &&
         !operations.isSubtypeOf(matchedType, staticType)) {
       patternTypeMismatchInIrrefutableContextError =
           errors.patternTypeMismatchInIrrefutableContext(
@@ -536,7 +538,7 @@ mixin TypeAnalyzer<
             matchedType: matchedType,
             staticType: staticType,
             isFinal: context.isFinal || isVariableFinal(variable),
-            isLate: context.isLate,
+            isLate: false,
             isImplicitlyTyped: isImplicitlyTyped);
     setVariableType(variable, staticType);
     (context.componentVariables[variableName] ??= []).add(variable);
@@ -792,6 +794,8 @@ mixin TypeAnalyzer<
         valueType = listElementType;
       } else if (operations.isDynamic(matchedType)) {
         valueType = dynamicType;
+      } else if (operations.isError(matchedType)) {
+        valueType = errorType;
       } else {
         valueType = objectQuestionType;
       }
@@ -1053,6 +1057,10 @@ mixin TypeAnalyzer<
         keyType = dynamicType;
         valueType = dynamicType;
         keyContext = unknownType;
+      } else if (operations.isError(matchedType)) {
+        keyType = errorType;
+        valueType = errorType;
+        keyContext = unknownType;
       } else {
         keyType = objectQuestionType;
         valueType = objectQuestionType;
@@ -1259,6 +1267,7 @@ mixin TypeAnalyzer<
     // treated as having the same type.
     Type? overridePropertyGetType;
     if (operations.isDynamic(requiredType) ||
+        operations.isError(requiredType) ||
         operations.isNever(requiredType)) {
       overridePropertyGetType = requiredType;
     }
@@ -1280,9 +1289,13 @@ mixin TypeAnalyzer<
     for (RecordPatternField<Node, Pattern> field in fields) {
       Type propertyType = overridePropertyGetType ??
           resolveObjectPatternPropertyGet(
+            objectPattern: node,
             receiverType: requiredType,
             field: field,
           );
+      if (operations.isNever(propertyType)) {
+        flow.handleExit();
+      }
       flow.pushSubpattern(propertyType);
       dispatchPattern(
         context.withUnnecessaryWildcardKind(null),
@@ -1378,6 +1391,8 @@ mixin TypeAnalyzer<
     if (elementType == null) {
       if (operations.isDynamic(expressionType)) {
         elementType = dynamicType;
+      } else if (operations.isError(expressionType)) {
+        elementType = errorType;
       } else {
         patternForInExpressionIsNotIterableError =
             errors.patternForInExpressionIsNotIterable(
@@ -1385,7 +1400,7 @@ mixin TypeAnalyzer<
           expression: expression,
           expressionType: expressionType,
         );
-        elementType = dynamicType;
+        elementType = errorType;
       }
     }
     flow.patternForIn_afterExpression(elementType);
@@ -1430,20 +1445,11 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Expression, Pattern).
   Type analyzePatternVariableDeclaration(
       Node node, Pattern pattern, Expression initializer,
-      {required bool isFinal, required bool isLate}) {
+      {required bool isFinal}) {
     // Stack: ()
-    if (isLate && !isVariablePattern(pattern)) {
-      errors.patternDoesNotAllowLate(pattern: pattern);
-    }
-    if (isLate) {
-      flow.lateInitializer_begin(node);
-    }
     Type patternSchema = dispatchPatternSchema(pattern);
     Type initializerType = analyzeExpression(initializer, patternSchema);
     // Stack: (Expression)
-    if (isLate) {
-      flow.lateInitializer_end();
-    }
     flow.patternVariableDeclaration_afterInitializer(
         initializer, initializerType);
     Map<String, List<Variable>> componentVariables = {};
@@ -1451,7 +1457,6 @@ mixin TypeAnalyzer<
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
         isFinal: isFinal,
-        isLate: isLate,
         irrefutableContext: node,
         componentVariables: componentVariables,
         patternVariablePromotionKeys: patternVariablePromotionKeys,
@@ -1547,6 +1552,8 @@ mixin TypeAnalyzer<
       }
     } else if (operations.isDynamic(matchedType)) {
       dispatchFields(dynamicType);
+    } else if (operations.isError(matchedType)) {
+      dispatchFields(errorType);
     } else {
       dispatchFields(objectQuestionType);
     }
@@ -1746,7 +1753,7 @@ mixin TypeAnalyzer<
           handleNoGuard(node, i);
           // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
         }
-        handleCaseHead(node, memberInfo.head, caseIndex: i, subIndex: 0);
+        handleCaseHead(node, caseIndex: i, subIndex: 0);
       } else {
         handleDefault(node, caseIndex: i, subIndex: 0);
       }
@@ -1840,8 +1847,7 @@ mixin TypeAnalyzer<
           } else {
             handleNoGuard(node, caseIndex);
           }
-          head = handleCaseHead(node, head,
-              caseIndex: caseIndex, subIndex: headIndex);
+          handleCaseHead(node, caseIndex: caseIndex, subIndex: headIndex);
         } else {
           hasDefault = true;
           handleDefault(node, caseIndex: caseIndex, subIndex: headIndex);
@@ -1923,7 +1929,7 @@ mixin TypeAnalyzer<
   /// Returns the inferred type of the variable.
   Type analyzeUninitializedVariableDeclaration(
       Node node, Variable variable, Type? declaredType,
-      {required bool isFinal, required bool isLate}) {
+      {required bool isFinal}) {
     Type inferredType = declaredType ?? dynamicType;
     setVariableType(variable, inferredType);
     flow.declare(variable, inferredType, initialized: false);
@@ -2127,14 +2133,11 @@ mixin TypeAnalyzer<
   /// an optional guard.
   ///
   /// [node] is the enclosing switch statement or switch expression,
-  /// [head] is the head to be handled, and
-  /// [caseIndex] is the index of the `case` clause.
-  ///
-  /// Returns the updated case head.
+  /// [caseIndex] is the index of the `case` clause, and [subIndex] is the index
+  /// of the case head.
   ///
   /// Stack effect: pops (Pattern, Expression) and pushes (CaseHead).
-  CaseHeadOrDefaultInfo<Node, Expression, Variable> handleCaseHead(
-      Node node, CaseHeadOrDefaultInfo<Node, Expression, Variable> head,
+  void handleCaseHead(Node node,
       {required int caseIndex, required int subIndex});
 
   /// Called after visiting a `default` clause.
@@ -2266,6 +2269,7 @@ mixin TypeAnalyzer<
   /// the name of the [field].  If the property cannot be resolved, the client
   /// should report an error, and return `dynamic` for recovery.
   Type resolveObjectPatternPropertyGet({
+    required Pattern objectPattern,
     required Type receiverType,
     required RecordPatternField<Node, Pattern> field,
   });
@@ -2565,14 +2569,6 @@ abstract class TypeAnalyzerErrors<
 
   /// Called if the static type of a condition is not assignable to `bool`.
   Error nonBooleanCondition({required Expression node});
-
-  /// Called if a pattern is illegally used in a variable declaration statement
-  /// that is marked `late`, and that pattern is not allowed in such a
-  /// declaration.  The only kind of pattern that may be used in a late variable
-  /// declaration is a variable pattern.
-  ///
-  /// [pattern] is the AST node of the illegal pattern.
-  void patternDoesNotAllowLate({required Node pattern});
 
   /// Called if in a pattern `for-in` statement or element, the [expression]
   /// that should be an `Iterable` (or dynamic) is actually not.

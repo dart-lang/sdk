@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///ambiguous_main_export_lib0.dart";
@@ -6,7 +6,7 @@ import "org-dartlang-testcase:///ambiguous_main_export_lib0.dart";
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -21,13 +21,13 @@ export "org-dartlang-testcase:///ambiguous_main_export_lib2.dart";
 
 static const field dynamic _exports# = "{\"main\":\"'main' is exported from both 'pkg/front_end/testcases/nnbd/ambiguous_main_export_lib1.dart' and 'pkg/front_end/testcases/nnbd/ambiguous_main_export_lib2.dart'.\"}" /*isLegacy*/;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self3;
 
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self4;
 
 static method main() → dynamic

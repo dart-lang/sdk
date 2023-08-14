@@ -1,0 +1,40 @@
+library;
+//
+// Problems in library:
+//
+// org-dartlang-test:///a/b/c/main.dart:12:2: Error: Constant evaluation error:
+// @AnnotationsMacro(a + b)
+//  ^
+// org-dartlang-test:///a/b/c/main.dart:12:19: Context: The invocation of 'a' is not allowed in a constant expression.
+// @AnnotationsMacro(a + b)
+//                   ^
+// org-dartlang-test:///a/b/c/main.dart:13:7: Context: While analyzing:
+// class Class {}
+//       ^
+//
+// org-dartlang-test:///a/b/c/main.dart:11:2: Error: This macro application didn't apply correctly.
+// @AnnotationsMacro(Class)
+//  ^
+//
+import self as self;
+import "package:macro/annotations.dart" as ann;
+import "dart:core" as core;
+
+import "package:macro/annotations.dart";
+
+@#C2
+@invalid-expression "The invocation of 'a' is not allowed in a constant expression."
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+}
+static const field core::int b = #C3;
+static get a() → core::int
+  return 1;
+
+constants  {
+  #C1 = TypeLiteralConstant(self::Class*)
+  #C2 = ann::AnnotationsMacro {object:#C1}
+  #C3 = 2
+}

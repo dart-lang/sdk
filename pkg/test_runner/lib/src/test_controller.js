@@ -319,7 +319,13 @@ function dartMainRunner(main) {
     if (testErrorToStackTrace) {
       stack = testErrorToStackTrace(error);
     } else {
-      stack = error.stack.toString();
+      // TODO(omersa): This `error.stack` is undefined when thrown from
+      // dart2wasm module runner script in `dart2wasmHtml`.
+      if (error.stack === undefined) {
+        stack = "<undefined stack>";
+      } else {
+        stack = error.stack.toString();
+      }
     }
     recordEvent('sync_exception', error.toString(), stack);
     notifyDone('FAIL');

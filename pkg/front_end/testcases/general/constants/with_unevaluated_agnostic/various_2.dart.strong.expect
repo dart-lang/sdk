@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "various_2_lib.dart" as var;
@@ -68,7 +68,7 @@ static method test(dynamic expected, dynamic actual) → dynamic {
   }
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as var;
 import "dart:core" as core;
 
@@ -126,7 +126,7 @@ constants  {
   #C22 = static-tearoff var::id2
   #C23 = eval #C22<core::int>
   #C24 = eval #C20 ?{(core::int) → core::int} #C21 : #C23
-  #C25 = eval const core::identical(#C3, #C24)
+  #C25 = eval core::identical(#C3, #C24)
   #C26 = static-tearoff core::identical
 }
 

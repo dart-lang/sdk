@@ -249,7 +249,7 @@ class Assembler : public AssemblerBase {
   void call(Label* label);
   void call(const ExternalLabel* label);
 
-  static const intptr_t kCallExternalLabelSize = 5;
+  static constexpr intptr_t kCallExternalLabelSize = 5;
 
   void pushl(Register reg);
   void pushl(const Address& address);
@@ -711,10 +711,11 @@ class Assembler : public AssemblerBase {
 
   void LoadAcquire(Register dst,
                    Register address,
-                   int32_t offset = 0) override {
+                   int32_t offset = 0,
+                   OperandSize size = kFourBytes) override {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
-    movl(dst, Address(address, offset));
+    LoadFromOffset(dst, Address(address, offset), size);
   }
   void StoreRelease(Register src,
                     Register address,
@@ -726,7 +727,10 @@ class Assembler : public AssemblerBase {
     // We don't run TSAN on 32 bit systems.
   }
 
-  void CompareWithMemoryValue(Register value, Address address) {
+  void CompareWithMemoryValue(Register value,
+                              Address address,
+                              OperandSize size = kFourBytes) override {
+    ASSERT_EQUAL(size, kFourBytes);
     cmpl(value, address);
   }
 
@@ -774,7 +778,7 @@ class Assembler : public AssemblerBase {
       imull(reg, Immediate(imm));
     }
   }
-  void AndImmediate(Register dst, int32_t value) {
+  void AndImmediate(Register dst, int32_t value) override {
     andl(dst, Immediate(value));
   }
   void AndImmediate(Register dst, Register src, int32_t value) {
@@ -922,19 +926,6 @@ class Assembler : public AssemblerBase {
   void LockCmpxchgl(const Address& address, Register reg) {
     lock();
     cmpxchgl(address, reg);
-  }
-
-  void LoadAbstractTypeNullability(Register dst, Register type) override {
-    movzxb(dst,
-           FieldAddress(type, compiler::target::AbstractType::flags_offset()));
-    andl(dst,
-         Immediate(compiler::target::UntaggedAbstractType::kNullabilityMask));
-  }
-  void CompareAbstractTypeNullabilityWith(Register type,
-                                          /*Nullability*/ int8_t value,
-                                          Register scratch) override {
-    LoadAbstractTypeNullability(scratch, type);
-    cmpl(scratch, Immediate(value));
   }
 
   void EnterFrame(intptr_t frame_space);
@@ -1155,7 +1146,7 @@ class Assembler : public AssemblerBase {
   //   .....
   void EnterStubFrame();
   void LeaveStubFrame();
-  static const intptr_t kEnterStubFramePushedWords = 2;
+  static constexpr intptr_t kEnterStubFramePushedWords = 2;
 
   // Set up a frame for calling a C function.
   // Automatically save the pinned registers in Dart which are not callee-
@@ -1172,7 +1163,7 @@ class Assembler : public AssemblerBase {
   //   movl ebp, esp      (size is 2 bytes)
   //   call L             (size is 5 bytes)
   //   L:
-  static const intptr_t kEntryPointToPcMarkerOffset = 8;
+  static constexpr intptr_t kEntryPointToPcMarkerOffset = 8;
   static intptr_t EntryPointToPcMarkerOffset() {
     return kEntryPointToPcMarkerOffset;
   }

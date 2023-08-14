@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -33,7 +33,7 @@ class C extends core::Object {
  - 'Object' is from 'dart:core'.
  - 'C' is from 'pkg/front_end/testcases/rasta/issue_000046.dart'.
   C c = new Object)();
-            ^" in new core::Object::•() as{TypeError,ForNonNullableByDefault} self::C;
+            ^" in new core::Object::•() as{TypeError} self::C;
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;

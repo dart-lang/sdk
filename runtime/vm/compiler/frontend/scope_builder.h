@@ -52,6 +52,7 @@ class ScopeBuilder {
   void VisitTypeParameterType();
   void VisitIntersectionType();
   void VisitInlineType();
+  void VisitFutureOrType();
   void HandleLocalFunction(intptr_t parent_kernel_offset);
 
   AbstractType& BuildAndVisitVariableType();
@@ -208,7 +209,7 @@ class ScopeBuildingResult : public ZoneAllocated {
   IntMap<LocalScope*> scopes;
   GrowableArray<FunctionScope> function_scopes;
 
-  // Only non-nullptr for factory constructor functions.
+  // Only non-null for factory constructor functions.
   LocalVariable* type_arguments_variable;
 
   // Non-nullptr when the function contains a switch statement.

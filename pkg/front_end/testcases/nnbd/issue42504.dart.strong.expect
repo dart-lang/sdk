@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -20,7 +20,7 @@ abstract class Foo extends core::Object {
   method putIfAbsent(core::Object key, () → self::ImageStreamCompleter loader) → self::ImageStreamCompleter? {
     assert(!(key == null));
     assert(!(loader == null));
-    self::ImageStreamCompleter? result = (let final dynamic #t1 = this.{self::Foo::_pendingImages}{dynamic}{dynamic}.[](key) in #t1 == null ?{dynamic} null : #t1{dynamic}.completer) as{TypeError,ForDynamic,ForNonNullableByDefault} self::ImageStreamCompleter?;
+    self::ImageStreamCompleter? result = (let final dynamic #t1 = this.{self::Foo::_pendingImages}{dynamic}{dynamic}.[](key) in #t1 == null ?{dynamic} null : #t1{dynamic}.completer) as{TypeError,ForDynamic} self::ImageStreamCompleter?;
     if(!(result == null)) {
       return result{self::ImageStreamCompleter};
     }

@@ -18,7 +18,7 @@ DEFINE_FLAG(bool,
             false,
             "Print metrics when isolates (and the VM) are shutdown.");
 
-Metric* Metric::vm_list_head_ = NULL;
+Metric* Metric::vm_list_head_ = nullptr;
 
 Metric::Metric() : unit_(kCounter), value_(0) {}
 Metric::~Metric() {}
@@ -28,7 +28,7 @@ void Metric::InitInstance(IsolateGroup* isolate_group,
                           const char* description,
                           Unit unit) {
   // Only called once.
-  ASSERT(name != NULL);
+  ASSERT(name != nullptr);
   isolate_group_ = isolate_group;
   name_ = name;
   description_ = description;
@@ -41,7 +41,7 @@ void Metric::InitInstance(Isolate* isolate,
                           const char* description,
                           Unit unit) {
   // Only called once.
-  ASSERT(name != NULL);
+  ASSERT(name != nullptr);
   isolate_ = isolate;
   name_ = name;
   description_ = description;
@@ -52,7 +52,7 @@ void Metric::InitInstance(const char* name,
                           const char* description,
                           Unit unit) {
   // Only called once.
-  ASSERT(name != NULL);
+  ASSERT(name != nullptr);
   name_ = name;
   description_ = description;
   unit_ = unit;
@@ -70,7 +70,7 @@ static const char* UnitString(intptr_t unit) {
       UNREACHABLE();
   }
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void Metric::PrintJSON(JSONStream* stream) {
@@ -92,9 +92,9 @@ void Metric::PrintJSON(JSONStream* stream) {
 
 char* Metric::ValueToString(int64_t value, Unit unit) {
   Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   Zone* zone = thread->zone();
-  ASSERT(zone != NULL);
+  ASSERT(zone != nullptr);
   switch (unit) {
     case kCounter:
       return zone->PrintToString("%" Pd64 "", value);
@@ -129,15 +129,15 @@ char* Metric::ValueToString(int64_t value, Unit unit) {
     }
     default:
       UNREACHABLE();
-      return NULL;
+      return nullptr;
   }
 }
 
 char* Metric::ToString() {
   Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   Zone* zone = thread->zone();
-  ASSERT(zone != NULL);
+  ASSERT(zone != nullptr);
   return zone->PrintToString("%s %s", name(), ValueToString(Value(), unit()));
 }
 

@@ -47,7 +47,7 @@ class DartUnitSignatureComputer {
       var element = ElementLocator.locate(parent);
       execElement = element is ExecutableElement ? element : null;
     } else if (parent is InstanceCreationExpression) {
-      name = parent.constructorName.type.name.name;
+      name = parent.constructorName.type.qualifiedName;
       var constructorName = parent.constructorName.name;
       if (constructorName != null) {
         name += '.${constructorName.name}';

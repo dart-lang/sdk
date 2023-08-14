@@ -5,6 +5,7 @@
 #include "vm/virtual_memory_compressed.h"
 
 #include "platform/utils.h"
+#include "vm/lockers.h"
 
 #if defined(DART_COMPRESSED_HEAP)
 

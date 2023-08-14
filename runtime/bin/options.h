@@ -66,7 +66,7 @@ class CallbackOptionProcessor : public OptionProcessor {
     virtual bool Process(const char* option, CommandLineOptions* vm_options) { \
       const char* value =                                                      \
           OptionProcessor::ProcessOption(option, "--" #name "=");              \
-      if (value == NULL) {                                                     \
+      if (value == nullptr) {                                                  \
         return false;                                                          \
       }                                                                        \
       if (*value == '\0') {                                                    \
@@ -85,7 +85,7 @@ class CallbackOptionProcessor : public OptionProcessor {
 #define DEFINE_ENUM_OPTION(name, enum_name, variable)                          \
   DEFINE_STRING_OPTION_CB(name, {                                              \
     const char* const* kNames = k##enum_name##Names;                           \
-    for (intptr_t i = 0; kNames[i] != NULL; i++) {                             \
+    for (intptr_t i = 0; kNames[i] != nullptr; i++) {                          \
       if (strcmp(value, kNames[i]) == 0) {                                     \
         variable = static_cast<enum_name>(i);                                  \
         return true;                                                           \
@@ -93,7 +93,7 @@ class CallbackOptionProcessor : public OptionProcessor {
     }                                                                          \
     Syslog::PrintErr(                                                          \
         "Unrecognized value for " #name ": '%s'\nValid values are: ", value);  \
-    for (intptr_t i = 0; kNames[i] != NULL; i++) {                             \
+    for (intptr_t i = 0; kNames[i] != nullptr; i++) {                          \
       Syslog::PrintErr("%s%s", i > 0 ? ", " : "", kNames[i]);                  \
     }                                                                          \
     Syslog::PrintErr("\n");                                                    \
@@ -104,7 +104,7 @@ class CallbackOptionProcessor : public OptionProcessor {
    public:                                                                     \
     virtual bool Process(const char* option, CommandLineOptions* vm_options) { \
       const char* value = OptionProcessor::ProcessOption(option, "--" #name);  \
-      if (value == NULL) {                                                     \
+      if (value == nullptr) {                                                  \
         return false;                                                          \
       }                                                                        \
       if (*value == '=') {                                                     \
@@ -125,7 +125,7 @@ class CallbackOptionProcessor : public OptionProcessor {
    public:                                                                     \
     virtual bool Process(const char* option, CommandLineOptions* vm_options) { \
       const char* value = OptionProcessor::ProcessOption(option, "--" #name);  \
-      if (value == NULL) {                                                     \
+      if (value == nullptr) {                                                  \
         return false;                                                          \
       }                                                                        \
       if (*value == '=') {                                                     \
@@ -147,10 +147,10 @@ class CallbackOptionProcessor : public OptionProcessor {
     virtual bool Process(const char* option, CommandLineOptions* vm_options) { \
       const char* value =                                                      \
           OptionProcessor::ProcessOption(option, "-" #short_name);             \
-      if (value == NULL) {                                                     \
+      if (value == nullptr) {                                                  \
         value = OptionProcessor::ProcessOption(option, "--" #long_name);       \
       }                                                                        \
-      if (value == NULL) {                                                     \
+      if (value == nullptr) {                                                  \
         return false;                                                          \
       }                                                                        \
       if (*value == '=') {                                                     \

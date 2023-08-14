@@ -7,11 +7,14 @@
 import "package:expect/expect.dart";
 
 class A {
-  operator ==(other) => 1; /*@compile-error=unspecified*/
-  operator <(other) => null; /*@compile-error=unspecified*/
-  operator <=(other) => 499; /*@compile-error=unspecified*/
-  operator >(other) => "foo"; /*@compile-error=unspecified*/
-  operator >=(other) => 42; /*@compile-error=unspecified*/
+  operator ==(other) => 1;
+  //                    ^
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
+  // [cfe] A value of type 'int' can't be assigned to a variable of type 'bool'.
+  operator <(other) => null;
+  operator <=(other) => 499;
+  operator >(other) => "foo";
+  operator >=(other) => 42;
 }
 
 // This triggered a bug in Dart2Js: equality operator was always boolified.

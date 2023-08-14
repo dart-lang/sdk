@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -36,7 +36,7 @@ class C<X extends core::Object?, Y extends core::Object> extends core::Object {
     self::assertLeftSubtype<core::Set<core::Object?>>(p);
     self::assertRightSubtype(q);
     self::assertLeftSubtype<core::Set<core::Object?>>(q);
-    if(x is{ForNonNullableByDefault} core::Object?) {
+    if(x is core::Object?) {
       core::Set<core::Object?> v = block {
         final core::Set<core::Object?> #t5 = new col::_Set::•<core::Object?>();
         #t5.{core::Set::add}{Invariant}(x{self::C::X% & core::Object? /* '%' & '?' = '%' */}){(core::Object?) → core::bool};
@@ -55,10 +55,10 @@ class C<X extends core::Object?, Y extends core::Object> extends core::Object {
   }
 }
 static method assertRightSubtype(dynamic x) → dynamic {
-  x as{ForNonNullableByDefault} core::Set<core::Object?>;
+  x as core::Set<core::Object?>;
 }
 static method assertLeftSubtype<X extends core::Object? = dynamic>(self::assertLeftSubtype::X% x) → dynamic {
-  new col::_Set::•<core::Object?>() as{ForNonNullableByDefault} self::assertLeftSubtype::X%;
+  new col::_Set::•<core::Object?>() as self::assertLeftSubtype::X%;
 }
 static method main() → dynamic {
   new self::C::•<core::int?, core::int>().{self::C::test}(42, null){(core::int?, core::int?) → dynamic};

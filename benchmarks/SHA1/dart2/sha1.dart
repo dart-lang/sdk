@@ -15,7 +15,7 @@ class SHA1Bench extends BenchmarkBase {
   List<int> data;
 
   SHA1Bench() : super('SHA1') {
-    data = List<int>(size);
+    data = List<int>.filled(size, null);
     for (int i = 0; i < data.length; i++) {
       data[i] = i % 256;
     }

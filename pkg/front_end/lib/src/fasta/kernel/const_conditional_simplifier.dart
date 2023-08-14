@@ -16,6 +16,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
 
   late final TypeEnvironment _typeEnvironment;
   late final _ConstantEvaluator _constantEvaluator;
+  final bool _removeAsserts;
 
   ConstConditionalSimplifier(
     DartLibrarySupport librarySupport,
@@ -27,7 +28,8 @@ class ConstConditionalSimplifier extends RemovingTransformer {
     bool Function(TreeNode)? shouldNotInline,
     CoreTypes? coreTypes,
     ClassHierarchy? classHierarchy,
-  }) {
+    bool removeAsserts = false,
+  }) : _removeAsserts = removeAsserts {
     coreTypes ??= new CoreTypes(_component);
     classHierarchy ??= new ClassHierarchy(_component, coreTypes);
     _typeEnvironment = new TypeEnvironment(coreTypes, classHierarchy);
@@ -74,6 +76,35 @@ class ConstConditionalSimplifier extends RemovingTransformer {
       return node.then;
     } else {
       return node.otherwise ?? removalSentinel ?? new EmptyStatement();
+    }
+  }
+
+  @override
+  TreeNode visitAssertBlock(AssertBlock node, TreeNode? removalSentinel) {
+    if (_removeAsserts && removalSentinel != null) {
+      return removalSentinel;
+    } else {
+      return super.visitAssertBlock(node, removalSentinel);
+    }
+  }
+
+  @override
+  TreeNode visitAssertInitializer(
+      AssertInitializer node, TreeNode? removalSentinel) {
+    if (_removeAsserts && removalSentinel != null) {
+      return removalSentinel;
+    } else {
+      return super.visitAssertInitializer(node, removalSentinel);
+    }
+  }
+
+  @override
+  TreeNode visitAssertStatement(
+      AssertStatement node, TreeNode? removalSentinel) {
+    if (_removeAsserts && removalSentinel != null) {
+      return removalSentinel;
+    } else {
+      return super.visitAssertStatement(node, removalSentinel);
     }
   }
 }

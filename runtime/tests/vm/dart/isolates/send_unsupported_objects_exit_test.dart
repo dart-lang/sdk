@@ -15,11 +15,11 @@ worker(SendPort sp) async {
   try {
     Isolate.exit(sp, Fu.unsendable('fu'));
   } catch (e) {
-    checkForRetainingPath(e, <String>[
-      'NativeWrapper',
+    Expect.isTrue(checkForRetainingPath(e, <String>[
+      'NativeClass',
       'Baz',
       'Fu',
-    ]);
+    ]));
     sp.send(true);
   }
 }

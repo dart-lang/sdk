@@ -842,7 +842,7 @@ class ClosedWorldClassHierarchy
   @override
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
-    if (type.classNode == superclass) {
+    if (type.classReference == superclass.reference) {
       // TODO(johnniwinther): This is necessary because [getClassAsInstanceOf]
       // returns a [Supertype] whose type arguments are type parameter types
       // whose nullability is set to the default nullability of the
@@ -1754,9 +1754,6 @@ class _ClassInfo {
       } else {
         canonical = type;
       }
-      // ignore: unnecessary_null_comparison
-      assert(canonical != null,
-          "No canonical instantiation computed for $cls in $classNode.");
       genericSuperType![cls] = canonical;
       genericSuperTypes![cls] = <Supertype>[type];
     } else {

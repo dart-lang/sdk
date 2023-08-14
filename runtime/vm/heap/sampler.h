@@ -118,7 +118,7 @@ class HeapProfileSampler {
   // allocations.
   void HandleNewTLAB(intptr_t old_tlab_remaining_space, bool is_first_tlab);
 
-  void* InvokeCallbackForLastSample();
+  void* InvokeCallbackForLastSample(intptr_t cid);
 
   bool HasOutstandingSample() const {
     return last_sample_size_ != kUninitialized;
@@ -158,8 +158,8 @@ class HeapProfileSampler {
   static Dart_HeapSamplingDeleteCallback delete_callback_;
   static intptr_t sampling_interval_;
 
-  static const intptr_t kUninitialized = -1;
-  static const intptr_t kDefaultSamplingInterval = 512 * KB;
+  static constexpr intptr_t kUninitialized = -1;
+  static constexpr intptr_t kDefaultSamplingInterval = 512 * KB;
 
   bool thread_enabled_ = false;
   intptr_t interval_to_next_sample_ = kUninitialized;

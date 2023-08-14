@@ -20,6 +20,8 @@ class Implements implements BaseClass {} /* Error */
 
 mixin MixinImplements implements BaseMixin {} /* Error */
 
+mixin MixinImplementsIndirect implements SubtypeOfBase {} /* Error */
+
 class With with BaseMixin {} /* Error */
 
 class With2 with BaseMixin, BaseMixin2 {} /* Error */

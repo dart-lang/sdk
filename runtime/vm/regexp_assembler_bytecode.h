@@ -17,11 +17,11 @@ class BytecodeRegExpMacroAssembler : public RegExpMacroAssembler {
   // relocation information starting from the end of the buffer. See CodeDesc
   // for a detailed comment on the layout (globals.h).
   //
-  // If the provided buffer is NULL, the assembler allocates and grows its own
+  // If the provided buffer is null, the assembler allocates and grows its own
   // buffer, and buffer_size determines the initial buffer size. The buffer is
   // owned by the assembler and deallocated upon destruction of the assembler.
   //
-  // If the provided buffer is not NULL, the assembler uses the provided buffer
+  // If the provided buffer is not null, the assembler uses the provided buffer
   // for code generation and assumes its size to be buffer_size. If the buffer
   // is too small, a fatal error occurs. No deallocation of the buffer is done
   // upon destruction of the assembler.
@@ -136,7 +136,7 @@ class BytecodeRegExpMacroAssembler : public RegExpMacroAssembler {
   intptr_t advance_current_offset_;
   intptr_t advance_current_end_;
 
-  static const int kInvalidPC = -1;
+  static constexpr int kInvalidPC = -1;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BytecodeRegExpMacroAssembler);
 };

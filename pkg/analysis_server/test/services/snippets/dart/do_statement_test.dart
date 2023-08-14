@@ -45,12 +45,12 @@ void f() {
     
   } while (condition);
 }''');
-    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.file, testFile.path);
     expect(snippet.change.selection!.offset, 22);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
-          {'file': testFile, 'offset': 34},
+          {'file': testFile.path, 'offset': 34},
         ],
         'length': 9,
         'suggestions': []

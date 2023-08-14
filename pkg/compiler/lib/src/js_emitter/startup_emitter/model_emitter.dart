@@ -12,6 +12,7 @@ import 'package:js_runtime/synced/embedded_names.dart'
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
         DEFERRED_PART_HASHES,
+        INITIALIZATION_EVENT_LOG,
         INITIALIZE_LOADED_HUNK,
         INTERCEPTORS_BY_TAG,
         IS_HUNK_INITIALIZED,
@@ -342,8 +343,7 @@ class ModelEmitter {
 
     _task.measureSubtask('write fragments', () {
       writeMainFragment(mainFragment, mainCode,
-          isSplit: program.deferredFragments.isNotEmpty ||
-              _options.experimentalTrackAllocations);
+          isSplit: program.isSplit || _options.experimentalTrackAllocations);
     });
 
     if (_closedWorld.backendUsage.requiresPreamble &&
@@ -377,11 +377,17 @@ class ModelEmitter {
     return js.Comment(generatedBy(_options, flavor: '$flavor'));
   }
 
-  js.Statement buildDeferredInitializerGlobal() {
+  js.Statement buildDeferredInitializerGlobal(js.LiteralString partFileName,
+      {js.Expression? code}) {
     return js.js.statement(
-        'self.#deferredInitializers = '
-        'self.#deferredInitializers || Object.create(null);',
-        {'deferredInitializers': deferredInitializersGlobal});
+        '((s,d,e) => {s[d] = s[d] || {}; s[d][e] = s[d][e] || [];'
+        's[d][e].push({p:#part,e:"beginPart"});})'
+        '(self,#deferredInitializers, #eventLog)',
+        {
+          'deferredInitializers': js.string(deferredInitializersGlobal),
+          'eventLog': js.string(INITIALIZATION_EVENT_LOG),
+          'part': partFileName,
+        });
   }
 
   js.Statement buildStartupMetrics() {
@@ -432,7 +438,7 @@ var ${startupMetricsGlobal} =
     js.Program program = js.Program([
       buildGeneratedBy(),
       js.Comment(HOOKS_API_USAGE),
-      if (isSplit) buildDeferredInitializerGlobal(),
+      if (isSplit) buildDeferredInitializerGlobal(js.string('main')),
       if (_closedWorld.backendUsage.requiresStartupMetrics)
         buildStartupMetrics(),
       code
@@ -571,10 +577,12 @@ var ${startupMetricsGlobal} =
     //   deferredInitializer.current = <pretty-printed code>;
     //   deferredInitializer[<hash>] = deferredInitializer.current;
 
+    final outputFileJsString = js.string(outputFileName);
     js.Program program = js.Program([
       if (isFirst) buildGeneratedBy(),
-      if (isFirst) buildDeferredInitializerGlobal(),
-      js.js.statement('$deferredInitializersGlobal.current = #', code)
+      if (isFirst) buildDeferredInitializerGlobal(outputFileJsString),
+      js.js.statement('#deferredInitializers.current = #code',
+          {'deferredInitializers': deferredInitializersGlobal, 'code': code})
     ]);
 
     Hasher hasher = Hasher();
@@ -585,6 +593,8 @@ var ${startupMetricsGlobal} =
         annotationMonitor: _resourceInfoCollector.monitorFor(outputFileName));
     _task.measureSubtask('emit buffers', () {
       output.addBuffer(buffer);
+      // Add semi-colon to separate from IIFE epilogue.
+      output.add(';');
     });
 
     // Make a unique hash of the code (before the sourcemaps are added)
@@ -593,8 +603,23 @@ var ${startupMetricsGlobal} =
     String hash = hasher.getHash();
 
     // Now we copy the deferredInitializer.current into its correct hash.
-    output.add('\n${deferredInitializersGlobal}["$hash"] = '
-        '${deferredInitializersGlobal}.current\n');
+    final epilogue = js.js.statement(
+        '((d,h)=>{d[h]=d.current; '
+        'd.#eventLog.push({p:#part,e:"endPart",h:h})})'
+        '(#deferredInitializers,#hash)',
+        {
+          'deferredInitializers': deferredInitializersGlobal,
+          'hash': js.string(hash),
+          'eventLog': js.string(INITIALIZATION_EVENT_LOG),
+          'part': outputFileJsString,
+        });
+    output.add('\n');
+    output.add(js
+        .createCodeBuffer(epilogue, _options,
+            _sourceInformationStrategy as JavaScriptSourceInformationStrategy)
+        .getText());
+    // Add semi-colon to separate from other fragments in the same part.
+    output.add(';');
     return hash;
   }
 

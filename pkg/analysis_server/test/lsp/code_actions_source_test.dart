@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:linter/src/rules.dart';
@@ -63,18 +65,207 @@ linter:
   rules:
     - unnecessary_new
     - prefer_collection_literals
-    ''';
+''';
     const content = '''
-    final a = new Object();
-    final b = new Set<String>();
-    ''';
+final a = new Object();
+final b = new Set<String>();
+''';
     const expectedContent = '''
-    final a = Object();
-    final b = <String>{};
-    ''';
+final a = Object();
+final b = <String>{};
+''';
 
     registerLintRules();
     newFile(analysisOptionsPath, analysisOptionsContent);
+    newFile(mainFilePath, content);
+
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+
+    final codeActions = await getSourceCodeActions(mainFileUri);
+    final codeAction = findCommand(codeActions, Commands.fixAll)!;
+
+    await verifyCodeActionEdits(codeAction, content, expectedContent);
+  }
+
+  Future<void> test_multipleIterations_noOverlay() async {
+    const analysisOptionsContent = '''
+linter:
+  rules:
+    - prefer_final_locals
+    - prefer_const_declarations
+    ''';
+    const content = '''
+void f() {
+  var a = 'test';
+}
+''';
+    const expectedContent = '''
+void f() {
+  const a = 'test';
+}
+''';
+
+    registerLintRules();
+    newFile(analysisOptionsPath, analysisOptionsContent);
+    newFile(mainFilePath, content);
+
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+
+    final codeActions = await getSourceCodeActions(mainFileUri);
+    final codeAction = findCommand(codeActions, Commands.fixAll)!;
+
+    await verifyCodeActionEdits(codeAction, content, expectedContent);
+  }
+
+  Future<void> test_multipleIterations_overlay() async {
+    const analysisOptionsContent = '''
+linter:
+  rules:
+    - prefer_final_locals
+    - prefer_const_declarations
+    ''';
+    const content = '''
+void f() {
+  var a = 'test';
+}
+''';
+    const expectedContent = '''
+void f() {
+  const a = 'test';
+}
+''';
+
+    registerLintRules();
+    newFile(analysisOptionsPath, analysisOptionsContent);
+
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+
+    await openFile(mainFileUri, content);
+    final codeActions = await getSourceCodeActions(mainFileUri);
+    final codeAction = findCommand(codeActions, Commands.fixAll)!;
+
+    await verifyCodeActionEdits(codeAction, content, expectedContent);
+  }
+
+  Future<void> test_multipleIterations_withClientModification() async {
+    const analysisOptionsContent = '''
+linter:
+  rules:
+    - prefer_final_locals
+    - prefer_const_declarations
+    ''';
+    const content = '''
+void f() {
+  var a = 'test';
+}
+''';
+    registerLintRules();
+    newFile(analysisOptionsPath, analysisOptionsContent);
+    newFile(mainFilePath, content);
+
+    await initialize(
+        workspaceCapabilities: withApplyEditSupport(
+            withDocumentChangesSupport(emptyWorkspaceClientCapabilities)));
+    await openFile(mainFileUri, content);
+
+    // Find the "Fix All" action command.
+    final codeActions = await getSourceCodeActions(mainFileUri);
+    final codeAction = findCommand(codeActions, Commands.fixAll)!;
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command!,
+    );
+
+    // Execute the command with a modification and capture the edit that is
+    // sent back to us.
+    ApplyWorkspaceEditParams? editParams;
+    await handleExpectedRequest<Object?, ApplyWorkspaceEditParams,
+        ApplyWorkspaceEditResult>(
+      Method.workspace_applyEdit,
+      ApplyWorkspaceEditParams.fromJson,
+      () async {
+        // Apply the command and immediately modify a file afterwards.
+        final commandFuture = executeCommand(command);
+        await replaceFile(12345, mainFileUri, 'client-modified-content');
+        return commandFuture;
+      },
+      handler: (edit) {
+        // When the server sends the edit back, just keep a copy and say we
+        // applied successfully (we'll verify the actual edit below).
+        editParams = edit;
+        return ApplyWorkspaceEditResult(applied: true);
+      },
+    );
+
+    // Extract the text edit from the 'workspace/applyEdit' params the server
+    // sent us.
+    final change = editParams?.edit.documentChanges!.single;
+    final edit = change!.map(
+      (create) => throw 'Expected edit, got create',
+      (delete) => throw 'Expected edit, got delete',
+      (rename) => throw 'Expected edit, got rename',
+      (edit) => edit,
+    );
+    // Ensure the edit says that it was based on version 1 (the original
+    // version) and not the updated 12345 version we sent.
+    expect(edit.textDocument.version, 1);
+  }
+
+  Future<void> test_unavailable_outsideAnalysisRoot() async {
+    final otherFile = convertPath('/other/file.dart');
+    newFile(otherFile, '');
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+
+    final codeActions = await getSourceCodeActions(Uri.file(otherFile));
+    final codeAction = findCommand(codeActions, Commands.fixAll);
+    expect(codeAction, isNull);
+  }
+
+  Future<void> test_unusedUsings_notRemovedIfSave() async {
+    const content = '''
+import 'dart:async';
+int? a;
+''';
+
+    newFile(mainFilePath, content);
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+
+    final codeActions = await getSourceCodeActions(mainFileUri,
+        triggerKind: CodeActionTriggerKind.Automatic);
+    final command = findCommand(codeActions, Commands.fixAll)!
+        .map((command) => command, (action) => action.command)!;
+
+    // We should not get an applyEdit call during the command execution because
+    // no edits should be produced.
+    final applyEditSubscription = requestsFromServer
+        .where((n) => n.method == Method.workspace_applyEdit)
+        .listen((_) => throw 'workspace/applyEdit was unexpectedly called');
+    final commandResponse = await executeCommand(command);
+    expect(commandResponse, isNull);
+
+    await pumpEventQueue();
+    await applyEditSubscription.cancel();
+  }
+
+  Future<void> test_unusedUsings_removedByDefault() async {
+    const content = '''
+import 'dart:async';
+int? a;
+''';
+    const expectedContent = '''
+int? a;
+''';
+
     newFile(mainFilePath, content);
 
     await initialize(
@@ -99,14 +290,14 @@ import 'dart:convert';
 
 Completer foo;
 int minified(int x, int y) => min(x, y);
-    ''';
+''';
     const expectedContent = '''
 import 'dart:async';
 import 'dart:math';
 
 Completer foo;
 int minified(int x, int y) => min(x, y);
-    ''';
+''';
     newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities: withApplyEditSupport(
@@ -127,14 +318,14 @@ import 'dart:convert';
 
 Completer foo;
 int minified(int x, int y) => min(x, y);
-    ''';
+''';
     const expectedContent = '''
 import 'dart:async';
 import 'dart:math';
 
 Completer foo;
 int minified(int x, int y) => min(x, y);
-    ''';
+''';
     newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities:
@@ -246,7 +437,7 @@ import 'dart:math';
 
 Completer foo;
 int minified(int x, int y) => min(x, y);
-    ''';
+''';
     newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities:
@@ -294,13 +485,13 @@ int minified(int x, int y) => min(x, y);
 class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
   Future<void> test_appliesCorrectEdits_withDocumentChangesSupport() async {
     const content = '''
-    String b;
-    String a;
-    ''';
+String b;
+String a;
+''';
     const expectedContent = '''
-    String a;
-    String b;
-    ''';
+String a;
+String b;
+''';
     newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities: withApplyEditSupport(
@@ -315,13 +506,13 @@ class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
 
   Future<void> test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
     const content = '''
-    String b;
-    String a;
-    ''';
+String b;
+String a;
+''';
     const expectedContent = '''
-    String a;
-    String b;
-    ''';
+String a;
+String b;
+''';
     newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities:
@@ -365,9 +556,9 @@ class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
 
   Future<void> test_failsIfClientDoesntApplyEdits() async {
     const content = '''
-    String b;
-    String a;
-    ''';
+String b;
+String a;
+''';
     newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities:

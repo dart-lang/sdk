@@ -12,7 +12,10 @@ class A {
   // initializing formal.
   A(this.x)
       : y = (() {
-          /*@compile-error=unspecified*/ x = 3;
+          x = 3;
+//        ^
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+// [cfe] Can't assign to the final variable 'x'.
         });
 }
 

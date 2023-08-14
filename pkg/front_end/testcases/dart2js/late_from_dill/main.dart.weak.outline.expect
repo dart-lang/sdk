@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "main_lib1.dart" as mai;
 
@@ -33,7 +33,7 @@ static method testInitializedNonFinalTopLevelField() → void
 static method testInitializedFinalTopLevelField() → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 import "dart:_late_helper" as _la;
@@ -112,7 +112,7 @@ static method testNullableInitializedFinalLocal() → void
 static method testNonNullableInitializedFinalLocal() → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 import "dart:_late_helper" as _la;

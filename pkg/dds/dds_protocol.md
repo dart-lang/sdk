@@ -1,6 +1,6 @@
-# Dart Development Service Protocol 1.4
+# Dart Development Service Protocol 1.5
 
-This document describes _version 1.4_ of the Dart Development Service Protocol.
+This document describes _version 1.5_ of the Dart Development Service Protocol.
 This protocol is an extension of the Dart VM Service Protocol and implements it
 in it's entirety. For details on the VM Service Protocol, see the [Dart VM Service Protocol Specification][service-protocol].
 
@@ -17,21 +17,23 @@ The Service Protocol uses [JSON-RPC 2.0][].
 - [Revision History](#revision-history)
 - [Public RPCs](#public-rpcs)
   - [getAvailableCachedCpuSamples](#getavailablecachedcpusamples)
-  - [getCachedCpuSamples](#getcachedcpusamples)[
+  - [getCachedCpuSamples](#getcachedcpusamples)
   - [getClientName](#getclientname)
   - [getDartDevelopmentServiceVersion](#getdartdevelopmentserviceversion)
   - [getLogHistorySize](#getloghistorysize)
-  - [getStreamHistory](#getstreamhistory)[
+  - [getPerfettoVMTimeline](#getperfettovmtimeline)
+  - [getStreamHistory](#getstreamhistory)
+  - [postEvent](#postevent)
   - [requirePermissionToResume](#requirepermissiontoresume)
   - [setClientName](#setclientname)
   - [setLogHistorySize](#setloghistorysize)
 - [Public Types](#public-types)
-  - [AvailableCachedCpuSamples](#availablecachedcpusamples)[
+  - [AvailableCachedCpuSamples](#availablecachedcpusamples)
   - [CachedCpuSamples](#cachedcpusamples)
   - [ClientName](#clientname)
   - [DartDevelopmentServiceVersion](#dartdevelopmentserviceversion)
   - [Size](#size)
-  - [StreamHistory](#streamhistory)[
+  - [StreamHistory](#streamhistory)
 
 ## RPCs, Requests, and Responses
 
@@ -134,6 +136,22 @@ disabled.
 
 See [Size](#size).
 
+### getPerfettoVMTimelineWithCpuSamples
+
+```
+PerfettoTimeline getPerfettoVMTimelineWithCpuSamples(int timeOriginMicros [optional],
+                                                     int timeExtentMicros [optional])
+```
+
+The _getPerfettoVMTimelineWithCpuSamples_ RPC functions nearly identically to
+the VM Service Protocol's _getPerfettoVMTimeline_ RPC, except the `trace` field
+of the `PerfettoTimeline` response returned by this RPC will be a Base64 string
+encoding a Perfetto-format trace that includes not only all timeline events
+in the specified time range, but also all CPU samples from all isolates in the
+specified time range.
+
+See the documentation of _getPerfettoVMTimeline_ and _getPerfettoCpuSamples_ in
+the [Dart VM Service Protocol Specification][service-protocol].
 
 ### getStreamHistory
 
@@ -146,6 +164,13 @@ which support event history (see [Streams](#streams) for a list of supported
 streams).
 
 See [StreamHistory](#streamhistory).
+
+### postEvent
+
+```
+void postEvent(String stream, String eventKind, Map eventData)
+```
+The _postEvent_ RPC is used to send events to custom Event streams.
 
 ### requirePermissionToResume
 
@@ -284,6 +309,8 @@ version | comments
 1.2 | Added `getStreamHistory` RPC.
 1.3 | Added `getAvailableCachedCpuSamples` and `getCachedCpuSamples` RPCs.
 1.4 | Added the ability to subscribe to custom streams (which can be specified when calling `dart:developer`'s `postEvent`).
+1.5 | Added `getPerfettoCpuSamples` RPC.
+1.6 | Added `postEvent` RPC.
 
 [resume]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#resume
 [success]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#success

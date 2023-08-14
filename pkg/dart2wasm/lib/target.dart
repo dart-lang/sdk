@@ -15,6 +15,7 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:kernel/verifier.dart';
 import 'package:vm/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
 import 'package:vm/transformations/ffi/common.dart' as ffiHelper
@@ -28,14 +29,16 @@ import 'package:front_end/src/api_prototype/constant_evaluator.dart'
 import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
     show ConstConditionalSimplifier;
 
+import 'package:dart2wasm/await_transformer.dart' as awaitTrans;
 import 'package:dart2wasm/ffi_native_transformer.dart' as wasmFfiNativeTrans;
-import 'package:dart2wasm/transformers.dart' as wasmTrans;
 import 'package:dart2wasm/records.dart' show RecordShape;
+import 'package:dart2wasm/transformers.dart' as wasmTrans;
 
 class WasmTarget extends Target {
-  WasmTarget({this.constantBranchPruning = true});
+  WasmTarget({this.removeAsserts = true, this.useStringref = false});
 
-  bool constantBranchPruning;
+  bool removeAsserts;
+  bool useStringref;
   Class? _growableList;
   Class? _immutableList;
   Class? _wasmDefaultMap;
@@ -53,7 +56,10 @@ class WasmTarget extends Target {
   ConstantsBackend get constantsBackend => const ConstantsBackend();
 
   @override
-  String get name => 'wasm';
+  Verification get verification => const WasmVerification();
+
+  @override
+  String get name => useStringref ? 'wasm_stringref' : 'wasm';
 
   @override
   TargetFlags get flags => TargetFlags();
@@ -65,10 +71,12 @@ class WasmTarget extends Target {
         'dart:_internal',
         'dart:_http',
         'dart:_js_helper',
+        'dart:_js_types',
         'dart:typed_data',
         'dart:nativewrappers',
         'dart:io',
         'dart:js_interop',
+        'dart:js_interop_unsafe',
         'dart:js',
         'dart:js_util',
         'dart:_wasm',
@@ -78,6 +86,7 @@ class WasmTarget extends Target {
   @override
   List<String> get extraIndexedLibraries => const <String>[
         'dart:_js_helper',
+        'dart:_js_types',
         'dart:collection',
         'dart:typed_data',
         'dart:js_interop',
@@ -85,9 +94,18 @@ class WasmTarget extends Target {
         'dart:_wasm',
       ];
 
+  @override
+  bool mayDefineRestrictedType(Uri uri) =>
+      uri.isScheme('dart') &&
+      (uri.path == 'core' ||
+          uri.path == 'typed_data' ||
+          uri.path == '_js_types');
+
+  @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
-      importer.path.contains('tests/web/wasm');
+      importer.path.contains('tests/web/wasm') ||
+      importer.isScheme('package') && importer.path == 'js/js.dart';
 
   void _patchHostEndian(CoreTypes coreTypes) {
     // Fix Endian.host to be a const field equal to Endian.little instead of
@@ -112,19 +130,17 @@ class WasmTarget extends Target {
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
+    final jsInteropReporter = JsInteropDiagnosticReporter(
+        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
     final jsInteropChecks = JsInteropChecks(
-        coreTypes,
-        hierarchy,
-        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
-        _nativeClasses!,
-        enableDisallowedExternalCheck: false,
-        enableStrictMode: true);
+        coreTypes, hierarchy, jsInteropReporter, _nativeClasses!,
+        isDart2Wasm: true, enableStrictMode: true);
     // Process and validate first before doing anything with exports.
     for (Library library in interopDependentLibraries) {
       jsInteropChecks.visitLibrary(library);
     }
     final exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
-        diagnosticReporter, jsInteropChecks.exportChecker);
+        jsInteropReporter, jsInteropChecks.exportChecker);
     for (Library library in interopDependentLibraries) {
       exportCreator.visitLibrary(library);
     }
@@ -156,7 +172,9 @@ class WasmTarget extends Target {
       ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
           component, Uri.parse("package:js/js.dart")),
       ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-          component, Uri.parse("dart:_js_annotations"))
+          component, Uri.parse("dart:_js_annotations")),
+      ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
+          component, Uri.parse("dart:js_interop")),
     };
     if (transitiveImportingJSInterop.isEmpty) {
       logger?.call("Skipped JS interop transformations");
@@ -166,30 +184,30 @@ class WasmTarget extends Target {
       logger?.call("Transformed JS interop classes");
     }
 
-    if (constantBranchPruning) {
-      final reportError =
-          (LocatedMessage message, [List<LocatedMessage>? context]) {
-        diagnosticReporter.report(message.messageObject, message.charOffset,
-            message.length, message.uri);
-        if (context != null) {
-          for (final m in context) {
-            diagnosticReporter.report(
-                m.messageObject, m.charOffset, m.length, m.uri);
-          }
+    final reportError =
+        (LocatedMessage message, [List<LocatedMessage>? context]) {
+      diagnosticReporter.report(message.messageObject, message.charOffset,
+          message.length, message.uri);
+      if (context != null) {
+        for (final m in context) {
+          diagnosticReporter.report(
+              m.messageObject, m.charOffset, m.length, m.uri);
         }
-      };
+      }
+    };
 
-      ConstConditionalSimplifier(
-        dartLibrarySupport,
-        constantsBackend,
-        component,
-        reportError,
-        environmentDefines: environmentDefines ?? {},
-        evaluationMode: constantEvaluator.EvaluationMode.strong,
-        coreTypes: coreTypes,
-        classHierarchy: hierarchy,
-      ).run();
-    }
+    ConstConditionalSimplifier(
+      dartLibrarySupport,
+      constantsBackend,
+      component,
+      reportError,
+      environmentDefines: environmentDefines ?? {},
+      evaluationMode: constantEvaluator.EvaluationMode.strong,
+      coreTypes: coreTypes,
+      classHierarchy: hierarchy,
+      removeAsserts: removeAsserts,
+    ).run();
+
     transformMixins.transformLibraries(
         this, coreTypes, hierarchy, libraries, referenceFromIndex);
     logger?.call("Transformed mixin applications");
@@ -216,6 +234,8 @@ class WasmTarget extends Target {
 
     wasmTrans.transformLibraries(
         libraries, coreTypes, hierarchy, diagnosticReporter);
+
+    awaitTrans.transformLibraries(libraries, hierarchy, coreTypes);
   }
 
   @override
@@ -377,4 +397,25 @@ class WasmTarget extends Target {
   Class getRecordImplementationClass(CoreTypes coreTypes,
           int numPositionalFields, List<String> namedFields) =>
       recordClasses[RecordShape(numPositionalFields, namedFields)]!;
+}
+
+class WasmVerification extends Verification {
+  const WasmVerification();
+
+  @override
+  bool allowNoFileOffset(VerificationStage stage, TreeNode node) {
+    if (super.allowNoFileOffset(stage, node)) {
+      return true;
+    }
+    if (stage >= VerificationStage.afterModularTransformations) {
+      // Allow synthesized classes, procedures, fields and casts.
+      // TODO(askesc): Improve the precision of these exceptions.
+      return node is Class ||
+          node is Constructor ||
+          node is Procedure ||
+          node is Field ||
+          node is AsExpression;
+    }
+    return false;
+  }
 }

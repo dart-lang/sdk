@@ -14,6 +14,7 @@ const kResultTypeUsesPassedTypeArguments =
     "result-type-uses-passed-type-arguments";
 const kVmRecognizedPragmaName = "vm:recognized";
 const kVmDisableUnboxedParametersPragmaName = "vm:disable-unboxed-parameters";
+const kVmKeepNamePragmaName = "vm:keep-name";
 
 // Pragmas recognized by dart2wasm
 const kWasmEntryPointPragmaName = "wasm:entry-point";
@@ -55,6 +56,10 @@ class ParsedRecognized extends ParsedPragma {
 
 class ParsedDisableUnboxedParameters extends ParsedPragma {
   const ParsedDisableUnboxedParameters();
+}
+
+class ParsedKeepNamePragma extends ParsedPragma {
+  const ParsedKeepNamePragma();
 }
 
 abstract class PragmaAnnotationParser {
@@ -159,6 +164,8 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
         return ParsedRecognized(type);
       case kVmDisableUnboxedParametersPragmaName:
         return const ParsedDisableUnboxedParameters();
+      case kVmKeepNamePragmaName:
+        return ParsedKeepNamePragma();
       case kWasmEntryPointPragmaName:
         return ParsedEntryPointPragma(PragmaEntryPointType.Default);
       case kWasmExportPragmaName:

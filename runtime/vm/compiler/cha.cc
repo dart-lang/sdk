@@ -13,37 +13,45 @@
 
 namespace dart {
 
-void CHA::AddToGuardedClasses(const Class& cls, intptr_t subclass_count) {
-  ASSERT(subclass_count >= 0);
+void CHA::AddToGuardedClasses(const Class& cls,
+                              intptr_t subclass_count,
+                              intptr_t implementor_cid,
+                              bool track_future) {
   for (intptr_t i = 0; i < guarded_classes_.length(); i++) {
     if (guarded_classes_[i].cls->ptr() == cls.ptr()) {
-      // Was added as an interface guard.
-      if (guarded_classes_[i].subclass_count == -1) {
+      if ((subclass_count >= 0) && (guarded_classes_[i].subclass_count == -1)) {
         guarded_classes_[i].subclass_count = subclass_count;
+      }
+      if ((implementor_cid != kIllegalCid) &&
+          (guarded_classes_[i].implementor_cid == kIllegalCid)) {
+        guarded_classes_[i].implementor_cid = implementor_cid;
+      }
+      if (track_future && !guarded_classes_[i].track_future) {
+        guarded_classes_[i].track_future = track_future;
       }
       return;
     }
   }
   GuardedClassInfo info = {&Class::ZoneHandle(thread_->zone(), cls.ptr()),
-                           subclass_count, kIllegalCid};
+                           subclass_count, implementor_cid, track_future};
   guarded_classes_.Add(info);
 }
 
-void CHA::AddToGuardedInterfaces(const Class& cls, intptr_t implementor_cid) {
+void CHA::AddToGuardedClassesForSubclassCount(const Class& cls,
+                                              intptr_t subclass_count) {
+  ASSERT(subclass_count >= 0);
+  AddToGuardedClasses(cls, subclass_count, kIllegalCid, false);
+}
+
+void CHA::AddToGuardedClassesForImplementorCid(const Class& cls,
+                                               intptr_t implementor_cid) {
   ASSERT(implementor_cid != kIllegalCid);
   ASSERT(implementor_cid != kDynamicCid);
-  for (intptr_t i = 0; i < guarded_classes_.length(); i++) {
-    if (guarded_classes_[i].cls->ptr() == cls.ptr()) {
-      // Was added as a subclass guard.
-      if (guarded_classes_[i].implementor_cid == kIllegalCid) {
-        guarded_classes_[i].implementor_cid = implementor_cid;
-      }
-      return;
-    }
-  }
-  GuardedClassInfo info = {&Class::ZoneHandle(thread_->zone(), cls.ptr()), -1,
-                           implementor_cid};
-  guarded_classes_.Add(info);
+  AddToGuardedClasses(cls, -1, implementor_cid, false);
+}
+
+void CHA::AddToGuardedClassesToTrackFuture(const Class& cls) {
+  AddToGuardedClasses(cls, -1, kIllegalCid, true);
 }
 
 bool CHA::IsGuardedClass(intptr_t cid) const {
@@ -133,7 +141,7 @@ bool CHA::HasSingleConcreteImplementation(const Class& interface,
     }
     if (FLAG_use_cha_deopt) {
       CHA& cha = thread->compiler_state().cha();
-      cha.AddToGuardedInterfaces(interface, cid);
+      cha.AddToGuardedClassesForImplementorCid(interface, cid);
     }
     *implementation_cid = cid;
     return true;
@@ -141,6 +149,29 @@ bool CHA::HasSingleConcreteImplementation(const Class& interface,
     *implementation_cid = kDynamicCid;
     return false;
   }
+}
+
+bool CHA::ClassCanBeFuture(const Class& cls) {
+  if (cls.can_be_future()) {
+    return true;
+  }
+
+  // Class cannot be Future with the current set of
+  // finalized classes. However, as new classes are loaded
+  // and finalized, there could be a new subtype of [cls]
+  // which is also a subtype of Future.
+  // We should deoptimize in such cases.
+  Thread* thread = Thread::Current();
+  if (FLAG_use_cha_deopt || thread->isolate_group()->all_classes_finalized()) {
+    if (FLAG_use_cha_deopt) {
+      CHA& cha = thread->compiler_state().cha();
+      cha.AddToGuardedClassesToTrackFuture(cls);
+    }
+    return false;
+  }
+
+  // Conservatively assume that class can be Future.
+  return true;
 }
 
 static intptr_t CountFinalizedSubclasses(Thread* thread, const Class& cls) {
@@ -176,6 +207,11 @@ bool CHA::IsConsistentWithCurrentHierarchy() const {
           guarded_classes_[i].cls->implementor_cid();
       if (guarded_classes_[i].implementor_cid != current_implementor_cid) {
         return false;  // New implementor appeared during compilation.
+      }
+    }
+    if (guarded_classes_[i].track_future) {
+      if (guarded_classes_[i].cls->can_be_future()) {
+        return false;
       }
     }
   }

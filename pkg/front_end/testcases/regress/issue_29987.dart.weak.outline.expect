@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -18,5 +18,5 @@ import "org-dartlang-malformed-uri:?dart_%3Acore";
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;

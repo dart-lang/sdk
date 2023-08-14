@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -6,7 +6,6 @@ typedef F<X extends core::num> = self::A<X>;
 typedef G<unrelated Y extends core::Object? = dynamic> = self::A<core::int>;
 typedef H<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic> = self::A<X%>;
 class A<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::redirect]/*isLegacy*/;
   constructor •() → self::A<self::A::T%>
     ;
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>
@@ -15,7 +14,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
     ;
   static method _#fact#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#fact#tearOff::T%>
     return self::A::fact<self::A::_#fact#tearOff::T%>();
-  static factory redirect<T extends core::Object? = dynamic>() → self::A<self::A::redirect::T%>
+  static factory redirect<T extends core::Object? = dynamic>() → self::A<self::A::redirect::T%> /* redirection-target: self::A::•<self::A::redirect::T%>*/
     return new self::A::•<self::A::redirect::T%>();
   static method _#redirect#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#redirect#tearOff::T%>
     return new self::A::•<self::A::_#redirect#tearOff::T%>();
@@ -63,7 +62,6 @@ static method _#H#redirect#tearOff<X extends core::Object? = dynamic, unrelated 
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///inferred_non_proper_rename.dart:7:7 -> ConstructorTearOffConstant(A.redirect)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:17:13 -> InstantiationConstant(A._#new#tearOff<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:18:13 -> InstantiationConstant(A._#new#tearOff<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:19:25 -> InstantiationConstant(A._#new#tearOff<int*>)
@@ -79,4 +77,4 @@ Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.d
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:31:13 -> InstantiationConstant(A._#new#tearOff<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:32:13 -> InstantiationConstant(A._#new#tearOff<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:33:25 -> InstantiationConstant(A._#new#tearOff<int*>)
-Extra constant evaluation: evaluated: 30, effectively constant: 16
+Extra constant evaluation: evaluated: 28, effectively constant: 15

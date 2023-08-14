@@ -23,19 +23,17 @@ class Bar {
 }
 
 void test() {
+  List l = <Object>[];
   debugger();
   // Toggled on for Foo.
-  debugger();
-  debugger();
   // Traced allocation.
-  Foo();
+  l.add(Foo());
   // Untraced allocation.
-  Bar();
+  l.add(Bar());
   // Toggled on for Bar.
   debugger();
-  debugger();
   // Traced allocation.
-  Bar();
+  l.add(Bar());
   debugger();
 }
 
@@ -57,6 +55,7 @@ Future<Class?> getClassFromRootLib(
 
 final tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
+  stoppedAtLine(27),
 
   // Initial.
   (VmService service, IsolateRef isolate) async {
@@ -72,10 +71,7 @@ final tests = <IsolateTest>[
 
   resumeIsolate,
   hasStoppedAtBreakpoint,
-  // Extra debugger stop, continue to allow the allocation stubs to be switched
-  // over. This is a bug but low priority.
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
+  stoppedAtLine(34),
 
   // Allocation profile.
   (VmService service, IsolateRef isolate) async {
@@ -86,6 +82,7 @@ final tests = <IsolateTest>[
     expect(profileResponse, isNotNull);
     expect(profileResponse.samples!.length, 1);
     expect(profileResponse.samples!.first.identityHashCode != 0, true);
+    print(profileResponse.samples);
 
     final instances = await service.getInstances(
       isolate.id!,
@@ -102,10 +99,7 @@ final tests = <IsolateTest>[
 
     fooClass = await service.getObject(isolate.id!, fooClass.id!) as Class;
     expect(fooClass.traceAllocations, false);
-  },
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
-  (VmService service, IsolateRef isolate) async {
+
     // Trace Bar.
     Class barClass = (await getClassFromRootLib(service, isolate, 'Bar'))!;
     expect(barClass.traceAllocations, false);
@@ -116,10 +110,7 @@ final tests = <IsolateTest>[
 
   resumeIsolate,
   hasStoppedAtBreakpoint,
-  // Extra debugger stop, continue to allow the allocation stubs to be switched
-  // over. This is a bug but low priority.
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
+  stoppedAtLine(37),
 
   (VmService service, IsolateRef isolate) async {
     // Ensure the allocation of `Bar()` was recorded.

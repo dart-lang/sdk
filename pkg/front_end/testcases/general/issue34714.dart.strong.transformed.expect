@@ -1,10 +1,9 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class A<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
-  static factory •<T extends core::Object? = dynamic>() → self::A<self::A::•::T%>
+  static factory •<T extends core::Object? = dynamic>() → self::A<self::A::•::T%> /* redirection-target: self::B::•<self::A::•::T%>*/
     return new self::B::•<self::A::•::T%>();
 }
 class B<T extends core::Object? = dynamic> extends core::Object implements self::A<self::B::T%> {
@@ -13,7 +12,3 @@ class B<T extends core::Object? = dynamic> extends core::Object implements self:
     ;
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = constructor-tearoff self::A::•
-}

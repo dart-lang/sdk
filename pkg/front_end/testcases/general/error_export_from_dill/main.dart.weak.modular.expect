@@ -3,7 +3,7 @@
 //
 // pkg/front_end/testcases/general/error_export_from_dill/main_lib1.dart: Error: 'Duplicate' is exported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
 //
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

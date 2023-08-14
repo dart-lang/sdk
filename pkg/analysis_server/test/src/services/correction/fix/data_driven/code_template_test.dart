@@ -4,9 +4,9 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/accessor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:test/test.dart';
@@ -80,7 +80,7 @@ void g(int x, int y) {}
     var template = CodeTemplate(CodeTemplateKind.expression, components, null);
     var builder = ChangeBuilder(session: await session);
     var context = TemplateContext(node, CorrectionUtils(testAnalysisResult));
-    await builder.addDartFileEdit(testFile, (builder) {
+    await builder.addDartFileEdit(testFile.path, (builder) {
       builder.addInsertion(0, (builder) {
         template.writeOn(builder, context);
       });
@@ -91,6 +91,6 @@ void g(int x, int y) {}
 
   TemplateText _text(String text) => TemplateText(text);
 
-  TemplateVariable _variable(int index) => TemplateVariable(
-      CodeFragment([ArgumentAccessor(PositionalParameterReference(index))]));
+  TemplateVariable _variable(int index) => TemplateVariable(CodeFragment(
+      [ArgumentAccessor(PositionalFormalParameterReference(index))]));
 }

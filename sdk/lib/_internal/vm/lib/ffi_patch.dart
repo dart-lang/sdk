@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_internal" show patch, has63BitSmis;
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -27,6 +28,7 @@ int get _intPtrSize => (const [
       8, // androidArm64,
       4, // androidIA32,
       8, // androidX64,
+      8, // androidRiscv64,
       8, // fuchsiaArm64,
       8, // fuchsiaX64,
       8, // fuchsiaRiscv64,
@@ -76,7 +78,6 @@ int sizeOf<T extends NativeType>() {
 }
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_fromAddress")
 external Pointer<T> _fromAddress<T extends NativeType>(int ptr);
 
 // The real implementation of this function (for interface calls) lives in
@@ -88,43 +89,33 @@ external DS _asFunctionInternal<DS extends Function, NS extends Function>(
     Pointer<NativeFunction<NS>> ptr, bool isLeaf);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataInt8")
 external Int8List _asExternalTypedDataInt8(Pointer<Int8> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataInt16")
 external Int16List _asExternalTypedDataInt16(Pointer<Int16> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataInt32")
 external Int32List _asExternalTypedDataInt32(Pointer<Int32> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataInt64")
 external Int64List _asExternalTypedDataInt64(Pointer<Int64> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataUint8")
 external Uint8List _asExternalTypedDataUint8(Pointer<Uint8> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataUint16")
 external Uint16List _asExternalTypedDataUint16(Pointer<Uint16> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataUint32")
 external Uint32List _asExternalTypedDataUint32(Pointer<Uint32> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataUint64")
 external Uint64List _asExternalTypedDataUint64(Pointer<Uint64> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataFloat")
 external Float32List _asExternalTypedDataFloat(Pointer<Float> ptr, int length);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_asExternalTypedDataDouble")
 external Float64List _asExternalTypedDataDouble(
     Pointer<Double> ptr, int length);
 
@@ -153,6 +144,19 @@ external dynamic _nativeCallbackFunction<NS extends Function>(
 external Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(
     dynamic function);
 
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_nativeAsyncCallbackFunction")
+external dynamic _nativeAsyncCallbackFunction<NS extends Function>(
+    Function target);
+
+@pragma("vm:external-name", "Ffi_pointerAsyncFromFunction")
+external Pointer<NS> _pointerAsyncFromFunction<NS extends NativeFunction>(
+    dynamic function, RawReceivePort port);
+
+@pragma("vm:external-name", "Ffi_deleteAsyncFunctionPointer")
+external void _deleteAsyncFunctionPointer<NS extends NativeFunction>(
+    Pointer<NS> pointer);
+
 @patch
 @pragma("vm:entry-point")
 final class Pointer<T extends NativeType> {
@@ -174,15 +178,42 @@ final class Pointer<T extends NativeType> {
 
   @patch
   @pragma("vm:recognized", "other")
-  @pragma("vm:external-name", "Ffi_address")
   external int get address;
 
-  @patch
   Pointer<T> _offsetBy(int offsetInBytes) =>
       Pointer.fromAddress(address + offsetInBytes);
 
   @patch
   Pointer<U> cast<U extends NativeType>() => Pointer.fromAddress(address);
+}
+
+@patch
+final class NativeCallable<T extends Function> {
+  Pointer<NativeFunction<T>> _pointer = nullptr;
+  final RawReceivePort _port;
+
+  @patch
+  NativeCallable.listener(@DartRepresentationOf("T") Function callback)
+      : _port = RawReceivePort()..close() {
+    throw UnsupportedError("NativeCallable cannot be constructed dynamically.");
+  }
+
+  NativeCallable._(void Function(List) handler, String portDebugName)
+      : _port = RawReceivePort(
+            Zone.current.bindUnaryCallbackGuarded(handler), portDebugName);
+
+  @patch
+  Pointer<NativeFunction<T>> get nativeFunction => _pointer;
+
+  @patch
+  void close() {
+    if (_pointer == nullptr) {
+      throw StateError("NativeCallable is already closed.");
+    }
+    _port.close();
+    _deleteAsyncFunctionPointer(_pointer);
+    _pointer = nullptr;
+  }
 }
 
 @patch
@@ -265,42 +296,34 @@ external void _memCopy(Object target, int targetOffsetInBytes, Object source,
 // getting rid of these allocations by inlining these functions.
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadInt8")
 external int _loadInt8(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadInt16")
 external int _loadInt16(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadInt32")
 external int _loadInt32(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadInt64")
 external int _loadInt64(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadUint8")
 external int _loadUint8(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadUint16")
 external int _loadUint16(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadUint32")
 external int _loadUint32(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadUint64")
 external int _loadUint64(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
@@ -312,64 +335,51 @@ external int _loadAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
     Object typedDataBase, int index);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadFloat")
 external double _loadFloat(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadDouble")
 external double _loadDouble(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadFloatUnaligned")
 external double _loadFloatUnaligned(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadDoubleUnaligned")
 external double _loadDoubleUnaligned(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadPointer")
 external Pointer<S> _loadPointer<S extends NativeType>(
     Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeInt8")
 external void _storeInt8(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeInt16")
 external void _storeInt16(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeInt32")
 external void _storeInt32(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeInt64")
 external void _storeInt64(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeUint8")
 external void _storeUint8(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeUint16")
 external void _storeUint16(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeUint32")
 external void _storeUint32(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeUint64")
 external void _storeUint64(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
@@ -381,27 +391,22 @@ external int _storeAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
     Object typedDataBase, int index, int value);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeFloat")
 external void _storeFloat(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeDouble")
 external void _storeDouble(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeFloatUnaligned")
 external void _storeFloatUnaligned(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeDoubleUnaligned")
 external void _storeDoubleUnaligned(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storePointer")
 external void _storePointer<S extends NativeType>(
     Object typedDataBase, int offsetInBytes, Pointer<S> value);
 
@@ -421,6 +426,7 @@ T _checkAbiSpecificIntegerMapping<T>(T? object) {
   return object;
 }
 
+@patch
 extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
   @patch
@@ -434,6 +440,7 @@ extension NativeFunctionPointer<NF extends Function>
 // Code generated by `runtime/tools/ffi/sdk_lib_ffi_generator.dart`.
 //
 
+@patch
 extension Int8Pointer on Pointer<Int8> {
   @patch
   int get value => _loadInt8(this, 0);
@@ -451,15 +458,24 @@ extension Int8Pointer on Pointer<Int8> {
   Pointer<Int8> elementAt(int index) => Pointer.fromAddress(address + index);
 
   @patch
-  Int8List asTypedList(int length) {
+  Int8List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Int8>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 1);
     _checkPointerAlignment(address, 1);
-    return _asExternalTypedDataInt8(this, length);
+    final result = _asExternalTypedDataInt8(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, length);
+    }
+    return result;
   }
 }
 
+@patch
 extension Int16Pointer on Pointer<Int16> {
   @patch
   int get value => _loadInt16(this, 0);
@@ -478,15 +494,24 @@ extension Int16Pointer on Pointer<Int16> {
       Pointer.fromAddress(address + 2 * index);
 
   @patch
-  Int16List asTypedList(int length) {
+  Int16List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Int16>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 2);
     _checkPointerAlignment(address, 2);
-    return _asExternalTypedDataInt16(this, length);
+    final result = _asExternalTypedDataInt16(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, 2 * length);
+    }
+    return result;
   }
 }
 
+@patch
 extension Int32Pointer on Pointer<Int32> {
   @patch
   int get value => _loadInt32(this, 0);
@@ -505,15 +530,24 @@ extension Int32Pointer on Pointer<Int32> {
       Pointer.fromAddress(address + 4 * index);
 
   @patch
-  Int32List asTypedList(int length) {
+  Int32List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Int32>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 4);
     _checkPointerAlignment(address, 4);
-    return _asExternalTypedDataInt32(this, length);
+    final result = _asExternalTypedDataInt32(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, 4 * length);
+    }
+    return result;
   }
 }
 
+@patch
 extension Int64Pointer on Pointer<Int64> {
   @patch
   int get value => _loadInt64(this, 0);
@@ -532,15 +566,24 @@ extension Int64Pointer on Pointer<Int64> {
       Pointer.fromAddress(address + 8 * index);
 
   @patch
-  Int64List asTypedList(int length) {
+  Int64List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Int64>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 8);
     _checkPointerAlignment(address, 8);
-    return _asExternalTypedDataInt64(this, length);
+    final result = _asExternalTypedDataInt64(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, 8 * length);
+    }
+    return result;
   }
 }
 
+@patch
 extension Uint8Pointer on Pointer<Uint8> {
   @patch
   int get value => _loadUint8(this, 0);
@@ -558,15 +601,24 @@ extension Uint8Pointer on Pointer<Uint8> {
   Pointer<Uint8> elementAt(int index) => Pointer.fromAddress(address + index);
 
   @patch
-  Uint8List asTypedList(int length) {
+  Uint8List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Uint8>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 1);
     _checkPointerAlignment(address, 1);
-    return _asExternalTypedDataUint8(this, length);
+    final result = _asExternalTypedDataUint8(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, length);
+    }
+    return result;
   }
 }
 
+@patch
 extension Uint16Pointer on Pointer<Uint16> {
   @patch
   int get value => _loadUint16(this, 0);
@@ -585,15 +637,24 @@ extension Uint16Pointer on Pointer<Uint16> {
       Pointer.fromAddress(address + 2 * index);
 
   @patch
-  Uint16List asTypedList(int length) {
+  Uint16List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Uint16>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 2);
     _checkPointerAlignment(address, 2);
-    return _asExternalTypedDataUint16(this, length);
+    final result = _asExternalTypedDataUint16(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, 2 * length);
+    }
+    return result;
   }
 }
 
+@patch
 extension Uint32Pointer on Pointer<Uint32> {
   @patch
   int get value => _loadUint32(this, 0);
@@ -612,15 +673,24 @@ extension Uint32Pointer on Pointer<Uint32> {
       Pointer.fromAddress(address + 4 * index);
 
   @patch
-  Uint32List asTypedList(int length) {
+  Uint32List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Uint32>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 4);
     _checkPointerAlignment(address, 4);
-    return _asExternalTypedDataUint32(this, length);
+    final result = _asExternalTypedDataUint32(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, 4 * length);
+    }
+    return result;
   }
 }
 
+@patch
 extension Uint64Pointer on Pointer<Uint64> {
   @patch
   int get value => _loadUint64(this, 0);
@@ -639,15 +709,24 @@ extension Uint64Pointer on Pointer<Uint64> {
       Pointer.fromAddress(address + 8 * index);
 
   @patch
-  Uint64List asTypedList(int length) {
+  Uint64List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Uint64>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 8);
     _checkPointerAlignment(address, 8);
-    return _asExternalTypedDataUint64(this, length);
+    final result = _asExternalTypedDataUint64(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, 8 * length);
+    }
+    return result;
   }
 }
 
+@patch
 extension FloatPointer on Pointer<Float> {
   @patch
   double get value => _loadFloat(this, 0);
@@ -666,15 +745,24 @@ extension FloatPointer on Pointer<Float> {
       Pointer.fromAddress(address + 4 * index);
 
   @patch
-  Float32List asTypedList(int length) {
+  Float32List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Float>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 4);
     _checkPointerAlignment(address, 4);
-    return _asExternalTypedDataFloat(this, length);
+    final result = _asExternalTypedDataFloat(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, 4 * length);
+    }
+    return result;
   }
 }
 
+@patch
 extension DoublePointer on Pointer<Double> {
   @patch
   double get value => _loadDouble(this, 0);
@@ -693,15 +781,24 @@ extension DoublePointer on Pointer<Double> {
       Pointer.fromAddress(address + 8 * index);
 
   @patch
-  Float64List asTypedList(int length) {
+  Float64List asTypedList(
+    int length, {
+    Pointer<NativeFinalizerFunction>? finalizer,
+    Pointer<Void>? token,
+  }) {
     ArgumentError.checkNotNull(this, "Pointer<Double>");
     ArgumentError.checkNotNull(length, "length");
     _checkExternalTypedDataLength(length, 8);
     _checkPointerAlignment(address, 8);
-    return _asExternalTypedDataDouble(this, length);
+    final result = _asExternalTypedDataDouble(this, length);
+    if (finalizer != null) {
+      _attachAsTypedListFinalizer(finalizer, result, token ?? this, 8 * length);
+    }
+    return result;
   }
 }
 
+@patch
 extension BoolPointer on Pointer<Bool> {
   @patch
   bool get value => _loadBool(this, 0);
@@ -719,6 +816,7 @@ extension BoolPointer on Pointer<Bool> {
   Pointer<Bool> elementAt(int index) => Pointer.fromAddress(address + index);
 }
 
+@patch
 extension Int8Array on Array<Int8> {
   @patch
   int operator [](int index) {
@@ -733,6 +831,7 @@ extension Int8Array on Array<Int8> {
   }
 }
 
+@patch
 extension Int16Array on Array<Int16> {
   @patch
   int operator [](int index) {
@@ -747,6 +846,7 @@ extension Int16Array on Array<Int16> {
   }
 }
 
+@patch
 extension Int32Array on Array<Int32> {
   @patch
   int operator [](int index) {
@@ -761,6 +861,7 @@ extension Int32Array on Array<Int32> {
   }
 }
 
+@patch
 extension Int64Array on Array<Int64> {
   @patch
   int operator [](int index) {
@@ -775,6 +876,7 @@ extension Int64Array on Array<Int64> {
   }
 }
 
+@patch
 extension Uint8Array on Array<Uint8> {
   @patch
   int operator [](int index) {
@@ -789,6 +891,7 @@ extension Uint8Array on Array<Uint8> {
   }
 }
 
+@patch
 extension Uint16Array on Array<Uint16> {
   @patch
   int operator [](int index) {
@@ -803,6 +906,7 @@ extension Uint16Array on Array<Uint16> {
   }
 }
 
+@patch
 extension Uint32Array on Array<Uint32> {
   @patch
   int operator [](int index) {
@@ -817,6 +921,7 @@ extension Uint32Array on Array<Uint32> {
   }
 }
 
+@patch
 extension Uint64Array on Array<Uint64> {
   @patch
   int operator [](int index) {
@@ -831,6 +936,7 @@ extension Uint64Array on Array<Uint64> {
   }
 }
 
+@patch
 extension FloatArray on Array<Float> {
   @patch
   double operator [](int index) {
@@ -845,6 +951,7 @@ extension FloatArray on Array<Float> {
   }
 }
 
+@patch
 extension DoubleArray on Array<Double> {
   @patch
   double operator [](int index) {
@@ -859,6 +966,7 @@ extension DoubleArray on Array<Double> {
   }
 }
 
+@patch
 extension BoolArray on Array<Bool> {
   @patch
   bool operator [](int index) {
@@ -877,6 +985,7 @@ extension BoolArray on Array<Bool> {
 // End of generated code.
 //
 
+@patch
 extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
   @patch
   Pointer<T> get value => _loadPointer(this, 0);
@@ -896,6 +1005,7 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
       _storePointer(this, _intPtrSize * index, value);
 }
 
+@patch
 extension StructPointer<T extends Struct> on Pointer<T> {
   @patch
   T get ref =>
@@ -918,6 +1028,7 @@ extension StructPointer<T extends Struct> on Pointer<T> {
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 
+@patch
 extension UnionPointer<T extends Union> on Pointer<T> {
   @patch
   T get ref =>
@@ -940,6 +1051,7 @@ extension UnionPointer<T extends Union> on Pointer<T> {
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 
+@patch
 extension AbiSpecificIntegerPointer<T extends AbiSpecificInteger>
     on Pointer<T> {
   @patch
@@ -963,6 +1075,7 @@ extension AbiSpecificIntegerPointer<T extends AbiSpecificInteger>
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 
+@patch
 extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
   @patch
   Pointer<T> operator [](int index) =>
@@ -973,6 +1086,7 @@ extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
       _storePointer(_typedDataBase, _intPtrSize * index, value);
 }
 
+@patch
 extension ArrayArray<T extends NativeType> on Array<Array<T>> {
   @patch
   Array<T> operator [](int index) =>
@@ -983,6 +1097,7 @@ extension ArrayArray<T extends NativeType> on Array<Array<T>> {
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 
+@patch
 extension StructArray<T extends Struct> on Array<T> {
   @patch
   T operator [](int index) {
@@ -991,6 +1106,7 @@ extension StructArray<T extends Struct> on Array<T> {
   }
 }
 
+@patch
 extension UnionArray<T extends Union> on Array<T> {
   @patch
   T operator [](int index) {
@@ -998,6 +1114,7 @@ extension UnionArray<T extends Union> on Array<T> {
   }
 }
 
+@patch
 extension AbiSpecificIntegerArray on Array<AbiSpecificInteger> {
   @patch
   int operator [](int index) {
@@ -1012,6 +1129,7 @@ extension AbiSpecificIntegerArray on Array<AbiSpecificInteger> {
   }
 }
 
+@patch
 extension NativePort on SendPort {
   @patch
   @pragma("vm:external-name", "SendPort_get_id")

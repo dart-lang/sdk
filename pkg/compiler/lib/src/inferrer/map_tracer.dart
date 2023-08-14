@@ -125,8 +125,7 @@ class MapTracerVisitor extends TracerVisitor {
         }
       }
     } else if (selector.isCall &&
-        (info.hasClosureCallTargets ||
-            info.concreteTargets.any((element) => !element.isFunction))) {
+        (info.hasClosureCallTargets || dynamicCallTargetsNonFunction(info))) {
       bailout('Passed to a closure');
       return;
     }

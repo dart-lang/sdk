@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "typedef_identical_lib.dart" as typ;
@@ -27,14 +27,13 @@ static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H
 static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<self::_#H#redirect#tearOff::Y%>
   return typ::A::_#redirect#tearOff<self::_#H#redirect#tearOff::Y%>();
 
-library /*isNonNullableByDefault*/;
+library;
 import self as typ;
 import "dart:core" as core;
 
 typedef F<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic> = typ::A<Y%>;
 typedef G<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic> = typ::A<Y%>;
 class A<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[typ::A::redirect]/*isLegacy*/;
   constructor •() → typ::A<typ::A::T%>
     ;
   constructor named(typ::A::T% a, [core::int? b = null]) → typ::A<typ::A::T%>
@@ -47,7 +46,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
     ;
   static method _#fact#tearOff<T extends core::Object? = dynamic>(typ::A::_#fact#tearOff::T% a, {core::int? b, has-declared-initializer core::int c}) → typ::A<typ::A::_#fact#tearOff::T%>
     return typ::A::fact<typ::A::_#fact#tearOff::T%>(a, b: b, c: c);
-  static factory redirect<T extends core::Object? = dynamic>() → typ::A<typ::A::redirect::T%>
+  static factory redirect<T extends core::Object? = dynamic>() → typ::A<typ::A::redirect::T%> /* redirection-target: typ::A::•<typ::A::redirect::T%>*/
     return new typ::A::•<typ::A::redirect::T%>();
   static method _#redirect#tearOff<T extends core::Object? = dynamic>() → typ::A<typ::A::_#redirect#tearOff::T%>
     return new typ::A::•<typ::A::_#redirect#tearOff::T%>();
@@ -76,8 +75,3 @@ static method _#G#fact#tearOff<unrelated X extends core::Object? = dynamic, Y ex
   return typ::A::fact<typ::_#G#fact#tearOff::Y%>(a, b: b, c: c);
 static method _#G#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#G#redirect#tearOff::Y%>
   return typ::A::_#redirect#tearOff<typ::_#G#redirect#tearOff::Y%>();
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///typedef_identical_lib.dart:5:7 -> ConstructorTearOffConstant(A.redirect)
-Extra constant evaluation: evaluated: 39, effectively constant: 1

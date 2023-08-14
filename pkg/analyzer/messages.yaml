@@ -1039,7 +1039,7 @@ CompileTimeErrorCode:
 
       ```dart
       void f(list) {
-        await for (var e [!in!] list) {
+        [!await!] for (var e in list) {
           print(e);
         }
       }
@@ -2568,6 +2568,11 @@ CompileTimeErrorCode:
 
       const json2 = convert.JsonCodec();
       ```
+  CONST_EVAL_EXTENSION_METHOD:
+    problemMessage: "Extension methods can't be used in constant expressions."
+  CONST_EVAL_FOR_ELEMENT:
+    problemMessage: "Constant expressions don't support 'for' elements."
+    correctionMessage: "Try replacing the 'for' element with a spread, or removing 'const'."
   CONST_EVAL_THROWS_EXCEPTION:
     problemMessage: Evaluation of this constant expression throws an exception.
     comment: |-
@@ -6116,7 +6121,7 @@ CompileTimeErrorCode:
       int f() => 0;
       ```
   ILLEGAL_ASYNC_RETURN_TYPE:
-    problemMessage: "Functions marked 'async' must have a return type assignable to 'Future'."
+    problemMessage: "Functions marked 'async' must have a return type which is a supertype of 'Future'."
     correctionMessage: "Try fixing the return type of the function, or removing the modifier 'async' from the function body."
     hasPublishedDocs: true
     comment: No parameters.
@@ -9885,6 +9890,22 @@ CompileTimeErrorCode:
 
       class C {}
       ```
+  MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE:
+    sharedName: SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+    problemMessage: "The mixin '{0}' must be 'base' because the supertype '{1}' is 'base'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the mixin that is not 'base'
+      1: the name of the 'base' supertype
+  MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE:
+    sharedName: SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+    problemMessage: "The mixin '{0}' must be 'base' because the supertype '{1}' is 'final'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the mixin that is not 'final'
+      1: the name of the 'final' supertype
   MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS:
     problemMessage: "Deferred classes can't be used as superclass constraints."
     correctionMessage: Try changing the import to not be deferred.
@@ -18994,6 +19015,54 @@ FfiCode:
         Pointer.fromFunction<T>(f, 5);
       }
       ```
+  MUST_RETURN_VOID:
+    problemMessage: "The return type of the function passed to 'NativeCallable.listener' must be 'void' rather than '{0}'."
+    correctionMessage: "Try changing the return type to 'void'."
+    comment: |-
+      Parameters:
+      0: the return type that should be 'void'.
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when you pass a function
+      that doesn't return `void` to the `NativeCallable.listener` constructor.
+
+      `NativeCallable.listener` creates a native callable that can be invoked
+      from any thread. The native code that invokes the callable sends a message
+      back to the isolate that created the callable, and doesn't wait for a
+      response. So it isn't possible to return a result from the callable.
+
+      For more information about FFI, see [C interop using dart:ffi][ffi].
+
+      #### Example
+
+      The following code produces this diagnostic because the function
+      `f` returns `int` rather than `void`.
+
+      ```dart
+      import 'dart:ffi';
+
+      int f(int i) => i * 2;
+
+      void g() {
+        NativeCallable<Int32 Function(Int32)>.listener([!f!]);
+      }
+      ```
+
+      #### Common fixes
+
+      Change the return type of the function to `void`.
+
+      ```dart
+      import 'dart:ffi';
+
+      void f(int i) => print(i * 2);
+
+      void g() {
+        NativeCallable<Void Function(Int32)>.listener(f);
+      }
+      ```
   NON_CONSTANT_TYPE_ARGUMENT:
     problemMessage: "The type arguments to '{0}' must be known at compile time, so they can't be type parameters."
     correctionMessage: Try changing the type argument to be a constant type.
@@ -19786,6 +19855,7 @@ HintCode:
   UNNECESSARY_CAST:
     problemMessage: Unnecessary cast.
     correctionMessage: Try removing the cast.
+    deprecatedMessage: Use 'WarningCode.UNNECESSARY_CAST' instead.
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
@@ -19818,64 +19888,6 @@ HintCode:
         }
       }
       ```
-  UNNECESSARY_FINAL:
-    problemMessage: The keyword 'final' isn't necessary because the parameter is implicitly 'final'.
-    correctionMessage: Try removing the 'final'.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when either a field initializing
-      parameter or a super parameter in a constructor has the keyword `final`.
-      In both cases the keyword is unnecessary because the parameter is
-      implicitly `final`.
-
-      #### Examples
-
-      The following code produces this diagnostic because the field initializing
-      parameter has the keyword `final`:
-
-      ```dart
-      class A {
-        int value;
-
-        A([!final!] this.value);
-      }
-      ```
-
-      The following code produces this diagnostic because the super parameter in
-      `B` has the keyword `final`:
-
-      ```dart
-      class A {
-        A(int value);
-      }
-
-      class B extends A {
-        B([!final!] super.value);
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the unnecessary `final` keyword:
-
-      ```dart
-      class A {
-        A(int value);
-      }
-
-      class B extends A {
-        B(super.value);
-      }
-      ```
-  UNNECESSARY_IGNORE:
-    problemMessage: "The diagnostic '{0}' isn't produced at this location so it doesn't need to be ignored."
-    correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
-    comment: |-
-      Parameters:
-      0: the name of the diagnostic being ignored
   UNNECESSARY_IMPORT:
     problemMessage: "The import of '{0}' is unnecessary because all of the used elements are also provided by the import of '{1}'."
     correctionMessage: Try removing the import directive.
@@ -19930,6 +19942,7 @@ HintCode:
   UNREACHABLE_SWITCH_CASE:
     problemMessage: "This case is covered by the previous cases."
     correctionMessage: Try removing the case clause, or restructuring the preceding patterns.
+    deprecatedMessage: Use 'WarningCode.UNREACHABLE_SWITCH_CASE' instead.
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
@@ -19972,6 +19985,7 @@ HintCode:
   UNUSED_ELEMENT:
     problemMessage: "The declaration '{0}' isn't referenced."
     correctionMessage: "Try removing the declaration of '{0}'."
+    deprecatedMessage: Use 'WarningCode.UNUSED_ELEMENT' instead.
     hasPublishedDocs: true
     comment: |-
       Parameters:
@@ -20034,6 +20048,7 @@ HintCode:
     sharedName: UNUSED_ELEMENT
     problemMessage: "A value for optional parameter '{0}' isn't ever given."
     correctionMessage: Try removing the unused parameter.
+    deprecatedMessage: Use 'WarningCode.UNUSED_ELEMENT_PARAMETER' instead.
     hasPublishedDocs: true
     comment: |-
       Parameters:
@@ -20273,9 +20288,6 @@ ParserErrorCode:
     correctionMessage: "Try removing the keyword 'final'."
   FINAL_CONSTRUCTOR:
     problemMessage: "A constructor can't be declared to be 'final'."
-    correctionMessage: "Try removing the keyword 'final'."
-  FINAL_ENUM:
-    problemMessage: "Enums can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
   FINAL_METHOD:
     problemMessage: "Getters, setters and methods can't be declared to be 'final'."
@@ -21371,7 +21383,7 @@ WarningCode:
 
       The analyzer produces this diagnostic when the value of a function
       (including methods and getters) that is explicitly or implicitly marked by
-      the `[doNotStore][meta-doNotStore]` annotation is stored in either a field
+      the [`doNotStore`][meta-doNotStore] annotation is stored in either a field
       or top-level variable.
 
       #### Example
@@ -22270,7 +22282,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a [public library][] exports a
-      declaration that is marked with the `[internal][meta-internal]`
+      declaration that is marked with the [`internal`][meta-internal]
       annotation.
 
       #### Example
@@ -22315,7 +22327,7 @@ WarningCode:
 
       The analyzer produces this diagnostic when a [public library][] exports a
       top-level function  with a return type or at least one parameter type that
-      is marked with the `[internal][meta-internal]` annotation.
+      is marked with the [`internal`][meta-internal] annotation.
 
       #### Example
 
@@ -22363,12 +22375,12 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a method that is annotated with
-      the `[factory][meta-factory]` annotation has a return type of `void`.
+      the [`factory`][meta-factory] annotation has a return type of `void`.
 
       #### Example
 
       The following code produces this diagnostic because the method `createC`
-      is annotated with the `[factory][meta-factory]` annotation but doesn't
+      is annotated with the [`factory`][meta-factory] annotation but doesn't
       return any value:
 
       ```dart
@@ -22406,7 +22418,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a method that is annotated with
-      the `[factory][meta-factory]` annotation doesn't return a newly allocated
+      the [`factory`][meta-factory] annotation doesn't return a newly allocated
       object.
 
       #### Example
@@ -22455,13 +22467,13 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a declaration is annotated with
-      the `[internal][meta-internal]` annotation and that declaration is either
+      the [`internal`][meta-internal] annotation and that declaration is either
       in a [public library][] or has a private name.
 
       #### Example
 
       The following code, when in a [public library][], produces this diagnostic
-      because the `[internal][meta-internal]` annotation can't be applied to
+      because the [`internal`][meta-internal] annotation can't be applied to
       declarations in a [public library][]:
 
       ```dart
@@ -22472,7 +22484,7 @@ WarningCode:
       ```
 
       The following code, whether in a public or internal library, produces this
-      diagnostic because the `[internal][meta-internal]` annotation can't be
+      diagnostic because the [`internal`][meta-internal] annotation can't be
       applied to declarations with private names:
 
       ```dart
@@ -22599,7 +22611,7 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when the `[literal][[meta-literal]]`
+      The analyzer produces this diagnostic when the [`literal`][meta-literal]
       annotation is applied to anything other than a const constructor.
 
       #### Examples
@@ -22833,13 +22845,13 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a reference to a declaration
-      that is annotated with the `[internal][meta-internal]` annotation is found
+      that is annotated with the [`internal`][meta-internal] annotation is found
       outside the package containing the declaration.
 
       #### Example
 
       Given a package `p` that defines a library containing a declaration marked
-      with the `[internal][meta-internal]` annotation:
+      with the [`internal`][meta-internal] annotation:
 
       ```dart
       %uri="package:p/src/p.dart"
@@ -22880,7 +22892,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when an instance member that is
-      annotated with `[visibleForOverriding][meta-visibleForOverriding]` is
+      annotated with [`visibleForOverriding`][meta-visibleForOverriding] is
       referenced outside the library in which it's declared for any reason other
       than to override it.
 
@@ -23000,7 +23012,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when either the `visibleForTemplate`
-      or `[visibleForTesting][meta-visibleForTesting]` annotation is applied to
+      or [`visibleForTesting`][meta-visibleForTesting] annotation is applied to
       a non-public declaration.
 
       #### Example
@@ -23046,7 +23058,7 @@ WarningCode:
 
       The analyzer produces this diagnostic when anything other than a public
       instance member of a class is annotated with
-      `[visibleForOverriding][meta-visibleForOverriding]`. Because only public
+      [`visibleForOverriding`][meta-visibleForOverriding]. Because only public
       instance members can be overridden outside the defining library, there's
       no value to annotating any other declarations.
 
@@ -23065,6 +23077,69 @@ WarningCode:
       #### Common fixes
 
       Remove the annotation:
+
+      ```dart
+      class C {}
+      ```
+  INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION:
+    problemMessage: "The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'."
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `@visibleOutsideTemplate`
+      annotation is used incorrectly. This annotation is only meant to annotate
+      members of a class, enum, or mixin that has the `@visibleForTemplate`
+      annotation, to opt those members out of the visibility restrictions that
+      `@visibleForTemplate` imposes.
+
+      #### Examples
+
+      The following code produces this diagnostic because there is no
+      `@visibleForTemplate` annotation at the class level:
+
+      ```dart
+      import 'package:angular_meta/angular_meta.dart';
+
+      class C {
+        [!@visibleOutsideTemplate!]
+        int m() {
+          return 1;
+        }
+      }
+      ```
+
+      The following code produces this diagnostic because the annotation is on
+      a class declaration, not a member of a class, enum, or mixin:
+
+      ```dart
+      import 'package:angular_meta/angular_meta.dart';
+
+      [!@visibleOutsideTemplate!]
+      class C {}
+      ```
+
+      #### Common fixes
+
+      If the class is only visible so that templates can reference it, then add
+      the `@visibleForTemplate` annotation to the class:
+
+      ```dart
+      import 'package:angular_meta/angular_meta.dart';
+
+      @visibleForTemplate
+      class C {
+        @visibleOutsideTemplate
+        int m() {
+          return 1;
+        }
+      }
+      ```
+
+      If the `@visibleOutsideTemplate` annotation is on anything other than a
+      member of a class, enum, or mixin with the `@visibleForTemplate`
+      annotation, remove the annotation:
 
       ```dart
       class C {}
@@ -23364,7 +23439,7 @@ WarningCode:
 
       The analyzer produces this diagnostic when the superclass constraint of a
       mixin is a class from a different package that was marked as
-      `[sealed][meta-sealed]`. Classes that are sealed can't be extended,
+      [`sealed`][meta-sealed]. Classes that are sealed can't be extended,
       implemented, mixed in, or used as a superclass constraint.
 
       #### Example
@@ -23408,7 +23483,7 @@ WarningCode:
       The analyzer produces this diagnostic when an immutable class defines one
       or more instance fields that aren't final. A class is immutable if it's
       marked as being immutable using the annotation
-      `[immutable][meta-immutable]` or if it's a subclass of an immutable class.
+      [`immutable`][meta-immutable] or if it's a subclass of an immutable class.
 
       #### Example
 
@@ -23463,7 +23538,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a method that overrides a method
-      that is annotated as `[mustCallSuper][meta-mustCallSuper]` doesn't invoke
+      that is annotated as [`mustCallSuper`][meta-mustCallSuper] doesn't invoke
       the overridden method as required.
 
       #### Example
@@ -23529,7 +23604,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a constructor that has the
-      `[literal][meta-literal]` annotation is invoked without using the `const`
+      [`literal`][meta-literal] annotation is invoked without using the `const`
       keyword, but all of the arguments to the constructor are constants. The
       annotation indicates that the constructor should be used to create a
       constant value whenever possible.
@@ -23825,7 +23900,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a value that is annotated with
-      the `[doNotStore][meta-doNotStore]` annotation is returned from a method,
+      the [`doNotStore`][meta-doNotStore] annotation is returned from a method,
       getter, or function that doesn't have the same annotation.
 
       #### Example
@@ -23846,7 +23921,7 @@ WarningCode:
       #### Common fixes
 
       If the value that shouldn't be stored is the correct value to return, then
-      mark the function with the `[doNotStore][meta-doNotStore]` annotation:
+      mark the function with the [`doNotStore`][meta-doNotStore] annotation:
 
       ```dart
       import 'package:meta/meta.dart';
@@ -24540,7 +24615,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a sealed class (one that either
-      has the `[sealed][meta-sealed]` annotation or inherits or mixes in a
+      has the [`sealed`][meta-sealed] annotation or inherits or mixes in a
       sealed class) is referenced in either the `extends`, `implements`, or
       `with` clause of a class or mixin declaration if the declaration isn't in
       the same package as the sealed class.
@@ -24767,7 +24842,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when an annotation of the form
-      `[UseResult][meta-UseResult].unless(parameterDefined: parameterName)`
+      [`UseResult.unless(parameterDefined: parameterName)`][meta-UseResult]
       specifies a parameter name that isn't defined by the annotated function.
 
       #### Example
@@ -24836,8 +24911,63 @@ WarningCode:
     correctionMessage: Try removing the cast pattern.
     comment: No parameters.
   UNNECESSARY_FINAL:
-    aliasFor: HintCode.UNNECESSARY_FINAL
-    comment: This is the new replacement for [HintCode.UNNECESSARY_FINAL].
+    problemMessage: The keyword 'final' isn't necessary because the parameter is implicitly 'final'.
+    correctionMessage: Try removing the 'final'.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when either a field initializing
+      parameter or a super parameter in a constructor has the keyword `final`.
+      In both cases the keyword is unnecessary because the parameter is
+      implicitly `final`.
+
+      #### Examples
+
+      The following code produces this diagnostic because the field initializing
+      parameter has the keyword `final`:
+
+      ```dart
+      class A {
+        int value;
+
+        A([!final!] this.value);
+      }
+      ```
+
+      The following code produces this diagnostic because the super parameter in
+      `B` has the keyword `final`:
+
+      ```dart
+      class A {
+        A(int value);
+      }
+
+      class B extends A {
+        B([!final!] super.value);
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary `final` keyword:
+
+      ```dart
+      class A {
+        A(int value);
+      }
+
+      class B extends A {
+        B(super.value);
+      }
+      ```
+  UNNECESSARY_IGNORE:
+    problemMessage: "The diagnostic '{0}' isn't produced at this location so it doesn't need to be ignored."
+    correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
+    comment: |-
+      Parameters:
+      0: the name of the diagnostic being ignored
   UNNECESSARY_NAN_COMPARISON_FALSE:
     sharedName: UNNECESSARY_NAN_COMPARISON
     problemMessage: A double can't equal 'double.nan', so the condition is always 'false'.
@@ -25363,7 +25493,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a function annotated with
-      `[useResult][meta-useResult]` is invoked, and the value returned by that
+      [`useResult`][meta-useResult] is invoked, and the value returned by that
       function isn't used. The value is considered to be used if a member of the
       value is invoked, if the value is passed to another function, or if the
       value is assigned to a variable or field.
@@ -25372,7 +25502,7 @@ WarningCode:
 
       The following code produces this diagnostic because the invocation of
       `c.a()` isn't used, even though the method `a` is annotated with
-      `[useResult][meta-useResult]`:
+      [`useResult`][meta-useResult]:
 
       ```dart
       import 'package:meta/meta.dart';

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -18,7 +18,6 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::•]/*isLegacy*/;
   static factory •<T extends core::Object? = dynamic>() → self::A<self::A::•::T%>
     return invalid-expression "pkg/front_end/testcases/dart2js/issue47916d.dart:6:17: Error: Cyclic definition of factory 'A'.
   const factory A() = B;
@@ -26,7 +25,6 @@ abstract class A<T extends core::Object? = dynamic> extends core::Object {
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>;
 }
 abstract class B<T extends core::Object? = dynamic> extends core::Object implements self::A<self::B::T%> {
-  static final field dynamic _redirecting# = <dynamic>[self::B::•]/*isLegacy*/;
   static factory •<T extends core::Object? = dynamic>() → self::B<self::B::•::T%>
     return invalid-expression "pkg/front_end/testcases/dart2js/issue47916d.dart:10:17: Error: Cyclic definition of factory 'B'.
   const factory B() = C;
@@ -34,7 +32,6 @@ abstract class B<T extends core::Object? = dynamic> extends core::Object impleme
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self::B<self::B::_#new#tearOff::T%>;
 }
 class C<T extends core::Object? = dynamic> extends core::Object implements self::B<self::C::T%> {
-  static final field dynamic _redirecting# = <dynamic>[self::C::•]/*isLegacy*/;
   static factory •<T extends core::Object? = dynamic>() → self::C<self::C::•::T%>
     return invalid-expression "pkg/front_end/testcases/dart2js/issue47916d.dart:14:17: Error: Cyclic definition of factory 'C'.
   const factory C() = A;
@@ -45,10 +42,3 @@ static method test() → dynamic
   ;
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47916d.dart:5:16 -> ConstructorTearOffConstant(A.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47916d.dart:9:16 -> ConstructorTearOffConstant(B.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47916d.dart:13:7 -> ConstructorTearOffConstant(C.)
-Extra constant evaluation: evaluated: 6, effectively constant: 3

@@ -17,18 +17,18 @@ library from "org-dartlang-test:///main.dart" as main {
     static set setter2 = set main::_extension#0|setter2;
   }
   static field dart.core::int _extension#0|field = 42;
-  static method _extension#0|method1(lowered final main::A1 #this) → main::A1 {
+  static extension-member method _extension#0|method1(lowered final main::A1 #this) → main::A1 {
     return #this;
   }
-  static method _extension#0|get#method1(lowered final main::A1 #this) → () → main::A1
+  static extension-member method _extension#0|get#method1(lowered final main::A1 #this) → () → main::A1
     return () → main::A1 => main::_extension#0|method1(#this);
-  static method _extension#0|get#getter1(lowered final main::A1 #this) → dart.core::String
+  static extension-member method _extension#0|get#getter1(lowered final main::A1 #this) → dart.core::String
     return "42!";
-  static method _extension#0|set#setter1(lowered final main::A1 #this, dart.core::String s) → void {}
-  static method _extension#0|method2() → main::A1 {
+  static extension-member method _extension#0|set#setter1(lowered final main::A1 #this, dart.core::String s) → void {}
+  static extension-member method _extension#0|method2() → main::A1 {
     throw "";
   }
-  static get _extension#0|getter2() → dart.core::String
+  static extension-member get _extension#0|getter2() → dart.core::String
     return "42!";
-  static set _extension#0|setter2(dart.core::String s) → void {}
+  static extension-member set _extension#0|setter2(dart.core::String s) → void {}
 }

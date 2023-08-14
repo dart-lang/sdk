@@ -1199,15 +1199,6 @@ void AsmIntrinsifier::String_getHashCode(Assembler* assembler,
   __ Bind(normal_ir_body);  // Hash not yet computed.
 }
 
-void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
-                                       Label* normal_ir_body) {
-  __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  __ ldr(R0, FieldAddress(R0, target::Type::hash_offset()));
-  __ cmp(R0, Operand(0));
-  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, NE));
-  __ Bind(normal_ir_body);  // Hash not yet computed.
-}
-
 void AsmIntrinsifier::Type_equality(Assembler* assembler,
                                     Label* normal_ir_body) {
   Label equal, not_equal, equiv_cids_may_be_generic, equiv_cids, check_legacy;
@@ -1271,7 +1262,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  __ ldr(R0, FieldAddress(R0, target::FunctionType::hash_offset()));
+  __ ldr(R0, FieldAddress(R0, target::AbstractType::hash_offset()));
   __ cmp(R0, Operand(0));
   READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, NE));
   __ Bind(normal_ir_body);  // Hash not yet computed.
@@ -1508,6 +1499,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
 // Returns new string as tagged pointer in R0.
 static void TryAllocateString(Assembler* assembler,
                               classid_t cid,
+                              intptr_t max_elements,
                               Label* ok,
                               Label* failure) {
   ASSERT(cid == kOneByteStringCid || cid == kTwoByteStringCid);
@@ -1515,8 +1507,9 @@ static void TryAllocateString(Assembler* assembler,
   // _Mint length: call to runtime to produce error.
   __ BranchIfNotSmi(length_reg, failure);
   // Negative length: call to runtime to produce error.
-  __ cmp(length_reg, Operand(0));
-  __ b(failure, LT);
+  // Too big: call to runtime to allocate old.
+  __ CompareImmediate(length_reg, target::ToRawSmi(max_elements));
+  __ b(failure, HI);
 
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, R0));
   __ mov(R8, Operand(length_reg));  // Save the length register.
@@ -1607,7 +1600,9 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ b(normal_ir_body, NE);  // 'start', 'end' not Smi.
 
   __ sub(R2, R2, Operand(TMP));
-  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body);
+  TryAllocateString(assembler, kOneByteStringCid,
+                    target::OneByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body);
   __ Bind(&ok);
   // R0: new string as tagged pointer.
   // Copy string.
@@ -1678,7 +1673,9 @@ void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
                                             Label* normal_ir_body) {
   __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Length.
   Label ok;
-  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body);
+  TryAllocateString(assembler, kOneByteStringCid,
+                    target::OneByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body);
 
   __ Bind(&ok);
   __ Ret();
@@ -1690,7 +1687,9 @@ void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
                                             Label* normal_ir_body) {
   __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Length.
   Label ok;
-  TryAllocateString(assembler, kTwoByteStringCid, &ok, normal_ir_body);
+  TryAllocateString(assembler, kTwoByteStringCid,
+                    target::TwoByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body);
 
   __ Bind(&ok);
   __ Ret();
@@ -1721,8 +1720,8 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
                                                    bool sticky) {
   if (FLAG_interpret_irregexp) return;
 
-  static const intptr_t kRegExpParamOffset = 2 * target::kWordSize;
-  static const intptr_t kStringParamOffset = 1 * target::kWordSize;
+  const intptr_t kRegExpParamOffset = 2 * target::kWordSize;
+  const intptr_t kStringParamOffset = 1 * target::kWordSize;
   // start_index smi is located at offset 0.
 
   // Incoming registers:

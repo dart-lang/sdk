@@ -30,7 +30,7 @@ class RingBuffer {
   }
 
  private:
-  static const int kMask = N - 1;
+  static constexpr int kMask = N - 1;
   COMPILE_ASSERT((N & kMask) == 0);
   T data_[N];
   int64_t count_;

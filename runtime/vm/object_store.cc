@@ -17,7 +17,7 @@
 namespace dart {
 
 void IsolateObjectStore::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(visitor != NULL);
+  ASSERT(visitor != nullptr);
   visitor->set_gc_root_type("isolate_object store");
   visitor->VisitPointers(from(), to());
   visitor->clear_gc_root_type();
@@ -73,7 +73,7 @@ ErrorPtr IsolateObjectStore::PreallocateObjects(const Object& out_of_memory) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
-  ASSERT(isolate != NULL && isolate->isolate_object_store() == this);
+  ASSERT(isolate != nullptr && isolate->isolate_object_store() == this);
   ASSERT(preallocated_stack_trace() == StackTrace::null());
   resume_capabilities_ = GrowableObjectArray::New();
   exit_listeners_ = GrowableObjectArray::New();
@@ -120,7 +120,7 @@ ObjectStore::ObjectStore()
 ObjectStore::~ObjectStore() {}
 
 void ObjectStore::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(visitor != NULL);
+  ASSERT(visitor != nullptr);
   visitor->set_gc_root_type("object store");
   visitor->VisitPointers(from(), to());
   visitor->clear_gc_root_type();
@@ -214,15 +214,6 @@ FunctionPtr ObjectStore::PrivateObjectLookup(const String& name) {
   return result.ptr();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-static void DisableDebuggingAndInlining(const Function& function) {
-  if (FLAG_async_debugger) {
-    function.set_is_debuggable(false);
-    function.set_is_inlinable(false);
-  }
-}
-#endif  // DART_PRECOMPILED_RUNTIME
-
 void ObjectStore::InitKnownObjects() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -244,9 +235,6 @@ void ObjectStore::InitKnownObjects() {
   cls = async_lib.LookupClass(Symbols::Future());
   ASSERT(!cls.IsNull());
   set_future_class(cls);
-  cls = async_lib.LookupClass(Symbols::Completer());
-  ASSERT(!cls.IsNull());
-  set_completer_class(cls);
 
   String& function_name = String::Handle(zone);
   Function& function = Function::Handle(zone);
@@ -270,18 +258,19 @@ void ObjectStore::InitKnownObjects() {
   ASSERT(!field.IsNull());
   set_async_star_stream_controller_async_star_body(field);
 
-  if (FLAG_async_debugger) {
-    // Disable debugging and inlining of all functions on the
-    // _AsyncStarStreamController class.
-    const Array& functions = Array::Handle(zone, cls.current_functions());
-    for (intptr_t i = 0; i < functions.Length(); i++) {
-      function ^= functions.At(i);
-      if (function.IsNull()) {
-        break;
-      }
-      DisableDebuggingAndInlining(function);
+#if !defined(PRODUCT)
+  // Disable debugging and inlining of all functions on the
+  // _AsyncStarStreamController class.
+  const Array& functions = Array::Handle(zone, cls.current_functions());
+  for (intptr_t i = 0; i < functions.Length(); i++) {
+    function ^= functions.At(i);
+    if (function.IsNull()) {
+      break;
     }
+    function.set_is_debuggable(false);
+    function.set_is_inlinable(false);
   }
+#endif
 
   cls = async_lib.LookupClassAllowPrivate(Symbols::Stream());
   ASSERT(!cls.IsNull());
@@ -445,14 +434,14 @@ void ObjectStore::LazyInitCoreMembers() {
     list_class_.store(cls.ptr());
 
     auto& type = Type::Handle(zone);
-    type ^= cls.RareType();
+    type = cls.RareType();
     non_nullable_list_rare_type_.store(type.ptr());
 
     cls = core_lib.LookupClass(Symbols::Map());
     ASSERT(!cls.IsNull());
     map_class_.store(cls.ptr());
 
-    type ^= cls.RareType();
+    type = cls.RareType();
     non_nullable_map_rare_type_.store(type.ptr());
 
     cls = core_lib.LookupClass(Symbols::Set());
@@ -494,9 +483,8 @@ void ObjectStore::LazyInitAsyncMembers() {
   auto* const thread = Thread::Current();
   SafepointWriteRwLocker locker(thread,
                                 thread->isolate_group()->program_lock());
-  if (non_nullable_future_rare_type_.load() == Type::null()) {
+  if (nullable_future_null_type_.load() == Type::null()) {
     ASSERT(non_nullable_future_never_type_.load() == Type::null());
-    ASSERT(nullable_future_null_type_.load() == Type::null());
 
     auto* const zone = thread->zone();
     const auto& cls = Class::Handle(zone, future_class());
@@ -510,7 +498,7 @@ void ObjectStore::LazyInitAsyncMembers() {
     type_args.SetTypeAt(0, type);
     type = Type::New(cls, type_args, Nullability::kNonNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize(thread, nullptr);
+    type ^= type.Canonicalize(thread);
     non_nullable_future_never_type_.store(type.ptr());
 
     type = null_type();
@@ -519,11 +507,8 @@ void ObjectStore::LazyInitAsyncMembers() {
     type_args.SetTypeAt(0, type);
     type = Type::New(cls, type_args, Nullability::kNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize(thread, nullptr);
+    type ^= type.Canonicalize(thread);
     nullable_future_null_type_.store(type.ptr());
-
-    type ^= cls.RareType();
-    non_nullable_future_rare_type_.store(type.ptr());
   }
 }
 

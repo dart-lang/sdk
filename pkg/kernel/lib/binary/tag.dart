@@ -18,7 +18,6 @@ class Tag {
   static const int Field = 4;
   static const int Constructor = 5;
   static const int Procedure = 6;
-  static const int RedirectingFactory = 108;
 
   // Initializers
   static const int InvalidInitializer = 7;
@@ -88,6 +87,8 @@ class Tag {
   static const int RecordLiteral = 104;
   static const int ConstRecordLiteral = 105;
   static const int ConstantExpression = 106;
+  // 107 is occupied by [FutureOrType] (type).
+  static const int FileUriConstantExpression = 108;
   static const int SetLiteral = 109;
   static const int ConstSetLiteral = 110;
   static const int ListConcatenation = 111;
@@ -158,8 +159,9 @@ class Tag {
   // 104 is occupied by [RecordLiteral] (expression).
   // 105 is occupied by [ConstRecordLiteral] (expression).
   // 106 is occupied by [ConstantExpression].
+  static const int FutureOrType = 107;
 
-  // 108 is occupied by [RedirectingFactory] (member).
+  // 108 is occupied by [FileUriConstantExpression] (expression).
   // 109 is occupied by [SetLiteral] (expression).
   // 110 is occupied by [ConstSetLiteral] (expression).
   // 111 is occupied by [ListConcatenation] (expression).
@@ -206,6 +208,8 @@ class Tag {
   static const int PatternAssignment = 150;
   static const int PatternVariableDeclaration = 151;
 
+  static const int NullType = 152;
+
   static const int SpecializedTagHighBits = 0xE0; // 0b11100000
   static const int SpecializedTagMask = 0xF8; //    0b11111000
   static const int SpecializedPayloadMask = 0x7; // 0b00000111
@@ -222,7 +226,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 101;
+  static const int BinaryFormatVersion = 106;
 }
 
 abstract class ConstantTag {

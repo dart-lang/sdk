@@ -76,12 +76,14 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
       clientCompleter.complete(client);
     });
     Socket client = await clientCompleter.future;
+    // Nagle's algorithm slows us down >100x, disable it.
+    client.setOption(SocketOption.tcpNoDelay, true);
 
     Stream<Object> messageStream;
 
-    if (serializationMode == SerializationMode.byteDataServer) {
+    if (serializationMode == SerializationMode.byteData) {
       messageStream = new MessageGrouper(client).messageStream;
-    } else if (serializationMode == SerializationMode.jsonServer) {
+    } else if (serializationMode == SerializationMode.json) {
       messageStream = const Utf8Decoder()
           .bind(client)
           .transform(const LineSplitter())
@@ -114,9 +116,9 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
 
     Stream<Object> messageStream;
 
-    if (serializationMode == SerializationMode.byteDataServer) {
+    if (serializationMode == SerializationMode.byteData) {
       messageStream = new MessageGrouper(process.stdout).messageStream;
-    } else if (serializationMode == SerializationMode.jsonServer) {
+    } else if (serializationMode == SerializationMode.json) {
       messageStream = process.stdout
           .transform(const Utf8Decoder())
           .transform(const LineSplitter())
@@ -144,21 +146,23 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
   /// Json results are serialized to a `String`, and separated by newlines.
   @override
   void sendResult(Serializer serializer) {
-    if (serializationMode == SerializationMode.jsonServer) {
+    if (serializationMode == SerializationMode.json) {
       outSink.writeln(jsonEncode(serializer.result));
-    } else if (serializationMode == SerializationMode.byteDataServer) {
+    } else if (serializationMode == SerializationMode.byteData) {
       Uint8List result = (serializer as ByteDataSerializer).result;
       int length = result.lengthInBytes;
       if (length > 0xffffffff) {
         throw new StateError('Message was larger than the allowed size!');
       }
-      outSink.add([
+      BytesBuilder bytesBuilder = new BytesBuilder(copy: false);
+      bytesBuilder.add([
         length >> 24 & 0xff,
         length >> 16 & 0xff,
         length >> 8 & 0xff,
         length & 0xff
       ]);
-      outSink.add(result);
+      bytesBuilder.add(result);
+      outSink.add(bytesBuilder.takeBytes());
     } else {
       throw new UnsupportedError(
           'Unsupported serialization mode $serializationMode for '

@@ -71,30 +71,25 @@ main() {
         new FunctionType([t1], const VoidType(), Nullability.legacy);
 
     expect(tb.fromStaticType(const NeverType.nonNullable(), false),
-        equals(const EmptyType()));
-    expect(tb.fromStaticType(const DynamicType(), true),
-        equals(new NullableType(const AnyType())));
-    expect(tb.fromStaticType(const VoidType(), true),
-        equals(new NullableType(const AnyType())));
-
-    expect(tb.fromStaticType(t1, false), equals(new ConeType(tfc1)));
-    expect(tb.fromStaticType(t2Raw, false), equals(new ConeType(tfc2)));
-    expect(tb.fromStaticType(t2Generic, false), equals(new ConeType(tfc2)));
-    expect(tb.fromStaticType(t3, false), equals(new EmptyType()));
-    expect(tb.fromStaticType(f1, false), equals(ConeType(tfFunction)));
-
-    expect(tb.fromStaticType(t1, true),
-        equals(new NullableType(new ConeType(tfc1))));
-    expect(tb.fromStaticType(t2Raw, true),
-        equals(new NullableType(new ConeType(tfc2))));
-    expect(tb.fromStaticType(t2Generic, true),
-        equals(new NullableType(new ConeType(tfc2))));
+        equals(emptyType));
     expect(
-        tb.fromStaticType(t3, true), equals(new NullableType(new EmptyType())));
-    expect(tb.fromStaticType(f1, true),
-        equals(new NullableType(ConeType(tfFunction))));
+        tb.fromStaticType(const DynamicType(), true), equals(nullableAnyType));
+    expect(tb.fromStaticType(const VoidType(), true), equals(nullableAnyType));
 
-    expect(new Type.nullableAny(), equals(new NullableType(new AnyType())));
+    expect(tb.fromStaticType(t1, false), equals(tfc1.coneType));
+    expect(tb.fromStaticType(t2Raw, false), equals(tfc2.coneType));
+    expect(tb.fromStaticType(t2Generic, false), equals(tfc2.coneType));
+    expect(tb.fromStaticType(t3, false), equals(emptyType));
+    expect(tb.fromStaticType(f1, false), equals(tfFunction.coneType));
+
+    expect(tb.fromStaticType(t1, true), equals(tfc1.coneType.nullable()));
+    expect(tb.fromStaticType(t2Raw, true), equals(tfc2.coneType.nullable()));
+    expect(
+        tb.fromStaticType(t2Generic, true), equals(tfc2.coneType.nullable()));
+    expect(tb.fromStaticType(t3, true), equals(nullableEmptyType));
+    expect(tb.fromStaticType(f1, true), equals(tfFunction.coneType.nullable()));
+
+    expect(nullableAnyType, equals(nullableAnyType));
   });
 
   test('union-intersection', () {
@@ -110,39 +105,38 @@ main() {
     final tfc3 = new TFClass(3, c3, null);
     final tfc4 = new TFClass(4, c4, null);
 
-    final empty = new EmptyType();
-    final any = new AnyType();
-    final concreteT1 = new ConcreteType(tfc1);
-    final concreteT2 = new ConcreteType(tfc2);
-    final concreteT3 = new ConcreteType(tfc3);
-    final concreteT4 = new ConcreteType(tfc4);
-    final coneT1 = new ConeType(tfc1);
-    final coneT2 = new ConeType(tfc2);
-    final coneT3 = new ConeType(tfc3);
-    final coneT4 = new ConeType(tfc4);
-    final setT12 = new SetType([concreteT1, concreteT2]);
-    final setT14 = new SetType([concreteT1, concreteT4]);
-    final setT23 = new SetType([concreteT2, concreteT3]);
-    final setT34 = new SetType([concreteT3, concreteT4]);
-    final setT123 = new SetType([concreteT1, concreteT2, concreteT3]);
-    final setT124 = new SetType([concreteT1, concreteT2, concreteT4]);
-    final setT1234 =
-        new SetType([concreteT1, concreteT2, concreteT3, concreteT4]);
-    final nullableEmpty = new Type.nullable(empty);
-    final nullableAny = new Type.nullable(any);
-    final nullableConcreteT1 = new Type.nullable(concreteT1);
-    final nullableConcreteT2 = new Type.nullable(concreteT2);
-    final nullableConcreteT3 = new Type.nullable(concreteT3);
-    final nullableConeT1 = new Type.nullable(coneT1);
-    final nullableConeT3 = new Type.nullable(coneT3);
-    final nullableConeT4 = new Type.nullable(coneT4);
-    final nullableSetT12 = new Type.nullable(setT12);
-    final nullableSetT14 = new Type.nullable(setT14);
-    final nullableSetT23 = new Type.nullable(setT23);
-    final nullableSetT34 = new Type.nullable(setT34);
-    final nullableSetT123 = new Type.nullable(setT123);
-    final nullableSetT124 = new Type.nullable(setT124);
-    final nullableSetT1234 = new Type.nullable(setT1234);
+    final empty = emptyType;
+    final any = anyInstanceType;
+    final concreteT1 = tfc1.concreteType;
+    final concreteT2 = tfc2.concreteType;
+    final concreteT3 = tfc3.concreteType;
+    final concreteT4 = tfc4.concreteType;
+    final coneT1 = tfc1.coneType;
+    final coneT2 = tfc2.coneType;
+    final coneT3 = tfc3.coneType;
+    final coneT4 = tfc4.coneType;
+    final setT12 = SetType([concreteT1, concreteT2]);
+    final setT14 = SetType([concreteT1, concreteT4]);
+    final setT23 = SetType([concreteT2, concreteT3]);
+    final setT34 = SetType([concreteT3, concreteT4]);
+    final setT123 = SetType([concreteT1, concreteT2, concreteT3]);
+    final setT124 = SetType([concreteT1, concreteT2, concreteT4]);
+    final setT1234 = SetType([concreteT1, concreteT2, concreteT3, concreteT4]);
+    final nullableEmpty = empty.nullable();
+    final nullableAny = any.nullable();
+    final nullableConcreteT1 = concreteT1.nullable();
+    final nullableConcreteT2 = concreteT2.nullable();
+    final nullableConcreteT3 = concreteT3.nullable();
+    final nullableConeT1 = coneT1.nullable();
+    final nullableConeT3 = coneT3.nullable();
+    final nullableConeT4 = coneT4.nullable();
+    final nullableSetT12 = setT12.nullable();
+    final nullableSetT14 = setT14.nullable();
+    final nullableSetT23 = setT23.nullable();
+    final nullableSetT34 = setT34.nullable();
+    final nullableSetT123 = setT123.nullable();
+    final nullableSetT124 = setT124.nullable();
+    final nullableSetT1234 = setT1234.nullable();
 
     // [A, B, union, intersection]
     final testCases = [
@@ -321,60 +315,40 @@ main() {
     eq(t1a, t1b);
     ne(t1a, t2);
 
-    eq(new EmptyType(), new EmptyType());
-    ne(new EmptyType(), new AnyType());
-    ne(new EmptyType(), new ConcreteType(tfc1));
-    ne(new EmptyType(), new ConeType(tfc1));
-    ne(new EmptyType(),
-        new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]));
-    ne(new EmptyType(), new NullableType(new EmptyType()));
+    eq(emptyType, emptyType);
+    ne(emptyType, anyInstanceType);
+    ne(emptyType, tfc1.concreteType);
+    ne(emptyType, tfc1.coneType);
+    ne(emptyType, SetType([tfc1.concreteType, tfc2.concreteType]));
+    ne(emptyType, nullableEmptyType);
 
-    eq(new AnyType(), new AnyType());
-    ne(new AnyType(), new ConcreteType(tfc1));
-    ne(new AnyType(), new ConeType(tfc1));
-    ne(new AnyType(),
-        new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]));
-    ne(new AnyType(), new NullableType(new EmptyType()));
+    eq(anyInstanceType, anyInstanceType);
+    ne(anyInstanceType, tfc1.concreteType);
+    ne(anyInstanceType, tfc1.coneType);
+    ne(anyInstanceType, SetType([tfc1.concreteType, tfc2.concreteType]));
+    ne(anyInstanceType, nullableEmptyType);
 
-    eq(new ConcreteType(tfc1), new ConcreteType(tfc1));
-    ne(new ConcreteType(tfc1), new ConcreteType(tfc2));
-    ne(new ConcreteType(tfc1), new ConeType(tfc1));
-    ne(new ConcreteType(tfc1), new ConeType(tfc2));
-    ne(new ConcreteType(tfc1),
-        new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]));
-    ne(new ConcreteType(tfc1), new NullableType(new ConcreteType(tfc1)));
+    eq(tfc1.concreteType, tfc1.concreteType);
+    ne(tfc1.concreteType, tfc2.concreteType);
+    ne(tfc1.concreteType, tfc1.coneType);
+    ne(tfc1.concreteType, tfc2.coneType);
+    ne(tfc1.concreteType, SetType([tfc1.concreteType, tfc2.concreteType]));
+    ne(tfc1.concreteType, tfc1.concreteType.nullable());
 
-    eq(new ConeType(tfc1), new ConeType(tfc1));
-    ne(new ConeType(tfc1), new ConeType(tfc2));
-    ne(new ConeType(tfc1),
-        new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]));
-    ne(new ConeType(tfc1), new NullableType(new ConeType(tfc1)));
+    eq(tfc1.coneType, tfc1.coneType);
+    ne(tfc1.coneType, tfc2.coneType);
+    ne(tfc1.coneType, SetType([tfc1.concreteType, tfc2.concreteType]));
+    ne(tfc1.coneType, tfc1.coneType.nullable());
 
-    eq(new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]),
-        new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]));
-    eq(
-        new SetType([
-          new ConcreteType(tfc1),
-          new ConcreteType(tfc2),
-          new ConcreteType(tfc3)
-        ]),
-        new SetType([
-          new ConcreteType(tfc1),
-          new ConcreteType(tfc2),
-          new ConcreteType(tfc3)
-        ]));
-    ne(
-        new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]),
-        new SetType([
-          new ConcreteType(tfc1),
-          new ConcreteType(tfc2),
-          new ConcreteType(tfc3)
-        ]));
-    ne(new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]),
-        new SetType([new ConcreteType(tfc1), new ConcreteType(tfc3)]));
-    ne(
-        new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)]),
-        new NullableType(
-            new SetType([new ConcreteType(tfc1), new ConcreteType(tfc2)])));
+    eq(SetType([tfc1.concreteType, tfc2.concreteType]),
+        SetType([tfc1.concreteType, tfc2.concreteType]));
+    eq(SetType([tfc1.concreteType, tfc2.concreteType, tfc3.concreteType]),
+        SetType([tfc1.concreteType, tfc2.concreteType, tfc3.concreteType]));
+    ne(SetType([tfc1.concreteType, tfc2.concreteType]),
+        SetType([tfc1.concreteType, tfc2.concreteType, tfc3.concreteType]));
+    ne(SetType([tfc1.concreteType, tfc2.concreteType]),
+        SetType([tfc1.concreteType, tfc3.concreteType]));
+    ne(SetType([tfc1.concreteType, tfc2.concreteType]),
+        SetType([tfc1.concreteType, tfc2.concreteType]).nullable());
   });
 }

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A representation of the contents of an instrumentation log.
+library;
+
 import 'dart:convert';
 import 'dart:math' as math;
 

@@ -11,10 +11,10 @@ _dart_root = get_path_info("..", "abspath")
 declare_args() {
   # Default to building app-jit snapshots. The simulator and cross builds
   # override this to script snapshots to cut down on build time.
-  if (target_cpu != host_cpu) {
-    dart_snapshot_kind = "kernel"
-  } else {
+  if (dart_target_arch == target_cpu && target_cpu == host_cpu) {
     dart_snapshot_kind = "app-jit"
+  } else {
+    dart_snapshot_kind = "kernel"
   }
 }
 
@@ -45,7 +45,7 @@ declare_args() {
 #
 #  output (optional):
 #    Overrides the full output path.
-template("_application_snapshot") {
+template("application_snapshot") {
   assert(defined(invoker.main_dart), "Must specify 'main_dart'")
   assert(defined(invoker.training_args), "Must specify 'training_args'")
   if (defined(invoker.dart_snapshot_kind)) {
@@ -182,70 +182,5 @@ template("_application_snapshot") {
         assert(false, "Bad dart_snapshot_kind: $dart_snapshot_kind")
       }
     }
-  }
-}
-
-# Creates an app-jit snapshot for a Dart2 program based on a training run.
-#
-# Parameters:
-#  main_dart (required):
-#    The entrypoint to the Dart application.
-#
-#  training_args (required):
-#    Arguments to pass to the Dart application for the training run.
-#
-#  vm_args (optional):
-#    Additional arguments to the Dart VM.
-#
-#  name (optional):
-#    The name of the snapshot if different from the target name. The output
-#    will be in $root_gen_dir/$name.dart.snapshot.
-#
-#  deps (optional):
-#    Any build dependencies.
-#
-#  dot_packages (optional):
-#    The package config file for the app. Defaults to
-#    $_dart_root/.dart_tool/package_config.json.
-#
-#  output (optional):
-#    Overrides the full output path.
-template("application_snapshot") {
-  _application_snapshot(target_name) {
-    forward_variables_from(invoker, "*")
-    if (!defined(invoker.deps)) {
-      deps = []
-    }
-  }
-}
-
-# Creates an app-jit snapshot for the common FE based on a training run.
-#
-# Parameters:
-#  main_dart (required):
-#    The entrypoint to the Dart application.
-#
-#  training_args (required):
-#    Arguments to pass to the Dart application for the training run.
-#
-#  vm_args (optional):
-#    Additional arguments to the Dart VM.
-#
-#  name (optional):
-#    The name of the snapshot if different from the target name. The output
-#    will be in $root_gen_dir/$name.dart.snapshot.
-#
-#  deps (optional):
-#    Any build dependencies.
-#
-#  dot_packages (optional):
-#    The packages config file for the app. Defaults to
-#    $_dart_root/.dart_tool/package_config.json.
-#
-#  output (optional):
-#    Overrides the full output path.
-template("kernel_application_snapshot") {
-  _application_snapshot(target_name) {
-    forward_variables_from(invoker, "*")
   }
 }

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -10,7 +10,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 }
-static final field core::bool inSoundMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
+static final field core::bool inSoundMode = !(<core::int?>[] is core::List<core::int>);
 static const field () → self::A<core::int> f1a = #C2;
 static const field () → self::A<core::int> f1b = #C2;
 static const field () → self::A<core::int> f1c = #C2;

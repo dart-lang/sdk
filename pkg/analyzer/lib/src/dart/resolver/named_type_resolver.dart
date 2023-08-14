@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -26,7 +26,6 @@ import 'package:analyzer/src/generated/scope_helpers.dart';
 class NamedTypeResolver with ScopeHelpers {
   final LibraryElementImpl _libraryElement;
   final TypeSystemImpl typeSystem;
-  final DartType dynamicType;
   final bool isNonNullableByDefault;
 
   @override
@@ -59,10 +58,9 @@ class NamedTypeResolver with ScopeHelpers {
   /// If [resolve] reported an error, this flag is set to `true`.
   bool hasErrorReported = false;
 
-  NamedTypeResolver(this._libraryElement, TypeProvider typeProvider,
-      this.isNonNullableByDefault, this.errorReporter)
-      : typeSystem = _libraryElement.typeSystem,
-        dynamicType = typeProvider.dynamicType;
+  NamedTypeResolver(
+      this._libraryElement, this.isNonNullableByDefault, this.errorReporter)
+      : typeSystem = _libraryElement.typeSystem;
 
   bool get _genericMetadataIsEnabled =>
       enclosingClass!.library.featureSet.isEnabled(Feature.generic_metadata);
@@ -81,12 +79,12 @@ class NamedTypeResolver with ScopeHelpers {
     rewriteResult = null;
     hasErrorReported = false;
 
-    var typeIdentifier = node.name;
-    if (typeIdentifier is PrefixedIdentifierImpl) {
-      var prefix = typeIdentifier.prefix;
-      var prefixName = prefix.name;
-      var prefixElement = nameScope.lookup(prefixName).getter;
-      prefix.staticElement = prefixElement;
+    final importPrefix = node.importPrefix;
+    if (importPrefix != null) {
+      final prefixToken = importPrefix.name;
+      final prefixName = prefixToken.lexeme;
+      final prefixElement = nameScope.lookup(prefixName).getter;
+      importPrefix.element = prefixElement;
 
       if (prefixElement == null) {
         _resolveToElement(node, null);
@@ -95,34 +93,35 @@ class NamedTypeResolver with ScopeHelpers {
 
       if (prefixElement is InterfaceElement ||
           prefixElement is TypeAliasElement) {
-        _rewriteToConstructorName(node, typeIdentifier);
+        _rewriteToConstructorName(
+          node: node,
+          importPrefix: importPrefix,
+          importPrefixElement: prefixElement,
+          nameToken: node.name2,
+        );
         return;
       }
 
       if (prefixElement is PrefixElement) {
-        final nameNode = typeIdentifier.identifier;
-        final element = _lookupGetter(prefixElement.scope, nameNode);
-        nameNode.staticElement = element;
+        final nameToken = node.name2;
+        final element = _lookupGetter(prefixElement.scope, nameToken);
         _resolveToElement(node, element);
         return;
       }
 
-      errorReporter.reportErrorForNode(
+      errorReporter.reportErrorForToken(
         CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION,
-        prefix,
-        [prefix.name],
+        prefixToken,
+        [prefixName],
       );
-      node.type = dynamicType;
+      node.type = InvalidTypeImpl.instance;
     } else {
-      var nameNode = typeIdentifier as SimpleIdentifierImpl;
-
-      if (nameNode.name == 'void') {
+      if (node.name2.lexeme == 'void') {
         node.type = VoidTypeImpl.instance;
         return;
       }
 
-      final element = _lookupGetter(nameScope, nameNode);
-      nameNode.staticElement = element;
+      final element = _lookupGetter(nameScope, node.name2);
       _resolveToElement(node, element);
     }
   }
@@ -137,9 +136,9 @@ class NamedTypeResolver with ScopeHelpers {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
         node,
-        [node.name.name, parameterCount, argumentCount],
+        [node.name2.lexeme, parameterCount, argumentCount],
       );
-      return List.filled(parameterCount, DynamicTypeImpl.instance,
+      return List.filled(parameterCount, InvalidTypeImpl.instance,
           growable: false);
     }
 
@@ -219,7 +218,7 @@ class NamedTypeResolver with ScopeHelpers {
         return _verifyTypeAliasForContext(node, element, type);
       } else if (_isInstanceCreation(node)) {
         _ErrorHelper(errorReporter).reportNewWithNonType(node);
-        return dynamicType;
+        return InvalidTypeImpl.instance;
       } else if (element is DynamicElementImpl) {
         _buildTypeArguments(node, argumentList, 0);
         return DynamicTypeImpl.instance;
@@ -233,7 +232,7 @@ class NamedTypeResolver with ScopeHelpers {
         );
       } else {
         _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, element);
-        return dynamicType;
+        return InvalidTypeImpl.instance;
       }
     }
 
@@ -262,7 +261,7 @@ class NamedTypeResolver with ScopeHelpers {
       return _verifyTypeAliasForContext(node, element, type);
     } else if (_isInstanceCreation(node)) {
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
-      return dynamicType;
+      return InvalidTypeImpl.instance;
     } else if (element is DynamicElementImpl) {
       return DynamicTypeImpl.instance;
     } else if (element is NeverElementImpl) {
@@ -273,7 +272,7 @@ class NamedTypeResolver with ScopeHelpers {
       );
     } else {
       _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, element);
-      return dynamicType;
+      return InvalidTypeImpl.instance;
     }
   }
 
@@ -285,26 +284,28 @@ class NamedTypeResolver with ScopeHelpers {
     }
   }
 
-  Element? _lookupGetter(Scope scope, SimpleIdentifier node) {
-    final scopeLookupResult = scope.lookup(node.name);
+  Element? _lookupGetter(Scope scope, Token nameToken) {
+    final scopeLookupResult = scope.lookup(nameToken.lexeme);
     reportDeprecatedExportUseGetter(
       scopeLookupResult: scopeLookupResult,
-      node: node,
+      nameToken: nameToken,
     );
     return scopeLookupResult.getter;
   }
 
   void _resolveToElement(NamedTypeImpl node, Element? element) {
+    node.element = element;
+
     if (element == null) {
-      node.type = dynamicType;
-      if (!_libraryElement.shouldIgnoreUndefinedIdentifier(node.name)) {
+      node.type = InvalidTypeImpl.instance;
+      if (!_libraryElement.shouldIgnoreUndefinedNamedType(node)) {
         _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, null);
       }
       return;
     }
 
     if (element is MultiplyDefinedElement) {
-      node.type = dynamicType;
+      node.type = InvalidTypeImpl.instance;
       return;
     }
 
@@ -316,22 +317,21 @@ class NamedTypeResolver with ScopeHelpers {
   /// We parse `foo.bar` as `prefix.Name` with the expectation that `prefix`
   /// will be a [PrefixElement]. But when we resolved the `prefix` it turned
   /// out to be a [ClassElement], so it is probably a `Class.constructor`.
-  void _rewriteToConstructorName(
-    NamedTypeImpl node,
-    PrefixedIdentifierImpl typeIdentifier,
-  ) {
+  void _rewriteToConstructorName({
+    required NamedTypeImpl node,
+    required ImportPrefixReferenceImpl importPrefix,
+    required Element importPrefixElement,
+    required Token nameToken,
+  }) {
     var constructorName = node.parent;
     if (constructorName is ConstructorNameImpl &&
         constructorName.name == null) {
-      var classIdentifier = typeIdentifier.prefix;
-      var constructorIdentifier = typeIdentifier.identifier;
-
       var typeArguments = node.typeArguments;
       if (typeArguments != null) {
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           typeArguments,
-          [classIdentifier.name, constructorIdentifier.name],
+          [importPrefix.name.lexeme, nameToken.lexeme],
         );
         var instanceCreation = constructorName.parent;
         if (instanceCreation is InstanceCreationExpressionImpl) {
@@ -339,25 +339,34 @@ class NamedTypeResolver with ScopeHelpers {
         }
       }
 
-      node.name = classIdentifier;
-      node.typeArguments = null;
+      final namedType = NamedTypeImpl(
+        importPrefix: null,
+        name2: importPrefix.name,
+        typeArguments: null,
+        question: null,
+      )..element = importPrefixElement;
+      if (identical(node, redirectedConstructor_namedType)) {
+        redirectedConstructor_namedType = namedType;
+      }
 
-      constructorName.period = typeIdentifier.period;
-      constructorName.name = constructorIdentifier;
+      constructorName.type = namedType;
+      constructorName.period = importPrefix.period;
+      constructorName.name = SimpleIdentifierImpl(nameToken);
 
       rewriteResult = constructorName;
       return;
     }
 
     if (_isInstanceCreation(node)) {
-      node.type = dynamicType;
+      node.type = InvalidTypeImpl.instance;
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
     } else {
-      node.type = dynamicType;
-      errorReporter.reportErrorForNode(
+      node.type = InvalidTypeImpl.instance;
+      errorReporter.reportErrorForOffset(
         CompileTimeErrorCode.NOT_A_TYPE,
-        typeIdentifier,
-        [typeIdentifier.name],
+        importPrefix.offset,
+        nameToken.end - importPrefix.offset,
+        ['${importPrefix.name.lexeme}.${nameToken.lexeme}'],
       );
     }
   }
@@ -407,25 +416,27 @@ class NamedTypeResolver with ScopeHelpers {
     if (element.aliasedType is TypeParameterType) {
       var parent = node.parent;
       if (parent is ConstructorName) {
-        var errorNode = _ErrorHelper._getErrorNode(node);
+        var errorRange = _ErrorHelper._getErrorRange(node);
         var constructorUsage = parent.parent;
         if (constructorUsage is InstanceCreationExpression) {
-          errorReporter.reportErrorForNode(
+          errorReporter.reportErrorForOffset(
             CompileTimeErrorCode
                 .INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
-            errorNode,
+            errorRange.offset,
+            errorRange.length,
           );
         } else if (constructorUsage is ConstructorDeclaration &&
             constructorUsage.redirectedConstructor == parent) {
-          errorReporter.reportErrorForNode(
+          errorReporter.reportErrorForOffset(
             CompileTimeErrorCode
                 .REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
-            errorNode,
+            errorRange.offset,
+            errorRange.length,
           );
         } else {
           throw UnimplementedError('${constructorUsage.runtimeType}');
         }
-        return dynamicType;
+        return InvalidTypeImpl.instance;
       }
 
       // Report if this type is used as a class in hierarchy.
@@ -444,15 +455,19 @@ class NamedTypeResolver with ScopeHelpers {
             CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
       }
       if (errorCode != null) {
-        var errorNode = _ErrorHelper._getErrorNode(node);
-        errorReporter.reportErrorForNode(errorCode, errorNode);
+        var errorRange = _ErrorHelper._getErrorRange(node);
+        errorReporter.reportErrorForOffset(
+          errorCode,
+          errorRange.offset,
+          errorRange.length,
+        );
         hasErrorReported = true;
-        return dynamicType;
+        return InvalidTypeImpl.instance;
       }
     }
     if (type is! InterfaceType && _isInstanceCreation(node)) {
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
-      return dynamicType;
+      return InvalidTypeImpl.instance;
     }
     return type;
   }
@@ -475,14 +490,14 @@ class _ErrorHelper {
     if (constructorName is ConstructorName) {
       var instanceCreation = constructorName.parent;
       if (instanceCreation is InstanceCreationExpression) {
-        var identifier = node.name;
-        var errorNode = _getErrorNode(node);
-        errorReporter.reportErrorForNode(
+        final errorRange = _getErrorRange(node, skipImportPrefix: true);
+        errorReporter.reportErrorForOffset(
           instanceCreation.isConst
               ? CompileTimeErrorCode.CONST_WITH_NON_TYPE
               : CompileTimeErrorCode.NEW_WITH_NON_TYPE,
-          errorNode,
-          [identifier.name],
+          errorRange.offset,
+          errorRange.length,
+          [node.name2.lexeme],
         );
         return true;
       }
@@ -491,67 +506,81 @@ class _ErrorHelper {
   }
 
   void reportNullOrNonTypeElement(NamedType node, Element? element) {
-    var identifier = node.name;
-    var errorNode = _getErrorNode(node);
+    if (node.name2.isSynthetic) {
+      return;
+    }
 
-    if (errorNode.name == 'boolean') {
-      errorReporter.reportErrorForNode(
+    if (node.name2.lexeme == 'boolean') {
+      final errorRange = _getErrorRange(node, skipImportPrefix: true);
+      errorReporter.reportErrorForOffset(
         CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN,
-        errorNode,
-        [identifier.name],
+        errorRange.offset,
+        errorRange.length,
+        [node.name2.lexeme],
       );
       return;
     }
 
     if (_isTypeInCatchClause(node)) {
-      errorReporter.reportErrorForNode(
+      final errorRange = _getErrorRange(node);
+      errorReporter.reportErrorForOffset(
         CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
-        identifier,
-        [identifier.name],
+        errorRange.offset,
+        errorRange.length,
+        [node.name2.lexeme],
       );
       return;
     }
 
     if (_isTypeInAsExpression(node)) {
-      errorReporter.reportErrorForNode(
+      final errorRange = _getErrorRange(node);
+      errorReporter.reportErrorForOffset(
         CompileTimeErrorCode.CAST_TO_NON_TYPE,
-        identifier,
-        [identifier.name],
+        errorRange.offset,
+        errorRange.length,
+        [node.name2.lexeme],
       );
       return;
     }
 
     if (_isTypeInIsExpression(node)) {
+      final errorRange = _getErrorRange(node);
       if (element != null) {
-        errorReporter.reportErrorForNode(
+        errorReporter.reportErrorForOffset(
           CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE,
-          identifier,
-          [identifier.name],
+          errorRange.offset,
+          errorRange.length,
+          [node.name2.lexeme],
         );
       } else {
-        errorReporter.reportErrorForNode(
+        errorReporter.reportErrorForOffset(
           CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME,
-          identifier,
-          [identifier.name],
+          errorRange.offset,
+          errorRange.length,
+          [node.name2.lexeme],
         );
       }
       return;
     }
 
     if (_isRedirectingConstructor(node)) {
-      errorReporter.reportErrorForNode(
+      final errorRange = _getErrorRange(node);
+      errorReporter.reportErrorForOffset(
         CompileTimeErrorCode.REDIRECT_TO_NON_CLASS,
-        identifier,
-        [identifier.name],
+        errorRange.offset,
+        errorRange.length,
+        [node.name2.lexeme],
       );
       return;
     }
 
     if (_isTypeInTypeArgumentList(node)) {
-      errorReporter.reportErrorForNode(
+      final errorRange = _getErrorRange(node);
+      errorReporter.reportErrorForOffset(
         CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT,
-        identifier,
-        [identifier.name],
+        errorRange.offset,
+        errorRange.length,
+        [node.name2.lexeme],
       );
       return;
     }
@@ -575,23 +604,25 @@ class _ErrorHelper {
       errorReporter.reportError(
         DiagnosticFactory().referencedBeforeDeclaration(
           errorReporter.source,
-          identifier,
-          element: element,
+          nameToken: node.name2,
+          element: element!,
         ),
       );
       return;
     }
 
     if (element != null) {
-      errorReporter.reportErrorForNode(
+      final errorRange = _getErrorRange(node);
+      errorReporter.reportErrorForOffset(
         CompileTimeErrorCode.NOT_A_TYPE,
-        identifier,
-        [identifier.name],
+        errorRange.offset,
+        errorRange.length,
+        [node.name2.lexeme],
       );
       return;
     }
 
-    if (identifier is SimpleIdentifier && identifier.name == 'await') {
+    if (node.importPrefix == null && node.name2.lexeme == 'await') {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
         node,
@@ -599,29 +630,29 @@ class _ErrorHelper {
       return;
     }
 
-    errorReporter.reportErrorForNode(
+    final errorRange = _getErrorRange(node);
+    errorReporter.reportErrorForOffset(
       CompileTimeErrorCode.UNDEFINED_CLASS,
-      identifier,
-      [identifier.name],
+      errorRange.offset,
+      errorRange.length,
+      [node.name2.lexeme],
     );
   }
 
   /// Returns the simple identifier of the given (maybe prefixed) identifier.
-  static Identifier _getErrorNode(NamedType node) {
-    Identifier identifier = node.name;
-    if (identifier is PrefixedIdentifier) {
-      // The prefixed identifier can be:
-      // 1. new importPrefix.NamedType()
-      // 2. new NamedType.constructorName()
-      // 3. new unresolved.Unresolved()
-      if (identifier.prefix.staticElement is PrefixElement) {
-        return identifier.identifier;
-      } else {
-        return identifier;
+  static SourceRange _getErrorRange(
+    NamedType node, {
+    bool skipImportPrefix = false,
+  }) {
+    var firstToken = node.name2;
+    final importPrefix = node.importPrefix;
+    if (importPrefix != null) {
+      if (!skipImportPrefix || importPrefix.element is! PrefixElement) {
+        firstToken = importPrefix.name;
       }
-    } else {
-      return identifier;
     }
+    final end = node.name2.end;
+    return SourceRange(firstToken.offset, end - firstToken.offset);
   }
 
   /// Check if the [node] is the type in a redirected constructor name.

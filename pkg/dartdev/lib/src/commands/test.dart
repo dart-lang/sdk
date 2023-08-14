@@ -5,9 +5,11 @@
 import 'dart:async';
 
 import 'package:args/args.dart';
+import 'package:dartdev/src/experiments.dart';
 import 'package:pub/pub.dart';
 
 import '../core.dart';
+import '../native_assets.dart';
 import '../vm_interop_handler.dart';
 
 /// Implement `dart test`.
@@ -16,7 +18,10 @@ import '../vm_interop_handler.dart';
 class TestCommand extends DartdevCommand {
   static const String cmdName = 'test';
 
-  TestCommand() : super(cmdName, 'Run tests for a project.', false);
+  final bool nativeAssetsExperimentEnabled;
+
+  TestCommand({this.nativeAssetsExperimentEnabled = false})
+      : super(cmdName, 'Run tests for a project.', false);
 
   // This argument parser is here solely to ensure that VM specific flags are
   // provided before any command and to provide a more consistent help message
@@ -39,10 +44,27 @@ Run "${runner!.executableName} help" to see global options.''');
   @override
   FutureOr<int> run() async {
     final args = argResults!;
+
+    String? nativeAssets;
+    if (nativeAssetsExperimentEnabled) {
+      try {
+        nativeAssets = (await compileNativeAssetsJitYamlFile())?.toFilePath();
+      } on Exception catch (e, stacktrace) {
+        log.stderr('Error: Compiling native assets failed.');
+        log.stderr(e.toString());
+        log.stderr(stacktrace.toString());
+        return DartdevCommand.errorExitCode;
+      }
+    }
+
     try {
-      final testExecutable = await getExecutableForCommand('test:test');
-      log.trace('dart $testExecutable ${args.rest.join(' ')}');
-      VmInteropHandler.run(testExecutable.executable, args.rest,
+      final testExecutable = await getExecutableForCommand('test:test',
+          nativeAssets: nativeAssets);
+      final argsRestNoExperiment = args.rest
+          .where((e) => !e.startsWith('--$experimentFlagName='))
+          .toList();
+      log.trace('dart $testExecutable ${argsRestNoExperiment.join(' ')}');
+      VmInteropHandler.run(testExecutable.executable, argsRestNoExperiment,
           packageConfigOverride: testExecutable.packageConfig!);
       return 0;
     } on CommandResolutionFailedException catch (e) {

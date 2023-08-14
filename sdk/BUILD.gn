@@ -15,8 +15,8 @@
 
 import("../build/dart/copy_tree.gni")
 import("../build/executable_suffix.gni")
-import("../runtime/runtime_args.gni")
 import("../sdk_args.gni")
+import("../utils/application_snapshot.gni")
 
 declare_args() {
   # Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.
@@ -44,8 +44,7 @@ declare_args() {
 # ........analysis_server.dart.snapshot
 # ........dart2js.dart.snapshot
 # ........dart2wasm_product.snapshot (if not on ia32)
-# ........dartdev.dart.snapshot
-# ........dartdev.dill
+# ........dartdev.dart.snapshot (app-jit snapshot or kernel dill file)
 # ........dartdevc.dart.snapshot
 # ........dds.dart.snapshot
 # ........frontend_server.dart.snapshot
@@ -67,8 +66,10 @@ declare_args() {
 # ........dart2js_platform_unsound.dill
 # ........dart2js_server_platform.dill
 # ........dart2js_server_platform_unsound.dill
-# ........dart2wasm_platform.dill (if not on ia32)
 # ........dart2wasm_outline.dill (if not on ia32)
+# ........dart2wasm_platform.dill (if not on ia32)
+# ........dart2wasm_stringref_outline.dill (if not on ia32)
+# ........dart2wasm_stringref_platform.dill (if not on ia32)
 # ........ddc_outline.dill
 # ........ddc_platform.dill
 # ........vm_platform_strong.dill
@@ -90,6 +91,7 @@ declare_args() {
 # ......isolate/
 # ......js/
 # ......js_interop/
+# ......js_interop_unsafe/
 # ......js_util/
 # ......math/
 # ......mirrors/
@@ -120,7 +122,7 @@ _platform_sdk_snapshots = [
     "../utils/kernel-service:frontend_server",
   ],
 ]
-if (create_kernel_service_snapshot) {
+if (dart_snapshot_kind == "app-jit") {
   _platform_sdk_snapshots += [ [
         "kernel-service",
         "../utils/kernel-service:kernel-service_snapshot",
@@ -160,6 +162,7 @@ _full_sdk_libraries = [
   "isolate",
   "js",
   "js_interop",
+  "js_interop_unsafe",
   "js_util",
   "math",
   "mirrors",
@@ -451,17 +454,6 @@ copy("copy_vm_dill_files") {
       [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]
 }
 
-copy("copy_dartdev_dill_files") {
-  visibility = [ ":create_common_sdk" ]
-  deps = [
-    ":copy_libraries",
-    "../utils/dartdev:dartdev",
-  ]
-  sources = [ "$root_out_dir/dartdev.dill" ]
-  outputs =
-      [ "$root_out_dir/$dart_sdk_output/bin/snapshots/{{source_file_part}}" ]
-}
-
 copy("copy_dart2js_dill_files") {
   visibility = [ ":create_full_sdk" ]
   deps = [
@@ -483,10 +475,13 @@ copy("copy_dart2wasm_platform") {
     ":copy_libraries",
     "../:dart2wasm_platform",
     "../utils/dart2wasm:compile_dart2wasm_platform",
+    "../utils/dart2wasm:compile_dart2wasm_stringref_platform",
   ]
   sources = [
     "$root_out_dir/dart2wasm_outline.dill",
     "$root_out_dir/dart2wasm_platform.dill",
+    "$root_out_dir/dart2wasm_stringref_outline.dill",
+    "$root_out_dir/dart2wasm_stringref_platform.dill",
   ]
   outputs =
       [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]
@@ -680,7 +675,6 @@ group("create_common_sdk") {
   public_deps = [
     ":copy_api_readme",
     ":copy_dart",
-    ":copy_dartdev_dill_files",
     ":copy_dartdoc_files",
     ":copy_headers",
     ":copy_libraries_specification",

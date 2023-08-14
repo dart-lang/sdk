@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "issue51823_lib.dart" as iss;
 import "dart:core" as core;
@@ -7,7 +7,7 @@ import "org-dartlang-testcase:///issue51823_lib.dart";
 
 static const field iss::E a = const core::bool::fromEnvironment("foo") ?{iss::E} iss::E::a : iss::E::b;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as iss;
 import "dart:core" as core;
 

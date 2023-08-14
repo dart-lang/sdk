@@ -1114,7 +1114,7 @@ void f() {
       destination: findNode.ifStatement('true'),
       source: findNode.ifStatement('false'),
       childAccessors: [
-        (node) => node.condition,
+        (node) => node.expression,
         (node) => node.thenStatement,
         (node) => node.elseStatement!,
       ],
@@ -1740,9 +1740,9 @@ class B extends A {
     );
   }
 
-  void test_switchCase_language218() {
+  void test_switchCase_language219() {
     var findNode = _parseStringToFindNode(r'''
-// @dart=2.18
+// @dart = 2.19
 void f() {
   switch (x) {
     foo: bar:
@@ -1777,9 +1777,9 @@ void f() {
     );
   }
 
-  void test_switchStatement_language218() {
+  void test_switchStatement_language219() {
     var findNode = _parseStringToFindNode(r'''
-// @dart=2.18
+// @dart = 2.19
 void f() {
   switch (0) {
     case 0: break;
@@ -1879,20 +1879,6 @@ void f() {
       destination: findNode.typeArgumentList('<int'),
       child: findNode.namedType('int'),
       replacement: findNode.namedType('double'),
-    );
-  }
-
-  void test_typeName() {
-    var findNode = _parseStringToFindNode(r'''
-void f(List<int> a, Set<double> b) {}
-''');
-    _assertReplacementForChildren<NamedType>(
-      destination: findNode.namedType('List<int>'),
-      source: findNode.namedType('Set<double>'),
-      childAccessors: [
-        (node) => node.name,
-        (node) => node.typeArguments!,
-      ],
     );
   }
 

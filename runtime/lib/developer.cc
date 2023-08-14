@@ -18,6 +18,7 @@
 #include "vm/object_store.h"
 #include "vm/service.h"
 #include "vm/service_isolate.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -177,6 +178,25 @@ DEFINE_NATIVE_ENTRY(Developer_reachability_barrier, 0, 0) {
   ASSERT(heap != nullptr);
   return Integer::New(heap->ReachabilityBarrier());
 #endif
+}
+
+DEFINE_NATIVE_ENTRY(Developer_NativeRuntime_buildId, 0, 0) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  IsolateGroup* isolate_group = thread->isolate_group();
+  ASSERT(isolate_group != nullptr);
+  if (const uint8_t* instructions =
+          isolate_group->source()->snapshot_instructions) {
+    const auto& build_id = OS::GetAppBuildId(instructions);
+    if (build_id.data != nullptr) {
+      ZoneTextBuffer buffer(zone);
+      for (intptr_t i = 0; i < build_id.len; i++) {
+        buffer.Printf("%2.2x", build_id.data[i]);
+      }
+      return String::New(buffer.buffer());
+    }
+  }
+#endif
+  return String::null();
 }
 
 DEFINE_NATIVE_ENTRY(Developer_NativeRuntime_writeHeapSnapshotToFile, 0, 1) {

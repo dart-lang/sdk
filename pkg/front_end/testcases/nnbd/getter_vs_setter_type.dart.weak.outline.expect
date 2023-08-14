@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -222,41 +222,41 @@ static get property3() → core::num
   ;
 static set property3(core::int value) → void
   ;
-static method Extension|get#property1<T extends core::Object? = dynamic, S extends self::Extension|get#property1::T% = dynamic>(lowered final core::int #this) → core::int
+static extension-member method Extension|get#property1<T extends core::Object? = dynamic, S extends self::Extension|get#property1::T% = dynamic>(lowered final core::int #this) → core::int
   ;
-static method Extension|set#property1<T extends core::Object? = dynamic, S extends self::Extension|set#property1::T% = dynamic>(lowered final core::int #this, core::int i) → void
+static extension-member method Extension|set#property1<T extends core::Object? = dynamic, S extends self::Extension|set#property1::T% = dynamic>(lowered final core::int #this, core::int i) → void
   ;
-static method Extension|get#property2<T extends core::Object? = dynamic, S extends self::Extension|get#property2::T% = dynamic>(lowered final core::int #this) → core::int
+static extension-member method Extension|get#property2<T extends core::Object? = dynamic, S extends self::Extension|get#property2::T% = dynamic>(lowered final core::int #this) → core::int
   ;
-static method Extension|set#property2<T extends core::Object? = dynamic, S extends self::Extension|set#property2::T% = dynamic>(lowered final core::int #this, core::num i) → void
+static extension-member method Extension|set#property2<T extends core::Object? = dynamic, S extends self::Extension|set#property2::T% = dynamic>(lowered final core::int #this, core::num i) → void
   ;
-static method Extension|get#property3<T extends core::Object? = dynamic, S extends self::Extension|get#property3::T% = dynamic>(lowered final core::int #this) → core::num
+static extension-member method Extension|get#property3<T extends core::Object? = dynamic, S extends self::Extension|get#property3::T% = dynamic>(lowered final core::int #this) → core::num
   ;
-static method Extension|set#property3<T extends core::Object? = dynamic, S extends self::Extension|set#property3::T% = dynamic>(lowered final core::int #this, core::int i) → void
+static extension-member method Extension|set#property3<T extends core::Object? = dynamic, S extends self::Extension|set#property3::T% = dynamic>(lowered final core::int #this, core::int i) → void
   ;
-static method Extension|get#property4<T extends core::Object? = dynamic, S extends self::Extension|get#property4::T% = dynamic>(lowered final core::int #this) → self::Extension|get#property4::S%
+static extension-member method Extension|get#property4<T extends core::Object? = dynamic, S extends self::Extension|get#property4::T% = dynamic>(lowered final core::int #this) → self::Extension|get#property4::S%
   ;
-static method Extension|set#property4<T extends core::Object? = dynamic, S extends self::Extension|set#property4::T% = dynamic>(lowered final core::int #this, self::Extension|set#property4::S% i) → void
+static extension-member method Extension|set#property4<T extends core::Object? = dynamic, S extends self::Extension|set#property4::T% = dynamic>(lowered final core::int #this, self::Extension|set#property4::S% i) → void
   ;
-static method Extension|get#property5<T extends core::Object? = dynamic, S extends self::Extension|get#property5::T% = dynamic>(lowered final core::int #this) → self::Extension|get#property5::S%
+static extension-member method Extension|get#property5<T extends core::Object? = dynamic, S extends self::Extension|get#property5::T% = dynamic>(lowered final core::int #this) → self::Extension|get#property5::S%
   ;
-static method Extension|set#property5<T extends core::Object? = dynamic, S extends self::Extension|set#property5::T% = dynamic>(lowered final core::int #this, self::Extension|set#property5::T% i) → void
+static extension-member method Extension|set#property5<T extends core::Object? = dynamic, S extends self::Extension|set#property5::T% = dynamic>(lowered final core::int #this, self::Extension|set#property5::T% i) → void
   ;
-static method Extension|get#property6<T extends core::Object? = dynamic, S extends self::Extension|get#property6::T% = dynamic>(lowered final core::int #this) → self::Extension|get#property6::T%
+static extension-member method Extension|get#property6<T extends core::Object? = dynamic, S extends self::Extension|get#property6::T% = dynamic>(lowered final core::int #this) → self::Extension|get#property6::T%
   ;
-static method Extension|set#property6<T extends core::Object? = dynamic, S extends self::Extension|set#property6::T% = dynamic>(lowered final core::int #this, self::Extension|set#property6::S% i) → void
+static extension-member method Extension|set#property6<T extends core::Object? = dynamic, S extends self::Extension|set#property6::T% = dynamic>(lowered final core::int #this, self::Extension|set#property6::S% i) → void
   ;
-static get Extension|property7() → core::int
+static extension-member get Extension|property7() → core::int
   ;
-static set Extension|property7(core::int value) → void
+static extension-member set Extension|property7(core::int value) → void
   ;
-static get Extension|property8() → core::int
+static extension-member get Extension|property8() → core::int
   ;
-static set Extension|property8(core::num value) → void
+static extension-member set Extension|property8(core::num value) → void
   ;
-static get Extension|property9() → core::num
+static extension-member get Extension|property9() → core::num
   ;
-static set Extension|property9(core::int value) → void
+static extension-member set Extension|property9(core::int value) → void
   ;
 static method main() → dynamic
   ;

@@ -115,10 +115,13 @@ class PubCommand {
           environment: {_pubEnvironmentKey: _pubEnvironmentValue});
       _activeProcesses.add(process);
 
+      final stdoutFuture = process.stdout.transform(utf8.decoder).join();
+      final stderrFuture = process.stderr.transform(utf8.decoder).join();
       final exitCode = await process.exitCode;
       _activeProcesses.remove(process);
-      final stdout = await process.stdout.transform(utf8.decoder).join();
-      final stderr = await process.stderr.transform(utf8.decoder).join();
+
+      final stdout = await stdoutFuture;
+      final stderr = await stderrFuture;
 
       if (exitCode != 0) {
         _instrumentationService

@@ -45,7 +45,7 @@ class Filter {
   Filter() : initialized_(false) {}
 
  private:
-  static const intptr_t kFilterBufferSize = 64 * KB;
+  static constexpr intptr_t kFilterBufferSize = 64 * KB;
   uint8_t processed_buffer_[kFilterBufferSize];
   bool initialized_;
 
@@ -70,7 +70,7 @@ class ZLibDeflateFilter : public Filter {
         dictionary_(dictionary),
         dictionary_length_(dictionary_length),
         raw_(raw),
-        current_buffer_(NULL) {}
+        current_buffer_(nullptr) {}
   virtual ~ZLibDeflateFilter();
 
   virtual bool Init();
@@ -105,7 +105,7 @@ class ZLibInflateFilter : public Filter {
         dictionary_(dictionary),
         dictionary_length_(dictionary_length),
         raw_(raw),
-        current_buffer_(NULL) {}
+        current_buffer_(nullptr) {}
   virtual ~ZLibInflateFilter();
 
   virtual bool Init();

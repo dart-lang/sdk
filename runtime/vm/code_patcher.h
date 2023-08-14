@@ -46,7 +46,7 @@ class CodePatcher : public AllStatic {
   static CodePtr GetStaticCallTargetAt(uword return_address, const Code& code);
 
   // Get instance call information. Returns the call target and sets the output
-  // parameter data if non-NULL.
+  // parameter data if non-null.
   static CodePtr GetInstanceCallAt(uword return_address,
                                    const Code& caller_code,
                                    Object* data);

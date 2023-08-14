@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 
@@ -26,7 +26,7 @@ static method test3() → void {
   {
     return;
   }
-  core::print("bye");
+  throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
 }
 [@vm.unboxing-info.metadata=()->i]static method test4() → dynamic
   return block {

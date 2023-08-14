@@ -12,15 +12,14 @@ import '../fasta_codes.dart'
     show
         templateInternalProblemUnfinishedTypeVariable,
         templateTypeArgumentsOnTypeVariable;
+import '../kernel/body_builder_context.dart';
 import '../scope.dart';
 import '../source/source_library_builder.dart';
 import '../uris.dart';
 import '../util/helpers.dart';
 import 'builder.dart';
 import 'class_builder.dart';
-import 'declaration_builder.dart';
 import 'library_builder.dart';
-import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'named_type_builder.dart';
 import 'nullability_builder.dart';
@@ -242,13 +241,12 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
 
   void buildOutlineExpressions(
       SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? classOrExtensionBuilder,
-      MemberBuilder? memberBuilder,
+      BodyBuilderContext bodyBuilderContext,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       Scope scope) {
-    MetadataBuilder.buildAnnotations(parameter, metadata, libraryBuilder,
-        classOrExtensionBuilder, memberBuilder, fileUri!, scope);
+    MetadataBuilder.buildAnnotations(parameter, metadata, bodyBuilderContext,
+        libraryBuilder, fileUri!, scope);
   }
 
   @override

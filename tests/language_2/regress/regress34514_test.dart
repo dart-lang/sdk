@@ -8,5 +8,8 @@
 var x = (() => 1)();
 
 main() {
-  /*@compile-error=unspecified*/ x = 'bad'; // `String` not assignable to `int`
+  x = 'bad'; // `String` not assignable to `int`
+  //  ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
 }

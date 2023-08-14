@@ -12,9 +12,8 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:collection/collection.dart';
 
-class AddDiagnosticPropertyReference extends CorrectionProducer {
+class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE;
 
@@ -80,7 +79,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
       constructorId = 'TransformProperty';
     } else {
       constructorId = 'DiagnosticsProperty';
-      if (!type.isDynamic) {
+      if (!(type is DynamicType || type is InvalidType)) {
         typeArgs = [type];
       }
     }
@@ -95,7 +94,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
         builder.write('<');
         builder.writeTypes(typeArgs);
         builder.write('>');
-      } else if (type.isDynamic) {
+      } else if (type is DynamicType || type is InvalidType) {
         TypeAnnotation? declType;
         final decl = node.thisOrAncestorOfType<VariableDeclarationList>();
         if (decl != null) {
@@ -172,7 +171,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
           final type = parameter.type;
           final identifier = parameter.name;
           if (type is NamedType && identifier != null) {
-            if (type.name.name == 'DiagnosticPropertiesBuilder') {
+            if (type.name2.lexeme == 'DiagnosticPropertiesBuilder') {
               propertiesBuilderName = identifier.lexeme;
               break;
             }

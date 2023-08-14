@@ -16,10 +16,10 @@ void Decompress(const uint8_t* input,
                 intptr_t input_len,
                 uint8_t** output,
                 intptr_t* output_length) {
-  ASSERT(input != NULL);
+  ASSERT(input != nullptr);
   ASSERT(input_len > 0);
-  ASSERT(output != NULL);
-  ASSERT(output_length != NULL);
+  ASSERT(output != nullptr);
+  ASSERT(output_length != nullptr);
 
   const intptr_t kChunkSize = 256 * 1024;
 
@@ -36,7 +36,7 @@ void Decompress(const uint8_t* input,
   strm.zfree = Z_NULL;
   strm.opaque = Z_NULL;
   strm.avail_in = 0;
-  strm.next_in = 0;
+  strm.next_in = Z_NULL;
   int ret = inflateInit2(&strm, 32 + MAX_WBITS);
   ASSERT(ret == Z_OK);
 

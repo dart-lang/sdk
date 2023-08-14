@@ -32,7 +32,6 @@ class Object {
 
   @patch
   int get hashCode => _objectHashCode(this);
-  int get _identityHashCode => _objectHashCode(this);
 
   /// Concrete subclasses of [Object] will have overrides of [_typeArguments]
   /// which return their type arguments.

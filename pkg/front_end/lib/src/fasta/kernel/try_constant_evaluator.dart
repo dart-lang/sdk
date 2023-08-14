@@ -162,4 +162,15 @@ class UnevaluatedConstantFinder extends ComputeOnceConstantVisitor<bool> {
     }
     return false;
   }
+
+  @override
+  bool visitRecordConstant(RecordConstant node) {
+    for (Constant c in node.positional) {
+      if (visitConstant(c)) return true;
+    }
+    for (Constant c in node.named.values) {
+      if (visitConstant(c)) return true;
+    }
+    return false;
+  }
 }

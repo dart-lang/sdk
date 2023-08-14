@@ -12,6 +12,7 @@ mixin KernelNodes {
 
   late final LibraryIndex index = LibraryIndex(component, [
     "dart:_internal",
+    "dart:_js_types",
     "dart:async",
     "dart:collection",
     "dart:core",
@@ -22,6 +23,10 @@ mixin KernelNodes {
 
   // dart:_internal classes
   late final Class symbolClass = index.getClass("dart:_internal", "Symbol");
+
+  // dart:_js_types classes
+  late final Class jsStringImplClass =
+      index.getClass("dart:_js_types", "JSStringImpl");
 
   // dart:collection classes
   late final Class hashFieldBaseClass =
@@ -87,6 +92,22 @@ mixin KernelNodes {
   late final Class syncStarIteratorClass =
       index.getClass("dart:core", "_SyncStarIterator");
 
+  // async support classes
+  late final Class asyncSuspendStateClass =
+      index.getClass("dart:async", "_AsyncSuspendState");
+  late final Procedure makeAsyncCompleter =
+      index.getTopLevelProcedure("dart:async", "_makeAsyncCompleter");
+  late final Field completerFuture =
+      index.getField("dart:async", "_Completer", "future");
+  late final Procedure completerComplete =
+      index.getProcedure("dart:async", "_AsyncCompleter", "complete");
+  late final Procedure completerCompleteError =
+      index.getProcedure("dart:async", "_Completer", "completeError");
+  late final Procedure awaitHelper =
+      index.getTopLevelProcedure("dart:async", "_awaitHelper");
+  late final Procedure newAsyncSuspendState =
+      index.getTopLevelProcedure("dart:async", "_newAsyncSuspendState");
+
   // dart:ffi classes
   late final Class ffiCompoundClass = index.getClass("dart:ffi", "_Compound");
   late final Class ffiPointerClass = index.getClass("dart:ffi", "Pointer");
@@ -133,12 +154,6 @@ mixin KernelNodes {
   late final Procedure checkLibraryIsLoaded =
       index.getTopLevelProcedure("dart:_internal", "checkLibraryIsLoaded");
 
-  // dart:async procedures
-  late final Procedure asyncHelper =
-      index.getTopLevelProcedure("dart:async", "_asyncHelper");
-  late final Procedure awaitHelper =
-      index.getTopLevelProcedure("dart:async", "_awaitHelper");
-
   // dart:collection procedures
   late final Procedure mapFactory =
       index.getProcedure("dart:collection", "LinkedHashMap", "_default");
@@ -160,6 +175,8 @@ mixin KernelNodes {
       "dart:collection", "_HashAbstractImmutableBase", "get:_indexNullable");
 
   // dart:core various procedures
+  late final Procedure objectHashCode =
+      index.getProcedure("dart:core", "Object", "get:hashCode");
   late final Procedure objectNoSuchMethod =
       index.getProcedure("dart:core", "Object", "noSuchMethod");
   late final Procedure objectGetTypeArguments =
@@ -247,4 +264,8 @@ mixin KernelNodes {
       index.getProcedure("dart:_wasm", "WasmFunction", "get:call");
   late final Procedure wasmTableCallIndirect =
       index.getProcedure("dart:_wasm", "WasmTable", "callIndirect");
+
+  // Debugging
+  late final Procedure printToConsole =
+      index.getTopLevelProcedure("dart:_internal", "printToConsole");
 }

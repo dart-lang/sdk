@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -156,7 +157,7 @@ IndexExpression
   target: SimpleIdentifier
     token: b
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   leftBracket: [
   index: IntegerLiteral
     literal: 0
@@ -164,7 +165,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -178,7 +179,7 @@ IndexExpression
   target: SimpleIdentifier
     token: b
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   leftBracket: [
   index: IntegerLiteral
     literal: 0
@@ -186,7 +187,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -292,6 +293,67 @@ IndexExpression
 ''');
   }
 
+  test_read_index_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  void f() {
+    this[super];
+  }
+
+  int operator[](Object index) => 0;
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 32, 5),
+    ]);
+
+    final node = findNode.singleIndexExpression;
+    assertResolvedNodeText(node, r'''
+IndexExpression
+  target: ThisExpression
+    thisKeyword: this
+    staticType: A
+  leftBracket: [
+  index: SuperExpression
+    superKeyword: super
+    staticType: A
+  rightBracket: ]
+  staticElement: self::@class::A::@method::[]
+  staticType: int
+''');
+  }
+
+  test_read_index_unresolved() async {
+    await assertErrorsInCode(r'''
+void f(List<int> a) {
+  a[b];
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 26, 1),
+    ]);
+
+    final node = findNode.singleIndexExpression;
+    assertResolvedNodeText(node, r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: List<int>
+  leftBracket: [
+  index: SimpleIdentifier
+    token: b
+    parameter: ParameterMember
+      base: dart:core::@class::List::@method::[]::@parameter::index
+      substitution: {E: int}
+    staticElement: <null>
+    staticType: InvalidType
+  rightBracket: ]
+  staticElement: MethodMember
+    base: dart:core::@class::List::@method::[]
+    substitution: {E: int}
+  staticType: int
+''');
+  }
+
   test_read_nullable() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -356,10 +418,8 @@ IndexExpression
         expression: InstanceCreationExpression
           constructorName: ConstructorName
             type: NamedType
-              name: SimpleIdentifier
-                token: A
-                staticElement: self::@class::A
-                staticType: null
+              name: A
+              element: self::@class::A
               type: A
             staticElement: self::@class::A::@constructor::new
           argumentList: ArgumentList
@@ -376,6 +436,58 @@ IndexExpression
   rightBracket: ]
   staticElement: self::@class::A::@method::[]
   staticType: bool
+''');
+  }
+
+  test_read_target_dynamic() async {
+    await assertNoErrorsInCode(r'''
+void f(dynamic a) {
+  a[0];
+}
+''');
+
+    final node = findNode.singleIndexExpression;
+    assertResolvedNodeText(node, r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: dynamic
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  rightBracket: ]
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
+
+  test_read_target_unresolved() async {
+    await assertErrorsInCode(r'''
+void f() {
+  a[0];
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
+    ]);
+
+    final node = findNode.singleIndexExpression;
+    assertResolvedNodeText(node, r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: InvalidType
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  rightBracket: ]
+  staticElement: <null>
+  staticType: InvalidType
 ''');
   }
 
@@ -750,10 +862,8 @@ AssignmentExpression
           expression: InstanceCreationExpression
             constructorName: ConstructorName
               type: NamedType
-                name: SimpleIdentifier
-                  token: A
-                  staticElement: self::@class::A
-                  staticType: null
+                name: A
+                element: self::@class::A
                 type: A
               staticElement: self::@class::A::@constructor::new
             argumentList: ArgumentList

@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' show Position;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class CreateMissingOverrides extends CorrectionProducer {
+class CreateMissingOverrides extends ResolvedCorrectionProducer {
   int _numElements = 0;
 
   @override

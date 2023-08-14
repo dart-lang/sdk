@@ -4,12 +4,10 @@
 
 // @dart = 2.9
 
-import "dart:async";
 import "dart:io";
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:path/path.dart";
 
 const HOST_NAME = "localhost";
 String localFile(path) => Platform.script.resolve(path).toFilePath();
@@ -17,25 +15,28 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
   ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
-// TODO: Specify which client certificate roots to trust.
+      password: 'dartdart')
+  ..setTrustedCertificates(
+    localFile('certificates/client_authority.pem'),
+  )
+  ..setClientAuthorities(
+    localFile('certificates/client_authority.pem'),
+  );
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'))
-// TODO: Set a client certificate here.
-  ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
+  ..useCertificateChain(localFile('certificates/client1.pem'))
+  ..usePrivateKey(localFile('certificates/client1_key.pem'),
       password: 'dartdart');
 
 void main() {
   asyncStart();
-  HttpServer
-      .bindSecure(HOST_NAME, 0, serverContext,
+  HttpServer.bindSecure(HOST_NAME, 0, serverContext,
           backlog: 5, requestClientCertificate: true)
       .then((server) {
     server.listen((HttpRequest request) {
       Expect.isNotNull(request.certificate);
-      Expect.equals('CN=localhost', request.certificate.subject);
+      Expect.equals('/CN=user1', request.certificate.subject);
       request.response.write("Hello");
       request.response.close();
     });
@@ -45,8 +46,8 @@ void main() {
         .getUrl(Uri.parse("https://$HOST_NAME:${server.port}/"))
         .then((request) => request.close())
         .then((response) {
-      Expect.equals('CN=localhost', response.certificate.subject);
-      Expect.equals('CN=myauthority', response.certificate.issuer);
+      Expect.equals('/CN=localhost', response.certificate.subject);
+      Expect.equals('/CN=intermediateauthority', response.certificate.issuer);
       return response.fold(<int>[], (message, data) => message..addAll(data));
     }).then((message) {
       String received = new String.fromCharCodes(message);

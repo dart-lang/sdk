@@ -12,8 +12,11 @@ import 'package:vm_service/vm_service.dart';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const LINE_A = 33;
-const LINE_B = 35;
+const LINE_A = 36;
+const LINE_B = 38;
+
+const LINE_0 = 35;
+const LINE_1 = 37;
 
 Future<void> testMain() async {
   await func1();
@@ -29,10 +32,10 @@ Future func7() async => await func8();
 Future func8() async => await func9();
 Future func9() async => await func10();
 Future func10() async {
-  debugger(); // LINE_A
-  await 0;
-  debugger(); // LINE_B
-  print("Hello, world!");
+  debugger(); // LINE_0.
+  await 0; // LINE_A
+  debugger(); // LINE_1.
+  print("Hello, world!"); // LINE_B.
 }
 
 void expectFrame(
@@ -51,6 +54,9 @@ void expectFrames(final frames, final expectKindAndCodeName) {
 final tests = <IsolateTest>[
   // Before the first await.
   hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver,
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   // At LINE_A we're still running sync. so no asyncCausalFrames.
   (VmService service, IsolateRef isolateRef) async {
@@ -58,7 +64,6 @@ final tests = <IsolateTest>[
 
     expect(result.frames, hasLength(16));
     expect(result.asyncCausalFrames, isNull);
-    expect(result.awaiterFrames, hasLength(16));
 
     expectFrames(result.frames, [
       [equals('Regular'), endsWith(' func10')],
@@ -73,22 +78,11 @@ final tests = <IsolateTest>[
       [equals('Regular'), endsWith(' func1')],
       [equals('Regular'), endsWith(' testMain')],
     ]);
-
-    expectFrames(result.awaiterFrames, [
-      [equals('AsyncActivation'), endsWith(' func10')],
-      [equals('AsyncActivation'), endsWith(' func9')],
-      [equals('AsyncActivation'), endsWith(' func8')],
-      [equals('AsyncActivation'), endsWith(' func7')],
-      [equals('AsyncActivation'), endsWith(' func6')],
-      [equals('AsyncActivation'), endsWith(' func5')],
-      [equals('AsyncActivation'), endsWith(' func4')],
-      [equals('AsyncActivation'), endsWith(' func3')],
-      [equals('AsyncActivation'), endsWith(' func2')],
-      [equals('AsyncActivation'), endsWith(' func1')],
-      [equals('AsyncActivation'), endsWith(' testMain')],
-    ]);
   },
   resumeIsolate,
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_1),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
   // After resuming the continuation - i.e. running async.
@@ -97,7 +91,6 @@ final tests = <IsolateTest>[
 
     expect(result.frames, hasLength(6));
     expect(result.asyncCausalFrames, hasLength(26));
-    expect(result.awaiterFrames, hasLength(13));
 
     expectFrames(result.frames!, [
       [equals('Regular'), endsWith(' func10')],
@@ -131,22 +124,6 @@ final tests = <IsolateTest>[
       [equals('AsyncSuspensionMarker'), isNull],
       [equals('AsyncCausal'), endsWith(' testMain')],
       [equals('AsyncSuspensionMarker'), isNull],
-    ]);
-
-    expectFrames(result.awaiterFrames, [
-      [equals('AsyncActivation'), endsWith(' func10')],
-      [equals('AsyncActivation'), endsWith(' func9')],
-      [equals('AsyncActivation'), endsWith(' func8')],
-      [equals('AsyncActivation'), endsWith(' func7')],
-      [equals('AsyncActivation'), endsWith(' func6')],
-      [equals('AsyncActivation'), endsWith(' func5')],
-      [equals('AsyncActivation'), endsWith(' func4')],
-      [equals('AsyncActivation'), endsWith(' func3')],
-      [equals('AsyncActivation'), endsWith(' func2')],
-      [equals('AsyncActivation'), endsWith(' func1')],
-      [equals('AsyncActivation'), endsWith(' testMain')],
-      [equals('AsyncActivation'), endsWith(' _ServiceTesteeRunner.run')],
-      [equals('AsyncActivation'), endsWith(' runIsolateTests')],
     ]);
   },
 ];

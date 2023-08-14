@@ -621,6 +621,5 @@ class PowersetBitsDomain {
       createNonNullSubtype(commonElements.functionClass);
 
   late final int recordType = createNonNullSubtype(commonElements.recordClass);
-
   int get typeType => otherValue;
 }

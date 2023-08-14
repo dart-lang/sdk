@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -32,10 +32,10 @@ static method error() → asy::Stream<FutureOr<self::Class>> async* {
  - 'Future' is from 'dart:async'.
  - 'Class' is from 'pkg/front_end/testcases/general/stream_future.dart'.
   yield returnFutureDynamic();
-        ^" in self::returnFutureDynamic() as{TypeError,ForNonNullableByDefault} FutureOr<self::Class>;
+        ^" in self::returnFutureDynamic() as{TypeError} FutureOr<self::Class>;
 }
 static method stream() → asy::Stream<FutureOr<self::Class>> async* {
-  yield self::returnDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<self::Class>;
+  yield self::returnDynamic() as{TypeError,ForDynamic} FutureOr<self::Class>;
   yield self::returnClass();
   yield self::returnFutureClass();
 }

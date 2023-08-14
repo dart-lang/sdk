@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -14,7 +14,7 @@ static method f(dynamic x) → dynamic
   return let final Never #t1 = block {
     Never #t2;
     #L1:
-    switch(x) /*isExplicitlyExhaustive*/ {
+    switch(x) /* isExplicitlyExhaustive, dynamic */ {
       #L2:
       default:
         throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");

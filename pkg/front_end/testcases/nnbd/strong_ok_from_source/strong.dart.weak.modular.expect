@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "strong_lib.dart" as str;
 
@@ -8,7 +8,7 @@ static method main() → dynamic {
   str::foo();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as str;
 import "dart:core" as core;
 

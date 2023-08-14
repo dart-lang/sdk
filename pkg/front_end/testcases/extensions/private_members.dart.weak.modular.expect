@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -103,7 +103,7 @@ Try correcting the name to the name of an existing method, or defining a method 
                               ^^^^^^^^^^^^^^^^^^^^^");
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as pri;
 import "dart:core" as core;
 
@@ -137,65 +137,65 @@ extension /* unnamed */ _extension#2 on core::String {
   method test3 = pri::_extension#2|test3;
   tearoff test3 = pri::_extension#2|get#test3;
 }
-static method _PrivateExtension|publicMethod1(lowered final core::String #this) → core::int
+static extension-member method _PrivateExtension|publicMethod1(lowered final core::String #this) → core::int
   return 42;
-static method _PrivateExtension|get#publicMethod1(lowered final core::String #this) → () → core::int
+static extension-member method _PrivateExtension|get#publicMethod1(lowered final core::String #this) → () → core::int
   return () → core::int => pri::_PrivateExtension|publicMethod1(#this);
-static method _PrivateExtension|_privateMethod1(lowered final core::String #this) → core::int
+static extension-member method _PrivateExtension|_privateMethod1(lowered final core::String #this) → core::int
   return 87;
-static method _PrivateExtension|get#_privateMethod1(lowered final core::String #this) → () → core::int
+static extension-member method _PrivateExtension|get#_privateMethod1(lowered final core::String #this) → () → core::int
   return () → core::int => pri::_PrivateExtension|_privateMethod1(#this);
-static method _PrivateExtension|publicStaticMethod1() → core::int
+static extension-member method _PrivateExtension|publicStaticMethod1() → core::int
   return 24;
-static method _PrivateExtension|_privateStaticMethod1() → core::int
+static extension-member method _PrivateExtension|_privateStaticMethod1() → core::int
   return 78;
-static method _PrivateExtension|test1(lowered final core::String #this) → dynamic {
+static extension-member method _PrivateExtension|test1(lowered final core::String #this) → dynamic {
   pri::expect(42, pri::_PrivateExtension|publicMethod1(#this));
   pri::expect(87, pri::_PrivateExtension|_privateMethod1(#this));
   pri::expect(24, pri::_PrivateExtension|publicStaticMethod1());
   pri::expect(78, pri::_PrivateExtension|_privateStaticMethod1());
 }
-static method _PrivateExtension|get#test1(lowered final core::String #this) → () → dynamic
+static extension-member method _PrivateExtension|get#test1(lowered final core::String #this) → () → dynamic
   return () → dynamic => pri::_PrivateExtension|test1(#this);
-static method PublicExtension|publicMethod2(lowered final core::String #this) → core::int
+static extension-member method PublicExtension|publicMethod2(lowered final core::String #this) → core::int
   return 123;
-static method PublicExtension|get#publicMethod2(lowered final core::String #this) → () → core::int
+static extension-member method PublicExtension|get#publicMethod2(lowered final core::String #this) → () → core::int
   return () → core::int => pri::PublicExtension|publicMethod2(#this);
-static method PublicExtension|_privateMethod2(lowered final core::String #this) → core::int
+static extension-member method PublicExtension|_privateMethod2(lowered final core::String #this) → core::int
   return 237;
-static method PublicExtension|get#_privateMethod2(lowered final core::String #this) → () → core::int
+static extension-member method PublicExtension|get#_privateMethod2(lowered final core::String #this) → () → core::int
   return () → core::int => pri::PublicExtension|_privateMethod2(#this);
-static method PublicExtension|publicStaticMethod2() → core::int
+static extension-member method PublicExtension|publicStaticMethod2() → core::int
   return 321;
-static method PublicExtension|_privateStaticMethod2() → core::int
+static extension-member method PublicExtension|_privateStaticMethod2() → core::int
   return 732;
-static method PublicExtension|test2(lowered final core::String #this) → dynamic {
+static extension-member method PublicExtension|test2(lowered final core::String #this) → dynamic {
   pri::expect(123, pri::PublicExtension|publicMethod2(#this));
   pri::expect(237, pri::PublicExtension|_privateMethod2(#this));
   pri::expect(321, pri::PublicExtension|publicStaticMethod2());
   pri::expect(732, pri::PublicExtension|_privateStaticMethod2());
 }
-static method PublicExtension|get#test2(lowered final core::String #this) → () → dynamic
+static extension-member method PublicExtension|get#test2(lowered final core::String #this) → () → dynamic
   return () → dynamic => pri::PublicExtension|test2(#this);
-static method _extension#2|publicMethod3(lowered final core::String #this) → core::int
+static extension-member method _extension#2|publicMethod3(lowered final core::String #this) → core::int
   return 473;
-static method _extension#2|get#publicMethod3(lowered final core::String #this) → () → core::int
+static extension-member method _extension#2|get#publicMethod3(lowered final core::String #this) → () → core::int
   return () → core::int => pri::_extension#2|publicMethod3(#this);
-static method _extension#2|_privateMethod3(lowered final core::String #this) → core::int
+static extension-member method _extension#2|_privateMethod3(lowered final core::String #this) → core::int
   return 586;
-static method _extension#2|get#_privateMethod3(lowered final core::String #this) → () → core::int
+static extension-member method _extension#2|get#_privateMethod3(lowered final core::String #this) → () → core::int
   return () → core::int => pri::_extension#2|_privateMethod3(#this);
-static method _extension#2|publicStaticMethod3() → core::int
+static extension-member method _extension#2|publicStaticMethod3() → core::int
   return 374;
-static method _extension#2|_privateStaticMethod3() → core::int
+static extension-member method _extension#2|_privateStaticMethod3() → core::int
   return 685;
-static method _extension#2|test3(lowered final core::String #this) → dynamic {
+static extension-member method _extension#2|test3(lowered final core::String #this) → dynamic {
   pri::expect(473, pri::_extension#2|publicMethod3(#this));
   pri::expect(586, pri::_extension#2|_privateMethod3(#this));
   pri::expect(374, pri::_extension#2|publicStaticMethod3());
   pri::expect(685, pri::_extension#2|_privateStaticMethod3());
 }
-static method _extension#2|get#test3(lowered final core::String #this) → () → dynamic
+static extension-member method _extension#2|get#test3(lowered final core::String #this) → () → dynamic
   return () → dynamic => pri::_extension#2|test3(#this);
 static method test() → dynamic {
   pri::expect(42, pri::_PrivateExtension|publicMethod1(""));

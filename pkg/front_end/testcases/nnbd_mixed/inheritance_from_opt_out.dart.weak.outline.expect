@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "inheritance_from_opt_out_lib.dart" as inh;
 import "dart:core" as core;
@@ -42,7 +42,7 @@ class Class4d extends inh::LegacyClass4 implements inh::GenericInterface<core::n
 static method main() → dynamic
   ;
 
-library;
+library /*isLegacy*/;
 import self as inh;
 import "dart:core" as core;
 

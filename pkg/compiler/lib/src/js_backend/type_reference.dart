@@ -667,7 +667,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
 
   @override
   void visitTypeVariableType(covariant TypeVariableType type, _) {
-    _identifier(type.element.typeDeclaration!.name!);
+    _identifier(type.element.typeDeclaration.name!);
     _identifier(type.element.name!);
   }
 

@@ -87,9 +87,7 @@ abstract class ClassEntity extends Entity {
 
 abstract class TypeVariableEntity extends Entity {
   /// The class or generic method that declared this type variable.
-  /// Is `null` for some generic functions and closures.
-  // TODO(sra): Figure out how to always have a [typeDeclaration].
-  Entity? get typeDeclaration;
+  Entity get typeDeclaration;
 
   /// The index of this type variable in the type variables of its
   /// [typeDeclaration].

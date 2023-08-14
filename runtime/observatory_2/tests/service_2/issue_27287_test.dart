@@ -7,8 +7,10 @@ import 'service_test_common.dart';
 import 'test_helper.dart';
 import 'dart:developer';
 
-const int LINE_A = 17;
-const int LINE_B = 18;
+const int LINE_A = 19;
+const int LINE_B = 20;
+
+const int LINE_0 = 18;
 
 var libVariable;
 
@@ -20,6 +22,9 @@ testMain() {
 }
 
 var tests = <IsolateTest>[
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   stepOver,

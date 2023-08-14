@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -29,15 +29,15 @@ extension GenericExtension<T extends core::Object? = dynamic> on self::GenericCl
   method genericMethod1 = self::GenericExtension|genericMethod1;
   tearoff genericMethod1 = self::GenericExtension|get#genericMethod1;
 }
-static method GenericExtension|get#property<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#property::T%>? #this) → self::GenericExtension|get#property::T?
+static extension-member method GenericExtension|get#property<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#property::T%>? #this) → self::GenericExtension|get#property::T?
   return null;
-static method GenericExtension|method<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|method::T%>? #this, self::GenericExtension|method::T? t) → self::GenericExtension|method::T?
+static extension-member method GenericExtension|method<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|method::T%>? #this, self::GenericExtension|method::T? t) → self::GenericExtension|method::T?
   return null;
-static method GenericExtension|get#method<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#method::T%>? #this) → (self::GenericExtension|get#method::T?) → self::GenericExtension|get#method::T?
+static extension-member method GenericExtension|get#method<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#method::T%>? #this) → (self::GenericExtension|get#method::T?) → self::GenericExtension|get#method::T?
   return (self::GenericExtension|get#method::T? t) → self::GenericExtension|get#method::T? => self::GenericExtension|method<self::GenericExtension|get#method::T%>(#this, t);
-static method GenericExtension|genericMethod1<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|genericMethod1::T%>? #this, self::GenericExtension|genericMethod1::S? s) → self::GenericExtension|genericMethod1::S?
+static extension-member method GenericExtension|genericMethod1<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|genericMethod1::T%>? #this, self::GenericExtension|genericMethod1::S? s) → self::GenericExtension|genericMethod1::S?
   return null;
-static method GenericExtension|get#genericMethod1<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#genericMethod1::T%>? #this) → <S extends core::Object? = dynamic>(S?) → S?
+static extension-member method GenericExtension|get#genericMethod1<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#genericMethod1::T%>? #this) → <S extends core::Object? = dynamic>(S?) → S?
   return <S extends core::Object? = dynamic>(S? s) → S? => self::GenericExtension|genericMethod1<self::GenericExtension|get#genericMethod1::T%, S%>(#this, s);
 static method main() → dynamic {
   self::A? aVariable;

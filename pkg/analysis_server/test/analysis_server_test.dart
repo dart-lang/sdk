@@ -39,52 +39,6 @@ class AnalysisServerTest with ResourceProviderMixin {
   late MockServerChannel channel;
   late LegacyAnalysisServer server;
 
-  /// Test that having multiple analysis contexts analyze the same file doesn't
-  /// cause that file to receive duplicate notifications when it's modified.
-  Future<void> do_not_test_no_duplicate_notifications() async {
-    // Subscribe to STATUS so we'll know when analysis is done.
-    server.serverServices = {ServerService.STATUS};
-    newFolder('/foo');
-    newFolder('/bar');
-    newFile('/foo/foo.dart', 'import "../bar/bar.dart";');
-    var bar = newFile('/bar/bar.dart', 'library bar;');
-    await server.setAnalysisRoots('0', ['/foo', '/bar'], []);
-    var subscriptions = <AnalysisService, Set<String>>{};
-    for (var service in AnalysisService.VALUES) {
-      subscriptions[service] = {bar.path};
-    }
-    // The following line causes the isolate to continue running even though the
-    // test completes.
-    server.setAnalysisSubscriptions(subscriptions);
-    await server.onAnalysisComplete;
-    expect(server.statusAnalyzing, isFalse);
-    channel.notificationsReceived.clear();
-    server.updateContent(
-        '0', {bar.path: AddContentOverlay('library bar; void f() {}')});
-    await server.onAnalysisComplete;
-    expect(server.statusAnalyzing, isFalse);
-    expect(channel.notificationsReceived, isNotEmpty);
-    var notificationTypesReceived = <String>{};
-    for (var notification in channel.notificationsReceived) {
-      var notificationType = notification.event;
-      switch (notificationType) {
-        case 'server.status':
-        case 'analysis.errors':
-          // It's normal for these notifications to be sent multiple times.
-          break;
-        case 'analysis.outline':
-          // It's normal for this notification to be sent twice.
-          // TODO(paulberry): why?
-          break;
-        default:
-          if (!notificationTypesReceived.add(notificationType)) {
-            fail('Notification type $notificationType received more than once');
-          }
-          break;
-      }
-    }
-  }
-
   void setUp() {
     channel = MockServerChannel();
 

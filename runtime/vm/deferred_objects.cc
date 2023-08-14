@@ -211,14 +211,14 @@ void DeferredPp::Materialize(DeoptContext* deopt_context) {
 }
 
 ObjectPtr DeferredObject::object() {
-  if (object_ == NULL) {
+  if (object_ == nullptr) {
     Create();
   }
   return object_->ptr();
 }
 
 void DeferredObject::Create() {
-  if (object_ != NULL) {
+  if (object_ != nullptr) {
     return;
   }
 

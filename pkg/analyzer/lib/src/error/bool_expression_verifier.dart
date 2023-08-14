@@ -47,7 +47,7 @@ class BoolExpressionVerifier {
   /// [errorCode] if not, or a nullability error if its improperly nullable.
   void checkForNonBoolExpression(Expression expression,
       {required ErrorCode errorCode,
-      List<Object>? arguments,
+      List<Object> arguments = const [],
       required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     var type = expression.typeOrThrow;
     if (!_checkForUseOfVoidResult(expression) &&

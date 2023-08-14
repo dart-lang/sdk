@@ -32,6 +32,7 @@ class UnknownInferredType extends TypeImpl {
   @override
   int get hashCode => 1;
 
+  @Deprecated('Use `is UnknownInferredType` instead')
   @override
   bool get isDynamic => true;
 

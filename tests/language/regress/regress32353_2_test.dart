@@ -15,6 +15,11 @@ class B<X, Y> {}
 
 mixin C<X> on B<X, A> {}
 
-class /*@compile-error=unspecified*/ D<X, Y> extends B<X, Y> with C {}
+class D<X, Y> extends B<X, Y> with C {}
+//    ^
+// [cfe] 'B with C' can't implement both 'B<X, Y>' and 'B<dynamic, A>'
+// [cfe] 'B<X, Y>' doesn't implement 'B<dynamic, A>' so it can't be used with 'C<dynamic>'.
+//                                 ^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE
 
 main() {}

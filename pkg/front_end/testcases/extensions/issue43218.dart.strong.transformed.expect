@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -26,7 +26,7 @@ class C extends core::Object {
 extension Ext on self::C {
   get id = self::Ext|get#id;
 }
-static method Ext|get#id(lowered final self::C #this) → core::int
+static extension-member method Ext|get#id(lowered final self::C #this) → core::int
   return #this.{self::C::value}{core::int}.{core::num::+}(1){(core::num) → core::int};
 static method test() → dynamic {
   self::C c = new self::C::•();

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -19,7 +19,7 @@ static method test() → () → void
 static method main() → dynamic
   ;
 
-library;
+library /*isLegacy*/;
 import self as self2;
 
 typedef LegacyFoo = () →* void;

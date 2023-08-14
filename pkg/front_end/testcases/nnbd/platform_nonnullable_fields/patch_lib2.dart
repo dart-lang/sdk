@@ -29,14 +29,14 @@ part of 'patch_lib.dart';
 
 @patch
 class Class1 {
-  int field;
+  int _field;
 
-  static int staticField;
+  static int _staticField;
 }
 
 @patch
 class Class2 {
-  int field;
+  int _field;
 
-  Class2.constructor2(this.field);
+  Class2.constructor2(this._field);
 }

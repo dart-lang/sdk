@@ -36,8 +36,7 @@ NamespaceImpl::NamespaceImpl(fdio_ns_t* fdio_ns)
 }
 
 NamespaceImpl::NamespaceImpl(const char* path)
-      : fdio_ns_(NULL),
-        cwd_(strdup("/")) {
+    : fdio_ns_(nullptr), cwd_(strdup("/")) {
   rootfd_ = TEMP_FAILURE_RETRY(open(path, O_DIRECTORY));
   if (rootfd_ < 0) {
     FATAL("Failed to open file descriptor for namespace: errno=%d: %s", errno,
@@ -54,7 +53,7 @@ NamespaceImpl::~NamespaceImpl() {
   NO_RETRY_EXPECTED(close(rootfd_));
   free(cwd_);
   NO_RETRY_EXPECTED(close(cwdfd_));
-  if (fdio_ns_ != NULL) {
+  if (fdio_ns_ != nullptr) {
     zx_status_t status = fdio_ns_destroy(fdio_ns_);
     if (status != ZX_OK) {
       Syslog::PrintErr("fdio_ns_destroy: %s\n", zx_status_get_string(status));
@@ -95,7 +94,7 @@ bool NamespaceImpl::SetCwd(Namespace* namespc, const char* new_path) {
 }
 
 Namespace* Namespace::Create(intptr_t namespc) {
-  NamespaceImpl* namespc_impl = NULL;
+  NamespaceImpl* namespc_impl = nullptr;
   if (namespc != kNone) {
     namespc_impl = new NamespaceImpl(reinterpret_cast<fdio_ns_t*>(namespc));
   }
@@ -117,8 +116,8 @@ intptr_t Namespace::Default() {
 const char* Namespace::GetCurrent(Namespace* namespc) {
   if (Namespace::IsDefault(namespc)) {
     char buffer[PATH_MAX];
-    if (getcwd(buffer, PATH_MAX) == NULL) {
-      return NULL;
+    if (getcwd(buffer, PATH_MAX) == nullptr) {
+      return nullptr;
     }
     return DartUtils::ScopedCopyCString(buffer);
   }
@@ -136,8 +135,8 @@ void Namespace::ResolvePath(Namespace* namespc,
                             const char* path,
                             intptr_t* dirfd,
                             const char** resolved_path) {
-  ASSERT(dirfd != NULL);
-  ASSERT(resolved_path != NULL);
+  ASSERT(dirfd != nullptr);
+  ASSERT(resolved_path != nullptr);
   if (Namespace::IsDefault(namespc)) {
     *dirfd = AT_FDCWD;
     *resolved_path = path;

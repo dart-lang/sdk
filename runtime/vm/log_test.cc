@@ -17,12 +17,12 @@
 
 namespace dart {
 
-static const char* test_output_ = NULL;
+static const char* test_output_ = nullptr;
 
 static void TestPrinter(const char* buffer) {
-  if (test_output_ != NULL) {
+  if (test_output_ != nullptr) {
     free(const_cast<char*>(test_output_));
-    test_output_ = NULL;
+    test_output_ = nullptr;
   }
   test_output_ = Utils::StrDup(buffer);
 
@@ -33,21 +33,21 @@ static void TestPrinter(const char* buffer) {
 class LogTestHelper : public AllStatic {
  public:
   static void SetPrinter(Log* log, LogPrinter printer) {
-    ASSERT(log != NULL);
-    ASSERT(printer != NULL);
+    ASSERT(log != nullptr);
+    ASSERT(printer != nullptr);
     log->printer_ = printer;
   }
 
   static void FreeTestOutput() {
-    if (test_output_ != NULL) {
+    if (test_output_ != nullptr) {
       free(const_cast<char*>(test_output_));
-      test_output_ = NULL;
+      test_output_ = nullptr;
     }
   }
 };
 
 TEST_CASE(Log_Macro) {
-  test_output_ = NULL;
+  test_output_ = nullptr;
   Log* log = Log::Current();
   LogTestHelper::SetPrinter(log, TestPrinter);
 
@@ -59,10 +59,10 @@ TEST_CASE(Log_Macro) {
 }
 
 TEST_CASE(Log_Basic) {
-  test_output_ = NULL;
+  test_output_ = nullptr;
   Log* log = new Log(TestPrinter);
 
-  EXPECT_EQ(static_cast<const char*>(NULL), test_output_);
+  EXPECT_EQ(static_cast<const char*>(nullptr), test_output_);
   log->Print("Hello %s", "World");
   EXPECT_STREQ("Hello World", test_output_);
 
@@ -71,26 +71,26 @@ TEST_CASE(Log_Basic) {
 }
 
 TEST_CASE(Log_Block) {
-  test_output_ = NULL;
+  test_output_ = nullptr;
   Log* log = new Log(TestPrinter);
 
-  EXPECT_EQ(static_cast<const char*>(NULL), test_output_);
+  EXPECT_EQ(static_cast<const char*>(nullptr), test_output_);
   {
     LogBlock ba(thread, log);
     log->Print("APPLE");
-    EXPECT_EQ(static_cast<const char*>(NULL), test_output_);
+    EXPECT_EQ(static_cast<const char*>(nullptr), test_output_);
     {
       LogBlock ba(thread, log);
       log->Print("BANANA");
-      EXPECT_EQ(static_cast<const char*>(NULL), test_output_);
+      EXPECT_EQ(static_cast<const char*>(nullptr), test_output_);
     }
-    EXPECT_EQ(static_cast<const char*>(NULL), test_output_);
+    EXPECT_EQ(static_cast<const char*>(nullptr), test_output_);
     {
       LogBlock ba(thread, log);
       log->Print("PEAR");
-      EXPECT_EQ(static_cast<const char*>(NULL), test_output_);
+      EXPECT_EQ(static_cast<const char*>(nullptr), test_output_);
     }
-    EXPECT_EQ(static_cast<const char*>(NULL), test_output_);
+    EXPECT_EQ(static_cast<const char*>(nullptr), test_output_);
   }
   EXPECT_STREQ("APPLEBANANAPEAR", test_output_);
   delete log;

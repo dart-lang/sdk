@@ -168,13 +168,6 @@ int computeTypeVariableBuilderVariance(TypeVariableBuilder variable,
 /// type parameter occurrence or on the type argument replacing it.
 NullabilityBuilder combineNullabilityBuildersForSubstitution(
     NullabilityBuilder a, NullabilityBuilder b) {
-  assert(
-      // ignore: unnecessary_null_comparison
-      a != null && b != null,
-      "Both arguments to combineNullabilityBuildersForSubstitution "
-      "should be identical to either 'const NullabilityBuilder.nullable()' or "
-      "'const NullabilityBuilder.omitted()'.");
-
   if (identical(a, const NullabilityBuilder.inherent()) &&
       identical(b, const NullabilityBuilder.inherent())) {
     return const NullabilityBuilder.inherent();
@@ -219,14 +212,6 @@ TypeBuilder substituteRange(
     List<TypeBuilder>? arguments;
     TypeDeclarationBuilder? declaration = type.declaration;
     if (declaration == null) {
-      // ignore: unnecessary_null_comparison
-      assert(unboundTypes != null,
-          "Can not handle unbound named type builders without `unboundTypes`.");
-      assert(
-          // ignore: unnecessary_null_comparison
-          unboundTypeVariables != null,
-          "Can not handle unbound named type builders without "
-          "`unboundTypeVariables`.");
       assert(
           identical(upperSubstitution, lowerSubstitution),
           "Can only handle unbound named type builders identical "
@@ -445,11 +430,6 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
     TypeBuilder dynamicType, TypeBuilder bottomType,
     {required List<TypeBuilder> unboundTypes,
     required List<TypeVariableBuilder> unboundTypeVariables}) {
-  // ignore: unnecessary_null_comparison
-  assert(unboundTypes != null);
-  // ignore: unnecessary_null_comparison
-  assert(unboundTypeVariables != null);
-
   List<TypeBuilder> bounds = new List<TypeBuilder>.generate(
       variables.length, (int i) => variables[i].bound ?? dynamicType,
       growable: false);
@@ -1084,8 +1064,6 @@ void breakCycles(List<List<RawTypeCycleElement>> cycles) {
 /// Finds generic function type sub-terms in [type].
 void findUnaliasedGenericFunctionTypes(TypeBuilder? type,
     {required List<FunctionTypeBuilder> result}) {
-  // ignore: unnecessary_null_comparison
-  assert(result != null);
   if (type is FunctionTypeBuilder) {
     if (type.typeVariables != null && type.typeVariables!.length > 0) {
       result.add(type);
@@ -1114,8 +1092,6 @@ void findUnaliasedGenericFunctionTypes(TypeBuilder? type,
 /// Finds generic function type sub-terms in [type] including the aliased ones.
 void findGenericFunctionTypes(TypeBuilder? type,
     {required List<TypeBuilder> result}) {
-  // ignore: unnecessary_null_comparison
-  assert(result != null);
   if (type is FunctionTypeBuilder) {
     if (type.typeVariables != null && type.typeVariables!.length > 0) {
       result.add(type);

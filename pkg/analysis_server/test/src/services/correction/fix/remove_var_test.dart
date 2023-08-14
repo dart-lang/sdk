@@ -20,26 +20,15 @@ class RemoveVarTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_VAR;
 
-  Future<void> test_function() async {
+  Future<void> test_declaredVariablePattern_ifCase() async {
     await resolveTestCode('''
-var f() {}
-''');
-    await assertHasFix('''
-f() {}
-''');
-  }
-
-  Future<void> test_pattern_declaration() async {
-    await resolveTestCode('''
-f() {
-  var [var x] = [1];
-  print(x);
+void f(int x) {
+  if (x case var int x when x > 0) {}
 }
 ''');
     await assertHasFix('''
-f() {
-  var [x] = [1];
-  print(x);
+void f(int x) {
+  if (x case int x when x > 0) {}
 }
 ''');
   }
@@ -47,7 +36,7 @@ f() {
   @FailingTest(
       issue: "https://github.com/dart-lang/sdk/issues/49960",
       reason: "Fix once error is reported")
-  Future<void> test_pattern_in_assignment() async {
+  Future<void> test_declaredVariablePattern_patternAssignment() async {
     await resolveTestCode('''
 f() {
   var a = 1;
@@ -64,7 +53,51 @@ f() {
 ''');
   }
 
-  Future<void> test_setter() async {
+  Future<void> test_declaredVariablePattern_patternVariableDeclaration() async {
+    await resolveTestCode('''
+f() {
+  var [var x] = [1];
+  print(x);
+}
+''');
+    await assertHasFix('''
+f() {
+  var [x] = [1];
+  print(x);
+}
+''');
+  }
+
+  Future<void> test_formalParameter_hasType() async {
+    await resolveTestCode('''
+void f(var int a) {}
+''');
+    await assertHasFix('''
+void f(int a) {}
+''');
+  }
+
+  Future<void> test_returnType_function() async {
+    await resolveTestCode('''
+var f() {}
+''');
+    await assertHasFix('''
+f() {}
+''');
+  }
+
+  Future<void> test_returnType_genericTypeAlias() async {
+    await resolveTestCode('''
+typedef F = var Function();
+''');
+    await assertHasFix('''
+typedef F = Function();
+''', errorFilter: (error) {
+      return error.errorCode == ParserErrorCode.VAR_RETURN_TYPE;
+    });
+  }
+
+  Future<void> test_returnType_setter() async {
     await resolveTestCode('''
 class C {
   var set s(int i) {}
@@ -75,16 +108,5 @@ class C {
   set s(int i) {}
 }
 ''');
-  }
-
-  Future<void> test_typedef() async {
-    await resolveTestCode('''
-typedef F = var Function();
-''');
-    await assertHasFix('''
-typedef F = Function();
-''', errorFilter: (error) {
-      return error.errorCode == ParserErrorCode.VAR_RETURN_TYPE;
-    });
   }
 }

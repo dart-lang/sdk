@@ -46,6 +46,7 @@ import '../fasta_codes.dart'
         templateEnumConstantSameNameAsEnclosing;
 
 import '../kernel/body_builder.dart';
+import '../kernel/body_builder_context.dart';
 import '../kernel/constness.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
@@ -521,7 +522,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       ..synthesizedDefaultConstructorBuilder =
           synthesizedDefaultConstructorBuilder;
 
-    void setParent(String name, MemberBuilder? builder) {
+    void setParent(MemberBuilder? builder) {
       while (builder != null) {
         builder.parent = enumBuilder;
         builder = builder.next as MemberBuilder?;
@@ -550,13 +551,12 @@ class SourceEnumBuilder extends SourceClassBuilder {
               ]);
         }
       }
-      setParent(name, member as MemberBuilder);
+      setParent(member as MemberBuilder);
     }
 
     members.forEach(setParentAndCheckConflicts);
     constructorScope
-        .filteredNameIterator(
-            includeDuplicates: false, includeAugmentations: true)
+        .filteredIterator(includeDuplicates: false, includeAugmentations: true)
         .forEach(setParent);
     selfType.bind(libraryBuilder, enumBuilder);
 
@@ -616,19 +616,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
     Class cls = super.build(coreLibrary);
     cls.isEnum = true;
 
-    List<Expression> values = <Expression>[];
-    if (enumConstantInfos != null) {
-      for (EnumConstantInfo? enumConstantInfo in enumConstantInfos!) {
-        if (enumConstantInfo != null) {
-          Builder declaration = firstMemberNamed(enumConstantInfo.name)!;
-          if (declaration.isField) {
-            SourceFieldBuilder fieldBuilder = declaration as SourceFieldBuilder;
-            values.add(new StaticGet(fieldBuilder.field));
-          }
-        }
-      }
-    }
-
     // The super initializer for the synthesized default constructor is
     // inserted here if the enum's supertype is _Enum to preserve the legacy
     // behavior or having the old-style enum constants built in the outlines.
@@ -668,6 +655,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
     return cls;
   }
+
+  @override
+  BodyBuilderContext get bodyBuilderContext => new EnumBodyBuilderContext(this);
 
   DartType buildElement(SourceFieldBuilder fieldBuilder, CoreTypes coreTypes) {
     DartType selfType =
@@ -731,7 +721,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       // be built via a body builder to detect potential errors.
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              libraryBuilder, this, this, scope, fileUri);
+              libraryBuilder, bodyBuilderContext, scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.inferred;
 
       if (enumConstantInfo.argumentsBeginToken != null) {
@@ -771,7 +761,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
         Expression initializer = bodyBuilder.buildStaticInvocation(
             constructorBuilder.invokeTarget, arguments,
             constness: Constness.explicitConst,
-            charOffset: fieldBuilder.charOffset);
+            charOffset: fieldBuilder.charOffset,
+            isConstructorInvocation: true);
         ExpressionInferenceResult inferenceResult = bodyBuilder.typeInferrer
             .inferFieldInitializer(
                 bodyBuilder, const UnknownType(), initializer);

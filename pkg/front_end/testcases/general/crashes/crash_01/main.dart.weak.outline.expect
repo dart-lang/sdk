@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "main_lib.dart" as mai;
@@ -28,7 +28,7 @@ abstract class RenderSliverSingleBoxAdapter extends self::_RenderSliverSingleBox
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

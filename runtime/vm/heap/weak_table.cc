@@ -144,14 +144,11 @@ void WeakTable::Forward(ObjectPointerVisitor* visitor) {
 void WeakTable::ReportSurvivingAllocations(
     Dart_HeapSamplingReportCallback callback,
     void* context) {
-  ClassTable* table = IsolateGroup::Current()->class_table();
   MutexLocker ml(&mutex_);
   for (intptr_t i = 0; i < size_; i++) {
     if (IsValidEntryAtExclusive(i)) {
-      ObjectPtr obj = static_cast<ObjectPtr>(data_[ObjectIndex(i)]);
       void* data = reinterpret_cast<void*>(data_[ValueIndex(i)]);
-      callback(context, obj->untag()->HeapSize(),
-               table->UserVisibleNameFor(obj->GetClassId()), data);
+      callback(context, data);
     }
   }
 }

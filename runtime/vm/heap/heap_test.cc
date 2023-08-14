@@ -212,48 +212,6 @@ TEST_CASE(ClassHeapStats) {
 }
 #endif  // !PRODUCT
 
-class FindOnly : public FindObjectVisitor {
- public:
-  explicit FindOnly(ObjectPtr target) : target_(target) {
-#if defined(DEBUG)
-    EXPECT_GT(Thread::Current()->no_safepoint_scope_depth(), 0);
-#endif
-  }
-  virtual ~FindOnly() {}
-
-  virtual bool FindObject(ObjectPtr obj) const { return obj == target_; }
-
- private:
-  ObjectPtr target_;
-};
-
-class FindNothing : public FindObjectVisitor {
- public:
-  FindNothing() {}
-  virtual ~FindNothing() {}
-  virtual bool FindObject(ObjectPtr obj) const { return false; }
-};
-
-ISOLATE_UNIT_TEST_CASE(FindObject) {
-  Heap* heap = IsolateGroup::Current()->heap();
-  Heap::Space spaces[2] = {Heap::kOld, Heap::kNew};
-  for (size_t space = 0; space < ARRAY_SIZE(spaces); ++space) {
-    const String& obj = String::Handle(String::New("x", spaces[space]));
-    {
-      HeapIterationScope iteration(thread);
-      NoSafepointScope no_safepoint;
-      FindOnly find_only(obj.ptr());
-      EXPECT(obj.ptr() == heap->FindObject(&find_only));
-    }
-  }
-  {
-    HeapIterationScope iteration(thread);
-    NoSafepointScope no_safepoint;
-    FindNothing find_nothing;
-    EXPECT(Object::null() == heap->FindObject(&find_nothing));
-  }
-}
-
 ISOLATE_UNIT_TEST_CASE(IterateReadOnly) {
   const String& obj = String::Handle(String::New("x", Heap::kOld));
 
@@ -793,13 +751,17 @@ ISOLATE_UNIT_TEST_CASE(ArrayTruncationRaces) {
 
 class ConcurrentForceGrowthScopeTask : public ThreadPool::Task {
  public:
-  ConcurrentForceGrowthScopeTask(Isolate* isolate,
+  ConcurrentForceGrowthScopeTask(IsolateGroup* isolate_group,
                                  Monitor* monitor,
                                  intptr_t* done_count)
-      : isolate_(isolate), monitor_(monitor), done_count_(done_count) {}
+      : isolate_group_(isolate_group),
+        monitor_(monitor),
+        done_count_(done_count) {}
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
+    const bool kBypassSafepoint = false;
+    Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kUnknownTask,
+                                      kBypassSafepoint);
     {
       Thread* thread = Thread::Current();
       StackZone stack_zone(thread);
@@ -819,7 +781,7 @@ class ConcurrentForceGrowthScopeTask : public ThreadPool::Task {
         accumulate.Add(element);
       }
     }
-    Thread::ExitIsolateAsHelper();
+    Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     // Notify the main thread that this thread has exited.
     {
       MonitorLocker ml(monitor_);
@@ -829,7 +791,7 @@ class ConcurrentForceGrowthScopeTask : public ThreadPool::Task {
   }
 
  private:
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   Monitor* monitor_;
   intptr_t* done_count_;
 };
@@ -841,7 +803,7 @@ ISOLATE_UNIT_TEST_CASE(ConcurrentForceGrowthScope) {
 
   for (intptr_t i = 0; i < task_count; i++) {
     Dart::thread_pool()->Run<ConcurrentForceGrowthScopeTask>(
-        thread->isolate(), &monitor, &done_count);
+        thread->isolate_group(), &monitor, &done_count);
   }
 
   {
@@ -897,5 +859,62 @@ ISOLATE_UNIT_TEST_CASE(WeakSmi) {
   EXPECT(new_finalizer.value() == Smi::New(42));
   EXPECT(old_finalizer.value() == Smi::New(42));
 }
+
+#if !defined(PRODUCT) && defined(DART_HOST_OS_LINUX)
+ISOLATE_UNIT_TEST_CASE(SweepDontNeed) {
+  auto gc_with_fragmentation = [&] {
+    HANDLESCOPE(thread);
+
+    EXPECT(IsAllocatableViaFreeLists(Array::InstanceSize(128)));
+    const intptr_t num_elements = 100 * MB / Array::InstanceSize(128);
+    Array& list = Array::Handle();
+    {
+      HANDLESCOPE(thread);
+      list = Array::New(num_elements);
+      Array& element = Array::Handle();
+      for (intptr_t i = 0; i < num_elements; i++) {
+        element = Array::New(128);
+        list.SetAt(i, element);
+      }
+    }
+
+    GCTestHelper::CollectAllGarbage();
+    GCTestHelper::WaitForGCTasks();
+    Page::ClearCache();
+    const intptr_t before = Service::CurrentRSS();
+    EXPECT(before > 0);  // Or RSS hook is not installed.
+
+    for (intptr_t i = 0; i < num_elements; i++) {
+      // Let there be one survivor every 150 KB. Bigger than the largest virtual
+      // memory page size (64 KB on ARM64 Linux).
+      intptr_t m = 150 * KB / Array::InstanceSize(128);
+      if ((i % m) != 0) {
+        list.SetAt(i, Object::null_object());
+      }
+    }
+
+    GCTestHelper::CollectAllGarbage();
+    GCTestHelper::WaitForGCTasks();
+    Page::ClearCache();
+    const intptr_t after = Service::CurrentRSS();
+    EXPECT(after > 0);  // Or RSS hook is not installed.
+
+    const intptr_t delta = after - before;
+    OS::PrintErr("%" Pd " -> %" Pd " (%" Pd ")\n", before, after, delta);
+    return delta;
+  };
+
+  FLAG_dontneed_on_sweep = false;
+  const intptr_t delta_normal = gc_with_fragmentation();
+  // EXPECT(delta_normal == 0); Roughly, but there may be noise.
+
+  FLAG_dontneed_on_sweep = true;
+  const intptr_t delta_dontneed = gc_with_fragmentation();
+  // Free at least half. Various with noise and virtual memory page size.
+  EXPECT(delta_dontneed < -50 * MB);
+
+  EXPECT(delta_dontneed < delta_normal);  // More negative.
+}
+#endif  // !defined(PRODUCT) && !defined(DART_HOST_OS_LINUX)
 
 }  // namespace dart

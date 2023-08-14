@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -114,7 +113,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     if (scopeLookupResult != null) {
       reportDeprecatedExportUseGetter(
         scopeLookupResult: scopeLookupResult,
-        node: node,
+        nameToken: node.token,
       );
     }
   }
@@ -241,7 +240,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return;
     }
 
-    DartType staticType = DynamicTypeImpl.instance;
+    DartType staticType = InvalidTypeImpl.instance;
     if (element is InterfaceElement) {
       if (_isExpressionIdentifier(node)) {
         node.staticType = _typeProvider.typeType;
@@ -270,13 +269,13 @@ class SimpleIdentifierResolver with ScopeHelpers {
           parent is MethodInvocation && parent.target == node) {
         return;
       }
-      staticType = _typeProvider.dynamicType;
+      staticType = InvalidTypeImpl.instance;
     } else if (element is DynamicElementImpl) {
       staticType = _typeProvider.typeType;
     } else if (element is NeverElementImpl) {
       staticType = _typeProvider.typeType;
     } else {
-      staticType = DynamicTypeImpl.instance;
+      staticType = InvalidTypeImpl.instance;
     }
 
     if (!_resolver.isConstructorTearoffsEnabled) {
@@ -307,7 +306,6 @@ class SimpleIdentifierResolver with ScopeHelpers {
     }
 
     if (parent is CommentReference ||
-        parent is ExtensionOverride && parent.extensionName == node ||
         parent is MethodInvocation && parent.target == node ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
         parent is PropertyAccess && parent.target == node) {

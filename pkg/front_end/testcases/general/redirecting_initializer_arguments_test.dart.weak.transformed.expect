@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -14,7 +14,7 @@ class Foo<T extends core::Object? = dynamic> extends core::Object {
   constructor from(core::String _init) → self::Foo<self::Foo::T%>
     : this self::Foo::_internal(x: invalid-expression "pkg/front_end/testcases/general/redirecting_initializer_arguments_test.dart:12:46: Error: The argument type 'String' can't be assigned to the parameter type 'T'.
   Foo.from(String _init) : this._internal(x: _init);
-                                             ^" in _init as{TypeError,ForNonNullableByDefault} Never)
+                                             ^" in _init as{TypeError} Never)
     ;
   constructor _internal({required self::Foo::T% x = #C1}) → self::Foo<self::Foo::T%>
     : self::Foo::x = x, super core::Object::•()

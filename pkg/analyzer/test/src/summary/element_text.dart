@@ -118,10 +118,12 @@ class ElementTextConfiguration {
   bool withConstructors = true;
   bool withDisplayName = false;
   bool withExportScope = false;
+  bool withFunctionTypeParameters = false;
   bool withImports = true;
   bool withMetadata = true;
   bool withNonSynthetic = false;
   bool withPropertyLinking = false;
+  bool withRedirectedConstructors = false;
   bool withSyntheticDartCoreImport = false;
 
   ElementTextConfiguration({
@@ -214,8 +216,9 @@ class _ElementWriter {
       selfUriStr: selfUriStr,
       sink: buffer,
       indent: indent,
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/49101
-      withParameterElements: false,
+      configuration: ResolvedNodeTextConfiguration()
+        // TODO(scheglov) https://github.com/dart-lang/sdk/issues/49101
+        ..withParameterElements = false,
       withOffsets: true,
     );
   }
@@ -298,6 +301,7 @@ class _ElementWriter {
         _writeIf(e.isBase, 'base ');
         _writeIf(e.isInterface, 'interface ');
         _writeIf(e.isFinal, 'final ');
+        _writeIf(e.isInline, 'inline ');
         _writeIf(e.isMixinClass, 'mixin ');
       }
       _writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
@@ -769,6 +773,10 @@ class _ElementWriter {
         buffer.write('optionalNamed ');
       }
 
+      if (e is ConstVariableElement) {
+        buffer.write('default ');
+      }
+
       _writeIf(e.isConst, 'const ');
       _writeIf(e.isCovariant, 'covariant ');
       _writeIf(e.isFinal, 'final ');
@@ -985,6 +993,14 @@ class _ElementWriter {
 
   void _writeType(String name, DartType type) {
     _createAstPrinter().writeType(type, name: name);
+
+    if (configuration.withFunctionTypeParameters) {
+      if (type is FunctionType) {
+        _withIndent(() {
+          _writeParameterElements(type.parameters);
+        });
+      }
+    }
   }
 
   void _writeTypeAliasElement(TypeAliasElement e) {

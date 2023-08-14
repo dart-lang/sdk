@@ -9,7 +9,11 @@
 
 typedef void F<T extends num>();
 
-void g(/*@compile-error=unspecified*/ F<String> f) {}
+void g(F<String> f) {}
+//     ^
+// [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'F'.
+//       ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
 main() {
   g(null);

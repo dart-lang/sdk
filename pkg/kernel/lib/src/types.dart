@@ -92,8 +92,8 @@ class Types with StandardBounds {
     }
 
     if (t is InterfaceType) {
-      Class cls = t.classNode;
-      if (cls == hierarchy.coreTypes.objectClass && s is! FutureOrType) {
+      if (t.classReference == hierarchy.coreTypes.objectClass.reference &&
+          s is! FutureOrType) {
         return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);
       }
       const IsInterfaceSubtypeOf relation = const IsInterfaceSubtypeOf();
@@ -473,15 +473,24 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   @override
   IsSubtypeOf isInterfaceRelated(
       InterfaceType s, InterfaceType t, Types types) {
-    List<DartType>? asSupertypeArguments =
-        types.hierarchy.getTypeArgumentsAsInstanceOf(s, t.classNode);
+    List<DartType>? asSupertypeArguments;
+    if (s.classReference == t.classReference) {
+      asSupertypeArguments = s.typeArguments;
+    } else {
+      asSupertypeArguments =
+          types.hierarchy.getTypeArgumentsAsInstanceOf(s, t.classNode);
+    }
     if (asSupertypeArguments == null) {
       return const IsSubtypeOf.never();
+    }
+    if (asSupertypeArguments.isEmpty) {
+      return const IsSubtypeOf.always()
+          .and(new IsSubtypeOf.basedSolelyOnNullabilitiesNotInvalidType(s, t));
     }
     return types
         .areTypeArgumentsOfSubtypeKernel(
             asSupertypeArguments, t.typeArguments, t.classNode.typeParameters)
-        .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
+        .and(new IsSubtypeOf.basedSolelyOnNullabilitiesNotInvalidType(s, t));
   }
 
   @override

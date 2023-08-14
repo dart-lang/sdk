@@ -11,7 +11,7 @@
 // class in4 extends B implements out_int {} // error
 //       ^
 //
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "issue41567_lib.dart" as iss;
 
@@ -44,7 +44,7 @@ class in4 extends self::B implements iss::out_int {
 }
 static method main() → dynamic {}
 
-library;
+library /*isLegacy*/;
 import self as iss;
 import "dart:core" as core;
 

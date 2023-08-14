@@ -5,12 +5,14 @@
 #include "vm/elf.h"
 
 #include "platform/elf.h"
+#include "platform/unwinding_records.h"
 #include "vm/cpu.h"
 #include "vm/dwarf.h"
 #include "vm/hash_map.h"
 #include "vm/image_snapshot.h"
 #include "vm/stack_frame.h"
 #include "vm/thread.h"
+#include "vm/unwinding_records.h"
 #include "vm/zone_text_buffer.h"
 
 namespace dart {
@@ -431,7 +433,7 @@ class StringTable : public Section {
     return text_.buffer() + index;
   }
 
-  static const intptr_t kNotIndexed = CStringIntMapKeyValueTrait::kNoValue;
+  static constexpr intptr_t kNotIndexed = CStringIntMapKeyValueTrait::kNoValue;
 
   // Returns the index of |str| if it is present in the string table
   // and |kNotIndexed| otherwise.
@@ -1000,7 +1002,7 @@ class BssSection : public ConcatenableBitsContainer {
 class PseudoSection : public Section {
  public:
   // All PseudoSections are aligned to target word size.
-  static const intptr_t kAlignment = compiler::target::kWordSize;
+  static constexpr intptr_t kAlignment = compiler::target::kWordSize;
 
   PseudoSection(bool allocate, bool executable, bool writable)
       : Section(elf::SectionHeaderType::SHT_NULL,
@@ -1190,7 +1192,7 @@ void Elf::CreateBSS() {
       label = kVmBssLabel;
     } else if (strcmp(portion.symbol_name,
                       kIsolateSnapshotInstructionsAsmSymbol) == 0) {
-      size = BSS::kIsolateEntryCount * compiler::target::kWordSize;
+      size = BSS::kIsolateGroupEntryCount * compiler::target::kWordSize;
       symbol_name = kIsolateSnapshotBssAsmSymbol;
       label = kIsolateBssLabel;
     } else {
@@ -1237,7 +1239,7 @@ class DwarfElfStream : public DwarfWriteStream {
   DwarfElfStream(Zone* zone, NonStreamingWriteStream* stream)
       : zone_(ASSERT_NOTNULL(zone)),
         stream_(ASSERT_NOTNULL(stream)),
-        relocations_(new (zone) ZoneGrowableArray<Elf::Relocation>()) {}
+        relocations_(new(zone) ZoneGrowableArray<Elf::Relocation>()) {}
 
   const uint8_t* buffer() const { return stream_->buffer(); }
   intptr_t bytes_written() const { return stream_->bytes_written(); }
@@ -1409,12 +1411,34 @@ void Elf::FinalizeEhFrame() {
   // No text section added means no .eh_frame.
   if (text_section == nullptr) return;
 
+#if defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_X64)
+  // Append Windows unwinding instructions to the end of .text section.
+  {
+    auto* const unwinding_instructions_frame = new (zone_) TextSection(type_);
+    ZoneWriteStream stream(
+        zone(),
+        /*initial_size=*/UnwindingRecordsPlatform::SizeInBytes());
+    uint8_t* unwinding_instructions =
+        zone()->Alloc<uint8_t>(UnwindingRecordsPlatform::SizeInBytes());
+
+    intptr_t start_offset =
+        Utils::RoundUp(text_section->FileSize(), text_section->alignment);
+    stream.WriteBytes(UnwindingRecords::GenerateRecordsInto(
+                          start_offset, unwinding_instructions),
+                      UnwindingRecordsPlatform::SizeInBytes());
+
+    unwinding_instructions_frame->AddPortion(stream.buffer(),
+                                             stream.bytes_written());
+    section_table_->Add(unwinding_instructions_frame, kTextName);
+  }
+#endif
+
   // Multiplier which will be used to scale operands of DW_CFA_offset and
   // DW_CFA_val_offset.
   const intptr_t kDataAlignment = -compiler::target::kWordSize;
 
-  static const uint8_t DW_EH_PE_pcrel = 0x10;
-  static const uint8_t DW_EH_PE_sdata4 = 0x0b;
+  static constexpr uint8_t DW_EH_PE_pcrel = 0x10;
+  static constexpr uint8_t DW_EH_PE_sdata4 = 0x0b;
 
   ZoneWriteStream stream(zone(), kInitialDwarfBufferSize);
   DwarfElfStream dwarf_stream(zone_, &stream);
@@ -1449,6 +1473,12 @@ void Elf::FinalizeEhFrame() {
 
   // Emit an FDE covering each .text section.
   for (const auto& portion : text_section->portions()) {
+#if defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_X64)
+    if (portion.label == 0) {
+      // Unwinding instructions sections doesn't have label, doesn't dwarf
+      continue;
+    }
+#endif
     ASSERT(portion.label != 0);  // Needed for relocations.
     dwarf_stream.WritePrefixedLength([&]() {
       // Offset to CIE. Note that unlike pcrel this offset is encoded

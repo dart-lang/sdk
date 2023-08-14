@@ -37,7 +37,7 @@ var tests = <VMTest>[
       expect(false, isTrue, reason: 'Unreachable');
     } on RPCError catch (e) {
       caughtException = true;
-      expect(e.code, equals(RPCError.kInvalidParams));
+      expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
       expect(e.details, "getIsolate: invalid 'isolateId' parameter: badid");
     }
     expect(caughtException, isTrue);

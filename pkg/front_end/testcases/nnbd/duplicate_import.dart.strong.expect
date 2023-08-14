@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///duplicate_import_lib1.dart";
@@ -8,9 +8,9 @@ export "org-dartlang-testcase:///duplicate_import_lib2.dart";
 
 static method main() → dynamic {}
 
-library foo /*isNonNullableByDefault*/;
+library foo;
 import self as self2;
 
 
-library foo /*isNonNullableByDefault*/;
+library foo;
 import self as self3;

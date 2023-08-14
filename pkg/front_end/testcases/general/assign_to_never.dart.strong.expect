@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -12,5 +12,5 @@ static set setter(Never n) → void {}
 static method method() → dynamic {
   self::setter = invalid-expression "pkg/front_end/testcases/general/assign_to_never.dart:8:12: Error: A value of type 'int' can't be assigned to a variable of type 'Never'.
   setter = 0;
-           ^" in 0 as{TypeError,ForNonNullableByDefault} Never;
+           ^" in 0 as{TypeError} Never;
 }

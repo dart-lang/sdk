@@ -398,6 +398,7 @@ class RunningProcess {
 
   Map<String, String> _createProcessEnvironment() {
     final environment = Map<String, String>.from(io.Platform.environment);
+    environment.addAll(configuration.nativeCompilerEnvironmentVariables);
     environment.addAll(sanitizerEnvironmentVariables);
     for (var entry in command.environmentOverrides.entries) {
       environment[entry.key] = entry.value;

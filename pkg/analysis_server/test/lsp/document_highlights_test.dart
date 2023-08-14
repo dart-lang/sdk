@@ -20,11 +20,19 @@ void main() {
 
 @reflectiveTest
 class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
+  Future<void> test_forInLoop() => _testMarkedContent('''
+void f() {
+  for (final /*[0*/x^/*0]*/ in []) {
+    /*[1*/x/*1]*/;
+  }
+}
+''');
+
   Future<void> test_functions() => _testMarkedContent('''
-    /*[0*/main/*0]*/() {
-      /*[1*/mai^n/*1]*/();
-    }
-    ''');
+/*[0*/main/*0]*/() {
+  /*[1*/mai^n/*1]*/();
+}
+''');
 
   Future<void> test_invalidLineByOne() async {
     // Test that requesting a line that's too high by one returns a valid
@@ -43,12 +51,12 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_localVariable() => _testMarkedContent('''
-    void f() {
-      var /*[0*/f^oo/*0]*/ = 1;
-      print(/*[1*/foo/*1]*/);
-      /*[2*/foo/*2]*/ = 2;
-    }
-    ''');
+void f() {
+  var /*[0*/f^oo/*0]*/ = 1;
+  print(/*[1*/foo/*1]*/);
+  /*[2*/foo/*2]*/ = 2;
+}
+''');
 
   Future<void> test_nonDartFile() async {
     await initialize();
@@ -62,45 +70,45 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_noResult() => _testMarkedContent('''
-    void f() {
-      // This one is in a ^ comment!
-    }
-    ''');
+void f() {
+  // This one is in a ^ comment!
+}
+''');
 
   Future<void> test_onlySelf() => _testMarkedContent('''
-    void f() {
-      /*[0*/prin^t/*0]*/();
-    }
-    ''');
+void f() {
+  /*[0*/prin^t/*0]*/();
+}
+''');
 
   Future<void> test_shadow_inner() => _testMarkedContent('''
-    void f() {
-      var foo = 1;
-      func() {
-        var /*[0*/fo^o/*0]*/ = 2;
-        print(/*[1*/foo/*1]*/);
-      }
-    }
-    ''');
+void f() {
+  var foo = 1;
+  func() {
+    var /*[0*/fo^o/*0]*/ = 2;
+    print(/*[1*/foo/*1]*/);
+  }
+}
+''');
 
   Future<void> test_shadow_outer() => _testMarkedContent('''
-    void f() {
-      var /*[0*/foo/*0]*/ = 1;
-      func() {
-        var foo = 2;
-        print(foo);
-      }
-      print(/*[1*/fo^o/*1]*/);
-    }
-    ''');
+void f() {
+  var /*[0*/foo/*0]*/ = 1;
+  func() {
+    var foo = 2;
+    print(foo);
+  }
+  print(/*[1*/fo^o/*1]*/);
+}
+''');
 
   Future<void> test_topLevelVariable() => _testMarkedContent('''
-    String /*[0*/foo/*0]*/ = 'bar';
-    void f() {
-      print(/*[1*/foo/*1]*/);
-      /*[2*/fo^o/*2]*/ = 2;
-    }
-    ''');
+String /*[0*/foo/*0]*/ = 'bar';
+void f() {
+  print(/*[1*/foo/*1]*/);
+  /*[2*/fo^o/*2]*/ = 2;
+}
+''');
 
   /// Tests highlights in a Dart file using the provided content.
   ///

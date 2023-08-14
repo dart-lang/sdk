@@ -13,14 +13,116 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/src/constant_replacer.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 
+/// Erasure function for `@staticInterop` types for the JS compilers.
+///
+/// `dart:_js_types` are implemented currently using `@staticInterop`, but they
+/// are erased to different types at runtime. Non-`dart:_js_types`
+/// `@staticInterop` types are erased to `JavaScriptObject`.
+InterfaceType eraseStaticInteropTypesForJSCompilers(
+    CoreTypes coreTypes, InterfaceType staticInteropType) {
+  if (staticInteropType.classNode.enclosingLibrary.importUri ==
+      Uri.parse('dart:_js_types')) {
+    final className = staticInteropType.classNode.name;
+    Class erasedClass;
+    var typeArguments = staticInteropType.typeArguments;
+    // TODO(srujzs): Switch to a switch expression once they're working in the
+    // SDK.
+    switch (className) {
+      case 'JSAny':
+        erasedClass = coreTypes.objectClass;
+        break;
+      case 'JSObject':
+        erasedClass =
+            coreTypes.index.getClass('dart:_interceptors', 'JSObject');
+        break;
+      case 'JSFunction':
+        erasedClass = coreTypes.functionClass;
+        break;
+      case 'JSExportedDartFunction':
+        erasedClass = coreTypes.functionClass;
+        break;
+      case 'JSArray':
+        erasedClass = coreTypes.listClass;
+        typeArguments = [coreTypes.objectNullableRawType];
+        break;
+      case 'JSBoxedDartObject':
+        // TODO(srujzs): This should be JavaScriptObject once we migrate Flutter
+        // off of using `Object.toJS`.
+        erasedClass = coreTypes.objectClass;
+        break;
+      case 'JSArrayBuffer':
+        erasedClass = coreTypes.index.getClass('dart:typed_data', 'ByteBuffer');
+        break;
+      case 'JSDataView':
+        erasedClass = coreTypes.index.getClass('dart:typed_data', 'ByteData');
+        break;
+      case 'JSTypedArray':
+        erasedClass = coreTypes.index.getClass('dart:typed_data', 'TypedData');
+        break;
+      case 'JSInt8Array':
+        erasedClass = coreTypes.index.getClass('dart:typed_data', 'Int8List');
+        break;
+      case 'JSUint8Array':
+        erasedClass = coreTypes.index.getClass('dart:typed_data', 'Uint8List');
+        break;
+      case 'JSUint8ClampedArray':
+        erasedClass =
+            coreTypes.index.getClass('dart:typed_data', 'Uint8ClampedList');
+        break;
+      case 'JSInt16Array':
+        erasedClass = coreTypes.index.getClass('dart:typed_data', 'Int16List');
+        break;
+      case 'JSUint16Array':
+        erasedClass = coreTypes.index.getClass('dart:typed_data', 'Uint16List');
+        break;
+      case 'JSInt32Array':
+        erasedClass = coreTypes.index.getClass('dart:typed_data', 'Int32List');
+        break;
+      case 'JSUint32Array':
+        erasedClass = coreTypes.index.getClass('dart:typed_data', 'Uint32List');
+        break;
+      case 'JSFloat32Array':
+        erasedClass =
+            coreTypes.index.getClass('dart:typed_data', 'Float32List');
+        break;
+      case 'JSFloat64Array':
+        erasedClass =
+            coreTypes.index.getClass('dart:typed_data', 'Float64List');
+        break;
+      case 'JSNumber':
+        erasedClass = coreTypes.doubleClass;
+        break;
+      case 'JSBoolean':
+        erasedClass = coreTypes.boolClass;
+        break;
+      case 'JSString':
+        erasedClass = coreTypes.stringClass;
+        break;
+      case 'JSPromise':
+        erasedClass =
+            coreTypes.index.getClass('dart:_interceptors', 'JSObject');
+        break;
+      default:
+        throw 'Unimplemented `dart:_js_types`: $className';
+    }
+    return InterfaceType(
+        erasedClass, staticInteropType.declaredNullability, typeArguments);
+  } else {
+    return InterfaceType(
+        coreTypes.index.getClass('dart:_interceptors', 'JavaScriptObject'),
+        staticInteropType.declaredNullability);
+  }
+}
+
 class _TypeSubstitutor extends ReplacementVisitor {
-  final Class _javaScriptObject;
-  _TypeSubstitutor(this._javaScriptObject);
+  final InterfaceType Function(InterfaceType staticInteropType)
+      _eraseStaticInteropType;
+  _TypeSubstitutor(this._eraseStaticInteropType);
 
   @override
   DartType? visitInterfaceType(InterfaceType type, int variance) {
     if (hasStaticInteropAnnotation(type.classNode)) {
-      return InterfaceType(_javaScriptObject, type.declaredNullability);
+      return _eraseStaticInteropType(type);
     }
     return super.visitInterfaceType(type, variance);
   }
@@ -29,28 +131,35 @@ class _TypeSubstitutor extends ReplacementVisitor {
 /// Erases usage of `@JS` classes that are annotated with `@staticInterop` in
 /// favor of `JavaScriptObject`.
 class StaticInteropClassEraser extends Transformer {
-  final Class _javaScriptObject;
   final CloneVisitorNotMembers _cloner = CloneVisitorNotMembers();
   late final _StaticInteropConstantReplacer _constantReplacer;
   late final _TypeSubstitutor _typeSubstitutor;
   Component? currentComponent;
   ReferenceFromIndex? referenceFromIndex;
+  // Custom erasure function for `@staticInterop` types. This is useful for when
+  // they should be erased to another type besides `JavaScriptObject`, like in
+  // dart2wasm.
+  late final InterfaceType Function(InterfaceType staticInteropType)
+      _eraseStaticInteropType;
   // Visiting core libraries that don't contain `@staticInterop` adds overhead.
   // To avoid this, we use an allowlist that contains libraries that we know use
   // `@staticInterop`.
   late final Set<String> _erasableCoreLibraries = {
+    'js_interop_unsafe',
     'ui',
+    'ui_web',
     '_engine',
     '_skwasm_impl'
   };
 
   StaticInteropClassEraser(CoreTypes coreTypes, this.referenceFromIndex,
-      {String libraryForJavaScriptObject = 'dart:_interceptors',
-      String classNameOfJavaScriptObject = 'JavaScriptObject',
-      Set<String> additionalCoreLibraries = const {}})
-      : _javaScriptObject = coreTypes.index
-            .getClass(libraryForJavaScriptObject, classNameOfJavaScriptObject) {
-    _typeSubstitutor = _TypeSubstitutor(_javaScriptObject);
+      {InterfaceType Function(InterfaceType staticInteropType)?
+          eraseStaticInteropType,
+      Set<String> additionalCoreLibraries = const {}}) {
+    _eraseStaticInteropType = eraseStaticInteropType ??
+        (staticInteropType) =>
+            eraseStaticInteropTypesForJSCompilers(coreTypes, staticInteropType);
+    _typeSubstitutor = _TypeSubstitutor(_eraseStaticInteropType);
     _constantReplacer = _StaticInteropConstantReplacer(this);
     _erasableCoreLibraries.addAll(additionalCoreLibraries);
   }
@@ -178,8 +287,8 @@ class StaticInteropClassEraser extends Transformer {
       var newInvocation = super.visitConstructorInvocation(node) as Expression;
       return AsExpression(
           newInvocation,
-          InterfaceType(_javaScriptObject,
-              node.target.function.returnType.declaredNullability))
+          _eraseStaticInteropType(
+              node.target.function.returnType as InterfaceType))
         ..fileOffset = newInvocation.fileOffset;
     }
     return super.visitConstructorInvocation(node);
@@ -208,9 +317,7 @@ class StaticInteropClassEraser extends Transformer {
         // Add a cast so that the result gets typed as `JavaScriptObject`.
         var newInvocation = super.visitStaticInvocation(node) as Expression;
         return AsExpression(
-            newInvocation,
-            InterfaceType(_javaScriptObject,
-                node.target.function.returnType.declaredNullability))
+            newInvocation, node.target.function.returnType as InterfaceType)
           ..fileOffset = newInvocation.fileOffset;
       }
     }

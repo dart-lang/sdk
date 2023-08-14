@@ -16,7 +16,10 @@ import "package:expect/expect.dart";
 class EmptyBlockCaseTest {
   static testMain() {
     switch (1) {
-      case 1: /*@compile-error=unspecified*/
+      case 1:
+//    ^^^^
+// [analyzer] COMPILE_TIME_ERROR.CASE_BLOCK_NOT_TERMINATED
+// [cfe] Switch case may fall through to the next case.
         {}
       case 2:
         Expect.equals(true, false);

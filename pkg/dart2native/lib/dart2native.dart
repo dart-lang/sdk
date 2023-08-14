@@ -50,16 +50,18 @@ Future markExecutable(String outputFile) {
 }
 
 Future<ProcessResult> generateAotKernel(
-    String dart,
-    String genKernel,
-    String platformDill,
-    String sourceFile,
-    String kernelFile,
-    String? packages,
-    List<String> defines,
-    {String enableExperiment = '',
-    String? targetOS,
-    List<String> extraGenKernelOptions = const []}) {
+  String dart,
+  String genKernel,
+  String platformDill,
+  String sourceFile,
+  String kernelFile,
+  String? packages,
+  List<String> defines, {
+  String enableExperiment = '',
+  String? targetOS,
+  List<String> extraGenKernelOptions = const [],
+  String? nativeAssets,
+}) {
   return Process.run(dart, [
     genKernel,
     '--platform',
@@ -73,6 +75,7 @@ Future<ProcessResult> generateAotKernel(
     '-o',
     kernelFile,
     ...extraGenKernelOptions,
+    if (nativeAssets != null) ...['--native-assets', nativeAssets],
     sourceFile
   ]);
 }

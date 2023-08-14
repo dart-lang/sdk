@@ -20,28 +20,6 @@ class NonConstantMapElementTest extends PubPackageResolutionTest
     with NonConstantMapElementTestCases {}
 
 mixin NonConstantMapElementTestCases on PubPackageResolutionTest {
-  test_forElement_cannotBeConst() async {
-    await assertErrorsInCode('''
-void main() {
-  const {1: null, for (final x in const []) null: null};
-}
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 32, 36),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
-    ]);
-  }
-
-  test_forElement_nested_cannotBeConst() async {
-    await assertErrorsInCode('''
-void main() {
-  const {1: null, if (true) for (final x in const []) null: null};
-}
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 42, 36),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 53, 1),
-    ]);
-  }
-
   test_forElement_notConst_noError() async {
     await assertNoErrorsInCode('''
 void main() {

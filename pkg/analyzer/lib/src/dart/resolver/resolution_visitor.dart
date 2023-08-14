@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -122,7 +121,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     var namedTypeResolver = NamedTypeResolver(
       libraryElement,
-      typeProvider,
       isNonNullableByDefault,
       errorReporter,
     );
@@ -408,7 +406,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _elementHolder.enclose(element);
     _define(element);
     element.hasImplicitType = node.type == null;
-    element.type = node.type?.type ?? _dynamicType;
+    element.type = node.type?.type ?? InvalidTypeImpl.instance;
     node.declaredElement = element;
 
     var patternContext = node.patternContext;
@@ -435,6 +433,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       if (node.parameter is FieldFormalParameter) {
         // Only for recovery, this should not happen in valid code.
         element = DefaultFieldFormalParameterElementImpl(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: node.kind,
+        )..constantInitializer = node.defaultValue;
+      } else if (node.parameter is SuperFormalParameter) {
+        // Only for recovery, this should not happen in valid code.
+        element = DefaultSuperFormalParameterElementImpl(
           name: name,
           nameOffset: nameOffset,
           parameterKind: node.kind,
@@ -1582,9 +1587,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     // If the type is not an InterfaceType, then visitNamedType() sets the type
     // to be a DynamicTypeImpl
-    Identifier name = namedType.name;
-    if (!_libraryElement.shouldIgnoreUndefinedIdentifier(name)) {
-      _errorReporter.reportErrorForNode(errorCode, name);
+    if (!_libraryElement.shouldIgnoreUndefinedNamedType(namedType)) {
+      final firstToken = namedType.importPrefix?.name ?? namedType.name2;
+      final offset = firstToken.offset;
+      final length = namedType.name2.end - offset;
+      _errorReporter.reportErrorForOffset(errorCode, offset, length);
     }
   }
 
@@ -1752,7 +1759,7 @@ class _VariableBinder
       ),
     )
       ..enclosingElement = first.enclosingElement
-      ..type = typeProvider.dynamicType;
+      ..type = InvalidTypeImpl.instance;
   }
 }
 
@@ -1778,8 +1785,8 @@ class _VariableBinderErrors
       DiagnosticFactory().duplicateDefinitionForNodes(
         visitor._errorReporter.source,
         CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
-        duplicate.node,
-        original.node,
+        duplicate.node.name,
+        original.node.name,
         [name],
       ),
     );

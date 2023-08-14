@@ -23,8 +23,30 @@ class LspMetaModelCleaner {
   /// level/line length without potentially introducing very short lines.
   final _sourceCommentWrappingNewlinesPattern =
       RegExp(r'[\w`\]\).]\n[\w`\[\(]');
+
+  /// A pattern matching the spec's older HTML links that we can extract type
+  /// references from.
+  ///
+  ///   A description of [SomeType[]] (#SomeType).
   final _sourceCommentDocumentLinksPattern =
-      RegExp(r'\[([`\w \-.]+)\] ?\((#[^)]+)\)');
+      RegExp(r'\[`?([\w \-.]+)(?:\[\])?`?\]\s?\((#[^)]+)\)');
+
+  /// A pattern matching references in the LSP meta model comments that
+  /// reference other types.
+  ///
+  ///   {@link TypeName description}
+  ///
+  /// Type names may have suffixes that shouldn't be included in the group such
+  /// as
+  ///
+  ///   {@link TypeName[] description}
+  final _sourceCommentReferencesPattern =
+      RegExp(r'{@link\s+([\w.]+)[\[\]]*(?:\s+[\w`. ]+[\[\]]*)?}');
+
+  /// A pattern that matches references in the LSP meta model comments to the
+  /// Thenable or Promise types.
+  final _sourceCommentThenablePromisePattern =
+      RegExp(r'\b(?:Thenable|Promise)\b');
 
   /// Cleans an entire [LspMetaModel].
   LspMetaModel cleanModel(LspMetaModel model) {
@@ -86,11 +108,21 @@ class LspMetaModelCleaner {
       (match) => match.group(0)!.replaceAll('\n', ' '),
     );
 
-    // Strip any relative links that are intended for displaying online in the
-    // HTML spec.
+    // Replace any references to other types with a format that's valid for
+    // Dart.
     text = text.replaceAllMapped(
       _sourceCommentDocumentLinksPattern,
-      (match) => match.group(1)!,
+      (match) => '[${match.group(1)!}]',
+    );
+    text = text.replaceAllMapped(
+      _sourceCommentReferencesPattern,
+      (match) => '[${match.group(1)!}]',
+    );
+
+    // Replace any references to Thenable/Promise to Future.
+    text = text.replaceAllMapped(
+      _sourceCommentThenablePromisePattern,
+      (match) => '[Future]',
     );
 
     return text;

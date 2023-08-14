@@ -79,6 +79,7 @@ class DevCompilerTarget extends Target {
         'dart:isolate',
         'dart:js',
         'dart:js_interop',
+        'dart:js_interop_unsafe',
         'dart:js_util',
         'dart:math',
         'dart:typed_data',
@@ -102,6 +103,7 @@ class DevCompilerTarget extends Target {
         'dart:js_interop',
         'dart:math',
         'dart:svg',
+        'dart:typed_data',
         'dart:web_audio',
         'dart:web_gl',
         'dart:_foreign_helper',
@@ -145,7 +147,8 @@ class DevCompilerTarget extends Target {
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
       _allowedTestLibrary(importer) ||
       (importer.isScheme('package') &&
-          importer.path.startsWith('dart2js_runtime_metrics/'));
+          (importer.path.startsWith('dart2js_runtime_metrics/') ||
+              importer.path == 'js/js.dart'));
 
   @override
   bool get nativeExtensionExpectsString => false;
@@ -168,22 +171,25 @@ class DevCompilerTarget extends Target {
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
+    final jsInteropReporter = JsInteropDiagnosticReporter(
+        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
     var jsInteropChecks = JsInteropChecks(
-        coreTypes,
-        hierarchy,
-        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
-        _nativeClasses!);
+        coreTypes, hierarchy, jsInteropReporter, _nativeClasses!);
     // Process and validate first before doing anything with exports.
     for (var library in libraries) {
       jsInteropChecks.visitLibrary(library);
     }
     var exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
-        diagnosticReporter, jsInteropChecks.exportChecker);
+        jsInteropReporter, jsInteropChecks.exportChecker);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
+      // Export creator has static checks, so we still visit.
       exportCreator.visitLibrary(library);
-      jsUtilOptimizer.visitLibrary(library);
+      if (!jsInteropReporter.hasJsInteropErrors) {
+        // We can't guarantee calls are well-formed, so don't transform.
+        jsUtilOptimizer.visitLibrary(library);
+      }
     }
   }
 
@@ -238,7 +244,9 @@ class DevCompilerTarget extends Target {
         MapLiteral([
           for (var n in arguments.named)
             MapLiteralEntry(SymbolLiteral(n.name), n.value)
-        ], keyType: coreTypes.symbolLegacyRawType),
+        ], keyType: coreTypes.symbolLegacyRawType)
+      else
+        NullLiteral(),
     ];
     return createInvocation('method', ctorArgs);
   }

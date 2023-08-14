@@ -197,7 +197,7 @@ static constexpr intptr_t kFirstReference = 1;
 
 // Reference value for traced objects that have not been allocated their final
 // reference ID.
-static const intptr_t kUnallocatedReference = -1;
+static constexpr intptr_t kUnallocatedReference = -1;
 
 static constexpr bool IsAllocatedReference(intptr_t ref) {
   return ref > kUnreachableReference;
@@ -629,6 +629,7 @@ class Deserializer : public ThreadStackResource {
   // message otherwise.
   ApiErrorPtr VerifyImageAlignment();
 
+  ObjectPtr Allocate(intptr_t size);
   static void InitializeHeader(ObjectPtr raw,
                                intptr_t cid,
                                intptr_t size,
@@ -801,6 +802,8 @@ class Deserializer : public ThreadStackResource {
 
  private:
   Heap* heap_;
+  PageSpace* old_space_;
+  FreeList* freelist_;
   Zone* zone_;
   Snapshot::Kind kind_;
   ReadStream stream_;
@@ -820,7 +823,7 @@ class Deserializer : public ThreadStackResource {
 
 class FullSnapshotWriter {
  public:
-  static const intptr_t kInitialSize = 64 * KB;
+  static constexpr intptr_t kInitialSize = 64 * KB;
   FullSnapshotWriter(Snapshot::Kind kind,
                      NonStreamingWriteStream* vm_snapshot_data,
                      NonStreamingWriteStream* isolate_snapshot_data,

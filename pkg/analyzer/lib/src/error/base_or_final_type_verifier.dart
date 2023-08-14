@@ -203,7 +203,7 @@ class BaseOrFinalTypeVerifier {
           superElement.isSealed &&
           baseOrFinalSuperElement.library != element.library) {
         if (baseOrFinalSuperElement.isBase) {
-          var errorCode = baseOrFinalSuperElement is MixinElement
+          final errorCode = baseOrFinalSuperElement is MixinElement
               ? CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
               : CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY;
           _errorReporter.reportErrorForNode(
@@ -237,15 +237,23 @@ class BaseOrFinalTypeVerifier {
               return false;
             }
           }
+          final errorCode = element is MixinElement
+              ? CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE
+              : CompileTimeErrorCode
+                  .SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED;
           _errorReporter.reportErrorForElement(
-              CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+              errorCode,
               element,
               [element.displayName, baseOrFinalSuperElement.displayName],
               superElement.isSealed ? contextMessage : null);
           return true;
         } else if (baseOrFinalSuperElement.isBase) {
+          final errorCode = element is MixinElement
+              ? CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE
+              : CompileTimeErrorCode
+                  .SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED;
           _errorReporter.reportErrorForElement(
-              CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+              errorCode,
               element,
               [element.displayName, baseOrFinalSuperElement.displayName],
               superElement.isSealed ? contextMessage : null);

@@ -129,7 +129,7 @@ class StackTraceUtils : public AllStatic {
   /// From there on finds the closure of the async/async* frame and starts
   /// traversing the listeners.
   ///
-  /// If [on_sync_frames] is non-nullptr, it will be called for every
+  /// If [on_sync_frames] is non-null, it will be called for every
   /// synchronous frame which is collected.
   static void CollectFrames(
       Thread* thread,

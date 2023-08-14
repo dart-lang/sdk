@@ -16,7 +16,10 @@ class A {}
 main() {
   bool caught = false;
   try {
-    A.unknown = p(2); /*@compile-error=unspecified*/
+    A.unknown = p(2);
+    //^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
+    // [cfe] Setter not found: 'unknown'.
   } catch (_) {
     caught = true;
   }

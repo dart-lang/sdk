@@ -58,7 +58,7 @@ void main() async {
     Expect.isNull(e.errors[4]);
   }
 
-  // Alle errors.
+  // All errors.
   try {
     await errors.wait;
     Expect.fail("Didn't throw");

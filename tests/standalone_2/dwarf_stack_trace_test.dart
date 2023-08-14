@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-/// VMOptions=--dwarf-stack-traces --save-debugging-info=dwarf.so
+/// VMOptions=--dwarf-stack-traces --save-debugging-info=$TEST_COMPILATION_DIR/dwarf.so
 
 import 'dart:convert';
 import 'dart:io';
@@ -42,7 +42,8 @@ Future<void> main() async {
     return; // Generated dwarf.so not available on the test device.
   }
 
-  final dwarf = Dwarf.fromFile("dwarf.so");
+  final dwarf = Dwarf.fromFile(
+      path.join(Platform.environment['TEST_COMPILATION_DIR'], "dwarf.so"));
 
   await checkStackTrace(rawStack, dwarf, expectedCallsInfo);
 }

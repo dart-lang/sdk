@@ -19,10 +19,14 @@ class JSONStream;
 class JSONArray;
 #endif
 
-// Unordered collection of threads relating to a particular isolate.
+// Unordered collection of threads relating to a particular isolate group.
 class ThreadRegistry {
  public:
-  ThreadRegistry() : threads_lock_(), active_list_(NULL), free_list_(NULL) {}
+  ThreadRegistry()
+      : threads_lock_(),
+        active_list_(nullptr),
+        free_list_(nullptr),
+        active_isolates_count_(0) {}
   ~ThreadRegistry();
 
   void VisitObjectPointers(IsolateGroup* isolate_group_of_interest,
@@ -34,13 +38,17 @@ class ThreadRegistry {
   void AcquireMarkingStacks();
   void ReleaseMarkingStacks();
 
+  // Concurrent-approximate number of active isolates in the active_list
+  intptr_t active_isolates_count() { return active_isolates_count_.load(); }
+
+  Monitor* threads_lock() const { return &threads_lock_; }
+
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
 #endif
 
  private:
   Thread* active_list() const { return active_list_; }
-  Monitor* threads_lock() const { return &threads_lock_; }
 
   Thread* GetFreeThreadLocked(bool is_vm_isolate);
   void ReturnThreadLocked(Thread* thread);
@@ -54,9 +62,9 @@ class ThreadRegistry {
   mutable Monitor threads_lock_;
   Thread* active_list_;  // List of active threads in the isolate.
   Thread* free_list_;    // Free list of Thread objects that can be reused.
+  RelaxedAtomic<intptr_t> active_isolates_count_;
 
-  friend class Isolate;
-  friend class IsolateGroup;
+  friend class Thread;
   friend class SafepointHandler;
   friend class Scavenger;
   DISALLOW_COPY_AND_ASSIGN(ThreadRegistry);

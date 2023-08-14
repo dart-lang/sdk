@@ -11,12 +11,12 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/element_
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/expression.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/replaced_by.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
+import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -70,7 +70,7 @@ transforms:
     var components = modification.argumentValue!.components;
     expect(components, hasLength(1));
     var value = _accessor(components[0]) as ArgumentAccessor;
-    var parameter = value.parameter as PositionalParameterReference;
+    var parameter = value.parameter as PositionalFormalParameterReference;
     expect(parameter.index, 1);
   }
 
@@ -145,7 +145,7 @@ transforms:
     var components = modification.argumentValue!.components;
     expect(components, hasLength(1));
     var value = _accessor(components[0]) as ArgumentAccessor;
-    var parameter = value.parameter as PositionalParameterReference;
+    var parameter = value.parameter as PositionalFormalParameterReference;
     expect(parameter.index, 1);
   }
 
@@ -187,7 +187,7 @@ transforms:
     var components = modification.argumentValue!.components;
     expect(components, hasLength(1));
     var value = _accessor(components[0]) as ArgumentAccessor;
-    var parameter = value.parameter as PositionalParameterReference;
+    var parameter = value.parameter as PositionalFormalParameterReference;
     expect(parameter.index, 1);
   }
 
@@ -232,11 +232,11 @@ transforms:
     var components = modification.argumentValue!.components;
     expect(components, hasLength(4));
     var extractorA = _accessor(components[0]) as ArgumentAccessor;
-    var parameterA = extractorA.parameter as PositionalParameterReference;
+    var parameterA = extractorA.parameter as PositionalFormalParameterReference;
     expect(parameterA.index, 1);
     expect((components[1] as TemplateText).text, '(');
     var extractorB = _accessor(components[2]) as ArgumentAccessor;
-    var parameterB = extractorB.parameter as PositionalParameterReference;
+    var parameterB = extractorB.parameter as PositionalFormalParameterReference;
     expect(parameterB.index, 2);
     expect((components[3] as TemplateText).text, ')');
   }
@@ -314,7 +314,7 @@ transforms:
     var components = change.argumentValue.components;
     expect(components, hasLength(1));
     var value = _accessor(components[0]) as ArgumentAccessor;
-    var parameter = value.parameter as NamedParameterReference;
+    var parameter = value.parameter as NamedFormalParameterReference;
     expect(parameter.name, 'p');
   }
 
@@ -358,7 +358,7 @@ transforms:
     var argumentComponents = change.argumentValue.components;
     expect(argumentComponents, hasLength(1));
     var value = _accessor(argumentComponents[0]) as ArgumentAccessor;
-    var parameter = value.parameter as PositionalParameterReference;
+    var parameter = value.parameter as PositionalFormalParameterReference;
     expect(parameter.index, 2);
   }
 
@@ -402,7 +402,7 @@ transforms:
     var argumentComponents = change.argumentValue.components;
     expect(argumentComponents, hasLength(1));
     var value = _accessor(argumentComponents[0]) as ArgumentAccessor;
-    var parameter = value.parameter as PositionalParameterReference;
+    var parameter = value.parameter as PositionalFormalParameterReference;
     expect(parameter.index, 2);
   }
 
@@ -424,6 +424,115 @@ transforms:
     expect(transform.title, 'Rename g');
     expect(transform.bulkApply, false);
     expect(_changes(transform), isEmpty);
+  }
+
+  void test_changeParameterType_named_nullability() {
+    assertNoErrors('''
+version: 1
+transforms:
+- title: 'Change parameter type'
+  date: 2023-05-02
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'changeParameterType'
+      name: 'p'
+      nullability: 'non_null'
+      argumentValue:
+        expression: "'newValue'"
+''');
+    var transforms = _transforms('f');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Change parameter type');
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
+    var modifications = change.modifications;
+    expect(modifications, hasLength(1));
+    var modification = modifications[0] as ChangeParameterType;
+    var reference = modification.reference as NamedFormalParameterReference;
+    expect(reference.name, 'p');
+    var components = modification.argumentValue!.components;
+    expect(components, hasLength(1));
+    var value = (components[0] as TemplateText).text;
+    expect(value, "'newValue'");
+  }
+
+  void test_changeParameterType_nullabilityKey_absent() {
+    assertErrors('''
+version: 1
+transforms:
+- title: 'Change parameter type'
+  date: 2023-05-02
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'changeParameterType'
+      name: 'p'
+      argumentValue:
+        expression: "'newValue'"
+''', [
+      error(TransformSetErrorCode.missingKey, 145, 98),
+    ]);
+  }
+
+  void test_changeParameterType_oneOf_named_index_keys() {
+    assertErrors('''
+version: 1
+transforms:
+- title: 'Change parameter type'
+  date: 2023-05-02
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'changeParameterType'
+      name: 'p'
+      index: 0
+      nullability: 'non_null'
+      argumentValue:
+        expression: "'newValue'"
+''', [
+      error(TransformSetErrorCode.conflictingKey, 195, 5),
+    ]);
+  }
+
+  void test_changeParameterType_positional_nullability() {
+    assertNoErrors('''
+version: 1
+transforms:
+- title: 'Change parameter type'
+  date: 2023-05-02
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'changeParameterType'
+      index: 0
+      nullability: 'non_null'
+      argumentValue:
+        expression: "'newValue'"
+''');
+    var transforms = _transforms('f');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Change parameter type');
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
+    var modifications = change.modifications;
+    expect(modifications, hasLength(1));
+    var modification = modifications[0] as ChangeParameterType;
+    var reference =
+        modification.reference as PositionalFormalParameterReference;
+    expect(reference.index, 0);
+    var components = modification.argumentValue!.components;
+    expect(components, hasLength(1));
+    var value = (components[0] as TemplateText).text;
+    expect(value, "'newValue'");
   }
 
   void test_correctOffsetForPlainStrings() {
@@ -613,7 +722,7 @@ transforms:
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as RemoveParameter;
-    var parameter = modification.parameter as NamedParameterReference;
+    var parameter = modification.parameter as NamedFormalParameterReference;
     expect(parameter.name, 'p');
   }
 
@@ -640,7 +749,8 @@ transforms:
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as RemoveParameter;
-    var parameter = modification.parameter as PositionalParameterReference;
+    var parameter =
+        modification.parameter as PositionalFormalParameterReference;
     expect(parameter.index, 0);
   }
 
@@ -729,6 +839,41 @@ transforms:
     expect(newElement.components, ['m', 'C']);
   }
 
+  void test_replacedBy_target() {
+    assertNoErrors('''
+version: 1
+transforms:
+- title: 'Replace'
+  date: 2021-11-30
+  element:
+    uris: ['test.dart']
+    getter: 'f'
+    inClass: 'foo'
+  changes:
+    - kind: 'replacedBy'
+      replaceTarget: true
+      newElement:
+        uris: ['test.dart']
+        method: 'm'
+        inClass: 'C'
+      arguments: [
+        expression : 'context'
+      ]
+''');
+    var transforms = _transforms('f');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Replace');
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ReplacedBy;
+    var newElement = change.newElement;
+    expect(newElement.kind, ElementKind.methodKind);
+    expect(newElement.components, ['m', 'C']);
+    expect(change.replaceTarget, true);
+    expect(change.arguments, hasLength(1));
+  }
+
   void test_requiredIf() {
     assertNoErrors('''
 version: 1
@@ -770,7 +915,7 @@ transforms:
     var components = argumentValue.components;
     expect(components, hasLength(1));
     var value = _accessor(components[0]) as ArgumentAccessor;
-    var parameter = value.parameter as PositionalParameterReference;
+    var parameter = value.parameter as PositionalFormalParameterReference;
     expect(parameter.index, 1);
   }
 

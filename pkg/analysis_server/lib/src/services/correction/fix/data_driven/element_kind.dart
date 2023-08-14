@@ -22,34 +22,21 @@ enum ElementKind {
 extension ElementKindUtilities on ElementKind {
   /// Return a human readable name for the kind.
   String get displayName {
-    switch (this) {
-      case ElementKind.classKind:
-        return 'class';
-      case ElementKind.constantKind:
-        return 'constant';
-      case ElementKind.constructorKind:
-        return 'constructor';
-      case ElementKind.enumKind:
-        return 'enum';
-      case ElementKind.extensionKind:
-        return 'extension';
-      case ElementKind.fieldKind:
-        return 'field';
-      case ElementKind.functionKind:
-        return 'function';
-      case ElementKind.getterKind:
-        return 'getter';
-      case ElementKind.methodKind:
-        return 'method';
-      case ElementKind.mixinKind:
-        return 'mixin';
-      case ElementKind.setterKind:
-        return 'setter';
-      case ElementKind.typedefKind:
-        return 'typedef';
-      case ElementKind.variableKind:
-        return 'variable';
-    }
+    return switch (this) {
+      ElementKind.classKind => 'class',
+      ElementKind.constantKind => 'constant',
+      ElementKind.constructorKind => 'constructor',
+      ElementKind.enumKind => 'enum',
+      ElementKind.extensionKind => 'extension',
+      ElementKind.fieldKind => 'field',
+      ElementKind.functionKind => 'function',
+      ElementKind.getterKind => 'getter',
+      ElementKind.methodKind => 'method',
+      ElementKind.mixinKind => 'mixin',
+      ElementKind.setterKind => 'setter',
+      ElementKind.typedefKind => 'typedef',
+      ElementKind.variableKind => 'variable'
+    };
   }
 
   /// Return the element kind corresponding to the given [name].

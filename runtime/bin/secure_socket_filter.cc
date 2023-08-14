@@ -13,6 +13,7 @@
 #include "bin/lockers.h"
 #include "bin/secure_socket_utils.h"
 #include "bin/security_context.h"
+#include "bin/socket_base.h"
 #include "platform/syslog.h"
 #include "platform/text_buffer.h"
 
@@ -50,13 +51,13 @@ const intptr_t SSLFilter::kApproximateSize =
     sizeof(SSLFilter) + (2 * SSLFilter::kInternalBIOSize);
 
 static SSLFilter* GetFilter(Dart_NativeArguments args) {
-  SSLFilter* filter = NULL;
+  SSLFilter* filter = nullptr;
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
   ASSERT(Dart_IsInstance(dart_this));
   ThrowIfError(Dart_GetNativeInstanceField(
       dart_this, SSLFilter::kSSLFilterNativeFieldIndex,
       reinterpret_cast<intptr_t*>(&filter)));
-  if (filter == NULL) {
+  if (filter == nullptr) {
     Dart_PropagateError(Dart_NewUnhandledExceptionError(
         DartUtils::NewInternalError("No native peer")));
   }
@@ -69,7 +70,7 @@ static void DeleteFilter(void* isolate_data, void* context_pointer) {
 }
 
 static Dart_Handle SetFilter(Dart_NativeArguments args, SSLFilter* filter) {
-  ASSERT(filter != NULL);
+  ASSERT(filter != nullptr);
   Dart_Handle dart_this = Dart_GetNativeArgument(args, 0);
   RETURN_IF_ERROR(dart_this);
   ASSERT(Dart_IsInstance(dart_this));
@@ -109,11 +110,11 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
       DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 5));
   Dart_Handle protocols_handle = ThrowIfError(Dart_GetNativeArgument(args, 6));
 
-  const char* host_name = NULL;
+  const char* host_name = nullptr;
   // TODO(whesse): Is truncating a Dart string containing \0 what we want?
   ThrowIfError(Dart_StringToCString(host_name_object, &host_name));
 
-  SSLCertContext* context = NULL;
+  SSLCertContext* context = nullptr;
   if (!Dart_IsNull(context_object)) {
     ThrowIfError(Dart_GetNativeInstanceField(
         context_object, SSLCertContext::kSecurityContextNativeFieldIndex,
@@ -349,15 +350,15 @@ Dart_Handle SSLFilter::Init(Dart_Handle dart_this) {
   if (!library_initialized_) {
     InitializeLibrary();
   }
-  ASSERT(string_start_ == NULL);
+  ASSERT(string_start_ == nullptr);
   string_start_ = Dart_NewPersistentHandle(DartUtils::NewString("start"));
-  ASSERT(string_start_ != NULL);
-  ASSERT(string_length_ == NULL);
+  ASSERT(string_start_ != nullptr);
+  ASSERT(string_length_ == nullptr);
   string_length_ = Dart_NewPersistentHandle(DartUtils::NewString("length"));
-  ASSERT(string_length_ != NULL);
-  ASSERT(bad_certificate_callback_ == NULL);
+  ASSERT(string_length_ != nullptr);
+  ASSERT(bad_certificate_callback_ == nullptr);
   bad_certificate_callback_ = Dart_NewPersistentHandle(Dart_Null());
-  ASSERT(bad_certificate_callback_ != NULL);
+  ASSERT(bad_certificate_callback_ != nullptr);
   // Caller handles cleanup on an error.
   return InitializeBuffers(dart_this);
 }
@@ -406,9 +407,9 @@ Dart_Handle SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
   for (int i = 0; i < kNumBuffers; i++) {
     int size = IsBufferEncrypted(i) ? encrypted_buffer_size_ : buffer_size_;
     buffers_[i] = new uint8_t[size];
-    ASSERT(buffers_[i] != NULL);
+    ASSERT(buffers_[i] != nullptr);
     memset(buffers_[i], 0, size);
-    dart_buffer_objects_[i] = NULL;
+    dart_buffer_objects_[i] = nullptr;
   }
 
   Dart_Handle result = Dart_Null();
@@ -420,7 +421,7 @@ Dart_Handle SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
     }
 
     dart_buffer_objects_[i] = Dart_NewPersistentHandle(result);
-    ASSERT(dart_buffer_objects_[i] != NULL);
+    ASSERT(dart_buffer_objects_[i] != nullptr);
     Dart_Handle data =
         Dart_NewExternalTypedData(Dart_TypedData_kUint8, buffers_[i], size);
     if (Dart_IsError(data)) {
@@ -442,22 +443,22 @@ Dart_Handle SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
 }
 
 void SSLFilter::RegisterHandshakeCompleteCallback(Dart_Handle complete) {
-  ASSERT(NULL == handshake_complete_);
+  ASSERT(nullptr == handshake_complete_);
   handshake_complete_ = Dart_NewPersistentHandle(complete);
 
-  ASSERT(handshake_complete_ != NULL);
+  ASSERT(handshake_complete_ != nullptr);
 }
 
 void SSLFilter::RegisterBadCertificateCallback(Dart_Handle callback) {
-  ASSERT(bad_certificate_callback_ != NULL);
+  ASSERT(bad_certificate_callback_ != nullptr);
   Dart_DeletePersistentHandle(bad_certificate_callback_);
   bad_certificate_callback_ = Dart_NewPersistentHandle(callback);
-  ASSERT(bad_certificate_callback_ != NULL);
+  ASSERT(bad_certificate_callback_ != nullptr);
 }
 
 Dart_Handle SSLFilter::PeerCertificate() {
   X509* ca = SSL_get_peer_certificate(ssl_);
-  if (ca == NULL) {
+  if (ca == nullptr) {
     return Dart_Null();
   }
   return X509Helper::WrappedX509Certificate(ca);
@@ -471,9 +472,11 @@ void SSLFilter::InitializeLibrary() {
   MutexLocker locker(mutex_);
   if (!library_initialized_) {
     SSL_library_init();
-    filter_ssl_index = SSL_get_ex_new_index(0, NULL, NULL, NULL, NULL);
+    filter_ssl_index =
+        SSL_get_ex_new_index(0, nullptr, nullptr, nullptr, nullptr);
     ASSERT(filter_ssl_index >= 0);
-    ssl_cert_context_index = SSL_get_ex_new_index(0, NULL, NULL, NULL, NULL);
+    ssl_cert_context_index =
+        SSL_get_ex_new_index(0, nullptr, nullptr, nullptr, nullptr);
     ASSERT(ssl_cert_context_index >= 0);
     library_initialized_ = true;
   }
@@ -498,8 +501,8 @@ void SSLFilter::Connect(const char* hostname,
   SecureSocketUtils::CheckStatusSSL(status, "TlsException", "BIO_new_bio_pair",
                                     ssl_);
 
-  ASSERT(context != NULL);
-  ASSERT(context->context() != NULL);
+  ASSERT(context != nullptr);
+  ASSERT(context->context() != nullptr);
   ssl_ = SSL_new(context->context());
   SSL_set_bio(ssl_, ssl_side, ssl_side);
   SSL_set_mode(ssl_, SSL_MODE_AUTO_RETRY);  // TODO(whesse): Is this right?
@@ -524,9 +527,9 @@ void SSLFilter::Connect(const char* hostname,
     if (require_client_certificate) {
       certificate_mode |= SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
     }
-    SSL_set_verify(ssl_, certificate_mode, NULL);
+    SSL_set_verify(ssl_, certificate_mode, nullptr);
   } else {
-    SSLCertContext::SetAlpnProtocolList(protocols_handle, ssl_, NULL, false);
+    SSLCertContext::SetAlpnProtocolList(protocols_handle, ssl_, nullptr, false);
     status = SSL_set_tlsext_host_name(ssl_, hostname);
     SecureSocketUtils::CheckStatusSSL(status, "TlsException",
                                       "Set SNI host name", ssl_);
@@ -538,8 +541,16 @@ void SSLFilter::Connect(const char* hostname,
         certificate_checking_parameters,
         X509_V_FLAG_PARTIAL_CHAIN | X509_V_FLAG_TRUSTED_FIRST);
     X509_VERIFY_PARAM_set_hostflags(certificate_checking_parameters, 0);
-    status = X509_VERIFY_PARAM_set1_host(certificate_checking_parameters,
-                                         hostname_, strlen(hostname_));
+
+    // Use different check depending on whether the hostname is an IP address
+    // or a DNS name.
+    if (SocketBase::IsValidAddress(hostname_)) {
+      status = X509_VERIFY_PARAM_set1_ip_asc(certificate_checking_parameters,
+                                             hostname_);
+    } else {
+      status = X509_VERIFY_PARAM_set1_host(certificate_checking_parameters,
+                                           hostname_, strlen(hostname_));
+    }
     SecureSocketUtils::CheckStatusSSL(
         status, "TlsException", "Set hostname for certificate checking", ssl_);
   }
@@ -600,7 +611,7 @@ int SSLFilter::Handshake(Dart_Port reply_port) {
   if (error == SSL_ERROR_WANT_CERTIFICATE_VERIFY) {
     return SSL_ERROR_WANT_CERTIFICATE_VERIFY;
   }
-  if (callback_error != NULL) {
+  if (callback_error != nullptr) {
     // The SSL_do_handshake will try performing a handshake and might call one
     // or both of:
     //   SSLCertContext::KeyLogCallback
@@ -627,7 +638,7 @@ int SSLFilter::Handshake(Dart_Port reply_port) {
     if (SSL_LOG_STATUS) {
       Syslog::Print("Handshake verification status: %d\n", result);
       X509* peer_certificate = SSL_get_peer_certificate(ssl_);
-      if (peer_certificate == NULL) {
+      if (peer_certificate == nullptr) {
         Syslog::Print("No peer certificate received\n");
       } else {
         X509_NAME* s_name = X509_get_subject_name(peer_certificate);
@@ -637,7 +648,7 @@ int SSLFilter::Handshake(Dart_Port reply_port) {
       }
     }
     ThrowIfError(Dart_InvokeClosure(
-        Dart_HandleFromPersistent(handshake_complete_), 0, NULL));
+        Dart_HandleFromPersistent(handshake_complete_), 0, nullptr));
     in_handshake_ = false;
   }
 
@@ -656,22 +667,22 @@ void SSLFilter::GetSelectedProtocol(Dart_NativeArguments args) {
 }
 
 void SSLFilter::FreeResources() {
-  if (ssl_ != NULL) {
+  if (ssl_ != nullptr) {
     SSL_free(ssl_);
-    ssl_ = NULL;
+    ssl_ = nullptr;
   }
-  if (socket_side_ != NULL) {
+  if (socket_side_ != nullptr) {
     BIO_free(socket_side_);
-    socket_side_ = NULL;
+    socket_side_ = nullptr;
   }
-  if (hostname_ != NULL) {
+  if (hostname_ != nullptr) {
     free(hostname_);
-    hostname_ = NULL;
+    hostname_ = nullptr;
   }
   for (int i = 0; i < kNumBuffers; ++i) {
-    if (buffers_[i] != NULL) {
+    if (buffers_[i] != nullptr) {
       delete[] buffers_[i];
-      buffers_[i] = NULL;
+      buffers_[i] = nullptr;
     }
   }
 }
@@ -682,26 +693,26 @@ SSLFilter::~SSLFilter() {
 
 void SSLFilter::Destroy() {
   for (int i = 0; i < kNumBuffers; ++i) {
-    if (dart_buffer_objects_[i] != NULL) {
+    if (dart_buffer_objects_[i] != nullptr) {
       Dart_DeletePersistentHandle(dart_buffer_objects_[i]);
-      dart_buffer_objects_[i] = NULL;
+      dart_buffer_objects_[i] = nullptr;
     }
   }
-  if (string_start_ != NULL) {
+  if (string_start_ != nullptr) {
     Dart_DeletePersistentHandle(string_start_);
-    string_start_ = NULL;
+    string_start_ = nullptr;
   }
-  if (string_length_ != NULL) {
+  if (string_length_ != nullptr) {
     Dart_DeletePersistentHandle(string_length_);
-    string_length_ = NULL;
+    string_length_ = nullptr;
   }
-  if (handshake_complete_ != NULL) {
+  if (handshake_complete_ != nullptr) {
     Dart_DeletePersistentHandle(handshake_complete_);
-    handshake_complete_ = NULL;
+    handshake_complete_ = nullptr;
   }
-  if (bad_certificate_callback_ != NULL) {
+  if (bad_certificate_callback_ != nullptr) {
     Dart_DeletePersistentHandle(bad_certificate_callback_);
-    bad_certificate_callback_ = NULL;
+    bad_certificate_callback_ = nullptr;
   }
   if (trust_evaluate_reply_port_ != ILLEGAL_PORT) {
     Dart_CloseNativePort(trust_evaluate_reply_port_);

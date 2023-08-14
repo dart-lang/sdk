@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart'
-    show AnalysisServer, MessageType;
+    show AnalysisServer, MessageType, OpenUriNotificationSender;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
@@ -104,7 +104,11 @@ class DartFixPromptManager {
 
     // Assign a new token for this check.
     final token = _inProgressCheckCancellationToken = CancelableToken();
+    final sw = Stopwatch()..start();
     final fixesAvailable = await bulkFixesAvailable(token);
+    sw.stop();
+    server.instrumentationService.logInfo(
+        'Checking whether to prompt about "dart fix" took ${sw.elapsed}');
 
     // If we were cancelled since the last cancellation check inside
     // bulkFixesAvailable, still return false because another check is now in
@@ -113,7 +117,9 @@ class DartFixPromptManager {
   }
 
   @visibleForTesting
-  Future<void> showPrompt() async {
+  Future<void> showPrompt({
+    required OpenUriNotificationSender openUriNotificationSender,
+  }) async {
     _hasPromptedThisSession = true;
 
     // Note: It's possible the user never responds to this until we shut down
@@ -129,11 +135,9 @@ class DartFixPromptManager {
 
     switch (response) {
       case learnMoreActionText:
-        _handleLearnMore();
-        break;
+        openUriNotificationSender(learnMoreUri);
       case doNotShowAgainActionText:
         preferences.showDartFixPrompts = false;
-        break;
       default:
       // User closed prompt without clicking a button, or request failed
       // due to shutdown. Do nothing.
@@ -155,19 +159,17 @@ class DartFixPromptManager {
     );
   }
 
-  void _handleLearnMore() {
-    server.sendOpenUriNotification(learnMoreUri);
-  }
-
   /// Performs a check to see if "dart fix" may be able to fix diagnostics in
   /// the project and if so, prompts the user.
   ///
   /// The check/prompt may be skipped if not supported or the check has been run
   /// recently. If an existing check is in-progress, it will be aborted.
   Future<void> _performCheckAndPrompt() async {
+    final openUriNotificationSender = server.openUriNotificationSender;
+
     if (_hasPromptedThisSession ||
         !server.supportsShowMessageRequest ||
-        !server.supportsOpenUriNotification ||
+        openUriNotificationSender == null ||
         !preferences.showDartFixPrompts) {
       return;
     }
@@ -188,6 +190,8 @@ class DartFixPromptManager {
       return;
     }
 
-    await showPrompt();
+    await showPrompt(
+      openUriNotificationSender: openUriNotificationSender,
+    );
   }
 }

@@ -43,6 +43,7 @@ uword VirtualMemory::page_size_ = 0;
 static zx_handle_t compressed_heap_vmar_ = ZX_HANDLE_INVALID;
 static uword compressed_heap_base_ = 0;
 #endif  // defined(DART_COMPRESSED_POINTERS)
+static zx_handle_t vmex_resource_ = ZX_HANDLE_INVALID;
 
 intptr_t VirtualMemory::CalculatePageSize() {
   const intptr_t page_size = getpagesize();
@@ -51,7 +52,7 @@ intptr_t VirtualMemory::CalculatePageSize() {
   return page_size;
 }
 
-void VirtualMemory::Init() {
+void VirtualMemory::Init(zx_handle_t vmex_resource) {
   if (FLAG_old_gen_heap_size < 0 || FLAG_old_gen_heap_size > kMaxAddrSpaceMB) {
     OS::PrintErr(
         "warning: value specified for --old_gen_heap_size %d is larger than"
@@ -89,9 +90,13 @@ void VirtualMemory::Init() {
 #endif  // defined(DART_COMPRESSED_POINTERS)
 
   page_size_ = CalculatePageSize();
+  vmex_resource_ = vmex_resource;
 }
 
 void VirtualMemory::Cleanup() {
+  vmex_resource_ = ZX_HANDLE_INVALID;
+  page_size_ = 0;
+
 #if defined(DART_COMPRESSED_POINTERS)
   zx_vmar_destroy(compressed_heap_vmar_);
   compressed_heap_vmar_ = ZX_HANDLE_INVALID;
@@ -166,22 +171,22 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   if (status != ZX_OK) {
     LOG_ERR("zx_vmo_create(0x%lx) failed: %s\n", size,
             zx_status_get_string(status));
-    return NULL;
+    return nullptr;
   }
 
-  if (name != NULL) {
+  if (name != nullptr) {
     zx_object_set_property(vmo, ZX_PROP_NAME, name, strlen(name));
   }
 
   if (is_executable) {
     // Add ZX_RIGHT_EXECUTE permission to VMO, so it can be mapped
     // into memory as executable (now or later).
-    status = zx_vmo_replace_as_executable(vmo, ZX_HANDLE_INVALID, &vmo);
+    status = zx_vmo_replace_as_executable(vmo, vmex_resource_, &vmo);
     if (status != ZX_OK) {
       LOG_ERR("zx_vmo_replace_as_executable() failed: %s\n",
               zx_status_get_string(status));
       zx_handle_close(vmo);
-      return NULL;
+      return nullptr;
     }
   }
 
@@ -195,7 +200,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     LOG_ERR("zx_vmar_map(%u, 0x%lx, 0x%lx) failed: %s\n", region_options, base,
             size, zx_status_get_string(status));
     zx_handle_close(vmo);
-    return NULL;
+    return nullptr;
   }
   void* region_ptr = reinterpret_cast<void*>(base);
   MemoryRegion region(region_ptr, size);
@@ -214,7 +219,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
               size, zx_status_get_string(status));
       const uword region_base = reinterpret_cast<uword>(region_ptr);
       Unmap(vmar, region_base, region_base + size);
-      return NULL;
+      return nullptr;
     }
     void* alias_ptr = reinterpret_cast<void*>(base);
     ASSERT(region_ptr != alias_ptr);
@@ -263,7 +268,7 @@ bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
-  ASSERT(thread == nullptr || thread->IsMutatorThread() ||
+  ASSERT(thread == nullptr || thread->IsDartMutatorThread() ||
          thread->isolate() == nullptr ||
          thread->isolate()->mutator_thread()->IsAtSafepoint());
 #endif

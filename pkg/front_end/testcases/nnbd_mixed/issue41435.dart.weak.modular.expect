@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "issue41435_lib.dart" as iss;
 
@@ -14,7 +14,7 @@ static method main() → void {
   iss::f = (Never* x) → Null {};
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as iss;
 import "dart:core" as core;
 

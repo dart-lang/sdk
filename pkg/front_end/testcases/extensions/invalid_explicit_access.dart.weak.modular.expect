@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -142,11 +142,11 @@ extension GenericExtension<T extends core::Object? = dynamic> on self::GenericCl
   method method = self::GenericExtension|method;
   tearoff method = self::GenericExtension|get#method;
 }
-static method Extension|method(lowered final self::Class #this, dynamic a) → dynamic {}
-static method Extension|get#method(lowered final self::Class #this) → (dynamic) → dynamic
+static extension-member method Extension|method(lowered final self::Class #this, dynamic a) → dynamic {}
+static extension-member method Extension|get#method(lowered final self::Class #this) → (dynamic) → dynamic
   return (dynamic a) → dynamic => self::Extension|method(#this, a);
-static method GenericExtension|method<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|method::T%> #this) → dynamic {}
-static method GenericExtension|get#method<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#method::T%> #this) → () → dynamic
+static extension-member method GenericExtension|method<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|method::T%> #this) → dynamic {}
+static extension-member method GenericExtension|get#method<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#method::T%> #this) → () → dynamic
   return () → dynamic => self::GenericExtension|method<self::GenericExtension|get#method::T%>(#this);
 static method main() → dynamic {
   core::String s = "";
@@ -169,7 +169,7 @@ static method main() → dynamic {
   self::Extension|method(invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:28:13: Error: The argument type 'String' can't be assigned to the parameter type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
   Extension(s).method(null);
-            ^" in s as{TypeError,ForNonNullableByDefault} self::Class, null);
+            ^" in s as{TypeError} self::Class, null);
   invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:29:17: Error: Member not found: 'foo'.
   Extension(c1).foo;
                 ^^^";
@@ -226,9 +226,9 @@ Try removing the extra positional arguments.
   self::GenericExtension|method<dynamic>(invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:51:20: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<dynamic>'.
  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
   GenericExtension(s).method();
-                   ^" in s as{TypeError,ForNonNullableByDefault} self::GenericClass<dynamic>);
+                   ^" in s as{TypeError} self::GenericClass<dynamic>);
   self::GenericExtension|method<core::int>(invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:52:25: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<int>'.
  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
   GenericExtension<int>(s).method();
-                        ^" in s as{TypeError,ForNonNullableByDefault} self::GenericClass<core::int>);
+                        ^" in s as{TypeError} self::GenericClass<core::int>);
 }

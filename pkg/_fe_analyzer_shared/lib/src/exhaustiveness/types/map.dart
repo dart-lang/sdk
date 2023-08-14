@@ -30,7 +30,7 @@ class MapPatternStaticType<Type extends Object>
   }
 
   @override
-  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+  void witnessToDart(DartTemplateBuffer buffer, PropertyWitness witness,
       Map<Key, PropertyWitness> witnessFields,
       {required bool forCorrection}) {
     buffer.write('{');
@@ -41,7 +41,7 @@ class MapPatternStaticType<Type extends Object>
       buffer.write(': ');
       PropertyWitness? witness = witnessFields[key];
       if (witness != null) {
-        witness.witnessToText(buffer, forCorrection: forCorrection);
+        witness.witnessToDart(buffer, forCorrection: forCorrection);
       } else {
         buffer.write('_');
       }
@@ -65,7 +65,7 @@ class MapPatternStaticType<Type extends Object>
         buffer.write(key.name);
         buffer.write(': ');
         PropertyWitness field = entry.value;
-        field.witnessToText(buffer, forCorrection: forCorrection);
+        field.witnessToDart(buffer, forCorrection: forCorrection);
       }
     }
     buffer.write(additionalEnd);

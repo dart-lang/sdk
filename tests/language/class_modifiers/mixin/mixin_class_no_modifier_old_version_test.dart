@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=class-modifiers
-
 // Allow mixing in a class outside of library when the version of the
 // library of the class being mixed-in is older than the version that
 // `class-modifier` is being shipped in.

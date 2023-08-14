@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -40,10 +40,9 @@ class C3 extends core::Object {
     ;
 }
 class A<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::a, self::A::b, self::A::c]/*isLegacy*/;
   constructor internal() → self::A<self::A::T%>
     ;
-  static factory a<T extends core::Object? = dynamic>() → self::A<self::A::a::T%>
+  static factory a<T extends core::Object? = dynamic>() → self::A<self::A::a::T%> /* redirection-target: self::B::a<self::A::a::T%>*/
     return self::B::a<self::A::a::T%>();
   static factory b<T extends core::Object? = dynamic>() → self::A<self::A::b::T%>
     return invalid-expression "pkg/front_end/testcases/rasta/generic_factory.dart:15:19: Error: The constructor function type 'B<C1> Function()' isn't a subtype of 'A<T> Function()'.
@@ -58,10 +57,9 @@ class A<T extends core::Object? = dynamic> extends core::Object {
                   ^";
 }
 class B<S extends core::Object? = dynamic> extends self::A<self::B::S%> {
-  static final field dynamic _redirecting# = <dynamic>[self::B::a, self::B::b]/*isLegacy*/;
   constructor internal() → self::B<self::B::S%>
     ;
-  static factory a<S extends core::Object? = dynamic>() → self::B<self::B::a::S%>
+  static factory a<S extends core::Object? = dynamic>() → self::B<self::B::a::S%> /* redirection-target: self::C::•<self::B::a::S%>*/
     return new self::C::•<self::B::a::S%>();
   static factory b<S extends core::Object? = dynamic>() → self::B<self::B::b::S%>
     return invalid-expression "pkg/front_end/testcases/rasta/generic_factory.dart:23:19: Error: The constructor function type 'C<C2> Function()' isn't a subtype of 'B<S> Function()'.
@@ -77,12 +75,3 @@ class C<U extends core::Object? = dynamic> extends self::B<self::C::U%> {
 }
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_factory.dart:11:7 -> ConstructorTearOffConstant(A.a)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_factory.dart:11:7 -> ConstructorTearOffConstant(A.b)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_factory.dart:11:7 -> ConstructorTearOffConstant(A.c)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_factory.dart:19:7 -> ConstructorTearOffConstant(B.a)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_factory.dart:19:7 -> ConstructorTearOffConstant(B.b)
-Extra constant evaluation: evaluated: 9, effectively constant: 5

@@ -279,7 +279,7 @@ void Function::AddFunctionServiceId(const JSONObject& jsobj) const {
   Class& cls = Class::Handle(Owner());
   // Special kinds of functions use indices in their respective lists.
   intptr_t id = -1;
-  const char* selector = NULL;
+  const char* selector = nullptr;
   // Regular functions known to their owner use their name (percent-encoded).
   String& name = String::Handle(this->name());
 
@@ -307,7 +307,7 @@ void Function::AddFunctionServiceId(const JSONObject& jsobj) const {
     return;
   }
   if (id != -1) {
-    ASSERT(selector != NULL);
+    ASSERT(selector != nullptr);
     if (cls.IsTopLevel()) {
       const auto& library = Library::Handle(cls.library());
       const auto& private_key = String::Handle(library.private_key());
@@ -1464,22 +1464,6 @@ void RecordType::PrintJSONImpl(JSONStream* stream, bool ref) const {
 void RecordType::PrintImplementationFieldsImpl(
     const JSONArray& jsarr_fields) const {}
 
-void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  PrintSharedInstanceJSON(&jsobj, ref);
-  jsobj.AddProperty("kind", "TypeRef");
-  const String& user_name = String::Handle(UserVisibleName());
-  const String& vm_name = String::Handle(Name());
-  AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());
-  if (ref) {
-    return;
-  }
-  jsobj.AddProperty("targetType", AbstractType::Handle(type()));
-}
-
-void TypeRef::PrintImplementationFieldsImpl(
-    const JSONArray& jsarr_fields) const {}
-
 void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
@@ -1488,8 +1472,7 @@ void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& vm_name = String::Handle(Name());
   AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());
   // TODO(regis): parameterizedClass is meaningless and always null.
-  const Class& param_cls = Class::Handle(parameterized_class());
-  jsobj.AddProperty("parameterizedClass", param_cls);
+  jsobj.AddProperty("parameterizedClass", Object::null_class());
   if (ref) {
     return;
   }

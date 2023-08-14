@@ -361,9 +361,12 @@ abstract class TracerVisitor implements TypeInformationVisitor {
           if (user is RecordFieldAccessTypeInformation) {
             final getterIndex =
                 record.recordShape.indexOfGetterName(user.getterName);
-            if (user.receiver != flow ||
-                record.fieldTypes.indexOf(currentUser!) != getterIndex) return;
-            addNewEscapeInformation(user);
+            if (user.receiver == flow &&
+                getterIndex >= 0 &&
+                getterIndex < record.fieldTypes.length &&
+                record.fieldTypes[getterIndex] == currentUser) {
+              addNewEscapeInformation(user);
+            }
           }
         });
       });
@@ -511,9 +514,15 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
     final user = currentUser;
     if (user is MemberTypeInformation) {
-      if (info.concreteTargets.contains(user.member)) {
-        addNewEscapeInformation(info);
+      bool checkMember(MemberEntity member) {
+        if (member == user.member) {
+          addNewEscapeInformation(info);
+          return false;
+        }
+        return true;
       }
+
+      info.forEachConcreteTarget(inferrer.memberHierarchyBuilder, checkMember);
     }
   }
 
@@ -591,5 +600,10 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       return;
     }
     addNewEscapeInformation(info);
+  }
+
+  bool dynamicCallTargetsNonFunction(DynamicCallSiteTypeInformation info) {
+    return info.targets.any((target) => inferrer.memberHierarchyBuilder
+        .anyTargetMember(target, (element) => !element.isFunction));
   }
 }

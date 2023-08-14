@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
@@ -106,9 +106,9 @@ static method isNotNullOptOut2(core::int* i) → dynamic
   ;
 static method ifNullOptOut(core::int* i) → dynamic
   ;
-static method OptOutExtension|[](lowered final self::OptOutClass1* #this, core::int* index) → core::int*
+static extension-member method OptOutExtension|[](lowered final self::OptOutClass1* #this, core::int* index) → core::int*
   ;
-static method OptOutExtension|[]=(lowered final self::OptOutClass1* #this, core::int* index, core::int* value) → void
+static extension-member method OptOutExtension|[]=(lowered final self::OptOutClass1* #this, core::int* index, core::int* value) → void
   ;
 static method extensionIfNullOptOut1(core::int* i) → dynamic
   ;
@@ -149,7 +149,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic
 static method throws(() →* void f, [(core::Object*) →* core::bool* testException]) → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 
@@ -225,9 +225,9 @@ static method isNotNullOptIn2(core::int i) → dynamic
   ;
 static method ifNullOptIn(core::int i) → dynamic
   ;
-static method OptInExtension|[](lowered final self2::OptInClass1 #this, core::int index) → core::int
+static extension-member method OptInExtension|[](lowered final self2::OptInClass1 #this, core::int index) → core::int
   ;
-static method OptInExtension|[]=(lowered final self2::OptInClass1 #this, core::int index, core::int value) → void
+static extension-member method OptInExtension|[]=(lowered final self2::OptInClass1 #this, core::int index, core::int value) → void
   ;
 static method extensionIfNullOptIn1(core::int i) → dynamic
   ;

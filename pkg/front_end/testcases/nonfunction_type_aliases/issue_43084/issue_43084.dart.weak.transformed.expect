@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "issue_43084_lib.dart" as iss;
 import "dart:core" as core;
@@ -10,7 +10,7 @@ static method main() → dynamic {
   core::print(x);
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as iss;
 import "dart:core" as core;
 

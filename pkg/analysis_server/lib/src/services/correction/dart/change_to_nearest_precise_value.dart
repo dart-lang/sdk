@@ -4,13 +4,12 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ChangeToNearestPreciseValue extends CorrectionProducer {
+class ChangeToNearestPreciseValue extends ResolvedCorrectionProducer {
   /// The value to which the code will be changed.
   String _correction = '';
 

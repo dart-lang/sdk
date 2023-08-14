@@ -58,7 +58,7 @@ class _SingleIsolatedMacroExecutor extends ExternalMacroExecutorBase {
       if (!sendPortCompleter.isCompleted) {
         sendPortCompleter.complete(message as SendPort);
       } else {
-        if (serializationMode == SerializationMode.byteDataServer) {
+        if (serializationMode == SerializationMode.byteData) {
           message =
               (message as TransferableTypedData).materialize().asUint8List();
         }
@@ -83,7 +83,7 @@ class _SingleIsolatedMacroExecutor extends ExternalMacroExecutorBase {
   /// [TransferableTypedData] object.
   @override
   void sendResult(Serializer serializer) {
-    if (serializationMode == SerializationMode.byteDataServer) {
+    if (serializationMode == SerializationMode.byteData) {
       sendPort.send(
           new TransferableTypedData.fromList([serializer.result as Uint8List]));
     } else {

@@ -17,7 +17,7 @@
 namespace dart {
 
 #define SERVICE_PROTOCOL_MAJOR_VERSION 4
-#define SERVICE_PROTOCOL_MINOR_VERSION 4
+#define SERVICE_PROTOCOL_MINOR_VERSION 10
 
 class Array;
 class EmbedderServiceHandler;
@@ -209,7 +209,7 @@ class Service : public AllStatic {
   static void SetDartLibraryKernelForSources(const uint8_t* kernel_bytes,
                                              intptr_t kernel_length);
   static bool HasDartLibraryKernelForSources() {
-    return (dart_library_kernel_ != NULL);
+    return (dart_library_kernel_ != nullptr);
   }
 
   static const uint8_t* dart_library_kernel() { return dart_library_kernel_; }
@@ -241,13 +241,15 @@ class Service : public AllStatic {
                         uint8_t* bytes,
                         intptr_t bytes_length);
 
-  static void PostEvent(Isolate* isolate,
+  static void PostEvent(IsolateGroup* isolate_group,
+                        Isolate* isolate,
                         const char* stream_id,
                         const char* kind,
                         JSONStream* event,
                         bool enter_safepoint);
 
-  static void PostEventImpl(Isolate* isolate,
+  static void PostEventImpl(IsolateGroup* isolate_group,
+                            Isolate* isolate,
                             const char* stream_id,
                             const char* kind,
                             JSONStream* event);

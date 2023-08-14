@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -1579,13 +1578,13 @@ Function<A>(core.List<core.int> x) m() => null;
     var parameter = parameters[0] as SimpleFormalParameter;
     expect(parameter.name, isNull);
     expect(parameter.type, isNamedType);
-    expect((parameter.type as NamedType).name.name, 'int');
+    expect((parameter.type as NamedType).name2.lexeme, 'int');
 
     expect(parameters[1], isSimpleFormalParameter);
     parameter = parameters[1] as SimpleFormalParameter;
     expect(parameter.name, isNull);
     expect(parameter.type, isNamedType);
-    expect((parameter.type as NamedType).name.name, 'int');
+    expect((parameter.type as NamedType).name2.lexeme, 'int');
   }
 
   void test_parseTypeAnnotation_function_noReturnType_typeParameters() {
@@ -1665,14 +1664,14 @@ Function<A>(core.List<core.int> x) m() => null;
     expect(parameter.name, isNotNull);
     expect(parameter.name!.lexeme, 's');
     expect(parameter.type, isNamedType);
-    expect((parameter.type as NamedType).name.name, 'String');
+    expect((parameter.type as NamedType).name2.lexeme, 'String');
 
     expect(parameters[1], isSimpleFormalParameter);
     parameter = parameters[1] as SimpleFormalParameter;
     expect(parameter.name, isNotNull);
     expect(parameter.name!.lexeme, 'i');
     expect(parameter.type, isNamedType);
-    expect((parameter.type as NamedType).name.name, 'int');
+    expect((parameter.type as NamedType).name2.lexeme, 'int');
   }
 
   void test_parseTypeAnnotation_function_returnType_simple() {
@@ -1828,7 +1827,7 @@ Function<A>(core.List<core.int> x) m() => null;
     NamedType namedType = parser.parseTypeName(false);
     expectNotNullIfNoErrors(namedType);
     assertNoErrors();
-    expect(namedType.name, isNotNull);
+    expect(namedType.name2, isNotNull);
     expect(namedType.typeArguments, isNotNull);
   }
 
@@ -1837,7 +1836,7 @@ Function<A>(core.List<core.int> x) m() => null;
     NamedType namedType = parser.parseTypeName(false);
     expectNotNullIfNoErrors(namedType);
     assertNoErrors();
-    expect(namedType.name, isNotNull);
+    expect(namedType.name2, isNotNull);
     expect(namedType.typeArguments, isNull);
   }
 
@@ -1922,13 +1921,13 @@ Function<A>(core.List<core.int> x) m() => null;
     TypeParameter typeParameter = parameterList.typeParameters[0];
     expect(typeParameter.name.lexeme, 'A');
     var bound = typeParameter.bound as NamedType;
-    expect(bound.name.name, 'B');
+    expect(bound.name2.lexeme, 'B');
     var typeArguments = bound.typeArguments!;
     expect(typeArguments.arguments, hasLength(1));
     expect(typeArguments.rightBracket, isNotNull);
     expect(typeArguments.rightBracket.precedingComments!.lexeme, '/* foo */');
     var argument = typeArguments.arguments[0] as NamedType;
-    expect(argument.name.name, 'E');
+    expect(argument.name2.lexeme, 'E');
   }
 
   void test_parseTypeParameterList_single() {

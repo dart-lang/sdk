@@ -16,8 +16,8 @@ namespace dart {
 
 extern const char* pointer_prefix;
 
-static const intptr_t kMemoryTestLength = 1024;
-static const uint8_t kUnInitialized = 0xFE;
+static constexpr intptr_t kMemoryTestLength = 1024;
+static constexpr uint8_t kUnInitialized = 0xFE;
 
 static classid_t TypedDataCidForElementSize(intptr_t elem_size) {
   switch (elem_size) {

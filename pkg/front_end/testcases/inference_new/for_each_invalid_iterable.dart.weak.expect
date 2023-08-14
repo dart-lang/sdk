@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -30,26 +30,26 @@ static method test(core::String s, core::int y) → dynamic async /* futureValue
   for (final dynamic #t1 in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:9:17: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   for (int x in s) {}
-                ^" in s as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>) {
-    core::int x = #t1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+                ^" in s as{TypeError} core::Iterable<dynamic>) {
+    core::int x = #t1 as{TypeError,ForDynamic} core::int;
   }
   await for (final dynamic #t2 in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:23: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   await for (int x in s) {}
-                      ^" in s as{TypeError,ForNonNullableByDefault} asy::Stream<dynamic>) {
-    core::int x = #t2 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+                      ^" in s as{TypeError} asy::Stream<dynamic>) {
+    core::int x = #t2 as{TypeError,ForDynamic} core::int;
   }
   for (final dynamic #t3 in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:13: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   for (y in s) {}
-            ^" in s as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>) {
-    y = #t3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+            ^" in s as{TypeError} core::Iterable<dynamic>) {
+    y = #t3 as{TypeError,ForDynamic} core::int;
   }
   await for (final dynamic #t4 in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:12:19: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   await for (y in s) {}
-                  ^" in s as{TypeError,ForNonNullableByDefault} asy::Stream<dynamic>) {
-    y = #t4 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+                  ^" in s as{TypeError} asy::Stream<dynamic>) {
+    y = #t4 as{TypeError,ForDynamic} core::int;
   }
 }
 static method main() → dynamic {}

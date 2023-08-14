@@ -62,13 +62,13 @@ class FSEventsWatcher {
          bool recursive)
         : watcher_(watcher),
           base_path_length_(strlen(base_path)),
-          path_ref_(CFStringCreateWithCString(NULL,
+          path_ref_(CFStringCreateWithCString(nullptr,
                                               base_path,
                                               kCFStringEncodingUTF8)),
           read_fd_(read_fd),
           write_fd_(write_fd),
           recursive_(recursive),
-          ref_(NULL) {
+          ref_(nullptr) {
       Start();
     }
 
@@ -93,10 +93,10 @@ class FSEventsWatcher {
         delete static_cast<const Node*>(info);
       };
       CFArrayRef array = CFArrayCreate(
-          NULL, reinterpret_cast<const void**>(&path_ref_), 1, NULL);
+          nullptr, reinterpret_cast<const void**>(&path_ref_), 1, nullptr);
       FSEventStreamRef ref = FSEventStreamCreate(
-          NULL, Callback, &context, array, kFSEventStreamEventIdSinceNow, 0.10,
-          kFSEventStreamCreateFlagFileEvents);
+          nullptr, Callback, &context, array, kFSEventStreamEventIdSinceNow,
+          0.10, kFSEventStreamCreateFlagFileEvents);
       CFRelease(array);
 
       set_ref(ref);
@@ -137,7 +137,7 @@ class FSEventsWatcher {
   void Start() {
     Thread::Start("dart:io FileWatcher", Run, reinterpret_cast<uword>(this));
     monitor_.Enter();
-    while (run_loop_ == NULL) {
+    while (run_loop_ == nullptr) {
       monitor_.Wait(Monitor::kNoTimeout);
     }
     monitor_.Exit();
@@ -155,8 +155,9 @@ class FSEventsWatcher {
     watcher->monitor().Notify();
     watcher->monitor().Exit();
 
-    CFRunLoopTimerRef timer = CFRunLoopTimerCreate(
-        NULL, CFAbsoluteTimeGetCurrent() + 1, 1, 0, 0, TimerCallback, NULL);
+    CFRunLoopTimerRef timer =
+        CFRunLoopTimerCreate(nullptr, CFAbsoluteTimeGetCurrent() + 1, 1, 0, 0,
+                             TimerCallback, nullptr);
     CFRunLoopAddTimer(watcher->run_loop_, timer, kCFRunLoopCommonModes);
     CFRelease(timer);
 
@@ -164,7 +165,7 @@ class FSEventsWatcher {
 
     CFRelease(watcher->run_loop_);
     watcher->monitor_.Enter();
-    watcher->run_loop_ = NULL;
+    watcher->run_loop_ = nullptr;
     watcher->monitor_.Notify();
     watcher->monitor_.Exit();
   }
@@ -175,11 +176,11 @@ class FSEventsWatcher {
     memset(&context, 0, sizeof(context));
     context.info = this;
     CFRunLoopTimerRef timer =
-        CFRunLoopTimerCreate(NULL, 0, 0, 0, 0, StopCallback, &context);
+        CFRunLoopTimerCreate(nullptr, 0, 0, 0, 0, StopCallback, &context);
     CFRunLoopAddTimer(run_loop_, timer, kCFRunLoopCommonModes);
     CFRelease(timer);
     monitor_.Enter();
-    while (run_loop_ != NULL) {
+    while (run_loop_ != nullptr) {
       monitor_.Wait(Monitor::kNoTimeout);
     }
     monitor_.Exit();
@@ -195,7 +196,7 @@ class FSEventsWatcher {
 
   Monitor& monitor() { return monitor_; }
 
-  bool has_run_loop() const { return run_loop_ != NULL; }
+  bool has_run_loop() const { return run_loop_ != nullptr; }
 
   static void TimerCallback(CFRunLoopTimerRef timer, void* context) {
     // Dummy callback to keep RunLoop alive.
@@ -233,13 +234,13 @@ class FSEventsWatcher {
       char* path = reinterpret_cast<char**>(event_paths)[i];
       FSEvent event;
       event.data.exists =
-          File::GetType(NULL, path, false) != File::kDoesNotExist;
+          File::GetType(nullptr, path, false) != File::kDoesNotExist;
       path += node->base_path_length();
       // If path is longer the base, skip next character ('/').
       if (path[0] != '\0') {
         path += 1;
       }
-      if (!node->recursive() && (strstr(path, "/") != NULL)) {
+      if (!node->recursive() && (strstr(path, "/") != nullptr)) {
         continue;
       }
       event.data.flags = event_flags[i];

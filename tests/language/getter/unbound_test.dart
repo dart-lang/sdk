@@ -6,7 +6,10 @@
 class A {
   const A();
   foo() {
-    return y; /*@compile-error=unspecified*/
+    return y;
+    //     ^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] The getter 'y' isn't defined for the class 'A'.
   }
 }
 

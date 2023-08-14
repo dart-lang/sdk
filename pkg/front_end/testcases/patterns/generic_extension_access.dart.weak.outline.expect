@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -18,7 +18,7 @@ extension /* unnamed */ _extension#0<T extends core::Object? = dynamic> on self:
   get member = self::_extension#0|get#member;
 }
 static field core::int counter;
-static method _extension#0|get#member<T extends core::Object? = dynamic>(lowered final self::I<self::_extension#0|get#member::T%> #this) → core::num
+static extension-member method _extension#0|get#member<T extends core::Object? = dynamic>(lowered final self::I<self::_extension#0|get#member::T%> #this) → core::num
   ;
 static method method1(self::I<core::num> i) → core::num
   ;

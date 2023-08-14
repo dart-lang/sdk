@@ -4,5 +4,7 @@
 
 /// Defines the tokens that are produced by the scanner, used by the parser, and
 /// referenced from the [AST structure](ast.dart).
+library;
+
 export 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Keyword, Token, TokenType, LanguageVersionToken;

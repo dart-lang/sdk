@@ -6,7 +6,7 @@
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart tools/generate_experimental_flags.dart' to update.
 //
-// Current version: 3.0.0
+// Current version: 3.1.0
 
 #ifndef RUNTIME_VM_EXPERIMENTAL_FEATURES_H_
 #define RUNTIME_VM_EXPERIMENTAL_FEATURES_H_
@@ -16,23 +16,23 @@ namespace dart {
 enum class ExperimentalFeature {
   sealed_class,
   class_modifiers,
+  records,
+  patterns,
+  unnamed_libraries,
+  inference_update_1,
+  enhanced_enums,
+  named_arguments_anywhere,
+  super_parameters,
+  constructor_tearoffs,
+  generic_metadata,
+  triple_shift,
   nonfunction_type_aliases,
   non_nullable,
   extension_methods,
   constant_update_2018,
   control_flow_collections,
-  generic_metadata,
   set_literals,
   spread_collections,
-  triple_shift,
-  constructor_tearoffs,
-  enhanced_enums,
-  named_arguments_anywhere,
-  super_parameters,
-  inference_update_1,
-  unnamed_libraries,
-  records,
-  patterns,
 };
 
 bool GetExperimentalFeatureDefault(ExperimentalFeature feature);

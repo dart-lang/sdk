@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -25,7 +25,7 @@ static method test() → dynamic {
     return x;
   core::String a = let final Never #t1 = bounded<Never>(invalid-expression "pkg/front_end/testcases/general/bounded_implicit_instantiation.dart:7:22: Error: The argument type 'String' can't be assigned to the parameter type 'Never'.
   String a = bounded('');
-                     ^" in "" as{TypeError,ForNonNullableByDefault} Never){(Never) → Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+                     ^" in "" as{TypeError} Never){(Never) → Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
   core::String b = bounded<core::String>(""){(core::String) → core::String};
   (core::String) → core::String c = bounded<core::String>;
   core::String d = c(""){(core::String) → core::String};

@@ -35,27 +35,28 @@ Caller frame   | last parameter     | <- RSP of caller frame
                T against a slot indicates it needs to be traversed during GC.
 */
 
-static const int kDartFrameFixedSize = 4;  // PC marker, RBP, PP, PC.
-static const int kSavedPcSlotFromSp = -1;
+static constexpr int kDartFrameFixedSize = 4;  // PC marker, RBP, PP, PC.
+static constexpr int kSavedPcSlotFromSp = -1;
 
-static const int kFirstObjectSlotFromFp = -1;  // Used by GC to traverse stack.
-static const int kLastFixedObjectSlotFromFp = -2;
+static constexpr int kFirstObjectSlotFromFp =
+    -1;  // Used by GC to traverse stack.
+static constexpr int kLastFixedObjectSlotFromFp = -2;
 
-static const int kFirstLocalSlotFromFp = -3;
-static const int kSavedCallerPpSlotFromFp = -2;
-static const int kPcMarkerSlotFromFp = -1;
-static const int kSavedCallerFpSlotFromFp = 0;
-static const int kSavedCallerPcSlotFromFp = 1;
+static constexpr int kFirstLocalSlotFromFp = -3;
+static constexpr int kSavedCallerPpSlotFromFp = -2;
+static constexpr int kPcMarkerSlotFromFp = -1;
+static constexpr int kSavedCallerFpSlotFromFp = 0;
+static constexpr int kSavedCallerPcSlotFromFp = 1;
 
-static const int kParamEndSlotFromFp = 1;  // One slot past last parameter.
-static const int kCallerSpSlotFromFp = 2;
-static const int kLastParamSlotFromEntrySp = 1;  // Skip return address.
+static constexpr int kParamEndSlotFromFp = 1;  // One slot past last parameter.
+static constexpr int kCallerSpSlotFromFp = 2;
+static constexpr int kLastParamSlotFromEntrySp = 1;  // Skip return address.
 
 // Entry and exit frame layout.
 #if defined(DART_TARGET_OS_WINDOWS)
-static const int kExitLinkSlotFromEntryFp = -33;
+static constexpr int kExitLinkSlotFromEntryFp = -33;
 #else
-static const int kExitLinkSlotFromEntryFp = -11;
+static constexpr int kExitLinkSlotFromEntryFp = -11;
 #endif  // defined(DART_TARGET_OS_WINDOWS)
 
 // For FFI native -> Dart callbacks, the number of stack slots between arguments
@@ -70,7 +71,7 @@ constexpr intptr_t kCallbackSlotsBeforeSavedArguments =
 
 // For FFI calls passing in TypedData, we save it on the stack before entering
 // a Dart frame. This denotes how to get to the backed up typed data.
-static const int kFfiCallerTypedDataSlotFromFp = kCallerSpSlotFromFp;
+static constexpr int kFfiCallerTypedDataSlotFromFp = kCallerSpSlotFromFp;
 
 }  // namespace dart
 

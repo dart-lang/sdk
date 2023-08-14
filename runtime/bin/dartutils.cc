@@ -31,23 +31,9 @@
 namespace dart {
 namespace bin {
 
-const char* DartUtils::original_working_directory = NULL;
-const char* const DartUtils::kDartScheme = "dart:";
-const char* const DartUtils::kAsyncLibURL = "dart:async";
-const char* const DartUtils::kBuiltinLibURL = "dart:_builtin";
-const char* const DartUtils::kCoreLibURL = "dart:core";
-const char* const DartUtils::kInternalLibURL = "dart:_internal";
-const char* const DartUtils::kIsolateLibURL = "dart:isolate";
-const char* const DartUtils::kHttpLibURL = "dart:_http";
-const char* const DartUtils::kIOLibURL = "dart:io";
-const char* const DartUtils::kIOLibPatchURL = "dart:io-patch";
-const char* const DartUtils::kCLILibURL = "dart:cli";
-const char* const DartUtils::kCLILibPatchURL = "dart:cli-patch";
-const char* const DartUtils::kUriLibURL = "dart:uri";
-const char* const DartUtils::kHttpScheme = "http:";
-const char* const DartUtils::kVMServiceLibURL = "dart:vmservice";
+const char* DartUtils::original_working_directory = nullptr;
 
-dart::SimpleHashMap* DartUtils::environment_ = NULL;
+dart::SimpleHashMap* DartUtils::environment_ = nullptr;
 
 MagicNumberData appjit_magic_number = {8, {0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0}};
 MagicNumberData kernel_magic_number = {4, {0x90, 0xab, 0xcd, 0xef}};
@@ -135,7 +121,7 @@ bool DartUtils::GetInt64Value(Dart_Handle value_obj, int64_t* value) {
 }
 
 const char* DartUtils::GetStringValue(Dart_Handle str_obj) {
-  const char* cstring = NULL;
+  const char* cstring = nullptr;
   Dart_Handle result = Dart_StringToCString(str_obj, &cstring);
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
@@ -183,21 +169,21 @@ intptr_t DartUtils::GetNativeIntptrArgument(Dart_NativeArguments args,
 
 const char* DartUtils::GetNativeStringArgument(Dart_NativeArguments args,
                                                intptr_t index) {
-  char* tmp = NULL;
+  char* tmp = nullptr;
   Dart_Handle result =
       Dart_GetNativeStringArgument(args, index, reinterpret_cast<void**>(&tmp));
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
   }
-  if (tmp != NULL) {
+  if (tmp != nullptr) {
     return tmp;
   }
-  const char* cstring = NULL;
+  const char* cstring = nullptr;
   result = Dart_StringToCString(result, &cstring);
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
   }
-  ASSERT(cstring != NULL);
+  ASSERT(cstring != nullptr);
   return cstring;
 }
 
@@ -243,7 +229,7 @@ bool DartUtils::IsDartBuiltinLibURL(const char* url_name) {
 
 const char* DartUtils::RemoveScheme(const char* url) {
   const char* colon = strchr(url, ':');
-  if (colon == NULL) {
+  if (colon == nullptr) {
     return url;
   } else {
     return colon + 1;
@@ -252,7 +238,7 @@ const char* DartUtils::RemoveScheme(const char* url) {
 
 char* DartUtils::DirName(const char* url) {
   const char* slash = strrchr(url, File::PathSeparator()[0]);
-  if (slash == NULL) {
+  if (slash == nullptr) {
     return Utils::StrDup(url);
   } else {
     return Utils::StrNDup(url, slash - url + 1);
@@ -261,24 +247,24 @@ char* DartUtils::DirName(const char* url) {
 
 void* DartUtils::OpenFile(const char* name, bool write) {
   File* file =
-      File::Open(NULL, name, write ? File::kWriteTruncate : File::kRead);
+      File::Open(nullptr, name, write ? File::kWriteTruncate : File::kRead);
   return reinterpret_cast<void*>(file);
 }
 
 void* DartUtils::OpenFileUri(const char* uri, bool write) {
   File* file =
-      File::OpenUri(NULL, uri, write ? File::kWriteTruncate : File::kRead);
+      File::OpenUri(nullptr, uri, write ? File::kWriteTruncate : File::kRead);
   return reinterpret_cast<void*>(file);
 }
 
 void DartUtils::ReadFile(uint8_t** data, intptr_t* len, void* stream) {
-  ASSERT(data != NULL);
-  ASSERT(len != NULL);
-  ASSERT(stream != NULL);
+  ASSERT(data != nullptr);
+  ASSERT(len != nullptr);
+  ASSERT(stream != nullptr);
   File* file_stream = reinterpret_cast<File*>(stream);
   int64_t file_len = file_stream->Length();
   if ((file_len < 0) || (file_len > kIntptrMax)) {
-    *data = NULL;
+    *data = nullptr;
     *len = -1;  // Indicates read was not successful.
     return;
   }
@@ -286,7 +272,7 @@ void DartUtils::ReadFile(uint8_t** data, intptr_t* len, void* stream) {
   *data = reinterpret_cast<uint8_t*>(malloc(*len));
   if (!file_stream->ReadFully(*data, *len)) {
     free(*data);
-    *data = NULL;
+    *data = nullptr;
     *len = -1;  // Indicates read was not successful.
     return;
   }
@@ -295,7 +281,7 @@ void DartUtils::ReadFile(uint8_t** data, intptr_t* len, void* stream) {
 void DartUtils::WriteFile(const void* buffer,
                           intptr_t num_bytes,
                           void* stream) {
-  ASSERT(stream != NULL);
+  ASSERT(stream != nullptr);
   File* file_stream = reinterpret_cast<File*>(stream);
   bool bytes_written = file_stream->WriteFully(buffer, num_bytes);
   ASSERT(bytes_written);
@@ -322,7 +308,7 @@ static Dart_Handle SingleArgDart_Invoke(Dart_Handle lib,
 // TODO(iposva): Allocate from the zone instead of leaking error string
 // here. On the other hand the binary is about to exit anyway.
 #define SET_ERROR_MSG(error_msg, format, ...)                                  \
-  intptr_t len = snprintf(NULL, 0, format, __VA_ARGS__);                       \
+  intptr_t len = snprintf(nullptr, 0, format, __VA_ARGS__);                    \
   char* msg = reinterpret_cast<char*>(malloc(len + 1));                        \
   snprintf(msg, len + 1, format, __VA_ARGS__);                                 \
   *error_msg = msg
@@ -332,25 +318,25 @@ static uint8_t* ReadFileFully(const char* filename,
                               const char** error_msg) {
   *file_len = -1;
   void* stream = DartUtils::OpenFile(filename, false);
-  if (stream == NULL) {
+  if (stream == nullptr) {
     SET_ERROR_MSG(error_msg, "Unable to open file: %s", filename);
-    return NULL;
+    return nullptr;
   }
-  uint8_t* text_buffer = NULL;
+  uint8_t* text_buffer = nullptr;
   DartUtils::ReadFile(&text_buffer, file_len, stream);
-  if (text_buffer == NULL || *file_len == -1) {
+  if (text_buffer == nullptr || *file_len == -1) {
     *error_msg = "Unable to read file contents";
-    text_buffer = NULL;
+    text_buffer = nullptr;
   }
   DartUtils::CloseFile(stream);
   return text_buffer;
 }
 
 Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
-  const char* error_msg = NULL;
+  const char* error_msg = nullptr;
   intptr_t len;
   uint8_t* text_buffer = ReadFileFully(filename, &len, &error_msg);
-  if (text_buffer == NULL) {
+  if (text_buffer == nullptr) {
     return Dart_NewApiError(error_msg);
   }
   Dart_Handle str = Dart_NewStringFromUTF8(text_buffer, len);
@@ -370,7 +356,7 @@ Dart_Handle DartUtils::MakeUint8Array(const void* buffer, intptr_t len) {
     RETURN_IF_ERROR(result);
     ASSERT(td_type == Dart_TypedData_kUint8);
     ASSERT(td_len == len);
-    ASSERT(td_data != NULL);
+    ASSERT(td_data != nullptr);
     memmove(td_data, buffer, td_len);
     result = Dart_TypedDataReleaseData(array);
     RETURN_IF_ERROR(result);
@@ -403,9 +389,9 @@ static bool CheckMagicNumber(const uint8_t* buffer,
 
 DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const char* filename) {
   MagicNumber magic_number = DartUtils::kUnknownMagicNumber;
-  if (File::GetType(NULL, filename, true) == File::kIsFile) {
-    File* file = File::Open(NULL, filename, File::kRead);
-    if (file != NULL) {
+  if (File::GetType(nullptr, filename, true) == File::kIsFile) {
+    File* file = File::Open(nullptr, filename, File::kRead);
+    if (file != nullptr) {
       RefCntReleaseScope<File> rs(file);
       intptr_t max_magic_length = 0;
       max_magic_length =
@@ -457,7 +443,7 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                                              bool trace_loading) {
   // Setup the internal library's 'internalPrint' function.
   Dart_Handle print =
-      Dart_Invoke(builtin_lib, NewString("_getPrintClosure"), 0, NULL);
+      Dart_Invoke(builtin_lib, NewString("_getPrintClosure"), 0, nullptr);
   RETURN_IF_ERROR(print);
   Dart_Handle result =
       Dart_SetField(internal_lib, NewString("_printClosure"), print);
@@ -486,7 +472,7 @@ Dart_Handle DartUtils::PrepareCoreLibrary(Dart_Handle core_lib,
   if (!is_service_isolate) {
     // Setup the 'Uri.base' getter in dart:core.
     Dart_Handle uri_base =
-        Dart_Invoke(io_lib, NewString("_getUriBaseClosure"), 0, NULL);
+        Dart_Invoke(io_lib, NewString("_getUriBaseClosure"), 0, nullptr);
     RETURN_IF_ERROR(uri_base);
     Dart_Handle result =
         Dart_SetField(core_lib, NewString("_uriBaseClosure"), uri_base);
@@ -497,8 +483,9 @@ Dart_Handle DartUtils::PrepareCoreLibrary(Dart_Handle core_lib,
 
 Dart_Handle DartUtils::PrepareAsyncLibrary(Dart_Handle async_lib,
                                            Dart_Handle isolate_lib) {
-  Dart_Handle schedule_immediate_closure = Dart_Invoke(
-      isolate_lib, NewString("_getIsolateScheduleImmediateClosure"), 0, NULL);
+  Dart_Handle schedule_immediate_closure =
+      Dart_Invoke(isolate_lib, NewString("_getIsolateScheduleImmediateClosure"),
+                  0, nullptr);
   RETURN_IF_ERROR(schedule_immediate_closure);
   Dart_Handle args[1];
   args[0] = schedule_immediate_closure;
@@ -507,16 +494,16 @@ Dart_Handle DartUtils::PrepareAsyncLibrary(Dart_Handle async_lib,
 }
 
 Dart_Handle DartUtils::PrepareIOLibrary(Dart_Handle io_lib) {
-  return Dart_Invoke(io_lib, NewString("_setupHooks"), 0, NULL);
+  return Dart_Invoke(io_lib, NewString("_setupHooks"), 0, nullptr);
 }
 
 Dart_Handle DartUtils::PrepareIsolateLibrary(Dart_Handle isolate_lib) {
-  return Dart_Invoke(isolate_lib, NewString("_setupHooks"), 0, NULL);
+  return Dart_Invoke(isolate_lib, NewString("_setupHooks"), 0, nullptr);
 }
 
 Dart_Handle DartUtils::PrepareCLILibrary(Dart_Handle cli_lib) {
   Dart_Handle wait_for_event_handle =
-      Dart_Invoke(cli_lib, NewString("_getWaitForEvent"), 0, NULL);
+      Dart_Invoke(cli_lib, NewString("_getWaitForEvent"), 0, nullptr);
   RETURN_IF_ERROR(wait_for_event_handle);
   return Dart_SetField(cli_lib, NewString("_waitForEventClosure"),
                        wait_for_event_handle);
@@ -525,7 +512,7 @@ Dart_Handle DartUtils::PrepareCLILibrary(Dart_Handle cli_lib) {
 Dart_Handle DartUtils::SetupPackageConfig(const char* packages_config) {
   Dart_Handle result = Dart_Null();
 
-  if (packages_config != NULL) {
+  if (packages_config != nullptr) {
     result = NewString(packages_config);
     RETURN_IF_ERROR(result);
     const int kNumArgs = 1;
@@ -592,7 +579,7 @@ Dart_Handle DartUtils::SetupIOLibrary(const char* namespc_path,
   Dart_Handle io_lib = Dart_LookupLibrary(io_lib_url);
   RETURN_IF_ERROR(io_lib);
 
-  if (namespc_path != NULL) {
+  if (namespc_path != nullptr) {
     Dart_Handle namespc_type = GetDartType(DartUtils::kIOLibURL, "_Namespace");
     RETURN_IF_ERROR(namespc_type);
     Dart_Handle args[1];
@@ -666,7 +653,7 @@ bool DartUtils::PostString(Dart_Port port_id, const char* value) {
 Dart_Handle DartUtils::GetDartType(const char* library_url,
                                    const char* class_name) {
   return Dart_GetNonNullableType(Dart_LookupLibrary(NewString(library_url)),
-                                 NewString(class_name), 0, NULL);
+                                 NewString(class_name), 0, nullptr);
 }
 
 Dart_Handle DartUtils::NewDartOSError() {
@@ -704,12 +691,12 @@ Dart_Handle DartUtils::NewDartExceptionWithMessage(const char* library_url,
   // Create a Dart Exception object with a message.
   Dart_Handle type = GetDartType(library_url, exception_name);
   ASSERT(!Dart_IsError(type));
-  if (message != NULL) {
+  if (message != nullptr) {
     Dart_Handle args[1];
     args[0] = NewString(message);
     return Dart_New(type, Dart_Null(), 1, args);
   } else {
-    return Dart_New(type, Dart_Null(), 0, NULL);
+    return Dart_New(type, Dart_Null(), 0, nullptr);
   }
 }
 
@@ -736,7 +723,7 @@ Dart_Handle DartUtils::NewDartIOException(const char* exception_name,
 Dart_Handle DartUtils::NewError(const char* format, ...) {
   va_list measure_args;
   va_start(measure_args, format);
-  intptr_t len = vsnprintf(NULL, 0, format, measure_args);
+  intptr_t len = vsnprintf(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer = reinterpret_cast<char*>(Dart_ScopeAllocate(len + 1));
@@ -756,7 +743,7 @@ Dart_Handle DartUtils::NewInternalError(const char* message) {
 Dart_Handle DartUtils::NewStringFormatted(const char* format, ...) {
   va_list measure_args;
   va_start(measure_args, format);
-  intptr_t len = vsnprintf(NULL, 0, format, measure_args);
+  intptr_t len = vsnprintf(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer = reinterpret_cast<char*>(Dart_ScopeAllocate(len + 1));
@@ -795,16 +782,16 @@ Dart_Handle DartUtils::EnvironmentCallback(Dart_Handle name) {
     char* name_chars = reinterpret_cast<char*>(malloc(utf8_len + 1));
     memmove(name_chars, utf8_array, utf8_len);
     name_chars[utf8_len] = '\0';
-    const char* value = NULL;
-    if (environment_ != NULL) {
+    const char* value = nullptr;
+    if (environment_ != nullptr) {
       SimpleHashMap::Entry* entry =
           environment_->Lookup(GetHashmapKeyFromString(name_chars),
                                SimpleHashMap::StringHash(name_chars), false);
-      if (entry != NULL) {
+      if (entry != nullptr) {
         value = reinterpret_cast<char*>(entry->value);
       }
     }
-    if (value != NULL) {
+    if (value != nullptr) {
       result = Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(value),
                                       strlen(value));
       if (Dart_IsError(result)) {
@@ -931,11 +918,11 @@ Dart_CObject* CObject::NewIOBuffer(int64_t length) {
   // against max elements will be done at the time of writing, as the constant
   // is not part of the public API.
   if ((length < 0) || (length > kIntptrMax)) {
-    return NULL;
+    return nullptr;
   }
   uint8_t* data = IOBuffer::Allocate(static_cast<intptr_t>(length));
-  if (data == NULL) {
-    return NULL;
+  if (data == nullptr) {
+    return nullptr;
   }
   return NewExternalUint8Array(static_cast<intptr_t>(length), data, data,
                                IOBuffer::Finalizer);
@@ -970,8 +957,8 @@ void CObject::ShrinkIOBuffer(Dart_CObject* cobject, int64_t new_length) {
 void CObject::FreeIOBufferData(Dart_CObject* cobject) {
   ASSERT(cobject->type == Dart_CObject_kExternalTypedData);
   cobject->value.as_external_typed_data.callback(
-      NULL, cobject->value.as_external_typed_data.peer);
-  cobject->value.as_external_typed_data.data = NULL;
+      nullptr, cobject->value.as_external_typed_data.peer);
+  cobject->value.as_external_typed_data.data = nullptr;
 }
 
 CObject* CObject::IllegalArgumentError() {

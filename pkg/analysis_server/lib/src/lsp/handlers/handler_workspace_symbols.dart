@@ -41,38 +41,43 @@ class WorkspaceSymbolHandler
     final searchOnlyAnalyzed = !server
         .clientConfiguration.global.includeDependenciesInWorkspaceSymbols;
 
-    // Convert the string input into a case-insensitive regex that has wildcards
-    // between every character and at start/end to allow for fuzzy matching.
-    final fuzzyQuery = query.split('').map(RegExp.escape).join('.*');
-    final partialFuzzyQuery = '.*$fuzzyQuery.*';
-    final regex = RegExp(partialFuzzyQuery, caseSensitive: false);
-
     // Cap the number of results we'll return because short queries may match
     // huge numbers on large projects.
     var remainingResults = 500;
 
     var workspaceSymbols = search.WorkspaceSymbols();
-    var analysisDrivers = server.driverMap.values.toList();
-    await search.FindDeclarations(
-      analysisDrivers,
-      workspaceSymbols,
-      regex,
-      remainingResults,
-      onlyAnalyzed: searchOnlyAnalyzed,
-    ).compute(token);
+    await message.performance.runAsync(
+      'findDeclarations',
+      (performance) async {
+        var analysisDrivers = server.driverMap.values.toList();
+        await search.FindDeclarations(
+          analysisDrivers,
+          workspaceSymbols,
+          query,
+          remainingResults,
+          onlyAnalyzed: searchOnlyAnalyzed,
+          ownedFiles: server.ownedFiles,
+          performance: performance,
+        ).compute(token);
+      },
+    );
 
     if (workspaceSymbols.cancelled) {
       return cancelled();
     }
 
     // Map the results to SymbolInformations and flatten the list of lists.
-    final symbols = workspaceSymbols.declarations
-        .map((declaration) => _asSymbolInformation(
-              declaration,
-              supportedSymbolKinds,
-              workspaceSymbols.files,
-            ))
-        .toList();
+    final symbols = message.performance.run('convert', (performance) {
+      final declarations = workspaceSymbols.declarations;
+      performance.getDataInt('declarations').value = declarations.length;
+      return declarations.map((declaration) {
+        return _asSymbolInformation(
+          declaration,
+          supportedSymbolKinds,
+          workspaceSymbols.files,
+        );
+      }).toList();
+    });
 
     return success(symbols);
   }

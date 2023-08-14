@@ -1,2 +1,0 @@
-./autogen.sh
-./configure --enable-emergency-malloc --enable-frame-pointers --disable-cpu-profiler --disable-heap-checker --disable-debugalloc --enable-sized-delete --disable-libunwind

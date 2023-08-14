@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
-class SortCombinators extends CorrectionProducer {
+class SortCombinators extends ResolvedCorrectionProducer {
   @override
   bool get canBeAppliedInBulk => true;
 

@@ -6,14 +6,14 @@ part of '../api.dart';
 
 /// The base class representing an arbitrary chunk of Dart code, which may or
 /// may not be syntactically or semantically valid yet.
-class Code {
+sealed class Code {
   /// All the chunks of [Code], raw [String]s, or [Identifier]s that
   /// comprise this [Code] object.
   final List<Object> parts;
 
   /// Can be used to more efficiently detect the kind of code, avoiding is
   /// checks and enabling switch statements.
-  CodeKind get kind => CodeKind.raw;
+  CodeKind get kind;
 
   Code.fromString(String code) : parts = [code];
 
@@ -22,8 +22,19 @@ class Code {
             element is String || element is Code || element is Identifier));
 }
 
+/// An arbitrary chunk of code, which does not have to be syntactically valid
+/// on its own. Useful to construct other types of code from several parts.
+base class RawCode extends Code {
+  @override
+  CodeKind get kind => CodeKind.raw;
+
+  RawCode.fromString(super.code) : super.fromString();
+
+  RawCode.fromParts(super.parts) : super.fromParts();
+}
+
 /// A piece of code representing a syntactically valid declaration.
-class DeclarationCode extends Code {
+base class DeclarationCode extends Code {
   @override
   CodeKind get kind => CodeKind.declaration;
 
@@ -32,8 +43,19 @@ class DeclarationCode extends Code {
   DeclarationCode.fromParts(super.parts) : super.fromParts();
 }
 
+/// A piece of code representing a code comment. This may contain identifier
+/// references inside of `[]` brackets if the comments are doc comments.
+base class CommentCode extends Code {
+  @override
+  CodeKind get kind => CodeKind.comment;
+
+  CommentCode.fromString(super.code) : super.fromString();
+
+  CommentCode.fromParts(super.parts) : super.fromParts();
+}
+
 /// A piece of code representing a syntactically valid expression.
-class ExpressionCode extends Code {
+base class ExpressionCode extends Code {
   @override
   CodeKind get kind => CodeKind.expression;
 
@@ -48,7 +70,7 @@ class ExpressionCode extends Code {
 /// including modifiers like `async`.
 ///
 /// Both arrow and block function bodies are allowed.
-class FunctionBodyCode extends Code {
+base class FunctionBodyCode extends Code {
   @override
   CodeKind get kind => CodeKind.functionBody;
 
@@ -68,7 +90,7 @@ class FunctionBodyCode extends Code {
 ///
 /// It is the job of the user to construct and combine these together in a way
 /// that creates valid parameter lists.
-class ParameterCode implements Code {
+base class ParameterCode implements Code {
   final Code? defaultValue;
   final List<String> keywords;
   final String? name;
@@ -126,7 +148,7 @@ abstract class TypeAnnotationCode implements Code, TypeAnnotation {
 }
 
 /// The nullable version of an underlying type annotation.
-class NullableTypeAnnotationCode implements TypeAnnotationCode {
+base class NullableTypeAnnotationCode implements TypeAnnotationCode {
   /// The underlying type that is being made nullable.
   TypeAnnotationCode underlyingType;
 
@@ -156,7 +178,7 @@ class NullableTypeAnnotationCode implements TypeAnnotationCode {
 }
 
 /// A piece of code representing a reference to a named type.
-class NamedTypeAnnotationCode extends TypeAnnotationCode {
+base class NamedTypeAnnotationCode extends TypeAnnotationCode {
   final Identifier name;
 
   final List<TypeAnnotationCode> typeArguments;
@@ -178,7 +200,7 @@ class NamedTypeAnnotationCode extends TypeAnnotationCode {
 }
 
 /// A piece of code representing a function type annotation.
-class FunctionTypeAnnotationCode extends TypeAnnotationCode {
+base class FunctionTypeAnnotationCode extends TypeAnnotationCode {
   final List<ParameterCode> namedParameters;
 
   final List<ParameterCode> positionalParameters;
@@ -232,7 +254,7 @@ class FunctionTypeAnnotationCode extends TypeAnnotationCode {
 ///
 /// It is the job of the user to construct and combine these together in a way
 /// that creates valid record type annotations.
-class RecordFieldCode implements Code {
+base class RecordFieldCode implements Code {
   final String? name;
   final TypeAnnotationCode type;
 
@@ -252,7 +274,7 @@ class RecordFieldCode implements Code {
 }
 
 /// A piece of code representing a syntactically valid record type annotation.
-class RecordTypeAnnotationCode extends TypeAnnotationCode {
+base class RecordTypeAnnotationCode extends TypeAnnotationCode {
   final List<RecordFieldCode> namedFields;
 
   final List<RecordFieldCode> positionalFields;
@@ -286,7 +308,7 @@ class RecordTypeAnnotationCode extends TypeAnnotationCode {
   });
 }
 
-class OmittedTypeAnnotationCode extends TypeAnnotationCode {
+base class OmittedTypeAnnotationCode extends TypeAnnotationCode {
   final OmittedTypeAnnotation typeAnnotation;
 
   OmittedTypeAnnotationCode(this.typeAnnotation);
@@ -299,7 +321,7 @@ class OmittedTypeAnnotationCode extends TypeAnnotationCode {
 }
 
 /// A piece of code representing a valid named type parameter.
-class TypeParameterCode implements Code {
+base class TypeParameterCode implements Code {
   final TypeAnnotationCode? bound;
   final String name;
 
@@ -331,6 +353,7 @@ extension Join<T extends Object> on List<T> {
 }
 
 enum CodeKind {
+  comment,
   declaration,
   expression,
   functionBody,

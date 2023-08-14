@@ -43,27 +43,28 @@ ${parser.usage}''');
     for (final flakyTest in data.keys)
       if (data[flakyTest]!['active'] == false) flakyTest: <String>{}
   };
+
+  final now = DateTime.now();
+  final nowString = now.toIso8601String();
   // Incrementally update the flakiness data with each observed result.
   for (final path in parameters) {
     final results = await loadResults(path);
     for (final resultObject in results) {
-      final String configuration = resultObject['configuration'] /*!*/;
-      final String name = resultObject['name'] /*!*/;
-      final String result = resultObject['result'] /*!*/;
+      final String configuration = resultObject['configuration'];
+      final String name = resultObject['name'];
+      final String result = resultObject['result'];
       final key = '$configuration:$name';
       resultsForInactiveFlakiness[key]?.add(result);
-      Map<String, dynamic> newMap() => {};
-      final testData = data.putIfAbsent(key, newMap);
+      final testData = data[key] ??= {};
       testData['configuration'] = configuration;
       testData['name'] = name;
       testData['expected'] = resultObject['expected'];
-      final outcomes = testData.putIfAbsent('outcomes', () => []);
-      final time = DateTime.now().toIso8601String();
+      final List<dynamic> outcomes = testData['outcomes'] ??= [];
       if (!outcomes.contains(result)) {
         outcomes
           ..add(result)
           ..sort();
-        testData['last_new_result_seen'] = time;
+        testData['last_new_result_seen'] = nowString;
       }
       if (testData['current'] == result) {
         testData['current_counter']++;
@@ -71,28 +72,24 @@ ${parser.usage}''');
         testData['current'] = result;
         testData['current_counter'] = 1;
       }
-      final occurrences = testData.putIfAbsent('occurrences', newMap);
-      occurrences.putIfAbsent(result, () => 0);
-      occurrences[result]++;
-      final firstSeen = testData.putIfAbsent('first_seen', newMap);
-      firstSeen.putIfAbsent(result, () => time);
-      final lastSeen = testData.putIfAbsent('last_seen', newMap);
-      lastSeen[result] = time;
-      final matches = testData.putIfAbsent('matches', newMap);
-      matches[result] = resultObject['matches'];
-
+      Map<String, dynamic> mapField(String key) =>
+          testData[key] ??= <String, dynamic>{};
+      mapField('occurrences')[result] =
+          (mapField('occurrences')[result] ?? 0) + 1;
+      mapField('first_seen')[result] ??= nowString;
+      mapField('last_seen')[result] = nowString;
+      mapField('matches')[result] = resultObject['matches'];
       if (options['build-id'] != null) {
-        final buildIds = testData.putIfAbsent('build_ids', newMap);
-        buildIds[result] = options['build-id'];
+        mapField('build_ids')[result] = options['build-id'];
       }
       if (options['commit'] != null) {
-        final commits = testData.putIfAbsent('commits', newMap);
-        commits[result] = options['commit'];
+        mapField('commits')[result] = options['commit'];
       }
     }
   }
 
   // Write out the new flakiness data.
+  final flakinessHorizon = now.subtract(Duration(days: 7));
   final sink =
       options['output'] != null ? File(options['output']).openWrite() : stdout;
   final keys = data.keys.toList()..sort();
@@ -106,13 +103,25 @@ ${parser.usage}''');
         testData['reactivation_count'] =
             (testData['reactivation_count'] ?? 0) + 1;
       }
-    } else if (!options['no-forgive'] && testData['current_counter'] >= 100) {
+    } else if (options['no-forgive']) {
+      testData['active'] = true;
+    } else if (testData['current_counter'] >= 100) {
       // Forgive tests that have been stable for 100 builds.
       testData['active'] = false;
     } else {
-      testData['active'] = true;
+      // Forgive tests that have been stable since flakiness horizon (one week).
+      final resultTimes = [
+        for (final timeString in testData['last_seen'].values)
+          DateTime.parse(timeString)
+      ]..sort();
+      // The latest timestamp is the current result. The one before that is the
+      // timestamp of the latest flake. Timestamps are sorted from earliest to latest.
+      if (resultTimes[resultTimes.length - 2].isBefore(flakinessHorizon)) {
+        testData['active'] = false;
+      } else {
+        testData['active'] = true;
+      }
     }
-
     sink.writeln(jsonEncode(testData));
   }
 }

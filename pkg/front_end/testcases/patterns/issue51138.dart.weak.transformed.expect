@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -16,14 +16,14 @@ static method test(core::List<dynamic> list) → core::String {
     #L1:
     {
       {
-        if(#0#0 is{ForNonNullableByDefault} core::List<core::num> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t2 = #0#4#isSet = true in #0#4 = #0#0{core::List<core::num>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1) && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#6#isSet ?{core::num} #0#6{core::num} : let final core::bool* #t3 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::num>}.{core::List::[]}(0){(core::int) → core::num}) && (#0#9#isSet ?{core::num} #0#9{core::num} : let final core::bool* #t4 = #0#9#isSet = true in #0#9 = #0#0{core::List<core::num>}.{core::List::[]}(1){(core::int) → core::num}).{core::num::>}(#C3){(core::num) → core::bool}) {
+        if(#0#0 is core::List<core::num> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t2 = #0#4#isSet = true in #0#4 = #0#0{core::List<core::num>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1) && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#6#isSet ?{core::num} #0#6{core::num} : let final core::bool* #t3 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::num>}.{core::List::[]}(0){(core::int) → core::num}) && (#0#9#isSet ?{core::num} #0#9{core::num} : let final core::bool* #t4 = #0#9#isSet = true in #0#9 = #0#0{core::List<core::num>}.{core::List::[]}(1){(core::int) → core::num}).{core::num::>}(#C3){(core::num) → core::bool}) {
           #t1 = "relational";
           break #L1;
         }
       }
       {
         hoisted core::num c;
-        if((#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t5 = #0#4#isSet = true in #0#4 = #0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1) && #C4 =={core::num::==}{(core::Object) → core::bool} (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool* #t6 = #0#6#isSet = true in #0#6 = #0#0.{core::List::[]}(0){(core::int) → dynamic}) && (let final core::num #t7 = (#0#9#isSet ?{dynamic} #0#9{dynamic} : let final core::bool* #t8 = #0#9#isSet = true in #0#9 = #0#0.{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::num in let final core::num #t9 = c = (#0#9#isSet ?{dynamic} #0#9{dynamic} : let final core::bool* #t10 = #0#9#isSet = true in #0#9 = #0#0.{core::List::[]}(1){(core::int) → dynamic}) as{ForNonNullableByDefault} core::num in true)) {
+        if((#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t5 = #0#4#isSet = true in #0#4 = #0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1) && #C4 =={core::num::==}{(core::Object) → core::bool} (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool* #t6 = #0#6#isSet = true in #0#6 = #0#0.{core::List::[]}(0){(core::int) → dynamic}) && (let final core::num #t7 = (#0#9#isSet ?{dynamic} #0#9{dynamic} : let final core::bool* #t8 = #0#9#isSet = true in #0#9 = #0#0.{core::List::[]}(1){(core::int) → dynamic}) as core::num in let final core::num #t9 = c = (#0#9#isSet ?{dynamic} #0#9{dynamic} : let final core::bool* #t10 = #0#9#isSet = true in #0#9 = #0#0.{core::List::[]}(1){(core::int) → dynamic}) as core::num in true)) {
           #t1 = "cast";
           break #L1;
         }

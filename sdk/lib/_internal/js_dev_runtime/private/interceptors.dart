@@ -30,7 +30,7 @@ abstract class Interceptor {
  * The interceptor class for [bool].
  */
 @JsPeerInterface(name: 'Boolean')
-final class JSBool extends Interceptor implements bool {
+final class JSBool extends Interceptor implements bool, TrustedGetRuntimeType {
   const JSBool();
 
   // Note: if you change this, also change the function [S].
@@ -312,5 +312,9 @@ setDispatchProperty(object, value) {}
 // all web tests.
 findInterceptorForType(Type? type) {}
 
-// TODO(nshahan) Find a correct representation for JS functions.
-typedef JavaScriptFunction = dart.FunctionType;
+/// Interceptor class for JavaScript function objects and Dart functions that
+/// have been converted to JavaScript functions.
+///
+/// A reference to this class is only used by `getInterceptor()` to return to
+/// the dart:rti library because stores information used for type checks.
+class JavaScriptFunction extends LegacyJavaScriptObject implements Function {}

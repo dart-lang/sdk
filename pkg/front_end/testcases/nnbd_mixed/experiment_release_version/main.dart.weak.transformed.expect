@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "package:allowed_package/unversioned_lib.dart";
@@ -16,13 +16,13 @@ import "org-dartlang-testcase:///versioned_2_10_lib.dart";
 
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 
 static field core::int? unversionedLibrary;
 
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -39,7 +39,7 @@ import "dart:core" as core;
 
 static field core::int* versioned_2_8_Library;
 
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -56,7 +56,7 @@ import "dart:core" as core;
 
 static field core::int* versioned_2_9_Library;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self5;
 import "dart:core" as core;
 

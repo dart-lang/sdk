@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns
-
 // Test that no errors are generated if a wildcard pattern appears inside a
-// matching context..
+// matching context.
 
 import "package:expect/expect.dart";
 

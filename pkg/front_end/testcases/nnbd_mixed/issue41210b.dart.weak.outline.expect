@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "issue41210b_lib1.dart" as iss;
@@ -34,7 +34,7 @@ class C extends self::_C&Object&A&B {
 static method main() → dynamic
   ;
 
-library;
+library /*isLegacy*/;
 import self as iss;
 import "dart:core" as core;
 import "issue41210b_lib2.dart" as iss2;
@@ -73,7 +73,7 @@ abstract class B extends core::Object implements iss2::Interface {
 static method main() → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as iss2;
 import "dart:core" as core;
 

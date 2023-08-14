@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -19,11 +19,11 @@ extension /* unnamed */ _extension#0<R extends core::Object? = dynamic, T extend
 extension /* unnamed */ _extension#1<T extends self::Class<T> = self::Class<dynamic>> on <S extends T = dynamic>(T, S) → dynamic {
   get parameterType = self::_extension#1|get#parameterType;
 }
-static method _extension#0|get#returnType<R extends core::Object? = dynamic, T extends core::Object? = dynamic>(lowered final (self::_extension#0|get#returnType::T%) → self::_extension#0|get#returnType::R% #this) → core::Type
+static extension-member method _extension#0|get#returnType<R extends core::Object? = dynamic, T extends core::Object? = dynamic>(lowered final (self::_extension#0|get#returnType::T%) → self::_extension#0|get#returnType::R% #this) → core::Type
   return self::_extension#0|get#returnType::R%;
-static method _extension#0|get#parameterType<R extends core::Object? = dynamic, T extends core::Object? = dynamic>(lowered final (self::_extension#0|get#parameterType::T%) → self::_extension#0|get#parameterType::R% #this) → core::Type
+static extension-member method _extension#0|get#parameterType<R extends core::Object? = dynamic, T extends core::Object? = dynamic>(lowered final (self::_extension#0|get#parameterType::T%) → self::_extension#0|get#parameterType::R% #this) → core::Type
   return self::_extension#0|get#parameterType::T%;
-static method _extension#1|get#parameterType<T extends self::Class<self::_extension#1|get#parameterType::T> = self::Class<dynamic>>(lowered final <S extends self::_extension#1|get#parameterType::T = dynamic>(self::_extension#1|get#parameterType::T, S) → dynamic #this) → core::Type
+static extension-member method _extension#1|get#parameterType<T extends self::Class<self::_extension#1|get#parameterType::T> = self::Class<dynamic>>(lowered final <S extends self::_extension#1|get#parameterType::T = dynamic>(self::_extension#1|get#parameterType::T, S) → dynamic #this) → core::Type
   return self::_extension#1|get#parameterType::T;
 static method main() → dynamic {
   function local1(core::int i) → core::int

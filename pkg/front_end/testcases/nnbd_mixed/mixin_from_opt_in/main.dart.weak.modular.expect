@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "test_lib.dart" as tes;
 
@@ -8,7 +8,7 @@ static method main() → dynamic {
   tes::test();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -37,9 +37,9 @@ static method test() → dynamic {
   int j = sub.mixinMethod(null);
               ^" in sub.{opt::_SubClass&Class&Mixin::mixinMethod}(invalid-expression "pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in/test_lib.dart:10:27: Error: The value 'null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
   int j = sub.mixinMethod(null);
-                          ^" in null as{TypeError,ForNonNullableByDefault} core::int){(core::int) →* core::int?} as{TypeError,ForNonNullableByDefault} core::int;
+                          ^" in null as{TypeError} core::int){(core::int) →* core::int?} as{TypeError} core::int;
   sub.{opt::_SubClass&Class&Mixin::classField2} = sub.{opt::_SubClass&Class&Mixin::classField1}{core::int*};
   sub.{opt::_SubClass&Class&Mixin::mixinField2} = invalid-expression "pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in/test_lib.dart:12:25: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
   sub.mixinField2 = sub.mixinField1;
-                        ^" in sub.{opt::_SubClass&Class&Mixin::mixinField1}{core::int?} as{TypeError,ForNonNullableByDefault} core::int;
+                        ^" in sub.{opt::_SubClass&Class&Mixin::mixinField1}{core::int?} as{TypeError} core::int;
 }

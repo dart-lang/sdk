@@ -278,12 +278,12 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: m
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -299,11 +299,19 @@ class B extends A {
       error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 69, 5),
     ]);
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('super.a'),
-      element: null,
-      type: 'dynamic',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    staticElement: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_topLevelFunction() async {

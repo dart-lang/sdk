@@ -124,6 +124,324 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterColon_beforeRightBrace_inFunction() async {
+    await computeSuggestions('''
+void f() {switch(1) {case 1:^}}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  break
+    kind: keyword
+  case
+    kind: keyword
+  const
+    kind: keyword
+  default:
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterColon_beforeRightBrace_inFunction_partial() async {
+    await computeSuggestions('''
+foo() {switch(1) {case 1: b^}}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  break
+    kind: keyword
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  assert
+    kind: keyword
+  break
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void>
+      test_afterColon_beforeRightBrace_inFunction_partial_language219() async {
+    await computeSuggestions('''
+// @dart=2.19
+foo() {switch(1) {case 1: b^}}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  break
+    kind: keyword
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  assert
+    kind: keyword
+  break
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void> test_afterColon_beforeRightBrace_inMethod() async {
+    await computeSuggestions('''
+class A{foo() {switch(1) {case 1:^}}}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  break
+    kind: keyword
+  case
+    kind: keyword
+  const
+    kind: keyword
+  default:
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  return
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterColon_beforeRightBrace_inMethod_partial() async {
+    await computeSuggestions('''
+class A{foo() {switch(1) {case 1: b^}}}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  break
+    kind: keyword
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  assert
+    kind: keyword
+  break
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  return
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+    }
+  }
+
+  Future<void>
+      test_afterColon_beforeRightBrace_inMethod_partial_language219() async {
+    await computeSuggestions('''
+// @dart=2.19
+class A{foo() {switch(1) {case 1: b^}}}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  break
+    kind: keyword
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  assert
+    kind: keyword
+  break
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  return
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+    }
+  }
+
   Future<void> test_afterWhen_inIfElement() async {
     await computeSuggestions('''
 var v = [ if (o case != '' when true ^) ];

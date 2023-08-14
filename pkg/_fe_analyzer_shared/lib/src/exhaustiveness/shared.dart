@@ -210,7 +210,7 @@ class ExhaustivenessCache<
                 _getSealedClassInfo(sealedClass));
           } else {
             Type? listType = typeOperations.getListType(nonNullable);
-            if (listType == nonNullable) {
+            if (listType != null) {
               staticType =
                   new ListTypeStaticType(typeOperations, this, nonNullable);
             } else {
@@ -260,12 +260,13 @@ class ExhaustivenessCache<
       Type type, Identity uniqueValue, String textualRepresentation) {
     Type nonNullable = typeOperations.getNonNullable(type);
     StaticType staticType = _uniqueTypeMap[uniqueValue] ??=
-        new ValueStaticType<Type, Identity>(
+        new GeneralValueStaticType<Type, Identity>(
             typeOperations,
             this,
             nonNullable,
             new IdentityRestriction<Identity>(uniqueValue),
-            textualRepresentation);
+            textualRepresentation,
+            uniqueValue);
     if (typeOperations.isNullable(type)) {
       staticType = staticType.nullable;
     }

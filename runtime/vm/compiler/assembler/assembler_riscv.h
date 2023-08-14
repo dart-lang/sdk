@@ -877,7 +877,10 @@ class Assembler : public MicroAssembler {
   void TsanStoreRelease(Register addr);
 #endif
 
-  void LoadAcquire(Register dst, Register address, int32_t offset = 0) override;
+  void LoadAcquire(Register dst,
+                   Register address,
+                   int32_t offset = 0,
+                   OperandSize size = kWordBytes) override;
 
   void LoadAcquireCompressed(Register dst,
                              Register address,
@@ -895,12 +898,9 @@ class Assembler : public MicroAssembler {
                                             Register base,
                                             int32_t offset);
 
-  void CompareWithMemoryValue(Register value, Address address);
-
-  void LoadAbstractTypeNullability(Register dst, Register type) override;
-  void CompareAbstractTypeNullabilityWith(Register type,
-                                          /*Nullability*/ int8_t value,
-                                          Register scratch) override;
+  void CompareWithMemoryValue(Register value,
+                              Address address,
+                              OperandSize size = kWordBytes) override;
 
   // Debugging and bringup support.
   void Breakpoint() override { trap(); }
@@ -921,7 +921,7 @@ class Assembler : public MicroAssembler {
   // Instruction pattern from entrypoint is used in Dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
   // RawInstruction object corresponding to the code running in the frame.
-  static const intptr_t kEntryPointToPcMarkerOffset = 0;
+  static constexpr intptr_t kEntryPointToPcMarkerOffset = 0;
   static intptr_t EntryPointToPcMarkerOffset() {
     return kEntryPointToPcMarkerOffset;
   }
@@ -1043,7 +1043,7 @@ class Assembler : public MicroAssembler {
                     Register rn,
                     intx_t imm,
                     OperandSize sz = kWordBytes);
-  void AndImmediate(Register rd, intx_t imm) {
+  void AndImmediate(Register rd, intx_t imm) override {
     AndImmediate(rd, rd, imm);
   }
   void AndRegisters(Register dst,

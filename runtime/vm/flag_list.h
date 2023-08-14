@@ -92,8 +92,6 @@ constexpr bool FLAG_support_il_printer = false;
     "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
   P(add_readonly_data_symbols, bool, false,                                    \
     "Add static symbols for objects in snapshot read-only data")               \
-  C(async_debugger, false, false, bool, true,                                  \
-    "Debugger support async functions.")                                       \
   P(background_compilation, bool, kDartUseBackgroundCompilation,               \
     "Run optimizing compilation in background")                                \
   P(check_token_positions, bool, false,                                        \
@@ -110,6 +108,8 @@ constexpr bool FLAG_support_il_printer = false;
     "Deoptimize on every N stack overflow checks")                             \
   P(deoptimize_on_runtime_call_every, int, 0,                                  \
     "Deoptimize functions on every runtime call.")                             \
+  P(dontneed_on_sweep, bool, false,                                            \
+    "madvise(DONTNEED) free areas in partially used heap regions")             \
   R(dump_megamorphic_stats, false, bool, false,                                \
     "Dump megamorphic cache statistics")                                       \
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \
@@ -130,7 +130,7 @@ constexpr bool FLAG_support_il_printer = false;
   P(huge_method_cutoff_in_ast_nodes, int, 10000,                               \
     "Huge method cutoff in AST nodes: Disables optimizations for huge "        \
     "methods.")                                                                \
-  P(idle_timeout_micros, int, 1000 * kMicrosecondsPerMillisecond,              \
+  P(idle_timeout_micros, int, 61 * kMicrosecondsPerSecond,                     \
     "Consider thread pool isolates for idle tasks after this long.")           \
   P(idle_duration_micros, int, kMaxInt32,                                      \
     "Allow idle tasks to run for this long.")                                  \
@@ -220,6 +220,8 @@ constexpr bool FLAG_support_il_printer = false;
   P(trace_strong_mode_types, bool, false,                                      \
     "Trace optimizations based on strong mode types.")                         \
   D(trace_type_checks, bool, false, "Trace runtime type checks.")              \
+  D(trace_type_checks_verbose, bool, false,                                    \
+    "Enable verbose trace of runtime type checks.")                            \
   D(trace_patching, bool, false, "Trace patching of code.")                    \
   D(trace_optimized_ic_calls, bool, false,                                     \
     "Trace IC calls in optimized code.")                                       \

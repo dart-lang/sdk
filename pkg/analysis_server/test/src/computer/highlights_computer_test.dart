@@ -111,8 +111,8 @@ void f() {
     bool hasErrors = false,
   }) async {
     this.content = content;
-    newFile(sourcePath, content);
-    var result = await getResolvedUnit(sourcePath);
+    final file = newFile(sourcePath, content);
+    var result = await getResolvedUnit(file);
 
     if (hasErrors) {
       expect(result.errors, isNotEmpty);

@@ -25,6 +25,14 @@ void foo() {
 ''', [
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1),
     ]);
+
+    final node = findNode.namedType('F()');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: F
+  element: self::@typeAlias::F
+  type: InvalidType
+''');
   }
 
   test_imported() async {
@@ -51,6 +59,41 @@ void f() {
 ''', [
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 28, 1),
     ]);
+
+    final node = findNode.namedType('A()');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  element: self::@getter::A
+  type: InvalidType
+''');
+  }
+
+  test_local_withTypeArguments() async {
+    await assertErrorsInCode('''
+var A = 0;
+void f() {
+  new A<int>();
+}
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 28, 1),
+    ]);
+
+    final node = findNode.namedType('A<int>()');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  element: self::@getter::A
+  type: InvalidType
+''');
   }
 
   test_malformed_constructor_call() async {

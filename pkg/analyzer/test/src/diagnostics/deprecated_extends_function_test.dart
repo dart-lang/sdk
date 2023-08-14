@@ -33,6 +33,16 @@ class A extends Function {}
     ]);
   }
 
+  test_core_language219_viaTypedef() async {
+    await assertErrorsInCode('''
+// @dart = 2.19
+typedef F = Function;
+class A extends F {}
+''', [
+      error(WarningCode.DEPRECATED_EXTENDS_FUNCTION, 54, 1),
+    ]);
+  }
+
   test_local_language219() async {
     await assertErrorsInCode('''
 // @dart = 2.19
@@ -40,7 +50,6 @@ class Function {}
 class A extends Function {}
 ''', [
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 22, 8),
-      error(WarningCode.DEPRECATED_EXTENDS_FUNCTION, 50, 8),
     ]);
   }
 }

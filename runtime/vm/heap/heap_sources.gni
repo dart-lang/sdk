@@ -43,7 +43,6 @@ heap_sources_tests = [
   "freelist_test.cc",
   "heap_test.cc",
   "pages_test.cc",
-  "scavenger_test.cc",
   "weak_table_test.cc",
   "safepoint_test.cc",
 ]

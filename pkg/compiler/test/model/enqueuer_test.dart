@@ -165,8 +165,7 @@ main() {}
 
   void checkInvariant(
       Enqueuer enqueuer, ElementEnvironment elementEnvironment) {
-    for (MemberEntity member
-        in compiler.resolutionEnqueuerForTesting.processedEntities) {
+    for (MemberEntity member in enqueuer.processedEntities) {
       Expect.isTrue(
           member == elementEnvironment.mainFunction ||
               member.library != elementEnvironment.mainLibrary,

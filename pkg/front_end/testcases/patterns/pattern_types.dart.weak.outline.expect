@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -56,30 +56,30 @@ extension /* unnamed */ _extension#2 on core::String {
 extension /* unnamed */ _extension#3 on core::String {
   operator <= = self::_extension#3|<=;
 }
-static method _extension#0|get#extensionGetter(lowered final self::Class #this) → core::int
+static extension-member method _extension#0|get#extensionGetter(lowered final self::Class #this) → core::int
   ;
-static method _extension#0|extensionMethod(lowered final self::Class #this) → void
+static extension-member method _extension#0|extensionMethod(lowered final self::Class #this) → void
   ;
-static method _extension#0|get#extensionMethod(lowered final self::Class #this) → () → void
+static extension-member method _extension#0|get#extensionMethod(lowered final self::Class #this) → () → void
   return () → void => self::_extension#0|extensionMethod(#this);
-static method _extension#0|<=(lowered final self::Class #this, core::int i) → core::bool
+static extension-member method _extension#0|<=(lowered final self::Class #this, core::int i) → core::bool
   ;
-static method _extension#0|>=(lowered final self::Class #this, core::int i) → core::int
+static extension-member method _extension#0|>=(lowered final self::Class #this, core::int i) → core::int
   ;
-static method _extension#0|get#ambiguousField(lowered final self::Class #this) → core::int
+static extension-member method _extension#0|get#ambiguousField(lowered final self::Class #this) → core::int
   ;
-static method _extension#1|get#ambiguousField(lowered final self::Class #this) → core::String
+static extension-member method _extension#1|get#ambiguousField(lowered final self::Class #this) → core::String
   ;
-static method _extension#2|<=(lowered final core::String #this, dynamic other) → core::bool
+static extension-member method _extension#2|<=(lowered final core::String #this, dynamic other) → core::bool
   ;
-static method _extension#3|<=(lowered final core::String #this, dynamic other) → core::bool
+static extension-member method _extension#3|<=(lowered final core::String #this, dynamic other) → core::bool
   ;
 static method objectPattern(dynamic o) → dynamic
   ;
 static method relationalPattern(dynamic dyn, Never never, self::Class cls, self::Class? cls_, invalid-type invalid, core::String string, self::Class2 cls2, self::Class2? cls2_) → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 
@@ -93,7 +93,7 @@ class Invalid extends core::Object {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self3;
 import "dart:core" as core;
 

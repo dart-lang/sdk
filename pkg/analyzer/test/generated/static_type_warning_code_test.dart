@@ -577,7 +577,7 @@ g(Object p) {
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 41, 6),
-      error(HintCode.UNUSED_ELEMENT, 55, 1),
+      error(WarningCode.UNUSED_ELEMENT, 55, 1),
     ]);
   }
 }

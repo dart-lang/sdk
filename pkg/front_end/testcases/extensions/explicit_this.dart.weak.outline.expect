@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -17,17 +17,17 @@ extension A2 on self::A1 {
   method method4 = self::A2|method4;
   tearoff method4 = self::A2|get#method4;
 }
-static method A2|method2(lowered final self::A1 #this) → void
+static extension-member method A2|method2(lowered final self::A1 #this) → void
   ;
-static method A2|get#method2(lowered final self::A1 #this) → () → void
+static extension-member method A2|get#method2(lowered final self::A1 #this) → () → void
   return () → void => self::A2|method2(#this);
-static method A2|method3(lowered final self::A1 #this) → core::Object?
+static extension-member method A2|method3(lowered final self::A1 #this) → core::Object?
   ;
-static method A2|get#method3(lowered final self::A1 #this) → () → core::Object?
+static extension-member method A2|get#method3(lowered final self::A1 #this) → () → core::Object?
   return () → core::Object? => self::A2|method3(#this);
-static method A2|method4(lowered final self::A1 #this, core::Object o) → void
+static extension-member method A2|method4(lowered final self::A1 #this, core::Object o) → void
   ;
-static method A2|get#method4(lowered final self::A1 #this) → (core::Object) → void
+static extension-member method A2|get#method4(lowered final self::A1 #this) → (core::Object) → void
   return (core::Object o) → void => self::A2|method4(#this, o);
 static method main() → dynamic
   ;

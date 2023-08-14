@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -47,7 +46,7 @@ class ExtensionMemberResolver {
   /// The context of the invocation that is made through the override does
   /// not affect the type inference of the override and the receiver.
   DartType? computeOverrideReceiverContextType(ExtensionOverride node) {
-    var element = node.staticElement!;
+    var element = node.element;
     var typeParameters = element.typeParameters;
 
     var arguments = node.argumentList.arguments;
@@ -137,7 +136,7 @@ class ExtensionMemberResolver {
   ///
   /// The [node] is fully resolved, and its type arguments are set.
   ResolutionResult getOverrideMember(ExtensionOverride node, String name) {
-    var element = node.extensionName.staticElement as ExtensionElement;
+    var element = node.element;
 
     ExecutableElement? getter;
     ExecutableElement? setter;
@@ -173,7 +172,7 @@ class ExtensionMemberResolver {
   void resolveOverride(
       ExtensionOverride node, List<WhyNotPromotedGetter> whyNotPromotedList) {
     var nodeImpl = node as ExtensionOverrideImpl;
-    var element = node.staticElement!;
+    var element = node.element;
     var typeParameters = element.typeParameters;
 
     if (!_isValidContext(node)) {
@@ -320,7 +319,7 @@ class ExtensionMemberResolver {
     ExtensionOverride node,
     DartType receiverType,
   ) {
-    var element = node.staticElement!;
+    var element = node.element;
     var typeParameters = element.typeParameters;
     var typeArguments = node.typeArguments;
 
@@ -345,7 +344,7 @@ class ExtensionMemberResolver {
     } else {
       var inferrer = GenericInferrer(_typeSystem, typeParameters,
           errorReporter: _errorReporter,
-          errorNode: node.extensionName,
+          errorNode: SimpleIdentifierImpl(node.name),
           genericMetadataIsEnabled: _genericMetadataIsEnabled);
       inferrer.constrainArgument(
         receiverType,

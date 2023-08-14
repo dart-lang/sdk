@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "value_class_support_lib.dart" as val;
@@ -10,11 +10,11 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   operator /*isLegacy*/ ==(core::Object other) → core::bool
-    return other is self::A;
+    return other is{ForLegacy} self::A;
   get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///explicit_mixin.dartA".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
-    return "A()";
+    return #C1;
   method /*isLegacy*/ copyWith() → dynamic
     return new self::A::•();
 }
@@ -38,11 +38,11 @@ class E extends self::B implements self::A /*isEliminatedMixin*/  {
     : super self::B::•()
     ;
   operator /*isLegacy*/ ==(core::Object other) → core::bool
-    return other is self::A;
+    return other is{ForLegacy} self::A;
   get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///explicit_mixin.dartA".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
-    return "A()";
+    return #C1;
   method /*isLegacy*/ copyWith() → dynamic
     return new self::A::•();
 }
@@ -51,17 +51,17 @@ class F extends self::B implements self::C /*isEliminatedMixin*/  {
     : super self::B::•()
     ;
   operator /*isLegacy*/ ==(core::Object other) → core::bool
-    return other is self::F;
+    return other is{ForLegacy} self::F;
   get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///explicit_mixin.dartF".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
-    return "F()";
+    return #C2;
   method /*isLegacy*/ copyWith() → dynamic
     return new self::F::•();
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as val;
 import "dart:core" as core;
 
@@ -80,14 +80,10 @@ class JenkinsSmiHash extends core::Object {
     return 536870911.{core::int::&}(hash.{core::num::+}(16383.{core::int::&}(hash){(core::int) → core::int}.{core::int::<<}(15){(core::int) → core::int}){(core::num) → core::int}){(core::int) → core::int};
   }
 }
-static const field core::String valueClass = #C1;
+static const field core::String valueClass = #C3;
 
 constants  {
-  #C1 = "valueClass"
+  #C1 = "A()"
+  #C2 = "F()"
+  #C3 = "valueClass"
 }
-
-Extra constant evaluation status:
-Evaluated: StringConcatenation @ org-dartlang-testcase:///explicit_mixin.dart:10:7 -> StringConstant("A()")
-Evaluated: StringConcatenation @ org-dartlang-testcase:///explicit_mixin.dart:10:7 -> StringConstant("A()")
-Evaluated: StringConcatenation @ org-dartlang-testcase:///explicit_mixin.dart:20:7 -> StringConstant("F()")
-Extra constant evaluation: evaluated: 52, effectively constant: 3

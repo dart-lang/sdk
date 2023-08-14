@@ -12,6 +12,7 @@ import 'local_variable_test.dart' as local_variable;
 import 'named_argument_test.dart' as named_argument;
 import 'non_type_member_test.dart' as non_type_member;
 import 'static_member_test.dart' as static_member;
+import 'switch_statement_test.dart' as switch_statement;
 
 void main() {
   defineReflectiveSuite(() {
@@ -23,5 +24,6 @@ void main() {
     named_argument.main();
     non_type_member.main();
     static_member.main();
+    switch_statement.main();
   });
 }

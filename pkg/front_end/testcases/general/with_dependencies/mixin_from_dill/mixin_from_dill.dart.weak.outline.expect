@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///mixin_from_dill_lib1.dart" as lib1;
@@ -7,7 +7,7 @@ import "org-dartlang-testcase:///mixin_from_dill_lib2.dart" as lib2;
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 
@@ -43,7 +43,7 @@ abstract class D extends core::Object implements self2::C /*isMixinDeclaration*/
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self3;
 import "dart:core" as core;
 

@@ -20,6 +20,7 @@
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/dispatch_table.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/flags.h"
 #include "vm/heap/heap.h"
 #include "vm/heap/pointer_block.h"
@@ -262,7 +263,7 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
   explicit FinalizeWeakPersistentHandlesVisitor(IsolateGroup* isolate_group)
       : HandleVisitor(Thread::Current()), isolate_group_(isolate_group) {}
 
-  void VisitHandle(uword addr) {
+  void VisitHandle(uword addr) override {
     auto handle = reinterpret_cast<FinalizablePersistentHandle*>(addr);
     handle->UpdateUnreachable(isolate_group_);
   }
@@ -343,9 +344,6 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       api_state_(new ApiState()),
       thread_registry_(new ThreadRegistry()),
       safepoint_handler_(new SafepointHandler(this)),
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-      reload_handler_(new ReloadHandler()),
-#endif
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
@@ -434,13 +432,10 @@ IsolateGroup::~IsolateGroup() {
 }
 
 void IsolateGroup::RegisterIsolate(Isolate* isolate) {
-  {
-    SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
-    ASSERT(isolates_lock_->IsCurrentThreadWriter());
-    isolates_.Append(isolate);
-    isolate_count_++;
-  }
-  NOT_IN_PRODUCT(NOT_IN_PRECOMPILED(reload_handler()->RegisterIsolate()));
+  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+  ASSERT(isolates_lock_->IsCurrentThreadWriter());
+  isolates_.Append(isolate);
+  isolate_count_++;
 }
 
 bool IsolateGroup::ContainsOnlyOneIsolate() {
@@ -457,11 +452,8 @@ void IsolateGroup::RunWithLockedGroup(std::function<void()> fun) {
 }
 
 void IsolateGroup::UnregisterIsolate(Isolate* isolate) {
-  NOT_IN_PRODUCT(NOT_IN_PRECOMPILED(reload_handler()->UnregisterIsolate()));
-  {
-    SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
-    isolates_.Remove(isolate);
-  }
+  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+  isolates_.Remove(isolate);
 }
 
 bool IsolateGroup::UnregisterIsolateDecrementCount() {
@@ -577,170 +569,6 @@ void IsolateGroup::set_saved_unlinked_calls(const Array& saved_unlinked_calls) {
   saved_unlinked_calls_ = saved_unlinked_calls.ptr();
 }
 
-Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
-                                           Thread* existing_mutator_thread,
-                                           bool is_vm_isolate,
-                                           bool is_mutator,
-                                           bool bypass_safepoint) {
-  ASSERT(threads_lock()->IsOwnedByCurrentThread());
-
-  // Schedule the thread into the isolate group by associating
-  // a 'Thread' structure with it (this is done while we are holding
-  // the thread registry lock).
-  Thread* thread = nullptr;
-  OSThread* os_thread = OSThread::Current();
-  if (os_thread != nullptr) {
-    // If a safepoint operation is in progress wait for it to finish before
-    // scheduling this thread.
-    while (!bypass_safepoint && safepoint_handler()->AnySafepointInProgress()) {
-      ml->Wait();
-    }
-
-    if (is_mutator) {
-      if (existing_mutator_thread == nullptr) {
-        // Allocate a new [Thread] structure for the mutator thread.
-        thread = thread_registry()->GetFreeThreadLocked(is_vm_isolate);
-      } else {
-        // Reuse the existing cached [Thread] structure for the mutator thread.,
-        // see comment in 'base_isolate.h'.
-        thread_registry()->AddToActiveListLocked(existing_mutator_thread);
-        thread = existing_mutator_thread;
-      }
-    } else {
-      thread = thread_registry()->GetFreeThreadLocked(is_vm_isolate);
-    }
-
-    // Now get a free Thread structure.
-    ASSERT(thread != nullptr);
-
-    // Set up other values and set the TLS value.
-    thread->isolate_ = nullptr;
-    thread->isolate_group_ = this;
-    thread->field_table_values_ = nullptr;
-#if defined(DART_PRECOMPILED_RUNTIME)
-    if (object_store() != nullptr && is_mutator) {
-#define INIT_ENTRY_POINT(name)                                                 \
-  thread->name##_entry_point_ = Function::EntryPointOf(object_store()->name());
-      CACHED_FUNCTION_ENTRY_POINTS_LIST(INIT_ENTRY_POINT)
-#undef INIT_ENTRY_POINT
-    }
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-    ASSERT(heap() != nullptr);
-    thread->heap_ = heap();
-    thread->set_os_thread(os_thread);
-    ASSERT(thread->execution_state() == Thread::kThreadInNative);
-    thread->set_execution_state(Thread::kThreadInVM);
-    thread->set_safepoint_state(
-        Thread::SetBypassSafepoints(bypass_safepoint, 0));
-    thread->set_vm_tag(VMTag::kVMTagId);
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
-    thread->heap_sampler().Initialize();
-#endif
-    ASSERT(thread->no_safepoint_scope_depth() == 0);
-    os_thread->set_thread(thread);
-    Thread::SetCurrent(thread);
-    os_thread->EnableThreadInterrupts();
-  }
-  return thread;
-}
-
-void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
-                                          Thread* thread,
-                                          bool is_mutator,
-                                          bool bypass_safepoint) {
-  thread->heap()->new_space()->AbandonRemainingTLAB(thread);
-
-  // Clear since GC will not visit the thread once it is unscheduled. Do this
-  // under the thread lock to prevent races with the GC visiting thread roots.
-  if (!is_mutator) {
-    thread->ClearReusableHandles();
-  }
-
-  // Disassociate the 'Thread' structure and unschedule the thread
-  // from this isolate group.
-  if (!is_mutator) {
-    ASSERT(thread->api_top_scope_ == nullptr);
-    ASSERT(thread->zone() == nullptr);
-    ASSERT(thread->sticky_error() == Error::null());
-  }
-  if (!bypass_safepoint) {
-    // Ensure that the thread reports itself as being at a safepoint.
-    thread->EnterSafepoint();
-  }
-  OSThread* os_thread = thread->os_thread();
-  ASSERT(os_thread != nullptr);
-  os_thread->DisableThreadInterrupts();
-  os_thread->set_thread(nullptr);
-  OSThread::SetCurrent(os_thread);
-
-  // Even if we unschedule the mutator thread, e.g. via calling
-  // `Dart_ExitIsolate()` inside a native, we might still have one or more Dart
-  // stacks active, which e.g. GC marker threads want to visit.  So we don't
-  // clear out the isolate pointer if we are on the mutator thread.
-  //
-  // The [thread] structure for the mutator thread is kept alive in the thread
-  // registry even if the mutator thread is temporarily unscheduled.
-  //
-  // All other threads are not allowed to unschedule themselves and schedule
-  // again later on.
-  if (!is_mutator) {
-    ASSERT(thread->isolate_ == nullptr);
-    thread->isolate_group_ = nullptr;
-  }
-  thread->heap_ = nullptr;
-  thread->set_os_thread(nullptr);
-  thread->set_execution_state(Thread::kThreadInNative);
-  thread->set_safepoint_state(Thread::AtSafepointField::encode(true) |
-                              Thread::AtDeoptSafepointField::encode(true));
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
-  thread->heap_sampler().Cleanup();
-#endif
-
-  ASSERT(thread->no_safepoint_scope_depth() == 0);
-  if (is_mutator) {
-    // The mutator thread structure stays alive and attached to the isolate as
-    // long as the isolate lives. So we simply remove the thread from the list
-    // of scheduled threads.
-    thread_registry()->RemoveFromActiveListLocked(thread);
-  } else {
-    // Return thread structure.
-    thread_registry()->ReturnThreadLocked(thread);
-  }
-}
-
-Thread* IsolateGroup::ScheduleThread(bool bypass_safepoint) {
-  // We are about to associate the thread with an isolate group and it would
-  // not be possible to correctly track no_safepoint_scope_depth for the
-  // thread in the constructor/destructor of MonitorLocker,
-  // so we create a MonitorLocker object which does not do any
-  // no_safepoint_scope_depth increments/decrements.
-  MonitorLocker ml(threads_lock(), false);
-
-  const bool is_vm_isolate = false;
-
-  // Schedule the thread into the isolate by associating
-  // a 'Thread' structure with it (this is done while we are holding
-  // the thread registry lock).
-  return ScheduleThreadLocked(&ml, /*existing_mutator_thread=*/nullptr,
-                              is_vm_isolate, /*is_mutator=*/false,
-                              bypass_safepoint);
-}
-
-void IsolateGroup::UnscheduleThread(Thread* thread,
-                                    bool is_mutator,
-                                    bool bypass_safepoint) {
-  // Disassociate the 'Thread' structure and unschedule the thread
-  // from this isolate group.
-  //
-  // We are disassociating the thread from an isolate and it would
-  // not be possible to correctly track no_safepoint_scope_depth for the
-  // thread in the constructor/destructor of MonitorLocker,
-  // so we create a MonitorLocker object which does not do any
-  // no_safepoint_scope_depth increments/decrements.
-  MonitorLocker ml(threads_lock(), false);
-  UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);
-}
-
 void IsolateGroup::IncreaseMutatorCount(Isolate* mutator,
                                         bool is_nested_reenter) {
   ASSERT(mutator->group() == this);
@@ -775,8 +603,8 @@ void IsolateGroup::DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit) {
   // If the mutator thread has an active stack and runs on our thread pool we
   // will mark the worker as blocked, thereby possibly spawning a new worker for
   // pending tasks (if there are any).
-  ASSERT(mutator->mutator_thread() != nullptr);
   if (is_nested_exit) {
+    ASSERT(mutator->mutator_thread() != nullptr);
     thread_pool()->MarkCurrentWorkerAsBlocked();
   }
 
@@ -992,6 +820,22 @@ void IsolateGroup::FreeStaticField(const Field& field) {
   });
 }
 
+Isolate* IsolateGroup::EnterTemporaryIsolate() {
+  Dart_IsolateFlags flags;
+  Isolate::FlagsInitialize(&flags);
+  Isolate* const isolate = Isolate::InitIsolate("temp", this, flags);
+  ASSERT(isolate != nullptr);
+  ASSERT(Isolate::Current() == isolate);
+  return isolate;
+}
+
+void IsolateGroup::ExitTemporaryIsolate() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != nullptr);
+  thread->set_execution_state(Thread::kThreadInVM);
+  Dart::ShutdownIsolate(thread);
+}
+
 void IsolateGroup::RehashConstants() {
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
@@ -1042,18 +886,42 @@ void IsolateGroup::ValidateConstants() {
 #endif  // DEBUG
 
 void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
-  const Array& msg = Array::Handle(Array::New(3));
-  Object& element = Object::Handle();
+  const bool ok = SendInternalLibMessage(main_port(), msg_id, capability);
+  if (!ok) UNREACHABLE();
+}
 
-  element = Smi::New(Message::kIsolateLibOOBMsg);
-  msg.SetAt(0, element);
-  element = Smi::New(msg_id);
-  msg.SetAt(1, element);
-  element = Capability::New(capability);
-  msg.SetAt(2, element);
+bool Isolate::SendInternalLibMessage(Dart_Port main_port,
+                                     LibMsgId msg_id,
+                                     uint64_t capability) {
+  Dart_CObject array_entry_msg_kind;
+  array_entry_msg_kind.type = Dart_CObject_kInt64;
+  array_entry_msg_kind.value.as_int64 = Message::kIsolateLibOOBMsg;
 
-  PortMap::PostMessage(WriteMessage(/* same_group */ false, msg, main_port(),
-                                    Message::kOOBPriority));
+  Dart_CObject array_entry_msg_id;
+  array_entry_msg_id.type = Dart_CObject_kInt64;
+  array_entry_msg_id.value.as_int64 = msg_id;
+
+  Dart_CObject array_entry_capability;
+  array_entry_capability.type = Dart_CObject_kCapability;
+  array_entry_capability.value.as_capability.id = capability;
+
+  Dart_CObject* array_entries[3] = {
+      &array_entry_msg_kind,
+      &array_entry_msg_id,
+      &array_entry_capability,
+  };
+
+  Dart_CObject message;
+  message.type = Dart_CObject_kArray;
+  message.value.as_array.values = array_entries;
+  message.value.as_array.length = ARRAY_SIZE(array_entries);
+
+  AllocOnlyStackZone zone;
+  std::unique_ptr<Message> msg = WriteApiMessage(
+      zone.GetZone(), &message, main_port, Message::kOOBPriority);
+  if (msg == nullptr) UNREACHABLE();
+
+  return PortMap::PostMessage(std::move(msg));
 }
 
 void IsolateGroup::set_object_store(ObjectStore* object_store) {
@@ -1215,7 +1083,7 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
 
 #if !defined(PRODUCT)
       // If we are already paused, don't pause again.
-      if (I->debugger()->PauseEvent() == NULL) {
+      if (I->debugger()->PauseEvent() == nullptr) {
         return I->debugger()->PauseInterrupted();
       }
 #endif
@@ -1301,7 +1169,10 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
     case Isolate::kCheckForReload: {
       // [ OOB, kCheckForReload, ignored ]
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-      IG->reload_handler()->CheckForReload();
+      {
+        ReloadParticipationScope allow_reload(T);
+        T->CheckForSafepoint();
+      }
 #else
       UNREACHABLE();
 #endif
@@ -1711,14 +1582,10 @@ Isolate::Isolate(IsolateGroup* isolate_group,
     : BaseIsolate(),
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
-      ic_miss_code_(Code::null()),
       field_table_(new FieldTable(/*isolate=*/this)),
       finalizers_(GrowableObjectArray::null()),
       isolate_group_(isolate_group),
       isolate_object_store_(new IsolateObjectStore()),
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      native_callback_trampolines_(),
-#endif
       isolate_flags_(0),
 #if !defined(PRODUCT)
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
@@ -1757,7 +1624,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
 Isolate::~Isolate() {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   // TODO(32796): Re-enable assertion.
-  // RELEASE_ASSERT(program_reload_context_ == NULL);
+  // RELEASE_ASSERT(program_reload_context_ == nullptr);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(PRODUCT)
@@ -1781,11 +1648,10 @@ Isolate::~Isolate() {
          nullptr);  // No deopt in progress when isolate deleted.
   ASSERT(spawn_count_ == 0);
 
-  // We have cached the mutator thread, delete it.
+  // The [Thread] object should've been released on the last
+  // `Thread::ExitIsolate()` call.
   ASSERT(scheduled_mutator_thread_ == nullptr);
-  mutator_thread_->isolate_ = nullptr;
-  delete mutator_thread_;
-  mutator_thread_ = nullptr;
+  ASSERT(mutator_thread_ == nullptr);
 }
 
 void Isolate::InitVM() {
@@ -1824,7 +1690,8 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
 #if !defined(PRODUCT)
 // Initialize metrics.
 #define ISOLATE_METRIC_INIT(type, variable, name, unit)                        \
-  result->metric_##variable##_.InitInstance(result, name, NULL, Metric::unit);
+  result->metric_##variable##_.InitInstance(result, name, nullptr,             \
+                                            Metric::unit);
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_INIT);
 #undef ISOLATE_METRIC_INIT
 #endif  // !defined(PRODUCT)
@@ -1835,10 +1702,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   //
   // Though the [result] isolate is still in a state where no memory has been
   // allocated, which means it's safe to GC the isolate group until here.
-  if (!Thread::EnterIsolate(result)) {
-    delete result;
-    return nullptr;
-  }
+  Thread::EnterIsolate(result);
 
   // Setup the isolate message handler.
   MessageHandler* handler = new IsolateMessageHandler(result);
@@ -1936,7 +1800,7 @@ void IsolateGroup::SetupImagePage(const uint8_t* image_buffer,
 void Isolate::ScheduleInterrupts(uword interrupt_bits) {
   // We take the threads lock here to ensure that the mutator thread does not
   // exit the isolate while we are trying to schedule interrupts on it.
-  MonitorLocker ml(group()->threads_lock());
+  MonitorLocker ml(group()->thread_registry()->threads_lock());
   Thread* mthread = mutator_thread();
   if (mthread != nullptr) {
     mthread->ScheduleInterrupts(interrupt_bits);
@@ -2017,7 +1881,7 @@ bool IsolateGroup::CanReload() {
   // During reload itself we don't process OOB messages and don't execute Dart
   // code, so the caller should implicitly have a guarantee we're not reloading
   // already.
-  RELEASE_ASSERT(!IsReloading());
+  RELEASE_ASSERT(!Thread::Current()->OwnsReloadSafepoint());
 
   // We only allow reload to take place from the point on where the first
   // isolate within an isolate group has setup it's root library. From that
@@ -2044,11 +1908,11 @@ bool IsolateGroup::ReloadSources(JSONStream* js,
                                  const char* root_script_url,
                                  const char* packages_url,
                                  bool dont_delete_reload_context) {
+  ASSERT(!IsReloading());
+
   // Ensure all isolates inside the isolate group are paused at a place where we
   // can safely do a reload.
-  ReloadOperationScope reload_operation(Thread::Current());
-
-  ASSERT(!IsReloading());
+  RELOAD_OPERATION_SCOPE(Thread::Current());
 
   auto class_table = IsolateGroup::Current()->class_table();
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context(
@@ -2073,11 +1937,11 @@ bool IsolateGroup::ReloadKernel(JSONStream* js,
                                 const uint8_t* kernel_buffer,
                                 intptr_t kernel_buffer_size,
                                 bool dont_delete_reload_context) {
+  ASSERT(!IsReloading());
+
   // Ensure all isolates inside the isolate group are paused at a place where we
   // can safely do a reload.
-  ReloadOperationScope reload_operation(Thread::Current());
-
-  ASSERT(!IsReloading());
+  RELOAD_OPERATION_SCOPE(Thread::Current());
 
   auto class_table = IsolateGroup::Current()->class_table();
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context(
@@ -2165,7 +2029,7 @@ bool Isolate::VerifyTerminateCapability(const Object& capability) const {
 
 bool Isolate::AddResumeCapability(const Capability& capability) {
   // Ensure a limit for the number of resume capabilities remembered.
-  static const intptr_t kMaxResumeCapabilities =
+  const intptr_t kMaxResumeCapabilities =
       compiler::target::kSmiMax / (6 * kWordSize);
 
   const GrowableObjectArray& caps = GrowableObjectArray::Handle(
@@ -2217,8 +2081,7 @@ bool Isolate::RemoveResumeCapability(const Capability& capability) {
 void Isolate::AddExitListener(const SendPort& listener,
                               const Instance& response) {
   // Ensure a limit for the number of listeners remembered.
-  static const intptr_t kMaxListeners =
-      compiler::target::kSmiMax / (12 * kWordSize);
+  const intptr_t kMaxListeners = compiler::target::kSmiMax / (12 * kWordSize);
 
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
       current_zone(), isolate_object_store()->exit_listeners());
@@ -2285,8 +2148,7 @@ void Isolate::NotifyExitListeners() {
 
 void Isolate::AddErrorListener(const SendPort& listener) {
   // Ensure a limit for the number of listeners remembered.
-  static const intptr_t kMaxListeners =
-      compiler::target::kSmiMax / (6 * kWordSize);
+  const intptr_t kMaxListeners = compiler::target::kSmiMax / (6 * kWordSize);
 
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
       current_zone(), isolate_object_store()->error_listeners());
@@ -2346,7 +2208,7 @@ bool Isolate::NotifyErrorListeners(const char* message,
   msg.value.as_string = const_cast<char*>(message);
   arr_values[0] = &msg;
   Dart_CObject stack;
-  if (stacktrace == NULL) {
+  if (stacktrace == nullptr) {
     stack.type = Dart_CObject_kNull;
   } else {
     stack.type = Dart_CObject_kString;
@@ -2456,9 +2318,16 @@ void Isolate::LowLevelShutdown() {
   delete message_handler();
   set_message_handler(nullptr);
 
+  // Clean up any synchronous FFI callbacks registered with this isolate. Skip
+  // if this isolate never registered any.
+  if (ffi_callback_list_head_ != nullptr) {
+    FfiCallbackMetadata::Instance()->DeleteAllCallbacks(
+        &ffi_callback_list_head_);
+  }
+
 #if !defined(PRODUCT)
   if (FLAG_dump_megamorphic_stats) {
-    MegamorphicCacheTable::PrintSizes(this);
+    MegamorphicCacheTable::PrintSizes(thread);
   }
   if (FLAG_dump_symbol_stats) {
     Symbols::DumpStats(group());
@@ -2521,9 +2390,9 @@ void Isolate::Shutdown() {
 
   {
     StackZone zone(thread);
-    HandleScope handle_scope(thread);
     ServiceIsolate::SendIsolateShutdownMessage();
 #if !defined(PRODUCT)
+    HandleScope handle_scope(thread);
     debugger()->Shutdown();
     Profiler::IsolateShutdown(thread);
 #endif
@@ -2586,7 +2455,8 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
 
   // From this point on the isolate doesn't participate in safepointing
   // requests anymore.
-  Thread::ExitIsolate();
+  ASSERT(!Thread::Current()->HasActiveState());
+  Thread::ExitIsolate(/*isolate_shutdown=*/true);
 
   // Now it's safe to delete the isolate.
   delete isolate;
@@ -2648,7 +2518,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
     // memory might have become unreachable. We should evaluate how to best
     // inform the GC about this situation.
   }
-}  // namespace dart
+}
 
 Dart_InitializeIsolateCallback Isolate::initialize_callback_ = nullptr;
 Dart_IsolateGroupCreateCallback Isolate::create_group_callback_ = nullptr;
@@ -2687,7 +2557,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit the objects directly referenced from the isolate structure.
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&current_tag_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&default_tag_));
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ic_miss_code_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&tag_table_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&finalizers_));
@@ -2790,7 +2659,7 @@ void IsolateGroup::ForEachIsolate(
     bool at_safepoint) {
   auto thread = Thread::Current();
   if (at_safepoint) {
-    ASSERT(thread->IsAtSafepoint() ||
+    ASSERT(thread->OwnsSafepoint() ||
            (thread->task_kind() == Thread::kMutatorTask) ||
            (thread->task_kind() == Thread::kMarkerTask) ||
            (thread->task_kind() == Thread::kCompactorTask) ||
@@ -2800,7 +2669,7 @@ void IsolateGroup::ForEachIsolate(
     }
     return;
   }
-  if (thread != nullptr && thread->IsAtSafepoint()) {
+  if (thread != nullptr && thread->OwnsSafepoint()) {
     for (Isolate* isolate : isolates_) {
       function(isolate);
     }
@@ -2828,15 +2697,15 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
   auto thread = Thread::Current();
   StoppedMutatorsScope stopped_mutators_scope(thread);
 
-  if (thread->IsAtSafepoint()) {
-    RELEASE_ASSERT(safepoint_handler()->IsOwnedByTheThread(thread));
+  if (thread->OwnsSafepoint()) {
+    RELEASE_ASSERT(thread->OwnsSafepoint());
     single_current_mutator->Call();
     return;
   }
 
   {
     SafepointReadRwLocker ml(thread, isolates_lock_.get());
-    if (thread->IsMutatorThread() && ContainsOnlyOneIsolate()) {
+    if (thread->IsDartMutatorThread() && ContainsOnlyOneIsolate()) {
       single_current_mutator->Call();
       return;
     }
@@ -2978,6 +2847,51 @@ static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
   }
 }
 
+static ServiceEvent IsolatePauseEvent(Isolate* isolate) {
+  if (!isolate->is_runnable()) {
+    // Isolate is not yet runnable.
+    ASSERT((isolate->debugger() == nullptr) ||
+           (isolate->debugger()->PauseEvent() == nullptr));
+    return ServiceEvent(isolate, ServiceEvent::kNone);
+  } else if (isolate->message_handler()->should_pause_on_start()) {
+    if (isolate->message_handler()->is_paused_on_start()) {
+      ASSERT((isolate->debugger() == nullptr) ||
+             (isolate->debugger()->PauseEvent() == nullptr));
+      return ServiceEvent(isolate, ServiceEvent::kPauseStart);
+    } else {
+      // Isolate is runnable but not paused on start.
+      // Some service clients get confused if they see:
+      // NotRunnable -> Runnable -> PausedAtStart
+      // Treat Runnable+ShouldPauseOnStart as NotRunnable so they see:
+      // NonRunnable -> PausedAtStart
+      // The should_pause_on_start flag is set to false after resume.
+      ASSERT((isolate->debugger() == nullptr) ||
+             (isolate->debugger()->PauseEvent() == nullptr));
+      return ServiceEvent(isolate, ServiceEvent::kNone);
+    }
+  } else if (isolate->message_handler()->is_paused_on_exit() &&
+             ((isolate->debugger() == nullptr) ||
+              (isolate->debugger()->PauseEvent() == nullptr))) {
+    return ServiceEvent(isolate, ServiceEvent::kPauseExit);
+  } else if ((isolate->debugger() != nullptr) &&
+             (isolate->debugger()->PauseEvent() != nullptr) &&
+             !isolate->ResumeRequest()) {
+    return *(isolate->debugger()->PauseEvent());
+  } else {
+    ServiceEvent pause_event(isolate, ServiceEvent::kResume);
+
+    if (isolate->debugger() != nullptr) {
+      // TODO(turnidge): Don't compute a full stack trace.
+      DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+      if (stack->Length() > 0) {
+        pause_event.set_top_frame(stack->FrameAt(0));
+      }
+    }
+
+    return pause_event;
+  }
+}
+
 void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
@@ -3029,47 +2943,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddProperty("_isReloading", group()->IsReloading());
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  if (!is_runnable()) {
-    // Isolate is not yet runnable.
-    ASSERT((debugger() == nullptr) || (debugger()->PauseEvent() == nullptr));
-    ServiceEvent pause_event(this, ServiceEvent::kNone);
-    jsobj.AddProperty("pauseEvent", &pause_event);
-  } else if (message_handler()->should_pause_on_start()) {
-    if (message_handler()->is_paused_on_start()) {
-      ASSERT((debugger() == nullptr) || (debugger()->PauseEvent() == nullptr));
-      ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
-      jsobj.AddProperty("pauseEvent", &pause_event);
-    } else {
-      // Isolate is runnable but not paused on start.
-      // Some service clients get confused if they see:
-      // NotRunnable -> Runnable -> PausedAtStart
-      // Treat Runnable+ShouldPauseOnStart as NotRunnable so they see:
-      // NonRunnable -> PausedAtStart
-      // The should_pause_on_start flag is set to false after resume.
-      ASSERT((debugger() == nullptr) || (debugger()->PauseEvent() == nullptr));
-      ServiceEvent pause_event(this, ServiceEvent::kNone);
-      jsobj.AddProperty("pauseEvent", &pause_event);
-    }
-  } else if (message_handler()->is_paused_on_exit() &&
-             ((debugger() == nullptr) ||
-              (debugger()->PauseEvent() == nullptr))) {
-    ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
-    jsobj.AddProperty("pauseEvent", &pause_event);
-  } else if ((debugger() != nullptr) && (debugger()->PauseEvent() != nullptr) &&
-             !ResumeRequest()) {
-    jsobj.AddProperty("pauseEvent", debugger()->PauseEvent());
-  } else {
-    ServiceEvent pause_event(this, ServiceEvent::kResume);
-
-    if (debugger() != nullptr) {
-      // TODO(turnidge): Don't compute a full stack trace.
-      DebuggerStackTrace* stack = debugger()->StackTrace();
-      if (stack->Length() > 0) {
-        pause_event.set_top_frame(stack->FrameAt(0));
-      }
-    }
-    jsobj.AddProperty("pauseEvent", &pause_event);
-  }
+  ServiceEvent pause_event = IsolatePauseEvent(this);
+  jsobj.AddProperty("pauseEvent", &pause_event);
 
   const Library& lib = Library::Handle(group()->object_store()->root_library());
   if (!lib.IsNull()) {
@@ -3145,6 +3020,10 @@ void Isolate::PrintMemoryUsageJSON(JSONStream* stream) {
   group()->heap()->PrintMemoryUsageJSON(stream);
 }
 
+void Isolate::PrintPauseEventJSON(JSONStream* stream) {
+  IsolatePauseEvent(this).PrintJSON(stream);
+}
+
 #endif
 
 void Isolate::set_tag_table(const GrowableObjectArray& value) {
@@ -3160,10 +3039,6 @@ void Isolate::set_current_tag(const UserTag& tag) {
 
 void Isolate::set_default_tag(const UserTag& tag) {
   default_tag_ = tag.ptr();
-}
-
-void Isolate::set_ic_miss_code(const Code& code) {
-  ic_miss_code_ = code.ptr();
 }
 
 ErrorPtr Isolate::StealStickyError() {
@@ -3644,99 +3519,31 @@ void Isolate::DecrementSpawnCount() {
 
 void Isolate::WaitForOutstandingSpawns() {
   Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   MonitorLocker ml(&spawn_count_monitor_);
   while (spawn_count_ > 0) {
     ml.WaitWithSafepointCheck(thread);
   }
 }
 
-Monitor* IsolateGroup::threads_lock() const {
-  return thread_registry_->threads_lock();
+FfiCallbackMetadata::Trampoline Isolate::CreateSyncFfiCallback(
+    Zone* zone,
+    const Function& function) {
+  return FfiCallbackMetadata::Instance()->CreateSyncFfiCallback(
+      this, zone, function, &ffi_callback_list_head_);
 }
 
-Thread* Isolate::ScheduleThread(bool is_mutator,
-                                bool is_nested_reenter,
-                                bool bypass_safepoint) {
-  if (is_mutator) {
-    group()->IncreaseMutatorCount(this, is_nested_reenter);
-  }
-
-  // We are about to associate the thread with an isolate group and it would
-  // not be possible to correctly track no_safepoint_scope_depth for the
-  // thread in the constructor/destructor of MonitorLocker,
-  // so we create a MonitorLocker object which does not do any
-  // no_safepoint_scope_depth increments/decrements.
-  MonitorLocker ml(group()->threads_lock(), false);
-
-  // Check to make sure we don't already have a mutator thread.
-  if (is_mutator && scheduled_mutator_thread_ != nullptr) {
-    return nullptr;
-  }
-
-  // NOTE: We cannot just use `Dart::vm_isolate() == this` here, since during
-  // VM startup it might not have been set at this point.
-  const bool is_vm_isolate =
-      Dart::vm_isolate() == nullptr || Dart::vm_isolate() == this;
-
-  // We lazily create a [Thread] structure for the mutator thread, but we'll
-  // reuse it until the death of the isolate.
-  Thread* existing_mutator_thread = is_mutator ? mutator_thread_ : nullptr;
-  if (existing_mutator_thread != nullptr) {
-    ASSERT(existing_mutator_thread->is_mutator_thread_);
-  }
-
-  // Schedule the thread into the isolate by associating a 'Thread' structure
-  // with it (this is done while we are holding the thread registry lock).
-  Thread* thread =
-      group()->ScheduleThreadLocked(&ml, existing_mutator_thread, is_vm_isolate,
-                                    is_mutator, bypass_safepoint);
-  if (is_mutator) {
-    ASSERT(mutator_thread_ == nullptr || mutator_thread_ == thread);
-    mutator_thread_ = thread;
-    scheduled_mutator_thread_ = thread;
-    thread->is_mutator_thread_ = true;
-    thread->field_table_values_ = field_table_->table();
-  }
-  thread->isolate_ = this;
-
-  return thread;
+FfiCallbackMetadata::Trampoline Isolate::CreateAsyncFfiCallback(
+    Zone* zone,
+    const Function& function,
+    Dart_Port send_port) {
+  return FfiCallbackMetadata::Instance()->CreateAsyncFfiCallback(
+      this, zone, function, send_port, &ffi_callback_list_head_);
 }
 
-void Isolate::UnscheduleThread(Thread* thread,
-                               bool is_mutator,
-                               bool is_nested_exit,
-                               bool bypass_safepoint) {
-  {
-    // Disassociate the 'Thread' structure and unschedule the thread
-    // from this isolate.
-    // We are disassociating the thread from an isolate and it would
-    // not be possible to correctly track no_safepoint_scope_depth for the
-    // thread in the constructor/destructor of MonitorLocker,
-    // so we create a MonitorLocker object which does not do any
-    // no_safepoint_scope_depth increments/decrements.
-    MonitorLocker ml(group()->threads_lock(), false);
-
-    if (is_mutator) {
-      if (thread->sticky_error() != Error::null()) {
-        ASSERT(sticky_error_ == Error::null());
-        sticky_error_ = thread->StealStickyError();
-      }
-      ASSERT(mutator_thread_ == thread);
-      ASSERT(mutator_thread_ == scheduled_mutator_thread_);
-      scheduled_mutator_thread_ = nullptr;
-    } else {
-      // We only reset the isolate pointer for non-mutator threads, since
-      // mutator threads can still be visited during GC even if unscheduled.
-      // See also IsolateGroup::UnscheduleThreadLocked`
-      thread->isolate_ = nullptr;
-    }
-    thread->field_table_values_ = nullptr;
-    group()->UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);
-  }
-  if (is_mutator) {
-    group()->DecreaseMutatorCount(this, is_nested_exit);
-  }
+void Isolate::DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback) {
+  FfiCallbackMetadata::Instance()->DeleteCallback(callback,
+                                                  &ffi_callback_list_head_);
 }
 
 #if !defined(PRODUCT)

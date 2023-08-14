@@ -13,7 +13,9 @@ import 'package:front_end/src/api_unstable/vm.dart'
 import 'package:frontend_server/starter.dart';
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/kernel.dart' show loadComponentFromBytes;
-import 'package:kernel/verifier.dart' show verifyComponent;
+import 'package:kernel/target/targets.dart';
+import 'package:kernel/verifier.dart' show VerificationStage, verifyComponent;
+import 'package:vm/kernel_front_end.dart';
 
 main(List<String> args) async {
   String? flutterDir;
@@ -244,11 +246,13 @@ Future<List<String>> attemptStuff(
   List<int> platformData =
       File.fromUri(flutterPlatformDirectory.uri.resolve("platform_strong.dill"))
           .readAsBytesSync();
+  final String targetName = 'flutter';
+  final Target target = createFrontEndTarget(targetName)!;
   final List<String> args = <String>[
     '--sdk-root',
     flutterPlatformDirectory.path,
     '--incremental',
-    '--target=flutter',
+    '--target=$targetName',
     '--packages',
     packageConfig.path,
     '--output-dill=${dillFile.path}',
@@ -303,7 +307,8 @@ Future<List<String>> attemptStuff(
       List<int> resultBytes = dillFile.readAsBytesSync();
       Component component = loadComponentFromBytes(platformData);
       component = loadComponentFromBytes(resultBytes, component);
-      verifyComponent(component);
+      verifyComponent(
+          target, VerificationStage.afterModularTransformations, component);
       logger
           .log("        => verified in ${stopwatch2.elapsedMilliseconds} ms.");
     }

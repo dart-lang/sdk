@@ -24,7 +24,7 @@ bool Stdin::ReadByte(intptr_t fd, int* byte) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   uint8_t buffer[1];
   DWORD read = 0;
-  BOOL success = ReadFile(h, buffer, 1, &read, NULL);
+  BOOL success = ReadFile(h, buffer, 1, &read, nullptr);
   if (!success && (GetLastError() != ERROR_BROKEN_PIPE)) {
     return false;
   }
@@ -94,7 +94,7 @@ bool Stdin::SetLineMode(intptr_t fd, bool enabled) {
 }
 
 bool Stdin::AnsiSupported(intptr_t fd, bool* supported) {
-  ASSERT(supported != NULL);
+  ASSERT(supported != nullptr);
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   if (h == INVALID_HANDLE_VALUE) {
     *supported = false;
@@ -126,7 +126,7 @@ bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
 }
 
 bool Stdout::AnsiSupported(intptr_t fd, bool* supported) {
-  ASSERT(supported != NULL);
+  ASSERT(supported != nullptr);
   HANDLE h;
   if (fd == 1) {
     h = GetStdHandle(STD_OUTPUT_HANDLE);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=class-modifiers
-
 // Error mixing in a regular class outside its library.
 
 import 'mixin_class_no_modifier_lib.dart';

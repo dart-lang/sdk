@@ -416,11 +416,6 @@ void UntaggedObject::VisitPointersPrecise(ObjectPointerVisitor* visitor) {
   }
 }
 
-bool UntaggedObject::FindObject(FindObjectVisitor* visitor) {
-  ASSERT(visitor != NULL);
-  return visitor->FindObject(static_cast<ObjectPtr>(this));
-}
-
 // Most objects are visited with this function. It calls the from() and to()
 // methods on the raw object to get the first and last cells that need
 // visiting.
@@ -539,7 +534,6 @@ VARIABLE_COMPRESSED_VISITOR(WeakArray, Smi::Value(raw_obj->untag()->length()))
 COMPRESSED_VISITOR(Type)
 COMPRESSED_VISITOR(FunctionType)
 COMPRESSED_VISITOR(RecordType)
-COMPRESSED_VISITOR(TypeRef)
 COMPRESSED_VISITOR(TypeParameter)
 COMPRESSED_VISITOR(Function)
 COMPRESSED_VISITOR(Closure)

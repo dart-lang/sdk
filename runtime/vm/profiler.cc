@@ -32,7 +32,7 @@
 
 namespace dart {
 
-static const intptr_t kMaxSamplesPerTick = 4;
+static constexpr intptr_t kMaxSamplesPerTick = 4;
 
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
@@ -105,10 +105,10 @@ class ProfilerStackWalker : public ValueObject {
         frames_skipped_(0),
         frame_index_(0),
         total_frames_(0) {
-    if (sample_ == NULL) {
-      ASSERT(sample_buffer_ == NULL);
+    if (sample_ == nullptr) {
+      ASSERT(sample_buffer_ == nullptr);
     } else {
-      ASSERT(sample_buffer_ != NULL);
+      ASSERT(sample_buffer_ != nullptr);
       ASSERT(sample_->head_sample());
     }
   }
@@ -119,7 +119,7 @@ class ProfilerStackWalker : public ValueObject {
       return true;
     }
 
-    if (sample_ == NULL) {
+    if (sample_ == nullptr) {
       DumpStackFrame(frame_index_, pc, fp);
       frame_index_++;
       total_frames_++;
@@ -129,10 +129,10 @@ class ProfilerStackWalker : public ValueObject {
       sample_->set_truncated_trace(true);
       return false;
     }
-    ASSERT(sample_ != NULL);
+    ASSERT(sample_ != nullptr);
     if (frame_index_ == Sample::kPCArraySizeInWords) {
       Sample* new_sample = sample_buffer_->ReserveSampleAndLink(sample_);
-      if (new_sample == NULL) {
+      if (new_sample == nullptr) {
         // Could not reserve new sample- mark this as truncated.
         sample_->set_truncated_trace(true);
         return false;
@@ -232,7 +232,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
       previous_fp = fp;
       fp = CallerFP(fp);
 
-      if (fp == NULL) {
+      if (fp == nullptr) {
         return;
       }
 
@@ -277,7 +277,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
 
  private:
   uword* CallerPC(uword* fp) const {
-    ASSERT(fp != NULL);
+    ASSERT(fp != nullptr);
     uword* caller_pc_ptr = fp + kHostSavedCallerPcSlotFromFp;
     // This may actually be uninitialized, by design (see class comment above).
     MSAN_UNPOISON(caller_pc_ptr, kWordSize);
@@ -286,7 +286,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
   }
 
   uword* CallerFP(uword* fp) const {
-    ASSERT(fp != NULL);
+    ASSERT(fp != nullptr);
     uword* caller_fp_ptr = fp + kHostSavedCallerFpSlotFromFp;
     // This may actually be uninitialized, by design (see class comment above).
     MSAN_UNPOISON(caller_fp_ptr, kWordSize);
@@ -295,7 +295,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
   }
 
   bool ValidFramePointer(uword* fp) const {
-    if (fp == NULL) {
+    if (fp == nullptr) {
       return false;
     }
     uword cursor = reinterpret_cast<uword>(fp);
@@ -342,16 +342,16 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
                                             uintptr_t sp,
                                             uword* stack_lower,
                                             uword* stack_upper) {
-  ASSERT(os_thread != NULL);
-  ASSERT(stack_lower != NULL);
-  ASSERT(stack_upper != NULL);
+  ASSERT(os_thread != nullptr);
+  ASSERT(stack_lower != nullptr);
+  ASSERT(stack_upper != nullptr);
 
 #if defined(USING_SIMULATOR)
   const bool use_simulator_stack_bounds =
-      thread != NULL && thread->IsExecutingDartCode();
+      thread != nullptr && thread->IsExecutingDartCode();
   if (use_simulator_stack_bounds) {
     Isolate* isolate = thread->isolate();
-    ASSERT(isolate != NULL);
+    ASSERT(isolate != nullptr);
     Simulator* simulator = isolate->simulator();
     *stack_lower = simulator->stack_limit();
     *stack_upper = simulator->stack_base();
@@ -378,7 +378,7 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
 }
 
 void Profiler::DumpStackTrace(void* context) {
-  if (context == NULL) {
+  if (context == nullptr) {
     DumpStackTrace(/*for_crash=*/true);
     return;
   }
@@ -450,7 +450,7 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
 
   auto os_thread = OSThread::Current();
   ASSERT(os_thread != nullptr);
-  auto thread = Thread::Current();  // NULL if no current isolate.
+  auto thread = Thread::Current();  // nullptr if no current isolate.
   auto isolate = thread == nullptr ? nullptr : thread->isolate();
   auto isolate_group = thread == nullptr ? nullptr : thread->isolate_group();
   auto source = isolate_group == nullptr ? nullptr : isolate_group->source();
@@ -504,9 +504,9 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
     return;
   }
 
-  ProfilerNativeStackWalker native_stack_walker(&counters_, ILLEGAL_PORT, NULL,
-                                                NULL, stack_lower, stack_upper,
-                                                pc, fp, sp,
+  ProfilerNativeStackWalker native_stack_walker(&counters_, ILLEGAL_PORT,
+                                                nullptr, nullptr, stack_lower,
+                                                stack_upper, pc, fp, sp,
                                                 /*skip_count=*/0);
   native_stack_walker.walk();
   OS::PrintErr("-- End of DumpStackTrace\n");
@@ -641,7 +641,7 @@ SampleBlockBuffer::SampleBlockBuffer(intptr_t blocks,
   const bool compressed = false;
   memory_ =
       VirtualMemory::Allocate(size, executable, compressed, "dart-profiler");
-  if (memory_ == NULL) {
+  if (memory_ == nullptr) {
     OUT_OF_MEMORY();
   }
   sample_buffer_ = reinterpret_cast<Sample*>(memory_->address());
@@ -872,7 +872,7 @@ class ReturnAddressLocator : public ValueObject {
 
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
-  ASSERT(return_address != NULL);
+  ASSERT(return_address != nullptr);
   const intptr_t offset = RelativePC();
   ASSERT(offset >= 0);
   const intptr_t size = code_.Size();
@@ -922,7 +922,7 @@ bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
 #elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                \
     defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
 bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
-  ASSERT(return_address != NULL);
+  ASSERT(return_address != nullptr);
   return false;
 }
 #else
@@ -966,7 +966,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
                           uword lr,
                           bool allocation_sample,
                           intptr_t skip_count = 0)
-      : ProfilerStackWalker((thread->isolate() != NULL)
+      : ProfilerStackWalker((thread->isolate() != nullptr)
                                 ? thread->isolate()->main_port()
                                 : ILLEGAL_PORT,
                             sample,
@@ -986,10 +986,10 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     }
 
     uword* exit_fp = reinterpret_cast<uword*>(thread_->top_exit_frame_info());
-    bool has_exit_frame = exit_fp != 0;
+    bool has_exit_frame = exit_fp != nullptr;
     if (has_exit_frame) {
       // Exited from compiled code.
-      pc_ = 0;
+      pc_ = nullptr;
       fp_ = exit_fp;
 
       // Skip exit frame.
@@ -1029,9 +1029,9 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     for (;;) {
       // Skip entry frame.
       if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_))) {
-        pc_ = 0;
+        pc_ = nullptr;
         fp_ = ExitLink();
-        if (fp_ == 0) {
+        if (fp_ == nullptr) {
           break;  // End of Dart stack.
         }
 
@@ -1055,7 +1055,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
  private:
   uword* CallerPC() const {
-    ASSERT(fp_ != NULL);
+    ASSERT(fp_ != nullptr);
     uword* caller_pc_ptr = fp_ + kSavedCallerPcSlotFromFp;
     // MSan/ASan are unaware of frames initialized by generated code.
     MSAN_UNPOISON(caller_pc_ptr, kWordSize);
@@ -1064,7 +1064,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
   }
 
   uword* CallerFP() const {
-    ASSERT(fp_ != NULL);
+    ASSERT(fp_ != nullptr);
     uword* caller_fp_ptr = fp_ + kSavedCallerFpSlotFromFp;
     // MSan/ASan are unaware of frames initialized by generated code.
     MSAN_UNPOISON(caller_fp_ptr, kWordSize);
@@ -1073,7 +1073,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
   }
 
   uword* ExitLink() const {
-    ASSERT(fp_ != NULL);
+    ASSERT(fp_ != nullptr);
     uword* exit_link_ptr = fp_ + kExitLinkSlotFromEntryFp;
     // MSan/ASan are unaware of frames initialized by generated code.
     MSAN_UNPOISON(exit_link_ptr, kWordSize);
@@ -1082,7 +1082,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
   }
 
   uword Stack(intptr_t index) const {
-    ASSERT(sp_ != NULL);
+    ASSERT(sp_ != nullptr);
     uword* stack_ptr = sp_ + index;
     // MSan/ASan are unaware of frames initialized by generated code.
     MSAN_UNPOISON(stack_ptr, kWordSize);
@@ -1098,10 +1098,10 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 };
 
 static void CopyStackBuffer(Sample* sample, uword sp_addr) {
-  ASSERT(sample != NULL);
+  ASSERT(sample != nullptr);
   uword* sp = reinterpret_cast<uword*>(sp_addr);
   uword* buffer = sample->GetStackBuffer();
-  if (sp != NULL) {
+  if (sp != nullptr) {
     for (intptr_t i = 0; i < Sample::kStackBufferSizeInWords; i++) {
       MSAN_UNPOISON(sp, kWordSize);
       ASAN_UNPOISON(sp, kWordSize);
@@ -1139,7 +1139,7 @@ static void CollectSample(Isolate* isolate,
                           uword fp,
                           uword sp,
                           ProfilerCounters* counters) {
-  ASSERT(counters != NULL);
+  ASSERT(counters != nullptr);
 #if defined(DART_HOST_OS_WINDOWS)
   // Use structured exception handling to trap guard page access on Windows.
   __try {
@@ -1192,7 +1192,7 @@ static void CollectSample(Isolate* isolate,
 static Sample* SetupSample(Thread* thread,
                            bool allocation_sample,
                            ThreadId tid) {
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   Isolate* isolate = thread->isolate();
   SampleBlockBuffer* buffer = Profiler::sample_block_buffer();
   Sample* sample = allocation_sample ? buffer->ReserveAllocationSample(isolate)
@@ -1218,7 +1218,7 @@ static Sample* SetupSample(Thread* thread,
 }
 
 static bool CheckIsolate(Isolate* isolate) {
-  if ((isolate == NULL) || (Dart::vm_isolate() == NULL)) {
+  if ((isolate == nullptr) || (Dart::vm_isolate() == nullptr)) {
     // No isolate.
     return false;
   }
@@ -1228,9 +1228,9 @@ static bool CheckIsolate(Isolate* isolate) {
 void Profiler::SampleAllocation(Thread* thread,
                                 intptr_t cid,
                                 uint32_t identity_hash) {
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   OSThread* os_thread = thread->os_thread();
-  ASSERT(os_thread != NULL);
+  ASSERT(os_thread != nullptr);
   Isolate* isolate = thread->isolate();
   if (!CheckIsolate(isolate)) {
     return;
@@ -1271,7 +1271,7 @@ void Profiler::SampleAllocation(Thread* thread,
 
   if (FLAG_profile_vm_allocation) {
     ProfilerNativeStackWalker native_stack_walker(
-        &counters_, (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT,
+        &counters_, (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT,
         sample, isolate->current_allocation_sample_block(), stack_lower,
         stack_upper, pc, fp, sp);
     native_stack_walker.walk();
@@ -1290,17 +1290,17 @@ void Profiler::SampleAllocation(Thread* thread,
 void Profiler::SampleThreadSingleFrame(Thread* thread,
                                        Sample* sample,
                                        uintptr_t pc) {
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   OSThread* os_thread = thread->os_thread();
-  ASSERT(os_thread != NULL);
+  ASSERT(os_thread != nullptr);
   Isolate* isolate = thread->isolate();
 
   ASSERT(Profiler::sample_block_buffer() != nullptr);
 
   // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
-  ASSERT(counters != NULL);
-  if (thread->IsMutatorThread()) {
+  ASSERT(counters != nullptr);
+  if (thread->IsDartMutatorThread()) {
     counters->Increment(sample->vm_tag());
   }
 
@@ -1310,9 +1310,9 @@ void Profiler::SampleThreadSingleFrame(Thread* thread,
 
 void Profiler::SampleThread(Thread* thread,
                             const InterruptedThreadState& state) {
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   OSThread* os_thread = thread->os_thread();
-  ASSERT(os_thread != NULL);
+  ASSERT(os_thread != nullptr);
   Isolate* isolate = thread->isolate();
 
   // Thread is not doing VM work.
@@ -1336,7 +1336,7 @@ void Profiler::SampleThread(Thread* thread,
   uintptr_t pc = state.pc;
   uintptr_t lr = state.lr;
 #if defined(USING_SIMULATOR)
-  Simulator* simulator = NULL;
+  Simulator* simulator = nullptr;
 #endif
 
   if (in_dart_code) {
@@ -1375,7 +1375,7 @@ void Profiler::SampleThread(Thread* thread,
     return;
   }
 
-  if (thread->IsMutatorThread()) {
+  if (thread->IsDartMutatorThread()) {
     if (isolate->IsDeoptimizing()) {
       counters_.single_frame_sample_deoptimizing.fetch_add(1);
       SampleThreadSingleFrame(thread, sample, pc);
@@ -1398,13 +1398,13 @@ void Profiler::SampleThread(Thread* thread,
 
   // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
-  ASSERT(counters != NULL);
-  if (thread->IsMutatorThread()) {
+  ASSERT(counters != nullptr);
+  if (thread->IsDartMutatorThread()) {
     counters->Increment(sample->vm_tag());
   }
 
   ProfilerNativeStackWalker native_stack_walker(
-      &counters_, (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT,
+      &counters_, (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT,
       sample, isolate->current_sample_block(), stack_lower, stack_upper, pc, fp,
       sp);
   const bool exited_dart_code = thread->HasExitedDartCode();
@@ -1439,12 +1439,12 @@ CodeLookupTable::CodeLookupTable(Thread* thread) {
 class CodeLookupTableBuilder : public ObjectVisitor {
  public:
   explicit CodeLookupTableBuilder(CodeLookupTable* table) : table_(table) {
-    ASSERT(table_ != NULL);
+    ASSERT(table_ != nullptr);
   }
 
   ~CodeLookupTableBuilder() {}
 
-  void VisitObject(ObjectPtr raw_obj) {
+  void VisitObject(ObjectPtr raw_obj) override {
     if (raw_obj->IsCode() && !Code::IsUnknownDartCode(Code::RawCast(raw_obj))) {
       table_->Add(Code::Handle(Code::RawCast(raw_obj)));
     }
@@ -1455,11 +1455,11 @@ class CodeLookupTableBuilder : public ObjectVisitor {
 };
 
 void CodeLookupTable::Build(Thread* thread) {
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL);
+  ASSERT(isolate != nullptr);
   Isolate* vm_isolate = Dart::vm_isolate();
-  ASSERT(vm_isolate != NULL);
+  ASSERT(vm_isolate != nullptr);
 
   // Clear.
   code_objects_.Clear();
@@ -1483,8 +1483,8 @@ void CodeLookupTable::Build(Thread* thread) {
   if (length() <= 1) {
     return;
   }
-  ASSERT(FindCode(0) == NULL);
-  ASSERT(FindCode(~0) == NULL);
+  ASSERT(FindCode(0) == nullptr);
+  ASSERT(FindCode(~0) == nullptr);
   // Sanity check that we don't have duplicate entries and that the entries
   // are sorted.
   for (intptr_t i = 0; i < length() - 1; i++) {
@@ -1524,7 +1524,7 @@ const CodeDescriptor* CodeLookupTable::FindCode(uword pc) const {
   // First points to the first code object whose entry is greater than PC.
   // That means the code object we need to check is first - 1.
   if (first == 0) {
-    return NULL;
+    return nullptr;
   }
   first--;
   ASSERT(first >= 0);
@@ -1533,7 +1533,7 @@ const CodeDescriptor* CodeLookupTable::FindCode(uword pc) const {
   if (cd->Contains(pc)) {
     return cd;
   }
-  return NULL;
+  return nullptr;
 }
 
 ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
@@ -1614,7 +1614,7 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
   // Copy stack trace from sample(s).
   bool truncated = false;
   Sample* current = sample;
-  while (current != NULL) {
+  while (current != nullptr) {
     for (intptr_t i = 0; i < Sample::kPCArraySizeInWords; i++) {
       if (current->At(i) == 0) {
         break;
@@ -1636,19 +1636,19 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
 }
 
 Sample* SampleBuffer::Next(Sample* sample) {
-  if (!sample->is_continuation_sample()) return NULL;
+  if (!sample->is_continuation_sample()) return nullptr;
   Sample* next_sample = sample->continuation_sample();
   // Sanity check.
   ASSERT(sample != next_sample);
   // Detect invalid chaining.
   if (sample->port() != next_sample->port()) {
-    return NULL;
+    return nullptr;
   }
   if (sample->timestamp() != next_sample->timestamp()) {
-    return NULL;
+    return nullptr;
   }
   if (sample->tid() != next_sample->tid()) {
-    return NULL;
+    return nullptr;
   }
   return next_sample;
 }
@@ -1666,7 +1666,7 @@ void ProcessedSample::FixupCaller(const CodeLookupTable& clt,
                                   uword pc_marker,
                                   uword* stack_buffer) {
   const CodeDescriptor* cd = clt.FindCode(At(0));
-  if (cd == NULL) {
+  if (cd == nullptr) {
     // No Dart code.
     return;
   }
@@ -1681,7 +1681,7 @@ void ProcessedSample::CheckForMissingDartFrame(const CodeLookupTable& clt,
                                                const CodeDescriptor* cd,
                                                uword pc_marker,
                                                uword* stack_buffer) {
-  ASSERT(cd != NULL);
+  ASSERT(cd != nullptr);
   const Code& code = Code::Handle(Code::RawCast(cd->code().ptr()));
   ASSERT(!code.IsNull());
   // Some stubs (and intrinsics) do not push a frame onto the stack leaving
@@ -1721,7 +1721,7 @@ void ProcessedSample::CheckForMissingDartFrame(const CodeLookupTable& clt,
     }
   }
 
-  if (clt.FindCode(return_address) == NULL) {
+  if (clt.FindCode(return_address) == nullptr) {
     // Return address is not from a Dart code object. Do not insert.
     return;
   }
@@ -1733,7 +1733,7 @@ void ProcessedSample::CheckForMissingDartFrame(const CodeLookupTable& clt,
 
 ProcessedSampleBuffer::ProcessedSampleBuffer()
     : code_lookup_table_(new CodeLookupTable(Thread::Current())) {
-  ASSERT(code_lookup_table_ != NULL);
+  ASSERT(code_lookup_table_ != nullptr);
 }
 
 void SampleBlockProcessor::Init() {
@@ -1790,9 +1790,9 @@ class StreamableSampleFilter : public SampleFilter {
   }
 };
 
-void Profiler::ProcessCompletedBlocks(Thread* thread) {
+void Profiler::ProcessCompletedBlocks(Isolate* isolate) {
   if (!Service::profiler_stream.enabled()) return;
-  Isolate* isolate = thread->isolate();
+  auto thread = Thread::Current();
   if (Isolate::IsSystemIsolate(isolate)) return;
 
   TIMELINE_DURATION(thread, Isolate, "Profiler::ProcessCompletedBlocks")
@@ -1809,7 +1809,7 @@ void Profiler::ProcessCompletedBlocks(Thread* thread) {
 
 void Profiler::IsolateShutdown(Thread* thread) {
   FlushSampleBlocks(thread->isolate());
-  ProcessCompletedBlocks(thread);
+  ProcessCompletedBlocks(thread->isolate());
 }
 
 class SampleBlockProcessorVisitor : public IsolateVisitor {
@@ -1819,9 +1819,11 @@ class SampleBlockProcessorVisitor : public IsolateVisitor {
 
   void VisitIsolate(Isolate* isolate) {
     if (isolate->TakeHasCompletedBlocks()) {
-      Thread::EnterIsolateAsHelper(isolate, Thread::kSampleBlockTask);
-      Profiler::ProcessCompletedBlocks(Thread::Current());
-      Thread::ExitIsolateAsHelper();
+      const bool kBypassSafepoint = false;
+      Thread::EnterIsolateGroupAsHelper(
+          isolate->group(), Thread::kSampleBlockTask, kBypassSafepoint);
+      Profiler::ProcessCompletedBlocks(isolate);
+      Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     }
   }
 };
@@ -1832,7 +1834,7 @@ void SampleBlockProcessor::ThreadMain(uword parameters) {
     // Signal to main thread we are ready.
     MonitorLocker startup_ml(monitor_);
     OSThread* os_thread = OSThread::Current();
-    ASSERT(os_thread != NULL);
+    ASSERT(os_thread != nullptr);
     processor_thread_id_ = OSThread::GetCurrentThreadJoinId(os_thread);
     thread_running_ = true;
     startup_ml.Notify();

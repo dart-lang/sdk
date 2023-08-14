@@ -156,7 +156,7 @@ class GitHelper {
       }
     }
 
-    return 'origin';
+    return 'main';
   }
 }
 

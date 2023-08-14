@@ -36,6 +36,8 @@ class GCCompactor : public ValueObject,
   friend class CompactorTask;
 
   void SetupImagePageBoundaries();
+  void SetupLargePages();
+  void ForwardLargePages();
   void ForwardStackPointers();
   void ForwardPointer(ObjectPtr* ptr);
   void ForwardCompressedPointer(uword heap_base, CompressedObjectPtr* ptr);
@@ -43,9 +45,11 @@ class GCCompactor : public ValueObject,
                                   CompressedObjectPtr* first,
                                   CompressedObjectPtr* last) override;
   void VisitPointers(ObjectPtr* first, ObjectPtr* last) override;
+#if defined(DART_COMPRESSED_POINTERS)
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
                                CompressedObjectPtr* last) override;
+#endif
   bool CanVisitSuspendStatePointers(SuspendStatePtr suspend_state) override;
   void VisitHandle(uword addr) override;
 
@@ -67,6 +71,9 @@ class GCCompactor : public ValueObject,
   }
   intptr_t image_page_hi_ = 0;
   ImagePageRange* image_page_ranges_ = nullptr;
+
+  Mutex large_pages_mutex_;
+  Page* large_pages_ = nullptr;
 
   // The typed data views whose inner pointer must be updated after sliding is
   // complete.

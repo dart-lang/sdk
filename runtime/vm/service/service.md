@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.4
+# Dart VM Service Protocol 4.10
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.4_ of the Dart VM Service Protocol. This
+This document describes of _version 4.9_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -49,7 +49,10 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getIsolate](#getisolate)
   - [getIsolateGroup](#getisolategroup)
   - [getMemoryUsage](#getmemoryusage)
+  - [getIsolatePauseEvent](#getisolatePauseEvent)
   - [getObject](#getobject)
+  - [getPerfettoCpuSamples](#getperfettocpusamples)
+  - [getPerfettoVMTimeline](#getperfettovmtimeline)
   - [getPorts](#getports)
   - [getProcessMemoryUsage](#getprocessmemoryusage)
   - [getRetainingPath](#getretainingpath)
@@ -123,6 +126,8 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [Null](#null)
   - [Object](#object)
   - [Parameter](#parameter)
+  - [PerfettoCpuSamples](#perfettocpusamples)
+  - [PerfettoTimeline](#perfettotimeline)
   - [PortList](#portlist)
   - [ReloadReport](#reloadreport)
   - [Response](#response)
@@ -782,15 +787,27 @@ CpuSamples|Sentinel getCpuSamples(string isolateId,
 ```
 
 The _getCpuSamples_ RPC is used to retrieve samples collected by the CPU
-profiler. Only samples collected in the time range `[timeOriginMicros,
-timeOriginMicros + timeExtentMicros]` will be reported.
+profiler. See [CpuSamples](#cpusamples) for a detailed description of the
+response.
 
-If the profiler is disabled, an [RPC error](#rpc-error) response will be returned.
+The _timeOriginMicros_ parameter is the beginning of the time range used to
+filter samples. It uses the same monotonic clock as dart:developer's
+`Timeline.now` and the VM embedding API's `Dart_TimelineGetMicros`. See
+[getVMTimelineMicros](#getvmtimelinemicros) for access to this clock through the
+service protocol.
+
+The _timeExtentMicros_ parameter specifies how large the time range used to
+filter samples should be.
+
+For example, given _timeOriginMicros_ and _timeExtentMicros_, only samples from
+the following time range will be returned:
+`(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
+
+If the profiler is disabled, an [RPC error](#rpc-error) response will be
+returned.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
-
-See [CpuSamples](#cpusamples).
 
 ### getFlagList
 
@@ -937,6 +954,20 @@ _IsolateGroup_ _id_ is an opaque identifier that can be fetched from an
 
 See [IsolateGroup](#isolategroup), [VM](#vm).
 
+### getIsolatePauseEvent
+
+```
+Event|Sentinel getIsolatePauseEvent(string isolateId)
+```
+
+The _getIsolatePauseEvent_ RPC is used to lookup an isolate's pause event by its
+_id_.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+See [Isolate](#isolate).
+
 ### getMemoryUsage
 
 ```
@@ -1013,6 +1044,78 @@ Int32List, Int64List, Float32List, Float64List, Inst32x3List,
 Float32x4List, and Float64x2List.  These parameters are otherwise
 ignored.
 
+### getPerfettoCpuSamples
+
+```
+PerfettoCpuSamples|Sentinel getPerfettoCpuSamples(string isolateId,
+                                                  int timeOriginMicros [optional],
+                                                  int timeExtentMicros [optional])
+```
+
+The _getPerfettoCpuSamples_ RPC is used to retrieve samples collected by the CPU
+profiler, serialized in Perfetto's proto format. See
+[PerfettoCpuSamples](#perfettocpusamples) for a detailed description of the
+response.
+
+The _timeOriginMicros_ parameter is the beginning of the time range used to
+filter samples. It uses the same monotonic clock as dart:developer's
+`Timeline.now` and the VM embedding API's `Dart_TimelineGetMicros`. See
+[getVMTimelineMicros](#getvmtimelinemicros) for access to this clock through the
+service protocol.
+
+The _timeExtentMicros_ parameter specifies how large the time range used to
+filter samples should be.
+
+For example, given _timeOriginMicros_ and _timeExtentMicros_, only samples from
+the following time range will be returned:
+`(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
+
+If the profiler is disabled, an [RPC error](#rpc-error) response will be
+returned.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+### getPerfettoVMTimeline
+
+```
+PerfettoTimeline getPerfettoVMTimeline(int timeOriginMicros [optional],
+                                       int timeExtentMicros [optional])
+```
+
+The _getPerfettoVMTimeline_ RPC is used to retrieve an object which contains a
+VM timeline trace represented in Perfetto's proto format. See
+[PerfettoTimeline](#perfettotimeline) for a detailed description of the
+response.
+
+The _timeOriginMicros_ parameter is the beginning of the time range used to
+filter timeline events. It uses the same monotonic clock as dart:developer's
+`Timeline.now` and the VM embedding API's `Dart_TimelineGetMicros`. See
+[getVMTimelineMicros](#getvmtimelinemicros) for access to this clock through the
+service protocol.
+
+The _timeExtentMicros_ parameter specifies how large the time range used to
+filter timeline events should be.
+
+For example, given _timeOriginMicros_ and _timeExtentMicros_, only timeline
+events from the following time range will be returned:
+`(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
+
+If _getPerfettoVMTimeline_ is invoked while the current recorder is Callback, an
+[RPC error](#rpc-error) with error code _114_, `invalid timeline request`, will
+be returned as timeline events are handled by the embedder in this mode.
+
+If _getPerfettoVMTimeline_ is invoked while the current recorder is one of
+Fuchsia or Macos or Systrace, an [RPC error](#rpc-error) with error code _114_,
+`invalid timeline request`, will be returned as timeline events are handled by
+the OS in these modes.
+
+If _getPerfettoVMTimeline_ is invoked while the current recorder is File or
+Perfettofile, an [RPC error](#rpc-error) with error code _114_,
+`invalid timeline request`, will be returned as timeline events are written
+directly to a file, and thus cannot be retrieved through the VM Service, in
+these modes.
+
 ### getPorts
 
 ```
@@ -1078,8 +1181,8 @@ message queue for an isolate. The isolate does not need to be paused.
 
 If _limit_ is provided, up to _limit_ frames from the top of the stack will be
 returned. If the stack depth is smaller than _limit_ the entire stack is
-returned. Note: this limit also applies to the `asyncCausalFrames` and
-`awaiterFrames` stack representations in the _Stack_ response.
+returned. Note: this limit also applies to the `asyncCausalFrames` stack
+representation in the _Stack_ response.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
@@ -1192,7 +1295,7 @@ Timeline getVMTimeline(int timeOriginMicros [optional],
 ```
 
 The _getVMTimeline_ RPC is used to retrieve an object which contains VM timeline
-events.
+events. See [Timeline](#timeline) for a detailed description of the response.
 
 The _timeOriginMicros_ parameter is the beginning of the time range used to filter
 timeline events. It uses the same monotonic clock as dart:developer's `Timeline.now`
@@ -1214,10 +1317,11 @@ Macos or Systrace, an [RPC error](#rpc-error) with error code _114_,
 `invalid timeline request`, will be returned as timeline events are handled by
 the OS in these modes.
 
-If _getVMTimeline_ is invoked while the current recorder is File, an
-[RPC error](#rpc-error) with error code _114_, `invalid timeline request`, will
-be returned as timeline events are written directly to a file, and thus cannot
-be retrieved through the VM Service, in this mode.
+If _getVMTimeline_ is invoked while the current recorder is File or
+Perfettofile, an [RPC error](#rpc-error) with error code _114_,
+`invalid timeline request`, will be returned as timeline events are written
+directly to a file, and thus cannot be retrieved through the VM Service, in
+these modes.
 
 ### getVMTimelineFlags
 
@@ -1823,8 +1927,7 @@ class Breakpoint extends Object {
   // Has this breakpoint been assigned to a specific program location?
   bool resolved;
 
-  // Is this a breakpoint that was added synthetically as part of a step
-  // OverAsyncSuspension resume command?
+  // Note: this property is deprecated and is always absent from the response.
   bool isSyntheticAsyncContinuation [optional];
 
   // SourceLocation when breakpoint is resolved, UnresolvedSourceLocation
@@ -2218,10 +2321,17 @@ class Event extends Response {
   // What kind of event is this?
   EventKind kind;
 
+  // The isolate group with which this event is associated.
+  //
+  // This is provided for all event kinds except for:
+  //   VMUpdate, VMFlagUpdate, TimelineStreamSubscriptionsUpdate, TimelineEvents
+  @IsolateGroup isolateGroup [optional];
+
   // The isolate with which this event is associated.
   //
   // This is provided for all event kinds except for:
-  //   VMUpdate, VMFlagUpdate
+  //   VMUpdate, VMFlagUpdate, TimelineStreamSubscriptionsUpdate,
+  //   TimelineEvents, IsolateReload
   @Isolate isolate [optional];
 
   // The vm with which this event is associated.
@@ -2529,7 +2639,7 @@ class @Field extends @Object {
   // The declared type of this field.
   //
   // The value will always be of one of the kinds:
-  // Type, TypeRef, TypeParameter, BoundedType.
+  // Type, TypeParameter, RecordType, FunctionType, BoundedType.
   @Instance declaredType;
 
   // Is this field const?
@@ -2566,7 +2676,7 @@ class Field extends Object {
   // The declared type of this field.
   //
   // The value will always be of one of the kinds:
-  // Type, TypeRef, TypeParameter, BoundedType.
+  // Type, TypeParameter, RecordType, FunctionType, BoundedType.
   @Instance declaredType;
 
   // Is this field const?
@@ -2609,7 +2719,7 @@ class Flag {
 
   // The value of this flag as a string.
   //
-  // If this property is absent, then the value of the flag was NULL.
+  // If this property is absent, then the value of the flag was nullptr.
   string valueAsString [optional];
 }
 ```
@@ -3110,22 +3220,19 @@ class Instance extends Object {
   //   TypeParameter
   int parameterIndex [optional];
 
-  // The type bounded by a BoundedType instance
-  // - or -
-  // the referent of a TypeRef instance.
+  // The type bounded by a BoundedType instance.
   //
   // The value will always be of one of the kinds:
-  // Type, TypeRef, TypeParameter, BoundedType.
+  // Type, TypeParameter, RecordType, FunctionType, BoundedType.
   //
   // Provided for instance kinds:
   //   BoundedType
-  //   TypeRef
   @Instance targetType [optional];
 
   // The bound of a TypeParameter or BoundedType.
   //
   // The value will always be of one of the kinds:
-  // Type, TypeRef, TypeParameter, BoundedType.
+  // Type, TypeParameter, RecordType, FunctionType, BoundedType.
   //
   // Provided for instance kinds:
   //   BoundedType
@@ -3245,6 +3352,7 @@ enum InstanceKind {
   TypeParameter,
 
   // An instance of the Dart class TypeRef.
+  // Note: this object kind is deprecated and will be removed.
   TypeRef,
 
   // An instance of the Dart class FunctionType.
@@ -3745,6 +3853,55 @@ A _Parameter_ is a representation of a function parameter.
 
 See [Instance](#instance).
 
+### PerfettoCpuSamples
+
+```
+class PerfettoCpuSamples extends Response {
+  // The sampling rate for the profiler in microseconds.
+  int samplePeriod;
+
+  // The maximum possible stack depth for samples.
+  int maxStackDepth;
+
+  // The number of samples returned.
+  int sampleCount;
+
+  // The start of the period of time in which the returned samples were
+  // collected.
+  int timeOriginMicros;
+
+  // The duration of time covered by the returned samples.
+  int timeExtentMicros;
+
+  // The process ID for the VM.
+  int pid;
+
+  // A Base64 string representing the requested samples in Perfetto's proto
+  // format.
+  string samples;
+}
+```
+
+See [getPerfettoCpuSamples](#getperfettocpusamples).
+
+### PerfettoTimeline
+
+```
+class PerfettoTimeline extends Response {
+  // A Base64 string representing the requested timeline trace in Perfetto's
+  // proto format.
+  string trace;
+
+  // The start of the period of time covered by the trace.
+  int timeOriginMicros;
+
+  // The duration of time covered by the trace.
+  int timeExtentMicros;
+}
+```
+
+See [getPerfettoVMTimeline](#getperfettovmtimeline);
+
 ### PortList
 
 ```
@@ -3972,6 +4129,8 @@ enum FrameKind {
   Regular,
   AsyncCausal,
   AsyncSuspensionMarker,
+  // Deprecated since version 4.7 of the protocol. Will not occur in
+  // responses.
   AsyncActivation
 }
 ```
@@ -4180,12 +4339,28 @@ class Stack extends Response {
   // entrypoint).
   Frame[] frames;
 
-  // A list of frames representing the asynchronous path. Comparable to
-  // `awaiterFrames`, if provided, although some frames may be different.
+  // A list of frames which contains both synchronous part and the
+  // asynchronous continuation e.g. `async` functions awaiting completion
+  // of the currently running `async` function. Asynchronous frames are
+  // separated from each other and synchronous prefix via frames of kind
+  // FrameKind.kAsyncSuspensionMarker.
+  //
+  // The name is historic and misleading: despite what *causal* implies,
+  // this stack does not reflect the stack at the moment when asynchronous
+  // operation was started (i.e. the stack that *caused* it), but instead
+  // reflects the chain of listeners which will run when asynchronous
+  // operation is completed (i.e. its *awaiters*).
+  //
+  // This field is absent if currently running code does not have an
+  // asynchronous continuation.
   Frame[] asyncCausalFrames [optional];
 
-  // A list of frames representing the asynchronous path. Comparable to
-  // `asyncCausalFrames`, if provided, although some frames may be different.
+  // Deprecated since version 4.7 of the protocol. Will be always absent
+  // in the response.
+  //
+  // Used to contain information about asynchronous continuation,
+  // similar to the one in asyncCausalFrame but with a slightly
+  // different encoding.
   Frame[] awaiterFrames [optional];
 
   // A list of messages in the isolate's message queue.
@@ -4253,6 +4428,8 @@ class Timeline extends Response {
 }
 ```
 
+See [getVMTimeline](#getvmtimeline);
+
 ### TimelineEvent
 
 ```
@@ -4308,7 +4485,7 @@ class TypeArguments extends Object {
   // A list of types.
   //
   // The value will always be one of the kinds:
-  // Type, TypeRef, TypeParameter, BoundedType.
+  // Type, TypeParameter, RecordType, FunctionType, BoundedType.
   @Instance[] types;
 }
 ```
@@ -4523,5 +4700,11 @@ version | comments
 4.2 | Added `getInstancesAsList` RPC.
 4.3 | Added `isSealed`, `isMixinClass`, `isBaseClass`, `isInterfaceClass`, and `isFinal` properties to `Class`.
 4.4 | Added `label` property to `@Instance`. Added `UserTag` to `InstanceKind`.
+4.5 | Added `getPerfettoVMTimeline` RPC.
+4.6 | Added `getPerfettoCpuSamples` RPC. Added a deprecation notice to `InstanceKind.TypeRef`.
+4.7 | Added a deprecation notice to `Stack.awaiterFrames` field. Added a deprecation notice to `FrameKind.AsyncActivation`.
+4.8 | Added `getIsolatePauseEvent` RPC.
+4.9 | Added `isolateGroup` property to `Event`.
+4.10 | Deprecated `isSyntheticAsyncContinuation` on `Breakpoint`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

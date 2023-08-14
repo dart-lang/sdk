@@ -8,14 +8,16 @@ import 'dart:async';
 import 'test_helper.dart';
 import 'dart:developer';
 
-const int LINE_A = 19;
-const int LINE_B = 22;
-const int LINE_C = 23;
-const int LINE_D = 25;
-const int LINE_E = 26;
+const int LINE_A = 21;
+const int LINE_B = 24;
+const int LINE_C = 25;
+const int LINE_D = 27;
+const int LINE_E = 28;
+
+const int LINE_0 = 20;
 
 testMain() async {
-  debugger();
+  debugger(); // LINE_0.
   Future future1 = new Future.value(); // LINE_A.
   Future future2 = new Future.value();
 
@@ -27,6 +29,9 @@ testMain() async {
 }
 
 var tests = <IsolateTest>[
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   smartNext,

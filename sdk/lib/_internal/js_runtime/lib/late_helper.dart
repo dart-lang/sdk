@@ -5,20 +5,44 @@
 library _late_helper;
 
 import 'dart:_internal' show LateError, createSentinel, isSentinel;
+import 'dart:_js_helper' show throwExpressionWithWrapper;
+import 'dart:_foreign_helper' show JS;
 
-@pragma('dart2js:tryInline')
-void throwLateFieldNI(String fieldName) => throw LateError.fieldNI(fieldName);
-@pragma('dart2js:tryInline')
-void throwLateFieldAI(String fieldName) => throw LateError.fieldAI(fieldName);
-@pragma('dart2js:tryInline')
-void throwLateFieldADI(String fieldName) => throw LateError.fieldADI(fieldName);
+@pragma('dart2js:never-inline')
+void throwLateFieldNI(String fieldName) {
+  final wrapper = JS('', 'new Error()');
+  throwExpressionWithWrapper(LateError.fieldNI(fieldName), wrapper);
+}
 
-@pragma('dart2js:tryInline')
-void throwUnnamedLateFieldNI() => throw LateError.fieldNI('');
-@pragma('dart2js:tryInline')
-void throwUnnamedLateFieldAI() => throw LateError.fieldAI('');
-@pragma('dart2js:tryInline')
-void throwUnnamedLateFieldADI() => throw LateError.fieldADI('');
+@pragma('dart2js:never-inline')
+void throwLateFieldAI(String fieldName) {
+  final wrapper = JS('', 'new Error()');
+  throwExpressionWithWrapper(LateError.fieldAI(fieldName), wrapper);
+}
+
+@pragma('dart2js:never-inline')
+void throwLateFieldADI(String fieldName) {
+  final wrapper = JS('', 'new Error()');
+  throwExpressionWithWrapper(LateError.fieldADI(fieldName), wrapper);
+}
+
+@pragma('dart2js:never-inline')
+void throwUnnamedLateFieldNI() {
+  final wrapper = JS('', 'new Error()');
+  throwExpressionWithWrapper(LateError.fieldNI(''), wrapper);
+}
+
+@pragma('dart2js:never-inline')
+void throwUnnamedLateFieldAI() {
+  final wrapper = JS('', 'new Error()');
+  throwExpressionWithWrapper(LateError.fieldAI(''), wrapper);
+}
+
+@pragma('dart2js:never-inline')
+void throwUnnamedLateFieldADI() {
+  final wrapper = JS('', 'new Error()');
+  throwExpressionWithWrapper(LateError.fieldADI(''), wrapper);
+}
 
 /// A boxed variable used for lowering uninitialized `late` variables when they
 /// are locals or statics.

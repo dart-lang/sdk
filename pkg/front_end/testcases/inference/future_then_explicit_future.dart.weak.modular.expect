@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -25,12 +25,12 @@ static method m1(asy::Future<core::int> f) → dynamic {
  - 'List' is from 'dart:core'.
  - 'Future' is from 'dart:async'.
       /*@returnType=FutureOr<Future<List<int>>>*/ (/*@type=int*/ x) => /*@typeArgs=dynamic*/ []);
-                                                                                             ^" in <dynamic>[] as{TypeError,ForNonNullableByDefault} FutureOr<asy::Future<core::List<core::int>>>){((core::int) → FutureOr<asy::Future<core::List<core::int>>>, {onError: core::Function?}) → asy::Future<asy::Future<core::List<core::int>>>};
+                                                                                             ^" in <dynamic>[] as{TypeError} FutureOr<asy::Future<core::List<core::int>>>){((core::int) → FutureOr<asy::Future<core::List<core::int>>>, {onError: core::Function?}) → asy::Future<asy::Future<core::List<core::int>>>};
   asy::Future<core::List<core::int>> y = invalid-expression "pkg/front_end/testcases/inference/future_then_explicit_future.dart:15:25: Error: A value of type 'Future<Future<List<int>>>' can't be assigned to a variable of type 'Future<List<int>>'.
  - 'Future' is from 'dart:async'.
  - 'List' is from 'dart:core'.
   Future<List<int>> y = x;
-                        ^" in x as{TypeError,ForNonNullableByDefault} asy::Future<core::List<core::int>>;
+                        ^" in x as{TypeError} asy::Future<core::List<core::int>>;
 }
 static method m2(asy::Future<core::int> f) → dynamic {
   asy::Future<core::List<core::int>> x = f.{asy::Future::then}<core::List<core::int>>((core::int x) → core::List<core::int> => <core::int>[]){((core::int) → FutureOr<core::List<core::int>>, {onError: core::Function?}) → asy::Future<core::List<core::int>>};

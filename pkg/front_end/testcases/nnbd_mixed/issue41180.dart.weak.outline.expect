@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "issue41180_lib.dart" as iss;
@@ -26,7 +26,7 @@ static method main() → void
 static method findKey(iss::Map<core::String*, dynamic>* m, dynamic search) → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as iss;
 import "dart:core" as core;
 

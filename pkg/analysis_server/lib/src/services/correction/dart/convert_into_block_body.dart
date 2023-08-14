@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 import '../fix.dart';
 
-class ConvertIntoBlockBody extends CorrectionProducer {
+class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_BLOCK_BODY;
 

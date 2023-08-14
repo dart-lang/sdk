@@ -1,0 +1,59 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method main() → void {
+  final core::List<core::String> works = core::_GrowableList::_literal2<core::String>("b", "l");
+  final core::List<core::String> fails = core::_GrowableList::_literal1<core::String>("c");
+  {
+    synthesized core::Iterator<core::List<core::String>> :sync-for-iterator = core::_GrowableList::_literal2<core::List<core::String>>(works, fails).{core::Iterable::iterator}{core::Iterator<core::List<core::String>>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::List<core::String> test = :sync-for-iterator.{core::Iterator::current}{core::List<core::String>};
+      {
+        final void _ = block {
+          void #t1;
+          final synthesized core::List<core::String> #0#0 = test;
+          function ##0#1#initializer() → core::int
+            return #0#0.{core::List::length}{core::int};
+          late final synthesized core::int #0#1 = ##0#1#initializer(){() → core::int};
+          function ##0#4#initializer() → core::String
+            return #0#0.{core::List::[]}(0){(core::int) → core::String};
+          late final synthesized core::String #0#4 = ##0#4#initializer(){() → core::String};
+          #L1:
+          {
+            {
+              final hoisted core::String b;
+              final hoisted core::String d;
+              final hoisted core::List<core::String> x;
+              if(#0#1.{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::String #t2 = b = #0#4 in true) && (let final core::String #t3 = d = #0#0.{core::List::[]}(1){(core::int) → core::String} in true) && (let final core::List<core::String> #t4 = x = #0#0.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<core::String>} in true)) {
+                #t1 = core::print("${b} ${d} ${x}");
+                break #L1;
+              }
+            }
+            {
+              final hoisted core::String f;
+              final hoisted core::List<core::String> args;
+              if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && (let final core::String #t5 = f = #0#4 in true) && (let final core::List<core::String> #t6 = args = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<core::String>} in true)) {
+                #t1 = core::print("${f} ${args}");
+                break #L1;
+              }
+            }
+            {
+              if(true) {
+                #t1 = throw new core::UnimplementedError::•();
+                break #L1;
+              }
+            }
+            throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+          }
+        } =>#t1;
+      }
+    }
+  }
+}
+
+constants  {
+  #C1 = 2
+  #C2 = 1
+}

@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dap/dap.dart';
 import 'package:dds/src/dap/logging.dart';
-import 'package:dds/src/dap/protocol_generated.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -232,7 +232,10 @@ environment:
   }
 
   Future<void> tearDown() async {
-    await client.terminate();
+    // If the test hasn't already sent terminate, do that before shutting down.
+    if (!client.hasSentTerminateRequest) {
+      await client.terminate();
+    }
     await client.stop();
     await server.stop();
 

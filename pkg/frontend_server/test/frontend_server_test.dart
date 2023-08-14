@@ -18,10 +18,12 @@ import 'package:frontend_server/starter.dart';
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
-import 'package:kernel/verifier.dart' show verifyComponent;
+import 'package:kernel/target/targets.dart';
+import 'package:kernel/verifier.dart' show VerificationStage, verifyComponent;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:vm/incremental_compiler.dart';
+import 'package:vm/kernel_front_end.dart';
 
 class _MockedBinaryPrinter implements BinaryPrinter {
   @override
@@ -1164,6 +1166,8 @@ class BarState extends State<FizzWidget> {
       expect(dillFile.existsSync(), equals(false));
 
       // First compile app entry point A.
+      final String targetName = 'vm';
+      final Target target = createFrontEndTarget(targetName)!;
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
         '--incremental',
@@ -1212,7 +1216,8 @@ class BarState extends State<FizzWidget> {
             // Verifiable (together with the platform file).
             component =
                 loadComponentFromBinary(platformKernel.toFilePath(), component);
-            verifyComponent(component);
+            verifyComponent(target,
+                VerificationStage.afterModularTransformations, component);
         }
       });
       expect(await result, 0);
@@ -1285,6 +1290,8 @@ class BarState extends State<FizzWidget> {
       expect(dillFile.existsSync(), equals(false));
 
       // First compile app entry point A.
+      final String targetName = 'vm';
+      final Target target = createFrontEndTarget(targetName)!;
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
         '--incremental',
@@ -1332,7 +1339,8 @@ class BarState extends State<FizzWidget> {
             // Verifiable (together with the platform file).
             component =
                 loadComponentFromBinary(platformKernel.toFilePath(), component);
-            verifyComponent(component);
+            verifyComponent(target,
+                VerificationStage.afterModularTransformations, component);
         }
       });
       expect(await result, 0);
@@ -1893,6 +1901,53 @@ void main(List<String> arguments, SendPort sendPort) {
       ];
 
       expect(await starter(args), 0);
+
+      expect(dillFile.existsSync(), true);
+    });
+
+    test('compile to JavaScript with canary features enabled', () async {
+      var file = File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {\n}\n");
+      var packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "hello",
+        "rootUri": "../",
+        "packageUri": "./"
+      }
+    ]
+  }
+  ''');
+      var dillFile = File('${tempDir.path}/app.dill');
+      var sourcesFile = File('${tempDir.path}/app.dill.sources');
+
+      expect(dillFile.existsSync(), false);
+      expect(sourcesFile.existsSync(), false);
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--packages=${packageConfig.path}',
+        '--target=dartdevc',
+        '--dartdevc-canary',
+        file.path,
+      ];
+
+      expect(await starter(args), 0);
+
+      expect(dillFile.existsSync(), true);
+      expect(sourcesFile.existsSync(), true);
+      var ddcFlags = utf8
+          .decode(sourcesFile.readAsBytesSync())
+          .split('\n')
+          .singleWhere((l) => l.startsWith('// Flags: '));
+      expect(ddcFlags, contains('canary'));
     });
 
     test('compile to JavaScript with package scheme', () async {
@@ -2433,7 +2488,9 @@ e() {
       expect(await result, 0);
       expect(count, 1);
       frontendServer.close();
-    }, timeout: Timeout.none);
+    },
+        timeout: Timeout.none,
+        skip: 'https://github.com/dart-lang/sdk/issues/52775');
 
     test('compile to JavaScript, all modules with sound null safety', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
@@ -2850,6 +2907,8 @@ e() {
       var dillFile = File('${tempDir.path}/full.dill');
       var incrementalDillFile = File('${tempDir.path}/incremental.dill');
       expect(dillFile.existsSync(), equals(false));
+      final String targetName = 'vm';
+      final Target target = createFrontEndTarget(targetName)!;
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
         '--incremental',
@@ -2857,8 +2916,8 @@ e() {
         '--output-dill=${dillFile.path}',
         '--output-incremental-dill=${incrementalDillFile.path}'
       ];
-      File dart2js = File.fromUri(
-          Platform.script.resolve("../../../pkg/compiler/bin/dart2js.dart"));
+      File dart2js = File.fromUri(Platform.script
+          .resolve("../../../pkg/compiler/lib/src/dart2js.dart"));
       expect(dart2js.existsSync(), equals(true));
       File dart2jsOtherFile = File.fromUri(Platform.script
           .resolve("../../../pkg/compiler/lib/src/compiler.dart"));
@@ -2915,7 +2974,8 @@ e() {
             component =
                 loadComponentFromBinary(platformKernel.toFilePath(), component);
             expect(component.mainMethod, isNotNull);
-            verifyComponent(component);
+            verifyComponent(target,
+                VerificationStage.afterModularTransformations, component);
 
             count += 1;
 
@@ -2940,7 +3000,8 @@ e() {
             component =
                 loadComponentFromBinary(platformKernel.toFilePath(), component);
             expect(component.mainMethod, isNotNull);
-            verifyComponent(component);
+            verifyComponent(target,
+                VerificationStage.afterModularTransformations, component);
 
             count += 1;
 
@@ -3278,19 +3339,33 @@ class FrontendServer {
     // definitions (one per line)
     // ...
     // <boundarykey>
+    // definitionTypes (one per line)
+    // ...
+    // <boundarykey>
     // type-definitions (one per line)
+    // ...
+    // <boundarykey>
+    // type-bounds (one per line)
+    // ...
+    // <boundarykey>
+    // type-defaults (one per line)
     // ...
     // <boundarykey>
     // <libraryUri: String>
     // <klass: String>
+    // <method: String>
     // <isStatic: true|false>
     outputParser.expectSources = false;
     inputStreamController.add('compile-expression $boundaryKey\n'
             '$expression\n'
             '$boundaryKey\n'
             '$boundaryKey\n'
+            '$boundaryKey\n'
+            '$boundaryKey\n'
+            '$boundaryKey\n'
             '$library\n'
             '$className\n'
+            '\n'
             '${isStatic != null ? '$isStatic' : ''}\n'
         .codeUnits);
   }

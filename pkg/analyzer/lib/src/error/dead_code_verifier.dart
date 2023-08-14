@@ -234,7 +234,7 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitIfElement(IfElement node) {
-    Expression conditionExpression = node.condition;
+    Expression conditionExpression = node.expression;
     conditionExpression.accept(this);
     if (!_isDebugConstant(conditionExpression)) {
       var result = _getConstantBooleanValue(conditionExpression);
@@ -262,7 +262,7 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitIfStatement(IfStatement node) {
-    Expression conditionExpression = node.condition;
+    Expression conditionExpression = node.expression;
     conditionExpression.accept(this);
     if (!_isDebugConstant(conditionExpression)) {
       var result = _getConstantBooleanValue(conditionExpression);

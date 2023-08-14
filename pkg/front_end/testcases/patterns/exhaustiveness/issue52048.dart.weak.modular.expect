@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -28,7 +28,7 @@ static method f(self::A a) → dynamic {
   {
     final synthesized self::A #0#0 = a;
     {
-      if(#0#0 is{ForNonNullableByDefault} self::B) {
+      if(#0#0 is self::B) {
         {
           core::print("It's a B");
         }

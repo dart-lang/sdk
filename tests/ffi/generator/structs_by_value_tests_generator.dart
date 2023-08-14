@@ -59,9 +59,12 @@ extension on CType {
         return "<< $variableName";
 
       case StructType:
-      case UnionType:
-        final this_ = this as CompositeType;
+        final this_ = this as StructType;
         return this_.members.coutExpression("$variableName.");
+
+      case UnionType:
+        final this_ = this as UnionType;
+        return this_.members.take(1).toList().coutExpression("$variableName.");
 
       case FixedLengthArrayType:
         final this_ = this as FixedLengthArrayType;
@@ -504,6 +507,7 @@ extension on CompositeType {
     final packingAnnotation = (self is StructType) && self.hasPacking
         ? "@Packed(${self.packing})"
         : "";
+    final classModifier = isNnbd ? 'final' : '';
     String dartFields = "";
     for (final member in members) {
       dartFields += "${member.dartStructField(isNnbd)}\n\n";
@@ -527,7 +531,7 @@ extension on CompositeType {
     }).join(", ");
     return """
     $packingAnnotation
-    class $name extends $dartSuperClass {
+    $classModifier class $name extends $dartSuperClass {
       $dartFields
 
       String toString() => "($toStringBody)";
@@ -612,7 +616,7 @@ ${assignValues}
   }
 
   String dartCallbackCode({required bool isNnbd}) {
-    final argumentss =
+    final argumentString =
         arguments.map((a) => "${a.type.dartType} ${a.name}").join(", ");
 
     final prints = arguments.map((a) => "\$\{${a.name}\}").join(", ");
@@ -714,7 +718,7 @@ $buildReturnValue
 }
 
 ${reason.makeDartDocComment()}
-${returnValue.dartType} $dartName($argumentss) {
+${returnValue.dartType} $dartName($argumentString) {
   print("$dartName($prints)");
 
   // In legacy mode, possibly return null.
@@ -731,7 +735,7 @@ ${returnValue.dartType} $dartName($argumentss) {
 
   final result = ${dartName}CalculateResult();
 
-  print(\"result = \$result\");
+  print("result = \$result");
 
   return result;
 }
@@ -741,7 +745,7 @@ void ${dartName}AfterCallback() {
 
   final result = ${dartName}CalculateResult();
 
-  print(\"after callback result = \$result\");
+  print("after callback result = \$result");
 
   $afterCallbackExpects
 
@@ -768,6 +772,58 @@ void ${dartName}AfterCallback() {
     return """
   CallbackTest.withCheck("$cName",
     Pointer.fromFunction<${cName}Type>($dartName$exceptionalReturn),
+    ${dartName}AfterCallback),
+""";
+  }
+
+  String dartNativeCallableListenerCode({required bool isAsync}) {
+    final argumentString =
+        arguments.map((a) => "${a.type.dartType} ${a.name}").join(", ");
+    final prints = arguments.map((a) => "\$\{${a.name}\}").join(", ");
+
+    // The type of the async callback is the same as this FunctionType, but with
+    // a void return type.
+    final callbackType =
+        FunctionType(argumentTypes, void_, reason, varArgsIndex: varArgsIndex);
+
+    final a = ArgumentValueAssigner();
+    arguments.assignValueStatements(a);
+    final expectedResult = a.sumValue(int64);
+
+    return """
+typedef ${cName}Type = ${callbackType.dartCType};
+
+// Global variable that stores the result.
+final ${cName}Result = Completer<double>();
+
+${reason.makeDartDocComment()}
+void $dartName($argumentString) {
+  print("$dartName($prints)");
+
+  double result = 0;
+
+${arguments.addToResultStatements()}
+
+  print("result = \$result");
+  ${cName}Result.complete(result);
+}
+
+Future<void> ${dartName}AfterCallback() async {
+  final result = await ${cName}Result.future;
+  print("after callback result = \$result");
+  Expect.approxEquals($expectedResult, result);
+}
+
+""";
+  }
+
+  String dartNativeCallableListenerTestConstructor({required bool isAsync}) {
+    final T = '${cName}Type';
+    final constructor =
+        isAsync ? 'NativeCallable<$T>.listener' : 'Pointer.fromFunction<$T>';
+    return """
+  AsyncCallbackTest("$cName",
+    $constructor($dartName),
     ${dartName}AfterCallback),
 """;
   }
@@ -803,7 +859,7 @@ void ${dartName}AfterCallback() {
         break;
     }
 
-    final argumentss = [
+    final argumentString = [
       for (final argument in arguments.take(varArgsIndex ?? arguments.length))
         "${argument.type.cType} ${argument.name}",
       if (varArgsIndex != null) "...",
@@ -827,10 +883,10 @@ $varArgUnpackArguments
     return """
 // Used for testing structs and unions by value.
 ${reason.makeCComment()}
-DART_EXPORT ${returnValue.cType} $cName($argumentss) {
+DART_EXPORT ${returnValue.cType} $cName($argumentString) {
 $varArgsUnpack
 
-  std::cout << \"$cName\" ${arguments.coutExpression()} << \"\\n\";
+  std::cout << "$cName" ${arguments.coutExpression()} << "\\n";
 
   $body
 
@@ -847,7 +903,7 @@ $varArgsUnpack
     final argumentAllocations = arguments.cAllocateStatements();
     final assignValues = arguments.assignValueStatements(a);
 
-    final argumentss = [
+    final argumentString = [
       for (final argument in arguments.take(varArgsIndex ?? arguments.length))
         "${argument.type.cType} ${argument.name}",
       if (varArgsIndex != null) "...",
@@ -887,12 +943,12 @@ $varArgsUnpack
     DART_EXPORT intptr_t
     Test$cName(
         // NOLINTNEXTLINE(whitespace/parens)
-        ${returnValue.cType} (*f)($argumentss)) {
+        ${returnValue.cType} (*f)($argumentString)) {
       $argumentAllocations
 
       $assignValues
 
-      std::cout << \"Calling Test$cName(\" ${arguments.coutExpression()} << \")\\n\";
+      std::cout << "Calling Test$cName(" ${arguments.coutExpression()} << ")\\n";
 
       ${returnValue.cType} result = f($argumentNames);
 
@@ -915,6 +971,38 @@ $varArgsUnpack
       $expectsZero
 
       return 0;
+    }
+
+    """;
+  }
+
+  String get cAsyncCallbackCode {
+    final a = ArgumentValueAssigner();
+    final argumentAllocations = arguments.cAllocateStatements();
+    final assignValues = arguments.assignValueStatements(a);
+
+    final argumentString = [
+      for (final argument in arguments.take(varArgsIndex ?? arguments.length))
+        "${argument.type.cType} ${argument.name}",
+      if (varArgsIndex != null) "...",
+    ].join(", ");
+
+    final argumentNames = arguments.map((e) => e.name).join(", ");
+
+    return """
+    // Used for testing structs and unions by value.
+    ${reason.makeCComment()}
+    DART_EXPORT void
+    TestAsync$cName(
+        // NOLINTNEXTLINE(whitespace/parens)
+        void (*f)($argumentString)) {
+      $argumentAllocations
+
+      $assignValues
+
+      std::cout << "Calling TestAsync$cName(" ${arguments.coutExpression()} << ")\\n";
+
+      f($argumentNames);
     }
 
     """;
@@ -972,7 +1060,7 @@ Future<void> writeDartCompounds() async {
 
     final path = compoundsPath(isNnbd: isNnbd);
     await File(path).writeAsString(buffer.toString());
-    await runProcess("dart", ["format", path]);
+    await runProcess(Platform.resolvedExecutable, ["format", path]);
   }));
 }
 
@@ -1031,7 +1119,6 @@ Future<void> writeDartCallTest(
           : isLeaf
               ? 2021
               : 2020,
-      vmFlags: isVarArgs ? '--enable-experiment=records' : '',
     ));
     var suffix = isNative ? 'Native' : '';
     suffix += isLeaf ? 'Leaf' : '';
@@ -1060,10 +1147,7 @@ void main() {$forceDlOpen
         nameSuffix: nameSuffix,
         isVarArgs: isVarArgs);
     await File(path).writeAsString(buffer.toString());
-    if (!isVarArgs) {
-      // TODO(https://dartbug.com/50798): Dart format support for records.
-      await runProcess("dart", ["format", path]);
-    }
+    await runProcess(Platform.resolvedExecutable, ["format", path]);
   }));
 }
 
@@ -1143,7 +1227,6 @@ Future<void> writeDartCallbackTest(
     buffer.write(headerDartCallbackTest(
       isNnbd: isNnbd,
       copyrightYear: isVarArgs ? 2023 : 2020,
-      vmFlags: isVarArgs ? '--enable-experiment=records' : '',
     ));
 
     buffer.write("""
@@ -1156,11 +1239,7 @@ ${functions.map((e) => e.dartCallbackTestConstructor).join("\n")}
 
     final path = callbackTestPath(isNnbd: isNnbd, isVarArgs: isVarArgs);
     await File(path).writeAsString(buffer.toString());
-    if (!isVarArgs) {
-      // TODO(https://github.com/dart-lang/dart_style/issues/1128): Dart
-      // format support for records.
-      await runProcess("dart", ["format", path]);
-    }
+    await runProcess(Platform.resolvedExecutable, ["format", path]);
   }));
 }
 
@@ -1170,6 +1249,76 @@ String callbackTestPath({required bool isNnbd, required bool isVarArgs}) {
   return Platform.script
       .resolve(
           "../../$folder/function_callbacks_${baseName}_generated_test.dart")
+      .toFilePath();
+}
+
+headerDartAsyncCallbackTest({String vmFlags = ''}) {
+  if (vmFlags.length != 0 && !vmFlags.endsWith(' ')) {
+    vmFlags += ' ';
+  }
+
+  return """
+${headerCommon(copyrightYear: 2023)}
+//
+// SharedObjects=ffi_test_functions
+// VMOptions=${vmFlags.trim()}
+// VMOptions=$vmFlags--deterministic --optimization-counter-threshold=20
+// VMOptions=$vmFlags--use-slow-path
+// VMOptions=$vmFlags--use-slow-path --stacktrace-every=100
+
+import 'dart:async';
+import 'dart:ffi';
+
+import "package:expect/expect.dart";
+import "package:ffi/ffi.dart";
+
+
+import 'async_callback_tests_utils.dart';
+
+import 'dylib_utils.dart';
+
+// Reuse the compound classes.
+import 'function_structs_by_value_generated_compounds.dart';
+
+final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
+
+Future<void> main() async {
+  for (final t in testCases) {
+    print("==== Running " + t.name);
+    await t.run();
+  }
+}
+
+
+""";
+}
+
+Future<void> writeDartNativeCallableListenerTest(List<FunctionType> functions,
+    {required bool isAsync}) async {
+  final StringBuffer buffer = StringBuffer();
+  buffer.write(headerDartAsyncCallbackTest());
+  final constructors = functions
+      .map((e) => e.dartNativeCallableListenerTestConstructor(isAsync: isAsync))
+      .join("\n");
+
+  buffer.write("""
+final testCases = [
+$constructors
+];
+""");
+
+  buffer.writeAll(
+      functions.map((e) => e.dartNativeCallableListenerCode(isAsync: isAsync)));
+
+  final path = nativeCallableListenerTestPath(isAsync: isAsync);
+  await File(path).writeAsString(buffer.toString());
+  await runProcess(Platform.resolvedExecutable, ["format", path]);
+}
+
+String nativeCallableListenerTestPath({required bool isAsync}) {
+  return Platform.script
+      .resolve("../../ffi/native_callables_${isAsync ? 'async' : 'sync'}_"
+          "structs_by_value_generated_test.dart")
       .toFilePath();
 }
 
@@ -1223,6 +1372,7 @@ Future<void> writeC() async {
   buffer.writeAll(compounds.map((e) => e.cDefinition));
   buffer.writeAll(functions.map((e) => e.cCallCode));
   buffer.writeAll(functions.map((e) => e.cCallbackCode));
+  buffer.writeAll(functions.map((e) => e.cAsyncCallbackCode));
   buffer.writeAll(functionsVarArgs.map((e) => e.cCallCode));
   buffer.writeAll(functionsVarArgs.map((e) => e.cCallbackCode));
 
@@ -1284,6 +1434,8 @@ void main(List<String> arguments) async {
     ],
     writeDartCallbackTest(functions, isVarArgs: false),
     writeDartCallbackTest(functionsVarArgs, isVarArgs: true),
+    writeDartNativeCallableListenerTest(functions, isAsync: false),
+    writeDartNativeCallableListenerTest(functions, isAsync: true),
     writeC(),
   ]);
 }

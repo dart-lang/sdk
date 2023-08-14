@@ -11,7 +11,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CaseExpressionTypeImplementsEqualsTest);
-    defineReflectiveTests(CaseExpressionTypeImplementsEqualsTest_Language218);
+    defineReflectiveTests(CaseExpressionTypeImplementsEqualsTest_Language219);
     defineReflectiveTests(
       CaseExpressionTypeImplementsEqualsWithoutNullSafetyTest,
     );
@@ -26,9 +26,9 @@ class CaseExpressionTypeImplementsEqualsTest extends PubPackageResolutionTest
 }
 
 @reflectiveTest
-class CaseExpressionTypeImplementsEqualsTest_Language218
+class CaseExpressionTypeImplementsEqualsTest_Language219
     extends PubPackageResolutionTest
-    with WithLanguage218Mixin, CaseExpressionTypeImplementsEqualsTestCases {
+    with WithLanguage219Mixin, CaseExpressionTypeImplementsEqualsTestCases {
   @override
   _Variants get _variant => _Variants.nullSafe;
 }

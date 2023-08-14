@@ -43,12 +43,6 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
   actualData
       .forEach((String marker, Map<Uri, Map<Id, ActualData<T>>> dataPerUri) {
     dataPerUri.forEach((Uri uri, Map<Id, ActualData<T>> dataMap) {
-      // ignore: unnecessary_null_comparison
-      if (uri == null) {
-        // TODO(johnniwinther): Avoid `null` URIs.
-        assert(dataMap.isEmpty, "Non-empty data for `null` uri: $dataMap");
-        return;
-      }
       uriSet.add(uri);
       dataMap.forEach((Id id, ActualData<T> data) {
         Map<Id, Map<String, ActualData<T>>> actualDataPerId =
@@ -88,9 +82,6 @@ List<Annotation> _computeAnnotations<T>(
     bool sortMarkers = true,
     Annotation? Function(Annotation? expected, Annotation? actual)? createDiff,
     bool forceUpdate = false}) {
-  // ignore: unnecessary_null_comparison
-  assert(annotatedCode != null);
-
   Annotation createAnnotationFromData(
       ActualData<T> actualData, Annotation? annotation) {
     String getIndentationFromOffset(int offset) {

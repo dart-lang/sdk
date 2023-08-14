@@ -180,108 +180,6 @@ class ScopedHandle {
   T* handle_;
 };
 
-// Attempts to find a [Class] from un-instantiated [TypeArgument] vector to
-// which it's type parameters are referring to.
-//
-// If the given type argument vector contains references to type parameters,
-// this finder will either return a valid class if all of the type parameters
-// come from the same class and returns `null` otherwise.
-//
-// It is safe to use this class inside loops since the implementation uses a
-// [ReusableHandleStack] (which in practice will only use a handful of handles).
-class TypeArgumentClassFinder {
- public:
-  explicit TypeArgumentClassFinder(Zone* zone)
-      : klass_(Class::Handle(zone)),
-        type_(AbstractType::Handle(zone)),
-        type_arguments_handles_(zone) {}
-
-  const Class& FindClass(const TypeArguments& ta) {
-    klass_ = Class::null();
-
-    const intptr_t len = ta.Length();
-    for (intptr_t i = 0; i < len; ++i) {
-      type_ = ta.TypeAt(i);
-      if (!FindClassFromType(type_)) {
-        klass_ = Class::null();
-        break;
-      }
-    }
-    return klass_;
-  }
-
- private:
-  bool FindClassFromType(const AbstractType& type) {
-    if (type.IsTypeParameter()) {
-      return false;
-    } else if (type.IsFunctionType()) {
-      // No support for function types yet.
-      return false;
-    } else if (type.IsRecordType()) {
-      // No support for record types yet.
-      return false;
-    } else if (type.IsTypeRef()) {
-      // No support for recursive types.
-      return false;
-    } else if (type.IsType()) {
-      ScopedHandle<TypeArguments> type_arguments(&type_arguments_handles_);
-      *type_arguments = Type::Cast(type).arguments();
-      const intptr_t len = type_arguments->Length();
-      for (intptr_t i = 0; i < len; ++i) {
-        type_ = type_arguments->TypeAt(i);
-        if (!FindClassFromType(type_)) {
-          return false;
-        }
-      }
-      return true;
-    }
-    UNREACHABLE();
-    return false;
-  }
-
-  Class& klass_;
-  AbstractType& type_;
-
-  ReusableHandleStack<TypeArguments> type_arguments_handles_;
-};
-
-// Used for instantiating a [TypeArguments] which contains references to type
-// parameters based on an instantiator [TypeArguments] vector.
-//
-// It is safe to use this class inside loops since the implementation uses a
-// [ReusableHandleStack] (which in practice will only use a handful of handles).
-class TypeArgumentInstantiator {
- public:
-  explicit TypeArgumentInstantiator(Zone* zone)
-      : klass_(Class::Handle(zone)),
-        type_(AbstractType::Handle(zone)),
-        instantiator_type_arguments_(TypeArguments::Handle(zone)),
-        type_arguments_handles_(zone),
-        type_handles_(zone) {}
-
-  TypeArgumentsPtr Instantiate(
-      const Class& klass,
-      const TypeArguments& type_arguments,
-      const TypeArguments& instantiator_type_arguments) {
-    instantiator_type_arguments_ = instantiator_type_arguments.ptr();
-    return InstantiateTypeArguments(klass, type_arguments).ptr();
-  }
-
- private:
-  const TypeArguments& InstantiateTypeArguments(
-      const Class& klass,
-      const TypeArguments& type_arguments);
-
-  AbstractTypePtr InstantiateType(const AbstractType& type);
-
-  Class& klass_;
-  AbstractType& type_;
-  TypeArguments& instantiator_type_arguments_;
-
-  ReusableHandleStack<TypeArguments> type_arguments_handles_;
-  ReusableHandleStack<Type> type_handles_;
-};
-
 // Collects data on how [Type] objects are used in generated code.
 class TypeUsageInfo : public ThreadStackResource {
  public:
@@ -341,31 +239,6 @@ class TypeUsageInfo : public ThreadStackResource {
   typedef DirectChainedHashMap<TypeArgumentsSetTrait> TypeArgumentsSet;
   typedef DirectChainedHashMap<TypeParameterSetTrait> TypeParameterSet;
 
-  // Runs an (early terminated) fix-point algorithm which propagates type
-  // arguments.  For example:
-  //
-  //   class Base<X> {}
-  //
-  //   class Foo<A, B> extends Base<B> {
-  //     foo() => new Map<List<B>, A>();
-  //   }
-  //
-  //   main() {
-  //     new Foo<String, int>();
-  //     new Map<double, bool>();
-  //   }
-  //
-  // will end up adding new type argument vectors to the per-class instantiator
-  // type argument vector set:
-  //
-  //   Foo:
-  //     <int, String, int>
-  //   Map:
-  //     <List<int>, String>
-  //     <double, bool>
-  //
-  void PropagateTypeArguments(ClassTable* class_table, intptr_t cid_count);
-
   // Collects all type parameters we are doing assert assignable checks against.
   void CollectTypeParametersUsedInAssertAssignable(TypeParameterSet* set);
 
@@ -381,7 +254,6 @@ class TypeUsageInfo : public ThreadStackResource {
   void AddTypeToSet(TypeSet* set, const AbstractType* type);
 
   Zone* zone_;
-  TypeArgumentClassFinder finder_;
   TypeSet assert_assignable_types_;
   TypeArgumentsSet* instance_creation_arguments_;
 

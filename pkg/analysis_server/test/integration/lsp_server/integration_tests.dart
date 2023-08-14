@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
@@ -116,7 +117,17 @@ class LspServerClient {
   final StreamController<Message> _serverToClient =
       StreamController<Message>.broadcast();
 
+  /// Whether the first line of output from the server was already checked.
+  bool _firstLineChecked = false;
+
+  /// If the first line of output turned out to be the DevTools URI line,
+  /// these whole line is used for this completer.
+  final Completer<String> _devToolsLineCompleter = Completer<String>();
+
   LspServerClient(this.instrumentationService);
+
+  /// Completes with the DevTools URI line, maybe never.
+  Future<String> get devToolsLine => _devToolsLineCompleter.future;
 
   Future<int> get exitCode => _process!.exitCode;
 
@@ -189,9 +200,41 @@ class LspServerClient {
       throw 'Analysis Server wrote to stderr:\n\n$message';
     });
 
-    channel = LspByteStreamServerChannel(process.stdout, process.stdin,
+    final inputStream = _extractDevToolsLine(process.stdout);
+
+    channel = LspByteStreamServerChannel(inputStream, process.stdin,
         instrumentationService ?? InstrumentationService.NULL_SERVICE)
       ..listen(_serverToClient.add);
+  }
+
+  /// Checks the first line in the [input], and if it is the DevTools URI
+  /// line, completes [devToolsLine] with it, and excludes it from the sink.
+  /// Otherwise, and after the first line, passes data to the sink.
+  Stream<List<int>> _extractDevToolsLine(Stream<List<int>> input) {
+    final buffer = <int>[];
+    return input.transform(
+      StreamTransformer.fromHandlers(
+        handleData: (bytes, sink) {
+          if (_firstLineChecked) {
+            sink.add(bytes);
+          } else {
+            buffer.addAll(bytes);
+            final lineFeedIndex = buffer.indexOf(0x0A);
+            if (lineFeedIndex != -1) {
+              _firstLineChecked = true;
+              final lineBytes = buffer.sublist(0, lineFeedIndex);
+              final line = utf8.decode(lineBytes);
+              if (line.startsWith('The Dart DevTools')) {
+                _devToolsLineCompleter.complete(line);
+                sink.add(buffer.sublist(lineFeedIndex + 1));
+              } else {
+                sink.add(buffer);
+              }
+            }
+          }
+        },
+      ),
+    );
   }
 }
 

@@ -516,7 +516,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     var positions = <Position>[];
     for (var search in searchStrings) {
       var offset = resultCode.indexOf(search);
-      positions.add(Position(testFile, offset));
+      positions.add(Position(testFile.path, offset));
     }
     return positions;
   }

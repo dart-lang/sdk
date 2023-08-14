@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -100,7 +100,7 @@ abstract class Class3 extends gen::LegacyClass1 {
 static method main() → dynamic
   ;
 
-library;
+library /*isLegacy*/;
 import self as gen;
 import "dart:core" as core;
 import "generic_override.dart" as self;

@@ -90,6 +90,10 @@ typedef void (*Dart_NativeMessageHandler_DL)(Dart_Port_DL dest_port_id,
   F(Dart_UpdateFinalizableExternalSize, void,                                  \
     (Dart_FinalizableHandle object, Dart_Handle strong_ref_to_object,          \
      intptr_t external_allocation_size))                                       \
+  /* Isolates */                                                               \
+  F(Dart_CurrentIsolate, Dart_Isolate, (void))                                 \
+  F(Dart_ExitIsolate, void, (void))                                            \
+  F(Dart_EnterIsolate, void, (Dart_Isolate))                                   \
   /* Dart_Port */                                                              \
   F(Dart_Post, bool, (Dart_Port_DL port_id, Dart_Handle object))               \
   F(Dart_NewSendPort, Dart_Handle, (Dart_Port_DL port_id))                     \

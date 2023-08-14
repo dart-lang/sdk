@@ -17,6 +17,7 @@ class Error {
   @patch
   StackTrace? get stackTrace => _stackTrace;
 
+  @pragma("wasm:entry-point")
   StackTrace? _stackTrace;
 }
 
@@ -110,7 +111,6 @@ class NoSuchMethodError {
       NoSuchMethodError(receiver, invocation.memberName,
           invocation.positionalArguments, invocation.namedArguments);
 
-  @patch
   NoSuchMethodError(Object? receiver, Symbol memberName,
       List? positionalArguments, Map<Symbol, dynamic>? namedArguments,
       [List? existingArgumentNames = null])

@@ -13,12 +13,13 @@ import '../../abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(GetHierarchyMembersTest);
     defineReflectiveTests(HierarchyTest);
   });
 }
 
 @reflectiveTest
-class HierarchyTest extends AbstractSingleUnitTest {
+class GetHierarchyMembersTest extends AbstractSingleUnitTest {
   late SearchEngineImpl searchEngine;
 
   @override
@@ -27,34 +28,8 @@ class HierarchyTest extends AbstractSingleUnitTest {
     searchEngine = SearchEngineImpl([driverFor(testFile)]);
   }
 
-  Future<void> test_getClassMembers() async {
-    await _indexTestUnit('''
-class A {
-  A() {}
-  var ma1;
-  ma2() {}
-}
-class B extends A {
-  B() {}
-  B.named() {}
-  var mb1;
-  mb2() {}
-}
-''');
-    {
-      var classA = findElement.class_('A');
-      var members = getClassMembers(classA);
-      expect(members.map((e) => e.name), unorderedEquals(['ma1', 'ma2']));
-    }
-    {
-      var classB = findElement.class_('B');
-      var members = getClassMembers(classB);
-      expect(members.map((e) => e.name), unorderedEquals(['mb1', 'mb2']));
-    }
-  }
-
-  Future<void> test_getHierarchyMembers_constructors() async {
-    await _indexTestUnit('''
+  Future<void> test_constructors() async {
+    await resolveTestCode('''
 class A {
   A() {}
 }
@@ -75,8 +50,8 @@ class B extends A {
     await Future.wait([futureA, futureB]);
   }
 
-  Future<void> test_getHierarchyMembers_fields() async {
-    await _indexTestUnit('''
+  Future<void> test_fields() async {
+    await resolveTestCode('''
 class A {
   int? foo;
 }
@@ -113,8 +88,8 @@ class D {
     await Future.wait([futureA, futureB, futureC, futureD]);
   }
 
-  Future<void> test_getHierarchyMembers_fields_static() async {
-    await _indexTestUnit('''
+  Future<void> test_fields_static() async {
+    await resolveTestCode('''
 class A {
   static int? foo;
 }
@@ -145,7 +120,7 @@ class C extends B {
     }
   }
 
-  Future<void> test_getHierarchyMembers_linear_number_of_calls() async {
+  Future<void> test_linear_number_of_calls() async {
     const count = 150;
     const last = count - 1;
     StringBuffer sb = StringBuffer();
@@ -158,7 +133,7 @@ class C extends B {
       }
     }
 
-    await _indexTestUnit(sb.toString());
+    await resolveTestCode(sb.toString());
     var classLast = findElement.class_('X$last');
     ClassMemberElement member =
         classLast.methods.where((element) => element.name == "foo").single;
@@ -182,8 +157,8 @@ class C extends B {
     }
   }
 
-  Future<void> test_getHierarchyMembers_methods() async {
-    await _indexTestUnit('''
+  Future<void> test_methods() async {
+    await resolveTestCode('''
 class A {
   foo() {}
 }
@@ -228,8 +203,85 @@ class E extends D {
     await Future.wait([futureA, futureB, futureC, futureD, futureE]);
   }
 
-  Future<void> test_getHierarchyMembers_methods_static() async {
-    await _indexTestUnit('''
+  Future<void> test_methods_private_superOtherLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  void _test() {}
+}
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+import 'test.dart';
+
+class E extends B {
+  void _test() {}
+}
+''');
+
+    await resolveTestCode('''
+import 'a.dart';
+
+class B extends A {
+  void _test() {}
+}
+
+class C extends A {
+  void _test() {}
+}
+
+class D extends B {
+  void _test() {}
+}
+''');
+
+    final methodB = findElement.method('_test', of: 'B');
+    final methodD = findElement.method('_test', of: 'D');
+
+    final members = await getHierarchyMembers(searchEngine, methodB);
+    expect(members, unorderedEquals([methodB, methodD]));
+  }
+
+  Future<void> test_methods_private_superSameLibrary() async {
+    newFile('$testPackageLibPath/c.dart', r'''
+import 'test.dart';
+
+class E extends B {
+  void _test() {}
+}
+''');
+
+    await resolveTestCode('''
+class A {
+  void _test() {}
+}
+
+class B extends A {
+  void _test() {}
+}
+
+class C extends A {
+  void _test() {}
+}
+
+class D extends B {
+  void _test() {}
+}
+''');
+
+    final methodA = findElement.method('_test', of: 'A');
+    final methodB = findElement.method('_test', of: 'B');
+    final methodC = findElement.method('_test', of: 'C');
+    final methodD = findElement.method('_test', of: 'D');
+
+    final members = await getHierarchyMembers(searchEngine, methodB);
+    expect(
+      members,
+      unorderedEquals([methodA, methodB, methodC, methodD]),
+    );
+  }
+
+  Future<void> test_methods_static() async {
+    await resolveTestCode('''
 class A {
   static foo() {}
 }
@@ -251,8 +303,8 @@ class B extends A {
     }
   }
 
-  Future<void> test_getHierarchyMembers_withInterfaces() async {
-    await _indexTestUnit('''
+  Future<void> test_withInterfaces() async {
+    await resolveTestCode('''
 class A {
   foo() {}
 }
@@ -285,9 +337,46 @@ class E {
     });
     await Future.wait([futureA, futureB, futureD]);
   }
+}
+
+@reflectiveTest
+class HierarchyTest extends AbstractSingleUnitTest {
+  late SearchEngineImpl searchEngine;
+
+  @override
+  void setUp() {
+    super.setUp();
+    searchEngine = SearchEngineImpl([driverFor(testFile)]);
+  }
+
+  Future<void> test_getClassMembers() async {
+    await resolveTestCode('''
+class A {
+  A() {}
+  var ma1;
+  ma2() {}
+}
+class B extends A {
+  B() {}
+  B.named() {}
+  var mb1;
+  mb2() {}
+}
+''');
+    {
+      var classA = findElement.class_('A');
+      var members = getClassMembers(classA);
+      expect(members.map((e) => e.name), unorderedEquals(['ma1', 'ma2']));
+    }
+    {
+      var classB = findElement.class_('B');
+      var members = getClassMembers(classB);
+      expect(members.map((e) => e.name), unorderedEquals(['mb1', 'mb2']));
+    }
+  }
 
   Future<void> test_getHierarchyNamedParameters() async {
-    await _indexTestUnit('''
+    await resolveTestCode('''
 class A {
   foo({p}) {}
 }
@@ -343,7 +432,7 @@ class E extends D {
 
   Future<void> test_getHierarchyNamedParameters_invalid_missing() async {
     verifyNoTestUnitErrors = false;
-    await _indexTestUnit('''
+    await resolveTestCode('''
 class A {
   foo({p}) {}
 }
@@ -360,7 +449,7 @@ class B extends A {
 
   Future<void> test_getHierarchyNamedParameters_invalid_notNamed() async {
     verifyNoTestUnitErrors = false;
-    await _indexTestUnit('''
+    await resolveTestCode('''
 class A {
   foo({p}) {}
 }
@@ -376,7 +465,7 @@ class B extends A {
   }
 
   Future<void> test_getMembers() async {
-    await _indexTestUnit('''
+    await resolveTestCode('''
 class A {
   A() {}
   var ma1;
@@ -427,9 +516,5 @@ class B extends A {
             'hashAllUnordered',
           ]));
     }
-  }
-
-  Future<void> _indexTestUnit(String code) async {
-    await resolveTestCode(code);
   }
 }

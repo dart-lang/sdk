@@ -19,9 +19,9 @@ import 'dart:_js_helper'
         Native,
         Returns,
         diagnoseIndexError,
-        diagnoseRangeError;
+        diagnoseRangeError,
+        TrustedGetRuntimeType;
 import 'dart:_foreign_helper' show JS;
-import 'dart:_rti' show TrustedGetRuntimeType;
 
 import 'dart:math' as Math;
 

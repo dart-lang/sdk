@@ -70,7 +70,7 @@ class IrregexpCompilationPipeline : public CompilationPipeline {
 
 class Compiler : public AllStatic {
  public:
-  static const intptr_t kNoOSRDeoptId = DeoptId::kNone;
+  static constexpr intptr_t kNoOSRDeoptId = DeoptId::kNone;
 
   static bool IsBackgroundCompilation();
   // The result for a function may change if debugging gets turned on/off.

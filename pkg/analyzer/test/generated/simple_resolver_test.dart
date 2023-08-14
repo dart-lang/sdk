@@ -265,9 +265,9 @@ void f() {
     expect(breakStatement.target, same(switchStatement));
   }
 
-  test_breakTarget_unlabeledBreakFromSwitch_language218() async {
+  test_breakTarget_unlabeledBreakFromSwitch_language219() async {
     await resolveTestCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 void f() {
   while (true) {
     switch (0) {
@@ -418,9 +418,9 @@ void f() {
     expect(continueStatement.target, same(whileStatement));
   }
 
-  test_continueTarget_unlabeledContinueSkipsSwitch_language218() async {
+  test_continueTarget_unlabeledContinueSkipsSwitch_language219() async {
     await resolveTestCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 void f() {
   while (true) {
     switch (0) {
@@ -857,9 +857,9 @@ void doSwitch(int target) {
     verifyTestResolved();
   }
 
-  test_labels_switch_language218() async {
+  test_labels_switch_language219() async {
     await assertNoErrorsInCode(r'''
-// @dart = 2.18
+// @dart = 2.19
 void doSwitch(int target) {
   switch (target) {
     l0: case 0:

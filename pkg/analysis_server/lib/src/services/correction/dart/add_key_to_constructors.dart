@@ -16,7 +16,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
-class AddKeyToConstructors extends CorrectionProducer {
+class AddKeyToConstructors extends ResolvedCorrectionProducer {
   @override
   bool get canBeAppliedInBulk => true;
 
@@ -72,7 +72,7 @@ class AddKeyToConstructors extends CorrectionProducer {
   Future<void> _computeClassDeclaration(
       ChangeBuilder builder, ClassDeclaration node) async {
     var targetLocation =
-        utils.prepareNewConstructorLocation(resolvedResult.session, node);
+        utils.prepareNewConstructorLocation(unitResult.session, node);
     if (targetLocation == null) {
       return;
     }
@@ -169,8 +169,8 @@ class AddKeyToConstructors extends CorrectionProducer {
     if (keyClass == null) {
       return null;
     }
-    var isNonNullable = resolvedResult.libraryElement.featureSet
-        .isEnabled(Feature.non_nullable);
+    var isNonNullable =
+        unitResult.libraryElement.featureSet.isEnabled(Feature.non_nullable);
     return keyClass.instantiate(
       typeArguments: const [],
       nullabilitySuffix:
@@ -199,10 +199,29 @@ class AddKeyToConstructors extends CorrectionProducer {
     }
     if (superParameters) {
       if (invocation != null && invocation.argumentList.arguments.isEmpty) {
-        var previous = initializers.length == 1
-            ? constructor.parameters
-            : initializers[initializers.indexOf(invocation) - 1];
-        builder.addDeletion(range.endStart(previous, constructor.body));
+        final invocationIndex = initializers.indexOf(invocation);
+        if (initializers.length == 1) {
+          builder.addDeletion(
+            range.endStart(
+              constructor.parameters,
+              constructor.body,
+            ),
+          );
+        } else if (invocationIndex == 0) {
+          builder.addDeletion(
+            range.startStart(
+              invocation,
+              initializers[invocationIndex + 1],
+            ),
+          );
+        } else {
+          builder.addDeletion(
+            range.endEnd(
+              initializers[invocationIndex - 1],
+              invocation,
+            ),
+          );
+        }
       }
       return;
     }

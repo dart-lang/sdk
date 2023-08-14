@@ -46,7 +46,8 @@ intptr_t DescriptorInfo::GetPollEvents() {
 // Unregister the file descriptor for a DescriptorInfo structure with
 // epoll.
 static void RemoveFromEpollInstance(intptr_t epoll_fd_, DescriptorInfo* di) {
-  VOID_NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, di->fd(), NULL));
+  VOID_NO_RETRY_EXPECTED(
+      epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, di->fd(), nullptr));
 }
 
 static void AddToEpollInstance(intptr_t epoll_fd_, DescriptorInfo* di) {
@@ -88,7 +89,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   shutdown_ = false;
   // The initial size passed to epoll_create is ignore on newer (>=
   // 2.6.8) Linux versions
-  static const int kEpollInitialSize = 64;
+  const int kEpollInitialSize = 64;
   epoll_fd_ = NO_RETRY_EXPECTED(epoll_create(kEpollInitialSize));
   if (epoll_fd_ == -1) {
     FATAL("Failed creating epoll file descriptor: %i", errno);
@@ -99,7 +100,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   // Register the interrupt_fd with the epoll instance.
   struct epoll_event event;
   event.events = EPOLLIN;
-  event.data.ptr = NULL;
+  event.data.ptr = nullptr;
   int status = NO_RETRY_EXPECTED(
       epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, interrupt_fds_[0], &event));
   if (status == -1) {
@@ -154,9 +155,9 @@ DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
   ASSERT(fd >= 0);
   SimpleHashMap::Entry* entry = socket_map_.Lookup(
       GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd), true);
-  ASSERT(entry != NULL);
+  ASSERT(entry != nullptr);
   DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(entry->value);
-  if (di == NULL) {
+  if (di == nullptr) {
     // If there is no data in the hash map for this file descriptor a
     // new DescriptorInfo for the file descriptor is inserted.
     if (is_listening) {
@@ -185,9 +186,12 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
       FDUtils::WriteToBlocking(interrupt_fds_[1], &msg, kInterruptMessageSize);
   if (result != kInterruptMessageSize) {
     if (result == -1) {
-      perror("Interrupt message failure:");
+      FATAL("Interrupt message failure: %s", strerror(errno));
+    } else {
+      FATAL("Interrupt message failure: expected to write %" Pd
+            " bytes, but wrote %" Pd ".",
+            kInterruptMessageSize, result);
     }
-    FATAL("Interrupt message failure. Wrote %" Pd " bytes.", result);
   }
 }
 
@@ -289,7 +293,7 @@ void EventHandlerImplementation::UpdateTimerFd() {
     it.it_value.tv_nsec = (millis % 1000) * 1000000;
   }
   VOID_NO_RETRY_EXPECTED(
-      timerfd_settime(timer_fd_, TFD_TIMER_ABSTIME, &it, NULL));
+      timerfd_settime(timer_fd_, TFD_TIMER_ABSTIME, &it, nullptr));
 }
 
 #ifdef DEBUG_POLL
@@ -350,7 +354,7 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
                                               int size) {
   bool interrupt_seen = false;
   for (int i = 0; i < size; i++) {
-    if (events[i].data.ptr == NULL) {
+    if (events[i].data.ptr == nullptr) {
       interrupt_seen = true;
     } else if (events[i].data.fd == timer_fd_) {
       int64_t val;
@@ -386,11 +390,11 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
 
 void EventHandlerImplementation::Poll(uword args) {
   ThreadSignalBlocker signal_blocker(SIGPROF);
-  static const intptr_t kMaxEvents = 16;
+  const intptr_t kMaxEvents = 16;
   struct epoll_event events[kMaxEvents];
   EventHandler* handler = reinterpret_cast<EventHandler*>(args);
   EventHandlerImplementation* handler_impl = &handler->delegate_;
-  ASSERT(handler_impl != NULL);
+  ASSERT(handler_impl != nullptr);
 
   while (!handler_impl->shutdown_) {
     intptr_t result = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(

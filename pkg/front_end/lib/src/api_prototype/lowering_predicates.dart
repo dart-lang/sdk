@@ -31,8 +31,6 @@ export '../fasta/kernel/constructor_tearoff_lowering.dart'
 /// The default value of this field is `null`.
 bool isLateLoweredField(Field node) {
   return node.isInternalImplementation &&
-      // ignore: unnecessary_null_comparison
-      node.name != null &&
       node.name.text.startsWith(lateFieldPrefix) &&
       !node.name.text.endsWith(lateIsSetSuffix);
 }
@@ -87,8 +85,6 @@ Name extractFieldNameFromLateLoweredField(Field node) {
 /// The default value of this field is `false`.
 bool isLateLoweredIsSetField(Field node) {
   return node.isInternalImplementation &&
-      // ignore: unnecessary_null_comparison
-      node.name != null &&
       node.name.text.startsWith(lateFieldPrefix) &&
       node.name.text.endsWith(lateIsSetSuffix);
 }
@@ -667,6 +663,10 @@ const String syntheticThisName = '#this';
 /// `this` value in the encoding of extension instance members.
 bool isExtensionThisName(String? name) {
   return name == syntheticThisName;
+}
+
+bool isInlineClassThis(VariableDeclaration node) {
+  return node.isLowered && isInlineClassThisName(node.name);
 }
 
 /// Returns `true` if [name] is the name of the synthetic parameter holding the

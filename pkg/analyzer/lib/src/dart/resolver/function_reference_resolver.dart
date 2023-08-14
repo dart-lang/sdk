@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -63,7 +62,7 @@ class FunctionReferenceResolver {
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           typeArguments,
           [
-            function.constructorName.type.name.toSource(),
+            function.constructorName.type.qualifiedName,
             function.constructorName.name!.name
           ],
         );
@@ -102,13 +101,13 @@ class FunctionReferenceResolver {
       prefixType = prefixElement.variable.type;
     }
 
-    if (prefixType != null && prefixType.isDynamic) {
+    if (prefixType is DynamicType) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
         function,
         [],
       );
-      node.staticType = DynamicTypeImpl.instance;
+      node.staticType = InvalidTypeImpl.instance;
       return true;
     }
     return false;
@@ -228,6 +227,11 @@ class FunctionReferenceResolver {
       node.staticType = DynamicTypeImpl.instance;
     }
 
+    if (rawType is InvalidType) {
+      node.staticType = InvalidTypeImpl.instance;
+      return;
+    }
+
     if (rawType is TypeParameterTypeImpl) {
       // If the type of the function is a type parameter, the tearoff is
       // disallowed, reported in [_resolveDisallowedExpression]. Use the type
@@ -241,7 +245,7 @@ class FunctionReferenceResolver {
       // [CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR] is
       // reported elsewhere; don't check type arguments here.
       if (node.function is ConstructorReference) {
-        node.staticType = DynamicTypeImpl.instance;
+        node.staticType = InvalidTypeImpl.instance;
       } else {
         var typeArguments = node.typeArguments;
         if (typeArguments == null) {
@@ -268,8 +272,12 @@ class FunctionReferenceResolver {
           node.function,
           [],
         );
+        node.staticType = InvalidTypeImpl.instance;
+      } else if (rawType is DynamicType) {
+        node.staticType = DynamicTypeImpl.instance;
+      } else {
+        node.staticType = InvalidTypeImpl.instance;
       }
-      node.staticType = DynamicTypeImpl.instance;
     }
   }
 
@@ -345,7 +353,7 @@ class FunctionReferenceResolver {
     var member = _resolver.toLegacyElement(result.getter);
 
     if (member == null) {
-      node.staticType = DynamicTypeImpl.instance;
+      node.staticType = InvalidTypeImpl.instance;
       return;
     }
 
@@ -358,9 +366,9 @@ class FunctionReferenceResolver {
     }
 
     if (function.isCascaded) {
-      _resolver.errorReporter.reportErrorForNode(
+      _resolver.errorReporter.reportErrorForToken(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
-        override.extensionName,
+        override.name,
       );
       // Continue to resolve type.
     }
@@ -410,8 +418,8 @@ class FunctionReferenceResolver {
         function.prefix,
         [function.name],
       );
-      function.staticType = DynamicTypeImpl.instance;
-      node.staticType = DynamicTypeImpl.instance;
+      function.staticType = InvalidTypeImpl.instance;
+      node.staticType = InvalidTypeImpl.instance;
       return;
     }
 
@@ -430,8 +438,8 @@ class FunctionReferenceResolver {
           function.identifier,
           [functionName, function.prefix.name],
         );
-        function.staticType = DynamicTypeImpl.instance;
-        node.staticType = DynamicTypeImpl.instance;
+        function.staticType = InvalidTypeImpl.instance;
+        node.staticType = InvalidTypeImpl.instance;
         return;
       } else {
         functionElement = _resolver.toLegacyElement(functionElement);
@@ -486,7 +494,7 @@ class FunctionReferenceResolver {
       );
     }
     function.accept(_resolver);
-    node.staticType = DynamicTypeImpl.instance;
+    node.staticType = InvalidTypeImpl.instance;
   }
 
   void _resolvePropertyAccessFunction(
@@ -520,13 +528,16 @@ class FunctionReferenceResolver {
       return;
     } else {
       var targetType = target.staticType;
-      if (targetType != null && targetType.isDynamic) {
+      if (targetType is DynamicType) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
           node,
           [],
         );
-        node.staticType = DynamicTypeImpl.instance;
+        node.staticType = InvalidTypeImpl.instance;
+        return;
+      } else if (targetType is InvalidType) {
+        node.staticType = InvalidTypeImpl.instance;
         return;
       }
       var functionType = _resolveTypeProperty(
@@ -553,7 +564,7 @@ class FunctionReferenceResolver {
         );
       }
 
-      node.staticType = DynamicTypeImpl.instance;
+      node.staticType = InvalidTypeImpl.instance;
       return;
     }
 
@@ -626,9 +637,9 @@ class FunctionReferenceResolver {
       return;
     } else if (element is ExtensionElement) {
       prefix.identifier.staticElement = element;
-      prefix.identifier.staticType = DynamicTypeImpl.instance;
-      prefix.staticType = DynamicTypeImpl.instance;
-      _resolveDisallowedExpression(node, DynamicTypeImpl.instance);
+      prefix.identifier.staticType = InvalidTypeImpl.instance;
+      prefix.staticType = InvalidTypeImpl.instance;
+      _resolveDisallowedExpression(node, InvalidTypeImpl.instance);
       return;
     }
 
@@ -637,7 +648,7 @@ class FunctionReferenceResolver {
       'Member of prefixed element, $prefixElement, is not a class, mixin, '
       'type alias, or executable element: $element (${element.runtimeType})',
     );
-    node.staticType = DynamicTypeImpl.instance;
+    node.staticType = InvalidTypeImpl.instance;
   }
 
   void _resolveSimpleIdentifierFunction(
@@ -659,8 +670,8 @@ class FunctionReferenceResolver {
             function,
             [function.name],
           );
-          function.staticType = DynamicTypeImpl.instance;
-          node.staticType = DynamicTypeImpl.instance;
+          function.staticType = InvalidTypeImpl.instance;
+          node.staticType = InvalidTypeImpl.instance;
           return;
         }
       }
@@ -698,8 +709,8 @@ class FunctionReferenceResolver {
           function,
           [function.name, receiverType],
         );
-        function.staticType = DynamicTypeImpl.instance;
-        node.staticType = DynamicTypeImpl.instance;
+        function.staticType = InvalidTypeImpl.instance;
+        node.staticType = InvalidTypeImpl.instance;
         return;
       }
     }
@@ -766,8 +777,8 @@ class FunctionReferenceResolver {
       return;
     } else if (element is ExtensionElement) {
       function.staticElement = element;
-      function.staticType = DynamicTypeImpl.instance;
-      _resolveDisallowedExpression(node, DynamicTypeImpl.instance);
+      function.staticType = InvalidTypeImpl.instance;
+      _resolveDisallowedExpression(node, InvalidTypeImpl.instance);
       return;
     } else {
       _resolveDisallowedExpression(node, DynamicTypeImpl.instance);
@@ -818,13 +829,11 @@ class FunctionReferenceResolver {
     // This involves a fair amount of resolution, as [name] may be a prefixed
     // identifier, etc. [TypeName]s should be resolved in [ResolutionVisitor],
     // and this could be done for nodes like this via [AstRewriter].
-    var typeName = NamedTypeImpl(
-      name: name,
+    var typeName = name.toNamedType(
       typeArguments: node.typeArguments,
       question: null,
     );
     typeName.type = instantiatedType;
-    typeName.name.staticType = instantiatedType;
     var typeLiteral = TypeLiteralImpl(
       typeName: typeName,
     );

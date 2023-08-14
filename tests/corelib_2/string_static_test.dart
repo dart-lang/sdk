@@ -12,5 +12,8 @@ void main() {
 
 void testIllegalArgument() {
   String a = "Hello";
-  var c = a[2.2]; /*@compile-error=unspecified*/
+  var c = a[2.2];
+  //        ^^^
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] A value of type 'double' can't be assigned to a variable of type 'int'.
 }

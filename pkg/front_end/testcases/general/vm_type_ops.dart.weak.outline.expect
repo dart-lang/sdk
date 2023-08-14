@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -49,7 +49,7 @@ class H<T extends core::Object? = dynamic> extends self::G<self::H::T%> implemen
   method foo8<covariant-by-class Q extends self::H::T%>(self::H::foo8::Q% a, covariant-by-declaration core::int b, covariant-by-class self::H::T% c) → void
     ;
   forwarding-stub method foo7<covariant-by-class Q extends self::H::T%>(self::H::foo7::Q% a, covariant-by-declaration core::num b, covariant-by-class self::H::T% c) → void
-    return super.{self::G::foo7}<self::H::foo7::Q%>(a, b as core::int, c);
+    return super.{self::G::foo7}<self::H::foo7::Q%>(a, b as{ForLegacy} core::int, c);
 }
 late static field core::List<core::Iterable<dynamic>> globalVar;
 static method foo1(dynamic x) → dynamic

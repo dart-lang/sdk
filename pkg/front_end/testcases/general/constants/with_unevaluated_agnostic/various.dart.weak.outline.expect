@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -70,18 +70,18 @@ class Class<T extends self::A> extends core::Object /*hasConstConstructor*/  {
     : super core::Object::•()
     ;
   const constructor redirect(dynamic t) → self::Class<self::Class::T>
-    : this self::Class::•(t as{TypeError,ForDynamic,ForNonNullableByDefault} self::Class::T)
+    : this self::Class::•(t as{TypeError,ForDynamic} self::Class::T)
     ;
   const constructor method(self::Class::T t) → self::Class<self::Class::T>
     : this self::Class::•(invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:101:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
   const Class.method(T t) : this(-t);
-                                 ^" in t.{self::A::unary-}(){() → self::A} as{TypeError,ForNonNullableByDefault} Never)
+                                 ^" in t.{self::A::unary-}(){() → self::A} as{TypeError} Never)
     ;
 }
 class Subclass<T extends self::A> extends self::Class<self::Subclass::T> /*hasConstConstructor*/  {
   const constructor •(dynamic t) → self::Subclass<self::Subclass::T>
-    : super self::Class::•(t as{TypeError,ForDynamic,ForNonNullableByDefault} self::Subclass::T)
+    : super self::Class::•(t as{TypeError,ForDynamic} self::Subclass::T)
     ;
 }
 class ConstClassWithF extends core::Object /*hasConstConstructor*/  {
@@ -108,28 +108,28 @@ static const field self::Foo<core::int> x = const self::Foo::•<core::int>(42);
 static const field core::bool? y = true;
 static const field core::bool z = !self::y!;
 static const field core::Object maybeInt = const core::bool::fromEnvironment("foo") ?{core::Object} 42 : true;
-static const field core::bool isItInt = self::maybeInt is{ForNonNullableByDefault} core::int ?{core::bool} true : false;
+static const field core::bool isItInt = self::maybeInt is core::int ?{core::bool} true : false;
 static const field core::Object maybeInt2 = self::z ?{core::Object} 42 : true;
-static const field core::bool isItInt2 = self::maybeInt2 is{ForNonNullableByDefault} core::int ?{core::bool} true : false;
+static const field core::bool isItInt2 = self::maybeInt2 is core::int ?{core::bool} true : false;
 static const field core::int? maybeInt3 = self::z ?{core::int?} 42 : null;
-static const field core::bool isItInt3 = self::maybeInt3 is{ForNonNullableByDefault} core::int ?{core::bool} true : false;
+static const field core::bool isItInt3 = self::maybeInt3 is core::int ?{core::bool} true : false;
 static const field dynamic listOfNull = const <Null>[null];
-static const field core::bool isListOfNull = self::listOfNull is{ForNonNullableByDefault} core::List<Null>;
+static const field core::bool isListOfNull = self::listOfNull is core::List<Null>;
 static const field dynamic listOfInt = const <core::int>[42];
-static const field core::bool isListOfInt = self::listOfInt is{ForNonNullableByDefault} core::List<core::int>;
-static const field core::bool isList = self::listOfInt is{ForNonNullableByDefault} core::List<dynamic>;
+static const field core::bool isListOfInt = self::listOfInt is core::List<core::int>;
+static const field core::bool isList = self::listOfInt is core::List<dynamic>;
 static const field dynamic setOfInt = const <core::int>{42};
-static const field core::bool isSetOfInt = self::setOfInt is{ForNonNullableByDefault} core::Set<core::int>;
+static const field core::bool isSetOfInt = self::setOfInt is core::Set<core::int>;
 static const field dynamic mapOfInt = const <core::int, core::int>{42: 42};
-static const field core::bool isMapOfInt = self::mapOfInt is{ForNonNullableByDefault} core::Map<core::int, core::int>;
+static const field core::bool isMapOfInt = self::mapOfInt is core::Map<core::int, core::int>;
 static const field dynamic listOfListOfInt = const <core::List<core::int>>[const <core::int>[42]];
-static const field core::bool isListOfListOfInt = self::listOfListOfInt is{ForNonNullableByDefault} core::List<core::List<core::int>>;
+static const field core::bool isListOfListOfInt = self::listOfListOfInt is core::List<core::List<core::int>>;
 static const field dynamic setOfSetOfInt = const <core::Set<core::int>>{const <core::int>{42}};
-static const field core::bool isSetOfSetOfInt = self::setOfSetOfInt is{ForNonNullableByDefault} core::Set<core::Set<core::int>>;
+static const field core::bool isSetOfSetOfInt = self::setOfSetOfInt is core::Set<core::Set<core::int>>;
 static const field dynamic mapOfMapOfInt1 = const <core::Map<core::int, core::int>, core::int>{const <core::int, core::int>{42: 42}: 42};
 static const field dynamic mapOfMapOfInt2 = const <core::int, core::Map<core::int, core::int>>{42: const <core::int, core::int>{42: 42}};
-static const field core::bool isMapOfMapOfInt1 = self::mapOfMapOfInt1 is{ForNonNullableByDefault} core::Map<core::Map<core::int, core::int>, core::int>;
-static const field core::bool isMapOfMapOfInt2 = self::mapOfMapOfInt2 is{ForNonNullableByDefault} core::Map<core::int, core::Map<core::int, core::int>>;
+static const field core::bool isMapOfMapOfInt1 = self::mapOfMapOfInt1 is core::Map<core::Map<core::int, core::int>, core::int>;
+static const field core::bool isMapOfMapOfInt2 = self::mapOfMapOfInt2 is core::Map<core::int, core::Map<core::int, core::int>>;
 static const field core::Symbol symbolWithUnevaluatedParameter = const _in::Symbol::•(const core::String::fromEnvironment("foo"));
 static const field core::Symbol symbolWithInvalidName = const _in::Symbol::•("42");
 static const field self::Class<self::B>? c0 = const core::bool::fromEnvironment("x") ?{self::Class<self::B>?} null : const self::Class::redirect<self::B>(const self::C::•());
@@ -151,7 +151,7 @@ static method procedure(core::int i, {core::int named}) → core::int
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as var;
 import "dart:core" as core;
 

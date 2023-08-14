@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code as governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=records
-
 import "package:expect/expect.dart";
 
 class A {

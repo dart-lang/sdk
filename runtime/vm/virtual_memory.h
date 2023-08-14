@@ -10,6 +10,10 @@
 #include "vm/globals.h"
 #include "vm/memory_region.h"
 
+#if defined(DART_HOST_OS_FUCHSIA)
+#include <zircon/types.h>
+#endif
+
 namespace dart {
 
 class VirtualMemory {
@@ -31,7 +35,11 @@ class VirtualMemory {
   intptr_t size() const { return region_.size(); }
   intptr_t AliasOffset() const { return alias_.start() - region_.start(); }
 
+#if defined(DART_HOST_OS_FUCHSIA)
+  static void Init(zx_handle_t vmex_resource);
+#else
   static void Init();
+#endif
   static void Cleanup();
 
   // Returns true if dual mapping is enabled.
@@ -49,7 +57,7 @@ class VirtualMemory {
   static void DontNeed(void* address, intptr_t size);
 
   // Reserves and commits a virtual memory segment with size. If a segment of
-  // the requested size cannot be allocated, NULL is returned.
+  // the requested size cannot be allocated, nullptr is returned.
   static VirtualMemory* Allocate(intptr_t size,
                                  bool is_executable,
                                  bool is_compressed,
@@ -62,6 +70,17 @@ class VirtualMemory {
                                         bool is_executable,
                                         bool is_compressed,
                                         const char* name);
+
+  // Duplicates `this` memory into the `target` memory. This is designed to work
+  // on all platforms, including iOS, which doesn't allow creating new
+  // executable memory.
+  //
+  // Assumes
+  //   * `this` has RX protection.
+  //   * `target` has RW protection, and is at least as large as `this`.
+#if !defined(DART_TARGET_OS_FUCHSIA)
+  bool DuplicateRX(VirtualMemory* target);
+#endif  // !defined(DART_TARGET_OS_FUCHSIA)
 
   // Returns the cached page size. Use only if Init() has been called.
   static intptr_t PageSize() {
@@ -77,7 +96,7 @@ class VirtualMemory {
   // False for a part of a snapshot added directly to the Dart heap, which
   // belongs to the embedder and must not be deallocated or have its
   // protection status changed by the VM.
-  bool vm_owns_region() const { return reserved_.pointer() != NULL; }
+  bool vm_owns_region() const { return reserved_.pointer() != nullptr; }
 
   static VirtualMemory* ForImagePage(void* pointer, uword size);
 

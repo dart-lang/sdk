@@ -15,6 +15,9 @@ mixin M1<T> implements I<T> {}
 ///////////////////////////////////////////////////////
 
 // Error since class hierarchy is inconsistent
-class A00 extends I<int> with M0<int>, M1 {} /*@compile-error=unspecified*/
+class A00 extends I<int> with M0<int>, M1 {}
+//    ^^^
+// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_GENERIC_INTERFACES
+// [cfe] 'I with M0, M1' can't implement both 'I<int>' and 'I<dynamic>'
 
 void main() {}

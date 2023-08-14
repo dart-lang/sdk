@@ -7,7 +7,7 @@
 // class LegacyClass5 extends Class5 implements GenericInterface<Object> {}
 //       ^
 //
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -196,7 +196,7 @@ class LegacyClass6b<T extends core::Object* = dynamic> extends self::LegacyClass
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as inh;
 import "dart:core" as core;
 

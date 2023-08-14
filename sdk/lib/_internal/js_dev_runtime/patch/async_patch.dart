@@ -98,7 +98,11 @@ _async<T>(Function() initGenerator) {
         // instead treat it as a completed value.
         if (value is Future) {
           if (value is _Future) {
-            _Future._chainCoreFuture(value, asyncFuture);
+            if (isRunningAsEvent) {
+              _Future._chainCoreFutureSync(value, asyncFuture);
+            } else {
+              _Future._chainCoreFutureAsync(value, asyncFuture);
+            }
           } else {
             asyncFuture._chainForeignFuture(value);
           }
@@ -108,7 +112,7 @@ _async<T>(Function() initGenerator) {
           asyncFuture._asyncComplete(JS('', '#', value));
         }
       } else {
-        _Future._chainCoreFuture(onAwait(value), asyncFuture);
+        _Future._chainCoreFutureSync(onAwait(value), asyncFuture);
       }
     } catch (e, s) {
       if (isRunningAsEvent) {

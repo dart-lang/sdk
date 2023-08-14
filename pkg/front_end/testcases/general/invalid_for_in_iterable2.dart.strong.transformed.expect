@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -61,14 +61,14 @@ Try removing the extra positional arguments.
     synthesized core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable2.dart:14:17: Error: The type 'int' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   for (var v in returnInt()) {}
-                ^" in self::returnInt() as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
+                ^" in self::returnInt() as{TypeError} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       dynamic v = :sync-for-iterator.{core::Iterator::current}{Never};
       {}
     }
   }
   {
-    synthesized core::Iterator<dynamic> :sync-for-iterator = (self::returnDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+    synthesized core::Iterator<dynamic> :sync-for-iterator = (self::returnDynamic() as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       dynamic v = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {}
@@ -79,7 +79,7 @@ Try removing the extra positional arguments.
  - 'Object' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   for (var v in returnObject()) {}
-                ^" in self::returnObject() as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
+                ^" in self::returnObject() as{TypeError} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       dynamic v = :sync-for-iterator.{core::Iterator::current}{Never};
       {}

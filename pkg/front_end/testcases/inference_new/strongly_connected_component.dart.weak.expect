@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -20,5 +20,5 @@ static field () → invalid-type z = () → invalid-type => self::x;
 static method f() → core::bool
   return invalid-expression "pkg/front_end/testcases/inference_new/strongly_connected_component.dart:8:13: Error: The value 'null' can't be returned from a function with return type 'bool' because 'bool' is not nullable.
 bool f() => null;
-            ^" in null as{TypeError,ForNonNullableByDefault} core::bool;
+            ^" in null as{TypeError} core::bool;
 static method main() → dynamic {}

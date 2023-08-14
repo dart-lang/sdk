@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -44,7 +44,7 @@ static method main() → dynamic {
   new self::A::•().{self::A::test_legacy}(i: 1){({required i: core::int?}) → void};
 }
 
-library;
+library /*isLegacy*/;
 import self as req;
 import "dart:core" as core;
 

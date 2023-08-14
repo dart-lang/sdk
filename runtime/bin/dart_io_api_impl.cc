@@ -51,7 +51,7 @@ void SetExecutableArguments(int script_index, char** argv) {
 }
 
 void GetIOEmbedderInformation(Dart_EmbedderInformation* info) {
-  ASSERT(info != NULL);
+  ASSERT(info != nullptr);
   ASSERT(info->version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
 
   Process::GetRSSInformation(&(info->max_rss), &(info->current_rss));

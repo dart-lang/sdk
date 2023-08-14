@@ -2547,7 +2547,7 @@ $declared foo() => new $declared<int>.value(1);
         error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 2),
         error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 314, 1),
         error(HintCode.UNUSED_LOCAL_VARIABLE, 475, 2),
-        error(HintCode.UNNECESSARY_CAST, 480, 47),
+        error(WarningCode.UNNECESSARY_CAST, 480, 47),
       ],
     );
     await disposeAnalysisContextCollection();
@@ -2567,7 +2567,7 @@ $declared foo() => new $declared<int>.value(1);
         error(HintCode.UNUSED_LOCAL_VARIABLE, 311, 2),
         error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 316, 1),
         error(HintCode.UNUSED_LOCAL_VARIABLE, 479, 2),
-        error(HintCode.UNNECESSARY_CAST, 484, 49),
+        error(WarningCode.UNNECESSARY_CAST, 484, 49),
       ],
     );
     await disposeAnalysisContextCollection();
@@ -2587,7 +2587,7 @@ $declared foo() => new $declared<int>.value(1);
         error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 2),
         error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 314, 1),
         error(HintCode.UNUSED_LOCAL_VARIABLE, 475, 2),
-        error(HintCode.UNNECESSARY_CAST, 480, 47),
+        error(WarningCode.UNNECESSARY_CAST, 480, 47),
       ],
     );
     await disposeAnalysisContextCollection();
@@ -3068,7 +3068,7 @@ main() {
           contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1,
           contextMessages: [message('/home/test/lib/test.dart', 33, 1)]),
-      error(HintCode.UNNECESSARY_CAST, 132, 12),
+      error(WarningCode.UNNECESSARY_CAST, 132, 12),
     ]);
   }
 
@@ -3604,7 +3604,7 @@ test1() {
       error(
           isNullSafetyEnabled
               ? WarningCode.CAST_FROM_NULL_ALWAYS_FAILS
-              : HintCode.UNNECESSARY_CAST,
+              : WarningCode.UNNECESSARY_CAST,
           591,
           9),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 619, 4),
@@ -3917,14 +3917,14 @@ main() {
   f9 () => f5();
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 11, 2),
-      error(HintCode.UNUSED_ELEMENT, 26, 2),
-      error(HintCode.UNUSED_ELEMENT, 48, 2),
-      error(HintCode.UNUSED_ELEMENT, 71, 2),
-      error(HintCode.UNUSED_ELEMENT, 100, 2),
-      error(HintCode.UNUSED_ELEMENT, 162, 2),
-      error(HintCode.UNUSED_ELEMENT, 177, 2),
-      error(HintCode.UNUSED_ELEMENT, 194, 2),
+      error(WarningCode.UNUSED_ELEMENT, 11, 2),
+      error(WarningCode.UNUSED_ELEMENT, 26, 2),
+      error(WarningCode.UNUSED_ELEMENT, 48, 2),
+      error(WarningCode.UNUSED_ELEMENT, 71, 2),
+      error(WarningCode.UNUSED_ELEMENT, 100, 2),
+      error(WarningCode.UNUSED_ELEMENT, 162, 2),
+      error(WarningCode.UNUSED_ELEMENT, 177, 2),
+      error(WarningCode.UNUSED_ELEMENT, 194, 2),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 203, 2,
           contextMessages: [message(testFile.path, 211, 2)]),
     ]);

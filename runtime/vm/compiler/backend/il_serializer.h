@@ -306,31 +306,11 @@ class FlowGraphSerializer : public ValueObject {
 
  private:
   void WriteObjectImpl(const Object& x, intptr_t cid, intptr_t object_index);
-
-  // Used to track scopes of recursive types during serialization.
-  struct TypeScope {
-    TypeScope(FlowGraphSerializer* serializer, bool is_recursive)
-        : serializer_(serializer),
-          is_recursive_(is_recursive),
-          was_writing_recursive_type_(serializer->writing_recursive_type_) {
-      serializer->writing_recursive_type_ = is_recursive;
-    }
-
-    ~TypeScope() {
-      serializer_->writing_recursive_type_ = was_writing_recursive_type_;
-    }
-
-    // Returns true if type of the current scope can be canonicalized
-    // during deserialization. Recursive types which were not
-    // fully deserialized should not be canonicalized.
-    bool CanBeCanonicalized() const {
-      return !is_recursive_ || !was_writing_recursive_type_;
-    }
-
-    FlowGraphSerializer* const serializer_;
-    const bool is_recursive_;
-    const bool was_writing_recursive_type_;
-  };
+  bool IsWritten(const Object& obj);
+  bool HasEnclosingTypes(const Object& obj);
+  bool WriteObjectWithEnclosingTypes(const Object& type);
+  void WriteEnclosingTypes(const Object& type,
+                           intptr_t num_free_fun_type_params);
 
   NonStreamingWriteStream* stream_;
   Zone* zone_;
@@ -339,7 +319,7 @@ class FlowGraphSerializer : public ValueObject {
   Heap* heap_;
   intptr_t object_counter_ = 0;
   bool can_write_refs_ = false;
-  bool writing_recursive_type_ = false;
+  intptr_t num_free_fun_type_params_ = kMaxInt;
 };
 
 // Deserializes flow graph.
@@ -521,10 +501,7 @@ class FlowGraphDeserializer : public ValueObject {
   ClassPtr GetClassById(classid_t id) const;
   const Object& ReadObjectImpl(intptr_t cid, intptr_t object_index);
   void SetObjectAt(intptr_t object_index, const Object& object);
-
-  InstancePtr MaybeCanonicalize(const Instance& obj,
-                                intptr_t object_index,
-                                bool can_be_canonicalized);
+  const Object& ReadObjectWithEnclosingTypes();
 
   const ParsedFunction& parsed_function_;
   ReadStream* stream_;
@@ -539,7 +516,6 @@ class FlowGraphDeserializer : public ValueObject {
   GrowableArray<Definition*> definitions_;
   GrowableArray<const Object*> objects_;
   intptr_t object_counter_ = 0;
-  GrowableArray<intptr_t> pending_canonicalization_;
 };
 
 }  // namespace dart

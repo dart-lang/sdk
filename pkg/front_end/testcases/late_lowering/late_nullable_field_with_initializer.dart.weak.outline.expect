@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -58,15 +58,15 @@ static method lateTopLevelField1Init() → core::int?
   ;
 static get lateTopLevelField1() → core::int?;
 static set lateTopLevelField1(core::int? lateTopLevelField1#param) → void;
-static method Extension|lateExtensionField1Init() → core::int?
+static extension-member method Extension|lateExtensionField1Init() → core::int?
   ;
-static get Extension|lateExtensionField1() → core::int?;
-static set Extension|lateExtensionField1(core::int? lateExtensionField1#param) → void;
-static method Extension|lateExtensionField2Init() → core::int?
+static extension-member get Extension|lateExtensionField1() → core::int?;
+static extension-member set Extension|lateExtensionField1(core::int? lateExtensionField1#param) → void;
+static extension-member method Extension|lateExtensionField2Init() → core::int?
   ;
-static get Extension|lateExtensionField2() → core::int?;
-static set Extension|lateExtensionField2(core::int? lateExtensionField2#param) → void;
-static method Extension|staticMethod() → dynamic
+static extension-member get Extension|lateExtensionField2() → core::int?;
+static extension-member set Extension|lateExtensionField2(core::int? lateExtensionField2#param) → void;
+static extension-member method Extension|staticMethod() → dynamic
   ;
 static method main() → dynamic
   ;

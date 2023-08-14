@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
-class RemoveAnnotation extends CorrectionProducer {
+class RemoveAnnotation extends ResolvedCorrectionProducer {
   String _annotationName = '';
 
   @override

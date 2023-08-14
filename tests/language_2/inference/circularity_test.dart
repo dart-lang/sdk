@@ -4,8 +4,13 @@
 
 // @dart = 2.9
 
-var /*@compile-error=unspecified*/ x = () => y;
-var /*@compile-error=unspecified*/ y = () => x;
+var x = () => y;
+//  ^
+// [analyzer] COMPILE_TIME_ERROR.TOP_LEVEL_CYCLE
+// [cfe] Can't infer the type of 'x': circularity found during type inference.
+var y = () => x;
+//  ^
+// [analyzer] COMPILE_TIME_ERROR.TOP_LEVEL_CYCLE
 
 void main() {
   x;

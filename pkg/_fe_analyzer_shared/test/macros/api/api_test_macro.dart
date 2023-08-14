@@ -18,13 +18,13 @@ class ClassMacro
   }
 
   FutureOr<void> buildDeclarationsForClass(
-      ClassDeclaration clazz, ClassMemberDeclarationBuilder builder) async {
+      ClassDeclaration clazz, MemberDeclarationBuilder builder) async {
     await checkClassDeclaration(
       clazz, typeDeclarationResolver: builder, typeIntrospector: builder);
   }
 
   FutureOr<void> buildDefinitionForClass(
-      ClassDeclaration clazz, ClassDefinitionBuilder builder) async {
+      ClassDeclaration clazz, TypeDefinitionBuilder builder) async {
     await checkClassDeclaration(clazz, typeIntrospector: builder);
     await checkIdentifierResolver(builder);
     await checkTypeDeclarationResolver(builder,

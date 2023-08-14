@@ -1,0 +1,5 @@
+abstract class Class {
+  void abstractSyncStar() sync*;
+  void abstractAsync() async;
+  void abstractAsyncStar() async*;
+}

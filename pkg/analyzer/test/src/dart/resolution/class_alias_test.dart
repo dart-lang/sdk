@@ -33,15 +33,33 @@ class C {}
 class X = A with B implements C;
 ''');
 
-    var x = findElement.class_('X');
-
-    assertNamedType(findNode.namedType('A with'), findElement.class_('A'), 'A');
-    assertNamedType(findNode.namedType('B impl'), findElement.class_('B'), 'B');
-    assertNamedType(findNode.namedType('C;'), findElement.class_('C'), 'C');
-
-    assertType(x.supertype, 'A');
-    assertElementTypes(x.mixins, ['B']);
-    assertElementTypes(x.interfaces, ['C']);
+    final node = findNode.classTypeAlias('X =');
+    assertResolvedNodeText(node, r'''
+ClassTypeAlias
+  typedefKeyword: class
+  name: X
+  equals: =
+  superclass: NamedType
+    name: A
+    element: self::@class::A
+    type: A
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: B
+        element: self::@class::B
+        type: B
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: C
+        element: self::@class::C
+        type: C
+  semicolon: ;
+  declaredElement: self::@class::X
+''');
   }
 
   test_element_typeFunction_extends() async {

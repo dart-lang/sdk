@@ -6,60 +6,74 @@
 
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
+import 'package:observatory/models.dart' as M;
 import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_C = 21;
-const LINE_A = 27;
-const LINE_B = 33;
-const LINE_D = 28;
+const LINE_C = 26;
+const LINE_A = 32;
+const LINE_B = 38;
+const LINE_D = 33;
+
+const LINE_0 = 25;
+const LINE_1 = 31;
+const LINE_2 = 37;
 
 foobar() async {
   await null;
-  debugger();
+  debugger(); // LINE_0.
   print('foobar'); // LINE_C.
 }
 
 helper() async {
   await null;
-  debugger();
+  debugger(); // LINE_1.
   print('helper'); // LINE_A.
   await foobar(); // LINE_D
 }
 
 testMain() {
-  debugger();
+  debugger(); // LINE_2.
   helper(); // LINE_B.
 }
 
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_2),
+  stepOver,
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
-    // No awaiter frames because we are in a completely synchronous stack.
-    expect(stack['awaiterFrames'], isNull);
+    // No asynchronous frames because we are in a completely synchronous stack.
+    expect(stack['asyncCausalFrames'], isNull);
   },
   resumeIsolate,
   hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_1),
+  stepOver,
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   resumeIsolate,
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_C),
   (Isolate isolate) async {
     // Verify awaiter stack trace is the current frame + the awaiter.
     ServiceMap stack = await isolate.getStack();
-    expect(stack['awaiterFrames'], isNotNull);
-    List awaiterFrames = stack['awaiterFrames'];
+    expect(stack['asyncCausalFrames'], isNotNull);
+    List<Frame> asyncCausalFrames = (stack['asyncCausalFrames'] as List).cast();
 
-    expect(awaiterFrames.length, greaterThanOrEqualTo(2));
-    // Awaiter frame.
-    expect(await awaiterFrames[0].toUserString(),
+    expect(asyncCausalFrames.length, greaterThanOrEqualTo(4));
+    expect(await asyncCausalFrames[0].toUserString(),
         stringContainsInOrder(['foobar', '.dart:$LINE_C']));
-    // Awaiter frame.
-    expect(await awaiterFrames[1].toUserString(),
+    expect(asyncCausalFrames[1].kind, M.FrameKind.asyncSuspensionMarker);
+    expect(await asyncCausalFrames[2].toUserString(),
         stringContainsInOrder(['helper', '.dart:$LINE_D']));
+    expect(asyncCausalFrames[3].kind, M.FrameKind.asyncSuspensionMarker);
     // "helper" is not await'ed.
   },
 ];

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "deferred_lib.dart" as def;
@@ -10,7 +10,7 @@ static method test() → dynamic {
   core::print((let final dynamic #t1 = CheckLibraryIsLoaded(lib) in def::x).{core::num::+}(1){(core::num) → core::int});
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as def;
 import "dart:core" as core;
 

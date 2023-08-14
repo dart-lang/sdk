@@ -35,6 +35,9 @@ typedef Expression_Generator_Builder = dynamic;
 /// Alias for Expression | Generator | Initializer
 typedef Expression_Generator_Initializer = dynamic;
 
+/// Alias for Expression | Initializer
+typedef Expression_Initializer = dynamic;
+
 abstract class ExpressionGeneratorHelper implements InferenceHelper {
   SourceLibraryBuilder get libraryBuilder;
 
@@ -50,7 +53,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Forest get forest;
 
-  Constructor? lookupConstructor(Name name, {bool isSuper = false});
+  Constructor? lookupSuperConstructor(Name name);
 
   Expression toValue(Object? node);
 
@@ -79,13 +82,13 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       bool isSynthetic, Constructor constructor, Arguments arguments,
       [int offset = TreeNode.noOffset]);
 
-  Initializer buildRedirectingInitializer(
-      Constructor constructor, Arguments arguments,
-      [int charOffset = TreeNode.noOffset]);
+  Initializer buildRedirectingInitializer(Name name, Arguments arguments,
+      {required int fileOffset});
 
   Expression buildStaticInvocation(Member target, Arguments arguments,
       {Constness constness = Constness.implicit,
-      int charOffset = TreeNode.noOffset});
+      int charOffset = TreeNode.noOffset,
+      required bool isConstructorInvocation});
 
   Expression buildExtensionMethodInvocation(
       int fileOffset, Procedure target, Arguments arguments,
@@ -257,4 +260,10 @@ enum UnresolvedKind {
   Getter,
   Setter,
   Constructor,
+}
+
+abstract class EnsureLoaded {
+  void ensureLoaded(Member? member);
+
+  bool isLoaded(Member? member);
 }

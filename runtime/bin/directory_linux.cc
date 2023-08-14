@@ -46,7 +46,7 @@ char* PathBuffer::AsString() const {
 
 wchar_t* PathBuffer::AsStringW() const {
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 const char* PathBuffer::AsScopedString() const {
@@ -105,7 +105,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
       done_ = true;
       return kListError;
     }
-    if (parent_ != NULL) {
+    if (parent_ != nullptr) {
       if (!listing->path_buffer().Add(File::PathSeparator())) {
         return kListError;
       }
@@ -120,7 +120,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   // ports.
   errno = 0;
   dirent* entry = readdir(reinterpret_cast<DIR*>(lister_));
-  if (entry != NULL) {
+  if (entry != nullptr) {
     if (!listing->path_buffer().Add(entry->d_name)) {
       done_ = true;
       return kListError;
@@ -162,7 +162,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
           // Check to see if we are in a loop created by a symbolic link.
           LinkList current_link = {entry_info.st_dev, entry_info.st_ino, link_};
           LinkList* previous = link_;
-          while (previous != NULL) {
+          while (previous != nullptr) {
             if ((previous->dev == current_link.dev) &&
                 (previous->ino == current_link.ino)) {
               // Report the looping link as a link, rather than following it.
@@ -230,11 +230,12 @@ DirectoryListingEntry::~DirectoryListingEntry() {
 }
 
 void DirectoryListingEntry::ResetLink() {
-  if ((link_ != NULL) && ((parent_ == NULL) || (parent_->link_ != link_))) {
+  if ((link_ != nullptr) &&
+      ((parent_ == nullptr) || (parent_->link_ != link_))) {
     delete link_;
-    link_ = NULL;
+    link_ = nullptr;
   }
-  if (parent_ != NULL) {
+  if (parent_ != nullptr) {
     link_ = parent_->link_;
   }
 }
@@ -278,8 +279,8 @@ static bool DeleteRecursively(int dirfd, PathBuffer* path) {
   DIR* dir_pointer;
   do {
     dir_pointer = fdopendir(fd);
-  } while ((dir_pointer == NULL) && (errno == EINTR));
-  if (dir_pointer == NULL) {
+  } while ((dir_pointer == nullptr) && (errno == EINTR));
+  if (dir_pointer == nullptr) {
     FDUtils::SaveErrorAndClose(fd);
     return false;
   }
@@ -287,8 +288,8 @@ static bool DeleteRecursively(int dirfd, PathBuffer* path) {
   // Iterate the directory and delete all files and directories.
   int path_length = path->length();
   while (true) {
-    // In case `readdir()` returns `NULL` we distinguish between end-of-stream
-    // and error by looking if `errno` was updated.
+    // In case `readdir()` returns `nullptr` we distinguish between
+    // end-of-stream and error by looking if `errno` was updated.
     errno = 0;
     // In glibc 2.24+, readdir_r is deprecated.
     // According to the man page for readdir:
@@ -296,7 +297,7 @@ static bool DeleteRecursively(int dirfd, PathBuffer* path) {
     // implementations (including the glibc implementation), concurrent calls to
     // readdir(3) that specify different directory streams are thread-safe."
     dirent* entry = readdir(dir_pointer);
-    if (entry == NULL) {
+    if (entry == nullptr) {
       // Failed to read next directory entry.
       if (errno != 0) {
         break;
@@ -397,7 +398,7 @@ Directory::ExistsResult Directory::Exists(Namespace* namespc,
 }
 
 char* Directory::CurrentNoScope() {
-  return getcwd(NULL, 0);
+  return getcwd(nullptr, 0);
 }
 
 bool Directory::Create(Namespace* namespc, const char* dir_name) {
@@ -415,15 +416,15 @@ bool Directory::Create(Namespace* namespc, const char* dir_name) {
 const char* Directory::SystemTemp(Namespace* namespc) {
   PathBuffer path;
   const char* temp_dir = getenv("TMPDIR");
-  if (temp_dir == NULL) {
+  if (temp_dir == nullptr) {
     temp_dir = getenv("TMP");
   }
-  if (temp_dir == NULL) {
+  if (temp_dir == nullptr) {
     temp_dir = "/tmp";
   }
   NamespaceScope ns(namespc, temp_dir);
   if (!path.Add(ns.path())) {
-    return NULL;
+    return nullptr;
   }
 
   // Remove any trailing slash.
@@ -447,7 +448,7 @@ const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
 
   // mkdtemp doesn't have an "at" variant, so we have to simulate it.
   if (!path.Add(prefix)) {
-    return NULL;
+    return nullptr;
   }
   intptr_t prefix_length = path.length();
   while (true) {
@@ -457,7 +458,7 @@ const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
     }
     random_bytes[6] = '\0';
     if (!path.Add(reinterpret_cast<char*>(random_bytes))) {
-      return NULL;
+      return nullptr;
     }
     NamespaceScope ns(namespc, path.AsString());
     const int result = NO_RETRY_EXPECTED(mkdirat(ns.fd(), ns.path(), 0777));
@@ -466,7 +467,7 @@ const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
     } else if (errno == EEXIST) {
       path.Reset(prefix_length);
     } else {
-      return NULL;
+      return nullptr;
     }
   }
 }

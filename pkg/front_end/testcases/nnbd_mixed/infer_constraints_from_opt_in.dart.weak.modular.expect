@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "infer_constraints_from_opt_in_lib.dart" as inf;
@@ -117,7 +117,7 @@ static method main() → dynamic {
   } =>#t16;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

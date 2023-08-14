@@ -112,7 +112,7 @@ part of dart.core;
 /// Changing the list's length while it is being iterated, either by iterating it
 /// directly or through iterating an [Iterable] that is backed by the list, will
 /// break the iteration.
-abstract class List<E> implements EfficientLengthIterable<E> {
+abstract interface class List<E> implements EfficientLengthIterable<E> {
   /// Creates a list of the given length with [fill] at each position.
   ///
   /// The [length] must be a non-negative integer.

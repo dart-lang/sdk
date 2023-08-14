@@ -44,10 +44,8 @@ ParenthesizedPattern
   leftParenthesis: (
   pattern: WildcardPattern
     type: NamedType
-      name: SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: null
+      name: int
+      element: dart:core::@class::int
       type: int
     name: _
     matchedValueType: int
@@ -84,10 +82,8 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 WildcardPattern
   type: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   name: _
   matchedValueType: dynamic
@@ -105,10 +101,8 @@ void f(x) {
 WildcardPattern
   keyword: final
   type: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
+    name: int
+    element: dart:core::@class::int
     type: int
   name: _
   matchedValueType: dynamic

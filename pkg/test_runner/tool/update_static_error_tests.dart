@@ -109,6 +109,9 @@ Future<void> main(List<String> args) async {
         parser, "Must provide at least one flag for an operation to perform.");
   }
 
+  var processedFiles = 0;
+  var skippedMultitests = <String>[];
+
   for (var result in results.rest) {
     // Allow tests to be specified without the extension for compatibility with
     // the regular test runner syntax.
@@ -124,13 +127,34 @@ Future<void> main(List<String> args) async {
         .listSync(root: root)
         .whereType<File>()
         .where((file) => file.path.endsWith('.dart'))) {
-      await _processFile(
+      var processed = await _processFile(
         entry,
         dryRun: dryRun,
         includeContext: includeContext,
         remove: removeSources,
         insert: insertSources,
       );
+
+      if (processed) {
+        processedFiles++;
+      } else {
+        skippedMultitests.add(entry.path);
+      }
+    }
+  }
+
+  if (skippedMultitests.isNotEmpty) {
+    // If no files were successfully processed, then the user is only pointing
+    // it at multitests and made a mistake.
+    if (processedFiles == 0) {
+      stderr.writeln("Error: This tool doesn't support updating static errors "
+          "in multitests. Couldn't update:");
+    } else {
+      stderr.writeln("Did not update the following multitests:");
+    }
+
+    for (var multitest in skippedMultitests) {
+      stderr.writeln(p.normalize(multitest));
     }
   }
 }
@@ -143,14 +167,24 @@ void _usageError(ArgParser parser, String message) {
   exit(64);
 }
 
-Future<void> _processFile(File file,
+Future<bool> _processFile(File file,
     {required bool dryRun,
     required bool includeContext,
     required Set<ErrorSource> remove,
     required Set<ErrorSource> insert}) async {
-  stdout.write("${file.path}...");
   var source = file.readAsStringSync();
   var testFile = TestFile.parse(Path("."), file.absolute.path, source);
+
+  // Don't process multitests. The multitest file isn't necessarily a valid or
+  // meaningful Dart file that can be processed by front ends. To process them,
+  // we'd have to split the multitest, run each separate file on the front ends,
+  // and then try to merge the results back together.
+  //
+  // In practice, a test should either be a multitest or a static error test,
+  // but not both.
+  if (testFile.isMultitest) return false;
+
+  stdout.write("${file.path}...");
 
   var experiments = [
     if (testFile.experiments.isNotEmpty) ...testFile.experiments
@@ -202,6 +236,8 @@ Future<void> _processFile(File file,
   } else {
     await file.writeAsString(result);
   }
+
+  return true;
 }
 
 /// Invoke analyzer on [file] and gather all static errors it reports.

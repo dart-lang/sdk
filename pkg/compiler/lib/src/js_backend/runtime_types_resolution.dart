@@ -11,7 +11,7 @@ import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/runtime_type_analysis.dart';
-import '../kernel/kelements.dart';
+import '../js_model/elements.dart' show JLocalFunction;
 import '../kernel/kernel_world.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
@@ -309,7 +309,7 @@ class TypeVariableTests {
     ///
     void registerDependencies(RtiNode node, DartType type) {
       type.forEachTypeVariable((TypeVariableType typeVariable) {
-        final typeDeclaration = typeVariable.element.typeDeclaration!;
+        final typeDeclaration = typeVariable.element.typeDeclaration;
         if (typeDeclaration is ClassEntity) {
           node.addDependency(_getClassNode(typeDeclaration));
         } else {
@@ -326,7 +326,7 @@ class TypeVariableTests {
       }
 
       void onTypeVariable(TypeVariableType type) {
-        final declaration = type.element.typeDeclaration!;
+        final declaration = type.element.typeDeclaration;
         if (declaration is ClassEntity) {
           node.addDependency(_getClassNode(declaration));
         } else {
@@ -470,7 +470,7 @@ class TypeVariableTests {
   void _propagateTests() {
     void processTypeVariableType(TypeVariableType type) {
       TypeVariableEntity variable = type.element;
-      final typeDeclaration = variable.typeDeclaration!;
+      final typeDeclaration = variable.typeDeclaration;
       if (typeDeclaration is ClassEntity) {
         _getClassNode(typeDeclaration).markTest();
       } else {
@@ -552,7 +552,7 @@ class TypeVariableTests {
 
   void _addImplicitChecksViaInstantiation(TypeVariableType variable) {
     TypeVariableEntity entity = variable.element;
-    final declaration = entity.typeDeclaration!;
+    final declaration = entity.typeDeclaration;
     if (declaration is ClassEntity) {
       classInstantiationsOf(declaration).forEach((InterfaceType type) {
         _addImplicitCheck(type.typeArguments[entity.index]);
@@ -965,7 +965,6 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
   @override
   void registerTypeVariableLiteral(TypeVariableType variable) {
     final typeDeclaration = variable.element.typeDeclaration;
-    assert(typeDeclaration != null);
     if (typeDeclaration is ClassEntity) {
       registerClassUsingTypeVariableLiteral(typeDeclaration);
     } else if (typeDeclaration is FunctionEntity) {
@@ -1060,7 +1059,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
             potentiallyNeedTypeArguments(function);
           }
           functionType.forEachTypeVariable((TypeVariableType typeVariable) {
-            final typeDeclaration = typeVariable.element.typeDeclaration!;
+            final typeDeclaration = typeVariable.element.typeDeclaration;
             if (!processedEntities.contains(typeDeclaration)) {
               potentiallyNeedTypeArguments(typeDeclaration);
             }
@@ -1100,7 +1099,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
           type.forEachTypeVariable((TypeVariableType typeVariable) {
             // This handles checks against type variables and function types
             // containing type variables.
-            final typeDeclaration = typeVariable.element.typeDeclaration!;
+            final typeDeclaration = typeVariable.element.typeDeclaration;
             potentiallyNeedTypeArguments(typeDeclaration);
           });
           if (type is FunctionType) {
@@ -1157,7 +1156,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
       if (closedWorld.annotationsData
           // TODO(johnniwinther): Support @pragma on local functions and use
           // this here instead of the enclosing member.
-          .getParameterCheckPolicy((function as KLocalFunction).memberContext)
+          .getParameterCheckPolicy((function as JLocalFunction).memberContext)
           .isEmitted) {
         checkFunction(
             function, _elementEnvironment.getLocalFunctionType(function));
@@ -1295,7 +1294,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
         FunctionType functionType =
             _elementEnvironment.getLocalFunctionType(function);
         functionType.forEachTypeVariable((TypeVariableType typeVariable) {
-          final typeDeclaration = typeVariable.element.typeDeclaration!;
+          final typeDeclaration = typeVariable.element.typeDeclaration;
           if (!processedEntities.contains(typeDeclaration)) {
             potentiallyNeedTypeArguments(typeDeclaration);
           }

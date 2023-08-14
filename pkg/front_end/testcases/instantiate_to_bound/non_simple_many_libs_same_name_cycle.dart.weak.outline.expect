@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -28,7 +28,7 @@ static method main() → dynamic
 static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#C#fromEnvironment#tearOff<unrelated TypeX extends invalid-type>(core::String name, {has-declared-initializer core::int defaultValue}) → core::int
   return core::int::fromEnvironment(name, defaultValue: defaultValue);
 
-library non_simple_many_libs_same_name_cycle_lib /*isNonNullableByDefault*/;
+library non_simple_many_libs_same_name_cycle_lib;
 //
 // Problems in library:
 //

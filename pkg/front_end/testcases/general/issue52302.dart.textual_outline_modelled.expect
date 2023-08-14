@@ -1,0 +1,5 @@
+import "./issue52302_lib.dart";
+
+abstract base class MixesInMixesInMixin extends Object with MixesInMixin {}
+
+void main() {}

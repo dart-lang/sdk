@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -116,29 +116,29 @@ static set lateTopLevelField1(core::int lateTopLevelField1#param) → void {
   self::_#lateTopLevelField1#isSet = true;
   self::_#lateTopLevelField1 = lateTopLevelField1#param;
 }
-static get Extension|lateExtensionField1() → core::int {
+static extension-member get Extension|lateExtensionField1() → core::int {
   if(!self::_#Extension|lateExtensionField1#isSet) {
     self::_#Extension|lateExtensionField1 = 87;
     self::_#Extension|lateExtensionField1#isSet = true;
   }
   return let final core::int? #t7 = self::_#Extension|lateExtensionField1 in #t7{core::int};
 }
-static set Extension|lateExtensionField1(core::int lateExtensionField1#param) → void {
+static extension-member set Extension|lateExtensionField1(core::int lateExtensionField1#param) → void {
   self::_#Extension|lateExtensionField1#isSet = true;
   self::_#Extension|lateExtensionField1 = lateExtensionField1#param;
 }
-static get Extension|lateExtensionField2() → core::int {
+static extension-member get Extension|lateExtensionField2() → core::int {
   if(!self::_#Extension|lateExtensionField2#isSet) {
     self::_#Extension|lateExtensionField2 = 42;
     self::_#Extension|lateExtensionField2#isSet = true;
   }
   return let final core::int? #t8 = self::_#Extension|lateExtensionField2 in #t8{core::int};
 }
-static set Extension|lateExtensionField2(core::int lateExtensionField2#param) → void {
+static extension-member set Extension|lateExtensionField2(core::int lateExtensionField2#param) → void {
   self::_#Extension|lateExtensionField2#isSet = true;
   self::_#Extension|lateExtensionField2 = lateExtensionField2#param;
 }
-static method Extension|staticMethod() → dynamic {
+static extension-member method Extension|staticMethod() → dynamic {
   self::expect(42, self::Extension|lateExtensionField2);
   self::Extension|lateExtensionField2 = 43;
   self::expect(43, self::Extension|lateExtensionField2);

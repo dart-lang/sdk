@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -62,7 +62,6 @@ class B2 extends self::B1 {
     ;
 }
 class C1 extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::C1::•]/*isLegacy*/;
   static factory •() → self::C1
     return invalid-expression "pkg/front_end/testcases/nnbd/override_checks.dart:20:18: Error: The type 'int?' doesn't extend 'int'.
 Try using a different type as argument.
@@ -74,7 +73,6 @@ class C2<X extends core::int> extends core::Object implements self::C1 {
     ;
 }
 class D extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::D::bar]/*isLegacy*/;
   constructor foo(core::num x) → self::D
     ;
   static factory bar(core::num? x) → self::D
@@ -85,9 +83,3 @@ class D extends core::Object {
 }
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///override_checks.dart:19:7 -> ConstructorTearOffConstant(C1.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///override_checks.dart:25:7 -> ConstructorTearOffConstant(D.bar)
-Extra constant evaluation: evaluated: 4, effectively constant: 2

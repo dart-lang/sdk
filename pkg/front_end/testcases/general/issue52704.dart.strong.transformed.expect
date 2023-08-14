@@ -1,0 +1,32 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue52704.dart:7:14: Error: Can't assign to the final variable 'x'.
+//   await for (x in Stream.fromIterable([1])) {} // Error.
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method test() → dynamic async /* futureValueType= dynamic */ {
+  late final core::int x;
+  {
+    synthesized asy::Stream<core::int> :stream = asy::Stream::fromIterable<core::int>(core::_GrowableList::_literal1<core::int>(1));
+    synthesized asy::_StreamIterator<core::int>? :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
+    try
+      while (let dynamic #t1 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
+        final core::int #t2 = :for-iterator.{asy::_StreamIterator::current}{core::int};
+        {
+          x = invalid-expression "pkg/front_end/testcases/general/issue52704.dart:7:14: Error: Can't assign to the final variable 'x'.
+  await for (x in Stream.fromIterable([1])) {} // Error.
+             ^";
+        }
+      }
+    finally
+      if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<core::int>?} == null))
+        await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
+  }
+  core::print(x);
+}

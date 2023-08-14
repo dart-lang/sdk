@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-abstract class FlutterParentAndChild extends CorrectionProducer {
+abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
   Future<void> swapParentAndChild(
       ChangeBuilder builder,
       InstanceCreationExpression parent,

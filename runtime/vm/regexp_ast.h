@@ -36,7 +36,7 @@ class RegExpVisitor : public ValueObject {
 
 class RegExpTree : public ZoneAllocated {
  public:
-  static const intptr_t kInfinity = kMaxInt32;
+  static constexpr intptr_t kInfinity = kMaxInt32;
   virtual ~RegExpTree() {}
   virtual void* Accept(RegExpVisitor* visitor, void* data) = 0;
   virtual RegExpNode* ToNode(RegExpCompiler* compiler,
@@ -128,7 +128,7 @@ class RegExpAssertion : public RegExpTree {
 class CharacterSet : public ValueObject {
  public:
   explicit CharacterSet(uint16_t standard_set_type)
-      : ranges_(NULL), standard_set_type_(standard_set_type) {}
+      : ranges_(nullptr), standard_set_type_(standard_set_type) {}
   explicit CharacterSet(ZoneGrowableArray<CharacterRange>* ranges)
       : ranges_(ranges), standard_set_type_(0) {}
   CharacterSet(const CharacterSet& that)

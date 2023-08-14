@@ -59,22 +59,56 @@ part of dart.io;
 /// }
 /// ```
 final class Platform {
-  static final _numberOfProcessors = _Platform.numberOfProcessors;
-  @pragma("vm:platform-const")
-  static final _pathSeparator = _Platform.pathSeparator;
-  @pragma("vm:platform-const")
-  static final _operatingSystem = _Platform.operatingSystem;
-  static final _operatingSystemVersion = _Platform.operatingSystemVersion;
-  static final _localHostname = _Platform.localHostname;
-  static final _version = _Platform.version;
-
   /// The number of individual execution units of the machine.
-  static int get numberOfProcessors => _numberOfProcessors;
+  static final numberOfProcessors = _Platform.numberOfProcessors;
 
   /// The path separator used by the operating system to separate
   /// components in file paths.
   @pragma("vm:platform-const")
-  static String get pathSeparator => _pathSeparator;
+  static final pathSeparator = _Platform.pathSeparator;
+
+  /// A string representing the operating system or platform.
+  ///
+  /// Possible values include:
+  ///   "android"
+  ///   "fuchsia"
+  ///   "ios"
+  ///   "linux"
+  ///   "macos"
+  ///   "windows"
+  ///
+  /// Note that this list may change over time so platform-specific logic
+  /// should be guarded by the appropriate boolean getter e.g. [isMacOS].
+  @pragma("vm:platform-const")
+  static final operatingSystem = _Platform.operatingSystem;
+
+  /// A string representing the version of the operating system or platform.
+  ///
+  /// The format of this string will vary by operating system, platform and
+  /// version and is not suitable for parsing. For example:
+  ///   "Linux 5.11.0-1018-gcp #20~20.04.2-Ubuntu SMP Fri Sep 3 01:01:37 UTC 2021"
+  ///   "Version 14.5 (Build 18E182)"
+  ///   '"Windows 10 Pro" 10.0 (Build 19043)'
+  static final operatingSystemVersion = _Platform.operatingSystemVersion;
+
+  /// The local hostname for the system.
+  ///
+  /// For example:
+  ///   "mycomputer.corp.example.com"
+  ///   "mycomputer"
+  ///
+  /// Uses the platform
+  /// [`gethostname`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/gethostname.html)
+  /// implementation.
+  static final localHostname = _Platform.localHostname;
+
+  /// The version of the current Dart runtime.
+  ///
+  /// The value is a [semantic versioning](http://semver.org)
+  /// string representing the version of the current Dart runtime,
+  /// possibly followed by whitespace and other version and
+  /// build details.
+  static final version = _Platform.version;
 
   /// Get the name of the current locale.
   ///
@@ -97,41 +131,6 @@ final class Platform {
   /// See https://en.wikipedia.org/wiki/Locale_(computer_software)
   static String get localeName => _Platform.localeName();
 
-  /// A string representing the operating system or platform.
-  ///
-  /// Possible values include:
-  ///   "android"
-  ///   "fuchsia"
-  ///   "ios"
-  ///   "linux"
-  ///   "macos"
-  ///   "windows"
-  ///
-  /// Note that this list may change over time so platform-specific logic
-  /// should be guarded by the appropriate boolean getter e.g. [isMacOS].
-  @pragma("vm:platform-const")
-  static String get operatingSystem => _operatingSystem;
-
-  /// A string representing the version of the operating system or platform.
-  ///
-  /// The format of this string will vary by operating system, platform and
-  /// version and is not suitable for parsing. For example:
-  ///   "Linux 5.11.0-1018-gcp #20~20.04.2-Ubuntu SMP Fri Sep 3 01:01:37 UTC 2021"
-  ///   "Version 14.5 (Build 18E182)"
-  ///   '"Windows 10 Pro" 10.0 (Build 19043)'
-  static String get operatingSystemVersion => _operatingSystemVersion;
-
-  /// The local hostname for the system.
-  ///
-  /// For example:
-  ///   "mycomputer.corp.example.com"
-  ///   "mycomputer"
-  ///
-  /// Uses the platform
-  /// [`gethostname`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/gethostname.html)
-  /// implementation.
-  static String get localHostname => _localHostname;
-
   /// Whether the operating system is a version of
   /// [Linux](https://en.wikipedia.org/wiki/Linux).
   ///
@@ -139,32 +138,32 @@ final class Platform {
   /// version of Linux that identifies itself by a different name,
   /// for example Android (see [isAndroid]).
   @pragma("vm:platform-const")
-  static final bool isLinux = (_operatingSystem == "linux");
+  static final bool isLinux = (operatingSystem == "linux");
 
   /// Whether the operating system is a version of
   /// [macOS](https://en.wikipedia.org/wiki/MacOS).
   @pragma("vm:platform-const")
-  static final bool isMacOS = (_operatingSystem == "macos");
+  static final bool isMacOS = (operatingSystem == "macos");
 
   /// Whether the operating system is a version of
   /// [Microsoft Windows](https://en.wikipedia.org/wiki/Microsoft_Windows).
   @pragma("vm:platform-const")
-  static final bool isWindows = (_operatingSystem == "windows");
+  static final bool isWindows = (operatingSystem == "windows");
 
   /// Whether the operating system is a version of
   /// [Android](https://en.wikipedia.org/wiki/Android_%28operating_system%29).
   @pragma("vm:platform-const")
-  static final bool isAndroid = (_operatingSystem == "android");
+  static final bool isAndroid = (operatingSystem == "android");
 
   /// Whether the operating system is a version of
   /// [iOS](https://en.wikipedia.org/wiki/IOS).
   @pragma("vm:platform-const")
-  static final bool isIOS = (_operatingSystem == "ios");
+  static final bool isIOS = (operatingSystem == "ios");
 
   /// Whether the operating system is a version of
   /// [Fuchsia](https://en.wikipedia.org/wiki/Google_Fuchsia).
   @pragma("vm:platform-const")
-  static final bool isFuchsia = (_operatingSystem == "fuchsia");
+  static final bool isFuchsia = (operatingSystem == "fuchsia");
 
   /// The environment for this process as a map from string key to string value.
   ///
@@ -233,11 +232,19 @@ final class Platform {
   /// Is `null` if there is no `--packages` flag.
   static String? get packageConfig => _Platform.packageConfig;
 
-  /// The version of the current Dart runtime.
+  /// The current operating system's default line terminator.
   ///
-  /// The value is a [semantic versioning](http://semver.org)
-  /// string representing the version of the current Dart runtime,
-  /// possibly followed by whitespace and other version and
-  /// build details.
-  static String get version => _version;
+  /// The default character sequence that the operating system
+  /// uses to separate or terminate text lines.
+  ///
+  /// The line terminator is currently the single line-feed character,
+  /// U+000A or `"\n"`, on all supported operating systems except Windows,
+  /// which uses the carriage-return + line-feed sequence, U+000D U+000A or
+  /// `"\r\n"`
+  @pragma("vm:platform-const")
+  static String get lineTerminator => isWindows ? '\r\n' : '\n';
+
+  @Deprecated("Do not instantiate this class, it will become abstract in a "
+      "future Dart version")
+  Platform();
 }

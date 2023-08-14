@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -198,7 +198,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       for (final has-declared-initializer dynamic #t6 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:14:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {if (condition) ...a}, // Error.
                        ^") {
-        final core::int #t7 = #t6 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t7 = #t6 as{TypeError} core::int;
         #t5.{core::Set::add}{Invariant}(#t7){(core::int) → core::bool};
       }
   } =>#t5, block {
@@ -207,7 +207,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       for (final has-declared-initializer dynamic #t9 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:15:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {if (condition) ...b}, // Error.
                        ^") {
-        final core::int #t10 = #t9 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t10 = #t9 as{TypeError} core::int;
         #t8.{core::Set::add}{Invariant}(#t10){(core::int) → core::bool};
       }
   } =>#t8, block {
@@ -216,7 +216,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       for (final has-declared-initializer dynamic #t12 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:16:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {if (condition) ...c}, // Error.
                        ^") {
-        final core::int #t13 = #t12 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t13 = #t12 as{TypeError} core::int;
         #t11.{core::Set::add}{Invariant}(#t13){(core::int) → core::bool};
       }
   } =>#t11, block {
@@ -231,7 +231,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       for (final has-declared-initializer dynamic #t16 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:18:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...a}, // Error.
                                     ^") {
-        final core::int #t17 = #t16 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t17 = #t16 as{TypeError} core::int;
         #t15.{core::Set::add}{Invariant}(#t17){(core::int) → core::bool};
       }
   } =>#t15, block {
@@ -240,7 +240,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       for (final has-declared-initializer dynamic #t19 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:19:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...b}, // Error.
                                     ^") {
-        final core::int #t20 = #t19 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t20 = #t19 as{TypeError} core::int;
         #t18.{core::Set::add}{Invariant}(#t20){(core::int) → core::bool};
       }
   } =>#t18, block {
@@ -249,7 +249,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       for (final has-declared-initializer dynamic #t22 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:20:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...c}, // Error.
                                     ^") {
-        final core::int #t23 = #t22 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t23 = #t22 as{TypeError} core::int;
         #t21.{core::Set::add}{Invariant}(#t23){(core::int) → core::bool};
       }
   } =>#t21, block {
@@ -264,7 +264,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       for (final has-declared-initializer dynamic #t26 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:22:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...a}, // Error.
                                      ^") {
-        final core::int #t27 = #t26 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t27 = #t26 as{TypeError} core::int;
         #t25.{core::Set::add}{Invariant}(#t27){(core::int) → core::bool};
       }
   } =>#t25, block {
@@ -273,7 +273,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       for (final has-declared-initializer dynamic #t29 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:23:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...b}, // Error.
                                      ^") {
-        final core::int #t30 = #t29 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t30 = #t29 as{TypeError} core::int;
         #t28.{core::Set::add}{Invariant}(#t30){(core::int) → core::bool};
       }
   } =>#t28, block {
@@ -282,7 +282,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       for (final has-declared-initializer dynamic #t32 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:24:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...c}, // Error.
                                      ^") {
-        final core::int #t33 = #t32 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t33 = #t32 as{TypeError} core::int;
         #t31.{core::Set::add}{Invariant}(#t33){(core::int) → core::bool};
       }
   } =>#t31, block {
@@ -317,7 +317,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       final core::Iterable<dynamic>? #t44 = a;
       if(!(#t44 == null))
         for (final has-declared-initializer dynamic #t45 in #t44{core::Iterable<dynamic>}) {
-          final core::int #t46 = #t45 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t46 = #t45 as{TypeError} core::int;
           #t43.{core::Set::add}{Invariant}(#t46){(core::int) → core::bool};
         }
     }
@@ -327,7 +327,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       final core::Iterable<dynamic>? #t48 = b;
       if(!(#t48 == null))
         for (final has-declared-initializer dynamic #t49 in #t48{core::Iterable<dynamic>}) {
-          final core::int #t50 = #t49 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t50 = #t49 as{TypeError} core::int;
           #t47.{core::Set::add}{Invariant}(#t50){(core::int) → core::bool};
         }
     }
@@ -337,7 +337,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       final core::Iterable<dynamic>? #t52 = c;
       if(!(#t52 == null))
         for (final has-declared-initializer dynamic #t53 in #t52{core::Iterable<dynamic>}) {
-          final core::int #t54 = #t53 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t54 = #t53 as{TypeError} core::int;
           #t51.{core::Set::add}{Invariant}(#t54){(core::int) → core::bool};
         }
     }
@@ -354,7 +354,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       final core::Iterable<dynamic>? #t58 = a;
       if(!(#t58 == null))
         for (final has-declared-initializer dynamic #t59 in #t58{core::Iterable<dynamic>}) {
-          final core::int #t60 = #t59 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t60 = #t59 as{TypeError} core::int;
           #t57.{core::Set::add}{Invariant}(#t60){(core::int) → core::bool};
         }
     }
@@ -364,7 +364,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       final core::Iterable<dynamic>? #t62 = b;
       if(!(#t62 == null))
         for (final has-declared-initializer dynamic #t63 in #t62{core::Iterable<dynamic>}) {
-          final core::int #t64 = #t63 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t64 = #t63 as{TypeError} core::int;
           #t61.{core::Set::add}{Invariant}(#t64){(core::int) → core::bool};
         }
     }
@@ -374,7 +374,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       final core::Iterable<dynamic>? #t66 = c;
       if(!(#t66 == null))
         for (final has-declared-initializer dynamic #t67 in #t66{core::Iterable<dynamic>}) {
-          final core::int #t68 = #t67 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t68 = #t67 as{TypeError} core::int;
           #t65.{core::Set::add}{Invariant}(#t68){(core::int) → core::bool};
         }
     }
@@ -391,7 +391,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       final core::Iterable<dynamic>? #t72 = a;
       if(!(#t72 == null))
         for (final has-declared-initializer dynamic #t73 in #t72{core::Iterable<dynamic>}) {
-          final core::int #t74 = #t73 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t74 = #t73 as{TypeError} core::int;
           #t71.{core::Set::add}{Invariant}(#t74){(core::int) → core::bool};
         }
     }
@@ -401,7 +401,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       final core::Iterable<dynamic>? #t76 = b;
       if(!(#t76 == null))
         for (final has-declared-initializer dynamic #t77 in #t76{core::Iterable<dynamic>}) {
-          final core::int #t78 = #t77 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t78 = #t77 as{TypeError} core::int;
           #t75.{core::Set::add}{Invariant}(#t78){(core::int) → core::bool};
         }
     }
@@ -411,7 +411,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
       final core::Iterable<dynamic>? #t80 = c;
       if(!(#t80 == null))
         for (final has-declared-initializer dynamic #t81 in #t80{core::Iterable<dynamic>}) {
-          final core::int #t82 = #t81 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t82 = #t81 as{TypeError} core::int;
           #t79.{core::Set::add}{Invariant}(#t82){(core::int) → core::bool};
         }
     }
@@ -452,7 +452,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       for (final has-declared-initializer dynamic #t90 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:56:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {if (condition) ...x}, // Error.
                        ^") {
-        final core::int #t91 = #t90 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t91 = #t90 as{TypeError} core::int;
         #t89.{core::Set::add}{Invariant}(#t91){(core::int) → core::bool};
       }
   } =>#t89, block {
@@ -461,7 +461,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       for (final has-declared-initializer dynamic #t93 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:57:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {if (condition) ...y}, // Error.
                        ^") {
-        final core::int #t94 = #t93 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t94 = #t93 as{TypeError} core::int;
         #t92.{core::Set::add}{Invariant}(#t94){(core::int) → core::bool};
       }
   } =>#t92, block {
@@ -470,7 +470,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       for (final has-declared-initializer dynamic #t96 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:58:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {if (condition) ...z}, // Error.
                        ^") {
-        final core::int #t97 = #t96 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t97 = #t96 as{TypeError} core::int;
         #t95.{core::Set::add}{Invariant}(#t97){(core::int) → core::bool};
       }
   } =>#t95, block {
@@ -485,7 +485,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       for (final has-declared-initializer dynamic #t100 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:60:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...x}, // Error.
                                     ^") {
-        final core::int #t101 = #t100 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t101 = #t100 as{TypeError} core::int;
         #t99.{core::Set::add}{Invariant}(#t101){(core::int) → core::bool};
       }
   } =>#t99, block {
@@ -494,7 +494,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       for (final has-declared-initializer dynamic #t103 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:61:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...y}, // Error.
                                     ^") {
-        final core::int #t104 = #t103 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t104 = #t103 as{TypeError} core::int;
         #t102.{core::Set::add}{Invariant}(#t104){(core::int) → core::bool};
       }
   } =>#t102, block {
@@ -503,7 +503,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       for (final has-declared-initializer dynamic #t106 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:62:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...z}, // Error.
                                     ^") {
-        final core::int #t107 = #t106 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t107 = #t106 as{TypeError} core::int;
         #t105.{core::Set::add}{Invariant}(#t107){(core::int) → core::bool};
       }
   } =>#t105, block {
@@ -518,7 +518,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       for (final has-declared-initializer dynamic #t110 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:64:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...x}, // Error.
                                      ^") {
-        final core::int #t111 = #t110 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t111 = #t110 as{TypeError} core::int;
         #t109.{core::Set::add}{Invariant}(#t111){(core::int) → core::bool};
       }
   } =>#t109, block {
@@ -527,7 +527,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       for (final has-declared-initializer dynamic #t113 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:65:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...y}, // Error.
                                      ^") {
-        final core::int #t114 = #t113 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t114 = #t113 as{TypeError} core::int;
         #t112.{core::Set::add}{Invariant}(#t114){(core::int) → core::bool};
       }
   } =>#t112, block {
@@ -536,7 +536,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       for (final has-declared-initializer dynamic #t116 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:66:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...z}, // Error.
                                      ^") {
-        final core::int #t117 = #t116 as{TypeError,ForNonNullableByDefault} core::int;
+        final core::int #t117 = #t116 as{TypeError} core::int;
         #t115.{core::Set::add}{Invariant}(#t117){(core::int) → core::bool};
       }
   } =>#t115, block {
@@ -571,7 +571,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       final core::Iterable<dynamic>? #t128 = x;
       if(!(#t128 == null))
         for (final has-declared-initializer dynamic #t129 in #t128{core::Iterable<dynamic>}) {
-          final core::int #t130 = #t129 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t130 = #t129 as{TypeError} core::int;
           #t127.{core::Set::add}{Invariant}(#t130){(core::int) → core::bool};
         }
     }
@@ -581,7 +581,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       final core::Iterable<dynamic>? #t132 = y;
       if(!(#t132 == null))
         for (final has-declared-initializer dynamic #t133 in #t132{core::Iterable<dynamic>}) {
-          final core::int #t134 = #t133 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t134 = #t133 as{TypeError} core::int;
           #t131.{core::Set::add}{Invariant}(#t134){(core::int) → core::bool};
         }
     }
@@ -591,7 +591,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       final core::Iterable<dynamic>? #t136 = z;
       if(!(#t136 == null))
         for (final has-declared-initializer dynamic #t137 in #t136{core::Iterable<dynamic>}) {
-          final core::int #t138 = #t137 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t138 = #t137 as{TypeError} core::int;
           #t135.{core::Set::add}{Invariant}(#t138){(core::int) → core::bool};
         }
     }
@@ -608,7 +608,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       final core::Iterable<dynamic>? #t142 = x;
       if(!(#t142 == null))
         for (final has-declared-initializer dynamic #t143 in #t142{core::Iterable<dynamic>}) {
-          final core::int #t144 = #t143 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t144 = #t143 as{TypeError} core::int;
           #t141.{core::Set::add}{Invariant}(#t144){(core::int) → core::bool};
         }
     }
@@ -618,7 +618,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       final core::Iterable<dynamic>? #t146 = y;
       if(!(#t146 == null))
         for (final has-declared-initializer dynamic #t147 in #t146{core::Iterable<dynamic>}) {
-          final core::int #t148 = #t147 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t148 = #t147 as{TypeError} core::int;
           #t145.{core::Set::add}{Invariant}(#t148){(core::int) → core::bool};
         }
     }
@@ -628,7 +628,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       final core::Iterable<dynamic>? #t150 = z;
       if(!(#t150 == null))
         for (final has-declared-initializer dynamic #t151 in #t150{core::Iterable<dynamic>}) {
-          final core::int #t152 = #t151 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t152 = #t151 as{TypeError} core::int;
           #t149.{core::Set::add}{Invariant}(#t152){(core::int) → core::bool};
         }
     }
@@ -645,7 +645,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       final core::Iterable<dynamic>? #t156 = x;
       if(!(#t156 == null))
         for (final has-declared-initializer dynamic #t157 in #t156{core::Iterable<dynamic>}) {
-          final core::int #t158 = #t157 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t158 = #t157 as{TypeError} core::int;
           #t155.{core::Set::add}{Invariant}(#t158){(core::int) → core::bool};
         }
     }
@@ -655,7 +655,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       final core::Iterable<dynamic>? #t160 = y;
       if(!(#t160 == null))
         for (final has-declared-initializer dynamic #t161 in #t160{core::Iterable<dynamic>}) {
-          final core::int #t162 = #t161 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t162 = #t161 as{TypeError} core::int;
           #t159.{core::Set::add}{Invariant}(#t162){(core::int) → core::bool};
         }
     }
@@ -665,7 +665,7 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
       final core::Iterable<dynamic>? #t164 = z;
       if(!(#t164 == null))
         for (final has-declared-initializer dynamic #t165 in #t164{core::Iterable<dynamic>}) {
-          final core::int #t166 = #t165 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t166 = #t165 as{TypeError} core::int;
           #t163.{core::Set::add}{Invariant}(#t166){(core::int) → core::bool};
         }
     }

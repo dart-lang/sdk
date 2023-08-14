@@ -90,18 +90,6 @@ class B implements A {}
     ]);
   }
 
-  test_class_implements_mixin() async {
-    await assertErrorsInCode(r'''
-base class A {}
-mixin B implements A {}
-''', [
-      error(CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
-          22, 1,
-          text:
-              "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'."),
-    ]);
-  }
-
   test_class_implements_outside() async {
     newFile('$testPackageLibPath/a.dart', r'''
 base class A {}

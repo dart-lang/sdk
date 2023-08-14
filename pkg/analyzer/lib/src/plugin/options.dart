@@ -4,6 +4,8 @@
 
 /// Support for client code that wants to consume options contributed to the
 /// analysis options file.
+library;
+
 import 'package:analyzer/error/listener.dart';
 import 'package:yaml/yaml.dart';
 

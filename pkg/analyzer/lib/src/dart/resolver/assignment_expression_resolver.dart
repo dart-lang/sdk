@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -62,7 +61,11 @@ class AssignmentExpressionResolver {
     var writeElement = leftResolution.writeElement;
 
     if (hasRead) {
-      _resolver.setReadElement(left, readElement);
+      _resolver.setReadElement(
+        left,
+        readElement,
+        atDynamicTarget: leftResolution.atDynamicTarget,
+      );
       {
         final recordField = leftResolution.recordField;
         if (recordField != null) {
@@ -71,7 +74,11 @@ class AssignmentExpressionResolver {
       }
       _resolveOperator(node);
     }
-    _resolver.setWriteElement(left, writeElement);
+    _resolver.setWriteElement(
+      left,
+      writeElement,
+      atDynamicTarget: leftResolution.atDynamicTarget,
+    );
     _resolver.migrationResolutionHooks
         ?.setCompoundAssignmentExpressionTypes(node);
 
@@ -127,17 +134,18 @@ class AssignmentExpressionResolver {
       return;
     }
 
-    if (writeType is RecordType) {
-      if (rightType is! RecordType && writeType.positionalFields.length == 1) {
-        var field = writeType.positionalFields.first;
-        if (_typeSystem.isAssignableTo(field.type, rightType)) {
-          _errorReporter.reportErrorForNode(
-            WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
-            right,
-            [],
-          );
-          return;
-        }
+    if (writeType is RecordType &&
+        writeType.positionalFields.length == 1 &&
+        rightType is! RecordType &&
+        right is ParenthesizedExpression) {
+      var field = writeType.positionalFields.first;
+      if (_typeSystem.isAssignableTo(field.type, rightType)) {
+        _errorReporter.reportErrorForNode(
+          WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          right,
+          [],
+        );
+        return;
       }
     }
 
@@ -261,9 +269,11 @@ class AssignmentExpressionResolver {
         operator == TokenType.BAR_BAR_EQ) {
       assignedType = _typeProvider.boolType;
     } else {
+      var leftType = node.readType!;
       var operatorElement = node.staticElement;
-      if (operatorElement != null) {
-        var leftType = node.readType!;
+      if (leftType is DynamicType) {
+        assignedType = DynamicTypeImpl.instance;
+      } else if (operatorElement != null) {
         var rightType = rightHandSide.typeOrThrow;
         assignedType = _typeSystem.refineBinaryExpressionType(
           leftType,
@@ -273,7 +283,7 @@ class AssignmentExpressionResolver {
           operatorElement,
         );
       } else {
-        assignedType = DynamicTypeImpl.instance;
+        assignedType = InvalidTypeImpl.instance;
       }
     }
 

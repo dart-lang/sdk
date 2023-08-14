@@ -130,16 +130,12 @@ class Either3<T1, T2, T3> implements ToJsonable {
       lspEquals(other._t3, _t3);
 
   T map<T>(T Function(T1) f1, T Function(T2) f2, T Function(T3) f3) {
-    switch (_which) {
-      case 1:
-        return f1(_t1 as T1);
-      case 2:
-        return f2(_t2 as T2);
-      case 3:
-        return f3(_t3 as T3);
-      default:
-        throw 'Invalid state.';
-    }
+    return switch (_which) {
+      1 => f1(_t1 as T1),
+      2 => f2(_t2 as T2),
+      3 => f3(_t3 as T3),
+      _ => throw 'Invalid state.'
+    };
   }
 
   @override
@@ -200,18 +196,13 @@ class Either4<T1, T2, T3, T4> implements ToJsonable {
 
   T map<T>(T Function(T1) f1, T Function(T2) f2, T Function(T3) f3,
       T Function(T4) f4) {
-    switch (_which) {
-      case 1:
-        return f1(_t1 as T1);
-      case 2:
-        return f2(_t2 as T2);
-      case 3:
-        return f3(_t3 as T3);
-      case 4:
-        return f4(_t4 as T4);
-      default:
-        throw 'Invalid state.';
-    }
+    return switch (_which) {
+      1 => f1(_t1 as T1),
+      2 => f2(_t2 as T2),
+      3 => f3(_t3 as T3),
+      4 => f4(_t4 as T4),
+      _ => throw 'Invalid state.'
+    };
   }
 
   @override

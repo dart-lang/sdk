@@ -28,17 +28,6 @@ class FunctionCollector {
   // allocation of that class is encountered
   final Map<int, List<Reference>> _pendingAllocation = {};
 
-  final w.ValueType asyncStackType = const w.RefType.extern(nullable: true);
-
-  late final w.FunctionType asyncStubFunctionType = m.addFunctionType(
-      [const w.RefType.struct(nullable: false), asyncStackType],
-      [translator.topInfo.nullableType]);
-
-  late final w.StructType asyncStubBaseStruct = m.addStructType("#AsyncStub",
-      fields: [
-        w.FieldType(w.RefType.def(asyncStubFunctionType, nullable: false))
-      ]);
-
   FunctionCollector(this.translator);
 
   w.Module get m => translator.m;
@@ -167,25 +156,9 @@ class FunctionCollector {
           "${target.asMember}");
     }
 
-    if (target.isAsyncInnerReference) {
-      w.BaseFunction outer = getFunction(target.asProcedure.reference);
-      return action(
-          _asyncInnerFunctionTypeFor(outer), "${outer.functionName} inner");
-    }
-
     final ftype =
         target.asMember.accept1(_FunctionTypeGenerator(translator), target);
     return action(ftype, "${target.asMember}");
-  }
-
-  w.DefinedFunction addAsyncInnerFunctionFor(w.BaseFunction outer) {
-    w.FunctionType ftype = _asyncInnerFunctionTypeFor(outer);
-    return m.addFunction(ftype, "${outer.functionName} inner");
-  }
-
-  w.FunctionType _asyncInnerFunctionTypeFor(w.BaseFunction outer) {
-    return m.addFunctionType([...outer.type.inputs, asyncStackType],
-        [translator.topInfo.nullableType]);
   }
 
   void activateSelector(SelectorInfo selector) {

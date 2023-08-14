@@ -12,7 +12,7 @@ import 'dart:isolate' as isolate;
 import 'dart:developer' as developer;
 
 int counter = 0;
-const stoppedAtLine = 24;
+const stoppedAtLine = 23;
 var port = new isolate.RawReceivePort(msgHandler);
 
 // This name is used in a test below.
@@ -20,7 +20,7 @@ void msgHandler(_) {}
 
 void periodicTask(_) {
   port.sendPort.send(34);
-  developer.debugger(message: "fo", when: true); // We will be at the next line.
+  developer.debugger(message: "fo", when: true);
   counter++;
   if (counter % 300 == 0) {
     print('counter = $counter');

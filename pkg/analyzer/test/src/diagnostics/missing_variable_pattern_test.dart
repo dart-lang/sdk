@@ -166,10 +166,8 @@ LogicalOrPattern
   leftOperand: DeclaredVariablePattern
     keyword: final
     type: NamedType
-      name: SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: null
+      name: int
+      element: dart:core::@class::int
       type: int
     name: a
     declaredElement: isFinal a@39
@@ -230,10 +228,8 @@ LogicalOrPattern
     leftOperand: DeclaredVariablePattern
       keyword: final
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredElement: isFinal a@39
@@ -273,10 +269,8 @@ LogicalOrPattern
     leftOperand: DeclaredVariablePattern
       keyword: final
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredElement: isFinal a@39
@@ -286,10 +280,8 @@ LogicalOrPattern
     rightOperand: DeclaredVariablePattern
       keyword: final
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredElement: isFinal a@54
@@ -364,10 +356,8 @@ LogicalOrPattern
     leftOperand: DeclaredVariablePattern
       keyword: final
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredElement: isFinal a@39
@@ -384,10 +374,8 @@ LogicalOrPattern
   rightOperand: DeclaredVariablePattern
     keyword: final
     type: NamedType
-      name: SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: null
+      name: int
+      element: dart:core::@class::int
       type: int
     name: a
     declaredElement: isFinal a@59
@@ -420,10 +408,8 @@ LogicalOrPattern
     rightOperand: DeclaredVariablePattern
       keyword: final
       type: NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredElement: isFinal a@44
@@ -568,10 +554,8 @@ LogicalOrPattern
   leftOperand: DeclaredVariablePattern
     keyword: final
     type: NamedType
-      name: SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: null
+      name: int
+      element: dart:core::@class::int
       type: int
     name: a
     declaredElement: isFinal a@50
@@ -630,7 +614,7 @@ void f(int x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
       error(WarningCode.DEAD_CODE, 59, 4),
-      error(HintCode.UNREACHABLE_SWITCH_CASE, 59, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 59, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
     ]);
 

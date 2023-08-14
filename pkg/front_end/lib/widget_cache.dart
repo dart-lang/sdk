@@ -80,11 +80,7 @@ class WidgetCache {
     List<int> oldSource =
         lastGoodComponent.uriToSource[library.fileUri]!.source;
     List<int> newSource = partialComponent.uriToSource[library.fileUri]!.source;
-    // Library was added and does not exist in the old component.
-    // ignore: unnecessary_null_comparison
-    if (oldSource == null) {
-      return null;
-    }
+
     int newStartIndex = 0;
     int newEndIndex = newSource.length - 1;
     int oldStartIndex = 0;

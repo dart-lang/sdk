@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -20,17 +20,17 @@ extension Extension1 on self::Class {
   get m3 = self::Extension1|get#m3;
   set m4 = self::Extension1|set#m4;
 }
-static method Extension0|set#m1(lowered final self::Class #this, core::int x) → void
+static extension-member method Extension0|set#m1(lowered final self::Class #this, core::int x) → void
   ;
-static method Extension0|get#m2(lowered final self::Class #this) → core::int
+static extension-member method Extension0|get#m2(lowered final self::Class #this) → core::int
   ;
-static method Extension0|set#m3(lowered final self::Class #this, core::int x) → void
+static extension-member method Extension0|set#m3(lowered final self::Class #this, core::int x) → void
   ;
-static method Extension0|get#m4(lowered final self::Class #this) → core::int
+static extension-member method Extension0|get#m4(lowered final self::Class #this) → core::int
   ;
-static method Extension1|get#m3(lowered final self::Class #this) → core::int
+static extension-member method Extension1|get#m3(lowered final self::Class #this) → core::int
   ;
-static method Extension1|set#m4(lowered final self::Class #this, core::int x) → void
+static extension-member method Extension1|set#m4(lowered final self::Class #this, core::int x) → void
   ;
 static method main() → dynamic
   ;

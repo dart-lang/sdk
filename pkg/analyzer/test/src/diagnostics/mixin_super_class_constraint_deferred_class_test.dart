@@ -24,14 +24,20 @@ mixin M on math.Random {}
       error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS,
           48, 11),
     ]);
-    var mathImport = findElement.import('dart:math');
-    var randomElement = mathImport.importedLibrary!.getClass('Random')!;
 
-    var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, ['Random']);
-
-    var typeRef = findNode.namedType('Random {}');
-    assertNamedType(typeRef, randomElement, 'Random',
-        expectedPrefix: mathImport.prefix?.element);
+    final node = findNode.singleOnClause;
+    assertResolvedNodeText(node, r'''
+OnClause
+  onKeyword: on
+  superclassConstraints
+    NamedType
+      importPrefix: ImportPrefixReference
+        name: math
+        period: .
+        element: self::@prefix::math
+      name: Random
+      element: dart:math::@class::Random
+      type: Random
+''');
   }
 }

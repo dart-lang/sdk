@@ -33,7 +33,7 @@ class FixProcessorMapTest {
   }
 
   void test_registerFixForLint() {
-    CorrectionProducer producer() => MockCorrectionProducer();
+    ResolvedCorrectionProducer producer() => MockCorrectionProducer();
 
     var lintName = 'not_a_lint';
     expect(FixProcessor.lintProducerMap[lintName], null);
@@ -82,7 +82,7 @@ class FixProcessorMapTest {
   }
 }
 
-class MockCorrectionProducer implements CorrectionProducer {
+class MockCorrectionProducer implements ResolvedCorrectionProducer {
   @override
   dynamic noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);

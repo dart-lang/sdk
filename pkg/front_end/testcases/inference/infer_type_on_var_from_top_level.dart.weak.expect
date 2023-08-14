@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -24,17 +24,17 @@ static method test1() → dynamic {
   core::int a = self::x;
   a = invalid-expression "pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:12:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   a = /*error:INVALID_ASSIGNMENT*/ \"hi\";
-                                   ^" in "hi" as{TypeError,ForNonNullableByDefault} core::int;
+                                   ^" in "hi" as{TypeError} core::int;
   a = 3;
   core::int b = self::y;
   b = invalid-expression "pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:15:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   b = /*error:INVALID_ASSIGNMENT*/ \"hi\";
-                                   ^" in "hi" as{TypeError,ForNonNullableByDefault} core::int;
+                                   ^" in "hi" as{TypeError} core::int;
   b = 4;
   core::int c = self::z;
   c = invalid-expression "pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:18:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   c = /*error:INVALID_ASSIGNMENT*/ \"hi\";
-                                   ^" in "hi" as{TypeError,ForNonNullableByDefault} core::int;
+                                   ^" in "hi" as{TypeError} core::int;
   c = 4;
 }
 static method main() → dynamic {}

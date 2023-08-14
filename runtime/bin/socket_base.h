@@ -91,8 +91,8 @@ class SocketAddress {
   // Unix domain address is only on Linux, Mac OS and Android now.
   // unix(7) require sun_path to be 108 bytes on Linux and Android, 104 bytes on
   // Mac OS.
-  static const intptr_t kMaxUnixPathLength =
-      sizeof(((struct sockaddr_un*)0)->sun_path);
+  static constexpr intptr_t kMaxUnixPathLength =
+      sizeof(((struct sockaddr_un*)nullptr)->sun_path);
   char as_string_[kMaxUnixPathLength];
 #else
   char as_string_[INET6_ADDRSTRLEN];
@@ -198,6 +198,7 @@ class SocketBase : public AllStatic {
                         const void* buffer,
                         intptr_t num_bytes,
                         SocketOpKind sync);
+
   // Send data on a socket. The port to send to is specified in the port
   // component of the passed RawAddr structure. The RawAddr structure is only
   // used for datagram sockets.
@@ -262,6 +263,10 @@ class SocketBase : public AllStatic {
                              const RawAddr& interface,
                              int interfaceIndex);
 
+#if defined(DART_HOST_OS_WINDOWS)
+  static bool HasPendingWrite(intptr_t fd);
+#endif
+
   // Perform a hostname lookup. Returns a AddressList of SocketAddress's.
   static AddressList<SocketAddress>* LookupAddress(const char* host,
                                                    int type,
@@ -274,6 +279,8 @@ class SocketBase : public AllStatic {
 
   static bool ParseAddress(int type, const char* address, RawAddr* addr);
 
+  static bool IsValidAddress(const char* address);
+
   // Convert address from byte representation to human readable string.
   static bool RawAddrToString(RawAddr* addr, char* str);
   static bool FormatNumericAddress(const RawAddr& addr, char* address, int len);
@@ -284,6 +291,13 @@ class SocketBase : public AllStatic {
       OSError** os_error);
 
  private:
+#if !defined(DART_HOST_OS_WINDOWS)
+  static intptr_t WriteImpl(intptr_t fd,
+                            const void* buffer,
+                            intptr_t num_bytes,
+                            SocketOpKind sync);
+#endif
+
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(SocketBase);
 };

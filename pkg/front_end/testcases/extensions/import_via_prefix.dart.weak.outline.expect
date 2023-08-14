@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///import_via_prefix_lib.dart" as prefix;
@@ -8,7 +8,7 @@ static method main() → dynamic
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 
@@ -16,7 +16,7 @@ extension Extension on core::String {
   method method = self2::Extension|method;
   tearoff method = self2::Extension|get#method;
 }
-static method Extension|method(lowered final core::String #this) → core::int
+static extension-member method Extension|method(lowered final core::String #this) → core::int
   ;
-static method Extension|get#method(lowered final core::String #this) → () → core::int
+static extension-member method Extension|get#method(lowered final core::String #this) → () → core::int
   return () → core::int => self2::Extension|method(#this);

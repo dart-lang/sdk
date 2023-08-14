@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
@@ -36,7 +36,7 @@ class C extends core::Object implements self::I {
 }
 static method main() → dynamic {
   self::I* i = new self::C::•();
-  ([core::int*]) →* void f = (let final self::I* #t1 = i in #t1 == null ?{() →* void} null : #t1.{self::I::call}{() →* void}) as{TypeError} ([core::int*]) →* void;
+  ([core::int*]) →* void f = (let final self::I* #t1 = i in #t1 == null ?{() →* void} null : #t1.{self::I::call}{() →* void}) as{TypeError,ForLegacy} ([core::int*]) →* void;
 }
 
 constants  {

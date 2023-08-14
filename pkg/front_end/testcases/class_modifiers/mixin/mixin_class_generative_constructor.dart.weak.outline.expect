@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -73,21 +73,14 @@ mixin class ConstMixinClassConstructor extends core::Object /*hasConstConstructo
 }
 mixin class MixinClassFactory extends core::Object {
   field core::int foo;
-  static final field dynamic _redirecting# = <dynamic>[self::MixinClassFactory::x, self::MixinClassFactory::y]/*isLegacy*/;
   constructor •() → self::MixinClassFactory
     ;
   constructor named() → self::MixinClassFactory
     ;
-  static factory x() → self::MixinClassFactory
+  static factory x() → self::MixinClassFactory /* redirection-target: self::MixinClassFactory::named */
     return new self::MixinClassFactory::named();
-  static factory y() → self::MixinClassFactory
+  static factory y() → self::MixinClassFactory /* redirection-target: self::MixinClassFactory::• */
     return new self::MixinClassFactory::•();
   static factory z() → self::MixinClassFactory
     ;
 }
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///mixin_class_generative_constructor.dart:46:13 -> ConstructorTearOffConstant(MixinClassFactory.x)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///mixin_class_generative_constructor.dart:46:13 -> ConstructorTearOffConstant(MixinClassFactory.y)
-Extra constant evaluation: evaluated: 5, effectively constant: 2

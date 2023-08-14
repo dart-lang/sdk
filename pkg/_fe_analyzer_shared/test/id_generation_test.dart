@@ -551,9 +551,7 @@ void testGeneral<T>(DataInterpreter<T> dataInterpreter, String text,
       code.annotatedCode, code.sourceCode, annotations[mainUri]!);
   String actualResult = generated.toText();
   if (expectedResult != actualResult) {
-    print("Unexpected result for '$text'"
-        // ignore: unnecessary_null_comparison
-        "${actualData != null ? ' with actualData=$actualData' : ''}");
+    print("Unexpected result for '$text' with actualData=$actualData");
     print('---expected-------------------------------------------------------');
     print(expectedResult);
     print('---actual---------------------------------------------------------');

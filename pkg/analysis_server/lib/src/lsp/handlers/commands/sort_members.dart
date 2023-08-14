@@ -17,8 +17,12 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Sort Members';
 
   @override
-  Future<ErrorOr<void>> handle(Map<String, Object?> parameters,
-      ProgressReporter progress, CancellationToken cancellationToken) async {
+  Future<ErrorOr<void>> handle(
+    MessageInfo message,
+    Map<String, Object?> parameters,
+    ProgressReporter progress,
+    CancellationToken cancellationToken,
+  ) async {
     if (parameters['path'] is! String) {
       return ErrorOr.error(ResponseError(
         code: ServerErrorCodes.InvalidCommandArguments,

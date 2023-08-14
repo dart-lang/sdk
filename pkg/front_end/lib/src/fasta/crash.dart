@@ -98,20 +98,17 @@ Future<T> reportCrash<T>(error, StackTrace trace,
           new Crash(uri, charOffset, error, trace).._hasBeenReported = true,
           trace);
     }
-    // ignore: unnecessary_null_comparison
-    if (request != null) {
-      await note("\nSending crash report data");
-      request.persistentConnection = false;
-      request.bufferOutput = false;
-      String? host = request.connectionInfo?.remoteAddress.host;
-      int? port = request.connectionInfo?.remotePort;
-      await note(" to $host:$port");
-      await request
-        ..headers.contentType = ContentType.json
-        ..write(json);
-      await request.close();
-      await note(".");
-    }
+    await note("\nSending crash report data");
+    request.persistentConnection = false;
+    request.bufferOutput = false;
+    String? host = request.connectionInfo?.remoteAddress.host;
+    int? port = request.connectionInfo?.remotePort;
+    await note(" to $host:$port");
+    await request
+      ..headers.contentType = ContentType.json
+      ..write(json);
+    await request.close();
+    await note(".");
   } catch (e, s) {
     await note("\n${safeToString(e)}\n$s\n");
     await note("\n\n\nFE::ERROR::$json\n\n\n");

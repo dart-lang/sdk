@@ -10,6 +10,8 @@ class C3 {}
 
 class C4 {}
 
+class C5 {}
+
 enum TestEnum { v1, v2 }
 
 foo(x) {}
@@ -197,6 +199,66 @@ try1() {
     bar(x);
     x = C4();
   }
+  return x;
+}
+
+tryFinallyBreak1() {
+  dynamic x = C1();
+  for (;;) {
+    try {
+      x = C2();
+      break;
+    } finally {
+      foo(x);
+      x = C3();
+    }
+    return x;
+  }
+  bar(x);
+  return x;
+}
+
+tryFinallyBreak2() {
+  dynamic x = C1();
+  for (;;) {
+    try {
+      x = C2();
+      try {
+        x = C3();
+        break;
+      } finally {
+        foo(x);
+        x = C4();
+      }
+    } finally {
+      bar(x);
+      x = C5();
+    }
+    return x;
+  }
+  baz(x);
+  return x;
+}
+
+tryFinallyBreak3(int v) {
+  dynamic x = C1();
+  switch (v) {
+    L1:
+    case 1:
+      foo(x);
+      break;
+
+    case 2:
+      try {
+        x = C2();
+        continue L1;
+      } finally {
+        bar(x);
+        x = C3();
+      }
+      break;
+  }
+  baz(x);
   return x;
 }
 

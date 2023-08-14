@@ -325,6 +325,36 @@ class D {
 }''');
   }
 
+  Future<void> test_createUnqualified_instanceField() async {
+    await resolveTestCode('''
+class A {
+  var f = myUndefinedMethod();
+}
+''');
+    await assertHasFix('''
+class A {
+  var f = myUndefinedMethod();
+
+  static myUndefinedMethod() {}
+}
+''');
+  }
+
+  Future<void> test_createUnqualified_instanceField_late() async {
+    await resolveTestCode('''
+class A {
+  late var f = myUndefinedMethod();
+}
+''');
+    await assertHasFix('''
+class A {
+  late var f = myUndefinedMethod();
+
+  myUndefinedMethod() {}
+}
+''');
+  }
+
   Future<void> test_createUnqualified_parameters() async {
     await resolveTestCode('''
 class A {
@@ -438,7 +468,7 @@ class A {
         ['myUndefinedMethod();', 'myUndefinedMethod() {']);
   }
 
-  Future<void> test_createUnqualified_staticFromField() async {
+  Future<void> test_createUnqualified_staticField() async {
     await resolveTestCode('''
 class A {
   static var f = myUndefinedMethod();
@@ -447,6 +477,21 @@ class A {
     await assertHasFix('''
 class A {
   static var f = myUndefinedMethod();
+
+  static myUndefinedMethod() {}
+}
+''');
+  }
+
+  Future<void> test_createUnqualified_staticField_late() async {
+    await resolveTestCode('''
+class A {
+  static late var f = myUndefinedMethod();
+}
+''');
+    await assertHasFix('''
+class A {
+  static late var f = myUndefinedMethod();
 
   static myUndefinedMethod() {}
 }
@@ -815,8 +860,8 @@ class D {
 }
 ''';
 
-    addSource('$testPackageLibPath/test2.dart', code2);
-    addSource('$testPackageLibPath/test3.dart', r'''
+    newFile('$testPackageLibPath/test2.dart', code2);
+    newFile('$testPackageLibPath/test3.dart', r'''
 library test3;
 class E {}
 ''');
@@ -840,7 +885,7 @@ class D {
   }
 
   Future<void> test_parameterType_inTargetUnit() async {
-    addSource('$testPackageLibPath/test2.dart', r'''
+    newFile('$testPackageLibPath/test2.dart', r'''
 class D {
 }
 

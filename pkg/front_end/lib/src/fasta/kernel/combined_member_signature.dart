@@ -104,9 +104,7 @@ abstract class CombinedMemberSignatureBase<T> {
   /// Creates a [CombinedClassMemberSignature] whose canonical member is already
   /// defined.
   CombinedMemberSignatureBase.internal(
-      this.classBuilder, this._canonicalMemberIndex, this.forSetter)
-      // ignore: unnecessary_null_comparison
-      : assert(forSetter != null);
+      this.classBuilder, this._canonicalMemberIndex, this.forSetter);
 
   /// Creates a [CombinedClassMemberSignature] for [members] inherited into
   /// [classBuilder].
@@ -115,8 +113,6 @@ abstract class CombinedMemberSignatureBase<T> {
   /// compute the most specific member type. Otherwise covariance of the getter
   /// types or function types is used.
   CombinedMemberSignatureBase(this.classBuilder, {required this.forSetter}) {
-    // ignore: unnecessary_null_comparison
-    assert(forSetter != null);
     int? bestSoFarIndex;
     if (members.length == 1) {
       bestSoFarIndex = 0;
@@ -292,9 +288,6 @@ abstract class CombinedMemberSignatureBase<T> {
     DartType? candidateType = _memberTypes![index];
     if (candidateType == null) {
       Member target = _getMember(index);
-      // ignore: unnecessary_null_comparison
-      assert(target != null,
-          "No member computed for index ${index} in ${members}");
       candidateType = _computeMemberType(thisType, target);
       if (!classBuilder.libraryBuilder.isNonNullableByDefault) {
         DartType? legacyErasure;
@@ -526,8 +519,6 @@ abstract class CombinedMemberSignatureBase<T> {
   /// [type].
   Procedure _createGetterMemberSignature(Member member, DartType type,
       {required bool copyLocation}) {
-    // ignore: unnecessary_null_comparison
-    assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
     Reference? reference =
         classBuilder.referencesFromIndexed?.lookupGetterReference(member.name);
@@ -570,12 +561,6 @@ abstract class CombinedMemberSignatureBase<T> {
       required bool isCovariantByClass,
       VariableDeclaration? parameter,
       required bool copyLocation}) {
-    // ignore: unnecessary_null_comparison
-    assert(isCovariantByDeclaration != null);
-    // ignore: unnecessary_null_comparison
-    assert(isCovariantByClass != null);
-    // ignore: unnecessary_null_comparison
-    assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
     Reference? reference =
         classBuilder.referencesFromIndexed?.lookupSetterReference(member.name);
@@ -620,8 +605,6 @@ abstract class CombinedMemberSignatureBase<T> {
   Procedure _createMethodSignature(
       Procedure procedure, FunctionType functionType,
       {required bool copyLocation}) {
-    // ignore: unnecessary_null_comparison
-    assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
     Reference? reference = classBuilder.referencesFromIndexed
         ?.lookupGetterReference(procedure.name);
@@ -778,21 +761,13 @@ class CombinedClassMemberSignature
   @override
   Member _getMember(int index) {
     ClassMember candidate = members[index];
-    Member target = candidate.getMember(membersBuilder);
-    // ignore: unnecessary_null_comparison
-    assert(target != null,
-        "No member computed for ${candidate} (${candidate.runtimeType})");
-    return target;
+    return candidate.getMember(membersBuilder);
   }
 
   @override
   Covariance _getMemberCovariance(int index) {
     ClassMember candidate = members[index];
-    Covariance covariance = candidate.getCovariance(membersBuilder);
-    // ignore: unnecessary_null_comparison
-    assert(covariance != null,
-        "No covariance computed for ${candidate} (${candidate.runtimeType})");
-    return covariance;
+    return candidate.getCovariance(membersBuilder);
   }
 }
 

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -17,10 +17,10 @@ static const field core::int E|constField1 = #C3;
 @#C3
 static const field core::int E|constField2 = #C2;
 @#C1
-static method E|staticMethod() → void {}
+static extension-member method E|staticMethod() → void {}
 @#C1
-static method E|instanceMethod(lowered final core::int #this) → void {}
-static method E|get#instanceMethod(lowered final core::int #this) → () → void
+static extension-member method E|instanceMethod(lowered final core::int #this) → void {}
+static extension-member method E|get#instanceMethod(lowered final core::int #this) → () → void
   return () → void => self::E|instanceMethod(#this);
 static method main() → dynamic {}
 

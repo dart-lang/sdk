@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns
-
 // Test that errors are generated if a unary pattern or a relational pattern
 // appears inside a unary pattern.  This is prohibited by the patterns grammar,
 // but accepted by the parser's precedence-based parsing logic (because it's not

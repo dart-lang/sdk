@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -10,14 +10,9 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   static factory •() → self::C
     return invalid-expression "pkg/front_end/testcases/general/issue46334.dart:6:11: Error: Cyclic definition of factory 'C'.
   factory C() = C;
           ^";
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = constructor-tearoff self::C::•
-}

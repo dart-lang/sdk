@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
@@ -17,7 +17,7 @@ abstract class C extends self::B implements self::I<core::int> {
   synthetic constructor •() → self::C
     ;
   forwarding-stub method f(covariant-by-class core::int x, core::Object y) → void
-    return super.{self::B::f}(x, y as core::int);
+    return super.{self::B::f}(x, y as{ForLegacy} core::int);
 }
 static method main() → void
   ;

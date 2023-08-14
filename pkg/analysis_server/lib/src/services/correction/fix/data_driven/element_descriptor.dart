@@ -45,44 +45,41 @@ class ElementDescriptor {
   bool matches(AstNode node) {
     // TODO(brianwilkerson) Check the resolved element, if one exists, for more
     //  accurate results.
-    switch (kind) {
-      case ElementKind.classKind:
+    return switch (kind) {
+      ElementKind.classKind =>
         // TODO(brianwilkerson) Handle this case.
-        return false;
-      case ElementKind.constantKind:
+        false,
+      ElementKind.constantKind =>
         // TODO(brianwilkerson) Handle this case.
-        return false;
-      case ElementKind.constructorKind:
-        return _matchesConstructor(node);
-      case ElementKind.enumKind:
+        false,
+      ElementKind.constructorKind => _matchesConstructor(node),
+      ElementKind.enumKind =>
         // TODO(brianwilkerson) Handle this case.
-        return false;
-      case ElementKind.extensionKind:
+        false,
+      ElementKind.extensionKind =>
         // TODO(brianwilkerson) Handle this case.
-        return false;
-      case ElementKind.fieldKind:
+        false,
+      ElementKind.fieldKind =>
         // TODO(brianwilkerson) Handle this case.
-        return false;
-      case ElementKind.functionKind:
-        return _matchesFunction(node);
-      case ElementKind.getterKind:
+        false,
+      ElementKind.functionKind => _matchesFunction(node),
+      ElementKind.getterKind =>
         // TODO(brianwilkerson) Handle this case.
-        return false;
-      case ElementKind.methodKind:
-        return _matchesMethod(node);
-      case ElementKind.mixinKind:
+        false,
+      ElementKind.methodKind => _matchesMethod(node),
+      ElementKind.mixinKind =>
         // TODO(brianwilkerson) Handle this case.
-        return false;
-      case ElementKind.setterKind:
+        false,
+      ElementKind.setterKind =>
         // TODO(brianwilkerson) Handle this case.
-        return false;
-      case ElementKind.typedefKind:
+        false,
+      ElementKind.typedefKind =>
         // TODO(brianwilkerson) Handle this case.
-        return false;
-      case ElementKind.variableKind:
+        false,
+      ElementKind.variableKind =>
         // TODO(brianwilkerson) Handle this case.
-        return false;
-    }
+        false
+    };
   }
 
   /// Return `true` if the given [node] appears to be consistent with the
@@ -96,7 +93,7 @@ class ElementDescriptor {
       }
     } else if (node is InstanceCreationExpression) {
       var name = node.constructorName;
-      var className = _nameFromIdentifier(name.type.name);
+      var className = name.type.name2.lexeme;
       var constructorName = name.name?.name ?? '';
       if (components[0] == constructorName && components[1] == className) {
         return true;

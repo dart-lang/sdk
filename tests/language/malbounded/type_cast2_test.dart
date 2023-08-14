@@ -8,7 +8,11 @@ class A<T extends num> {}
 
 class B<T> {
   test() {
-    new A() as A<T>; /*@compile-error=unspecified*/
+    new A() as A<T>;
+    //         ^
+    // [cfe] Type argument 'T' doesn't conform to the bound 'num' of the type variable 'T' on 'A'.
+    //           ^
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   }
 }
 

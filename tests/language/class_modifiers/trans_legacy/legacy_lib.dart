@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // @dart=2.19
-// SharedOptions=--enable-experiment=class-modifiers
-
 import "dart:async";
 import "dart:collection";
 
@@ -22,7 +20,6 @@ mixin LegacyMixinImplementsFinal implements MapEntry<int, int> {}
 
 enum LegacyEnumImplementsFinal implements MapEntry<int, int> {
   v;
-
   final int key = 0;
   final int value = 0;
 }
@@ -41,7 +38,6 @@ abstract class LegacyMixesInFinal2 = Object with BigInt;
 
 enum LegacyEnumMixesInFinal with BigInt {
   v;
-
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -58,7 +54,6 @@ mixin LegacyMixinImplementsBase implements LinkedList<LinkedListEntry<Never>> {}
 
 enum LegacyEnumImplementsBase implements LinkedList<LinkedListEntry<Never>> {
   v;
-
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -81,7 +76,6 @@ abstract class LegacyMixesInInterface2 = Object with Sink<int>;
 
 enum LegacyEnumMixesInInterface with Sink<int> {
   v;
-
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -94,7 +88,6 @@ abstract class LegacyMixesInNonMixin2 = Object with StreamConsumer<int>;
 
 enum LegacyEnumMixesInNonMixin with StreamConsumer<int> {
   v;
-
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 

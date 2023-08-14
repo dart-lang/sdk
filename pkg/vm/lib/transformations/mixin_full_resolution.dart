@@ -86,6 +86,10 @@ class MixinFullResolution {
       transformClass(librariesToBeTransformed, processedClasses,
           transformedClasses, class_.superclass!, referenceFromIndex);
     }
+    if (class_.mixedInType != null) {
+      transformClass(librariesToBeTransformed, processedClasses,
+          transformedClasses, class_.mixedInClass!, referenceFromIndex);
+    }
 
     // If this is not a mixin application we don't need to make forwarding
     // constructors in this class.

@@ -345,7 +345,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
       errors.removeWhere(
         (e) =>
             e.errorCode == HintCode.UNUSED_LOCAL_VARIABLE ||
-            e.errorCode == HintCode.UNUSED_ELEMENT,
+            e.errorCode == WarningCode.UNUSED_ELEMENT,
       );
 
       // Handle edge case around dart:_http

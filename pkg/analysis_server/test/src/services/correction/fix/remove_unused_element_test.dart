@@ -21,6 +21,55 @@ class RemoveUnusedElementTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_UNUSED_ELEMENT;
 
+  Future<void> test_class_constructor_first() async {
+    await resolveTestCode(r'''
+class A {
+  A._named();
+
+  A();
+}
+''');
+    await assertHasFix(r'''
+class A {
+  A();
+}
+''');
+  }
+
+  Future<void> test_class_constructor_last() async {
+    await resolveTestCode(r'''
+class A {
+  A();
+
+  A._named();
+}
+''');
+    await assertHasFix(r'''
+class A {
+  A();
+}
+''');
+  }
+
+  Future<void> test_class_constructor_middle() async {
+    await resolveTestCode(r'''
+class A {
+  A();
+
+  A._named();
+
+  void foo() {}
+}
+''');
+    await assertHasFix(r'''
+class A {
+  A();
+
+  void foo() {}
+}
+''');
+  }
+
   Future<void> test_class_notUsed_inClassMember() async {
     await resolveTestCode(r'''
 class _A {
@@ -55,13 +104,45 @@ class _A {
 ''');
   }
 
+  Future<void> test_enum_constructor_first() async {
+    await resolveTestCode(r'''
+enum E {
+  v;
+  const E._named();
+  const E();
+}
+''');
+    await assertHasFix(r'''
+enum E {
+  v;
+  const E();
+}
+''');
+  }
+
+  Future<void> test_enum_constructor_last() async {
+    await resolveTestCode(r'''
+enum E {
+  v;
+  const E();
+  const E._named();
+}
+''');
+    await assertHasFix(r'''
+enum E {
+  v;
+  const E();
+}
+''');
+  }
+
   Future<void> test_enum_notUsed_noReference() async {
     await resolveTestCode(r'''
 enum _MyEnum {A, B, C}
 ''');
     await assertHasFix(r'''
 ''', errorFilter: (AnalysisError error) {
-      return error.errorCode == HintCode.UNUSED_ELEMENT;
+      return error.errorCode == WarningCode.UNUSED_ELEMENT;
     });
   }
 

@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -38,11 +36,44 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    assertImplicitCallReference(
-      findNode.implicitCallReference('map[1] = c'),
-      findElement.method('call'),
-      'void Function(int)',
-    );
+    final node = findNode.implicitCallReference('c;');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: AssignmentExpression
+    leftHandSide: IndexExpression
+      target: SimpleIdentifier
+        token: map
+        staticElement: map@83
+        staticType: Map<int, C>
+      leftBracket: [
+      index: IntegerLiteral
+        literal: 1
+        parameter: ParameterMember
+          base: dart:core::@class::Map::@method::[]=::@parameter::key
+          substitution: {K: int, V: C}
+        staticType: int
+      rightBracket: ]
+      staticElement: <null>
+      staticType: null
+    operator: =
+    rightHandSide: SimpleIdentifier
+      token: c
+      parameter: ParameterMember
+        base: dart:core::@class::Map::@method::[]=::@parameter::value
+        substitution: {K: int, V: C}
+      staticElement: self::@function::foo::@parameter::c
+      staticType: C
+    readElement: <null>
+    readType: null
+    writeElement: MethodMember
+      base: dart:core::@class::Map::@method::[]=
+      substitution: {K: int, V: C}
+    writeType: C
+    staticElement: <null>
+    staticType: C
+  staticElement: self::@class::C::@method::call
+  staticType: void Function(int)
+''');
   }
 
   test_conditional_else() async {
@@ -55,10 +86,26 @@ void Function() f(A a, bool b, C c, dynamic d) => b ? d : (b ? a : c);
 ''');
     // `c` is in the "else" position of a conditional expression, so implicit
     // call tearoff logic should not apply to it.
-    var expr = findNode.conditionalExpression('b ? a : c');
-    expect(expr.thenExpression, TypeMatcher<SimpleIdentifier>());
     // Therefore the type of `b ? a : c` should be `A`.
-    assertType(expr, 'A');
+    var expr = findNode.conditionalExpression('b ? a : c');
+    assertResolvedNodeText(expr, r'''
+ConditionalExpression
+  condition: SimpleIdentifier
+    token: b
+    staticElement: self::@function::f::@parameter::b
+    staticType: bool
+  question: ?
+  thenExpression: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: c
+    staticElement: self::@function::f::@parameter::c
+    staticType: C
+  staticType: A
+''');
   }
 
   test_conditional_then() async {
@@ -71,10 +118,26 @@ void Function() f(A a, bool b, C c, dynamic d) => b ? d : (b ? c : a);
 ''');
     // `c` is in the "then" position of a conditional expression, so implicit
     // call tearoff logic should not apply to it.
-    var expr = findNode.conditionalExpression('b ? c : a');
-    expect(expr.thenExpression, TypeMatcher<SimpleIdentifier>());
     // Therefore the type of `b ? c : a` should be `A`.
-    assertType(expr, 'A');
+    var expr = findNode.conditionalExpression('b ? c : a');
+    assertResolvedNodeText(expr, r'''
+ConditionalExpression
+  condition: SimpleIdentifier
+    token: b
+    staticElement: self::@function::f::@parameter::b
+    staticType: bool
+  question: ?
+  thenExpression: SimpleIdentifier
+    token: c
+    staticElement: self::@function::f::@parameter::c
+    staticType: C
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  staticType: A
+''');
   }
 
   test_explicitTypeArguments() async {
@@ -89,11 +152,26 @@ void foo() {
 }
 ''');
 
-    assertImplicitCallReference(
-      findNode.implicitCallReference('c<int>'),
-      findElement.method('call'),
-      'int Function(int)',
-    );
+    final node = findNode.implicitCallReference('c<int>');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: c
+    staticElement: c@55
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticElement: self::@class::C::@method::call
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
   }
 
   test_ifNull_lhs() async {
@@ -109,10 +187,24 @@ void Function() f(A a, bool b, C c, dynamic d) => b ? d : c ?? a;
     ]);
     // `c` is on the LHS of an if-null expression, so implicit call tearoff
     // logic should not apply to it.
-    var expr = findNode.binary('c ?? a');
-    expect(expr.leftOperand, TypeMatcher<SimpleIdentifier>());
     // Therefore the type of `c ?? a` should be `A`.
-    assertType(expr, 'A');
+    var expr = findNode.binary('c ?? a');
+    assertResolvedNodeText(expr, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: c
+    staticElement: self::@function::f::@parameter::c
+    staticType: C
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: a
+    parameter: <null>
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: A
+''');
   }
 
   test_ifNull_rhs() async {
@@ -126,11 +218,26 @@ void Function(int) foo(C? c1, C c2) {
 }
 ''');
 
-    assertImplicitCallReference(
-      findNode.implicitCallReference('c1 ?? c2'),
-      findElement.method('call'),
-      'void Function(int)',
-    );
+    final node = findNode.implicitCallReference('c1 ?? c2');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: c1
+      staticElement: self::@function::foo::@parameter::c1
+      staticType: C?
+    operator: ??
+    rightOperand: SimpleIdentifier
+      token: c2
+      parameter: <null>
+      staticElement: self::@function::foo::@parameter::c2
+      staticType: C
+    staticElement: <null>
+    staticInvokeType: null
+    staticType: C
+  staticElement: self::@class::C::@method::call
+  staticType: void Function(int)
+''');
   }
 
   test_listLiteral_element() async {
@@ -144,11 +251,16 @@ List<void Function(int)> foo(C c) {
 }
 ''');
 
-    assertImplicitCallReference(
-      findNode.implicitCallReference('c]'),
-      findElement.method('call'),
-      'void Function(int)',
-    );
+    final node = findNode.implicitCallReference('c]');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: c
+    staticElement: self::@function::foo::@parameter::c
+    staticType: C
+  staticElement: self::@class::C::@method::call
+  staticType: void Function(int)
+''');
   }
 
   test_listLiteral_forElement() async {
@@ -164,11 +276,16 @@ List<void Function(int)> foo(C c) {
 }
 ''');
 
-    assertImplicitCallReference(
-      findNode.implicitCallReference('c,'),
-      findElement.method('call'),
-      'void Function(int)',
-    );
+    final node = findNode.implicitCallReference('c,');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: c
+    staticElement: self::@function::foo::@parameter::c
+    staticType: C
+  staticElement: self::@class::C::@method::call
+  staticType: void Function(int)
+''');
   }
 
   test_listLiteral_ifElement() async {
@@ -184,11 +301,16 @@ List<void Function(int)> foo(C c) {
 }
 ''');
 
-    assertImplicitCallReference(
-      findNode.implicitCallReference('c,'),
-      findElement.method('call'),
-      'void Function(int)',
-    );
+    final node = findNode.implicitCallReference('c,');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: c
+    staticElement: self::@function::foo::@parameter::c
+    staticType: C
+  staticElement: self::@class::C::@method::call
+  staticType: void Function(int)
+''');
   }
 
   test_listLiteral_ifElement_else() async {
@@ -205,11 +327,16 @@ List<void Function(int)> foo(C c1, C c2) {
 }
 ''');
 
-    assertImplicitCallReference(
-      findNode.implicitCallReference('c2,'),
-      findElement.method('call'),
-      'void Function(int)',
-    );
+    final node = findNode.implicitCallReference('c2,');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: c2
+    staticElement: self::@function::foo::@parameter::c2
+    staticType: C
+  staticElement: self::@class::C::@method::call
+  staticType: void Function(int)
+''');
   }
 
   test_parenthesized_cascade_target() async {
@@ -219,6 +346,35 @@ abstract class C {
   void m();
 }
 void Function() f(C c) => (c)..m();
+''');
+
+    final node = findNode.implicitCallReference('(c)');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: CascadeExpression
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: c
+        staticElement: self::@function::f::@parameter::c
+        staticType: C
+      rightParenthesis: )
+      staticType: C
+    cascadeSections
+      MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: m
+          staticElement: self::@class::C::@method::m
+          staticType: void Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: void Function()
+        staticType: void
+    staticType: C
+  staticElement: self::@class::C::@method::call
+  staticType: void Function()
 ''');
   }
 
@@ -234,11 +390,24 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    assertImplicitCallReference(
-      findNode.implicitCallReference('c.c;'),
-      findElement.method('call'),
-      'void Function(int)',
-    );
+    final node = findNode.implicitCallReference('c.c;');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      staticElement: self::@function::foo::@parameter::c
+      staticType: C
+    period: .
+    identifier: SimpleIdentifier
+      token: c
+      staticElement: self::@class::C::@getter::c
+      staticType: C
+    staticElement: self::@class::C::@getter::c
+    staticType: C
+  staticElement: self::@class::C::@method::call
+  staticType: void Function(int)
+''');
   }
 
   test_propertyAccess() async {
@@ -253,11 +422,31 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    assertImplicitCallReference(
-      findNode.implicitCallReference('c.c.c;'),
-      findElement.method('call'),
-      'void Function(int)',
-    );
+    final node = findNode.implicitCallReference('c.c.c');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: c
+        staticElement: self::@function::foo::@parameter::c
+        staticType: C
+      period: .
+      identifier: SimpleIdentifier
+        token: c
+        staticElement: self::@class::C::@getter::c
+        staticType: C
+      staticElement: self::@class::C::@getter::c
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: c
+      staticElement: self::@class::C::@getter::c
+      staticType: C
+    staticType: C
+  staticElement: self::@class::C::@method::call
+  staticType: void Function(int)
+''');
   }
 
   test_setOrMapLiteral_element() async {
@@ -271,11 +460,16 @@ Set<void Function(int)> foo(C c) {
 }
 ''');
 
-    assertImplicitCallReference(
-      findNode.implicitCallReference('c}'),
-      findElement.method('call'),
-      'void Function(int)',
-    );
+    final node = findNode.implicitCallReference('c}');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: c
+    staticElement: self::@function::foo::@parameter::c
+    staticType: C
+  staticElement: self::@class::C::@method::call
+  staticType: void Function(int)
+''');
   }
 
   test_setOrMapLiteral_mapLiteralEntry_key() async {
@@ -289,11 +483,16 @@ Map<void Function(int), int> foo(C c) {
 }
 ''');
 
-    assertImplicitCallReference(
-      findNode.implicitCallReference('c:'),
-      findElement.method('call'),
-      'void Function(int)',
-    );
+    final node = findNode.implicitCallReference('c:');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: c
+    staticElement: self::@function::foo::@parameter::c
+    staticType: C
+  staticElement: self::@class::C::@method::call
+  staticType: void Function(int)
+''');
   }
 
   test_setOrMapLiteral_mapLiteralEntry_value() async {
@@ -307,11 +506,16 @@ Map<int, void Function(int)> foo(C c) {
 }
 ''');
 
-    assertImplicitCallReference(
-      findNode.implicitCallReference('c}'),
-      findElement.method('call'),
-      'void Function(int)',
-    );
+    final node = findNode.implicitCallReference('c}');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: c
+    staticElement: self::@function::foo::@parameter::c
+    staticType: C
+  staticElement: self::@class::C::@method::call
+  staticType: void Function(int)
+''');
   }
 
   test_simpleIdentifier() async {
@@ -325,11 +529,16 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    assertImplicitCallReference(
-      findNode.implicitCallReference('c;'),
-      findElement.method('call'),
-      'void Function(int)',
-    );
+    final node = findNode.implicitCallReference('c;');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: c
+    staticElement: self::@function::foo::@parameter::c
+    staticType: C
+  staticElement: self::@class::C::@method::call
+  staticType: void Function(int)
+''');
   }
 }
 
@@ -369,26 +578,20 @@ f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           NamedType
-            name: SimpleIdentifier
-              token: String
-              staticElement: dart:core::@class::String
-              staticType: null
+            name: String
+            element: dart:core::@class::String
             type: String
         rightBracket: >
+      element: self::@class::A
       type: A<int, String>
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::new
@@ -423,18 +626,13 @@ f(A a) {
     final node = findNode.extensionOverride('E<int>(a)');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
-  extensionName: SimpleIdentifier
-    token: E
-    staticElement: self::@extension::E
-    staticType: null
+  name: E
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -446,6 +644,7 @@ ExtensionOverride
         staticElement: self::@function::f::@parameter::a
         staticType: A
     rightParenthesis: )
+  element: self::@extension::E
   extendedType: A
   staticType: null
   typeArgumentTypes
@@ -473,16 +672,12 @@ MethodInvocation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -521,26 +716,20 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: X
-        staticElement: self::@typeAlias::X
-        staticType: null
+      name: X
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           NamedType
-            name: SimpleIdentifier
-              token: String
-              staticElement: dart:core::@class::String
-              staticType: null
+            name: String
+            element: dart:core::@class::String
             type: String
         rightBracket: >
+      element: self::@typeAlias::X
       type: A<int, String>
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::new
@@ -594,18 +783,12 @@ f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: prefix
-          staticElement: self::@prefix::prefix
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: prefix
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+        element: self::@prefix::prefix
+      name: A
+      element: package:test/a.dart::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -655,28 +838,20 @@ f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: prefix
-          staticElement: self::@prefix::prefix
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: prefix
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+        element: self::@prefix::prefix
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: package:test/a.dart::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -726,28 +901,20 @@ f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: prefix
-          staticElement: self::@prefix::prefix
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: prefix
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+        element: self::@prefix::prefix
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
+      element: package:test/a.dart::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -845,18 +1012,12 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: prefix
-          staticElement: self::@prefix::prefix
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: prefix
         period: .
-        identifier: SimpleIdentifier
-          token: X
-          staticElement: package:test/a.dart::@typeAlias::X
-          staticType: null
-        staticElement: package:test/a.dart::@typeAlias::X
-        staticType: null
+        element: self::@prefix::prefix
+      name: X
+      element: package:test/a.dart::@typeAlias::X
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -898,10 +1059,8 @@ f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -948,10 +1107,8 @@ f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A<dynamic, dynamic>
     period: .
     name: SimpleIdentifier
@@ -967,16 +1124,12 @@ InstanceCreationExpression
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -1014,10 +1167,8 @@ f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: A
-        staticElement: self::@class::A
-        staticType: null
+      name: A
+      element: self::@class::A
       type: A<dynamic, dynamic>
     period: .
     name: SimpleIdentifier
@@ -1033,16 +1184,12 @@ InstanceCreationExpression
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -1094,34 +1241,24 @@ f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: prefix
-          staticElement: self::@prefix::prefix
-          staticType: null
+      importPrefix: ImportPrefixReference
+        name: prefix
         period: .
-        identifier: SimpleIdentifier
-          token: A
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
+        element: self::@prefix::prefix
+      name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           NamedType
-            name: SimpleIdentifier
-              token: String
-              staticElement: dart:core::@class::String
-              staticType: null
+            name: String
+            element: dart:core::@class::String
             type: String
         rightBracket: >
+      element: package:test/a.dart::@class::A
       type: A<int, String>
     staticElement: ConstructorMember
       base: package:test/a.dart::@class::A::@constructor::new
@@ -1160,26 +1297,17 @@ f(prefix.A a) {
     final node = findNode.extensionOverride('E<int>(a)');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
-  extensionName: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: prefix
-      staticElement: self::@prefix::prefix
-      staticType: null
+  importPrefix: ImportPrefixReference
+    name: prefix
     period: .
-    identifier: SimpleIdentifier
-      token: E
-      staticElement: package:test/a.dart::@extension::E
-      staticType: null
-    staticElement: package:test/a.dart::@extension::E
-    staticType: null
+    element: self::@prefix::prefix
+  name: E
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -1191,6 +1319,7 @@ ExtensionOverride
         staticElement: self::@function::f::@parameter::a
         staticType: A
     rightParenthesis: )
+  element: package:test/a.dart::@extension::E
   extendedType: A
   staticType: null
   typeArgumentTypes
@@ -1227,16 +1356,12 @@ MethodInvocation
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -1275,10 +1400,8 @@ void f() {
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: X
-        staticElement: self::@typeAlias::X
-        staticType: null
+      name: X
+      element: self::@typeAlias::X
       type: A<int>
     period: .
     name: SimpleIdentifier

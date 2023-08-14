@@ -1,11 +1,11 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
-static final field core::bool inSoundMode = !(core::_GrowableList::•<core::int?>(0) is{ForNonNullableByDefault} core::List<core::int>);
+static final field core::bool inSoundMode = !(core::_GrowableList::•<core::int?>(0) is core::List<core::int>);
 static method main() → dynamic {
   try {
-    throw let dynamic #t1 = null as{ForNonNullableByDefault} dynamic in #t1 == null ?{core::Object} #t1 as{TypeError,ForNonNullableByDefault} core::Object : #t1{core::Object};
+    throw let dynamic #t1 = null as dynamic in #t1 == null ?{core::Object} #t1 as{TypeError} core::Object : #t1{core::Object};
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print("${e.{core::Object::runtimeType}{core::Type}}:${e}");

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -88,7 +88,7 @@ class MultipleWithAnotherClass extends self::_MultipleWithAnotherClass&Object&A&
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 

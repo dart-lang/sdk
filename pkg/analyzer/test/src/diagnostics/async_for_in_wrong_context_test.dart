@@ -22,8 +22,8 @@ f(list) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 27, 1),
-      error(CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, 29, 2),
+      error(CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, 12, 5),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 1),
     ]);
   }
 }

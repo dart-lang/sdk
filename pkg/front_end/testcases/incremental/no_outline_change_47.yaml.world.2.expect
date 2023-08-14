@@ -6,7 +6,7 @@ library from "org-dartlang-test:///main.dart" as main {
     tearoff x = main::Foo|get#x;
   }
   late static final field dart.core::int x = 42;
-  static method Foo|x(lowered final dart.core::int #this) → void {}
-  static method Foo|get#x(lowered final dart.core::int #this) → () → void
+  static extension-member method Foo|x(lowered final dart.core::int #this) → void {}
+  static extension-member method Foo|get#x(lowered final dart.core::int #this) → () → void
     return () → void => main::Foo|x(#this);
 }

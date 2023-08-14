@@ -37,9 +37,7 @@ class Annotation {
 
   Annotation(this.index, this.lineNo, this.columnNo, this.offset, this.prefix,
       this.text, this.suffix)
-      // ignore: unnecessary_null_comparison
-      : assert(offset != null),
-        assert(offset >= 0);
+      : assert(offset >= 0);
 
   @override
   String toString() =>

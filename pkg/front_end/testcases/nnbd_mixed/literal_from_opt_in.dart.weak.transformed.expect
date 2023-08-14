@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "literal_from_opt_in_lib.dart" as lit;
@@ -13,7 +13,7 @@ static method main() → dynamic {
   core::List<lit::Const<core::int*>*>* l5 = #C9;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as lit;
 import "dart:core" as core;
 

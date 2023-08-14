@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "package:expect/expect.dart" as exp;
@@ -6,11 +6,11 @@ import "package:expect/expect.dart" as exp;
 import "package:expect/expect.dart" show Expect;
 
 static method test(dynamic f) → dynamic {
-  if(f is{ForNonNullableByDefault} (core::Object, core::StackTrace) → void)
+  if(f is (core::Object, core::StackTrace) → void)
     return 1;
-  if(f is{ForNonNullableByDefault} (core::Object) → void)
+  if(f is (core::Object) → void)
     return 10;
-  if(f is{ForNonNullableByDefault} () → void)
+  if(f is () → void)
     return 100;
 }
 static method main() → dynamic {

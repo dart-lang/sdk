@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 static method test1(Never n1, Never? n2, Null n3) → dynamic

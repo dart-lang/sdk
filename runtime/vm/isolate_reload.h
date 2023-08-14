@@ -10,10 +10,12 @@
 
 #include "include/dart_tools_api.h"
 
+#include "vm/compiler/jit/compiler.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 #include "vm/heap/become.h"
+#include "vm/heap/safepoint.h"
 #include "vm/log.h"
 #include "vm/object.h"
 
@@ -145,9 +147,9 @@ class IsolateGroupReloadContext {
 
   // If kernel_buffer is provided, the VM takes ownership when Reload is called.
   bool Reload(bool force_reload,
-              const char* root_script_url = NULL,
-              const char* packages_url = NULL,
-              const uint8_t* kernel_buffer = NULL,
+              const char* root_script_url = nullptr,
+              const char* packages_url = nullptr,
+              const uint8_t* kernel_buffer = nullptr,
               intptr_t kernel_buffer_size = 0);
 
   // All zone allocated objects must be allocated from this zone.
@@ -436,47 +438,25 @@ class CallSiteResetter : public ValueObject {
   ICData& ic_data_;
 };
 
-class ReloadHandler {
- public:
-  ReloadHandler() {}
-  ~ReloadHandler() {}
-
-  void RegisterIsolate();
-  void UnregisterIsolate();
-  void CheckForReload();
-
- private:
-  friend class ReloadOperationScope;
-
-  void PauseIsolatesForReloadLocked();
-  void ResumeIsolatesLocked();
-  void ParticipateIfReloadRequested(SafepointMonitorLocker* ml,
-                                    bool is_registered,
-                                    bool allow_later_retry);
-
-  intptr_t registered_isolate_count_ = 0;
-
-  Monitor monitor_;
-  Thread* reloading_thread_ = nullptr;
-
-  Monitor checkin_monitor_;
-  intptr_t isolates_checked_in_ = 0;
-};
-
-class ReloadOperationScope : public ThreadStackResource {
- public:
-  explicit ReloadOperationScope(Thread* thread)
-      : ThreadStackResource(thread), isolate_group_(thread->isolate_group()) {
-    isolate_group_->reload_handler()->PauseIsolatesForReloadLocked();
-  }
-
-  ~ReloadOperationScope() {
-    isolate_group_->reload_handler()->ResumeIsolatesLocked();
-  }
-
- private:
-  IsolateGroup* isolate_group_;
-};
+// Ensures all other mutators are stopped at a well-defined place where reload
+// is allowed.
+#define RELOAD_OPERATION_SCOPE(thread_expr)                                    \
+  auto _thread_ = (thread_expr);                                               \
+                                                                               \
+  /* As the background compiler is a mutator it participates in safepoint */   \
+  /* operations. Though the BG compiler won't check into reload safepoint */   \
+  /* requests - as it's not a well-defined place to do reload.            */   \
+  /* So we ensure the background compiler is stopped before we get all    */   \
+  /* other mutators to reload safepoints.                                 */   \
+  NoBackgroundCompilerScope _stop_bg_compiler_(_thread_);                      \
+                                                                               \
+  /* This will enable the current thread to perform reload operations (as */   \
+  /* well as check-in with other thread's reload operations).             */   \
+  ReloadParticipationScope _allow_reload_(_thread_);                           \
+                                                                               \
+  /* The actual reload operation that will ensure all other mutators are */    \
+  /* stopped at well-defined places where reload can happen.             */    \
+  ReloadSafepointOperationScope _safepoint_operation_(_thread_);
 
 }  // namespace dart
 

@@ -6,14 +6,15 @@
 /// interop with JS. The JS type hierarchy is modeled after the actual type
 /// hierarchy in JS, and not the Dart type hierarchy.
 ///
-/// Note: The exact semantics of JS types currently depend on their backend
-/// implementation. JS backends currently support conflating Dart types and JS
-/// types, whereas Wasm backends do not. Over time we will try and unify backend
-/// semantics as much as possible.
+/// Note: The JS types that are exposed through this library are currently
+/// wrapper types that are erased to their runtime types. The runtime types will
+/// differ based on the backend. In general, stick to using conversion functions
+/// that are exposed as extension methods e.g. 'toJS'.
 ///
 /// **WARNING**:
-/// The following types will be sealed in the near future. Do *not* subtype
-/// the types in this library as the subtypes will be broken.
+/// This library is still a work in progress. As such, JS types, allowed syntax,
+/// semantics, and functionality may all change, so avoid using this library in
+/// production.
 ///
 /// {@category Web}
 library dart.js_interop;
@@ -21,26 +22,47 @@ library dart.js_interop;
 import 'dart:_js_types' as js_types;
 import 'dart:typed_data';
 
-/// Export the `dart:_js_annotations` version of the `@JS` annotation. This is
-/// mostly identical to the `package:js` version, except this is meant to be used
-/// for sound top-level external members and inline classes instead of the
-/// `package:js` classes.
-export 'dart:_js_annotations' show JS;
+/// Allow use of `@staticInterop` classes with JS types as well as export
+/// functionality.
+export 'dart:_js_annotations' show staticInterop, anonymous, JSExport;
 
-/// The annotation for object literal constructors.
+/// The annotation for JS interop members.
 ///
-/// Use this on an external constructor for an interop inline class that only
-/// has named args in order to create object literals performantly. The
-/// resulting object literal will use the parameter names as keys and the
-/// provided arguments as the values.
+/// This is meant to signify that a given library, top-level external member, or
+/// inline class is a JS interop declaration.
 ///
-/// Note that object literal constructors ignore the default values of
-/// parameters and only include the arguments you provide in the invocation of
-/// the constructor. This is similar to the `@anonymous` annotation in
-/// `package:js`.
-class ObjectLiteral {
-  const ObjectLiteral();
+/// Specifying [name] customizes the JavaScript name to use. This can be used in
+/// the following scenarios:
+///
+/// - Namespacing all the external top-level members, static members, and
+/// constructors of a library by annotating the library with a custom name.
+/// - Namespacing all the external static members and constructors of an inline
+/// class by annotating the inline class with a custom name.
+/// - Renaming external members by annotating the member with a custom name.
+///
+/// In the case where [name] is not specified, we default to the Dart name for
+/// inline classes and external members.
+///
+/// Note: `package:js` exports an `@JS` annotation as well. Unlike that
+/// annotation, this is meant for inline classes, and will result in more
+/// type-checking for external top-level members.
+class JS {
+  final String? name;
+  const JS([this.name]);
 }
+
+/// The JS types users should use to write their external APIs.
+///
+/// These are meant to separate the Dart and JS type hierarchies statically.
+///
+/// **WARNING**:
+/// For now, the runtime semantics between backends may differ and may not be
+/// intuitive e.g. casting to [JSString] may give you inconsistent and
+/// surprising results depending on the value. It is preferred to always use the
+/// conversion functions e.g. `toJS` and `toDart`. The only runtime semantics
+/// stability we can guarantee is if a value actually is the JS type you are
+/// type-checking with/casting to e.g. `obj as JSString` will continue to work
+/// if `obj` actually is a JavaScript string.
 
 /// The overall top type in the JS types hierarchy.
 typedef JSAny = js_types.JSAny;
@@ -57,6 +79,7 @@ typedef JSAny = js_types.JSAny;
 // sealed classes feature.
 // TODO(joshualitt): Do we need to seal any other JS types on JS backends? We
 // probably want to seal all JS types on Wasm backends.
+// TODO(joshualitt): Add a [JSObject] constructor.
 typedef JSObject = js_types.JSObject;
 
 /// The type of all JS functions, [JSFunction] <: [JSObject].
@@ -74,10 +97,11 @@ typedef JSPromise = js_types.JSPromise;
 /// The type of all JS arrays, [JSArray] <: [JSObject].
 typedef JSArray = js_types.JSArray;
 
-/// The type of all Dart objects exported to JS. If a Dart type is not
-/// explicitly marked with `@JSExport`, then no guarantees are made about its
-/// representation in JS. [JSExportedDartObject] <: [JSObject].
-typedef JSExportedDartObject = js_types.JSExportedDartObject;
+/// The type of the boxed Dart object that can be passed to JS safely. There is
+/// no interface specified of this boxed object, and you may get a new box each
+/// time you box the same Dart object.
+/// [JSBoxedDartObject] <: [JSObject].
+typedef JSBoxedDartObject = js_types.JSBoxedDartObject;
 
 /// The type of JS array buffers, [JSArrayBuffer] <: [JSObject].
 typedef JSArrayBuffer = js_types.JSArrayBuffer;
@@ -112,6 +136,9 @@ typedef JSBoolean = js_types.JSBoolean;
 /// The type of JS strings, [JSString] <: [JSAny].
 typedef JSString = js_types.JSString;
 
+/// A getter to retrieve the Global [JSObject].
+external JSObject get globalJSObject;
+
 /// `JSUndefined` and `JSNull` are actual reified types on some backends, but
 /// not others. Instead, users should use nullable types for any type that could
 /// contain `JSUndefined` or `JSNull`. However, instead of trying to determine
@@ -126,6 +153,24 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
   external bool get isNull;
   bool get isUndefinedOrNull => isUndefined || isNull;
   bool get isDefinedAndNotNull => !isUndefinedOrNull;
+  external JSBoolean typeofEquals(JSString typeString);
+
+  /// Effectively the inverse of [jsify], [dartify] Takes a JavaScript object,
+  /// and converts it to a Dart based object. Only JS primitives, arrays, or
+  /// 'map' like JS objects are supported.
+  external Object? dartify();
+}
+
+/// Utility extensions for [Object?].
+extension NullableObjectUtilExtension on Object? {
+  /// Recursively converts a JSON-like collection, or Dart primitive to a
+  /// JavaScript compatible representation.
+  external JSAny? jsify();
+}
+
+/// Utility extensions for [JSObject].
+extension JSObjectUtilExtension on JSObject {
+  external JSBoolean instanceof(JSFunction constructor);
 }
 
 /// The type of `JSUndefined` when returned from functions. Unlike pure JS,
@@ -146,13 +191,16 @@ extension FunctionToJSExportedDartFunction on Function {
   external JSExportedDartFunction get toJS;
 }
 
-/// [JSExportedDartObject] <-> [Object]
-extension JSExportedDartObjectToObject on JSExportedDartObject {
+/// [JSBoxedDartObject] <-> [Object]
+extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   external Object get toDart;
 }
 
-extension ObjectToJSExportedDartObject on Object {
-  external JSExportedDartObject get toJS;
+extension ObjectToJSBoxedDartObject on Object {
+  // TODO(srujzs): Remove. Prefer toJSBox.
+  external JSBoxedDartObject get toJS;
+
+  external JSBoxedDartObject get toJSBox;
 }
 
 /// [JSPromise] -> [Future<JSAny?>].
@@ -271,11 +319,21 @@ extension ListToJSArray on List<JSAny?> {
   external JSArray get toJS;
 }
 
-/// [JSNumber] <-> [double].
-extension JSNumberToDouble on JSNumber {
+/// [JSNumber] -> [double] or [int].
+extension JSNumberToNumber on JSNumber {
+  // TODO(srujzs): Remove. Prefer toDartDouble or toDartInt.
   external double get toDart;
+
+  /// Returns a Dart [double] for the given [JSNumber].
+  external double get toDartDouble;
+
+  /// Returns a Dart [int] for the given [JSNumber].
+  ///
+  /// If the [JSNumber] is not an integer value, throws.
+  external int get toDartInt;
 }
 
+/// [double] -> [JSNumber].
 extension DoubleToJSNumber on double {
   external JSNumber get toJS;
 }

@@ -1,0 +1,26 @@
+# Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+test/cbuilder/cbuilder_cross_android_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
+test/cbuilder/cbuilder_cross_linux_host_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
+test/cbuilder/cbuilder_cross_windows_host_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
+test/native_toolchain/gcc_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
+test/native_toolchain/ndk_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
+
+[ $runtime != vm ]
+*: SkipByDesign # Native assets is a VM-only feature.
+
+[ $system == linux ]
+test/cbuilder/compiler_resolver_test: SkipByDesign # Toolchains not installed in default locations on Dart CI.
+test/native_toolchain/clang_test: SkipByDesign # Toolchains not installed in default locations on Dart CI.
+test/tool/tool_resolver_test: SkipByDesign # Toolchains not installed in default locations on Dart CI.
+
+[ $system == macos ]
+test/cbuilder/cbuilder_cross_ios_test: SkipByDesign # XCode on Dart CI doesn't have the iphonesimulator SDK.
+test/native_toolchain/xcode_test: SkipByDesign # XCode on Dart CI doesn't have the iphonesimulator SDK.
+
+[ $system == windows ]
+test/cbuilder/compiler_resolver_test: SkipByDesign # Toolchains not installed in default locations on Dart CI.
+test/native_toolchain/msvc_test: SkipByDesign # Toolchains not installed in default locations on Dart CI.
+test/tool/tool_resolver_test: SkipByDesign # Toolchains not installed in default locations on Dart CI.

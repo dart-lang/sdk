@@ -259,10 +259,10 @@ int test(double a, String b) {
   }
 
   Future<void> test_functionType_importType() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 import 'package:test/a.dart';
 
 useFunction(int g(A a)) {}
@@ -348,7 +348,7 @@ void process(Map items) {
   }
 
   Future<void> test_importType() async {
-    addSource('$testPackageLibPath/lib.dart', r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 library lib;
 import 'dart:async';
 Future getFuture() => null;

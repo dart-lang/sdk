@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -24,6 +24,6 @@ static method test() → dynamic {
   self::C<core::int> x = self::C::•<core::int>(42);
   x.{self::C::t} = invalid-expression "pkg/front_end/testcases/inference/constructors_infer_from_arguments_factory.dart:22:55: Error: A value of type 'String' can't be assigned to a variable of type 'int?'.
   x. /*@target=C.t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
-                                                      ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int?;
+                                                      ^" in "hello" as{TypeError} core::int?;
 }
 static method main() → dynamic {}

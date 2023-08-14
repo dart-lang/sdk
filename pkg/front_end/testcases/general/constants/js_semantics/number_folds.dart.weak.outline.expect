@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -20,7 +20,7 @@ static const field core::int shiftNegative3 = 2.{core::int::>>}(1.{core::int::un
 static const field core::int modZero = 2.{core::num::%}(0){(core::num) → core::int};
 static const field core::int divZero = invalid-expression "pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:9:23: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
 const int divZero = 2 / 0;
-                      ^" in 2.{core::num::/}(0){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} core::int;
+                      ^" in 2.{core::num::/}(0){(core::num) → core::double} as{TypeError} core::int;
 static const field core::int intdivZero = 2.{core::num::~/}(0){(core::num) → core::int};
 static const field core::int unaryMinus = 2.{core::int::unary-}(){() → core::int};
 static const field core::int unaryTilde = 2.{core::int::~}(){() → core::int};
@@ -48,7 +48,7 @@ static const field core::bool binaryGreater = 42.{core::num::>}(42){(core::num) 
 static const field core::int doubleTruncateDiv = 84.2.{core::double::~/}(2){(core::num) → core::int};
 static const field core::int doubleTruncateDivZero = 84.2.{core::double::~/}(0){(core::num) → core::int};
 static const field dynamic nil = null;
-static const field core::int doubleTruncateDivNull = 84.2.{core::double::~/}(self::nil as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::int};
+static const field core::int doubleTruncateDivNull = 84.2.{core::double::~/}(self::nil as{TypeError,ForDynamic} core::num){(core::num) → core::int};
 static const field core::double doubleNan = 0.{core::num::/}(0){(core::num) → core::double};
 static const field core::int doubleTruncateDivNaN = 84.2.{core::double::~/}(self::doubleNan){(core::num) → core::int};
 static const field core::int bigNumber = -9223372036854775808;

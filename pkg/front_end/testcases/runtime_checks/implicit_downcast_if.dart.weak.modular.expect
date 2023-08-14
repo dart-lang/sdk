@@ -1,11 +1,11 @@
-library test;
+library test /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
   core::Object* o = 1;
   try {
-    if(o as{TypeError} core::bool*) {
+    if(o as{TypeError,ForLegacy} core::bool*) {
     }
     throw "no exception";
   }

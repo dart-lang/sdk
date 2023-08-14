@@ -35,7 +35,7 @@ void expect(actual, matcher) {}
     addPackageDataFile('''
 version: 1
 transforms:
-  - title:  'Replace expect'
+  - title: 'Replace expect'
     date: 2022-05-12
     bulkApply: false
     element:
@@ -71,7 +71,7 @@ main() {
     addPackageDataFile('''
 version: 1
 transforms:
-  - title:  'Replace expect'
+  - title: 'Replace expect'
     date: 2022-05-12
     bulkApply: false
     element:

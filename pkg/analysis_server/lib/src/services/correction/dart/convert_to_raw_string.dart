@@ -9,7 +9,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class ConvertToRawString extends CorrectionProducer {
+class ConvertToRawString extends ResolvedCorrectionProducer {
   @override
   bool get canBeAppliedInBulk => true;
 

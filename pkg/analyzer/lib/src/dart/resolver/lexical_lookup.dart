@@ -59,8 +59,8 @@ class LexicalLookupResult {
   final Element? requested;
   final Element? recovery;
 
-  /// The [FunctionType] referenced with `call`.
-  final FunctionType? callFunctionType;
+  /// The type, usually [FunctionType] referenced with `call`.
+  final DartType? callFunctionType;
 
   /// The field referenced in a [RecordType].
   final RecordTypeField? recordField;

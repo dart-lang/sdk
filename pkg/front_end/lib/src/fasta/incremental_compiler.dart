@@ -1465,11 +1465,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       if (childReplacementMap == null) return;
-      Builder replacement = childReplacementMap[declaration.name]!;
+      Builder? replacement = childReplacementMap[declaration.name];
       assert(
-          // ignore: unnecessary_null_comparison
-          replacement != null,
-          "Didn't find the replacement for $typeBuilder");
+          replacement != null, "Didn't find the replacement for $typeBuilder");
       typeBuilder.bind(
           parent as LibraryBuilder, replacement as TypeDeclarationBuilder);
     }
@@ -2366,18 +2364,7 @@ class ReusageResult {
       this.directlyInvalidated,
       this.invalidatedBecauseOfPackageUpdate,
       this.reusedLibraries,
-      this.partUriToParent)
-      :
-        // ignore: unnecessary_null_comparison
-        assert(notReusedLibraries != null),
-        // ignore: unnecessary_null_comparison
-        assert(directlyInvalidated != null),
-        // ignore: unnecessary_null_comparison
-        assert(invalidatedBecauseOfPackageUpdate != null),
-        // ignore: unnecessary_null_comparison
-        assert(reusedLibraries != null),
-        // ignore: unnecessary_null_comparison
-        assert(partUriToParent != null);
+      this.partUriToParent);
 }
 
 class ExperimentalInvalidation {
@@ -2386,13 +2373,7 @@ class ExperimentalInvalidation {
   final Set<Uri> missingSources;
 
   ExperimentalInvalidation(
-      this.rebuildBodies, this.originalNotReusedLibraries, this.missingSources)
-      // ignore: unnecessary_null_comparison
-      : assert(rebuildBodies != null),
-        // ignore: unnecessary_null_comparison
-        assert(originalNotReusedLibraries != null),
-        // ignore: unnecessary_null_comparison
-        assert(missingSources != null);
+      this.rebuildBodies, this.originalNotReusedLibraries, this.missingSources);
 }
 
 class IncrementalKernelTarget extends KernelTarget
@@ -2637,8 +2618,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
         context.options.fileSystem.entityForUri(initializeFromDillUri);
     if (await entity.exists()) {
       List<int> initializationBytes = await entity.readAsBytes();
-      // ignore: unnecessary_null_comparison
-      if (initializationBytes != null && initializationBytes.isNotEmpty) {
+      if (initializationBytes.isNotEmpty) {
         dillLoadedData.ticker.logMs("Read $initializeFromDillUri");
         data.initializationBytes = initializationBytes;
 

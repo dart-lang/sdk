@@ -31,12 +31,12 @@ main() async {
       print('$nestedList');
     });
   } catch (e) {
-    checkForRetainingPath(e, <String>[
-      'NativeWrapper',
+    Expect.isTrue(checkForRetainingPath(e, <String>[
+      'NativeClass',
       'Baz',
       'Fu',
       'Closure',
-    ]);
+    ]));
 
     final msg = e.toString();
     Expect.isTrue(msg.split('\n').length > NESTED_DEPTH * 2);

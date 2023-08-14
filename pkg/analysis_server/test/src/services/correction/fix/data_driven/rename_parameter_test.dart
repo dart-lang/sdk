@@ -15,6 +15,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameParameterInConstructorTest);
     defineReflectiveTests(RenameParameterInMethodTest);
+    defineReflectiveTests(RenameParameterInMethodWithDiagnosticTest);
     defineReflectiveTests(RenameParameterInTopLevelFunctionTest);
   });
 }
@@ -128,7 +129,7 @@ class C {
   int m({int b, @deprecated int a}) => 0;
 }
 ''');
-    setPackageData(_rename(['m', 'D'], 'a', 'nbew'));
+    setPackageData(_rename(['m', 'D'], 'a', 'd'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -262,6 +263,174 @@ void f() {
     setPackageContent('''
 class C {
   static int m({int b}) => 0;
+}
+''');
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  C.m(a: 1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  C.m(b: 1);
+}
+''');
+  }
+}
+
+/// The method has the diagnostic.
+@reflectiveTest
+class RenameParameterInMethodWithDiagnosticTest
+    extends _AbstractRenameParameterInTest {
+  @override
+  String get _kind => 'method';
+
+  Future<void> test_differentMethod() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int m({int b, int a}) => 0;
+}
+''');
+    setPackageData(_rename(['m', 'D'], 'a', 'd'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(C c) {
+  c.m(a: 1);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_instance_override_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int m({int? b, int? a}) => 0;
+}
+''');
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+class D extends C {
+  @override
+  int m({int? a}) => 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+class D extends C {
+  @override
+  int m({int? b, int? a}) => 0;
+}
+''');
+  }
+
+  Future<void> test_instance_override_removed() async {
+    setPackageContent('''
+class C {
+}
+''');
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+class D extends C {
+  @override
+  int m({int? a}) => 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+class D extends C {
+  @override
+  int m({int? b}) => 0;
+}
+''');
+  }
+
+  Future<void> test_instance_reference_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int m({int b, int a}) => 0;
+}
+''');
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(C c) {
+  c.m(a: 1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m(b: 1);
+}
+''');
+  }
+
+  Future<void> test_instance_reference_removed() async {
+    setPackageContent('''
+class C {
+}
+''');
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(C c) {
+  c.m(a: 1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m(b: 1);
+}
+''');
+  }
+
+  Future<void> test_static_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  static int m({int b, int a}) => 0;
+}
+''');
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  C.m(a: 1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  C.m(b: 1);
+}
+''');
+  }
+
+  Future<void> test_static_removed() async {
+    setPackageContent('''
+class C {
 }
 ''');
     setPackageData(_rename(['m', 'C'], 'a', 'b'));

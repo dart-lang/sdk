@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "opt_out_lib.dart" as opt;
@@ -15,7 +15,7 @@ static method foo(dynamic d, void v, core::Object? onull, core::Object o, core::
 }
 static method main() → dynamic {}
 
-library;
+library /*isLegacy*/;
 import self as opt;
 import "dart:core" as core;
 

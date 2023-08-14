@@ -583,7 +583,7 @@ class Assembler : public AssemblerBase {
                      OperandSize width = kEightBytes);
 
   void AndImmediate(Register dst, const Immediate& imm);
-  void AndImmediate(Register dst, int64_t value) {
+  void AndImmediate(Register dst, int64_t value) override {
     AndImmediate(dst, Immediate(value));
   }
   void AndImmediate(Register dst, Register src, int64_t value) {
@@ -1205,10 +1205,11 @@ class Assembler : public AssemblerBase {
 
   void LoadAcquire(Register dst,
                    Register address,
-                   int32_t offset = 0) override {
+                   int32_t offset = 0,
+                   OperandSize size = kEightBytes) override {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
-    movq(dst, Address(address, offset));
+    LoadFromOffset(dst, Address(address, offset), size);
 #if defined(USING_THREAD_SANITIZER)
     TsanLoadAcquire(Address(address, offset));
 #endif
@@ -1244,26 +1245,20 @@ class Assembler : public AssemblerBase {
 #endif
   }
 
-  void CompareWithMemoryValue(Register value, Address address) {
-    cmpq(value, address);
+  void CompareWithMemoryValue(Register value,
+                              Address address,
+                              OperandSize size = kEightBytes) override {
+    ASSERT(size == kEightBytes || size == kFourBytes);
+    if (size == kFourBytes) {
+      cmpl(value, address);
+    } else {
+      cmpq(value, address);
+    }
   }
   void CompareWithCompressedFieldFromOffset(Register value,
                                             Register base,
                                             int32_t offset) {
     OBJ(cmp)(value, FieldAddress(base, offset));
-  }
-
-  void LoadAbstractTypeNullability(Register dst, Register type) override {
-    movzxb(dst,
-           FieldAddress(type, compiler::target::AbstractType::flags_offset()));
-    andl(dst,
-         Immediate(compiler::target::UntaggedAbstractType::kNullabilityMask));
-  }
-  void CompareAbstractTypeNullabilityWith(Register type,
-                                          /*Nullability*/ int8_t value,
-                                          Register scratch) override {
-    LoadAbstractTypeNullability(scratch, type);
-    cmpl(scratch, Immediate(value));
   }
 
   void RestoreCodePointer();

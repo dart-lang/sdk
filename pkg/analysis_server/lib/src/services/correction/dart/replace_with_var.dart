@@ -6,13 +6,14 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ReplaceWithVar extends CorrectionProducer {
+class ReplaceWithVar extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.REPLACE_WITH_VAR;
 
@@ -124,7 +125,7 @@ class ReplaceWithVar extends CorrectionProducer {
   /// Return `true` if the type in the [node] can be replaced with `var`.
   bool _canConvertVariableDeclarationList(VariableDeclarationList node) {
     final staticType = node.type?.type;
-    if (staticType == null || staticType.isDynamic) {
+    if (staticType == null || staticType is DynamicType) {
       return false;
     }
     for (final child in node.variables) {
@@ -147,7 +148,7 @@ class ReplaceWithVar extends CorrectionProducer {
       } else if (parent is ForEachPartsWithDeclaration) {
         var loopVariableType = parent.loopVariable.type;
         var staticType = loopVariableType?.type;
-        if (staticType == null || staticType.isDynamic) {
+        if (staticType == null || staticType is DynamicType) {
           return false;
         }
         final iterableType = parent.iterable.typeOrThrow;

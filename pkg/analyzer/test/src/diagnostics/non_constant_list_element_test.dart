@@ -18,15 +18,6 @@ class NonConstantListElementTest extends PubPackageResolutionTest
     with NonConstantListElementTestCases {}
 
 mixin NonConstantListElementTestCases on PubPackageResolutionTest {
-  test_const_forElement() async {
-    await assertErrorsInCode(r'''
-const Set set = {};
-var v = const [for(final x in set) x];
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 35, 21),
-    ]);
-  }
-
   test_const_ifElement_thenElseFalse_finalElse() async {
     await assertErrorsInCode('''
 final dynamic a = 0;

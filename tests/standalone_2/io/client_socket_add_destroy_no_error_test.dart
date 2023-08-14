@@ -12,21 +12,21 @@ import "dart:io";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-void clientSocketAddDestroyNoErrorTest() {
-  ServerSocket.bind("127.0.0.1", 0).then((server) {
-    server.listen((socket) {
-      // Passive block data by not subscribing to socket.
-    });
-    Socket.connect("127.0.0.1", server.port).then((client) {
-      client.listen((data) {}, onDone: server.close);
-      client.add(new List.filled(1024 * 1024, 0));
-      client.destroy();
-    });
-  });
-}
-
-main() {
+void main() async {
   asyncStart();
-  clientSocketAddDestroyNoErrorTest();
-  asyncEnd();
+
+  final server = await ServerSocket.bind("127.0.0.1", 0);
+  Socket connectedSocket;
+  server.listen((socket) {
+    // Note: must keep socket alive for the duration of the test.
+    // Otherwise GC might collect it and and shutdown this side of socket
+    // which would cause writing to abort.
+    connectedSocket = socket;
+    // Passive block data by not subscribing to socket.
+  }, onDone: asyncEnd);
+
+  final client = await Socket.connect("127.0.0.1", server.port);
+  client.listen((data) {}, onDone: server.close);
+  client.add(new List.filled(1024 * 1024, 0));
+  client.destroy();
 }

@@ -16,32 +16,26 @@ main() {
 @reflectiveTest
 class LogicalAndPatternResolutionTest extends PubPackageResolutionTest {
   test_ifCase() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f(x) {
   if (x case int _ && double _) {}
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 34, 8),
-    ]);
+''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalAndPattern
   leftOperand: WildcardPattern
     type: NamedType
-      name: SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: null
+      name: int
+      element: dart:core::@class::int
       type: int
     name: _
     matchedValueType: dynamic
   operator: &&
   rightOperand: WildcardPattern
     type: NamedType
-      name: SimpleIdentifier
-        token: double
-        staticElement: dart:core::@class::double
-        staticType: null
+      name: double
+      element: dart:core::@class::double
       type: double
     name: _
     matchedValueType: int
@@ -50,35 +44,29 @@ LogicalAndPattern
   }
 
   test_switchCase() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f(x) {
   switch (x) {
     case int _ && double _:
       break;
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 45, 8),
-    ]);
+''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalAndPattern
   leftOperand: WildcardPattern
     type: NamedType
-      name: SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: null
+      name: int
+      element: dart:core::@class::int
       type: int
     name: _
     matchedValueType: dynamic
   operator: &&
   rightOperand: WildcardPattern
     type: NamedType
-      name: SimpleIdentifier
-        token: double
-        staticElement: dart:core::@class::double
-        staticType: null
+      name: double
+      element: dart:core::@class::double
       type: double
     name: _
     matchedValueType: int

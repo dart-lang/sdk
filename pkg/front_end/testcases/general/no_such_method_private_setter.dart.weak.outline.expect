@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "no_such_method_private_setter_lib.dart" as no_;
@@ -16,7 +16,7 @@ class Foo extends core::Object implements no_::Bar {
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as no_;
 import "dart:core" as core;
 

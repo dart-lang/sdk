@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -50,23 +50,23 @@ static method getStreamBool() → asy::Stream<core::bool> async* {
   yield true;
 }
 static method test1() → asy::Stream<core::bool> async* {
-  yield self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+  yield self::getNull() as{TypeError,ForDynamic} core::bool;
 }
 static method test2() → asy::Stream<core::bool>
-  return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<core::bool>;
+  return self::getNull() as{TypeError,ForDynamic} asy::Stream<core::bool>;
 static method test3() → core::bool
-  return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+  return self::getNull() as{TypeError,ForDynamic} core::bool;
 static method test4() → asy::Stream<core::bool> async* {
   yield* invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:21:10: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
  - 'Stream' is from 'dart:async'.
   yield* getStreamNull(); // error
-         ^" in self::getStreamNull() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+         ^" in self::getStreamNull() as{TypeError} asy::Stream<core::bool>;
 }
 static method test5() → asy::Stream<core::bool>
   return invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:24:25: Error: A value of type 'Stream<dynamic>' can't be returned from a function with return type 'Stream<bool>'.
  - 'Stream' is from 'dart:async'.
 Stream<bool> test5() => getStreamNull(); // error
-                        ^" in self::getStreamNull() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+                        ^" in self::getStreamNull() as{TypeError} asy::Stream<core::bool>;
 static method test6() → asy::Stream<core::bool>
   return self::getStreamBool();
 static method test7() → asy::Stream<core::bool> async* {
@@ -74,23 +74,23 @@ static method test7() → asy::Stream<core::bool> async* {
 }
 static method test() → dynamic async /* futureValueType= dynamic */ {
   function test1() → asy::Stream<core::bool> async* {
-    yield self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+    yield self::getNull() as{TypeError,ForDynamic} core::bool;
   }
   function test2() → asy::Stream<core::bool>
-    return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<core::bool>;
+    return self::getNull() as{TypeError,ForDynamic} asy::Stream<core::bool>;
   function test3() → core::bool
-    return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+    return self::getNull() as{TypeError,ForDynamic} core::bool;
   function test4() → asy::Stream<core::bool> async* {
     yield* invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:38:12: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
  - 'Stream' is from 'dart:async'.
     yield* getStreamNull(); // error
-           ^" in self::getStreamNull() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+           ^" in self::getStreamNull() as{TypeError} asy::Stream<core::bool>;
   }
   function test5() → asy::Stream<core::bool>
     return invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:41:27: Error: A value of type 'Stream<dynamic>' can't be returned from a function with return type 'Stream<bool>'.
  - 'Stream' is from 'dart:async'.
   Stream<bool> test5() => getStreamNull(); // error
-                          ^" in self::getStreamNull() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+                          ^" in self::getStreamNull() as{TypeError} asy::Stream<core::bool>;
   function test6() → asy::Stream<core::bool>
     return self::getStreamBool();
   function test7() → asy::Stream<core::bool> async* {
@@ -101,19 +101,19 @@ static method test() → dynamic async /* futureValueType= dynamic */ {
   })(); // error
     ^" in (() → asy::Stream<dynamic> async* {
     yield self::getNull();
-  })(){() → asy::Stream<dynamic>} as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
-  asy::Stream<core::bool> var2 = (() → dynamic => self::getNull())(){() → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<core::bool>;
-  core::bool var3 = (() → dynamic => self::getNull())(){() → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+  })(){() → asy::Stream<dynamic>} as{TypeError} asy::Stream<core::bool>;
+  asy::Stream<core::bool> var2 = (() → dynamic => self::getNull())(){() → dynamic} as{TypeError,ForDynamic} asy::Stream<core::bool>;
+  core::bool var3 = (() → dynamic => self::getNull())(){() → dynamic} as{TypeError,ForDynamic} core::bool;
   asy::Stream<core::bool> var4 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:54:5: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
  - 'Stream' is from 'dart:async'.
   })(); // error
     ^" in (() → asy::Stream<dynamic> async* {
     yield* self::getStreamNull();
-  })(){() → asy::Stream<dynamic>} as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+  })(){() → asy::Stream<dynamic>} as{TypeError} asy::Stream<core::bool>;
   asy::Stream<core::bool> var5 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:55:46: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
  - 'Stream' is from 'dart:async'.
   Stream<bool> var5 = (() => getStreamNull())(); // error
-                                             ^" in (() → asy::Stream<dynamic> => self::getStreamNull())(){() → asy::Stream<dynamic>} as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+                                             ^" in (() → asy::Stream<dynamic> => self::getStreamNull())(){() → asy::Stream<dynamic>} as{TypeError} asy::Stream<core::bool>;
   asy::Stream<core::bool> var6 = (() → asy::Stream<core::bool> => self::getStreamBool())(){() → asy::Stream<core::bool>};
   asy::Stream<core::bool> var7 = (() → asy::Stream<core::bool> async* {
     yield* self::getStreamBool();

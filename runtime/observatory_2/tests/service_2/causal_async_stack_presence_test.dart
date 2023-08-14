@@ -10,28 +10,35 @@ import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_C = 19;
-const LINE_A = 25;
-const LINE_B = 31;
+const LINE_C = 23;
+const LINE_A = 29;
+const LINE_B = 35;
+
+const LINE_0 = 22;
+const LINE_1 = 28;
+const LINE_2 = 34;
 
 foobar() {
-  debugger();
+  debugger(); // LINE_0.
   print('foobar'); // LINE_C.
 }
 
 helper() async {
   await 0; // Yield. The rest will run async.
-  debugger();
+  debugger(); // LINE_1.
   print('helper'); // LINE_A.
   foobar();
 }
 
 testMain() {
-  debugger();
+  debugger(); // LINE_2.
   helper(); // LINE_B.
 }
 
 var tests = <IsolateTest>[
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_2),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
   (Isolate isolate) async {
@@ -41,6 +48,9 @@ var tests = <IsolateTest>[
   },
   resumeIsolate,
   hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_1),
+  stepOver,
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
@@ -48,6 +58,9 @@ var tests = <IsolateTest>[
     expect(stack['asyncCausalFrames'], isNotNull);
   },
   resumeIsolate,
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_C),
   (Isolate isolate) async {

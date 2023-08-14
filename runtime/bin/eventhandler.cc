@@ -15,14 +15,14 @@
 namespace dart {
 namespace bin {
 
-static EventHandler* event_handler = NULL;
-static Monitor* shutdown_monitor = NULL;
+static EventHandler* event_handler = nullptr;
+static Monitor* shutdown_monitor = nullptr;
 
 void EventHandler::Start() {
   // Initialize global socket registry.
   ListeningSocketRegistry::Initialize();
 
-  ASSERT(event_handler == NULL);
+  ASSERT(event_handler == nullptr);
   shutdown_monitor = new Monitor();
   event_handler = new EventHandler();
   event_handler->delegate_.Start(event_handler);
@@ -38,7 +38,7 @@ void EventHandler::NotifyShutdownDone() {
 }
 
 void EventHandler::Stop() {
-  if (event_handler == NULL) {
+  if (event_handler == nullptr) {
     return;
   }
 
@@ -53,17 +53,17 @@ void EventHandler::Stop() {
 
   // Cleanup
   delete event_handler;
-  event_handler = NULL;
+  event_handler = nullptr;
   delete shutdown_monitor;
-  shutdown_monitor = NULL;
+  shutdown_monitor = nullptr;
 
   // Destroy the global socket registry.
   ListeningSocketRegistry::Cleanup();
 }
 
 EventHandlerImplementation* EventHandler::delegate() {
-  if (event_handler == NULL) {
-    return NULL;
+  if (event_handler == nullptr) {
+    return nullptr;
   }
   return &event_handler->delegate_;
 }

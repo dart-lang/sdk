@@ -14,8 +14,8 @@ namespace dart {
 
 TEST_CASE(Read) {
   const char* kFilename = bin::test::GetFileName("runtime/bin/file_test.cc");
-  bin::File* file = bin::File::Open(NULL, kFilename, bin::File::kRead);
-  EXPECT(file != NULL);
+  bin::File* file = bin::File::Open(nullptr, kFilename, bin::File::kRead);
+  EXPECT(file != nullptr);
   char buffer[16];
   buffer[0] = '\0';
   EXPECT(file->ReadFully(buffer, 13));  // ReadFully returns true.
@@ -41,8 +41,8 @@ TEST_CASE(OpenUri_RelativeFilename) {
     }
   }
   *t = 0;
-  bin::File* file = bin::File::OpenUri(NULL, encoded, bin::File::kRead);
-  EXPECT(file != NULL);
+  bin::File* file = bin::File::OpenUri(nullptr, encoded, bin::File::kRead);
+  EXPECT(file != nullptr);
   char buffer[16];
   buffer[0] = '\0';
   EXPECT(file->ReadFully(buffer, 13));  // ReadFully returns true.
@@ -55,7 +55,8 @@ TEST_CASE(OpenUri_RelativeFilename) {
 TEST_CASE(OpenUri_AbsoluteFilename) {
   const char* kRelativeFilename =
       bin::test::GetFileName("runtime/bin/file_test.cc");
-  const char* kFilename = bin::File::GetCanonicalPath(NULL, kRelativeFilename);
+  const char* kFilename =
+      bin::File::GetCanonicalPath(nullptr, kRelativeFilename);
   EXPECT_NOTNULL(kFilename);
   char* encoded = reinterpret_cast<char*>(bin::DartUtils::ScopedCString(
       strlen(kFilename) * 3 + 1));
@@ -71,8 +72,8 @@ TEST_CASE(OpenUri_AbsoluteFilename) {
     }
   }
   *t = 0;
-  bin::File* file = bin::File::OpenUri(NULL, encoded, bin::File::kRead);
-  EXPECT(file != NULL);
+  bin::File* file = bin::File::OpenUri(nullptr, encoded, bin::File::kRead);
+  EXPECT(file != nullptr);
   char buffer[16];
   buffer[0] = '\0';
   EXPECT(file->ReadFully(buffer, 13));  // ReadFully returns true.
@@ -93,8 +94,8 @@ static const char* Concat(const char* a, const char* b) {
 TEST_CASE(OpenUri_ValidUri) {
   const char* kRelativeFilename =
       bin::test::GetFileName("runtime/bin/file_test.cc");
-  const char* kAbsoluteFilename = bin::File::GetCanonicalPath(NULL,
-      kRelativeFilename);
+  const char* kAbsoluteFilename =
+      bin::File::GetCanonicalPath(nullptr, kRelativeFilename);
   EXPECT_NOTNULL(kAbsoluteFilename);
   const char* kFilename = Concat("file:///", kAbsoluteFilename);
 
@@ -112,8 +113,8 @@ TEST_CASE(OpenUri_ValidUri) {
     }
   }
   *t = 0;
-  bin::File* file = bin::File::OpenUri(NULL, encoded, bin::File::kRead);
-  EXPECT(file != NULL);
+  bin::File* file = bin::File::OpenUri(nullptr, encoded, bin::File::kRead);
+  EXPECT(file != nullptr);
   char buffer[16];
   buffer[0] = '\0';
   EXPECT(file->ReadFully(buffer, 13));  // ReadFully returns true.
@@ -126,17 +127,17 @@ TEST_CASE(OpenUri_ValidUri) {
 TEST_CASE(OpenUri_UriWithSpaces) {
   const char* kRelativeFilename =
       bin::test::GetFileName("runtime/bin/file_test.cc");
-  const char* strSystemTemp = bin::Directory::SystemTemp(NULL);
+  const char* strSystemTemp = bin::Directory::SystemTemp(nullptr);
   EXPECT_NOTNULL(strSystemTemp);
   const char* kTempDir = Concat(strSystemTemp, "/foo bar");
-  const char* strTempDir = bin::Directory::CreateTemp(NULL, kTempDir);
+  const char* strTempDir = bin::Directory::CreateTemp(nullptr, kTempDir);
   EXPECT_NOTNULL(strTempDir);
   const char* kTargetFilename = Concat(strTempDir, "/file test.cc");
-  bool result = bin::File::Copy(NULL, kRelativeFilename, kTargetFilename);
+  bool result = bin::File::Copy(nullptr, kRelativeFilename, kTargetFilename);
   EXPECT(result);
 
-  const char* kAbsoluteFilename = bin::File::GetCanonicalPath(NULL,
-      kTargetFilename);
+  const char* kAbsoluteFilename =
+      bin::File::GetCanonicalPath(nullptr, kTargetFilename);
   EXPECT_NOTNULL(kAbsoluteFilename);
   const char* kFilename = Concat("file:///", kAbsoluteFilename);
 
@@ -155,8 +156,8 @@ TEST_CASE(OpenUri_UriWithSpaces) {
   }
   *t = 0;
   printf("encoded: %s\n", encoded);
-  bin::File* file = bin::File::OpenUri(NULL, encoded, bin::File::kRead);
-  EXPECT(file != NULL);
+  bin::File* file = bin::File::OpenUri(nullptr, encoded, bin::File::kRead);
+  EXPECT(file != nullptr);
   char buffer[16];
   buffer[0] = '\0';
   EXPECT(file->ReadFully(buffer, 13));  // ReadFully returns true.
@@ -164,7 +165,7 @@ TEST_CASE(OpenUri_UriWithSpaces) {
   EXPECT_STREQ("// Copyright ", buffer);
   EXPECT(!file->WriteByte(1));  // Cannot write to a read-only file.
   file->Release();
-  bin::Directory::Delete(NULL, strTempDir, /* recursive= */ true);
+  bin::Directory::Delete(nullptr, strTempDir, /* recursive= */ true);
 }
 
 TEST_CASE(OpenUri_InvalidUriPercentEncoding) {
@@ -183,8 +184,8 @@ TEST_CASE(OpenUri_InvalidUriPercentEncoding) {
     }
   }
   *t = 0;
-  bin::File* file = bin::File::OpenUri(NULL, encoded, bin::File::kRead);
-  EXPECT(file == NULL);
+  bin::File* file = bin::File::OpenUri(nullptr, encoded, bin::File::kRead);
+  EXPECT(file == nullptr);
 }
 
 TEST_CASE(OpenUri_TruncatedUriPercentEncoding) {
@@ -203,15 +204,15 @@ TEST_CASE(OpenUri_TruncatedUriPercentEncoding) {
     }
   }
   *(t - 1) = 0;  // truncate last uri encoding
-  bin::File* file = bin::File::OpenUri(NULL, encoded, bin::File::kRead);
-  EXPECT(file == NULL);
+  bin::File* file = bin::File::OpenUri(nullptr, encoded, bin::File::kRead);
+  EXPECT(file == nullptr);
 }
 
 TEST_CASE(FileLength) {
   const char* kFilename =
       bin::test::GetFileName("runtime/tests/vm/data/fixed_length_file");
-  bin::File* file = bin::File::Open(NULL, kFilename, bin::File::kRead);
-  EXPECT(file != NULL);
+  bin::File* file = bin::File::Open(nullptr, kFilename, bin::File::kRead);
+  EXPECT(file != nullptr);
   EXPECT_EQ(42, file->Length());
   file->Release();
 }
@@ -220,8 +221,8 @@ TEST_CASE(FilePosition) {
   char buf[42];
   const char* kFilename =
       bin::test::GetFileName("runtime/tests/vm/data/fixed_length_file");
-  bin::File* file = bin::File::Open(NULL, kFilename, bin::File::kRead);
-  EXPECT(file != NULL);
+  bin::File* file = bin::File::Open(nullptr, kFilename, bin::File::kRead);
+  EXPECT(file != nullptr);
   EXPECT(file->ReadFully(buf, 12));
   EXPECT_EQ(12, file->Position());
   EXPECT(file->ReadFully(buf, 6));

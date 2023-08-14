@@ -269,10 +269,10 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #if XLEN == 32
       __ lw(TMP, compiler::Address(src_reg, 0));
       __ lw(TMP2, compiler::Address(src_reg, 4));
-      __ addi(src_reg, src_reg, 16);
+      __ addi(src_reg, src_reg, 8);
       __ sw(TMP, compiler::Address(dest_reg, 0));
       __ sw(TMP2, compiler::Address(dest_reg, 4));
-      __ addi(dest_reg, dest_reg, 16);
+      __ addi(dest_reg, dest_reg, 8);
 #else
       __ ld(TMP, compiler::Address(src_reg));
       __ addi(src_reg, src_reg, 8);
@@ -1693,13 +1693,11 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ StoreToOffset(tmp, THR, compiler::target::Thread::top_resource_offset());
 
   // Reset the exit frame info to old_exit_frame_reg *before* entering the
-  // safepoint.
-  //
-  // If we were called by a trampoline, it will enter the safepoint on our
+  // safepoint. The trampoline that called us will enter the safepoint on our
   // behalf.
-  __ TransitionGeneratedToNative(
-      vm_tag_reg, old_exit_frame_reg, old_exit_through_ffi_reg,
-      /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
+  __ TransitionGeneratedToNative(vm_tag_reg, old_exit_frame_reg,
+                                 old_exit_through_ffi_reg,
+                                 /*enter_safepoint=*/false);
 
   __ PopNativeCalleeSavedRegisters();
 
@@ -1738,34 +1736,6 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ PushNativeCalleeSavedRegisters();
 
-  // Load the thread object. If we were called by a trampoline, the thread is
-  // already loaded.
-  if (FLAG_precompiled_mode) {
-    compiler->LoadBSSEntry(BSS::Relocation::DRT_GetThreadForNativeCallback, A1,
-                           A0);
-  } else if (!NativeCallbackTrampolines::Enabled()) {
-    // In JIT mode, we can just paste the address of the runtime entry into the
-    // generated code directly. This is not a problem since we don't save
-    // callbacks into JIT snapshots.
-    __ LoadImmediate(
-        A1, reinterpret_cast<int64_t>(DLRT_GetThreadForNativeCallback));
-  }
-
-  const intptr_t callback_id = marshaller_.dart_signature().FfiCallbackId();
-
-  if (!NativeCallbackTrampolines::Enabled()) {
-    // Create another frame to align the frame before continuing in "native"
-    // code.
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
-    __ LoadImmediate(A0, callback_id);
-    __ jalr(A1);
-    __ mv(THR, A0);
-
-    __ LeaveFrame();
-  }
-
 #if defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
@@ -1795,15 +1765,20 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // correct offset from FP.
   __ EmitEntryFrameVerification();
 
-  // Either DLRT_GetThreadForNativeCallback or the callback trampoline (caller)
-  // will leave the safepoint for us.
+  // The callback trampoline (caller) has already left the safepoint for us.
   __ TransitionNativeToGenerated(A0, /*exit_safepoint=*/false);
 
   // Now that the safepoint has ended, we can touch Dart objects without
   // handles.
 
   // Load the code object.
-  __ LoadFromOffset(A0, THR, compiler::target::Thread::callback_code_offset());
+  const Function& target_function = marshaller_.dart_signature();
+  const intptr_t callback_id = target_function.FfiCallbackId();
+  __ LoadFromOffset(A0, THR, compiler::target::Thread::isolate_group_offset());
+  __ LoadFromOffset(A0, A0,
+                    compiler::target::IsolateGroup::object_store_offset());
+  __ LoadFromOffset(A0, A0,
+                    compiler::target::ObjectStore::ffi_callback_code_offset());
   __ LoadCompressedFieldFromOffset(
       A0, A0, compiler::target::GrowableObjectArray::data_offset());
   __ LoadCompressedFieldFromOffset(
@@ -1950,8 +1925,8 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register decoder_temp_reg = start_reg;
   const Register flags_temp_reg = end_reg;
 
-  static const intptr_t kSizeMask = 0x03;
-  static const intptr_t kFlagsMask = 0x3C;
+  const intptr_t kSizeMask = 0x03;
+  const intptr_t kFlagsMask = 0x3C;
 
   compiler::Label loop, loop_in;
 

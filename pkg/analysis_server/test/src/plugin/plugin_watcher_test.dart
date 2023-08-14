@@ -47,7 +47,7 @@ class PluginWatcherTest extends AbstractContextTest {
         ..add(name: 'foo', rootPath: convertPath('/foo')),
     );
 
-    var driver = driverFor(testPackageRootPath);
+    var driver = driverFor(testFile);
     _analysisOptionsImpl(driver).enabledPluginNames = ['foo'];
 
     expect(manager.addedContextRoots, isEmpty);
@@ -70,7 +70,7 @@ class PluginWatcherTest extends AbstractContextTest {
   }
 
   Future<void> test_addedDriver_missingPackage() async {
-    var driver = driverFor(testPackageRootPath);
+    var driver = driverFor(testFile);
     _analysisOptionsImpl(driver).enabledPluginNames = ['noSuchPackage'];
 
     watcher.addedDriver(driver);
@@ -86,7 +86,7 @@ class PluginWatcherTest extends AbstractContextTest {
   }
 
   void test_removedDriver() {
-    var driver = driverFor(testPackageRootPath);
+    var driver = driverFor(testFile);
     var contextRoot = driver.analysisContext!.contextRoot;
     watcher.addedDriver(driver);
     watcher.removedDriver(driver);

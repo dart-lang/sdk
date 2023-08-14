@@ -82,14 +82,73 @@ var b = const B();
 ''');
   }
 
-  test_nonConst() async {
+  test_nonConst_factory() async {
     await assertErrorsInCode(r'''
-class T {
-  T(a, b, {c, d}) {}
+class A {
+  factory A(int a) => throw 0;
 }
-f() { return const T(0, 1, c: 2, d: 3); }
+
+void f() {
+  const A(0);
+}
 ''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 46, 5),
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 57, 5),
     ]);
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: const
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: self::@class::A
+      type: A
+    staticElement: self::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@class::A::@constructor::new::@parameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
+  }
+
+  test_nonConst_generative() async {
+    await assertErrorsInCode(r'''
+class A {
+  A(int a);
+}
+
+void f() {
+  const A(0);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 38, 5),
+    ]);
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: const
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: self::@class::A
+      type: A
+    staticElement: self::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@class::A::@constructor::new::@parameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
   }
 }

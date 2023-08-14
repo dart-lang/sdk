@@ -72,10 +72,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       }
     }
     if (expression is ExtensionOverride) {
-      var staticElement = expression.staticElement;
-      if (staticElement != null) {
-        _addInstanceMembers(staticElement, defaultKind, 0.0);
-      }
+      _addInstanceMembers(expression.element, defaultKind, 0.0);
     } else {
       var type = expression.staticType;
       if (type == null) {

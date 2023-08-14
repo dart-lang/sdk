@@ -16,6 +16,8 @@
 #include "bin/virtual_memory.h"
 #include "platform/elf.h"
 
+#include "platform/unwinding_records.h"
+
 namespace dart {
 namespace bin {
 
@@ -239,6 +241,12 @@ class LoadedElf {
   const dart::elf::Symbol* dynamic_symbol_table_ = nullptr;
   uword dynamic_symbol_count_ = 0;
 
+#if defined(DART_HOST_OS_WINDOWS) && defined(HOST_ARCH_X64)
+  // Dynamic table for looking up unwinding exceptions info.
+  // Initialized by LoadSegments as we load executable segment.
+  MallocGrowableArray<void*> dynamic_runtime_function_tables_;
+#endif
+
   DISALLOW_COPY_AND_ASSIGN(LoadedElf);
 };
 
@@ -261,6 +269,7 @@ class LoadedElf {
   }
 
 bool LoadedElf::Load() {
+  UnwindingRecordsPlatform::Init();
   VirtualMemory::Init();
 
   if (error_ != nullptr) {
@@ -291,6 +300,13 @@ LoadedElf::~LoadedElf() {
   program_table_mapping_.reset();
   section_table_mapping_.reset();
   section_string_table_mapping_.reset();
+#if defined(DART_HOST_OS_WINDOWS) && defined(HOST_ARCH_X64)
+  for (intptr_t i = 0; i < dynamic_runtime_function_tables_.length(); i++) {
+    UnwindingRecordsPlatform::UnregisterDynamicTable(
+        dynamic_runtime_function_tables_[i]);
+  }
+  UnwindingRecordsPlatform::Cleanup();
+#endif
 }
 
 bool LoadedElf::ReadHeader() {
@@ -446,6 +462,16 @@ bool LoadedElf::LoadSegments() {
     CHECK_ERROR(memory != nullptr, "Could not map segment.");
     CHECK_ERROR(memory->address() == memory_start,
                 "Mapping not at requested address.");
+#if defined(DART_HOST_OS_WINDOWS) && defined(HOST_ARCH_X64)
+    // For executable pages register unwinding information that should be
+    // present on the page.
+    if (map_type == File::kReadExecute) {
+      void* ptable = nullptr;
+      UnwindingRecordsPlatform::RegisterExecutableMemory(
+          memory->address(), memory->size(), &ptable);
+      dynamic_runtime_function_tables_.Add(ptable);
+    }
+#endif
   }
 
   return true;

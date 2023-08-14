@@ -25,6 +25,7 @@ import 'package:test/test.dart';
 void runTests({
   required ModuleFormat moduleFormat,
   required bool soundNullSafety,
+  required bool canaryFeatures,
   bool verbose = false,
 }) {
   group('expression compiler worker on startup', () {
@@ -64,6 +65,7 @@ void runTests({
             '--module-format',
             moduleFormat.name,
             soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
+            if (canaryFeatures) '--canary',
             if (verbose) '--verbose',
           ],
           sendPort: receivePort.sendPort,
@@ -75,18 +77,30 @@ void runTests({
   });
 
   group('reading assets using standard file system - ', () {
-    runExpressionCompilationTests(
-        StandardFileSystemTestDriver(soundNullSafety, moduleFormat, verbose));
+    runExpressionCompilationTests(StandardFileSystemTestDriver(
+      soundNullSafety,
+      moduleFormat,
+      canaryFeatures,
+      verbose,
+    ));
   });
 
   group('reading assets using multiroot file system - ', () {
-    runExpressionCompilationTests(
-        MultiRootFileSystemTestDriver(soundNullSafety, moduleFormat, verbose));
+    runExpressionCompilationTests(MultiRootFileSystemTestDriver(
+      soundNullSafety,
+      moduleFormat,
+      canaryFeatures,
+      verbose,
+    ));
   });
 
   group('reading assets using asset file system -', () {
-    runExpressionCompilationTests(
-        AssetFileSystemTestDriver(soundNullSafety, moduleFormat, verbose));
+    runExpressionCompilationTests(AssetFileSystemTestDriver(
+      soundNullSafety,
+      moduleFormat,
+      canaryFeatures,
+      verbose,
+    ));
   });
 }
 
@@ -950,6 +964,7 @@ class E {
 abstract class TestDriver {
   final bool soundNullSafety;
   final ModuleFormat moduleFormat;
+  final bool canaryFeatures;
   final bool verbose;
 
   late FileSystem fileSystem;
@@ -964,7 +979,8 @@ abstract class TestDriver {
   ExpressionCompilerWorker? worker;
   Future<void>? workerDone;
 
-  TestDriver(this.soundNullSafety, this.moduleFormat, this.verbose);
+  TestDriver(this.soundNullSafety, this.moduleFormat, this.canaryFeatures,
+      this.verbose);
 
   /// Initialize file systems, inputs, and start servers if needed.
   Future<void> start();
@@ -1005,6 +1021,7 @@ abstract class TestDriver {
       sendResponse: responseController.add,
       soundNullSafety: soundNullSafety,
       moduleFormat: moduleFormat,
+      canaryFeatures: canaryFeatures,
       verbose: verbose,
     );
     workerDone = worker?.run();
@@ -1022,8 +1039,9 @@ class StandardFileSystemTestDriver extends TestDriver {
   StandardFileSystemTestDriver(
     bool soundNullSafety,
     ModuleFormat moduleFormat,
+    bool canaryFeatures,
     bool verbose,
-  ) : super(soundNullSafety, moduleFormat, verbose);
+  ) : super(soundNullSafety, moduleFormat, canaryFeatures, verbose);
 
   @override
   Future<void> start() async {
@@ -1038,8 +1056,9 @@ class MultiRootFileSystemTestDriver extends TestDriver {
   MultiRootFileSystemTestDriver(
     bool soundNullSafety,
     ModuleFormat moduleFormat,
+    bool canaryFeatures,
     bool verbose,
-  ) : super(soundNullSafety, moduleFormat, verbose);
+  ) : super(soundNullSafety, moduleFormat, canaryFeatures, verbose);
 
   @override
   Future<void> start() async {
@@ -1057,8 +1076,9 @@ class AssetFileSystemTestDriver extends TestDriver {
   AssetFileSystemTestDriver(
     bool soundNullSafety,
     ModuleFormat moduleFormat,
+    bool canaryFeatures,
     bool verbose,
-  ) : super(soundNullSafety, moduleFormat, verbose);
+  ) : super(soundNullSafety, moduleFormat, canaryFeatures, verbose);
 
   @override
   Future<void> start() async {

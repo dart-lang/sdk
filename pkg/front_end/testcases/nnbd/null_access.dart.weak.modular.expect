@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -183,12 +183,12 @@ Try accessing using ?. instead.
   nonNullableClass.nullableField += 2; // error
                                  ^" in invalid-expression "pkg/front_end/testcases/nnbd/null_access.dart:48:34: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
   nonNullableClass.nullableField += 2; // error
-                                 ^" in #t19.{self::Class::nullableField}{core::int?}.{core::num::+}(2){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int?;
+                                 ^" in #t19.{self::Class::nullableField}{core::int?}.{core::num::+}(2){(core::num) → core::num} as{TypeError} core::int?;
   let final self::Class? #t20 = nullableClass in #t20 == null ?{core::num?} null : #t20.{self::Class::nullableField} = invalid-expression "pkg/front_end/testcases/nnbd/null_access.dart:49:32: Error: A value of type 'num' can't be assigned to a variable of type 'int?'.
   nullableClass?.nullableField += 2; // error
                                ^" in invalid-expression "pkg/front_end/testcases/nnbd/null_access.dart:49:32: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
   nullableClass?.nullableField += 2; // error
-                               ^" in #t20.{self::Class::nullableField}{core::int?}.{core::num::+}(2){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int?;
+                               ^" in #t20.{self::Class::nullableField}{core::int?}.{core::num::+}(2){(core::num) → core::num} as{TypeError} core::int?;
   let final self::Class? #t21 = nullableClass in #t21 == null ?{core::int?} null : #t21.{self::Class::nonNullableField}{core::int} == null ?{core::int} #t21.{self::Class::nonNullableField} = 0 : null;
   let final self::Class? #t22 = nullableClass in #t22 == null ?{core::int?} null : #t22.{self::Class::nullableField}{core::int?} == null ?{core::int} #t22.{self::Class::nullableField} = 0 : null;
   let final self::Class? #t23 = nullableClass in #t23 == null ?{core::int?} null : let final self::Class #t24 = #t23{self::Class}.{self::Class::nonNullableClass}{self::Class} in #t24.{self::Class::nonNullableField}{core::int} == null ?{core::int} #t24.{self::Class::nonNullableField} = 0 : null;

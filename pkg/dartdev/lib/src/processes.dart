@@ -11,11 +11,11 @@ import 'package:meta/meta.dart';
 class ProcessInfo {
   static final wsRegex = RegExp(r'\s+');
 
+  final String command;
+  final String commandLine;
   final int memoryMb;
   final double? cpuPercent;
   final String? elapsedTime;
-  final String command;
-  final String commandLine;
 
   @visibleForTesting
   static ProcessInfo parseMacos(String line, {bool elideFilePaths = true}) {
@@ -35,20 +35,20 @@ class ProcessInfo {
     var commandLine = line.trim();
 
     if (elideFilePaths) {
-      return ProcessInfo._(
+      return ProcessInfo.create(
         command: _getCommandFrom(commandLine),
+        commandLine: _sanitizeCommandLine(commandLine, preferSnapshot: true),
         memoryMb: int.parse(mb) ~/ 1024,
         cpuPercent: double.tryParse(cpu.replaceAll(',', '.')),
         elapsedTime: elapsedTime,
-        commandLine: _sanitizeCommandLine(commandLine, preferSnapshot: true),
       );
     } else {
-      return ProcessInfo._(
+      return ProcessInfo.create(
         command: _getCommandFrom(commandLine),
+        commandLine: commandLine,
         memoryMb: int.parse(mb) ~/ 1024,
         cpuPercent: double.tryParse(cpu.replaceAll(',', '.')),
         elapsedTime: elapsedTime,
-        commandLine: commandLine,
       );
     }
   }
@@ -74,20 +74,20 @@ class ProcessInfo {
     }
 
     if (elideFilePaths) {
-      return ProcessInfo._(
+      return ProcessInfo.create(
         command: _getCommandFrom(commandLine),
+        commandLine: _sanitizeCommandLine(commandLine, preferSnapshot: true),
         memoryMb: int.parse(mb) ~/ 1024,
         cpuPercent: double.tryParse(cpu.replaceAll(',', '.')),
         elapsedTime: elapsedTime,
-        commandLine: _sanitizeCommandLine(commandLine, preferSnapshot: true),
       );
     } else {
-      return ProcessInfo._(
+      return ProcessInfo.create(
         command: _getCommandFrom(commandLine),
+        commandLine: commandLine,
         memoryMb: int.parse(mb) ~/ 1024,
         cpuPercent: double.tryParse(cpu.replaceAll(',', '.')),
         elapsedTime: elapsedTime,
-        commandLine: commandLine,
       );
     }
   }
@@ -113,21 +113,44 @@ class ProcessInfo {
       return (int.tryParse(value) ?? 0) ~/ 1024;
     }
 
-    return ProcessInfo._(
+    return ProcessInfo.create(
       command: items.first,
+      commandLine: items.first,
       memoryMb: parseMemory(items.length >= 5 ? items[4] : '0'),
       cpuPercent: null,
       elapsedTime: null,
-      commandLine: items.first,
+    );
+  }
+
+  factory ProcessInfo.create({
+    required String command,
+    required String commandLine,
+    required int memoryMb,
+    required double? cpuPercent,
+    required String? elapsedTime,
+  }) {
+    // Patch up the name if necessary (spaces in the path can throw off the
+    // parsers).
+    if (command.endsWith('.snapshot')) {
+      commandLine = '$command $commandLine'.trim();
+      command = 'dart';
+    }
+
+    return ProcessInfo._(
+      command: command,
+      commandLine: commandLine,
+      memoryMb: memoryMb,
+      cpuPercent: cpuPercent,
+      elapsedTime: elapsedTime,
     );
   }
 
   const ProcessInfo._({
+    required this.command,
+    required this.commandLine,
     required this.memoryMb,
     required this.cpuPercent,
     required this.elapsedTime,
-    required this.command,
-    required this.commandLine,
   });
 
   /// Return the Dart related processes.

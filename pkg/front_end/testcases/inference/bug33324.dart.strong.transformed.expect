@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -11,8 +11,8 @@ import "dart:core" as core;
 
 static method foo() → core::int* {
   core::Function* f = (dynamic x) → dynamic => x;
-  core::List<dynamic>* l = core::_GrowableList::_literal1<core::String*>("bar").{core::Iterable::map}<dynamic>(f as{TypeError} (core::String*) →* dynamic){((core::String*) →* dynamic) →* core::Iterable<dynamic>*}.{core::Iterable::toList}(){({growable: core::bool*}) →* core::List<dynamic>*};
+  core::List<dynamic>* l = core::_GrowableList::_literal1<core::String*>("bar").{core::Iterable::map}<dynamic>(f as{TypeError,ForLegacy} (core::String*) →* dynamic){((core::String*) →* dynamic) →* core::Iterable<dynamic>*}.{core::Iterable::toList}(){({growable: core::bool*}) →* core::List<dynamic>*};
   l.{core::List::add}(42){(dynamic) →* void};
-  return l.{core::Iterable::first}{dynamic}{dynamic}.length as{TypeError,ForDynamic} core::int*;
+  return l.{core::Iterable::first}{dynamic}{dynamic}.length as{TypeError,ForDynamic,ForLegacy} core::int*;
 }
 static method main() → dynamic {}

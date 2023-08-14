@@ -1138,6 +1138,46 @@ void f() {
     expect(refactoring.inlineAll, false);
   }
 
+  Future<void> test_intoStringInterpolation_identifier() async {
+    await indexTestUnit(r'''
+void f() {
+  final v = 0;
+  test(v);
+}
+
+void test(int a) {
+  'a: $a';
+}
+''');
+    _createRefactoring('test(int');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  final v = 0;
+  'a: $v';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation_integerLiteral() async {
+    await indexTestUnit(r'''
+void f() {
+  test(0);
+}
+
+void test(int a) {
+  'a: $a';
+}
+''');
+    _createRefactoring('test(int');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: ${0}';
+}
+''');
+  }
+
   Future<void> test_method_async() async {
     await indexTestUnit(r'''
 import 'dart:async';

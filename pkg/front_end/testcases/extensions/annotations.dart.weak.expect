@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -17,11 +17,11 @@ extension Extension on self::Class {
   static method extensionStaticMethod = self::Extension|extensionStaticMethod;
 }
 @#C3
-static method Extension|extensionInstanceMethod(lowered final self::Class #this) → dynamic {}
-static method Extension|get#extensionInstanceMethod(lowered final self::Class #this) → () → dynamic
+static extension-member method Extension|extensionInstanceMethod(lowered final self::Class #this) → dynamic {}
+static extension-member method Extension|get#extensionInstanceMethod(lowered final self::Class #this) → () → dynamic
   return () → dynamic => self::Extension|extensionInstanceMethod(#this);
 @#C3
-static method Extension|extensionStaticMethod() → dynamic {}
+static extension-member method Extension|extensionStaticMethod() → dynamic {}
 @#C3
 static method topLevelMethod() → dynamic {}
 static method main() → dynamic {}

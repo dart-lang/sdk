@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:test" as test;
 
@@ -8,7 +8,7 @@ static method main() → dynamic {
   test::Class::fact();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as test;
 import "dart:_internal" as _in;
 import "dart:core" as core;

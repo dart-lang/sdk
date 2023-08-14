@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -516,7 +516,7 @@ static method useAnotherEnum() → dynamic {
                                       ^^^^^^"};
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 
 

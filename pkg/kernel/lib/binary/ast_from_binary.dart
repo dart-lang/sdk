@@ -120,6 +120,11 @@ abstract class StringInterner {
   String internString(String string);
 }
 
+/// Helper used to trigger the read of a late variable in asserts.
+bool _lateIsInitialized(dynamic value) {
+  return true;
+}
+
 class BinaryBuilder {
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   final List<LabeledStatement> labelStack = <LabeledStatement>[];
@@ -945,8 +950,7 @@ class BinaryBuilder {
   /// if [readCoverage] is true, references are read and that the link table
   /// thus has to be read first.
   Map<Uri, Source> readUriToSource({required bool readCoverage}) {
-    // ignore: unnecessary_null_comparison
-    assert(!readCoverage || (readCoverage && _linkTable != null));
+    assert(!readCoverage || (readCoverage && _lateIsInitialized(_linkTable)));
 
     int length = readUint32();
 
@@ -1508,8 +1512,10 @@ class BinaryBuilder {
     }
 
     typeParameterStack.length = 0;
-    // ignore: unnecessary_null_comparison
-    assert(debugPath.removeLast() != null);
+    assert(() {
+      debugPath.removeLast();
+      return true;
+    }());
     node.name = name;
     node.fileUri = fileUri;
     node.annotations = annotations;
@@ -1696,7 +1702,6 @@ class BinaryBuilder {
     node.fieldsInternal = _readFieldList(node);
     _readConstructorList(node);
     node.proceduresInternal = _readProcedureList(node, procedureOffsets);
-    _readRedirectingFactoryList(node);
   }
 
   void _readConstructorList(Class node) {
@@ -1709,21 +1714,6 @@ class BinaryBuilder {
       node.constructorsInternal = new List<Constructor>.generate(
           length, (int index) => readConstructor()..parent = node,
           growable: useGrowableLists);
-    }
-  }
-
-  void _readRedirectingFactoryList(Class node) {
-    int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use a
-      // constant one for the empty list.
-      node.redirectingFactoryConstructorsInternal =
-          emptyListOfRedirectingFactory;
-    } else {
-      node.redirectingFactoryConstructorsInternal =
-          new List<RedirectingFactory>.generate(
-              length, (int index) => readRedirectingFactory()..parent = node,
-              growable: useGrowableLists);
     }
   }
 
@@ -1876,6 +1866,7 @@ class BinaryBuilder {
       debugPath.add(name.text);
       return true;
     }());
+
     int functionNodeSize = endOffset - _byteOffset;
     // Read small factories up front. Postpone everything else.
     bool readFunctionNodeNow =
@@ -1912,51 +1903,6 @@ class BinaryBuilder {
         !(node.isForwardingStub && node.function.body != null));
     assert(!(node.isMemberSignature && node.stubTargetReference == null),
         "No member signature origin for member signature $node.");
-    return node;
-  }
-
-  RedirectingFactory readRedirectingFactory() {
-    int tag = readByte();
-    assert(tag == Tag.RedirectingFactory);
-    CanonicalName canonicalName = readNonNullCanonicalNameReference();
-    Reference reference = canonicalName.reference;
-    RedirectingFactory? node = reference.node as RedirectingFactory?;
-    if (alwaysCreateNewNamedNodes) {
-      node = null;
-    }
-    Uri fileUri = readUriReference();
-    int fileOffset = readOffset();
-    int fileEndOffset = readOffset();
-    int flags = readByte();
-    Name name = readName();
-    assert(() {
-      debugPath.add(name.text);
-      return true;
-    }());
-    List<Expression> annotations = readAnnotationList();
-    Reference targetReference = readNonNullMemberReference();
-    List<DartType> typeArguments = readDartTypeList();
-    FunctionNode function = readFunctionNode(outerEndOffset: fileEndOffset);
-    if (node == null) {
-      node = new RedirectingFactory(targetReference,
-          reference: reference,
-          name: name,
-          fileUri: fileUri,
-          function: function,
-          typeArguments: typeArguments);
-    } else {
-      node.name = name;
-      node.fileUri = fileUri;
-      node.targetReference = targetReference;
-      node.typeArguments.addAll(typeArguments);
-      node.function = function..parent = node;
-    }
-    node.fileOffset = fileOffset;
-    node.fileEndOffset = fileEndOffset;
-    node.flags = flags;
-    node.annotations = annotations;
-    setParents(annotations, node);
-    debugPath.removeLast();
     return node;
   }
 
@@ -2053,6 +1999,25 @@ class BinaryBuilder {
     List<VariableDeclaration> named = readAndPushVariableDeclarationList();
     DartType returnType = readDartType();
     DartType? futureValueType = readDartTypeOption();
+    RedirectingFactoryTarget? redirectingFactoryTarget;
+    if (readAndCheckOptionTag()) {
+      Reference? targetReference = readNullableMemberReference();
+      List<DartType>? typeArguments;
+      if (readAndCheckOptionTag()) {
+        typeArguments = readDartTypeList();
+      }
+      if (readAndCheckOptionTag()) {
+        assert(targetReference == null && typeArguments == null);
+        String errorMessage = readStringReference();
+        redirectingFactoryTarget =
+            new RedirectingFactoryTarget.error(errorMessage);
+      } else {
+        assert(targetReference != null && typeArguments != null);
+        redirectingFactoryTarget = new RedirectingFactoryTarget.byReference(
+            targetReference!, typeArguments!);
+      }
+    }
+
     int oldLabelStackBase = labelStackBase;
     int oldSwitchCaseStackBase = switchCaseStackBase;
 
@@ -2078,7 +2043,8 @@ class BinaryBuilder {
         dartAsyncMarker: dartAsyncMarker,
         futureValueType: futureValueType)
       ..fileOffset = offset
-      ..fileEndOffset = endOffset;
+      ..fileEndOffset = endOffset
+      ..redirectingFactoryTarget = redirectingFactoryTarget;
 
     if (lazyLoadBody) {
       _setLazyLoadFunction(result, oldLabelStackBase, oldSwitchCaseStackBase,
@@ -2357,6 +2323,8 @@ class BinaryBuilder {
         return _readSwitchExpression();
       case Tag.PatternAssignment:
         return _readPatternAssignment();
+      case Tag.FileUriConstantExpression:
+        return _readFileUriConstantExpression();
       default:
         throw fail('unexpected expression tag: $tag');
     }
@@ -2937,6 +2905,15 @@ class BinaryBuilder {
     return new ConstantExpression(constant, type)..fileOffset = offset;
   }
 
+  Expression _readFileUriConstantExpression() {
+    int offset = readOffset();
+    Uri fileUri = readUriReference();
+    DartType type = readDartType();
+    Constant constant = readConstantReference();
+    return new FileUriConstantExpression(constant, type: type, fileUri: fileUri)
+      ..fileOffset = offset;
+  }
+
   List<MapLiteralEntry> readMapLiteralEntryList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
@@ -3399,7 +3376,7 @@ class BinaryBuilder {
     }
     switchCaseStack.length -= count;
     return new PatternSwitchStatement(expression, cases)
-      ..expressionType = expressionType
+      ..expressionTypeInternal = expressionType
       ..fileOffset = fileOffset;
   }
 
@@ -3589,6 +3566,7 @@ class BinaryBuilder {
     int offset = readOffset();
     bool isExplicitlyExhaustive = readByte() == 1;
     Expression expression = readExpression();
+    DartType? expressionType = readDartTypeOption();
     int count = readUInt30();
     List<SwitchCase> cases;
     if (!useGrowableLists && count == 0) {
@@ -3609,6 +3587,7 @@ class BinaryBuilder {
     switchCaseStack.length -= count;
     return new SwitchStatement(expression, cases,
         isExplicitlyExhaustive: isExplicitlyExhaustive)
+      ..expressionTypeInternal = expressionType
       ..fileOffset = offset;
   }
 
@@ -3722,7 +3701,7 @@ class BinaryBuilder {
         "In serialized form supertypes should have Nullability.legacy if they "
         "are in a library that is opted out of the NNBD feature.  If they are "
         "in an opted-in library, they should have Nullability.nonNullable.");
-    return new Supertype.byReference(type.className, type.typeArguments);
+    return new Supertype.byReference(type.classReference, type.typeArguments);
   }
 
   Supertype? readSupertypeOption() {
@@ -3815,6 +3794,8 @@ class BinaryBuilder {
         return _readInvalidType();
       case Tag.NeverType:
         return _readNeverType();
+      case Tag.NullType:
+        return _readNullType();
       case Tag.InlineType:
         return _readInlineType();
       case Tag.FunctionType:
@@ -3823,6 +3804,8 @@ class BinaryBuilder {
         return _readIntersectionType();
       case Tag.RecordType:
         return _readRecordType();
+      case Tag.FutureOrType:
+        return _readFutureOrType();
       default:
         throw fail('unexpected dart type tag: $tag');
     }
@@ -3851,19 +3834,14 @@ class BinaryBuilder {
     return NeverType.fromNullability(Nullability.values[nullabilityIndex]);
   }
 
+  DartType _readNullType() {
+    return const NullType();
+  }
+
   DartType _readInterfaceType() {
     int nullabilityIndex = readByte();
     Reference reference = readNonNullClassReference();
     List<DartType> typeArguments = readDartTypeList();
-    CanonicalName? canonicalName = reference.canonicalName;
-    if (canonicalName != null &&
-        canonicalName.name == "FutureOr" &&
-        canonicalName.parent!.name == "dart:async" &&
-        canonicalName.parent!.parent != null &&
-        canonicalName.parent!.parent!.isRoot) {
-      return new FutureOrType(
-          typeArguments.single, Nullability.values[nullabilityIndex]);
-    }
     return new InterfaceType.byReference(
         reference, Nullability.values[nullabilityIndex], typeArguments);
   }
@@ -3875,15 +3853,6 @@ class BinaryBuilder {
         getNullableCanonicalNameReferenceFromInt(classReferenceIndex);
     if (canonicalName == null) {
       throw 'Expected a class reference to be valid but was `null`.';
-    }
-
-    // We check this before the cache to not return a wrong cached value for
-    // this special case.
-    if (!forSupertype &&
-        canonicalName.name == "Null" &&
-        canonicalName.parent!.name == "dart:core" &&
-        canonicalName.parent!.parent!.isRoot) {
-      return const NullType();
     }
 
     // Check cache.
@@ -3901,6 +3870,12 @@ class BinaryBuilder {
         Nullability.values[nullabilityIndex], const <DartType>[]);
     _cachedSimpleInterfaceTypes[cacheIndex] = result;
     return result;
+  }
+
+  DartType _readFutureOrType() {
+    int nullabilityIndex = readByte();
+    DartType typeArgument = readDartType();
+    return new FutureOrType(typeArgument, Nullability.values[nullabilityIndex]);
   }
 
   DartType _readInlineType() {
@@ -4258,13 +4233,6 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  RedirectingFactory readRedirectingFactory() {
-    final int nodeOffset = _byteOffset;
-    final RedirectingFactory result = super.readRedirectingFactory();
-    return _associateMetadata(result, nodeOffset);
-  }
-
-  @override
   Initializer readInitializer() {
     final int nodeOffset = _byteOffset;
     final Initializer result = super.readInitializer();
@@ -4354,7 +4322,7 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
     InterfaceType type =
         super.readDartType(forSupertype: true) as InterfaceType;
     return _associateMetadata(
-        new Supertype.byReference(type.className, type.typeArguments),
+        new Supertype.byReference(type.classReference, type.typeArguments),
         nodeOffset);
   }
 

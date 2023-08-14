@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -53,7 +53,7 @@ class Test extends core::Object {
  - 'A' is from 'pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart'.
  - 'B' is from 'pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart'.
         /*@target=B.+*/ += /*@typeArgs=C*/ f();
-                        ^" in this.{self::Test::member}{self::B}.{self::B::+}(self::f<self::C>()){(self::C) → self::A} as{TypeError,ForNonNullableByDefault} self::B;
+                        ^" in this.{self::Test::member}{self::B}.{self::B::+}(self::f<self::C>()){(self::C) → self::A} as{TypeError} self::B;
     this.{self::Test::member} = this.{self::Test::member}{self::B}.{self::B::*}(self::f<self::B>()){(self::B) → self::B};
     this.{self::Test::member} = this.{self::Test::member}{self::B}.{self::B::&}(self::f<self::A>()){(self::A) → self::C};
     this.{self::Test::member} = this.{self::Test::member}{self::B}.{self::B::-}(1){(core::int) → self::B};
@@ -64,7 +64,7 @@ class Test extends core::Object {
  - 'A' is from 'pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart'.
  - 'B' is from 'pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart'.
         member /*@target=B.+*/ +=
-                               ^" in this.{self::Test::member}{self::B}.{self::B::+}(self::f<self::C>()){(self::C) → self::A} as{TypeError,ForNonNullableByDefault} self::B;
+                               ^" in this.{self::Test::member}{self::B}.{self::B::+}(self::f<self::C>()){(self::C) → self::A} as{TypeError} self::B;
     self::B v4 = this.{self::Test::member} = this.{self::Test::member}{self::B}.{self::B::*}(self::f<self::B>()){(self::B) → self::B};
     self::C v5 = this.{self::Test::member} = this.{self::Test::member}{self::B}.{self::B::&}(self::f<self::A>()){(self::A) → self::C};
     self::B v6 = this.{self::Test::member} = this.{self::Test::member}{self::B}.{self::B::-}(1){(core::int) → self::B};

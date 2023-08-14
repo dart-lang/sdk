@@ -95,8 +95,8 @@ void DartNativeThrowArgumentException(const Instance& instance);
 // Helper class for resolving and handling native functions.
 class NativeEntry : public AllStatic {
  public:
-  static const intptr_t kNumArguments = 1;
-  static const intptr_t kNumCallWrapperArguments = 2;
+  static constexpr intptr_t kNumArguments = 1;
+  static constexpr intptr_t kNumCallWrapperArguments = 2;
 
   // Resolve specified dart native function to the actual native entrypoint.
   static NativeFunction ResolveNative(const Library& library,

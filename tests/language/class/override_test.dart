@@ -10,7 +10,10 @@ class A {
 }
 
 class B extends A {
-  /*@compile-error=unspecified*/ foo(a) {} 
+  foo(a) {}
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+// [cfe] The method 'B.foo' has more required arguments than those of overridden method 'A.foo'.
 }
 
 main() {

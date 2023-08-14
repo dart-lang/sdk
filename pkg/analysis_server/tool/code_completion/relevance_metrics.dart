@@ -825,7 +825,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitIfElement(IfElement node) {
-    _recordDataForNode('IfElement (condition)', node.condition,
+    _recordDataForNode('IfElement (condition)', node.expression,
         allowedKeywords: expressionKeywords);
     _recordDataForNode('IfElement (then)', node.thenElement);
     _recordDataForNode('IfElement (else)', node.elseElement);
@@ -834,7 +834,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitIfStatement(IfStatement node) {
-    _recordDataForNode('IfStatement (condition)', node.condition,
+    _recordDataForNode('IfStatement (condition)', node.expression,
         allowedKeywords: expressionKeywords);
     _recordDataForNode('IfStatement (then)', node.thenStatement,
         allowedKeywords: statementKeywords);
@@ -1661,9 +1661,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       var overrideType = overrideParameter?.type;
       var overriddenType = overriddenParameter?.type;
       if (overrideType == null ||
-          overrideType.isDynamic ||
+          overrideType is DynamicType ||
           overriddenType == null ||
-          overriddenType.isDynamic) {
+          overriddenType is DynamicType) {
         return;
       }
       _recordTypeRelationships(
@@ -1764,7 +1764,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// in the expression match the type of the associated parameter.
   void _recordTypeMatch(Expression argument) {
     var parameterType = argument.staticParameterElement?.type;
-    if (parameterType == null || parameterType.isDynamic) {
+    if (parameterType == null || parameterType is DynamicType) {
       return;
     }
     if (parameterType is FunctionType) {

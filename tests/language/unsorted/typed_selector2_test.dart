@@ -15,7 +15,10 @@ main() {
   if (a(1, 2) != 42) {
     // This call used to crash dart2js because 'foo' was a typed
     // selector with a typedef as a receiver type.
-    a.foo(); /*@compile-error=unspecified*/
+    a.foo();
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [cfe] The method 'foo' isn't defined for the class 'int Function(dynamic, dynamic)'.
   }
   var b = new A();
   b.foo();

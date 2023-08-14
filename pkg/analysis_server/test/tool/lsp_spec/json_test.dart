@@ -452,7 +452,7 @@ void main() {
           InitializeParamsClientInfo(name: 'server name', version: '1.2.3'),
       rootPath: '!root',
       capabilities: ClientCapabilities(),
-      trace: 'off',
+      trace: TraceValues.Off,
       workspaceFolders: workspaceFolders,
     );
     final json = jsonEncode(obj);

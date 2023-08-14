@@ -125,9 +125,6 @@ enum InstanceKind {
   /// An instance of the Dart class TypeParameter.
   typeParameter,
 
-  /// An instance of the Dart class TypeRef.
-  typeRef,
-
   /// An instance of the Dart class RawReceivePort
   receivePort,
 
@@ -181,7 +178,7 @@ bool isAbstractType(InstanceKind kind) {
   switch (kind) {
     case InstanceKind.type:
     case InstanceKind.functionType:
-    case InstanceKind.typeRef:
+    case InstanceKind.recordType:
     case InstanceKind.typeParameter:
       return true;
     default:
@@ -401,19 +398,10 @@ abstract class Instance extends Object implements InstanceRef {
   ///   TypeParameter
   int get parameterIndex;
 
-  /// [optional] The referent of a TypeRef instance.
-  ///
-  /// The value will always be of one of the kinds:
-  /// Type, FunctionType, TypeRef, TypeParameter.
-  ///
-  /// Provided for instance kinds:
-  ///   TypeRef
-  InstanceRef get targetType;
-
   /// [optional] The bound of a TypeParameter.
   ///
   /// The value will always be of one of the kinds:
-  /// Type, FunctionType, TypeRef, TypeParameter.
+  /// Type, FunctionType, RecordType, TypeParameter.
   ///
   /// Provided for instance kinds:
   ///   TypeParameter

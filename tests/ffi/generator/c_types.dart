@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'utils.dart';
 
+const void_ = FundamentalType(PrimitiveType.void_);
 const bool_ = FundamentalType(PrimitiveType.bool_);
 const int8 = FundamentalType(PrimitiveType.int8);
 const int16 = FundamentalType(PrimitiveType.int16);
@@ -24,6 +25,7 @@ const uintptr = FundamentalType(PrimitiveType.uintptr);
 const wchar = FundamentalType(PrimitiveType.wchar);
 
 enum PrimitiveType {
+  void_,
   bool_,
   int8,
   int16,
@@ -43,6 +45,7 @@ enum PrimitiveType {
 }
 
 const primitiveNames = {
+  PrimitiveType.void_: "void",
   PrimitiveType.bool_: "bool",
   PrimitiveType.int8: "int8",
   PrimitiveType.int16: "int16",
@@ -61,7 +64,8 @@ const primitiveNames = {
   PrimitiveType.wchar: "wchar",
 };
 
-final primitiveCType = {
+const primitiveCType = {
+  PrimitiveType.void_: "void",
   PrimitiveType.bool_: "bool",
   PrimitiveType.int8: "int8_t",
   PrimitiveType.int16: "int16_t",
@@ -82,7 +86,8 @@ final primitiveCType = {
   PrimitiveType.wchar: "wchar_t",
 };
 
-final primitiveDartCType = {
+const primitiveDartCType = {
+  PrimitiveType.void_: "Void",
   PrimitiveType.bool_: "Bool",
   PrimitiveType.int8: "Int8",
   PrimitiveType.int16: "Int16",
@@ -158,6 +163,7 @@ class FundamentalType extends CType {
 
   const FundamentalType(this.primitive);
 
+  bool get isVoid => primitive == PrimitiveType.void_;
   bool get isBool => primitive == PrimitiveType.bool_;
   bool get isFloatingPoint =>
       primitive == PrimitiveType.float || primitive == PrimitiveType.double_;
@@ -173,6 +179,7 @@ class FundamentalType extends CType {
   String get cType => primitiveCType[primitive]!;
   String get dartCType => primitiveDartCType[primitive]!;
   String get dartType {
+    if (isVoid) return 'void';
     if (isInteger) return 'int';
     if (isOnlyFloatingPoint) return 'double';
     if (isBool) return 'bool';

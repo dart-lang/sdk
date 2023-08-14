@@ -40,28 +40,26 @@ f() {
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
-    extensionName: SimpleIdentifier
-      token: E
-      staticElement: self::@extension::E
-      staticType: null
+    name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )
+    element: self::@extension::E
     extendedType: String
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: m
     staticElement: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 

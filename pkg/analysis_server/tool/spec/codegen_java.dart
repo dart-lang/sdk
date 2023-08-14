@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Tools for Java code generation.
+library;
+
 import 'package:analyzer_utilities/html_dom.dart' as dom;
 import 'package:analyzer_utilities/tools.dart';
 

@@ -1,0 +1,16 @@
+class Foo<T> {
+  final T a;
+  const Foo(T a) : a = a;
+}
+
+class Generic<T> {
+  final (T a, T b) record;
+  const Generic(T a) : record = (a, a);
+}
+
+class NotGeneric {
+  final (int a, int b) record;
+  const NotGeneric(int a) : record = (a, a);
+}
+
+void main() {}

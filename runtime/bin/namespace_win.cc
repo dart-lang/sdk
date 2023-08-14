@@ -19,16 +19,16 @@ namespace dart {
 namespace bin {
 
 Namespace* Namespace::Create(intptr_t namespc) {
-  return new Namespace(NULL);
+  return new Namespace(nullptr);
 }
 
 Namespace* Namespace::Create(const char* path) {
   UNIMPLEMENTED();
-  return NULL;
+  return nullptr;
 }
 
 Namespace::~Namespace() {
-  ASSERT(namespc_ == NULL);
+  ASSERT(namespc_ == nullptr);
 }
 
 intptr_t Namespace::Default() {
@@ -36,9 +36,9 @@ intptr_t Namespace::Default() {
 }
 
 const char* Namespace::GetCurrent(Namespace* namespc) {
-  int length = GetCurrentDirectoryW(0, NULL);
+  int length = GetCurrentDirectoryW(0, nullptr);
   if (length == 0) {
-    return NULL;
+    return nullptr;
   }
   wchar_t* current;
   current = reinterpret_cast<wchar_t*>(

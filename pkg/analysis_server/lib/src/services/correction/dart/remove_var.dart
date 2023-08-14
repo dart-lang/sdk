@@ -8,7 +8,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class RemoveVar extends CorrectionProducer {
+class RemoveVar extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.REMOVE_VAR;
 

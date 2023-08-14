@@ -632,4 +632,18 @@ void foo(int a) {
       },
     );
   }
+
+  Future<void> test_postfixIncrement_argumentNotAssignable() async {
+    List;
+    await resolveTestCode('''
+void f(A a) {
+  a++;
+}
+
+class A {
+  A operator +(String _) => this;
+}
+''');
+    await assertNoFix();
+  }
 }

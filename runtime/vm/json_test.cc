@@ -91,6 +91,17 @@ TEST_CASE(JSON_JSONStream_Array) {
   EXPECT_STREQ("[true,false]", js.ToCString());
 }
 
+TEST_CASE(JSON_JSONStream_Base64String) {
+  JSONStream js;
+  {
+    JSONBase64String jsonBase64String(&js);
+    jsonBase64String.AppendBytes(reinterpret_cast<const uint8_t*>("Hello"), 5);
+    jsonBase64String.AppendBytes(reinterpret_cast<const uint8_t*>(", "), 2);
+    jsonBase64String.AppendBytes(reinterpret_cast<const uint8_t*>("world!"), 6);
+  }
+  EXPECT_STREQ("\"SGVsbG8sIHdvcmxkIQ==\"", js.ToCString());
+}
+
 TEST_CASE(JSON_JSONStream_Object) {
   JSONStream js;
   {
@@ -219,7 +230,7 @@ TEST_CASE(JSON_JSONStream_DartString) {
       "var wrongEncoding = '\\u{1D11E}' + surrogates[0] + '\\u{1D11E}';"
       "var nullInMiddle = 'This has\\u0000 four words.';";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
 
   Dart_Handle result;

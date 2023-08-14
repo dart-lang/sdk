@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -31,11 +31,11 @@ static const field core::int var1 = invalid-expression "Expected constant 'null'
 static const field core::int var2 = invalid-expression "Expected constant '\"string\"' to be of type 'int', but was of type 'String'.";
 static method fn1() → core::int {
   dynamic a;
-  return a as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  return a as{TypeError,ForDynamic} core::int;
 }
 static method fn2() → core::int {
   dynamic x;
   x = "string";
-  return x as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  return x as{TypeError,ForDynamic} core::int;
 }
 static method main() → void {}

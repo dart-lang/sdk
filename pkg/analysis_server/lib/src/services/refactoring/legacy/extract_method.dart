@@ -792,7 +792,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       } else {
         returnType = 'void';
       }
-    } else if (returnTypeObj.isDynamic) {
+    } else if (returnTypeObj is DynamicType) {
       variableType = '';
       if (_hasAwait) {
         returnType = _getTypeCode(typeProvider.futureDynamicType);
@@ -1025,9 +1025,15 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   }
 
   @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    invalidSelection('Cannot extract an import prefix.');
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     super.visitNamedType(node);
-    if (_isFirstSelectedNode(node)) {
+    if (_isFirstSelectedNode(node) ||
+        node == coveringNode && selection.length != 0) {
       invalidSelection('Cannot extract a single type reference.');
     }
   }

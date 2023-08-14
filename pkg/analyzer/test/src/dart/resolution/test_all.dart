@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'adjacent_strings_test.dart' as adjacent_strings;
 import 'as_expression_test.dart' as as_expression;
 import 'assignment_test.dart' as assignment;
 import 'ast_rewrite_test.dart' as ast_rewrite;
@@ -17,6 +18,8 @@ import 'comment_test.dart' as comment;
 import 'conditional_expression_test.dart' as conditional_expression;
 import 'constant_pattern_test.dart' as constant_pattern;
 import 'constant_test.dart' as constant;
+import 'constructor_field_initializer_test.dart'
+    as constructor_field_initializer;
 import 'constructor_reference_test.dart' as constructor_reference;
 import 'constructor_test.dart' as constructor;
 import 'declared_variable_pattern_test.dart' as declared_variable_pattern;
@@ -29,11 +32,15 @@ import 'field_test.dart' as field;
 import 'for_element_test.dart' as for_element;
 import 'for_statement_test.dart' as for_in;
 import 'function_body_test.dart' as function_body;
+import 'function_declaration_statement_test.dart'
+    as function_declaration_statement;
 import 'function_declaration_test.dart' as function_declaration;
 import 'function_expression_invocation_test.dart'
     as function_expression_invocation;
 import 'function_reference_test.dart' as function_reference;
 import 'function_type_alias_test.dart' as function_type_alias;
+import 'function_typed_formal_parameter_test.dart'
+    as function_typed_formal_parameter;
 import 'generic_function_type_test.dart' as generic_function_type;
 import 'generic_type_alias_test.dart' as generic_type_alias;
 import 'if_element_test.dart' as if_element;
@@ -52,6 +59,7 @@ import 'library_element_test.dart' as library_element;
 import 'library_export_test.dart' as library_export;
 import 'library_import_prefix_test.dart' as library_import_prefix;
 import 'library_import_test.dart' as library_import;
+import 'list_literal_test.dart' as list_literal;
 import 'list_pattern_test.dart' as list_pattern;
 import 'local_function_test.dart' as local_function;
 import 'local_variable_test.dart' as local_variable;
@@ -63,6 +71,7 @@ import 'metadata_test.dart' as metadata;
 import 'method_declaration_test.dart' as method_declaration;
 import 'method_invocation_test.dart' as method_invocation;
 import 'mixin_test.dart' as mixin_resolution;
+import 'named_type_test.dart' as named_type;
 import 'namespace_test.dart' as namespace;
 import 'node_text_expectations.dart';
 import 'non_nullable_blaze_workspace_test.dart' as non_nullable_blaze_workspace;
@@ -71,6 +80,7 @@ import 'null_assert_pattern_test.dart' as null_assert_pattern;
 import 'null_check_pattern_test.dart' as null_check_pattern;
 import 'object_pattern_test.dart' as object_pattern;
 import 'optional_const_test.dart' as optional_const;
+import 'parenthesized_expression_test.dart' as parenthesized_expression;
 import 'parenthesized_pattern_test.dart' as parenthesized_pattern;
 import 'part_test.dart' as part_;
 import 'pattern_assignment_test.dart' as pattern_assignment;
@@ -84,8 +94,13 @@ import 'property_access_test.dart' as property_access;
 import 'record_literal_test.dart' as record_literal;
 import 'record_pattern_test.dart' as record_pattern;
 import 'record_type_annotation_test.dart' as record_type_annotation;
+import 'redirecting_constructor_invocation_test.dart'
+    as redirecting_constructor_invocation;
 import 'relational_pattern_test.dart' as relational_pattern;
+import 'scope_test.dart' as scope;
+import 'set_or_map_literal_test.dart' as set_or_map_literal;
 import 'simple_identifier_test.dart' as simple_identifier;
+import 'super_constructor_invocation_test.dart' as super_constructor_invocation;
 import 'super_formal_parameter_test.dart' as super_formal_parameter;
 import 'switch_expression_test.dart' as switch_expression;
 import 'switch_statement_test.dart' as switch_statement;
@@ -94,13 +109,16 @@ import 'top_type_inference_test.dart' as top_type_inference;
 import 'try_statement_test.dart' as try_statement;
 import 'type_inference/test_all.dart' as type_inference;
 import 'type_literal_test.dart' as type_literal;
-import 'type_name_test.dart' as type_name;
+import 'variable_declaration_statement_test.dart'
+    as variable_declaration_statement;
 import 'variance_test.dart' as variance_test;
+import 'while_statement_test.dart' as while_statement;
 import 'wildcard_pattern_test.dart' as wildcard_pattern;
 import 'yield_statement_test.dart' as yield_statement;
 
 main() {
   defineReflectiveSuite(() {
+    adjacent_strings.main();
     as_expression.main();
     assignment.main();
     ast_rewrite.main();
@@ -114,6 +132,7 @@ main() {
     constant_pattern.main();
     comment.main();
     constant.main();
+    constructor_field_initializer.main();
     constructor_reference.main();
     constructor.main();
     declared_variable_pattern.main();
@@ -126,10 +145,12 @@ main() {
     for_element.main();
     for_in.main();
     function_body.main();
+    function_declaration_statement.main();
     function_declaration.main();
     function_expression_invocation.main();
     function_reference.main();
     function_type_alias.main();
+    function_typed_formal_parameter.main();
     generic_function_type.main();
     generic_type_alias.main();
     if_element.main();
@@ -146,6 +167,7 @@ main() {
     library_export.main();
     library_import_prefix.main();
     library_import.main();
+    list_literal.main();
     list_pattern.main();
     local_function.main();
     local_variable.main();
@@ -157,6 +179,7 @@ main() {
     method_declaration.main();
     method_invocation.main();
     mixin_resolution.main();
+    named_type.main();
     namespace.main();
     non_nullable_blaze_workspace.main();
     non_nullable.main();
@@ -164,6 +187,7 @@ main() {
     null_check_pattern.main();
     object_pattern.main();
     optional_const.main();
+    parenthesized_expression.main();
     parenthesized_pattern.main();
     part_.main();
     pattern_assignment.main();
@@ -176,8 +200,12 @@ main() {
     record_literal.main();
     record_pattern.main();
     record_type_annotation.main();
+    redirecting_constructor_invocation.main();
     relational_pattern.main();
+    scope.main();
+    set_or_map_literal.main();
     simple_identifier.main();
+    super_constructor_invocation.main();
     super_formal_parameter.main();
     switch_expression.main();
     switch_statement.main();
@@ -186,8 +214,9 @@ main() {
     try_statement.main();
     type_inference.main();
     type_literal.main();
-    type_name.main();
+    variable_declaration_statement.main();
     variance_test.main();
+    while_statement.main();
     wildcard_pattern.main();
     yield_statement.main();
     defineReflectiveTests(UpdateNodeTextExpectations);

@@ -62,7 +62,7 @@ static bool AddCertificatesFromNamedSystemStore(const wchar_t* name,
                     NULL,  // use the default HCRYPTPROV
                     store_type | CERT_STORE_READONLY_FLAG, name);
 
-  if (cert_store == NULL) {
+  if (cert_store == nullptr) {
     if (SSL_LOG_STATUS) {
       DWORD error = GetLastError();
       Syslog::PrintErr(
@@ -72,22 +72,22 @@ static bool AddCertificatesFromNamedSystemStore(const wchar_t* name,
     return false;
   }
 
-  // Iterating through all certificates in the store. A NULL is required to
+  // Iterating through all certificates in the store. A nullptr is required to
   // start iteration.
-  PCCERT_CONTEXT cert_context = NULL;
+  PCCERT_CONTEXT cert_context = nullptr;
   do {
     cert_context = CertEnumCertificatesInStore(cert_store, cert_context);
-    if (cert_context == NULL) {
+    if (cert_context == nullptr) {
       // reach the end of store.
       break;
     }
     BIO* root_cert_bio =
         BIO_new_mem_buf(const_cast<unsigned char*>(cert_context->pbCertEncoded),
                         cert_context->cbCertEncoded);
-    // `root_cert` has to be initialized to NULL, otherwise, it will be
+    // `root_cert` has to be initialized to nullptr, otherwise, it will be
     // considered as an existing X509 and cause segmentation fault.
-    X509* root_cert = NULL;
-    if (d2i_X509_bio(root_cert_bio, &root_cert) == NULL) {
+    X509* root_cert = nullptr;
+    if (d2i_X509_bio(root_cert_bio, &root_cert) == nullptr) {
       if (SSL_LOG_STATUS) {
         PrintSSLErr("Fail to read certificate");
       }
@@ -137,7 +137,7 @@ static bool AddCertificatesFromNamedSystemStore(const wchar_t* name,
       CertCloseStore(cert_store, 0);
       return false;
     }
-  } while (cert_context != NULL);
+  } while (cert_context != nullptr);
 
   // It always returns non-zero.
   CertFreeCertificateContext(cert_context);
@@ -189,11 +189,11 @@ static bool AddCertificatesFromRootStore(X509_STORE* store) {
 
 void SSLCertContext::TrustBuiltinRoots() {
   // First, try to use locations specified on the command line.
-  if (root_certs_file() != NULL) {
+  if (root_certs_file() != nullptr) {
     LoadRootCertFile(root_certs_file());
     return;
   }
-  if (root_certs_cache() != NULL) {
+  if (root_certs_cache() != nullptr) {
     LoadRootCertCache(root_certs_cache());
     return;
   }

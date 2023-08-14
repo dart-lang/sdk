@@ -7,9 +7,9 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
     method baz = lib1::Extension1|baz;
     tearoff baz = lib1::Extension1|get#baz;
   }
-  static method Extension1|baz(lowered final main::A #this) → dynamic
+  static extension-member method Extension1|baz(lowered final main::A #this) → dynamic
     return 42;
-  static method Extension1|get#baz(lowered final main::A #this) → () → dynamic
+  static extension-member method Extension1|get#baz(lowered final main::A #this) → () → dynamic
     return () → dynamic => lib1::Extension1|baz(#this);
 }
 library from "org-dartlang-test:///lib2.dart" as lib2 {
@@ -47,9 +47,9 @@ library from "org-dartlang-test:///main.dart" as main {
   static method main() → dynamic {
     lib2::method(new main::A::•());
   }
-  static method Extension2|boz(lowered final main::A #this) → dynamic {
+  static extension-member method Extension2|boz(lowered final main::A #this) → dynamic {
     return 87;
   }
-  static method Extension2|get#boz(lowered final main::A #this) → () → dynamic
+  static extension-member method Extension2|get#boz(lowered final main::A #this) → () → dynamic
     return () → dynamic => main::Extension2|boz(#this);
 }

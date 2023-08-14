@@ -170,7 +170,7 @@ class ReturnPattern : public ValueObject {
   explicit ReturnPattern(uword pc);
 
   // bx_lr = 1.
-  static const int kLengthInBytes = 1 * Instr::kInstrSize;
+  static constexpr int kLengthInBytes = 1 * Instr::kInstrSize;
 
   int pattern_length_in_bytes() const { return kLengthInBytes; }
 
@@ -190,7 +190,7 @@ class PcRelativeCallPatternBase : public ValueObject {
 
   explicit PcRelativeCallPatternBase(uword pc) : pc_(pc) {}
 
-  static const int kLengthInBytes = 1 * Instr::kInstrSize;
+  static constexpr int kLengthInBytes = 1 * Instr::kInstrSize;
 
   int32_t distance() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -251,7 +251,7 @@ class PcRelativeTrampolineJumpPattern : public ValueObject {
     USE(pattern_start_);
   }
 
-  static const int kLengthInBytes = 3 * Instr::kInstrSize;
+  static constexpr int kLengthInBytes = 3 * Instr::kInstrSize;
 
   void Initialize();
 
@@ -263,10 +263,10 @@ class PcRelativeTrampolineJumpPattern : public ValueObject {
   // This offset must be applied to account for the fact that
   //   a) the actual "branch" is only in the 3rd instruction
   //   b) when reading the PC it reports current instruction + 8
-  static const intptr_t kDistanceOffset = -4 * Instr::kInstrSize;
+  static constexpr intptr_t kDistanceOffset = -4 * Instr::kInstrSize;
 
   // add  PC, PC, TMP lsl #0
-  static const uint32_t kAddPcEncoding =
+  static constexpr uint32_t kAddPcEncoding =
       (ADD << kOpcodeShift) | (AL << kConditionShift) | (PC << kRnShift) |
       (PC << kRdShift) | (TMP << kRmShift);
 

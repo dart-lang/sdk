@@ -28,11 +28,6 @@ class _Type extends _AbstractType {
   }
 
   @pragma("vm:recognized", "asm-intrinsic")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:external-name", "Type_getHashCode")
-  external int get hashCode;
-
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   @pragma("vm:external-name", "Type_equality")
   external bool operator ==(other);

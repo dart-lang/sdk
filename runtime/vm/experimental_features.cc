@@ -6,7 +6,7 @@
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart tools/generate_experimental_flags.dart' to update.
 //
-// Current version: 3.0.0
+// Current version: 3.1.0
 
 #include "vm/experimental_features.h"
 
@@ -18,8 +18,8 @@ namespace dart {
 
 bool GetExperimentalFeatureDefault(ExperimentalFeature feature) {
   constexpr bool kFeatureValues[] = {
+      true, true, true, true, true, true, true, true, true, true,
       true, true, true, true, true, true, true, true, true,
-      true, true, true, true, true, true, true, true,
   };
   ASSERT(static_cast<size_t>(feature) < ARRAY_SIZE(kFeatureValues));
   return kFeatureValues[static_cast<int>(feature)];
@@ -29,23 +29,23 @@ const char* GetExperimentalFeatureName(ExperimentalFeature feature) {
   constexpr const char* kFeatureNames[] = {
       "sealed-class",
       "class-modifiers",
+      "records",
+      "patterns",
+      "unnamed-libraries",
+      "inference-update-1",
+      "enhanced-enums",
+      "named-arguments-anywhere",
+      "super-parameters",
+      "constructor-tearoffs",
+      "generic-metadata",
+      "triple-shift",
       "nonfunction-type-aliases",
       "non-nullable",
       "extension-methods",
       "constant-update-2018",
       "control-flow-collections",
-      "generic-metadata",
       "set-literals",
       "spread-collections",
-      "triple-shift",
-      "constructor-tearoffs",
-      "enhanced-enums",
-      "named-arguments-anywhere",
-      "super-parameters",
-      "inference-update-1",
-      "unnamed-libraries",
-      "records",
-      "patterns",
   };
   ASSERT(static_cast<size_t>(feature) < ARRAY_SIZE(kFeatureNames));
   return kFeatureNames[static_cast<int>(feature)];

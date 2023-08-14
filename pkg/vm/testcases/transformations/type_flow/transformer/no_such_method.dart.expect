@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -125,7 +125,7 @@ static method main(core::List<core::String> args) → dynamic {
   core::print([@vm.direct-call.metadata=#lib::D.bar] [@vm.inferred-type.metadata=#lib::T2] [@vm.inferred-type.metadata=#lib::D] self::dd.{self::A::bar}{dynamic});
   core::print([@vm.direct-call.metadata=#lib::D.bazz] [@vm.inferred-type.metadata=#lib::T2 (skip check)] [@vm.inferred-type.metadata=#lib::D] self::dd.{self::A::bazz}(1, 2, 3, 4){(dynamic, dynamic, dynamic, [dynamic, dynamic]) → dynamic});
   new self::E::•();
-  self::A xx = self::getDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} self::A;
+  self::A xx = self::getDynamic() as{TypeError,ForDynamic} self::A;
   core::print([@vm.inferred-type.metadata=!] xx.{self::A::bar}{dynamic});
   dynamic yy = self::getDynamic();
   core::print([@vm.inferred-type.metadata=!] yy{dynamic}.twoArg(1, 2, 3));

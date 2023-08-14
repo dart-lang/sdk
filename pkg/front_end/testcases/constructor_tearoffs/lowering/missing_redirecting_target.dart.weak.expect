@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -15,7 +15,6 @@ import "dart:core" as core;
 
 class Class extends core::Object {
   static field () → self::Class field = () → self::Class => new self::Class::_();
-  static final field dynamic _redirecting# = <dynamic>[#C1, #C2]/*isLegacy*/;
   constructor _() → self::Class
     : super core::Object::•()
     ;
@@ -35,8 +34,3 @@ class Class extends core::Object {
   static method _#b#tearOff() → self::Class;
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = constructor-tearoff self::Class::a
-  #C2 = constructor-tearoff self::Class::b
-}

@@ -9,6 +9,8 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <fuchsia/io/cpp/fidl.h>
+#include <lib/fdio/directory.h>
 #include <lib/fdio/io.h>
 #include <lib/fdio/namespace.h>
 #include <lib/fdio/spawn.h>
@@ -51,7 +53,7 @@ namespace bin {
 
 int Process::global_exit_code_ = 0;
 Mutex* Process::global_exit_code_mutex_ = nullptr;
-Process::ExitHook Process::exit_hook_ = NULL;
+Process::ExitHook Process::exit_hook_ = nullptr;
 
 // ProcessInfo is used to map a process id to the file descriptor for
 // the pipe used to communicate the exit code of the process to Dart.
@@ -98,7 +100,7 @@ class ProcessInfoList {
   static intptr_t LookupProcessExitFd(zx_handle_t process) {
     MutexLocker locker(mutex_);
     ProcessInfo* current = active_processes_;
-    while (current != NULL) {
+    while (current != nullptr) {
       if (current->process() == process) {
         return current->exit_pipe_fd();
       }
@@ -113,11 +115,11 @@ class ProcessInfoList {
 
   static void RemoveProcess(zx_handle_t process) {
     MutexLocker locker(mutex_);
-    ProcessInfo* prev = NULL;
+    ProcessInfo* prev = nullptr;
     ProcessInfo* current = active_processes_;
-    while (current != NULL) {
+    while (current != nullptr) {
       if (current->process() == process) {
-        if (prev == NULL) {
+        if (prev == nullptr) {
           active_processes_ = current->next();
         } else {
           prev->set_next(current->next());
@@ -142,7 +144,7 @@ class ProcessInfoList {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessInfoList);
 };
 
-ProcessInfo* ProcessInfoList::active_processes_ = NULL;
+ProcessInfo* ProcessInfoList::active_processes_ = nullptr;
 Mutex* ProcessInfoList::mutex_ = nullptr;
 
 // The exit code handler sets up a separate thread which waits for child
@@ -206,7 +208,7 @@ class ExitCodeHandler {
   }
 
  private:
-  static const uint64_t kShutdownPacketKey = 1;
+  static constexpr uint64_t kShutdownPacketKey = 1;
 
   static void SendShutdownMessage() {
     zx_port_packet_t pkt;
@@ -252,8 +254,9 @@ class ExitCodeHandler {
     LOG_INFO("ExitCodeHandler thread getting process status: %u\n", process);
     int return_code = -1;
     zx_info_process_t proc_info;
-    zx_status_t status = zx_object_get_info(
-        process, ZX_INFO_PROCESS, &proc_info, sizeof(proc_info), NULL, NULL);
+    zx_status_t status =
+        zx_object_get_info(process, ZX_INFO_PROCESS, &proc_info,
+                           sizeof(proc_info), nullptr, nullptr);
     if (status != ZX_OK) {
       Syslog::PrintErr("ExitCodeHandler: zx_object_get_info failed: %s\n",
                        zx_status_get_string(status));
@@ -316,8 +319,9 @@ intptr_t Process::CurrentProcessId() {
 int64_t Process::CurrentRSS() {
   zx_info_task_stats_t task_stats;
   zx_handle_t process = zx_process_self();
-  zx_status_t status = zx_object_get_info(
-      process, ZX_INFO_TASK_STATS, &task_stats, sizeof(task_stats), NULL, NULL);
+  zx_status_t status =
+      zx_object_get_info(process, ZX_INFO_TASK_STATS, &task_stats,
+                         sizeof(task_stats), nullptr, nullptr);
   if (status != ZX_OK) {
     // TODO(zra): Translate this to a Unix errno.
     errno = status;
@@ -392,7 +396,8 @@ bool Process::Wait(intptr_t pid,
   if (!exit_tmp->AsyncWait(port, events, exit_key)) {
     return false;
   }
-  while ((out_tmp != NULL) || (err_tmp != NULL) || (exit_tmp != NULL)) {
+  while ((out_tmp != nullptr) || (err_tmp != nullptr) ||
+         (exit_tmp != nullptr)) {
     zx_port_packet_t pkt;
     status = zx_port_wait(port, ZX_TIME_INFINITE, &pkt);
     if (status != ZX_OK) {
@@ -411,7 +416,7 @@ bool Process::Wait(intptr_t pid,
       }
       if ((event_mask & POLLRDHUP) != 0) {
         out_tmp->CancelWait(port, out_key);
-        out_tmp = NULL;
+        out_tmp = nullptr;
       }
     } else if (event_handle == err_tmp) {
       if ((event_mask & POLLIN) != 0) {
@@ -422,7 +427,7 @@ bool Process::Wait(intptr_t pid,
       }
       if ((event_mask & POLLRDHUP) != 0) {
         err_tmp->CancelWait(port, err_key);
-        err_tmp = NULL;
+        err_tmp = nullptr;
       }
     } else if (event_handle == exit_tmp) {
       if ((event_mask & POLLIN) != 0) {
@@ -437,23 +442,23 @@ bool Process::Wait(intptr_t pid,
       }
       if ((event_mask & POLLRDHUP) != 0) {
         exit_tmp->CancelWait(port, exit_key);
-        exit_tmp = NULL;
+        exit_tmp = nullptr;
       }
     } else {
       Syslog::PrintErr("Process::Wait: Unexpected wait key: %p\n",
                        event_handle);
     }
-    if (out_tmp != NULL) {
+    if (out_tmp != nullptr) {
       if (!out_tmp->AsyncWait(port, events, out_key)) {
         return false;
       }
     }
-    if (err_tmp != NULL) {
+    if (err_tmp != nullptr) {
       if (!err_tmp->AsyncWait(port, events, err_key)) {
         return false;
       }
     }
-    if (exit_tmp != NULL) {
+    if (exit_tmp != nullptr) {
       if (!exit_tmp->AsyncWait(port, events, exit_key)) {
         return false;
       }
@@ -545,16 +550,16 @@ class ProcessStarter {
     for (int i = 0; i < arguments_length; i++) {
       program_arguments_[i + 1] = arguments[i];
     }
-    program_arguments_[arguments_length + 1] = NULL;
+    program_arguments_[arguments_length + 1] = nullptr;
 
-    program_environment_ = NULL;
-    if (environment != NULL) {
+    program_environment_ = nullptr;
+    if (environment != nullptr) {
       program_environment_ = reinterpret_cast<char**>(Dart_ScopeAllocate(
           (environment_length + 1) * sizeof(*program_environment_)));
       for (int i = 0; i < environment_length; i++) {
         program_environment_[i] = environment[i];
       }
-      program_environment_[environment_length] = NULL;
+      program_environment_[environment_length] = nullptr;
     }
   }
 
@@ -583,27 +588,38 @@ class ProcessStarter {
              exit_pipe_fds[0], exit_pipe_fds[1]);
 
     NamespaceScope ns(namespc_, path_);
-    const int pathfd =
-        TEMP_FAILURE_RETRY(openat(ns.fd(), ns.path(), O_RDONLY));
+    int pathfd = -1;
+    zx_status_t status;
+    if (ns.fd() == AT_FDCWD) {
+      status = fdio_open_fd(
+          ns.path(),
+          static_cast<uint32_t>(fuchsia::io::OpenFlags::RIGHT_READABLE |
+                                fuchsia::io::OpenFlags::RIGHT_EXECUTABLE),
+          &pathfd);
+    } else {
+      status = fdio_open_fd_at(
+          ns.fd(), ns.path(),
+          static_cast<uint32_t>(fuchsia::io::OpenFlags::RIGHT_READABLE |
+                                fuchsia::io::OpenFlags::RIGHT_EXECUTABLE),
+          &pathfd);
+    }
+    if (status != ZX_OK) {
+      close(exit_pipe_fds[0]);
+      close(exit_pipe_fds[1]);
+      ReportStartError(
+          "Failed to load executable for process start (fdio_open_fd_at %s).",
+          zx_status_get_string(status));
+      return status;
+    }
     zx_handle_t vmo = ZX_HANDLE_INVALID;
-    zx_status_t status = fdio_get_vmo_clone(pathfd, &vmo);
+    status = fdio_get_vmo_exec(pathfd, &vmo);
     close(pathfd);
     if (status != ZX_OK) {
       close(exit_pipe_fds[0]);
       close(exit_pipe_fds[1]);
-      *os_error_message_ = DartUtils::ScopedCopyCString(
-          "Failed to load executable for process start.");
-      return status;
-    }
-
-    // After reading the binary into a VMO, we need to mark it as executable,
-    // since the VMO returned by fdio_get_vmo_clone should be read-only.
-    status = zx_vmo_replace_as_executable(vmo, ZX_HANDLE_INVALID, &vmo);
-    if (status != ZX_OK) {
-      close(exit_pipe_fds[0]);
-      close(exit_pipe_fds[1]);
-      *os_error_message_ = DartUtils::ScopedCopyCString(
-          "Failed to mark binary as executable for process start.");
+      ReportStartError(
+          "Failed to load executable for process start (fdio_get_vmo_exec %s).",
+          zx_status_get_string(status));
       return status;
     }
 
@@ -636,7 +652,7 @@ class ProcessStarter {
       LOG_ERR("ProcessStarter: Start() fdio_spawn_vmo failed\n");
       close(exit_pipe_fds[0]);
       close(exit_pipe_fds[1]);
-      ReportStartError(err_msg);
+      ReportStartError("Process start failed: %s\n", err_msg);
       return status;
     }
 
@@ -652,7 +668,8 @@ class ProcessStarter {
       close(exit_pipe_fds[1]);
       zx_task_kill(process);
       ProcessInfoList::RemoveProcess(process);
-      ReportStartError(zx_status_get_string(status));
+      ReportStartError("Process start failed: %s\n",
+                       zx_status_get_string(status));
       return status;
     }
 
@@ -676,10 +693,13 @@ class ProcessStarter {
   }
 
  private:
-  void ReportStartError(const char* errormsg) {
+  void ReportStartError(const char* format, ...) PRINTF_ATTRIBUTE(2, 3) {
     const intptr_t kMaxMessageSize = 256;
     char* message = DartUtils::ScopedCString(kMaxMessageSize);
-    snprintf(message, kMaxMessageSize, "Process start failed: %s\n", errormsg);
+    va_list args;
+    va_start(args, format);
+    vsnprintf(message, kMaxMessageSize, format, args);
+    va_end(args);
     *os_error_message_ = message;
   }
 
@@ -827,7 +847,7 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {}
 void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {}
 
 void ProcessInfoList::Init() {
-  active_processes_ = NULL;
+  active_processes_ = nullptr;
   ASSERT(ProcessInfoList::mutex_ == nullptr);
   ProcessInfoList::mutex_ = new Mutex();
 }

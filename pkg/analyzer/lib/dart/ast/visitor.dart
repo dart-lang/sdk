@@ -19,6 +19,8 @@
 /// doing so will simplify the task of writing your visitor and guard against
 /// future changes to the AST structure. For example, the [RecursiveAstVisitor]
 /// automates the process of visiting all of the descendants of a node.
+library;
+
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -425,6 +427,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitImportDirective(ImportDirective node) =>
       visitNamespaceDirective(node);
+
+  @override
+  R? visitImportPrefixReference(ImportPrefixReference node) => visitNode(node);
 
   @override
   R? visitIndexExpression(IndexExpression node) => visitExpression(node);
@@ -1245,6 +1250,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitImportPrefixReference(ImportPrefixReference node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitIndexExpression(IndexExpression node) {
     node.visitChildren(this);
     return null;
@@ -2025,6 +2036,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitImportDirective(ImportDirective node) => null;
 
   @override
+  R? visitImportPrefixReference(ImportPrefixReference node) => null;
+
+  @override
   R? visitIndexExpression(IndexExpression node) => null;
 
   @override
@@ -2553,6 +2567,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitImportDirective(ImportDirective node) => _throw(node);
+
+  @override
+  R? visitImportPrefixReference(ImportPrefixReference node) => _throw(node);
 
   @override
   R? visitIndexExpression(IndexExpression node) => _throw(node);
@@ -3478,6 +3495,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitImportDirective(ImportDirective node) {
     stopwatch.start();
     T? result = _baseVisitor.visitImportDirective(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitImportPrefixReference(ImportPrefixReference node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitImportPrefixReference(node);
     stopwatch.stop();
     return result;
   }
@@ -4455,6 +4480,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitImportDirective(ImportDirective node) => visitNode(node);
+
+  @override
+  R? visitImportPrefixReference(ImportPrefixReference node) => visitNode(node);
 
   @override
   R? visitIndexExpression(IndexExpression node) => visitNode(node);

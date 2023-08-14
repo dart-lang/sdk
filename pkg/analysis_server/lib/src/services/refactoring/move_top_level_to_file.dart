@@ -24,8 +24,9 @@ import 'package:collection/collection.dart';
 /// different file. The destination file can either be a new file or an existing
 /// file.
 class MoveTopLevelToFile extends RefactoringProducer {
-  /// Return the name used for this command when communicating with the client.
-  static const String commandName = 'move_top_level_to_file';
+  /// Return the name used for this command when communicating with the client
+  /// (and for analytics).
+  static const String commandName = 'dart.refactor.move_top_level_to_file';
 
   @override
   late String title;
@@ -38,7 +39,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
   MoveTopLevelToFile(super.context);
 
   @override
-  bool get isExperimental => true;
+  bool get isExperimental => false;
 
   @override
   CodeActionKind get kind => DartCodeActionKind.RefactorMove;
@@ -182,12 +183,20 @@ class MoveTopLevelToFile extends RefactoringProducer {
   void _addImportsForMovingDeclarations(
       DartFileEditBuilder builder, ImportAnalyzer analyzer) {
     for (var entry in analyzer.movingReferences.entries) {
-      var library = entry.key.library;
-      if (library != null && !library.isDartCore) {
-        var uri = library.source.uri;
-        for (var prefix in entry.value) {
-          builder.importLibrary(uri, prefix: prefix.isEmpty ? null : prefix);
+      var element = entry.key;
+      var imports = entry.value;
+      for (var import in imports) {
+        var library = import.importedLibrary;
+        if (library == null || library.isDartCore) {
+          continue;
         }
+        var hasShowCombinator =
+            import.combinators.whereType<ShowElementCombinator>().isNotEmpty;
+        builder.importLibrary(
+          library.source.uri,
+          prefix: import.prefix?.element.name,
+          showName: hasShowCombinator ? element.name : null,
+        );
       }
     }
   }
@@ -506,7 +515,7 @@ extension on CompilationUnitMember {
   /// Gets all sealed [ClassElement]s that are superclasses of this member.
   Iterable<ClassElement> get sealedSuperclassElements {
     return superclasses
-        .map((type) => type?.name.staticElement)
+        .map((type) => type?.element)
         .whereType<ClassElement>()
         .where((element) => element.isSealed);
   }

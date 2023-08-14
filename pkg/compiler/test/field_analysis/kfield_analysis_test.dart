@@ -9,7 +9,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/js_backend/field_analysis.dart';
-import 'package:compiler/src/kernel/kelements.dart';
+import 'package:compiler/src/js_model/elements.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
@@ -44,7 +44,7 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
       Features features = Features();
       if (member.isInstanceMember) {
         AllocatorData? data =
-            allocatorAnalysis.getAllocatorDataForTesting(member as KField);
+            allocatorAnalysis.getAllocatorDataForTesting(member as JField);
         if (data != null) {
           if (data.initialValue != null) {
             features[Tags.initialValue] =
@@ -57,7 +57,7 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
         }
       } else {
         StaticFieldData staticFieldData =
-            allocatorAnalysis.getStaticFieldDataForTesting(member as KField)!;
+            allocatorAnalysis.getStaticFieldDataForTesting(member as JField)!;
         if (staticFieldData.initialValue != null) {
           features[Tags.initialValue] =
               staticFieldData.initialValue!.toStructuredText(dartTypes);

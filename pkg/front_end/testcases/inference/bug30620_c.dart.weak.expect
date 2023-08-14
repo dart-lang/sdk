@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
@@ -8,7 +8,7 @@ class A extends core::Object {
     : self::A::foo = foo, super core::Object::•()
     ;
   operator ==(core::Object* other) → core::bool* {
-    if(other is self::A* && other{self::A*}.{self::A::foo}{core::String*} =={core::String::==}{(core::Object*) →* core::bool*} this.{self::A::foo}{core::String*}) {
+    if(other is{ForLegacy} self::A* && other{self::A*}.{self::A::foo}{core::String*} =={core::String::==}{(core::Object*) →* core::bool*} this.{self::A::foo}{core::String*}) {
       if(other{self::A*}.{self::A::foo}{core::String*} =={core::String::==}{(core::Object*) →* core::bool*} this.{self::A::foo}{core::String*}) {
       }
     }

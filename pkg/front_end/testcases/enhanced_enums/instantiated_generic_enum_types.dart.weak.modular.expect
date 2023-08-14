@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -67,17 +67,17 @@ static method foo(self::E<core::int> ei, self::E<core::String> es) → dynamic {
   self::bar(invalid-expression "pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart:21:7: Error: The argument type 'E<String>' can't be assigned to the parameter type 'E<int>'.
  - 'E' is from 'pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart'.
   bar(es, ei); // Error.
-      ^" in es as{TypeError,ForNonNullableByDefault} self::E<core::int>, invalid-expression "pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart:21:11: Error: The argument type 'E<int>' can't be assigned to the parameter type 'E<String>'.
+      ^" in es as{TypeError} self::E<core::int>, invalid-expression "pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart:21:11: Error: The argument type 'E<int>' can't be assigned to the parameter type 'E<String>'.
  - 'E' is from 'pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart'.
   bar(es, ei); // Error.
-          ^" in ei as{TypeError,ForNonNullableByDefault} self::E<core::String>);
+          ^" in ei as{TypeError} self::E<core::String>);
   self::bar(invalid-expression "pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart:22:9: Error: The argument type 'E<String>' can't be assigned to the parameter type 'E<int>'.
  - 'E' is from 'pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart'.
   bar(E.two, E.one); // Error.
-        ^" in #C7 as{TypeError,ForNonNullableByDefault} self::E<core::int>, invalid-expression "pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart:22:16: Error: The argument type 'E<int>' can't be assigned to the parameter type 'E<String>'.
+        ^" in #C7 as{TypeError} self::E<core::int>, invalid-expression "pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart:22:16: Error: The argument type 'E<int>' can't be assigned to the parameter type 'E<String>'.
  - 'E' is from 'pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart'.
   bar(E.two, E.one); // Error.
-               ^" in #C4 as{TypeError,ForNonNullableByDefault} self::E<core::String>);
+               ^" in #C4 as{TypeError} self::E<core::String>);
 }
 static method bar(self::E<core::int> ei, self::E<core::String> es) → dynamic {
   self::baz(ei, es);
@@ -87,27 +87,27 @@ static method baz(self::E<core::Object> ei, self::E<core::Object> es) → dynami
  - 'E' is from 'pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart'.
  - 'Object' is from 'dart:core'.
   boz(ei, es); // Error.
-      ^" in ei as{TypeError,ForNonNullableByDefault} self::E<Never>, invalid-expression "pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart:30:11: Error: The argument type 'E<Object>' can't be assigned to the parameter type 'E<Never>'.
+      ^" in ei as{TypeError} self::E<Never>, invalid-expression "pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart:30:11: Error: The argument type 'E<Object>' can't be assigned to the parameter type 'E<Never>'.
  - 'E' is from 'pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart'.
  - 'Object' is from 'dart:core'.
   boz(ei, es); // Error.
-          ^" in es as{TypeError,ForNonNullableByDefault} self::E<Never>);
+          ^" in es as{TypeError} self::E<Never>);
   self::boz(invalid-expression "pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart:31:9: Error: The argument type 'E<int>' can't be assigned to the parameter type 'E<Never>'.
  - 'E' is from 'pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart'.
   boz(E.one, E.two); // Error.
-        ^" in #C4 as{TypeError,ForNonNullableByDefault} self::E<Never>, invalid-expression "pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart:31:16: Error: The argument type 'E<String>' can't be assigned to the parameter type 'E<Never>'.
+        ^" in #C4 as{TypeError} self::E<Never>, invalid-expression "pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart:31:16: Error: The argument type 'E<String>' can't be assigned to the parameter type 'E<Never>'.
  - 'E' is from 'pkg/front_end/testcases/enhanced_enums/instantiated_generic_enum_types.dart'.
   boz(E.one, E.two); // Error.
-               ^" in #C7 as{TypeError,ForNonNullableByDefault} self::E<Never>);
+               ^" in #C7 as{TypeError} self::E<Never>);
 }
 static method boz(self::E<Never> ei, self::E<Never> es) → dynamic {}
 static method checkIsType<T extends core::Object? = dynamic>(dynamic x) → dynamic {
-  if(!(x is{ForNonNullableByDefault} self::checkIsType::T%)) {
+  if(!(x is self::checkIsType::T%)) {
     throw "Expected value of type ${x.{core::Object::runtimeType}{core::Type}} to also be of type ${self::checkIsType::T%}.";
   }
 }
 static method checkIsNotType<T extends core::Object? = dynamic>(dynamic x) → dynamic {
-  if(x is{ForNonNullableByDefault} self::checkIsNotType::T%) {
+  if(x is self::checkIsNotType::T%) {
     throw "Expected value of type ${x{self::checkIsNotType::T%}.{core::Object::runtimeType}{core::Type}} to not be of type ${self::checkIsNotType::T%}.";
   }
 }

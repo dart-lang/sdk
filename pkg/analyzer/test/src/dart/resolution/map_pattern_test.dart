@@ -38,10 +38,8 @@ MapPattern
       separator: :
       value: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: String
-            staticElement: dart:core::@class::String
-            staticType: null
+          name: String
+          element: dart:core::@class::String
           type: String
         name: a
         declaredElement: a@47
@@ -104,16 +102,12 @@ MapPattern
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
       NamedType
-        name: SimpleIdentifier
-          token: String
-          staticElement: dart:core::@class::String
-          staticType: null
+        name: String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   leftBracket: {
@@ -328,16 +322,12 @@ MapPattern
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: bool
-          staticElement: dart:core::@class::bool
-          staticType: null
+        name: bool
+        element: dart:core::@class::bool
         type: bool
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: {
@@ -424,10 +414,8 @@ MapPattern
       separator: :
       value: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@43
@@ -482,16 +470,12 @@ MapPattern
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: bool
-          staticElement: dart:core::@class::bool
-          staticType: null
+        name: bool
+        element: dart:core::@class::bool
         type: bool
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: {
@@ -527,16 +511,12 @@ MapPattern
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: bool
-          staticElement: dart:core::@class::bool
-          staticType: null
+        name: bool
+        element: dart:core::@class::bool
         type: bool
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: {
@@ -651,16 +631,12 @@ PatternVariableDeclaration
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: bool
-            staticElement: dart:core::@class::bool
-            staticType: null
+          name: bool
+          element: dart:core::@class::bool
           type: bool
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     leftBracket: {
@@ -719,10 +695,8 @@ PatternVariableDeclaration
         separator: :
         value: DeclaredVariablePattern
           type: NamedType
-            name: SimpleIdentifier
-              token: int
-              staticElement: dart:core::@class::int
-              staticType: null
+            name: int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@28

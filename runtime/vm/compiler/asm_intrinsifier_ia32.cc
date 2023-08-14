@@ -1342,17 +1342,6 @@ void AsmIntrinsifier::String_getHashCode(Assembler* assembler,
   // Hash not yet computed.
 }
 
-void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
-                                       Label* normal_ir_body) {
-  __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // Type object.
-  __ movl(EAX, FieldAddress(EAX, target::Type::hash_offset()));
-  __ testl(EAX, EAX);
-  __ j(EQUAL, normal_ir_body, Assembler::kNearJump);
-  __ ret();
-  __ Bind(normal_ir_body);
-  // Hash not yet computed.
-}
-
 void AsmIntrinsifier::Type_equality(Assembler* assembler,
                                     Label* normal_ir_body) {
   Label equal, not_equal, equiv_cids_may_be_generic, equiv_cids, check_legacy;
@@ -1416,8 +1405,8 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 
 void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
-  __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // FunctionType object.
-  __ movl(EAX, FieldAddress(EAX, target::FunctionType::hash_offset()));
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // AbstractType object.
+  __ movl(EAX, FieldAddress(EAX, target::AbstractType::hash_offset()));
   __ testl(EAX, EAX);
   __ j(EQUAL, normal_ir_body, Assembler::kNearJump);
   __ ret();
@@ -1551,6 +1540,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
 // Returns new string as tagged pointer in EAX.
 static void TryAllocateString(Assembler* assembler,
                               classid_t cid,
+                              intptr_t max_elements,
                               Label* ok,
                               Label* failure,
                               Register length_reg) {
@@ -1558,8 +1548,9 @@ static void TryAllocateString(Assembler* assembler,
   // _Mint length: call to runtime to produce error.
   __ BranchIfNotSmi(length_reg, failure);
   // negative length: call to runtime to produce error.
-  __ cmpl(length_reg, Immediate(0));
-  __ j(LESS, failure);
+  // Too big: call to runtime to allocate old.
+  __ cmpl(length_reg, Immediate(target::ToRawSmi(max_elements)));
+  __ j(ABOVE, failure);
 
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, EAX));
   if (length_reg != EDI) {
@@ -1656,7 +1647,9 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ j(NOT_ZERO, normal_ir_body);  // 'start', 'end' not Smi.
 
   __ subl(EDI, Address(ESP, +kStartIndexOffset));
-  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body, EDI);
+  TryAllocateString(assembler, kOneByteStringCid,
+                    target::OneByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body, EDI);
   __ Bind(&ok);
   // EAX: new string as tagged pointer.
   // Copy string.
@@ -1718,7 +1711,9 @@ void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
                                             Label* normal_ir_body) {
   __ movl(EDI, Address(ESP, +1 * target::kWordSize));  // Length.
   Label ok;
-  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body, EDI);
+  TryAllocateString(assembler, kOneByteStringCid,
+                    target::OneByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body, EDI);
   // EDI: Start address to copy from (untagged).
 
   __ Bind(&ok);
@@ -1731,7 +1726,9 @@ void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
                                             Label* normal_ir_body) {
   __ movl(EDI, Address(ESP, +1 * target::kWordSize));  // Length.
   Label ok;
-  TryAllocateString(assembler, kTwoByteStringCid, &ok, normal_ir_body, EDI);
+  TryAllocateString(assembler, kTwoByteStringCid,
+                    target::TwoByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body, EDI);
   // EDI: Start address to copy from (untagged).
 
   __ Bind(&ok);
@@ -1763,8 +1760,8 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
                                                    bool sticky) {
   if (FLAG_interpret_irregexp) return;
 
-  static const intptr_t kRegExpParamOffset = 3 * target::kWordSize;
-  static const intptr_t kStringParamOffset = 2 * target::kWordSize;
+  const intptr_t kRegExpParamOffset = 3 * target::kWordSize;
+  const intptr_t kStringParamOffset = 2 * target::kWordSize;
   // start_index smi is located at offset 1.
 
   // Incoming registers:

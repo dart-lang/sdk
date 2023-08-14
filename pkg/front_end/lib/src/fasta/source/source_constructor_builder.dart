@@ -25,9 +25,11 @@ import '../constant_context.dart' show ConstantContext;
 import '../dill/dill_member_builder.dart';
 import '../identifiers.dart';
 import '../kernel/body_builder.dart' show BodyBuilder;
+import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
+import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart'
     show
         DelayedDefaultValueCloner,
@@ -180,16 +182,6 @@ abstract class AbstractSourceConstructorBuilder
   @override
   List<Initializer> get initializers;
 
-  @override
-  bool get isRedirecting {
-    for (Initializer initializer in initializers) {
-      if (initializer is RedirectingInitializer) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   void _injectInvalidInitializer(Message message, int charOffset, int length,
       ExpressionGeneratorHelper helper) {
     Initializer lastInitializer = initializers.removeLast();
@@ -284,8 +276,7 @@ abstract class AbstractSourceConstructorBuilder
           initializers.add(helper.buildInvalidInitializer(
               helper.buildUnresolvedError(
                   helper.constructorNameForDiagnostics(
-                      initializer.target.name.text,
-                      isSuper: false),
+                      initializer.target.name.text),
                   initializer.fileOffset,
                   arguments: initializer.arguments,
                   isSuper: false,
@@ -400,7 +391,11 @@ class DeclaredSourceConstructorBuilder
     _constructorTearOff = createConstructorTearOffProcedure(name,
         compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
         forAbstractClassOrEnum: forAbstractClassOrEnum);
-    // TODO(johnniwinther): Use [NameScheme] for constructor tear-off names.
+    if (_constructorTearOff != null) {
+      nameScheme
+          .getConstructorMemberName(name, isTearOff: true)
+          .attachMember(_constructorTearOff!);
+    }
   }
 
   @override
@@ -451,6 +446,16 @@ class DeclaredSourceConstructorBuilder
       }
     }
     return isExternal;
+  }
+
+  @override
+  bool get isRedirecting {
+    for (Initializer initializer in initializers) {
+      if (initializer is RedirectingInitializer) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @override
@@ -570,7 +575,7 @@ class DeclaredSourceConstructorBuilder
       if (beginInitializers != null) {
         BodyBuilder bodyBuilder = libraryBuilder.loader
             .createBodyBuilderForOutlineExpression(libraryBuilder,
-                declarationBuilder, this, declarationBuilder.scope, fileUri);
+                bodyBuilderContext, declarationBuilder.scope, fileUri);
         if (isConst) {
           bodyBuilder.constantContext = ConstantContext.required;
         }
@@ -749,7 +754,7 @@ class DeclaredSourceConstructorBuilder
       }
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              libraryBuilder, classBuilder, this, classBuilder.scope, fileUri,
+              libraryBuilder, bodyBuilderContext, classBuilder.scope, fileUri,
               formalParameterScope: formalParameterScope);
       if (isConst) {
         bodyBuilder.constantContext = ConstantContext.required;
@@ -919,6 +924,23 @@ class DeclaredSourceConstructorBuilder
     // type variables.
     return fieldType;
   }
+
+  @override
+  BodyBuilderContext get bodyBuilderContext =>
+      new ConstructorBodyBuilderContext(this);
+
+  // TODO(johnniwinther): Add annotations to tear-offs.
+  @override
+  Iterable<Annotatable> get annotatables => [constructor];
+
+  @override
+  bool get isAugmented {
+    if (isPatch) {
+      return origin._patches!.last != this;
+    } else {
+      return _patches != null;
+    }
+  }
 }
 
 class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
@@ -1086,12 +1108,12 @@ class SourceInlineClassConstructorBuilder
     _constructorTearOff = createConstructorTearOffProcedure(name,
         compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
         forAbstractClassOrEnum: forAbstractClassOrEnum,
-        // TODO(johnniwinther): Support tear-offs on generic classes.
-        forceCreateLowering: typeVariables == null);
+        forceCreateLowering: true);
     if (_constructorTearOff != null) {
       nameScheme
           .getConstructorMemberName(name, isTearOff: true)
           .attachMember(_constructorTearOff!);
+      _constructorTearOff!.isInlineClassMember = true;
     }
   }
 
@@ -1131,8 +1153,9 @@ class SourceInlineClassConstructorBuilder
     if (!isExternal) {
       VariableDeclaration thisVariable = this.thisVariable!;
       List<Statement> statements = [thisVariable];
-      _InitializerToStatementConverter visitor =
-          new _InitializerToStatementConverter(statements, thisVariable);
+      InlineClassInitializerToStatementConverter visitor =
+          new InlineClassInitializerToStatementConverter(
+              statements, thisVariable);
       for (Initializer initializer in initializers) {
         initializer.accept(visitor);
       }
@@ -1190,8 +1213,6 @@ class SourceInlineClassConstructorBuilder
             tearOff: _constructorTearOff!,
             declarationConstructor: _constructor,
             implementationConstructor: _constructor,
-            enclosingDeclarationTypeParameters:
-                inlineClassBuilder.inlineClass.typeParameters,
             libraryBuilder: libraryBuilder);
       }
 
@@ -1237,6 +1258,16 @@ class SourceInlineClassConstructorBuilder
   bool get isEffectivelyExternal => isExternal;
 
   @override
+  bool get isRedirecting {
+    for (Initializer initializer in initializers) {
+      if (initializer is InlineClassRedirectingInitializer) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   bool get isEffectivelyRedirecting => isRedirecting;
 
   Substitution? _substitutionCache;
@@ -1263,16 +1294,39 @@ class SourceInlineClassConstructorBuilder
   DartType substituteFieldType(DartType fieldType) {
     return _substitution.substituteType(fieldType);
   }
+
+  @override
+  BodyBuilderContext get bodyBuilderContext =>
+      new InlineClassConstructorBodyBuilderContext(this);
+
+  // TODO(johnniwinther): Add annotations to tear-offs.
+  @override
+  Iterable<Annotatable> get annotatables => [_constructor];
+
+  @override
+  bool get isAugmented => false;
 }
 
-class _InitializerToStatementConverter implements InitializerVisitor<void> {
+class InlineClassInitializerToStatementConverter
+    implements InitializerVisitor<void> {
   VariableDeclaration thisVariable;
   final List<Statement> statements;
 
-  _InitializerToStatementConverter(this.statements, this.thisVariable);
+  InlineClassInitializerToStatementConverter(
+      this.statements, this.thisVariable);
 
   @override
   void defaultInitializer(Initializer node) {
+    if (node is InlineClassRedirectingInitializer) {
+      statements.add(new ExpressionStatement(
+          new VariableSet(
+              thisVariable,
+              new StaticInvocation(node.target, node.arguments)
+                ..fileOffset = node.fileOffset)
+            ..fileOffset = node.fileOffset)
+        ..fileOffset = node.fileOffset);
+      return;
+    }
     throw new UnsupportedError(
         "Unexpected initializer $node (${node.runtimeType})");
   }
@@ -1285,7 +1339,7 @@ class _InitializerToStatementConverter implements InitializerVisitor<void> {
   @override
   void visitFieldInitializer(FieldInitializer node) {
     thisVariable
-      ..initializer = node.value
+      ..initializer = (node.value..parent = thisVariable)
       ..fileOffset = node.fileOffset;
   }
 
@@ -1303,7 +1357,8 @@ class _InitializerToStatementConverter implements InitializerVisitor<void> {
 
   @override
   void visitRedirectingInitializer(RedirectingInitializer node) {
-    // TODO(johnniwinther): Support redirecting generative constructors.
+    throw new UnsupportedError(
+        "Unexpected initializer $node (${node.runtimeType})");
   }
 
   @override

@@ -6,10 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dap/dap.dart';
 import 'package:path/path.dart' as path;
 
 import '../logging.dart';
-import '../protocol_common.dart';
 
 /// A mixin providing some utility functions for locating/working with
 /// package_config.json files.
@@ -51,8 +51,9 @@ mixin PidTracker {
 /// provides some basic test reporting since otherwise nothing is printed when
 /// using the JSON test reporter.
 mixin TestAdapter {
-  static const _tick = "✓";
-  static const _cross = "✖";
+  static const _passSymbol = "✓";
+  static const _failSymbol = "✖";
+  static const _skippedSymbol = "!";
 
   /// Test names by testID.
   ///
@@ -103,8 +104,11 @@ mixin TestAdapter {
         if (testID != null) {
           final testName = _testNames[testID];
           if (testName != null) {
-            final symbol =
-                testNotification['result'] == "success" ? _tick : _cross;
+            final symbol = testNotification['skipped'] == true
+                ? _skippedSymbol
+                : testNotification['result'] == "success"
+                    ? _passSymbol
+                    : _failSymbol;
             sendOutput('console', '$symbol $testName\n');
           }
         }

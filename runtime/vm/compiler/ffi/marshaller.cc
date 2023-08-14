@@ -12,6 +12,7 @@
 #include "vm/compiler/ffi/native_location.h"
 #include "vm/compiler/ffi/native_type.h"
 #include "vm/exceptions.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/log.h"
 #include "vm/object_store.h"
 #include "vm/raw_object.h"
@@ -46,7 +47,8 @@ const NativeFunctionType* NativeFunctionTypeFromFunctionType(
     arg_type = c_signature.ParameterTypeAt(i + kNativeParamsStartAt);
     const bool varargs = arg_type.type_class() == object_store->varargs_class();
     if (varargs) {
-      arg_type = TypeArguments::Handle(zone, arg_type.arguments()).TypeAt(0);
+      arg_type = TypeArguments::Handle(zone, Type::Cast(arg_type).arguments())
+                     .TypeAt(0);
       variadic_arguments_index = i;
       ASSERT(arg_type.IsRecordType());
       const auto& record_type = RecordType::Cast(arg_type);
@@ -122,7 +124,8 @@ AbstractTypePtr BaseMarshaller::CType(intptr_t arg_index) const {
   if (has_varargs && real_arg_index >= last_param_index) {
     // The C-type is nested in a VarArgs.
     const auto& var_args_type_arg = AbstractType::Handle(
-        zone, TypeArguments::Handle(zone, last_arg_type.arguments()).TypeAt(0));
+        zone, TypeArguments::Handle(zone, Type::Cast(last_arg_type).arguments())
+                  .TypeAt(0));
     if (var_args_type_arg.IsRecordType()) {
       const intptr_t index_in_record = real_arg_index - last_param_index;
       const auto& record_type = RecordType::Cast(var_args_type_arg);
@@ -635,13 +638,11 @@ class CallbackArgumentTranslator : public ValueObject {
       // shadow space if present (factored into
       // kCallbackSlotsBeforeSavedArguments).
       //
-      // Finally, if we are using NativeCallbackTrampolines, factor in the extra
-      // stack space corresponding to those trampolines' frames (above the entry
-      // frame).
-      intptr_t stack_delta = kCallbackSlotsBeforeSavedArguments;
-      if (NativeCallbackTrampolines::Enabled()) {
-        stack_delta += StubCodeCompiler::kNativeCallbackTrampolineStackDelta;
-      }
+      // Finally, for NativeCallbackTrampolines, factor in the extra stack space
+      // corresponding to those trampolines' frames (above the entry frame).
+      const intptr_t stack_delta =
+          kCallbackSlotsBeforeSavedArguments +
+          FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta;
       FrameRebase rebase(
           zone,
           /*old_base=*/SPREG, /*new_base=*/SPREG,

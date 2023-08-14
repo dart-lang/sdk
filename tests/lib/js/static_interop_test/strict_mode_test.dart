@@ -2,11 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// SharedOptions=--enable-experiment=inline-class
+
 @JS()
 library strict_mode_test;
 
 import 'dart:js_interop';
-import 'package:js/js.dart' hide JS;
+/**/ import 'dart:js';
+//   ^
+// [web] Library 'dart:js' is forbidden when strict mode is enabled.
+
+/**/ import 'dart:js_util';
+//   ^
+// [web] Library 'dart:js_util' is forbidden when strict mode is enabled.
 
 @JS()
 @staticInterop
@@ -68,34 +76,22 @@ extension JSClassExtension on JSClass {
   external set extFooSet(String bar);
   //           ^
   // [web] JS interop requires JS types when strict mode is enabled, but Type 'String' is not a type or subtype of a type from `dart:js_interop`.
+}
 
-  external static int staticExtFoo();
-  //                  ^
-  // [web] JS interop requires JS types when strict mode is enabled, but Type 'int' is not a type or subtype of a type from `dart:js_interop`.
-
-  external static JSClass staticExtFoo2(dynamic bar);
-  //                      ^
-  // [web] JS interop requires JS types when strict mode is enabled, but Type 'dynamic' is not a type or subtype of a type from `dart:js_interop`.
-
-  external static Function staticExtFoo3();
-  //                       ^
-  // [web] JS interop requires JS types when strict mode is enabled, but Type 'Function' is not a type or subtype of a type from `dart:js_interop`.
-
-  external static JSClass staticExtFoo4(void Function() bar);
-  //                      ^
-  // [web] JS interop requires JS types when strict mode is enabled, but Type 'void Function()' is not a type or subtype of a type from `dart:js_interop`.
-
-  external static double get staticExtFooGet;
-  //                         ^
-  // [web] JS interop requires JS types when strict mode is enabled, but Type 'double' is not a type or subtype of a type from `dart:js_interop`.
-
-  external static set staticExtFooSet(String bar);
-  //                  ^
-  // [web] JS interop requires JS types when strict mode is enabled, but Type 'String' is not a type or subtype of a type from `dart:js_interop`.
+@JS()
+inline class Inline {
+  final JSObject obj;
+  external Inline();
 }
 
 @JS()
 external void jsFunctionTest(JSFunction foo);
+
+@JS()
+external void useStaticInteropClass(JSClass foo);
+
+@JS()
+external void useStaticInteropInlineClass(Inline foo);
 
 void main() {
   jsFunctionTest(((double foo) => 4.0.toJS).toJS);
@@ -105,4 +101,8 @@ void main() {
   jsFunctionTest(((JSNumber foo) => 4.0).toJS);
   //                                     ^
   // [web] JS interop requires JS types when strict mode is enabled, but Type 'double' is not a type or subtype of a type from `dart:js_interop`.
+
+  jsFunctionTest(((((JSNumber foo) => 4.0) as dynamic) as Function).toJS);
+  //                                                                ^
+  // [web] `Function.toJS` requires a statically known function type, but Type 'Function' is not a function type, e.g., `void Function()`.
 }

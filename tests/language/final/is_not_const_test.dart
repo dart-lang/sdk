@@ -5,7 +5,11 @@
 import "package:expect/expect.dart";
 
 final F0 = 42;
-const C0 = F0; /*@compile-error=unspecified*/
+const C0 = F0;
+//         ^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [cfe] Constant evaluation error:
+// [cfe] Not a constant expression.
 
 main() {
   Expect.equals(42, F0);

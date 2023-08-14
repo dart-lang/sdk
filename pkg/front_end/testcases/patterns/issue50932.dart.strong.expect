@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -13,7 +13,7 @@ abstract class A extends core::Object {
 static method test(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
-    if(#0#0 is{ForNonNullableByDefault} self::A && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{self::A}.{self::A::foo}{core::int}) {
+    if(#0#0 is self::A && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{self::A}.{self::A::foo}{core::int}) {
       return 0;
     }
     else {

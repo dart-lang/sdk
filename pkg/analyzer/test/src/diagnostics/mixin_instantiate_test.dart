@@ -22,31 +22,29 @@ mixin M {
   M.named() {}
 }
 
-main() {
+void f() {
   new M.named();
 }
 ''', [
       error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
-      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 43, 1),
+      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 45, 1),
     ]);
 
-    var node = findNode.instanceCreation('M.named();');
+    final node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: M
-        staticElement: self::@mixin::M
-        staticType: null
+      name: M
+      element: self::@mixin::M
       type: M
     period: .
     name: SimpleIdentifier
       token: named
-      staticElement: self::@mixin::M::@constructor::named
+      staticElement: <null>
       staticType: null
-    staticElement: self::@mixin::M::@constructor::named
+    staticElement: <null>
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -54,43 +52,25 @@ InstanceCreationExpression
 ''');
   }
 
-  test_namedConstructor_undefined() async {
-    await assertErrorsInCode(r'''
-mixin M {}
-
-main() {
-  new M.named();
-}
-''', [
-      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 27, 1),
-    ]);
-
-    var creation = findNode.instanceCreation('M.named();');
-    var m = findElement.mixin('M');
-    assertElement(creation.constructorName.type.name, m);
-  }
-
   test_unnamedConstructor() async {
     await assertErrorsInCode(r'''
 mixin M {}
 
-main() {
+void f() {
   new M();
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 27, 1),
+      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 29, 1),
     ]);
 
-    var node = findNode.instanceCreation('M();');
+    final node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: M
-        staticElement: self::@mixin::M
-        staticType: null
+      name: M
+      element: self::@mixin::M
       type: M
     staticElement: <null>
   argumentList: ArgumentList

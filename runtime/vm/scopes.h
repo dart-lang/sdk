@@ -56,7 +56,7 @@ class Slot;
 //       builder and they refer to indices into context objects.
 class VariableIndex {
  public:
-  static const int kInvalidIndex = std::numeric_limits<int>::min();
+  static constexpr int kInvalidIndex = std::numeric_limits<int>::min();
 
   explicit VariableIndex(int value = kInvalidIndex) : value_(value) {}
 
@@ -85,11 +85,11 @@ class LocalVariable : public ZoneAllocated {
         token_pos_(token_pos),
         name_(name),
         kernel_offset_(kernel_offset),
-        owner_(NULL),
+        owner_(nullptr),
         type_(type),
         parameter_type_(parameter_type),
         parameter_value_(parameter_value),
-        const_value_(NULL),
+        const_value_(nullptr),
         is_final_(false),
         is_captured_(false),
         is_invisible_(false),
@@ -115,7 +115,7 @@ class LocalVariable : public ZoneAllocated {
   intptr_t kernel_offset() const { return kernel_offset_; }
   LocalScope* owner() const { return owner_; }
   void set_owner(LocalScope* owner) {
-    ASSERT(owner_ == NULL);
+    ASSERT(owner_ == nullptr);
     owner_ = owner;
   }
 
@@ -201,7 +201,7 @@ class LocalVariable : public ZoneAllocated {
   bool is_captured_parameter() const { return is_captured_parameter_; }
   void set_is_captured_parameter(bool value) { is_captured_parameter_ = value; }
 
-  bool IsConst() const { return const_value_ != NULL; }
+  bool IsConst() const { return const_value_ != nullptr; }
 
   void SetConstValue(const Instance& value) {
     DEBUG_ASSERT(value.IsNotTemporaryScopedHandle());
@@ -222,7 +222,7 @@ class LocalVariable : public ZoneAllocated {
     kExplicit,
   };
 
-  static const int kUninitializedIndex = INT_MIN;
+  static constexpr int kUninitializedIndex = INT_MIN;
 
   static bool IsFilteredIdentifier(const String& name);
 
@@ -234,10 +234,10 @@ class LocalVariable : public ZoneAllocated {
 
   const AbstractType& type_;  // Declaration type of local variable.
 
-  CompileType* const parameter_type_;  // NULL or incoming parameter type.
-  const Object* parameter_value_;      // NULL or incoming parameter value.
+  CompileType* const parameter_type_;  // nullptr or incoming parameter type.
+  const Object* parameter_value_;      // nullptr or incoming parameter value.
 
-  const Instance* const_value_;  // NULL or compile-time const value.
+  const Instance* const_value_;  // nullptr or compile-time const value.
 
   bool is_final_;     // If true, this variable is readonly.
   bool is_captured_;  // If true, this variable lives in the context, otherwise
@@ -430,7 +430,7 @@ class LocalScope : public ZoneAllocated {
   void CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
                              int16_t* scope_id);
 
-  static const int kUninitializedContextLevel = INT_MIN;
+  static constexpr int kUninitializedContextLevel = INT_MIN;
   LocalScope* parent_;
   LocalScope* child_;
   LocalScope* sibling_;

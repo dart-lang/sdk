@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -35,6 +36,7 @@ mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
   TypeAssertions? _assertions;
 
   late final Asserter<DartType> _isDynamic;
+  late final Asserter<DartType> _isInvalidType;
   late final Asserter<InterfaceType> _isFutureOfDynamic;
   late final Asserter<InterfaceType> _isFutureOfInt;
   late final Asserter<InterfaceType> _isFutureOfNull;
@@ -80,6 +82,7 @@ mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
       _isObject = assertions.isObject;
       _isString = assertions.isString;
       _isDynamic = assertions.isDynamic;
+      _isInvalidType = assertions.isInvalidType;
       _isListOf = assertions.isListOf;
       _isMapOf = assertions.isMapOf;
       _isFunction2Of = assertions.isFunction2Of;
@@ -428,7 +431,7 @@ mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
      }
    ''';
     await assertErrorsInCode(code, [
-      error(HintCode.UNUSED_ELEMENT, 144, 5),
+      error(WarningCode.UNUSED_ELEMENT, 144, 5),
     ]);
 
     Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
@@ -861,7 +864,7 @@ mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
     expect(functionReturnValue(0).staticType, typeProvider.intType);
     expect(functionReturnValue(1).staticType, typeProvider.intType);
     expect(functionReturnValue(2).staticType, typeProvider.intType);
-    expect(functionReturnValue(3).staticType, typeProvider.dynamicType);
+    expect(functionReturnValue(3).staticType, InvalidTypeImpl.instance);
     expect(functionReturnValue(4).staticType, typeProvider.stringType);
   }
 
@@ -1057,7 +1060,7 @@ mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
     ''', expectedErrors: [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 61, 3),
     ]);
-    _isDynamic(invoke.typeOrThrow);
+    _isInvalidType(invoke.typeOrThrow);
   }
 
   test_futureOr_methods3() async {
@@ -1067,7 +1070,7 @@ mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
     ''', expectedErrors: [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 61, 4),
     ]);
-    _isDynamic(invoke.typeOrThrow);
+    _isInvalidType(invoke.typeOrThrow);
   }
 
   test_futureOr_methods4() async {
@@ -1083,7 +1086,7 @@ mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
           65,
           3),
     ]);
-    _isDynamic(invoke.typeOrThrow);
+    _isInvalidType(invoke.typeOrThrow);
   }
 
   test_futureOr_no_return() async {
@@ -1357,16 +1360,64 @@ test() {
           1),
     ]);
 
-    var h = (AstFinder.getStatementsInTopLevelFunction(unit, "test")[0]
-            as VariableDeclarationStatement)
-        .variables
-        .variables[0];
-    var call = h.initializer as MethodInvocation;
-    assertInvokeType(
-        call,
-        isNullSafetyEnabled
-            ? 'Never Function(Never, Never)'
-            : 'Null Function(Null, Null)');
+    final node = findNode.singleMethodInvocation;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: max
+    staticElement: self::@function::max
+    staticType: T Function<T extends num>(T, T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        parameter: ParameterMember
+          base: root::@parameter::x
+          substitution: {T: Never}
+        staticType: int
+      IntegerLiteral
+        literal: 2
+        parameter: ParameterMember
+          base: root::@parameter::y
+          substitution: {T: Never}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: Never Function(Never, Never)
+  staticType: Never
+  typeArgumentTypes
+    Never
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: max
+    staticElement: self::@function::max
+    staticType: T* Function<T extends num*>(T*, T*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        parameter: ParameterMember
+          base: root::@parameter::x
+          substitution: {T: Null*}
+        staticType: int*
+      IntegerLiteral
+        literal: 2
+        parameter: ParameterMember
+          base: root::@parameter::y
+          substitution: {T: Null*}
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: Null* Function(Null*, Null*)*
+  staticType: Null*
+  typeArgumentTypes
+    Null*
+''');
+    }
   }
 
   test_inference_error_extendsFromReturn2() async {
@@ -1479,17 +1530,312 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
 }
     ''';
     await assertErrorsInCode(code, [
-      error(HintCode.UNUSED_ELEMENT, 5, 10),
+      error(WarningCode.UNUSED_ELEMENT, 5, 10),
     ]);
 
-    var body = AstFinder.getTopLevelFunction(unit, '_mergeSort')
-        .functionExpression
-        .body as BlockFunctionBody;
-    var stmts = body.block.statements.cast<ExpressionStatement>();
-    for (ExpressionStatement stmt in stmts) {
-      var invoke = stmt.expression as MethodInvocation;
-      assertInvokeType(invoke,
-          'void Function(T Function(T), int Function(T, T), T Function(T))');
+    final node = findNode.singleBlock;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(T Function(T), int Function(T, T), T Function(T))
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: T Function(T)
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: T Function(T)
+          rightParenthesis: )
+        staticInvokeType: void Function(T Function(T), int Function(T, T), T Function(T))
+        staticType: void
+        typeArgumentTypes
+          T
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(T Function(T), int Function(T, T), T Function(T))
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: T Function(T)
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: T Function(T)
+          rightParenthesis: )
+        staticInvokeType: void Function(T Function(T), int Function(T, T), T Function(T))
+        staticType: void
+        typeArgumentTypes
+          T
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(T Function(T), int Function(T, T), T Function(T))
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: T Function(T)
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: T Function(T)
+          rightParenthesis: )
+        staticInvokeType: void Function(T Function(T), int Function(T, T), T Function(T))
+        staticType: void
+        typeArgumentTypes
+          T
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(T Function(T), int Function(T, T), T Function(T))
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: T Function(T)
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: T Function(T)
+          rightParenthesis: )
+        staticInvokeType: void Function(T Function(T), int Function(T, T), T Function(T))
+        staticType: void
+        typeArgumentTypes
+          T
+      semicolon: ;
+  rightBracket: }
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(T* Function(T*)*, int* Function(T*, T*)*, T* Function(T*)*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: T* Function(T*)*
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int* Function(T*, T*)*
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: T* Function(T*)*
+          rightParenthesis: )
+        staticInvokeType: void Function(T* Function(T*)*, int* Function(T*, T*)*, T* Function(T*)*)*
+        staticType: void
+        typeArgumentTypes
+          T*
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(T* Function(T*)*, int* Function(T*, T*)*, T* Function(T*)*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: T* Function(T*)*
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int* Function(T*, T*)*
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: T* Function(T*)*
+          rightParenthesis: )
+        staticInvokeType: void Function(T* Function(T*)*, int* Function(T*, T*)*, T* Function(T*)*)*
+        staticType: void
+        typeArgumentTypes
+          T*
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(T* Function(T*)*, int* Function(T*, T*)*, T* Function(T*)*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: T* Function(T*)*
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int* Function(T*, T*)*
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: T* Function(T*)*
+          rightParenthesis: )
+        staticInvokeType: void Function(T* Function(T*)*, int* Function(T*, T*)*, T* Function(T*)*)*
+        staticType: void
+        typeArgumentTypes
+          T*
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(T* Function(T*)*, int* Function(T*, T*)*, T* Function(T*)*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: T* Function(T*)*
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int* Function(T*, T*)*
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: T* Function(T*)*
+          rightParenthesis: )
+        staticInvokeType: void Function(T* Function(T*)*, int* Function(T*, T*)*, T* Function(T*)*)*
+        staticType: void
+        typeArgumentTypes
+          T*
+      semicolon: ;
+  rightBracket: }
+''');
     }
   }
 
@@ -1506,17 +1852,312 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
 }
     ''';
     await assertErrorsInCode(code, [
-      error(HintCode.UNUSED_ELEMENT, 5, 10),
+      error(WarningCode.UNUSED_ELEMENT, 5, 10),
     ]);
 
-    var body = AstFinder.getTopLevelFunction(unit, '_mergeSort')
-        .functionExpression
-        .body as BlockFunctionBody;
-    var stmts = body.block.statements.cast<ExpressionStatement>();
-    for (ExpressionStatement stmt in stmts) {
-      var invoke = stmt.expression as MethodInvocation;
-      assertInvokeType(
-          invoke, 'void Function(List<T>, int Function(T, T), List<T>)');
+    final node = findNode.singleBlock;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(List<T>, int Function(T, T), List<T>)
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: List<T>
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: List<T>
+          rightParenthesis: )
+        staticInvokeType: void Function(List<T>, int Function(T, T), List<T>)
+        staticType: void
+        typeArgumentTypes
+          T
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(List<T>, int Function(T, T), List<T>)
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: List<T>
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: List<T>
+          rightParenthesis: )
+        staticInvokeType: void Function(List<T>, int Function(T, T), List<T>)
+        staticType: void
+        typeArgumentTypes
+          T
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(List<T>, int Function(T, T), List<T>)
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: List<T>
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: List<T>
+          rightParenthesis: )
+        staticInvokeType: void Function(List<T>, int Function(T, T), List<T>)
+        staticType: void
+        typeArgumentTypes
+          T
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(List<T>, int Function(T, T), List<T>)
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: List<T>
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: List<T>
+          rightParenthesis: )
+        staticInvokeType: void Function(List<T>, int Function(T, T), List<T>)
+        staticType: void
+        typeArgumentTypes
+          T
+      semicolon: ;
+  rightBracket: }
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(List<T*>*, int* Function(T*, T*)*, List<T*>*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: List<T*>*
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int* Function(T*, T*)*
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: List<T*>*
+          rightParenthesis: )
+        staticInvokeType: void Function(List<T*>*, int* Function(T*, T*)*, List<T*>*)*
+        staticType: void
+        typeArgumentTypes
+          T*
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(List<T*>*, int* Function(T*, T*)*, List<T*>*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: List<T*>*
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int* Function(T*, T*)*
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: List<T*>*
+          rightParenthesis: )
+        staticInvokeType: void Function(List<T*>*, int* Function(T*, T*)*, List<T*>*)*
+        staticType: void
+        typeArgumentTypes
+          T*
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(List<T*>*, int* Function(T*, T*)*, List<T*>*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: List<T*>*
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int* Function(T*, T*)*
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: List<T*>*
+          rightParenthesis: )
+        staticInvokeType: void Function(List<T*>*, int* Function(T*, T*)*, List<T*>*)*
+        staticType: void
+        typeArgumentTypes
+          T*
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(List<T*>*, int* Function(T*, T*)*, List<T*>*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: List<T*>*
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int* Function(T*, T*)*
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: List<T*>*
+          rightParenthesis: )
+        staticInvokeType: void Function(List<T*>*, int* Function(T*, T*)*, List<T*>*)*
+        staticType: void
+        typeArgumentTypes
+          T*
+      semicolon: ;
+  rightBracket: }
+''');
     }
   }
 
@@ -1533,16 +2174,312 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
 }
     ''';
     await assertErrorsInCode(code, [
-      error(HintCode.UNUSED_ELEMENT, 5, 10),
+      error(WarningCode.UNUSED_ELEMENT, 5, 10),
     ]);
 
-    var body = AstFinder.getTopLevelFunction(unit, '_mergeSort')
-        .functionExpression
-        .body as BlockFunctionBody;
-    var stmts = body.block.statements.cast<ExpressionStatement>();
-    for (ExpressionStatement stmt in stmts) {
-      var invoke = stmt.expression as MethodInvocation;
-      assertInvokeType(invoke, 'void Function(T, int Function(T, T), T)');
+    final node = findNode.singleBlock;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(T, int Function(T, T), T)
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: T
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: T
+          rightParenthesis: )
+        staticInvokeType: void Function(T, int Function(T, T), T)
+        staticType: void
+        typeArgumentTypes
+          T
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(T, int Function(T, T), T)
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: T
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: T
+          rightParenthesis: )
+        staticInvokeType: void Function(T, int Function(T, T), T)
+        staticType: void
+        typeArgumentTypes
+          T
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(T, int Function(T, T), T)
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: T
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: T
+          rightParenthesis: )
+        staticInvokeType: void Function(T, int Function(T, T), T)
+        staticType: void
+        typeArgumentTypes
+          T
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(T, int Function(T, T), T)
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: T
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: T
+          rightParenthesis: )
+        staticInvokeType: void Function(T, int Function(T, T), T)
+        staticType: void
+        typeArgumentTypes
+          T
+      semicolon: ;
+  rightBracket: }
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(T*, int* Function(T*, T*)*, T*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: T*
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int* Function(T*, T*)*
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: T*
+          rightParenthesis: )
+        staticInvokeType: void Function(T*, int* Function(T*, T*)*, T*)*
+        staticType: void
+        typeArgumentTypes
+          T*
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(T*, int* Function(T*, T*)*, T*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: T*
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int* Function(T*, T*)*
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: T*
+          rightParenthesis: )
+        staticInvokeType: void Function(T*, int* Function(T*, T*)*, T*)*
+        staticType: void
+        typeArgumentTypes
+          T*
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(T*, int* Function(T*, T*)*, T*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: T*
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int* Function(T*, T*)*
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: T*
+          rightParenthesis: )
+        staticInvokeType: void Function(T*, int* Function(T*, T*)*, T*)*
+        staticType: void
+        typeArgumentTypes
+          T*
+      semicolon: ;
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: _mergeSort
+          staticElement: self::@function::_mergeSort
+          staticType: void Function<T>(T*, int* Function(T*, T*)*, T*)*
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: target
+              parameter: ParameterMember
+                base: root::@parameter::list
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::target
+              staticType: T*
+            SimpleIdentifier
+              token: compare
+              parameter: ParameterMember
+                base: root::@parameter::compare
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::compare
+              staticType: int* Function(T*, T*)*
+            SimpleIdentifier
+              token: list
+              parameter: ParameterMember
+                base: root::@parameter::target
+                substitution: {T: T*}
+              staticElement: self::@function::_mergeSort::@parameter::list
+              staticType: T*
+          rightParenthesis: )
+        staticInvokeType: void Function(T*, int* Function(T*, T*)*, T*)*
+        staticType: void
+        typeArgumentTypes
+          T*
+      semicolon: ;
+  rightBracket: }
+''');
     }
   }
 
@@ -1561,15 +2498,60 @@ test() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
     ]);
 
-    var h = (AstFinder.getStatementsInTopLevelFunction(unit, "test")[0]
-            as VariableDeclarationStatement)
-        .variables
-        .variables[0];
-    _isDynamic(h.declaredElement!.type);
-    var fCall = h.initializer as MethodInvocation;
-    assertInvokeType(fCall, 'dynamic Function(dynamic Function(dynamic))');
-    var g = fCall.argumentList.arguments[0];
-    assertType(g.staticType, 'dynamic Function(dynamic)');
+    final node = findNode.methodInvocation('f(g)');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>(T Function(T))
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      FunctionReference
+        function: SimpleIdentifier
+          token: g
+          staticElement: self::@function::g
+          staticType: S Function<S>(S)
+        parameter: ParameterMember
+          base: root::@parameter::x
+          substitution: {T: dynamic}
+        staticType: dynamic Function(dynamic)
+        typeArgumentTypes
+          dynamic
+    rightParenthesis: )
+  staticInvokeType: dynamic Function(dynamic Function(dynamic))
+  staticType: dynamic
+  typeArgumentTypes
+    dynamic
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T* Function<T>(T* Function(T*)*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: g
+        parameter: ParameterMember
+          base: root::@parameter::x
+          substitution: {T: dynamic}
+        staticElement: self::@function::g
+        staticType: dynamic Function(dynamic)*
+        tearOffTypeArgumentTypes
+          dynamic
+    rightParenthesis: )
+  staticInvokeType: dynamic Function(dynamic Function(dynamic)*)*
+  staticType: dynamic
+  typeArgumentTypes
+    dynamic
+''');
+    }
   }
 
   test_inferGenericInstantiation2() async {
@@ -1588,14 +2570,126 @@ num test(Iterable values) => values.fold(values.first as num, max);
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 190, 3),
     ]);
 
-    var fold = (AstFinder.getTopLevelFunction(unit, 'test')
-            .functionExpression
-            .body as ExpressionFunctionBody)
-        .expression as MethodInvocation;
-    assertInvokeType(fold, 'num Function(num, num Function(num, dynamic))');
-    var max = fold.argumentList.arguments[1];
-    // TODO(jmesserly): arguably num Function(num, num) is better here.
-    assertType(max.staticType, 'dynamic Function(dynamic, dynamic)');
+    final node = findNode.methodInvocation('values.fold');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: values
+    staticElement: self::@function::test::@parameter::values
+    staticType: Iterable<dynamic>
+  operator: .
+  methodName: SimpleIdentifier
+    token: fold
+    staticElement: MethodMember
+      base: self::@class::Iterable::@method::fold
+      substitution: {T: dynamic, S: S}
+    staticType: S Function<S>(S, S Function(S, dynamic))
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      AsExpression
+        expression: PrefixedIdentifier
+          prefix: SimpleIdentifier
+            token: values
+            staticElement: self::@function::test::@parameter::values
+            staticType: Iterable<dynamic>
+          period: .
+          identifier: SimpleIdentifier
+            token: first
+            staticElement: PropertyAccessorMember
+              base: self::@class::Iterable::@getter::first
+              substitution: {T: dynamic}
+            staticType: dynamic
+          staticElement: PropertyAccessorMember
+            base: self::@class::Iterable::@getter::first
+            substitution: {T: dynamic}
+          staticType: dynamic
+        asOperator: as
+        type: NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+        parameter: ParameterMember
+          base: root::@parameter::s
+          substitution: {S: num}
+        staticType: num
+      FunctionReference
+        function: SimpleIdentifier
+          token: max
+          staticElement: self::@function::max
+          staticType: T Function<T extends num>(T, T)
+        parameter: ParameterMember
+          base: root::@parameter::f
+          substitution: {S: num}
+        staticType: dynamic Function(dynamic, dynamic)
+        typeArgumentTypes
+          dynamic
+    rightParenthesis: )
+  staticInvokeType: num Function(num, num Function(num, dynamic))
+  staticType: num
+  typeArgumentTypes
+    num
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: values
+    staticElement: self::@function::test::@parameter::values
+    staticType: Iterable<dynamic>*
+  operator: .
+  methodName: SimpleIdentifier
+    token: fold
+    staticElement: MethodMember
+      base: self::@class::Iterable::@method::fold
+      substitution: {T: dynamic, S: S}
+    staticType: S* Function<S>(S*, S* Function(S*, dynamic)*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      AsExpression
+        expression: PrefixedIdentifier
+          prefix: SimpleIdentifier
+            token: values
+            staticElement: self::@function::test::@parameter::values
+            staticType: Iterable<dynamic>*
+          period: .
+          identifier: SimpleIdentifier
+            token: first
+            staticElement: PropertyAccessorMember
+              base: self::@class::Iterable::@getter::first
+              substitution: {T: dynamic}
+            staticType: dynamic
+          staticElement: PropertyAccessorMember
+            base: self::@class::Iterable::@getter::first
+            substitution: {T: dynamic}
+          staticType: dynamic
+        asOperator: as
+        type: NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num*
+        parameter: ParameterMember
+          base: root::@parameter::s
+          substitution: {S: num*}
+        staticType: num*
+      SimpleIdentifier
+        token: max
+        parameter: ParameterMember
+          base: root::@parameter::f
+          substitution: {S: num*}
+        staticElement: self::@function::max
+        staticType: dynamic Function(dynamic, dynamic)*
+        tearOffTypeArgumentTypes
+          dynamic
+    rightParenthesis: )
+  staticInvokeType: num* Function(num*, num* Function(num*, dynamic)*)*
+  staticType: num*
+  typeArgumentTypes
+    num*
+''');
+    }
   }
 
   test_inferredFieldDeclaration_propagation() async {
@@ -2966,11 +4060,6 @@ class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
     with StrongModeStaticTypeAnalyzer2TestCases {}
 
 mixin StrongModeStaticTypeAnalyzer2TestCases on StaticTypeAnalyzer2TestShared {
-  void expectStaticInvokeType(String search, String expected) {
-    var invocation = findNode.simple(search).parent as MethodInvocation;
-    assertInvokeType(invocation, expected);
-  }
-
   test_dynamicObjectGetter_hashCode() async {
     await assertErrorsInCode(r'''
 main() {
@@ -3053,10 +4142,8 @@ void main() {
       assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@4
-      staticType: null
+    name: T
+    element: T@4
     type: T
   name: f
   functionExpression: FunctionExpression
@@ -3071,10 +4158,8 @@ FunctionDeclaration
       leftParenthesis: (
       parameter: SimpleFormalParameter
         type: NamedType
-          name: SimpleIdentifier
-            token: T
-            staticElement: T@4
-            staticType: null
+          name: T
+          element: T@4
           type: T
         name: x
         declaredElement: self::@function::f::@parameter::x
@@ -3096,10 +4181,8 @@ FunctionDeclaration
       assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@4
-      staticType: null
+    name: T
+    element: T@4
     type: T*
   name: f
   functionExpression: FunctionExpression
@@ -3114,10 +4197,8 @@ FunctionDeclaration
       leftParenthesis: (
       parameter: SimpleFormalParameter
         type: NamedType
-          name: SimpleIdentifier
-            token: T
-            staticElement: T@4
-            staticType: null
+          name: T
+          element: T@4
           type: T*
         name: x
         declaredElement: self::@function::f::@parameter::x
@@ -3149,10 +4230,8 @@ FunctionDeclaration
       assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@4
-      staticType: null
+    name: T
+    element: T@4
     type: T
   name: f
   functionExpression: FunctionExpression
@@ -3163,10 +4242,8 @@ FunctionDeclaration
           name: T
           extendsKeyword: extends
           bound: NamedType
-            name: SimpleIdentifier
-              token: num
-              staticElement: dart:core::@class::num
-              staticType: null
+            name: num
+            element: dart:core::@class::num
             type: num
           declaredElement: T@4
       rightBracket: >
@@ -3174,10 +4251,8 @@ FunctionDeclaration
       leftParenthesis: (
       parameter: SimpleFormalParameter
         type: NamedType
-          name: SimpleIdentifier
-            token: T
-            staticElement: T@4
-            staticType: null
+          name: T
+          element: T@4
           type: T
         name: x
         declaredElement: self::@function::f::@parameter::x
@@ -3199,10 +4274,8 @@ FunctionDeclaration
       assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@4
-      staticType: null
+    name: T
+    element: T@4
     type: T*
   name: f
   functionExpression: FunctionExpression
@@ -3213,10 +4286,8 @@ FunctionDeclaration
           name: T
           extendsKeyword: extends
           bound: NamedType
-            name: SimpleIdentifier
-              token: num
-              staticElement: dart:core::@class::num
-              staticType: null
+            name: num
+            element: dart:core::@class::num
             type: num*
           declaredElement: T@4
       rightBracket: >
@@ -3224,10 +4295,8 @@ FunctionDeclaration
       leftParenthesis: (
       parameter: SimpleFormalParameter
         type: NamedType
-          name: SimpleIdentifier
-            token: T
-            staticElement: T@4
-            staticType: null
+          name: T
+          element: T@4
           type: T*
         name: x
         declaredElement: self::@function::f::@parameter::x
@@ -3274,20 +4343,16 @@ class C<E> {
 MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@26
-      staticType: null
+    name: T
+    element: T@26
     type: T
   name: f
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: T
-          staticElement: T@26
-          staticType: null
+        name: T
+        element: T@26
         type: T
       name: x
       declaredElement: self::@class::C::@method::f::@parameter::x
@@ -3307,20 +4372,16 @@ MethodDeclaration
 MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@26
-      staticType: null
+    name: T
+    element: T@26
     type: T*
   name: f
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: T
-          staticElement: T@26
-          staticType: null
+        name: T
+        element: T@26
         type: T*
       name: x
       declaredElement: self::@class::C::@method::f::@parameter::x
@@ -3811,15 +4872,182 @@ void foo() {
                 error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 75, 4),
               ]
             : []);
-    expectIdentifierType(
-        'map((e) => e);', 'T Function<T>(T Function(dynamic))');
-    expectIdentifierType(
-        'map((e) => 3);', 'T Function<T>(T Function(dynamic))');
 
-    MethodInvocation m1 = findNode.methodInvocation('map((e) => e);');
-    assertInvokeType(m1, 'dynamic Function(dynamic Function(dynamic))');
-    MethodInvocation m2 = findNode.methodInvocation('map((e) => 3);');
-    assertInvokeType(m2, 'int Function(int Function(dynamic))');
+    final node1 = findNode.methodInvocation('map((e) => e);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node1, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: list
+    staticElement: list@68
+    staticType: List<dynamic>
+  operator: .
+  methodName: SimpleIdentifier
+    token: map
+    staticElement: MethodMember
+      base: self::@class::List::@method::map
+      substitution: {E: dynamic, T: T}
+    staticType: T Function<T>(T Function(dynamic))
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            name: e
+            declaredElement: @92::@parameter::e
+              type: dynamic
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: SimpleIdentifier
+            token: e
+            staticElement: @92::@parameter::e
+            staticType: dynamic
+        declaredElement: @92
+          type: dynamic Function(dynamic)
+        parameter: ParameterMember
+          base: root::@parameter::f
+          substitution: {T: dynamic}
+        staticType: dynamic Function(dynamic)
+    rightParenthesis: )
+  staticInvokeType: dynamic Function(dynamic Function(dynamic))
+  staticType: dynamic
+  typeArgumentTypes
+    dynamic
+''');
+    } else {
+      assertResolvedNodeText(node1, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: list
+    staticElement: list@68
+    staticType: List<dynamic>*
+  operator: .
+  methodName: SimpleIdentifier
+    token: map
+    staticElement: MethodMember
+      base: self::@class::List::@method::map
+      substitution: {E: dynamic, T: T}
+    staticType: T* Function<T>(T* Function(dynamic)*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            name: e
+            declaredElement: @92::@parameter::e
+              type: dynamic
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: SimpleIdentifier
+            token: e
+            staticElement: @92::@parameter::e
+            staticType: dynamic
+        declaredElement: @92
+          type: dynamic Function(dynamic)*
+        parameter: ParameterMember
+          base: root::@parameter::f
+          substitution: {T: dynamic}
+        staticType: dynamic Function(dynamic)*
+    rightParenthesis: )
+  staticInvokeType: dynamic Function(dynamic Function(dynamic)*)*
+  staticType: dynamic
+  typeArgumentTypes
+    dynamic
+''');
+    }
+
+    final node2 = findNode.methodInvocation('map((e) => 3);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node2, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: list
+    staticElement: list@68
+    staticType: List<dynamic>
+  operator: .
+  methodName: SimpleIdentifier
+    token: map
+    staticElement: MethodMember
+      base: self::@class::List::@method::map
+      substitution: {E: dynamic, T: T}
+    staticType: T Function<T>(T Function(dynamic))
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            name: e
+            declaredElement: @114::@parameter::e
+              type: dynamic
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 3
+            staticType: int
+        declaredElement: @114
+          type: int Function(dynamic)
+        parameter: ParameterMember
+          base: root::@parameter::f
+          substitution: {T: int}
+        staticType: int Function(dynamic)
+    rightParenthesis: )
+  staticInvokeType: int Function(int Function(dynamic))
+  staticType: int
+  typeArgumentTypes
+    int
+''');
+    } else {
+      assertResolvedNodeText(node2, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: list
+    staticElement: list@68
+    staticType: List<dynamic>*
+  operator: .
+  methodName: SimpleIdentifier
+    token: map
+    staticElement: MethodMember
+      base: self::@class::List::@method::map
+      substitution: {E: dynamic, T: T}
+    staticType: T* Function<T>(T* Function(dynamic)*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            name: e
+            declaredElement: @114::@parameter::e
+              type: dynamic
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 3
+            staticType: int*
+        declaredElement: @114
+          type: int* Function(dynamic)*
+        parameter: ParameterMember
+          base: root::@parameter::f
+          substitution: {T: int*}
+        staticType: int* Function(dynamic)*
+    rightParenthesis: )
+  staticInvokeType: int* Function(int* Function(dynamic)*)*
+  staticType: int*
+  typeArgumentTypes
+    int*
+''');
+    }
   }
 
   test_genericMethod_max_doubleDouble() async {
@@ -3906,15 +5134,134 @@ class C<T> {
       if (isNullSafetyEnabled)
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 96, 4),
     ]);
-    MethodInvocation f = findNode.methodInvocation('f<int>(3);');
-    assertInvokeType(f, 'S Function(int)');
 
-    expectIdentifierType('f;', 'S Function<S₀>(S₀)');
+    final node1 = findNode.methodInvocation('f<int>(3);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node1, r'''
+MethodInvocation
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: S
+              element: S@19
+              type: S
+          rightBracket: >
+        element: self::@class::C
+        type: C<S>
+      staticElement: ConstructorMember
+        base: self::@class::C::@constructor::new
+        substitution: {T: S}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C<S>
+  operator: .
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: MethodMember
+      base: self::@class::C::@method::f
+      substitution: {T: S, S: S}
+    staticType: S Function<S₀>(S₀)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 3
+        parameter: ParameterMember
+          base: root::@parameter::x
+          substitution: {S: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: S Function(int)
+  staticType: S
+  typeArgumentTypes
+    int
+''');
+    } else {
+      assertResolvedNodeText(node1, r'''
+MethodInvocation
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: S
+              element: S@19
+              type: S*
+          rightBracket: >
+        element: self::@class::C
+        type: C<S*>*
+      staticElement: ConstructorMember
+        base: self::@class::C::@constructor::new
+        substitution: {T: S*}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C<S*>*
+  operator: .
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: MethodMember
+      base: self::@class::C::@method::f
+      substitution: {T: S*, S: S}
+    staticType: S* Function<S₀>(S₀*)*
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int*
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 3
+        parameter: ParameterMember
+          base: root::@parameter::x
+          substitution: {S: int*}
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: S* Function(int*)*
+  staticType: S*
+  typeArgumentTypes
+    int*
+''');
+
+      final node2 = findNode.simple('f;');
+      assertResolvedNodeText(node2, r'''
+SimpleIdentifier
+  token: f
+  staticElement: MethodMember
+    base: self::@class::C::@method::f
+    substitution: {T: S*, S: S}
+  staticType: S* Function<S₀>(S₀*)*
+''');
+    }
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/30236')
   test_genericMethod_nestedCaptureBounds() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(
+        r'''
 class C<T> {
   T f<S extends T>(S x) {
     new C<S>().f<int>(3);
@@ -3922,11 +5269,148 @@ class C<T> {
     return null;
   }
 }
-''');
-    MethodInvocation f = findNode.methodInvocation('f<int>(3);');
-    assertInvokeType(f, 'S Function(int)');
+''',
+        expectedErrorsByNullability(nullable: [
+          error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 3),
+          error(
+              CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 106, 4),
+        ], legacy: [
+          error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 3),
+        ]));
 
-    expectIdentifierType('f;', 'S Function<S₀ extends S>(S₀)');
+    final node1 = findNode.methodInvocation('f<int>(3);');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node1, r'''
+MethodInvocation
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: S
+              element: S@19
+              type: S
+          rightBracket: >
+        element: self::@class::C
+        type: C<S>
+      staticElement: ConstructorMember
+        base: self::@class::C::@constructor::new
+        substitution: {T: S}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C<S>
+  operator: .
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: MethodMember
+      base: self::@class::C::@method::f
+      substitution: {T: S, S: S}
+    staticType: S Function<S₀ extends S>(S₀)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 3
+        parameter: ParameterMember
+          base: root::@parameter::x
+          substitution: {S: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: S Function(int)
+  staticType: S
+  typeArgumentTypes
+    int
+''');
+    } else {
+      assertResolvedNodeText(node1, r'''
+MethodInvocation
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: S
+              element: S@19
+              type: S*
+          rightBracket: >
+        element: self::@class::C
+        type: C<S*>*
+      staticElement: ConstructorMember
+        base: self::@class::C::@constructor::new
+        substitution: {T: S*}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C<S*>*
+  operator: .
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: MethodMember
+      base: self::@class::C::@method::f
+      substitution: {T: S*, S: S}
+    staticType: S* Function<S₀ extends S*>(S₀*)*
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int*
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 3
+        parameter: ParameterMember
+          base: root::@parameter::x
+          substitution: {S: int*}
+        staticType: int*
+    rightParenthesis: )
+  staticInvokeType: S* Function(int*)*
+  staticType: S*
+  typeArgumentTypes
+    int*
+''');
+    }
+
+    final node2 = findNode.simple('f;');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node2, r'''
+SimpleIdentifier
+  token: f
+  staticElement: MethodMember
+    base: self::@class::C::@method::f
+    substitution: {T: S, S: S}
+  staticType: S Function<S₀ extends S>(S₀)
+''');
+    } else {
+      assertResolvedNodeText(node2, r'''
+SimpleIdentifier
+  token: f
+  staticElement: MethodMember
+    base: self::@class::C::@method::f
+    substitution: {T: S*, S: S}
+  staticType: S* Function<S₀ extends S*>(S₀*)*
+''');
+    }
   }
 
   test_genericMethod_nestedFunctions() async {
@@ -3936,7 +5420,7 @@ S f<S>(S x) {
   return null;
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 16, 1),
+      error(WarningCode.UNUSED_ELEMENT, 16, 1),
       if (isNullSafetyEnabled)
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 41, 4),
     ]);
@@ -3969,20 +5453,16 @@ class D extends C {
       assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@61
-      staticType: null
+    name: T
+    element: T@61
     type: T
   name: f
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: T
-          staticElement: T@61
-          staticType: null
+        name: T
+        element: T@61
         type: T
       name: y
       declaredElement: self::@class::D::@method::f::@parameter::y
@@ -4001,20 +5481,16 @@ MethodDeclaration
       assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: T@61
-      staticType: null
+    name: T
+    element: T@61
     type: T*
   name: f
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: T
-          staticElement: T@61
-          staticType: null
+        name: T
+        element: T@61
         type: T*
       name: y
       declaredElement: self::@class::D::@method::f::@parameter::y
@@ -4612,7 +6088,66 @@ class C<T> {
               ]
             : []);
 
-    expectStaticInvokeType('m(null', 'void Function(Null, Null)');
+    final node = findNode.singleMethodInvocation;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: self::@class::C::@method::m
+    staticType: void Function<S0 extends T, S1 extends List<S0>>(S0, S1)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: ParameterMember
+          base: root::@parameter::p0
+          substitution: {S0: Null, S1: Null}
+        staticType: Null
+      NullLiteral
+        literal: null
+        parameter: ParameterMember
+          base: root::@parameter::p1
+          substitution: {S0: Null, S1: Null}
+        staticType: Null
+    rightParenthesis: )
+  staticInvokeType: void Function(Null, Null)
+  staticType: void
+  typeArgumentTypes
+    Null
+    Null
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: self::@class::C::@method::m
+    staticType: void Function<S0 extends T*, S1 extends List<S0*>*>(S0*, S1*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: ParameterMember
+          base: root::@parameter::p0
+          substitution: {S0: Null*, S1: Null*}
+        staticType: Null*
+      NullLiteral
+        literal: null
+        parameter: ParameterMember
+          base: root::@parameter::p1
+          substitution: {S0: Null*, S1: Null*}
+        staticType: Null*
+    rightParenthesis: )
+  staticInvokeType: void Function(Null*, Null*)*
+  staticType: void
+  typeArgumentTypes
+    Null*
+    Null*
+''');
+    }
   }
 
   test_instantiateToBounds_method_ok_referenceOther_before2() async {
@@ -4629,7 +6164,40 @@ class C<T> {
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 69, 4),
     ]);
 
-    expectStaticInvokeType('m();', 'Map<T, List<T>> Function()');
+    final node = findNode.singleMethodInvocation;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: self::@class::C::@method::m
+    staticType: Map<S0, S1> Function<S0 extends T, S1 extends List<S0>>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: Map<T, List<T>> Function()
+  staticType: Map<T, List<T>>
+  typeArgumentTypes
+    T
+    List<T>
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: self::@class::C::@method::m
+    staticType: Map<S0*, S1*>* Function<S0 extends T*, S1 extends List<S0*>*>()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: Map<T*, List<T*>*>* Function()*
+  staticType: Map<T*, List<T*>*>*
+  typeArgumentTypes
+    T*
+    List<T*>*
+''');
+    }
   }
 
   test_instantiateToBounds_method_ok_simpleBounds() async {
@@ -4646,7 +6214,52 @@ class C<T> {
         error(CompileTimeErrorCode.COULD_NOT_INFER, 65, 1),
     ]);
 
-    expectStaticInvokeType('m(null)', 'void Function(Null)');
+    final node = findNode.singleMethodInvocation;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: self::@class::C::@method::m
+    staticType: void Function<S extends T>(S)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: ParameterMember
+          base: root::@parameter::p0
+          substitution: {S: Null}
+        staticType: Null
+    rightParenthesis: )
+  staticInvokeType: void Function(Null)
+  staticType: void
+  typeArgumentTypes
+    Null
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: self::@class::C::@method::m
+    staticType: void Function<S extends T*>(S*)*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: ParameterMember
+          base: root::@parameter::p0
+          substitution: {S: Null*}
+        staticType: Null*
+    rightParenthesis: )
+  staticInvokeType: void Function(Null*)*
+  staticType: void
+  typeArgumentTypes
+    Null*
+''');
+    }
   }
 
   test_instantiateToBounds_method_ok_simpleBounds2() async {
@@ -4663,7 +6276,38 @@ class C<T> {
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 37, 4),
     ]);
 
-    expectStaticInvokeType('m();', 'T Function()');
+    final node = findNode.singleMethodInvocation;
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: self::@class::C::@method::m
+    staticType: S Function<S extends T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: T Function()
+  staticType: T
+  typeArgumentTypes
+    T
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: self::@class::C::@method::m
+    staticType: S* Function<S extends T*>()*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: T* Function()*
+  staticType: T*
+  typeArgumentTypes
+    T*
+''');
+    }
   }
 
   test_issue32396() async {

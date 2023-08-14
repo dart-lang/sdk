@@ -9,8 +9,8 @@
 
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
+import 'package:ffi/ffi.dart';
 
 //
 // Struct field store (plus Pointer elementAt and load).
@@ -68,12 +68,17 @@ class FieldLoadStore extends BenchmarkBase {
 // Main driver.
 //
 
-void main() {
+void main(List<String> args) {
   final benchmarks = [
-    () => FieldLoadStore(),
+    FieldLoadStore.new,
   ];
-  for (final benchmark in benchmarks) {
-    benchmark().report();
+
+  final filter = args.firstOrNull;
+  for (var constructor in benchmarks) {
+    final benchmark = constructor();
+    if (filter == null || benchmark.name.contains(filter)) {
+      benchmark.report();
+    }
   }
 }
 

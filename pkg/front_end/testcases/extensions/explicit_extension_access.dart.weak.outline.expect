@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -24,29 +24,29 @@ extension Extension2 on self::Class {
   tearoff genericMethod = self::Extension2|get#genericMethod;
   set field = self::Extension2|set#field;
 }
-static method Extension1|get#field(lowered final self::Class #this) → core::int
+static extension-member method Extension1|get#field(lowered final self::Class #this) → core::int
   ;
-static method Extension1|set#field(lowered final self::Class #this, core::int value) → void
+static extension-member method Extension1|set#field(lowered final self::Class #this, core::int value) → void
   ;
-static method Extension1|method(lowered final self::Class #this) → core::int
+static extension-member method Extension1|method(lowered final self::Class #this) → core::int
   ;
-static method Extension1|get#method(lowered final self::Class #this) → () → core::int
+static extension-member method Extension1|get#method(lowered final self::Class #this) → () → core::int
   return () → core::int => self::Extension1|method(#this);
-static method Extension1|genericMethod<T extends core::num>(lowered final self::Class #this, self::Extension1|genericMethod::T t) → core::num
+static extension-member method Extension1|genericMethod<T extends core::num>(lowered final self::Class #this, self::Extension1|genericMethod::T t) → core::num
   ;
-static method Extension1|get#genericMethod(lowered final self::Class #this) → <T extends core::num>(T) → core::num
+static extension-member method Extension1|get#genericMethod(lowered final self::Class #this) → <T extends core::num>(T) → core::num
   return <T extends core::num>(T t) → core::num => self::Extension1|genericMethod<T>(#this, t);
-static method Extension2|get#field(lowered final self::Class #this) → core::int
+static extension-member method Extension2|get#field(lowered final self::Class #this) → core::int
   ;
-static method Extension2|set#field(lowered final self::Class #this, core::int value) → void
+static extension-member method Extension2|set#field(lowered final self::Class #this, core::int value) → void
   ;
-static method Extension2|method(lowered final self::Class #this) → core::int
+static extension-member method Extension2|method(lowered final self::Class #this) → core::int
   ;
-static method Extension2|get#method(lowered final self::Class #this) → () → core::int
+static extension-member method Extension2|get#method(lowered final self::Class #this) → () → core::int
   return () → core::int => self::Extension2|method(#this);
-static method Extension2|genericMethod<T extends core::num>(lowered final self::Class #this, self::Extension2|genericMethod::T t) → core::num
+static extension-member method Extension2|genericMethod<T extends core::num>(lowered final self::Class #this, self::Extension2|genericMethod::T t) → core::num
   ;
-static method Extension2|get#genericMethod(lowered final self::Class #this) → <T extends core::num>(T) → core::num
+static extension-member method Extension2|get#genericMethod(lowered final self::Class #this) → <T extends core::num>(T) → core::num
   return <T extends core::num>(T t) → core::num => self::Extension2|genericMethod<T>(#this, t);
 static method main() → dynamic
   ;

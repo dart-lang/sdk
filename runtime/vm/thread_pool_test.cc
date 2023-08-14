@@ -154,7 +154,7 @@ THREAD_POOL_UNIT_TEST_CASE(ThreadPool_WorkerShutdown) {
 
   // Kill the thread pool while the workers are sleeping.
   delete thread_pool;
-  thread_pool = NULL;
+  thread_pool = nullptr;
 
   int final_count = 0;
   {

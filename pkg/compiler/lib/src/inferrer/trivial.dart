@@ -393,6 +393,9 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
       const [];
 
   @override
+  bool isValidRefinement(AbstractValue before, AbstractValue after) => true;
+
+  @override
   AbstractValue get asyncStarStreamType => const TrivialAbstractValue();
 
   @override

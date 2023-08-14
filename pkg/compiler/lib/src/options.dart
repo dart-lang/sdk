@@ -20,6 +20,114 @@ enum FeatureStatus {
   canary,
 }
 
+enum Dart2JSStage {
+  all(null,
+      fromDillFlag: Dart2JSStage.allFromDill,
+      emitsKernel: false,
+      emitsJs: true),
+  cfe('cfe',
+      fromDillFlag: Dart2JSStage.cfeFromDill,
+      emitsKernel: true,
+      emitsJs: false),
+  modularAnalysis('modular-analysis',
+      fromDillFlag: Dart2JSStage.modularAnalysisFromDill,
+      dataOutputName: 'modular.data',
+      emitsKernel: true,
+      emitsJs: false),
+  allFromDill(null, emitsKernel: false, emitsJs: true),
+  cfeFromDill('cfe', emitsKernel: true, emitsJs: false),
+  modularAnalysisFromDill('modular-analysis',
+      dataOutputName: 'modular.data', emitsKernel: true, emitsJs: false),
+  closedWorld('closed-world',
+      dataOutputName: 'world.data', emitsKernel: true, emitsJs: false),
+  globalInference('global-inference',
+      dataOutputName: 'global.data', emitsKernel: false, emitsJs: false),
+  codegenAndJsEmitter('codegen-emit-js', emitsKernel: false, emitsJs: true),
+  codegenSharded('codegen',
+      dataOutputName: 'codegen', emitsKernel: false, emitsJs: false),
+  jsEmitter('emit-js', emitsKernel: false, emitsJs: true);
+
+  const Dart2JSStage(this._stageFlag,
+      {this.dataOutputName,
+      this.fromDillFlag,
+      required this.emitsKernel,
+      required this.emitsJs});
+
+  final Dart2JSStage? fromDillFlag;
+  final String? _stageFlag;
+  final String? dataOutputName;
+  final bool emitsKernel;
+  final bool emitsJs;
+  String? get outputExtension =>
+      emitsJs ? '.js' : (emitsKernel ? '.dill' : null);
+
+  bool get shouldOnlyComputeDill =>
+      this == Dart2JSStage.cfe || this == Dart2JSStage.cfeFromDill;
+  bool get shouldReadPlatformBinaries =>
+      this == Dart2JSStage.cfe ||
+      this == Dart2JSStage.cfeFromDill ||
+      this == Dart2JSStage.all ||
+      this == Dart2JSStage.allFromDill;
+  bool get shouldLoadFromDill => this.index >= Dart2JSStage.allFromDill.index;
+  bool get shouldComputeModularAnalysis =>
+      this == Dart2JSStage.modularAnalysis ||
+      this == Dart2JSStage.modularAnalysisFromDill;
+  bool get canUseModularAnalysis =>
+      this == Dart2JSStage.modularAnalysis ||
+      this.index >= Dart2JSStage.modularAnalysisFromDill.index;
+  bool get shouldReadClosedWorld => this.index > Dart2JSStage.closedWorld.index;
+  bool get shouldReadGlobalInference =>
+      this.index > Dart2JSStage.globalInference.index;
+  bool get shouldReadCodegenShards =>
+      this.index > Dart2JSStage.codegenSharded.index;
+
+  static String get validFlagValuesString {
+    return Dart2JSStage.values
+        .where((p) => p._stageFlag != null)
+        .map((p) => '`${p._stageFlag}`')
+        .join(', ');
+  }
+
+  static Dart2JSStage fromFlag(CompilerOptions options) {
+    for (final stage in Dart2JSStage.values) {
+      if (options._stageFlag == stage._stageFlag) {
+        if (stage.fromDillFlag != null && options._fromDill) {
+          return stage.fromDillFlag!;
+        }
+        return stage;
+      }
+    }
+    throw ArgumentError('Invalid stage: ${options._stageFlag}. '
+        'Supported values are: $validFlagValuesString');
+  }
+
+  static Dart2JSStage fromLegacyFlags(CompilerOptions options) {
+    if (options._cfeOnly) {
+      return options._fromDill ? Dart2JSStage.cfeFromDill : Dart2JSStage.cfe;
+    }
+    if (options._writeModularAnalysisUri != null) {
+      return options._fromDill
+          ? Dart2JSStage.modularAnalysisFromDill
+          : Dart2JSStage.modularAnalysis;
+    }
+    if (options._writeClosedWorldUri != null) {
+      return Dart2JSStage.closedWorld;
+    }
+    if (options._writeDataUri != null) {
+      return Dart2JSStage.globalInference;
+    }
+    if (options._writeCodegenUri != null) {
+      return Dart2JSStage.codegenSharded;
+    }
+    if (options._readCodegenUri != null) {
+      return Dart2JSStage.jsEmitter;
+    } else if (options._readDataUri != null) {
+      return Dart2JSStage.codegenAndJsEmitter;
+    }
+    return options._fromDill ? Dart2JSStage.allFromDill : Dart2JSStage.all;
+  }
+}
+
 /// A [FeatureOption] is both a set of flags and an option. By default, creating
 /// a [FeatureOption] will create two flags, `--$flag` and `--no-$flag`. The
 /// default behavior for a [FeatureOption] in the [FeatureOptions.canary] set is
@@ -181,15 +289,25 @@ class CompilerOptions implements DiagnosticOptions {
   Uri? entryUri;
 
   /// The input dill to compile.
-  Uri? inputDillUri;
+  Uri? _inputDillUri;
+
+  Uri get _defaultInputDillUri =>
+      _outputDir.resolve('${_outputPrefix}out.dill');
+
+  Uri? get inputDillUri {
+    return _inputDillUri != null
+        ? fe.nativeToUri(_inputDillUri.toString())
+        : _defaultInputDillUri;
+  }
 
   /// Returns the compilation target specified by these options.
-  Uri? get compilationTarget => inputDillUri ?? entryUri;
+  Uri get compilationTarget =>
+      _inputDillUri ?? entryUri ?? _defaultInputDillUri;
 
-  bool get fromDill {
+  bool get _fromDill {
     if (sources != null) return false;
-    var targetPath = compilationTarget!.path;
-    return targetPath.endsWith('.dill');
+    var targetPath = (_inputDillUri ?? entryUri)?.path;
+    return targetPath == null || targetPath.endsWith('.dill');
   }
 
   /// Location of the package configuration file.
@@ -211,10 +329,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// A list of sources to compile, only used for modular analysis.
   List<Uri>? sources;
 
-  Uri? writeModularAnalysisUri;
-
-  /// Helper to determine if compiler is being run just for modular analysis.
-  bool get modularMode => writeModularAnalysisUri != null && !cfeOnly;
+  Uri? _writeModularAnalysisUri;
 
   List<Uri>? modularAnalysisInputs;
 
@@ -227,12 +342,12 @@ class CompilerOptions implements DiagnosticOptions {
   ///
   /// If this is set, the [entryUri] is expected to be a .dill file and the
   /// frontend work is skipped.
-  Uri? readDataUri;
+  Uri? _readDataUri;
 
   /// Location to which inference data is serialized.
   ///
   /// If this is set, the compilation stops after type inference.
-  Uri? writeDataUri;
+  Uri? _writeDataUri;
 
   /// Serialize data without the closed world.
   /// TODO(joshualitt) make this the default right after landing in Google3 and
@@ -243,26 +358,29 @@ class CompilerOptions implements DiagnosticOptions {
   ///
   /// If this is set, the [entryUri] is expected to be a .dill file and the
   /// frontend work is skipped.
-  Uri? readClosedWorldUri;
+  Uri? _readClosedWorldUri;
 
   /// Location to which inference data is serialized.
   ///
   /// If this is set, the compilation stops after computing the closed world.
-  Uri? writeClosedWorldUri;
+  Uri? _writeClosedWorldUri;
 
   /// Location from which codegen data is read.
   ///
   /// If this is set, the compilation starts at codegen enqueueing.
-  Uri? readCodegenUri;
+  Uri? _readCodegenUri;
 
   /// Location to which codegen data is serialized.
   ///
   /// If this is set, the compilation stops after code generation.
-  Uri? writeCodegenUri;
+  Uri? _writeCodegenUri;
 
   /// Whether to run only the CFE and emit the generated kernel file in
   /// [outputUri].
-  bool cfeOnly = false;
+  bool _cfeOnly = false;
+
+  /// Which stage of the compiler to run. Maps to a stage from [Dart2JSStage].
+  String? _stageFlag;
 
   /// Flag only meant for dart2js developers to iterate on global inference
   /// changes.
@@ -334,9 +452,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// Note: the resulting program still correctly checks that loadLibrary &
   /// checkLibrary calls are correct.
   bool disableProgramSplit = false;
-
-  // Whether or not to stop compilation after splitting the
-  bool stopAfterProgramSplit = false;
 
   /// Reads a program split json file and applies the parsed constraints to
   /// deferred loading.
@@ -441,9 +556,6 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Whether to generate a source-map file together with the output program.
   bool generateSourceMap = true;
-
-  /// URI of the main output of the compiler.
-  Uri? outputUri;
 
   /// Location of the libraries specification file.
   Uri? librariesSpecificationUri;
@@ -575,11 +687,11 @@ class CompilerOptions implements DiagnosticOptions {
   /// If specified, a bundle of optimizations to enable (or disable).
   int? optimizationLevel = null;
 
-  /// The shard to serialize when using [writeCodegenUri].
+  /// The shard to serialize when using [Flags.writeCodegen].
   int? codegenShard;
 
-  /// The number of shards to serialize when using [writeCodegenUri] or to
-  /// deserialize when using [readCodegenUri].
+  /// The number of shards to serialize when using [Flags.writeCodegen] or to
+  /// deserialize when using [Flags.readCodegen].
   int? codegenShards;
 
   /// Arguments passed to the front end about how it is invoked.
@@ -599,6 +711,128 @@ class CompilerOptions implements DiagnosticOptions {
   // Whether or not to dump a list of unused libraries.
   bool dumpUnusedLibraries = false;
 
+  // Whether or not to disable byte cache for sources loaded from Kernel dill.
+  bool disableDiagnosticByteCache = false;
+
+  late final Dart2JSStage stage = _calculateStage();
+
+  Dart2JSStage _calculateStage() => _stageFlag != null
+      ? Dart2JSStage.fromFlag(this)
+      : Dart2JSStage.fromLegacyFlags(this);
+
+  Uri? _outputUri;
+  Uri? outputUri;
+
+  String get _outputFilename => _outputUri?.pathSegments.last ?? '';
+
+  /// Output prefix specified by the user via the `--out` flag. The prefix is
+  /// calculated from the final segment of the user provided URI. If the
+  /// extension does not match the expected extension for the current [stage]
+  /// then the last segment is treated as a prefix. Only set when `--stage` is
+  /// specified.
+  late final String _outputPrefix = (() {
+    if (_stageFlag == null) return '';
+    final extension = stage.outputExtension;
+
+    return (extension != null && _outputFilename.endsWith(extension))
+        ? ''
+        : _outputFilename;
+  })();
+
+  /// Output directory specified by the user via the `--out` flag. The directory
+  /// is calculated by resolving the substring prior to the final URI segment
+  /// (i.e. before the final slash) relative to [Uri.base]. Defaults to
+  /// [Uri.base] if `--out` is not provided or does not include a directory.
+  late final Uri _outputDir = (() => (_outputUri != null)
+      ? Uri.base.resolveUri(_outputUri!).resolve('.')
+      : Uri.base)();
+
+  /// Computes a resolved output URI based on value provided via the `--out`
+  /// flag. Updates [outputUri] based on the result and returns the value.
+  Uri? setResolvedOutputUri() {
+    final extension = stage.outputExtension;
+    if (extension == null) return null;
+
+    if (_stageFlag == null) {
+      return outputUri = _outputDir
+          .resolve(_outputFilename.isEmpty ? 'out$extension' : _outputFilename);
+    }
+
+    String fullName = _outputFilename;
+    if (!fullName.endsWith(extension)) {
+      fullName += 'out$extension';
+    }
+    return outputUri = _outputDir.resolve(fullName);
+  }
+
+  /// Sets [outputUri] to the value provided via `--out` without any processing.
+  void setDefaultOutputUriForTesting() {
+    outputUri = _outputUri;
+  }
+
+  Uri? _getSpecifiedReadDataPath(Dart2JSStage dart2jsStage) {
+    switch (dart2jsStage) {
+      case Dart2JSStage.all:
+      case Dart2JSStage.cfe:
+      case Dart2JSStage.allFromDill:
+      case Dart2JSStage.cfeFromDill:
+      case Dart2JSStage.jsEmitter:
+      case Dart2JSStage.codegenAndJsEmitter:
+      case Dart2JSStage.modularAnalysis:
+      case Dart2JSStage.modularAnalysisFromDill:
+        return null;
+      case Dart2JSStage.closedWorld:
+        return _readClosedWorldUri;
+      case Dart2JSStage.globalInference:
+        return _readDataUri;
+      case Dart2JSStage.codegenSharded:
+        return _readCodegenUri;
+    }
+  }
+
+  Uri dataInputUriForStage(Dart2JSStage dart2jsStage) {
+    final dataUri = _getSpecifiedReadDataPath(dart2jsStage);
+    if (dataUri != null) return dataUri;
+
+    if (dart2jsStage.dataOutputName != null) {
+      final filename = '$_outputPrefix${dart2jsStage.dataOutputName}';
+      return _outputDir.resolve(filename);
+    }
+    throw ArgumentError('No data input generated for stage: $dart2jsStage');
+  }
+
+  Uri? _getSpecifiedWriteDataPath(Dart2JSStage dart2jsStage) {
+    switch (dart2jsStage) {
+      case Dart2JSStage.all:
+      case Dart2JSStage.allFromDill:
+      case Dart2JSStage.jsEmitter:
+      case Dart2JSStage.codegenAndJsEmitter:
+        return null;
+      case Dart2JSStage.cfe:
+      case Dart2JSStage.cfeFromDill:
+      case Dart2JSStage.modularAnalysis:
+      case Dart2JSStage.modularAnalysisFromDill:
+        return _writeModularAnalysisUri;
+      case Dart2JSStage.closedWorld:
+        return _writeClosedWorldUri;
+      case Dart2JSStage.globalInference:
+        return _writeDataUri;
+      case Dart2JSStage.codegenSharded:
+        return _writeCodegenUri;
+    }
+  }
+
+  Uri dataOutputUriForStage(Dart2JSStage dart2jsStage) {
+    final dataUri = _getSpecifiedWriteDataPath(dart2jsStage);
+    if (dataUri != null) return dataUri;
+
+    if (dart2jsStage.dataOutputName != null) {
+      final filename = '$_outputPrefix${dart2jsStage.dataOutputName}';
+      return _outputDir.resolve(filename);
+    }
+    throw ArgumentError('No data output generated for stage: $dart2jsStage');
+  }
+
   late FeatureOptions features;
 
   // -------------------------------------------------
@@ -610,6 +844,7 @@ class CompilerOptions implements DiagnosticOptions {
       {FeatureOptions? featureOptions,
       Uri? librariesSpecificationUri,
       Uri? platformBinaries,
+      bool useDefaultOutputUri = false,
       void Function(String)? onError,
       void Function(String)? onWarning}) {
     if (featureOptions == null) featureOptions = FeatureOptions();
@@ -623,7 +858,7 @@ class CompilerOptions implements DiagnosticOptions {
     platformBinaries ??= fe.computePlatformBinariesLocation();
     return CompilerOptions()
       ..entryUri = _extractUriOption(options, '${Flags.entryUri}=')
-      ..inputDillUri = _extractUriOption(options, '${Flags.inputDill}=')
+      .._inputDillUri = _extractUriOption(options, '${Flags.inputDill}=')
       ..librariesSpecificationUri = librariesSpecificationUri
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
       ..benchmarkingProduction =
@@ -645,7 +880,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..disableInlining = _hasOption(options, Flags.disableInlining)
       ..disableProgramSplit = _hasOption(options, Flags.disableProgramSplit)
-      ..stopAfterProgramSplit = _hasOption(options, Flags.stopAfterProgramSplit)
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
       ..useTrivialAbstractValueDomain =
           _hasOption(options, Flags.useTrivialAbstractValueDomain)
@@ -682,7 +916,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
-      ..outputUri = _extractUriOption(options, '--out=')
+      .._outputUri = _extractUriOption(options, '--out=')
       ..platformBinaries = platformBinaries
       ..printLegacyStars = _hasOption(options, Flags.printLegacyStars)
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
@@ -691,7 +925,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..laxRuntimeTypeToString =
           _hasOption(options, Flags.laxRuntimeTypeToString)
       ..testMode = _hasOption(options, Flags.testMode)
-      ..experimentalInferrer = _hasOption(options, Flags.experimentalInferrer)
       ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
       ..useFrequencyNamer =
           !_hasOption(options, Flags.noFrequencyBasedMinification)
@@ -707,23 +940,24 @@ class CompilerOptions implements DiagnosticOptions {
       ..sources = _extractUriListOption(options, '${Flags.sources}')
       ..readProgramSplit =
           _extractUriOption(options, '${Flags.readProgramSplit}=')
-      ..writeModularAnalysisUri =
+      .._writeModularAnalysisUri =
           _extractUriOption(options, '${Flags.writeModularAnalysis}=')
       ..modularAnalysisInputs =
           _extractUriListOption(options, '${Flags.readModularAnalysis}')
-      ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
-      ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
+      .._readDataUri = _extractUriOption(options, '${Flags.readData}=')
+      .._writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
       ..memoryMappedFiles = _hasOption(options, Flags.memoryMappedFiles)
       ..noClosedWorldInData = _hasOption(options, Flags.noClosedWorldInData)
-      ..readClosedWorldUri =
+      .._readClosedWorldUri =
           _extractUriOption(options, '${Flags.readClosedWorld}=')
-      ..writeClosedWorldUri =
+      .._writeClosedWorldUri =
           _extractUriOption(options, '${Flags.writeClosedWorld}=')
-      ..readCodegenUri = _extractUriOption(options, '${Flags.readCodegen}=')
-      ..writeCodegenUri = _extractUriOption(options, '${Flags.writeCodegen}=')
+      .._readCodegenUri = _extractUriOption(options, '${Flags.readCodegen}=')
+      .._writeCodegenUri = _extractUriOption(options, '${Flags.writeCodegen}=')
       ..codegenShard = _extractIntOption(options, '${Flags.codegenShard}=')
       ..codegenShards = _extractIntOption(options, '${Flags.codegenShards}=')
-      ..cfeOnly = _hasOption(options, Flags.cfeOnly)
+      .._cfeOnly = _hasOption(options, Flags.cfeOnly)
+      .._stageFlag = _extractStringOption(options, '${Flags.stage}=', null)
       ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference)
       .._soundNullSafety = _hasOption(options, Flags.soundNullSafety)
       .._noSoundNullSafety = _hasOption(options, Flags.noSoundNullSafety)
@@ -737,13 +971,156 @@ class CompilerOptions implements DiagnosticOptions {
           _extractStringOption(
               options, '${Flags.verbosity}=', fe.Verbosity.defaultValue)!,
           onError: onError)
+      ..disableDiagnosticByteCache =
+          _hasOption(options, Flags.disableDiagnosticByteCache)
       ..features = featureOptions;
   }
 
+  String? validateStage() {
+    bool expectSourcesIn = false;
+    bool expectKernelIn = false;
+    bool expectKernelOut = false;
+    bool expectModularIn = false;
+    bool expectModularOut = false;
+    bool expectClosedWorldIn = false;
+    bool expectClosedWorldOut = false;
+    bool expectGlobalIn = false;
+    bool expectGlobalOut = false;
+    bool expectCodegenIn = false;
+    bool expectCodegenOut = false;
+    switch (stage) {
+      case Dart2JSStage.all:
+        expectSourcesIn = true;
+        break;
+      case Dart2JSStage.allFromDill:
+        expectKernelIn = true;
+        break;
+      case Dart2JSStage.cfe:
+        expectSourcesIn = true;
+        expectKernelOut = true;
+        expectModularIn = true;
+        expectModularOut = true;
+        break;
+      case Dart2JSStage.cfeFromDill:
+        expectKernelIn = true;
+        expectKernelOut = true;
+        expectModularIn = true;
+        expectModularOut = true;
+        break;
+      case Dart2JSStage.modularAnalysis:
+        expectKernelOut = true;
+        expectModularOut = true;
+        break;
+      case Dart2JSStage.modularAnalysisFromDill:
+        expectKernelOut = true;
+        expectModularOut = true;
+        break;
+      case Dart2JSStage.closedWorld:
+        expectClosedWorldOut = true;
+        expectKernelIn = true;
+        expectModularIn = true;
+        break;
+      case Dart2JSStage.globalInference:
+        expectGlobalOut = true;
+        expectKernelIn = true;
+        expectModularIn = true;
+        expectClosedWorldIn = true;
+        break;
+      case Dart2JSStage.codegenSharded:
+        expectCodegenOut = true;
+        expectKernelIn = true;
+        expectModularIn = true;
+        expectClosedWorldIn = true;
+        expectGlobalIn = true;
+        break;
+      case Dart2JSStage.codegenAndJsEmitter:
+        expectKernelIn = true;
+        expectModularIn = true;
+        expectClosedWorldIn = true;
+        expectGlobalIn = true;
+        break;
+      case Dart2JSStage.jsEmitter:
+        expectKernelIn = true;
+        expectModularIn = true;
+        expectClosedWorldIn = true;
+        expectGlobalIn = true;
+        expectCodegenIn = true;
+        break;
+    }
+
+    if (expectKernelIn && (!compilationTarget.path.endsWith('.dill'))) {
+      return 'Must provide `.dill` input.';
+    }
+
+    if (expectSourcesIn && (!compilationTarget.path.endsWith('.dart'))) {
+      return 'Must provide `.dart` input. ($compilationTarget) ($entryUri)';
+    }
+
+    // Check CFE only flags.
+    if (_cfeOnly && !expectKernelOut) {
+      return 'Cannot write serialized data during ${stage.name} stage.';
+    }
+
+    // Check modular analysis flags.
+    if (_writeModularAnalysisUri != null && !expectModularOut) {
+      return 'Cannot write modular data during ${stage.name} stage.';
+    }
+    if (modularAnalysisInputs != null && !expectModularIn) {
+      return 'Cannot read modular analysis inputs in '
+          'stage ${stage.name}.';
+    }
+
+    // Check closed world flags.
+    if (_writeClosedWorldUri != null && !expectClosedWorldOut) {
+      return 'Cannot write closed world during ${stage.name} stage.';
+    }
+    if (_readClosedWorldUri != null && !expectClosedWorldIn) {
+      return 'Cannot read closed world in stage ${stage.name}.';
+    }
+
+    // Check global inference flags.
+    if (_writeDataUri != null && !expectGlobalOut) {
+      return 'Cannot write global inference data '
+          'during ${stage.name} stage.';
+    }
+    if (_readDataUri != null && !expectGlobalIn) {
+      return 'Cannot read global inference data in '
+          'stage ${stage.name}.';
+    }
+
+    // Check codegen flags.
+    if (_writeCodegenUri != null && !expectCodegenOut) {
+      return 'Cannot write codegen data during ${stage.name} stage.';
+    }
+    if (_readCodegenUri != null && !expectCodegenIn) {
+      return 'Cannot read codegen shards in stage ${stage.name}.';
+    }
+
+    if (codegenShard == null && expectCodegenOut) {
+      return 'Must specify value for ${Flags.codegenShard} '
+          'in stage ${stage.name}.';
+    }
+    if (codegenShard != null && !expectCodegenOut) {
+      return 'Cannot specify ${Flags.codegenShard} during '
+          '${stage.name} stage.';
+    }
+
+    if (codegenShards == null && expectCodegenOut) {
+      return 'Must specify value for ${Flags.codegenShards} '
+          'in stage ${stage.name}.';
+    }
+    if (codegenShards == null && expectCodegenIn) {
+      return 'Must specify value for ${Flags.codegenShards} '
+          'in stage ${stage.name}.';
+    }
+    if (codegenShards != null && !(expectCodegenIn || expectCodegenOut)) {
+      return 'Cannot specify ${Flags.codegenShards} during '
+          '${stage.name} stage.';
+    }
+    return null;
+  }
+
   void validate() {
-    // TODO(sigmund): should entrypoint be here? should we validate it is not
-    // null? In unittests we use the same compiler to analyze or build multiple
-    // entrypoints.
     if (librariesSpecificationUri == null) {
       throw ArgumentError("[librariesSpecificationUri] is null.");
     }

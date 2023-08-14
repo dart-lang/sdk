@@ -32,6 +32,7 @@ extension JSNativeMatchExtension on JSNativeMatch {
   external JSString get input;
   external JSNumber get index;
   external JSObject? get groups;
+  external JSNumber get length;
 }
 
 @js.JS()
@@ -276,4 +277,44 @@ class _AllMatchesIterator implements Iterator<RegExpMatch> {
     _string = null; // Marks iteration as ended.
     return false;
   }
+}
+
+/// Returns a native version of the RegExp with the global flag set.
+///
+/// The RegExp's `lastIndex` property is zero when it is returned.
+///
+/// The returned regexp is shared, and its `lastIndex` property may be
+/// modified by other uses, so the returned regexp must be used immediately
+/// when it's returned, with no user-provided code run in between.
+JSNativeRegExp regExpGetGlobalNative(JSSyntaxRegExp regexp) {
+  final nativeRegexp = regexp._nativeGlobalVersion;
+  nativeRegexp.lastIndex = 0.toJS;
+  return nativeRegexp;
+}
+
+RegExpMatch? regExpExecGlobal(
+        JSSyntaxRegExp regexp, String str, int startIndex) =>
+    regexp._execGlobal(str, startIndex);
+
+JSNativeRegExp regExpGetNative(JSSyntaxRegExp regexp) => regexp._nativeRegExp;
+
+/// Computes the number of captures in a regexp.
+///
+/// This currently involves creating a new RegExp object with a different
+/// source and running it against the empty string (the last part is usually
+/// fast).
+///
+/// The JSSyntaxRegExp could cache the result, and set the cache any time
+/// it finds a match.
+int regExpCaptureCount(JSSyntaxRegExp regexp) {
+  final nativeAnchoredRegExp = regexp._nativeAnchoredVersion;
+  final match = nativeAnchoredRegExp.exec(''.toJS)!;
+  // The native-anchored regexp always have one capture more than the original,
+  // and always matches the empty string.
+  return match.length.toDart.toInt() - 2;
+}
+
+/// Find the first match of [regExp] in [string] at or after [start].
+RegExpMatch? firstMatchAfter(JSSyntaxRegExp regExp, String string, int start) {
+  return regExp._execGlobal(string, start);
 }

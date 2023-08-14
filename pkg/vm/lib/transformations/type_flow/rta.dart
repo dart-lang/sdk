@@ -65,8 +65,6 @@ class ClassInfo extends TFClass {
     }
   }
 
-  late final ConcreteType concreteType = ConcreteType(this, null);
-
   Map<Name, Member> _initDispatchTargets(bool setters) {
     Map<Name, Member> targets;
     final superclass = this.superclass;

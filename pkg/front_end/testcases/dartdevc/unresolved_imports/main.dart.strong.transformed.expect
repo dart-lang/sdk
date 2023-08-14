@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -34,5 +34,5 @@ import "package:existing_package/non_existing_package_file.dart";
 import "package:non_existing_package/file.dart";
 
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;

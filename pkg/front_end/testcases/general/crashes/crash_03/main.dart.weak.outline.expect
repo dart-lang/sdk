@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -34,7 +34,7 @@ abstract class _PlatformViewGestureMixin extends mai::RenderBox /*isMixinDeclara
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

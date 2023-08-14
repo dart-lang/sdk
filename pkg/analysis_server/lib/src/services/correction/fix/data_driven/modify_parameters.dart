@@ -5,9 +5,10 @@
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
+import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analysis_server/src/utilities/index_range.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -41,6 +42,28 @@ class AddParameter extends ParameterModification {
       : assert(index >= 0);
 }
 
+/// The type change of a parameter.
+class ChangeParameterType extends ParameterModification {
+  /// The location of the changed parameter.
+  final FormalParameterReference reference;
+
+  /// The nullability of the parameter.
+  final String nullability;
+
+  /// The code template used to compute the value of the new argument in
+  /// invocations of the function, or `null` if the parameter is optional and no
+  /// argument needs to be added. The only time an argument needs to be added
+  /// for an optional parameter is if the parameter is positional and there are
+  /// preexisting optional positional parameters after the ones being added.
+  final CodeTemplate? argumentValue;
+
+  ChangeParameterType({
+    required this.reference,
+    required this.nullability,
+    required this.argumentValue,
+  });
+}
+
 /// The data related to an executable element whose parameters have been
 /// modified.
 class ModifyParameters extends Change<_Data> {
@@ -67,7 +90,7 @@ class ModifyParameters extends Change<_Data> {
     var argumentCount = arguments.length;
     var templateContext = TemplateContext(invocation, fix.utils);
 
-    var indexToNewArgumentMap = <int, AddParameter>{};
+    var indexToNewArgumentMap = <int, ParameterModification>{};
     var argumentsToInsert = <int>[];
     var argumentsToDelete = <int>[];
     var remainingArguments = [for (var i = 0; i < argumentCount; i++) i];
@@ -95,6 +118,32 @@ class ModifyParameters extends Change<_Data> {
           argumentsToDelete.add(index);
           remainingArguments.remove(index);
         }
+      } else if (modification is ChangeParameterType) {
+        var reference = modification.reference;
+        var argument = reference.argumentFrom(argumentList);
+        if (argument == null) {
+          // If there is no argument corresponding to the parameter then we assume
+          // that the parameter was absent.
+          var index = reference is PositionalFormalParameterReference
+              ? reference.index
+              : remainingArguments.isNotEmpty
+                  ? remainingArguments.last + 1
+                  : 0;
+          remainingArguments.add(index);
+          indexToNewArgumentMap[index] = modification;
+          argumentsToInsert.add(index);
+        } else {
+          // Check and replace null value arguments.
+          if (argument is NullLiteral) {
+            var argumentValue = modification.argumentValue;
+            if (argumentValue != null) {
+              builder.addReplacement(
+                  SourceRange(argument.offset, argument.length), (builder) {
+                argumentValue.writeOn(builder, templateContext);
+              });
+            }
+          }
+        }
       }
     }
     argumentsToInsert.sort();
@@ -108,6 +157,23 @@ class ModifyParameters extends Change<_Data> {
         if (!parameter.isPositional) {
           builder.write(parameter.name);
           builder.write(': ');
+        }
+        argumentValue.writeOn(builder, templateContext);
+      }
+    }
+
+    /// Write to the [builder] the change associated with a single
+    /// [parameter].
+    void writeChangeArgument(
+        DartEditBuilder builder, ChangeParameterType parameter) {
+      var argumentValue = parameter.argumentValue;
+      if (argumentValue != null) {
+        switch (parameter.reference) {
+          case NamedFormalParameterReference(:final name):
+            builder.write(name);
+            builder.write(': ');
+          case PositionalFormalParameterReference():
+          // Nothing.
         }
         argumentValue.writeOn(builder, templateContext);
       }
@@ -132,7 +198,12 @@ class ModifyParameters extends Change<_Data> {
           }
           var parameter = indexToNewArgumentMap[argumentIndex];
           if (parameter != null) {
-            writeArgument(builder, parameter);
+            switch (parameter) {
+              case AddParameter():
+                writeArgument(builder, parameter);
+              case ChangeParameterType():
+                writeChangeArgument(builder, parameter);
+            }
           }
         }
       }
@@ -160,11 +231,13 @@ class ModifyParameters extends Change<_Data> {
               offset = arguments[remainingIndex - 1].end;
               needsInitialComma = true;
             } else {
-              offset = arguments[remainingIndex].offset;
+              offset = arguments.isNotEmpty
+                  ? arguments[remainingIndex].offset
+                  : argumentList.leftParenthesis.end;
             }
             builder.addInsertion(offset, (builder) {
               writeInsertionRange(builder, insertionRange, needsInitialComma);
-              if (insertionIndex == 0) {
+              if (insertionIndex == 0 && arguments.isNotEmpty) {
                 builder.write(', ');
               }
             });
@@ -197,9 +270,19 @@ class ModifyParameters extends Change<_Data> {
         var lower = insertionRange.lower;
         var upper = insertionRange.upper;
         var parameter = indexToNewArgumentMap[upper]!;
-        while (upper >= lower &&
-            (parameter.isPositional && !parameter.isRequired)) {
-          upper--;
+        switch (parameter) {
+          // Changing the type of parameter to non null indicates that a value
+          // must be passed in, regardless of whether is it positional or
+          // required.
+          case AddParameter():
+            while (upper >= lower &&
+                (parameter.isPositional && !parameter.isRequired)) {
+              upper--;
+            }
+          case ChangeParameterType():
+            while (upper >= lower) {
+              upper--;
+            }
         }
         if (upper >= lower) {
           builder.addInsertion(offset, (builder) {
@@ -257,6 +340,13 @@ class ModifyParameters extends Change<_Data> {
         greatGrandParent is InstanceCreationExpression) {
       var argumentList = greatGrandParent.argumentList;
       return _Data(argumentList);
+    } else if (parent is NamedExpression &&
+        greatGrandParent is InstanceCreationExpression) {
+      var argumentList = greatGrandParent.argumentList;
+      return _Data(argumentList);
+    } else if (grandParent is InstanceCreationExpression) {
+      var argumentList = grandParent.argumentList;
+      return _Data(argumentList);
     }
     return null;
   }
@@ -287,7 +377,7 @@ abstract class ParameterModification {}
 /// The removal of an existing parameter.
 class RemoveParameter extends ParameterModification {
   /// The parameter that was removed.
-  final ParameterReference parameter;
+  final FormalParameterReference parameter;
 
   /// Initialize a newly created parameter modification to represent the removal
   /// of an existing [parameter].

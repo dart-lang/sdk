@@ -1,0 +1,42 @@
+library;
+//
+// Problems in library:
+//
+// org-dartlang-test:///a/b/c/main.dart:17:2: Error: This macro application didn't apply correctly.
+// @AnnotationsMacro(UserClass())
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:11:2: Error: This macro application didn't apply correctly.
+// @AnnotationsMacro(UserClass())
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:13:4: Error: This macro application didn't apply correctly.
+//   @AnnotationsMacro(UserClass())
+//    ^
+//
+import self as self;
+import "dart:core" as core;
+import "package:macro/annotations.dart" as ann;
+
+import "package:macro/annotations.dart";
+
+class UserClass extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::UserClass
+    : super core::Object::•()
+    ;
+}
+@#C2
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  @#C2
+  method method() → dynamic {}
+}
+@#C2
+static method method() → dynamic {}
+
+constants  {
+  #C1 = self::UserClass {}
+  #C2 = ann::AnnotationsMacro {object:#C1}
+}

@@ -7,8 +7,10 @@
 
 #include "vm/os.h"
 
+#include <dlfcn.h>           // NOLINT
 #include <errno.h>           // NOLINT
 #include <limits.h>          // NOLINT
+#include <mach-o/loader.h>   // NOLINT
 #include <mach/clock.h>      // NOLINT
 #include <mach/mach.h>       // NOLINT
 #include <mach/mach_time.h>  // NOLINT
@@ -20,6 +22,7 @@
 #endif
 
 #include "platform/utils.h"
+#include "vm/image_snapshot.h"
 #include "vm/isolate.h"
 #include "vm/timeline.h"
 #include "vm/zone.h"
@@ -34,14 +37,15 @@ static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   time_t seconds = static_cast<time_t>(seconds_since_epoch);
   if (seconds != seconds_since_epoch) return false;
   struct tm* error_code = localtime_r(&seconds, tm_result);
-  return error_code != NULL;
+  return error_code != nullptr;
 }
 
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   tm decomposed;
   bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
   // If unsuccessful, return an empty string like V8 does.
-  return (succeeded && (decomposed.tm_zone != NULL)) ? decomposed.tm_zone : "";
+  return (succeeded && (decomposed.tm_zone != nullptr)) ? decomposed.tm_zone
+                                                        : "";
 }
 
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
@@ -59,7 +63,7 @@ int64_t OS::GetCurrentTimeMillis() {
 int64_t OS::GetCurrentTimeMicros() {
   // gettimeofday has microsecond resolution.
   struct timeval tv;
-  if (gettimeofday(&tv, NULL) < 0) {
+  if (gettimeofday(&tv, nullptr) < 0) {
     UNREACHABLE();
     return 0;
   }
@@ -216,7 +220,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer;
@@ -225,7 +229,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   } else {
     buffer = reinterpret_cast<char*>(malloc(len + 1));
   }
-  ASSERT(buffer != NULL);
+  ASSERT(buffer != nullptr);
 
   // Print.
   va_list print_args;
@@ -236,7 +240,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
 }
 
 bool OS::StringToInt64(const char* str, int64_t* value) {
-  ASSERT(str != NULL && strlen(str) > 0 && value != NULL);
+  ASSERT(str != nullptr && strlen(str) > 0 && value != nullptr);
   int32_t base = 10;
   char* endptr;
   int i = 0;
@@ -281,13 +285,13 @@ void OS::Init() {
   // This is a workaround for a macos bug, we eagerly call localtime_r so that
   // libnotify is initialized early before any fork happens.
   struct timeval tv;
-  if (gettimeofday(&tv, NULL) < 0) {
+  if (gettimeofday(&tv, nullptr) < 0) {
     FATAL("gettimeofday returned an error (%s)\n", strerror(errno));
     return;
   }
   tm decomposed;
   struct tm* error_code = localtime_r(&(tv.tv_sec), &decomposed);
-  if (error_code == NULL) {
+  if (error_code == nullptr) {
     FATAL("localtime_r returned an error (%s)\n", strerror(errno));
     return;
   }
@@ -304,6 +308,43 @@ void OS::Abort() {
 
 void OS::Exit(int code) {
   exit(code);
+}
+
+OS::BuildId OS::GetAppBuildId(const uint8_t* snapshot_instructions) {
+  // First return the build ID information from the instructions image if
+  // available.
+  const Image instructions_image(snapshot_instructions);
+  if (auto* const image_build_id = instructions_image.build_id()) {
+    return {instructions_image.build_id_length(), image_build_id};
+  }
+  Dl_info snapshot_info;
+  if (dladdr(snapshot_instructions, &snapshot_info) == 0) {
+    return {0, nullptr};
+  }
+  const uint8_t* dso_base =
+      static_cast<const uint8_t*>(snapshot_info.dli_fbase);
+  const auto& macho_header =
+      *reinterpret_cast<const struct mach_header*>(dso_base);
+  // We assume host endianness in the Mach-O file.
+  if (macho_header.magic != MH_MAGIC && macho_header.magic != MH_MAGIC_64) {
+    return {0, nullptr};
+  }
+  const size_t macho_header_size = macho_header.magic == MH_MAGIC
+                                       ? sizeof(struct mach_header)
+                                       : sizeof(struct mach_header_64);
+  const uint8_t* it = dso_base + macho_header_size;
+  const uint8_t* end = it + macho_header.sizeofcmds;
+  while (it < end) {
+    const auto& current_cmd = *reinterpret_cast<const struct load_command*>(it);
+    if ((current_cmd.cmd & ~LC_REQ_DYLD) == LC_UUID) {
+      const auto& uuid_cmd = *reinterpret_cast<const struct uuid_command*>(it);
+      return {
+          static_cast<intptr_t>(uuid_cmd.cmdsize - sizeof(struct load_command)),
+          uuid_cmd.uuid};
+    }
+    it += current_cmd.cmdsize;
+  }
+  return {0, nullptr};
 }
 
 }  // namespace dart

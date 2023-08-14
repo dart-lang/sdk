@@ -170,6 +170,19 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
           : [element];
       for (var declaredElement in declaredElements) {
         processor.addDeclarationEdit(declaredElement);
+        if (declaredElement is BindPatternVariableElementImpl) {
+          // If a variable is used to resolve a named field with an implicit
+          // name, we need to make the field name explicit.
+          final fieldName = declaredElement.node.fieldNameWithImplicitName;
+          if (fieldName != null) {
+            processor.replace(
+              referenceElement: element,
+              offset: fieldName.colon.offset,
+              length: 0,
+              code: element.name,
+            );
+          }
+        }
       }
     } else {
       processor.addDeclarationEdit(element);

@@ -16,7 +16,6 @@ HOST_ARCH = utils.GuessArchitecture()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
 AVAILABLE_ARCHS = utils.ARCH_FAMILY.keys()
-GN = os.path.join(DART_ROOT, 'buildtools', 'gn')
 
 # Environment variables for default settings.
 DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instead of --toolchain-prefix
@@ -228,13 +227,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
 
     gn_args['bssl_use_clang_integrated_as'] = True
 
-    # Use tcmalloc only when targeting Linux and when not using ASAN.
-    # TODO(51111): Re-enable for riscv64.
-    gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux') and
-                                    (gn_args['target_cpu'] != 'riscv32') and
-                                    (gn_args['target_cpu'] != 'riscv64') and
-                                    sanitizer == 'none')
-
     if gn_args['target_os'] == 'linux':
         if gn_args['target_cpu'] == 'arm':
             # Default to -mfloat-abi=hard and -mfpu=neon for arm on Linux as we're
@@ -294,7 +286,10 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
 
         toolchain = ToolchainPrefix(args)
         if toolchain:
-            gn_args['toolchain_prefix'] = ParseStringMap(arch, toolchain)
+            for arch in ['ia32', 'x64', 'arm', 'arm64', 'riscv32', 'riscv64']:
+                prefix = ParseStringMap(arch, toolchain)
+                if prefix != None:
+                    gn_args[arch + '_toolchain_prefix'] = prefix
 
     goma_dir = os.environ.get('GOMA_DIR')
     # Search for goma in depot_tools in path
@@ -302,7 +297,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     for path in os.environ.get('PATH', '').split(os.pathsep):
         if os.path.basename(path) == 'depot_tools':
             cipd_bin = os.path.join(path, '.cipd_bin')
-            if os.path.isfile(os.path.join(cipd_bin, 'gomacc')):
+            if os.path.isfile(os.path.join(cipd_bin, ExecutableName('gomacc'))):
                 goma_depot_tools_dir = cipd_bin
                 break
     # Otherwise use goma from home directory.
@@ -578,9 +573,17 @@ def parse_args(args):
     return options
 
 
+def ExecutableName(basename):
+    if utils.IsWindows():
+        return f'{basename}.exe'
+    return basename
+
+
 def BuildGnCommand(args, mode, arch, target_os, sanitizer, out_dir):
-    gn = os.path.join(DART_ROOT, 'buildtools',
-                      'gn.exe' if utils.IsWindows() else 'gn')
+    if utils.IsWindows():
+        gn = os.path.join(DART_ROOT, 'buildtools', 'win', 'gn.exe')
+    else:
+        gn = os.path.join(DART_ROOT, 'buildtools', 'gn')
     if not os.path.isfile(gn):
         raise Exception("Couldn't find the gn binary at path: " + gn)
 

@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class AddLate extends CorrectionProducer {
+class AddLate extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.ADD_LATE;
 

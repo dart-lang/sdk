@@ -32,9 +32,11 @@ import 'add_missing_parameter_required_test.dart'
     as add_missing_parameter_required;
 import 'add_missing_required_argument_test.dart'
     as add_missing_required_argument;
+import 'add_missing_switch_cases_test.dart' as add_missing_switch_cases;
 import 'add_ne_null_test.dart' as add_ne_null;
 import 'add_null_check_test.dart' as add_null_check;
 import 'add_override_test.dart' as add_override;
+import 'add_reopen_test.dart' as add_reopen;
 import 'add_required_test.dart' as add_required;
 import 'add_return_null_test.dart' as add_return_null;
 import 'add_return_type_test.dart' as add_return_type;
@@ -63,7 +65,10 @@ import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
 import 'convert_quotes_test.dart' as convert_quotes;
+import 'convert_to_boolean_expression_test.dart'
+    as convert_to_boolean_expression;
 import 'convert_to_cascade_test.dart' as convert_to_cascade;
+import 'convert_to_constant_pattern_test.dart' as convert_to_constant_pattern;
 import 'convert_to_contains_test.dart' as convert_to_contains;
 import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
@@ -91,6 +96,7 @@ import 'convert_to_single_quoted_string_test.dart'
 import 'convert_to_spread_test.dart' as convert_to_spread;
 import 'convert_to_super_parameters_test.dart' as convert_to_super_parameters;
 import 'convert_to_where_type_test.dart' as convert_to_where_type;
+import 'convert_to_wildcard_pattern_test.dart' as convert_to_wildcard_pattern;
 import 'create_class_test.dart' as create_class;
 import 'create_constructor_for_final_fields_test.dart'
     as create_constructor_for_final_field;
@@ -152,6 +158,7 @@ import 'remove_character_test.dart' as remove_character;
 import 'remove_comparison_test.dart' as remove_comparison;
 import 'remove_const_test.dart' as remove_const;
 import 'remove_constructor_name_test.dart' as remove_constructor_name;
+import 'remove_constructor_test.dart' as remove_constructor;
 import 'remove_dead_code_test.dart' as remove_dead_code;
 import 'remove_default_value_test.dart' as remove_default_value;
 import 'remove_deprecated_new_in_comment_reference_test.dart'
@@ -201,6 +208,7 @@ import 'remove_unnecessary_string_escapes_test.dart'
     as remove_unnecessary_string_escapes;
 import 'remove_unnecessary_string_interpolation_test.dart'
     as remove_unnecessary_string_interpolation;
+import 'remove_unnecessary_to_list_test.dart' as remove_unnecessary_to_list;
 import 'remove_unnecessary_wildcard_pattern_test.dart'
     as remove_unnecessary_wildcard_pattern;
 import 'remove_unused_catch_clause_test.dart' as remove_unused_catch_clause;
@@ -245,17 +253,19 @@ import 'replace_with_is_nan_test.dart' as replace_with_is_nan;
 import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
 import 'replace_with_not_null_aware_test.dart' as replace_with_not_null_aware;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
+import 'replace_with_part_of_uri_test.dart' as replace_with_part_of_uri;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_unicode_escape_test.dart' as replace_with_unicode_escape_;
 import 'replace_with_var_test.dart' as replace_with_var;
+import 'replace_with_wildcard_test.dart' as replace_with_wildcard;
 import 'sort_child_property_last_test.dart' as sort_properties_last;
 import 'sort_combinators_test.dart' as sort_combinators_test;
 import 'sort_constructor_first_test.dart' as sort_constructor_first_test;
 import 'sort_unnamed_constructor_first_test.dart'
     as sort_unnamed_constructor_first_test;
+import 'split_multiple_declarations_test.dart'
+    as split_multiple_declarations_test;
 import 'surround_with_parentheses_test.dart' as surround_with_parentheses;
-import 'type_literal_in_constant_pattern_test.dart'
-    as type_literal_in_constant_pattern;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
 import 'use_curly_braces_test.dart' as use_curly_braces;
 import 'use_effective_integer_division_test.dart'
@@ -291,9 +301,11 @@ void main() {
     add_missing_parameter_positional.main();
     add_missing_parameter_required.main();
     add_missing_required_argument.main();
+    add_missing_switch_cases.main();
     add_ne_null.main();
     add_null_check.main();
     add_override.main();
+    add_reopen.main();
     add_required.main();
     add_return_null.main();
     add_return_type.main();
@@ -319,7 +331,9 @@ void main() {
     convert_into_expression_body.main();
     convert_into_is_not.main();
     convert_quotes.main();
+    convert_to_boolean_expression.main();
     convert_to_cascade.main();
+    convert_to_constant_pattern.main();
     convert_to_contains.main();
     convert_to_double_quoted_string.main();
     convert_to_for_element.main();
@@ -342,6 +356,7 @@ void main() {
     convert_to_spread.main();
     convert_to_super_parameters.main();
     convert_to_where_type.main();
+    convert_to_wildcard_pattern.main();
     create_class.main();
     create_constructor_for_final_field.main();
     create_constructor_super.main();
@@ -397,6 +412,7 @@ void main() {
     remove_character.main();
     remove_comparison.main();
     remove_const.main();
+    remove_constructor.main();
     remove_constructor_name.main();
     remove_dead_code.main();
     remove_default_value.main();
@@ -437,6 +453,7 @@ void main() {
     remove_unnecessary_raw_string.main();
     remove_unnecessary_string_escapes.main();
     remove_unnecessary_string_interpolation.main();
+    remove_unnecessary_to_list.main();
     remove_unnecessary_wildcard_pattern.main();
     remove_unused_catch_clause.main();
     remove_unused_catch_stack.main();
@@ -478,15 +495,17 @@ void main() {
     replace_with_is_not_empty.main();
     replace_with_not_null_aware.main();
     replace_with_null_aware.main();
+    replace_with_part_of_uri.main();
     replace_with_tear_off.main();
     replace_with_unicode_escape_.main();
     replace_with_var.main();
+    replace_with_wildcard.main();
     sort_properties_last.main();
     sort_constructor_first_test.main();
     sort_combinators_test.main();
     sort_unnamed_constructor_first_test.main();
+    split_multiple_declarations_test.main();
     surround_with_parentheses.main();
-    type_literal_in_constant_pattern.main();
     update_sdk_constraints.main();
     use_curly_braces.main();
     use_effective_integer_division.main();

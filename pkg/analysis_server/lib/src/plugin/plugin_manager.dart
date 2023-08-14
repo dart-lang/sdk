@@ -672,16 +672,12 @@ class PluginManager {
   }
 
   WatchEventType _convertChangeType(watcher.ChangeType type) {
-    switch (type) {
-      case watcher.ChangeType.ADD:
-        return WatchEventType.ADD;
-      case watcher.ChangeType.MODIFY:
-        return WatchEventType.MODIFY;
-      case watcher.ChangeType.REMOVE:
-        return WatchEventType.REMOVE;
-      default:
-        throw StateError('Unknown change type: $type');
-    }
+    return switch (type) {
+      watcher.ChangeType.ADD => WatchEventType.ADD,
+      watcher.ChangeType.MODIFY => WatchEventType.MODIFY,
+      watcher.ChangeType.REMOVE => WatchEventType.REMOVE,
+      _ => throw StateError('Unknown change type: $type')
+    };
   }
 
   WatchEvent _convertWatchEvent(watcher.WatchEvent watchEvent) {

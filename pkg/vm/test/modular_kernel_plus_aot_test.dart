@@ -52,7 +52,8 @@ main() async {
     final component = loadComponentFromBytes(bytes);
 
     // Verify before running global transformations.
-    verifyComponent(component, isOutline: false, afterConst: true);
+    verifyComponent(
+        vmTarget, VerificationStage.afterModularTransformations, component);
 
     const useGlobalTypeFlowAnalysis = true;
     const enableAsserts = false;
@@ -66,7 +67,8 @@ main() async {
         ErrorDetector());
 
     // Verify after running global transformations.
-    verifyComponent(component, isOutline: false, afterConst: true);
+    verifyComponent(
+        vmTarget, VerificationStage.afterGlobalTransformations, component);
 
     // Verify that we can reserialize the component to ensure that all
     // references are contained within the component.

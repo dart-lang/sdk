@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ConvertToMapLiteral extends CorrectionProducer {
+class ConvertToMapLiteral extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_MAP_LITERAL;
 
@@ -58,8 +58,8 @@ class ConvertToMapLiteral extends CorrectionProducer {
           creation.thisOrAncestorOfType<VariableDeclarationList>();
       if (variableDeclarationList?.type == null) {
         staticTypeArguments = type.typeArguments;
-        if (staticTypeArguments.first.isDynamic &&
-            staticTypeArguments.last.isDynamic) {
+        if (staticTypeArguments.first is DynamicType &&
+            staticTypeArguments.last is DynamicType) {
           staticTypeArguments = null;
         }
       }

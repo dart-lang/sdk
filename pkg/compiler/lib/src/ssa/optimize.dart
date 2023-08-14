@@ -1575,6 +1575,14 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     return node;
   }
 
+  @override
+  HInstruction visitCharCodeAt(HCharCodeAt node) {
+    final folded =
+        foldBinary(constant_system.codeUnitAt, node.receiver, node.index);
+    if (folded != null) return folded;
+    return node;
+  }
+
   /// Returns the guarded receiver.
   HInstruction maybeGuardWithNullCheck(
       HInstruction receiver, HInvokeDynamic node, FieldEntity? field) {
@@ -2157,7 +2165,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         node.dartType, _graph.element, _closedWorld);
 
     if (specialization == IsTestSpecialization.isNull ||
-        specialization == IsTestSpecialization.notNull) {
+        specialization == IsTestSpecialization.isNotNull) {
       HInstruction nullTest = HIdentity(node.checkedInput,
           _graph.addConstantNull(_closedWorld), _abstractValueDomain.boolType);
       if (specialization == IsTestSpecialization.isNull) return nullTest;

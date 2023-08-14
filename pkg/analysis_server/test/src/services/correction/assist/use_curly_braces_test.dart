@@ -292,6 +292,32 @@ void f() {
     await assertNoAssist();
   }
 
+  Future<void> test_if_else_if() async {
+    await resolveTestCode('''
+void f(int a) {
+  if (a == 0) {
+    print(0);
+  } /*caret*/else if (a == 1) {
+    print(1);
+  }
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_if_else_ifKeyword() async {
+    await resolveTestCode('''
+void f(int a) {
+  if (a == 0) {
+    print(0);
+  } else /*caret*/if (a == 1) {
+    print(1);
+  }
+}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_if_else_keyword() async {
     await resolveTestCode('''
 void f(int a) {
@@ -410,6 +436,19 @@ void f(int a) {
   }
 }
 ''');
+  }
+
+  Future<void> test_if_keyword_withElseIf() async {
+    await resolveTestCode('''
+void f(int a) {
+  /*caret*/if (a == 0) {
+    print(0);
+  } else if (a == 1) {
+    print(1);
+  }
+}
+''');
+    await assertNoAssist();
   }
 
   Future<void> test_if_keyword_withoutElse() async {

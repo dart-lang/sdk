@@ -10,5 +10,8 @@ import "package:expect/expect.dart";
 import 'dart:collection' as col;
 
 main() {
-  col.foobar(1234567); /*@compile-error=unspecified*/
+  col.foobar(1234567);
+  //  ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+  // [cfe] Method not found: 'foobar'.
 }

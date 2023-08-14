@@ -17,7 +17,7 @@ __attribute__((no_sanitize("undefined")))
 #endif
 #endif
 void Crash() {
-  int* segfault = NULL;
+  int* segfault = nullptr;
   *segfault = 1;
 }
 
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
   char line[kLineSize];
 
   while ((echo_count != echo_counter) &&
-         (fgets(line, kLineSize, stdin) != NULL)) {
+         (fgets(line, kLineSize, stdin) != nullptr)) {
     if (outstream == 0) {
       fprintf(stdout, "%s", line);
       fflush(stdout);

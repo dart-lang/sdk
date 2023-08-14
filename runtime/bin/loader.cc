@@ -25,7 +25,7 @@ extern DFE dfe;
 
 Dart_Handle Loader::InitForSnapshot(const char* snapshot_uri,
                                     IsolateData* isolate_data) {
-  ASSERT(isolate_data != NULL);
+  ASSERT(isolate_data != nullptr);
 
   return Loader::Init(isolate_data->packages_file(),
                       DartUtils::original_working_directory, snapshot_uri);
@@ -37,11 +37,11 @@ Dart_Handle Loader::Init(const char* packages_file,
                          const char* root_script_uri) {
   const int kNumArgs = 3;
   Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = (packages_file == NULL)
+  dart_args[0] = (packages_file == nullptr)
                      ? Dart_Null()
                      : Dart_NewStringFromCString(packages_file);
   dart_args[1] = Dart_NewStringFromCString(working_directory);
-  dart_args[2] = (root_script_uri == NULL)
+  dart_args[2] = (root_script_uri == nullptr)
                      ? Dart_Null()
                      : Dart_NewStringFromCString(root_script_uri);
   return Dart_Invoke(DartUtils::LookupBuiltinLib(),
@@ -67,7 +67,7 @@ static Dart_Handle WrapMallocedKernelBuffer(uint8_t* kernel_buffer,
 Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                       Dart_Handle library,
                                       Dart_Handle url) {
-  const char* url_string = NULL;
+  const char* url_string = nullptr;
   Dart_Handle result = Dart_StringToCString(url, &url_string);
   if (Dart_IsError(result)) {
     return result;
@@ -77,7 +77,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     if (Dart_IsError(library_url)) {
       return library_url;
     }
-    const char* library_url_string = NULL;
+    const char* library_url_string = nullptr;
     result = Dart_StringToCString(library_url, &library_url_string);
     if (Dart_IsError(result)) {
       return result;
@@ -91,7 +91,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (tag == Dart_kKernelTag) {
-    uint8_t* kernel_buffer = NULL;
+    uint8_t* kernel_buffer = nullptr;
     intptr_t kernel_buffer_size = 0;
     if (!dfe.TryReadKernelFile(url_string, &kernel_buffer,
                                &kernel_buffer_size)) {
@@ -102,12 +102,12 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   if (dfe.CanUseDartFrontend() && dfe.UseDartFrontend() &&
       (tag == Dart_kImportTag)) {
     // E.g., IsolateMirror.loadUri.
-    char* error = NULL;
+    char* error = nullptr;
     int exit_code = 0;
-    uint8_t* kernel_buffer = NULL;
+    uint8_t* kernel_buffer = nullptr;
     intptr_t kernel_buffer_size = -1;
     dfe.CompileAndReadScript(url_string, &kernel_buffer, &kernel_buffer_size,
-                             &error, &exit_code, NULL, false);
+                             &error, &exit_code, nullptr, false);
     if (exit_code == 0) {
       return Dart_LoadLibrary(
           WrapMallocedKernelBuffer(kernel_buffer, kernel_buffer_size));

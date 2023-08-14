@@ -39,12 +39,12 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
                                           int number_of_arguments,
                                           bool* auto_setup_scope) {
   // Now resolve the native function to the corresponding native entrypoint.
-  if (library.native_entry_resolver() == NULL) {
+  if (library.native_entry_resolver() == nullptr) {
     // Native methods are not allowed in the library to which this
     // class belongs in.
-    return NULL;
+    return nullptr;
   }
-  Dart_NativeFunction native_function = NULL;
+  Dart_NativeFunction native_function = nullptr;
   {
     Thread* T = Thread::Current();
     Api::Scope api_scope(T);
@@ -63,9 +63,9 @@ const uint8_t* NativeEntry::ResolveSymbolInLibrary(const Library& library,
                                                    uword pc) {
   Dart_NativeEntrySymbol symbol_resolver =
       library.native_entry_symbol_resolver();
-  if (symbol_resolver == NULL) {
+  if (symbol_resolver == nullptr) {
     // Cannot reverse lookup native entries.
-    return NULL;
+    return nullptr;
   }
   return symbol_resolver(reinterpret_cast<Dart_NativeFunction>(pc));
 }
@@ -83,11 +83,11 @@ const uint8_t* NativeEntry::ResolveSymbol(uword pc) {
     lib ^= libs.At(i);
     ASSERT(!lib.IsNull());
     const uint8_t* r = ResolveSymbolInLibrary(lib, pc);
-    if (r != NULL) {
+    if (r != nullptr) {
       return r;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 bool NativeEntry::ReturnValueIsError(NativeArguments* arguments) {
@@ -209,7 +209,7 @@ void NativeEntry::AutoScopeNativeCallWrapperNoStackCheck(
   {
     Isolate* isolate = thread->isolate();
     ApiState* state = isolate->group()->api_state();
-    ASSERT(state != NULL);
+    ASSERT(state != nullptr);
     TRACE_NATIVE_CALL("0x%" Px "", reinterpret_cast<uintptr_t>(func));
     thread->EnterApiScope();
     {
@@ -241,7 +241,7 @@ static NativeFunction ResolveNativeFunction(Zone* zone,
   const int num_params = NativeArguments::ParameterCountForResolution(func);
   NativeFunction native_function = NativeEntry::ResolveNative(
       library, native_name, num_params, is_auto_scope);
-  if (native_function == NULL) {
+  if (native_function == nullptr) {
     FATAL("Failed to resolve native function '%s' in '%s'\n",
           native_name.ToCString(), func.ToQualifiedCString());
   }
@@ -260,7 +260,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
   MSAN_UNPOISON(arguments, sizeof(*arguments));
   TRACE_NATIVE_CALL("%s", "LinkNative");
 
-  NativeFunction target_function = NULL;
+  NativeFunction target_function = nullptr;
   bool is_bootstrap_native = false;
   bool is_auto_scope = true;
 
@@ -283,10 +283,10 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
     target_function =
         ResolveNativeFunction(arguments->thread()->zone(), func,
                               &is_bootstrap_native, &is_auto_scope);
-    ASSERT(target_function != NULL);
+    ASSERT(target_function != nullptr);
 
 #if defined(DEBUG)
-    NativeFunction current_function = NULL;
+    NativeFunction current_function = nullptr;
     const Code& current_trampoline =
         Code::Handle(zone, CodePatcher::GetNativeCallAt(
                                caller_frame->pc(), code, &current_function));

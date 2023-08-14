@@ -119,7 +119,7 @@ void DumpClassTableJSON(Thread* thread,
     js->PrintProperty("name", name.ToCString());
 
     // Note: Some meta info is stripped from the snapshot, it's important
-    // to check for NULL periodically to avoid segfaults.
+    // to check for nullptr periodically to avoid segfaults.
     const AbstractType& super_type = AbstractType::Handle(cls.super_type());
     if (!super_type.IsNull()) {
       const String& super_name = String::Handle(super_type.Name());

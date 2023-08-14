@@ -422,7 +422,7 @@ CodePtr CodePatcher::GetInstanceCallAt(uword return_address,
                                        Object* data) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   InstanceCall call(return_address, caller_code);
-  if (data != NULL) {
+  if (data != nullptr) {
     *data = call.data();
   }
   return call.target();
@@ -462,7 +462,7 @@ FunctionPtr CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
   UnoptimizedStaticCall static_call(return_address, caller_code);
   ICData& ic_data = ICData::Handle();
   ic_data ^= static_call.ic_data();
-  if (ic_data_result != NULL) {
+  if (ic_data_result != nullptr) {
     *ic_data_result = ic_data.ptr();
   }
   return ic_data.GetTargetAt(0);

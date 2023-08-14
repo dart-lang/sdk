@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -8,7 +8,7 @@ class Class extends core::Object {
     : super core::Object::•()
     ;
   operator ==(core::Object o) → core::bool {
-    if(!(o is{ForNonNullableByDefault} self::Class))
+    if(!(o is self::Class))
       return false;
     return this.{self::Class::field}{dynamic} =={core::Object::==}{(core::Object) → core::bool} o{self::Class}.{self::Class::field}{dynamic};
   }

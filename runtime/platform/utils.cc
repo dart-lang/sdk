@@ -14,58 +14,6 @@
 
 namespace dart {
 
-int Utils::CountLeadingZeros64(uint64_t x) {
-#if defined(ARCH_IS_32_BIT)
-  const uint32_t x_hi = static_cast<uint32_t>(x >> 32);
-  if (x_hi != 0) {
-    return CountLeadingZeros32(x_hi);
-  }
-  return 32 + CountLeadingZeros32(static_cast<uint32_t>(x));
-#elif defined(DART_HOST_OS_WINDOWS)
-  unsigned long position;  // NOLINT
-  return (_BitScanReverse64(&position, x) == 0)
-             ? 64
-             : 63 - static_cast<int>(position);
-#else
-  return x == 0 ? 64 : __builtin_clzll(x);
-#endif
-}
-
-int Utils::CountLeadingZeros32(uint32_t x) {
-#if defined(DART_HOST_OS_WINDOWS)
-  unsigned long position;  // NOLINT
-  return (_BitScanReverse(&position, x) == 0) ? 32
-                                              : 31 - static_cast<int>(position);
-#else
-  return x == 0 ? 32 : __builtin_clz(x);
-#endif
-}
-
-int Utils::CountTrailingZeros64(uint64_t x) {
-#if defined(ARCH_IS_32_BIT)
-  const uint32_t x_lo = static_cast<uint32_t>(x);
-  if (x_lo != 0) {
-    return CountTrailingZeros32(x_lo);
-  }
-  return 32 + CountTrailingZeros32(static_cast<uint32_t>(x >> 32));
-#elif defined(DART_HOST_OS_WINDOWS)
-  unsigned long position;  // NOLINT
-  return (_BitScanForward64(&position, x) == 0) ? 64
-                                                : static_cast<int>(position);
-#else
-  return x == 0 ? 64 : __builtin_ctzll(x);
-#endif
-}
-
-int Utils::CountTrailingZeros32(uint32_t x) {
-#if defined(DART_HOST_OS_WINDOWS)
-  unsigned long position;  // NOLINT
-  return (_BitScanForward(&position, x) == 0) ? 32 : static_cast<int>(position);
-#else
-  return x == 0 ? 32 : __builtin_ctz(x);
-#endif
-}
-
 uint64_t Utils::ReverseBits64(uint64_t x) {
   x = ((x >> 32) & 0x00000000ffffffff) | (x << 32);
   x = ((x >> 16) & 0x0000ffff0000ffff) | ((x & 0x0000ffff0000ffff) << 16);

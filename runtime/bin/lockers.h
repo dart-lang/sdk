@@ -14,7 +14,7 @@ namespace bin {
 class MutexLocker {
  public:
   explicit MutexLocker(Mutex* mutex) : mutex_(mutex) {
-    ASSERT(mutex != NULL);
+    ASSERT(mutex != nullptr);
     mutex_->Lock();
   }
 
@@ -29,7 +29,7 @@ class MutexLocker {
 class MonitorLocker {
  public:
   explicit MonitorLocker(Monitor* monitor) : monitor_(monitor) {
-    ASSERT(monitor != NULL);
+    ASSERT(monitor != nullptr);
     monitor_->Enter();
   }
 

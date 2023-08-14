@@ -8,13 +8,16 @@ import 'dart:developer';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_A = 20;
-const LINE_B = 21;
-const LINE_C = 25;
-const LINE_D = 28;
-const LINE_E = 34;
-const LINE_F = 35;
-const LINE_G = 26;
+const LINE_A = 23;
+const LINE_B = 24;
+const LINE_C = 28;
+const LINE_D = 31;
+const LINE_E = 37;
+const LINE_F = 38;
+const LINE_G = 29;
+
+const LINE_0 = 30;
+const LINE_1 = 36;
 
 foobar() async* {
   yield 1; // LINE_A.
@@ -24,19 +27,23 @@ foobar() async* {
 helper() async {
   print('helper'); // LINE_C.
   await for (var i in foobar()) /* LINE_G. */ {
-    debugger();
+    debugger(); // LINE_0.
     print('loop'); // LINE_D.
   }
 }
 
 testMain() {
-  debugger();
+  debugger(); // LINE_1.
   print('mmmmm'); // LINE_E.
   helper(); // LINE_F.
   print('z');
 }
 
 var tests = <IsolateTest>[
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_1),
+  stepOver, // debugger.
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_E),
   stepOver, // print.
@@ -62,6 +69,10 @@ var tests = <IsolateTest>[
   // Resume here to exit the generator function.
   // TODO(johnmccutchan): Implement support for step-out of async functions.
   resumeIsolate,
+
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver, // debugger.
 
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_D),

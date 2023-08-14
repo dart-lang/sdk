@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/dart_template_buffer.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/path.dart';
@@ -10,7 +11,6 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -22,6 +22,64 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart';
+
+/// The buffer that accumulates types and elements as is, so that they
+/// can be written latter into Dart code that considers imports. It also
+/// accumulates fragments of text, such as syntax `(`, or names of properties.
+class AnalyzerDartTemplateBuffer
+    implements DartTemplateBuffer<DartObject, FieldElement, DartType> {
+  final List<MissingPatternPart> parts = [];
+  bool isComplete = true;
+
+  @override
+  void write(String text) {
+    parts.add(
+      MissingPatternTextPart(text),
+    );
+  }
+
+  @override
+  void writeBoolValue(bool value) {
+    parts.add(
+      MissingPatternTextPart('$value'),
+    );
+  }
+
+  @override
+  void writeCoreType(String name) {
+    parts.add(
+      MissingPatternTextPart(name),
+    );
+  }
+
+  @override
+  void writeEnumValue(FieldElement value, String name) {
+    final enumElement = value.enclosingElement;
+    if (enumElement is! EnumElement) {
+      isComplete = false;
+      return;
+    }
+
+    parts.add(
+      MissingPatternEnumValuePart(
+        enumElement: enumElement,
+        value: value,
+      ),
+    );
+  }
+
+  @override
+  void writeGeneralConstantValue(DartObject value, String name) {
+    isComplete = false;
+  }
+
+  @override
+  void writeGeneralType(DartType type, String name) {
+    parts.add(
+      MissingPatternTypePart(type),
+    );
+  }
+}
 
 class AnalyzerEnumOperations
     implements EnumOperations<DartType, EnumElement, FieldElement, DartObject> {
@@ -56,8 +114,8 @@ class AnalyzerEnumOperations
   }
 
   @override
-  DartObject getEnumElementValue(FieldElement enumField) {
-    return enumField.computeConstantValue()!;
+  DartObject? getEnumElementValue(FieldElement enumField) {
+    return enumField.computeConstantValue();
   }
 }
 
@@ -367,11 +425,50 @@ class ExhaustivenessDataForTesting {
   ExhaustivenessDataForTesting(this.objectFieldLookup);
 }
 
+class MissingPatternEnumValuePart extends MissingPatternPart {
+  final EnumElement enumElement;
+  final FieldElement value;
+
+  MissingPatternEnumValuePart({
+    required this.enumElement,
+    required this.value,
+  });
+
+  @override
+  String toString() => value.name;
+}
+
+abstract class MissingPatternPart {}
+
+class MissingPatternTextPart extends MissingPatternPart {
+  final String text;
+
+  MissingPatternTextPart(this.text);
+
+  @override
+  String toString() => text;
+}
+
+class MissingPatternTypePart extends MissingPatternPart {
+  final DartType type;
+
+  MissingPatternTypePart(this.type);
+
+  @override
+  String toString() {
+    return type.getDisplayString(withNullability: true);
+  }
+}
+
 class PatternConverter with SpaceCreator<DartPattern, DartType> {
   final FeatureSet featureSet;
   final AnalyzerExhaustivenessCache cache;
   final Map<Expression, DartObjectImpl> mapPatternKeyValues;
   final Map<ConstantPattern, DartObjectImpl> constantPatternValues;
+
+  /// If we saw an invalid type, we already have a diagnostic reported,
+  /// and there is no need to verify exhaustiveness.
+  bool hasInvalidType = false;
 
   PatternConverter({
     required this.featureSet,
@@ -400,6 +497,7 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
 
   @override
   StaticType createStaticType(DartType type) {
+    hasInvalidType |= type is InvalidType;
     return cache.getStaticType(type);
   }
 
@@ -553,6 +651,7 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
       if (value != null) {
         return _convertConstantValue(value, path);
       }
+      hasInvalidType = true;
       return createUnknownSpace(path);
     }
     assert(false, "Unexpected pattern $pattern (${pattern.runtimeType})");

@@ -138,12 +138,17 @@ class DigestDartMemory extends BenchmarkBase {
 // Main driver.
 //
 
-void main() {
+void main(List<String> args) {
   final benchmarks = [
-    () => DigestCMemory(),
-    () => DigestDartMemory(),
+    DigestCMemory.new,
+    DigestDartMemory.new,
   ];
-  for (final benchmark in benchmarks) {
-    benchmark().report();
+
+  final filter = args.firstOrNull;
+  for (var constructor in benchmarks) {
+    final benchmark = constructor();
+    if (filter == null || benchmark.name.contains(filter)) {
+      benchmark.report();
+    }
   }
 }

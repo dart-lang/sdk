@@ -1,12 +1,12 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 static method f(dynamic x) → dynamic {
   hoisted has-declared-initializer dynamic a;
   {
-    final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} (dynamic);
-    if(!(#0#0 is{ForNonNullableByDefault} (core::Object?) && (let final core::Object? #t1 = a = #0#0{(core::Object?)}.$1{core::Object?} in true)))
+    final synthesized dynamic #0#0 = x as{TypeError,ForDynamic} (dynamic);
+    if(!(#0#0 is (core::Object?) && (let final core::Object? #t1 = a = #0#0{(core::Object?)}.$1{core::Object?} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
 }

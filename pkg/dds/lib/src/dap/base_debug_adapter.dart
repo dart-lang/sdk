@@ -4,11 +4,10 @@
 
 import 'dart:async';
 
+import 'package:dap/dap.dart';
 import 'package:meta/meta.dart';
 
-import 'exceptions.dart';
-import 'protocol_common.dart';
-import 'protocol_generated.dart';
+import 'constants.dart';
 import 'protocol_stream.dart';
 
 typedef _FromJsonHandler<T> = T Function(Map<String, Object?>);
@@ -102,11 +101,17 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
   /// [handler] must _always_ call [sendResponse], even if the response does not
   /// require a body.
   ///
+  /// [responseWriter] is a function that will be provided the response to be
+  /// sent on the stream. It is critical that this sends the response
+  /// synchronously because additional events may be sent by handlers that must
+  /// come after it.
+  ///
   /// If [handler] throws, its exception will be sent as an error response.
   Future<void> handle<TArg, TResp>(
     Request request,
     RequestHandler<TArg, TResp> handler,
     TArg Function(Map<String, Object?>) fromJson,
+    void Function(Response) responseWriter,
   ) async {
     try {
       final args = request.arguments != null
@@ -130,22 +135,29 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
           command: request.command,
           body: responseBody,
         );
-        _channel.sendResponse(response);
+        responseWriter(response);
       }
 
       await handler(request, args, sendResponse);
       assert(sendResponseCalled,
           'sendResponse was not called in ${request.command}');
     } catch (e, s) {
+      // TODO(helin24): Consider adding an error type to DebugAdapterException.
+      final messageText = e is DebugAdapterException ? e.message : '$e';
+      final errorMessage = Message(
+        id: ErrorMessageType.general,
+        format: '{message}\n{stack}',
+        variables: {'message': messageText, 'stack': '$s'},
+      );
       final response = Response(
         success: false,
         requestSeq: request.seq,
         seq: _sequence++,
         command: request.command,
-        message: e is DebugAdapterException ? e.message : '$e',
-        body: '$s',
+        message: messageText,
+        body: ErrorResponseBody(error: errorMessage),
       );
-      _channel.sendResponse(response);
+      responseWriter(response);
     }
   }
 
@@ -165,6 +177,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
     Request request,
     NextArguments args,
     void Function() sendResponse,
+  );
+
+  Future<void> pauseRequest(
+    Request request,
+    PauseArguments args,
+    void Function(PauseResponseBody) sendResponse,
   );
 
   Future<void> restartRequest(
@@ -187,6 +205,10 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
       event: eventType ?? eventTypes[body.runtimeType]!,
       body: body,
     );
+    sendEventToChannel(event);
+  }
+
+  void sendEventToChannel(Event event) {
     _channel.sendEvent(event);
   }
 
@@ -270,7 +292,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
   /// Handles incoming messages from the client editor.
   void _handleIncomingMessage(ProtocolMessage message) {
     if (message is Request) {
-      _handleIncomingRequest(message);
+      handleIncomingRequest(message, _channel.sendResponse);
     } else if (message is Response) {
       _handleIncomingResponse(message);
     } else {
@@ -279,78 +301,161 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
   }
 
   /// Handles an incoming request, calling the appropriate method to handle it.
-  void _handleIncomingRequest(Request request) {
+  ///
+  /// [responseWriter] is a function that will be provided the response to be
+  /// sent on the stream. It is critical that this sends the response
+  /// synchronously because additional events may be sent by handlers that must
+  /// come after it.
+  void handleIncomingRequest(
+    Request request,
+    void Function(Response) responseWriter,
+  ) {
     if (request.command == 'initialize') {
-      handle(request, initializeRequest, InitializeRequestArguments.fromJson);
+      handle(
+        request,
+        initializeRequest,
+        InitializeRequestArguments.fromJson,
+        responseWriter,
+      );
     } else if (request.command == 'launch') {
-      handle(request, _withVoidResponse(launchRequest), parseLaunchArgs);
+      handle(
+        request,
+        _withVoidResponse(launchRequest),
+        parseLaunchArgs,
+        responseWriter,
+      );
     } else if (request.command == 'attach') {
-      handle(request, _withVoidResponse(attachRequest), parseAttachArgs);
+      handle(
+        request,
+        _withVoidResponse(attachRequest),
+        parseAttachArgs,
+        responseWriter,
+      );
     } else if (request.command == 'restart') {
       handle(
         request,
         _withVoidResponse(restartRequest),
         _allowNullArg(RestartArguments.fromJson),
+        responseWriter,
       );
     } else if (request.command == 'terminate') {
       handle(
         request,
         _withVoidResponse(terminateRequest),
         _allowNullArg(TerminateArguments.fromJson),
+        responseWriter,
       );
     } else if (request.command == 'disconnect') {
       handle(
         request,
         _withVoidResponse(disconnectRequest),
         _allowNullArg(DisconnectArguments.fromJson),
+        responseWriter,
       );
     } else if (request.command == 'configurationDone') {
       handle(
         request,
         _withVoidResponse(configurationDoneRequest),
         _allowNullArg(ConfigurationDoneArguments.fromJson),
+        responseWriter,
       );
     } else if (request.command == 'setBreakpoints') {
-      handle(request, setBreakpointsRequest, SetBreakpointsArguments.fromJson);
+      handle(
+        request,
+        setBreakpointsRequest,
+        SetBreakpointsArguments.fromJson,
+        responseWriter,
+      );
     } else if (request.command == 'setExceptionBreakpoints') {
       handle(
         request,
         setExceptionBreakpointsRequest,
         SetExceptionBreakpointsArguments.fromJson,
+        responseWriter,
+      );
+    } else if (request.command == 'pause') {
+      handle(
+        request,
+        pauseRequest,
+        PauseArguments.fromJson,
+        responseWriter,
       );
     } else if (request.command == 'continue') {
-      handle(request, continueRequest, ContinueArguments.fromJson);
+      handle(
+        request,
+        continueRequest,
+        ContinueArguments.fromJson,
+        responseWriter,
+      );
     } else if (request.command == 'next') {
-      handle(request, _withVoidResponse(nextRequest), NextArguments.fromJson);
+      handle(
+        request,
+        _withVoidResponse(nextRequest),
+        NextArguments.fromJson,
+        responseWriter,
+      );
     } else if (request.command == 'stepIn') {
       handle(
         request,
         _withVoidResponse(stepInRequest),
         StepInArguments.fromJson,
+        responseWriter,
       );
     } else if (request.command == 'stepOut') {
       handle(
         request,
         _withVoidResponse(stepOutRequest),
         StepOutArguments.fromJson,
+        responseWriter,
       );
     } else if (request.command == 'threads') {
-      handle(request, threadsRequest, _voidArgs);
+      handle(
+        request,
+        threadsRequest,
+        _voidArgs,
+        responseWriter,
+      );
     } else if (request.command == 'stackTrace') {
-      handle(request, stackTraceRequest, StackTraceArguments.fromJson);
+      handle(
+        request,
+        stackTraceRequest,
+        StackTraceArguments.fromJson,
+        responseWriter,
+      );
     } else if (request.command == 'source') {
-      handle(request, sourceRequest, SourceArguments.fromJson);
+      handle(
+        request,
+        sourceRequest,
+        SourceArguments.fromJson,
+        responseWriter,
+      );
     } else if (request.command == 'scopes') {
-      handle(request, scopesRequest, ScopesArguments.fromJson);
+      handle(
+        request,
+        scopesRequest,
+        ScopesArguments.fromJson,
+        responseWriter,
+      );
     } else if (request.command == 'variables') {
-      handle(request, variablesRequest, VariablesArguments.fromJson);
+      handle(
+        request,
+        variablesRequest,
+        VariablesArguments.fromJson,
+        responseWriter,
+      );
     } else if (request.command == 'evaluate') {
-      handle(request, evaluateRequest, EvaluateArguments.fromJson);
+      handle(
+        request,
+        evaluateRequest,
+        EvaluateArguments.fromJson,
+        responseWriter,
+      );
     } else {
       handle(
         request,
         customRequest,
         _allowNullArg(RawRequestArguments.fromJson),
+        responseWriter,
       );
     }
   }

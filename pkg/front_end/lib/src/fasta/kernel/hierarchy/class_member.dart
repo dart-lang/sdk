@@ -152,11 +152,7 @@ abstract class SynthesizedMember extends ClassMember {
   final bool isProperty;
 
   SynthesizedMember(this.classBuilder, this.name,
-      {required this.forSetter, required this.isProperty})
-      // ignore: unnecessary_null_comparison
-      : assert(forSetter != null),
-        // ignore: unnecessary_null_comparison
-        assert(isProperty != null);
+      {required this.forSetter, required this.isProperty});
 
   @override
   List<ClassMember> get declarations => throw new UnimplementedError();
@@ -508,11 +504,7 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
       required this.implementedInterfaceMember,
       required bool isProperty,
       required bool forSetter})
-      // ignore: unnecessary_null_comparison
-      : assert(inheritedClassMember != null),
-        // ignore: unnecessary_null_comparison
-        assert(implementedInterfaceMember != null),
-        super(classBuilder, name, isProperty: isProperty, forSetter: forSetter);
+      : super(classBuilder, name, isProperty: isProperty, forSetter: forSetter);
 
   void _ensureMemberAndCovariance(ClassMembersBuilder membersBuilder) {
     if (_member == null) {

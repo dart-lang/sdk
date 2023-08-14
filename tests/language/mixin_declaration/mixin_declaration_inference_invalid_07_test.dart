@@ -14,6 +14,9 @@ class M1 implements I<int> {}
 
 // M0 is inferred as M0<int, Comparable<dynamic>>
 // Error since super-bounded type not allowed
-class A extends M1 with M0 {} /*@compile-error=unspecified*/
+class A extends M1 with M0 {}
+//                      ^^
+// [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+// [cfe] Inferred type argument 'Comparable<dynamic>' doesn't conform to the bound 'Comparable<Y>' of the type variable 'Y' on 'M0'.
 
 void main() {}

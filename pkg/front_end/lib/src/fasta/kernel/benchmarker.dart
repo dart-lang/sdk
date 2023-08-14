@@ -14,8 +14,9 @@ class Benchmarker {
   final Stopwatch _subdivideStopwatch = new Stopwatch()..start();
 
   BenchmarkPhases _currentPhase = BenchmarkPhases.implicitInitialization;
-  BenchmarkSubdivides? _subdivide;
-  int _subdivideLayer = 0;
+  List<BenchmarkSubdivides> _subdivides = [
+    BenchmarkSubdivides.subdividesUnaccountedFor
+  ];
 
   void reset() {
     _totalStopwatch.start();
@@ -28,45 +29,58 @@ class Benchmarker {
       assert(BenchmarkPhases.values[i].index == i);
       _phaseTimings[i] = new PhaseTiming(BenchmarkPhases.values[i]);
     }
+    _subdivides = [BenchmarkSubdivides.subdividesUnaccountedFor];
     _currentPhase = BenchmarkPhases.implicitInitialization;
-    _subdivide = null;
-    _subdivideLayer = 0;
   }
 
   void beginSubdivide(final BenchmarkSubdivides phase) {
-    _subdivideLayer++;
-    if (_subdivideLayer != 1) return;
-    BenchmarkSubdivides? subdivide = _subdivide;
-    assert(subdivide == null);
+    _pauseLatestSubdivide(addAsCount: false);
     _subdivideStopwatch.reset();
-    _subdivide = phase;
+    _subdivides.add(phase);
+  }
+
+  void _pauseLatestSubdivide({required bool addAsCount}) {
+    if (_subdivides.isEmpty) return;
+    BenchmarkSubdivides subdivide = _subdivides.last;
+    _phaseTimings[_currentPhase.index].subdivides[subdivide.index].addRuntime(
+        _subdivideStopwatch.elapsedMicroseconds,
+        addAsCount: addAsCount);
   }
 
   void endSubdivide() {
-    _subdivideLayer--;
-    assert(_subdivideLayer >= 0);
-    if (_subdivideLayer != 0) return;
-    BenchmarkSubdivides? subdivide = _subdivide;
-    if (subdivide == null) throw "Can't end a nonexistent subdivide";
-    _phaseTimings[_currentPhase.index]
-        .subdivides[subdivide.index]
-        .addRuntime(_subdivideStopwatch.elapsedMicroseconds);
-    _subdivide = null;
+    if (_subdivides.isEmpty) throw "Can't end a nonexistent subdivide";
+    _pauseLatestSubdivide(addAsCount: true);
+    _subdivides.removeLast();
+    _subdivideStopwatch.reset();
   }
 
   void enterPhase(BenchmarkPhases phase) {
     if (_currentPhase == phase) return;
-    if (_subdivide != null) throw "Can't enter a phase while in a subdivide";
+    if (_subdivides.isEmpty) {
+      throw "System subdivide removed.";
+    }
+    endSubdivide();
+    if (_subdivides.isNotEmpty) {
+      throw "Can't enter a phase while in a subdivide";
+    }
 
     _phaseTimings[_currentPhase.index]
         .addRuntime(_phaseStopwatch.elapsedMicroseconds);
     _phaseStopwatch.reset();
     _currentPhase = phase;
+    beginSubdivide(BenchmarkSubdivides.subdividesUnaccountedFor);
   }
 
   void stop() {
     enterPhase(BenchmarkPhases.end);
     _totalStopwatch.stop();
+    if (_subdivides.isEmpty) {
+      throw "System subdivide removed.";
+    }
+    endSubdivide();
+    if (_subdivides.isNotEmpty) {
+      throw "Can't stop while in a subdivide";
+    }
   }
 
   Map<String, Object?> toJson() {
@@ -94,12 +108,19 @@ class PhaseTiming {
   }
 
   Map<String, Object?> toJson() {
-    List<SubdivideTiming> enteredSubdivides =
-        subdivides.where((element) => element._count > 0).toList();
+    List<SubdivideTiming> enteredSubdivides = [];
+    int subdivideRuntime = 0;
+    for (SubdivideTiming subdivide in subdivides) {
+      if (subdivide._count > 0) {
+        enteredSubdivides.add(subdivide);
+        subdivideRuntime += subdivide._runtime;
+      }
+    }
     return <String, Object?>{
       "phase": phase.name,
       "runtime": _runtime,
-      if (enteredSubdivides.isNotEmpty) "subdivides": enteredSubdivides,
+      "subdivides": enteredSubdivides,
+      "estimatedSubdividesOverhead": _runtime - subdivideRuntime,
     };
   }
 }
@@ -111,9 +132,11 @@ class SubdivideTiming {
 
   SubdivideTiming(this.phase);
 
-  void addRuntime(int runtime) {
+  void addRuntime(int runtime, {required bool addAsCount}) {
     _runtime += runtime;
-    _count++;
+    if (addAsCount) {
+      _count++;
+    }
   }
 
   Map<String, Object?> toJson() {
@@ -230,10 +253,18 @@ enum BenchmarkPhases {
 }
 
 enum BenchmarkSubdivides {
+  subdividesUnaccountedFor,
+
   tokenize,
 
   body_buildBody_benchmark_specific_diet_parser,
   body_buildBody_benchmark_specific_parser,
+
+  diet_listener_createListener,
+  diet_listener_buildFields,
+  diet_listener_buildFunctionBody,
+  diet_listener_buildFunctionBody_parseFunctionBody,
+  diet_listener_buildRedirectingFactoryMethod,
 
   inferImplicitFieldType,
   inferFieldInitializer,

@@ -10,7 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingEnumConstantInSwitchTest);
-    defineReflectiveTests(MissingEnumConstantInSwitchTest_Language218);
+    defineReflectiveTests(MissingEnumConstantInSwitchTest_Language219);
     defineReflectiveTests(MissingEnumConstantInSwitchWithoutNullSafetyTest);
   });
 }
@@ -25,10 +25,10 @@ class MissingEnumConstantInSwitchTest extends PubPackageResolutionTest
 }
 
 @reflectiveTest
-class MissingEnumConstantInSwitchTest_Language218
+class MissingEnumConstantInSwitchTest_Language219
     extends PubPackageResolutionTest
     with
-        WithLanguage218Mixin,
+        WithLanguage219Mixin,
         MissingEnumConstantInSwitchTestCases,
         MissingEnumConstantInSwitchTestCases_Language212 {
   @override

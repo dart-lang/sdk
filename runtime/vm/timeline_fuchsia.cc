@@ -15,14 +15,14 @@
 namespace dart {
 
 void TimelineEventFuchsiaRecorder::OnEvent(TimelineEvent* event) {
-  if (event == NULL) {
+  if (event == nullptr) {
     return;
   }
   TimelineStream* stream = event->stream_;
   trace_string_ref_t category;
   trace_context_t* context = trace_acquire_context_for_category_cached(
       stream->fuchsia_name(), stream->trace_site(), &category);
-  if (context == NULL) {
+  if (context == nullptr) {
     return;
   }
 

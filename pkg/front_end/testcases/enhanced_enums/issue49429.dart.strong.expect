@@ -1,18 +1,17 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   const constructor •() → self::A
     : super core::Object::•()
     ;
-  static factory redir() → self::A
+  static factory redir() → self::A /* redirection-target: self::A::• */
     return new self::A::•();
 }
 class E extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E> values = #C5;
-  enum-element static const field self::E element = #C4;
+  static const field core::List<self::E> values = #C4;
+  enum-element static const field self::E element = #C3;
   const constructor •(core::int #index, core::String #name, self::A a) → self::E
     : super core::_Enum::•(#index, #name)
     ;
@@ -22,11 +21,10 @@ class E extends core::_Enum /*isEnum*/  {
 static method main() → dynamic {}
 
 constants  {
-  #C1 = constructor-tearoff self::A::redir
-  #C2 = 0
-  #C3 = "element"
-  #C4 = self::E {index:#C2, _name:#C3}
-  #C5 = <self::E>[#C4]
+  #C1 = 0
+  #C2 = "element"
+  #C3 = self::E {index:#C1, _name:#C2}
+  #C4 = <self::E>[#C3]
 }
 
 

@@ -175,7 +175,6 @@ Template compileTemplate(String name, int? index, String? problemMessage,
   // `|` (verbatim) as they always contain a trailing newline that we don't
   // want.
   problemMessage = problemMessage.trimRight();
-  const String ignoreNotNull = "// ignore: unnecessary_null_comparison";
   var parameters = new Set<String>();
   var conversions = new Set<String>();
   var conversions2 = new Set<String>();
@@ -261,8 +260,7 @@ Template compileTemplate(String name, int? index, String? problemMessage,
 
       case "nameOKEmpty":
         parameters.add("String nameOKEmpty");
-        conversions.add("$ignoreNotNull\n"
-            "if (nameOKEmpty == null || nameOKEmpty.isEmpty) "
+        conversions.add("if (nameOKEmpty.isEmpty) "
             "nameOKEmpty = '(unnamed)';");
         arguments.add("'nameOKEmpty': nameOKEmpty");
         break;
@@ -306,8 +304,7 @@ Template compileTemplate(String name, int? index, String? problemMessage,
 
       case "stringOKEmpty":
         parameters.add("String stringOKEmpty");
-        conversions.add("$ignoreNotNull\n"
-            "if (stringOKEmpty == null || stringOKEmpty.isEmpty) "
+        conversions.add("if (stringOKEmpty.isEmpty) "
             "stringOKEmpty = '(empty)';");
         arguments.add("'$name': stringOKEmpty");
         break;
@@ -344,15 +341,11 @@ Template compileTemplate(String name, int? index, String? problemMessage,
 
       case "count":
         parameters.add("int count");
-        conversions.add(
-            "$ignoreNotNull\n" "if (count == null) throw 'No count provided';");
         arguments.add("'$name': count");
         break;
 
       case "count2":
         parameters.add("int count2");
-        conversions.add("$ignoreNotNull\n"
-            "if (count2 == null) throw 'No count provided';");
         arguments.add("'$name': count2");
         break;
 
@@ -367,24 +360,18 @@ Template compileTemplate(String name, int? index, String? problemMessage,
 
       case "num1":
         parameters.add("num _num1");
-        conversions.add("$ignoreNotNull\n"
-            "if (_num1 == null) throw 'No number provided';");
         conversions.add("String num1 = ${format('_num1')};");
         arguments.add("'$name': _num1");
         break;
 
       case "num2":
         parameters.add("num _num2");
-        conversions.add("$ignoreNotNull\n"
-            "if (_num2 == null) throw 'No number provided';");
         conversions.add("String num2 = ${format('_num2')};");
         arguments.add("'$name': _num2");
         break;
 
       case "num3":
         parameters.add("num _num3");
-        conversions.add("$ignoreNotNull\n"
-            "if (_num3 == null) throw 'No number provided';");
         conversions.add("String num3 = ${format('_num3')};");
         arguments.add("'$name': _num3");
         break;
@@ -428,10 +415,7 @@ Template compileTemplate(String name, int? index, String? problemMessage,
   }
 
   if (parameters.isEmpty && conversions.isEmpty && arguments.isEmpty) {
-    // ignore: unnecessary_null_comparison
-    if (problemMessage != null) {
-      codeArguments.add('problemMessage: r"""$problemMessage"""');
-    }
+    codeArguments.add('problemMessage: r"""$problemMessage"""');
     if (correctionMessage != null) {
       codeArguments.add('correctionMessage: r"""$correctionMessage"""');
     }
@@ -447,10 +431,7 @@ const MessageCode message$name =
   }
 
   List<String> templateArguments = <String>[];
-  // ignore: unnecessary_null_comparison
-  if (problemMessage != null) {
-    templateArguments.add('problemMessageTemplate: r"""$problemMessage"""');
-  }
+  templateArguments.add('problemMessageTemplate: r"""$problemMessage"""');
   if (correctionMessage != null) {
     templateArguments
         .add('correctionMessageTemplate: r"""$correctionMessage"""');

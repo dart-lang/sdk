@@ -28,7 +28,7 @@ class ThreadInterrupterLinux : public AllStatic {
       return;
     }
     Thread* thread = Thread::Current();
-    if (thread == NULL) {
+    if (thread == nullptr) {
       return;
     }
     ThreadInterruptScope signal_handler_scope;

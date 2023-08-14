@@ -33,18 +33,8 @@ class BaseIsolate {
 
   Thread* scheduled_mutator_thread_ = nullptr;
 
-  // TODO(asiva): Currently we treat a mutator thread as a special thread
-  // and always schedule execution of Dart code on the same mutator thread
-  // object. The ApiLocalScope has been made thread specific but we still
-  // have scenarios where we do a temporary exit of an Isolate with live
-  // zones/handles in the API scope :
-  // - Dart_RunLoop()
-  // - IsolateSaver in Dart_NewNativePort
-  // We probably need a mechanism to return to the specific thread only
-  // for these specific cases. We should also determine if the embedder
-  // should allow exiting an isolate with live state in zones/handles in
-  // which case a new API for returning to the specific thread needs to be
-  // added.
+  // Stores the saved [Thread] object of a mutator. Mutators may retain their
+  // thread even when being descheduled (e.g. due to having an active stack).
   Thread* mutator_thread_ = nullptr;
 
  private:

@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ConvertForEachToForLoop extends CorrectionProducer {
+class ConvertForEachToForLoop extends ResolvedCorrectionProducer {
   @override
   bool get canBeAppliedInBulk => true;
 

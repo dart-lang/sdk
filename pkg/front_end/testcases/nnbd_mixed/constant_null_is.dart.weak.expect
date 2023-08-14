@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "constant_null_is_lib.dart" as con;
@@ -9,19 +9,19 @@ import "org-dartlang-testcase:///constant_null_is_lib.dart";
 class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
   final field core::bool field;
   const constructor constructor1(dynamic value) → self::Class<self::Class::T%>
-    : self::Class::field = value is{ForNonNullableByDefault} self::Class::T%, super core::Object::•()
+    : self::Class::field = value is self::Class::T%, super core::Object::•()
     ;
   const constructor constructor2(dynamic value) → self::Class<self::Class::T%>
-    : self::Class::field = value is{ForNonNullableByDefault} self::Class::T?, super core::Object::•()
+    : self::Class::field = value is self::Class::T?, super core::Object::•()
     ;
   const constructor constructor3(dynamic value) → self::Class<self::Class::T%>
-    : self::Class::field = value is{ForNonNullableByDefault} self::Class<self::Class::T%>, super core::Object::•()
+    : self::Class::field = value is self::Class<self::Class::T%>, super core::Object::•()
     ;
   const constructor constructor4(dynamic value) → self::Class<self::Class::T%>
-    : self::Class::field = value is{ForNonNullableByDefault} self::Class<self::Class::T%>?, super core::Object::•()
+    : self::Class::field = value is self::Class<self::Class::T%>?, super core::Object::•()
     ;
 }
-static final field core::bool isWeakMode = #C1 is{ForNonNullableByDefault} core::List<core::Object>;
+static final field core::bool isWeakMode = #C1 is core::List<core::Object>;
 static const field core::bool c0 = #C2;
 static const field core::bool c1 = #C3;
 static const field core::bool c2 = #C2;
@@ -48,19 +48,19 @@ static const field self::Class<core::int> e10 = #C7;
 static const field self::Class<core::int?> e11 = #C8;
 static const field self::Class<Null> e12 = #C6;
 static method main() → dynamic {
-  self::expect(null is{ForNonNullableByDefault} core::int?, #C2, "null is int?");
-  self::expect(null is{ForNonNullableByDefault} core::int, #C3, "null is int");
-  self::expect(null is{ForNonNullableByDefault} Null, #C2, "null is Null");
-  self::expect(null is{ForNonNullableByDefault} Never?, #C2, "null is Never?");
-  self::expect(null is{ForNonNullableByDefault} Never, #C3, "null is Never");
-  self::expect(null is{ForNonNullableByDefault} FutureOr<core::int?>, #C2, "null is FutureOr<int?>");
-  self::expect(null is{ForNonNullableByDefault} FutureOr<core::int>, #C3, "null is FutureOr<int>");
-  self::expect(null is{ForNonNullableByDefault} FutureOr<core::int>?, #C2, "null is FutureOr<int>?");
-  self::expect(null is{ForNonNullableByDefault} FutureOr<Null>, #C2, "null is FutureOr<Null>");
-  self::expect(null is{ForNonNullableByDefault} FutureOr<Null>?, #C2, "null is FutureOr<Null>?");
-  self::expect(null is{ForNonNullableByDefault} FutureOr<Never>, #C3, "null is FutureOr<Never>");
-  self::expect(null is{ForNonNullableByDefault} FutureOr<Never?>, #C2, "null is FutureOr<Never?>");
-  self::expect(null is{ForNonNullableByDefault} FutureOr<Never>?, #C2, "null is FutureOr<Never>?");
+  self::expect(null is core::int?, #C2, "null is int?");
+  self::expect(null is core::int, #C3, "null is int");
+  self::expect(null is Null, #C2, "null is Null");
+  self::expect(null is Never?, #C2, "null is Never?");
+  self::expect(null is Never, #C3, "null is Never");
+  self::expect(null is FutureOr<core::int?>, #C2, "null is FutureOr<int?>");
+  self::expect(null is FutureOr<core::int>, #C3, "null is FutureOr<int>");
+  self::expect(null is FutureOr<core::int>?, #C2, "null is FutureOr<int>?");
+  self::expect(null is FutureOr<Null>, #C2, "null is FutureOr<Null>");
+  self::expect(null is FutureOr<Null>?, #C2, "null is FutureOr<Null>?");
+  self::expect(null is FutureOr<Never>, #C3, "null is FutureOr<Never>");
+  self::expect(null is FutureOr<Never?>, #C2, "null is FutureOr<Never?>");
+  self::expect(null is FutureOr<Never>?, #C2, "null is FutureOr<Never>?");
   self::expect(new self::Class::constructor1<core::int>(null).{self::Class::field}{core::bool}, #C4.{self::Class::field}{core::bool}, "Class<int>.constructor1(null).field");
   self::expect(true, new self::Class::constructor1<core::int?>(null).{self::Class::field}{core::bool}, "new Class<int?>.constructor1(null).field");
   self::expect(self::isWeakMode, #C5.{self::Class::field}{core::bool}, "const Class<List<int>>.constructor1(<Null>[null]).field");
@@ -83,7 +83,7 @@ static method expect(dynamic expected, dynamic actual, core::String message) →
     throw "Expected ${expected}, actual ${actual} for ${message}";
 }
 
-library;
+library /*isLegacy*/;
 import self as con;
 import "constant_null_is.dart" as self;
 import "dart:core" as core;
@@ -102,8 +102,8 @@ static const field self::Class<Null>* d9 = #C10;
 static const field self::Class<core::int*>* d10 = #C7;
 static const field self::Class<Null>* d11 = #C6;
 static method test() → dynamic {
-  self::expect(null is core::int*, #C3, "null is int (opt-out)");
-  self::expect(null is Null, #C2, "null is Null");
+  self::expect(null is{ForLegacy} core::int*, #C3, "null is int (opt-out)");
+  self::expect(null is{ForLegacy} Null, #C2, "null is Null");
   self::expect(new self::Class::constructor1<core::int*>(null).{self::Class::field}{core::bool*}, #C4.{self::Class::field}{core::bool*}, "Class<int>.constructor1(null).field (opt-out)");
   self::expect(new self::Class::constructor1<Null>(null).{self::Class::field}{core::bool*}, #C6.{self::Class::field}{core::bool*}, "Class<Null>.constructor1(null).field (opt-out)");
   self::expect(new self::Class::constructor2<core::int*>(null).{self::Class::field}{core::bool*}, #C7.{self::Class::field}{core::bool*}, "Class<int>.constructor2(null).field (opt-out)");

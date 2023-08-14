@@ -180,7 +180,7 @@ class ReturnPattern : public ValueObject {
   explicit ReturnPattern(uword pc);
 
   // bx_lr = 1.
-  static const int kLengthInBytes = 1 * Instr::kInstrSize;
+  static constexpr int kLengthInBytes = 1 * Instr::kInstrSize;
 
   int pattern_length_in_bytes() const { return kLengthInBytes; }
 
@@ -198,7 +198,7 @@ class PcRelativePatternBase : public ValueObject {
 
   explicit PcRelativePatternBase(uword pc) : pc_(pc) {}
 
-  static const int kLengthInBytes = 1 * Instr::kInstrSize;
+  static constexpr int kLengthInBytes = 1 * Instr::kInstrSize;
 
   int32_t distance() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -261,7 +261,7 @@ class PcRelativeTrampolineJumpPattern : public ValueObject {
     USE(pattern_start_);
   }
 
-  static const int kLengthInBytes = 4 * Instr::kInstrSize;
+  static constexpr int kLengthInBytes = 4 * Instr::kInstrSize;
 
   void Initialize();
 
@@ -273,19 +273,19 @@ class PcRelativeTrampolineJumpPattern : public ValueObject {
   // This offset must be applied to account for the fact that
   //   a) the actual "branch" is only in the 3rd instruction
   //   b) when reading the PC it reports current instruction + 8
-  static const intptr_t kDistanceOffset = -5 * Instr::kInstrSize;
+  static constexpr intptr_t kDistanceOffset = -5 * Instr::kInstrSize;
 
   // adr TMP, #lower16  (same as TMP = PC + #lower16)
-  static const uint32_t kAdrEncoding = (1 << 28) | (TMP << kRdShift);
+  static constexpr uint32_t kAdrEncoding = (1 << 28) | (TMP << kRdShift);
 
   // movz TMP2, #higher16 lsl 16
-  static const uint32_t kMovzEncoding = MOVZ | (1 << kHWShift) | TMP2;
+  static constexpr uint32_t kMovzEncoding = MOVZ | (1 << kHWShift) | TMP2;
 
   // add TMP, TMP, TMP2, SXTW
-  static const uint32_t kAddTmpTmp2 = 0x8b31c210;
+  static constexpr uint32_t kAddTmpTmp2 = 0x8b31c210;
 
   // br TMP
-  static const uint32_t kJumpEncoding = BR | (TMP << kRnShift);
+  static constexpr uint32_t kJumpEncoding = BR | (TMP << kRnShift);
 
   uword pattern_start_;
 };

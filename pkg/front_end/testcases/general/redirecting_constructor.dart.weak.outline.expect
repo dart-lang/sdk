@@ -1,12 +1,11 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::fisk]/*isLegacy*/;
   constructor •() → self::A
     ;
-  static factory fisk() → self::A
+  static factory fisk() → self::A /* redirection-target: self::B::• */
     return new self::B::•();
 }
 class B extends self::A {
@@ -15,8 +14,3 @@ class B extends self::A {
 }
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_constructor.dart:5:7 -> ConstructorTearOffConstant(A.fisk)
-Extra constant evaluation: evaluated: 3, effectively constant: 1

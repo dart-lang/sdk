@@ -4,10 +4,13 @@
 
 #include "vm/profiler_service.h"
 
+#include <memory>
+
 #include "platform/text_buffer.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 #include "vm/heap/safepoint.h"
+#include "vm/json_stream.h"
 #include "vm/log.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
@@ -18,6 +21,17 @@
 #include "vm/service.h"
 #include "vm/service_event.h"
 #include "vm/timeline.h"
+
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+#include "perfetto/ext/tracing/core/trace_packet.h"
+#include "perfetto/protozero/scattered_heap_buffer.h"
+#include "vm/perfetto_utils.h"
+#include "vm/protos/perfetto/common/builtin_clock.pbzero.h"
+#include "vm/protos/perfetto/trace/interned_data/interned_data.pbzero.h"
+#include "vm/protos/perfetto/trace/profiling/profile_common.pbzero.h"
+#include "vm/protos/perfetto/trace/profiling/profile_packet.pbzero.h"
+#include "vm/protos/perfetto/trace/trace_packet.pbzero.h"
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 namespace dart {
 
@@ -58,7 +72,7 @@ ProfileFunction::ProfileFunction(Kind kind,
 }
 
 const char* ProfileFunction::Name() const {
-  if (name_ != NULL) {
+  if (name_ != nullptr) {
     return name_;
   }
   ASSERT(!function_.IsNull());
@@ -69,15 +83,15 @@ const char* ProfileFunction::Name() const {
 
 const char* ProfileFunction::ResolvedScriptUrl() const {
   if (function_.IsNull()) {
-    return NULL;
+    return nullptr;
   }
   const Script& script = Script::Handle(function_.script());
   if (script.IsNull()) {
-    return NULL;
+    return nullptr;
   }
   const String& uri = String::Handle(script.resolved_url());
   if (uri.IsNull()) {
-    return NULL;
+    return nullptr;
   }
   return uri.ToCString();
 }
@@ -214,7 +228,7 @@ void ProfileFunction::AddProfileCode(intptr_t code_table_index) {
 }
 
 bool ProfileFunction::GetSinglePosition(ProfileFunctionSourcePosition* pfsp) {
-  if (pfsp == NULL) {
+  if (pfsp == nullptr) {
     return false;
   }
   if (source_position_ticks_.length() != 1) {
@@ -247,9 +261,9 @@ ProfileCode::ProfileCode(Kind kind,
       inclusive_ticks_(0),
       inclusive_serial_(-1),
       code_(code),
-      name_(NULL),
+      name_(nullptr),
       compile_timestamp_(0),
-      function_(NULL),
+      function_(nullptr),
       code_table_index_(-1),
       address_ticks_(0) {
   ASSERT(start_ < end_);
@@ -284,7 +298,7 @@ void ProfileCode::ExpandUpper(uword end) {
 }
 
 bool ProfileCode::Overlaps(const ProfileCode* other) const {
-  ASSERT(other != NULL);
+  ASSERT(other != nullptr);
   return other->Contains(start_) || other->Contains(end_ - 1) ||
          Contains(other->start()) || Contains(other->end() - 1);
 }
@@ -294,8 +308,8 @@ bool ProfileCode::IsOptimizedDart() const {
 }
 
 void ProfileCode::SetName(const char* name) {
-  if (name == NULL) {
-    name_ = NULL;
+  if (name == nullptr) {
+    name_ = nullptr;
   }
   intptr_t len = strlen(name) + 1;
   name_ = Thread::Current()->zone()->Alloc<char>(len);
@@ -368,7 +382,7 @@ void ProfileCode::PrintNativeCode(JSONObject* profile_code_obj) {
   {
     // Generate a fake function entry.
     JSONObject func(&obj, "function");
-    ASSERT(function_ != NULL);
+    ASSERT(function_ != nullptr);
     function_->PrintToJSONObject(&func);
   }
 }
@@ -385,7 +399,7 @@ void ProfileCode::PrintCollectedCode(JSONObject* profile_code_obj) {
   {
     // Generate a fake function entry.
     JSONObject func(&obj, "function");
-    ASSERT(function_ != NULL);
+    ASSERT(function_ != nullptr);
     function_->PrintToJSONObject(&func);
   }
 }
@@ -402,7 +416,7 @@ void ProfileCode::PrintOverwrittenCode(JSONObject* profile_code_obj) {
   {
     // Generate a fake function entry.
     JSONObject func(&obj, "function");
-    ASSERT(function_ != NULL);
+    ASSERT(function_ != nullptr);
     function_->PrintToJSONObject(&func);
   }
 }
@@ -419,7 +433,7 @@ void ProfileCode::PrintTagCode(JSONObject* profile_code_obj) {
   {
     // Generate a fake function entry.
     JSONObject func(&obj, "function");
-    ASSERT(function_ != NULL);
+    ASSERT(function_ != nullptr);
     function_->PrintToJSONObject(&func);
   }
 }
@@ -438,7 +452,7 @@ const char* ProfileCode::KindToCString(Kind kind) {
       return "Tag";
   }
   UNREACHABLE();
-  return NULL;
+  return nullptr;
 }
 
 void ProfileCode::PrintToJSONArray(JSONArray* codes) {
@@ -474,7 +488,7 @@ class ProfileFunctionTable : public ZoneAllocated {
  public:
   ProfileFunctionTable()
       : null_function_(Function::ZoneHandle()),
-        unknown_function_(NULL),
+        unknown_function_(nullptr),
         table_(8) {
     unknown_function_ =
         Add(ProfileFunction::kUnknownFunction, "<unknown Dart function>");
@@ -483,7 +497,7 @@ class ProfileFunctionTable : public ZoneAllocated {
   ProfileFunction* LookupOrAdd(const Function& function) {
     ASSERT(!function.IsNull());
     ProfileFunction* profile_function = Lookup(function);
-    if (profile_function != NULL) {
+    if (profile_function != nullptr) {
       return profile_function;
     }
     return Add(function);
@@ -495,7 +509,7 @@ class ProfileFunctionTable : public ZoneAllocated {
   }
 
   ProfileFunction* GetUnknown() {
-    ASSERT(unknown_function_ != NULL);
+    ASSERT(unknown_function_ != nullptr);
     return unknown_function_;
   }
 
@@ -528,7 +542,7 @@ class ProfileFunctionTable : public ZoneAllocated {
  private:
   ProfileFunction* Add(ProfileFunction::Kind kind, const char* name) {
     ASSERT(kind != ProfileFunction::kDartFunction);
-    ASSERT(name != NULL);
+    ASSERT(name != nullptr);
     ProfileFunction* profile_function =
         new ProfileFunction(kind, name, null_function_, table_.length());
     table_.Add(profile_function);
@@ -536,9 +550,9 @@ class ProfileFunctionTable : public ZoneAllocated {
   }
 
   ProfileFunction* Add(const Function& function) {
-    ASSERT(Lookup(function) == NULL);
+    ASSERT(Lookup(function) == nullptr);
     ProfileFunction* profile_function = new ProfileFunction(
-        ProfileFunction::kDartFunction, NULL, function, table_.length());
+        ProfileFunction::kDartFunction, nullptr, function, table_.length());
     table_.Add(profile_function);
     function_hash_.Insert(profile_function);
     return profile_function;
@@ -568,11 +582,11 @@ class ProfileFunctionTable : public ZoneAllocated {
 };
 
 ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
-  ASSERT(function_ == NULL);
+  ASSERT(function_ == nullptr);
 
-  ProfileFunction* function = NULL;
+  ProfileFunction* function = nullptr;
   if ((kind() == kReusedCode) || (kind() == kCollectedCode)) {
-    if (name() == NULL) {
+    if (name() == nullptr) {
       // Lazily set generated name.
       GenerateAndSetSymbolName("[Collected]");
     }
@@ -590,7 +604,7 @@ ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
     }
     SetName(name);
   } else if (kind() == kNativeCode) {
-    if (name() == NULL) {
+    if (name() == nullptr) {
       // Lazily set generated name.
       const intptr_t kBuffSize = 512;
       char buff[kBuffSize];
@@ -609,15 +623,15 @@ ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
     }
     function = table->AddNative(start(), name());
   } else if (kind() == kTagCode) {
-    if (name() == NULL) {
+    if (name() == nullptr) {
       if (UserTags::IsUserTag(start())) {
         const char* tag_name = UserTags::TagName(start());
-        ASSERT(tag_name != NULL);
+        ASSERT(tag_name != nullptr);
         SetName(tag_name);
       } else if (VMTag::IsVMTag(start()) || VMTag::IsRuntimeEntryTag(start()) ||
                  VMTag::IsNativeEntryTag(start())) {
         const char* tag_name = VMTag::TagName(start());
-        ASSERT(tag_name != NULL);
+        ASSERT(tag_name != nullptr);
         SetName(tag_name);
       } else {
         switch (start()) {
@@ -655,7 +669,7 @@ ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
   } else {
     UNREACHABLE();
   }
-  ASSERT(function != NULL);
+  ASSERT(function != nullptr);
 
   function->AddProfileCode(code_table_index());
 
@@ -696,11 +710,11 @@ intptr_t ProfileCodeTable::InsertCode(ProfileCode* new_code) {
   // Determine the correct place to insert or merge |new_code| into table.
   intptr_t lo = -1;
   intptr_t hi = -1;
-  ProfileCode* lo_code = NULL;
-  ProfileCode* hi_code = NULL;
+  ProfileCode* lo_code = nullptr;
+  ProfileCode* hi_code = nullptr;
   const uword pc = new_code->end() - 1;
   FindNeighbors(pc, &lo, &hi, &lo_code, &hi_code);
-  ASSERT((lo_code != NULL) || (hi_code != NULL));
+  ASSERT((lo_code != nullptr) || (hi_code != nullptr));
 
   if (lo != -1) {
     // Has left neighbor.
@@ -757,7 +771,7 @@ void ProfileCodeTable::FindNeighbors(uword pc,
   if (pc < At(0)->start()) {
     // Lower than any existing code.
     *lo = -1;
-    *lo_code = NULL;
+    *lo_code = nullptr;
     *hi = 0;
     *hi_code = At(*hi);
     return;
@@ -768,7 +782,7 @@ void ProfileCodeTable::FindNeighbors(uword pc,
     *lo = length - 1;
     *lo_code = At(*lo);
     *hi = -1;
-    *hi_code = NULL;
+    *hi_code = nullptr;
     return;
   }
 
@@ -849,8 +863,8 @@ bool ProfileCodeInlinedFunctionsCache::FindInCache(
     if ((cache_[index].pc == pc) && (cache_[index].offset == offset)) {
       // Hit.
       if (cache_[index].inlined_functions.length() == 0) {
-        *inlined_functions = NULL;
-        *inlined_token_positions = NULL;
+        *inlined_functions = nullptr;
+        *inlined_token_positions = nullptr;
       } else {
         *inlined_functions = &cache_[index].inlined_functions;
         *inlined_token_positions = &cache_[index].inlined_token_positions;
@@ -884,8 +898,8 @@ void ProfileCodeInlinedFunctionsCache::Add(
       offset, &(cache_entry->inlined_functions),
       &(cache_entry->inlined_token_positions));
   if (cache_entry->inlined_functions.length() == 0) {
-    *inlined_functions = NULL;
-    *inlined_token_positions = NULL;
+    *inlined_functions = nullptr;
+    *inlined_token_positions = nullptr;
     *token_position = cache_entry->token_position = TokenPosition::kNoSource;
     return;
   }
@@ -944,9 +958,9 @@ class ProfileBuilder : public ValueObject {
         null_function_(Function::ZoneHandle()),
         inclusive_tree_(false),
         inlined_functions_cache_(new ProfileCodeInlinedFunctionsCache()),
-        samples_(NULL),
+        samples_(nullptr),
         info_kind_(kNone) {
-    ASSERT(profile_ != NULL);
+    ASSERT(profile_ != nullptr);
   }
 
   void Build() {
@@ -1014,14 +1028,14 @@ class ProfileBuilder : public ValueObject {
     ScopeTimer sw("ProfileBuilder::BuildCodeTable", FLAG_trace_profiler);
 
     Isolate* isolate = thread_->isolate();
-    ASSERT(isolate != NULL);
+    ASSERT(isolate != nullptr);
 
     // Build the live code table eagerly by populating it with code objects
     // from the processed sample buffer.
     const CodeLookupTable& code_lookup_table = samples_->code_lookup_table();
     for (intptr_t i = 0; i < code_lookup_table.length(); i++) {
       const CodeDescriptor* descriptor = code_lookup_table.At(i);
-      ASSERT(descriptor != NULL);
+      ASSERT(descriptor != nullptr);
       const AbstractCode code = descriptor->code();
       RegisterLiveProfileCode(new ProfileCode(
           ProfileCode::kDartCode, code.PayloadStart(),
@@ -1056,7 +1070,7 @@ class ProfileBuilder : public ValueObject {
         const uword pc = sample->At(frame_index);
         ASSERT(pc != 0);
         ProfileCode* code = FindOrRegisterProfileCode(pc, timestamp);
-        ASSERT(code != NULL);
+        ASSERT(code != nullptr);
         code->Tick(pc, IsExecutingFrame(sample, frame_index), sample_index);
       }
 
@@ -1080,21 +1094,21 @@ class ProfileBuilder : public ValueObject {
     for (intptr_t i = 0; i < live_table->length(); i++) {
       const intptr_t index = i;
       ProfileCode* code = live_table->At(i);
-      ASSERT(code != NULL);
+      ASSERT(code != nullptr);
       code->set_code_table_index(index);
     }
 
     for (intptr_t i = 0; i < dead_table->length(); i++) {
       const intptr_t index = dead_code_index_offset + i;
       ProfileCode* code = dead_table->At(i);
-      ASSERT(code != NULL);
+      ASSERT(code != nullptr);
       code->set_code_table_index(index);
     }
 
     for (intptr_t i = 0; i < tag_table->length(); i++) {
       const intptr_t index = tag_code_index_offset + i;
       ProfileCode* code = tag_table->At(i);
-      ASSERT(code != NULL);
+      ASSERT(code != nullptr);
       code->set_code_table_index(index);
     }
   }
@@ -1107,21 +1121,21 @@ class ProfileBuilder : public ValueObject {
     ProfileFunctionTable* function_table = profile_->functions_;
     for (intptr_t i = 0; i < live_table->length(); i++) {
       ProfileCode* code = live_table->At(i);
-      ASSERT(code != NULL);
+      ASSERT(code != nullptr);
       code->SetFunctionAndName(function_table);
       thread_->CheckForSafepoint();
     }
 
     for (intptr_t i = 0; i < dead_table->length(); i++) {
       ProfileCode* code = dead_table->At(i);
-      ASSERT(code != NULL);
+      ASSERT(code != nullptr);
       code->SetFunctionAndName(function_table);
       thread_->CheckForSafepoint();
     }
 
     for (intptr_t i = 0; i < tag_table->length(); i++) {
       ProfileCode* code = tag_table->At(i);
-      ASSERT(code != NULL);
+      ASSERT(code != nullptr);
       code->SetFunctionAndName(function_table);
       thread_->CheckForSafepoint();
     }
@@ -1151,12 +1165,12 @@ class ProfileBuilder : public ValueObject {
     const uword pc = sample->At(frame_index);
     ProfileCode* profile_code = GetProfileCode(pc, sample->timestamp());
     ProfileFunction* function = profile_code->function();
-    ASSERT(function != NULL);
+    ASSERT(function != nullptr);
     const intptr_t code_index = profile_code->code_table_index();
-    ASSERT(profile_code != NULL);
+    ASSERT(profile_code != nullptr);
 
-    GrowableArray<const Function*>* inlined_functions = NULL;
-    GrowableArray<TokenPosition>* inlined_token_positions = NULL;
+    GrowableArray<const Function*>* inlined_functions = nullptr;
+    GrowableArray<TokenPosition>* inlined_token_positions = nullptr;
     TokenPosition token_position = TokenPosition::kNoSource;
     Code& code = Code::ZoneHandle();
     if (profile_code->code().IsCode()) {
@@ -1164,7 +1178,7 @@ class ProfileBuilder : public ValueObject {
       inlined_functions_cache_->Get(pc, code, sample, frame_index,
                                     &inlined_functions,
                                     &inlined_token_positions, &token_position);
-      if (FLAG_trace_profiler_verbose && (inlined_functions != NULL)) {
+      if (FLAG_trace_profiler_verbose && (inlined_functions != nullptr)) {
         for (intptr_t i = 0; i < inlined_functions->length(); i++) {
           const String& name =
               String::Handle((*inlined_functions)[i]->QualifiedScrubbedName());
@@ -1175,7 +1189,7 @@ class ProfileBuilder : public ValueObject {
       }
     }
 
-    if (code.IsNull() || (inlined_functions == NULL) ||
+    if (code.IsNull() || (inlined_functions == nullptr) ||
         (inlined_functions->length() <= 1)) {
       ProcessFunction(sample_index, sample, frame_index, function,
                       token_position, code_index);
@@ -1198,7 +1212,7 @@ class ProfileBuilder : public ValueObject {
     // Append the inlined children.
     for (intptr_t i = inlined_functions->length() - 1; i >= 0; i--) {
       const Function* inlined_function = (*inlined_functions)[i];
-      ASSERT(inlined_function != NULL);
+      ASSERT(inlined_function != nullptr);
       ASSERT(!inlined_function->IsNull());
       TokenPosition inlined_token_position = (*inlined_token_positions)[i];
       ProcessInlinedFunction(sample_index, sample, frame_index + i,
@@ -1215,7 +1229,7 @@ class ProfileBuilder : public ValueObject {
                               intptr_t code_index) {
     ProfileFunctionTable* function_table = profile_->functions_;
     ProfileFunction* function = function_table->LookupOrAdd(*inlined_function);
-    ASSERT(function != NULL);
+    ASSERT(function != nullptr);
     ProcessFunction(sample_index, sample, frame_index, function,
                     inlined_token_position, code_index);
   }
@@ -1254,7 +1268,7 @@ class ProfileBuilder : public ValueObject {
     ASSERT(index >= 0);
     ProfileCode* code = tag_table->At(index);
     code->IncInclusiveTicks();
-    ASSERT(code != NULL);
+    ASSERT(code != nullptr);
     ProfileFunction* function = code->function();
     function->IncInclusiveTicks();
   }
@@ -1288,7 +1302,7 @@ class ProfileBuilder : public ValueObject {
     }
     ProfileCodeTable* tag_table = profile_->tag_code_;
     ProfileCode* code = tag_table->FindCodeForPC(vm_tag);
-    ASSERT(code != NULL);
+    ASSERT(code != nullptr);
     code->Tick(vm_tag, true, serial);
   }
 
@@ -1301,9 +1315,9 @@ class ProfileBuilder : public ValueObject {
     }
     ProfileCodeTable* tag_table = profile_->tag_code_;
     ProfileCode* code = tag_table->FindCodeForPC(vm_tag);
-    ASSERT(code != NULL);
+    ASSERT(code != nullptr);
     ProfileFunction* function = code->function();
-    ASSERT(function != NULL);
+    ASSERT(function != nullptr);
     function->Tick(true, serial, TokenPosition::kNoSource);
   }
 
@@ -1312,7 +1326,7 @@ class ProfileBuilder : public ValueObject {
     intptr_t index = tag_table->FindCodeIndexForPC(tag);
     ASSERT(index >= 0);
     ProfileCode* code = tag_table->At(index);
-    ASSERT(code != NULL);
+    ASSERT(code != nullptr);
     return code->code_table_index();
   }
 
@@ -1321,9 +1335,9 @@ class ProfileBuilder : public ValueObject {
     intptr_t index = tag_table->FindCodeIndexForPC(tag);
     ASSERT(index >= 0);
     ProfileCode* code = tag_table->At(index);
-    ASSERT(code != NULL);
+    ASSERT(code != nullptr);
     ProfileFunction* function = code->function();
-    ASSERT(function != NULL);
+    ASSERT(function != nullptr);
     return function->table_index();
   }
 
@@ -1367,7 +1381,7 @@ class ProfileBuilder : public ValueObject {
     // Check if |pc| is already known in the live code table.
     ProfileCodeTable* live_table = profile_->live_code_;
     ProfileCode* profile_code = live_table->FindCodeForPC(pc);
-    if (profile_code != NULL) {
+    if (profile_code != nullptr) {
       return profile_code;
     }
 
@@ -1377,7 +1391,7 @@ class ProfileBuilder : public ValueObject {
     uword native_start = 0;
     char* native_name =
         NativeSymbolResolver::LookupSymbolName(pc, &native_start);
-    if (native_name == NULL) {
+    if (native_name == nullptr) {
       // Failed to find a native symbol for pc.
       native_start = pc;
     }
@@ -1390,18 +1404,18 @@ class ProfileBuilder : public ValueObject {
 
     if (native_start > pc) {
       // Bogus lookup result.
-      if (native_name != NULL) {
+      if (native_name != nullptr) {
         NativeSymbolResolver::FreeSymbolName(native_name);
-        native_name = NULL;
+        native_name = nullptr;
       }
       native_start = pc;
     }
     if ((pc - native_start) > (32 * KB)) {
       // Suspect lookup result. More likely dladdr going off the rails than a
       // jumbo function.
-      if (native_name != NULL) {
+      if (native_name != nullptr) {
         NativeSymbolResolver::FreeSymbolName(native_name);
-        native_name = NULL;
+        native_name = nullptr;
       }
       native_start = pc;
     }
@@ -1410,7 +1424,7 @@ class ProfileBuilder : public ValueObject {
     ASSERT(pc < (pc + 1));  // Should not overflow.
     profile_code = new ProfileCode(ProfileCode::kNativeCode, native_start,
                                    pc + 1, 0, null_code_);
-    if (native_name != NULL) {
+    if (native_name != nullptr) {
       profile_code->SetName(native_name);
       NativeSymbolResolver::FreeSymbolName(native_name);
     }
@@ -1429,7 +1443,7 @@ class ProfileBuilder : public ValueObject {
     ProfileCodeTable* dead_table = profile_->dead_code_;
 
     ProfileCode* code = dead_table->FindCodeForPC(pc);
-    if (code != NULL) {
+    if (code != nullptr) {
       return code;
     }
 
@@ -1442,11 +1456,11 @@ class ProfileBuilder : public ValueObject {
   ProfileCode* FindOrRegisterProfileCode(uword pc, int64_t timestamp) {
     ProfileCodeTable* live_table = profile_->live_code_;
     ProfileCode* code = live_table->FindCodeForPC(pc);
-    if ((code != NULL) && (code->compile_timestamp() <= timestamp)) {
+    if ((code != nullptr) && (code->compile_timestamp() <= timestamp)) {
       // Code was compiled before sample was taken.
       return code;
     }
-    if ((code == NULL) && !IsPCInDartHeap(pc)) {
+    if ((code == nullptr) && !IsPCInDartHeap(pc)) {
       // Not a PC from Dart code. Check with native code.
       return FindOrRegisterNativeProfileCode(pc);
     }
@@ -1469,11 +1483,11 @@ class ProfileBuilder : public ValueObject {
 
 Profile::Profile()
     : zone_(Thread::Current()->zone()),
-      samples_(NULL),
-      live_code_(NULL),
-      dead_code_(NULL),
-      tag_code_(NULL),
-      functions_(NULL),
+      samples_(nullptr),
+      live_code_(nullptr),
+      dead_code_(nullptr),
+      tag_code_(nullptr),
+      functions_(nullptr),
       dead_code_index_offset_(-1),
       tag_code_index_offset_(-1),
       min_time_(kMaxInt64),
@@ -1500,14 +1514,14 @@ intptr_t Profile::NumFunctions() const {
 }
 
 ProfileFunction* Profile::GetFunction(intptr_t index) {
-  ASSERT(functions_ != NULL);
+  ASSERT(functions_ != nullptr);
   return functions_->At(index);
 }
 
 ProfileCode* Profile::GetCode(intptr_t index) {
-  ASSERT(live_code_ != NULL);
-  ASSERT(dead_code_ != NULL);
-  ASSERT(tag_code_ != NULL);
+  ASSERT(live_code_ != nullptr);
+  ASSERT(dead_code_ != nullptr);
+  ASSERT(tag_code_ != nullptr);
   ASSERT(dead_code_index_offset_ >= 0);
   ASSERT(tag_code_index_offset_ >= 0);
 
@@ -1531,14 +1545,14 @@ ProfileCode* Profile::GetCode(intptr_t index) {
 
 ProfileCode* Profile::GetCodeFromPC(uword pc, int64_t timestamp) {
   intptr_t index = live_code_->FindCodeIndexForPC(pc);
-  ProfileCode* code = NULL;
+  ProfileCode* code = nullptr;
   if (index < 0) {
     index = dead_code_->FindCodeIndexForPC(pc);
     ASSERT(index >= 0);
     code = dead_code_->At(index);
   } else {
     code = live_code_->At(index);
-    ASSERT(code != NULL);
+    ASSERT(code != nullptr);
     if (code->compile_timestamp() > timestamp) {
       // Code is newer than sample. Fall back to dead code table.
       index = dead_code_->FindCodeIndexForPC(pc);
@@ -1547,7 +1561,7 @@ ProfileCode* Profile::GetCodeFromPC(uword pc, int64_t timestamp) {
     }
   }
 
-  ASSERT(code != NULL);
+  ASSERT(code != nullptr);
   ASSERT(code->Contains(pc));
   ASSERT(code->compile_timestamp() <= timestamp);
   return code;
@@ -1586,14 +1600,14 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
 }
 
 void Profile::ProcessSampleFrameJSON(JSONArray* stack,
-                                     ProfileCodeInlinedFunctionsCache* cache_,
+                                     ProfileCodeInlinedFunctionsCache* cache,
                                      ProcessedSample* sample,
                                      intptr_t frame_index) {
   const uword pc = sample->At(frame_index);
   ProfileCode* profile_code = GetCodeFromPC(pc, sample->timestamp());
-  ASSERT(profile_code != NULL);
+  ASSERT(profile_code != nullptr);
   ProfileFunction* function = profile_code->function();
-  ASSERT(function != NULL);
+  ASSERT(function != nullptr);
 
   // Don't show stubs in stack traces.
   if (!function->is_visible() ||
@@ -1601,16 +1615,16 @@ void Profile::ProcessSampleFrameJSON(JSONArray* stack,
     return;
   }
 
-  GrowableArray<const Function*>* inlined_functions = NULL;
-  GrowableArray<TokenPosition>* inlined_token_positions = NULL;
+  GrowableArray<const Function*>* inlined_functions = nullptr;
+  GrowableArray<TokenPosition>* inlined_token_positions = nullptr;
   TokenPosition token_position = TokenPosition::kNoSource;
   Code& code = Code::ZoneHandle();
 
   if (profile_code->code().IsCode()) {
     code ^= profile_code->code().ptr();
-    cache_->Get(pc, code, sample, frame_index, &inlined_functions,
-                &inlined_token_positions, &token_position);
-    if (FLAG_trace_profiler_verbose && (inlined_functions != NULL)) {
+    cache->Get(pc, code, sample, frame_index, &inlined_functions,
+               &inlined_token_positions, &token_position);
+    if (FLAG_trace_profiler_verbose && (inlined_functions != nullptr)) {
       for (intptr_t i = 0; i < inlined_functions->length(); i++) {
         const String& name =
             String::Handle((*inlined_functions)[i]->QualifiedScrubbedName());
@@ -1620,7 +1634,7 @@ void Profile::ProcessSampleFrameJSON(JSONArray* stack,
     }
   }
 
-  if (code.IsNull() || (inlined_functions == NULL) ||
+  if (code.IsNull() || (inlined_functions == nullptr) ||
       (inlined_functions->length() <= 1)) {
     PrintFunctionFrameIndexJSON(stack, function);
     return;
@@ -1641,17 +1655,91 @@ void Profile::ProcessSampleFrameJSON(JSONArray* stack,
 
   for (intptr_t i = inlined_functions->length() - 1; i >= 0; i--) {
     const Function* inlined_function = (*inlined_functions)[i];
-    ASSERT(inlined_function != NULL);
+    ASSERT(inlined_function != nullptr);
     ASSERT(!inlined_function->IsNull());
     ProcessInlinedFunctionFrameJSON(stack, inlined_function);
   }
 }
 
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+void Profile::ProcessSampleFramePerfetto(
+    perfetto::protos::pbzero::Callstack* callstack,
+    ProfileCodeInlinedFunctionsCache* cache,
+    ProcessedSample* sample,
+    intptr_t frame_index) {
+  const uword pc = sample->At(frame_index);
+  ProfileCode* profile_code = GetCodeFromPC(pc, sample->timestamp());
+  ASSERT(profile_code != nullptr);
+  ProfileFunction* function = profile_code->function();
+  ASSERT(function != nullptr);
+
+  // Don't show stubs in stack traces.
+  if (!function->is_visible() ||
+      (function->kind() == ProfileFunction::kStubFunction)) {
+    return;
+  }
+
+  GrowableArray<const Function*>* inlined_functions = nullptr;
+  GrowableArray<TokenPosition>* inlined_token_positions = nullptr;
+  TokenPosition token_position = TokenPosition::kNoSource;
+  Code& code = Code::ZoneHandle();
+
+  if (profile_code->code().IsCode()) {
+    code ^= profile_code->code().ptr();
+    cache->Get(pc, code, sample, frame_index, &inlined_functions,
+               &inlined_token_positions, &token_position);
+    if (FLAG_trace_profiler_verbose && (inlined_functions != NULL)) {
+      for (intptr_t i = 0; i < inlined_functions->length(); i++) {
+        const String& name =
+            String::Handle((*inlined_functions)[i]->QualifiedScrubbedName());
+        THR_Print("InlinedFunction[%" Pd "] = {%s, %s}\n", i, name.ToCString(),
+                  (*inlined_token_positions)[i].ToCString());
+      }
+    }
+  }
+
+  if (code.IsNull() || (inlined_functions == nullptr) ||
+      (inlined_functions->length() <= 1)) {
+    // This is the ID of a |Frame| that was added to the interned data table in
+    // |ProfilerService::PrintProfilePerfetto|. See the comments in that method
+    // for more details.
+    callstack->add_frame_ids(function->table_index() + 1);
+    return;
+  }
+
+  if (!code.is_optimized()) {
+    OS::PrintErr("Code that should be optimized is not. Please file a bug\n");
+    OS::PrintErr("Code object: %s\n", code.ToCString());
+    OS::PrintErr("Inlined functions length: %" Pd "\n",
+                 inlined_functions->length());
+    for (intptr_t i = 0; i < inlined_functions->length(); i++) {
+      OS::PrintErr("IF[%" Pd "] = %s\n", i,
+                   (*inlined_functions)[i]->ToFullyQualifiedCString());
+    }
+  }
+
+  ASSERT(code.is_optimized());
+
+  for (intptr_t i = 0; i < inlined_functions->length(); ++i) {
+    const Function* inlined_function = (*inlined_functions)[i];
+    ASSERT(inlined_function != NULL);
+    ASSERT(!inlined_function->IsNull());
+    ProfileFunction* profile_function =
+        functions_->LookupOrAdd(*inlined_function);
+    ASSERT(profile_function != NULL);
+    // This is the ID of a |Frame| that was added to the interned data table in
+    // |ProfilerService::PrintProfilePerfetto|. See the comments in that method
+    // for more details.
+    callstack->add_frame_ids(profile_function->table_index() + 1);
+  }
+}
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
 void Profile::ProcessInlinedFunctionFrameJSON(
     JSONArray* stack,
     const Function* inlined_function) {
   ProfileFunction* function = functions_->LookupOrAdd(*inlined_function);
-  ASSERT(function != NULL);
+  ASSERT(function != nullptr);
   PrintFunctionFrameIndexJSON(stack, function);
 }
 
@@ -1677,6 +1765,8 @@ void Profile::PrintCodeFrameIndexJSON(JSONArray* stack,
 
 void Profile::PrintSamplesJSON(JSONObject* obj, bool code_samples) {
   JSONArray samples(obj, "samples");
+  // Note that |cache| is zone-allocated, so it does not need to be deallocated
+  // manually.
   auto* cache = new ProfileCodeInlinedFunctionsCache();
   for (intptr_t sample_index = 0; sample_index < samples_->length();
        sample_index++) {
@@ -1722,8 +1812,60 @@ void Profile::PrintSamplesJSON(JSONObject* obj, bool code_samples) {
   }
 }
 
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+void Profile::PrintSamplesPerfetto(
+    JSONBase64String* jsonBase64String,
+    protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>*
+        packet_ptr) {
+  ASSERT(jsonBase64String != nullptr);
+  ASSERT(packet_ptr != nullptr);
+  auto& packet = *packet_ptr;
+
+  // Note that |cache| is zone-allocated, so it does not need to be deallocated
+  // manually.
+  auto* cache = new ProfileCodeInlinedFunctionsCache();
+  for (intptr_t sample_index = 0; sample_index < samples_->length();
+       ++sample_index) {
+    ProcessedSample* sample = samples_->At(sample_index);
+
+    perfetto_utils::SetTrustedPacketSequenceId(packet.get());
+    // We set this flag to indicate that this packet reads from the interned
+    // data table.
+    packet->set_sequence_flags(
+        perfetto::protos::pbzero::TracePacket_SequenceFlags::
+            SEQ_NEEDS_INCREMENTAL_STATE);
+    perfetto_utils::SetTimestampAndMonotonicClockId(packet.get(),
+                                                    sample->timestamp());
+
+    const intptr_t callstack_iid = sample_index + 1;
+    // Add a |Callstack| to the interned data table that represents the stack
+    // trace stored in |sample|.
+    perfetto::protos::pbzero::Callstack* callstack =
+        packet->set_interned_data()->add_callstacks();
+    callstack->set_iid(callstack_iid);
+    // Walk the sampled PCs.
+    for (intptr_t frame_index = sample->length() - 1; frame_index >= 0;
+         --frame_index) {
+      ASSERT(sample->At(frame_index) != 0);
+      ProcessSampleFramePerfetto(callstack, cache, sample, frame_index);
+    }
+
+    // Populate |packet| with a |PerfSample| that is linked to the |Callstack|
+    // that we populated above.
+    perfetto::protos::pbzero::PerfSample& perf_sample =
+        *packet->set_perf_sample();
+    perf_sample.set_pid(OS::ProcessId());
+    perf_sample.set_tid(OSThread::ThreadIdToIntPtr(sample->tid()));
+    perf_sample.set_callstack_iid(callstack_iid);
+
+    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet);
+    packet.Reset();
+  }
+}
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
 ProfileFunction* Profile::FindFunction(const Function& function) {
-  return (functions_ != NULL) ? functions_->Lookup(function) : NULL;
+  return (functions_ != nullptr) ? functions_->Lookup(function) : nullptr;
 }
 
 void Profile::PrintProfileJSON(JSONStream* stream, bool include_code_samples) {
@@ -1746,19 +1888,19 @@ void Profile::PrintProfileJSON(JSONObject* obj,
     JSONArray codes(obj, "_codes");
     for (intptr_t i = 0; i < live_code_->length(); i++) {
       ProfileCode* code = live_code_->At(i);
-      ASSERT(code != NULL);
+      ASSERT(code != nullptr);
       code->PrintToJSONArray(&codes);
       thread->CheckForSafepoint();
     }
     for (intptr_t i = 0; i < dead_code_->length(); i++) {
       ProfileCode* code = dead_code_->At(i);
-      ASSERT(code != NULL);
+      ASSERT(code != nullptr);
       code->PrintToJSONArray(&codes);
       thread->CheckForSafepoint();
     }
     for (intptr_t i = 0; i < tag_code_->length(); i++) {
       ProfileCode* code = tag_code_->At(i);
-      ASSERT(code != NULL);
+      ASSERT(code != nullptr);
       code->PrintToJSONArray(&codes);
       thread->CheckForSafepoint();
     }
@@ -1768,7 +1910,7 @@ void Profile::PrintProfileJSON(JSONObject* obj,
     JSONArray functions(obj, "functions");
     for (intptr_t i = 0; i < functions_->length(); i++) {
       ProfileFunction* function = functions_->At(i);
-      ASSERT(function != NULL);
+      ASSERT(function != nullptr);
       function->PrintToJSONArray(&functions, is_event);
       thread->CheckForSafepoint();
     }
@@ -1777,18 +1919,134 @@ void Profile::PrintProfileJSON(JSONObject* obj,
   thread->CheckForSafepoint();
 }
 
-void ProfilerService::PrintJSONImpl(Thread* thread,
-                                    JSONStream* stream,
-                                    SampleFilter* filter,
-                                    ProcessedSampleBufferBuilder* buffer,
-                                    bool include_code_samples) {
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+void Profile::PrintProfilePerfetto(JSONStream* js) {
+  ScopeTimer sw("Profile::PrintProfilePerfetto", FLAG_trace_profiler);
+  Thread* thread = Thread::Current();
+
+  JSONObject jsobj_topLevel(js);
+  jsobj_topLevel.AddProperty("type", "PerfettoCpuSamples");
+  PrintHeaderJSON(&jsobj_topLevel);
+
+  js->AppendSerializedObject("\"samples\":");
+  JSONBase64String jsonBase64String(js);
+
+  // We allocate one heap-buffered packet and continuously follow a cycle of
+  // resetting the buffer and writing its contents.
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket> packet;
+
+  perfetto_utils::PopulateClockSnapshotPacket(packet.get());
+  perfetto_utils::AppendPacketToJSONBase64String(&jsonBase64String, &packet);
+  packet.Reset();
+
+  perfetto_utils::SetTrustedPacketSequenceId(packet.get());
+  // We use |PerfSample|s to serialize our CPU sample information. Each
+  // |PerfSample| must be linked to a |Callstack| in the interned data table.
+  // When serializing a new profile, we set |SEQ_INCREMENTAL_STATE_CLEARED| on
+  // the first packet to clear the interned data table and avoid conflicts with
+  // any profiles that are combined with this one.
+  // See "runtime/vm/protos/perfetto/trace/interned_data/interned_data.proto"
+  // a detailed description of how the interned data table works.
+  packet->set_sequence_flags(
+      perfetto::protos::pbzero::TracePacket_SequenceFlags::
+          SEQ_INCREMENTAL_STATE_CLEARED);
+
+  perfetto::protos::pbzero::InternedData& interned_data =
+      *packet->set_interned_data();
+
+  // The Perfetto trace viewer will not be able to parse our trace if the
+  // mapping with iid 0 is not declared.
+  perfetto::protos::pbzero::Mapping& mapping = *interned_data.add_mappings();
+  mapping.set_iid(0);
+
+  for (intptr_t i = 0; i < functions_->length(); ++i) {
+    ProfileFunction* function = functions_->At(i);
+    ASSERT(function != NULL);
+    const intptr_t common_iid = function->table_index() + 1;
+
+    perfetto::protos::pbzero::InternedString& function_name =
+        *interned_data.add_function_names();
+    function_name.set_iid(common_iid);
+    function_name.set_str(function->Name());
+
+    const char* resolved_script_url = function->ResolvedScriptUrl();
+    if (resolved_script_url != nullptr) {
+      perfetto::protos::pbzero::InternedString& mapping_path =
+          *interned_data.add_mapping_paths();
+      mapping_path.set_iid(common_iid);
+      const Script& script_handle =
+          Script::Handle(function->function()->script());
+      TokenPosition token_pos = function->function()->token_pos();
+      if (!script_handle.IsNull() && token_pos.IsReal()) {
+        intptr_t line = -1;
+        intptr_t column = -1;
+        script_handle.GetTokenLocation(token_pos, &line, &column);
+        intptr_t path_with_location_buffer_size =
+            Utils::SNPrint(nullptr, 0, "%s:%" Pd ":%" Pd, resolved_script_url,
+                           line, column) +
+            1;
+        std::unique_ptr<char[]> path_with_location =
+            std::make_unique<char[]>(path_with_location_buffer_size);
+        Utils::SNPrint(path_with_location.get(), path_with_location_buffer_size,
+                       "%s:%" Pd ":%" Pd, resolved_script_url, line, column);
+        mapping_path.set_str(path_with_location.get());
+      } else {
+        mapping_path.set_str(resolved_script_url);
+      }
+
+      // TODO(derekx): Check if using profiled_frame_symbols instead of mapping
+      // provides any benefit.
+      perfetto::protos::pbzero::Mapping& mapping =
+          *interned_data.add_mappings();
+      mapping.set_iid(common_iid);
+      mapping.add_path_string_ids(common_iid);
+    }
+
+    // Add a |Frame| to the interned data table that is linked to |function|'s
+    // name and source location (through the interned data table). A Perfetto
+    // |Callstack| consists of a stack of |Frame|s, so the |Callstack|s
+    // populated by |PrintSamplesPerfetto| will refer to these |Frame|s.
+    perfetto::protos::pbzero::Frame& frame = *interned_data.add_frames();
+    frame.set_iid(common_iid);
+    frame.set_function_name_id(common_iid);
+    frame.set_mapping_id(resolved_script_url == nullptr ? 0 : common_iid);
+
+    thread->CheckForSafepoint();
+  }
+  perfetto_utils::AppendPacketToJSONBase64String(&jsonBase64String, &packet);
+  packet.Reset();
+
+  PrintSamplesPerfetto(&jsonBase64String, &packet);
+  thread->CheckForSafepoint();
+}
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
+void ProfilerService::PrintCommonImpl(PrintFormat format,
+                                      Thread* thread,
+                                      JSONStream* js,
+                                      SampleFilter* filter,
+                                      ProcessedSampleBufferBuilder* buffer,
+                                      bool include_code_samples) {
   // We should bail out in service.cc if the profiler is disabled.
   ASSERT(buffer != nullptr);
 
   StackZone zone(thread);
   Profile profile;
   profile.Build(thread, filter, buffer);
-  profile.PrintProfileJSON(stream, include_code_samples);
+
+  if (format == PrintFormat::JSON) {
+    profile.PrintProfileJSON(js, include_code_samples);
+  } else if (format == PrintFormat::Perfetto) {
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+    // This branch will never be reached when SUPPORT_PERFETTO is not defined or
+    // when PRODUCT is defined, because |PrintPerfetto| is not defined when
+    // SUPPORT_PERFETTO is not defined or when PRODUCT is defined.
+    profile.PrintProfilePerfetto(js);
+#else
+    UNREACHABLE();
+
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  }
 }
 
 class NoAllocationSampleFilter : public SampleFilter {
@@ -1805,17 +2063,36 @@ class NoAllocationSampleFilter : public SampleFilter {
   bool FilterSample(Sample* sample) { return !sample->is_allocation_sample(); }
 };
 
-void ProfilerService::PrintJSON(JSONStream* stream,
+void ProfilerService::PrintCommon(PrintFormat format,
+                                  JSONStream* js,
+                                  int64_t time_origin_micros,
+                                  int64_t time_extent_micros,
+                                  bool include_code_samples) {
+  Thread* thread = Thread::Current();
+  const Isolate* isolate = thread->isolate();
+  NoAllocationSampleFilter filter(isolate->main_port(), Thread::kMutatorTask,
+                                  time_origin_micros, time_extent_micros);
+
+  PrintCommonImpl(format, thread, js, &filter, Profiler::sample_block_buffer(),
+                  include_code_samples);
+}
+
+void ProfilerService::PrintJSON(JSONStream* js,
                                 int64_t time_origin_micros,
                                 int64_t time_extent_micros,
                                 bool include_code_samples) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  NoAllocationSampleFilter filter(isolate->main_port(), Thread::kMutatorTask,
-                                  time_origin_micros, time_extent_micros);
-  PrintJSONImpl(thread, stream, &filter, Profiler::sample_block_buffer(),
-                include_code_samples);
+  PrintCommon(PrintFormat::JSON, js, time_origin_micros, time_extent_micros,
+              include_code_samples);
 }
+
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+void ProfilerService::PrintPerfetto(JSONStream* js,
+                                    int64_t time_origin_micros,
+                                    int64_t time_extent_micros) {
+  PrintCommon(PrintFormat::Perfetto, js, time_origin_micros,
+              time_extent_micros);
+}
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 class AllocationSampleFilter : public SampleFilter {
  public:
@@ -1838,7 +2115,8 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
   Isolate* isolate = thread->isolate();
   AllocationSampleFilter filter(isolate->main_port(), Thread::kMutatorTask,
                                 time_origin_micros, time_extent_micros);
-  PrintJSONImpl(thread, stream, &filter, Profiler::sample_block_buffer(), true);
+  PrintCommonImpl(PrintFormat::JSON, thread, stream, &filter,
+                  Profiler::sample_block_buffer(), true);
 }
 
 class ClassAllocationSampleFilter : public SampleFilter {
@@ -1874,7 +2152,8 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
   ClassAllocationSampleFilter filter(isolate->main_port(), cls,
                                      Thread::kMutatorTask, time_origin_micros,
                                      time_extent_micros);
-  PrintJSONImpl(thread, stream, &filter, Profiler::sample_block_buffer(), true);
+  PrintCommonImpl(PrintFormat::JSON, thread, stream, &filter,
+                  Profiler::sample_block_buffer(), true);
 }
 
 void ProfilerService::ClearSamples() {

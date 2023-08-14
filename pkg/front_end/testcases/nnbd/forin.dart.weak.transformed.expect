@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -105,11 +105,11 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
  - 'Object' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   for (int x in o1) x;
-                ^" in o1 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
+                ^" in o1 as{TypeError} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t3 = :sync-for-iterator.{core::Iterator::current}{Never};
       {
-        core::int x = #t3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+        core::int x = #t3 as{TypeError,ForDynamic} core::int;
         x;
       }
     }
@@ -121,11 +121,11 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
  - 'Object' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   [for (int x in o1) x];
-                 ^" in o1 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
+                 ^" in o1 as{TypeError} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t5 = :sync-for-iterator.{core::Iterator::current}{Never};
         {
-          core::int x = #t5 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+          core::int x = #t5 as{TypeError,ForDynamic} core::int;
           #t4.{core::List::add}{Invariant}(x){(core::int) → void};
         }
       }
@@ -136,11 +136,11 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
  - 'Object' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   for (int x in o2) x;
-                ^" in o2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
+                ^" in o2 as{TypeError} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t6 = :sync-for-iterator.{core::Iterator::current}{Never};
       {
-        core::int x = #t6 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+        core::int x = #t6 as{TypeError,ForDynamic} core::int;
         x;
       }
     }
@@ -152,11 +152,11 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
  - 'Object' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   [for (int x in o2) x];
-                 ^" in o2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
+                 ^" in o2 as{TypeError} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t8 = :sync-for-iterator.{core::Iterator::current}{Never};
         {
-          core::int x = #t8 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+          core::int x = #t8 as{TypeError,ForDynamic} core::int;
           #t7.{core::List::add}{Invariant}(x){(core::int) → void};
         }
       }
@@ -199,11 +199,11 @@ static method ok(core::Iterable<core::int> i1, core::List<core::int> l1, dynamic
     }
   } =>#t10;
   {
-    synthesized core::Iterator<dynamic> :sync-for-iterator = (d as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+    synthesized core::Iterator<dynamic> :sync-for-iterator = (d as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t11 = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {
-        core::int x = #t11 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+        core::int x = #t11 as{TypeError,ForDynamic} core::int;
         x;
       }
     }
@@ -211,11 +211,11 @@ static method ok(core::Iterable<core::int> i1, core::List<core::int> l1, dynamic
   block {
     final core::List<core::int> #t12 = core::_GrowableList::•<core::int>(0);
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = (d as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = (d as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t13 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          core::int x = #t13 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+          core::int x = #t13 as{TypeError,ForDynamic} core::int;
           #t12.{core::List::add}{Invariant}(x){(core::int) → void};
         }
       }

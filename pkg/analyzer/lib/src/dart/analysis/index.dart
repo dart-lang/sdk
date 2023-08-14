@@ -543,24 +543,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// Record that [element] has a relation of the given [kind] at the location
   /// of the given [token].
   void recordRelationToken(
-      Element? element, IndexRelationKind kind, Token token) {
-    recordRelationOffset(element, kind, token.offset, token.length, true);
+    Element? element,
+    IndexRelationKind kind,
+    Token token, {
+    bool isQualified = true,
+  }) {
+    recordRelationOffset(
+        element, kind, token.offset, token.length, isQualified);
   }
 
   /// Record a relation between a super [namedType] and its [Element].
   void recordSuperType(NamedType namedType, IndexRelationKind kind) {
-    Identifier name = namedType.name;
-    Element? element = name.staticElement;
-    bool isQualified;
-    SimpleIdentifier relNode;
-    if (name is PrefixedIdentifier) {
-      isQualified = true;
-      relNode = name.identifier;
-    } else {
-      isQualified = false;
-      relNode = name as SimpleIdentifier;
-    }
-    recordRelation(element, kind, relNode, isQualified);
+    final isQualified = namedType.importPrefix != null;
+    final element = namedType.element;
+    recordRelation(element, kind, namedType.name2, isQualified);
   }
 
   void recordUriReference(Element? element, StringLiteral uri) {
@@ -589,6 +585,21 @@ class _IndexContributor extends GeneralizingAstVisitor {
           node.name.offset, 0, true);
     }
     recordIsAncestorOf(declaredElement);
+
+    // If the class has only a synthetic default constructor, then it
+    // implicitly invokes the default super constructor. Associate the
+    // invocation with the name of the class.
+    final defaultConstructor = declaredElement.constructors.singleOrNull;
+    if (defaultConstructor is ConstructorElementImpl &&
+        defaultConstructor.isSynthetic) {
+      defaultConstructor.isDefaultConstructor;
+      final superConstructor = defaultConstructor.superConstructor;
+      if (superConstructor != null) {
+        recordRelation(
+            superConstructor, IndexRelationKind.IS_INVOKED_BY, node.name, true);
+      }
+    }
+
     super.visitClassDeclaration(node);
   }
 
@@ -627,6 +638,24 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     return super.visitCommentReference(node);
+  }
+
+  @override
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    // If the constructor does not have an explicit `super` constructor
+    // invocation, it implicitly invokes the unnamed constructor.
+    if (node.initializers.none((e) => e is SuperConstructorInvocation)) {
+      final element = node.declaredElement as ConstructorElementImpl;
+      final superConstructor = element.superConstructor;
+      if (superConstructor != null) {
+        final offset = node.returnType.offset;
+        final end = (node.name ?? node.returnType).end;
+        recordRelationOffset(superConstructor, IndexRelationKind.IS_INVOKED_BY,
+            offset, end - offset, true);
+      }
+    }
+
+    super.visitConstructorDeclaration(node);
   }
 
   @override
@@ -732,6 +761,18 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitExtensionOverride(ExtensionOverride node) {
+    _recordImportPrefixedElement(
+      importPrefix: node.importPrefix,
+      name: node.name,
+      element: node.element,
+    );
+
+    node.typeArguments?.accept(this);
+    node.argumentList.accept(this);
+  }
+
+  @override
   visitFieldFormalParameter(FieldFormalParameter node) {
     var element = node.declaredElement;
     if (element is FieldFormalParameterElement) {
@@ -796,6 +837,17 @@ class _IndexContributor extends GeneralizingAstVisitor {
     _addSubtypeForMixinDeclaration(node);
     recordIsAncestorOf(node.declaredElement!);
     super.visitMixinDeclaration(node);
+  }
+
+  @override
+  visitNamedType(NamedType node) {
+    _recordImportPrefixedElement(
+      importPrefix: node.importPrefix,
+      name: node.name2,
+      element: node.element,
+    );
+
+    node.typeArguments?.accept(this);
   }
 
   @override
@@ -976,7 +1028,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     void addSupertype(NamedType? type) {
-      var element = type?.name.staticElement;
+      var element = type?.element;
       if (element is InterfaceElement) {
         String id = getInterfaceElementId(element);
         supertypes.add(id);
@@ -1071,6 +1123,38 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     AstNode parent = node.parent!;
     return parent is Combinator || parent is Label;
+  }
+
+  void _recordImportPrefixedElement({
+    required ImportPrefixReference? importPrefix,
+    required Token name,
+    required Element? element,
+  }) {
+    if (element == null) {
+      return;
+    }
+
+    if (importPrefix != null) {
+      final prefixElement = importPrefix.element;
+      if (prefixElement is PrefixElement) {
+        recordRelationToken(
+          importPrefix.element,
+          IndexRelationKind.IS_REFERENCED_BY,
+          importPrefix.name,
+          isQualified: false,
+        );
+        assembler.addPrefixForElement(element, prefix: prefixElement);
+      }
+    } else {
+      assembler.addPrefixForElement(element, prefix: null);
+    }
+
+    recordRelationToken(
+      element,
+      IndexRelationKind.IS_REFERENCED_BY,
+      name,
+      isQualified: importPrefix != null,
+    );
   }
 
   void _recordIsAncestorOf(Element descendant, InterfaceElement ancestor,

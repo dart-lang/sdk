@@ -13,7 +13,7 @@ namespace pe {
 
 #pragma pack(push, 1)
 
-static const intptr_t kPEOffsetOffset = 0x3c;
+static constexpr intptr_t kPEOffsetOffset = 0x3c;
 static const char kPEMagic[] = {'P', 'E', '\0', '\0'};
 
 struct coff_file_header {
@@ -39,10 +39,10 @@ struct coff_optional_header {
   uint32_t code_base_address;
 };
 
-static const uint16_t kPE32Magic = 0x10b;
-static const uint16_t kPE32PlusMagic = 0x20b;
+static constexpr uint16_t kPE32Magic = 0x10b;
+static constexpr uint16_t kPE32PlusMagic = 0x20b;
 
-static const intptr_t kCoffSectionNameSize = 8;
+static constexpr intptr_t kCoffSectionNameSize = 8;
 
 struct coff_section_header {
   char name[kCoffSectionNameSize];

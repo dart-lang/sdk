@@ -35,6 +35,89 @@ enum E<T> {
     );
   }
 
+  test_expression_topLevelVariable() async {
+    await assertNoErrorsInCode('''
+final a = 0;
+
+void f() {
+  a;
+}
+''');
+
+    final node = findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  staticElement: self::@getter::a
+  staticType: int
+''');
+  }
+
+  test_expression_topLevelVariable_constructor_returnBody() async {
+    await assertErrorsInCode('''
+final a = 0;
+
+class C {
+  C() {
+    return a;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 43, 1),
+    ]);
+
+    final node = findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  staticElement: self::@getter::a
+  staticType: int
+''');
+  }
+
+  test_expression_topLevelVariable_constructor_returnExpression() async {
+    await assertErrorsInCode('''
+final a = 0;
+
+class C {
+  C() => a;
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 30, 5),
+      error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR, 33, 1),
+    ]);
+
+    final node = findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  staticElement: self::@getter::a
+  staticType: int
+''');
+  }
+
+  test_expression_topLevelVariable_invocationArgument_afterNamed() async {
+    await assertNoErrorsInCode('''
+final a = 0;
+
+void foo(int a, {int? b}) {}
+
+void f() {
+  foo(b: 0, a);
+}
+''');
+
+    final node = findNode.simple('a);');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  parameter: self::@function::foo::@parameter::a
+  staticElement: self::@getter::a
+  staticType: int
+''');
+  }
+
   test_functionReference() async {
     noSoundNullSafety = false;
     await assertErrorsInCode('''
@@ -51,15 +134,15 @@ main() {}
       error(CompileTimeErrorCode.COULD_NOT_INFER, 66, 5),
     ]);
 
-    var identifier = findNode.simple('min]');
-    assertElement(
-      identifier,
-      elementMatcher(
-        findElement.importFind('dart:math').topFunction('min'),
-        isLegacy: true,
-      ),
-    );
-    assertType(identifier, 'T* Function<T extends num*>(T*, T*)*');
+    final node = findNode.simple('min]');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: min
+  staticElement: FunctionMember
+    base: dart:math::@function::min
+    isLegacy: true
+  staticType: T* Function<T extends num*>(T*, T*)*
+''');
   }
 
   test_implicitCall_tearOff_nullable() async {
@@ -208,7 +291,7 @@ extension E on ({int foo}) {
 SimpleIdentifier
   token: bar
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -284,7 +367,7 @@ extension E on (int, String) {
 SimpleIdentifier
   token: $3
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 }
@@ -325,7 +408,7 @@ main() {
     assertSimpleIdentifier(
       findNode.simple('dynamic;'),
       element: null,
-      type: 'dynamic',
+      type: 'InvalidType',
     );
   }
 

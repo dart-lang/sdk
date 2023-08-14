@@ -12,5 +12,8 @@ int test(int a, [int b]) {
 
 main() {
   // 1 positional arg, as expected. Param x does not exist.
-  test(10, x: 99); /*@compile-error=unspecified*/
+  test(10, x: 99);
+  //       ^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
+  // [cfe] No named parameter with the name 'x'.
 }

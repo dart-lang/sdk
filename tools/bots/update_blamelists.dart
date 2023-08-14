@@ -95,7 +95,7 @@ bool shouldUpdateRecord(ResultRecord resultRecord, Result? testResult) {
   return true;
 }
 
-void updateBlameLists(String configuration, String commit,
+Future<void> updateBlameLists(String configuration, String commit,
     Map<String, Map<String, dynamic>> testResults) async {
   int commitIndex = await getCommitIndex(commit);
   var query = unapprovedActiveFailuresQuery(configuration);
@@ -179,6 +179,6 @@ main(List<String> arguments) async {
   var project = options['staging'] ? 'dart-ci-staging' : 'dart-ci';
   database = FirestoreDatabase(
       project, await readGcloudAuthToken(options['auth-token']));
-  updateBlameLists(configuration, commit, results);
+  await updateBlameLists(configuration, commit, results);
   database.closeClient();
 }

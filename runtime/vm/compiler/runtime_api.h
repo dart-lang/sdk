@@ -215,7 +215,9 @@ uword SymbolsPredefinedAddress();
 #endif
 
 const Code& StubCodeAllocateArray();
-const Code& StubCodeSubtype3TestCache();
+const Code& StubCodeSubtype2TestCache();
+const Code& StubCodeSubtype4TestCache();
+const Code& StubCodeSubtype6TestCache();
 const Code& StubCodeSubtype7TestCache();
 
 class RuntimeEntry : public ValueObject {
@@ -443,6 +445,11 @@ class UntaggedAbstractType : public AllStatic {
 class UntaggedType : public AllStatic {
  public:
   static const word kTypeClassIdShift;
+};
+
+class UntaggedTypeParameter : public AllStatic {
+ public:
+  static const word kIsFunctionTypeParameterBit;
 };
 
 class Object : public AllStatic {
@@ -712,6 +719,7 @@ class Pointer : public AllStatic {
 class AbstractType : public AllStatic {
  public:
   static word flags_offset();
+  static word hash_offset();
   static word type_test_stub_entry_point_offset();
   static word InstanceSize();
   FINAL_CLASS();
@@ -719,7 +727,6 @@ class AbstractType : public AllStatic {
 
 class Type : public AllStatic {
  public:
-  static word hash_offset();
   static word arguments_offset();
   static word InstanceSize();
   FINAL_CLASS();
@@ -727,7 +734,6 @@ class Type : public AllStatic {
 
 class FunctionType : public AllStatic {
  public:
-  static word hash_offset();
   static word packed_parameter_counts_offset();
   static word packed_type_parameter_counts_offset();
   static word named_parameter_names_offset();
@@ -739,13 +745,6 @@ class FunctionType : public AllStatic {
 
 class RecordType : public AllStatic {
  public:
-  static word InstanceSize();
-  FINAL_CLASS();
-};
-
-class TypeRef : public AllStatic {
- public:
-  static word type_offset();
   static word InstanceSize();
   FINAL_CLASS();
 };
@@ -789,6 +788,8 @@ class OneByteString : public AllStatic {
   static word InstanceSize();
   FINAL_CLASS();
 
+  static const word kMaxNewSpaceElements;
+
  private:
   static word element_offset(intptr_t index);
 };
@@ -799,6 +800,8 @@ class TwoByteString : public AllStatic {
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
   FINAL_CLASS();
+
+  static const word kMaxNewSpaceElements;
 
  private:
   static word element_offset(intptr_t index);
@@ -977,10 +980,8 @@ class Bool : public AllStatic {
 
 class TypeParameter : public AllStatic {
  public:
-  static word bound_offset();
   static word InstanceSize();
   FINAL_CLASS();
-  static word parameterized_class_id_offset();
   static word index_offset();
 };
 
@@ -1126,11 +1127,6 @@ class StreamInfo : public AllStatic {
   static word enabled_offset();
 };
 
-class VMHandles : public AllStatic {
- public:
-  static constexpr intptr_t kOffsetOfRawPtrInHandle = kWordSize;
-};
-
 class MonomorphicSmiableCall : public AllStatic {
  public:
   static word expected_cid_offset();
@@ -1210,8 +1206,6 @@ class Thread : public AllStatic {
   static word saved_stack_limit_offset();
   static word unboxed_runtime_arg_offset();
 
-  static word callback_code_offset();
-  static word callback_stack_return_offset();
   static word tsan_utils_offset();
   static word jump_to_frame_entry_point_offset();
 
@@ -1323,6 +1317,8 @@ class ObjectStore : public AllStatic {
   static word string_type_offset();
   static word type_type_offset();
 
+  static word ffi_callback_code_offset();
+
   static word suspend_state_await_offset();
   static word suspend_state_await_with_type_check_offset();
   static word suspend_state_handle_exception_offset();
@@ -1341,7 +1337,6 @@ class Isolate : public AllStatic {
   static word default_tag_offset();
   static word current_tag_offset();
   static word user_tag_offset();
-  static word ic_miss_code_offset();
   static word finalizers_offset();
 #if !defined(PRODUCT)
   static word single_step_offset();
@@ -1437,7 +1432,9 @@ class WeakArray : public AllStatic {
 class SubtypeTestCache : public AllStatic {
  public:
   static word cache_offset();
+  static word num_inputs_offset();
 
+  static const word kMaxInputs;
   static const word kTestEntryLength;
   static const word kInstanceCidOrSignature;
   static const word kDestinationType;

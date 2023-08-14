@@ -28,7 +28,7 @@ declare_args() {
   dart_runtime_mode = "develop"
 
   # Explicitly set the target architecture to use a simulator.
-  # Available options are: arm, arm64, x64, ia32.
+  # Available options are: arm, arm64, x64, ia32, riscv32, riscv64.
   dart_target_arch = target_cpu
 
   # The optimization level to use for debug builds. Defaults to 0 for builds with
@@ -41,10 +41,6 @@ declare_args() {
   # Whether to fall back to built-in root certificates when they cannot be
   # verified at the operating system level.
   dart_use_fallback_root_certificates = false
-
-  # Whether to link the standalone VM against tcmalloc. The standalone build of
-  # the VM enables this only for Linux builds.
-  dart_use_tcmalloc = false
 
   # Whether to link Crashpad library for crash handling. Only supported on
   # Windows for now.
@@ -80,14 +76,15 @@ declare_args() {
 
   # Whether the sampling heap profiler should be included in product mode.
   dart_include_sampling_heap_profiler = false
+
+  # Whether features that depend on Perfetto should be built. We temporarily
+  # need to define this to allow excluding code that depends on Perfetto from
+  # being built on platforms which have a problem linking in the Perfetto
+  # library.
+  dart_support_perfetto = true
 }
 
 declare_args() {
-  # We create a kernel service app-jit snapshot only for when the target
-  # architecture is x64 for other cases we will use the '.dill' file
-  # which is already linked in the VM.
-  create_kernel_service_snapshot = dart_target_arch == "x64"
-
   # The analyze_snapshot tool is only supported on 64 bit AOT builds that use
   # ELF.
   build_analyze_snapshot =

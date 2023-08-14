@@ -48,6 +48,8 @@ class DartUnitHoverComputer {
       locationEntity = node.name;
     } else if (node is MethodDeclaration) {
       locationEntity = node.name;
+    } else if (node is NamedType) {
+      locationEntity = node.name2;
     } else if (node is ConstructorDeclaration) {
       locationEntity = node.name ?? node.returnType;
     } else if (node is VariableDeclaration) {
@@ -80,6 +82,7 @@ class DartUnitHoverComputer {
             node is Expression ||
             node is FormalParameter ||
             node is MethodDeclaration ||
+            node is NamedType ||
             node is ConstructorDeclaration ||
             node is VariableDeclaration ||
             node is VariablePattern ||
@@ -173,7 +176,7 @@ class DartUnitHoverComputer {
           staticType = element.type;
         } else if (parent is MethodInvocation && parent.methodName == node) {
           staticType = parent.staticInvokeType;
-          if (staticType != null && staticType.isDynamic) {
+          if (staticType != null && staticType is DynamicType) {
             staticType = null;
           }
         } else if (node is PatternFieldName && parent is PatternField) {

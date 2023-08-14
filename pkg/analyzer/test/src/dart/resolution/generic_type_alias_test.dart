@@ -214,7 +214,6 @@ void f() {
 }
 ''', [
       error(ParserErrorCode.EXPECTED_TYPE_NAME, 15, 1),
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 15, 0),
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 33, 1),
     ]);
   }
@@ -244,21 +243,17 @@ typedef G<T> = T Function(double);
     final node = findNode.namedType('G<int>');
     assertResolvedNodeText(node, r'''
 NamedType
-  name: SimpleIdentifier
-    token: G
-    staticElement: self::@typeAlias::G
-    staticType: null
+  name: G
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: SimpleIdentifier
-          token: int
-          staticElement: dart:core::@class::int
-          staticType: null
+        name: int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   question: ?
+  element: self::@typeAlias::G
   type: int Function(double)?
     alias: self::@typeAlias::G
       typeArguments

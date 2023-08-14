@@ -1,13 +1,13 @@
 This license is for the lsp_meta_model.json file.
 
 lsp_meta_model.license.txt downloaded from: https://microsoft.github.io/language-server-protocol/License.txt
-lsp_meta_model.json downloaded from: https://raw.githubusercontent.com/microsoft/vscode-languageserver-node/main/protocol/metaModel.json
+lsp_meta_model.json downloaded from: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/metaModel/metaModel.json
 
 --
 
 Copyright (c) Microsoft Corporation.
- 
-All rights reserved. 
+
+All rights reserved.
 
 Distributed under the following terms:
 

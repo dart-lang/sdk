@@ -1173,7 +1173,7 @@ transforms:
     - kind: 'rename'
       newName: 'New'
 ''');
-    addSource('$testPackageLibPath/test.config', '''
+    newFile('$testPackageLibPath/test.config', '''
 'Rename to New':
   bulkApply: true
 ''');

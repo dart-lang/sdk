@@ -232,6 +232,19 @@ external JS_BUILTIN(String typeDescription, JsBuiltin builtin,
 /// when the program has been analyzed.
 external bool JS_GET_FLAG(String name);
 
+/// Returns the underlying JavaScript exception. Must be used in a catch block.
+///
+///     try {
+///       ...
+///     } catch (e) {
+///       ... JS_RAW_EXCEPTION();
+///     }
+///
+/// `e` would reference the Dart exception, which may have been thrown by a Dart
+/// throw expression, or might be translated from a JavaScript exception. The
+/// raw exception is the exception seen at the JavaScript level.
+external Object JS_RAW_EXCEPTION();
+
 /// Returns a TypeReference to [T].
 external Rti TYPE_REF<T>();
 

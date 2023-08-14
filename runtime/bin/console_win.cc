@@ -23,7 +23,7 @@ namespace bin {
 
 class ConsoleWin {
  public:
-  static const int kInvalidFlag = -1;
+  static constexpr int kInvalidFlag = -1;
 
   static void Initialize() {
     saved_output_cp_ = kInvalidFlag;

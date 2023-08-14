@@ -171,6 +171,7 @@ namespace bin {
   V(Socket_SetRawOption, 4)                                                    \
   V(Socket_SetSocketId, 3)                                                     \
   V(Socket_WriteList, 4)                                                       \
+  V(Socket_HasPendingWrite, 1)                                                 \
   V(SocketControlMessage_fromHandles, 2)                                       \
   V(SocketControlMessageImpl_extractHandles, 1)                                \
   V(Stdin_ReadByte, 1)                                                         \
@@ -215,11 +216,11 @@ static const struct NativeEntries {
 Dart_NativeFunction IONativeLookup(Dart_Handle name,
                                    int argument_count,
                                    bool* auto_setup_scope) {
-  const char* function_name = NULL;
+  const char* function_name = nullptr;
   Dart_Handle result = Dart_StringToCString(name, &function_name);
   ASSERT(!Dart_IsError(result));
-  ASSERT(function_name != NULL);
-  ASSERT(auto_setup_scope != NULL);
+  ASSERT(function_name != nullptr);
+  ASSERT(auto_setup_scope != nullptr);
   *auto_setup_scope = true;
   int num_entries = sizeof(IOEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
@@ -229,7 +230,7 @@ Dart_NativeFunction IONativeLookup(Dart_Handle name,
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 const uint8_t* IONativeSymbol(Dart_NativeFunction nf) {
@@ -240,7 +241,7 @@ const uint8_t* IONativeSymbol(Dart_NativeFunction nf) {
       return reinterpret_cast<const uint8_t*>(entry->name_);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 }  // namespace bin

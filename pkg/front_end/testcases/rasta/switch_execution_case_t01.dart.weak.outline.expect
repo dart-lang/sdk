@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 
 static method test(dynamic value) → dynamic

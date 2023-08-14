@@ -5,16 +5,6 @@
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
-/// Special bottom type used to signal that an expression or statement does
-/// not complete normally. This is the case for instance of throw expressions
-/// and return statements.
-class DoesNotCompleteType extends ir.NeverType {
-  const DoesNotCompleteType() : super.internal(ir.Nullability.nonNullable);
-
-  @override
-  String toString() => 'DoesNotCompleteType()';
-}
-
 /// Special interface type used to signal that the static type of an expression
 /// has precision of a this-expression.
 class ThisInterfaceType extends ir.InterfaceType {
@@ -180,10 +170,10 @@ abstract class StaticTypeBase extends ir.TreeVisitor<ir.DartType> {
   }
 
   @override
-  ir.DartType visitThrow(ir.Throw node) => const DoesNotCompleteType();
+  ir.DartType visitThrow(ir.Throw node) => const ir.NeverType.nonNullable();
 
   @override
-  ir.DartType visitRethrow(ir.Rethrow node) => const DoesNotCompleteType();
+  ir.DartType visitRethrow(ir.Rethrow node) => const ir.NeverType.nonNullable();
 
   @override
   ir.DartType visitLogicalExpression(ir.LogicalExpression node) =>
@@ -225,7 +215,7 @@ abstract class StaticTypeBase extends ir.TreeVisitor<ir.DartType> {
 
   @override
   ir.DartType visitInvalidExpression(ir.InvalidExpression node) =>
-      const DoesNotCompleteType();
+      const ir.NeverType.nonNullable();
 
   @override
   ir.DartType visitLoadLibrary(ir.LoadLibrary node) {

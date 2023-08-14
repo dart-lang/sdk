@@ -8,15 +8,18 @@ import 'dart:developer';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_A = 22;
-const LINE_B = 23;
-const LINE_C = 27;
-const LINE_D = 30;
-const LINE_E = 37;
-const LINE_F = 38;
-const LINE_G = 39;
-const LINE_H = 28;
-const LINE_I = 32;
+const LINE_A = 25;
+const LINE_B = 26;
+const LINE_C = 30;
+const LINE_D = 33;
+const LINE_E = 40;
+const LINE_F = 41;
+const LINE_G = 42;
+const LINE_H = 31;
+const LINE_I = 35;
+
+const LINE_0 = 31;
+const LINE_1 = 39;
 
 foobar() async* {
   yield 1; // LINE_A.
@@ -26,20 +29,24 @@ foobar() async* {
 helper() async {
   print('helper'); // LINE_C.
   await for (var i in foobar()) /* LINE_H */ {
-    debugger();
+    debugger(); // LINE_0.
     print('loop'); // LINE_D.
   }
   return null; // LINE_I.
 }
 
 testMain() {
-  debugger();
+  debugger(); // LINE_1.
   print('mmmmm'); // LINE_E.
   helper(); // LINE_F.
   print('z'); // LINE_G.
 }
 
 var tests = <IsolateTest>[
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_1),
+  stepOver, // debugger.
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_E),
   stepOver, // print.

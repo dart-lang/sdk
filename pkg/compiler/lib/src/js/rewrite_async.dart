@@ -7,7 +7,7 @@ library rewrite_async;
 import 'dart:collection';
 import 'dart:math' show max;
 
-import 'package:js_runtime/synced/async_await_error_codes.dart' as error_codes;
+import 'package:js_runtime/synced/async_status_codes.dart' as status_codes;
 
 import '../common.dart';
 import '../util/util.dart' show Pair;
@@ -618,7 +618,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   ///
   /// Try/catch is implemented by maintaining [handler] to contain the label
   /// of the current handler. If [body] throws, the caller should catch the
-  /// error and recall [body] with first argument [error_codes.ERROR] and
+  /// error and recall [body] with first argument [status_codes.ERROR] and
   /// second argument the error.
   ///
   /// A `finally` clause is compiled similar to normal code, with the additional
@@ -795,8 +795,11 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   @override
   js.Expression visitAccess(js.PropertyAccess node) {
-    return withExpression2(node.receiver, node.selector,
-        (receiver, selector) => js.js('#[#]', [receiver, selector]));
+    return withExpression2(
+        node.receiver,
+        node.selector,
+        (receiver, selector) =>
+            js.PropertyAccess(receiver, selector).withInformationFrom(node));
   }
 
   @override
@@ -1919,7 +1922,7 @@ class AsyncRewriter extends AsyncRewriterBase {
             #returnAsyncRethrow;
       }""", {
       "errorCode": errorCodeName,
-      "ERROR": js.number(error_codes.ERROR),
+      "ERROR": js.number(status_codes.ERROR),
       "hasHandlerLabels": hasHandlerLabels,
       "currentError": currentError,
       "result": resultName,
@@ -1968,48 +1971,58 @@ class SyncStarRewriter extends AsyncRewriterBase {
   @override
   bool get isSyncStar => true;
 
-  /// Constructor creating the Iterable for a sync* method. Called with
-  /// [bodyName].
-  final js.Expression iterableFactory;
-  List<js.Expression>? iterableFactoryTypeArguments;
+  /// A parameter to the [bodyName] function that passes the controlling
+  /// `_SyncStarIterator`. This parameter is used to update the state of the
+  /// iterator.
+  late final String iteratorName;
 
-  /// A JS Expression that creates a marker showing that iteration is over.
-  ///
-  /// Called without arguments.
-  final js.Expression endOfIteration;
+  /// Property of the iterator that contains the current value.
+  final js.Expression iteratorCurrentValueProperty;
 
-  /// A JS Expression that creates a marker indication a 'yield*' statement.
-  ///
-  /// Called with the stream to yield from.
-  final js.Expression yieldStarExpression;
+  /// Property of the iterator that contains the uncaught exeception.
+  final js.Expression iteratorDatumProperty;
 
-  /// Used by sync* functions to throw exceptions.
-  final js.Expression uncaughtErrorExpression;
+  /// Property of the iterator that is bound to the `_yieldStar` method.
+  final js.Expression yieldStarSelector;
 
   SyncStarRewriter(DiagnosticReporter diagnosticListener, spannable,
-      {required this.endOfIteration,
-      required this.iterableFactory,
-      required this.iterableFactoryTypeArguments,
-      required this.yieldStarExpression,
-      required this.uncaughtErrorExpression,
+      {required this.iteratorCurrentValueProperty,
+      required this.iteratorDatumProperty,
+      required this.yieldStarSelector,
       required String safeVariableName(String proposedName),
       required js.Name bodyName})
       : super(diagnosticListener, spannable, safeVariableName, bodyName);
 
   /// Translates a yield/yield* in an sync*.
-  ///
-  /// `yield` in a sync* function just returns [value].
-  /// `yield*` wraps [value] in a [yieldStarExpression] and returns it.
   @override
   void addYield(js.DartYield node, js.Expression expression,
       js.JavaScriptNodeSourceInformation? sourceInformation) {
     if (node.hasStar) {
-      addStatement(js.Return(js.Call(yieldStarExpression, [expression])
-              .withSourceInformation(sourceInformation))
+      // ``yield* expression` is translated to:
+      //
+      //     return $iterator._yieldStar(expression);
+      //
+      // The `_yieldStar` method updates the state of the Iterator to 'enter'
+      // the expression and returns the SYNC_STAR_YIELD_STAR status code.
+      addStatement(js.Return(js.Call(
+              js.PropertyAccess(
+                  js.VariableUse(iteratorName), yieldStarSelector),
+              [expression]).withSourceInformation(sourceInformation))
           .withSourceInformation(sourceInformation));
     } else {
-      addStatement(
-          js.Return(expression).withSourceInformation(sourceInformation));
+      // `yield expression` is translated to:
+      //
+      //     return $iterator._current = expression, SYNC_STAR_YIELD;
+      //
+      // This sets the `_current` field of the Iterator and returns the
+      // SYNC_STAR_YIELD status code.
+      final store = js.Assignment(
+          js.PropertyAccess(
+              js.VariableUse(iteratorName), iteratorCurrentValueProperty),
+          expression);
+      addStatement(js.Return(
+              js.Binary(',', store, js.number(status_codes.SYNC_STAR_YIELD)))
+          .withSourceInformation(sourceInformation));
     }
   }
 
@@ -2051,17 +2064,18 @@ class SyncStarRewriter extends AsyncRewriterBase {
               #setGoto;
           }""", {
       "errorCode": errorCodeName,
-      "ERROR": js.number(error_codes.ERROR),
+      "ERROR": js.number(status_codes.ERROR),
       "setCurrentError": setCurrentError,
       "setGoto": setGoto,
     }).withSourceInformation(bodySourceInformation);
     js.Expression innerInnerFunction = js.js("""
-          function #body(#errorCode, #result) {
+          function #body(#iterator, #errorCode, #result) {
             #checkErrorCode;
             #helperBody;
           }""", {
       "helperBody": rewrittenBody,
       "errorCode": errorCodeName,
+      "iterator": iteratorName,
       "body": bodyName,
       "result": resultName,
       "checkErrorCode": checkErrorCode,
@@ -2081,26 +2095,20 @@ class SyncStarRewriter extends AsyncRewriterBase {
       "varDecl": variableDeclarations,
       "returnInnerInnerFunction": returnInnerInnerFunction,
     }).withSourceInformation(functionSourceInformation);
-    js.Expression callIterableFactory =
-        js.js("#iterableFactory(#innerFunction, #type)", {
-      "iterableFactory": iterableFactory,
-      "type": iterableFactoryTypeArguments,
-      "innerFunction": innerFunction,
-    }).withSourceInformation(bodySourceInformation);
-    js.Statement returnCallIterableFactory = js.Return(callIterableFactory)
-        .withSourceInformation(bodySourceInformation);
+    js.Statement returnInnerFunction =
+        js.Return(innerFunction).withSourceInformation(bodySourceInformation);
     return js.js("""
           function (#renamedParameters, #typeParameters) {
             if (#needsThis)
               var #self = this;
-            #returnCallIterableFactory;
+            #returnInnerFunction;
           }
           """, {
       "renamedParameters": renamedParameters,
       "typeParameters": typeParameters,
       "needsThis": analysis.hasThis,
       "self": selfName,
-      "returnCallIterableFactory": returnCallIterableFactory,
+      "returnInnerFunction": returnInnerFunction,
     }).withSourceInformation(functionSourceInformation) as js.Fun;
   }
 
@@ -2108,15 +2116,21 @@ class SyncStarRewriter extends AsyncRewriterBase {
   void addErrorExit(js.JavaScriptNodeSourceInformation? sourceInformation) {
     hasHandlerLabels = true; // TODO(sra): Add short form error handler.
     beginLabel(rethrowLabel);
-    js.Expression uncaughtErrorExpressionCall = js.js('#(#)', [
-      uncaughtErrorExpression,
-      currentError
-    ]).withSourceInformation(sourceInformation);
-    addStatement(js.Return(uncaughtErrorExpressionCall)
+    // Unguarded rethrow is translated to:
+    //
+    //     return $iterator._datum = exception, SYNC_STAR_UNCAUGHT_EXCEPTION;
+    //
+    // This stashes the exception on the Iterator and returns the
+    // SYNC_STAR_UNCAUGHT_EXCEPTION status code.
+    final store = js.Assignment(
+        js.PropertyAccess(js.VariableUse(iteratorName), iteratorDatumProperty),
+        currentError);
+    addStatement(js.Return(js.Binary(
+            ',', store, js.number(status_codes.SYNC_STAR_UNCAUGHT_EXCEPTION)))
         .withSourceInformation(sourceInformation));
   }
 
-  /// Returning from a sync* function returns an [endOfIteration] marker.
+  /// Returning from a sync* function returns the SYNC_STAR_DONE status code.
   @override
   void addSuccessExit(js.JavaScriptNodeSourceInformation? sourceInformation) {
     if (analysis.hasExplicitReturns) {
@@ -2124,10 +2138,8 @@ class SyncStarRewriter extends AsyncRewriterBase {
     } else {
       addStatement(js.Comment("implicit return"));
     }
-    js.Expression endOfIterationCall =
-        js.js('#()', [endOfIteration]).withSourceInformation(sourceInformation);
-    addStatement(
-        js.Return(endOfIterationCall).withSourceInformation(sourceInformation));
+    addStatement(js.Return(js.number(status_codes.SYNC_STAR_DONE))
+        .withSourceInformation(sourceInformation));
   }
 
   @override
@@ -2146,8 +2158,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
 
   @override
   void initializeNames() {
-    iterableFactoryTypeArguments =
-        processTypeArguments(iterableFactoryTypeArguments);
+    iteratorName = freshName('iterator');
   }
 }
 
@@ -2297,11 +2308,11 @@ class AsyncStarRewriter extends AsyncRewriterBase {
             #gotoError;
         }""", {
       "errorCode": errorCodeName,
-      "STREAM_WAS_CANCELED": js.number(error_codes.STREAM_WAS_CANCELED),
+      "STREAM_WAS_CANCELED": js.number(status_codes.STREAM_WAS_CANCELED),
       "updateNext": updateNext,
       "gotoCancelled": gotoCancelled,
       "break": breakStatement,
-      "ERROR": js.number(error_codes.ERROR),
+      "ERROR": js.number(status_codes.ERROR),
       "updateError": updateError,
       "gotoError": gotoError,
     }).withSourceInformation(bodySourceInformation);
@@ -2311,7 +2322,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
           #gotoError;
         }""", {
       "errorCode": errorCodeName,
-      "ERROR": js.number(error_codes.ERROR),
+      "ERROR": js.number(status_codes.ERROR),
       "updateError": updateError,
       "gotoError": gotoError,
     }).withSourceInformation(bodySourceInformation);
@@ -2374,7 +2385,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
     js.Expression asyncHelperCall =
         js.js("#asyncHelper(#currentError, #errorCode, #controller)", {
       "asyncHelper": asyncStarHelper,
-      "errorCode": js.number(error_codes.ERROR),
+      "errorCode": js.number(status_codes.ERROR),
       "currentError": currentError,
       "controller": controllerName
     }).withSourceInformation(sourceInformation);
@@ -2391,7 +2402,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
     js.Expression streamHelperCall =
         js.js("#streamHelper(null, #successCode, #controller)", {
       "streamHelper": asyncStarHelper,
-      "successCode": js.number(error_codes.SUCCESS),
+      "successCode": js.number(status_codes.SUCCESS),
       "controller": controllerName
     }).withSourceInformation(sourceInformation);
     addStatement(

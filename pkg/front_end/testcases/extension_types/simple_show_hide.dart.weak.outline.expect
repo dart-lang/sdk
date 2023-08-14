@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -17,7 +17,7 @@ static method test2(self::E2 e2) → dynamic
   ;
 static method test3(self::E3 e3) → dynamic
   ;
-static method MyInt|get#twice(lowered final core::int #this) → core::int
+static extension-member method MyInt|get#twice(lowered final core::int #this) → core::int
   ;
 static method test() → dynamic
   ;

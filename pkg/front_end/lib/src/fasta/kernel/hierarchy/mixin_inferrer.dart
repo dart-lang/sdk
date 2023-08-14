@@ -89,6 +89,12 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 
   @override
+  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
+      InlineType type, InlineClass superclass) {
+    return hierarchy.getInlineTypeArgumentsAsInstanceOf(type, superclass);
+  }
+
+  @override
   InterfaceType futureType(DartType type, Nullability nullability) {
     return new InterfaceType(
         hierarchy.futureClass, nullability, <DartType>[type]);

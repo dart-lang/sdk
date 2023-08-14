@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -11,11 +11,11 @@ extension E on self::C {
   method f = self::E|f;
   tearoff f = self::E|get#f;
 }
-static method E|f(lowered final self::C #this, core::String b) → void {}
-static method E|get#f(lowered final self::C #this) → (core::String) → void
+static extension-member method E|f(lowered final self::C #this, core::String b) → void {}
+static extension-member method E|get#f(lowered final self::C #this) → (core::String) → void
   return (core::String b) → void => self::E|f(#this, b);
 static method main() → void {
   dynamic b = "456";
   self::C c = new self::C::•();
-  self::E|f(c, b as{TypeError,ForDynamic,ForNonNullableByDefault} core::String);
+  self::E|f(c, b as{TypeError,ForDynamic} core::String);
 }

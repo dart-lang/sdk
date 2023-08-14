@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:collection/collection.dart';
 
-class AddMissingRequiredArgument extends CorrectionProducer {
+class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
   /// The name of the parameter that was missing.
   String _missingParameterName = '';
 
@@ -36,7 +36,9 @@ class AddMissingRequiredArgument extends CorrectionProducer {
     Element? targetElement;
     ArgumentList? argumentList;
 
-    if (node is SimpleIdentifier || node is ConstructorName) {
+    if (node is SimpleIdentifier ||
+        node is ConstructorName ||
+        node is NamedType) {
       var invocation = node.parent;
       if (invocation is MethodInvocation) {
         targetElement = invocation.methodName.staticElement;

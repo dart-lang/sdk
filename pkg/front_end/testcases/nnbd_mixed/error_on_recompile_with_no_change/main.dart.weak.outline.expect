@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "object_lib.dart" as obj;
 import "main_lib1.dart" as mai;
@@ -29,7 +29,7 @@ class AdaptorElement extends obj::RenderObject {
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as obj;
 import "dart:core" as core;
 
@@ -58,7 +58,7 @@ class RenderObject extends core::Object {
     ;
 }
 
-library;
+library /*isLegacy*/;
 import self as mai;
 import "object_lib.dart" as obj;
 import "main_lib2.dart" as mai2;
@@ -89,7 +89,7 @@ abstract class Adaptor extends mai::_Adaptor&RenderFoo&LibMixin {
     ;
 }
 
-library;
+library /*isLegacy*/;
 import self as mai2;
 import "object_lib.dart" as obj;
 import "dart:core" as core;

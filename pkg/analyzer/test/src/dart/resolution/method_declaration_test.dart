@@ -42,7 +42,7 @@ class B {
 ''');
 
     assertElement(
-      findNode.simple('a a'),
+      findNode.namedType('a a'),
       findElement.class_('a'),
     );
 

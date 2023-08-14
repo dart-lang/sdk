@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class AddMissingEnumLikeCaseClauses extends CorrectionProducer {
+class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
 
@@ -35,7 +35,11 @@ class AddMissingEnumLikeCaseClauses extends CorrectionProducer {
 
       var statementIndent = utils.getLinePrefix(node.offset);
       var singleIndent = utils.getIndent(1);
-      var location = utils.newCaseClauseAtEndLocation(node);
+      var location = utils.newCaseClauseAtEndLocation(
+        switchKeyword: node.switchKeyword,
+        leftBracket: node.leftBracket,
+        rightBracket: node.rightBracket,
+      );
 
       await builder.addDartFileEdit(file, (builder) {
         // TODO(brianwilkerson) Consider inserting the names in order into the

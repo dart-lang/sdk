@@ -52,7 +52,7 @@ void Assembler::call(const Address& address) {
 void Assembler::call(Label* label) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xE8);
-  static const int kSize = 5;
+  const int kSize = 5;
   EmitLabel(label, kSize);
 }
 
@@ -1692,8 +1692,8 @@ void Assembler::hlt() {
 void Assembler::j(Condition condition, Label* label, JumpDistance distance) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (label->IsBound()) {
-    static const int kShortSize = 2;
-    static const int kLongSize = 6;
+    const int kShortSize = 2;
+    const int kLongSize = 6;
     intptr_t offset = label->Position() - buffer_.Size();
     ASSERT(offset <= 0);
     if (Utils::IsInt(8, offset - kShortSize)) {
@@ -1737,8 +1737,8 @@ void Assembler::jmp(const Address& address) {
 void Assembler::jmp(Label* label, JumpDistance distance) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (label->IsBound()) {
-    static const int kShortSize = 2;
-    static const int kLongSize = 5;
+    const int kShortSize = 2;
+    const int kLongSize = 5;
     intptr_t offset = label->Position() - buffer_.Size();
     ASSERT(offset <= 0);
     if (Utils::IsInt(8, offset - kShortSize)) {
@@ -2586,7 +2586,7 @@ void Assembler::TransitionNativeToGenerated(Register scratch,
        compiler::Immediate(0));
 }
 
-static const intptr_t kNumberOfVolatileCpuRegisters = 3;
+static constexpr intptr_t kNumberOfVolatileCpuRegisters = 3;
 static const Register volatile_cpu_registers[kNumberOfVolatileCpuRegisters] = {
     EAX, ECX, EDX};
 

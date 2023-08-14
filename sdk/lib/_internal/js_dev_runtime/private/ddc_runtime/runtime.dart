@@ -21,7 +21,7 @@ import 'dart:_foreign_helper'
         spread;
 import 'dart:_interceptors'
     show
-        JavaScriptObject,
+        JavaScriptFunction,
         JSArray,
         JSInt,
         jsNull,
@@ -37,24 +37,35 @@ import 'dart:_js_helper'
         BooleanConversionAssertionError,
         DartIterator,
         DeferredNotLoadedError,
-        TypeErrorImpl,
-        JsLinkedHashMap,
+        getRtiForRecord,
         ImmutableMap,
-        PrivateSymbol,
-        ReifyFunctionTypes,
+        JsLinkedHashMap,
+        jsObjectGetPrototypeOf,
+        jsObjectSetPrototypeOf,
         NoReifyGeneric,
         notNull,
+        Primitives,
+        PrivateSymbol,
+        ReifyFunctionTypes,
+        TypeErrorImpl,
         undefined;
 import 'dart:_js_shared_embedded_names';
 import 'dart:_rti' as rti
     show
+        bindingRtiFromList,
         createRuntimeType,
         constructorRtiCachePropertyName,
         findType,
+        getFunctionParametersForDynamicChecks,
+        getGenericFunctionBounds,
         instanceType,
+        instantiatedGenericFunctionType,
         interfaceTypeRecipePropertyName,
+        isGenericFunctionType,
         isSubtype,
-        Rti;
+        Rti,
+        substitute,
+        rtiToString;
 
 export 'dart:_debugger' show getDynamicStats, clearDynamicStats, trackCall;
 
@@ -62,6 +73,7 @@ part 'utils.dart';
 part 'classes.dart';
 part 'rtti.dart';
 part 'types.dart';
+part 'records.dart';
 part 'errors.dart';
 part 'operations.dart';
 
@@ -96,18 +108,18 @@ bool polyfill(window) => JS('', '''(() => {
       $window.PannerNode = audioContext.createPanner().constructor;
     }
     if (typeof $window.AudioSourceNode == "undefined") {
-      $window.AudioSourceNode = MediaElementAudioSourceNode.__proto__;
+      $window.AudioSourceNode = Object.getPrototypeOf(MediaElementAudioSourceNode);
     }
     if (typeof $window.FontFaceSet == "undefined") {
       // CSS Font Loading is not supported on Edge.
       if (typeof $window.document.fonts != "undefined") {
-        $window.FontFaceSet = $window.document.fonts.__proto__.constructor;
+        $window.FontFaceSet = Object.getPrototypeOf($window.document.fonts).constructor;
       }
     }
     if (typeof $window.MemoryInfo == "undefined") {
       if (typeof $window.performance.memory != "undefined") {
         $window.MemoryInfo = function () {};
-        $window.MemoryInfo.prototype = $window.performance.memory.__proto__;
+        $window.MemoryInfo.prototype = Object.getPrototypeOf($window.performance.memory);
       }
     }
     if (typeof $window.Geolocation == "undefined") {
@@ -233,7 +245,9 @@ void hotRestart() {
   _cacheMaps.clear();
   JS('', '#.clear()', _nullComparisonSet);
   JS('', '#.clear()', constantMaps);
-  JS('', '#.clear()', deferredImports);
+  if (!_ddcDeferredLoading) {
+    JS('', '#.clear()', deferredImports);
+  }
 }
 
 /// Marks enqueuing an async operation.

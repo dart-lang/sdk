@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -32,10 +32,10 @@ abstract class C extends self::B {
   abstract method bar() → void;
 }
 static method f<T extends self::B*>(self::f::T* a) → void {
-  if(a is core::String*) {
+  if(a is{ForLegacy} core::String*) {
     a.{self::B::foo}(){() →* void};
   }
-  if(a is self::C*) {
+  if(a is{ForLegacy} self::C*) {
     a{self::f::T* & self::C* /* '*' & '*' = '*' */}.{self::C::bar}(){() →* void};
   }
 }

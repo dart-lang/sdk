@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=sealed-class
-
 // Allow subtypes of a sealed class or mixin to be sealed as well.
 import "package:expect/expect.dart";
 

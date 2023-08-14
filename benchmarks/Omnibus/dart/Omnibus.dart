@@ -15,8 +15,8 @@ import '../../BigIntParsePrint/dart/BigIntParsePrint.dart'
     as lib_BigIntParsePrint;
 import '../../Iterators/dart/Iterators.dart' as lib_Iterators;
 import '../../ListCopy/dart/ListCopy.dart' as lib_ListCopy;
-import '../../MapCopy/dart/MapCopy.dart' as lib_MapCopy;
 import '../../MD5/dart/md5.dart' as lib_MD5;
+import '../../MapCopy/dart/MapCopy.dart' as lib_MapCopy;
 import '../../RecordCollections/dart/RecordCollections.dart'
     as lib_RecordCollections;
 import '../../RuntimeType/dart/RuntimeType.dart' as lib_RuntimeType;

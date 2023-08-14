@@ -79,11 +79,6 @@ class Expectation {
   static final Expectation missingStaticWarning =
       Expectation._('MissingStaticWarning', group: fail);
 
-  /// An invocation of "pub get" exited with a non-zero exit code.
-  // TODO(rnystrom): Is this still used? If not, remove.
-  static final Expectation pubGetError =
-      Expectation._('PubGetError', group: fail);
-
   /// The stdout or stderr produced by the test was not valid UTF-8 and could
   /// not be decoded.
   // TODO(rnystrom): The only test that uses this expectation is the one that
@@ -180,7 +175,6 @@ class Expectation {
     missingCompileTimeError,
     staticWarning,
     missingStaticWarning,
-    pubGetError,
     nonUtf8Error,
     dartkCrash,
     dartkTimeout,

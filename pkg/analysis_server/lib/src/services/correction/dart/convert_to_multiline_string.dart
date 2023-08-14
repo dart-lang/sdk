@@ -9,7 +9,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
-class ConvertToMultilineString extends CorrectionProducer {
+class ConvertToMultilineString extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_MULTILINE_STRING;
 

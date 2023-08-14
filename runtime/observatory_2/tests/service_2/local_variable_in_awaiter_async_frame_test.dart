@@ -6,11 +6,12 @@ import 'dart:developer';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const int LINE_A = 12;
+const int LINE_A = 13;
+const int LINE_B = 14;
 
 Future<String> testFunction(String caption) async {
-  await Future.delayed(Duration(milliseconds: 1));
-  return caption;
+  await Future.delayed(Duration(milliseconds: 1)); // LINE_A
+  return caption; // LINE_B
 }
 
 testMain() async {
@@ -22,10 +23,16 @@ testMain() async {
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   setBreakpointAtLine(LINE_A),
+  setBreakpointAtLine(LINE_B),
   resumeIsolate,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
-  hasLocalVarInTopAwaiterStackFrame('caption'),
+  hasLocalVarInTopStackFrame('caption', 'frames'),
+  resumeIsolate,
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_B),
+  hasLocalVarInTopStackFrame('caption', 'asyncCausalFrames'),
+  hasLocalVarInTopStackFrame('caption', 'frames'),
   resumeIsolate,
 ];
 

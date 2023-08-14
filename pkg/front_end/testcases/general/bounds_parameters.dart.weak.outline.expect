@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -182,9 +182,9 @@ extension Extension1 on core::int {
 }
 static method method1(self::Class<dynamic> t1, dynamic t2, self::Class<dynamic> t3, self::Class<dynamic> t4, self::ConcreteClass t5, self::Class<self::ConcreteClass> t6, core::Object t7, core::int t8, {required self::G<self::Class<dynamic>> s1, required self::G<dynamic> s2, required self::G<self::Class<dynamic>> s3, required self::G<self::Class<dynamic>> s4, required self::G<self::ConcreteClass> s5, required self::G<self::Class<self::ConcreteClass>> s6, required self::G<core::Object> s7, required self::G<core::int> s8}) → void
   ;
-static method Extension1|method3(lowered final core::int #this, self::Class<dynamic> t1, dynamic t2, self::Class<dynamic> t3, self::Class<dynamic> t4, self::ConcreteClass t5, self::Class<self::ConcreteClass> t6, core::Object t7, core::int t8, {required self::G<self::Class<dynamic>> s1, required self::G<dynamic> s2, required self::G<self::Class<dynamic>> s3, required self::G<self::Class<dynamic>> s4, required self::G<self::ConcreteClass> s5, required self::G<self::Class<self::ConcreteClass>> s6, required self::G<core::Object> s7, required self::G<core::int> s8}) → void
+static extension-member method Extension1|method3(lowered final core::int #this, self::Class<dynamic> t1, dynamic t2, self::Class<dynamic> t3, self::Class<dynamic> t4, self::ConcreteClass t5, self::Class<self::ConcreteClass> t6, core::Object t7, core::int t8, {required self::G<self::Class<dynamic>> s1, required self::G<dynamic> s2, required self::G<self::Class<dynamic>> s3, required self::G<self::Class<dynamic>> s4, required self::G<self::ConcreteClass> s5, required self::G<self::Class<self::ConcreteClass>> s6, required self::G<core::Object> s7, required self::G<core::int> s8}) → void
   ;
-static method Extension1|get#method3(lowered final core::int #this) → (self::Class<dynamic>, dynamic, self::Class<dynamic>, self::Class<dynamic>, self::ConcreteClass, self::Class<self::ConcreteClass>, core::Object, core::int, {s1: self::G<self::Class<dynamic>>, s2: self::G<dynamic>, s3: self::G<self::Class<dynamic>>, s4: self::G<self::Class<dynamic>>, s5: self::G<self::ConcreteClass>, s6: self::G<self::Class<self::ConcreteClass>>, s7: self::G<core::Object>, s8: self::G<core::int>}) → void
+static extension-member method Extension1|get#method3(lowered final core::int #this) → (self::Class<dynamic>, dynamic, self::Class<dynamic>, self::Class<dynamic>, self::ConcreteClass, self::Class<self::ConcreteClass>, core::Object, core::int, {s1: self::G<self::Class<dynamic>>, s2: self::G<dynamic>, s3: self::G<self::Class<dynamic>>, s4: self::G<self::Class<dynamic>>, s5: self::G<self::ConcreteClass>, s6: self::G<self::Class<self::ConcreteClass>>, s7: self::G<core::Object>, s8: self::G<core::int>}) → void
   return (self::Class<dynamic> t1, dynamic t2, self::Class<dynamic> t3, self::Class<dynamic> t4, self::ConcreteClass t5, self::Class<self::ConcreteClass> t6, core::Object t7, core::int t8, {self::G<self::Class<dynamic>> s1, self::G<dynamic> s2, self::G<self::Class<dynamic>> s3, self::G<self::Class<dynamic>> s4, self::G<self::ConcreteClass> s5, self::G<self::Class<self::ConcreteClass>> s6, self::G<core::Object> s7, self::G<core::int> s8}) → void => self::Extension1|method3(#this, t1, t2, t3, t4, t5, t6, t7, t8, s1: s1, s2: s2, s3: s3, s4: s4, s5: s5, s6: s6, s7: s7, s8: s8);
 static method main() → dynamic
   ;

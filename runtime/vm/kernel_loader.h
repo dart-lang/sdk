@@ -65,7 +65,7 @@ class Mapping {
  public:
   bool Lookup(intptr_t canonical_name, VmType** handle) {
     typename MapType::Pair* pair = map_.LookupPair(canonical_name);
-    if (pair != NULL) {
+    if (pair != nullptr) {
       *handle = pair->value;
       return true;
     }

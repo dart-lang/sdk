@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -33,7 +33,7 @@ static method main() → dynamic {
   fooNum.{self::Foo::withCallback}((core::num x) → void {}){((core::num) → void) → void};
   fooNum.{self::Foo::mutableField} = 3;
   fooNum.{self::Foo::mutableField} = 2.5;
-  let final self::Foo<core::num> #t1 = fooNum in let final core::int #t2 = 3 in (#t1.{self::Foo::mutableCallbackField}{(core::num) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::num) → void)(#t2){(core::num) → void};
-  let final self::Foo<core::num> #t3 = fooNum in let final core::double #t4 = 2.5 in (#t3.{self::Foo::mutableCallbackField}{(core::num) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::num) → void)(#t4){(core::num) → void};
+  let final self::Foo<core::num> #t1 = fooNum in let final core::int #t2 = 3 in (#t1.{self::Foo::mutableCallbackField}{(core::num) → void} as{TypeError,CovarianceCheck} (core::num) → void)(#t2){(core::num) → void};
+  let final self::Foo<core::num> #t3 = fooNum in let final core::double #t4 = 2.5 in (#t3.{self::Foo::mutableCallbackField}{(core::num) → void} as{TypeError,CovarianceCheck} (core::num) → void)(#t4){(core::num) → void};
   fooNum.{self::Foo::mutableCallbackField} = (core::num x) → void {};
 }

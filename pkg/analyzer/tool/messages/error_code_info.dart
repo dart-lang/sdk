@@ -286,6 +286,7 @@ class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
   AnalyzerErrorCodeInfo(
       {super.comment,
       super.correctionMessage,
+      super.deprecatedMessage,
       super.documentation,
       super.hasPublishedDocs,
       super.isUnresolvedIdentifier,
@@ -438,6 +439,9 @@ abstract class ErrorCodeInfo {
   /// it.
   final String? correctionMessage;
 
+  /// If non-null, the deprecation message for this error code.
+  final String? deprecatedMessage;
+
   /// If present, user-facing documentation for the error.
   final String? documentation;
 
@@ -468,6 +472,7 @@ abstract class ErrorCodeInfo {
       this.sharedName,
       required this.problemMessage,
       this.correctionMessage,
+      this.deprecatedMessage,
       this.previousName});
 
   /// Decodes an [ErrorCodeInfo] object from its YAML representation.
@@ -475,6 +480,7 @@ abstract class ErrorCodeInfo {
       : this(
             comment: yaml['comment'] as String?,
             correctionMessage: yaml['correctionMessage'] as String?,
+            deprecatedMessage: yaml['deprecatedMessage'] as String?,
             documentation: yaml['documentation'] as String?,
             hasPublishedDocs: yaml['hasPublishedDocs'] as bool? ?? false,
             isUnresolvedIdentifier:

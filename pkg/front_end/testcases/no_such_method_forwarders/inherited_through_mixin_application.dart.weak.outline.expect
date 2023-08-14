@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -14,7 +14,7 @@ class C extends core::Object implements self::A {
   method noSuchMethod(core::Invocation i) → dynamic
     ;
   no-such-method-forwarder get g() → core::String?
-    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#g, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::String?;
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#g, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String?;
 }
 abstract class M extends self::A /*isMixinDeclaration*/  {
   method test() → dynamic

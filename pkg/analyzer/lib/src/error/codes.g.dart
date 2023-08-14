@@ -5,11 +5,15 @@
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart run --no-pub pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.
 // ignore_for_file: constant_identifier_names
+
+// While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
+// codes here.
+// ignore_for_file: deprecated_member_use_from_same_package
 
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/dart/error/hint_codes.g.dart";
@@ -789,6 +793,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try using 'new' to create the instance, or changing the import to not "
         "be deferred.",
     hasPublishedDocs: true,
+  );
+
+  static const CompileTimeErrorCode CONST_EVAL_EXTENSION_METHOD =
+      CompileTimeErrorCode(
+    'CONST_EVAL_EXTENSION_METHOD',
+    "Extension methods can't be used in constant expressions.",
+  );
+
+  static const CompileTimeErrorCode CONST_EVAL_FOR_ELEMENT =
+      CompileTimeErrorCode(
+    'CONST_EVAL_FOR_ELEMENT',
+    "Constant expressions don't support 'for' elements.",
+    correctionMessage:
+        "Try replacing the 'for' element with a spread, or removing 'const'.",
   );
 
   ///  16.12.2 Const: It is a compile-time error if evaluation of a constant
@@ -1892,7 +1910,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode ILLEGAL_ASYNC_RETURN_TYPE =
       CompileTimeErrorCode(
     'ILLEGAL_ASYNC_RETURN_TYPE',
-    "Functions marked 'async' must have a return type assignable to 'Future'.",
+    "Functions marked 'async' must have a return type which is a supertype of "
+        "'Future'.",
     correctionMessage:
         "Try fixing the return type of the function, or removing the modifier "
         "'async' from the function body.",
@@ -3100,6 +3119,28 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "superclass constraint.",
     hasPublishedDocs: true,
     uniqueName: 'MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the mixin that is not 'base'
+  ///  1: the name of the 'base' supertype
+  static const CompileTimeErrorCode MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE =
+      CompileTimeErrorCode(
+    'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+    "The mixin '{0}' must be 'base' because the supertype '{1}' is 'base'.",
+    hasPublishedDocs: true,
+    uniqueName: 'MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the mixin that is not 'final'
+  ///  1: the name of the 'final' supertype
+  static const CompileTimeErrorCode MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE =
+      CompileTimeErrorCode(
+    'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+    "The mixin '{0}' must be 'base' because the supertype '{1}' is 'final'.",
+    hasPublishedDocs: true,
+    uniqueName: 'MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE',
   );
 
   ///  No parameters.
@@ -6447,6 +6488,15 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const WarningCode INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION =
+      WarningCode(
+    'INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION',
+    "The annotation 'visibleOutsideTemplate' can only be applied to a member "
+        "of a class, enum, or mixin that is annotated with "
+        "'visibleForTemplate'.",
+  );
+
   ///  Parameters:
   ///  0: the name of the member
   static const WarningCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE =
@@ -7028,8 +7078,25 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage: "Try removing the cast pattern.",
   );
 
-  ///  This is the new replacement for [HintCode.UNNECESSARY_FINAL].
-  static const HintCode UNNECESSARY_FINAL = HintCode.UNNECESSARY_FINAL;
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_FINAL = WarningCode(
+    'UNNECESSARY_FINAL',
+    "The keyword 'final' isn't necessary because the parameter is implicitly "
+        "'final'.",
+    correctionMessage: "Try removing the 'final'.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the diagnostic being ignored
+  static const WarningCode UNNECESSARY_IGNORE = WarningCode(
+    'UNNECESSARY_IGNORE',
+    "The diagnostic '{0}' isn't produced at this location so it doesn't need "
+        "to be ignored.",
+    correctionMessage:
+        "Try removing the name from the list, or removing the whole comment if "
+        "this is the only name in the list.",
+  );
 
   ///  No parameters.
   static const WarningCode UNNECESSARY_NAN_COMPARISON_FALSE = WarningCode(

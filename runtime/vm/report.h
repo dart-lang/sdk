@@ -26,8 +26,8 @@ class Report : AllStatic {
     kBailout,
   };
 
-  static const bool AtLocation = false;
-  static const bool AfterLocation = true;
+  static constexpr bool AtLocation = false;
+  static constexpr bool AfterLocation = true;
 
   // Report an already formatted error via a long jump.
   DART_NORETURN static void LongJump(const Error& error);

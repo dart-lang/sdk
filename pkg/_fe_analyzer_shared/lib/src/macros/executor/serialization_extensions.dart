@@ -5,78 +5,74 @@ import 'serialization.dart';
 import '../api.dart';
 
 extension DeserializerExtensions on Deserializer {
-  T expectRemoteInstance<T>() {
+  T expectRemoteInstance<T extends Object>() {
     int id = expectInt();
 
-    // Server side we just return the cached remote instance by ID.
-    if (!serializationMode.isClient) {
-      return RemoteInstance.cached(id) as T;
+    // If cached, just return the instance. Only the ID should be sent.
+    RemoteInstance? cached = RemoteInstance.cached(id);
+    if (cached != null) {
+      return cached as T;
     }
 
     moveNext();
     RemoteInstanceKind kind = RemoteInstanceKind.values[expectInt()];
-    switch (kind) {
-      case RemoteInstanceKind.typeIntrospector:
-      case RemoteInstanceKind.identifierResolver:
-      case RemoteInstanceKind.namedStaticType:
-      case RemoteInstanceKind.staticType:
-      case RemoteInstanceKind.typeDeclarationResolver:
-      case RemoteInstanceKind.typeResolver:
-      case RemoteInstanceKind.typeInferrer:
+    final RemoteInstance instance = switch (kind) {
+      RemoteInstanceKind.typeIntrospector ||
+      RemoteInstanceKind.identifierResolver ||
+      RemoteInstanceKind.namedStaticType ||
+      RemoteInstanceKind.staticType ||
+      RemoteInstanceKind.typeDeclarationResolver ||
+      RemoteInstanceKind.typeResolver ||
+      RemoteInstanceKind.typeInferrer =>
         // These are simple wrappers, just pass in the kind
-        return new RemoteInstanceImpl(id: id, kind: kind) as T;
-      case RemoteInstanceKind.classDeclaration:
-        moveNext();
-        return _expectClassDeclaration(id) as T;
-      case RemoteInstanceKind.constructorDeclaration:
-        moveNext();
-        return _expectConstructorDeclaration(id) as T;
-      case RemoteInstanceKind.fieldDeclaration:
-        moveNext();
-        return _expectFieldDeclaration(id) as T;
-      case RemoteInstanceKind.functionDeclaration:
-        moveNext();
-        return _expectFunctionDeclaration(id) as T;
-      case RemoteInstanceKind.functionTypeAnnotation:
-        moveNext();
-        return _expectFunctionTypeAnnotation(id) as T;
-      case RemoteInstanceKind.functionTypeParameter:
-        moveNext();
-        return _expectFunctionTypeParameter(id) as T;
-      case RemoteInstanceKind.identifier:
-        moveNext();
-        return _expectIdentifier(id) as T;
-      case RemoteInstanceKind.introspectableClassDeclaration:
-        moveNext();
-        return _expectIntrospectableClassDeclaration(id) as T;
-      case RemoteInstanceKind.methodDeclaration:
-        moveNext();
-        return _expectMethodDeclaration(id) as T;
-      case RemoteInstanceKind.namedTypeAnnotation:
-        moveNext();
-        return _expectNamedTypeAnnotation(id) as T;
-      case RemoteInstanceKind.omittedTypeAnnotation:
-        moveNext();
-        return _expectOmittedTypeAnnotation(id) as T;
-      case RemoteInstanceKind.parameterDeclaration:
-        moveNext();
-        return _expectParameterDeclaration(id) as T;
-      case RemoteInstanceKind.recordFieldDeclaration:
-        moveNext();
-        return _expectRecordFieldDeclaration(id) as T;
-      case RemoteInstanceKind.recordTypeAnnotation:
-        moveNext();
-        return _expectRecordTypeAnnotation(id) as T;
-      case RemoteInstanceKind.typeAliasDeclaration:
-        moveNext();
-        return _expectTypeAliasDeclaration(id) as T;
-      case RemoteInstanceKind.typeParameterDeclaration:
-        moveNext();
-        return _expectTypeParameterDeclaration(id) as T;
-      case RemoteInstanceKind.variableDeclaration:
-        moveNext();
-        return _expectVariableDeclaration(id) as T;
-    }
+        new RemoteInstanceImpl(id: id, kind: kind),
+      RemoteInstanceKind.classDeclaration =>
+        (this..moveNext())._expectClassDeclaration(id),
+      RemoteInstanceKind.enumDeclaration =>
+        (this..moveNext())._expectEnumDeclaration(id),
+      RemoteInstanceKind.enumValueDeclaration =>
+        (this..moveNext())._expectEnumValueDeclaration(id),
+      RemoteInstanceKind.mixinDeclaration =>
+        (this..moveNext())._expectMixinDeclaration(id),
+      RemoteInstanceKind.constructorDeclaration =>
+        (this..moveNext())._expectConstructorDeclaration(id),
+      RemoteInstanceKind.fieldDeclaration =>
+        (this..moveNext())._expectFieldDeclaration(id),
+      RemoteInstanceKind.functionDeclaration =>
+        (this..moveNext())._expectFunctionDeclaration(id),
+      RemoteInstanceKind.functionTypeAnnotation =>
+        (this..moveNext())._expectFunctionTypeAnnotation(id),
+      RemoteInstanceKind.functionTypeParameter =>
+        (this..moveNext())._expectFunctionTypeParameter(id),
+      RemoteInstanceKind.identifier => (this..moveNext())._expectIdentifier(id),
+      RemoteInstanceKind.introspectableClassDeclaration =>
+        (this..moveNext())._expectIntrospectableClassDeclaration(id),
+      RemoteInstanceKind.introspectableEnumDeclaration =>
+        (this..moveNext())._expectIntrospectableEnumDeclaration(id),
+      RemoteInstanceKind.introspectableMixinDeclaration =>
+        (this..moveNext())._expectIntrospectableMixinDeclaration(id),
+      RemoteInstanceKind.library => (this..moveNext())._expectLibrary(id),
+      RemoteInstanceKind.methodDeclaration =>
+        (this..moveNext())._expectMethodDeclaration(id),
+      RemoteInstanceKind.namedTypeAnnotation =>
+        (this..moveNext())._expectNamedTypeAnnotation(id),
+      RemoteInstanceKind.omittedTypeAnnotation =>
+        (this..moveNext())._expectOmittedTypeAnnotation(id),
+      RemoteInstanceKind.parameterDeclaration =>
+        (this..moveNext())._expectParameterDeclaration(id),
+      RemoteInstanceKind.recordFieldDeclaration =>
+        (this..moveNext())._expectRecordFieldDeclaration(id),
+      RemoteInstanceKind.recordTypeAnnotation =>
+        (this..moveNext())._expectRecordTypeAnnotation(id),
+      RemoteInstanceKind.typeAliasDeclaration =>
+        (this..moveNext())._expectTypeAliasDeclaration(id),
+      RemoteInstanceKind.typeParameterDeclaration =>
+        (this..moveNext())._expectTypeParameterDeclaration(id),
+      RemoteInstanceKind.variableDeclaration =>
+        (this..moveNext())._expectVariableDeclaration(id),
+    };
+    RemoteInstance.cache(instance);
+    return instance as T;
   }
 
   Uri expectUri() => Uri.parse(expectString());
@@ -90,7 +86,7 @@ extension DeserializerExtensions on Deserializer {
     ];
   }
 
-  NamedTypeAnnotation _expectNamedTypeAnnotation(int id) =>
+  NamedTypeAnnotationImpl _expectNamedTypeAnnotation(int id) =>
       new NamedTypeAnnotationImpl(
         id: id,
         isNullable: expectBool(),
@@ -98,14 +94,14 @@ extension DeserializerExtensions on Deserializer {
         typeArguments: (this..moveNext())._expectRemoteInstanceList(),
       );
 
-  OmittedTypeAnnotation _expectOmittedTypeAnnotation(int id) {
+  OmittedTypeAnnotationImpl _expectOmittedTypeAnnotation(int id) {
     expectBool(); // Always `false`.
     return new OmittedTypeAnnotationImpl(
       id: id,
     );
   }
 
-  FunctionTypeAnnotation _expectFunctionTypeAnnotation(int id) =>
+  FunctionTypeAnnotationImpl _expectFunctionTypeAnnotation(int id) =>
       new FunctionTypeAnnotationImpl(
         id: id,
         isNullable: expectBool(),
@@ -115,7 +111,7 @@ extension DeserializerExtensions on Deserializer {
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
       );
 
-  FunctionTypeParameter _expectFunctionTypeParameter(int id) =>
+  FunctionTypeParameterImpl _expectFunctionTypeParameter(int id) =>
       new FunctionTypeParameterImpl(
         id: id,
         isNamed: expectBool(),
@@ -124,28 +120,30 @@ extension DeserializerExtensions on Deserializer {
         type: RemoteInstance.deserialize(this),
       );
 
-  Identifier _expectIdentifier(int id) => new IdentifierImpl(
+  IdentifierImpl _expectIdentifier(int id) => new IdentifierImpl(
         id: id,
         name: expectString(),
       );
 
-  ParameterDeclaration _expectParameterDeclaration(int id) =>
+  ParameterDeclarationImpl _expectParameterDeclaration(int id) =>
       new ParameterDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
         isNamed: (this..moveNext()).expectBool(),
         isRequired: (this..moveNext()).expectBool(),
         type: RemoteInstance.deserialize(this),
       );
 
-  RecordFieldDeclaration _expectRecordFieldDeclaration(int id) =>
+  RecordFieldDeclarationImpl _expectRecordFieldDeclaration(int id) =>
       new RecordFieldDeclarationImpl(
           id: id,
           identifier: expectRemoteInstance(),
+          library: RemoteInstance.deserialize(this),
           name: (this..moveNext()).expectNullableString(),
           type: (this..moveNext()).expectRemoteInstance());
 
-  RecordTypeAnnotation _expectRecordTypeAnnotation(int id) =>
+  RecordTypeAnnotationImpl _expectRecordTypeAnnotation(int id) =>
       new RecordTypeAnnotationImpl(
         id: id,
         isNullable: expectBool(),
@@ -153,17 +151,19 @@ extension DeserializerExtensions on Deserializer {
         positionalFields: (this..moveNext())._expectRemoteInstanceList(),
       );
 
-  TypeParameterDeclaration _expectTypeParameterDeclaration(int id) =>
+  TypeParameterDeclarationImpl _expectTypeParameterDeclaration(int id) =>
       new TypeParameterDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
         bound: (this..moveNext()).checkNull() ? null : expectRemoteInstance(),
       );
 
-  FunctionDeclaration _expectFunctionDeclaration(int id) =>
+  FunctionDeclarationImpl _expectFunctionDeclaration(int id) =>
       new FunctionDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
         isAbstract: (this..moveNext()).expectBool(),
         isExternal: (this..moveNext()).expectBool(),
         isGetter: (this..moveNext()).expectBool(),
@@ -175,10 +175,11 @@ extension DeserializerExtensions on Deserializer {
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
       );
 
-  MethodDeclaration _expectMethodDeclaration(int id) =>
+  MethodDeclarationImpl _expectMethodDeclaration(int id) =>
       new MethodDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
         isAbstract: (this..moveNext()).expectBool(),
         isExternal: (this..moveNext()).expectBool(),
         isGetter: (this..moveNext()).expectBool(),
@@ -188,14 +189,15 @@ extension DeserializerExtensions on Deserializer {
         positionalParameters: (this..moveNext())._expectRemoteInstanceList(),
         returnType: RemoteInstance.deserialize(this),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
-        definingClass: RemoteInstance.deserialize(this),
+        definingType: RemoteInstance.deserialize(this),
         isStatic: (this..moveNext()).expectBool(),
       );
 
-  ConstructorDeclaration _expectConstructorDeclaration(int id) =>
+  ConstructorDeclarationImpl _expectConstructorDeclaration(int id) =>
       new ConstructorDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
         isAbstract: (this..moveNext()).expectBool(),
         isExternal: (this..moveNext()).expectBool(),
         isGetter: (this..moveNext()).expectBool(),
@@ -205,7 +207,7 @@ extension DeserializerExtensions on Deserializer {
         positionalParameters: (this..moveNext())._expectRemoteInstanceList(),
         returnType: RemoteInstance.deserialize(this),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
-        definingClass: RemoteInstance.deserialize(this),
+        definingType: RemoteInstance.deserialize(this),
         // There is an extra boolean here representing the `isStatic` field
         // which we just skip past.
         isFactory: (this
@@ -215,30 +217,35 @@ extension DeserializerExtensions on Deserializer {
             .expectBool(),
       );
 
-  VariableDeclaration _expectVariableDeclaration(int id) =>
+  VariableDeclarationImpl _expectVariableDeclaration(int id) =>
       new VariableDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
         isExternal: (this..moveNext()).expectBool(),
         isFinal: (this..moveNext()).expectBool(),
         isLate: (this..moveNext()).expectBool(),
         type: RemoteInstance.deserialize(this),
       );
 
-  FieldDeclaration _expectFieldDeclaration(int id) => new FieldDeclarationImpl(
+  FieldDeclarationImpl _expectFieldDeclaration(int id) =>
+      new FieldDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
         isExternal: (this..moveNext()).expectBool(),
         isFinal: (this..moveNext()).expectBool(),
         isLate: (this..moveNext()).expectBool(),
         type: RemoteInstance.deserialize(this),
-        definingClass: RemoteInstance.deserialize(this),
+        definingType: RemoteInstance.deserialize(this),
         isStatic: (this..moveNext()).expectBool(),
       );
 
-  ClassDeclaration _expectClassDeclaration(int id) => new ClassDeclarationImpl(
+  ClassDeclarationImpl _expectClassDeclaration(int id) =>
+      new ClassDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         interfaces: (this..moveNext())._expectRemoteInstanceList(),
         hasAbstract: (this..moveNext()).expectBool(),
@@ -253,11 +260,12 @@ extension DeserializerExtensions on Deserializer {
             (this..moveNext()).checkNull() ? null : expectRemoteInstance(),
       );
 
-  IntrospectableClassDeclaration _expectIntrospectableClassDeclaration(
+  IntrospectableClassDeclarationImpl _expectIntrospectableClassDeclaration(
           int id) =>
       new IntrospectableClassDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         interfaces: (this..moveNext())._expectRemoteInstanceList(),
         hasAbstract: (this..moveNext()).expectBool(),
@@ -272,12 +280,71 @@ extension DeserializerExtensions on Deserializer {
             (this..moveNext()).checkNull() ? null : expectRemoteInstance(),
       );
 
-  TypeAliasDeclaration _expectTypeAliasDeclaration(int id) =>
+  EnumDeclarationImpl _expectEnumDeclaration(int id) => new EnumDeclarationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
+        typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        interfaces: (this..moveNext())._expectRemoteInstanceList(),
+        mixins: (this..moveNext())._expectRemoteInstanceList(),
+      );
+
+  IntrospectableEnumDeclarationImpl _expectIntrospectableEnumDeclaration(
+          int id) =>
+      new IntrospectableEnumDeclarationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
+        typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        interfaces: (this..moveNext())._expectRemoteInstanceList(),
+        mixins: (this..moveNext())._expectRemoteInstanceList(),
+      );
+
+  MixinDeclarationImpl _expectMixinDeclaration(int id) =>
+      new MixinDeclarationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
+        typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        hasBase: (this..moveNext()).expectBool(),
+        interfaces: (this..moveNext())._expectRemoteInstanceList(),
+        superclassConstraints: (this..moveNext())._expectRemoteInstanceList(),
+      );
+
+  IntrospectableMixinDeclarationImpl _expectIntrospectableMixinDeclaration(
+          int id) =>
+      new IntrospectableMixinDeclarationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
+        typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        hasBase: (this..moveNext()).expectBool(),
+        interfaces: (this..moveNext())._expectRemoteInstanceList(),
+        superclassConstraints: (this..moveNext())._expectRemoteInstanceList(),
+      );
+
+  EnumValueDeclarationImpl _expectEnumValueDeclaration(int id) =>
+      new EnumValueDeclarationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
+        definingEnum: RemoteInstance.deserialize(this),
+      );
+
+  TypeAliasDeclarationImpl _expectTypeAliasDeclaration(int id) =>
       new TypeAliasDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         aliasedType: RemoteInstance.deserialize(this),
+      );
+
+  LibraryImpl _expectLibrary(int id) => new LibraryImpl(
+        id: id,
+        languageVersion: new LanguageVersionImpl(
+            this.expectInt(), (this..moveNext()).expectInt()),
+        uri: (this..moveNext()).expectUri(),
       );
 
   List<String> _readStringList() => [
@@ -325,50 +392,39 @@ extension DeserializerExtensions on Deserializer {
   T expectCode<T extends Code>() {
     CodeKind kind = CodeKind.values[expectInt()];
 
-    switch (kind) {
-      case CodeKind.raw:
-        return new Code.fromParts(_readParts()) as T;
-      case CodeKind.declaration:
-        return new DeclarationCode.fromParts(_readParts()) as T;
-      case CodeKind.expression:
-        return new ExpressionCode.fromParts(_readParts()) as T;
-      case CodeKind.functionBody:
-        return new FunctionBodyCode.fromParts(_readParts()) as T;
-      case CodeKind.functionTypeAnnotation:
-        return new FunctionTypeAnnotationCode(
-            namedParameters: _readCodeList(),
-            positionalParameters: _readCodeList(),
-            returnType: (this..moveNext()).expectNullableCode(),
-            typeParameters: _readCodeList()) as T;
-      case CodeKind.namedTypeAnnotation:
-        return new NamedTypeAnnotationCode(
-            name: RemoteInstance.deserialize(this),
-            typeArguments: _readCodeList()) as T;
-      case CodeKind.nullableTypeAnnotation:
-        return new NullableTypeAnnotationCode((this..moveNext()).expectCode())
-            as T;
-      case CodeKind.omittedTypeAnnotation:
-        return new OmittedTypeAnnotationCode(RemoteInstance.deserialize(this))
-            as T;
-      case CodeKind.parameter:
-        return new ParameterCode(
-            defaultValue: (this..moveNext()).expectNullableCode(),
-            keywords: _readStringList(),
-            name: (this..moveNext()).expectNullableString(),
-            type: (this..moveNext()).expectNullableCode()) as T;
-      case CodeKind.recordField:
-        return new RecordFieldCode(
-            name: (this..moveNext()).expectNullableString(),
-            type: (this..moveNext()).expectCode()) as T;
-      case CodeKind.recordTypeAnnotation:
-        return new RecordTypeAnnotationCode(
-            namedFields: _readCodeList(),
-            positionalFields: _readCodeList()) as T;
-      case CodeKind.typeParameter:
-        return new TypeParameterCode(
-            bound: (this..moveNext()).expectNullableCode(),
-            name: (this..moveNext()).expectString()) as T;
-    }
+    return switch (kind) {
+      CodeKind.raw => new RawCode.fromParts(_readParts()) as T,
+      CodeKind.comment => new CommentCode.fromParts(_readParts()) as T,
+      CodeKind.declaration => new DeclarationCode.fromParts(_readParts()) as T,
+      CodeKind.expression => new ExpressionCode.fromParts(_readParts()) as T,
+      CodeKind.functionBody =>
+        new FunctionBodyCode.fromParts(_readParts()) as T,
+      CodeKind.functionTypeAnnotation => new FunctionTypeAnnotationCode(
+          namedParameters: _readCodeList(),
+          positionalParameters: _readCodeList(),
+          returnType: (this..moveNext()).expectNullableCode(),
+          typeParameters: _readCodeList()) as T,
+      CodeKind.namedTypeAnnotation => new NamedTypeAnnotationCode(
+          name: RemoteInstance.deserialize(this) as Identifier,
+          typeArguments: _readCodeList()) as T,
+      CodeKind.nullableTypeAnnotation =>
+        new NullableTypeAnnotationCode((this..moveNext()).expectCode()) as T,
+      CodeKind.omittedTypeAnnotation =>
+        new OmittedTypeAnnotationCode(RemoteInstance.deserialize(this)) as T,
+      CodeKind.parameter => new ParameterCode(
+          defaultValue: (this..moveNext()).expectNullableCode(),
+          keywords: _readStringList(),
+          name: (this..moveNext()).expectNullableString(),
+          type: (this..moveNext()).expectNullableCode()) as T,
+      CodeKind.recordField => new RecordFieldCode(
+          name: (this..moveNext()).expectNullableString(),
+          type: (this..moveNext()).expectCode()) as T,
+      CodeKind.recordTypeAnnotation => new RecordTypeAnnotationCode(
+          namedFields: _readCodeList(), positionalFields: _readCodeList()) as T,
+      CodeKind.typeParameter => new TypeParameterCode(
+          bound: (this..moveNext()).expectNullableCode(),
+          name: (this..moveNext()).expectString()) as T,
+    };
   }
 
   T? expectNullableCode<T extends Code>() {
@@ -479,6 +535,7 @@ extension SerializeCode on Code {
         self.bound.serializeNullable(serializer);
         serializer.addString(self.name);
         return;
+      case CodeKind.comment:
       case CodeKind.declaration:
       case CodeKind.expression:
       case CodeKind.raw:

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -71,7 +71,7 @@ class GenericEnum<T extends core::Object? = dynamic> extends core::_Enum /*isEnu
 }
 static method exhaustiveSwitch(self::Enum e) → void {
   #L1:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum */ {
     #L2:
     case #C3:
       {
@@ -94,7 +94,7 @@ static method exhaustiveSwitch(self::Enum e) → void {
 }
 static method nonExhaustiveSwitch1(self::Enum e) → void {
   #L5:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum */ {
     #L6:
     case #C3:
       {
@@ -111,7 +111,7 @@ static method nonExhaustiveSwitch1(self::Enum e) → void {
 }
 static method nonExhaustiveSwitch2(self::Enum e) → void {
   #L8:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum */ {
     #L9:
     case #C3:
       {
@@ -128,7 +128,7 @@ static method nonExhaustiveSwitch2(self::Enum e) → void {
 }
 static method nonExhaustiveSwitch3(self::Enum e) → void {
   #L11:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum */ {
     #L12:
     case #C6:
       {
@@ -145,7 +145,7 @@ static method nonExhaustiveSwitch3(self::Enum e) → void {
 }
 static method nonExhaustiveSwitch4(self::Enum e) → void {
   #L14:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum */ {
     #L15:
     case #C6:
       {
@@ -156,7 +156,7 @@ static method nonExhaustiveSwitch4(self::Enum e) → void {
 }
 static method nonExhaustiveSwitchWithDefault(self::Enum e) → void {
   #L16:
-  switch(e) {
+  switch(e) /* self::Enum */ {
     #L17:
     case #C6:
       {
@@ -173,7 +173,7 @@ static method nonExhaustiveSwitchWithDefault(self::Enum e) → void {
 }
 static method exhaustiveNullableSwitch(self::Enum? e) → void {
   #L19:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum? */ {
     #L20:
     case #C3:
       {
@@ -202,7 +202,7 @@ static method exhaustiveNullableSwitch(self::Enum? e) → void {
 }
 static method nonExhaustiveNullableSwitch1(self::Enum? e) → void {
   #L24:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum? */ {
     #L25:
     case #C3:
       {
@@ -225,7 +225,7 @@ static method nonExhaustiveNullableSwitch1(self::Enum? e) → void {
 }
 static method nonExhaustiveNullableSwitch2(self::Enum? e) → void {
   #L28:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum? */ {
     #L29:
     case #C3:
       {
@@ -248,7 +248,7 @@ static method nonExhaustiveNullableSwitch2(self::Enum? e) → void {
 }
 static method unreachableCase1(self::Enum e) → void {
   #L32:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum */ {
     #L33:
     case #C3:
       {
@@ -277,7 +277,7 @@ static method unreachableCase1(self::Enum e) → void {
 }
 static method unreachableCase2(self::Enum e) → void {
   #L37:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum */ {
     #L38:
     case #C3:
       {
@@ -300,7 +300,7 @@ static method unreachableCase2(self::Enum e) → void {
 }
 static method unreachableCase3(self::Enum e) → void {
   #L41:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum */ {
     #L42:
     case #C3:
       {
@@ -329,7 +329,7 @@ static method unreachableCase3(self::Enum e) → void {
 }
 static method unreachableCase4(self::Enum? e) → void {
   #L46:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::Enum? */ {
     #L47:
     case #C3:
       {
@@ -364,7 +364,7 @@ static method unreachableCase4(self::Enum? e) → void {
 }
 static method exhaustiveGenericSwitch(self::GenericEnum<dynamic> e) → void {
   #L52:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::GenericEnum<dynamic> */ {
     #L53:
     case #C11:
       {
@@ -387,7 +387,7 @@ static method exhaustiveGenericSwitch(self::GenericEnum<dynamic> e) → void {
 }
 static method exhaustiveGenericSwitchTyped(self::GenericEnum<core::int> e) → void {
   #L56:
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) /* isExplicitlyExhaustive, self::GenericEnum<core::int> */ {
     #L57:
     case #C11:
       {

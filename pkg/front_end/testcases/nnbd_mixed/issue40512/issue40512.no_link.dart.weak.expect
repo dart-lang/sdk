@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "issue40512_lib.dart" as baz2;
@@ -36,7 +36,7 @@ static method main() → void {
   core::print(new self::C::•());
 }
 
-library baz2;
+library baz2 /*isLegacy*/;
 import self as baz2;
 import "dart:core" as core;
 

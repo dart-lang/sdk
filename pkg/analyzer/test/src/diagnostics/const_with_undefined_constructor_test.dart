@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class ConstWithUndefinedConstructorTest extends PubPackageResolutionTest {
-  test_named() async {
+  test_class_named() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
@@ -29,7 +29,7 @@ f() {
     ]);
   }
 
-  test_named_prefixed() async {
+  test_class_named_prefixed() async {
     await assertErrorsInCode(r'''
 import 'dart:async' as a;
 f() {
@@ -44,7 +44,7 @@ f() {
     ]);
   }
 
-  test_nonFunctionTypedef() async {
+  test_class_nonFunctionTypedef() async {
     await assertErrorsInCode(r'''
 class A {
   const A.name();
@@ -59,7 +59,7 @@ f() {
     ]);
   }
 
-  test_unnamed() async {
+  test_class_unnamed() async {
     await assertErrorsInCode(r'''
 class A {
   const A.name();
@@ -74,7 +74,7 @@ f() {
     ]);
   }
 
-  test_unnamed_prefixed() async {
+  test_class_unnamed_prefixed() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 class A {
   const A.name();
@@ -89,6 +89,50 @@ f() {
       error(
           CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 49, 6,
           messageContains: ["'lib1.A'"]),
+    ]);
+  }
+
+  test_enum_notConstructor_constant() async {
+    await assertErrorsInCode(r'''
+void f() {
+  const E.v();
+}
+
+enum E {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 21, 1),
+    ]);
+  }
+
+  test_enum_notConstructor_method() async {
+    await assertErrorsInCode(r'''
+void f() {
+  const E.foo();
+}
+
+enum E {
+  v;
+  
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 21, 3),
+    ]);
+  }
+
+  test_enum_unresolved() async {
+    await assertErrorsInCode(r'''
+void f() {
+  const E.foo();
+}
+
+enum E {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 21, 3),
     ]);
   }
 }

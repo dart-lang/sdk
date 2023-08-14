@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -13,13 +13,13 @@ extension Extension1 on self::C {
   operator []= = self::Extension1|[]=;
   operator - = self::Extension1|-;
 }
-static method Extension1|[](lowered final self::C #this, core::int index) → self::C
+static extension-member method Extension1|[](lowered final self::C #this, core::int index) → self::C
   return let final self::C #t1 = #this in block {
     #t1.{self::C::value} = #t1.{self::C::value}{core::int}.{core::num::+}(index.{core::num::+}(1){(core::num) → core::int}){(core::num) → core::int};
   } =>#t1;
-static method Extension1|[]=(lowered final self::C #this, core::int index, self::C other) → void
+static extension-member method Extension1|[]=(lowered final self::C #this, core::int index, self::C other) → void
   return #this.{self::C::value} = #this.{self::C::value}{core::int}.{core::num::+}(other.{self::C::value}{core::int}.{core::num::+}(index){(core::num) → core::int}.{core::num::+}(1){(core::num) → core::int}){(core::num) → core::int};
-static method Extension1|-(lowered final self::C #this, core::int val) → self::C
+static extension-member method Extension1|-(lowered final self::C #this, core::int val) → self::C
   return #this;
 static method main() → dynamic {
   self::C c = new self::C::•();

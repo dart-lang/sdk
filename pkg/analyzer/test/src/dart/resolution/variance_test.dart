@@ -40,9 +40,8 @@ main() {
     ''');
 
     var node = findNode.methodInvocation('inferContraContra(');
-    assertResolvedNodeText(
-        node,
-        r'''
+    nodeTextConfiguration.skipArgumentList = true;
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
     token: inferContraContra
@@ -52,8 +51,7 @@ MethodInvocation
   staticType: Exactly<Middle>
   typeArgumentTypes
     Middle
-''',
-        skipArgumentList: true);
+''');
   }
 
   test_inference_in_parameter_downwards() async {
@@ -71,23 +69,19 @@ main() {
     ]);
 
     var node = findNode.instanceCreation('B(<num>');
-    assertResolvedNodeText(
-        node,
-        r'''
+    nodeTextConfiguration.skipArgumentList = true;
+    assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
-      name: SimpleIdentifier
-        token: B
-        staticElement: self::@class::B
-        staticType: null
+      name: B
+      element: self::@class::B
       type: B<num>
     staticElement: ConstructorMember
       base: self::@class::B::@constructor::new
       substitution: {T: num}
   staticType: B<num>
-''',
-        skipArgumentList: true);
+''');
   }
 
   test_inference_inout_parameter() async {
@@ -108,9 +102,8 @@ main() {
     ]);
 
     var node = findNode.methodInvocation('inferInvInv(');
-    assertResolvedNodeText(
-        node,
-        r'''
+    nodeTextConfiguration.skipArgumentList = true;
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
     token: inferInvInv
@@ -120,8 +113,7 @@ MethodInvocation
   staticType: Exactly<Object>
   typeArgumentTypes
     Object
-''',
-        skipArgumentList: true);
+''');
   }
 
   test_inference_out_parameter() async {
@@ -141,9 +133,8 @@ main() {
 ''');
 
     var node = findNode.methodInvocation('inferCovCov(');
-    assertResolvedNodeText(
-        node,
-        r'''
+    nodeTextConfiguration.skipArgumentList = true;
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
     token: inferCovCov
@@ -153,7 +144,6 @@ MethodInvocation
   staticType: Exactly<Upper>
   typeArgumentTypes
     Upper
-''',
-        skipArgumentList: true);
+''');
   }
 }

@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -12,7 +12,7 @@ import "org-dartlang-testcase:///main_declaration_lib.dart";
 
 static method main() → dynamic {}
 
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //

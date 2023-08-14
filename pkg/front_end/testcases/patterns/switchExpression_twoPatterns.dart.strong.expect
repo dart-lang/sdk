@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -9,7 +9,7 @@ static method f(dynamic x) → dynamic
     #L1:
     {
       {
-        if(#0#0 is{ForNonNullableByDefault} core::int) {
+        if(#0#0 is core::int) {
           #t1 = 0;
           break #L1;
         }

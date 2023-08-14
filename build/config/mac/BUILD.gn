@@ -6,10 +6,12 @@ import("//build/config/sysroot.gni")
 import("../clang/clang.gni")
 
 config("sdk") {
-  ldflags = [
-    "-nostdlib++",
-    "${clang_prefix}/../lib/libc++.a",
-  ]
+  if (!use_flutter_cxx) {
+    ldflags = [
+      "-nostdlib++",
+      "${clang_prefix}/../lib/libc++.a",
+    ]
+  }
 }
 
 # On Mac, this is used for everything except static libraries.

@@ -101,7 +101,7 @@ class ObjIndexPair {
   typedef intptr_t Value;
   typedef ObjIndexPair Pair;
 
-  static const intptr_t kNoIndex = -1;
+  static constexpr intptr_t kNoIndex = -1;
 
   ObjIndexPair()
       : key_(reinterpret_cast<uword>(nullptr),

@@ -157,12 +157,6 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void patternDoesNotAllowLate({required TreeNode pattern}) {
-    // TODO(johnniwinther): Is late even supported by the grammar or parser?
-    throw new UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
   InvalidExpression patternForInExpressionIsNotIterable({
     required TreeNode node,
     required Expression expression,

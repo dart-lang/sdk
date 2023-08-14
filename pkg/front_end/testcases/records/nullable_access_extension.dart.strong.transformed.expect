@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -29,7 +29,7 @@ static method method((core::int, {required a: core::String})? r) → dynamic {
     core::String? l7 = let final(core::int, {required a: core::String}) #t4 = r{(core::int, {required a: core::String})} in #t4 == null ?{core::String?} null : #t4.a{core::String};
   }
 }
-static method _extension#0|get#$1(lowered final(core::int, {required a: core::String})? #this) → core::int
+static extension-member method _extension#0|get#$1(lowered final(core::int, {required a: core::String})? #this) → core::int
   return 0;
-static method _extension#0|get#a(lowered final(core::int, {required a: core::String})? #this) → core::String
+static extension-member method _extension#0|get#a(lowered final(core::int, {required a: core::String})? #this) → core::String
   return "";

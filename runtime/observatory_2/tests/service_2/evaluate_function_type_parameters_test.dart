@@ -47,7 +47,7 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     var topFrame = 0;
     expect(stack.type, equals('Stack'));
-    expect(await stack['frames'][topFrame].location.getLine(), 14);
+    expect(await stack['frames'][topFrame].location.getLine(), 12);
 
     Instance result = await isolate.evalFrame(topFrame, "S.toString()");
     print(result);
@@ -60,7 +60,7 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     var topFrame = 0;
     expect(stack.type, equals('Stack'));
-    expect(await stack['frames'][topFrame].location.getLine(), 16);
+    expect(await stack['frames'][topFrame].location.getLine(), 15);
 
     Instance result = await isolate.evalFrame(topFrame, "TBool.toString()");
     print(result);
@@ -93,7 +93,7 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     var topFrame = 0;
     expect(stack.type, equals('Stack'));
-    expect(await stack['frames'][topFrame].location.getLine(), 22);
+    expect(await stack['frames'][topFrame].location.getLine(), 21);
 
     Instance result = await isolate.evalFrame(topFrame, "S.toString()");
     print(result);
@@ -106,7 +106,7 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     var topFrame = 0;
     expect(stack.type, equals('Stack'));
-    expect(await stack['frames'][topFrame].location.getLine(), 30);
+    expect(await stack['frames'][topFrame].location.getLine(), 29);
 
     Instance result = await isolate.evalFrame(topFrame, "T.toString()");
     print(result);
@@ -123,7 +123,7 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     var topFrame = 0;
     expect(stack.type, equals('Stack'));
-    expect(await stack['frames'][topFrame].location.getLine(), 34);
+    expect(await stack['frames'][topFrame].location.getLine(), 33);
 
     Instance result = await isolate.evalFrame(topFrame, "T.toString()");
     print(result);

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -32,12 +32,12 @@ extension Extension on self::Class {
   get instanceProperty = self::Extension|get#instanceProperty;
   set instanceProperty = self::Extension|set#instanceProperty;
 }
-static method Extension|instanceMethod(lowered final self::Class #this) → dynamic {}
-static method Extension|get#instanceMethod(lowered final self::Class #this) → () → dynamic
+static extension-member method Extension|instanceMethod(lowered final self::Class #this) → dynamic {}
+static extension-member method Extension|get#instanceMethod(lowered final self::Class #this) → () → dynamic
   return () → dynamic => self::Extension|instanceMethod(#this);
-static method Extension|get#instanceProperty(lowered final self::Class #this) → dynamic
+static extension-member method Extension|get#instanceProperty(lowered final self::Class #this) → dynamic
   return 42;
-static method Extension|set#instanceProperty(lowered final self::Class #this, dynamic value) → void {}
+static extension-member method Extension|set#instanceProperty(lowered final self::Class #this, dynamic value) → void {}
 static method main() → dynamic {
   invalid-expression "pkg/front_end/testcases/extensions/static_access_of_instance.dart:14:13: Error: Member not found: 'Extension.instanceMethod'.
   Extension.instanceMethod();

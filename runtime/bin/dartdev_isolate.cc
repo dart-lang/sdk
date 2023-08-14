@@ -221,7 +221,7 @@ void DartDevIsolate::DartDevRunner::RunCallback(uword args) {
   flags.is_system_isolate = true;
   flags.branch_coverage = false;
 
-  char* error;
+  char* error = nullptr;
   Dart_Isolate dartdev_isolate = runner->create_isolate_(
       DART_DEV_ISOLATE_NAME, DART_DEV_ISOLATE_NAME, nullptr,
       runner->packages_file_, &flags, /* callback_data */ nullptr,

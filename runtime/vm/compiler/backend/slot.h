@@ -78,7 +78,6 @@ class ParsedFunction;
   V(SuspendState, UntaggedSuspendState, function_data, Dynamic, VAR)           \
   V(SuspendState, UntaggedSuspendState, then_callback, Closure, VAR)           \
   V(SuspendState, UntaggedSuspendState, error_callback, Closure, VAR)          \
-  V(Type, UntaggedType, arguments, TypeArguments, FINAL)                       \
   V(TypeParameters, UntaggedTypeParameters, flags, Array, FINAL)               \
   V(TypeParameters, UntaggedTypeParameters, bounds, TypeArguments, FINAL)      \
   V(TypeParameters, UntaggedTypeParameters, defaults, TypeArguments, FINAL)    \
@@ -130,8 +129,8 @@ class ParsedFunction;
   V(Record, UntaggedRecord, shape, Smi, FINAL)                                 \
   V(TypeArguments, UntaggedTypeArguments, hash, Smi, VAR)                      \
   V(TypeArguments, UntaggedTypeArguments, length, Smi, FINAL)                  \
+  V(AbstractType, UntaggedTypeArguments, hash, Smi, VAR)                       \
   V(TypeParameters, UntaggedTypeParameters, names, Array, FINAL)               \
-  V(TypeParameter, UntaggedTypeParameter, bound, Dynamic, FINAL)               \
   V(UnhandledException, UntaggedUnhandledException, exception, Dynamic, FINAL) \
   V(UnhandledException, UntaggedUnhandledException, stacktrace, Dynamic, FINAL)
 
@@ -175,6 +174,7 @@ NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
 // unboxed slots represent length loads.
 #define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
   AOT_ONLY_UNBOXED_NATIVE_SLOTS_LIST(V)                                        \
+  V(AbstractType, UntaggedAbstractType, flags, Uint32, FINAL)                  \
   V(ClosureData, UntaggedClosureData, default_type_arguments_kind, Uint8,      \
     FINAL)                                                                     \
   V(FinalizerBase, UntaggedFinalizerBase, isolate, IntPtr, VAR)                \
@@ -185,7 +185,8 @@ NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
     FINAL)                                                                     \
   V(FunctionType, UntaggedFunctionType, packed_type_parameter_counts, Uint16,  \
     FINAL)                                                                     \
-  V(PointerBase, UntaggedPointerBase, data, IntPtr, VAR)
+  V(PointerBase, UntaggedPointerBase, data, IntPtr, VAR)                       \
+  V(SubtypeTestCache, UntaggedSubtypeTestCache, num_inputs, Uint32, FINAL)
 
 // For uses that do not need the exact_type (boxed) or representation (unboxed)
 // or whether a boxed native slot is nullable. (Generally, such users only need

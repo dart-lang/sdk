@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self;
 import "dart:core" as core;
 import "infer_statics_with_method_invocations_a.dart" as inf;
@@ -19,7 +19,7 @@ class T extends core::Object {
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as inf;
 import "dart:core" as core;
 

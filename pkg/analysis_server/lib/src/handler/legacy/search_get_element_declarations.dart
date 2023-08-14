@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart' as protocol;
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
@@ -23,53 +22,28 @@ class SearchGetElementDeclarationsHandler extends LegacyHandler {
     var params =
         protocol.SearchGetElementDeclarationsParams.fromRequest(request);
 
-    RegExp? regExp;
-    var pattern = params.pattern;
-    if (pattern != null) {
-      try {
-        regExp = RegExp(pattern);
-      } on FormatException catch (exception) {
-        server.sendResponse(protocol.Response.invalidParameter(
-            request, 'pattern', exception.message));
-        return;
-      }
-    }
-
     protocol.ElementKind getElementKind(search.DeclarationKind kind) {
-      switch (kind) {
-        case search.DeclarationKind.CLASS:
-          return protocol.ElementKind.CLASS;
-        case search.DeclarationKind.CLASS_TYPE_ALIAS:
-          return protocol.ElementKind.CLASS_TYPE_ALIAS;
-        case search.DeclarationKind.CONSTRUCTOR:
-          return protocol.ElementKind.CONSTRUCTOR;
-        case search.DeclarationKind.ENUM:
-          return protocol.ElementKind.ENUM;
-        case search.DeclarationKind.ENUM_CONSTANT:
-          return protocol.ElementKind.ENUM_CONSTANT;
-        case search.DeclarationKind.EXTENSION:
-          return protocol.ElementKind.EXTENSION;
-        case search.DeclarationKind.FIELD:
-          return protocol.ElementKind.FIELD;
-        case search.DeclarationKind.FUNCTION:
-          return protocol.ElementKind.FUNCTION;
-        case search.DeclarationKind.FUNCTION_TYPE_ALIAS:
-          return protocol.ElementKind.FUNCTION_TYPE_ALIAS;
-        case search.DeclarationKind.GETTER:
-          return protocol.ElementKind.GETTER;
-        case search.DeclarationKind.METHOD:
-          return protocol.ElementKind.METHOD;
-        case search.DeclarationKind.MIXIN:
-          return protocol.ElementKind.MIXIN;
-        case search.DeclarationKind.SETTER:
-          return protocol.ElementKind.SETTER;
-        case search.DeclarationKind.TYPE_ALIAS:
-          return protocol.ElementKind.TYPE_ALIAS;
-        case search.DeclarationKind.VARIABLE:
-          return protocol.ElementKind.TOP_LEVEL_VARIABLE;
-        default:
-          return protocol.ElementKind.CLASS;
-      }
+      return switch (kind) {
+        search.DeclarationKind.CLASS => protocol.ElementKind.CLASS,
+        search.DeclarationKind.CLASS_TYPE_ALIAS =>
+          protocol.ElementKind.CLASS_TYPE_ALIAS,
+        search.DeclarationKind.CONSTRUCTOR => protocol.ElementKind.CONSTRUCTOR,
+        search.DeclarationKind.ENUM => protocol.ElementKind.ENUM,
+        search.DeclarationKind.ENUM_CONSTANT =>
+          protocol.ElementKind.ENUM_CONSTANT,
+        search.DeclarationKind.EXTENSION => protocol.ElementKind.EXTENSION,
+        search.DeclarationKind.FIELD => protocol.ElementKind.FIELD,
+        search.DeclarationKind.FUNCTION => protocol.ElementKind.FUNCTION,
+        search.DeclarationKind.FUNCTION_TYPE_ALIAS =>
+          protocol.ElementKind.FUNCTION_TYPE_ALIAS,
+        search.DeclarationKind.GETTER => protocol.ElementKind.GETTER,
+        search.DeclarationKind.METHOD => protocol.ElementKind.METHOD,
+        search.DeclarationKind.MIXIN => protocol.ElementKind.MIXIN,
+        search.DeclarationKind.SETTER => protocol.ElementKind.SETTER,
+        search.DeclarationKind.TYPE_ALIAS => protocol.ElementKind.TYPE_ALIAS,
+        search.DeclarationKind.VARIABLE =>
+          protocol.ElementKind.TOP_LEVEL_VARIABLE,
+      };
     }
 
     if (!server.options.featureSet.completion) {
@@ -81,9 +55,14 @@ class SearchGetElementDeclarationsHandler extends LegacyHandler {
     var workspaceSymbols = search.WorkspaceSymbols();
     var analysisDrivers = server.driverMap.values.toList();
     await search.FindDeclarations(
-            analysisDrivers, workspaceSymbols, regExp, params.maxResults,
-            onlyForFile: params.file)
-        .compute();
+      analysisDrivers,
+      workspaceSymbols,
+      params.pattern ?? '',
+      params.maxResults,
+      onlyForFile: params.file,
+      ownedFiles: server.ownedFiles,
+      performance: performance,
+    ).compute();
 
     var declarations = workspaceSymbols.declarations;
     var elementDeclarations = declarations.map((declaration) {

@@ -327,7 +327,6 @@ abstract mixin class ListBase<E> implements List<E> {
 
   void shuffle([Random? random]) {
     random ??= Random();
-    if (random == null) throw "!"; // TODO(38493): The `??=` should promote.
 
     int length = this.length;
     while (length > 1) {
@@ -348,7 +347,6 @@ abstract mixin class ListBase<E> implements List<E> {
   List<E> sublist(int start, [int? end]) {
     int listLength = this.length;
     end ??= listLength;
-    if (end == null) throw "!"; // TODO(38493): The `??=` should promote.
 
     RangeError.checkValidRange(start, end, listLength);
     return List.from(getRange(start, end));
@@ -467,9 +465,6 @@ abstract mixin class ListBase<E> implements List<E> {
   int lastIndexOf(Object? element, [int? start]) {
     if (start == null || start >= this.length) start = this.length - 1;
 
-    // TODO(38493): The previous line should promote.
-    if (start == null) throw "!";
-
     for (int i = start; i >= 0; i--) {
       if (this[i] == element) return i;
     }
@@ -478,9 +473,6 @@ abstract mixin class ListBase<E> implements List<E> {
 
   int lastIndexWhere(bool test(E element), [int? start]) {
     if (start == null || start >= this.length) start = this.length - 1;
-
-    // TODO(38493): The previous line should promote.
-    if (start == null) throw "!";
 
     for (int i = start; i >= 0; i--) {
       if (test(this[i])) return i;

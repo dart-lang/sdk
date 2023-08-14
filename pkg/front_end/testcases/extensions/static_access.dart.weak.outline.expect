@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -18,21 +18,21 @@ extension Extension on self::Class {
   set instanceProperty = self::Extension|set#instanceProperty;
 }
 static field dynamic Extension|field;
-static method Extension|method() → dynamic
+static extension-member method Extension|method() → dynamic
   ;
-static method Extension|genericMethod<T extends core::Object? = dynamic>(self::Extension|genericMethod::T% t) → dynamic
+static extension-member method Extension|genericMethod<T extends core::Object? = dynamic>(self::Extension|genericMethod::T% t) → dynamic
   ;
-static get Extension|property() → dynamic
+static extension-member get Extension|property() → dynamic
   ;
-static set Extension|property(dynamic value) → void
+static extension-member set Extension|property(dynamic value) → void
   ;
-static method Extension|instanceMethod(lowered final self::Class #this) → dynamic
+static extension-member method Extension|instanceMethod(lowered final self::Class #this) → dynamic
   ;
-static method Extension|get#instanceMethod(lowered final self::Class #this) → () → dynamic
+static extension-member method Extension|get#instanceMethod(lowered final self::Class #this) → () → dynamic
   return () → dynamic => self::Extension|instanceMethod(#this);
-static method Extension|get#instanceProperty(lowered final self::Class #this) → dynamic
+static extension-member method Extension|get#instanceProperty(lowered final self::Class #this) → dynamic
   ;
-static method Extension|set#instanceProperty(lowered final self::Class #this, dynamic value) → void
+static extension-member method Extension|set#instanceProperty(lowered final self::Class #this, dynamic value) → void
   ;
 static method main() → dynamic
   ;

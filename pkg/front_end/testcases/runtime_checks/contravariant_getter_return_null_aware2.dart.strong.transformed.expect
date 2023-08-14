@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -22,15 +22,15 @@ class C<T extends core::Object? = dynamic> extends core::Object {
   }
 }
 static method g1(self::C<core::num>? c) → void {
-  (core::num) →? void x = let final self::C<core::num>? #t1 = c in #t1 == null ?{(core::num) →? void} null : #t1{self::C<core::num>}.{self::C::f1}{(core::num) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::num) → void;
+  (core::num) →? void x = let final self::C<core::num>? #t1 = c in #t1 == null ?{(core::num) →? void} null : #t1{self::C<core::num>}.{self::C::f1}{(core::num) → void} as{TypeError,CovarianceCheck} (core::num) → void;
   core::print("hello");
   let final (core::num) →? void #t2 = x in #t2 == null ?{void} null : #t2{(core::num) → void}(1.5){(core::num) → void};
 }
 static method g2(self::C<core::num>? c) → void {
-  (core::int) →? void x = let final self::C<core::num>? #t3 = c in #t3 == null ?{(core::num) →? void} null : #t3{self::C<core::num>}.{self::C::f1}{(core::num) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::num) → void;
+  (core::int) →? void x = let final self::C<core::num>? #t3 = c in #t3 == null ?{(core::num) →? void} null : #t3{self::C<core::num>}.{self::C::f1}{(core::num) → void} as{TypeError,CovarianceCheck} (core::num) → void;
   let final (core::int) →? void #t4 = x in #t4 == null ?{void} null : #t4{(core::int) → void}(1){(core::int) → void};
 }
 static method g3(self::C<core::num>? c) → void {
-  core::List<(core::num) → void>? x = let final self::C<core::num>? #t5 = c in #t5 == null ?{core::List<(core::num) → void>?} null : #t5{self::C<core::num>}.{self::C::f2}{core::List<(core::num) → void>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} core::List<(core::num) → void>;
+  core::List<(core::num) → void>? x = let final self::C<core::num>? #t5 = c in #t5 == null ?{core::List<(core::num) → void>?} null : #t5{self::C<core::num>}.{self::C::f2}{core::List<(core::num) → void>} as{TypeError,CovarianceCheck} core::List<(core::num) → void>;
 }
 static method main() → void {}

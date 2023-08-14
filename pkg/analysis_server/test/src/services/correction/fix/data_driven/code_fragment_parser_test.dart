@@ -23,21 +23,13 @@ void main() {
 }
 
 abstract class AbstractCodeFragmentParserTest {
+  // ignore:unreachable_from_main
   List<Accessor>? assertErrors(
       String content, List<ExpectedError> expectedErrors) {
     var errorListener = GatheringErrorListener();
     var accessors = _parser(errorListener).parseAccessors(content, 0);
     errorListener.assertErrors(expectedErrors);
     return accessors;
-  }
-
-  Expression assertErrorsInCondition(String content, List<String> variables,
-      List<ExpectedError> expectedErrors) {
-    var errorListener = GatheringErrorListener();
-    var expression = _parser(errorListener, variables: variables)
-        .parseCondition(content, 0)!;
-    errorListener.assertErrors(expectedErrors);
-    return expression;
   }
 
   List<Accessor> assertNoErrors(String content) {
@@ -56,6 +48,7 @@ abstract class AbstractCodeFragmentParserTest {
     return expression;
   }
 
+  // ignore:unreachable_from_main
   ExpectedError error(ErrorCode code, int offset, int length,
           {String? message,
           Pattern? messageContains,

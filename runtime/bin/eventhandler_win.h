@@ -12,9 +12,12 @@
 #include <mswsock.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <memory>
+#include <utility>
 
 #include "bin/builtin.h"
 #include "bin/reference_counting.h"
+#include "bin/socket_base.h"
 #include "bin/thread.h"
 
 namespace dart {
@@ -79,7 +82,7 @@ class OverlappedBuffer {
     return from_;
   }
   socklen_t* from_len_addr() const { return from_len_addr_; }
-  socklen_t from_len() const { return from_ == NULL ? 0 : *from_len_addr_; }
+  socklen_t from_len() const { return from_ == nullptr ? 0 : *from_len_addr_; }
 
   // Returns the address of the OVERLAPPED structure with all fields
   // initialized to zero.
@@ -97,6 +100,8 @@ class OverlappedBuffer {
 
   void set_data_length(int data_length) { data_length_ = data_length; }
 
+  void operator delete(void* buffer) { free(buffer); }
+
  private:
   OverlappedBuffer(int buffer_size, Operation operation)
       : operation_(operation), buflen_(buffer_size) {
@@ -113,8 +118,8 @@ class OverlappedBuffer {
       *from_len_addr_ = sizeof(struct sockaddr_storage);
       from_ = reinterpret_cast<struct sockaddr*>(from_len_addr_ + 1);
     } else {
-      from_len_addr_ = NULL;
-      from_ = NULL;
+      from_len_addr_ = nullptr;
+      from_ = nullptr;
     }
     index_ = 0;
     data_length_ = 0;
@@ -126,8 +131,6 @@ class OverlappedBuffer {
   void* operator new(size_t size, int buffer_size) {
     return malloc(size + buffer_size);
   }
-
-  void operator delete(void* buffer) { free(buffer); }
 
   // Allocate an overlapped buffer for thse specified amount of data and
   // operation. Some operations need additional buffer space, which is
@@ -269,7 +272,8 @@ class Handle : public ReferenceCounted<Handle>, public DescriptorInfoBase {
   HANDLE completion_port_;
   EventHandlerImplementation* event_handler_;
 
-  OverlappedBuffer* data_ready_;     // Buffer for data ready to be read.
+  std::unique_ptr<OverlappedBuffer>
+      data_ready_;                   // Buffer for data ready to be read.
   OverlappedBuffer* pending_read_;   // Buffer for pending read.
   OverlappedBuffer* pending_write_;  // Buffer for pending write
 
@@ -327,7 +331,7 @@ class StdHandle : public FileHandle {
   explicit StdHandle(HANDLE handle)
       : FileHandle(handle),
         thread_id_(Thread::kInvalidThreadId),
-        thread_handle_(NULL),
+        thread_handle_(nullptr),
         thread_wrote_(0),
         write_thread_exists_(false),
         write_thread_running_(false) {
@@ -386,17 +390,18 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
  public:
   explicit ListenSocket(intptr_t s)
       : DescriptorInfoMultipleMixin(s, true),
-        AcceptEx_(NULL),
+        AcceptEx_(nullptr),
+        GetAcceptExSockaddrs_(nullptr),
         pending_accept_count_(0),
-        accepted_head_(NULL),
-        accepted_tail_(NULL),
+        accepted_head_(nullptr),
+        accepted_tail_(nullptr),
         accepted_count_(0) {
     type_ = kListenSocket;
   }
   virtual ~ListenSocket() {
     ASSERT(!HasPendingAccept());
-    ASSERT(accepted_head_ == NULL);
-    ASSERT(accepted_tail_ == NULL);
+    ASSERT(accepted_head_ == nullptr);
+    ASSERT(accepted_tail_ == nullptr);
   }
 
   // Socket interface exposing normal socket operations.
@@ -418,8 +423,10 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
 
  private:
   bool LoadAcceptEx();
+  bool LoadGetAcceptExSockaddrs();
 
   LPFN_ACCEPTEX AcceptEx_;
+  LPFN_GETACCEPTEXSOCKADDRS GetAcceptExSockaddrs_;
 
   // The number of asynchronous `IssueAccept` operations which haven't completed
   // yet.
@@ -440,12 +447,14 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
 // Information on connected sockets.
 class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
  public:
-  explicit ClientSocket(intptr_t s)
+  explicit ClientSocket(intptr_t s,
+                        std::unique_ptr<RawAddr> remote_addr = nullptr)
       : DescriptorInfoSingleMixin(s, true),
-        DisconnectEx_(NULL),
-        next_(NULL),
+        DisconnectEx_(nullptr),
+        next_(nullptr),
         connected_(false),
-        closed_(false) {
+        closed_(false),
+        remote_addr_(std::move(remote_addr)) {
     LoadDisconnectEx();
     type_ = kClientSocket;
   }
@@ -454,7 +463,7 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
     // Don't delete this object until all pending requests have been handled.
     ASSERT(!HasPendingRead());
     ASSERT(!HasPendingWrite());
-    ASSERT(next_ == NULL);
+    ASSERT(next_ == nullptr);
     ASSERT(closed_ == true);
   }
 
@@ -465,12 +474,16 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
   virtual bool IssueWrite();
   void IssueDisconnect();
   void DisconnectComplete(OverlappedBuffer* buffer);
-
   void ConnectComplete(OverlappedBuffer* buffer);
 
   virtual void EnsureInitialized(EventHandlerImplementation* event_handler);
   virtual void DoClose();
   virtual bool IsClosed();
+
+  // If `ClientSocket` was constructed with a `remote_addr`, populate `addr`
+  // with that value and return `true`. Otherwise leave `addr` untouched and
+  // return `false`.
+  bool PopulateRemoteAddr(RawAddr& addr);
 
   ClientSocket* next() { return next_; }
   void set_next(ClientSocket* next) { next_ = next; }
@@ -491,6 +504,7 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
   ClientSocket* next_;
   bool connected_;
   bool closed_;
+  std::unique_ptr<RawAddr> remote_addr_;
 
 #if defined(DEBUG)
   static intptr_t disconnecting_;

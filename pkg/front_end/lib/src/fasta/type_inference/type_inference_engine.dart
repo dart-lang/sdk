@@ -19,7 +19,6 @@ import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/redirecting_factory_body.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'factor_type.dart';
@@ -164,6 +163,13 @@ abstract class TypeInferenceEngine {
   final Map<Member, TypeDependency> typeDependencies = {};
 
   final Instrumentation? instrumentation;
+
+  final Map<DartType, DartType> typeCacheNonNullable =
+      new Map<DartType, DartType>.identity();
+  final Map<DartType, DartType> typeCacheNullable =
+      new Map<DartType, DartType>.identity();
+  final Map<DartType, DartType> typeCacheLegacy =
+      new Map<DartType, DartType>.identity();
 
   TypeInferenceEngine(this.instrumentation);
 
@@ -312,16 +318,16 @@ abstract class TypeInferenceEngine {
 
   static Procedure _findSetFactory(CoreTypes coreTypes, String name) {
     Procedure factory = coreTypes.index.getProcedure('dart:core', 'Set', name);
-    RedirectingFactoryBody body =
-        factory.function.body as RedirectingFactoryBody;
-    return body.target as Procedure;
+    RedirectingFactoryTarget redirectingFactoryTarget =
+        factory.function.redirectingFactoryTarget!;
+    return redirectingFactoryTarget.target as Procedure;
   }
 
   static Procedure _findMapFactory(CoreTypes coreTypes, String name) {
     Procedure factory = coreTypes.index.getProcedure('dart:core', 'Map', name);
-    RedirectingFactoryBody body =
-        factory.function.body as RedirectingFactoryBody;
-    return body.target as Procedure;
+    RedirectingFactoryTarget redirectingFactoryTarget =
+        factory.function.redirectingFactoryTarget!;
+    return redirectingFactoryTarget.target as Procedure;
   }
 }
 
@@ -329,6 +335,10 @@ abstract class TypeInferenceEngine {
 /// kernel objects.
 class TypeInferenceEngineImpl extends TypeInferenceEngine {
   final Benchmarker? benchmarker;
+  final FunctionType unknownFunctionNonNullable =
+      new FunctionType(const [], const DynamicType(), Nullability.nonNullable);
+  final FunctionType unknownFunctionLegacy =
+      new FunctionType(const [], const DynamicType(), Nullability.legacy);
 
   TypeInferenceEngineImpl(Instrumentation? instrumentation, this.benchmarker)
       : super(instrumentation);
@@ -345,11 +355,28 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
     if (benchmarker == null) {
-      return new TypeInferrerImpl(this, uri, false, thisType, library,
-          assignedVariables, dataForTesting);
+      return new TypeInferrerImpl(
+          this,
+          uri,
+          false,
+          thisType,
+          library,
+          assignedVariables,
+          dataForTesting,
+          unknownFunctionNonNullable,
+          unknownFunctionLegacy);
     }
-    return new TypeInferrerImplBenchmarked(this, uri, false, thisType, library,
-        assignedVariables, dataForTesting, benchmarker!);
+    return new TypeInferrerImplBenchmarked(
+        this,
+        uri,
+        false,
+        thisType,
+        library,
+        assignedVariables,
+        dataForTesting,
+        benchmarker!,
+        unknownFunctionNonNullable,
+        unknownFunctionLegacy);
   }
 
   @override
@@ -364,11 +391,28 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
     if (benchmarker == null) {
-      return new TypeInferrerImpl(this, uri, true, thisType, library,
-          assignedVariables, dataForTesting);
+      return new TypeInferrerImpl(
+          this,
+          uri,
+          true,
+          thisType,
+          library,
+          assignedVariables,
+          dataForTesting,
+          unknownFunctionNonNullable,
+          unknownFunctionLegacy);
     }
-    return new TypeInferrerImplBenchmarked(this, uri, true, thisType, library,
-        assignedVariables, dataForTesting, benchmarker!);
+    return new TypeInferrerImplBenchmarked(
+        this,
+        uri,
+        true,
+        thisType,
+        library,
+        assignedVariables,
+        dataForTesting,
+        benchmarker!,
+        unknownFunctionNonNullable,
+        unknownFunctionLegacy);
   }
 }
 
@@ -415,7 +459,7 @@ class OperationsCfe
     implements Operations<VariableDeclaration, DartType> {
   final TypeEnvironment typeEnvironment;
 
-  final bool isNonNullableByDefault;
+  final Nullability nullability;
 
   /// If `null`, field promotion is disabled for this library.  If not `null`,
   /// field promotion is enabled for this library and this is the set of private
@@ -423,9 +467,19 @@ class OperationsCfe
   /// non-final field or a concrete getter.
   final Set<String>? unpromotablePrivateFieldNames;
 
+  final Map<DartType, DartType> typeCacheNonNullable;
+  final Map<DartType, DartType> typeCacheNullable;
+  final Map<DartType, DartType> typeCacheLegacy;
+
   OperationsCfe(this.typeEnvironment,
-      {required this.isNonNullableByDefault,
-      this.unpromotablePrivateFieldNames});
+      {required this.nullability,
+      this.unpromotablePrivateFieldNames,
+      required this.typeCacheNonNullable,
+      required this.typeCacheNullable,
+      required this.typeCacheLegacy});
+
+  @override
+  DartType get boolType => typeEnvironment.coreTypes.boolRawType(nullability);
 
   @override
   TypeClassification classifyType(DartType? type) {
@@ -478,7 +532,48 @@ class OperationsCfe
 
   @override
   DartType promoteToNonNull(DartType type) {
-    return type.toNonNull();
+    if (type.nullability == Nullability.nonNullable) {
+      return type;
+    }
+    DartType? cached = typeCacheNonNullable[type];
+    if (cached != null) {
+      return cached;
+    }
+    DartType result = type.toNonNull();
+    typeCacheNonNullable[type] = result;
+    return result;
+  }
+
+  DartType getNullableType(DartType type) {
+    // Note that the [IntersectionType.withDeclaredNullability] is special so
+    // we don't trust it.
+    if (type.declaredNullability == Nullability.nullable &&
+        type is! IntersectionType) {
+      return type;
+    }
+    DartType? cached = typeCacheNullable[type];
+    if (cached != null) {
+      return cached;
+    }
+    DartType result = type.withDeclaredNullability(Nullability.nullable);
+    typeCacheNullable[type] = result;
+    return result;
+  }
+
+  DartType getLegacyType(DartType type) {
+    // Note that the [IntersectionType.withDeclaredNullability] is special so
+    // we don't trust it.
+    if (type.declaredNullability == Nullability.legacy &&
+        type is! IntersectionType) {
+      return type;
+    }
+    DartType? cached = typeCacheLegacy[type];
+    if (cached != null) {
+      return cached;
+    }
+    DartType result = type.withDeclaredNullability(Nullability.legacy);
+    typeCacheLegacy[type] = result;
+    return result;
   }
 
   @override
@@ -523,7 +618,7 @@ class OperationsCfe
 
   @override
   bool isAssignableTo(DartType fromType, DartType toType) {
-    if (isNonNullableByDefault) {
+    if (nullability == Nullability.nonNullable) {
       if (fromType is DynamicType) return true;
       return typeEnvironment
           .performNullabilityAwareSubtypeCheck(fromType, toType)
@@ -538,6 +633,9 @@ class OperationsCfe
 
   @override
   bool isDynamic(DartType type) => type is DynamicType;
+
+  @override
+  bool isError(DartType type) => type is InvalidType;
 
   @override
   DartType lub(DartType type1, DartType type2) {
@@ -573,7 +671,7 @@ class OperationsCfe
     } else {
       InterfaceType? mapType = typeEnvironment.getTypeAsInstanceOf(
           type, typeEnvironment.coreTypes.mapClass, typeEnvironment.coreTypes,
-          isNonNullableByDefault: isNonNullableByDefault);
+          isNonNullableByDefault: nullability == Nullability.nonNullable);
       if (mapType == null) {
         return null;
       } else {
@@ -618,7 +716,7 @@ class OperationsCfe
     } else {
       InterfaceType? interfaceType = typeEnvironment.getTypeAsInstanceOf(type,
           typeEnvironment.coreTypes.iterableClass, typeEnvironment.coreTypes,
-          isNonNullableByDefault: isNonNullableByDefault);
+          isNonNullableByDefault: nullability == Nullability.nonNullable);
       if (interfaceType == null) {
         return null;
       } else {

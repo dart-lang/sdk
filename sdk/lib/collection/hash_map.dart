@@ -38,6 +38,10 @@ typedef _Hasher<K> = int Function(K object);
 /// called during a [forEach] or [putIfAbsent] call,
 /// or while iterating the map ([keys], [values] or [entries]).
 ///
+/// Do not modify keys in any way which changes their equality (and thus their
+/// hash code) while they are in the map. If a map key's [Object.hashCode]
+/// changes, it may cause future lookups for that key to fail.
+///
 /// Example:
 /// ```dart
 /// final Map<int, String> planets = HashMap(); // Is a HashMap

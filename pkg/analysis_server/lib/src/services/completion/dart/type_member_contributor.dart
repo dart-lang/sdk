@@ -9,6 +9,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
@@ -92,7 +94,7 @@ class TypeMemberContributor extends DartCompletionContributor {
   void _suggestFromInterfaceType(InterfaceType type,
       {required Set<String> excludedGetters, required bool includeSetters}) {
     _SuggestionBuilder(request, builder).buildSuggestions(
-        baseType: type,
+        type: type,
         excludedGetters: excludedGetters,
         includeSetters: includeSetters);
   }
@@ -101,12 +103,12 @@ class TypeMemberContributor extends DartCompletionContributor {
     required RecordType type,
     required Set<String> excludedFields,
   }) {
-    type.positionalFields.forEachIndexed((index, field) {
+    for (final (index, field) in type.positionalFields.indexed) {
       builder.suggestRecordField(
         field: field,
         name: '\$${index + 1}',
       );
-    });
+    }
 
     for (final field in type.namedFields) {
       if (!excludedFields.contains(field.name)) {
@@ -127,7 +129,7 @@ class TypeMemberContributor extends DartCompletionContributor {
     var type = expressionType != null
         ? request.libraryElement.typeSystem.resolveToBound(expressionType)
         : null;
-    if (type == null || type.isDynamic) {
+    if (type == null || type is DynamicType) {
       // If the expression does not provide a good type, then attempt to get a
       // better type from the element.
       if (expression is Identifier) {
@@ -139,7 +141,7 @@ class TypeMemberContributor extends DartCompletionContributor {
         } else if (elem is LocalVariableElement) {
           type = elem.type;
         }
-        if ((type == null || type.isDynamic) &&
+        if ((type == null || type is DynamicType) &&
             expression is SimpleIdentifier) {
           // If the element does not provide a good type, then attempt to get a
           // better type from a local declaration.
@@ -157,11 +159,10 @@ class TypeMemberContributor extends DartCompletionContributor {
     } else if (type is InterfaceType) {
       if (expression is SuperExpression) {
         _SuggestionBuilder(request, builder).buildSuggestions(
-          baseType: type.superclass ?? request.objectType,
+          type: type,
           excludedGetters: excludedGetters,
           includeSetters: includeSetters,
-          mixins: type.mixins,
-          superclassConstraints: type.superclassConstraints,
+          onlySuper: true,
         );
       } else {
         _suggestFromInterfaceType(type,
@@ -316,88 +317,49 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
   /// Initialize a newly created suggestion builder.
   _SuggestionBuilder(super.request, super.builder);
 
-  /// Add completion suggestions for 'dot' completions on the given [baseType].
-  /// If the 'dot' completion is a super expression, then [containingMethodName]
-  /// is the name of the method in which the completion is requested.
+  /// Add completion suggestions for 'dot' completions on the given [type].
+  /// If [onlySuper] is `true`, only valid super members will be suggested.
   void buildSuggestions(
-      {required InterfaceType baseType,
+      {required InterfaceType type,
       required Set<String> excludedGetters,
       required bool includeSetters,
-      List<InterfaceType>? mixins,
-      List<InterfaceType>? superclassConstraints}) {
-    // Visit all of the types in the class hierarchy, collecting possible
-    // completions.  If multiple elements are found that complete to the same
-    // identifier, addSuggestion will discard all but the first (with a few
-    // exceptions to handle getter/setter pairs).
-    var types = _getTypeOrdering(baseType);
-    if (mixins != null) {
-      types.addAll(mixins);
-    }
-    if (superclassConstraints != null) {
-      types.addAll(superclassConstraints);
-    }
-    for (var targetType in types) {
-      var inheritanceDistance = request.featureComputer
-          .inheritanceDistanceFeature(baseType.element, targetType.element);
-      for (var method in targetType.methods) {
+      bool onlySuper = false}) {
+    var inheritanceDistances = <InterfaceElement, double>{};
+    var substitution = Substitution.fromInterfaceType(type);
+    var map = onlySuper
+        ? request.inheritanceManager.getInheritedConcreteMap2(type.element)
+        : request.inheritanceManager.getInterface(type.element).map;
+
+    for (final rawMember in map.values) {
+      var member = ExecutableMember.from2(rawMember, substitution);
+      var enclosingInterface = member.enclosingElement as InterfaceElement;
+      var inheritanceDistance = inheritanceDistances.putIfAbsent(
+        enclosingInterface,
+        () => request.featureComputer
+            .inheritanceDistanceFeature(type.element, enclosingInterface),
+      );
+      if (member is MethodElement) {
         // Exclude static methods when completion on an instance.
-        if (!method.isStatic) {
+        if (!member.isStatic) {
           addSuggestionForMethod(
-            method: method,
+            method: member,
             kind: protocol.CompletionSuggestionKind.INVOCATION,
             inheritanceDistance: inheritanceDistance,
           );
         }
-      }
-      for (var accessor in targetType.accessors) {
-        if (!accessor.isStatic) {
-          if (accessor.isGetter && !excludedGetters.contains(accessor.name) ||
-              accessor.isSetter && includeSetters) {
+      } else if (member is PropertyAccessorElement) {
+        if (!member.isStatic) {
+          if (member.isGetter && !excludedGetters.contains(member.name) ||
+              member.isSetter && includeSetters) {
             addSuggestionForAccessor(
-                accessor: accessor, inheritanceDistance: inheritanceDistance);
+                accessor: member, inheritanceDistance: inheritanceDistance);
           }
         }
       }
-      if (targetType.isDartCoreFunction) {
-        builder.suggestFunctionCall();
-      }
     }
-  }
-
-  /// Get a list of [InterfaceType]s that should be searched to find the
-  /// possible completions for an object having type [type].
-  List<InterfaceType> _getTypeOrdering(InterfaceType type) {
-    // Candidate completions can come from [type] as well as any types above it
-    // in the class hierarchy (including mixins, superclasses, and interfaces).
-    // If a given completion identifier shows up in multiple types, we should
-    // use the element that is nearest in the superclass chain, so we will
-    // visit [type] first, then its mixins, then its superclass, then its
-    // superclass's mixins, etc., and only afterwards visit interfaces.
-    //
-    // We short-circuit loops in the class hierarchy by keeping track of the
-    // classes seen (not the interfaces) so that we won't be fooled by nonsense
-    // like "class C<T> extends C<List<T>> {}"
-    var result = <InterfaceType>[];
-    final classesSeen = <InterfaceElement>{};
-    var typesToVisit = <InterfaceType>[type];
-    while (typesToVisit.isNotEmpty) {
-      var nextType = typesToVisit.removeLast();
-      if (!classesSeen.add(nextType.element)) {
-        // Class had already been seen, so ignore this type.
-        continue;
-      }
-      result.add(nextType);
-      // typesToVisit is a stack, so push on the interfaces first, then the
-      // superclass, then the mixins.  This will ensure that they are visited
-      // in the reverse order.
-      typesToVisit.addAll(nextType.interfaces);
-      var superclass = nextType.superclass;
-      if (superclass != null) {
-        typesToVisit.add(superclass);
-      }
-      typesToVisit.addAll(nextType.superclassConstraints);
-      typesToVisit.addAll(nextType.mixins);
+    if ((type.isDartCoreFunction && !onlySuper) ||
+        type.allSupertypes.any((type) => type.isDartCoreFunction)) {
+      builder.suggestFunctionCall();
     }
-    return result;
   }
 }

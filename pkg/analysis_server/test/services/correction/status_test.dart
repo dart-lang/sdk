@@ -27,7 +27,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     var element = findElement.class_('MyClass');
     // check
     var location = newLocation_fromElement(element)!;
-    expect(location.file, testFile);
+    expect(location.file, testFile.path);
     expect(location.offset, 6);
     expect(location.length, 7);
     expect(location.startLine, 1);
@@ -50,7 +50,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
         sourceRange);
     // check
     var location = newLocation_fromMatch(match);
-    expect(location.file, testFile);
+    expect(location.file, testFile.path);
     expect(location.offset, sourceRange.offset);
     expect(location.length, sourceRange.length);
   }
@@ -63,7 +63,7 @@ void f() {
     var node = findNode.functionDeclaration('f');
     // check
     var location = newLocation_fromNode(node);
-    expect(location.file, testFile);
+    expect(location.file, testFile.path);
     expect(location.offset, node.offset);
     expect(location.length, node.length);
   }
@@ -73,7 +73,7 @@ void f() {
     var sourceRange = SourceRange(10, 20);
     // check
     var location = newLocation_fromUnit(testUnit, sourceRange);
-    expect(location.file, testFile);
+    expect(location.file, testFile.path);
     expect(location.offset, sourceRange.offset);
     expect(location.length, sourceRange.length);
   }

@@ -4,6 +4,8 @@
 
 /// Utility methods to compute the value of the features used for code
 /// completion.
+library;
+
 import 'dart:math' as math;
 
 import 'package:analysis_server/src/protocol_server.dart' as protocol
@@ -23,7 +25,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:collection/collection.dart';
 
 const List<String> intNames = ['i', 'j', 'index', 'length'];
 const List<String> listNames = ['list', 'items'];
@@ -165,7 +166,7 @@ class FeatureComputer {
     final contextType = node.accept(
       _ContextTypeVisitor(typeProvider, offset),
     );
-    if (contextType == null || contextType.isDynamic) {
+    if (contextType == null || contextType is DynamicType) {
       return null;
     }
     return typeSystem.resolveToBound(contextType);

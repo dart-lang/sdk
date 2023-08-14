@@ -1,4 +1,4 @@
-library test.mixin_library /*isNonNullableByDefault*/;
+library test.mixin_library;
 import self as self;
 import "dart:core" as core;
 

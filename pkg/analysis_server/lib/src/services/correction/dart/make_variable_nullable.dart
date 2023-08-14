@@ -16,7 +16,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class MakeVariableNullable extends CorrectionProducer {
+class MakeVariableNullable extends ResolvedCorrectionProducer {
   /// The name of the variable whose type is to be made nullable.
   String _variableName = '';
 

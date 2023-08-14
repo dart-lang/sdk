@@ -517,7 +517,6 @@ final class _BoxedInt extends int {
   }
 
   int get hashCode => _intHashCode(this);
-  int get _identityHashCode => _intHashCode(this);
 
   static int _intHashCode(int value) {
     const int magic = 0x2D51;

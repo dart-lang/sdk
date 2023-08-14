@@ -3,8 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/services/refactoring/convert_all_formal_parameters_to_named.dart';
+import 'package:analysis_server/src/services/refactoring/convert_selected_formal_parameters_to_named.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
+import 'package:analysis_server/src/services/refactoring/move_selected_formal_parameters_left.dart';
 import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.dart';
 
 /// A function that can be executed to create a refactoring producer.
@@ -13,6 +17,12 @@ typedef ProducerGenerator = RefactoringProducer Function(RefactoringContext);
 class RefactoringProcessor {
   /// A list of the generators used to produce refactorings.
   static const Map<String, ProducerGenerator> generators = {
+    ConvertAllFormalParametersToNamed.commandName:
+        ConvertAllFormalParametersToNamed.new,
+    ConvertSelectedFormalParametersToNamed.commandName:
+        ConvertSelectedFormalParametersToNamed.new,
+    MoveSelectedFormalParametersLeft.commandName:
+        MoveSelectedFormalParametersLeft.new,
     MoveTopLevelToFile.commandName: MoveTopLevelToFile.new,
   };
 
@@ -33,7 +43,8 @@ class RefactoringProcessor {
         continue;
       }
 
-      if (!producer.isAvailable()) {
+      final isAvailable = producer.isAvailable();
+      if (!isAvailable) {
         continue;
       }
 
@@ -50,12 +61,18 @@ class RefactoringProcessor {
         'that are not supported by the client',
       );
 
+      final command = entry.key;
+      assert(
+        (() => Commands.serverSupportedCommands.contains(command))(),
+        'serverSupportedCommands did not contain $command',
+      );
+
       refactorings.add(
         CodeAction(
             title: producer.title,
             kind: producer.kind,
             command: Command(
-              command: entry.key,
+              command: command,
               title: producer.title,
               arguments: [
                 {

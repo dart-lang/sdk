@@ -604,7 +604,7 @@ abstract class JMemberData {
       case JMemberDataKind.field:
         return JFieldDataImpl.readFromDataSource(source);
       case JMemberDataKind.constructor:
-        return JConstructorDataImpl.readFromDataSource(source);
+        return JConstructorData.readFromDataSource(source);
       case JMemberDataKind.constructorBody:
         return ConstructorBodyDataImpl.readFromDataSource(source);
       case JMemberDataKind.signature:
@@ -948,24 +948,21 @@ class GeneratorBodyFunctionData extends DelegatedFunctionData {
   StaticTypeCache get staticTypes => const StaticTypeCache();
 }
 
-abstract class JConstructorData extends FunctionData {}
-
-class JConstructorDataImpl extends FunctionDataImpl
-    implements JConstructorData {
+class JConstructorData extends FunctionDataImpl {
   /// Tag used for identifying serialized [JConstructorDataImpl] objects in a
   /// debugging data stream.
   static const String tag = 'constructor-data';
 
   JConstructorBody? constructorBody;
 
-  JConstructorDataImpl(
+  JConstructorData(
       super.node, super.functionNode, super.definition, super.staticTypes);
 
-  JConstructorDataImpl._deserialized(
+  JConstructorData._deserialized(
       super.node, super.functionNode, super.definition, super.staticTypes)
       : super._deserialized();
 
-  factory JConstructorDataImpl.readFromDataSource(DataSourceReader source) {
+  factory JConstructorData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Member node = source.readMemberNode();
     ir.FunctionNode functionNode;
@@ -981,7 +978,7 @@ class JConstructorDataImpl extends FunctionDataImpl
     Deferrable<StaticTypeCache> staticTypes = source
         .readDeferrable(() => StaticTypeCache.readFromDataSource(source, node));
     source.end(tag);
-    return JConstructorDataImpl._deserialized(
+    return JConstructorData._deserialized(
         node, functionNode, definition, staticTypes);
   }
 

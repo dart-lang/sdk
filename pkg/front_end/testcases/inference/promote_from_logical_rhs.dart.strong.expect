@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -10,7 +10,7 @@ import self as self;
 import "dart:core" as core;
 
 static method test(core::Object* a, core::bool* b) → void {
-  if(b && a is core::int*) {
+  if(b && a is{ForLegacy} core::int*) {
     core::print(a{core::int*});
   }
 }

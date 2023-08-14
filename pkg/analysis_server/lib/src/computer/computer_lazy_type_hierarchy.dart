@@ -11,7 +11,6 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
-import 'package:collection/collection.dart';
 
 /// A lazy computer for Type Hierarchies.
 ///
@@ -156,7 +155,7 @@ class DartLazyTypeHierarchyComputer {
     ];
 
     if (anchor != null) {
-      supertypes.forEachIndexed((index, item) {
+      for (final (index, item) in supertypes.indexed) {
         // We only need to carry the anchor along if the supertype has type
         // arguments that we may be populating.
         if (item._type.typeArguments.isNotEmpty) {
@@ -165,7 +164,7 @@ class DartLazyTypeHierarchyComputer {
             path: [...anchor.path, index],
           );
         }
-      });
+      }
     }
 
     return supertypes;

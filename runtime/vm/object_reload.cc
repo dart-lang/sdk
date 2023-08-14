@@ -790,7 +790,7 @@ void CallSiteResetter::Reset(const ICData& ic) {
   } else if (rule == ICData::kStatic || rule == ICData::kSuper) {
     old_target_ = ic.GetTargetAt(0);
     if (old_target_.IsNull()) {
-      FATAL("old_target is NULL.\n");
+      FATAL("old_target is nullptr.\n");
     }
     name_ = old_target_.name();
 
@@ -815,7 +815,7 @@ void CallSiteResetter::Reset(const ICData& ic) {
     args_desc_array_ = ic.arguments_descriptor();
     ArgumentsDescriptor args_desc(args_desc_array_);
     if (new_target_.IsNull() ||
-        !new_target_.AreValidArguments(args_desc, NULL)) {
+        !new_target_.AreValidArguments(args_desc, nullptr)) {
       // TODO(rmacnak): Patch to a NSME stub.
       VTIR_Print("Cannot rebind static call to %s from %s\n",
                  old_target_.ToCString(),

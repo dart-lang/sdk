@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -18,13 +18,13 @@ extension BoundExtension<T extends self::Class> on T {
   method method2 = self::BoundExtension|method2;
   tearoff method2 = self::BoundExtension|get#method2;
 }
-static method Extension|method1<T extends core::Object? = dynamic>(lowered final self::Extension|method1::T% #this) → self::Extension|method1::T%
+static extension-member method Extension|method1<T extends core::Object? = dynamic>(lowered final self::Extension|method1::T% #this) → self::Extension|method1::T%
   ;
-static method Extension|get#method1<T extends core::Object? = dynamic>(lowered final self::Extension|get#method1::T% #this) → () → self::Extension|get#method1::T%
+static extension-member method Extension|get#method1<T extends core::Object? = dynamic>(lowered final self::Extension|get#method1::T% #this) → () → self::Extension|get#method1::T%
   return () → self::Extension|get#method1::T% => self::Extension|method1<self::Extension|get#method1::T%>(#this);
-static method BoundExtension|method2<T extends self::Class>(lowered final self::BoundExtension|method2::T #this) → self::BoundExtension|method2::T
+static extension-member method BoundExtension|method2<T extends self::Class>(lowered final self::BoundExtension|method2::T #this) → self::BoundExtension|method2::T
   ;
-static method BoundExtension|get#method2<T extends self::Class>(lowered final self::BoundExtension|get#method2::T #this) → () → self::BoundExtension|get#method2::T
+static extension-member method BoundExtension|get#method2<T extends self::Class>(lowered final self::BoundExtension|get#method2::T #this) → () → self::BoundExtension|get#method2::T
   return () → self::BoundExtension|get#method2::T => self::BoundExtension|method2<self::BoundExtension|get#method2::T>(#this);
 static method test1<T extends core::Object? = dynamic>(self::test1::T% t1) → self::Class
   ;

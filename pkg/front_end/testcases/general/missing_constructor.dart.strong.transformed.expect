@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -14,9 +14,9 @@ library /*isNonNullableByDefault*/;
 //   Bad.foo() : this();
 //               ^^^^
 //
-// pkg/front_end/testcases/general/missing_constructor.dart:16:15: Error: Couldn't find constructor 'Bad.baz'.
+// pkg/front_end/testcases/general/missing_constructor.dart:16:20: Error: Couldn't find constructor 'Bad.baz'.
 //   Bad.bar() : this.baz();
-//               ^^^^
+//                    ^^^
 //
 // pkg/front_end/testcases/general/missing_constructor.dart:22:24: Error: Superclass has no constructor named 'Super'.
 //   MixinApplication() : super();
@@ -53,9 +53,9 @@ class Bad extends core::Object {
               ^^^^"
     ;
   constructor bar() → self::Bad
-    : final dynamic #t4 = invalid-expression "pkg/front_end/testcases/general/missing_constructor.dart:16:15: Error: Couldn't find constructor 'Bad.baz'.
+    : final dynamic #t4 = invalid-expression "pkg/front_end/testcases/general/missing_constructor.dart:16:20: Error: Couldn't find constructor 'Bad.baz'.
   Bad.bar() : this.baz();
-              ^^^^"
+                   ^^^"
     ;
 }
 abstract class M extends core::Object /*isMixinDeclaration*/  {

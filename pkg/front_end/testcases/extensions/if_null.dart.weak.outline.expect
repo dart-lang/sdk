@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
@@ -23,13 +23,13 @@ extension Extension on self::Class* {
   tearoff method = self::Extension|get#method;
   set property = self::Extension|set#property;
 }
-static method Extension|get#property(lowered final self::Class* #this) → core::int*
+static extension-member method Extension|get#property(lowered final self::Class* #this) → core::int*
   ;
-static method Extension|set#property(lowered final self::Class* #this, core::int* value) → void
+static extension-member method Extension|set#property(lowered final self::Class* #this, core::int* value) → void
   ;
-static method Extension|method(lowered final self::Class* #this) → core::int*
+static extension-member method Extension|method(lowered final self::Class* #this) → core::int*
   ;
-static method Extension|get#method(lowered final self::Class* #this) → () →* core::int*
+static extension-member method Extension|get#method(lowered final self::Class* #this) → () →* core::int*
   return () → core::int* => self::Extension|method(#this);
 static method main() → dynamic
   ;

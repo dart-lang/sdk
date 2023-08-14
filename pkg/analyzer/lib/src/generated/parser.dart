@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/parser/type_info.dart' as fasta;
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';

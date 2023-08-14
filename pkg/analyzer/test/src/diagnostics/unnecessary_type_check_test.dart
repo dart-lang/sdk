@@ -152,6 +152,16 @@ class UnnecessaryTypeCheckFalseWithoutNullSafetyTest
 @reflectiveTest
 class UnnecessaryTypeCheckTrueTest extends PubPackageResolutionTest
     with UnnecessaryTypeCheckTrueTestCases {
+  test_expressionInvalidType() async {
+    await assertErrorsInCode(r'''
+void f(A a) {
+  a is num;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 1),
+    ]);
+  }
+
   test_typeNonNullable_is_same() async {
     await assertErrorsInCode(r'''
 void f(int a) {

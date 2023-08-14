@@ -10,5 +10,10 @@ method() {
 
 main() {
   // Illegal, can't change a top level method
-  /*@compile-error=unspecified*/ method = () { return 1; };
+  method = () {
+//^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FUNCTION
+// [cfe] Setter not found: 'method'.
+    return 1;
+  };
 }

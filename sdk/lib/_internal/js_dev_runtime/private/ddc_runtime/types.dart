@@ -184,13 +184,20 @@ class DynamicType extends DartType {
 }
 
 @notNull
-bool _isJsObject(obj) =>
-    JS('!', '# === #', getReifiedType(obj), typeRep<LegacyJavaScriptObject>());
+bool _isJsObject(obj) => JS_GET_FLAG("NEW_RUNTIME_TYPES")
+    ? obj is LegacyJavaScriptObject
+    : JS(
+        '!', '# === #', getReifiedType(obj), typeRep<LegacyJavaScriptObject>());
 
-/// Asserts that [f] is a native JS functions and returns it if so.
+/// Asserts that [f] is a native JS function and returns it if so.
 ///
 /// This function should be used to ensure that a function is a native JS
 /// function before it is passed to native JS code.
+///
+/// NOTE: The generic type argument bound is not enforced due to the
+/// `@NoReifyGeneric` annotation. In practice values of other types are passed
+/// as [f]. All non-function values are allowed to pass through as well and
+/// are returned without error.
 @NoReifyGeneric()
 F assertInterop<F extends Function?>(F f) {
   assert(
@@ -202,7 +209,13 @@ F assertInterop<F extends Function?>(F f) {
 
 bool isDartFunction(obj) =>
     JS<bool>('!', '# instanceof Function', obj) &&
-    JS<bool>('!', '#[#] != null', obj, _runtimeType);
+    JS<bool>(
+        '!',
+        '#[#] != null',
+        obj,
+        JS_GET_FLAG("NEW_RUNTIME_TYPES")
+            ? JS_GET_NAME(JsGetName.SIGNATURE_NAME)
+            : _runtimeType);
 
 Expando<Function> _assertInteropExpando = Expando<Function>();
 
@@ -227,8 +240,17 @@ F tearoffInterop<F extends Function?>(F f) {
   return JS('', '#', ret);
 }
 
-/// Base type for all `package:js` classes.
-abstract class PackageJSType extends DartType {
+/// Dart type that represents a non-`@staticInterop` package:js class type.
+///
+/// This may include types annotated with `@JS` and `@anonymous`, but not
+/// `@staticInterop`. For the purposes of subtype checks, these match any
+/// JS object that doesn't have a `@Native` class.
+///
+/// TODO(srujzs): We could do what we do with `@staticInterop` types and erase
+/// these types with `LegacyJavaScriptObject`, but that might not be equivalent.
+/// Need to investigate more to see if this is possible. One particular sticking
+/// point might be dynamic invocations, but not sure.
+class PackageJSType extends DartType {
   final String _dartName;
   PackageJSType(this._dartName);
 
@@ -243,24 +265,6 @@ abstract class PackageJSType extends DartType {
 
   @JSExportName('as')
   as_T(obj) => is_T(obj) ? obj : castError(obj, this);
-}
-
-/// Dart type that represents a non-`@staticInterop` package:js class type.
-///
-/// This may include types annotated with `@JS` and `@anonymous`, but not
-/// `@staticInterop`. For the purposes of subtype checks, these match any
-/// JS object that doesn't have a `@Native` class.
-class NonStaticInteropType extends PackageJSType {
-  NonStaticInteropType(super._dartName);
-}
-
-/// Dart type that represents a `@staticInterop` package:js class type.
-///
-/// This is type-equivalent to `JavaScriptObject`. Therefore, this type is a
-/// supertype of all JS objects that don't have a `@Native` class and classes
-/// that implement `JavaScriptObject` e.g. `dart:html` types.
-class StaticInteropType extends PackageJSType {
-  StaticInteropType(super._dartName);
 }
 
 void _warn(arg) {
@@ -291,23 +295,21 @@ void _nullWarnOnType(type) {
   bool result = JS('', '#.has(#)', _nullComparisonSet, type);
   if (!result) {
     JS('', '#.add(#)', _nullComparisonSet, type);
+    if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+      type = rti.createRuntimeType(JS<rti.Rti>('!', '#', type));
+    }
     _nullWarn("Null is not a subtype of $type.");
   }
 }
 
-// `@staticInterop` and non-`@staticInterop` package:js classes can use the same
-// name. Since these two types of classes have different types, we need to keep
-// them in different maps.
-final _nonStaticInteropTypes = JS<Object>('', 'new Map()');
-final _staticInteropTypes = JS<Object>('', 'new Map()');
+final _packageJSTypes = JS<Object>('', 'new Map()');
 
 @notNull
-Object packageJSType(@notNull String name, @notNull bool staticInterop) {
-  var map = staticInterop ? _staticInteropTypes : _nonStaticInteropTypes;
-  var ret = JS('', '#.get(#)', map, name);
+Object packageJSType(@notNull String name) {
+  var ret = JS('', '#.get(#)', _packageJSTypes, name);
   if (ret == null) {
-    ret = staticInterop ? StaticInteropType(name) : NonStaticInteropType(name);
-    JS('', '#.set(#, #)', map, name, ret);
+    ret = PackageJSType(name);
+    JS('', '#.set(#, #)', _packageJSTypes, name, ret);
   }
   return ret;
 }
@@ -315,18 +317,11 @@ Object packageJSType(@notNull String name, @notNull bool staticInterop) {
 /// Represents all non-`@staticInterop` package:js types, as they're all
 /// subtypes of one another and subtypes of `LegacyJavaScriptObject`.
 ///
-/// Used only when a concrete NonStaticInteropType is not available i.e. when
-/// neither the object nor the target type is a NonStaticInteropType. Avoids
-/// initializing a new type every time. Note that we don't add it to the set of
-/// JS types, since it's not an actual JS class.
-final _nonStaticInteropTypeForSubtyping = NonStaticInteropType('');
-
-/// Represents all `@staticInterop` package:js types, as they're all subtypes of
-/// one another and type-equivalent to `JavaScriptObject`.
-///
-/// Similar to [_nonStaticInteropTypeForSubtyping], except with
-/// StaticInteropType instead.
-final _staticInteropTypeForSubtyping = StaticInteropType('');
+/// Used only when a concrete PackageJSType is not available i.e. when neither
+/// the object nor the target type is a PackageJSType. Avoids initializing a new
+/// new type every time. Note that we don't add it to the set of JS types, since
+/// it's not an actual JS class.
+final _packageJSTypeForSubtyping = PackageJSType('');
 
 /// Returns a nullable (question, ?) version of [type].
 ///
@@ -1208,7 +1203,18 @@ bool isType(obj) => JS('', '#[#] === #', obj, _runtimeType, Type);
 
 void checkTypeBound(
     @notNull Object type, @notNull Object bound, @notNull String name) {
-  if (!isSubtypeOf(type, bound)) {
+  bool validSubtype;
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    validSubtype = compileTimeFlag('soundNullSafety')
+        // Check subtype directly in sound mode.
+        ? rti.isSubtype(JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE),
+            JS<rti.Rti>('!', '#', type), JS<rti.Rti>('!', '#', bound))
+        // Check subtype but issue warnings/errors in weak mode.
+        : _isSubtypeWithWarning(type, bound);
+  } else {
+    validSubtype = isSubtypeOf(type, bound);
+  }
+  if (!validSubtype) {
     throwTypeError('type `$type` does not extend `$bound` of `$name`.');
   }
 }
@@ -1217,36 +1223,40 @@ void checkTypeBound(
 String typeName(type) {
   if (JS<bool>('!', '# === void 0', type)) return 'undefined type';
   if (JS<bool>('!', '# === null', type)) return 'null type';
-  // Non-instance types
-  if (_jsInstanceOf(type, DartType)) {
-    return JS<String>('!', '#.toString()', type);
-  }
-
-  // Instance types
-  var tag = JS('', '#[#]', type, _runtimeType);
-  if (JS<bool>('!', '# === #', tag, Type)) {
-    var name = JS<String>('!', '#.name', type);
-    var args = getGenericArgs(type);
-    if (args == null) return name;
-
-    if (JS<bool>('!', '# == #', getGenericClass(type),
-        getGenericClassStatic<JSArray>())) {
-      name = 'List';
+  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+    return rti.rtiToString(type);
+  } else {
+    // Non-instance types
+    if (_jsInstanceOf(type, DartType)) {
+      return JS<String>('!', '#.toString()', type);
     }
 
-    var result = name + '<';
-    for (var i = 0; i < JS<int>('!', '#.length', args); ++i) {
-      if (i > 0) result += ', ';
-      result += typeName(JS('', '#[#]', args, i));
+    // Instance types
+    var tag = JS('', '#[#]', type, _runtimeType);
+    if (JS<bool>('!', '# === #', tag, Type)) {
+      var name = JS<String>('!', '#.name', type);
+      var args = getGenericArgs(type);
+      if (args == null) return name;
+
+      if (JS<bool>('!', '# == #', getGenericClass(type),
+          getGenericClassStatic<JSArray>())) {
+        name = 'List';
+      }
+
+      var result = name + '<';
+      for (var i = 0; i < JS<int>('!', '#.length', args); ++i) {
+        if (i > 0) result += ', ';
+        result += typeName(JS('', '#[#]', args, i));
+      }
+      result += '>';
+      return result;
     }
-    result += '>';
-    return result;
+    // Test the JavaScript "truthiness" of `tag`.
+    if (JS<bool>('!', '!!#', tag)) {
+      return 'Not a type: ' + JS<String>('!', '#.name', tag);
+    }
+    return 'JSObject<' + JS<String>('!', '#.name', type) + '>';
   }
-  // Test the JavaScript "truthiness" of `tag`.
-  if (JS<bool>('!', '!!#', tag)) {
-    return 'Not a type: ' + JS<String>('!', '#.name', tag);
-  }
-  return 'JSObject<' + JS<String>('!', '#.name', type) + '>';
 }
 
 /// Returns true if [t1] <: [t2].
@@ -1431,17 +1441,17 @@ bool _isTop(type) {
   return _equalType(type, dynamic) || JS('!', '# === #', type, void_);
 }
 
-/// Wraps the JavaScript `instanceof` operator returning  `true` if [type] is an
-/// instance of [cls].
+/// Wraps the JavaScript `instanceof` operator returning  `true` if [obj] is an
+/// instance of the JavaScript class reference for [cls].
 ///
 /// This method is equivalent to:
 ///
-///    JS<bool>('!', '# instanceof #', type, cls);
+///    JS<bool>('!', '# instanceof #', obj, JS_CLASS_REF(cls));
 ///
 /// but the code is generated by the compiler directly (a low-tech way of
 /// inlining).
 @notNull
-external bool _jsInstanceOf(type, cls);
+external bool _jsInstanceOf(obj, cls);
 
 /// Returns `true` if [type] is [cls].
 ///
@@ -1622,39 +1632,16 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
     if (_isInterfaceSubtype(
             t1, typeRep<LegacyJavaScriptObject>(), strictMode) &&
         // TODO(srujzs): We don't have a mechanism to determine if *some*
-        // NonStaticInteropType implements t2. This will possibly require
-        // keeping a map of these relationships for this subtyping check. For
-        // now, this will only work if t2 is a package:js type.
-        _isInterfaceSubtype(
-            _nonStaticInteropTypeForSubtyping, t2, strictMode)) {
+        // PackageJSType implements t2. This will possibly require keeping a map
+        // of these relationships for this subtyping check. For now, this will
+        // only work if t2 is a package:js type.
+        _isInterfaceSubtype(_packageJSTypeForSubtyping, t2, strictMode)) {
       return true;
     }
 
-    if (_isInterfaceSubtype(
-            t1, _nonStaticInteropTypeForSubtyping, strictMode) &&
+    if (_isInterfaceSubtype(t1, _packageJSTypeForSubtyping, strictMode) &&
         _isInterfaceSubtype(
             typeRep<LegacyJavaScriptObject>(), t2, strictMode)) {
-      return true;
-    }
-
-    // `@staticInterop` types are mutual subtypes of `JavaScriptObject`:
-    //
-    // JavaScriptObject <: `@staticInterop` package:js types
-    // `@staticInterop` package:js types <: JavaScriptObject
-    //
-    // This allows non-`@staticInterop` package:js types to interface any type
-    // that implements `JavaScriptObject` e.g. all `package:js` types,
-    // `dart:html` types.
-
-    if (_isInterfaceSubtype(t1, typeRep<JavaScriptObject>(), strictMode) &&
-        _isInterfaceSubtype(_staticInteropTypeForSubtyping, t2, strictMode)) {
-      // TODO(srujzs): The limitations here around implements are the same as
-      // those for non-`@staticInterop` package:js types above.
-      return true;
-    }
-
-    if (_isInterfaceSubtype(t1, _staticInteropTypeForSubtyping, strictMode) &&
-        _isInterfaceSubtype(typeRep<JavaScriptObject>(), t2, strictMode)) {
       return true;
     }
 
@@ -1781,20 +1768,8 @@ bool _isInterfaceSubtype(t1, t2, @notNull bool strictMode) {
         JS<TypeVariableForSubtype>('!', '#', t1).bound, t2, strictMode);
   }
 
-  // Note that the following subtype rules for interop types do not have the
-  // following rule: any StaticInteropType <: any NonStaticInteropType. This
-  // follows from LegacyJavaScriptObject <: JavaScriptObject and not vice-versa.
-
-  // any NonStaticInteropType <: any StaticInteropType
-  // any StaticInteropType <: any StaticInteropType
-  if ((_jsInstanceOf(t1, NonStaticInteropType) ||
-          _jsInstanceOf(t1, StaticInteropType)) &&
-      _jsInstanceOf(t2, StaticInteropType)) {
-    return true;
-  }
-  // any NonStaticInteropType <: any NonStaticInteropType
-  if (_jsInstanceOf(t1, NonStaticInteropType) &&
-      _jsInstanceOf(t2, NonStaticInteropType)) {
+  // any PackageJSType <: any other PackageJSType
+  if (_jsInstanceOf(t1, PackageJSType) && _jsInstanceOf(t2, PackageJSType)) {
     return true;
   }
 
@@ -1835,7 +1810,7 @@ bool _isInterfaceSubtype(t1, t2, @notNull bool strictMode) {
     return true;
   }
 
-  if (_isInterfaceSubtype(JS('', '#.__proto__', t1), t2, strictMode)) {
+  if (_isInterfaceSubtype(jsObjectGetPrototypeOf(t1), t2, strictMode)) {
     return true;
   }
 
@@ -2248,7 +2223,8 @@ Object? _getMatchingSupertype(Object? subtype, Object supertype) {
     return subtype; // matching supertype found!
   }
 
-  var result = _getMatchingSupertype(JS('', '#.__proto__', subtype), supertype);
+  var result =
+      _getMatchingSupertype(jsObjectGetPrototypeOf(subtype), supertype);
   if (result != null) return result;
 
   // Check mixin.
@@ -2270,162 +2246,17 @@ Object? _getMatchingSupertype(Object? subtype, Object supertype) {
   return null;
 }
 
-/// Shapes consist of a count of positional elements and a sorted list of
-/// named elements' names.
-class Shape {
-  int positionals;
-  List<String>? named;
-  Shape(this.positionals, this.named);
-
-  String toString() {
-    return 'Shape($positionals, [${named?.join(", ")}])';
-  }
-}
-
-/// Internal base class for all concrete records.
-final class _RecordImpl implements Record {
-  Shape shape;
-  List values;
-
-  int? _hashCode;
-  String? _printed;
-
-  _RecordImpl(this.shape, this.values);
-
-  @override
-  bool operator ==(Object? other) {
-    if (!(other is _RecordImpl)) return false;
-    if (shape != other.shape) return false;
-    if (values.length != other.values.length) {
-      return false;
-    }
-    for (var i = 0; i < values.length; i++) {
-      if (values[i] != other.values[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @override
-  int get hashCode {
-    if (_hashCode == null) {
-      _hashCode = Object.hashAll([shape, ...values]);
-    }
-    return _hashCode!;
-  }
-
-  @override
-  String toString() {
-    if (_printed == null) {
-      var buffer = StringBuffer();
-      var posCount = shape.positionals;
-      var count = values.length;
-
-      buffer.write('(');
-      for (var i = 0; i < count; i++) {
-        if (i >= posCount) {
-          buffer.write('${shape.named![i - posCount]}');
-          buffer.write(': ');
-        }
-        buffer.write('${values[i]}');
-        if (i < count - 1) buffer.write(', ');
-      }
-      buffer.write(')');
-      _printed = buffer.toString();
-    }
-    return _printed!;
-  }
-}
-
-/// Cache for Record shapes. These are keyed by a distinct shape recipe,
-/// which consists of an integer followed by space-separated named labels.
-final _shapes = JS<Map<String, Shape>>('', 'new Map()');
-final _records = JS('', 'new Map()');
-
-Shape registerShape(@notNull String shapeRecipe, @notNull int positionals,
-    List<String>? named) {
-  var cached = JS<Shape?>('', '#.get(#)', _shapes, shapeRecipe);
-  if (cached != null) {
-    return cached;
-  }
-
-  var shape = Shape(positionals, named);
-  JS('', '#.set(#, #)', _shapes, shapeRecipe, shape);
-  return shape;
-}
-
-Object registerRecord(@notNull String shapeRecipe, @notNull int positionals,
-    List<String>? named) {
-  var cached = JS('', '#.get(#)', _records, shapeRecipe);
-  if (cached != null) {
-    return cached;
-  }
-
-  Object recordClass =
-      JS('!', 'class _Record extends # {}', JS_CLASS_REF(_RecordImpl));
-  // Add a 'new' function to be used instead of a constructor
-  // (which is disallowed on dart objects).
-  Object newRecord = JS(
-      '!',
-      '''
-    #.new = function (shape, values) {
-      #.__proto__.new.call(this, shape, values);
-    }
-  ''',
-      recordClass,
-      recordClass);
-
-  JS('!', '#.prototype = #.prototype', newRecord, recordClass);
-  var recordPrototype = JS('', '#.prototype', recordClass);
-
-  _recordGet(@notNull int index) =>
-      JS('!', 'function recordGet() {return this.values[#];}', index);
-
-  // Add convenience getters for accessing the record's field values.
-  var count = 0;
-  while (count < positionals) {
-    var name = '\$${count + 1}';
-    defineAccessor(recordPrototype, name,
-        get: _recordGet(count), enumerable: true);
-    count++;
-  }
-  if (named != null) {
-    for (final name in named) {
-      defineAccessor(recordPrototype, name,
-          get: _recordGet(count), enumerable: true);
-      count++;
-    }
-  }
-
-  JS('', '#.set(#, #)', _records, shapeRecipe, newRecord);
-  return newRecord;
-}
-
 /// Creates a record type.
 RecordType recordType(@notNull Shape shape, @notNull List types) =>
     RecordType.create(shape, types);
 
-/// Creates a shape and binds it to [values].
-///
-/// [shapeRecipe] consists of a space-separated list of elements, where the
-/// first element is the number of positional elements, followed by every
-/// named element in sorted order.
-Object recordLiteral(@notNull String shapeRecipe, @notNull int positionals,
-    List<String>? named, @notNull List values) {
-  var shape = registerShape(shapeRecipe, positionals, named);
-  var record = registerRecord(shapeRecipe, positionals, named);
-  return JS('!', 'new #(#, #)', record, shape, values);
-}
-
 /// Creates a shape and binds it to [types].
 ///
-/// [shapeRecipe] consists of a space-separated list of elements, where the
-/// first element is the number of positional elements, followed by every
-/// named element in sorted order.
-RecordType recordTypeLiteral(@notNull String shapeRecipe,
-    @notNull int positionals, List<String>? named, @notNull List types) {
-  var shape = registerShape(shapeRecipe, positionals, named);
+/// The [shapeKey] must agree with the number of [positionals] and the [named]
+/// elements list. See [shapes] for a description of the shape key format.
+RecordType recordTypeLiteral(@notNull String shapeKey, @notNull int positionals,
+    List<String>? named, @notNull List types) {
+  var shape = registerShape(shapeKey, positionals, named);
   return recordType(shape, types);
 }
 
@@ -2497,7 +2328,7 @@ class RecordType extends DartType {
 
   @JSExportName('is')
   bool is_T(obj) {
-    if (!(obj is _RecordImpl)) return false;
+    if (!(obj is RecordImpl)) return false;
     if (shape != obj.shape) return false;
     if (types.length != obj.values.length) {
       return false;

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -196,31 +196,31 @@ late static final [setter] field core::int Extension|instanceLateFinalFieldAndSe
 static final field core::int Extension|instanceDuplicateFieldAndSetter;
 static final field core::int Extension|instanceFieldAndDuplicateSetter;
 static final field core::int Extension|instanceDuplicateFieldAndDuplicateSetter;
-static method Extension|instanceMethod(lowered final core::int #this) → core::int
+static extension-member method Extension|instanceMethod(lowered final core::int #this) → core::int
   ;
-static method Extension|get#instanceMethod(lowered final core::int #this) → () → core::int
+static extension-member method Extension|get#instanceMethod(lowered final core::int #this) → () → core::int
   return () → core::int => self::Extension|instanceMethod(#this);
-static method Extension|get#instanceGetter(lowered final core::int #this) → core::int
+static extension-member method Extension|get#instanceGetter(lowered final core::int #this) → core::int
   ;
-static method Extension|set#instanceSetter(lowered final core::int #this, dynamic value) → void
+static extension-member method Extension|set#instanceSetter(lowered final core::int #this, dynamic value) → void
   ;
-static method Extension|set#instanceDuplicateFieldAndSetter(lowered final core::int #this, core::int value) → void
+static extension-member method Extension|set#instanceDuplicateFieldAndSetter(lowered final core::int #this, core::int value) → void
   ;
-static method Extension|set#instanceFieldAndDuplicateSetter(lowered final core::int #this, core::int value) → void
+static extension-member method Extension|set#instanceFieldAndDuplicateSetter(lowered final core::int #this, core::int value) → void
   ;
-static method Extension|set#instanceDuplicateFieldAndDuplicateSetter(lowered final core::int #this, core::int value) → void
+static extension-member method Extension|set#instanceDuplicateFieldAndDuplicateSetter(lowered final core::int #this, core::int value) → void
   ;
-static method Extension|instanceMethodAndSetter1(lowered final core::int #this) → core::int
+static extension-member method Extension|instanceMethodAndSetter1(lowered final core::int #this) → core::int
   ;
-static method Extension|get#instanceMethodAndSetter1(lowered final core::int #this) → () → core::int
+static extension-member method Extension|get#instanceMethodAndSetter1(lowered final core::int #this) → () → core::int
   return () → core::int => self::Extension|instanceMethodAndSetter1(#this);
-static method Extension|set#instanceMethodAndSetter1(lowered final core::int #this, core::int value) → void
+static extension-member method Extension|set#instanceMethodAndSetter1(lowered final core::int #this, core::int value) → void
   ;
-static method Extension|set#instanceMethodAndSetter2(lowered final core::int #this, core::int value) → void
+static extension-member method Extension|set#instanceMethodAndSetter2(lowered final core::int #this, core::int value) → void
   ;
-static method Extension|instanceMethodAndSetter2(lowered final core::int #this) → core::int
+static extension-member method Extension|instanceMethodAndSetter2(lowered final core::int #this) → core::int
   ;
-static method Extension|get#instanceMethodAndSetter2(lowered final core::int #this) → () → core::int
+static extension-member method Extension|get#instanceMethodAndSetter2(lowered final core::int #this) → () → core::int
   return () → core::int => self::Extension|instanceMethodAndSetter2(#this);
 static method test() → dynamic
   ;

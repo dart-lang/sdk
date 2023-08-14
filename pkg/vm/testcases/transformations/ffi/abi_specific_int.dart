@@ -9,6 +9,7 @@ import 'dart:ffi';
   Abi.androidArm64: Uint32(),
   Abi.androidIA32: Uint32(),
   Abi.androidX64: Uint32(),
+  Abi.androidRiscv64: Int32(),
   Abi.fuchsiaArm64: Uint32(),
   Abi.fuchsiaX64: Uint32(),
   Abi.fuchsiaRiscv64: Uint32(),

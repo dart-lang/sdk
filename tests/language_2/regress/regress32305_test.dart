@@ -8,5 +8,8 @@ void main() {
   int Function(int) f;
 
   List<num> l = [];
-  /*@compile-error=unspecified*/ var a = l.map(f);
+  var a = l.map(f);
+  //            ^
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'int Function(int)' can't be assigned to the parameter type 'dynamic Function(num)'.
 }

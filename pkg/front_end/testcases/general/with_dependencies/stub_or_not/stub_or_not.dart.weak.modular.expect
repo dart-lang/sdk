@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "stub_or_not_lib1.dart" as stu;
 

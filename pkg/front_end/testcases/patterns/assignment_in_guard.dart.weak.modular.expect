@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -57,7 +57,7 @@ static method test2() → void {
     {
       {
         hoisted core::int v;
-        if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = v = #0#0 in true) && (v = 1).{core::num::>=}(0){(core::num) → core::bool}) {
+        if(#0#0 is core::int && (let final dynamic #t3 = v = #0#0 in true) && (v = 1).{core::num::>=}(0){(core::num) → core::bool}) {
           #t2 = v;
           break #L2;
         }
@@ -88,7 +88,7 @@ static method test4() → void {
     {
       hoisted core::int v;
       final synthesized core::int #0#0 = 42;
-      if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t6 = v = #0#0 in true) && (v = 1).{core::num::>}(0){(core::num) → core::bool})
+      if(#0#0 is core::int && (let final dynamic #t6 = v = #0#0 in true) && (v = 1).{core::num::>}(0){(core::num) → core::bool})
         #t5.{core::List::add}{Invariant}(v){(dynamic) → void};
       else
         #t5.{core::List::add}{Invariant}(1){(dynamic) → void};
@@ -101,7 +101,7 @@ static method test5(dynamic o) → void {
   {
     hoisted dynamic a;
     final synthesized dynamic #1#0 = o;
-    if(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t7 = a = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && ( block {
+    if(#1#0 is core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t7 = a = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && ( block {
       core::bool #t8;
       final synthesized dynamic #0#0 = a;
       #L3:

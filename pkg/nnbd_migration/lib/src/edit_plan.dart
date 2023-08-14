@@ -1119,7 +1119,6 @@ class _ParensNeededFromContextVisitor extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitExtensionOverride(ExtensionOverride node) {
-    assert(identical(_target, node.extensionName));
     return _editPlan._parensNeeded(
         threshold: Precedence.postfix, associative: true);
   }

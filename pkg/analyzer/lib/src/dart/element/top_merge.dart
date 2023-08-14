@@ -44,6 +44,11 @@ class TopMergeHelper {
       return DynamicTypeImpl.instance;
     }
 
+    if (identical(T, InvalidTypeImpl.instance) ||
+        identical(S, InvalidTypeImpl.instance)) {
+      return InvalidTypeImpl.instance;
+    }
+
     if (identical(T, NeverTypeImpl.instance) &&
         identical(S, NeverTypeImpl.instance)) {
       return NeverTypeImpl.instance;

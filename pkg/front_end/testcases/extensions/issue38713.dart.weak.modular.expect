@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -27,8 +27,8 @@ extension C on core::int {
   static set property3 = set self::C|property3;
 }
 static field core::int? C|property2;
-static set C|property3(core::int? x) → void {}
-static method C|get#property3(lowered final core::int #this) → core::int?
+static extension-member set C|property3(core::int? x) → void {}
+static extension-member method C|get#property3(lowered final core::int #this) → core::int?
   return 1;
 static method main() → void {
   self::C|property2;

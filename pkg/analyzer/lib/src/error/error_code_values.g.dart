@@ -5,11 +5,15 @@
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart run --no-pub pkg/analyzer/tool/messages/generate.dart' to update.
+// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.
 // ignore_for_file: constant_identifier_names
+
+// While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
+// codes here.
+// ignore_for_file: deprecated_member_use_from_same_package
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
@@ -105,6 +109,8 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
   CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
   CompileTimeErrorCode.CONST_DEFERRED_CLASS,
+  CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD,
+  CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT,
   CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
   CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE,
   CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
@@ -322,6 +328,8 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
   CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
   CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+  CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE,
+  CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE,
   CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS,
   CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
   CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
@@ -568,6 +576,7 @@ const List<ErrorCode> errorCodeValues = [
   FfiCode.MISSING_SIZE_ANNOTATION_CARRAY,
   FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
   FfiCode.MUST_BE_A_SUBTYPE,
+  FfiCode.MUST_RETURN_VOID,
   FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
   FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER,
   FfiCode.NON_POSITIVE_ARRAY_DIMENSION,
@@ -593,8 +602,6 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE,
   HintCode.UNIGNORABLE_IGNORE,
   HintCode.UNNECESSARY_CAST,
-  HintCode.UNNECESSARY_FINAL,
-  HintCode.UNNECESSARY_IGNORE,
   HintCode.UNNECESSARY_IMPORT,
   HintCode.UNREACHABLE_SWITCH_CASE,
   HintCode.UNUSED_ELEMENT,
@@ -631,6 +638,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
   ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED,
   ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+  ParserErrorCode.BASE_ENUM,
   ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT,
   ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
   ParserErrorCode.CATCH_SYNTAX,
@@ -730,6 +738,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.IMPLEMENTS_BEFORE_WITH,
   ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
   ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH,
+  ParserErrorCode.INTERFACE_ENUM,
   ParserErrorCode.INTERFACE_MIXIN,
   ParserErrorCode.INTERFACE_MIXIN_CLASS,
   ParserErrorCode.INVALID_AWAIT_IN_FOR,
@@ -794,6 +803,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH,
   ParserErrorCode.MIXED_PARAMETER_GROUPS,
   ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
+  ParserErrorCode.MIXIN_WITH_CLAUSE,
   ParserErrorCode.MODIFIER_OUT_OF_ORDER,
   ParserErrorCode.MULTIPLE_CLAUSES,
   ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES,
@@ -829,6 +839,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA,
   ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY,
   ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR,
+  ParserErrorCode.SEALED_ENUM,
   ParserErrorCode.SEALED_MIXIN,
   ParserErrorCode.SEALED_MIXIN_CLASS,
   ParserErrorCode.SETTER_CONSTRUCTOR,
@@ -957,6 +968,7 @@ const List<ErrorCode> errorCodeValues = [
   WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
   WarningCode.INVALID_VISIBILITY_ANNOTATION,
   WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION,
+  WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION,
   WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE,
   WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS,
   WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO,
@@ -1009,6 +1021,8 @@ const List<ErrorCode> errorCodeValues = [
   WarningCode.UNDEFINED_REFERENCED_PARAMETER,
   WarningCode.UNDEFINED_SHOWN_NAME,
   WarningCode.UNNECESSARY_CAST_PATTERN,
+  WarningCode.UNNECESSARY_FINAL,
+  WarningCode.UNNECESSARY_IGNORE,
   WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE,
   WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE,
   WarningCode.UNNECESSARY_NO_SUCH_METHOD,

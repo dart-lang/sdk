@@ -33,10 +33,8 @@ PatternVariableDeclarationStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: num
-            staticElement: dart:core::@class::num
-            staticType: null
+          name: num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredElement: isFinal a@24
@@ -111,10 +109,8 @@ PatternVariableDeclarationStatement
     expression: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
-          name: SimpleIdentifier
-            token: A
-            staticElement: self::@class::A
-            staticType: null
+          name: A
+          element: self::@class::A
           type: A
         staticElement: self::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -142,10 +138,8 @@ PatternVariableDeclarationStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: num
-            staticElement: dart:core::@class::num
-            staticType: null
+          name: num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredElement: a@22
@@ -181,10 +175,8 @@ PatternVariableDeclarationStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         type: NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@22

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -47,7 +47,7 @@ import "dart:core" as core;
 
 static method exhaustiveBoundedTypeVariableByValue<T extends core::bool>(self::exhaustiveBoundedTypeVariableByValue::T x1, self::exhaustiveBoundedTypeVariableByValue::T x2) → dynamic {
   #L1:
-  switch(x1) /*isExplicitlyExhaustive*/ {
+  switch(x1) /* isExplicitlyExhaustive, self::exhaustiveBoundedTypeVariableByValue::T */ {
     #L2:
     case #C1:
     case #C2:
@@ -58,7 +58,7 @@ static method exhaustiveBoundedTypeVariableByValue<T extends core::bool>(self::e
   return block {
     core::int #t1;
     #L3:
-    switch(x2) /*isExplicitlyExhaustive*/ {
+    switch(x2) /* isExplicitlyExhaustive, self::exhaustiveBoundedTypeVariableByValue::T */ {
       #L4:
       case #C1:
         {
@@ -102,7 +102,7 @@ static method exhaustiveBoundedTypeVariableByType<T extends core::bool>(self::ex
 }
 static method nonExhaustiveBoundedTypeVariable<T extends core::bool>(self::nonExhaustiveBoundedTypeVariable::T x1, self::nonExhaustiveBoundedTypeVariable::T x2) → dynamic {
   #L8:
-  switch(x1) /*isExplicitlyExhaustive*/ {
+  switch(x1) /* isExplicitlyExhaustive, self::nonExhaustiveBoundedTypeVariable::T */ {
     #L9:
     case #C1:
       {
@@ -112,7 +112,7 @@ static method nonExhaustiveBoundedTypeVariable<T extends core::bool>(self::nonEx
   return block {
     core::int #t3;
     #L10:
-    switch(x2) /*isExplicitlyExhaustive*/ {
+    switch(x2) /* isExplicitlyExhaustive, self::nonExhaustiveBoundedTypeVariable::T */ {
       #L11:
       case #C1:
         {
@@ -153,7 +153,7 @@ static method nonExhaustiveBoundedTypeVariableByOtherType<T extends core::bool, 
   {
     final synthesized self::nonExhaustiveBoundedTypeVariableByOtherType::T #0#0 = x1;
     {
-      if(#0#0 is{ForNonNullableByDefault} self::nonExhaustiveBoundedTypeVariableByOtherType::S) {
+      if(#0#0 is self::nonExhaustiveBoundedTypeVariableByOtherType::S) {
         {
           break #L14;
         }
@@ -166,7 +166,7 @@ static method nonExhaustiveBoundedTypeVariableByOtherType<T extends core::bool, 
     #L15:
     {
       {
-        if(#1#0 is{ForNonNullableByDefault} self::nonExhaustiveBoundedTypeVariableByOtherType::S) {
+        if(#1#0 is self::nonExhaustiveBoundedTypeVariableByOtherType::S) {
           #t5 = 0;
           break #L15;
         }
@@ -175,9 +175,9 @@ static method nonExhaustiveBoundedTypeVariableByOtherType<T extends core::bool, 
   } =>#t5;
 }
 static method exhaustivePromotedTypeVariableByValue<T extends core::Object? = dynamic>(self::exhaustivePromotedTypeVariableByValue::T% x1, self::exhaustivePromotedTypeVariableByValue::T% x2) → dynamic {
-  if(x1 is{ForNonNullableByDefault} core::bool) {
+  if(x1 is core::bool) {
     #L16:
-    switch(x1{self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */}) /*isExplicitlyExhaustive*/ {
+    switch(x1{self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */}) /* isExplicitlyExhaustive, self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */ */ {
       #L17:
       case #C1:
       case #C2:
@@ -186,11 +186,11 @@ static method exhaustivePromotedTypeVariableByValue<T extends core::Object? = dy
         }
     }
   }
-  if(x2 is{ForNonNullableByDefault} core::bool) {
+  if(x2 is core::bool) {
     core::int a = block {
       core::int #t6;
       #L18:
-      switch(x2{self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */}) /*isExplicitlyExhaustive*/ {
+      switch(x2{self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */}) /* isExplicitlyExhaustive, self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */ */ {
         #L19:
         case #C1:
           {
@@ -208,7 +208,7 @@ static method exhaustivePromotedTypeVariableByValue<T extends core::Object? = dy
   }
 }
 static method exhaustivePromotedTypeVariableByType<T extends core::Object? = dynamic>(self::exhaustivePromotedTypeVariableByType::T% x1, self::exhaustivePromotedTypeVariableByType::T% x2) → dynamic {
-  if(x1 is{ForNonNullableByDefault} core::bool) {
+  if(x1 is core::bool) {
     #L21:
     {
       final synthesized self::exhaustivePromotedTypeVariableByType::T% & core::bool /* '%' & '!' = '!' */ #0#0 = x1{self::exhaustivePromotedTypeVariableByType::T% & core::bool /* '%' & '!' = '!' */};
@@ -221,7 +221,7 @@ static method exhaustivePromotedTypeVariableByType<T extends core::Object? = dyn
       }
     }
   }
-  if(x2 is{ForNonNullableByDefault} core::bool) {
+  if(x2 is core::bool) {
     core::int a = block {
       core::int #t7;
       final synthesized self::exhaustivePromotedTypeVariableByType::T% & core::bool /* '%' & '!' = '!' */ #1#0 = x2{self::exhaustivePromotedTypeVariableByType::T% & core::bool /* '%' & '!' = '!' */};
@@ -238,9 +238,9 @@ static method exhaustivePromotedTypeVariableByType<T extends core::Object? = dyn
   }
 }
 static method nonExhaustivePromotedTypeVariable<T extends core::Object? = dynamic>(self::nonExhaustivePromotedTypeVariable::T% x1, self::nonExhaustivePromotedTypeVariable::T% x2) → dynamic {
-  if(x1 is{ForNonNullableByDefault} core::bool) {
+  if(x1 is core::bool) {
     #L23:
-    switch(x1{self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */}) /*isExplicitlyExhaustive*/ {
+    switch(x1{self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */}) /* isExplicitlyExhaustive, self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */ */ {
       #L24:
       case #C1:
         {
@@ -248,11 +248,11 @@ static method nonExhaustivePromotedTypeVariable<T extends core::Object? = dynami
         }
     }
   }
-  if(x2 is{ForNonNullableByDefault} core::bool) {
+  if(x2 is core::bool) {
     core::int a = block {
       core::int #t8;
       #L25:
-      switch(x2{self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */}) /*isExplicitlyExhaustive*/ {
+      switch(x2{self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */}) /* isExplicitlyExhaustive, self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */ */ {
         #L26:
         case #C1:
           {
@@ -264,7 +264,7 @@ static method nonExhaustivePromotedTypeVariable<T extends core::Object? = dynami
   }
 }
 static method exhaustivePromotedTypeVariableByBound1<T extends core::Object? = dynamic>(self::exhaustivePromotedTypeVariableByBound1::T% x1, self::exhaustivePromotedTypeVariableByBound1::T% x2) → dynamic {
-  if(x1 is{ForNonNullableByDefault} core::bool) {
+  if(x1 is core::bool) {
     #L27:
     {
       final synthesized self::exhaustivePromotedTypeVariableByBound1::T% & core::bool /* '%' & '!' = '!' */ #0#0 = x1{self::exhaustivePromotedTypeVariableByBound1::T% & core::bool /* '%' & '!' = '!' */};
@@ -277,7 +277,7 @@ static method exhaustivePromotedTypeVariableByBound1<T extends core::Object? = d
       }
     }
   }
-  if(x2 is{ForNonNullableByDefault} core::bool) {
+  if(x2 is core::bool) {
     core::int a = block {
       core::int #t9;
       final synthesized self::exhaustivePromotedTypeVariableByBound1::T% & core::bool /* '%' & '!' = '!' */ #1#0 = x2{self::exhaustivePromotedTypeVariableByBound1::T% & core::bool /* '%' & '!' = '!' */};
@@ -294,12 +294,12 @@ static method exhaustivePromotedTypeVariableByBound1<T extends core::Object? = d
   }
 }
 static method nonExhaustivePromotedTypeVariableByOtherType<T extends core::Object? = dynamic, S extends core::bool>(self::nonExhaustivePromotedTypeVariableByOtherType::T% x1, self::nonExhaustivePromotedTypeVariableByOtherType::T% x2) → dynamic {
-  if(x1 is{ForNonNullableByDefault} core::bool) {
+  if(x1 is core::bool) {
     #L29:
     {
       final synthesized self::nonExhaustivePromotedTypeVariableByOtherType::T% & core::bool /* '%' & '!' = '!' */ #0#0 = x1{self::nonExhaustivePromotedTypeVariableByOtherType::T% & core::bool /* '%' & '!' = '!' */};
       {
-        if(#0#0 is{ForNonNullableByDefault} self::nonExhaustivePromotedTypeVariableByOtherType::S) {
+        if(#0#0 is self::nonExhaustivePromotedTypeVariableByOtherType::S) {
           {
             break #L29;
           }
@@ -307,14 +307,14 @@ static method nonExhaustivePromotedTypeVariableByOtherType<T extends core::Objec
       }
     }
   }
-  if(x2 is{ForNonNullableByDefault} core::bool) {
+  if(x2 is core::bool) {
     core::int a = block {
       core::int #t10;
       final synthesized self::nonExhaustivePromotedTypeVariableByOtherType::T% & core::bool /* '%' & '!' = '!' */ #1#0 = x2{self::nonExhaustivePromotedTypeVariableByOtherType::T% & core::bool /* '%' & '!' = '!' */};
       #L30:
       {
         {
-          if(#1#0 is{ForNonNullableByDefault} self::nonExhaustivePromotedTypeVariableByOtherType::S) {
+          if(#1#0 is self::nonExhaustivePromotedTypeVariableByOtherType::S) {
             #t10 = 0;
             break #L30;
           }

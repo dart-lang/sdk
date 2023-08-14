@@ -9,18 +9,11 @@ import 'dart:io' as io;
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
+import 'package:test_runner/src/options.dart';
 
 import '../vm/dart/snapshot_test_helper.dart';
 
 int crashCounter = 0;
-
-final Map<String, String> environmentForTests = (() {
-  final env = Map<String, String>.from(Platform.environment);
-  final testMatrix =
-      json.decode(File('tools/bots/test_matrix.json').readAsStringSync());
-  env.addAll(testMatrix['sanitizer_options'].cast<String, String>());
-  return env;
-})();
 
 void forwardStream(Stream<List<int>> input, IOSink output) {
   // Print the information line-by-line.
@@ -42,8 +35,8 @@ class PotentialCrash {
 Future<bool> run(
     String executable, List<String> args, List<PotentialCrash> crashes) async {
   print('Running "$executable ${args.join(' ')}"');
-  final Process process =
-      await Process.start(executable, args, environment: environmentForTests);
+  final Process process = await Process.start(executable, args,
+      environment: sanitizerEnvironmentVariables);
   forwardStream(process.stdout, stdout);
   forwardStream(process.stderr, stderr);
   final int exitCode = await process.exitCode;

@@ -112,7 +112,8 @@ class Dart2jsTarget extends Target {
         'dart:_late_helper',
         'dart:js',
         'dart:js_interop',
-        'dart:js_util'
+        'dart:js_util',
+        'dart:typed_data',
       ];
 
   @override
@@ -129,7 +130,8 @@ class Dart2jsTarget extends Target {
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
       maybeEnableNative(importer) ||
       (importer.isScheme('package') &&
-          importer.path.startsWith('dart2js_runtime_metrics/'));
+          (importer.path.startsWith('dart2js_runtime_metrics/') ||
+              importer.path == 'js/js.dart'));
 
   @override
   bool enableNative(Uri uri) => maybeEnableNative(uri);
@@ -152,23 +154,27 @@ class Dart2jsTarget extends Target {
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
     _nativeClasses = JsInteropChecks.getNativeClasses(component);
+    final jsInteropReporter = JsInteropDiagnosticReporter(
+        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
     var jsInteropChecks = JsInteropChecks(
-        coreTypes,
-        hierarchy,
-        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
-        _nativeClasses!);
+        coreTypes, hierarchy, jsInteropReporter, _nativeClasses!);
     // Process and validate first before doing anything with exports.
     for (var library in libraries) {
       jsInteropChecks.visitLibrary(library);
     }
     var exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
-        diagnosticReporter, jsInteropChecks.exportChecker);
+        jsInteropReporter, jsInteropChecks.exportChecker);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     for (var library in libraries) {
+      // Export creator has static checks, so we still visit even if there are
+      // errors.
       exportCreator.visitLibrary(library);
       // TODO (rileyporter): Merge js_util optimizations with other lowerings
       // in the single pass in `transformations/lowering.dart`.
-      jsUtilOptimizer.visitLibrary(library);
+      if (!jsInteropReporter.hasJsInteropErrors) {
+        // We can't guarantee calls are well-formed, so don't transform.
+        jsUtilOptimizer.visitLibrary(library);
+      }
     }
     lowering.transformLibraries(libraries, coreTypes, hierarchy, options);
     logger?.call("Lowering transformations performed");
@@ -257,7 +263,7 @@ const implicitlyUsedLibraries = <String>[
 // compile-platform should just specify which libraries to compile instead.
 const requiredLibraries = <String, List<String>>{
   'dart2js': [
-    'dart:_async_await_error_codes',
+    'dart:_async_status_codes',
     'dart:_dart2js_runtime_metrics',
     'dart:_foreign_helper',
     'dart:_http',
@@ -289,6 +295,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:js',
     'dart:js_interop',
     'dart:js_util',
+    'dart:js_interop_unsafe',
     'dart:math',
     'dart:svg',
     'dart:typed_data',
@@ -296,7 +303,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:web_gl',
   ],
   'dart2js_server': [
-    'dart:_async_await_error_codes',
+    'dart:_async_status_codes',
     'dart:_dart2js_runtime_metrics',
     'dart:_foreign_helper',
     'dart:_http',
@@ -323,6 +330,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:isolate',
     'dart:js',
     'dart:js_interop',
+    'dart:js_interop_unsafe',
     'dart:js_util',
     'dart:math',
     'dart:typed_data',

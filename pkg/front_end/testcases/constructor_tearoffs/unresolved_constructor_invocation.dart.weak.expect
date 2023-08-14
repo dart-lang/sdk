@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -14,9 +14,9 @@ library /*isNonNullableByDefault*/;
 //   Class.constructor3() : this();
 //                          ^^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/unresolved_constructor_invocation.dart:15:26: Error: Couldn't find constructor 'Class.unresolved'.
+// pkg/front_end/testcases/constructor_tearoffs/unresolved_constructor_invocation.dart:15:31: Error: Couldn't find constructor 'Class.unresolved'.
 //   Class.constructor4() : this.unresolved();
-//                          ^^^^
+//                               ^^^^^^^^^^
 //
 // pkg/front_end/testcases/constructor_tearoffs/unresolved_constructor_invocation.dart:23:3: Error: Method not found: 'UnresolvedClass'.
 //   UnresolvedClass();
@@ -501,9 +501,9 @@ class Class extends self::Super {
                          ^^^^"
     ;
   constructor constructor4() → self::Class
-    : final dynamic #t4 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unresolved_constructor_invocation.dart:15:26: Error: Couldn't find constructor 'Class.unresolved'.
+    : final dynamic #t4 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unresolved_constructor_invocation.dart:15:31: Error: Couldn't find constructor 'Class.unresolved'.
   Class.constructor4() : this.unresolved();
-                         ^^^^"
+                              ^^^^^^^^^^"
     ;
 }
 class ResolvedClass<T extends core::Object? = dynamic> extends core::Object {

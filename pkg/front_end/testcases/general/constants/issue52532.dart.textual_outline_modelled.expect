@@ -1,0 +1,8 @@
+const Null n = null;
+const String e = const String.fromEnvironment('foo', defaultValue: 'bar');
+const String s = 'foo';
+const bool b = true;
+const double d = 3.5;
+const int i = 42;
+expect(expected, actual) {}
+main() {}

@@ -4,8 +4,6 @@
 
 // @dart=2.19
 
-// SharedOptions=--enable-experiment=class-modifiers
-
 // Test the behavior of mixing in classes defined in a 3.0 library (both SDK
 // and non SDK) when the mixin happens in a pre 3.0 library.
 

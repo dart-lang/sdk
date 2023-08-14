@@ -392,6 +392,72 @@ String name(Color color) {
 ''');
   }
 
+  Future<void> test_return_switchExpression_elseThrow() async {
+    await resolveTestCode('''
+enum Color {
+  red, blue, white
+}
+
+Color fromName(String name) {
+  switch (name) {
+    case 'red':
+      return Color.red;
+    case 'blue':
+      return Color.blue;
+    case 'white':
+      return Color.white;
+  }
+  throw name;
+}
+''');
+    await assertHasAssistAt('switch', '''
+enum Color {
+  red, blue, white
+}
+
+Color fromName(String name) {
+  return switch (name) {
+    'red' => Color.red,
+    'blue' => Color.blue,
+    'white' => Color.white,
+    _ => throw name,
+  };
+}
+''');
+  }
+
+  Future<void> test_return_switchExpression_elseThrow_multiline() async {
+    await resolveTestCode('''
+enum Color {
+  red
+}
+
+Color fromName(String name) {
+  switch (name) {
+    case 'red':
+      return Color.red;
+  }
+  throw 'Only'
+    ' supports'
+    ' red';
+}
+''');
+    await assertHasAssistAt('switch', '''
+enum Color {
+  red
+}
+
+Color fromName(String name) {
+  return switch (name) {
+    'red' => Color.red,
+    _ => throw 'Only'
+      ' supports'
+      ' red',
+  };
+}
+''');
+  }
+
   Future<void> test_return_switchExpression_wildcard() async {
     await resolveTestCode('''
 enum Color {

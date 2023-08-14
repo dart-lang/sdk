@@ -1,0 +1,51 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// NOTE: This is a manually minified version of Perfetto's
+// profile_packet.proto.
+
+// IMPORTANT: The coresponding .pbzero.h file must be regenerated after
+// any change is made to this file. This can be done by running
+// `dart runtime/vm/protos/tools/compile_perfetto_protos.dart` from the
+// SDK root directory.
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+// Packet emitted by the traced_perf sampling performance profiler, which
+// gathers data via the perf_event_open syscall. Each packet contains an
+// individual sample with a counter value, and optionally a
+// callstack.
+//
+// Timestamps are within the root packet. The config can specify the clock, or
+// the implementation will default to CLOCK_MONOTONIC_RAW. Within the Android R
+// timeframe, the default was CLOCK_BOOTTIME.
+//
+// There are several distinct views of this message:
+// * indication of kernel buffer data loss (kernel_records_lost set)
+// * indication of skipped samples (sample_skipped_reason set)
+// * notable event in the sampling implementation (producer_event set)
+// * normal sample (timebase_count set, typically also callstack_iid)
+message PerfSample {
+  optional uint32 cpu = 1;
+  optional uint32 pid = 2;
+  optional uint32 tid = 3;
+
+  // Unwound callstack. Might be partial, in which case a synthetic "error"
+  // frame is appended, and |unwind_error| is set accordingly.
+  optional uint64 callstack_iid = 4;
+}

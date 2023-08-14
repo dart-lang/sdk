@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class DeprecatedImplementsFunctionTest extends PubPackageResolutionTest {
-  test_core() async {
+  test_class_core() async {
     await assertErrorsInCode('''
 class A implements Function {}
 ''', [
@@ -24,7 +24,7 @@ class A implements Function {}
     ]);
   }
 
-  test_core2() async {
+  test_class_core2() async {
     await assertErrorsInCode('''
 class A implements Function, Function {}
 ''', [
@@ -36,7 +36,7 @@ class A implements Function, Function {}
     ]);
   }
 
-  test_core2_language219() async {
+  test_class_core2_language219() async {
     await assertErrorsInCode('''
 // @dart = 2.19
 class A implements Function, Function {}
@@ -46,7 +46,7 @@ class A implements Function, Function {}
     ]);
   }
 
-  test_core_language219() async {
+  test_class_core_language219() async {
     await assertErrorsInCode('''
 // @dart = 2.19
 class A implements Function {}
@@ -55,12 +55,43 @@ class A implements Function {}
     ]);
   }
 
-  test_local() async {
+  test_class_core_language219_viaTypedef() async {
+    await assertErrorsInCode('''
+// @dart = 2.19
+typedef F = Function;
+class A implements F {}
+''', [
+      error(WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION, 57, 1),
+    ]);
+  }
+
+  test_class_local() async {
     await assertErrorsInCode('''
 class Function {}
 class A implements Function {}
 ''', [
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 8),
+    ]);
+  }
+
+  test_classAlias_core_language219() async {
+    await assertErrorsInCode('''
+// @dart = 2.19
+mixin M {}
+class A = Object with M implements Function;
+''', [
+      error(WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION, 62, 8),
+    ]);
+  }
+
+  test_classAlias_core_language219_viaTypedef() async {
+    await assertErrorsInCode('''
+// @dart = 2.19
+mixin M {}
+typedef F = Function;
+class A = Object with M implements F;
+''', [
+      error(WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION, 84, 1),
     ]);
   }
 }

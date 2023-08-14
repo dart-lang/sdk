@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "foundation_binding_lib.dart" as fou;
 import "scheduler_binding_lib.dart" as sch;
@@ -38,13 +38,13 @@ class TestSchedulerBinding extends self::_TestSchedulerBinding&BindingBase&Sched
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:async" as asy;
 
 typedef AsyncCallback = () → asy::Future<Null>;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as fou;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -58,7 +58,7 @@ abstract class BindingBase extends core::Object {
   method registerSignalServiceExtension({required core::String name = #C1, required () → asy::Future<Null> callback = #C1}) → void {}
 }
 
-library;
+library /*isLegacy*/;
 import self as self3;
 import "foundation_basic_types_lib.dart" as self2;
 import "foundation_binding_lib.dart" as fou;
@@ -69,7 +69,7 @@ export "org-dartlang-testcase:///foundation_basic_types_lib.dart";
 export "org-dartlang-testcase:///foundation_binding_lib.dart";
 
 
-library;
+library /*isLegacy*/;
 import self as sch;
 import "foundation_binding_lib.dart" as fou;
 import "dart:core" as core;
@@ -91,7 +91,7 @@ abstract class SchedulerBinding extends fou::BindingBase /*isMixinDeclaration*/ 
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 
-library;
+library /*isLegacy*/;
 import self as self4;
 import "scheduler_binding_lib.dart" as sch;
 additionalExports = (sch::SchedulerBinding)
@@ -99,7 +99,7 @@ additionalExports = (sch::SchedulerBinding)
 export "org-dartlang-testcase:///scheduler_binding_lib.dart";
 
 
-library;
+library /*isLegacy*/;
 import self as ser;
 import "dart:core" as core;
 import "foundation_binding_lib.dart" as fou;
@@ -128,7 +128,7 @@ abstract class _ServicesBinding&BindingBase&SchedulerBinding extends core::Objec
 abstract class ServicesBinding extends ser::_ServicesBinding&BindingBase&SchedulerBinding /*isMixinDeclaration*/  {
 }
 
-library;
+library /*isLegacy*/;
 import self as self5;
 import "services_binding_lib.dart" as ser;
 additionalExports = (ser::ServicesBinding)

@@ -17,14 +17,14 @@ namespace dart {
 namespace compiler {
 namespace ffi {
 
-static const char* const kNone = "No Test";
-static const char* const kList = "List all Tests";
-static const char* const kAll = "Run all Tests";
+static constexpr const char* kNone = "No Test";
+static constexpr const char* kList = "List all Tests";
+static constexpr const char* kAll = "Run all Tests";
 static const char* run_filter = kNone;
 
-static const char* kCommandAll = "--all";
-static const char* kCommandList = "--list";
-static const char* kCommandUpdate = "--update";
+static constexpr const char* kCommandAll = "--all";
+static constexpr const char* kCommandList = "--list";
+static constexpr const char* kCommandUpdate = "--update";
 
 static int run_matches = 0;
 

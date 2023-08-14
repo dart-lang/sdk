@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -17,8 +17,8 @@ static method test1() → dynamic {
   core::Map<Null, Null> x = <Null, Null>{null: null};
   x.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/inference/map_literals_can_infer_null.dart:11:38: Error: A value of type 'int' can't be assigned to a variable of type 'Null'.
       /*error:INVALID_CAST_LITERAL*/ 3] = /*error:INVALID_CAST_LITERAL*/ 'z';
-                                     ^" in 3 as{TypeError,ForNonNullableByDefault} Null, invalid-expression "pkg/front_end/testcases/inference/map_literals_can_infer_null.dart:11:74: Error: A value of type 'String' can't be assigned to a variable of type 'Null'.
+                                     ^" in 3 as{TypeError} Null, invalid-expression "pkg/front_end/testcases/inference/map_literals_can_infer_null.dart:11:74: Error: A value of type 'String' can't be assigned to a variable of type 'Null'.
       /*error:INVALID_CAST_LITERAL*/ 3] = /*error:INVALID_CAST_LITERAL*/ 'z';
-                                                                         ^" in "z" as{TypeError,ForNonNullableByDefault} Null){(Null, Null) → void};
+                                                                         ^" in "z" as{TypeError} Null){(Null, Null) → void};
 }
 static method main() → dynamic {}

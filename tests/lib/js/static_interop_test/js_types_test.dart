@@ -8,8 +8,8 @@ import 'dart:js_interop';
 import 'dart:js_util';
 import 'dart:typed_data';
 
+import 'package:expect/expect.dart';
 import 'package:expect/minitest.dart';
-import 'package:js/js.dart';
 
 @JS()
 external void eval(String code);
@@ -41,7 +41,7 @@ external JSExportedDartFunction edf;
 external JSArray arr;
 
 @JS()
-external JSExportedDartObject edo;
+external JSBoxedDartObject edo;
 
 @JS()
 external JSArrayBuffer buf;
@@ -132,16 +132,16 @@ void syncTests() {
           .toDart,
       'foobar');
 
-  // [JSExportedDartObject] <-> [Object]
-  edo = DartObject().toJS;
-  expect(edo is JSExportedDartObject, true);
-  expect((edo.toDart as DartObject).foo, 'bar');
+  // [JSBoxedDartObject] <-> [Object]
+  edo = DartObject().toJSBox;
+  expect(edo is JSBoxedDartObject, true);
+  expect(((edo as JSBoxedDartObject).toDart as DartObject).foo, 'bar');
 
   // [JSArray] <-> [List<JSAny?>]
   arr = [1.0.toJS, 'foo'.toJS].toJS;
   expect(arr is JSArray, true);
   List<JSAny?> dartArr = arr.toDart;
-  expect((dartArr[0] as JSNumber).toDart, 1.0);
+  expect((dartArr[0] as JSNumber).toDartDouble, 1.0);
   expect((dartArr[1] as JSString).toDart, 'foo');
 
   // [ArrayBuffer] <-> [ByteBuffer]
@@ -216,7 +216,7 @@ void syncTests() {
   // [JSNumber] <-> [double]
   nbr = 4.5.toJS;
   expect(nbr is JSNumber, true);
-  double dartNbr = nbr.toDart;
+  double dartNbr = nbr.toDartDouble;
   expect(dartNbr, 4.5);
 
   // [JSBoolean] <-> [bool]

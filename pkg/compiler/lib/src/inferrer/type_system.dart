@@ -22,7 +22,8 @@ abstract class TypeSystemStrategy {
   ParameterTypeInformation createParameterTypeInformation(
       AbstractValueDomain abstractValueDomain,
       Local parameter,
-      TypeSystem types);
+      TypeSystem types,
+      {required bool isVirtual});
 
   /// Calls [f] for each parameter in [function].
   void forEachParameter(FunctionEntity function, void f(Local parameter));
@@ -60,6 +61,11 @@ class TypeSystem {
 
   /// [MemberTypeInformation]s for members.
   final Map<MemberEntity, MemberTypeInformation> memberTypeInformations = {};
+
+  final Map<Local, ParameterTypeInformation> virtualParameterTypeInformations =
+      {};
+  final Map<MemberEntity, MemberTypeInformation> virtualCallTypeInformations =
+      {};
 
   /// [ListTypeInformation] for allocated lists.
   final Map<ir.TreeNode, ListTypeInformation> allocatedLists = {};
@@ -316,11 +322,15 @@ class TypeSystem {
     return newType;
   }
 
-  ParameterTypeInformation getInferredTypeOfParameter(Local parameter) {
-    return parameterTypeInformations.putIfAbsent(parameter, () {
-      ParameterTypeInformation typeInformation =
-          strategy.createParameterTypeInformation(
-              _abstractValueDomain, parameter, this);
+  ParameterTypeInformation getInferredTypeOfParameter(Local parameter,
+      {bool isVirtual = false}) {
+    final typeInformations = isVirtual
+        ? virtualParameterTypeInformations
+        : parameterTypeInformations;
+    return typeInformations.putIfAbsent(parameter, () {
+      ParameterTypeInformation typeInformation = strategy
+          .createParameterTypeInformation(_abstractValueDomain, parameter, this,
+              isVirtual: isVirtual);
       _orderedTypeInformations.add(typeInformation);
       return typeInformation;
     });
@@ -331,10 +341,15 @@ class TypeSystem {
     parameterTypeInformations.forEach(f);
   }
 
-  MemberTypeInformation getInferredTypeOfMember(MemberEntity member) {
-    assert(!member.isAbstract,
-        failedAt(member, "Unexpected abstract member $member."));
-    return memberTypeInformations[member] ??= _getInferredTypeOfMember(member);
+  MemberTypeInformation getInferredTypeOfMember(MemberEntity member,
+      {bool virtual = false}) {
+    if (virtual) {
+      return virtualCallTypeInformations[member] ??=
+          strategy.createMemberTypeInformation(_abstractValueDomain, member);
+    } else {
+      return memberTypeInformations[member] ??=
+          _getInferredTypeOfMember(member);
+    }
   }
 
   void forEachMemberType(
@@ -524,9 +539,10 @@ class TypeSystem {
       allocatedTypes.add(getterType);
     }
 
-    final record = RecordTypeInformation(currentMember,
-        _abstractValueDomain.recordType, recordType.shape, fieldTypes);
+    final record = RecordTypeInformation(_abstractValueDomain.uncomputedType,
+        currentMember, recordType.shape, fieldTypes);
     allocatedRecords[node] = record;
+    allocatedTypes.add(record);
     return record;
   }
 

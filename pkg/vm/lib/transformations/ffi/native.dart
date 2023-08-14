@@ -30,8 +30,13 @@ void transformLibraries(
     List<Library> libraries,
     DiagnosticReporter diagnosticReporter,
     ReferenceFromIndex? referenceFromIndex) {
-  final index = LibraryIndex(component,
-      ['dart:ffi', 'dart:_internal', 'dart:typed_data', 'dart:nativewrappers']);
+  final index = LibraryIndex(component, [
+    'dart:ffi',
+    'dart:_internal',
+    'dart:typed_data',
+    'dart:nativewrappers',
+    'dart:isolate'
+  ]);
   // Skip if dart:ffi isn't loaded (e.g. during incremental compile).
   if (index.tryGetClass('dart:ffi', 'FfiNative') == null) {
     return;
@@ -505,13 +510,6 @@ class FfiNativeTransformer extends FfiTransformer {
 
     final parent = node.parent;
 
-    var fileUri = currentLibrary.fileUri;
-    if (parent is Class) {
-      fileUri = parent.fileUri;
-    } else if (parent is Library) {
-      fileUri = parent.fileUri;
-    }
-
     // static final _myMethod$FfiNative$Ptr = ..
     final resolvedField = _createResolvedFfiNativeField(
       '${node.name.text}\$${node.kind.name}',
@@ -521,7 +519,7 @@ class FfiNativeTransformer extends FfiTransformer {
       wrappedDartFunctionType,
       ffiFunctionType,
       node.fileOffset,
-      fileUri,
+      node.fileUri,
     );
 
     // Add field to the parent the FfiNative function belongs to.

@@ -25,6 +25,7 @@ general/with_dependencies/issue_43084/issue_43084: SemiFuzzFailure # https://dar
 inference_update_1/horizontal_inference_extension_method: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/245004
 inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForceRebuildBodies # Errors on split
 inference_update_2/basic_field_promotion: semiFuzzFailureOnForceRebuildBodies # Private fields.
+inference_update_2/cascaded_field_promotion: TypeCheckError
 inference_update_2/disabled: semiFuzzFailureOnForceRebuildBodies # Private fields.
 inference_update_2/field_promotion_and_no_such_method: semiFuzzFailureOnForceRebuildBodies # Private fields.
 inference_update_2/field_promotion_name_conflicts: semiFuzzFailureOnForceRebuildBodies # Private fields.

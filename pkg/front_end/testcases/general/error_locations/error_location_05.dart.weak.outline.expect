@@ -1,4 +1,4 @@
-library error_location_05 /*isNonNullableByDefault*/;
+library error_location_05;
 //
 // Problems in library:
 //

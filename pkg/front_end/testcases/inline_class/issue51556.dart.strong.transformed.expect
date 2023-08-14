@@ -1,0 +1,72 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension ObjectToJSExportedDartObject on core::Object {
+  get toJS = self::ObjectToJSExportedDartObject|get#toJS;
+}
+extension ListToJSArray on core::List<self::JSAny?> {
+  get toJS = self::ListToJSArray|get#toJS;
+}
+extension DoubleToJSNumber on core::double {
+  get toJS = self::DoubleToJSNumber|get#toJS;
+}
+inline class JSAny /* declaredRepresentationType = core::Object */ {
+  constructor • = self::JSAny|;
+  tearoff • = self::JSAny|_#new#tearOff;
+}
+inline class JSObject /* declaredRepresentationType = core::Object */ implements self::JSAny {
+  constructor • = self::JSObject|;
+  tearoff • = self::JSObject|_#new#tearOff;
+}
+inline class JSArray /* declaredRepresentationType = core::List<self::JSAny?> */ implements self::JSObject {
+  constructor • = self::JSArray|;
+  tearoff • = self::JSArray|_#new#tearOff;
+}
+inline class JSExportedDartObject /* declaredRepresentationType = core::Object */ implements self::JSObject {
+  constructor • = self::JSExportedDartObject|;
+  tearoff • = self::JSExportedDartObject|_#new#tearOff;
+}
+inline class JSNumber /* declaredRepresentationType = core::double */ implements self::JSAny {
+  constructor • = self::JSNumber|;
+  tearoff • = self::JSNumber|_#new#tearOff;
+}
+static inline-class-member method JSAny|(core::Object value) → self::JSAny {
+  lowered final self::JSAny #this = value;
+  return #this;
+}
+static inline-class-member method JSAny|_#new#tearOff(core::Object value) → self::JSAny
+  return self::JSAny|(value);
+static inline-class-member method JSObject|(core::Object value) → self::JSObject {
+  lowered final self::JSObject #this = value;
+  return #this;
+}
+static inline-class-member method JSObject|_#new#tearOff(core::Object value) → self::JSObject
+  return self::JSObject|(value);
+static inline-class-member method JSArray|(core::List<self::JSAny?> value) → self::JSArray {
+  lowered final self::JSArray #this = value;
+  return #this;
+}
+static inline-class-member method JSArray|_#new#tearOff(core::List<self::JSAny?> value) → self::JSArray
+  return self::JSArray|(value);
+static inline-class-member method JSExportedDartObject|(core::Object value) → self::JSExportedDartObject {
+  lowered final self::JSExportedDartObject #this = value;
+  return #this;
+}
+static inline-class-member method JSExportedDartObject|_#new#tearOff(core::Object value) → self::JSExportedDartObject
+  return self::JSExportedDartObject|(value);
+static inline-class-member method JSNumber|(core::double value) → self::JSNumber {
+  lowered final self::JSNumber #this = value;
+  return #this;
+}
+static inline-class-member method JSNumber|_#new#tearOff(core::double value) → self::JSNumber
+  return self::JSNumber|(value);
+static extension-member method ObjectToJSExportedDartObject|get#toJS(lowered final core::Object #this) → self::JSExportedDartObject
+  return self::JSExportedDartObject|(#this);
+static extension-member method ListToJSArray|get#toJS(lowered final core::List<self::JSAny?> #this) → self::JSArray
+  return self::JSArray|(#this);
+static extension-member method DoubleToJSNumber|get#toJS(lowered final core::double #this) → self::JSNumber
+  return self::JSNumber|(#this);
+static method main() → void {
+  self::JSArray arr = self::ListToJSArray|get#toJS(core::_GrowableList::_literal2<self::JSAny>(self::DoubleToJSNumber|get#toJS(1.0), self::ObjectToJSExportedDartObject|get#toJS("foo")));
+}

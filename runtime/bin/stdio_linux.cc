@@ -104,12 +104,12 @@ bool Stdin::SetLineMode(intptr_t fd, bool enabled) {
 
 static bool TermIsKnownToSupportAnsi() {
   const char* term = getenv("TERM");
-  if (term == NULL) {
+  if (term == nullptr) {
     return false;
   }
 
-  return strstr(term, "xterm") != NULL || strstr(term, "screen") != NULL ||
-         strstr(term, "rxvt") != NULL;
+  return strstr(term, "xterm") != nullptr ||
+         strstr(term, "screen") != nullptr || strstr(term, "rxvt") != nullptr;
 }
 
 bool Stdin::AnsiSupported(intptr_t fd, bool* supported) {

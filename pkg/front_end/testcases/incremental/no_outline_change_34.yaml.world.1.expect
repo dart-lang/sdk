@@ -12,8 +12,8 @@ additionalExports = (main::main,
     method method2 = lib1::Extension2|method2;
     tearoff method2 = lib1::Extension2|get#method2;
   }
-  static method Extension2|method2(lowered final main::Class #this) → void {}
-  static method Extension2|get#method2(lowered final main::Class #this) → () → void
+  static extension-member method Extension2|method2(lowered final main::Class #this) → void {}
+  static extension-member method Extension2|get#method2(lowered final main::Class #this) → () → void
     return () → void => lib1::Extension2|method2(#this);
   static method lib1() → dynamic {
     main::Class a = new main::Class::•();
@@ -30,8 +30,8 @@ library from "org-dartlang-test:///lib2.dart" as lib2 {
     method method3 = lib2::Extension3|method3;
     tearoff method3 = lib2::Extension3|get#method3;
   }
-  static method Extension3|method3(lowered final main::Class #this) → void {}
-  static method Extension3|get#method3(lowered final main::Class #this) → () → void
+  static extension-member method Extension3|method3(lowered final main::Class #this) → void {}
+  static extension-member method Extension3|get#method3(lowered final main::Class #this) → () → void
     return () → void => lib2::Extension3|method3(#this);
   static method lib2() → dynamic {
     main::Class a = new main::Class::•();
@@ -55,8 +55,8 @@ library from "org-dartlang-test:///main.dart" as main {
     method method = main::Extension|method;
     tearoff method = main::Extension|get#method;
   }
-  static method Extension|method(lowered final main::Class #this) → void {}
-  static method Extension|get#method(lowered final main::Class #this) → () → void
+  static extension-member method Extension|method(lowered final main::Class #this) → void {}
+  static extension-member method Extension|get#method(lowered final main::Class #this) → () → void
     return () → void => main::Extension|method(#this);
   static method main() → dynamic {
     main::Class a = new main::Class::•();

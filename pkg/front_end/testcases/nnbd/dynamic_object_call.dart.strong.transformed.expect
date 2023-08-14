@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -38,7 +38,7 @@ static method test() → dynamic {
   dynamic v6 = c.{core::Object::noSuchMethod}(invalid-expression "pkg/front_end/testcases/nnbd/dynamic_object_call.dart:23:27: Error: The argument type 'String' can't be assigned to the parameter type 'Invocation'.
  - 'Invocation' is from 'dart:core'.
   var v6 = c.noSuchMethod(\"foo\");
-                          ^" in "foo" as{TypeError,ForNonNullableByDefault} core::Invocation){(core::Invocation) → dynamic};
+                          ^" in "foo" as{TypeError} core::Invocation){(core::Invocation) → dynamic};
   dynamic v7 = c{dynamic}.noSuchMethod("foo", foo: 42);
   (core::Invocation) → dynamic v8 = c.{core::Object::noSuchMethod}{(core::Invocation) → dynamic};
 }

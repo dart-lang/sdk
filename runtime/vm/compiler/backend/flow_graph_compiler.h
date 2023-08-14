@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_COMPILER_H_
 #define RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_COMPILER_H_
 
+#include "vm/compiler/runtime_api.h"
 #if defined(DART_PRECOMPILED_RUNTIME)
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -621,7 +622,7 @@ class FlowGraphCompiler : public ValueObject {
   // We test up to 4 different cid ranges, if we would need to test more in
   // order to get a definite answer we fall back to the old mechanism (namely
   // of going into the subtyping cache)
-  static const intptr_t kMaxNumberOfCidRangesToTest = 4;
+  static constexpr intptr_t kMaxNumberOfCidRangesToTest = 4;
 
   // If [fall_through_if_inside] is `true`, then [outside_range_lbl] must be
   // supplied, since it will be jumped to in the last case if the cid is outside
@@ -1021,12 +1022,24 @@ class FlowGraphCompiler : public ValueObject {
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_lbl);
 
-  enum TypeTestStubKind {
-    kTestTypeOneArg,
-    kTestTypeThreeArgs,
-    kTestTypeFiveArgs,
-    kTestTypeSevenArgs,
+  enum class TypeTestStubKind {
+    kTestTypeOneArg = 1,
+    kTestTypeTwoArgs = 2,
+    kTestTypeFourArgs = 4,
+    kTestTypeSixArgs = 6,
+    kTestTypeSevenArgs = 7,
   };
+
+  static_assert(static_cast<intptr_t>(TypeTestStubKind::kTestTypeSevenArgs) ==
+                    SubtypeTestCache::kMaxInputs,
+                "Need to adjust kTestTypeMaxArgs");
+  static constexpr TypeTestStubKind kTestTypeMaxArgs =
+      TypeTestStubKind::kTestTypeSevenArgs;
+
+  // Returns the number of used inputs for a given type test stub kind.
+  intptr_t UsedInputsForTTSKind(TypeTestStubKind kind) {
+    return static_cast<intptr_t>(kind);
+  }
 
   // Returns type test stub kind for a type test against type parameter type.
   TypeTestStubKind GetTypeTestStubKindForTypeParameter(

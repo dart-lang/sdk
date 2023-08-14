@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -16,13 +16,13 @@ extension /* unnamed */ _extension#1 on self::Class {
   get property2 = self::_extension#1|get#property2;
   set property2 = self::_extension#1|set#property2;
 }
-static method _extension#0|get#property1(lowered final self::Class #this) → core::int?
+static extension-member method _extension#0|get#property1(lowered final self::Class #this) → core::int?
   return self::_extension#1|get#property2(#this);
-static method _extension#0|set#property1(lowered final self::Class #this, core::int? value) → void
+static extension-member method _extension#0|set#property1(lowered final self::Class #this, core::int? value) → void
   return #this.{self::Class::field} = value;
-static method _extension#1|get#property2(lowered final self::Class #this) → core::int?
+static extension-member method _extension#1|get#property2(lowered final self::Class #this) → core::int?
   return #this.{self::Class::field}{core::int?};
-static method _extension#1|set#property2(lowered final self::Class #this, core::int? value) → void
+static extension-member method _extension#1|set#property2(lowered final self::Class #this, core::int? value) → void
   return let final core::int? #t1 = value in let final void #t2 = self::_extension#0|set#property1(#this, #t1) in #t1;
 static method main() → dynamic {
   self::Class c = new self::Class::•();

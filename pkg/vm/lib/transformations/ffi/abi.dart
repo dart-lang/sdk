@@ -60,8 +60,11 @@ class Abi {
   /// The application binary interface for Android on the IA32 architecture.
   static const androidIA32 = _androidIA32;
 
-  /// The application binary interface for android on the X64 architecture.
+  /// The application binary interface for Android on the X64 architecture.
   static const androidX64 = _androidX64;
+
+  /// The application binary interface for Android on 64-bit RISC-V.
+  static const androidRiscv64 = _androidRiscv64;
 
   /// The application binary interface for Fuchsia on the Arm64 architecture.
   static const fuchsiaArm64 = _fuchsiaArm64;
@@ -130,6 +133,7 @@ class Abi {
     androidArm64,
     androidIA32,
     androidX64,
+    androidRiscv64,
     fuchsiaArm64,
     fuchsiaX64,
     fuchsiaRiscv64,
@@ -176,6 +180,7 @@ class Abi {
   static const _androidArm64 = Abi._(_Architecture.arm64, _OS.android);
   static const _androidIA32 = Abi._(_Architecture.ia32, _OS.android);
   static const _androidX64 = Abi._(_Architecture.x64, _OS.android);
+  static const _androidRiscv64 = Abi._(_Architecture.riscv64, _OS.android);
   static const _fuchsiaArm64 = Abi._(_Architecture.arm64, _OS.fuchsia);
   static const _fuchsiaX64 = Abi._(_Architecture.x64, _OS.fuchsia);
   static const _fuchsiaRiscv64 = Abi._(_Architecture.riscv64, _OS.fuchsia);
@@ -201,6 +206,7 @@ const Map<Abi, String> abiNames = {
   Abi.androidArm64: 'androidArm64',
   Abi.androidIA32: 'androidIA32',
   Abi.androidX64: 'androidX64',
+  Abi.androidRiscv64: 'androidRiscv64',
   Abi.fuchsiaArm64: 'fuchsiaArm64',
   Abi.fuchsiaX64: 'fuchsiaX64',
   Abi.fuchsiaRiscv64: 'fuchsiaRiscv64',
@@ -243,6 +249,7 @@ const Map<Abi, Map<NativeType, int>> nonSizeAlignment = {
   // _wordSize64
   Abi.androidArm64: _wordSize64,
   Abi.androidX64: _wordSize64,
+  Abi.androidRiscv64: _wordSize64,
   Abi.fuchsiaArm64: _wordSize64,
   Abi.fuchsiaX64: _wordSize64,
   Abi.fuchsiaRiscv64: _wordSize64,

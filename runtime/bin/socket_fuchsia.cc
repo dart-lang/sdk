@@ -48,7 +48,7 @@ Socket::Socket(intptr_t fd)
       fd_(fd),
       isolate_port_(Dart_GetMainPortId()),
       port_(ILLEGAL_PORT),
-      udp_receive_buffer_(NULL) {}
+      udp_receive_buffer_(nullptr) {}
 
 void Socket::SetClosedFd() {
   fd_ = kClosedFd;
@@ -57,7 +57,7 @@ void Socket::SetClosedFd() {
 void Socket::CloseFd() {
   ASSERT(fd_ != kClosedFd);
   IOHandle* handle = reinterpret_cast<IOHandle*>(fd_);
-  ASSERT(handle != NULL);
+  ASSERT(handle != nullptr);
   handle->Release();
   SetClosedFd();
 }

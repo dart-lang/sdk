@@ -39,7 +39,7 @@ class VirtualMemory {
   void Protect(Protection mode) { return Protect(address(), size(), mode); }
 
   // Reserves and commits a virtual memory segment with size. If a segment of
-  // the requested size cannot be allocated, NULL is returned.
+  // the requested size cannot be allocated, nullptr is returned.
   static VirtualMemory* Allocate(intptr_t size,
                                  bool is_executable,
                                  const char* name);

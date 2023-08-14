@@ -726,6 +726,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   /// null if an initialization request has not yet been sent.
   ClientCapabilities? _clientCapabilities;
 
+  /// The capabilities returned from the server during initialization.
+  ///
+  /// `null` if the server is not initialized, or returned an error during
+  /// initialize.
+  ServerCapabilities? _serverCapabilities;
+
   final validProgressTokens = <ProgressToken>{};
 
   /// Whether to include 'clientRequestTime' fields in outgoing messages.
@@ -986,6 +992,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     T Function(Map<String, Object?>)? decoder,
     ProgressToken? workDoneToken,
   }) async {
+    final supportedCommands =
+        _serverCapabilities?.executeCommandProvider?.commands ?? [];
+    if (!supportedCommands.contains(command.command)) {
+      throw ArgumentError('Server does not support ${command.command}. '
+          'Is it missing from serverSupportedCommands?');
+    }
     final request = makeRequest(
       Method.workspace_executeCommand,
       ExecuteCommandParams(
@@ -1610,6 +1622,10 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
     final error = response.error;
     if (error == null) {
+      final result =
+          InitializeResult.fromJson(response.result as Map<String, Object?>);
+      _serverCapabilities = result.capabilities;
+
       final notification =
           makeNotification(Method.initialized, InitializedParams());
       await sendNotificationToServer(notification);

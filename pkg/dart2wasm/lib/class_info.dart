@@ -17,6 +17,14 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 /// [ClassInfo._addField] (for manually added fields) or by a line in
 /// [FieldIndex.validate] (for fields declared in Dart code).
 class FieldIndex {
+  static const asyncSuspendStateResume = 2;
+  static const asyncSuspendStateContext = 3;
+  static const asyncSuspendStateTargetIndex = 4;
+  static const asyncSuspendStateCompleter = 5;
+  static const asyncSuspendStateCurrentException = 6;
+  static const asyncSuspendStateCurrentExceptionStackTrace = 7;
+  static const asyncSuspendStateCurrentReturnValue = 8;
+
   static const classId = 0;
   static const boxValue = 1;
   static const identityHash = 1;
@@ -60,6 +68,21 @@ class FieldIndex {
               expectedIndex,
           "Unexpected field index for ${cls.name}.$name");
     }
+
+    check(translator.asyncSuspendStateClass, "_resume",
+        FieldIndex.asyncSuspendStateResume);
+    check(translator.asyncSuspendStateClass, "_context",
+        FieldIndex.asyncSuspendStateContext);
+    check(translator.asyncSuspendStateClass, "_targetIndex",
+        FieldIndex.asyncSuspendStateTargetIndex);
+    check(translator.asyncSuspendStateClass, "_completer",
+        FieldIndex.asyncSuspendStateCompleter);
+    check(translator.asyncSuspendStateClass, "_currentException",
+        FieldIndex.asyncSuspendStateCurrentException);
+    check(translator.asyncSuspendStateClass, "_currentExceptionStackTrace",
+        FieldIndex.asyncSuspendStateCurrentExceptionStackTrace);
+    check(translator.asyncSuspendStateClass, "_currentReturnValue",
+        FieldIndex.asyncSuspendStateCurrentReturnValue);
 
     check(translator.boxedBoolClass, "value", FieldIndex.boxValue);
     check(translator.boxedIntClass, "value", FieldIndex.boxValue);
@@ -219,6 +242,10 @@ class ClassInfoCollector {
       cls: cls
   };
 
+  late final Set<Class> _neverMasquerades = {
+    translator.jsStringImplClass,
+  };
+
   /// Wasm field type for fields with type [_Type]. Fields of this type are
   /// added to classes for type parameters.
   ///
@@ -327,6 +354,9 @@ class ClassInfoCollector {
     translator.classForHeapType.putIfAbsent(info.struct, () => info!);
 
     ClassInfo? computeMasquerade() {
+      if (_neverMasquerades.contains(cls)) {
+        return null;
+      }
       if (info!.superInfo?.masquerade != null) {
         return info.superInfo!.masquerade;
       }
@@ -451,6 +481,11 @@ class ClassInfoCollector {
     // needs to be initialized before we encounter a class with type
     // parameters.
     _initialize(translator.typeClass);
+
+    // Initialize value classes to make sure they have low class IDs.
+    for (Class cls in translator.valueClasses.keys) {
+      _initialize(cls);
+    }
 
     // Initialize masquerade classes to make sure they have low class IDs.
     for (Class cls in _masquerades.values) {

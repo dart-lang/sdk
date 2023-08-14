@@ -17,10 +17,10 @@
 
 namespace dart {
 
-Mutex* PortMap::mutex_ = NULL;
-PortSet<PortMap::Entry>* PortMap::ports_ = NULL;
+Mutex* PortMap::mutex_ = nullptr;
+PortSet<PortMap::Entry>* PortMap::ports_ = nullptr;
 MessageHandler* PortMap::deleted_entry_ = reinterpret_cast<MessageHandler*>(1);
-Random* PortMap::prng_ = NULL;
+Random* PortMap::prng_ = nullptr;
 
 const char* PortMap::PortStateString(PortState kind) {
   switch (kind) {
@@ -97,7 +97,7 @@ void PortMap::SetPortState(Dart_Port port, PortState state) {
 }
 
 Dart_Port PortMap::CreatePort(MessageHandler* handler) {
-  ASSERT(handler != NULL);
+  ASSERT(handler != nullptr);
   MutexLocker ml(mutex_);
   if (ports_ == nullptr) {
     return ILLEGAL_PORT;
@@ -133,7 +133,7 @@ Dart_Port PortMap::CreatePort(MessageHandler* handler) {
 }
 
 bool PortMap::ClosePort(Dart_Port port) {
-  MessageHandler* handler = NULL;
+  MessageHandler* handler = nullptr;
   {
     MutexLocker ml(mutex_);
     if (ports_ == nullptr) {
@@ -307,10 +307,10 @@ bool PortMap::IsReceiverInThisIsolateGroupOrClosed(Dart_Port receiver,
 }
 
 void PortMap::Init() {
-  if (mutex_ == NULL) {
+  if (mutex_ == nullptr) {
     mutex_ = new Mutex();
   }
-  ASSERT(mutex_ != NULL);
+  ASSERT(mutex_ != nullptr);
   if (prng_ == nullptr) {
     prng_ = new Random();
   }
@@ -321,7 +321,7 @@ void PortMap::Init() {
 
 void PortMap::Cleanup() {
   ASSERT(ports_ != nullptr);
-  ASSERT(prng_ != NULL);
+  ASSERT(prng_ != nullptr);
   for (auto it = ports_->begin(); it != ports_->end(); ++it) {
     const auto& entry = *it;
     ASSERT(entry.handler != nullptr);
@@ -336,7 +336,7 @@ void PortMap::Cleanup() {
   // Grab the mutex and delete the port set.
   MutexLocker ml(mutex_);
   delete prng_;
-  prng_ = NULL;
+  prng_ = nullptr;
   delete ports_;
   ports_ = nullptr;
 }

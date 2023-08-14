@@ -21,6 +21,8 @@ uintptr_t SignalHandler::GetProgramCounter(const mcontext_t& mcontext) {
   pc = static_cast<uintptr_t>(mcontext.arm_pc);
 #elif defined(HOST_ARCH_ARM64)
   pc = static_cast<uintptr_t>(mcontext.pc);
+#elif defined(HOST_ARCH_RISCV64)
+  pc = static_cast<uintptr_t>(mcontext.__gregs[REG_PC]);
 #else
 #error Unsupported architecture.
 #endif  // HOST_ARCH_...
@@ -45,6 +47,8 @@ uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
   }
 #elif defined(HOST_ARCH_ARM64)
   fp = static_cast<uintptr_t>(mcontext.regs[29]);
+#elif defined(HOST_ARCH_RISCV64)
+  fp = static_cast<uintptr_t>(mcontext.__gregs[REG_S0]);
 #else
 #error Unsupported architecture.
 #endif  // HOST_ARCH_...
@@ -63,6 +67,8 @@ uintptr_t SignalHandler::GetCStackPointer(const mcontext_t& mcontext) {
   sp = static_cast<uintptr_t>(mcontext.arm_sp);
 #elif defined(HOST_ARCH_ARM64)
   sp = static_cast<uintptr_t>(mcontext.sp);
+#elif defined(HOST_ARCH_RISCV64)
+  sp = static_cast<uintptr_t>(mcontext.__gregs[REG_SP]);
 #else
 #error Unsupported architecture.
 #endif  // HOST_ARCH_...
@@ -88,6 +94,8 @@ uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
   lr = static_cast<uintptr_t>(mcontext.arm_lr);
 #elif defined(HOST_ARCH_ARM64)
   lr = static_cast<uintptr_t>(mcontext.regs[30]);
+#elif defined(HOST_ARCH_RISCV64)
+  lr = static_cast<uintptr_t>(mcontext.__gregs[REG_RA]);
 #else
 #error Unsupported architecture.
 #endif  // HOST_ARCH_...
@@ -108,14 +116,15 @@ void SignalHandler::Install(SignalAction action) {
   ss.ss_size = SIGSTKSZ;
   ss.ss_sp = malloc(ss.ss_size);
   ss.ss_flags = 0;
-  int r = sigaltstack(&ss, NULL);
+  int r = sigaltstack(&ss, nullptr);
   ASSERT(r == 0);
 
   struct sigaction act = {};
   act.sa_sigaction = action;
   sigemptyset(&act.sa_mask);
+  sigaddset(&act.sa_mask, SIGPROF);  // Prevent nested signals.
   act.sa_flags = SA_RESTART | SA_SIGINFO | SA_ONSTACK;
-  r = sigaction(SIGPROF, &act, NULL);
+  r = sigaction(SIGPROF, &act, nullptr);
   ASSERT(r == 0);
 }
 
@@ -125,7 +134,7 @@ void SignalHandler::Remove() {
   struct sigaction act = {};
   act.sa_handler = SIG_IGN;
   sigemptyset(&act.sa_mask);
-  int r = sigaction(SIGPROF, &act, NULL);
+  int r = sigaction(SIGPROF, &act, nullptr);
   ASSERT(r == 0);
 
   // Disable and delete alternative signal stack.

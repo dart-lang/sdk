@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "package:expect/expect.dart" as exp;
@@ -9,8 +9,8 @@ class A<N extends core::Object? = dynamic, S extends core::Object? = dynamic, U 
   final field core::List<self::A::U?>? field;
   constructor •(self::A::N% n, self::A::S% s) → self::A<self::A::N%, self::A::S%, self::A::U%>
     : self::A::field = <self::A::U%>[], super core::Object::•() {
-    exp::Expect::isTrue(n is{ForNonNullableByDefault} self::A::N%);
-    exp::Expect::isTrue(s is{ForNonNullableByDefault} self::A::S%);
+    exp::Expect::isTrue(n is self::A::N%);
+    exp::Expect::isTrue(s is self::A::S%);
   }
   constructor empty() → self::A<self::A::N%, self::A::S%, self::A::U%>
     : self::A::field = null, super core::Object::•() {}
@@ -18,7 +18,7 @@ class A<N extends core::Object? = dynamic, S extends core::Object? = dynamic, U 
     : self::A::field = #C2, super core::Object::•()
     ;
   static factory f<N extends core::Object? = dynamic, S extends core::Object? = dynamic, U extends core::Object? = dynamic>(self::A::f::S% s) → self::A<self::A::f::N%, self::A::f::S%, self::A::f::U%> {
-    exp::Expect::isTrue(s is{ForNonNullableByDefault} self::A::f::S%);
+    exp::Expect::isTrue(s is self::A::f::S%);
     return new self::A::empty<self::A::f::N%, self::A::f::S%, self::A::f::U%>();
   }
   get getter() → core::List<self::A::U?>? {

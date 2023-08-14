@@ -1,9 +1,9 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
 static method method<T extends core::Object* = dynamic>(self::method::T* o) → dynamic {
-  if(o is core::String*) {
+  if(o is{ForLegacy} core::String*) {
     let final self::method::T* & core::String* /* '*' & '*' = '*' */ #t1 = o{self::method::T* & core::String* /* '*' & '*' = '*' */} in #t1 == null ?{core::int*} null : #t1.{core::String::length}{core::int*};
   }
 }

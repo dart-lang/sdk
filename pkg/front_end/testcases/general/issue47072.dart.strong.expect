@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -29,7 +29,7 @@ class D extends self::C implements self::I {
     : super self::C::•()
     ;
   forwarding-stub method f(covariant-by-declaration self::A a) → void
-    return super.{self::C::f}(a as self::B);
+    return super.{self::C::f}(a as{ForLegacy} self::B);
 }
 static method main() → void {
   self::I i = new self::D::•();

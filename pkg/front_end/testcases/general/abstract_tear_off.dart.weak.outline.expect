@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef F<unrelated T extends core::Object? = dynamic> = self::Class;
+abstract class Class extends core::Object {
+  constructor •() → self::Class
+    ;
+  static factory redirect() → self::Class /* redirection-target: self::ClassImpl::• */
+    return new self::ClassImpl::•();
+}
+class ClassImpl extends core::Object implements self::Class {
+  synthetic constructor •() → self::ClassImpl
+    ;
+}
+static method test() → dynamic
+  ;
+static method _#F#redirect#tearOff<unrelated T extends core::Object? = dynamic>() → self::Class
+  return self::Class::redirect();

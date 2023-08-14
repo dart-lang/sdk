@@ -2447,7 +2447,7 @@ ASSEMBLER_TEST_RUN(CmpBranchIfNotZeroNotTaken, test) {
       "ret\n");
 }
 
-static const int64_t kBits5And35 = (1 << 5) | (1ll << 35);
+static constexpr int64_t kBits5And35 = (1 << 5) | (1ll << 35);
 
 ASSEMBLER_TEST_GENERATE(TstBranchIfZero, assembler) {
   Label l, l2;
@@ -3860,7 +3860,7 @@ static void EnterTestFrame(Assembler* assembler) {
   __ Push(HEAP_BITS);
   __ Push(NULL_REG);
   __ TagAndPushPP();
-  __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
+  __ mov(CODE_REG, R0);
   __ mov(THR, R1);
   __ RestorePinnedRegisters();
   __ LoadPoolPointer(PP);

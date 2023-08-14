@@ -1,4 +1,4 @@
-library lib /*isNonNullableByDefault*/;
+library lib;
 //
 // Problems in library:
 //
@@ -70,29 +70,29 @@ part org-dartlang-malformed-uri:bad348;
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self3;
 
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self4;
 
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self5;
 
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self6;
 
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self7;
 
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self8;

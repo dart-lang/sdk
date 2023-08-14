@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -128,7 +127,7 @@ class RecordLiteralResolver {
     field = _resolver.popRewrite()!;
 
     // Implicit cast from `dynamic`.
-    if (contextType != null && field.typeOrThrow.isDynamic) {
+    if (contextType != null && field.typeOrThrow is DynamicType) {
       field.staticType = contextType;
       if (field is NamedExpressionImpl) {
         field.expression.staticType = contextType;

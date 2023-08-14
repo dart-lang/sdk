@@ -297,7 +297,7 @@ class Variables {
   /// types should be nullable and which types should not.
   DartType toFinalType(DecoratedType decoratedType) {
     var type = decoratedType.type!;
-    if (type is VoidType || type.isDynamic) return type;
+    if (type is VoidType || type is DynamicType) return type;
     if (type is NeverType) {
       if (decoratedType.node.isNullable) {
         return (_typeProvider.nullType as TypeImpl)

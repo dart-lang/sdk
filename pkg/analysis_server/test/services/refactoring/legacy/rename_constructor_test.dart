@@ -210,6 +210,95 @@ void f() {
 ''');
   }
 
+  Future<void>
+      test_createChange_implicitlyInvoked_hasConstructor_hasInitializers() async {
+    await indexTestUnit('''
+class A {
+  A();
+}
+
+class B extends A {
+  var field;
+  B() : field = 0;
+}
+''');
+    // configure refactoring
+    _createConstructorDeclarationRefactoring('A();');
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, '');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+class A {
+  A.newName();
+}
+
+class B extends A {
+  var field;
+  B() : field = 0, super.newName();
+}
+''');
+  }
+
+  Future<void>
+      test_createChange_implicitlyInvoked_hasConstructor_noInitializers() async {
+    await indexTestUnit('''
+class A {
+  A();
+}
+
+class B extends A {
+  B();
+}
+''');
+    // configure refactoring
+    _createConstructorDeclarationRefactoring('A();');
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, '');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+class A {
+  A.newName();
+}
+
+class B extends A {
+  B() : super.newName();
+}
+''');
+  }
+
+  Future<void> test_createChange_implicitlyInvoked_noConstructor() async {
+    await indexTestUnit('''
+class A {
+  A();
+}
+
+class B extends A {
+  void foo() {}
+}
+''');
+    // configure refactoring
+    _createConstructorDeclarationRefactoring('A();');
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, '');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+class A {
+  A.newName();
+}
+
+class B extends A {
+  B() : super.newName();
+  void foo() {}
+}
+''');
+  }
+
   Future<void> test_createChange_lint_sortConstructorsFirst() async {
     createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
     await indexTestUnit('''

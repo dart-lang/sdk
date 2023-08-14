@@ -31,6 +31,9 @@ class ResolutionResult {
   /// when `dynamicTarget.foo`, or `functionTyped.call`).
   final bool needsGetterError;
 
+  /// If `true`, the result type must be invalid.
+  final bool isGetterInvalid;
+
   /// Return the element that is invoked for writing.
   final ExecutableElement? setter;
 
@@ -55,6 +58,7 @@ class ResolutionResult {
   ResolutionResult({
     this.getter,
     this.needsGetterError = true,
+    this.isGetterInvalid = false,
     this.setter,
     this.needsSetterError = true,
     this.callFunctionType,
@@ -65,6 +69,7 @@ class ResolutionResult {
   const ResolutionResult._(this.state)
       : getter = null,
         needsGetterError = true,
+        isGetterInvalid = false,
         setter = null,
         needsSetterError = true,
         callFunctionType = null,

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -40,9 +40,9 @@ static method returnFutureOrClass() → FutureOr<self::Class> async /* futureVal
 static method returnClassFromDynamic() → self::Class async /* futureValueType= core::Object? */ 
   return self::returnDynamic();
 static method returnFutureClassDynamic() → asy::Future<self::Class> async /* futureValueType= self::Class */ 
-  return self::returnDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<self::Class>;
+  return self::returnDynamic() as{TypeError,ForDynamic} FutureOr<self::Class>;
 static method returnFutureOrClassDynamic() → FutureOr<self::Class> async /* futureValueType= self::Class */ 
-  return self::returnDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<self::Class>;
+  return self::returnDynamic() as{TypeError,ForDynamic} FutureOr<self::Class>;
 static method returnClassFromFutureClass() → self::Class async /* futureValueType= core::Object? */ 
   return self::returnFutureClass();
 static method returnFutureClassFromFutureClass() → asy::Future<self::Class> async /* futureValueType= self::Class */ 

@@ -47,7 +47,7 @@ void f(x) {
   }
 
   Future<void> test_mixinOnDirective() async {
-    addSource('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 mixin M {}
 ''');
     await resolveTestCode('''
@@ -99,7 +99,7 @@ void f() {
   }
 
   Future<void> test_setterOnDirective() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 void set setter(int i) {}
 ''');
     await resolveTestCode('''
@@ -119,7 +119,7 @@ void f() {
   }
 
   Future<void> test_typedefOnDirective() async {
-    addSource('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 typedef Cb = void Function();
 ''');
     await resolveTestCode('''

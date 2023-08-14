@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ReplaceWithExtensionName extends CorrectionProducer {
+class ReplaceWithExtensionName extends ResolvedCorrectionProducer {
   String _extensionName = '';
 
   @override
@@ -25,11 +25,14 @@ class ReplaceWithExtensionName extends CorrectionProducer {
     }
     var target = _getTarget(node.parent);
     if (target is ExtensionOverride) {
+      final importPrefix = target.importPrefix;
+      final prefixedName = importPrefix != null
+          ? '${importPrefix.name.lexeme}.${target.name.lexeme}'
+          : target.name.lexeme;
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(
-            range.node(target), utils.getNodeText(target.extensionName));
+        builder.addSimpleReplacement(range.node(target), prefixedName);
       });
-      _extensionName = target.extensionName.name;
+      _extensionName = prefixedName;
     }
   }
 

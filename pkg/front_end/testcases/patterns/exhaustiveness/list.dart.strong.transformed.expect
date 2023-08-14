@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -352,7 +352,7 @@ static method nonExhaustiveRestrictedType(core::List<core::num> list) → dynami
     #L12:
     {
       {
-        if(#0#0.{core::List::sublist}(0){(core::int, [core::int?]) → core::List<core::num>} is{ForNonNullableByDefault} core::List<core::int>) {
+        if(#0#0.{core::List::sublist}(0){(core::int, [core::int?]) → core::List<core::num>} is core::List<core::int>) {
           #t12 = 0;
           break #L12;
         }
@@ -391,7 +391,7 @@ static method nonExhaustive1aRestrictedType(core::List<core::num> list) → dyna
     #L14:
     {
       {
-        if(#0#0 is{ForNonNullableByDefault} core::List<core::int> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t15 = #0#2#isSet = true in #0#2 = #0#0{core::List<core::int>}.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if(#0#0 is core::List<core::int> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t15 = #0#2#isSet = true in #0#2 = #0#0{core::List<core::int>}.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t14 = 0;
           break #L14;
         }
@@ -443,7 +443,7 @@ static method nonExhaustive1bRestrictedType(core::List<core::num> list) → dyna
         }
       }
       {
-        if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && #0#0.{core::List::sublist}(0, #0#1.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<core::num>} is{ForNonNullableByDefault} core::List<core::int>) {
+        if(#0#1.{core::num::>=}(#C2){(core::num) → core::bool} && #0#0.{core::List::sublist}(0, #0#1.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<core::num>} is core::List<core::int>) {
           #t18 = 1;
           break #L16;
         }

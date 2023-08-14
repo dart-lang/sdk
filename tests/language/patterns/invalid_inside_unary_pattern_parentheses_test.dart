@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns
-
 // Test that a unary pattern or a relational pattern may appear inside a unary
 // pattern as long as there are parentheses.
 

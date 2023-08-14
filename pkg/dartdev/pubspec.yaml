@@ -19,7 +19,10 @@ dependencies:
   dartdoc: any
   dds: any
   front_end: any
+  logging: any
   meta: any
+  native_assets_builder: any
+  native_assets_cli: any
   package_config: any
   path: any
   pub: any

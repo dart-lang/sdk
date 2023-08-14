@@ -166,7 +166,7 @@ class BacktrackStack {
   intptr_t max_size() const { return kBacktrackStackSize; }
 
  private:
-  static const intptr_t kBacktrackStackSize = 1 << 16;
+  static constexpr intptr_t kBacktrackStackSize = 1 << 16;
 
   std::unique_ptr<VirtualMemory> memory_;
 

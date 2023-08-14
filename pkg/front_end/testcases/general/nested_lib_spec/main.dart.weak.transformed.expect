@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:test" as test;
 import "dart:extra" as ext;
@@ -26,7 +26,7 @@ static method main() → dynamic {
   new com::Common::•();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as test;
 import "dart:_internal" as _in;
 import "dart:core" as core;
@@ -40,7 +40,7 @@ class Class extends core::Object {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as ext;
 import "dart:_internal" as _in;
 import "dart:core" as core;
@@ -54,7 +54,7 @@ class Extra extends core::Object {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as sub;
 import "dart:core" as core;
 
@@ -64,7 +64,7 @@ class Sub extends core::Object {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as sub2;
 import "dart:core" as core;
 
@@ -74,7 +74,7 @@ class Sub2 extends core::Object {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as sup;
 import "dart:core" as core;
 
@@ -84,7 +84,7 @@ class Super1 extends core::Object {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as sup2;
 import "dart:core" as core;
 
@@ -94,7 +94,7 @@ class Super2 extends core::Object {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as com;
 import "dart:core" as core;
 

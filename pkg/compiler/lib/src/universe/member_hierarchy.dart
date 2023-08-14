@@ -357,16 +357,28 @@ class MemberHierarchyBuilder {
   }
 
   void _handleMember(MemberEntity member, ClassEntity cls, Selector selector,
-      void Function(MemberEntity parent, MemberEntity override) join) {
+      void Function(MemberEntity parent, MemberEntity override) join,
+      {required bool isMixinUse}) {
     final elementEnv = closedWorld.elementEnvironment;
     final name = selector.memberName;
     bool foundSuperclass = false;
 
-    void addParent(MemberEntity child, ClassEntity childCls,
-        MemberEntity parent, ClassEntity parentCls) {
+    void addParent(MemberEntity child, MemberEntity parent) {
       if (child == parent) return;
-      if ((_overrides[parent] ??= Setlet()).add(child)) {
+      if (!isMixinUse && (_overrides[parent] ??= Setlet()).add(child)) {
         join(parent, child);
+      }
+
+      // For mixins defining an abstract member, foo, implementations of foo
+      // (either directly on the mixin target or superclasses of it) should
+      // propagate their types to the abstract foo as they are effectively
+      // overriding it. Calls to foo within the body of the mixin can only
+      // target the abstract foo with a virtual call so that virtual target
+      // needs to reflect the types of all its overrides.
+      if (isMixinUse &&
+          child.isAbstract &&
+          (_overrides[child] ??= Setlet()).add(parent)) {
+        join(child, parent);
       }
     }
 
@@ -375,7 +387,7 @@ class MemberHierarchyBuilder {
     while (current != null) {
       final match = elementEnv.lookupLocalClassMember(current, name);
       if (match != null && !MemberHierarchyBuilder._skipMemberInternal(match)) {
-        addParent(member, cls, match, current);
+        addParent(member, match);
         foundSuperclass = true;
         break;
       }
@@ -384,8 +396,7 @@ class MemberHierarchyBuilder {
 
     closedWorld.classHierarchy.getClassSet(cls).forEachSubtype((subtype) {
       final override = elementEnv.lookupClassMember(subtype, name);
-      if (override == null) return IterationStep.CONTINUE;
-      addParent(override, subtype, member, cls);
+      if (override != null) addParent(override, member);
       return IterationStep.CONTINUE;
     }, ClassHierarchyNode.INSTANTIATED, strict: true);
 
@@ -402,9 +413,11 @@ class MemberHierarchyBuilder {
     // Process each selector matching member separately.
     for (final selector in _selectorsForMember(member)) {
       for (final mixinUse in mixinUses) {
-        _handleMember(member, mixinUse, selector, join);
+        // For mixin uses we treat the mixin's members as if they are part of
+        // the mixin target itself.
+        _handleMember(member, mixinUse, selector, join, isMixinUse: true);
       }
-      _handleMember(member, cls, selector, join);
+      _handleMember(member, cls, selector, join, isMixinUse: false);
     }
   }
 

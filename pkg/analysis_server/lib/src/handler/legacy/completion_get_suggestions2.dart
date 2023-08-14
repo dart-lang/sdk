@@ -198,6 +198,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
           unitElement: resolvedUnit.unitElement,
           enclosingNode: enclosingNode,
           offset: offset,
+          unit: resolvedUnit.parsedUnit,
           dartdocDirectiveInfo:
               server.getDartdocDirectiveInfoForSession(analysisSession),
         );

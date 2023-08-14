@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -331,25 +330,20 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitNamedType(covariant NamedTypeImpl node) {
-    var typeIdentifier = node.name;
-
     Element? element;
-    if (typeIdentifier is PrefixedIdentifierImpl) {
-      var prefix = typeIdentifier.prefix;
-      var prefixName = prefix.name;
-      var prefixElement = scope.lookup(prefixName).getter;
-      prefix.staticElement = prefixElement;
+    final importPrefix = node.importPrefix;
+    if (importPrefix != null) {
+      final prefixToken = importPrefix.name;
+      final prefixName = prefixToken.lexeme;
+      final prefixElement = scope.lookup(prefixName).getter;
+      importPrefix.element = prefixElement;
 
       if (prefixElement is PrefixElement) {
-        var nameNode = typeIdentifier.identifier;
-        var name = nameNode.name;
-
+        final name = node.name2.lexeme;
         element = prefixElement.scope.lookup(name).getter;
-        nameNode.staticElement = element;
       }
     } else {
-      var nameNode = typeIdentifier as SimpleIdentifierImpl;
-      var name = nameNode.name;
+      final name = node.name2.lexeme;
 
       if (name == 'void') {
         node.type = VoidTypeImpl.instance;
@@ -357,14 +351,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       }
 
       element = scope.lookup(name).getter;
-      nameNode.staticElement = element;
     }
+    node.element = element;
 
     node.typeArguments?.accept(this);
 
     var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
     if (element == null) {
-      node.type = DynamicTypeImpl.instance;
+      node.type = InvalidTypeImpl.instance;
     } else if (element is TypeParameterElement) {
       node.type = TypeParameterTypeImpl(
         element: element,

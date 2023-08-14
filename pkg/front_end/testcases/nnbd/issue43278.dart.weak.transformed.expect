@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -64,10 +64,10 @@ Try accessing using ?. instead.
   let final dynamic #t3 = d in #t3{dynamic}.foo == null ?{dynamic} #t3{dynamic}.foo = x : null;
   let final self::A? #t4 = a in #t4 == null ?{core::int?} null : let final self::A #t5 = #t4{self::A}.{self::A::bar}{self::A} in #t5.{self::A::foo}{core::int?} == null ?{core::int} #t5.{self::A::foo} = x : null;
 }
-static method Extension|get#fooExtension(lowered final self::B #this) → core::int?
+static extension-member method Extension|get#fooExtension(lowered final self::B #this) → core::int?
   return null;
-static method Extension|set#fooExtension(lowered final self::B #this, core::int? value) → void {}
-static method Extension|get#barExtension(lowered final self::B #this) → self::B
+static extension-member method Extension|set#fooExtension(lowered final self::B #this, core::int? value) → void {}
+static extension-member method Extension|get#barExtension(lowered final self::B #this) → self::B
   return new self::B::•();
 static method testExtension<T extends self::B?>(self::B? b, self::testExtension::T% t, core::int x) → dynamic {
   let final self::B? #t6 = b in invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:28:5: Error: Property 'fooExtension' cannot be accessed on 'B?' because it is potentially null.

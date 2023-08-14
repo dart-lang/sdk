@@ -143,14 +143,10 @@ bool isSubtype(DartTypes types, DartType s, DartType t) {
 
 SetConstantValue createSet(CommonElements commonElements,
     InterfaceType sourceType, List<ConstantValue> values) {
-  InterfaceType type = commonElements.getConstantSetTypeFor(sourceType);
-  DartType elementType = type.typeArguments.first;
-  InterfaceType mapType =
-      commonElements.mapType(elementType, commonElements.nullType);
-  List<NullConstantValue> nulls =
-      List<NullConstantValue>.filled(values.length, const NullConstantValue());
-  MapConstantValue entries = createMap(commonElements, mapType, values, nulls);
-  return JavaScriptSetConstant(type, entries);
+  JavaScriptObjectConstantValue? indexObject = _makeStringIndex(values);
+  InterfaceType type = commonElements.getConstantSetTypeFor(sourceType,
+      onlyStringKeys: indexObject != null);
+  return JavaScriptSetConstant(type, values, indexObject);
 }
 
 MapConstantValue createMap(
@@ -158,16 +154,74 @@ MapConstantValue createMap(
     InterfaceType sourceType,
     List<ConstantValue> keys,
     List<ConstantValue> values) {
-  bool onlyStringKeys = keys.every((key) =>
-      key is StringConstantValue &&
-      key.stringValue != JavaScriptMapConstant.PROTO_PROPERTY);
-
+  final JavaScriptObjectConstantValue? indexObject = _makeStringIndex(keys);
+  final onlyStringKeys = indexObject != null;
   InterfaceType keysType =
       commonElements.listType(sourceType.typeArguments.first);
+  InterfaceType valuesType =
+      commonElements.listType(sourceType.typeArguments.last);
   ListConstantValue keysList = createList(commonElements, keysType, keys);
+  ListConstantValue valuesList = createList(commonElements, valuesType, values);
+
   InterfaceType type = commonElements.getConstantMapTypeFor(sourceType,
       onlyStringKeys: onlyStringKeys);
-  return JavaScriptMapConstant(type, keysList, values, onlyStringKeys);
+
+  return JavaScriptMapConstant(
+      type, keysList, valuesList, onlyStringKeys, indexObject);
+}
+
+JavaScriptObjectConstantValue? _makeStringIndex(List<ConstantValue> keys) {
+  for (final key in keys) {
+    if (key is! StringConstantValue) return null;
+    if (key.stringValue == JavaScriptMapConstant.PROTO_PROPERTY) return null;
+  }
+
+  // If we generate a JavaScript Object initializer with the keys in order, are
+  // the properties of the Object in the same order? If so, we can generate the
+  // keys of the map using `Object.keys`, otherwise we need to provide the key
+  // ordering explicitly, or sort by position at runtime, or have a Map/Set
+  // subclass for the case where sorting is necessary.  For now we use the
+  // general constant Map/Set for the occasional case where the order is wrong.
+  if (!_valuesInObjectPropertyOrder(keys)) return null;
+
+  return JavaScriptObjectConstantValue(
+      keys, List.generate(keys.length, createIntFromInt));
+}
+
+final _numberRegExp = RegExp(r'^0$|^[1-9][0-9]*$');
+
+/// If the values are the keys of a JavaScript Object initializer, is the result
+/// of `Object.keys` in the same order as [keys]? This method may conservatively
+/// return `false`.
+///
+/// Object keys are split into 'indexes' and 'names', with all the 'indexes'
+/// before the 'names'. 'indexes' are strings that have the value of
+/// `i.toString()` for some `i` from 0 up to some limit. The indexes are ordered
+/// by their integer value. 'names' are in insertion order. The literal
+/// `{"a":1,"10":2,"2":3,"b":4}` has `Object.keys` of `["2","10","a","b"]`
+/// because `10` and `2` come before `a` and `b`.
+bool _valuesInObjectPropertyOrder(List<ConstantValue> keys) {
+  int lastNumber = -1;
+  bool seenNonNumber = false;
+  for (final key in keys) {
+    if (key is! StringConstantValue) return false;
+    final string = key.stringValue;
+    if (_numberRegExp.hasMatch(string)) {
+      // This index would move before the non-number.
+      if (seenNonNumber) return false;
+      // Sufficiently large digit strings are not considered to be indexes. It
+      // is not clear where the cutoff is or whether it is consistent between
+      // JavaScript implementations.
+      if (string.length > 8) return false;
+      final value = int.parse(string);
+      // Adjacent indexes must be in increasing numerical order.
+      if (value <= lastNumber) return false;
+      lastNumber = value;
+    } else {
+      seenNonNumber = true;
+    }
+  }
+  return true;
 }
 
 ConstructedConstantValue createSymbol(
@@ -859,13 +913,24 @@ class UnfoldedUnaryOperation implements UnaryOperation {
 }
 
 class JavaScriptSetConstant extends SetConstantValue {
-  final MapConstantValue entries;
+  static const String DART_STRING_CLASS = "ConstantStringSet";
+  static const String DART_GENERAL_CLASS = "GeneralConstantSet";
 
-  JavaScriptSetConstant(InterfaceType type, this.entries)
-      : super(type, entries.keys);
+  /// Index for all-string Sets.
+  final JavaScriptObjectConstantValue? indexObject;
+
+  JavaScriptSetConstant(super.type, super.elements, this.indexObject);
 
   @override
-  List<ConstantValue> getDependencies() => [entries];
+  List<ConstantValue> getDependencies() {
+    if (indexObject == null) {
+      // For a general constant Set the values are emitted as a literal array.
+      return [...values];
+    } else {
+      // For a ConstantStringSet, the index contains the elements.
+      return [indexObject!];
+    }
+  }
 }
 
 class JavaScriptMapConstant extends MapConstantValue {
@@ -877,30 +942,43 @@ class JavaScriptMapConstant extends MapConstantValue {
   static const String DART_CLASS = "ConstantMap";
   static const String DART_STRING_CLASS = "ConstantStringMap";
   static const String DART_GENERAL_CLASS = "GeneralConstantMap";
+
   static const String LENGTH_NAME = "_length";
   static const String JS_OBJECT_NAME = "_jsObject";
   static const String KEYS_NAME = "_keys";
   static const String JS_DATA_NAME = "_jsData";
 
-  final ListConstantValue keyList;
-  final bool onlyStringKeys;
+  static const String JS_INDEX_NAME = '_jsIndex';
+  static const String VALUES_NAME = '_values';
 
-  JavaScriptMapConstant(InterfaceType type, ListConstantValue keyList,
-      List<ConstantValue> values, this.onlyStringKeys)
-      : this.keyList = keyList,
-        super(type, keyList.entries, values);
+  final ListConstantValue keyList;
+  final ListConstantValue valueList;
+  final bool onlyStringKeys;
+  final JavaScriptObjectConstantValue? indexObject;
+
+  JavaScriptMapConstant(InterfaceType type, this.keyList, this.valueList,
+      this.onlyStringKeys, this.indexObject)
+      : super(type, keyList.entries, valueList.entries);
 
   @override
   List<ConstantValue> getDependencies() {
-    List<ConstantValue> result = <ConstantValue>[];
     if (onlyStringKeys) {
-      result.add(keyList);
+      // TODO(25230): If we use `valueList` instead of `...values`, that creates
+      // a constant list that has a name in the constant pool and the list has
+      // Dart type attached. The Map constant has a reference to the list. If we
+      // knew that the `valueList` was the only reference to the list, we could
+      // generate the array in-place and omit the type. See [here][1] for more
+      // on the idea of building constants with unnamed subexpressions.
+      //
+      // [1]: https://github.com/dart-lang/sdk/issues/25230
+      //
+      // For now the values are generated in a fresh Array, so add the values.
+      return [indexObject!, ...values];
     } else {
-      // Add the keys individually to avoid generating an unused list constant
-      // for the keys.
-      result.addAll(keys);
+      // The general representation uses a list of key/value pairs, so add the
+      // keys and values individually to avoid generating an unused list
+      // constant for the keys and values.
+      return [...keys, ...values];
     }
-    result.addAll(values);
-    return result;
   }
 }

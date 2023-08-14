@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -45,23 +45,23 @@ extension Extension on self::Class* {
   method errors = self::Extension|errors;
   tearoff errors = self::Extension|get#errors;
 }
-static method Extension|id<T extends core::Object* = dynamic>(lowered final self::Class* #this, self::Extension|id::T* t) → self::Extension|id::T*
+static extension-member method Extension|id<T extends core::Object* = dynamic>(lowered final self::Class* #this, self::Extension|id::T* t) → self::Extension|id::T*
   return t;
-static method Extension|get#id(lowered final self::Class* #this) → <T extends core::Object* = dynamic>(T*) →* T*
+static extension-member method Extension|get#id(lowered final self::Class* #this) → <T extends core::Object* = dynamic>(T*) →* T*
   return <T extends core::Object* = dynamic>(T* t) → T* => self::Extension|id<T*>(#this, t);
-static method Extension|get#getter(lowered final self::Class* #this) → <T extends core::Object* = dynamic>(T*) →* T*
+static extension-member method Extension|get#getter(lowered final self::Class* #this) → <T extends core::Object* = dynamic>(T*) →* T*
   return self::Extension|get#id(#this);
-static method Extension|method(lowered final self::Class* #this) → dynamic {
+static extension-member method Extension|method(lowered final self::Class* #this) → dynamic {
   (core::String*) →* core::String* stringId = self::Extension|get#id(#this)<core::String*>;
 }
-static method Extension|get#method(lowered final self::Class* #this) → () →* dynamic
+static extension-member method Extension|get#method(lowered final self::Class* #this) → () →* dynamic
   return () → dynamic => self::Extension|method(#this);
-static method Extension|errors(lowered final self::Class* #this) → dynamic {
+static extension-member method Extension|errors(lowered final self::Class* #this) → dynamic {
   (core::int*) →* core::int* intId = invalid-expression "pkg/front_end/testcases/extensions/tear_offs.dart:19:31: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
     int Function(int) intId = getter;
-                              ^" in self::Extension|get#getter(#this) as{TypeError} (core::int*) →* core::int*;
+                              ^" in self::Extension|get#getter(#this) as{TypeError,ForLegacy} (core::int*) →* core::int*;
 }
-static method Extension|get#errors(lowered final self::Class* #this) → () →* dynamic
+static extension-member method Extension|get#errors(lowered final self::Class* #this) → () →* dynamic
   return () → dynamic => self::Extension|errors(#this);
 static method main() → dynamic {
   self::Class* c = new self::Class::•();
@@ -72,8 +72,8 @@ static method errors() → dynamic {
   self::Class* c = new self::Class::•();
   (core::num*) →* core::num* numId = invalid-expression "pkg/front_end/testcases/extensions/tear_offs.dart:32:31: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'num Function(num)'.
   num Function(num) numId = c.getter;
-                              ^" in self::Extension|get#getter(c) as{TypeError} (core::num*) →* core::num*;
+                              ^" in self::Extension|get#getter(c) as{TypeError,ForLegacy} (core::num*) →* core::num*;
   (core::bool*) →* core::bool* boolId = invalid-expression "pkg/front_end/testcases/extensions/tear_offs.dart:33:45: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'bool Function(bool)'.
   bool Function(bool) boolId = Extension(c).getter;
-                                            ^" in self::Extension|get#getter(c) as{TypeError} (core::bool*) →* core::bool*;
+                                            ^" in self::Extension|get#getter(c) as{TypeError,ForLegacy} (core::bool*) →* core::bool*;
 }

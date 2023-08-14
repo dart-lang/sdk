@@ -7,7 +7,9 @@ import 'test_helper.dart';
 import 'dart:developer';
 import 'service_test_common.dart';
 
-const int LINE_A = 20;
+const int LINE_A = 22;
+
+const int LINE_0 = 21;
 
 // :async_op will not be captured in this function because it never needs to
 // reschedule it.
@@ -16,11 +18,14 @@ asyncWithoutAwait() async {
 }
 
 testMain() {
-  debugger();
-  asyncWithoutAwait(); // Line A.
+  debugger(); // LINE_0.
+  asyncWithoutAwait(); // LINE_A.
 }
 
 var tests = <IsolateTest>[
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (isolate) => isolate.stepInto(),

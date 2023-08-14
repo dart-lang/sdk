@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -66,11 +66,11 @@ static field self::A a;
 static field invalid-type topLevel5;
 static field self::B b;
 static field invalid-type topLevel6;
-static method _extension#0|get#call(lowered final core::int #this) → core::String
+static extension-member method _extension#0|get#call(lowered final core::int #this) → core::String
   ;
-static method _extension#1|get#call(lowered final core::num #this) → core::String
+static extension-member method _extension#1|get#call(lowered final core::num #this) → core::String
   ;
-static method _extension#2|get#call(lowered final core::String #this) → () → core::String
+static extension-member method _extension#2|get#call(lowered final core::String #this) → () → core::String
   ;
 static method main() → dynamic
   ;

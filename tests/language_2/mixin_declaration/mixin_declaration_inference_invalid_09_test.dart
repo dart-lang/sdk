@@ -20,6 +20,9 @@ mixin M1<T> implements I<List<T>, T> {}
 // U0 = List<U1>
 // U1 = List<U0>
 // which has no finite solution
-class A with M0, M1 {} /*@compile-error=unspecified*/
+class A with M0, M1 {}
+//    ^
+// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_GENERIC_INTERFACES
+// [cfe] 'Object with M0, M1' can't implement both 'I<dynamic, List<dynamic>>' and 'I<List<dynamic>, dynamic>'
 
 void main() {}

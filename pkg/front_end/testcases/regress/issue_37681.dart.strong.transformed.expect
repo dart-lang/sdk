@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -27,7 +27,7 @@ static method main() → dynamic async /* futureValueType= dynamic */ {
     yield 42;
   }
   {
-    synthesized asy::Stream<dynamic> :stream = (f_async_star(){() → core::int} as{ForNonNullableByDefault} dynamic) as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<dynamic>;
+    synthesized asy::Stream<dynamic> :stream = (f_async_star(){() → core::int} as dynamic) as{TypeError,ForDynamic} asy::Stream<dynamic>;
     synthesized asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
     try
       while (let dynamic #t1 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
@@ -44,7 +44,7 @@ static method main() → dynamic async /* futureValueType= dynamic */ {
     yield 42;
   }
   {
-    synthesized core::Iterator<dynamic> :sync-for-iterator = ((f_sync_star(){() → core::int} as{ForNonNullableByDefault} dynamic) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+    synthesized core::Iterator<dynamic> :sync-for-iterator = ((f_sync_star(){() → core::int} as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       dynamic x = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {

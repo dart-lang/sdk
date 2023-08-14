@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -39,7 +39,7 @@ class B<E extends core::Object? = dynamic> extends self::A<self::B::E%> implemen
 static method foo() → dynamic {
   core::int y = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_5.dart:30:25: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       . /*@target=B.m*/ m(throw '', throw '');
-                        ^" in new self::B::•<dynamic>().{self::B::m}(throw "", throw ""){(dynamic, (dynamic, dynamic) → dynamic) → core::String} as{TypeError,ForNonNullableByDefault} core::int;
+                        ^" in new self::B::•<dynamic>().{self::B::m}(throw "", throw ""){(dynamic, (dynamic, dynamic) → dynamic) → core::String} as{TypeError} core::int;
   core::String z = new self::B::•<dynamic>().{self::B::m}(throw "", throw ""){(dynamic, (dynamic, dynamic) → dynamic) → core::String};
 }
 static method main() → dynamic {}

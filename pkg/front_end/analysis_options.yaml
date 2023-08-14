@@ -10,6 +10,7 @@ analyzer:
 
 linter:
   rules:
+    - collection_methods_unrelated_type
     - curly_braces_in_flow_control_structures
     - prefer_adjacent_string_concatenation
     - unawaited_futures
@@ -17,8 +18,6 @@ linter:
     - recursive_getters
     - avoid_empty_else
     - empty_statements
-    - list_remove_unrelated_type
-    - iterable_contains_unrelated_type
     - valid_regexps
     - package_api_docs
     - lines_longer_than_80_chars

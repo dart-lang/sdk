@@ -113,6 +113,50 @@ vm:
         - "_internal/vm/bin/cli_patch.dart"
 
 wasm:
+  include:
+    - target: "wasm_common"
+  libraries:
+    core:
+      uri: core/core.dart
+      patches:
+      - _internal/wasm/lib/core_patch.dart
+      - _internal/vm_shared/lib/array_patch.dart
+      - _internal/vm_shared/lib/bigint_patch.dart
+      - _internal/vm_shared/lib/bool_patch.dart
+      - _internal/vm_shared/lib/date_patch.dart
+      - _internal/vm_shared/lib/integers_patch.dart
+      - _internal/vm_shared/lib/map_patch.dart
+      - _internal/vm_shared/lib/null_patch.dart
+      - _internal/vm_shared/lib/string_buffer_patch.dart
+      - _internal/wasm/lib/date_patch_patch.dart
+      - _internal/wasm/lib/string_buffer_create.dart
+      - _internal/wasm/lib/string_patch.dart
+      - _internal/wasm/lib/sync_star_patch.dart
+      - _internal/wasm/lib/weak_patch.dart
+
+wasm_stringref:
+  include:
+    - target: "wasm_common"
+  libraries:
+    core:
+      uri: core/core.dart
+      patches:
+      - _internal/wasm/lib/core_patch.dart
+      - _internal/vm_shared/lib/array_patch.dart
+      - _internal/vm_shared/lib/bigint_patch.dart
+      - _internal/vm_shared/lib/bool_patch.dart
+      - _internal/vm_shared/lib/date_patch.dart
+      - _internal/vm_shared/lib/integers_patch.dart
+      - _internal/vm_shared/lib/map_patch.dart
+      - _internal/vm_shared/lib/null_patch.dart
+      - _internal/vm_shared/lib/string_buffer_patch.dart
+      - _internal/wasm/lib/date_patch_patch.dart
+      - _internal/wasm/lib/string_buffer_create.dart
+      - _internal/wasm/lib/string_stringref_patch.dart
+      - _internal/wasm/lib/sync_star_patch.dart
+      - _internal/wasm/lib/weak_patch.dart
+
+wasm_common:
   libraries:
     _http:
       uri: _http/http.dart
@@ -126,6 +170,8 @@ wasm:
       uri: _internal/wasm/lib/js_helper.dart
     _js_types:
       uri: _internal/wasm/lib/js_types.dart
+    _string_helper:
+      uri: _internal/wasm/lib/string_helper.dart
     _wasm:
       uri: _wasm/wasm_types.dart
     async:
@@ -143,22 +189,6 @@ wasm:
       patches:
       - _internal/vm_shared/lib/convert_patch.dart
       - _internal/wasm/lib/convert_patch.dart
-    core:
-      uri: core/core.dart
-      patches:
-      - _internal/wasm/lib/core_patch.dart
-      - _internal/vm_shared/lib/array_patch.dart
-      - _internal/vm_shared/lib/bigint_patch.dart
-      - _internal/vm_shared/lib/bool_patch.dart
-      - _internal/vm_shared/lib/date_patch.dart
-      - _internal/vm_shared/lib/integers_patch.dart
-      - _internal/vm_shared/lib/map_patch.dart
-      - _internal/vm_shared/lib/null_patch.dart
-      - _internal/vm_shared/lib/string_buffer_patch.dart
-      - _internal/wasm/lib/date_patch_patch.dart
-      - _internal/wasm/lib/string_buffer_create.dart
-      - _internal/wasm/lib/sync_star_patch.dart
-      - _internal/wasm/lib/weak_patch.dart
     developer:
       uri: developer/developer.dart
       patches:
@@ -187,6 +217,9 @@ wasm:
     js_interop:
       uri: js_interop/js_interop.dart
       patches: _internal/wasm/lib/js_interop_patch.dart
+    js_interop_unsafe:
+      uri: js_interop_unsafe/js_interop_unsafe.dart
+      patches: _internal/wasm/lib/js_interop_unsafe_patch.dart
     js_util:
       uri: js_util/js_util.dart
       patches: _internal/wasm/lib/js_util_patch.dart
@@ -280,6 +313,10 @@ _dart2js_common:
       uri: "js_interop/js_interop.dart"
       patches: "_internal/js_shared/lib/js_interop_patch.dart"
 
+    js_interop_unsafe:
+      uri: "js_interop_unsafe/js_interop_unsafe.dart"
+      patches: "_internal/js_shared/lib/js_interop_unsafe_patch.dart"
+
     _js_annotations:
       uri: "js/_js_annotations.dart"
 
@@ -337,8 +374,8 @@ _dart2js_common:
     _js_shared_embedded_names:
       uri: "_internal/js_shared/lib/synced/embedded_names.dart"
 
-    _async_await_error_codes:
-      uri: "_internal/js_runtime/lib/synced/async_await_error_codes.dart"
+    _async_status_codes:
+      uri: "_internal/js_runtime/lib/synced/async_status_codes.dart"
 
     _load_library_priority:
       uri: "_internal/js_runtime/lib/synced/load_library_priority.dart"
@@ -457,6 +494,10 @@ dartdevc:
       js_interop:
         uri: "js_interop/js_interop.dart"
         patches: "_internal/js_shared/lib/js_interop_patch.dart"
+
+      js_interop_unsafe:
+        uri: "js_interop_unsafe/js_interop_unsafe.dart"
+        patches: "_internal/js_shared/lib/js_interop_unsafe_patch.dart"
 
       js_util:
         uri: "js_util/js_util.dart"

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -7,7 +7,6 @@ import "org-dartlang-testcase:///typedef_from_lib.dart";
 part typedef_from_part.dart;
 typedef B<S extends core::Object? = dynamic> = self::Class<S%, core::int>;
 class Class<S extends core::Object? = dynamic, T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class::redirect]/*isLegacy*/;
   constructor •(self::Class::S% a, self::Class::T% b) → self::Class<self::Class::S%, self::Class::T%>
     ;
   constructor named(self::Class::S% a, [self::Class::T? b = null, core::int c = 42]) → self::Class<self::Class::S%, self::Class::T%>
@@ -20,7 +19,7 @@ class Class<S extends core::Object? = dynamic, T extends core::Object? = dynamic
     ;
   static method _#fact#tearOff<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::_#fact#tearOff::S% a, {self::Class::_#fact#tearOff::T? b, has-declared-initializer core::int c}) → self::Class<self::Class::_#fact#tearOff::S%, self::Class::_#fact#tearOff::T%>
     return self::Class::fact<self::Class::_#fact#tearOff::S%, self::Class::_#fact#tearOff::T%>(a, b: b, c: c);
-  static factory redirect<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::redirect::S% a) → self::Class<self::Class::redirect::S%, self::Class::redirect::T%>
+  static factory redirect<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::redirect::S% a) → self::Class<self::Class::redirect::S%, self::Class::redirect::T%> /* redirection-target: self::Class::named<self::Class::redirect::S%, self::Class::redirect::T%>*/
     return new self::Class::named<self::Class::redirect::S%, self::Class::redirect::T%>(a);
   static method _#redirect#tearOff<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::_#redirect#tearOff::S% a) → self::Class<self::Class::_#redirect#tearOff::S%, self::Class::_#redirect#tearOff::T%>
     return new self::Class::named<self::Class::_#redirect#tearOff::S%, self::Class::_#redirect#tearOff::T%>(a);
@@ -36,7 +35,7 @@ static method _#B#fact#tearOff<S extends core::Object? = dynamic>(self::_#B#fact
 static method _#B#redirect#tearOff<S extends core::Object? = dynamic>(self::_#B#redirect#tearOff::S% a) → self::Class<self::_#B#redirect#tearOff::S%, core::int>
   return self::Class::_#redirect#tearOff<self::_#B#redirect#tearOff::S%, core::int>(a);
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 import "typedef_from.dart" as self;
@@ -52,8 +51,3 @@ static method /* from org-dartlang-testcase:///typedef_from.dart */ _#A#fact#tea
   return self::Class::fact<self2::_#A#fact#tearOff::T%, core::String>(a, b: b, c: c);
 static method /* from org-dartlang-testcase:///typedef_from.dart */ _#A#redirect#tearOff<T extends core::Object? = dynamic>(self2::_#A#redirect#tearOff::T% a) → self::Class<self2::_#A#redirect#tearOff::T%, core::String>
   return self::Class::_#redirect#tearOff<self2::_#A#redirect#tearOff::T%, core::String>(a);
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///typedef_from.dart:75:7 -> ConstructorTearOffConstant(Class.redirect)
-Extra constant evaluation: evaluated: 43, effectively constant: 1

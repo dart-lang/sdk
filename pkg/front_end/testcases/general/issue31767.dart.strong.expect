@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -82,7 +82,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
     throw "Expected ${expected}, actual ${actual}";
 }
 
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //

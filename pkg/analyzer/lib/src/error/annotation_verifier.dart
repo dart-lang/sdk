@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -63,6 +62,9 @@ class AnnotationVerifier {
         element.isVisibleForTesting ||
         element.isVisibleForOverriding) {
       _checkVisibility(node, element);
+    } else if (element.isVisibleOutsideTemplate) {
+      _checkVisibility(node, element);
+      _checkVisibleOutsideTemplate(node);
     }
 
     _checkKinds(node, parent, element);
@@ -343,8 +345,8 @@ class AnnotationVerifier {
   }
 
   /// Reports a warning at [node] if it is not a valid target for a
-  /// visibility (`visibleForTemplate`, `visibileForTesting`,
-  /// `visibleForOverride`) annotation.
+  /// visibility (`visibleForTemplate`, `visibleOutsideTemplate`,
+  /// `visibileForTesting`, `visibleForOverride`) annotation.
   void _checkVisibility(Annotation node, ElementAnnotation element) {
     var parent = node.parent;
     if (parent is Declaration) {
@@ -407,6 +409,58 @@ class AnnotationVerifier {
       // `visibleForTemplate` or `visibleForTesting`, so leave it alone for
       // now.
     }
+  }
+
+  /// Reports a warning at [node] if it's parent is not a valid target for an
+  /// `@visibleOutsideTemplate` annotation.
+  void _checkVisibleOutsideTemplate(Annotation node) {
+    void reportError() {
+      _errorReporter.reportErrorForNode(
+        WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION,
+        node,
+      );
+    }
+
+    final AstNode? containedDeclaration;
+    switch (node.parent) {
+      case ConstructorDeclaration constructorDeclaration:
+        containedDeclaration = constructorDeclaration;
+      case EnumConstantDeclaration enumConstant:
+        containedDeclaration = enumConstant;
+      case FieldDeclaration fieldDeclaration:
+        containedDeclaration = fieldDeclaration;
+      case MethodDeclaration methodDeclaration:
+        containedDeclaration = methodDeclaration;
+      default:
+        reportError();
+        return;
+    }
+
+    final InterfaceElement? declaredElement;
+    switch (containedDeclaration.parent) {
+      case ClassDeclaration classDeclaration:
+        declaredElement = classDeclaration.declaredElement;
+      case EnumDeclaration enumDeclaration:
+        declaredElement = enumDeclaration.declaredElement;
+      case MixinDeclaration mixinDeclaration:
+        declaredElement = mixinDeclaration.declaredElement;
+      default:
+        reportError();
+        return;
+    }
+
+    if (declaredElement == null) {
+      reportError();
+      return;
+    }
+
+    for (final annotation in declaredElement.metadata) {
+      if (annotation.isVisibleForTemplate) {
+        return;
+      }
+    }
+
+    reportError();
   }
 
   /// Returns an expression (for error-reporting purposes) associated with a

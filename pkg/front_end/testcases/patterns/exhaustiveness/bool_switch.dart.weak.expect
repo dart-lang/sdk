@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -28,7 +28,7 @@ import "dart:_internal" as _in;
 
 static method exhaustiveSwitch(core::bool b) → void {
   #L1:
-  switch(b) /*isExplicitlyExhaustive*/ {
+  switch(b) /* isExplicitlyExhaustive, core::bool */ {
     #L2:
     case #C1:
       {
@@ -48,7 +48,7 @@ static method exhaustiveSwitch(core::bool b) → void {
 }
 static method nonExhaustiveSwitch1(core::bool b) → void {
   #L5:
-  switch(b) /*isExplicitlyExhaustive*/ {
+  switch(b) /* isExplicitlyExhaustive, core::bool */ {
     #L6:
     case #C1:
       {
@@ -62,7 +62,7 @@ static method nonExhaustiveSwitch1(core::bool b) → void {
 }
 static method nonExhaustiveSwitch2(core::bool b) → void {
   #L8:
-  switch(b) /*isExplicitlyExhaustive*/ {
+  switch(b) /* isExplicitlyExhaustive, core::bool */ {
     #L9:
     case #C2:
       {
@@ -76,7 +76,7 @@ static method nonExhaustiveSwitch2(core::bool b) → void {
 }
 static method nonExhaustiveSwitchWithDefault(core::bool b) → void {
   #L11:
-  switch(b) {
+  switch(b) /* core::bool */ {
     #L12:
     case #C1:
       {
@@ -93,7 +93,7 @@ static method nonExhaustiveSwitchWithDefault(core::bool b) → void {
 }
 static method exhaustiveNullableSwitch(core::bool? b) → void {
   #L14:
-  switch(b) /*isExplicitlyExhaustive*/ {
+  switch(b) /* isExplicitlyExhaustive, core::bool? */ {
     #L15:
     case #C1:
       {
@@ -119,7 +119,7 @@ static method exhaustiveNullableSwitch(core::bool? b) → void {
 }
 static method nonExhaustiveNullableSwitch1(core::bool? b) → void {
   #L19:
-  switch(b) /*isExplicitlyExhaustive*/ {
+  switch(b) /* isExplicitlyExhaustive, core::bool? */ {
     #L20:
     case #C1:
       {
@@ -139,7 +139,7 @@ static method nonExhaustiveNullableSwitch1(core::bool? b) → void {
 }
 static method nonExhaustiveNullableSwitch2(core::bool? b) → void {
   #L23:
-  switch(b) /*isExplicitlyExhaustive*/ {
+  switch(b) /* isExplicitlyExhaustive, core::bool? */ {
     #L24:
     case #C1:
       {
@@ -159,7 +159,7 @@ static method nonExhaustiveNullableSwitch2(core::bool? b) → void {
 }
 static method unreachableCase1(core::bool b) → void {
   #L27:
-  switch(b) /*isExplicitlyExhaustive*/ {
+  switch(b) /* isExplicitlyExhaustive, core::bool */ {
     #L28:
     case #C1:
       {
@@ -185,7 +185,7 @@ static method unreachableCase1(core::bool b) → void {
 }
 static method unreachableCase2(core::bool b) → void {
   #L32:
-  switch(b) /*isExplicitlyExhaustive*/ {
+  switch(b) /* isExplicitlyExhaustive, core::bool */ {
     #L33:
     case #C1:
       {
@@ -211,7 +211,7 @@ static method unreachableCase2(core::bool b) → void {
 }
 static method unreachableCase3(core::bool? b) → void {
   #L37:
-  switch(b) /*isExplicitlyExhaustive*/ {
+  switch(b) /* isExplicitlyExhaustive, core::bool? */ {
     #L38:
     case #C1:
       {

@@ -75,7 +75,6 @@ static constexpr intptr_t kClassIdTagMax = (1 << 20) - 1;
   V(Type)                                                                      \
   V(FunctionType)                                                              \
   V(RecordType)                                                                \
-  V(TypeRef)                                                                   \
   V(TypeParameter)                                                             \
   V(FinalizerBase)                                                             \
   V(Finalizer)                                                                 \
@@ -323,6 +322,14 @@ COMPILE_ASSERT(kFirstErrorCid == kErrorCid &&
 
 inline bool IsErrorClassId(intptr_t index) {
   return (index >= kFirstErrorCid && index <= kLastErrorCid);
+}
+
+inline bool IsConcreteTypeClassId(intptr_t index) {
+  // Make sure to update when new AbstractType subclasses are added.
+  COMPILE_ASSERT(kFunctionTypeCid == kTypeCid + 1 &&
+                 kRecordTypeCid == kTypeCid + 2 &&
+                 kTypeParameterCid == kTypeCid + 3);
+  return (index >= kTypeCid && index <= kTypeParameterCid);
 }
 
 inline bool IsNumberClassId(intptr_t index) {

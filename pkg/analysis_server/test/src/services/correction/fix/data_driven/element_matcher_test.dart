@@ -414,7 +414,7 @@ String s = '';
   }
 
   Future<void> test_imports_relative() async {
-    addSource('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
     await resolveTestCode('''
 import 'a.dart';
 

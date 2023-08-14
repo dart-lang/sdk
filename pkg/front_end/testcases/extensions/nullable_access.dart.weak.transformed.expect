@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -13,7 +13,7 @@ class Class extends core::Object {
 extension /* unnamed */ _extension#0 on self::Class? {
   get property = self::_extension#0|get#property;
 }
-static method _extension#0|get#property(lowered final self::Class? #this) → core::int
+static extension-member method _extension#0|get#property(lowered final self::Class? #this) → core::int
   return 42;
 static method test(self::Class? c) → void {
   self::_extension#0|get#property(c);

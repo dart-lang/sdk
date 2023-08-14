@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -14,17 +14,17 @@ extension BestSpec on core::List<core::num> {
   method best = self::BestSpec|best;
   tearoff best = self::BestSpec|get#best;
 }
-static method BestCom|best<T extends core::num>(lowered final core::Iterable<self::BestCom|best::T>? #this) → self::BestCom|best::T?
+static extension-member method BestCom|best<T extends core::num>(lowered final core::Iterable<self::BestCom|best::T>? #this) → self::BestCom|best::T?
   ;
-static method BestCom|get#best<T extends core::num>(lowered final core::Iterable<self::BestCom|get#best::T>? #this) → () → self::BestCom|get#best::T?
+static extension-member method BestCom|get#best<T extends core::num>(lowered final core::Iterable<self::BestCom|get#best::T>? #this) → () → self::BestCom|get#best::T?
   return () → self::BestCom|get#best::T? => self::BestCom|best<self::BestCom|get#best::T>(#this);
-static method BestList|best<T extends core::Object? = dynamic>(lowered final core::List<self::BestList|best::T%> #this) → self::BestList|best::T?
+static extension-member method BestList|best<T extends core::Object? = dynamic>(lowered final core::List<self::BestList|best::T%> #this) → self::BestList|best::T?
   ;
-static method BestList|get#best<T extends core::Object? = dynamic>(lowered final core::List<self::BestList|get#best::T%> #this) → () → self::BestList|get#best::T?
+static extension-member method BestList|get#best<T extends core::Object? = dynamic>(lowered final core::List<self::BestList|get#best::T%> #this) → () → self::BestList|get#best::T?
   return () → self::BestList|get#best::T? => self::BestList|best<self::BestList|get#best::T%>(#this);
-static method BestSpec|best(lowered final core::List<core::num> #this) → core::num?
+static extension-member method BestSpec|best(lowered final core::List<core::num> #this) → core::num?
   ;
-static method BestSpec|get#best(lowered final core::List<core::num> #this) → () → core::num?
+static extension-member method BestSpec|get#best(lowered final core::List<core::num> #this) → () → core::num?
   return () → core::num? => self::BestSpec|best(#this);
 static method main() → dynamic
   ;

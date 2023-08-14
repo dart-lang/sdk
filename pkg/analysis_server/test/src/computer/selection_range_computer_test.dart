@@ -223,6 +223,7 @@ class Circle {
 
     final regions = await _computeSelectionRanges(content);
     _expectRegions(regions, content, [
+      'var l',
       'length: var l',
       'Square(length: var l)',
       'Square(length: var l) => l * l',
@@ -304,8 +305,8 @@ void f() {
   }
 
   Future<List<SelectionRange>?> _computeSelectionRanges(TestCode code) async {
-    newFile(sourcePath, code.code);
-    var result = await getResolvedUnit(sourcePath);
+    final file = newFile(sourcePath, code.code);
+    var result = await getResolvedUnit(file);
     var computer =
         DartSelectionRangeComputer(result.unit, code.position.offset);
     return computer.compute();

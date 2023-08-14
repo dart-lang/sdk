@@ -24,6 +24,9 @@ void main(List<String> args) {
   Map<String, TopLevelDeclarationEnd> classes = {};
   for (TopLevelDeclarationEnd cls in ast.getClasses()) {
     IdentifierHandle identifier = cls.getIdentifier();
+    // TODO(srawlins): Look into fixing this code. Right now we get:
+    // "The argument type 'Token' isn't related to 'String'."
+    // ignore: collection_methods_unrelated_type
     assert(classes[identifier.token] == null);
     classes[identifier.token.toString()] = cls;
   }
@@ -185,10 +188,6 @@ void processField(
 
   Token beginToken = classFields.beginToken;
   Token endToken = classFields.endToken;
-  // ignore: unnecessary_null_comparison
-  assert(beginToken != null);
-  // ignore: unnecessary_null_comparison
-  assert(endToken != null);
 
   String frozenCheckCode =
       """if (frozen) throw "Trying to modify frozen node!";""";

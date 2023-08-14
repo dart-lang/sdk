@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -13,6 +13,6 @@ static method f(dynamic x) → dynamic
   return block {
     Never #t1;
     #L1:
-    switch(x) /*isExplicitlyExhaustive*/ {
+    switch(x) /* isExplicitlyExhaustive, dynamic */ {
     }
   } =>#t1;

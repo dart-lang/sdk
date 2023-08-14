@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide NavigationTarget;
@@ -40,7 +39,6 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
 
   void setUp() {
     dartfixListener = DartFixListener(null, ListenerClient());
-    resourceProvider = MemoryResourceProvider();
     final migrationInfo =
         MigrationInfo({}, {}, resourceProvider.pathContext, null);
     state = MigrationState(
@@ -272,7 +270,7 @@ mixin PreviewSiteTestMixin {
 
 @reflectiveTest
 class PreviewSiteWithEngineTest extends NnbdMigrationTestBase
-    with ResourceProviderMixin, PreviewSiteTestMixin {
+    with PreviewSiteTestMixin {
   MigrationInfo? migrationInfo;
 
   Future<void> setUpMigrationInfo(Map<String, String> files,

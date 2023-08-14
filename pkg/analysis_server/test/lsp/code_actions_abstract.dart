@@ -97,6 +97,17 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     }
   }
 
+  /// Expects that command [commandName] was logged to the analytics manager.
+  void expectCommandLogged(String commandName) {
+    expect(
+      server.analyticsManager
+          .getRequestData(Method.workspace_executeCommand.toString())
+          .additionalEnumCounts['command']!
+          .keys,
+      contains(commandName),
+    );
+  }
+
   Either2<Command, CodeAction>? findCommand(
       List<Either2<Command, CodeAction>> actions, String commandID,
       [String? wantedTitle]) {
@@ -123,8 +134,8 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
         .map((action) => action.map((cmd) => null, (action) => action))
         .where((action) => action?.kind == actionKind && action?.title == title)
         .map((action) {
-          // Expect matching actions to contain an edit and not a command.
-          assert(action!.command == null);
+          // Expect matching actions to contain an edit (and a log command).
+          assert(action!.command != null);
           assert(action!.edit != null);
           return action;
         })

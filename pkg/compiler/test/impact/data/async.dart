@@ -34,11 +34,8 @@ main() {
 }
 
 /*member: testSyncStar:
- static=[
-  _IterationMarker.endOfIteration(0),
-  _IterationMarker.uncaughtError(1),
-  _IterationMarker.yieldStar(1),
-  _makeSyncStarIterable<dynamic>(1)]
+ dynamic=[_yieldStar(1)],
+ static=[_makeSyncStarIterable<dynamic>(1)]
 */
 testSyncStar() sync* {}
 
@@ -67,10 +64,8 @@ testAsync() async {}
 testAsyncStar() async* {}
 
 /*member: testLocalSyncStar:
+ dynamic=[_yieldStar(1)],
  static=[
-  _IterationMarker.endOfIteration(0),
-  _IterationMarker.uncaughtError(1),
-  _IterationMarker.yieldStar(1),
   _makeSyncStarIterable<Null>(1),
   _setArrayType(2),
   def:local],
@@ -136,10 +131,8 @@ testLocalAsyncStar() {
 }
 
 /*member: testAnonymousSyncStar:
+ dynamic=[_yieldStar(1)],
  static=[
-  _IterationMarker.endOfIteration(0),
-  _IterationMarker.uncaughtError(1),
-  _IterationMarker.yieldStar(1),
   _makeSyncStarIterable<Null>(1),
   _setArrayType(2),
   def:<anonymous>],

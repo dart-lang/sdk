@@ -17,6 +17,7 @@ import 'package:expect/expect.dart';
 
 import 'send_unsupported_objects_test.dart';
 
+@pragma('vm:entry-point') // prevent obfuscation
 class ConstFoo {
   const ConstFoo(this.name);
   final String name;
@@ -42,7 +43,7 @@ Future<void> main(args, message) async {
       ]
     ]);
   }, (e) {
-    checkForRetainingPath(e, <String>['ConstFoo']);
+    Expect.isTrue(checkForRetainingPath(e, <String>['ConstFoo']));
 
     final msg = e.toString();
     Expect.equals(3, msg.split('\n').where((s) => s.contains('_List')).length);

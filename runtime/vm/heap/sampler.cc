@@ -197,13 +197,15 @@ void HeapProfileSampler::HandleNewTLAB(intptr_t old_tlab_remaining_space,
   }
 }
 
-void* HeapProfileSampler::InvokeCallbackForLastSample() {
+void* HeapProfileSampler::InvokeCallbackForLastSample(intptr_t cid) {
   ASSERT(enabled_);
   ASSERT(create_callback_ != nullptr);
   ReadRwLocker locker(thread_, lock_);
+  ClassTable* table = IsolateGroup::Current()->class_table();
   void* result = create_callback_(
       reinterpret_cast<Dart_Isolate>(thread_->isolate()),
-      reinterpret_cast<Dart_IsolateGroup>(thread_->isolate_group()));
+      reinterpret_cast<Dart_IsolateGroup>(thread_->isolate_group()),
+      table->UserVisibleNameFor(cid), last_sample_size_);
   last_sample_size_ = kUninitialized;
   return result;
 }
@@ -244,6 +246,12 @@ void HeapProfileSampler::SampleOldSpaceAllocation(intptr_t allocation_size) {
   intptr_t tlab_interval = remaining_TLAB_interval();
   if (tlab_interval != kUninitialized) {
     interval_to_next_sample_ = tlab_interval;
+  }
+
+  // If we don't have a TLAB yet simply initialize interval_to_next_sample_
+  // from the sampling interval.
+  if (interval_to_next_sample_ == kUninitialized) {
+    interval_to_next_sample_ = sampling_interval_;
   }
 
   // Check the allocation is large enough to trigger a sample. If not, tighten

@@ -1691,7 +1691,8 @@ class FragmentEmitter {
   /// to the list of generated fragments that must be installed when the
   /// deferred library is loaded.
   Iterable<js.Property> emitEmbeddedGlobalsForDeferredLoading(
-      DeferredLoadingState deferredLoadingState) {
+      DeferredLoadingState deferredLoadingState,
+      {required bool isSplit}) {
     List<js.Property> globals = [];
 
     globals.add(js.Property(
@@ -1722,6 +1723,11 @@ class FragmentEmitter {
             }""", {
       'deferredInitialized': generateEmbeddedGlobalAccess(DEFERRED_INITIALIZED)
     });
+
+    if (isSplit) {
+      js.Expression eventLog = js.js("$deferredGlobal.eventLog");
+      globals.add(js.Property(js.string(INITIALIZATION_EVENT_LOG), eventLog));
+    }
 
     globals.add(js.Property(
         js.string(INITIALIZE_LOADED_HUNK), initializeLoadedHunkFunction));
@@ -1842,8 +1848,8 @@ class FragmentEmitter {
     List<js.Property> globals = [];
 
     if (fragmentsToLoad.isNotEmpty) {
-      globals
-          .addAll(emitEmbeddedGlobalsForDeferredLoading(deferredLoadingState));
+      globals.addAll(emitEmbeddedGlobalsForDeferredLoading(deferredLoadingState,
+          isSplit: program.isSplit));
     }
 
     if (program.typeToInterceptorMap != null) {

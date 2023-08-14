@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -14,10 +14,10 @@ import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
 
 static method main() → dynamic {}
 static method test(dynamic x) → dynamic {
-  x as{ForNonNullableByDefault} invalid-type;
+  x as invalid-type;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 

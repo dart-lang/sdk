@@ -575,7 +575,7 @@ foo() {
       offset: offset,
     );
 
-    expect(request.filePath, testFile);
+    expect(request.filePath, testFile.path);
     expect(request.offset, offset);
     expect(request.context, expectedContext);
     expect(request.replacementRange, expectedReplacementRange);

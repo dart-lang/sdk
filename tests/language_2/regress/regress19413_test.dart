@@ -10,5 +10,8 @@ import 'regress19413_foo.dart' as foo;
 import 'regress19413_bar.dart' as foo;
 
 main() {
-  foo.f(); /*@compile-error=unspecified*/
+  foo.f();
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_IMPORT
+  // [cfe] 'f' is imported from both 'tests/language_2/regress/regress19413_bar.dart' and 'tests/language_2/regress/regress19413_foo.dart'.
 }

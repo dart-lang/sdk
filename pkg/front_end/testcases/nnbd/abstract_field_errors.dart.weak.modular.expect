@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -238,9 +238,9 @@ static final field core::int finalTopLevelField = 0;
 static const field core::int constField = #C1;
 static field core::int Extension|extensionStaticField = 0;
 static final field core::int Extension|finalExtensionStaticField = 0;
-static abstract get Extension|extensionInstanceField() → core::int;
-static abstract set Extension|extensionInstanceField(core::int #externalFieldValue) → void;
-static abstract get Extension|finalExtensionInstanceField() → core::int;
+static abstract extension-member get Extension|extensionInstanceField() → core::int;
+static abstract extension-member set Extension|extensionInstanceField(core::int #externalFieldValue) → void;
+static abstract extension-member get Extension|finalExtensionInstanceField() → core::int;
 static method main() → dynamic {}
 
 constants  {

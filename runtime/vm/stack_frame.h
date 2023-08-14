@@ -351,7 +351,7 @@ class DartFrameIterator {
   // Get next dart frame.
   StackFrame* NextFrame() {
     StackFrame* frame = frames_.NextFrame();
-    while (frame != NULL && !frame->IsDartFrame(frames_.validate())) {
+    while (frame != nullptr && !frame->IsDartFrame(frames_.validate())) {
       frame = frames_.NextFrame();
     }
     return frame;
@@ -424,7 +424,7 @@ DART_FORCE_INLINE static bool IsCalleeFrameOf(uword fp, uword other_fp) {
 }
 
 // Value for stack limit that is used to cause an interrupt.
-static const uword kInterruptStackLimit = ~static_cast<uword>(0);
+static constexpr uword kInterruptStackLimit = ~static_cast<uword>(0);
 
 DART_FORCE_INLINE static uword LocalVarAddress(uword fp, intptr_t index) {
   return fp + LocalVarIndex(0, index) * kWordSize;

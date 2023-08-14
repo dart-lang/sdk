@@ -521,10 +521,7 @@ class ComplexTypeInfo implements TypeInfo {
 
   ComplexTypeInfo(Token beforeStart, this.typeArguments)
       : this.start = beforeStart.next!,
-        recovered = typeArguments.recovered {
-    // ignore: unnecessary_null_comparison
-    assert(typeArguments != null);
-  }
+        recovered = typeArguments.recovered;
 
   ComplexTypeInfo._nonNullable(
       this.start,
@@ -777,7 +774,10 @@ class ComplexTypeInfo implements TypeInfo {
         // * List<List<List<(int, int)>>>
         // * typedef F2<T extends List<(int, int)>>= T Function();
         // * typedef F3<T extends List<List<(int, int)>>>= T Function();
-        if (!isOneOfOrEof(next, const [",", ">", ">>", ">>=", ">>>", ">>>="])) {
+        //
+        // But don't confuse e.g. `(() => print("hello")) >> 42;` for that.
+        if (recovered ||
+            !isOneOfOrEof(next, const [",", ">", ">>", ">>=", ">>>", ">>>="])) {
           return noType;
         }
       }
@@ -1223,10 +1223,6 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   ComplexTypeParamOrArgInfo(
       Token token, this.inDeclaration, this.allowsVariance)
       : assert(optional('<', token.next!)),
-        // ignore: unnecessary_null_comparison
-        assert(inDeclaration != null),
-        // ignore: unnecessary_null_comparison
-        assert(allowsVariance != null),
         start = token.next!;
 
   /// Parse the tokens and return the receiver or [noTypeParamOrArg] if there

@@ -244,7 +244,7 @@ void f(A a) {
   }
 
   Future<void> test_qualified_instance_differentLibrary() async {
-    addSource('$testPackageLibPath/other.dart', '''
+    newFile('$testPackageLibPath/other.dart', '''
 /**
  * A comment to push the offset of the braces for the following class
  * declaration past the end of the content of the test file. Used to catch an

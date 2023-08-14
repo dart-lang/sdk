@@ -20,12 +20,7 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
 
   void addSubtypedName(NamedType? type) {
     if (type != null) {
-      Identifier name = type.name;
-      if (name is SimpleIdentifier) {
-        subtypedNames.add(name.name);
-      } else if (name is PrefixedIdentifier) {
-        subtypedNames.add(name.identifier.name);
-      }
+      subtypedNames.add(type.name2.lexeme);
     }
   }
 
@@ -279,6 +274,12 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    _addIfNotShadowed(node.name2);
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     // Ignore all declarations.
     if (node.inDeclarationContext()) {
@@ -303,6 +304,21 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
       }
     }
     // Do add the name.
+    names.add(name);
+  }
+
+  /// Adds [token] if it is not shadowed by a local element.
+  void _addIfNotShadowed(Token token) {
+    final name = token.lexeme;
+
+    if (localScope.contains(name)) {
+      return;
+    }
+
+    if (importPrefixNames.contains(name)) {
+      return;
+    }
+
     names.add(name);
   }
 

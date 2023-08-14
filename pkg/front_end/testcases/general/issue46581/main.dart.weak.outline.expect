@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "main_lib.dart" as mai;
 import "dart:core" as core;
@@ -22,7 +22,7 @@ abstract class MyMixin extends core::Object /*isMixinDeclaration*/  {
 static method main() → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -30,7 +30,7 @@ static method test1(dynamic x) → dynamic {
   {
     hoisted core::int y;
     final synthesized dynamic #1#0 = x;
-    if(!(#1#0 == null) ?{core::bool} #1#0 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y = #1#0{core::int} in true) : false) {
+    if(!(#1#0 == null) ?{core::bool} #1#0 is core::int && (let final core::int #t2 = y = #1#0{core::int} in true) : false) {
     }
   }
 }
@@ -44,13 +44,13 @@ static method test2(core::num x) → dynamic {
   {
     hoisted core::int y;
     final synthesized core::num #1#0 = x;
-    if(!(#1#0 == null) ?{core::bool} #1#0 is{ForNonNullableByDefault} core::int && (let final core::int #t4 = y = #1#0{core::int} in true) : false) {
+    if(!(#1#0 == null) ?{core::bool} #1#0 is core::int && (let final core::int #t4 = y = #1#0{core::int} in true) : false) {
     }
   }
   {
     hoisted core::String y;
     final synthesized core::num #2#0 = x;
-    if(!(#2#0 == null) ?{core::bool} #2#0 is{ForNonNullableByDefault} core::String && (let final core::String #t5 = y = #2#0{core::String} in true) : false) {
+    if(!(#2#0 == null) ?{core::bool} #2#0 is core::String && (let final core::String #t5 = y = #2#0{core::String} in true) : false) {
     }
   }
 }

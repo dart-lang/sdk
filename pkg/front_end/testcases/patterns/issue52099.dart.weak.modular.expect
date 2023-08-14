@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -32,7 +32,7 @@ static method foo(core::Object object) → dynamic {
     {
       {
         final hoisted core::int location;
-        if(#0#0 is{ForNonNullableByDefault} self::FieldRef && (let final dynamic #t2 = location = #0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t3 = #0#2#isSet = true in #0#2 = #0#0{self::FieldRef}.{self::FieldRef::location}{core::int} in true) || #0#0 is{ForNonNullableByDefault} self::FuncRef && (let final dynamic #t4 = location = #0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t5 = #0#2#isSet = true in #0#2 = #0#0{self::FuncRef}.{self::FuncRef::location}{core::int} in true) || #0#0 is{ForNonNullableByDefault} self::ClassRef && (let final dynamic #t6 = location = #0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t7 = #0#2#isSet = true in #0#2 = #0#0{self::ClassRef}.{self::ClassRef::location}{core::int} in true)) {
+        if(#0#0 is self::FieldRef && (let final dynamic #t2 = location = #0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t3 = #0#2#isSet = true in #0#2 = #0#0{self::FieldRef}.{self::FieldRef::location}{core::int} in true) || #0#0 is self::FuncRef && (let final dynamic #t4 = location = #0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t5 = #0#2#isSet = true in #0#2 = #0#0{self::FuncRef}.{self::FuncRef::location}{core::int} in true) || #0#0 is self::ClassRef && (let final dynamic #t6 = location = #0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t7 = #0#2#isSet = true in #0#2 = #0#0{self::ClassRef}.{self::ClassRef::location}{core::int} in true)) {
           #t1 = location;
           break #L1;
         }

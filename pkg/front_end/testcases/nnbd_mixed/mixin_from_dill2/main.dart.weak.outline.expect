@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "main_lib.dart" as mai;
 import "dart:core" as core;
@@ -26,7 +26,7 @@ class RenderAnimatedOpacity extends self::_RenderAnimatedOpacity&RenderProxyBox&
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 

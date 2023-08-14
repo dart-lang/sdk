@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "package:expect/expect.dart" as exp;
@@ -21,7 +21,7 @@ static method function1(core::int a, core::int b) → core::int {
 }
 static method function2() → core::String {
   dynamic x = "string";
-  return x as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+  return x as{TypeError,ForDynamic} core::String;
 }
 static method function3() → core::int {
   core::int first = 2;
@@ -39,19 +39,19 @@ static method function5() → core::int {
 static method function6() → core::int {
   dynamic a;
   a = 2;
-  return a as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  return a as{TypeError,ForDynamic} core::int;
 }
 static method function7() → core::int {
   dynamic a;
   dynamic b;
   a = 2;
-  return a as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  return a as{TypeError,ForDynamic} core::int;
 }
 static method function8() → core::int {
   dynamic a;
   core::int? b;
   a = 2;
-  return a as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  return a as{TypeError,ForDynamic} core::int;
 }
 static method function9() → core::int? {
   core::int? x;

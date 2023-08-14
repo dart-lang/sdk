@@ -13,7 +13,7 @@ class MethodMacro implements ClassDeclarationsMacro {
 
   @override
   FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
-      ClassMemberDeclarationBuilder builder) async {
-    builder.declareInClass(new DeclarationCode.fromString(generateBody()));
+      MemberDeclarationBuilder builder) async {
+    builder.declareInType(new DeclarationCode.fromString(generateBody()));
   }
 }

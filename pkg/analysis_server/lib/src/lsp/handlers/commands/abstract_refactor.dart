@@ -139,8 +139,12 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
   }
 
   @override
-  Future<ErrorOr<void>> handle(Map<String, Object?> parameters,
-      ProgressReporter progress, CancellationToken cancellationToken) async {
+  Future<ErrorOr<void>> handle(
+    MessageInfo message,
+    Map<String, Object?> parameters,
+    ProgressReporter progress,
+    CancellationToken cancellationToken,
+  ) async {
     if (parameters['kind'] is! String ||
         parameters['path'] is! String ||
         (parameters['docVersion'] is! int?) ||

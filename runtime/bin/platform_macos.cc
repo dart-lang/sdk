@@ -33,9 +33,9 @@
 namespace dart {
 namespace bin {
 
-const char* Platform::executable_name_ = NULL;
+const char* Platform::executable_name_ = nullptr;
 int Platform::script_index_ = 1;
-char** Platform::argv_ = NULL;
+char** Platform::argv_ = nullptr;
 
 static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
   Syslog::PrintErr(
@@ -54,7 +54,7 @@ bool Platform::Initialize() {
   // handler error EPIPE is set instead.
   struct sigaction act = {};
   act.sa_handler = SIG_IGN;
-  if (sigaction(SIGPIPE, &act, 0) != 0) {
+  if (sigaction(SIGPIPE, &act, nullptr) != 0) {
     perror("Setting signal handler failed");
     return false;
   }
@@ -65,7 +65,7 @@ bool Platform::Initialize() {
   sigset_t signal_mask;
   sigemptyset(&signal_mask);
   sigaddset(&signal_mask, SIGTTOU);
-  if (sigprocmask(SIG_BLOCK, &signal_mask, NULL) < 0) {
+  if (sigprocmask(SIG_BLOCK, &signal_mask, nullptr) < 0) {
     perror("Setting signal handler failed");
     return false;
   }
@@ -80,19 +80,19 @@ bool Platform::Initialize() {
     perror("sigaddset() failed");
     return false;
   }
-  if (sigaction(SIGSEGV, &act, NULL) != 0) {
+  if (sigaction(SIGSEGV, &act, nullptr) != 0) {
     perror("sigaction() failed.");
     return false;
   }
-  if (sigaction(SIGBUS, &act, NULL) != 0) {
+  if (sigaction(SIGBUS, &act, nullptr) != 0) {
     perror("sigaction() failed.");
     return false;
   }
-  if (sigaction(SIGTRAP, &act, NULL) != 0) {
+  if (sigaction(SIGTRAP, &act, nullptr) != 0) {
     perror("sigaction() failed.");
     return false;
   }
-  if (sigaction(SIGILL, &act, NULL) != 0) {
+  if (sigaction(SIGILL, &act, nullptr) != 0) {
     perror("sigaction() failed.");
     return false;
   }
@@ -102,7 +102,7 @@ bool Platform::Initialize() {
 int Platform::NumberOfProcessors() {
   int32_t cpus = -1;
   size_t cpus_length = sizeof(cpus);
-  if (sysctlbyname("hw.logicalcpu", &cpus, &cpus_length, NULL, 0) == 0) {
+  if (sysctlbyname("hw.logicalcpu", &cpus, &cpus_length, nullptr, 0) == 0) {
     return cpus;
   } else {
     // Failed, fallback to using sysconf.
@@ -130,12 +130,12 @@ static const char* GetLocaleName() {
   CFIndex max_len =
       CFStringGetMaximumSizeForEncoding(len, kCFStringEncodingUTF8) + 1;
   char* result = reinterpret_cast<char*>(Dart_ScopeAllocate(max_len));
-  ASSERT(result != NULL);
+  ASSERT(result != nullptr);
   bool success =
       CFStringGetCString(locale_string, result, max_len, kCFStringEncodingUTF8);
   CFRelease(locale);
   if (!success) {
-    return NULL;
+    return nullptr;
   }
   return result;
 }
@@ -145,7 +145,7 @@ static const char* GetPreferredLanguageName() {
   CFIndex languages_length = CFArrayGetCount(languages);
   if (languages_length < 1) {
     CFRelease(languages);
-    return NULL;
+    return nullptr;
   }
   CFTypeRef item =
       reinterpret_cast<CFTypeRef>(CFArrayGetValueAtIndex(languages, 0));
@@ -156,12 +156,12 @@ static const char* GetPreferredLanguageName() {
   CFIndex max_len =
       CFStringGetMaximumSizeForEncoding(len, kCFStringEncodingUTF8) + 1;
   char* result = reinterpret_cast<char*>(Dart_ScopeAllocate(max_len));
-  ASSERT(result != NULL);
+  ASSERT(result != nullptr);
   bool success =
       CFStringGetCString(language, result, max_len, kCFStringEncodingUTF8);
   CFRelease(languages);
   if (!success) {
-    return NULL;
+    return nullptr;
   }
   return result;
 }
@@ -170,7 +170,7 @@ const char* Platform::LocaleName() {
   // First see if there is a preferred language. If not, return the
   // current locale name.
   const char* preferred_language = GetPreferredLanguageName();
-  return (preferred_language != NULL) ? preferred_language : GetLocaleName();
+  return (preferred_language != nullptr) ? preferred_language : GetLocaleName();
 }
 
 bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
@@ -183,10 +183,10 @@ char** Platform::Environment(intptr_t* count) {
   // this up if someone needs it. In the meantime, we return an empty array.
   char** result;
   result = reinterpret_cast<char**>(Dart_ScopeAllocate(1 * sizeof(*result)));
-  if (result == NULL) {
-    return NULL;
+  if (result == nullptr) {
+    return nullptr;
   }
-  result[0] = NULL;
+  result[0] = nullptr;
   *count = 0;
   return result;
 #else
@@ -197,7 +197,7 @@ char** Platform::Environment(intptr_t* count) {
   char** environ = *(_NSGetEnviron());
   intptr_t i = 0;
   char** tmp = environ;
-  while (*(tmp++) != NULL) {
+  while (*(tmp++) != nullptr) {
     i++;
   }
   *count = i;
@@ -217,16 +217,16 @@ const char* Platform::GetExecutableName() {
 const char* Platform::ResolveExecutablePath() {
   // Get the required length of the buffer.
   uint32_t path_size = 0;
-  if (_NSGetExecutablePath(NULL, &path_size) == 0) {
-    return NULL;
+  if (_NSGetExecutablePath(nullptr, &path_size) == 0) {
+    return nullptr;
   }
   // Allocate buffer and get executable path.
   char* path = DartUtils::ScopedCString(path_size);
   if (_NSGetExecutablePath(path, &path_size) != 0) {
-    return NULL;
+    return nullptr;
   }
   // Return the canonical path as the returned path might contain symlinks.
-  const char* canon_path = File::GetCanonicalPath(NULL, path);
+  const char* canon_path = File::GetCanonicalPath(nullptr, path);
   return canon_path;
 }
 
@@ -256,7 +256,7 @@ void Platform::SetProcessName(const char* name) {
    public:
     explicit ScopedDLHandle(void* handle) : handle_(handle) {}
     ~ScopedDLHandle() {
-      if (handle_ != NULL) dlclose(handle_);
+      if (handle_ != nullptr) dlclose(handle_);
     }
     void* get() { return handle_; }
 
@@ -268,9 +268,10 @@ void Platform::SetProcessName(const char* name) {
   class ScopedCFStringRef : public ValueObject {
    public:
     explicit ScopedCFStringRef(const char* s)
-        : ref_(CFStringCreateWithCString(NULL, (s), kCFStringEncodingUTF8)) {}
+        : ref_(CFStringCreateWithCString(nullptr, (s), kCFStringEncodingUTF8)) {
+    }
     ~ScopedCFStringRef() {
-      if (ref_ != NULL) CFRelease(ref_);
+      if (ref_ != nullptr) CFRelease(ref_);
     }
     CFStringRef get() { return ref_; }
 
@@ -283,24 +284,24 @@ void Platform::SetProcessName(const char* name) {
       dlopen("/System/Library/Frameworks/ApplicationServices.framework/"
              "Versions/A/ApplicationServices",
              RTLD_LAZY | RTLD_LOCAL));
-  if (application_services_handle.get() == NULL) return;
+  if (application_services_handle.get() == nullptr) return;
 
   ScopedCFStringRef launch_services_bundle_name("com.apple.LaunchServices");
   CFBundleRef launch_services_bundle =
       CFBundleGetBundleWithIdentifier(launch_services_bundle_name.get());
-  if (launch_services_bundle == NULL) return;
+  if (launch_services_bundle == nullptr) return;
 
 #define GET_FUNC(name, cstr)                                                   \
   ScopedCFStringRef name##_id(cstr);                                           \
   *reinterpret_cast<void**>(&name) = CFBundleGetFunctionPointerForName(        \
       launch_services_bundle, name##_id.get());                                \
-  if (name == NULL) return;
+  if (name == nullptr) return;
 
 #define GET_DATA(name, cstr)                                                   \
   ScopedCFStringRef name##_id(cstr);                                           \
   *reinterpret_cast<void**>(&name) =                                           \
       CFBundleGetDataPointerForName(launch_services_bundle, name##_id.get());  \
-  if (name == NULL) return;
+  if (name == nullptr) return;
 
   CFTypeRef (*_LSGetCurrentApplicationASN)(void);
   GET_FUNC(_LSGetCurrentApplicationASN, "_LSGetCurrentApplicationASN");
@@ -320,19 +321,19 @@ void Platform::SetProcessName(const char* name) {
 
   CFStringRef* _kLSDisplayNameKey;
   GET_DATA(_kLSDisplayNameKey, "_kLSDisplayNameKey");
-  if (*_kLSDisplayNameKey == NULL) return;
+  if (*_kLSDisplayNameKey == nullptr) return;
 
-  _LSSetApplicationLaunchServicesServerConnectionStatus(0, NULL);
+  _LSSetApplicationLaunchServicesServerConnectionStatus(0, nullptr);
 
   _LSApplicationCheckIn(-2, CFBundleGetInfoDictionary(CFBundleGetMainBundle()));
 
   CFTypeRef asn;
   asn = _LSGetCurrentApplicationASN();
-  if (asn == NULL) return;
+  if (asn == nullptr) return;
 
   ScopedCFStringRef cf_name(name);
   _LSSetApplicationInformationItem(-2, asn, *_kLSDisplayNameKey, cf_name.get(),
-                                   NULL);
+                                   nullptr);
 #undef GET_DATA
 #undef GET_FUNC
 #endif  // !defined(DART_HOST_OS_IOS)

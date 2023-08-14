@@ -585,7 +585,7 @@ class MyWidget extends StatelessWidget {
   Future<FlutterOutline> _computeOutline(String code) async {
     testCode = code;
     newFile(testPath, code);
-    resolveResult = await getResolvedUnit(testPath);
+    resolveResult = await getResolvedUnit(testFile);
     computer = FlutterOutlineComputer(resolveResult);
     return computer.compute();
   }

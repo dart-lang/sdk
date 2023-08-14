@@ -18,6 +18,7 @@ part "profiler.dart";
 part "timeline.dart";
 
 @patch
+@pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Developer_debugger")
 external bool debugger({bool when = true, String? message});
 
@@ -181,6 +182,10 @@ external String _getIsolateIDFromSendPort(SendPort sendPort);
 
 @patch
 abstract final class NativeRuntime {
+  @patch
+  @pragma("vm:external-name", "Developer_NativeRuntime_buildId")
+  external static String? get buildId;
+
   @patch
   @pragma("vm:external-name", "Developer_NativeRuntime_writeHeapSnapshotToFile")
   external static void writeHeapSnapshotToFile(String filepath);

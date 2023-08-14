@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
@@ -20,7 +20,7 @@ class X extends core::Object {
 class Foo<T extends self::X*> extends core::Object {
   covariant-by-class field self::Foo::T* x;
   constructor fromX(self::X* _init) → self::Foo<self::Foo::T*>*
-    : this self::Foo::_internal(x: _init as{TypeError} self::Foo::T*)
+    : this self::Foo::_internal(x: _init as{TypeError,ForLegacy} self::Foo::T*)
     ;
   constructor fromT(self::Foo::T* _init) → self::Foo<self::Foo::T*>*
     : this self::Foo::_internal(x: _init)

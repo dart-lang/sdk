@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -30,9 +30,9 @@ extension FunctionApplier on core::Function {
 }
 static method m<X extends core::Object? = dynamic>(self::m::X% x) → core::List<self::m::X%>
   return core::_GrowableList::_literal1<self::m::X%>(x);
-static method FunctionApplier|applyAndPrint(lowered final core::Function #this, core::List<core::Object?> positionalArguments) → void
+static extension-member method FunctionApplier|applyAndPrint(lowered final core::Function #this, core::List<core::Object?> positionalArguments) → void
   return core::print(core::Function::apply(#this, positionalArguments, #C1));
-static method FunctionApplier|get#applyAndPrint(lowered final core::Function #this) → (core::List<core::Object?>) → void
+static extension-member method FunctionApplier|get#applyAndPrint(lowered final core::Function #this) → (core::List<core::Object?>) → void
   return (core::List<core::Object?> positionalArguments) → void => self::FunctionApplier|applyAndPrint(#this, positionalArguments);
 static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/constructor_tearoffs/issue46719.dart:24:10: Error: A constructor tear-off can't have type arguments after the constructor name.

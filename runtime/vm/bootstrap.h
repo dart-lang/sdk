@@ -19,8 +19,8 @@ class Program;
 class Bootstrap : public AllStatic {
  public:
   // Compile the bootstrap libraries, either from sources or a Kernel program.
-  // If program is NULL, compile from sources or source paths linked into
-  // the VM.  If it is non-NULL it represents the Kernel program to use for
+  // If program is nullptr, compile from sources or source paths linked into
+  // the VM.  If it is non-null it represents the Kernel program to use for
   // bootstrapping.
   // The caller of this function is responsible for managing the kernel
   // program's memory.

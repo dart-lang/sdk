@@ -1,4 +1,4 @@
-abstract class CustomType extends Type {
+abstract class CustomType implements Type {
   void call() {}
 }
 

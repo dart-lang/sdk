@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -472,7 +471,7 @@ class MigrationResolutionHooksImpl
         .decoratedTypeParameterBound(element, allowNullUnparentedBounds: true);
     if (decoratedBound == null) return element.boundInternal;
     var bound = _fixBuilder._variables!.toFinalType(decoratedBound);
-    if (bound.isDynamic) {
+    if (bound is DynamicType) {
       return null;
     } else if (bound.isDartCoreObject &&
         bound.nullabilitySuffix == NullabilitySuffix.question) {
@@ -807,7 +806,7 @@ class MigrationResolutionHooksImpl
               hintComment: hint),
           hint: hint);
     }
-    if (type.isDynamic) return type;
+    if (type is DynamicType) return type;
     var ancestor = _findNullabilityContextAncestor(node);
     context ??= _contextTypes[ancestor] ?? DynamicTypeImpl.instance;
     if (!_isSubtypeOrCoercible(type, context)) {
@@ -1082,7 +1081,7 @@ abstract class _AssignmentLikeExpressionHandler {
               .isWeakNullAware = true;
         }
       } else {
-        if (!readType!.isDynamic &&
+        if (readType is! DynamicType &&
             fixBuilder._typeSystem.isPotentiallyNullable(readType!)) {
           (fixBuilder._getChange(node) as NodeChangeForAssignmentLike)
               .hasNullableSource = true;
@@ -1460,7 +1459,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
   }
 
   bool _typeIsNaturallyNullable(DartType type) =>
-      type.isDynamic || type is VoidType || type.isDartCoreNull;
+      type is DynamicType || type is VoidType || type.isDartCoreNull;
 }
 
 /// Specialization of [_AssignmentLikeExpressionHandler] for

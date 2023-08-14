@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 
@@ -66,7 +66,7 @@ class DeepCaller2 extends core::Object {
 static method getDynamic() → dynamic
   return self::unknown();
 static method getValue() → core::Object {
-  self::A aa = self::getDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} self::A;
+  self::A aa = self::getDynamic() as{TypeError,ForDynamic} self::A;
   return [@vm.inferred-type.metadata=!] aa.{self::A::foo}(){() → core::Object};
 }
 static method use1([@vm.inferred-type.metadata=#lib::DeepCaller1] self::DeepCaller1 x) → dynamic

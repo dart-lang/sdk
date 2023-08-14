@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -21,11 +21,11 @@ extension E on core::String {
   operator []= = self::E|[]=;
   operator [] = self::E|[];
 }
-static method E|get#foo(lowered final core::String #this) → core::int
+static extension-member method E|get#foo(lowered final core::String #this) → core::int
   ;
-static method E|[]=(lowered final core::String #this, core::int index, core::int value) → void
+static extension-member method E|[]=(lowered final core::String #this, core::int index, core::int value) → void
   ;
-static method E|[](lowered final core::String #this, core::int index) → core::int
+static extension-member method E|[](lowered final core::String #this, core::int index) → core::int
   ;
 static method warning(core::String s, core::List<core::String> l, core::Map<core::String, core::int> m) → dynamic
   ;

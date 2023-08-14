@@ -1,5 +1,5 @@
 name: vm_snapshot_analysis
-version: 0.7.3-dev
+version: 0.7.4
 description: Utilities for analysing AOT snapshot size.
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/vm_snapshot_analysis
 

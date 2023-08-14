@@ -11,6 +11,9 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 
 import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
 
+import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
+    show ScannerConfiguration;
+
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
@@ -162,8 +165,9 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
       bytes.setRange(
           0, description.cache.rawBytes!.length, description.cache.rawBytes!);
 
-      Utf8BytesScanner scanner =
-          new Utf8BytesScanner(bytes, includeComments: true);
+      Utf8BytesScanner scanner = new Utf8BytesScanner(bytes,
+          configuration: ScannerConfiguration.nonNullable,
+          includeComments: true);
       description.cache.firstToken = scanner.tokenize();
       description.cache.lineStarts = scanner.lineStarts;
 

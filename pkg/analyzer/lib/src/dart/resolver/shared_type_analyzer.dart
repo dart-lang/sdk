@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -169,11 +168,6 @@ class SharedTypeAnalyzerErrors
       CompileTimeErrorCode.NON_BOOL_CONDITION,
       node,
     );
-  }
-
-  @override
-  void patternDoesNotAllowLate({required AstNode pattern}) {
-    throw UnimplementedError('TODO(paulberry)');
   }
 
   @override

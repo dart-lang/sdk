@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -37,7 +37,7 @@ static method useAsB(self::B object) → void {
 static method escape(dynamic x) → void {
   x == null ?{dynamic} x = "" : null;
   x == null ?{dynamic} x = 45 : null;
-  if(!(x is{ForNonNullableByDefault} core::int) && !(x is{ForNonNullableByDefault} core::String)) {
+  if(!(x is core::int) && !(x is core::String)) {
     x{dynamic}.field = 45;
   }
 }

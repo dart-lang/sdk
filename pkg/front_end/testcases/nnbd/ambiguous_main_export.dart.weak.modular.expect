@@ -1,11 +1,11 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///ambiguous_main_export_lib0.dart";
 
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -21,7 +21,7 @@ export "org-dartlang-testcase:///ambiguous_main_export_lib2.dart";
 
 static const field dynamic _exports# = #C1 /*isLegacy*/;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self3;
 import "dart:core" as core;
 
@@ -29,7 +29,7 @@ static method main() → dynamic {
   core::print(42);
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self4;
 import "dart:core" as core;
 

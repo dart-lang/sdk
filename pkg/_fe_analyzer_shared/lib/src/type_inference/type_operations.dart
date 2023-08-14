@@ -32,6 +32,9 @@ enum TypeClassification {
 /// This mixin provides default implementations for some members that won't need
 /// to be overridden very frequently.
 mixin TypeOperations<Type extends Object> {
+  /// Returns the client's representation of the type `bool`.
+  Type get boolType;
+
   /// Returns `true` if [type1] and [type2] are structurally equal.
   bool areStructurallyEqual(Type type1, Type type2);
 
@@ -61,6 +64,9 @@ mixin TypeOperations<Type extends Object> {
 
   /// Returns `true` if [type] is the type `dynamic`.
   bool isDynamic(Type type);
+
+  /// Returns `true` if [type] is the error type.
+  bool isError(Type type);
 
   /// Determines whether the given [type] is equivalent to the `Never` type.
   ///

@@ -30,7 +30,7 @@ void FUNCTION_NAME(Unhandled_equals)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Unhandled_invoke)(Dart_NativeArguments args) {
   // Invoke the specified entry point.
   Dart_Handle cls = Dart_GetClass(TestCase::lib(), NewString("Second"));
-  Dart_Handle result = Dart_Invoke(cls, NewString("method2"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(cls, NewString("method2"), 0, nullptr);
   ASSERT(Dart_IsError(result));
   ASSERT(Dart_ErrorHasException(result));
   return;
@@ -39,7 +39,7 @@ void FUNCTION_NAME(Unhandled_invoke)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Unhandled_invoke2)(Dart_NativeArguments args) {
   // Invoke the specified entry point.
   Dart_Handle cls = Dart_GetClass(TestCase::lib(), NewString("Second"));
-  Dart_Handle result = Dart_Invoke(cls, NewString("method2"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(cls, NewString("method2"), 0, nullptr);
   ASSERT(Dart_IsError(result));
   ASSERT(Dart_ErrorHasException(result));
   Dart_Handle exception = Dart_ErrorGetException(result);
@@ -66,13 +66,13 @@ static struct NativeEntries {
 static Dart_NativeFunction native_lookup(Dart_Handle name,
                                          int argument_count,
                                          bool* auto_setup_scope) {
-  ASSERT(auto_setup_scope != NULL);
+  ASSERT(auto_setup_scope != nullptr);
   *auto_setup_scope = true;
   TransitionNativeToVM transition(Thread::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   ASSERT(obj.IsString());
   const char* function_name = obj.ToCString();
-  ASSERT(function_name != NULL);
+  ASSERT(function_name != nullptr);
   int num_entries = sizeof(BuiltinEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
     struct NativeEntries* entry = &(BuiltinEntries[i]);
@@ -81,7 +81,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 // Unit test case to verify unhandled exceptions.
@@ -122,7 +122,7 @@ TEST_CASE(UnhandledExceptions) {
       }
       )";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_lookup);
-  EXPECT_VALID(Dart_Invoke(lib, NewString("testMain"), 0, NULL));
+  EXPECT_VALID(Dart_Invoke(lib, NewString("testMain"), 0, nullptr));
 }
 
 }  // namespace dart

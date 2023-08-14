@@ -8,6 +8,8 @@
 #include "vm/os.h"
 
 #include <android/log.h>   // NOLINT
+#include <dlfcn.h>         // NOLINT
+#include <elf.h>           // NOLINT
 #include <errno.h>         // NOLINT
 #include <limits.h>        // NOLINT
 #include <malloc.h>        // NOLINT
@@ -20,6 +22,7 @@
 #include "platform/utils.h"
 #include "vm/code_observers.h"
 #include "vm/dart.h"
+#include "vm/image_snapshot.h"
 #include "vm/isolate.h"
 #include "vm/timeline.h"
 #include "vm/zone.h"
@@ -43,27 +46,27 @@ DEFINE_FLAG(bool,
 
 class PerfCodeObserver : public CodeObserver {
  public:
-  PerfCodeObserver() : out_file_(NULL) {
+  PerfCodeObserver() : out_file_(nullptr) {
     Dart_FileOpenCallback file_open = Dart::file_open_callback();
-    if (file_open == NULL) {
+    if (file_open == nullptr) {
       return;
     }
     intptr_t pid = getpid();
-    char* filename = OS::SCreate(NULL, "/tmp/perf-%" Pd ".map", pid);
+    char* filename = OS::SCreate(nullptr, "/tmp/perf-%" Pd ".map", pid);
     out_file_ = (*file_open)(filename, true);
     free(filename);
   }
 
   ~PerfCodeObserver() {
     Dart_FileCloseCallback file_close = Dart::file_close_callback();
-    if ((file_close == NULL) || (out_file_ == NULL)) {
+    if ((file_close == nullptr) || (out_file_ == nullptr)) {
       return;
     }
     (*file_close)(out_file_);
   }
 
   virtual bool IsActive() const {
-    return FLAG_generate_perf_events_symbols && (out_file_ != NULL);
+    return FLAG_generate_perf_events_symbols && (out_file_ != nullptr);
   }
 
   virtual void Notify(const char* name,
@@ -73,7 +76,7 @@ class PerfCodeObserver : public CodeObserver {
                       bool optimized,
                       const CodeComments* comments) {
     Dart_FileWriteCallback file_write = Dart::file_write_callback();
-    if ((file_write == NULL) || (out_file_ == NULL)) {
+    if ((file_write == nullptr) || (out_file_ == nullptr)) {
       return;
     }
     const char* marker = optimized ? "*" : "";
@@ -99,14 +102,15 @@ static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   time_t seconds = static_cast<time_t>(seconds_since_epoch);
   if (seconds != seconds_since_epoch) return false;
   struct tm* error_code = localtime_r(&seconds, tm_result);
-  return error_code != NULL;
+  return error_code != nullptr;
 }
 
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   tm decomposed;
   bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
   // If unsuccessful, return an empty string like V8 does.
-  return (succeeded && (decomposed.tm_zone != NULL)) ? decomposed.tm_zone : "";
+  return (succeeded && (decomposed.tm_zone != nullptr)) ? decomposed.tm_zone
+                                                        : "";
 }
 
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
@@ -124,7 +128,7 @@ int64_t OS::GetCurrentTimeMillis() {
 int64_t OS::GetCurrentTimeMicros() {
   // gettimeofday has microsecond resolution.
   struct timeval tv;
-  if (gettimeofday(&tv, NULL) < 0) {
+  if (gettimeofday(&tv, nullptr) < 0) {
     UNREACHABLE();
     return 0;
   }
@@ -179,7 +183,7 @@ int64_t OS::GetCurrentMonotonicMicrosForTimeline() {
 // into a architecture specific file e.g: os_ia32_linux.cc
 intptr_t OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(TARGET_ARCH_ARM64)
+    defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV64)
   const int kMinimumAlignment = 16;
 #elif defined(TARGET_ARCH_ARM)
   const int kMinimumAlignment = 8;
@@ -262,7 +266,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer;
@@ -271,7 +275,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   } else {
     buffer = reinterpret_cast<char*>(malloc(len + 1));
   }
-  ASSERT(buffer != NULL);
+  ASSERT(buffer != nullptr);
 
   // Print.
   va_list print_args;
@@ -282,7 +286,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
 }
 
 bool OS::StringToInt64(const char* str, int64_t* value) {
-  ASSERT(str != NULL && strlen(str) > 0 && value != NULL);
+  ASSERT(str != nullptr && strlen(str) > 0 && value != nullptr);
   int32_t base = 10;
   char* endptr;
   int i = 0;
@@ -339,6 +343,50 @@ void OS::Abort() {
 
 void OS::Exit(int code) {
   exit(code);
+}
+
+// Used to choose between Elf32/Elf64 types based on host archotecture bitsize.
+#if defined(ARCH_IS_64_BIT)
+#define ElfW(Type) Elf64_##Type
+#else
+#define ElfW(Type) Elf32_##Type
+#endif
+
+OS::BuildId OS::GetAppBuildId(const uint8_t* snapshot_instructions) {
+  // First return the build ID information from the instructions image if
+  // available.
+  const Image instructions_image(snapshot_instructions);
+  if (auto* const image_build_id = instructions_image.build_id()) {
+    return {instructions_image.build_id_length(), image_build_id};
+  }
+  Dl_info snapshot_info;
+  if (dladdr(snapshot_instructions, &snapshot_info) == 0) {
+    return {0, nullptr};
+  }
+  const uint8_t* dso_base =
+      static_cast<const uint8_t*>(snapshot_info.dli_fbase);
+  const ElfW(Ehdr)& elf_header = *reinterpret_cast<const ElfW(Ehdr)*>(dso_base);
+  const ElfW(Phdr)* const phdr_array =
+      reinterpret_cast<const ElfW(Phdr)*>(dso_base + elf_header.e_phoff);
+  for (intptr_t i = 0; i < elf_header.e_phnum; i++) {
+    const ElfW(Phdr)& header = phdr_array[i];
+    if (header.p_type != PT_NOTE) continue;
+    if ((header.p_flags & PF_R) != PF_R) continue;
+    const uint8_t* const note_addr = dso_base + header.p_vaddr;
+    const Elf32_Nhdr& note_header =
+        *reinterpret_cast<const Elf32_Nhdr*>(note_addr);
+    if (note_header.n_type != NT_GNU_BUILD_ID) continue;
+    const char* const note_contents =
+        reinterpret_cast<const char*>(note_addr + sizeof(Elf32_Nhdr));
+    // The note name contains the null terminator as well.
+    if (note_header.n_namesz != strlen(ELF_NOTE_GNU) + 1) continue;
+    if (strncmp(ELF_NOTE_GNU, note_contents, note_header.n_namesz) == 0) {
+      return {static_cast<intptr_t>(note_header.n_descsz),
+              reinterpret_cast<const uint8_t*>(note_contents +
+                                               note_header.n_namesz)};
+    }
+  }
+  return {0, nullptr};
 }
 
 }  // namespace dart

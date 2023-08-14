@@ -26,7 +26,7 @@ We occasionally take pull requests, e.g., for comment changes, but the main flow
 
 ## Submitting patches directly from GitHub
 
-This repository uses Gerrit for code reviews, rather than GitHub PRs. However, you may submit a GitHub PR from the GitHub interface, e.g. to edit some API documentation, and it will be automatically converted into a Gerrit CL by copybara. You can find the link to that CL from the GitHub "checks" interface, it will be the "details" of the "copybara" check. The PR will be automatically closed when the CL is reviewed and landed.
+This repository uses [Gerrit for code reviews](https://dart-review.googlesource.com/), rather than GitHub PRs. However, you may submit [a GitHub PR ](https://github.com/dart-lang/sdk/pulls), e.g. to edit some API documentation, and it will be automatically converted into a Gerrit CL by a copybara-service bot. You can find the link to that CL as a comment left on the PR by the bot. Any changes made to the PR after opening will also be sync'ed by the bot into the Gerrit review. The PR will be automatically closed when the CL is reviewed and landed.
 
 ## Setting up the environment
 
@@ -38,7 +38,7 @@ To work with the Dart code, you need to download and build the development branc
 
 ## Starting a patch with git
 
-Create a new branch using `git new-branch` (this is a command added by the aforementioned depot_tools). 
+Create a new branch using `git new-branch` (this is a command added by the aforementioned depot_tools).
 
 You can be in any branch when you run `git new-branch`.
 

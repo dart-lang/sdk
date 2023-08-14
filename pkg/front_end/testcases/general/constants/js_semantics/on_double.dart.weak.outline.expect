@@ -1,14 +1,14 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object /*hasConstConstructor*/  {
   final field core::int a;
   const constructor doubleShift(dynamic i1, dynamic i2) → self::Class
-    : self::Class::a = i1{dynamic}.>>(i2) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int, super core::Object::•()
+    : self::Class::a = i1{dynamic}.>>(i2) as{TypeError,ForDynamic} core::int, super core::Object::•()
     ;
   const constructor tripleShift(dynamic i1, dynamic i2) → self::Class
-    : self::Class::a = i1{dynamic}.>>>(i2) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int, super core::Object::•()
+    : self::Class::a = i1{dynamic}.>>>(i2) as{TypeError,ForDynamic} core::int, super core::Object::•()
     ;
   static method _#doubleShift#tearOff(dynamic i1, dynamic i2) → self::Class
     return new self::Class::doubleShift(i1, i2);
@@ -21,10 +21,10 @@ static const field dynamic c0 = self::a{dynamic}.>>(1);
 static const field dynamic c1 = self::b{dynamic}.>>(1);
 static const field dynamic c2 = self::a{dynamic}.>>>(1);
 static const field dynamic c3 = self::b{dynamic}.>>>(1);
-static const field dynamic d0 = 1.{core::int::>>}(self::a as{TypeError,ForDynamic,ForNonNullableByDefault} core::int){(core::int) → core::int};
-static const field dynamic d1 = 1.{core::int::>>}(self::b as{TypeError,ForDynamic,ForNonNullableByDefault} core::int){(core::int) → core::int};
-static const field dynamic d2 = 1.{core::int::>>>}(self::a as{TypeError,ForDynamic,ForNonNullableByDefault} core::int){(core::int) → core::int};
-static const field dynamic d3 = 1.{core::int::>>>}(self::b as{TypeError,ForDynamic,ForNonNullableByDefault} core::int){(core::int) → core::int};
+static const field dynamic d0 = 1.{core::int::>>}(self::a as{TypeError,ForDynamic} core::int){(core::int) → core::int};
+static const field dynamic d1 = 1.{core::int::>>}(self::b as{TypeError,ForDynamic} core::int){(core::int) → core::int};
+static const field dynamic d2 = 1.{core::int::>>>}(self::a as{TypeError,ForDynamic} core::int){(core::int) → core::int};
+static const field dynamic d3 = 1.{core::int::>>>}(self::b as{TypeError,ForDynamic} core::int){(core::int) → core::int};
 static method main() → dynamic
   ;
 

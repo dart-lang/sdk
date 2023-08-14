@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns,records
-
 import "package:expect/expect.dart";
 
 import "implicit_const_context_prefix_constructor_generic_test.dart" as prefix;

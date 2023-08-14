@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -84,7 +84,7 @@ static method main() → dynamic {
  - 'InvalidListener' is from 'pkg/front_end/testcases/general/optional.dart'.
  - 'Listener' is from 'pkg/front_end/testcases/general/optional.dart'.
   extern.listen(new InvalidListener());
-                    ^" in new self::InvalidListener::•() as{TypeError,ForNonNullableByDefault} self::Listener){(self::Listener) → void};
+                    ^" in new self::InvalidListener::•() as{TypeError} self::Listener){(self::Listener) → void};
   invalid-type nothing1 = invalid-expression "pkg/front_end/testcases/general/optional.dart:49:28: Error: Too few positional arguments: 1 required, 0 given.
   var nothing1 = foo.method();
                            ^" in foo.{self::Foo::method}{<inapplicable>}.(){() → invalid-type};

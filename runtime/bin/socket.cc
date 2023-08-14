@@ -23,7 +23,7 @@
 namespace dart {
 namespace bin {
 
-static const int kSocketIdNativeField = 0;
+static constexpr int kSocketIdNativeField = 0;
 
 ListeningSocketRegistry* globalTcpListeningSocketRegistry = nullptr;
 
@@ -717,6 +717,17 @@ void FUNCTION_NAME(Socket_ReceiveMessage)(Dart_NativeArguments args) {
   }
   ThrowIfError(Dart_ListSetAt(list, j, data));
   Dart_SetReturnValue(args, list);
+}
+
+void FUNCTION_NAME(Socket_HasPendingWrite)(Dart_NativeArguments args) {
+#if defined(DART_HOST_OS_WINDOWS)
+  Socket* socket =
+      Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
+  const bool result = SocketBase::HasPendingWrite(socket->fd());
+#else
+  const bool result = false;
+#endif  // defined(DART_HOST_OS_WINDOWS)
+  Dart_SetReturnValue(args, Dart_NewBoolean(result));
 }
 
 void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
@@ -1460,11 +1471,11 @@ void Socket::ReuseSocketIdNativeField(Dart_Handle handle,
       callback = SignalSocketFinalizer;
       break;
     default:
-      callback = NULL;
+      callback = nullptr;
       UNREACHABLE();
       break;
   }
-  if (callback != NULL) {
+  if (callback != nullptr) {
     Dart_NewFinalizableHandle(handle, reinterpret_cast<void*>(socket),
                               sizeof(Socket), callback);
   }

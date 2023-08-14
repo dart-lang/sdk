@@ -4,9 +4,9 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/accessor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/expression.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/variable_scope.dart';
+import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analyzer/error/listener.dart';
 
 /// A parser for the textual representation of a code fragment.
@@ -176,12 +176,12 @@ class CodeFragmentParser {
         // The error has already been reported.
         return null;
       }
-      ParameterReference reference;
+      FormalParameterReference reference;
       if (token.kind == _TokenKind.identifier) {
-        reference = NamedParameterReference(token.lexeme);
+        reference = NamedFormalParameterReference(token.lexeme);
       } else {
         var argumentIndex = int.parse(token.lexeme);
-        reference = PositionalParameterReference(argumentIndex);
+        reference = PositionalFormalParameterReference(argumentIndex);
       }
       advance();
       token = _expect(const [_TokenKind.closeSquareBracket]);
@@ -503,25 +503,16 @@ enum _TokenKind {
 
 extension on _TokenKind {
   String get displayName {
-    switch (this) {
-      case _TokenKind.and:
-        return "'&&'";
-      case _TokenKind.closeSquareBracket:
-        return "']'";
-      case _TokenKind.equal:
-        return "'=='";
-      case _TokenKind.identifier:
-        return 'an identifier';
-      case _TokenKind.integer:
-        return 'an integer';
-      case _TokenKind.notEqual:
-        return "'!='";
-      case _TokenKind.openSquareBracket:
-        return "'['";
-      case _TokenKind.period:
-        return "'.'";
-      case _TokenKind.string:
-        return 'a string';
-    }
+    return switch (this) {
+      _TokenKind.and => "'&&'",
+      _TokenKind.closeSquareBracket => "']'",
+      _TokenKind.equal => "'=='",
+      _TokenKind.identifier => 'an identifier',
+      _TokenKind.integer => 'an integer',
+      _TokenKind.notEqual => "'!='",
+      _TokenKind.openSquareBracket => "'['",
+      _TokenKind.period => "'.'",
+      _TokenKind.string => 'a string'
+    };
   }
 }

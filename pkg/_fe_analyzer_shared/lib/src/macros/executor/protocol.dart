@@ -383,6 +383,21 @@ class ExecuteDefinitionsPhaseRequest extends Request {
   }
 }
 
+/// A request to destroy a remote instance zone by id.
+class DestroyRemoteInstanceZoneRequest extends Request {
+  DestroyRemoteInstanceZoneRequest({required super.serializationZoneId});
+
+  DestroyRemoteInstanceZoneRequest.deserialize(
+      super.deserializer, super.serializationZoneId)
+      : super.deserialize();
+
+  @override
+  void serialize(Serializer serializer) {
+    serializer.addInt(MessageType.destroyRemoteInstanceZoneRequest.index);
+    super.serialize(serializer);
+  }
+}
+
 /// A request to create a resolved identifier.
 class ResolveIdentifierRequest extends Request {
   final Uri library;
@@ -615,20 +630,17 @@ class ClientTypeResolver implements TypeResolver {
         serializationZoneId: serializationZoneId);
     RemoteInstanceImpl remoteType =
         _handleResponse(await _sendRequest(request));
-    switch (remoteType.kind) {
-      case RemoteInstanceKind.namedStaticType:
-        return new ClientNamedStaticTypeImpl(_sendRequest,
-            remoteInstance: remoteType,
-            serializationZoneId: serializationZoneId);
-      case RemoteInstanceKind.staticType:
-        return new ClientStaticTypeImpl(_sendRequest,
-            remoteInstance: remoteType,
-            serializationZoneId: serializationZoneId);
-      default:
-        throw new StateError(
-            'Expected either a StaticType or NamedStaticType but got '
-            '${remoteType.kind}');
-    }
+    return switch (remoteType.kind) {
+      RemoteInstanceKind.namedStaticType => new ClientNamedStaticTypeImpl(
+          _sendRequest,
+          remoteInstance: remoteType,
+          serializationZoneId: serializationZoneId),
+      RemoteInstanceKind.staticType => new ClientStaticTypeImpl(_sendRequest,
+          remoteInstance: remoteType, serializationZoneId: serializationZoneId),
+      _ => throw new StateError(
+          'Expected either a StaticType or NamedStaticType but got '
+          '${remoteType.kind}'),
+    };
   }
 }
 
@@ -690,6 +702,18 @@ class ClientTypeIntrospector implements TypeIntrospector {
       IntrospectableType type) async {
     InterfaceIntrospectionRequest request = new InterfaceIntrospectionRequest(
         type, remoteInstance, MessageType.constructorsOfRequest,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<DeclarationList>(await sendRequest(request))
+        .declarations
+        // TODO: Refactor so we can remove this cast
+        .cast();
+  }
+
+  @override
+  Future<List<EnumValueDeclaration>> valuesOf(
+      IntrospectableEnum enumType) async {
+    InterfaceIntrospectionRequest request = new InterfaceIntrospectionRequest(
+        enumType, remoteInstance, MessageType.valuesOfRequest,
         serializationZoneId: serializationZoneId);
     return _handleResponse<DeclarationList>(await sendRequest(request))
         .declarations
@@ -801,6 +825,8 @@ enum MessageType {
   constructorsOfRequest,
   declarationOfRequest,
   declarationList,
+  destroyRemoteInstanceZoneRequest,
+  valuesOfRequest,
   fieldsOfRequest,
   methodsOfRequest,
   error,

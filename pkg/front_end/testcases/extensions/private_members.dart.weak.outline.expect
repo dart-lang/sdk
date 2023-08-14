@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///private_members_lib.dart";
@@ -8,7 +8,7 @@ static method main() → dynamic
 static method errors() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 
@@ -42,53 +42,53 @@ extension /* unnamed */ _extension#2 on core::String {
   method test3 = self2::_extension#2|test3;
   tearoff test3 = self2::_extension#2|get#test3;
 }
-static method _PrivateExtension|publicMethod1(lowered final core::String #this) → core::int
+static extension-member method _PrivateExtension|publicMethod1(lowered final core::String #this) → core::int
   ;
-static method _PrivateExtension|get#publicMethod1(lowered final core::String #this) → () → core::int
+static extension-member method _PrivateExtension|get#publicMethod1(lowered final core::String #this) → () → core::int
   return () → core::int => self2::_PrivateExtension|publicMethod1(#this);
-static method _PrivateExtension|_privateMethod1(lowered final core::String #this) → core::int
+static extension-member method _PrivateExtension|_privateMethod1(lowered final core::String #this) → core::int
   ;
-static method _PrivateExtension|get#_privateMethod1(lowered final core::String #this) → () → core::int
+static extension-member method _PrivateExtension|get#_privateMethod1(lowered final core::String #this) → () → core::int
   return () → core::int => self2::_PrivateExtension|_privateMethod1(#this);
-static method _PrivateExtension|publicStaticMethod1() → core::int
+static extension-member method _PrivateExtension|publicStaticMethod1() → core::int
   ;
-static method _PrivateExtension|_privateStaticMethod1() → core::int
+static extension-member method _PrivateExtension|_privateStaticMethod1() → core::int
   ;
-static method _PrivateExtension|test1(lowered final core::String #this) → dynamic
+static extension-member method _PrivateExtension|test1(lowered final core::String #this) → dynamic
   ;
-static method _PrivateExtension|get#test1(lowered final core::String #this) → () → dynamic
+static extension-member method _PrivateExtension|get#test1(lowered final core::String #this) → () → dynamic
   return () → dynamic => self2::_PrivateExtension|test1(#this);
-static method PublicExtension|publicMethod2(lowered final core::String #this) → core::int
+static extension-member method PublicExtension|publicMethod2(lowered final core::String #this) → core::int
   ;
-static method PublicExtension|get#publicMethod2(lowered final core::String #this) → () → core::int
+static extension-member method PublicExtension|get#publicMethod2(lowered final core::String #this) → () → core::int
   return () → core::int => self2::PublicExtension|publicMethod2(#this);
-static method PublicExtension|_privateMethod2(lowered final core::String #this) → core::int
+static extension-member method PublicExtension|_privateMethod2(lowered final core::String #this) → core::int
   ;
-static method PublicExtension|get#_privateMethod2(lowered final core::String #this) → () → core::int
+static extension-member method PublicExtension|get#_privateMethod2(lowered final core::String #this) → () → core::int
   return () → core::int => self2::PublicExtension|_privateMethod2(#this);
-static method PublicExtension|publicStaticMethod2() → core::int
+static extension-member method PublicExtension|publicStaticMethod2() → core::int
   ;
-static method PublicExtension|_privateStaticMethod2() → core::int
+static extension-member method PublicExtension|_privateStaticMethod2() → core::int
   ;
-static method PublicExtension|test2(lowered final core::String #this) → dynamic
+static extension-member method PublicExtension|test2(lowered final core::String #this) → dynamic
   ;
-static method PublicExtension|get#test2(lowered final core::String #this) → () → dynamic
+static extension-member method PublicExtension|get#test2(lowered final core::String #this) → () → dynamic
   return () → dynamic => self2::PublicExtension|test2(#this);
-static method _extension#2|publicMethod3(lowered final core::String #this) → core::int
+static extension-member method _extension#2|publicMethod3(lowered final core::String #this) → core::int
   ;
-static method _extension#2|get#publicMethod3(lowered final core::String #this) → () → core::int
+static extension-member method _extension#2|get#publicMethod3(lowered final core::String #this) → () → core::int
   return () → core::int => self2::_extension#2|publicMethod3(#this);
-static method _extension#2|_privateMethod3(lowered final core::String #this) → core::int
+static extension-member method _extension#2|_privateMethod3(lowered final core::String #this) → core::int
   ;
-static method _extension#2|get#_privateMethod3(lowered final core::String #this) → () → core::int
+static extension-member method _extension#2|get#_privateMethod3(lowered final core::String #this) → () → core::int
   return () → core::int => self2::_extension#2|_privateMethod3(#this);
-static method _extension#2|publicStaticMethod3() → core::int
+static extension-member method _extension#2|publicStaticMethod3() → core::int
   ;
-static method _extension#2|_privateStaticMethod3() → core::int
+static extension-member method _extension#2|_privateStaticMethod3() → core::int
   ;
-static method _extension#2|test3(lowered final core::String #this) → dynamic
+static extension-member method _extension#2|test3(lowered final core::String #this) → dynamic
   ;
-static method _extension#2|get#test3(lowered final core::String #this) → () → dynamic
+static extension-member method _extension#2|get#test3(lowered final core::String #this) → () → dynamic
   return () → dynamic => self2::_extension#2|test3(#this);
 static method test() → dynamic
   ;

@@ -13,6 +13,7 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/detach_nodes.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
@@ -99,6 +100,13 @@ class Linker {
     _writeLibraries();
   }
 
+  void _buildElementNameUnions() {
+    for (final builder in builders.values) {
+      final element = builder.element;
+      element.nameUnion = ElementNameUnion.forLibrary(element);
+    }
+  }
+
   void _buildEnumChildren() {
     for (var library in builders.values) {
       library.buildEnumChildren();
@@ -138,6 +146,7 @@ class Linker {
     _resolveDefaultValues();
     _resolveMetadata();
     _collectMixinSuperInvokedNames();
+    _buildElementNameUnions();
     _detachNodes();
   }
 

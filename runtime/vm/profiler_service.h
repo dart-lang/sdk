@@ -16,6 +16,12 @@
 #include "vm/thread_interrupter.h"
 #include "vm/token_position.h"
 
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+#include "perfetto/protozero/scattered_heap_buffer.h"
+#include "vm/protos/perfetto/trace/profiling/profile_common.pbzero.h"
+#include "vm/protos/perfetto/trace/trace_packet.pbzero.h"
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
 // CPU Profile model and service protocol bits.
 // NOTE: For sampling and stack walking related code, see profiler.h.
 
@@ -118,7 +124,7 @@ class ProfileCodeInlinedFunctionsCache : public ZoneAllocated {
     TokenPosition token_position = TokenPosition::kNoSource;
   };
 
-  static const intptr_t kCacheSize = 128;
+  static constexpr intptr_t kCacheSize = 128;
   intptr_t cache_cursor_;
   intptr_t last_hit_;
   CacheEntry cache_[kCacheSize];
@@ -143,7 +149,7 @@ class ProfileFunction : public ZoneAllocated {
                   const intptr_t table_index);
 
   const char* name() const {
-    ASSERT(name_ != NULL);
+    ASSERT(name_ != nullptr);
     return name_;
   }
 
@@ -337,7 +343,7 @@ class ProfileCodeTable : public ZoneAllocated {
   ProfileCode* FindCodeForPC(uword pc) const {
     intptr_t index = FindCodeIndexForPC(pc);
     if (index < 0) {
-      return NULL;
+      return nullptr;
     }
     return At(index);
   }
@@ -388,6 +394,9 @@ class Profile : public ValueObject {
   void PrintProfileJSON(JSONObject* obj,
                         bool include_code_samples,
                         bool is_event = false);
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  void PrintProfilePerfetto(JSONStream* js);
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
   ProfileFunction* FindFunction(const Function& function);
 
@@ -397,6 +406,13 @@ class Profile : public ValueObject {
                               ProfileCodeInlinedFunctionsCache* cache,
                               ProcessedSample* sample,
                               intptr_t frame_index);
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  void ProcessSampleFramePerfetto(
+      perfetto::protos::pbzero::Callstack* callstack,
+      ProfileCodeInlinedFunctionsCache* cache,
+      ProcessedSample* sample,
+      intptr_t frame_index);
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
   void ProcessInlinedFunctionFrameJSON(JSONArray* stack,
                                        const Function* inlined_function);
   void PrintFunctionFrameIndexJSON(JSONArray* stack, ProfileFunction* function);
@@ -404,6 +420,16 @@ class Profile : public ValueObject {
                                ProcessedSample* sample,
                                intptr_t frame_index);
   void PrintSamplesJSON(JSONObject* obj, bool code_samples);
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  /*
+   * Appends Perfetto packets describing the CPU samples in this profile to
+   * |jsonBase64String|. The |packet| parameter allows us to reuse an existing
+   * heap-buffered packet to avoid allocating a new one.
+   */
+  void PrintSamplesPerfetto(
+      JSONBase64String* jsonBase64String,
+      protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet);
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
   Zone* zone_;
   ProcessedSampleBuffer* samples_;
@@ -424,10 +450,22 @@ class Profile : public ValueObject {
 
 class ProfilerService : public AllStatic {
  public:
+  /*
+   * Prints a CpuSamples service response into |js|.
+   */
   static void PrintJSON(JSONStream* stream,
                         int64_t time_origin_micros,
                         int64_t time_extent_micros,
                         bool include_code_samples);
+
+#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+  /*
+   * Prints a PerfettoCpuSamples service response into |js|.
+   */
+  static void PrintPerfetto(JSONStream* js,
+                            int64_t time_origin_micros,
+                            int64_t time_extent_micros);
+#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
   static void PrintAllocationJSON(JSONStream* stream,
                                   const Class& cls,
@@ -441,11 +479,26 @@ class ProfilerService : public AllStatic {
   static void ClearSamples();
 
  private:
-  static void PrintJSONImpl(Thread* thread,
-                            JSONStream* stream,
-                            SampleFilter* filter,
-                            ProcessedSampleBufferBuilder* buffer,
-                            bool include_code_samples);
+  enum PrintFormat : bool { JSON = false, Perfetto = true };
+
+  static void PrintCommonImpl(PrintFormat format,
+                              Thread* thread,
+                              JSONStream* js,
+                              SampleFilter* filter,
+                              ProcessedSampleBufferBuilder* buffer,
+                              bool include_code_samples);
+
+  /*
+   * If |format| is |PrintFormat::JSON|, prints a CpuSamples service response
+   * into |js|. If |format| is |PrintFormat::Perfetto|, prints a
+   * PerfettoCpuSamples service response into |js|. Note that the value of
+   * |include_code_samples| is ignored when |format| is |PrintFormat::Perfetto|.
+   */
+  static void PrintCommon(PrintFormat format,
+                          JSONStream* js,
+                          int64_t time_origin_micros,
+                          int64_t time_extent_micros,
+                          bool include_code_samples = false);
 };
 
 }  // namespace dart

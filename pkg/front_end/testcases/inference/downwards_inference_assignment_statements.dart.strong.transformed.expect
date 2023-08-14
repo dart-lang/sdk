@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -13,7 +13,7 @@ static method test() → void {
   core::List<core::int> l;
   l = core::_GrowableList::_literal1<core::int>(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_assignment_statements.dart:10:69: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   l = /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"];
-                                                                    ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int);
+                                                                    ^" in "hello" as{TypeError} core::int);
   l = l = core::_GrowableList::_literal1<core::int>(1);
 }
 static method main() → dynamic {}

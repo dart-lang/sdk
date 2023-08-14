@@ -130,7 +130,7 @@ void f(A a) {
   }
 
   Future<void> test_getter_qualified_instance_differentLibrary() async {
-    addSource('$testPackageLibPath/other.dart', '''
+    newFile('$testPackageLibPath/other.dart', '''
 /**
  * A comment to push the offset of the braces for the following class
  * declaration past the end of the content of the test file. Used to catch an
@@ -316,11 +316,11 @@ void f(A a) {
   }
 
   Future<void> test_importType() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 import 'package:test/a.dart';
 
 A getA() => null;
@@ -411,6 +411,98 @@ class C {
   String text;
 
   C(String this.text);
+}
+''');
+  }
+
+  Future<void> test_objectPattern_explicitName_variablePattern_typed() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case A(test: int y)) {
+    y;
+  }
+}
+
+class A {
+}
+''');
+    await assertHasFix('''
+void f(Object? x) {
+  if (x case A(test: int y)) {
+    y;
+  }
+}
+
+class A {
+  int test;
+}
+''');
+  }
+
+  Future<void> test_objectPattern_explicitName_variablePattern_untyped() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case A(test: var y)) {
+    y;
+  }
+}
+
+class A {
+}
+''');
+    await assertHasFix('''
+void f(Object? x) {
+  if (x case A(test: var y)) {
+    y;
+  }
+}
+
+class A {
+  Object? test;
+}
+''');
+  }
+
+  Future<void> test_objectPattern_explicitName_wildcardPattern_typed() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case A(test: int _)) {}
+}
+
+class A {
+}
+''');
+    await assertHasFix('''
+void f(Object? x) {
+  if (x case A(test: int _)) {}
+}
+
+class A {
+  int test;
+}
+''');
+  }
+
+  Future<void> test_objectPattern_implicitName_variablePattern_typed() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case A(:int test)) {
+    test;
+  }
+}
+
+class A {
+}
+''');
+    await assertHasFix('''
+void f(Object? x) {
+  if (x case A(:int test)) {
+    test;
+  }
+}
+
+class A {
+  int test;
 }
 ''');
   }

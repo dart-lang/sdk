@@ -211,9 +211,9 @@ bool IOHandle::AsyncWaitLocked(zx_handle_t port,
     LOG_ERR("IOHandle::AsyncWaitLocked called with key == 0");
   }
   // The call to fdio_unsafe_fd_to_io() in the DescriptorInfo constructor may
-  // have returned NULL. If it did, propagate the problem up to Dart.
-  if (fdio_ == NULL) {
-    LOG_ERR("fdio_unsafe_fd_to_io(%ld) returned NULL\n", fd_);
+  // have returned nullptr. If it did, propagate the problem up to Dart.
+  if (fdio_ == nullptr) {
+    LOG_ERR("fdio_unsafe_fd_to_io(%ld) returned nullptr\n", fd_);
     return false;
   }
 
@@ -438,9 +438,9 @@ DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
   SimpleHashMap::Entry* entry =
       socket_map_.Lookup(GetHashmapKeyFromFd(handle->fd()),
                          GetHashmapHashFromFd(handle->fd()), true);
-  ASSERT(entry != NULL);
+  ASSERT(entry != nullptr);
   DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(entry->value);
-  if (di == NULL) {
+  if (di == nullptr) {
     // If there is no data in the hash map for this file descriptor a
     // new DescriptorInfo for the file descriptor is inserted.
     if (is_listening) {
@@ -637,7 +637,7 @@ void EventHandlerImplementation::HandleTimeout() {
 void EventHandlerImplementation::Poll(uword args) {
   EventHandler* handler = reinterpret_cast<EventHandler*>(args);
   EventHandlerImplementation* handler_impl = &handler->delegate_;
-  ASSERT(handler_impl != NULL);
+  ASSERT(handler_impl != nullptr);
 
   zx_port_packet_t pkt;
   while (!handler_impl->shutdown_) {

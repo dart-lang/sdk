@@ -113,7 +113,7 @@ class A {}
     component.libraries.add(libWithB);
     libWithB.addClass(b);
     _assertLibraryText(libWithB, '''
-library test_b;
+library test_b /*isLegacy*/;
 import self as self;
 import "test.dart" as test;
 
@@ -1389,7 +1389,7 @@ class B<T*> extends self::A<self::B::T*, core::bool*> {}
 
     // Clean up the text a bit.
     const oftenUsedPrefix = '''
-library test;
+library test /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 

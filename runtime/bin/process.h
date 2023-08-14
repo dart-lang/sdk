@@ -134,7 +134,7 @@ class Process {
   typedef void (*ExitHook)(int64_t exit_code);
   static void SetExitHook(ExitHook hook) { exit_hook_ = hook; }
   static void RunExitHook(int64_t exit_code) {
-    if (exit_hook_ != NULL) {
+    if (exit_hook_ != nullptr) {
       exit_hook_(exit_code);
     }
   }
@@ -184,8 +184,8 @@ class SignalInfo {
         // SignalInfo is expected to be created when in a isolate.
         port_(Dart_GetMainPortId()),
         next_(next),
-        prev_(NULL) {
-    if (next_ != NULL) {
+        prev_(nullptr) {
+    if (next_ != nullptr) {
       next_->prev_ = this;
     }
   }
@@ -193,10 +193,10 @@ class SignalInfo {
   ~SignalInfo();
 
   void Unlink() {
-    if (prev_ != NULL) {
+    if (prev_ != nullptr) {
       prev_->next_ = next_;
     }
-    if (next_ != NULL) {
+    if (next_ != nullptr) {
       next_->prev_ = prev_;
     }
   }
@@ -225,19 +225,19 @@ class SignalInfo {
 // allocated.
 class BufferListBase {
  protected:
-  static const intptr_t kBufferSize = 16 * 1024;
+  static constexpr intptr_t kBufferSize = 16 * 1024;
 
   class BufferListNode {
    public:
     explicit BufferListNode(intptr_t size) {
       data_ = new uint8_t[size];
       // We check for a failed allocation below in Allocate()
-      next_ = NULL;
+      next_ = nullptr;
     }
 
     ~BufferListNode() { delete[] data_; }
 
-    bool Valid() const { return data_ != NULL; }
+    bool Valid() const { return data_ != nullptr; }
 
     uint8_t* data() const { return data_; }
     BufferListNode* next() const { return next_; }
@@ -251,7 +251,8 @@ class BufferListBase {
   };
 
  public:
-  BufferListBase() : head_(NULL), tail_(NULL), data_size_(0), free_size_(0) {}
+  BufferListBase()
+      : head_(nullptr), tail_(nullptr), data_size_(0), free_size_(0) {}
   ~BufferListBase() {
     Free();
     DEBUG_ASSERT(IsEmpty());
@@ -270,7 +271,7 @@ class BufferListBase {
       Free();
       return result;
     }
-    for (BufferListNode* current = head_; current != NULL;
+    for (BufferListNode* current = head_; current != nullptr;
          current = current->next()) {
       intptr_t to_copy = dart::Utils::Minimum(data_size_, kBufferSize);
       memmove(buffer + buffer_position, current->data(), to_copy);
@@ -283,23 +284,23 @@ class BufferListBase {
   }
 
 #if defined(DEBUG)
-  bool IsEmpty() const { return (head_ == NULL) && (tail_ == NULL); }
+  bool IsEmpty() const { return (head_ == nullptr) && (tail_ == nullptr); }
 #endif
 
  protected:
   bool Allocate() {
     ASSERT(free_size_ == 0);
     BufferListNode* node = new BufferListNode(kBufferSize);
-    if ((node == NULL) || !node->Valid()) {
+    if ((node == nullptr) || !node->Valid()) {
       // Failed to allocate a buffer for the node.
       delete node;
       return false;
     }
-    if (head_ == NULL) {
+    if (head_ == nullptr) {
       head_ = node;
       tail_ = node;
     } else {
-      ASSERT(tail_->next() == NULL);
+      ASSERT(tail_->next() == nullptr);
       tail_->set_next(node);
       tail_ = node;
     }
@@ -309,13 +310,13 @@ class BufferListBase {
 
   void Free() {
     BufferListNode* current = head_;
-    while (current != NULL) {
+    while (current != nullptr) {
       BufferListNode* tmp = current;
       current = current->next();
       delete tmp;
     }
-    head_ = NULL;
-    tail_ = NULL;
+    head_ = nullptr;
+    tail_ = nullptr;
     data_size_ = 0;
     free_size_ = 0;
   }

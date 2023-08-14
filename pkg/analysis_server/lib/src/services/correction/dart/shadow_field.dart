@@ -12,7 +12,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
-class ShadowField extends CorrectionProducer {
+class ShadowField extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.SHADOW_FIELD;
 
@@ -105,7 +105,7 @@ class ShadowField extends CorrectionProducer {
     if (parent is IsExpression && parent.expression == node) {
       return enclosingIf(parent);
     } else if (parent is BinaryExpression &&
-        resolvedResult.libraryElement.isNonNullableByDefault) {
+        unitResult.libraryElement.isNonNullableByDefault) {
       var opType = parent.operator.type;
       if (opType == TokenType.EQ_EQ || opType == TokenType.BANG_EQ) {
         return enclosingIf(parent);

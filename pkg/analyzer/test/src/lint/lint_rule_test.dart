@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -84,14 +83,24 @@ class CollectingReporter extends ErrorReporter {
   }
 
   @override
-  void reportErrorForNode(ErrorCode errorCode, AstNode node,
-      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
+  void reportErrorForNode(
+    ErrorCode errorCode,
+    AstNode node, [
+    List<Object?>? arguments,
+    List<DiagnosticMessage>? messages,
+    Object? data,
+  ]) {
     code = errorCode;
   }
 
   @override
-  void reportErrorForToken(ErrorCode errorCode, Token token,
-      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
+  void reportErrorForToken(
+    ErrorCode errorCode,
+    Token token, [
+    List<Object?>? arguments,
+    List<DiagnosticMessage>? messages,
+    Object? data,
+  ]) {
     code = errorCode;
   }
 }

@@ -245,6 +245,16 @@ Stream<int> f() async* => 3;
     ]);
   }
 
+  test_function_sync_block__invalidType() async {
+    await assertErrorsInCode(r'''
+void f() {
+  return new X();
+}
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 24, 1),
+    ]);
+  }
+
   test_function_sync_block__to_dynamic() async {
     await assertNoErrorsInCode(r'''
 f() {

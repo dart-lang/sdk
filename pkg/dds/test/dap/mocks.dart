@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:dap/dap.dart' as dap;
 import 'package:dds/dap.dart';
 import 'package:dds/src/dap/adapters/dart_cli_adapter.dart';
 import 'package:dds/src/dap/adapters/dart_test_adapter.dart';
@@ -118,7 +119,7 @@ class MockDartTestDebugAdapter extends DartTestDebugAdapter {
   }
 }
 
-class MockRequest extends Request {
+class MockRequest extends dap.Request {
   static var _requestId = 1;
   MockRequest()
       : super.fromMap({
@@ -132,7 +133,8 @@ class MockVmService implements VmServiceInterface {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
-  final isolate = IsolateRef(id: 'isolate1');
+  final isolate1 = IsolateRef(id: 'isolate1');
+  final isolate2 = IsolateRef(id: 'isolate2');
   final sdkLibrary = LibraryRef(id: 'libSdk', uri: 'dart:core');
   final externalPackageLibrary =
       LibraryRef(id: 'libPkgExternal', uri: 'package:external/foo.dart');
@@ -155,10 +157,16 @@ class MockVmService implements VmServiceInterface {
 
   @override
   Future<Isolate> getIsolate(String isolateId) async {
-    return Isolate(
-      id: isolate.id,
-      libraries: [sdkLibrary, externalPackageLibrary, localPackageLibrary],
-    );
+    return {isolate1.id, isolate2.id}.contains(isolateId)
+        ? Isolate(
+            id: isolateId,
+            libraries: [
+              sdkLibrary,
+              externalPackageLibrary,
+              localPackageLibrary
+            ],
+          )
+        : throw SentinelException.parse('getIsolate', {});
   }
 
   @override
@@ -173,7 +181,19 @@ class MockVmService implements VmServiceInterface {
   @override
   Future<VM> getVM() async {
     return VM(
-      isolates: [isolate],
+      isolates: [isolate1, isolate2],
     );
+  }
+
+  @override
+  Future<Success> resume(
+    String isolateId, {
+    String? step,
+    int? frameIndex,
+  }) async {
+    // Do nothing, just pretend.
+    return {isolate1.id, isolate2.id}.contains(isolateId)
+        ? Success()
+        : throw SentinelException.parse('resume', {});
   }
 }

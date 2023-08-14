@@ -5,7 +5,6 @@
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -13,6 +12,7 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
@@ -496,6 +496,11 @@ class LibraryReader {
     _reader.offset = _offset;
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/51855
+    // This should not be needed.
+    // But I have a suspicion that we attempt to read the library twice.
+    _classMembersLengthsIndex = 0;
+
     var name = _reader.readStringReference();
     var featureSet = _readFeatureSet();
 
@@ -522,6 +527,10 @@ class LibraryReader {
 
     libraryElement.exportedReferences = _reader.readTypedList(
       _readExportedReference,
+    );
+
+    libraryElement.nameUnion = ElementNameUnion.read(
+      _reader.readUInt30List(),
     );
 
     libraryElement.linkedData = LibraryElementLinkedData(
@@ -616,6 +625,15 @@ class LibraryReader {
         _reader.offset = membersOffset;
         _readClassElementMembers(unitElement, element, reference);
       };
+      if (_classMembersLengthsIndex >= _classMembersLengths.length) {
+        // TODO(scheglov) https://github.com/dart-lang/sdk/issues/51855
+        throw StateError(
+          '[libraryReference: $_reference]'
+          '[classReference: $reference]'
+          '[_classMembersLengthsIndex: $_classMembersLengthsIndex]'
+          '[_classMembersLengths: $_classMembersLengths]',
+        );
+      }
       _reader.offset += _classMembersLengths[_classMembersLengthsIndex++];
     }
 
@@ -1158,6 +1176,7 @@ class LibraryReader {
     }
   }
 
+  /// TODO(scheglov) Deduplicate parameter reading implementation.
   List<ParameterElementImpl> _readParameters(
     ElementImpl enclosingElement,
     Reference enclosingReference,
@@ -1165,6 +1184,7 @@ class LibraryReader {
     var containerRef = enclosingReference.getChild('@parameter');
     return _reader.readTypedList(() {
       var name = _reader.readStringReference();
+      var isDefault = _reader.readBool();
       var isInitializingFormal = _reader.readBool();
       var isSuperFormal = _reader.readBool();
       var reference = containerRef.getChild(name);
@@ -1173,7 +1193,7 @@ class LibraryReader {
       var kind = ResolutionReader._formalParameterKind(kindIndex);
 
       ParameterElementImpl element;
-      if (kind.isRequiredPositional) {
+      if (!isDefault) {
         if (isInitializingFormal) {
           element = FieldFormalParameterElementImpl(
             name: name,
@@ -1719,6 +1739,9 @@ class ResolutionReader {
         nullabilitySuffix: NullabilitySuffix.star,
       );
       return _readAliasElementArguments(type);
+    } else if (tag == Tag.InvalidType) {
+      var type = InvalidTypeImpl.instance;
+      return _readAliasElementArguments(type);
     } else if (tag == Tag.NeverType) {
       var nullability = _readNullability();
       var type = NeverTypeImpl.instance.withNullability(nullability);
@@ -1864,12 +1887,13 @@ class ResolutionReader {
     return readTypedList(() {
       var kindIndex = _reader.readByte();
       var kind = _formalParameterKind(kindIndex);
+      var isDefault = _reader.readBool();
       var hasImplicitType = _reader.readBool();
       var isInitializingFormal = _reader.readBool();
       var typeParameters = _readTypeParameters(unitElement);
       var type = readRequiredType();
       var name = readStringReference();
-      if (kind.isRequiredPositional) {
+      if (!isDefault) {
         ParameterElementImpl element;
         if (isInitializingFormal) {
           element = FieldFormalParameterElementImpl(

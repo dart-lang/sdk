@@ -340,6 +340,89 @@ void f/*[0*/() {
     });
   }
 
+  Future<void> test_switchExpression() async {
+    final content = '''
+void f(int a) {
+  var b = switch (a) {/*[0*/
+    1 => '',
+    2 =>/*[1*/ '1234567890'
+        '1234567890'/*1]*/,
+    _ =>/*[2*/ '1234567890'
+        '1234567890'
+        '1234567890'
+        '1234567890'/*2]*/
+  }/*0]*/;
+}
+    ''';
+
+    await computeRanges(content);
+    expectRanges(
+      {
+        0: noFoldingKind,
+        1: noFoldingKind,
+        2: noFoldingKind,
+      },
+      requireAll: false,
+    );
+  }
+
+  Future<void> test_switchPattern() async {
+    final content = '''
+void f(int a) {
+  switch (a) {/*[0*/
+    case 0:/*[1*/
+      print('');/*1]*/
+    case 1:
+    case 2:/*[2*/
+      print('');/*2]*/
+    default:/*[3*/
+      print('');/*3]*/
+  }/*0]*/
+}
+    ''';
+
+    await computeRanges(content);
+    expectRanges(
+      {
+        0: noFoldingKind,
+        1: noFoldingKind,
+        2: noFoldingKind,
+        3: noFoldingKind,
+      },
+      requireAll: false,
+    );
+  }
+
+  Future<void> test_switchStatement() async {
+    final content = '''
+// @dart = 2.19
+
+void f(int a) {
+  switch (a) {/*[0*/
+    case 0:/*[1*/
+      print('');
+      break;/*1]*/
+    case 1:
+    case 2:/*[2*/
+      print('');/*2]*/
+    default:/*[3*/
+      print('');/*3]*/
+  }/*0]*/
+}
+    ''';
+
+    await computeRanges(content);
+    expectRanges(
+      {
+        0: noFoldingKind,
+        1: noFoldingKind,
+        2: noFoldingKind,
+        3: noFoldingKind,
+      },
+      requireAll: false,
+    );
+  }
+
   Future<void> test_whileLoop() async {
     final content = '''
     f(int i) {

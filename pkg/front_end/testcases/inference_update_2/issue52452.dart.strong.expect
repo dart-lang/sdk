@@ -1,0 +1,93 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  final field core::int? _f2;
+  final field core::int? _f3;
+  final field core::int? _f4;
+  constructor •(core::int? i) → self::C
+    : self::C::_f2 = i, self::C::_f3 = i, self::C::_f4 = i, super core::Object::•()
+    ;
+}
+class A extends core::Object {
+  constructor •(core::int? i) → self::A
+    : super core::Object::•()
+    ;
+}
+abstract class M3 extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class _D&A&M3 = self::A with self::M3 /*isAnonymousMixin*/  {
+  synthetic constructor •(core::int? i) → self::_D&A&M3
+    : super self::A::•(i)
+    ;
+}
+abstract class D extends self::_D&A&M3 {
+  final field core::int? _f4;
+  constructor •(core::int? i) → self::D
+    : self::D::_f4 = i, super self::_D&A&M3::•(i)
+    ;
+}
+abstract class M1 extends core::Object /*isMixinDeclaration*/  {
+  late field core::int? _f2;
+  late final [setter] field core::int? _f3;
+  late final field core::int? _f4 = 0;
+}
+class B extends core::Object {
+  constructor •(core::int? i) → self::B
+    : super core::Object::•()
+    ;
+}
+abstract class _E&B&M1 = self::B with self::M1 /*isAnonymousMixin*/  {
+  synthetic constructor •(core::int? i) → self::_E&B&M1
+    : super self::B::•(i)
+    ;
+  mixin-super-stub get _f2() → core::int?
+    return super.{self::M1::_f2};
+  mixin-super-stub set _f2(core::int? value) → void
+    return super.{self::M1::_f2} = value;
+  mixin-super-stub get _f3() → core::int?
+    return super.{self::M1::_f3};
+  mixin-super-stub set _f3(core::int? value) → void
+    return super.{self::M1::_f3} = value;
+  mixin-super-stub get _f4() → core::int?
+    return super.{self::M1::_f4};
+}
+class E extends self::_E&B&M1 implements self::D {
+  constructor •(core::int? i) → self::E
+    : super self::_E&B&M1::•(i)
+    ;
+  @#C1
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    return super.{core::Object::noSuchMethod}(invocation);
+}
+static method acceptsInt(core::int x) → void {}
+static method testConflictWithNoSuchMethodForwarderIfImplementedInMixin(self::C c) → void {
+  if(!(c.{self::C::_f2}{core::int?} == null)) {
+    core::int? x = c.{self::C::_f2}{core::int?};
+    x = null;
+  }
+}
+static method testNoConflictWithNoSuchMethodForwarderIfImplementedInMixin1(self::C c) → void {
+  if(!(c.{self::C::_f3}{core::int?} == null)) {
+    core::int x = c.{self::C::_f3}{core::int};
+    self::acceptsInt(x);
+  }
+}
+static method testNoConflictWithNoSuchMethodForwarderIfImplementedInMixin2(self::C c) → void {
+  if(!(c.{self::C::_f4}{core::int?} == null)) {
+    core::int x = c.{self::C::_f4}{core::int};
+    self::acceptsInt(x);
+  }
+}
+static method main() → dynamic {
+  for (self::C c in <self::C>[new self::C::•(null), new self::C::•(0)]) {
+    self::testConflictWithNoSuchMethodForwarderIfImplementedInMixin(c);
+    self::testNoConflictWithNoSuchMethodForwarderIfImplementedInMixin1(c);
+    self::testNoConflictWithNoSuchMethodForwarderIfImplementedInMixin2(c);
+  }
+}
+
+constants  {
+  #C1 = core::_Override {}
+}

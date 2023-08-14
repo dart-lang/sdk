@@ -85,7 +85,7 @@ static void* ThreadStart(void* data_ptr) {
   // Call the supplied thread start function handing it its parameters.
   function(parameter);
 
-  return NULL;
+  return nullptr;
 }
 
 int Thread::Start(const char* name,

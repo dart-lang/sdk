@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class CreateNoSuchMethod extends CorrectionProducer {
+class CreateNoSuchMethod extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.CREATE_NO_SUCH_METHOD;
 

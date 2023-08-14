@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -118,7 +118,7 @@ class Class6 extends core::Object {
   static method _#new#tearOff(core::int field1, {core::int? field2 = #C1, required core::int field3 = #C1}) → self::Class6
     return self::Class6::•(field1, field2: field2, field3: field3);
 }
-static final field core::bool inSoundMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
+static final field core::bool inSoundMode = !(<core::int?>[] is core::List<core::int>);
 static method main() → dynamic {
   core::print("inSoundMode: ${self::inSoundMode}");
   self::testNoArgs();
@@ -127,17 +127,17 @@ static method main() → dynamic {
 static method testNoArgs() → dynamic {
   () → self::Class1 f1a = #C2;
   self::Class1 c1a = f1a(){() → self::Class1};
-  self::expect(true, c1a is{ForNonNullableByDefault} self::Class1);
+  self::expect(true, c1a is self::Class1);
   dynamic f1b = #C2;
   dynamic c1b = f1b{dynamic}.call();
-  self::expect(true, c1b is{ForNonNullableByDefault} self::Class1);
+  self::expect(true, c1b is self::Class1);
   self::expect(true, core::identical(f1a, f1b));
   () → self::Class2 f2a = #C3;
   self::Class2 c2a = f2a(){() → self::Class2};
-  self::expect(true, c2a is{ForNonNullableByDefault} self::Class2);
+  self::expect(true, c2a is self::Class2);
   dynamic f2b = #C3;
   dynamic c2b = f2b{dynamic}.call();
-  self::expect(true, c2b is{ForNonNullableByDefault} self::Class2);
+  self::expect(true, c2b is self::Class2);
   self::expect(true, core::identical(f2a, f2b));
 }
 static method testArgs() → dynamic {

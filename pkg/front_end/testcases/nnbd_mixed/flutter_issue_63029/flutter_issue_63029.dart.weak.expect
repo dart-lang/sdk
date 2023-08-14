@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "flutter_issue_63029_lib1.dart" as flu;
 import "flutter_issue_63029_lib2.dart" as flu2;
@@ -25,7 +25,7 @@ class F extends self::_F&B&D {
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as flu;
 import "dart:core" as core;
 
@@ -40,7 +40,7 @@ abstract class B<T extends flu::A> extends core::Object {
     ;
 }
 
-library;
+library /*isLegacy*/;
 import self as flu2;
 import "dart:core" as core;
 import "flutter_issue_63029_lib1.dart" as flu;

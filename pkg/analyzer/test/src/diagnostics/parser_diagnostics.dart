@@ -73,7 +73,8 @@ class ParserDiagnosticsTest {
         selfUriStr: null,
         sink: buffer,
         indent: '',
-        withCheckingLinking: withCheckingLinking,
+        configuration: ResolvedNodeTextConfiguration()
+          ..withCheckingLinking = withCheckingLinking,
         withResolution: false,
         withOffsets: withOffsets,
       ),

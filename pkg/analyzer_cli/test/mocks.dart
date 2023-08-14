@@ -38,6 +38,9 @@ class MockAnalysisError implements AnalysisError {
   String? get correctionMessage => null;
 
   @override
+  Object? get data => throw UnimplementedError();
+
+  @override
   DiagnosticMessage get problemMessage => DiagnosticMessageImpl(
       filePath: source.fullName,
       length: length,

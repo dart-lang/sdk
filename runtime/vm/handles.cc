@@ -25,7 +25,7 @@ void VMHandles::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 #if defined(DEBUG)
 static bool IsCurrentApiNativeScope(Zone* zone) {
   ApiNativeScope* scope = ApiNativeScope::Current();
-  return (scope != NULL) && (scope->zone() == zone);
+  return (scope != nullptr) && (scope->zone() == zone);
 }
 #endif  // DEBUG
 
@@ -58,14 +58,14 @@ bool VMHandles::IsZoneHandle(uword handle) {
 
 int VMHandles::ScopedHandleCount() {
   Thread* thread = Thread::Current();
-  ASSERT(thread->zone() != NULL);
+  ASSERT(thread->zone() != nullptr);
   VMHandles* handles = thread->zone()->handles();
   return handles->CountScopedHandles();
 }
 
 int VMHandles::ZoneHandleCount() {
   Thread* thread = Thread::Current();
-  ASSERT(thread->zone() != NULL);
+  ASSERT(thread->zone() != nullptr);
   VMHandles* handles = thread->zone()->handles();
   return handles->CountZoneHandles();
 }
@@ -73,7 +73,7 @@ int VMHandles::ZoneHandleCount() {
 void HandleScope::Initialize() {
   ASSERT(thread()->MayAllocateHandles());
   VMHandles* handles = thread()->zone()->handles();
-  ASSERT(handles != NULL);
+  ASSERT(handles != nullptr);
   saved_handle_block_ = handles->scoped_blocks_;
   saved_handle_slot_ = handles->scoped_blocks_->next_handle_slot();
 #if defined(DEBUG)
@@ -87,9 +87,9 @@ HandleScope::HandleScope(ThreadState* thread) : StackResource(thread) {
 }
 
 HandleScope::~HandleScope() {
-  ASSERT(thread()->zone() != NULL);
+  ASSERT(thread()->zone() != nullptr);
   VMHandles* handles = thread()->zone()->handles();
-  ASSERT(handles != NULL);
+  ASSERT(handles != nullptr);
 #if defined(DEBUG)
   VMHandles::HandlesBlock* last = handles->scoped_blocks_;
 #endif

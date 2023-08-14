@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show base64Decode, base64Encode;
+
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:vm_service/vm_service.dart';
 
@@ -153,9 +155,10 @@ class IsolateManager {
   /// Handles state changes for isolates.
   void handleIsolateEvent(Event event) {
     // There's no interesting information about isolate state associated with
-    // and IsolateSpawn event.
+    // IsolateSpawn or IsolateReload events.
     // TODO(bkonyi): why isn't IsolateSpawn in package:vm_service
-    if (event.kind! == ServiceEvents.isolateSpawn) {
+    if (event.kind! == ServiceEvents.isolateSpawn ||
+        event.kind == EventKind.kIsolateReload) {
       return;
     }
 
@@ -303,6 +306,32 @@ class IsolateManager {
     final isolate = isolates[isolateId]!;
     final userTag = parameters['userTag'].asString;
     return await isolate.getCachedCpuSamples(userTag);
+  }
+
+  Future<Map<String, dynamic>> getPerfettoVMTimelineWithCpuSamples(
+      json_rpc.Parameters parameters) async {
+    final timeOriginMicros = parameters['timeOriginMicros'].asIntOr(-1);
+    final timeExtentMicros = parameters['timeExtentMicros'].asIntOr(-1);
+
+    final timelineResult = await dds.vmServiceClient.sendRequest(
+        'getPerfettoVMTimeline', {
+      'timeOriginMicros': timeOriginMicros,
+      'timeExtentMicros': timeExtentMicros
+    });
+
+    final combinedBytes = base64Decode(timelineResult['trace']).toList();
+
+    for (final isolateId in isolates.keys) {
+      final samplesResult =
+          await dds.vmServiceClient.sendRequest('getPerfettoCpuSamples', {
+        'isolateId': isolateId,
+        'timeOriginMicros': timeOriginMicros,
+        'timeExtentMicros': timeExtentMicros
+      });
+      combinedBytes.addAll(base64Decode(samplesResult['samples']));
+    }
+    timelineResult['trace'] = base64Encode(combinedBytes);
+    return timelineResult;
   }
 
   /// Forwards a `resume` request to the VM service.

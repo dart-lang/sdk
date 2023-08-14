@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 import "dart:ffi" as ffi;
@@ -25,14 +25,14 @@ static method main() → void {
   self::_extension#1|baz(new core::Object::•(), foo);
   _in::reachabilityFence(foo);
 }
-static method _extension#0|bar(lowered final ffi::Finalizable #this) → core::int {
+static extension-member method _extension#0|bar(lowered final ffi::Finalizable #this) → core::int {
   core::print("123");
   return block {
     final synthesized core::int :expressionValueWrappedFinalizable = 4;
     _in::reachabilityFence(#this);
   } =>:expressionValueWrappedFinalizable;
 }
-static method _extension#0|get#bar(lowered final ffi::Finalizable #this) → () → core::int
+static extension-member method _extension#0|get#bar(lowered final ffi::Finalizable #this) → () → core::int
   return block {
     final synthesized () → core::int :expressionValueWrappedFinalizable = () → core::int => block {
       final synthesized core::int :expressionValueWrappedFinalizable = self::_extension#0|bar(#this);
@@ -40,14 +40,14 @@ static method _extension#0|get#bar(lowered final ffi::Finalizable #this) → () 
     } =>:expressionValueWrappedFinalizable;
     _in::reachabilityFence(#this);
   } =>:expressionValueWrappedFinalizable;
-static method _extension#1|baz(lowered final core::Object #this, self::Foo foo) → core::int {
+static extension-member method _extension#1|baz(lowered final core::Object #this, self::Foo foo) → core::int {
   core::print("456");
   return block {
     final synthesized core::int :expressionValueWrappedFinalizable = 5;
     _in::reachabilityFence(foo);
   } =>:expressionValueWrappedFinalizable;
 }
-static method _extension#1|get#baz(lowered final core::Object #this) → (self::Foo) → core::int
+static extension-member method _extension#1|get#baz(lowered final core::Object #this) → (self::Foo) → core::int
   return (self::Foo foo) → core::int => block {
     final synthesized core::int :expressionValueWrappedFinalizable = self::_extension#1|baz(#this, foo);
     _in::reachabilityFence(foo);

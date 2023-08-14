@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 import "dart:ffi" as ffi;
@@ -23,14 +23,14 @@ static method main() → void {
   let final core::Object #t1 = new core::Object::•() in self::_extension#1|baz(foo);
   _in::reachabilityFence(foo);
 }
-[@vm.unboxing-info.metadata=(b)->i]static method _extension#0|bar([@vm.inferred-type.metadata=#lib::Foo] lowered final ffi::Finalizable #this) → core::int {
+[@vm.unboxing-info.metadata=(b)->i]static extension-member method _extension#0|bar([@vm.inferred-type.metadata=#lib::Foo] lowered final ffi::Finalizable #this) → core::int {
   core::print("123");
   return block {
     final synthesized core::int :expressionValueWrappedFinalizable = 4;
     _in::reachabilityFence(#this);
   } =>:expressionValueWrappedFinalizable;
 }
-[@vm.unboxing-info.metadata=(b)->i]static method _extension#1|baz([@vm.inferred-type.metadata=#lib::Foo] self::Foo foo) → core::int {
+[@vm.unboxing-info.metadata=(b)->i]static extension-member method _extension#1|baz([@vm.inferred-type.metadata=#lib::Foo] self::Foo foo) → core::int {
   core::print("456");
   return block {
     final synthesized core::int :expressionValueWrappedFinalizable = 5;

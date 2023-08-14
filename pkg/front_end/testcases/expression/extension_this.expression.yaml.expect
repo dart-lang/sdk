@@ -2,6 +2,6 @@ Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(lowered dynamic #this) → dynamic
   return () → dynamic {
-    dart.core::print(#lib1::Foo|getFortyTwo(#this as{TypeError,ForDynamic,ForNonNullableByDefault} dart.core::String));
+    dart.core::print(#lib1::Foo|getFortyTwo(#this as{TypeError,ForDynamic} dart.core::String));
     return #this;
   };

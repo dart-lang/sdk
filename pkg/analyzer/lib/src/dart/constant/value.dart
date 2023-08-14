@@ -3,15 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// The implementation of the class [DartObject].
+library;
+
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -124,6 +129,13 @@ class BoolState extends InstanceState {
       value ? BoolState.TRUE_STATE : BoolState.FALSE_STATE;
 }
 
+/// A valid or invalid constant used by constant evaluator.
+///
+/// [DartObjectImpl] represents a valid result. Note that the [DartObjectImpl]
+/// could have an unknown state and still be a valid constant.
+/// [InvalidConstant] represents an invalid result with error information.
+sealed class Constant {}
+
 /// Information about a const constructor invocation.
 class ConstructorInvocation {
   /// The constructor that was called.
@@ -154,7 +166,7 @@ class ConstructorInvocation {
 }
 
 /// A representation of an instance of a Dart class.
-class DartObjectImpl implements DartObject {
+class DartObjectImpl implements DartObject, Constant {
   final TypeSystemImpl _typeSystem;
 
   @override
@@ -226,7 +238,7 @@ class DartObjectImpl implements DartObject {
   bool get isUserDefinedObject => state is GenericState;
 
   @visibleForTesting
-  List<DartType>? get typeArguments => (state as FunctionState)._typeArguments;
+  List<DartType>? get typeArguments => (state as FunctionState).typeArguments;
 
   @override
   bool operator ==(Object other) {
@@ -855,7 +867,7 @@ class DartObjectImpl implements DartObject {
   @override
   ExecutableElement? toFunctionValue() {
     final state = this.state;
-    return state is FunctionState ? state._element : null;
+    return state is FunctionState ? state.element : null;
   }
 
   @override
@@ -929,7 +941,7 @@ class DartObjectImpl implements DartObject {
   /// Return the result of type-instantiating this object as [type].
   ///
   /// [typeArguments] are the type arguments used in the instantiation.
-  DartObjectImpl? typeInstantiate(
+  DartObjectImpl typeInstantiate(
     TypeSystemImpl typeSystem,
     FunctionType type,
     List<DartType> typeArguments,
@@ -939,7 +951,7 @@ class DartObjectImpl implements DartObject {
       typeSystem,
       type,
       FunctionState(
-        functionState._element,
+        functionState.element,
         typeArguments: typeArguments,
         viaTypeAlias: functionState._viaTypeAlias,
       ),
@@ -1277,9 +1289,9 @@ class EvaluationException {
 /// The state of an object representing a function.
 class FunctionState extends InstanceState {
   /// The element representing the function being modeled.
-  final ExecutableElement? _element;
+  final ExecutableElementImpl element;
 
-  final List<DartType>? _typeArguments;
+  final List<DartType>? typeArguments;
 
   /// The type alias which was referenced when tearing off a constructor,
   /// if this function is a constructor tear-off, referenced via a type alias,
@@ -1293,13 +1305,12 @@ class FunctionState extends InstanceState {
 
   /// Initialize a newly created state to represent the function with the given
   /// [element].
-  FunctionState(this._element,
-      {List<DartType>? typeArguments, TypeDefiningElement? viaTypeAlias})
-      : _typeArguments = typeArguments,
-        _viaTypeAlias = viaTypeAlias;
+  FunctionState(this.element,
+      {this.typeArguments, TypeDefiningElement? viaTypeAlias})
+      : _viaTypeAlias = viaTypeAlias;
 
   @override
-  int get hashCode => _element == null ? 0 : _element.hashCode;
+  int get hashCode => element.hashCode;
 
   @override
   String get typeName => "Function";
@@ -1309,11 +1320,11 @@ class FunctionState extends InstanceState {
     if (other is! FunctionState) {
       return false;
     }
-    if (_element != other._element) {
+    if (element != other.element) {
       return false;
     }
-    var typeArguments = _typeArguments;
-    var otherTypeArguments = other._typeArguments;
+    var typeArguments = this.typeArguments;
+    var otherTypeArguments = other.typeArguments;
     if (typeArguments == null || otherTypeArguments == null) {
       return typeArguments == null && otherTypeArguments == null;
     }
@@ -1332,12 +1343,7 @@ class FunctionState extends InstanceState {
   }
 
   @override
-  StringState convertToString() {
-    if (_element == null) {
-      return StringState.UNKNOWN_VALUE;
-    }
-    return StringState(_element!.name);
-  }
+  StringState convertToString() => StringState(element.name);
 
   @override
   BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
@@ -1349,25 +1355,16 @@ class FunctionState extends InstanceState {
 
   @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
-    if (_element == null) {
-      return BoolState.UNKNOWN_VALUE;
-    }
     if (rightOperand is FunctionState) {
-      var rightElement = rightOperand._element;
-      if (rightElement == null) {
-        return BoolState.UNKNOWN_VALUE;
-      }
-
-      var element = _element;
-      var otherElement = rightOperand._element;
-      if (element?.declaration != otherElement?.declaration) {
+      var otherElement = rightOperand.element;
+      if (element.declaration != otherElement.declaration) {
         return BoolState.FALSE_STATE;
       }
       if (_viaTypeAlias != rightOperand._viaTypeAlias) {
         return BoolState.FALSE_STATE;
       }
-      var typeArguments = _typeArguments;
-      var otherTypeArguments = rightOperand._typeArguments;
+      var typeArguments = this.typeArguments;
+      var otherTypeArguments = rightOperand.typeArguments;
       if (typeArguments == null || otherTypeArguments == null) {
         return BoolState.from(
             typeArguments == null && otherTypeArguments == null);
@@ -1389,7 +1386,7 @@ class FunctionState extends InstanceState {
   }
 
   @override
-  String toString() => _element?.name ?? "-unknown-";
+  String toString() => element.name;
 }
 
 /// The state of an object representing a Dart object for which there is no more
@@ -2333,6 +2330,24 @@ class IntState extends NumState {
   String toString() => value == null ? "-unknown-" : value.toString();
 }
 
+/// An invalid constant that contains diagnostic information.
+class InvalidConstant implements Constant {
+  /// The node where we could not compute a valid constant.
+  final AstNode node;
+
+  /// The error code that is reported at the location of the [node].
+  final ErrorCode errorCode;
+
+  /// Additional context messages for the error, including stack trace
+  /// information if the error occurs within a constructor.
+  final List<DiagnosticMessage> contextMessages;
+
+  InvalidConstant(this.node, this.errorCode) : contextMessages = [];
+
+  InvalidConstant.withContextMessages(
+      this.node, this.errorCode, this.contextMessages);
+}
+
 /// The state of an object representing a list.
 class ListState extends InstanceState {
   /// The elements of the list.
@@ -2752,7 +2767,7 @@ class SetState extends InstanceState {
 
 /// The state of an object representing a string.
 class StringState extends InstanceState {
-  /// A state that can be used to represent a double whose value is not known.
+  /// A state that can be used to represent a string whose value is not known.
   static StringState UNKNOWN_VALUE = StringState(null);
 
   /// The value of this instance.

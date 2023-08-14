@@ -14,11 +14,11 @@
 namespace dart {
 namespace bin {
 
-static const int kNamespaceNativeFieldIndex = 0;
+static constexpr int kNamespaceNativeFieldIndex = 0;
 
 static void ReleaseNamespace(void* isolate_callback_data, void* peer) {
   Namespace* namespc = reinterpret_cast<Namespace*>(peer);
-  ASSERT(namespc != NULL);
+  ASSERT(namespc != nullptr);
   namespc->Release();
 }
 
@@ -43,7 +43,7 @@ void FUNCTION_NAME(Namespace_Create)(Dart_NativeArguments args) {
   DEBUG_ASSERT(IsNamespace(namespc_obj));
 
   // Allocate a native wrapper for the platform namespc bits.
-  Namespace* namespc = NULL;
+  Namespace* namespc = nullptr;
   Dart_Handle result;
   Dart_Handle native_namespc = Dart_GetNativeArgument(args, 1);
   if (Dart_IsInteger(native_namespc)) {
@@ -68,7 +68,7 @@ void FUNCTION_NAME(Namespace_Create)(Dart_NativeArguments args) {
 
   // We were unable to create a native Namespace wrapper object due to some
   // OS-level error.
-  if (namespc == NULL) {
+  if (namespc == nullptr) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 
@@ -93,7 +93,7 @@ void FUNCTION_NAME(Namespace_GetDefault)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Namespace_GetPointer)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  ASSERT(namespc != NULL);
+  ASSERT(namespc != nullptr);
   namespc->Retain();
   Dart_SetIntegerReturnValue(args, reinterpret_cast<intptr_t>(namespc));
 }
@@ -109,7 +109,7 @@ Namespace* Namespace::GetNamespace(Dart_NativeArguments args, intptr_t index) {
 }
 
 bool Namespace::IsDefault(Namespace* namespc) {
-  return (namespc == NULL) || (namespc->namespc() == NULL);
+  return (namespc == nullptr) || (namespc->namespc() == nullptr);
 }
 
 Dart_Handle Namespace::GetNativeNamespaceArgument(Dart_NativeArguments args,
@@ -127,7 +127,7 @@ Dart_Handle Namespace::GetNativeNamespaceArgument(Dart_NativeArguments args,
   if (Dart_IsError(result)) {
     return result;
   }
-  if (*namespc == NULL) {
+  if (*namespc == nullptr) {
     return Dart_NewUnhandledExceptionError(
         DartUtils::NewInternalError("No native peer"));
   }

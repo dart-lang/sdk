@@ -18,5 +18,8 @@ class B extends A with Mixin {}
 
 main() {
   Expect.equals(2, new B().field);
-  new B.bar(); /*@compile-error=unspecified*/
+  new B.bar();
+  //    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR
+  // [cfe] Couldn't find constructor 'B.bar'.
 }

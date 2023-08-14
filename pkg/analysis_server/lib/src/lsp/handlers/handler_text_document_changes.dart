@@ -47,7 +47,7 @@ class TextDocumentChangeHandler
         failureIsCritical: true);
     return newContents.mapResult((result) {
       server.documentVersions[path] = params.textDocument;
-      server.onOverlayUpdated(path, result.last, newContent: result.first);
+      server.onOverlayUpdated(path, result.edits, newContent: result.content);
       return success(null);
     });
   }

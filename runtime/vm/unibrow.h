@@ -35,10 +35,10 @@ class Mapping {
         : code_point_(code_point), offset_(offset) {}
     int32_t code_point_;
     signed offset_;
-    static const intptr_t kNoChar = (1 << 21) - 1;
+    static constexpr intptr_t kNoChar = (1 << 21) - 1;
   };
-  static const intptr_t kSize = size;
-  static const intptr_t kMask = kSize - 1;
+  static constexpr intptr_t kSize = size;
+  static constexpr intptr_t kMask = kSize - 1;
   CacheEntry entries_[kSize];
 };
 
@@ -46,21 +46,21 @@ struct Letter {
   static bool Is(int32_t c);
 };
 struct Ecma262Canonicalize {
-  static const intptr_t kMaxWidth = 1;
+  static constexpr intptr_t kMaxWidth = 1;
   static intptr_t Convert(int32_t c,
                           int32_t n,
                           int32_t* result,
                           bool* allow_caching_ptr);
 };
 struct Ecma262UnCanonicalize {
-  static const intptr_t kMaxWidth = 4;
+  static constexpr intptr_t kMaxWidth = 4;
   static intptr_t Convert(int32_t c,
                           int32_t n,
                           int32_t* result,
                           bool* allow_caching_ptr);
 };
 struct CanonicalizationRange {
-  static const intptr_t kMaxWidth = 1;
+  static constexpr intptr_t kMaxWidth = 1;
   static intptr_t Convert(int32_t c,
                           int32_t n,
                           int32_t* result,

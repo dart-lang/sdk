@@ -145,11 +145,10 @@ void f(A a, B b) {
 
   Future<void> test_checkInitialConditions_outsideOfProject() async {
     // File outside of project.
-    var externalPath = convertPath('$workspaceRootPath/aaa/lib/a.dart');
-    newFile(externalPath, r'''
+    var externalFile = newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 String get foo => '';
 ''');
-    var externalUnit = await getResolvedUnit(externalPath);
+    var externalUnit = await getResolvedUnit(externalFile);
 
     await indexTestUnit(''); // Initialize project.
 

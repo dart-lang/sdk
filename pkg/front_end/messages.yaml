@@ -4,13 +4,13 @@
 
 # Run
 #
-#     dart run --no-pub pkg/front_end/tool/_fasta/generate_messages.dart
+#     dart run pkg/front_end/tool/_fasta/generate_messages.dart
 #
 # to regenerate messages after having edited this file.
 #
 # If entries with 'analyzerCode' and 'index' have been changed, run
 #
-#     dart run --no-pub pkg/analyzer/tool/messages/generate.dart
+#     dart run pkg/analyzer/tool/messages/generate.dart
 #
 # to regenerate analyzer messages.
 
@@ -768,6 +768,12 @@ MultipleOnClauses:
   analyzerCode: ParserErrorCode.MULTIPLE_ON_CLAUSES
   script: "mixin A on B on C, D {}"
 
+MixinWithClause:
+  index: 154
+  problemMessage: "A mixin can't have a with clause."
+  analyzerCode: ParserErrorCode.MIXIN_WITH_CLAUSE
+  script: "mixin M {} mixin N with M {}"
+
 ExtendsFutureOr:
   problemMessage: "The type 'FutureOr' can't be used in an 'extends' clause."
 
@@ -956,8 +962,8 @@ AbstractLateField:
     - "abstract class C {abstract late var f;}"
 
 AbstractSealedClass:
-  problemMessage: "A class can't be declared both 'sealed' and 'abstract'."
-  correctionMessage: "Try removing the 'abstract' or 'sealed' keyword."
+  problemMessage: "A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract."
+  correctionMessage: "Try removing the 'abstract' keyword."
   analyzerCode: ParserErrorCode.ABSTRACT_SEALED_CLASS
   index: 132
   hasPublishedDocs: true
@@ -2265,7 +2271,7 @@ FastaUsageLong:
         Read the SDK platform from <file>, which should be in Dill/Kernel IR format
         and contain the Dart SDK.
 
-      --target=dart2js|dart2js_server|dart2wasm|dart_runner|dartdevc|flutter|flutter_runner|none|vm
+      --target=dart2js|dart2js_server|dart2wasm|dart2wasm_stringref|dart_runner|dartdevc|flutter|flutter_runner|none|vm
         Specify the target configuration.
 
       --enable-asserts
@@ -4912,6 +4918,11 @@ FfiAbiSpecificIntegerMappingInvalid:
   problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size."
   external: test/ffi_test.dart
 
+FfiCreateOfStructOrUnion:
+  # Used by dart:ffi
+  problemMessage: "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'."
+  external: test/ffi_test.dart
+
 FfiTypeMismatch:
   # Used by dart:ffi
   problemMessage: "Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'."
@@ -5019,6 +5030,11 @@ FfiExpectedConstant:
 FfiExceptionalReturnNull:
   # Used by dart:ffi
   problemMessage: "Exceptional return value must not be null."
+  external: test/ffi_test.dart
+
+FfiNativeCallableListenerReturnVoid:
+  # Used by dart:ffi
+  problemMessage: "The return type of the function passed to NativeCallable.listener must be void rather than '#type'."
   external: test/ffi_test.dart
 
 FfiExpectedConstantArg:
@@ -5428,13 +5444,13 @@ NullableInterfaceError:
 NullableMixinError:
   problemMessage: "Can't mix '#name' in because it's marked with '?'."
 
-JsInteropAnonymousFactoryPositionalParameters:
-  problemMessage: "Factory constructors for @anonymous JS interop classes should not contain any positional parameters."
-  correctionMessage: "Try replacing them with named parameters instead."
-
 JsInteropDartClassExtendsJSClass:
   problemMessage: "Dart class '#name' cannot extend JS interop class '#name2'."
   correctionMessage: "Try adding the JS interop annotation or removing it from the parent class."
+
+JsInteropDartJsInteropAnnotationForStaticInteropOnly:
+  problemMessage: "The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through inline classes or '@staticInterop'."
+  correctionMessage: "Try making this class an inline class or marking it as '@staticInterop'."
 
 JsInteropEnclosingClassJSAnnotation:
   problemMessage: "Member has a JS interop annotation but the enclosing class does not."
@@ -5477,16 +5493,35 @@ JsInteropExternalExtensionMemberOnTypeInvalid:
   problemMessage: "JS interop or Native class required for 'external' extension members."
   correctionMessage: "Try adding a JS interop annotation to the on type class of the extension."
 
+JsInteropExternalExtensionMemberWithStaticDisallowed:
+  problemMessage: "External extension members with the keyword 'static' on JS interop and @Native types are disallowed."
+  correctionMessage: "Try putting the member in the on-type instead."
+
 JsInteropExternalMemberNotJSAnnotated:
   problemMessage: "Only JS interop members may be 'external'."
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
+
+JsInteropInlineClassNotInterop:
+  problemMessage: "Inline class '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#string'."
+  correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types."
+
+JsInteropInlineClassMemberNotInterop:
+  problemMessage: "Inline class member is marked 'external', but the representation type of its inline class is not a valid JS interop type."
+  correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types."
+
+JsInteropInlineClassUsedWithWrongJsAnnotation:
+  problemMessage: "Inline classes should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'."
+  correctionMessage: "Try using the '@JS' annotation from 'dart:js_interop' annotation on this inline class instead."
+
+JsInteropInvalidStaticClassMemberName:
+  problemMessage: "JS interop static class members cannot have '.' in their JS name."
 
 JsInteropJSClassExtendsDartClass:
   problemMessage: "JS interop class '#name' cannot extend Dart class '#name2'."
   correctionMessage: "Try removing the JS interop annotation or adding it to the parent class."
 
 JsInteropNamedParameters:
-  problemMessage: "Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class."
+  problemMessage: "Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories."
   correctionMessage: "Try replacing them with normal or optional parameters."
 
 JsInteropNativeClassInAnnotation:
@@ -5501,20 +5536,21 @@ JsInteropNonExternalMember:
   problemMessage: "This JS interop member must be annotated with `external`. Only factories and static methods can be non-external."
   correctionMessage: "Try annotating the member with `external`."
 
-JsInteropOperatorsNotSupported:
-  problemMessage: "JS interop classes do not support operator methods."
-  correctionMessage: "Try replacing this with a normal method."
+JsInteropObjectLiteralConstructorPositionalParameters:
+  problemMessage: "#string should not contain any positional parameters."
+  correctionMessage: "Try replacing them with named parameters instead."
 
-JsInteropInvalidStaticClassMemberName:
-  problemMessage: "JS interop static class members cannot have '.' in their JS name."
+JsInteropOperatorCannotBeRenamed:
+  problemMessage: "JS interop operator methods cannot be renamed using the '@JS' annotation."
+  correctionMessage: "Remove the annotation or remove the value inside the annotation."
+
+JsInteropOperatorsNotSupported:
+  problemMessage: "JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop."
+  correctionMessage: "Try replacing this with a normal method."
 
 JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
   correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
-
-JsInteropStaticInteropAnonymousFactoryTearoff:
-  problemMessage: "Factories of `@anonymous` `@staticInterop` classes can not be torn off."
-  correctionMessage: "Declare a closure that forwards to this factory instead."
 
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters:
   problemMessage: "`@staticInterop` classes cannot have external extension members with type parameters."
@@ -5540,17 +5576,18 @@ JsInteropStaticInteropNoJSAnnotation:
   problemMessage: "`@staticInterop` classes should also have the `@JS` annotation."
   correctionMessage: "Add `@JS` to class '#name'."
 
+JsInteropStaticInteropParameterInitializersAreIgnored:
+  problemMessage: "Initializers for parameters are ignored on static interop external functions."
+  correctionMessage: "Declare a forwarding non-external function with this initializer, or remove the initializer."
+  severity: WARNING
+
 JsInteropStaticInteropSyntheticConstructor:
   problemMessage: "Synthetic constructors on `@staticInterop` classes can not be used."
   correctionMessage: "Declare an external factory constructor for this `@staticInterop` class and use that instead."
 
-JsInteropStaticInteropWithInstanceMembers:
-  problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
-  correctionMessage: "Try moving the instance member to a static extension."
-
-JsInteropStaticInteropWithNonStaticSupertype:
-  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
-  correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
+JsInteropStaticInteropTearOffsDisallowed:
+  problemMessage: "Tear-offs of external #string '#name' are disallowed."
+  correctionMessage: "Declare a closure that calls this member instead."
 
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop:
   problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but no `@staticInterop` annotation."
@@ -5560,9 +5597,25 @@ JsInteropStaticInteropTrustTypesUsageNotAllowed:
   problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk."
   correctionMessage: "Try removing the `@trustTypes` annotation."
 
+JsInteropStaticInteropWithInstanceMembers:
+  problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
+  correctionMessage: "Try moving the instance member to a static extension."
+
+JsInteropStaticInteropWithNonStaticSupertype:
+  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
+  correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
+
 JsInteropStrictModeViolation:
   problemMessage: "JS interop requires JS types when strict mode is enabled, but Type '#type' is not a type or subtype of a type from `dart:js_interop`."
   correctionMessage: "Use a JS type instead."
+
+JsInteropStrictModeForbiddenLibrary:
+  problemMessage: "Library '#name' is forbidden when strict mode is enabled."
+  correctionMessage: "Remove the import of a forbidden library."
+
+JsInteropFunctionToJSRequiresStaticType:
+  problemMessage: "`Function.toJS` requires a statically known function type, but Type '#type' is not a function type, e.g., `void Function()`."
+  correctionMessage: "Insert an explicit cast to the expected function type."
 
 NonNullableInNullAware:
   problemMessage: "Operand of null-aware operation '#name' has type '#type' which excludes null."
@@ -5814,13 +5867,6 @@ UnexpectedModifierInNonNnbd:
     // @dart=2.9
     late int x;
 
-CompilingWithSoundNullSafety:
-  problemMessage: "Compiling with sound null safety."
-  configuration: nnbd-strong,compile
-  severity: INFO
-  script: |
-    main() {}
-
 CompilingWithoutSoundNullSafety:
   problemMessage: "Compiling without sound null safety!\nDart 3 will only support sound null safety, see https://dart.dev/null-safety"
   configuration: nnbd-weak,compile
@@ -5952,6 +5998,10 @@ UnmatchedAugmentationClassMember:
         augment void method() {}
       }
 
+UnmatchedPatchClassMember:
+  problemMessage: "Patch member '#name' doesn't match a member in the origin class."
+  correctionMessage: "Try changing the name to an existing member or removing the '@patch' annotation."
+
 UnmatchedAugmentationLibraryMember:
   problemMessage: "Augmentation member '#name' doesn't match a member in the augmented library."
   correctionMessage: "Try changing the name to an existing member or removing the 'augment' modifier."
@@ -5961,6 +6011,10 @@ UnmatchedAugmentationLibraryMember:
       import augment 'lib.dart';
     lib.dart:
       augment void method() {}
+
+UnmatchedPatchLibraryMember:
+  problemMessage: "Patch member '#name' doesn't match a member in the origin library."
+  correctionMessage: "Try changing the name to an existing member or removing the '@patch' annotation."
 
 UnmatchedAugmentationClass:
   problemMessage: "Augmentation class '#name' doesn't match a class in the augmented library."
@@ -5972,10 +6026,18 @@ UnmatchedAugmentationClass:
     lib.dart:
       augment class Class {}
 
+UnmatchedPatchClass:
+  problemMessage: "Patch class '#name' doesn't match a class in the origin library."
+  correctionMessage: "Try changing the name to an existing class or removing the '@patch' annotation."
+
 UnmatchedAugmentationDeclaration:
   problemMessage: "Augmentation '#name' doesn't match a declaration in the augmented library."
   correctionMessage: "Try changing the name to an existing declaration or removing the 'augment' modifier."
   experiments: macros
+
+UnmatchedPatchDeclaration:
+  problemMessage: "Patch '#name' doesn't match a declaration in the origin library."
+  correctionMessage: "Try changing the name to an existing declaration or removing the '@patch' annotation."
 
 UnmatchedAugmentationConstructor:
   problemMessage: "Augmentation constructor '#name' doesn't match a constructor in the augmented class."
@@ -5992,6 +6054,9 @@ UnmatchedAugmentationConstructor:
         augment Class.name2();
       }
 
+UnmatchedPatchConstructor:
+  problemMessage: "Patch constructor '#name' doesn't match a constructor in the origin class."
+  correctionMessage: "Try changing the name to an existing constructor or removing the '@patch' annotation."
 
 NonAugmentationClassMemberConflict:
   problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented class."
@@ -6008,6 +6073,10 @@ NonAugmentationClassMemberConflict:
         void method() {}
       }
 
+NonPatchClassMemberConflict:
+  problemMessage: "Member '#name' conflicts with an existing member of the same name in the origin class."
+  correctionMessage: "Try changing the name of the member or adding an '@patch' annotation."
+
 NonAugmentationLibraryMemberConflict:
   problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented library."
   correctionMessage: "Try changing the name of the member or adding an 'augment' modifier."
@@ -6018,6 +6087,10 @@ NonAugmentationLibraryMemberConflict:
       void method() {}
     lib.dart:
       void method() {}
+
+NonPatchLibraryMemberConflict:
+  problemMessage: "Member '#name' conflicts with an existing member of the same name in the origin library."
+  correctionMessage: "Try changing the name of the member or adding an '@patch' annotation."
 
 NonAugmentationLibraryConflict:
   problemMessage: "Declaration '#name' conflicts with an existing declaration of the same name in the augmented library."
@@ -6030,6 +6103,10 @@ NonAugmentationLibraryConflict:
     lib.dart:
       class method {}
 
+NonPatchLibraryConflict:
+  problemMessage: "Declaration '#name' conflicts with an existing declaration of the same name in the origin library."
+  correctionMessage: "Try changing the name of the declaration."
+
 NonAugmentationClassConflict:
   problemMessage: "Class '#name' conflicts with an existing class of the same name in the augmented library."
   correctionMessage: "Try changing the name of the class or adding an 'augment' modifier."
@@ -6040,6 +6117,10 @@ NonAugmentationClassConflict:
       class Class {}
     lib.dart:
       class Class {}
+
+NonPatchClassConflict:
+  problemMessage: "Class '#name' conflicts with an existing class of the same name in the origin library."
+  correctionMessage: "Try changing the name of the class or adding an '@patch' annotation."
 
 NonAugmentationConstructorConflict:
   problemMessage: "Constructor '#name' conflicts with an existing constructor of the same name in the augmented class."
@@ -6055,6 +6136,10 @@ NonAugmentationConstructorConflict:
       augment class Class {
         Class.name();
       }
+
+NonPatchConstructorConflict:
+  problemMessage: "Constructor '#name' conflicts with an existing constructor of the same name in the origin class."
+  correctionMessage: "Try changing the name of the constructor or adding an '@patch' annotation."
 
 NonAugmentationMemberConflictCause:
   problemMessage: "This is the existing member."
@@ -6234,6 +6319,42 @@ CantUseClassAsMixin:
     lib.dart:
       class A {}
 
+BaseEnum:
+  index: 155
+  problemMessage: "Enums can't be declared to be 'base'."
+  correctionMessage: "Try removing the keyword 'base'."
+  analyzerCode: ParserErrorCode.BASE_ENUM
+  experiments: class-modifiers
+  script:
+    - "base enum E { v }"
+
+FinalEnum:
+  index: 156
+  problemMessage: "Enums can't be declared to be 'final'."
+  correctionMessage: "Try removing the keyword 'final'."
+  analyzerCode: ParserErrorCode.FINAL_ENUM
+  experiments: class-modifiers
+  script:
+    - "final enum E { v }"
+
+InterfaceEnum:
+  index: 157
+  problemMessage: "Enums can't be declared to be 'interface'."
+  correctionMessage: "Try removing the keyword 'interface'."
+  analyzerCode: ParserErrorCode.INTERFACE_ENUM
+  experiments: class-modifiers
+  script:
+    - "interface enum E { v }"
+
+SealedEnum:
+  index: 158
+  problemMessage: "Enums can't be declared to be 'sealed'."
+  correctionMessage: "Try removing the keyword 'sealed'."
+  analyzerCode: ParserErrorCode.SEALED_ENUM
+  experiments: class-modifiers,sealed-class
+  script:
+    - "sealed enum E { v }"
+
 FinalMixin:
   index: 146
   problemMessage: "A mixin can't be declared 'final'."
@@ -6375,6 +6496,24 @@ SubtypeOfFinalIsNotBaseFinalOrSealed:
   script: |
       final class A {}
       class B extends A {}
+
+MixinSubtypeOfBaseIsNotBase:
+  problemMessage: "The mixin '#name' must be 'base' because the supertype '#name2' is 'base'."
+  correctionMessage: "Try adding 'base' to the mixin."
+  analyzerCode: MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE
+  experiments: class-modifiers,sealed-class
+  script: |
+      base class A {}
+      mixin B implements A {}
+
+MixinSubtypeOfFinalIsNotBase:
+  problemMessage: "The mixin '#name' must be 'base' because the supertype '#name2' is 'final'."
+  correctionMessage: "Try adding 'base' to the mixin."
+  analyzerCode: MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE
+  experiments: class-modifiers,sealed-class
+  script: |
+      final class A {}
+      mixin B implements A {}
 
 UnspecifiedGetterNameInObjectPattern:
   problemMessage: "The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern."
@@ -6723,7 +6862,7 @@ IllegalPatternVariableName:
   problemMessage: The variable declared by a variable pattern can't be named '#lexeme'.
   correctionMessage: Choose a different name.
   analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME
-  index: 154
+  index: 159
   experiments: patterns
   comment: |-
     Parameters:
@@ -6739,7 +6878,7 @@ IllegalPatternAssignmentVariableName:
   problemMessage: A variable assigned by a pattern assignment can't be named '#lexeme'.
   correctionMessage: Choose a different name.
   analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME
-  index: 155
+  index: 160
   experiments: patterns
   comment: |-
     Parameters:
@@ -6754,7 +6893,7 @@ IllegalPatternIdentifierName:
   problemMessage: A pattern can't refer to an identifier named '#lexeme'.
   correctionMessage: Match the identifier using '== #lexeme'.
   analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME
-  index: 156
+  index: 161
   experiments: patterns
   comment: |-
     Parameters:
@@ -6887,3 +7026,6 @@ JointPatternVariableWithLabelDefault:
   analyzerCode: INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
   script: |
     test(x) { switch(x) { case var a: default: return a; } }
+
+UnsupportedMacroApplication:
+  problemMessage: "This macro application didn't apply correctly."

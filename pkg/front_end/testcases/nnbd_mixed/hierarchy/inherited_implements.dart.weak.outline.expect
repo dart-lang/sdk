@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -192,9 +192,9 @@ class ClassImplementsWithNoSuchMethod extends core::Object implements self::Inte
   method noSuchMethod(core::Invocation invocation) → dynamic
     ;
   no-such-method-forwarder method extendedMethod() → core::int
-    return this.{self::ClassImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#extendedMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+    return this.{self::ClassImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#extendedMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
   no-such-method-forwarder method mixedInMethod() → core::int
-    return this.{self::ClassImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#mixedInMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+    return this.{self::ClassImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#mixedInMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
 }
 abstract class _ClassDeclaresExtends&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_ClassDeclaresExtends&Super&Mixin
@@ -232,9 +232,9 @@ class ClassDeclaresImplementsWithNoSuchMethod extends core::Object implements se
   method noSuchMethod(core::Invocation invocation) → dynamic
     ;
   no-such-method-forwarder method extendedMethod() → core::int
-    return this.{self::ClassDeclaresImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#extendedMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+    return this.{self::ClassDeclaresImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#extendedMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
   no-such-method-forwarder method mixedInMethod() → core::int
-    return this.{self::ClassDeclaresImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#mixedInMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+    return this.{self::ClassDeclaresImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#mixedInMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
 }
 static method main() → dynamic
   ;

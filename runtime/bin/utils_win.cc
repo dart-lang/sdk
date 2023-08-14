@@ -20,7 +20,7 @@ namespace bin {
 // epoch (January 1, 1970 UTC) measured in 100ns intervals.
 //
 // See https://docs.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
-static const int64_t kFileTimeEpoch = 116444736000000000LL;
+static constexpr int64_t kFileTimeEpoch = 116444736000000000LL;
 
 // Although win32 uses 64-bit integers for representing timestamps,
 // these are packed into a FILETIME structure. The FILETIME
@@ -34,9 +34,10 @@ union TimeStamp {
 };
 
 void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length) {
-  DWORD message_size = FormatMessageW(
-      FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, code,
-      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buffer, buffer_length, NULL);
+  DWORD message_size =
+      FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                     nullptr, code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                     buffer, buffer_length, nullptr);
   if (message_size == 0) {
     if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
       Syslog::PrintErr("FormatMessage failed for error code %d (error %d)\n",
@@ -49,13 +50,13 @@ void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length) {
 }
 
 FILETIME GetFiletimeFromMillis(int64_t millis) {
-  static const int64_t kTimeScaler = 10000;  // 100 ns to ms.
+  const int64_t kTimeScaler = 10000;  // 100 ns to ms.
   TimeStamp t;
   t.t_ = millis * kTimeScaler + kFileTimeEpoch;
   return t.ft_;
 }
 
-OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
+OSError::OSError() : sub_system_(kSystem), code_(0), message_(nullptr) {
   Reload();
 }
 
@@ -67,7 +68,7 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   set_sub_system(sub_system);
   set_code(code);
 
-  static const int kMaxMessageLength = 256;
+  const int kMaxMessageLength = 256;
   wchar_t message[kMaxMessageLength];
   FormatMessageIntoBuffer(code_, message, kMaxMessageLength);
   char* utf8 = StringUtilsWin::WideToUtf8(message);
@@ -77,7 +78,7 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
 char* StringUtils::ConsoleStringToUtf8(char* str,
                                        intptr_t len,
                                        intptr_t* result_len) {
-  int wide_len = MultiByteToWideChar(CP_ACP, 0, str, len, NULL, 0);
+  int wide_len = MultiByteToWideChar(CP_ACP, 0, str, len, nullptr, 0);
   wchar_t* wide;
   wide =
       reinterpret_cast<wchar_t*>(Dart_ScopeAllocate(wide_len * sizeof(*wide)));
@@ -91,16 +92,17 @@ char* StringUtils::Utf8ToConsoleString(char* utf8,
                                        intptr_t* result_len) {
   intptr_t wide_len;
   wchar_t* wide = StringUtilsWin::Utf8ToWide(utf8, len, &wide_len);
-  int system_len =
-      WideCharToMultiByte(CP_ACP, 0, wide, wide_len, NULL, 0, NULL, NULL);
+  int system_len = WideCharToMultiByte(CP_ACP, 0, wide, wide_len, nullptr, 0,
+                                       nullptr, nullptr);
   char* ansi;
   ansi =
       reinterpret_cast<char*>(Dart_ScopeAllocate(system_len * sizeof(*ansi)));
-  if (ansi == NULL) {
-    return NULL;
+  if (ansi == nullptr) {
+    return nullptr;
   }
-  WideCharToMultiByte(CP_ACP, 0, wide, wide_len, ansi, system_len, NULL, NULL);
-  if (result_len != NULL) {
+  WideCharToMultiByte(CP_ACP, 0, wide, wide_len, ansi, system_len, nullptr,
+                      nullptr);
+  if (result_len != nullptr) {
     *result_len = system_len;
   }
   return ansi;
@@ -112,11 +114,11 @@ char* StringUtilsWin::WideToUtf8(wchar_t* wide,
   // If len is -1 then WideCharToMultiByte will include the terminating
   // NUL byte in the length.
   int utf8_len =
-      WideCharToMultiByte(CP_UTF8, 0, wide, len, NULL, 0, NULL, NULL);
+      WideCharToMultiByte(CP_UTF8, 0, wide, len, nullptr, 0, nullptr, nullptr);
   char* utf8;
   utf8 = reinterpret_cast<char*>(Dart_ScopeAllocate(utf8_len * sizeof(*utf8)));
-  WideCharToMultiByte(CP_UTF8, 0, wide, len, utf8, utf8_len, NULL, NULL);
-  if (result_len != NULL) {
+  WideCharToMultiByte(CP_UTF8, 0, wide, len, utf8, utf8_len, nullptr, nullptr);
+  if (result_len != nullptr) {
     *result_len = utf8_len;
   }
   return utf8;
@@ -127,12 +129,12 @@ wchar_t* StringUtilsWin::Utf8ToWide(char* utf8,
                                     intptr_t* result_len) {
   // If len is -1 then MultiByteToWideChar will include the terminating
   // NUL byte in the length.
-  int wide_len = MultiByteToWideChar(CP_UTF8, 0, utf8, len, NULL, 0);
+  int wide_len = MultiByteToWideChar(CP_UTF8, 0, utf8, len, nullptr, 0);
   wchar_t* wide;
   wide =
       reinterpret_cast<wchar_t*>(Dart_ScopeAllocate(wide_len * sizeof(*wide)));
   MultiByteToWideChar(CP_UTF8, 0, utf8, len, wide, wide_len);
-  if (result_len != NULL) {
+  if (result_len != nullptr) {
     *result_len = wide_len;
   }
   return wide;
@@ -170,7 +172,7 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   wchar_t* command_line = GetCommandLineW();
   int unicode_argc;
   wchar_t** unicode_argv = CommandLineToArgvW(command_line, &unicode_argc);
-  if (unicode_argv == NULL) {
+  if (unicode_argv == nullptr) {
     return false;
   }
   // The argc passed to main should have the same argc as we get here.
@@ -180,9 +182,11 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   }
   for (int i = 0; i < unicode_argc; i++) {
     wchar_t* arg = unicode_argv[i];
-    int arg_len = WideCharToMultiByte(CP_UTF8, 0, arg, -1, NULL, 0, NULL, NULL);
+    int arg_len =
+        WideCharToMultiByte(CP_UTF8, 0, arg, -1, nullptr, 0, nullptr, nullptr);
     char* utf8_arg = reinterpret_cast<char*>(malloc(arg_len));
-    WideCharToMultiByte(CP_UTF8, 0, arg, -1, utf8_arg, arg_len, NULL, NULL);
+    WideCharToMultiByte(CP_UTF8, 0, arg, -1, utf8_arg, arg_len, nullptr,
+                        nullptr);
     argv[i] = utf8_arg;
   }
   LocalFree(unicode_argv);
@@ -190,7 +194,7 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
 }
 
 static int64_t GetCurrentTimeMicros() {
-  static const int64_t kTimeScaler = 10;  // 100 ns to us.
+  const int64_t kTimeScaler = 10;  // 100 ns to us.
 
   TimeStamp time;
   GetSystemTimeAsFileTime(&time.ft_);

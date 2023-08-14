@@ -178,7 +178,8 @@ class JsFunction extends JsObject {
 
 // TODO(jmesserly): this is totally unnecessary in dev_compiler.
 @patch
-class JsArray<E> extends JsObject with ListMixin<E> {
+// TODO(johnniwinther): Support with clause in patches/augmentations.
+class JsArray<E> /*extends JsObject with ListMixin<E>*/ {
   @patch
   factory JsArray() => JsArray<E>._fromJs([]);
 
@@ -312,7 +313,7 @@ bool _isBrowserType(Object o) => JS(
         '# instanceof Node || '
         '(window.DataView && # instanceof DataView) || '
         // Int8Array.__proto__ is TypedArray.
-        '(window.Int8Array && # instanceof Int8Array.__proto__) || '
+        '(window.Int8Array && # instanceof Object.getPrototypeOf(Int8Array)) || '
         '# instanceof Window)',
     o,
     o,

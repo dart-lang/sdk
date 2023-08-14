@@ -143,11 +143,6 @@ Component createComponent() {
   class2.addField(
       new Field.mutable(new Name('_bar', library2), fileUri: dummyUri));
 
-  class2.addRedirectingFactory(new RedirectingFactory(null,
-      name: new Name('_boz', library1),
-      function: new FunctionNode(null),
-      fileUri: dummyUri));
-
   library1.addExtension(new Extension(name: 'Baz', fileUri: dummyUri));
 
   library1.addTypedef(new Typedef('Boz', dummyDartType, fileUri: dummyUri));
@@ -250,13 +245,6 @@ Map<ReferenceNameKind, List<ReferenceNameObject>>
                   ReferenceName.fromNamedNode(field, ReferenceNameKind.Setter),
                   field));
         }
-      }
-      for (RedirectingFactory redirectingFactory in cls.redirectingFactories) {
-        add(
-            ReferenceNameKind.Function,
-            new ReferenceNameObject(
-                ReferenceName.fromNamedNode(redirectingFactory),
-                redirectingFactory));
       }
     }
     for (Extension extension in library.extensions) {

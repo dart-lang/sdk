@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class UseCurlyBraces extends CorrectionProducer {
+class UseCurlyBraces extends ParsedCorrectionProducer {
   @override
   bool canBeAppliedInBulk;
 
@@ -109,6 +109,11 @@ class UseCurlyBraces extends CorrectionProducer {
 
   Future<void> _ifStatement(
       ChangeBuilder builder, IfStatement node, Statement? thenOrElse) async {
+    final parent = node.parent;
+    if (parent is IfStatement && parent.elseStatement == node) {
+      return;
+    }
+
     var prefix = utils.getLinePrefix(node.offset);
     var indent = prefix + utils.getIndent(1);
 
@@ -127,10 +132,15 @@ class UseCurlyBraces extends CorrectionProducer {
       }
 
       var elseStatement = node.elseStatement;
-      if (elseKeyword != null &&
-          elseStatement != null &&
-          elseStatement is! Block &&
-          (thenOrElse == null || thenOrElse == elseStatement)) {
+      if (elseKeyword == null || elseStatement == null) {
+        return;
+      }
+
+      if (elseStatement is Block || elseStatement is IfStatement) {
+        return;
+      }
+
+      if (thenOrElse == null || thenOrElse == elseStatement) {
         _replace(builder, elseKeyword, elseStatement, indent, prefix);
       }
     });

@@ -139,17 +139,21 @@ class TypeInferrerImpl implements TypeInferrer {
       this.thisType,
       this.libraryBuilder,
       this.assignedVariables,
-      this.dataForTesting)
-      // ignore: unnecessary_null_comparison
-      : assert(libraryBuilder != null),
-        unknownFunction = new FunctionType(
-            const [], const DynamicType(), libraryBuilder.nonNullable),
+      this.dataForTesting,
+      FunctionType unknownFunctionNonNullable,
+      FunctionType unknownFunctionLegacy)
+      : unknownFunction = libraryBuilder.isNonNullableByDefault
+            ? unknownFunctionNonNullable
+            : unknownFunctionLegacy,
         instrumentation = isTopLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         operations = new OperationsCfe(engine.typeSchemaEnvironment,
-            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault,
+            nullability: libraryBuilder.nonNullable,
             unpromotablePrivateFieldNames:
-                libraryBuilder.unpromotablePrivateFieldNames);
+                libraryBuilder.unpromotablePrivateFieldNames,
+            typeCacheNonNullable: engine.typeCacheNonNullable,
+            typeCacheNullable: engine.typeCacheNullable,
+            typeCacheLegacy: engine.typeCacheLegacy);
 
   InferenceVisitorBase _createInferenceVisitor(InferenceHelper helper,
       [ConstructorDeclaration? constructorDeclaration]) {
@@ -187,8 +191,6 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   InferredFunctionBody inferFunctionBody(InferenceHelper helper, int fileOffset,
       DartType returnType, AsyncMarker asyncMarker, Statement body) {
-    // ignore: unnecessary_null_comparison
-    assert(body != null);
     InferenceVisitorBase visitor = _createInferenceVisitor(helper);
     ClosureContext closureContext =
         new ClosureContext(visitor, asyncMarker, returnType, false);
@@ -286,8 +288,6 @@ class TypeInferrerImpl implements TypeInferrer {
       Expression initializer,
       DartType declaredType,
       bool hasDeclaredInitializer) {
-    // ignore: unnecessary_null_comparison
-    assert(declaredType != null);
     InferenceVisitorBase visitor = _createInferenceVisitor(helper);
     ExpressionInferenceResult result =
         visitor.inferExpression(initializer, declaredType);
@@ -305,16 +305,27 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   final Benchmarker benchmarker;
 
   TypeInferrerImplBenchmarked(
-      TypeInferenceEngine engine,
-      Uri uriForInstrumentation,
-      bool topLevel,
-      InterfaceType? thisType,
-      SourceLibraryBuilder library,
-      AssignedVariables<TreeNode, VariableDeclaration> assignedVariables,
-      InferenceDataForTesting? dataForTesting,
-      this.benchmarker)
-      : impl = new TypeInferrerImpl(engine, uriForInstrumentation, topLevel,
-            thisType, library, assignedVariables, dataForTesting);
+    TypeInferenceEngine engine,
+    Uri uriForInstrumentation,
+    bool topLevel,
+    InterfaceType? thisType,
+    SourceLibraryBuilder library,
+    AssignedVariables<TreeNode, VariableDeclaration> assignedVariables,
+    InferenceDataForTesting? dataForTesting,
+    this.benchmarker,
+    FunctionType unknownFunctionNonNullable,
+    FunctionType unknownFunctionLegacy,
+  ) : impl = new TypeInferrerImpl(
+          engine,
+          uriForInstrumentation,
+          topLevel,
+          thisType,
+          library,
+          assignedVariables,
+          dataForTesting,
+          unknownFunctionNonNullable,
+          unknownFunctionLegacy,
+        );
 
   @override
   bool get isTopLevel => impl.isTopLevel;

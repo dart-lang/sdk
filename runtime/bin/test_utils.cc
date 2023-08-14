@@ -10,10 +10,10 @@ namespace bin {
 namespace test {
 
 const char* GetFileName(const char* name) {
-  if (bin::File::Exists(NULL, name)) {
+  if (bin::File::Exists(nullptr, name)) {
     return name;
   } else {
-    static const int kRuntimeLength = strlen("runtime/");
+    const int kRuntimeLength = strlen("runtime/");
     return name + kRuntimeLength;
   }
 }

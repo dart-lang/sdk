@@ -1,11 +1,11 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class A<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
   final field core::List<self::A::X%> x;
   const constructor •(dynamic x) → self::A<self::A::X%>
-    : self::A::x = x is{ForNonNullableByDefault} core::List<self::A::X%> ?{core::List<self::A::X%>} x{core::List<self::A::X%>} : x as{ForNonNullableByDefault} core::List<self::A::X%>, super core::Object::•()
+    : self::A::x = x is core::List<self::A::X%> ?{core::List<self::A::X%>} x{core::List<self::A::X%>} : x as core::List<self::A::X%>, super core::Object::•()
     ;
 }
 class B<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
@@ -23,7 +23,7 @@ class C<X extends core::Object? = dynamic> extends core::Object /*hasConstConstr
 static method m<X extends core::Object? = dynamic>(self::m::X% x) → void {}
 static method main() → void {
   #C4;
-  core::print((#C6.{self::B::f}{(core::String) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::String) → void).{core::Object::runtimeType}{core::Type});
+  core::print((#C6.{self::B::f}{(core::String) → void} as{TypeError,CovarianceCheck} (core::String) → void).{core::Object::runtimeType}{core::Type});
   core::print(#C7.{self::C::f}{dynamic}.{core::Object::runtimeType}{core::Type});
 }
 

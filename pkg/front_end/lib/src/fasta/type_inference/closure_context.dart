@@ -44,8 +44,6 @@ abstract class ClosureContext {
 
   factory ClosureContext(InferenceVisitorBase inferrer, AsyncMarker asyncMarker,
       DartType returnContext, bool needToInferReturnType) {
-    // ignore: unnecessary_null_comparison
-    assert(returnContext != null);
     DartType declaredReturnType =
         inferrer.computeGreatestClosure(returnContext);
     bool isAsync = asyncMarker == AsyncMarker.Async ||
@@ -326,8 +324,6 @@ class _SyncClosureContext implements ClosureContext {
   DartType inferReturnType(InferenceVisitorBase inferrer,
       {required bool hasImplicitReturn}) {
     assert(_needToInferReturnType);
-    // ignore: unnecessary_null_comparison
-    assert(hasImplicitReturn != null);
     DartType? actualReturnedType;
     DartType inferredReturnType;
     if (inferrer.isNonNullableByDefault) {
@@ -737,8 +733,6 @@ class _AsyncClosureContext implements ClosureContext {
   DartType inferReturnType(InferenceVisitorBase inferrer,
       {required bool hasImplicitReturn}) {
     assert(_needToInferReturnType);
-    // ignore: unnecessary_null_comparison
-    assert(hasImplicitReturn != null);
     DartType? inferredType;
 
     if (inferrer.isNonNullableByDefault) {
@@ -973,8 +967,6 @@ class _SyncStarClosureContext implements ClosureContext {
   DartType inferReturnType(InferenceVisitorBase inferrer,
       {required bool hasImplicitReturn}) {
     assert(_needToInferReturnType);
-    // ignore: unnecessary_null_comparison
-    assert(hasImplicitReturn != null);
     DartType? inferredElementType;
     if (_yieldElementTypes!.isNotEmpty) {
       // Use the types seen from the explicit return statements.
@@ -1109,8 +1101,6 @@ class _AsyncStarClosureContext implements ClosureContext {
   DartType inferReturnType(InferenceVisitorBase inferrer,
       {required bool hasImplicitReturn}) {
     assert(_needToInferReturnType);
-    // ignore: unnecessary_null_comparison
-    assert(hasImplicitReturn != null);
     DartType? inferredElementType;
     if (_yieldElementTypes!.isNotEmpty) {
       // Use the types seen from the explicit return statements.

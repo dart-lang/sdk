@@ -28,7 +28,7 @@ class GCSweeper {
   // pre-locked is indicated by the locked parameter.
   // Returns true if the page is in use. Freelist is untouched if page is not
   // in use.
-  bool SweepPage(Page* page, FreeList* freelist, bool locked);
+  bool SweepPage(Page* page, FreeList* freelist);
 
   // Returns the number of words from page->object_start() to the end of the
   // last marked object.

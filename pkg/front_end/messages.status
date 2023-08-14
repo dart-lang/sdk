@@ -377,6 +377,7 @@ FastaUsageShort/analyzerCode: Fail
 FastaUsageShort/example: Fail
 FfiAbiSpecificIntegerInvalid/analyzerCode: Fail
 FfiAbiSpecificIntegerMappingInvalid/analyzerCode: Fail
+FfiCreateOfStructOrUnion/analyzerCode: Fail
 FfiCompoundImplementsFinalizable/analyzerCode: Fail
 FfiDartTypeMismatch/analyzerCode: Fail
 FfiEmptyStruct/analyzerCode: Fail
@@ -400,6 +401,7 @@ FfiNativeUnexpectedNumberOfParametersWithReceiver/analyzerCode: Fail
 FfiNotStatic/analyzerCode: Fail
 FfiPackedAnnotation/analyzerCode: Fail
 FfiPackedAnnotationAlignment/analyzerCode: Fail
+FfiNativeCallableListenerReturnVoid/analyzerCode: Fail
 FfiSizeAnnotation/analyzerCode: Fail
 FfiSizeAnnotationDimensions/analyzerCode: Fail
 FfiStructAnnotation/analyzerCode: Fail
@@ -565,10 +567,10 @@ InvalidVoid/part_wrapped_script2: Fail
 InvalidVoid/script1: Fail
 InvalidVoid/script2: Fail
 JointPatternVariablesMismatch/analyzerCode: Fail
-JsInteropAnonymousFactoryPositionalParameters/analyzerCode: Fail # Web compiler specific
-JsInteropAnonymousFactoryPositionalParameters/example: Fail # Web compiler specific
 JsInteropDartClassExtendsJSClass/analyzerCode: Fail # Web compiler specific
 JsInteropDartClassExtendsJSClass/example: Fail # Web compiler specific
+JsInteropDartJsInteropAnnotationForStaticInteropOnly/analyzerCode: Fail # Web compiler specific
+JsInteropDartJsInteropAnnotationForStaticInteropOnly/example: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/analyzerCode: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/example: Fail # Web compiler specific
 JsInteropExportClassNotMarkedExportable/analyzerCode: Fail # Web compiler specific
@@ -587,8 +589,16 @@ JsInteropExportNoExportableMembers/analyzerCode: Fail # Web compiler specific
 JsInteropExportNoExportableMembers/example: Fail # Web compiler specific
 JsInteropExternalExtensionMemberOnTypeInvalid/analyzerCode: Fail # Web compiler specific
 JsInteropExternalExtensionMemberOnTypeInvalid/example: Fail # Web compiler specific
+JsInteropExternalExtensionMemberWithStaticDisallowed/analyzerCode: Fail # Web compiler specific
+JsInteropExternalExtensionMemberWithStaticDisallowed/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
+JsInteropInlineClassNotInterop/analyzerCode: Fail # Web compiler specific
+JsInteropInlineClassNotInterop/example: Fail # Web compiler specific
+JsInteropInlineClassMemberNotInterop/analyzerCode: Fail # Web compiler specific
+JsInteropInlineClassMemberNotInterop/example: Fail # Web compiler specific
+JsInteropInlineClassUsedWithWrongJsAnnotation/analyzerCode: Fail # Web compiler specific
+JsInteropInlineClassUsedWithWrongJsAnnotation/example: Fail # Web compiler specific
 JsInteropInvalidStaticClassMemberName/analyzerCode: Fail
 JsInteropInvalidStaticClassMemberName/example: Fail
 JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
@@ -603,10 +613,12 @@ JsInteropNonExternalMember/analyzerCode: Fail # Web compiler specific
 JsInteropNonExternalMember/example: Fail # Web compiler specific
 JsInteropNonStaticWithStaticInteropSupertype/analyzerCode: Fail # Web compiler specific
 JsInteropNonStaticWithStaticInteropSupertype/example: Fail # Web compiler specific
+JsInteropOperatorCannotBeRenamed/analyzerCode: Fail # Web compiler specific
+JsInteropOperatorCannotBeRenamed/example: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
-JsInteropStaticInteropAnonymousFactoryTearoff/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropAnonymousFactoryTearoff/example: Fail # Web compiler specific
+JsInteropObjectLiteralConstructorPositionalParameters/analyzerCode: Fail # Web compiler specific
+JsInteropObjectLiteralConstructorPositionalParameters/example: Fail # Web compiler specific
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/example: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/analyzerCode: Fail # Web compiler specific
@@ -619,22 +631,26 @@ JsInteropStaticInteropMockNotStaticInteropType/analyzerCode: Fail # Web compiler
 JsInteropStaticInteropMockNotStaticInteropType/example: Fail # Web compiler specific
 JsInteropStaticInteropNoJSAnnotation/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropNoJSAnnotation/example: Fail # Web compiler specific
+JsInteropStaticInteropParameterInitializersAreIgnored/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropParameterInitializersAreIgnored/example: Fail # Web compiler specific
 JsInteropStaticInteropSyntheticConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropSyntheticConstructor/example: Fail # Web compiler specific
+JsInteropStaticInteropTearOffsDisallowed/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropTearOffsDisallowed/example: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsageNotAllowed/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsageNotAllowed/example: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/example: Fail # Web compiler specific
 JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
 JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
-JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
+JsInteropFunctionToJSRequiresStaticType/analyzerCode: Fail # Web compiler specific
+JsInteropFunctionToJSRequiresStaticType/example: Fail # Web compiler specific
 JsInteropStrictModeViolation/analyzerCode: Fail # Web compiler specific
 JsInteropStrictModeViolation/example: Fail # Web compiler specific
+JsInteropStrictModeForbiddenLibrary/analyzerCode: Fail # Web compiler specific
+JsInteropStrictModeForbiddenLibrary/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
 LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.
@@ -752,6 +768,16 @@ NonNullableOptOutImplicit/analyzerCode: Fail
 NonNullableOptOutImplicit/example: Fail
 NonPartOfDirectiveInPart/part_wrapped_script1: Fail
 NonPartOfDirectiveInPart/script1: Fail
+NonPatchClassConflict/analyzerCode: Fail
+NonPatchClassConflict/example: Fail
+NonPatchClassMemberConflict/analyzerCode: Fail
+NonPatchClassMemberConflict/example: Fail
+NonPatchConstructorConflict/analyzerCode: Fail
+NonPatchConstructorConflict/example: Fail
+NonPatchLibraryConflict/analyzerCode: Fail
+NonPatchLibraryConflict/example: Fail
+NonPatchLibraryMemberConflict/analyzerCode: Fail
+NonPatchLibraryMemberConflict/example: Fail
 NonPositiveArrayDimensions/analyzerCode: Fail
 NotAConstantExpression/example: Fail
 NotAType/example: Fail
@@ -972,6 +998,16 @@ UnmatchedAugmentationDeclaration/analyzerCode: Fail
 UnmatchedAugmentationDeclaration/example: Fail
 UnmatchedAugmentationLibraryMember/analyzerCode: Fail
 UnmatchedAugmentationLibraryMember/part_wrapped_script: Fail # Uses imports
+UnmatchedPatchClass/analyzerCode: Fail
+UnmatchedPatchClass/example: Fail
+UnmatchedPatchClassMember/analyzerCode: Fail
+UnmatchedPatchClassMember/example: Fail
+UnmatchedPatchConstructor/analyzerCode: Fail
+UnmatchedPatchConstructor/example: Fail
+UnmatchedPatchDeclaration/analyzerCode: Fail
+UnmatchedPatchDeclaration/example: Fail
+UnmatchedPatchLibraryMember/analyzerCode: Fail
+UnmatchedPatchLibraryMember/example: Fail
 UnmatchedToken/part_wrapped_script1: Fail
 UnmatchedToken/part_wrapped_script3: Fail
 UnmatchedToken/script1: Fail
@@ -983,6 +1019,8 @@ Unspecified/analyzerCode: Fail
 Unspecified/example: Fail
 UnsupportedDartExt/analyzerCode: Fail
 UnsupportedDartExt/part_wrapped_script: Fail # Example uses import declaration.
+UnsupportedMacroApplication/analyzerCode: Fail
+UnsupportedMacroApplication/example: Fail
 UnterminatedString/part_wrapped_script2: Fail
 UnterminatedString/part_wrapped_script4: Fail
 UnterminatedString/part_wrapped_script5: Fail

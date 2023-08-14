@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -20,9 +20,9 @@ extension FunctionApplier on core::Function {
 }
 static method m<X extends core::Object? = dynamic>(self::m::X% x) → core::List<self::m::X%>
   ;
-static method FunctionApplier|applyAndPrint(lowered final core::Function #this, core::List<core::Object?> positionalArguments) → void
+static extension-member method FunctionApplier|applyAndPrint(lowered final core::Function #this, core::List<core::Object?> positionalArguments) → void
   ;
-static method FunctionApplier|get#applyAndPrint(lowered final core::Function #this) → (core::List<core::Object?>) → void
+static extension-member method FunctionApplier|get#applyAndPrint(lowered final core::Function #this) → (core::List<core::Object?>) → void
   return (core::List<core::Object?> positionalArguments) → void => self::FunctionApplier|applyAndPrint(#this, positionalArguments);
 static method test() → dynamic
   ;

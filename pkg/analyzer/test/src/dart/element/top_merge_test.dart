@@ -229,6 +229,11 @@ class TopMergeTest extends AbstractTypeSystemTest {
     );
   }
 
+  test_invalid() {
+    _check(invalidType, intNone, invalidType);
+    _check(intNone, invalidType, invalidType);
+  }
+
   test_never() {
     _check(neverNone, neverNone, neverNone);
   }

@@ -135,7 +135,7 @@ class C with lib1.S {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 42, 6),
       error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH, 42, 6,
-          messageContains: ["class 'C'", "mix in 'lib1.S'"]),
+          messageContains: ["class 'C'", "mix in 'S'"]),
     ]);
   }
 

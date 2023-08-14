@@ -8,7 +8,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ReplaceWithUnicodeEscape extends CorrectionProducer {
+class ReplaceWithUnicodeEscape extends ResolvedCorrectionProducer {
   @override
   // Not predictably the correct action.
   bool get canBeAppliedInBulk => false;
@@ -26,7 +26,7 @@ class ReplaceWithUnicodeEscape extends CorrectionProducer {
     if (problemMessage == null) return;
 
     var offset = problemMessage.offset;
-    var content = resolvedResult.content;
+    var content = unitResult.content;
     var codeUnit = content.codeUnitAt(offset);
     var code = codeUnit.toRadixString(16).toUpperCase();
     await builder.addDartFileEdit(file, (builder) {

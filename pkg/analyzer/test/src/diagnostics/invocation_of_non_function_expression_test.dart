@@ -24,6 +24,25 @@ void f() {
 ''', [
       error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 13, 1),
     ]);
+
+    final node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: IntegerLiteral
+    literal: 3
+    staticType: int
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 5
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_literal_null() async {
@@ -36,6 +55,20 @@ void f() {
 ''', [
       error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 28, 4),
     ]);
+
+    final node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: NullLiteral
+    literal: null
+    staticType: Null*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_type_Null() async {
@@ -48,5 +81,20 @@ void f(Null a) {
 ''', [
       error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 34, 1),
     ]);
+
+    final node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: Null*
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
   }
 }

@@ -216,12 +216,6 @@ class TypeCheckingVisitor
     handleFunctionNode(node.function);
   }
 
-  @override
-  void visitRedirectingFactory(RedirectingFactory node) {
-    currentReturnType = null;
-    currentYieldType = null;
-  }
-
   void handleFunctionNode(FunctionNode node) {
     AsyncMarker oldAsyncMarker = currentAsyncMarker;
     currentAsyncMarker = node.asyncMarker;

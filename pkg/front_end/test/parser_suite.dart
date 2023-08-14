@@ -197,11 +197,6 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
     List<int> lineStarts = <int>[];
     Token firstToken = scanUri(uri, shortName, lineStarts: lineStarts);
 
-    // ignore: unnecessary_null_comparison
-    if (firstToken == null) {
-      return null;
-    }
-
     File f = new File.fromUri(uri);
     List<int> rawBytes = f.readAsBytesSync();
     Source source = new Source(lineStarts, rawBytes, uri, uri);
@@ -261,11 +256,6 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
     Token firstToken =
         scanUri(description.uri, description.shortName, lineStarts: lineStarts);
 
-    // ignore: unnecessary_null_comparison
-    if (firstToken == null) {
-      return Future.value(crash(description, StackTrace.current));
-    }
-
     File f = new File.fromUri(description.uri);
     List<int> rawBytes = f.readAsBytesSync();
     Source source =
@@ -300,11 +290,6 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
     List<int> lineStarts = <int>[];
     Token firstToken =
         scanUri(description.uri, description.shortName, lineStarts: lineStarts);
-
-    // ignore: unnecessary_null_comparison
-    if (firstToken == null) {
-      return Future.value(crash(description, StackTrace.current));
-    }
 
     StringBuffer beforeParser = tokenStreamToString(firstToken, lineStarts);
     StringBuffer beforeParserWithTypes =

@@ -110,14 +110,14 @@ otherField() {
 
 /*member: SuperClass5.:[exact=SuperClass5]*/
 class SuperClass5 {
-  /*member: SuperClass5.field5a:[null]*/
+  /*member: SuperClass5.field5a:[null|exact=JSUInt31]*/
   var field5a;
 }
 
 class Class5 extends SuperClass5 {
-  /*member: Class5.field5a:[exact=JSUInt31]*/
+  /*member: Class5.field5a:[null|exact=JSUInt31]*/
   var field5a;
-  /*member: Class5.field5b:[exact=JSUInt31]*/
+  /*member: Class5.field5b:[null|exact=JSUInt31]*/
   var field5b;
 
   /*member: Class5.:[exact=Class5]*/
@@ -137,7 +137,7 @@ superclassField() {
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class4 {
-  /*member: Class4.field4a:[exact=JSUInt31]*/
+  /*member: Class4.field4a:[null|exact=JSUInt31]*/
   var field4a;
   /*member: Class4.field4b:[null|exact=JSUInt31]*/
   var field4b;
@@ -179,7 +179,7 @@ class Class6 {
 }
 
 class SubClass6 extends Class6 {
-  /*member: SubClass6.field6b:[exact=JSUInt31]*/
+  /*member: SubClass6.field6b:[null|exact=JSUInt31]*/
   var field6b;
 
   /*member: SubClass6.:[exact=SubClass6]*/
@@ -213,7 +213,7 @@ class Class9 {
 }
 
 class SubClass9a extends Class9 {
-  /*member: SubClass9a.field9b:[exact=JSUInt31]*/
+  /*member: SubClass9a.field9b:[null|exact=JSUInt31]*/
   var field9b;
 
   /*member: SubClass9a.:[exact=SubClass9a]*/
@@ -240,7 +240,7 @@ subclassesFieldWrite() {
 class Class7 {
   /*member: Class7.field7a:[exact=JSUInt31]*/
   var field7a;
-  /*member: Class7.field7b:[null]*/
+  /*member: Class7.field7b:[null|exact=JSUInt31]*/
   var field7b;
 
   /*member: Class7.:[exact=Class7]*/

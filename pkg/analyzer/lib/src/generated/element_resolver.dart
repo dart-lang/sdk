@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -161,7 +160,7 @@ class ElementResolver {
     if (type == null) {
       return;
     }
-    if (type.isDynamic) {
+    if (type is DynamicType) {
       // Nothing to do.
     } else if (type is InterfaceType) {
       // look up ConstructorElement
@@ -390,10 +389,10 @@ class ElementResolver {
     // TODO(brianwilkerson) Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).
     var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
-    var superclassName = declaration?.extendsClause?.superclass.name;
-    if (superclassName != null &&
+    var extendedNamedType = declaration?.extendsClause?.superclass;
+    if (extendedNamedType != null &&
         _resolver.definingLibrary
-            .shouldIgnoreUndefinedIdentifier(superclassName)) {
+            .shouldIgnoreUndefinedNamedType(extendedNamedType)) {
       return;
     }
     var argumentList = node.argumentList;
@@ -522,18 +521,4 @@ class ElementResolver {
       }
     }
   }
-}
-
-/// An identifier that can be used to look up names in the lexical scope when
-/// there is no identifier in the AST structure. There is no identifier in the
-/// AST when the parser could not distinguish between a method invocation and an
-/// invocation of a top-level function imported with a prefix.
-class SyntheticIdentifier implements SimpleIdentifier {
-  @override
-  final String name;
-
-  SyntheticIdentifier(this.name);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_unstable/vm.dart'
-    show isRedirectingFactoryField;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
 
@@ -37,12 +35,6 @@ class ListLiteralsLowering {
     if (node.isConst) {
       throw 'Unexpected constant ListLiteral node'
           ' (such nodes should be converted to ConstantExpression): $node';
-    }
-    final parent = node.parent;
-    if (parent is Field && isRedirectingFactoryField(parent)) {
-      // Do not transform list literals which are used to represent
-      // redirecting factories.
-      return node;
     }
     final int length = node.expressions.length;
     if (length == 0) {

@@ -25,20 +25,16 @@ void f(x) {
 LogicalOrPattern
   leftOperand: WildcardPattern
     type: NamedType
-      name: SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: null
+      name: int
+      element: dart:core::@class::int
       type: int
     name: _
     matchedValueType: dynamic
   operator: ||
   rightOperand: WildcardPattern
     type: NamedType
-      name: SimpleIdentifier
-        token: double
-        staticElement: dart:core::@class::double
-        staticType: null
+      name: double
+      element: dart:core::@class::double
       type: double
     name: _
     matchedValueType: dynamic
@@ -60,20 +56,16 @@ void f(x) {
 LogicalOrPattern
   leftOperand: WildcardPattern
     type: NamedType
-      name: SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: null
+      name: int
+      element: dart:core::@class::int
       type: int
     name: _
     matchedValueType: dynamic
   operator: ||
   rightOperand: WildcardPattern
     type: NamedType
-      name: SimpleIdentifier
-        token: double
-        staticElement: dart:core::@class::double
-        staticType: null
+      name: double
+      element: dart:core::@class::double
       type: double
     name: _
     matchedValueType: dynamic

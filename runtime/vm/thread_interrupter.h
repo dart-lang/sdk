@@ -37,7 +37,7 @@ class ThreadInterrupter : public AllStatic {
   static void InterruptThread(OSThread* thread);
 
  private:
-  static const intptr_t kMaxThreads = 4096;
+  static constexpr intptr_t kMaxThreads = 4096;
   static bool initialized_;
   static bool shutdown_;
   static bool thread_running_;

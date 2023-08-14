@@ -11,9 +11,6 @@ import 'package:front_end/src/api_prototype/file_system.dart' as api;
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-import 'package:front_end/src/fasta/builder/declaration_builder.dart';
-import 'package:front_end/src/fasta/builder/field_builder.dart';
-import 'package:front_end/src/fasta/builder/modifier_builder.dart';
 import 'package:front_end/src/fasta/builder/type_builder.dart';
 import 'package:front_end/src/fasta/builder/type_declaration_builder.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
@@ -21,6 +18,7 @@ import 'package:front_end/src/fasta/constant_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart' as fasta;
 import 'package:front_end/src/fasta/kernel/body_builder.dart';
+import 'package:front_end/src/fasta/kernel/body_builder_context.dart';
 import 'package:front_end/src/fasta/kernel/constness.dart';
 import 'package:front_end/src/fasta/kernel/expression_generator_helper.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
@@ -136,20 +134,24 @@ class SourceLoaderTest extends SourceLoader {
   @override
   BodyBuilder createBodyBuilderForOutlineExpression(
       SourceLibraryBuilder library,
-      DeclarationBuilder? declarationBuilder,
-      ModifierBuilder member,
+      BodyBuilderContext bodyBuilderContext,
       Scope scope,
       Uri fileUri,
       {Scope? formalParameterScope}) {
     return new BodyBuilderTest.forOutlineExpression(
-        library, declarationBuilder, member, scope, fileUri,
+        library, bodyBuilderContext, scope, fileUri,
         formalParameterScope: formalParameterScope);
   }
 
   @override
   BodyBuilder createBodyBuilderForField(
-      FieldBuilder field, TypeInferrer typeInferrer) {
-    return new BodyBuilderTest.forField(field, typeInferrer);
+      SourceLibraryBuilder libraryBuilder,
+      BodyBuilderContext bodyBuilderContext,
+      Scope enclosingScope,
+      TypeInferrer typeInferrer,
+      Uri uri) {
+    return new BodyBuilderTest.forField(
+        libraryBuilder, bodyBuilderContext, enclosingScope, typeInferrer, uri);
   }
 }
 
@@ -160,23 +162,20 @@ class DietListenerTest extends DietListener {
 
   @override
   BodyBuilder createListenerInternal(
-      ModifierBuilder builder,
+      BodyBuilderContext bodyBuilderContext,
       Scope memberScope,
       Scope? formalParameterScope,
-      bool isDeclarationInstanceMember,
       VariableDeclaration? extensionThis,
       List<TypeParameter>? extensionTypeParameters,
       TypeInferrer typeInferrer,
       ConstantContext constantContext) {
     return new BodyBuilderTest(
         libraryBuilder: libraryBuilder,
-        member: builder,
+        context: bodyBuilderContext,
         enclosingScope: memberScope,
         formalParameterScope: formalParameterScope,
         hierarchy: hierarchy,
         coreTypes: coreTypes,
-        declarationBuilder: currentDeclaration,
-        isDeclarationInstanceMember: isDeclarationInstanceMember,
         thisVariable: extensionThis,
         thisTypeParameters: extensionTypeParameters,
         uri: uri,
@@ -189,45 +188,42 @@ class BodyBuilderTest extends BodyBuilder {
   @override
   BodyBuilderTest(
       {libraryBuilder,
-      member,
+      context,
       enclosingScope,
       formalParameterScope,
       hierarchy,
       coreTypes,
-      declarationBuilder,
-      isDeclarationInstanceMember,
       thisVariable,
       thisTypeParameters,
       uri,
       typeInferrer})
       : super(
             libraryBuilder: libraryBuilder,
-            member: member,
+            context: context,
             enclosingScope: enclosingScope,
             formalParameterScope: formalParameterScope,
             hierarchy: hierarchy,
             coreTypes: coreTypes,
-            declarationBuilder: declarationBuilder,
-            isDeclarationInstanceMember: isDeclarationInstanceMember,
             thisVariable: thisVariable,
             thisTypeParameters: thisTypeParameters,
             uri: uri,
             typeInferrer: typeInferrer);
 
   @override
-  BodyBuilderTest.forField(FieldBuilder field, TypeInferrer typeInferrer)
-      : super.forField(field, typeInferrer);
+  BodyBuilderTest.forField(
+      SourceLibraryBuilder libraryBuilder,
+      BodyBuilderContext bodyBuilderContext,
+      Scope enclosingScope,
+      TypeInferrer typeInferrer,
+      Uri uri)
+      : super.forField(libraryBuilder, bodyBuilderContext, enclosingScope,
+            typeInferrer, uri);
 
   @override
-  BodyBuilderTest.forOutlineExpression(
-      SourceLibraryBuilder library,
-      DeclarationBuilder? declarationBuilder,
-      ModifierBuilder member,
-      Scope scope,
-      Uri fileUri,
+  BodyBuilderTest.forOutlineExpression(SourceLibraryBuilder library,
+      BodyBuilderContext bodyBuilderContext, Scope scope, Uri fileUri,
       {Scope? formalParameterScope})
-      : super.forOutlineExpression(
-            library, declarationBuilder, member, scope, fileUri,
+      : super.forOutlineExpression(library, bodyBuilderContext, scope, fileUri,
             formalParameterScope: formalParameterScope);
 
   @override

@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-experiment=records
-
 import 'dart:ffi';
 import 'dart:io';
 
 import 'package:ffi/ffi.dart';
 
 void main() {
-  if(Platform.isWindows){
+  if (Platform.isWindows || Platform.isAndroid) {
     // printf is not linked in.
     return;
   }
@@ -21,9 +19,9 @@ void main() {
   });
 }
 
-final printf = DynamicLibrary.executable()
-    .lookupFunction<Void Function(Pointer<Utf8>, VarArgs<()>), void Function(Pointer<Utf8>)>(
-        'printf');
+final printf = DynamicLibrary.executable().lookupFunction<
+    Void Function(Pointer<Utf8>, VarArgs<()>),
+    void Function(Pointer<Utf8>)>('printf');
 
 final printfInt32 = DynamicLibrary.executable().lookupFunction<
     Void Function(Pointer<Utf8>, VarArgs<(Int32,)>),

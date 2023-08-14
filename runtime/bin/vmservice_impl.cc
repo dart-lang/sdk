@@ -31,7 +31,7 @@ namespace bin {
     return false;                                                              \
   }
 
-static const char* const kVMServiceIOLibraryUri = "dart:vmservice_io";
+static constexpr const char* kVMServiceIOLibraryUri = "dart:vmservice_io";
 
 void NotifyServerState(Dart_NativeArguments args) {
   Dart_EnterScope();
@@ -70,10 +70,10 @@ static VmServiceIONativeEntry _VmServiceIONativeEntries[] = {
 static Dart_NativeFunction VmServiceIONativeResolver(Dart_Handle name,
                                                      int num_arguments,
                                                      bool* auto_setup_scope) {
-  const char* function_name = NULL;
+  const char* function_name = nullptr;
   Dart_Handle result = Dart_StringToCString(name, &function_name);
   ASSERT(!Dart_IsError(result));
-  ASSERT(function_name != NULL);
+  ASSERT(function_name != nullptr);
   *auto_setup_scope = true;
   intptr_t n =
       sizeof(_VmServiceIONativeEntries) / sizeof(_VmServiceIONativeEntries[0]);
@@ -84,7 +84,7 @@ static Dart_NativeFunction VmServiceIONativeResolver(Dart_Handle name,
       return entry.function;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 const uint8_t* VmServiceIONativeSymbol(Dart_NativeFunction nf) {
@@ -96,10 +96,10 @@ const uint8_t* VmServiceIONativeSymbol(Dart_NativeFunction nf) {
       return reinterpret_cast<const uint8_t*>(entry.name);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
-const char* VmService::error_msg_ = NULL;
+const char* VmService::error_msg_ = nullptr;
 char VmService::server_uri_[kServerUriStringBufferSize];
 
 void VmService::SetNativeResolver() {
@@ -122,7 +122,7 @@ bool VmService::Setup(const char* server_ip,
                       bool wait_for_dds_to_advertise_service,
                       bool serve_observatory) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
-  ASSERT(isolate != NULL);
+  ASSERT(isolate != nullptr);
   SetServerAddress("");
 
   Dart_Handle result;
@@ -147,7 +147,7 @@ bool VmService::Setup(const char* server_ip,
   Dart_ExitScope();
   Dart_ExitIsolate();
   error_msg_ = Dart_IsolateMakeRunnable(isolate);
-  if (error_msg_ != NULL) {
+  if (error_msg_ != nullptr) {
     Dart_EnterIsolate(isolate);
     Dart_ShutdownIsolate();
     return false;
@@ -229,7 +229,7 @@ bool VmService::Setup(const char* server_ip,
   Dart_Handle function_name =
       Dart_NewStringFromCString("_getWatchSignalInternal");
   SHUTDOWN_ON_ERROR(function_name);
-  Dart_Handle signal_watch = Dart_Invoke(io_lib, function_name, 0, NULL);
+  Dart_Handle signal_watch = Dart_Invoke(io_lib, function_name, 0, nullptr);
   SHUTDOWN_ON_ERROR(signal_watch);
   Dart_Handle field_name = Dart_NewStringFromCString("_signalWatch");
   SHUTDOWN_ON_ERROR(field_name);
@@ -239,11 +239,11 @@ bool VmService::Setup(const char* server_ip,
 }
 
 const char* VmService::GetErrorMessage() {
-  return (error_msg_ == NULL) ? "No error." : error_msg_;
+  return (error_msg_ == nullptr) ? "No error." : error_msg_;
 }
 
 void VmService::SetServerAddress(const char* server_uri) {
-  if (server_uri == NULL) {
+  if (server_uri == nullptr) {
     server_uri = "";
   }
   const intptr_t server_uri_len = strlen(server_uri);

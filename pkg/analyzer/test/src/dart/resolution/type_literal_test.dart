@@ -12,6 +12,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeLiteralResolutionTest);
     defineReflectiveTests(TypeLiteralResolutionTest_WithoutConstructorTearoffs);
+    // defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -27,20 +28,16 @@ var t = C<int>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: C
-      staticElement: self::@class::C
-      staticType: C<int>
+    name: C
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: self::@class::C
     type: C<int>
   staticType: Type
 ''');
@@ -59,28 +56,20 @@ var t = a.C<int>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: a
-        staticElement: self::@prefix::a
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: a
       period: .
-      identifier: SimpleIdentifier
-        token: C
-        staticElement: package:test/a.dart::@class::C
-        staticType: Type
-      staticElement: package:test/a.dart::@class::C
-      staticType: C<int>
+      element: self::@prefix::a
+    name: C
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: package:test/a.dart::@class::C
     type: C<int>
   staticType: Type
 ''');
@@ -98,20 +87,16 @@ var t = C<int>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: C
-      staticElement: self::@class::C
-      staticType: C<dynamic, dynamic>
+    name: C
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: self::@class::C
     type: C<dynamic, dynamic>
   staticType: Type
 ''');
@@ -129,26 +114,20 @@ var t = C<int, int>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: C
-      staticElement: self::@class::C
-      staticType: C<dynamic>
+    name: C
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: self::@class::C
     type: C<dynamic>
   staticType: Type
 ''');
@@ -167,20 +146,16 @@ var t = C<String>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: C
-      staticElement: self::@class::C
-      staticType: C<String>
+    name: C
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: String
-            staticElement: dart:core::@class::String
-            staticType: null
+          name: String
+          element: dart:core::@class::String
           type: String
       rightBracket: >
+    element: self::@class::C
     type: C<String>
   staticType: Type
 ''');
@@ -197,23 +172,16 @@ var t = CA<int>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: CA
-      staticElement: self::@typeAlias::CA
-      staticType: C<int>
-        alias: self::@typeAlias::CA
-          typeArguments
-            int
+    name: CA
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: self::@typeAlias::CA
     type: C<int>
       alias: self::@typeAlias::CA
         typeArguments
@@ -233,23 +201,16 @@ var t = CA<String>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: CA
-      staticElement: self::@typeAlias::CA
-      staticType: C<String, int>
-        alias: self::@typeAlias::CA
-          typeArguments
-            String
+    name: CA
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: String
-            staticElement: dart:core::@class::String
-            staticType: null
+          name: String
+          element: dart:core::@class::String
           type: String
       rightBracket: >
+    element: self::@typeAlias::CA
     type: C<String, int>
       alias: self::@typeAlias::CA
         typeArguments
@@ -269,22 +230,14 @@ var t = CA<void Function()>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: CA
-      staticElement: self::@typeAlias::CA
-      staticType: C<void Function()>
-        alias: self::@typeAlias::CA
-          typeArguments
-            void Function()
+    name: CA
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         GenericFunctionType
           returnType: NamedType
-            name: SimpleIdentifier
-              token: void
-              staticElement: <null>
-              staticType: null
+            name: void
+            element: <null>
             type: void
           functionKeyword: Function
           parameters: FormalParameterList
@@ -296,6 +249,7 @@ TypeLiteral
             type: void Function()
           type: void Function()
       rightBracket: >
+    element: self::@typeAlias::CA
     type: C<void Function()>
       alias: self::@typeAlias::CA
         typeArguments
@@ -318,31 +272,20 @@ var t = a.CA<int>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: a
-        staticElement: self::@prefix::a
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: a
       period: .
-      identifier: SimpleIdentifier
-        token: CA
-        staticElement: package:test/a.dart::@typeAlias::CA
-        staticType: Type
-      staticElement: package:test/a.dart::@typeAlias::CA
-      staticType: C<int>
-        alias: package:test/a.dart::@typeAlias::CA
-          typeArguments
-            int
+      element: self::@prefix::a
+    name: CA
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: package:test/a.dart::@typeAlias::CA
     type: C<int>
       alias: package:test/a.dart::@typeAlias::CA
         typeArguments
@@ -365,23 +308,16 @@ var t = CA<String>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: CA
-      staticElement: self::@typeAlias::CA
-      staticType: C<String>
-        alias: self::@typeAlias::CA
-          typeArguments
-            String
+    name: CA
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: String
-            staticElement: dart:core::@class::String
-            staticType: null
+          name: String
+          element: dart:core::@class::String
           type: String
       rightBracket: >
+    element: self::@typeAlias::CA
     type: C<String>
       alias: self::@typeAlias::CA
         typeArguments
@@ -400,23 +336,16 @@ var t = Fn<int>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: Fn
-      staticElement: self::@typeAlias::Fn
-      staticType: void Function(int)
-        alias: self::@typeAlias::Fn
-          typeArguments
-            int
+    name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: self::@typeAlias::Fn
     type: void Function(int)
       alias: self::@typeAlias::Fn
         typeArguments
@@ -438,31 +367,20 @@ var t = a.Fn<int>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: a
-        staticElement: self::@prefix::a
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: a
       period: .
-      identifier: SimpleIdentifier
-        token: Fn
-        staticElement: package:test/a.dart::@typeAlias::Fn
-        staticType: Type
-      staticElement: package:test/a.dart::@typeAlias::Fn
-      staticType: void Function(int)
-        alias: package:test/a.dart::@typeAlias::Fn
-          typeArguments
-            int
+      element: self::@prefix::a
+    name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: package:test/a.dart::@typeAlias::Fn
     type: void Function(int)
       alias: package:test/a.dart::@typeAlias::Fn
         typeArguments
@@ -490,20 +408,16 @@ extension E on Type {
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: Fn
-      staticElement: self::@typeAlias::Fn
-      staticType: void Function(T)
+    name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: self::@typeAlias::Fn
     type: void Function(int)
       alias: self::@typeAlias::Fn
         typeArguments
@@ -534,28 +448,20 @@ extension E on Type {
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: a
-        staticElement: self::@prefix::a
-        staticType: null
+    importPrefix: ImportPrefixReference
+      name: a
       period: .
-      identifier: SimpleIdentifier
-        token: Fn
-        staticElement: package:test/a.dart::@typeAlias::Fn
-        staticType: null
-      staticElement: package:test/a.dart::@typeAlias::Fn
-      staticType: void Function(T)
+      element: self::@prefix::a
+    name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: package:test/a.dart::@typeAlias::Fn
     type: void Function(int)
       alias: package:test/a.dart::@typeAlias::Fn
         typeArguments
@@ -581,23 +487,16 @@ extension E on Type {
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: Fn
-      staticElement: self::@typeAlias::Fn
-      staticType: void Function(int)
-        alias: self::@typeAlias::Fn
-          typeArguments
-            int
+    name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: self::@typeAlias::Fn
     type: void Function(int)
       alias: self::@typeAlias::Fn
         typeArguments
@@ -625,23 +524,16 @@ extension E on Type {
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: Fn
-      staticElement: self::@typeAlias::Fn
-      staticType: void Function(int)
-        alias: self::@typeAlias::Fn
-          typeArguments
-            int
+    name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: self::@typeAlias::Fn
     type: void Function(int)
       alias: self::@typeAlias::Fn
         typeArguments
@@ -667,23 +559,16 @@ extension E on Type {
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: Fn
-      staticElement: self::@typeAlias::Fn
-      staticType: void Function(int)
-        alias: self::@typeAlias::Fn
-          typeArguments
-            int
+    name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: self::@typeAlias::Fn
     type: void Function(int)
       alias: self::@typeAlias::Fn
         typeArguments
@@ -711,23 +596,16 @@ extension E on Type {
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: Fn
-      staticElement: self::@typeAlias::Fn
-      staticType: void Function(int)
-        alias: self::@typeAlias::Fn
-          typeArguments
-            int
+    name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: self::@typeAlias::Fn
     type: void Function(int)
       alias: self::@typeAlias::Fn
         typeArguments
@@ -753,23 +631,16 @@ extension E on Type {
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: Fn
-      staticElement: self::@typeAlias::Fn
-      staticType: void Function(int)
-        alias: self::@typeAlias::Fn
-          typeArguments
-            int
+    name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: self::@typeAlias::Fn
     type: void Function(int)
       alias: self::@typeAlias::Fn
         typeArguments
@@ -790,24 +661,16 @@ var t = Fn<int>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: Fn
-      staticElement: self::@typeAlias::Fn
-      staticType: void Function(dynamic, dynamic)
-        alias: self::@typeAlias::Fn
-          typeArguments
-            dynamic
-            dynamic
+    name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: self::@typeAlias::Fn
     type: void Function(dynamic, dynamic)
       alias: self::@typeAlias::Fn
         typeArguments
@@ -829,29 +692,20 @@ var t = Fn<int, String>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: Fn
-      staticElement: self::@typeAlias::Fn
-      staticType: void Function(dynamic)
-        alias: self::@typeAlias::Fn
-          typeArguments
-            dynamic
+    name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
         NamedType
-          name: SimpleIdentifier
-            token: String
-            staticElement: dart:core::@class::String
-            staticType: null
+          name: String
+          element: dart:core::@class::String
           type: String
       rightBracket: >
+    element: self::@typeAlias::Fn
     type: void Function(dynamic)
       alias: self::@typeAlias::Fn
         typeArguments
@@ -873,23 +727,16 @@ var t = Fn<String>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: Fn
-      staticElement: self::@typeAlias::Fn
-      staticType: void Function(String)
-        alias: self::@typeAlias::Fn
-          typeArguments
-            String
+    name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: String
-            staticElement: dart:core::@class::String
-            staticType: null
+          name: String
+          element: dart:core::@class::String
           type: String
       rightBracket: >
+    element: self::@typeAlias::Fn
     type: void Function(String)
       alias: self::@typeAlias::Fn
         typeArguments
@@ -908,20 +755,16 @@ var t = M<int>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: M
-      staticElement: self::@mixin::M
-      staticType: M<int>
+    name: M
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: self::@mixin::M
     type: M<int>
   staticType: Type
 ''');
@@ -937,23 +780,16 @@ var t = T<int>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: self::@typeAlias::T
-      staticType: int
-        alias: self::@typeAlias::T
-          typeArguments
-            int
+    name: T
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: int
-            staticElement: dart:core::@class::int
-            staticType: null
+          name: int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
+    element: self::@typeAlias::T
     type: int
       alias: self::@typeAlias::T
         typeArguments
@@ -972,22 +808,14 @@ var t = T<void Function()>;
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
-    name: SimpleIdentifier
-      token: T
-      staticElement: self::@typeAlias::T
-      staticType: void Function()
-        alias: self::@typeAlias::T
-          typeArguments
-            void Function()
+    name: T
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         GenericFunctionType
           returnType: NamedType
-            name: SimpleIdentifier
-              token: void
-              staticElement: <null>
-              staticType: null
+            name: void
+            element: <null>
             type: void
           functionKeyword: Function
           parameters: FormalParameterList
@@ -999,6 +827,7 @@ TypeLiteral
             type: void Function()
           type: void Function()
       rightBracket: >
+    element: self::@typeAlias::T
     type: void Function()
       alias: self::@typeAlias::T
         typeArguments

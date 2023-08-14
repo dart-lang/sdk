@@ -450,7 +450,7 @@ class DecoratedType implements DecoratedTypeInfo, SubstitutedType {
       } else {
         return inner._performSubstitution(this, undecoratedResult!);
       }
-    } else if (type is VoidType || type!.isDynamic) {
+    } else if (type is VoidType || type is DynamicType) {
       return this;
     }
     throw '$type.substitute($type | $substitution)'; // TODO(paulberry)

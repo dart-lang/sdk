@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

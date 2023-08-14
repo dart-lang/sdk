@@ -65,8 +65,6 @@ class TypeGraphInferrer implements TypesInferrer {
   }
 
   GlobalTypeInferenceResults buildResults() {
-    inferrer.close();
-
     Map<MemberEntity, GlobalTypeInferenceMemberResult> memberResults =
         <MemberEntity, GlobalTypeInferenceMemberResult>{};
     Map<Local, AbstractValue> parameterResults = <Local, AbstractValue>{};
@@ -123,7 +121,10 @@ class TypeGraphInferrer implements TypesInferrer {
 
     inferrer.types.forEachParameterType(
         (Local parameter, ParameterTypeInformation typeInformation) {
-      AbstractValue type = typeInformation.type;
+      // We need to get the correct type based on the parameter's check policy.
+      // This will be used to determine if the parameter needs a check at the
+      // beginning of the associated function.
+      AbstractValue type = typeInformation.checkedType(inferrer);
       parameterResults[parameter] = type;
     });
 

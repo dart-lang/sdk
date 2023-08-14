@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -14,7 +14,7 @@ static final field core::int a1;
 static method main() → dynamic
   ;
 
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self2;
 import "dart:core" as core;
 
@@ -27,7 +27,7 @@ static method foo() → dynamic
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self3;
 import "dart:core" as core;
 
@@ -35,7 +35,7 @@ static final field core::int b1;
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self4;
 import "dart:core" as core;
 

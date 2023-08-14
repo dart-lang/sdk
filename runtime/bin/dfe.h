@@ -76,7 +76,7 @@ class DFE {
 
   // Compiles specified script and reads the resulting kernel file.
   // If the compilation is successful, returns a valid in memory kernel
-  // representation of the script, NULL otherwise
+  // representation of the script, nullptr otherwise
   // 'error' and 'exit_code' have the error values in case of errors.
   //
   // `snapshot` is used by the frontend to determine if compilation
@@ -134,7 +134,7 @@ class DFE {
   // Registers given kernel blob and returns blob URI which
   // can be used in TryReadKernelFile later to load the given kernel.
   // Data from [kernel_buffer] is copied, it doesn't need to stay alive.
-  // Returns NULL if failed to allocate memory.
+  // Returns nullptr if failed to allocate memory.
   const char* RegisterKernelBlob(const uint8_t* kernel_buffer,
                                  intptr_t kernel_buffer_size);
 

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -93,7 +93,7 @@ class Fisk extends core::Object {
     : super core::Object::•()
     ;
   method it1(dynamic x) → dynamic {
-    for (final dynamic #t1 in x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+    for (final dynamic #t1 in x as{TypeError,ForDynamic} core::Iterable<dynamic>) {
       invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:11:10: Error: The setter 'key' isn't defined for the class 'Fisk'.
  - 'Fisk' is from 'pkg/front_end/testcases/rasta/unresolved_for_in.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'key'.
@@ -109,13 +109,13 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       print(key);
             ^^^" in this{<unresolved>}.key);
     }
-    for (final dynamic #t2 in x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+    for (final dynamic #t2 in x as{TypeError,ForDynamic} core::Iterable<dynamic>) {
       invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:14:10: Error: Can't assign to a type literal.
     for (Fisk in x) {
          ^^^^";
       core::print(#C1);
     }
-    for (final dynamic #t3 in x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+    for (final dynamic #t3 in x as{TypeError,ForDynamic} core::Iterable<dynamic>) {
       invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:17:10: Error: A prefix can't be used as an expression.
     for (collection in x) {
          ^^^^^^^^^^";
@@ -123,7 +123,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       print(collection);
             ^^^^^^^^^^");
     }
-    for (final dynamic #t4 in x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+    for (final dynamic #t4 in x as{TypeError,ForDynamic} core::Iterable<dynamic>) {
       invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:20:10: Error: Can't assign to a type literal.
     for (VoidFunction in x) {
          ^^^^^^^^^^^^";
@@ -133,7 +133,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Can't assign to this, so it can't be used in a for-in loop.
     for (1 in x) {
          ^";
-      for (final dynamic #t5 in x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+      for (final dynamic #t5 in x as{TypeError,ForDynamic} core::Iterable<dynamic>) {
         invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Can't assign to this, so it can't be used in a for-in loop.
     for (1 in x) {
          ^";
@@ -149,7 +149,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
 }
 static method main(dynamic arguments) → dynamic {
   new self::Fisk::•();
-  for (final dynamic #t6 in arguments as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+  for (final dynamic #t6 in arguments as{TypeError,ForDynamic} core::Iterable<dynamic>) {
     invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:31:8: Error: Setter not found: 'key'.
   for (key in arguments) {
        ^^^";
@@ -157,13 +157,13 @@ static method main(dynamic arguments) → dynamic {
     print(key);
           ^^^");
   }
-  for (final dynamic #t7 in arguments as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+  for (final dynamic #t7 in arguments as{TypeError,ForDynamic} core::Iterable<dynamic>) {
     invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:34:8: Error: Can't assign to a type literal.
   for (Fisk in arguments) {
        ^^^^";
     core::print(#C1);
   }
-  for (final dynamic #t8 in arguments as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+  for (final dynamic #t8 in arguments as{TypeError,ForDynamic} core::Iterable<dynamic>) {
     invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:37:8: Error: A prefix can't be used as an expression.
   for (collection in arguments) {
        ^^^^^^^^^^";
@@ -171,7 +171,7 @@ static method main(dynamic arguments) → dynamic {
     print(collection);
           ^^^^^^^^^^");
   }
-  for (final dynamic #t9 in arguments as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+  for (final dynamic #t9 in arguments as{TypeError,ForDynamic} core::Iterable<dynamic>) {
     invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:40:8: Error: Can't assign to a type literal.
   for (VoidFunction in arguments) {
        ^^^^^^^^^^^^";
@@ -181,7 +181,7 @@ static method main(dynamic arguments) → dynamic {
     invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Can't assign to this, so it can't be used in a for-in loop.
   for (1 in arguments) {
        ^";
-    for (final dynamic #t10 in arguments as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+    for (final dynamic #t10 in arguments as{TypeError,ForDynamic} core::Iterable<dynamic>) {
       invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Can't assign to this, so it can't be used in a for-in loop.
   for (1 in arguments) {
        ^";

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -10,7 +10,7 @@ static method test1(dynamic x, dynamic another) → dynamic {
     {
       hoisted core::String y;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is{ForNonNullableByDefault} core::String && (let final dynamic #t2 = y = #0#0{core::String} in true))
+      if(#0#0 is core::String && (let final dynamic #t2 = y = #0#0{core::String} in true))
         #t1.{core::Map::addAll}{Invariant}(another){(core::Map<dynamic, dynamic>) → void};
     }
     #t1.{core::Map::[]=}{Invariant}(3, 3){(dynamic, dynamic) → void};
@@ -23,7 +23,7 @@ static method test2(core::bool b, dynamic x, dynamic another) → dynamic {
     if(b) {
       hoisted core::String y;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is{ForNonNullableByDefault} core::String && (let final dynamic #t4 = y = #0#0{core::String} in true))
+      if(#0#0 is core::String && (let final dynamic #t4 = y = #0#0{core::String} in true))
         #t3.{core::Map::addAll}{Invariant}(another){(core::Map<dynamic, dynamic>) → void};
     }
     #t3.{core::Map::[]=}{Invariant}(3, 3){(dynamic, dynamic) → void};
@@ -36,12 +36,12 @@ static method test3(dynamic x, dynamic y, dynamic another) → dynamic {
     {
       hoisted core::int x2;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t6 = x2 = #0#0{core::int} in true))
+      if(#0#0 is core::int && (let final dynamic #t6 = x2 = #0#0{core::int} in true))
         #t5.{core::Map::[]=}{Invariant}(2, x2){(dynamic, dynamic) → void};
       else {
         hoisted core::int y2;
         final synthesized dynamic #1#0 = y;
-        if(#1#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t7 = y2 = #1#0{core::int} in true))
+        if(#1#0 is core::int && (let final dynamic #t7 = y2 = #1#0{core::int} in true))
           #t5.{core::Map::addAll}{Invariant}(another){(core::Map<dynamic, dynamic>) → void};
       }
     }
@@ -49,18 +49,18 @@ static method test3(dynamic x, dynamic y, dynamic another) → dynamic {
   } =>#t5;
 }
 static method main() → dynamic {
-  self::expectEquals(self::mapToString(self::test1("foo", <core::int, core::int>{2: 2}) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: 2, 3: 3}));
-  self::expectEquals(self::mapToString(self::test1(false, <core::int, core::int>{2: 2}) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 3: 3}));
-  self::expectEquals(self::mapToString(self::test2(true, "foo", <core::int, core::int>{2: 2}) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: 2, 3: 3}));
-  self::expectEquals(self::mapToString(self::test2(false, "foo", <core::int, core::int>{2: 2}) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 3: 3}));
-  self::expectEquals(self::mapToString(self::test2(true, false, <core::int, core::int>{2: 2}) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 3: 3}));
-  self::expectEquals(self::mapToString(self::test3(0, 1, <core::int, core::int>{2: 2}) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: 0, 3: 3}));
-  self::expectEquals(self::mapToString(self::test3("foo", 1, <core::int, core::int>{2: 2}) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: 2, 3: 3}));
+  self::expectEquals(self::mapToString(self::test1("foo", <core::int, core::int>{2: 2}) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: 2, 3: 3}));
+  self::expectEquals(self::mapToString(self::test1(false, <core::int, core::int>{2: 2}) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 3: 3}));
+  self::expectEquals(self::mapToString(self::test2(true, "foo", <core::int, core::int>{2: 2}) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: 2, 3: 3}));
+  self::expectEquals(self::mapToString(self::test2(false, "foo", <core::int, core::int>{2: 2}) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 3: 3}));
+  self::expectEquals(self::mapToString(self::test2(true, false, <core::int, core::int>{2: 2}) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 3: 3}));
+  self::expectEquals(self::mapToString(self::test3(0, 1, <core::int, core::int>{2: 2}) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: 0, 3: 3}));
+  self::expectEquals(self::mapToString(self::test3("foo", 1, <core::int, core::int>{2: 2}) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: 2, 3: 3}));
   self::expectEquals(self::mapToString(self::test3("foo", "bar", block {
     final core::Set<core::int> #t8 = col::LinkedHashSet::•<core::int>();
     #t8.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
     #t8.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
-  } =>#t8) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 3: 3}));
+  } =>#t8) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 3: 3}));
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic {
   if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {

@@ -4,8 +4,6 @@
 
 // SharedObjects=ffi_test_functions
 
-// VMOptions=--enable-experiment=records
-
 import 'dart:ffi';
 import 'dart:io';
 

@@ -22,6 +22,9 @@ dynamic target3 = new _TestClass();
 dynamic target4 = new _TestClass();
 dynamic target5 = new _TestClass();
 dynamic target6 = new _TestClass();
+dynamic target7 = new _TestClass();
+dynamic target8 = new _TestClass();
+
 @pragma("vm:entry-point") // Prevent obfuscation
 Expando<_TestClass> expando = Expando<_TestClass>();
 @pragma("vm:entry-point") // Prevent obfuscation
@@ -32,6 +35,10 @@ dynamic globalList = new List<dynamic>.filled(100, null);
 dynamic globalMap1 = new Map();
 @pragma("vm:entry-point") // Prevent obfuscation
 dynamic globalMap2 = new Map();
+@pragma("vm:entry-point") // Prevent obfuscation
+dynamic weakReachable = new _TestClass();
+@pragma("vm:entry-point") // Prevent obfuscation
+dynamic weakUnreachable = new _TestClass();
 
 void warmup() {
   globalObject.x = target1;
@@ -39,6 +46,14 @@ void warmup() {
   globalList[12] = target3;
   globalMap1['key'] = target4;
   globalMap2[target5] = 'value';
+
+  // The weak reference will be traced first in DFS, but the retaining path
+  // include the strong reference.
+  weakReachable.x = new WeakReference<_TestClass>(target7);
+  weakReachable.y = target7;
+
+  weakUnreachable.x = new WeakReference<_TestClass>(target8);
+  weakUnreachable.y = null;
 }
 
 @pragma("vm:entry-point") // Prevent obfuscation
@@ -86,6 +101,20 @@ takeExpandoTarget() {
   var tmp2 = _TestClass();
   expando[tmp] = tmp2;
   return tmp2;
+}
+
+@pragma("vm:entry-point") // Prevent obfuscation
+takeWeakReachableTarget() {
+  var tmp = target7;
+  target7 = null;
+  return tmp;
+}
+
+@pragma("vm:entry-point") // Prevent obfuscation
+takeWeakUnreachableTarget() {
+  var tmp = target8;
+  target8 = null;
+  return tmp;
 }
 
 @pragma("vm:entry-point") // Prevent obfuscation
@@ -218,6 +247,31 @@ var tests = <IsolateTest>[
         equals('_TestClass'));
     expect(result['elements'][2]['parentListIndex'], isNotNull);
     expect(result['elements'][4]['value']['name'], 'expando');
+  },
+
+  (Isolate isolate) async {
+    var target7 = await invoke(isolate, 'takeWeakReachableTarget');
+    var params = {
+      'targetId': target7['id'],
+      'limit': 100,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
+    expect(result['type'], equals('RetainingPath'));
+    expect(result['gcRootType'], 'user global');
+    expect(result['elements'].length, equals(3));
+    expect(result['elements'][1]['parentField'], equals('y'));
+    expect(result['elements'][2]['value']['name'], equals('weakReachable'));
+  },
+
+  (Isolate isolate) async {
+    var target8 = await invoke(isolate, 'takeWeakUnreachableTarget');
+    var params = {
+      'targetId': target8['id'],
+      'limit': 100,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
+    expect(result['type'], equals('RetainingPath'));
+    expect(result['elements'].length, equals(0));
   },
 
   // object store

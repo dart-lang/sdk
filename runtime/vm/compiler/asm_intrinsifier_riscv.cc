@@ -1396,16 +1396,6 @@ void AsmIntrinsifier::String_getHashCode(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
-                                       Label* normal_ir_body) {
-  __ lx(A0, Address(SP, 0 * target::kWordSize));
-  __ LoadCompressed(A0, FieldAddress(A0, target::Type::hash_offset()));
-  __ beqz(A0, normal_ir_body, Assembler::kNearJump);
-  __ ret();
-  // Hash not yet computed.
-  __ Bind(normal_ir_body);
-}
-
 void AsmIntrinsifier::Type_equality(Assembler* assembler,
                                     Label* normal_ir_body) {
   Label equal, not_equal, equiv_cids_may_be_generic, equiv_cids, check_legacy;
@@ -1468,7 +1458,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
   __ lx(A0, Address(SP, 0 * target::kWordSize));
-  __ LoadCompressed(A0, FieldAddress(A0, target::FunctionType::hash_offset()));
+  __ LoadCompressed(A0, FieldAddress(A0, target::AbstractType::hash_offset()));
   __ beqz(A0, normal_ir_body, Assembler::kNearJump);
   __ ret();
   // Hash not yet computed.
@@ -1764,6 +1754,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
 // Returns new string as tagged pointer in A0.
 static void TryAllocateString(Assembler* assembler,
                               classid_t cid,
+                              intptr_t max_elements,
                               Label* ok,
                               Label* failure) {
   ASSERT(cid == kOneByteStringCid || cid == kTwoByteStringCid);
@@ -1771,7 +1762,9 @@ static void TryAllocateString(Assembler* assembler,
   // _Mint length: call to runtime to produce error.
   __ BranchIfNotSmi(length_reg, failure);
   // negative length: call to runtime to produce error.
-  __ bltz(length_reg, failure);
+  // Too big: call to runtime to allocate old.
+  __ CompareImmediate(length_reg, target::ToRawSmi(max_elements));
+  __ BranchIf(UNSIGNED_GREATER, failure);
 
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, TMP));
   __ mv(T0, length_reg);  // Save the length register.
@@ -1864,7 +1857,9 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ BranchIfNotSmi(T1, normal_ir_body);  // 'start', 'end' not Smi.
 
   __ sub(A1, T0, TMP);
-  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body);
+  TryAllocateString(assembler, kOneByteStringCid,
+                    target::OneByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body);
   __ Bind(&ok);
   // A0: new string as tagged pointer.
   // Copy string.
@@ -1932,7 +1927,9 @@ void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
   Label ok;
 
   __ lx(A1, Address(SP, 0 * target::kWordSize));  // Length.
-  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body);
+  TryAllocateString(assembler, kOneByteStringCid,
+                    target::OneByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body);
 
   __ Bind(&ok);
   __ ret();
@@ -1945,7 +1942,9 @@ void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
   Label ok;
 
   __ lx(A1, Address(SP, 0 * target::kWordSize));  // Length.
-  TryAllocateString(assembler, kTwoByteStringCid, &ok, normal_ir_body);
+  TryAllocateString(assembler, kTwoByteStringCid,
+                    target::TwoByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body);
 
   __ Bind(&ok);
   __ ret();
@@ -1976,8 +1975,8 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
                                                    bool sticky) {
   if (FLAG_interpret_irregexp) return;
 
-  static const intptr_t kRegExpParamOffset = 2 * target::kWordSize;
-  static const intptr_t kStringParamOffset = 1 * target::kWordSize;
+  const intptr_t kRegExpParamOffset = 2 * target::kWordSize;
+  const intptr_t kStringParamOffset = 1 * target::kWordSize;
   // start_index smi is located at offset 0.
 
   // Incoming registers:

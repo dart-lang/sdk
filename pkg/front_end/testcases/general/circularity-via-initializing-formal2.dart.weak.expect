@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -24,7 +24,7 @@ class C extends core::Object {
   field self::C f = new self::C::_circular(invalid-expression "pkg/front_end/testcases/general/circularity-via-initializing-formal2.dart:14:27: Error: The value 'null' can't be assigned to the parameter type 'C' because 'C' is not nullable.
  - 'C' is from 'pkg/front_end/testcases/general/circularity-via-initializing-formal2.dart'.
   var f = new C._circular(null);
-                          ^" in null as{TypeError,ForNonNullableByDefault} self::C);
+                          ^" in null as{TypeError} self::C);
   constructor _circular(self::C f) → self::C
     : self::C::f = f, super core::Object::•()
     ;
@@ -32,5 +32,5 @@ class C extends core::Object {
 static field self::C x = new self::C::_circular(invalid-expression "pkg/front_end/testcases/general/circularity-via-initializing-formal2.dart:11:25: Error: The value 'null' can't be assigned to the parameter type 'C' because 'C' is not nullable.
  - 'C' is from 'pkg/front_end/testcases/general/circularity-via-initializing-formal2.dart'.
 var x = new C._circular(null);
-                        ^" in null as{TypeError,ForNonNullableByDefault} self::C);
+                        ^" in null as{TypeError} self::C);
 static method main() → dynamic {}

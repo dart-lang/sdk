@@ -47,5 +47,4 @@ void main() {
   expect(confuse(ExternalStaticTrustType.getSet), 'getSet');
 
   expect(confuse(ExternalStaticTrustType.method()), 'method');
-  expect(confuse((ExternalStaticTrustType.method)()), 'method');
 }

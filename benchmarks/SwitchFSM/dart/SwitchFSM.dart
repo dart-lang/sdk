@@ -27,8 +27,8 @@
 
 import 'dart:typed_data';
 
-import 'package:expect/expect.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
+import 'package:expect/expect.dart';
 
 import 'match_class.dart' as match_class;
 import 'match_enum.dart' as match_enum;
@@ -85,8 +85,9 @@ class Benchmark extends BenchmarkBase {
     return repeats + padding;
   }
 
-  static convert(String s) => Uint8List.fromList(s.codeUnits);
+  static Uint8List convert(String s) => Uint8List.fromList(s.codeUnits);
 
+  @override
   void run() {
     Expect.equals(true, match(testInput));
   }

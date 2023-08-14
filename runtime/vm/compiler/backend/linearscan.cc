@@ -30,10 +30,10 @@ namespace dart {
 #define TRACE_ALLOC(statement)
 #endif
 
-static const intptr_t kNoVirtualRegister = -1;
-static const intptr_t kTempVirtualRegister = -2;
-static const intptr_t kIllegalPosition = -1;
-static const intptr_t kMaxPosition = 0x7FFFFFFF;
+static constexpr intptr_t kNoVirtualRegister = -1;
+static constexpr intptr_t kTempVirtualRegister = -2;
+static constexpr intptr_t kIllegalPosition = -1;
+static constexpr intptr_t kMaxPosition = 0x7FFFFFFF;
 
 static intptr_t MinPosition(intptr_t a, intptr_t b) {
   return (a < b) ? a : b;

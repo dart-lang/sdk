@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -29,13 +29,13 @@ extension Extension2<K extends core::Object? = dynamic, V extends core::Object? 
   operator [] = self::Extension2|[];
   operator []= = self::Extension2|[]=;
 }
-static method Extension|[]<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike<self::Extension|[]::K%, self::Extension|[]::V%> #this, core::Object key) → self::Extension|[]::V?
+static extension-member method Extension|[]<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike<self::Extension|[]::K%, self::Extension|[]::V%> #this, core::Object key) → self::Extension|[]::V?
   ;
-static method Extension|[]=<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike<self::Extension|[]=::K%, self::Extension|[]=::V%> #this, self::Extension|[]=::K% key, self::Extension|[]=::V% value) → void
+static extension-member method Extension|[]=<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike<self::Extension|[]=::K%, self::Extension|[]=::V%> #this, self::Extension|[]=::K% key, self::Extension|[]=::V% value) → void
   ;
-static method Extension2|[]<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike2<self::Extension2|[]::K%, self::Extension2|[]::V%> #this, core::Object key) → self::Extension2|[]::V%
+static extension-member method Extension2|[]<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike2<self::Extension2|[]::K%, self::Extension2|[]::V%> #this, core::Object key) → self::Extension2|[]::V%
   ;
-static method Extension2|[]=<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike2<self::Extension2|[]=::K%, self::Extension2|[]=::V%> #this, self::Extension2|[]=::K% key, self::Extension2|[]=::V% value) → void
+static extension-member method Extension2|[]=<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike2<self::Extension2|[]=::K%, self::Extension2|[]=::V%> #this, self::Extension2|[]=::K% key, self::Extension2|[]=::V% value) → void
   ;
 static method main() → dynamic
   ;

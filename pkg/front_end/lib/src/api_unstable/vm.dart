@@ -36,7 +36,8 @@ export '../api_prototype/incremental_kernel_generator.dart'
 export '../api_prototype/kernel_generator.dart'
     show kernelForModule, kernelForProgram;
 
-export '../api_prototype/lowering_predicates.dart' show isExtensionThisName;
+export '../api_prototype/lowering_predicates.dart'
+    show isExtensionThisName, isInlineClassThis;
 
 export '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
@@ -59,6 +60,7 @@ export '../fasta/fasta_codes.dart'
         LocatedMessage,
         messageFfiAbiSpecificIntegerInvalid,
         messageFfiAbiSpecificIntegerMappingInvalid,
+        messageFfiCreateOfStructOrUnion,
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
         messageFfiLeafCallMustNotReturnHandle,
@@ -76,6 +78,7 @@ export '../fasta/fasta_codes.dart'
         noLength,
         templateCantHaveNamedParameters,
         templateCantHaveOptionalParameters,
+        templateFfiNativeCallableListenerReturnVoid,
         templateFfiCompoundImplementsFinalizable,
         templateFfiDartTypeMismatch,
         templateFfiEmptyStruct,
@@ -99,12 +102,6 @@ export '../fasta/fasta_codes.dart'
         templateFfiTypeMismatch;
 
 export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
-
-export '../fasta/kernel/redirecting_factory_body.dart'
-    show
-        expressionValueWrappedFinalizableName,
-        getRedirectingFactoryBody,
-        isRedirectingFactoryField;
 
 export '../fasta/kernel/utils.dart'
     show

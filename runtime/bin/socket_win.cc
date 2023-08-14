@@ -24,16 +24,16 @@ Socket::Socket(intptr_t fd)
       fd_(fd),
       isolate_port_(Dart_GetMainPortId()),
       port_(ILLEGAL_PORT),
-      udp_receive_buffer_(NULL) {
+      udp_receive_buffer_(nullptr) {
   ASSERT(fd_ != kClosedFd);
   Handle* handle = reinterpret_cast<Handle*>(fd_);
-  ASSERT(handle != NULL);
+  ASSERT(handle != nullptr);
 }
 
 void Socket::CloseFd() {
   ASSERT(fd_ != kClosedFd);
   Handle* handle = reinterpret_cast<Handle*>(fd_);
-  ASSERT(handle != NULL);
+  ASSERT(handle != nullptr);
   handle->Release();
   SetClosedFd();
 }
@@ -79,20 +79,20 @@ static intptr_t Connect(intptr_t fd,
     return -1;
   }
 
-  LPFN_CONNECTEX connectEx = NULL;
+  LPFN_CONNECTEX connectEx = nullptr;
   GUID guid_connect_ex = WSAID_CONNECTEX;
   DWORD bytes;
   status = WSAIoctl(s, SIO_GET_EXTENSION_FUNCTION_POINTER, &guid_connect_ex,
                     sizeof(guid_connect_ex), &connectEx, sizeof(connectEx),
-                    &bytes, NULL, NULL);
+                    &bytes, nullptr, nullptr);
   DWORD rc;
   if (status != SOCKET_ERROR) {
     handle->EnsureInitialized(EventHandler::delegate());
 
     OverlappedBuffer* overlapped = OverlappedBuffer::AllocateConnectBuffer();
 
-    status = connectEx(s, &addr.addr, SocketAddress::GetAddrLength(addr), NULL,
-                       0, NULL, overlapped->GetCleanOverlapped());
+    status = connectEx(s, &addr.addr, SocketAddress::GetAddrLength(addr),
+                       nullptr, 0, nullptr, overlapped->GetCleanOverlapped());
 
     if (status == TRUE) {
       handle->ConnectComplete(overlapped);
@@ -157,7 +157,7 @@ intptr_t Socket::CreateUnixDomainBindConnect(const RawAddr& addr,
 intptr_t ServerSocket::Accept(intptr_t fd) {
   ListenSocket* listen_socket = reinterpret_cast<ListenSocket*>(fd);
   ClientSocket* client_socket = listen_socket->Accept();
-  if (client_socket != NULL) {
+  if (client_socket != nullptr) {
     return reinterpret_cast<intptr_t>(client_socket);
   } else {
     return -1;

@@ -278,7 +278,7 @@ class HierarchyInfo : public ThreadStackResource {
 
   // Returned from FindBestTAVOffset and SplitOnConsistentTypeArguments
   // to denote a failure to find a compatible concrete, finalized class.
-  static const intptr_t kNoCompatibleTAVOffset = 0;
+  static constexpr intptr_t kNoCompatibleTAVOffset = 0;
 
   const CidRangeVector& SubtypeRangesForClass(const Class& klass,
                                               bool include_abstract,
@@ -375,12 +375,12 @@ class EmbeddedArray<T, 0> {
   intptr_t length() const { return 0; }
   const T& operator[](intptr_t i) const {
     UNREACHABLE();
-    static T sentinel = 0;
+    static T sentinel = nullptr;
     return sentinel;
   }
   T& operator[](intptr_t i) {
     UNREACHABLE();
-    static T sentinel = 0;
+    static T sentinel = nullptr;
     return sentinel;
   }
 };
@@ -1428,11 +1428,11 @@ class PureInstruction : public Instruction {
 
 // Types to be used as ThrowsTrait for TemplateInstruction/TemplateDefinition.
 struct Throws {
-  static const bool kCanThrow = true;
+  static constexpr bool kCanThrow = true;
 };
 
 struct NoThrow {
-  static const bool kCanThrow = false;
+  static constexpr bool kCanThrow = false;
 };
 
 // Types to be used as CSETrait for TemplateInstruction/TemplateDefinition.
@@ -2558,7 +2558,7 @@ class Definition : public Instruction {
   // returning Definition (return type is covariant).
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  static const intptr_t kReplacementMarker = -2;
+  static constexpr intptr_t kReplacementMarker = -2;
 
   Definition* Replacement() {
     if (ssa_temp_index_ == kReplacementMarker) {
@@ -4252,7 +4252,8 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
   // Defined as a static intptr_t instead of inside the enum since some
   // switch statements depend on the exhaustibility checking.
 #define KIND_INC(name) +1
-  static const intptr_t kNumKinds = 0 FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_INC);
+  static constexpr intptr_t kNumKinds =
+      0 FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_INC);
 #undef KIND_INC
 
   static const char* KindToCString(SpecialParameterKind k);
@@ -4417,7 +4418,8 @@ class TemplateDartCall : public VariadicDefinition {
 
 class ClosureCallInstr : public TemplateDartCall<1> {
  public:
-  ClosureCallInstr(InputsArray&& inputs,
+  ClosureCallInstr(const Function& target_function,
+                   InputsArray&& inputs,
                    intptr_t type_args_len,
                    const Array& argument_names,
                    const InstructionSource& source,
@@ -4426,9 +4428,14 @@ class ClosureCallInstr : public TemplateDartCall<1> {
                          type_args_len,
                          argument_names,
                          std::move(inputs),
-                         source) {}
+                         source),
+        target_function_(target_function) {
+    DEBUG_ASSERT(target_function.IsNotTemporaryScopedHandle());
+  }
 
   DECLARE_INSTRUCTION(ClosureCall)
+
+  const Function& target_function() const { return target_function_; }
 
   // TODO(kmillikin): implement exact call counts for closure calls.
   virtual intptr_t CallCount() const { return 1; }
@@ -4436,7 +4443,12 @@ class ClosureCallInstr : public TemplateDartCall<1> {
   virtual bool HasUnknownSideEffects() const { return true; }
 
   PRINT_OPERANDS_TO_SUPPORT
-  DECLARE_EMPTY_SERIALIZATION(ClosureCallInstr, TemplateDartCall)
+
+#define FIELD_LIST(F) F(const Function&, target_function_)
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ClosureCallInstr,
+                                          TemplateDartCall,
+                                          FIELD_LIST)
+#undef FIELD_LIST
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ClosureCallInstr);
@@ -6919,7 +6931,7 @@ class AllocateObjectInstr : public AllocationInstr {
   }
 
   static bool WillAllocateNewOrRemembered(const Class& cls) {
-    return Heap::IsAllocatableInNewSpace(cls.target_instance_size());
+    return IsAllocatableInNewSpace(cls.target_instance_size());
   }
 
   virtual const Slot* SlotForInput(intptr_t pos) {
@@ -6992,8 +7004,7 @@ class AllocateClosureInstr : public TemplateAllocation<2> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return Heap::IsAllocatableInNewSpace(
-        compiler::target::Closure::InstanceSize());
+    return IsAllocatableInNewSpace(compiler::target::Closure::InstanceSize());
   }
 
   DECLARE_EMPTY_SERIALIZATION(AllocateClosureInstr, TemplateAllocation)
@@ -7052,7 +7063,7 @@ class AllocateRecordInstr : public TemplateAllocation<0> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return Heap::IsAllocatableInNewSpace(
+    return IsAllocatableInNewSpace(
         compiler::target::Record::InstanceSize(num_fields()));
   }
 
@@ -7104,7 +7115,7 @@ class AllocateSmallRecordInstr : public TemplateAllocation<3> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return Heap::IsAllocatableInNewSpace(
+    return IsAllocatableInNewSpace(
         compiler::target::Record::InstanceSize(num_fields()));
   }
 
@@ -8987,7 +8998,7 @@ class ShiftIntegerOpInstr : public BinaryIntegerOpInstr {
 #undef FIELD_LIST
 
  protected:
-  static const intptr_t kShiftCountLimit = 63;
+  static constexpr intptr_t kShiftCountLimit = 63;
 
   // Returns true if the shift amount is guaranteed to be in
   // [0..max] range.
@@ -9095,7 +9106,7 @@ class ShiftUint32OpInstr : public ShiftIntegerOpInstr {
   DECLARE_EMPTY_SERIALIZATION(ShiftUint32OpInstr, ShiftIntegerOpInstr)
 
  private:
-  static const intptr_t kUint32ShiftCountLimit = 31;
+  static constexpr intptr_t kUint32ShiftCountLimit = 31;
 
   DISALLOW_COPY_AND_ASSIGN(ShiftUint32OpInstr);
 };
@@ -9128,7 +9139,7 @@ class SpeculativeShiftUint32OpInstr : public ShiftIntegerOpInstr {
                               ShiftIntegerOpInstr)
 
  private:
-  static const intptr_t kUint32ShiftCountLimit = 31;
+  static constexpr intptr_t kUint32ShiftCountLimit = 31;
 
   DISALLOW_COPY_AND_ASSIGN(SpeculativeShiftUint32OpInstr);
 };
@@ -9615,9 +9626,9 @@ class InvokeMathCFunctionInstr : public VariadicDefinition {
 
   virtual bool MayThrow() const { return false; }
 
-  static const intptr_t kSavedSpTempIndex = 0;
-  static const intptr_t kObjectTempIndex = 1;
-  static const intptr_t kDoubleTempIndex = 2;
+  static constexpr intptr_t kSavedSpTempIndex = 0;
+  static constexpr intptr_t kObjectTempIndex = 1;
+  static constexpr intptr_t kDoubleTempIndex = 2;
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -10575,6 +10586,7 @@ class Call1ArgStubInstr : public TemplateDefinition<1, Throws> {
     kInitAsync,
     kInitAsyncStar,
     kInitSyncStar,
+    kFfiAsyncCallbackSend,
   };
 
   Call1ArgStubInstr(const InstructionSource& source,
@@ -10686,7 +10698,7 @@ class SuspendInstr : public TemplateDefinition<2, Throws> {
 
 class Environment : public ZoneAllocated {
  public:
-  // Iterate the non-nullptr values in the innermost level of an environment.
+  // Iterate the non-null values in the innermost level of an environment.
   class ShallowIterator : public ValueObject {
    public:
     explicit ShallowIterator(Environment* environment)
@@ -10741,7 +10753,7 @@ class Environment : public ZoneAllocated {
     intptr_t index_;
   };
 
-  // Iterate all non-nullptr values in an environment, including outer
+  // Iterate all non-null values in an environment, including outer
   // environments.  Note that the iterator skips empty environments.
   class DeepIterator : public ValueObject {
    public:

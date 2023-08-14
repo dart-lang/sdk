@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///main_lib1.dart";
@@ -6,7 +6,7 @@ import "org-dartlang-testcase:///main_lib1.dart";
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 
@@ -25,19 +25,19 @@ extension Extension on core::int {
 static field core::int Extension|staticField;
 static final field core::int Extension|staticFinalField;
 static const field core::int Extension|staticConstField = #C1;
-static method Extension|get#instanceProperty(lowered final core::int #this) → core::int
+static extension-member method Extension|get#instanceProperty(lowered final core::int #this) → core::int
   ;
-static method Extension|set#instanceProperty(lowered final core::int #this, core::int value) → void
+static extension-member method Extension|set#instanceProperty(lowered final core::int #this, core::int value) → void
   ;
-static method Extension|instanceMethod(lowered final core::int #this) → void
+static extension-member method Extension|instanceMethod(lowered final core::int #this) → void
   ;
-static method Extension|get#instanceMethod(lowered final core::int #this) → () → void
+static extension-member method Extension|get#instanceMethod(lowered final core::int #this) → () → void
   return () → void => self2::Extension|instanceMethod(#this);
-static get Extension|staticProperty() → core::int
+static extension-member get Extension|staticProperty() → core::int
   ;
-static set Extension|staticProperty(core::int value) → void
+static extension-member set Extension|staticProperty(core::int value) → void
   ;
-static method Extension|staticMethod() → void
+static extension-member method Extension|staticMethod() → void
   ;
 
 constants  {

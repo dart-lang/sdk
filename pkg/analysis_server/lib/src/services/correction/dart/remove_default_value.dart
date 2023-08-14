@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class RemoveDefaultValue extends CorrectionProducer {
+class RemoveDefaultValue extends ResolvedCorrectionProducer {
   @override
   // Not predictably the correct action.
   bool get canBeAppliedInBulk => false;

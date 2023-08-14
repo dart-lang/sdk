@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:front_end/src/api_unstable/vm.dart' show isInlineClassThis;
 
 import 'analysis.dart';
 import 'table_selector_assigner.dart';
@@ -193,6 +194,23 @@ class _ParameterInfo {
         (!shaker.typeFlowAnalysis.target.flags.soundNullSafety &&
             param.type.nullability == Nullability.nonNullable &&
             (type == null || type is NullableType))) {
+      isChecked = true;
+    }
+
+    // Avoid elimination of inline class 'this' parameter
+    // as it affects equality of tear-off closures.
+    //
+    // The kernel encoding of a `inline class I { foo() {} }` is
+    //
+    //  static method I|foo(lowered final test::I #this) → void {}
+    //  static method I|get#foo(lowered final test::I #this) → () → void
+    //    return () → void => test::I|foo(#this);
+    //
+    // So by not removing `#this` in kernel, the VM scope builder will mark
+    // it as captured and create a context for the closure. This
+    // would make distinct tear-off closure instances not equal,
+    // as required by the spec.
+    if (member.isInlineClassMember && isInlineClassThis(param)) {
       isChecked = true;
     }
   }

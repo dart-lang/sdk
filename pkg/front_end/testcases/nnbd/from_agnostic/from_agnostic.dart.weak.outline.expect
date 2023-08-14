@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "from_agnostic_lib.dart" as fro;
@@ -13,7 +13,7 @@ static const field core::List<core::int?> c5 = fro::b;
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as fro;
 import "dart:core" as core;
 

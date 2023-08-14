@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -13,7 +13,7 @@ static method f(dynamic x) → dynamic {
   final hoisted has-declared-initializer invalid-type a;
   {
     final synthesized dynamic #0#0 = x;
-    if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (let final invalid-type #t1 = a = #0#0{invalid-type}{<invalid>}.f in true)))
+    if(!(#0#0 is invalid-type && (let final invalid-type #t1 = a = #0#0{invalid-type}{<invalid>}.f in true)))
       throw new core::StateError::•("Pattern matching error");
   }
 }

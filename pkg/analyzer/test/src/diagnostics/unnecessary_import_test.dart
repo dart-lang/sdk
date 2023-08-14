@@ -171,6 +171,25 @@ f(p.A a, p.B b) {}
     ]);
   }
 
+  test_class_deprecatedExport() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', '''
+library;
+@deprecated
+export 'a.dart';
+class B {}
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+import 'b.dart';
+void f(A a, B b) {}
+''');
+  }
+
   test_duplicateImport_differentPrefix() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 class A {}
@@ -181,6 +200,75 @@ import 'lib1.dart';
 import 'lib1.dart' as p;
 f(A a1, p.A a2, B b) {}
 ''');
+  }
+
+  test_extension_equalPrefixes_unnecessary() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension E1 on int {
+  void foo() {}
+}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'lib1.dart';
+extension E2 on int {
+  void bar() {}
+}
+''');
+    await assertErrorsInCode('''
+import 'lib1.dart' as prefix;
+import 'lib2.dart' as prefix;
+void f() {
+  0.foo();
+  0.bar();
+}
+''', [
+      error(HintCode.UNNECESSARY_IMPORT, 7, 11),
+    ]);
+  }
+
+  test_extension_noPrefixes_necessary() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension E1 on int {
+  void foo() {}
+}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+extension E2 on int {
+  void bar() {}
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart';
+import 'lib2.dart';
+void f() {
+  0.foo();
+  0.bar();
+}
+''');
+  }
+
+  test_extension_noPrefixes_unnecessary() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension E1 on int {
+  void foo() {}
+}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'lib1.dart';
+extension E2 on int {
+  void bar() {}
+}
+''');
+    await assertErrorsInCode('''
+import 'lib1.dart';
+import 'lib2.dart';
+void f() {
+  0.foo();
+  0.bar();
+}
+''', [
+      error(HintCode.UNNECESSARY_IMPORT, 7, 11),
+    ]);
   }
 
   test_hide() async {

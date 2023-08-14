@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -81,17 +81,17 @@ extension E<X extends self::A<core::num>> on self::A<core::int> {
   tearoff bazOfE = self::E|get#bazOfE;
 }
 static field self::A<core::num>? E|fieldOfE;
-static method E|fooOfE<X extends self::A<core::num>>(lowered final self::A<core::int> #this) → self::A<core::num>?
+static extension-member method E|fooOfE<X extends self::A<core::num>>(lowered final self::A<core::int> #this) → self::A<core::num>?
   ;
-static method E|get#fooOfE<X extends self::A<core::num>>(lowered final self::A<core::int> #this) → () → self::A<core::num>?
+static extension-member method E|get#fooOfE<X extends self::A<core::num>>(lowered final self::A<core::int> #this) → () → self::A<core::num>?
   return () → self::A<core::num>? => self::E|fooOfE<self::E|get#fooOfE::X>(#this);
-static method E|barOfE<X extends self::A<core::num>>(lowered final self::A<core::int> #this, self::A<core::num> a) → void
+static extension-member method E|barOfE<X extends self::A<core::num>>(lowered final self::A<core::int> #this, self::A<core::num> a) → void
   ;
-static method E|get#barOfE<X extends self::A<core::num>>(lowered final self::A<core::int> #this) → (self::A<core::num>) → void
+static extension-member method E|get#barOfE<X extends self::A<core::num>>(lowered final self::A<core::int> #this) → (self::A<core::num>) → void
   return (self::A<core::num> a) → void => self::E|barOfE<self::E|get#barOfE::X>(#this, a);
-static method E|bazOfE<X extends self::A<core::num>, Y extends self::A<core::num>>(lowered final self::A<core::int> #this) → void
+static extension-member method E|bazOfE<X extends self::A<core::num>, Y extends self::A<core::num>>(lowered final self::A<core::int> #this) → void
   ;
-static method E|get#bazOfE<X extends self::A<core::num>>(lowered final self::A<core::int> #this) → <Y extends self::A<core::num>>() → void
+static extension-member method E|get#bazOfE<X extends self::A<core::num>>(lowered final self::A<core::int> #this) → <Y extends self::A<core::num>>() → void
   return <Y extends self::A<core::num>>() → void => self::E|bazOfE<self::E|get#bazOfE::X, Y>(#this);
 static method main() → dynamic
   ;

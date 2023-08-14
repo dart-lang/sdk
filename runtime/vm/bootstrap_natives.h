@@ -30,7 +30,6 @@ namespace dart {
   V(AbstractType_getHashCode, 1)                                               \
   V(AbstractType_toString, 1)                                                  \
   V(Type_equality, 2)                                                          \
-  V(Type_getHashCode, 1)                                                       \
   V(LibraryPrefix_isLoaded, 1)                                                 \
   V(LibraryPrefix_setLoaded, 1)                                                \
   V(LibraryPrefix_loadingUnit, 1)                                              \
@@ -79,6 +78,7 @@ namespace dart {
   V(Developer_log, 8)                                                          \
   V(Developer_postEvent, 2)                                                    \
   V(Developer_webServerControl, 3)                                             \
+  V(Developer_NativeRuntime_buildId, 0)                                        \
   V(Developer_NativeRuntime_writeHeapSnapshotToFile, 1)                        \
   V(Developer_reachability_barrier, 0)                                         \
   V(Double_getIsNegative, 1)                                                   \
@@ -155,7 +155,7 @@ namespace dart {
   V(Timeline_getNextTaskId, 0)                                                 \
   V(Timeline_getTraceClock, 0)                                                 \
   V(Timeline_isDartStreamEnabled, 0)                                           \
-  V(Timeline_reportTaskEvent, 4)                                               \
+  V(Timeline_reportTaskEvent, 5)                                               \
   V(TypedData_Int8Array_new, 2)                                                \
   V(TypedData_Uint8Array_new, 2)                                               \
   V(TypedData_Uint8ClampedArray_new, 2)                                        \
@@ -363,47 +363,15 @@ namespace dart {
   V(VMService_DecodeAssets, 1)                                                 \
   V(VMService_AddUserTagsToStreamableSampleList, 1)                            \
   V(VMService_RemoveUserTagsFromStreamableSampleList, 1)                       \
-  V(Ffi_loadInt8, 2)                                                           \
-  V(Ffi_loadInt16, 2)                                                          \
-  V(Ffi_loadInt32, 2)                                                          \
-  V(Ffi_loadInt64, 2)                                                          \
-  V(Ffi_loadUint8, 2)                                                          \
-  V(Ffi_loadUint16, 2)                                                         \
-  V(Ffi_loadUint32, 2)                                                         \
-  V(Ffi_loadUint64, 2)                                                         \
-  V(Ffi_loadFloat, 2)                                                          \
-  V(Ffi_loadDouble, 2)                                                         \
-  V(Ffi_loadPointer, 2)                                                        \
-  V(Ffi_loadStruct, 2)                                                         \
-  V(Ffi_storeInt8, 3)                                                          \
-  V(Ffi_storeInt16, 3)                                                         \
-  V(Ffi_storeInt32, 3)                                                         \
-  V(Ffi_storeInt64, 3)                                                         \
-  V(Ffi_storeUint8, 3)                                                         \
-  V(Ffi_storeUint16, 3)                                                        \
-  V(Ffi_storeUint32, 3)                                                        \
-  V(Ffi_storeUint64, 3)                                                        \
-  V(Ffi_storeFloat, 3)                                                         \
-  V(Ffi_storeDouble, 3)                                                        \
-  V(Ffi_storePointer, 3)                                                       \
-  V(Ffi_address, 1)                                                            \
-  V(Ffi_fromAddress, 1)                                                        \
   V(Ffi_asFunctionInternal, 2)                                                 \
   V(Ffi_pointerFromFunction, 1)                                                \
+  V(Ffi_pointerAsyncFromFunction, 2)                                           \
+  V(Ffi_deleteAsyncFunctionPointer, 1)                                         \
   V(Ffi_dl_open, 1)                                                            \
+  V(Ffi_dl_close, 1)                                                           \
   V(Ffi_dl_lookup, 2)                                                          \
   V(Ffi_dl_getHandle, 1)                                                       \
   V(Ffi_dl_providesSymbol, 2)                                                  \
-  V(Ffi_asExternalTypedDataInt8, 2)                                            \
-  V(Ffi_asExternalTypedDataInt16, 2)                                           \
-  V(Ffi_asExternalTypedDataInt32, 2)                                           \
-  V(Ffi_asExternalTypedDataInt64, 2)                                           \
-  V(Ffi_asExternalTypedDataUint8, 2)                                           \
-  V(Ffi_asExternalTypedDataUint16, 2)                                          \
-  V(Ffi_asExternalTypedDataUint32, 2)                                          \
-  V(Ffi_asExternalTypedDataUint64, 2)                                          \
-  V(Ffi_asExternalTypedDataFloat, 2)                                           \
-  V(Ffi_asExternalTypedDataDouble, 2)                                          \
   V(Ffi_dl_processLibrary, 0)                                                  \
   V(Ffi_dl_executableLibrary, 0)                                               \
   V(Ffi_GetFfiNativeResolver, 0)                                               \
@@ -466,7 +434,9 @@ namespace dart {
   V(VariableMirror_type, 2)
 
 #define BOOTSTRAP_FFI_NATIVE_LIST(V)                                           \
-  V(FinalizerEntry_SetExternalSize, void, (Dart_Handle, intptr_t))
+  V(FinalizerEntry_SetExternalSize, void, (Dart_Handle, intptr_t))             \
+  V(Pointer_asTypedListFinalizerAllocateData, void*, ())                       \
+  V(Pointer_asTypedListFinalizerCallbackPointer, void*, ())
 
 class BootstrapNatives : public AllStatic {
  public:
@@ -474,7 +444,7 @@ class BootstrapNatives : public AllStatic {
                                     int argument_count,
                                     bool* auto_setup_scope);
 
-  // For use with @FfiNative.
+  // For use with @Native.
   static void* LookupFfiNative(const char* name, uintptr_t argument_count);
 
   static const uint8_t* Symbol(Dart_NativeFunction nf);

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -151,15 +151,15 @@ late static field invalid-type Foo|foo14;
 late static field core::List<invalid-type> Foo|foo14Prime;
 late static field (invalid-type) → invalid-type Foo|foo15;
 late static field (core::List<invalid-type>) → core::List<invalid-type> Foo|foo15Prime;
-static method Foo|foo1() → invalid-type {
+static extension-member method Foo|foo1() → invalid-type {
   throw "";
 }
-static method Foo|foo1Prime() → core::List<invalid-type> {
+static extension-member method Foo|foo1Prime() → core::List<invalid-type> {
   throw "";
 }
-static method Foo|foo2(invalid-type x) → void {}
-static method Foo|foo2Prime(core::List<invalid-type> x) → void {}
-static method Foo|foo3() → void {
+static extension-member method Foo|foo2(invalid-type x) → void {}
+static extension-member method Foo|foo2Prime(core::List<invalid-type> x) → void {}
+static extension-member method Foo|foo3() → void {
   invalid-type foo4;
   core::List<invalid-type> foo4Prime;
   function foo5(invalid-type y) → void
@@ -173,19 +173,19 @@ static method Foo|foo3() → void {
   (invalid-type) → void foo7 = (invalid-type y) → void => y;
   (core::List<invalid-type>) → void foo7Prime = (core::List<invalid-type> y) → void => y;
 }
-static method Foo|foo8() → () → invalid-type {
+static extension-member method Foo|foo8() → () → invalid-type {
   throw "";
 }
-static method Foo|foo8Prime() → () → core::List<invalid-type> {
+static extension-member method Foo|foo8Prime() → () → core::List<invalid-type> {
   throw "";
 }
-static method Foo|foo9() → (invalid-type) → void {}
-static method Foo|foo9Prime() → (core::List<invalid-type>) → void {}
-static method Foo|foo10(() → invalid-type Function) → void {}
-static method Foo|foo10Prime(() → core::List<invalid-type> Function) → void {}
-static method Foo|foo11((dynamic) → void Function) → void {}
-static method Foo|foo12((invalid-type) → void b) → void {}
-static method Foo|foo12Prime((core::List<invalid-type>) → void b) → void {}
-static method Foo|foo13((invalid-type) → void Function) → void {}
-static method Foo|foo13Prime((core::List<invalid-type>) → void Function) → void {}
+static extension-member method Foo|foo9() → (invalid-type) → void {}
+static extension-member method Foo|foo9Prime() → (core::List<invalid-type>) → void {}
+static extension-member method Foo|foo10(() → invalid-type Function) → void {}
+static extension-member method Foo|foo10Prime(() → core::List<invalid-type> Function) → void {}
+static extension-member method Foo|foo11((dynamic) → void Function) → void {}
+static extension-member method Foo|foo12((invalid-type) → void b) → void {}
+static extension-member method Foo|foo12Prime((core::List<invalid-type>) → void b) → void {}
+static extension-member method Foo|foo13((invalid-type) → void Function) → void {}
+static extension-member method Foo|foo13Prime((core::List<invalid-type>) → void Function) → void {}
 static method main() → dynamic {}

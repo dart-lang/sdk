@@ -4,22 +4,45 @@
 
 part of dart.core;
 
+// Examples can assume:
+// late StringSink sink;
+
 abstract interface class StringSink {
   /// Writes the string representation of [object].
   ///
   /// Converts [object] to a string using `object.toString()`.
+  ///
+  /// Notice that calling `sink.write(null)` will will write the `"null"`
+  /// string.
   void write(Object? object);
 
-  /// Iterates over the given [objects] and [write]s them in sequence.
+  /// Writes the elements of [objects] separated by [separator].
+  ///
+  /// Writes the string representation of every element of [objects],
+  /// in iteration order, and writes [separator] between any two elements.
+  ///
+  /// ```dart
+  /// sink.writeAll(["Hello", "World"], " Beautiful ");
+  /// ```
+  /// is equivalent to:
+  /// ```dart
+  /// sink
+  ///   ..write("Hello");
+  ///   ..write(" Beautiful ");
+  ///   ..write("World");
+  /// ```
   void writeAll(Iterable<dynamic> objects, [String separator = ""]);
 
-  /// Writes [object] followed by a newline, `"\n"`.
+  /// Writes the string representation of [object] followed by a newline.
   ///
-  /// Calling `writeln(null)` will write the `"null"` string before the
-  /// newline.
+  /// Equivalent to `buffer.write(object)` followed by `buffer.write("\n")`.
+  ///
+  /// Notice that calling `buffer.writeln(null)` will write the `"null"` string
+  /// before the newline. Omitting the argument, or explicitly passing an empty
+  /// string, is the recommended way to emit just the newline.
   void writeln([Object? object = ""]);
 
-  /// Writes the character represented by [charCode].
+  /// Writes a string containing the character with code point [charCode].
   ///
   /// Equivalent to `write(String.fromCharCode(charCode))`.
   void writeCharCode(int charCode);

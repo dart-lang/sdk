@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "issue41180_lib.dart" as iss;
@@ -32,7 +32,7 @@ static method findKey(iss::Map<core::String*, dynamic>* m, dynamic search) → v
   core::print(let final core::MapEntry<core::String*, dynamic>* #t1 = m.{iss::Map::entries}{iss::Iterable<core::MapEntry<core::String*, dynamic>*>*}.{iss::Iterable::singleWhere}((core::MapEntry<core::String*, dynamic>* entry) → core::bool* => entry.{core::MapEntry::value}{dynamic} =={core::Object::==}{(core::Object*) →* core::bool*} search, orElse: () → Null => null){((core::MapEntry<core::String*, dynamic>*) →* core::bool*, {orElse: () →* core::MapEntry<core::String*, dynamic>*}) →* core::MapEntry<core::String*, dynamic>*} in #t1 == null ?{core::String*} null : #t1.{core::MapEntry::key}{core::String*});
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as iss;
 import "dart:core" as core;
 

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -226,36 +226,35 @@ import "org-dartlang-testcase:///issue41842_lib.dart" as lib;
 
 class A<T extends core::Object? = dynamic> extends core::Object {
   field dynamic T = null;
-  static final field dynamic _redirecting# = <dynamic>[#C1, #C2, #C3, #C4, #C5, #C6, #C7, #C8, #C9, #C10, #C11, #C12, #C13]/*isLegacy*/;
   constructor •() → self::A<self::A::T%>
     : super core::Object::•()
     ;
-  static factory foo1<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo1::T%>
+  static factory foo1<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo1::T%> /* redirection-target: self::B::•<self::A::foo1::T%>*/
     return new self::B::•<self::A::foo1::T%>(x);
-  static factory foo2<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo2::T%>
+  static factory foo2<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo2::T%> /* redirection-target: self::B::foo<self::A::foo2::T%>*/
     return new self::B::foo<self::A::foo2::T%>(x);
-  static factory foo3<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo3::T%>
+  static factory foo3<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo3::T%> /* redirection-target: self::B::foo<self::A::foo3::T%>*/
     return new self::B::foo<self::A::foo3::T%>(x);
-  static factory foo5<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo5::T%>
+  static factory foo5<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo5::T%> /* redirection-target: self::B::bar<self::A::foo5::T%>*/
     return self::B::bar<self::A::foo5::T%>(x);
-  static factory foo6<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo6::T%>
+  static factory foo6<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo6::T%> /* redirection-target: self::B::bar<self::A::foo6::T%>*/
     return self::B::bar<self::A::foo6::T%>(x);
-  static factory foo4<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo4::T%>
+  static factory foo4<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo4::T%> /* redirection-target: iss::Foo::•<self::A::foo4::T%>*/
     return new iss::Foo::•<self::A::foo4::T%>(x);
-  static factory foo7<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo7::T%>
+  static factory foo7<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo7::T%> /* redirection-target: iss::Bar::•<self::A::foo7::T%>*/
     return iss::Bar::•<self::A::foo7::T%>(x);
-  static factory foo8<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo8::T%>
+  static factory foo8<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo8::T%> /* redirection-target: iss::Foo::foo<self::A::foo8::T%>*/
     return new iss::Foo::foo<self::A::foo8::T%>(x);
   abstract operator >() → dynamic;
-  static factory foo9<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo9::T%>
+  static factory foo9<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo9::T%> /* redirection-target: iss::Foo::foo<self::A::foo9::T%>*/
     return new iss::Foo::foo<self::A::foo9::T%>(x);
-  static factory foo10<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo10::T%>
+  static factory foo10<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo10::T%> /* redirection-target: iss::Foo::bar<self::A::foo10::T%>*/
     return iss::Foo::bar<self::A::foo10::T%>(x);
-  static factory foo11<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo11::T%>
+  static factory foo11<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo11::T%> /* redirection-target: iss::Foo::bar<self::A::foo11::T%>*/
     return iss::Foo::bar<self::A::foo11::T%>(x);
-  static factory foo12<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo12::T%>
+  static factory foo12<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo12::T%> /* redirection-target: self::B::foo<self::A::foo12::T%>*/
     return new self::B::foo<self::A::foo12::T%>(x);
-  static factory foo13<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo13::T%>
+  static factory foo13<T extends core::Object? = dynamic>(core::int x) → self::A<self::A::foo13::T%> /* redirection-target: self::B::bar<self::A::foo13::T%>*/
     return self::B::bar<self::A::foo13::T%>(x);
 }
 class B<T extends core::Object? = dynamic> extends self::A<self::B::T%> {
@@ -272,7 +271,7 @@ static method main() → void {
   new self::B::foo<core::int>(24);
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -331,20 +330,4 @@ class Bar<T extends core::Object? = dynamic> extends self::A<iss::Bar::T%> {
     return new iss::Bar::named<iss::Bar::•::T%>(x);
   static factory bar<T extends core::Object? = dynamic>(core::int x) → iss::Bar<iss::Bar::bar::T%>
     return new iss::Bar::foo<iss::Bar::bar::T%>(x);
-}
-
-constants  {
-  #C1 = constructor-tearoff self::A::foo1
-  #C2 = constructor-tearoff self::A::foo2
-  #C3 = constructor-tearoff self::A::foo3
-  #C4 = constructor-tearoff self::A::foo5
-  #C5 = constructor-tearoff self::A::foo6
-  #C6 = constructor-tearoff self::A::foo4
-  #C7 = constructor-tearoff self::A::foo7
-  #C8 = constructor-tearoff self::A::foo8
-  #C9 = constructor-tearoff self::A::foo9
-  #C10 = constructor-tearoff self::A::foo10
-  #C11 = constructor-tearoff self::A::foo11
-  #C12 = constructor-tearoff self::A::foo12
-  #C13 = constructor-tearoff self::A::foo13
 }

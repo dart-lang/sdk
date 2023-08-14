@@ -27,6 +27,7 @@ enum ConstantValueKind {
   RECORD,
   TYPE,
   INTERCEPTOR,
+  JAVASCRIPT_OBJECT,
   JS_NAME,
   DUMMY_INTERCEPTOR,
   LATE_SENTINEL,
@@ -54,6 +55,8 @@ abstract class ConstantValueVisitor<R, A> {
   R visitType(covariant TypeConstantValue constant, covariant A arg);
   R visitInterceptor(
       covariant InterceptorConstantValue constant, covariant A arg);
+  R visitJavaScriptObject(
+      covariant JavaScriptObjectConstantValue constant, covariant A arg);
   R visitDummyInterceptor(
       covariant DummyInterceptorConstantValue constant, covariant A arg);
   R visitLateSentinel(
@@ -675,12 +678,7 @@ abstract class MapConstantValue extends ObjectConstantValue {
   }
 
   @override
-  List<ConstantValue> getDependencies() {
-    List<ConstantValue> result = [];
-    result.addAll(keys);
-    result.addAll(values);
-    return result;
-  }
+  List<ConstantValue> getDependencies() => [...keys, ...values];
 
   int get length => keys.length;
 
@@ -1100,6 +1098,79 @@ class InstantiationConstantValue extends ConstantValue {
   String toStructuredText(DartTypes? dartTypes) {
     return 'InstantiationConstant($typeArguments,'
         '${function.toStructuredText(dartTypes)})';
+  }
+}
+
+/// A JavaScript Object Literal used as a constant.
+class JavaScriptObjectConstantValue extends ConstantValue {
+  final List<ConstantValue> keys;
+  final List<ConstantValue> values;
+  @override
+  late final int hashCode = Hashing.listHash(values, Hashing.listHash(keys, 9));
+
+  JavaScriptObjectConstantValue(this.keys, this.values) {
+    assert(keys.length == values.length);
+  }
+
+  @override
+  bool operator ==(var other) {
+    return identical(this, other) ||
+        other is JavaScriptObjectConstantValue && _equals(this, other);
+  }
+
+  static bool _equals(
+      JavaScriptObjectConstantValue a, JavaScriptObjectConstantValue b) {
+    if (a.hashCode != b.hashCode) return false;
+    if (a.length != b.length) return false;
+    if (!_listsEqual(a.keys, b.keys)) return false;
+    if (!_listsEqual(a.values, b.values)) return false;
+    return true;
+  }
+
+  @override
+  List<ConstantValue> getDependencies() => [...keys, ...values];
+
+  int get length => keys.length;
+
+  @override
+  accept(ConstantValueVisitor visitor, arg) =>
+      visitor.visitJavaScriptObject(this, arg);
+
+  @override
+  DartType getType(CommonElements types) {
+    return types.dynamicType; // TODO: Lookup JavaScriptObject.
+  }
+
+  @override
+  ConstantValueKind get kind => ConstantValueKind.JAVASCRIPT_OBJECT;
+
+  @override
+  String toDartText(DartTypes? dartTypes) {
+    StringBuffer sb = StringBuffer();
+    sb.write('{');
+    for (int i = 0; i < length; i++) {
+      if (i > 0) sb.write(',');
+      sb.write(keys[i].toDartText(dartTypes));
+      sb.write(':');
+      sb.write(values[i].toDartText(dartTypes));
+    }
+    sb.write('}');
+    return sb.toString();
+  }
+
+  @override
+  String toStructuredText(DartTypes? dartTypes) {
+    StringBuffer sb = StringBuffer();
+    sb.write('JavaScriptObject(');
+    sb.write('{');
+    for (int i = 0; i < length; i++) {
+      if (i > 0) sb.write(', ');
+      sb.write(keys[i].toStructuredText(dartTypes));
+      sb.write(': ');
+      sb.write(values[i].toStructuredText(dartTypes));
+    }
+    sb.write('})');
+    return sb.toString();
   }
 }
 

@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -17,30 +19,30 @@ void main() {
 @reflectiveTest
 class ImplementationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_class_excludesSelf() => _testMarkedContent('''
-      abstract class ^[[A]] {}
+      abstract class ^[!A!] {}
       class B extends A {}
       class C extends A {}
     ''', expectResults: false);
 
   Future<void> test_class_excludesSuper() => _testMarkedContent('''
-      abstract class [[A]] {}
+      abstract class [!A!] {}
       class ^B extends A {}
       class C extends A {}
     ''', expectResults: false);
 
   Future<void> test_class_sub() => _testMarkedContent('''
       abstract class ^A {}
-      class [[B]] extends A {}
-      class [[C]] extends A {}
+      class /*[0*/B/*0]*/ extends A {}
+      class /*[1*/C/*1]*/ extends A {}
     ''');
 
   Future<void> test_class_subSub() => _testMarkedContent('''
       abstract class ^A {}
-      class [[B]] extends A {}
-      class [[C]] extends A {}
-      class [[D]] extends B {}
-      class [[E]] extends B {}
-      class [[F]] extends E {}
+      class /*[0*/B/*0]*/ extends A {}
+      class /*[1*/C/*1]*/ extends A {}
+      class /*[2*/D/*2]*/ extends B {}
+      class /*[3*/E/*3]*/ extends B {}
+      class /*[4*/F/*4]*/ extends E {}
     ''');
 
   Future<void> test_emptyResults() async {
@@ -58,7 +60,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_getter_overriddenByField() => _testMarkedContent('''
       class B extends A {
-        final String? [[a]] = null;
+        final String? [!a!] = null;
       }
 
       abstract class A {
@@ -74,12 +76,12 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
 
       class B extends A {}
 
-      class [[E]] extends B {}
+      class [!E!] extends B {}
     ''', expectResults: false);
 
   Future<void> test_method_excludesSelf() => _testMarkedContent('''
       abstract class A {
-        void ^[[b]]();
+        void ^[!b!]();
       }
 
       class B extends A {
@@ -89,7 +91,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_method_excludesSuper() => _testMarkedContent('''
       abstract class A {
-        void [[b]]();
+        void [!b!]();
       }
 
       class B extends A {
@@ -103,21 +105,21 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       }
 
       class B extends A {
-        void [[b]]() {}
+        void /*[0*/b/*0]*/() {}
       }
 
       class C extends A {
-        void [[b]]() {}
+        void /*[1*/b/*1]*/() {}
       }
 
       class D extends B {
-        void [[b]]() {}
+        void /*[2*/b/*2]*/() {}
       }
 
       class E extends B {}
 
       class F extends E {
-        void [[b]]() {}
+        void /*[3*/b/*3]*/() {}
       }
 
       void fromCallSite() {
@@ -132,7 +134,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       }
 
       class B extends A {
-        void [[m]]() {}
+        void [!m!]() {}
       }
     ''');
 
@@ -142,7 +144,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       }
 
       class B extends A {
-        void [[m]]<T>() {}
+        void [!m!]<T>() {}
       }
     ''');
 
@@ -152,11 +154,11 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       }
 
       class B extends A {
-        void [[b]]() {}
+        void /*[0*/b/*0]*/() {}
       }
 
       class C extends A {
-        void [[b]]() {}
+        void /*[1*/b/*1]*/() {}
       }
     ''');
 
@@ -166,19 +168,46 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       }
 
       class B extends A {
-        void [[b]]() {}
+        void /*[0*/b/*0]*/() {}
       }
 
       class D extends B {
-        void [[b]]() {}
+        void /*[1*/b/*1]*/() {}
       }
 
       class E extends B {}
 
       class F extends E {
-        void [[b]]() {}
+        void /*[2*/b/*2]*/() {}
       }
     ''');
+
+  /// Check that implementations that come from mixins in other files return the
+  /// correct location for the implementation.
+  Future<void> test_mixins() async {
+    final mixinsContent = r'''
+import 'main.dart';
+
+mixin MyMixin implements MyInterface {
+  String get [!interfaceField!] => '';
+}
+''';
+    final content = r'''
+import 'other.dart';
+
+class A with MyMixin {}
+class B with MyMixin {}
+class C implements MyInterface {
+  String get [!interfaceField!] => '';
+}
+
+class MyInterface {
+  String get interf^aceField;
+}
+''';
+
+    await _testMarkedContent(content, otherContent: mixinsContent);
+  }
 
   Future<void> test_nonDartFile() async {
     newFile(pubspecFilePath, simplePubspecContent);
@@ -188,28 +217,47 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
     expect(res, isEmpty);
   }
 
-  /// Takes an input string that contains ^ at the location to invoke the
-  /// `textDocument/implementations` command and has ranges marked with
-  /// `[[brackets]]` that are expected to be included.
+  /// Parses [content] using as [TestCode] and invokes the
+  /// `textDocument/implementations` command at the marked location to verify
+  /// the marked regions are returned as implementations.
+  ///
+  /// If [otherContent] is provided, will be written as `other.dart` alongside
+  /// the file and any marked regions will also be verified.
   ///
   /// If [expectResults] is `false` then expects none of the ranges marked with
-  /// `[[brackets]]` to be present in the results instead.
+  /// `/*[0*/brackets/*0]*/` to be present in the results instead.
   Future<void> _testMarkedContent(
     String content, {
+    String? otherContent,
     bool expectResults = true,
   }) async {
+    final otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
+    final otherFileUri = Uri.file(otherFilePath);
+    final code = TestCode.parse(content);
+    final otherCode =
+        otherContent != null ? TestCode.parse(otherContent) : null;
+    if (otherCode != null) {
+      newFile(otherFilePath, otherCode.code);
+    }
+
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(mainFileUri, code.code);
 
     final res = await getImplementations(
       mainFileUri,
-      positionFromMarker(content),
+      code.position.position,
     );
 
-    final expectedLocations = rangesFromMarkers(content)
-        .map((r) => Location(uri: mainFileUri, range: r));
+    final expectedLocations = [
+      for (final range in code.ranges)
+        Location(uri: mainFileUri, range: range.range),
+      if (otherCode != null)
+        for (final range in otherCode.ranges)
+          Location(uri: otherFileUri, range: range.range),
+    ];
 
     if (expectResults) {
+      expect(expectedLocations, isNotEmpty);
       expect(res, unorderedEquals(expectedLocations));
     } else {
       for (final location in expectedLocations) {

@@ -465,8 +465,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   bool _isVoid(TypeAnnotation? returnType) {
     if (returnType is NamedType) {
-      var id = returnType.name;
-      if (id.name == 'void') {
+      if (returnType.name2.lexeme == 'void') {
         return true;
       }
     }

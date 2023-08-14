@@ -4,33 +4,31 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../../js_interop_checks.dart' show JsInteropChecks;
 import '../js_interop.dart'
     show
         getJSName,
         hasAnonymousAnnotation,
-        hasInternalJSInteropAnnotation,
+        hasDartJSInteropAnnotation,
         hasJSInteropAnnotation,
         hasNativeAnnotation,
-        hasObjectLiteralAnnotation,
         hasStaticInteropAnnotation,
         hasTrustTypesAnnotation;
 
-enum _MethodSpecializationType {
-  constructor,
-  method,
-}
-
-class _MethodCallSiteSpecialization {
-  final bool shouldTrustType;
-  final Expression? maybeReceiver;
-  final _MethodSpecializationType type;
-
-  _MethodCallSiteSpecialization(
-      this.shouldTrustType, this.maybeReceiver, this.type);
-}
+/// Function type that given an [Expression], which is an invocation of a static
+/// interop member, and the list of [Arguments] to that invocation, returns an
+/// [Expression] that inlines the static interop member call.
+///
+/// In order to avoid recomputing information about the same static interop
+/// member, we utilize closures that contain a lot of that information already.
+/// We compute one [_InvocationBuilder] per node, and reuse as needed for
+/// multiple invocations of the same static interop member.
+typedef _InvocationBuilder = Expression Function(
+    Arguments arguments, Expression invocation);
 
 /// Replaces js_util methods with inline calls to foreign_helper JS which
 /// emits the code as a JavaScript code fragment.
@@ -41,14 +39,14 @@ class JsUtilOptimizer extends Transformer {
   final List<Procedure> _callMethodUncheckedTrustTypeTargets;
   final Procedure _callConstructorTarget;
   final List<Procedure> _callConstructorUncheckedTargets;
+  final CloneVisitorNotMembers _cloner = CloneVisitorWithMembers();
+  final Map<Member, _InvocationBuilder?> _externalInvocationBuilders = {};
   final Procedure _getPropertyTarget;
   final Procedure _getPropertyTrustTypeTarget;
   final Procedure _globalThisTarget;
   final InterfaceType _objectType;
   final Procedure _setPropertyTarget;
   final Procedure _setPropertyUncheckedTarget;
-  final Map<Procedure, _MethodCallSiteSpecialization> _proceduresToSpecialize =
-      {};
 
   /// Dynamic members in js_util that interop allowed.
   static final Iterable<String> _allowedInteropJsUtilMembers = <String>[
@@ -67,12 +65,7 @@ class JsUtilOptimizer extends Transformer {
   final CoreTypes _coreTypes;
   final StatefulStaticTypeContext _staticTypeContext;
 
-  late InlineExtensionIndex _inlineExtensionIndex;
-
-  static const Set<String> _existingJsAnnotationsUsers = {
-    'dart:_engine',
-    'dart:ui'
-  };
+  late final InlineExtensionIndex _inlineExtensionIndex;
 
   JsUtilOptimizer(this._coreTypes, ClassHierarchy hierarchy)
       : _callMethodTarget =
@@ -114,11 +107,13 @@ class JsUtilOptimizer extends Transformer {
         _listEmptyFactory =
             _coreTypes.index.getProcedure('dart:core', 'List', 'empty'),
         _staticTypeContext = StatefulStaticTypeContext.stacked(
-            TypeEnvironment(_coreTypes, hierarchy));
+            TypeEnvironment(_coreTypes, hierarchy)) {
+    _inlineExtensionIndex =
+        InlineExtensionIndex(_coreTypes, _staticTypeContext.typeEnvironment);
+  }
 
   @override
   visitLibrary(Library node) {
-    _inlineExtensionIndex = InlineExtensionIndex(node);
     _staticTypeContext.enterLibrary(node);
     node.transformChildren(this);
     _staticTypeContext.leaveLibrary(node);
@@ -133,30 +128,24 @@ class JsUtilOptimizer extends Transformer {
     return node;
   }
 
-  // TODO(joshualitt): Here and in `js_runtime_generator.dart`, there is
-  // complexity related to the fact that we lower procedures, and also
-  // specialize invocations. We need to do the latter to cleanly support
-  // optional parameters, and we currently do the former to support tearoffs.
-  // However, the tearoffs will not be consistent with the specialized
-  // invocations, and this may be confusing. We should consider disallowing
-  // tearoffs of external procedures, which will ensure consistency.
-  bool tryTransformProcedure(Procedure node) {
-    if (_proceduresToSpecialize.containsKey(node)) {
-      return true;
-    }
-    ReturnStatement? transformedBody;
+  /// Given a static interop procedure [node], return a
+  /// [_InvocationBuilder] that will create new [StaticInvocation]s that
+  /// replace calls to [node].
+  ///
+  /// If [node] is not one of several static interop members, this function
+  /// returns null.
+  _InvocationBuilder? _getExternalInvocationBuilder(Procedure node) {
     if (node.isExternal) {
       if (_inlineExtensionIndex.isInstanceInteropMember(node)) {
-        var shouldTrustType =
-            _inlineExtensionIndex.isTrustTypesMember(node.reference);
+        var shouldTrustType = _inlineExtensionIndex.isTrustTypesMember(node);
         if (_inlineExtensionIndex.isGetter(node)) {
-          transformedBody = _getExternalGetterBody(node, shouldTrustType);
+          return _getExternalGetterInvocationBuilder(node, shouldTrustType);
         } else if (_inlineExtensionIndex.isSetter(node)) {
-          transformedBody = _getExternalSetterBody(node);
+          return _getExternalSetterInvocationBuilder(node);
         } else if (_inlineExtensionIndex.isMethod(node)) {
-          transformedBody = _getExternalMethodBody(node, shouldTrustType);
+          return _getExternalMethodInvocationBuilder(node, shouldTrustType);
         } else if (_inlineExtensionIndex.isOperator(node)) {
-          transformedBody = _getExternalOperatorBody(node, shouldTrustType);
+          return _getExternalOperatorInvocationBuilder(node, shouldTrustType);
         }
       } else {
         // Do the lowerings for top-levels, static class members, and
@@ -168,53 +157,22 @@ class JsUtilOptimizer extends Transformer {
           var shouldTrustType = node.enclosingClass != null &&
               hasTrustTypesAnnotation(node.enclosingClass!);
           if (_inlineExtensionIndex.isGetter(node)) {
-            transformedBody =
-                _getExternalGetterBody(node, shouldTrustType, receiver);
+            return _getExternalGetterInvocationBuilder(
+                node, shouldTrustType, receiver);
           } else if (_inlineExtensionIndex.isSetter(node)) {
-            transformedBody = _getExternalSetterBody(node, receiver);
+            return _getExternalSetterInvocationBuilder(node, receiver);
           } else if (_inlineExtensionIndex.isMethod(node)) {
-            transformedBody =
-                _getExternalMethodBody(node, shouldTrustType, receiver);
-          } else if (_isNonLiteralConstructor(node)) {
-            transformedBody = _getExternalConstructorBody(
-                node,
-                // Get the constructor object using the class name.
-                _getObjectOffGlobalThis(node, dottedPrefix.split('.')));
+            return _getExternalMethodInvocationBuilder(
+                node, shouldTrustType, receiver);
+          } else if (_inlineExtensionIndex.isNonLiteralConstructor(node)) {
+            // Get the constructor object using the class name.
+            return _getExternalConstructorInvocationBuilder(
+                node, _getObjectOffGlobalThis(node, dottedPrefix.split('.')));
           }
         }
       }
     }
-    if (transformedBody != null) {
-      node.function.body = transformedBody;
-      transformedBody.parent = node.function;
-      node.isExternal = false;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  visitProcedure(Procedure node) {
-    _staticTypeContext.enterMember(node);
-    if (!tryTransformProcedure(node)) {
-      node.transformChildren(this);
-    }
-    _staticTypeContext.leaveMember(node);
-    return node;
-  }
-
-  bool _isNonLiteralConstructor(Procedure node) {
-    if (node.isInlineClassMember) {
-      var kind =
-          _inlineExtensionIndex.getInlineDescriptor(node.reference)?.kind;
-      return (kind == InlineClassMemberKind.Constructor ||
-              kind == InlineClassMemberKind.Factory) &&
-          !hasObjectLiteralAnnotation(node);
-    } else {
-      return node.kind == ProcedureKind.Factory &&
-          node.enclosingClass != null &&
-          !hasAnonymousAnnotation(node.enclosingClass!);
-    }
+    return null;
   }
 
   /// Returns the prefixed JS name for the given [node] using the enclosing
@@ -227,23 +185,14 @@ class JsUtilOptimizer extends Transformer {
   /// 4. A `@JS` inline class constructor
   /// 5. A `@JS` inline class static member
   String? _getDottedPrefixForStaticallyResolvableMember(Procedure node) {
-    if (!node.isExternal) return null;
+    if (!node.isExternal || node.isExtensionMember) return null;
 
     var dottedPrefix = getJSName(node.enclosingLibrary);
 
     if (!node.isInlineClassMember &&
         node.enclosingClass == null &&
-        ((hasInternalJSInteropAnnotation(node) ||
-                hasInternalJSInteropAnnotation(node.enclosingLibrary)) &&
-            !_existingJsAnnotationsUsers
-                .contains(node.enclosingLibrary.importUri.toString()))) {
-      // Top-level external member. We only lower top-levels if we're using the
-      // `dart:_js_annotations`' `@JS` annotation to avoid a breaking change for
-      // `package:js` users. There are some internal libraries that already use
-      // this library, so we exclude them here.
-      // TODO(srujzs): When they're ready to migrate to sound semantics, we
-      // should remove this exception.
-
+        (hasDartJSInteropAnnotation(node) ||
+            hasDartJSInteropAnnotation(node.enclosingLibrary))) {
       // If the `@JS` value of the node has any '.'s, we take the entries
       // before the last '.' to determine the dotted prefix name.
       var jsName = getJSName(node);
@@ -257,15 +206,14 @@ class JsUtilOptimizer extends Transformer {
     } else {
       Annotatable enclosingClass;
       if (node.isInlineClassMember) {
-        var descriptor =
-            _inlineExtensionIndex.getInlineDescriptor(node.reference);
+        var descriptor = _inlineExtensionIndex.getInlineDescriptor(node);
         if (descriptor == null ||
             (!descriptor.isStatic &&
                 descriptor.kind != InlineClassMemberKind.Constructor &&
                 descriptor.kind != InlineClassMemberKind.Factory)) {
           return null;
         }
-        enclosingClass = _inlineExtensionIndex.getInlineClass(node.reference)!;
+        enclosingClass = _inlineExtensionIndex.getInlineClass(node)!;
       } else if (node.enclosingClass != null &&
           hasStaticInteropAnnotation(node.enclosingClass!)) {
         if (!node.isFactory && !node.isStatic) return null;
@@ -301,174 +249,175 @@ class JsUtilOptimizer extends Transformer {
   ///
   /// Returns an expression that contains the nested property gets.
   Expression _getObjectOffGlobalThis(Procedure node, List<String> selectors) {
-    Expression currentTarget = StaticGet(_globalThisTarget)
-      ..fileOffset = node.fileOffset;
+    Expression currentTarget = StaticGet(_globalThisTarget);
     for (String selector in selectors) {
       currentTarget = StaticInvocation(
           _getPropertyTrustTypeTarget,
           Arguments([currentTarget, StringLiteral(selector)],
-              types: [_objectType]))
-        ..fileOffset = node.fileOffset;
+              types: [_objectType]));
     }
     return currentTarget;
   }
 
-  /// Returns a new function body for the given [node] external getter.
+  /// Returns a new [_InvocationBuilder] for the given [node] external
+  /// getter.
   ///
-  /// The new function body will call the optimized version of
-  /// `js_util.getProperty` for the given external getter. If [shouldTrustType]
-  /// is true, we call a variant that does not check the return type. If
-  /// [maybeReceiver] is non-null, we use that instead of the first positional
-  /// parameter as the receiver for `js_util.getProperty`.
-  ReturnStatement _getExternalGetterBody(Procedure node, bool shouldTrustType,
+  /// The builder will return an [Expression] that will call the optimized
+  /// version of `js_util.getProperty` for the given external getter. If
+  /// [shouldTrustType] is true, the builder creates a variant that does not
+  /// check the return type. If [maybeReceiver] is non-null, the builder uses
+  /// that instead of the first positional argument as the receiver for
+  /// `js_util.getProperty`.
+  _InvocationBuilder _getExternalGetterInvocationBuilder(
+      Procedure node, bool shouldTrustType,
       [Expression? maybeReceiver]) {
-    var function = node.function;
-    // Parameter `this` only exists for inline and extension instance members.
-    // Operators take a `this` and an index.
-    final positionalParameters = function.positionalParameters;
-    bool isOperator = _inlineExtensionIndex.isOperator(node);
-    assert(positionalParameters.length ==
-        (isOperator
-            ? 2
-            : _inlineExtensionIndex.isInstanceInteropMember(node)
-                ? 1
-                : 0));
-    Procedure target =
+    final target =
         shouldTrustType ? _getPropertyTrustTypeTarget : _getPropertyTarget;
-    final receiver = maybeReceiver ?? VariableGet(positionalParameters.first);
-    final property = isOperator
-        ? VariableGet(positionalParameters[1])
-        : StringLiteral(_getMemberJSName(node));
-    final getPropertyInvocation = StaticInvocation(
-        target, Arguments([receiver, property], types: [function.returnType]))
-      ..fileOffset = node.fileOffset;
-    return ReturnStatement(getPropertyInvocation);
+    final isOperator = _inlineExtensionIndex.isOperator(node);
+    final isInstanceInteropMember =
+        _inlineExtensionIndex.isInstanceInteropMember(node);
+    final name = _getMemberJSName(node);
+    return (Arguments arguments, Expression invocation) {
+      // Parameter `this` only exists for inline and extension instance members.
+      // Operators take a `this` and an index.
+      final positionalArgs = arguments.positional;
+      assert(positionalArgs.length ==
+          (isOperator
+              ? 2
+              : isInstanceInteropMember
+                  ? 1
+                  : 0));
+      // We clone the receiver as each invocation needs a fresh node.
+      final receiver = maybeReceiver == null
+          ? positionalArgs.first
+          : _cloner.clone(maybeReceiver);
+      final property = isOperator ? positionalArgs[1] : StringLiteral(name);
+      return StaticInvocation(
+          target,
+          Arguments([receiver, property],
+              types: [invocation.getStaticType(_staticTypeContext)]))
+        ..fileOffset = invocation.fileOffset
+        ..parent = invocation.parent;
+    };
   }
 
-  /// Returns a new function body for the given [node] external setter.
+  /// Returns a new [_InvocationBuilder] for the given [node] external
+  /// setter.
   ///
-  /// The new function body will call the optimized version of
-  /// `js_util.setProperty` for the given external setter. If [maybeReceiver] is
-  /// non-null, we use that instead of the first positional parameter as the
-  /// receiver for `js_util.setProperty`.
-  ReturnStatement _getExternalSetterBody(Procedure node,
+  /// The builder will return an [Expression] that will call the optimized
+  /// version of `js_util.setProperty` for the given external setter. If
+  /// [maybeReceiver] is non-null, the builder uses that instead of the first
+  /// positional argument as the receiver for `js_util.setProperty`.
+  _InvocationBuilder _getExternalSetterInvocationBuilder(Procedure node,
       [Expression? maybeReceiver]) {
-    var function = node.function;
-    // Parameter `this` only exists for inline and extension instance members.
-    // Operators take a `this`, an index, and a value.
-    final positionalParameters = function.positionalParameters;
-    bool isOperator = _inlineExtensionIndex.isOperator(node);
-    assert(positionalParameters.length ==
-        (isOperator
-            ? 3
-            : _inlineExtensionIndex.isInstanceInteropMember(node)
-                ? 2
-                : 1));
-    final receiver = maybeReceiver ?? VariableGet(positionalParameters.first);
-    final index = isOperator
-        ? VariableGet(positionalParameters[1])
-        : StringLiteral(_getMemberJSName(node));
-    final value = positionalParameters.last;
-    final setPropertyInvocation = StaticInvocation(_setPropertyTarget,
-        Arguments([receiver, index, VariableGet(value)], types: [value.type]))
-      ..fileOffset = node.fileOffset;
-    return ReturnStatement(_lowerSetProperty(setPropertyInvocation));
+    final isOperator = _inlineExtensionIndex.isOperator(node);
+    final isInstanceInteropMember =
+        _inlineExtensionIndex.isInstanceInteropMember(node);
+    final name = _getMemberJSName(node);
+    return (Arguments arguments, Expression invocation) {
+      // Parameter `this` only exists for inline and extension instance members.
+      // Operators take a `this`, an index, and a value.
+      final positionalArgs = arguments.positional;
+      assert(positionalArgs.length ==
+          (isOperator
+              ? 3
+              : isInstanceInteropMember
+                  ? 2
+                  : 1));
+      final receiver = maybeReceiver == null
+          ? positionalArgs.first
+          : _cloner.clone(maybeReceiver);
+      final property = isOperator ? positionalArgs[1] : StringLiteral(name);
+      final value = positionalArgs.last;
+      return StaticInvocation(
+          _setPropertyTarget,
+          Arguments([receiver, property, value],
+              types: [value.getStaticType(_staticTypeContext)]))
+        ..fileOffset = invocation.fileOffset
+        ..parent = invocation.parent;
+    };
   }
 
-  /// Returns a new function body for the given [node] external method.
+  /// Returns a new [_InvocationBuilder] for the given [node] external
+  /// method.
   ///
-  /// The new function body will call the optimized version of
-  /// `js_util.callMethod` for the given external method. If [shouldTrustType]
-  /// is true, we call a variant that does not check the return type. If
-  /// [maybeReceiver] is non-null, we use that instead of the first positional
-  /// parameter as the receiver for `js_util.callMethod`.
-  ReturnStatement _getExternalMethodBody(Procedure node, bool shouldTrustType,
+  /// The builder will return an [Expression] that will call the optimized
+  /// version of `js_util.callMethod` for the given external method. If
+  /// [shouldTrustType] is true, the builder creates a variant that does not
+  /// check the return type. If [maybeReceiver] is non-null, the builder uses
+  /// that instead of the first positional argument as the receiver for
+  /// `js_util.callMethod`.
+  _InvocationBuilder _getExternalMethodInvocationBuilder(
+      Procedure node, bool shouldTrustType,
       [Expression? maybeReceiver]) {
-    if (_inlineExtensionIndex.isJSInteropMember(node)) {
-      _proceduresToSpecialize[node] = _MethodCallSiteSpecialization(
-          shouldTrustType, maybeReceiver, _MethodSpecializationType.method);
-    }
-    return ReturnStatement(_getExternalMethodInvocation(
-        node,
-        shouldTrustType,
-        node.function.positionalParameters
-            .map<Expression>((v) => VariableGet(v))
-            .toList(),
-        maybeReceiver));
-  }
-
-  StaticInvocation _getExternalMethodInvocation(
-      Procedure node, bool shouldTrustType, List<Expression> arguments,
-      [Expression? maybeReceiver]) {
-    final function = node.function;
-    Procedure target =
+    final target =
         shouldTrustType ? _callMethodTrustTypeTarget : _callMethodTarget;
-    final receiver = maybeReceiver ?? arguments.first;
-    if (_inlineExtensionIndex.isInstanceInteropMember(node)) {
-      // Ignore `this` for inline and extension members.
-      arguments = arguments.sublist(1);
-    }
-    var callMethodInvocation = StaticInvocation(
-        target,
-        Arguments([
-          receiver,
-          StringLiteral(_getMemberJSName(node)),
-          ListLiteral(arguments),
-        ], types: [
-          function.returnType
-        ]))
-      ..fileOffset = node.fileOffset;
-    return _lowerCallMethod(callMethodInvocation,
-        shouldTrustType: shouldTrustType);
+    final isInstanceInteropMember =
+        _inlineExtensionIndex.isInstanceInteropMember(node);
+    final name = _getMemberJSName(node);
+    return (Arguments arguments, Expression invocation) {
+      var positional = arguments.positional;
+      final receiver = maybeReceiver == null
+          ? positional.first
+          : _cloner.clone(maybeReceiver);
+      if (isInstanceInteropMember) {
+        // Ignore `this` for inline and extension members.
+        positional = positional.sublist(1);
+      }
+      final callMethodInvocation = StaticInvocation(
+          target,
+          Arguments([
+            receiver,
+            StringLiteral(name),
+            ListLiteral(positional),
+          ], types: [
+            invocation.getStaticType(_staticTypeContext)
+          ]))
+        ..fileOffset = invocation.fileOffset
+        ..parent = invocation.parent;
+      return _lowerCallMethod(callMethodInvocation,
+          shouldTrustType: shouldTrustType);
+    };
   }
 
-  /// Returns a new function body for the given [node] external operator.
-  ReturnStatement? _getExternalOperatorBody(
-      Procedure node, bool shouldTrustTypes) {
-    switch (_inlineExtensionIndex.operatorName(node)) {
-      case '[]':
-        return _getExternalGetterBody(node, shouldTrustTypes);
-      case '[]=':
-        return _getExternalSetterBody(node);
-      default:
-        // TODO(joshualitt): Unfortunately, our current behavior is to allow
-        // operators on extension methods to `@JS` classes, but the runtime
-        // behavior is undefined. We should really convert this to an error, but
-        // it would also technically be a breaking change.
-        return null;
-    }
-  }
-
-  /// Returns a new function body for the given [node] external non-object
-  /// literal factory.
+  /// Returns a new [_InvocationBuilder] for the [node] external operator.
   ///
-  /// The new function body will call the optimized version of
-  /// `js_util.callConstructor` using the given [constructor] and the arguments
-  /// of the provided external factory.
-  ReturnStatement _getExternalConstructorBody(
-      Procedure node, Expression constructor) {
-    if (_inlineExtensionIndex.isJSInteropMember(node)) {
-      _proceduresToSpecialize[node] = _MethodCallSiteSpecialization(
-          false, constructor, _MethodSpecializationType.constructor);
+  /// This function only supports '[]' and '[]=' for now.
+  _InvocationBuilder? _getExternalOperatorInvocationBuilder(
+      Procedure node, bool shouldTrustType) {
+    final operator =
+        _inlineExtensionIndex.getInlineDescriptor(node)?.name.text ??
+            _inlineExtensionIndex.getExtensionDescriptor(node)?.name.text;
+    switch (operator) {
+      case '[]':
+        return _getExternalGetterInvocationBuilder(node, shouldTrustType);
+      case '[]=':
+        return _getExternalSetterInvocationBuilder(node);
+      default:
+        throw 'External operator $operator is unsupported for static interop.';
     }
-    return ReturnStatement(_getExternalConstructorInvocation(
-        node,
-        constructor,
-        node.function.positionalParameters
-            .map<Expression>((argument) => VariableGet(argument))
-            .toList()));
   }
 
-  StaticInvocation _getExternalConstructorInvocation(
-      Procedure node, Expression constructor, List<Expression> parameters) {
-    var function = node.function;
+  /// Returns a new [_InvocationBuilder] for the given [node] external
+  /// non-object literal factory.
+  ///
+  /// The builder will return an [Expression] that will call the optimized
+  /// version of `js_util.callConstructor` using the given [constructor] and the
+  /// [Arguments] of the [Expression] that calls [node].
+  _InvocationBuilder _getExternalConstructorInvocationBuilder(
+      Procedure node, Expression constructor) {
+    final function = node.function;
     assert(function.namedParameters.isEmpty);
-    var callConstructorInvocation = StaticInvocation(
-        _callConstructorTarget,
-        Arguments([constructor, ListLiteral(parameters)],
-            types: [function.returnType]))
-      ..fileOffset = node.fileOffset;
-    return _lowerCallConstructor(callConstructorInvocation);
+    return (Arguments arguments, Expression invocation) {
+      final callConstructorInvocation = StaticInvocation(
+          _callConstructorTarget,
+          Arguments(
+              [_cloner.clone(constructor), ListLiteral(arguments.positional)],
+              types: [invocation.getStaticType(_staticTypeContext)]))
+        ..fileOffset = invocation.fileOffset
+        ..parent = invocation.parent;
+      return _lowerCallConstructor(callConstructorInvocation);
+    };
   }
 
   /// Returns the underlying JS name.
@@ -485,67 +434,75 @@ class JsUtilOptimizer extends Transformer {
       // receiver to the lowerings. Here, we just take the final identifier.
       return jsAnnotationName.split('.').last;
     } else if (node.isExtensionMember) {
-      return _inlineExtensionIndex
-          .getExtensionDescriptor(node.reference)!
-          .name
-          .text;
+      return _inlineExtensionIndex.getExtensionDescriptor(node)!.name.text;
     } else if (node.isInlineClassMember) {
-      return _inlineExtensionIndex
-          .getInlineDescriptor(node.reference)!
-          .name
-          .text;
+      return _inlineExtensionIndex.getInlineDescriptor(node)!.name.text;
     } else {
       return node.name.text;
     }
   }
 
-  /// Replaces js_util method calls with optimization when possible.
+  /// Replaces js_util method and static interop member calls with optimization
+  /// when possible.
   ///
-  /// Lowers `setProperty` to  `_setPropertyUnchecked` for values that are
+  /// - Lowers `setProperty` to  `_setPropertyUnchecked` for values that are
   /// not Function type and guaranteed to be interop allowed.
-  /// Lowers `callMethod` to `_callMethodUncheckedN` when the number of given
+  /// - Lowers `callMethod` to `_callMethodUncheckedN` when the number of given
   /// arguments is 0-4 and all arguments are guaranteed to be interop allowed.
-  /// Lowers `callConstructor` to `_callConstructorUncheckedN` when there are
+  /// - Lowers `callConstructor` to `_callConstructorUncheckedN` when there are
   /// 0-4 arguments and all arguments are guaranteed to be interop allowed.
+  /// - Computes and caches a [_InvocationBuilder] for a given non-custom static
+  /// interop invocation, and then calls that builder to replace the current
+  /// [node].
   @override
-  visitStaticInvocation(StaticInvocation node) {
+  TreeNode visitStaticInvocation(StaticInvocation node) {
+    Expression invocation = node;
     final target = node.target;
     if (target == _setPropertyTarget) {
-      node = _lowerSetProperty(node);
+      invocation = _lowerSetProperty(node);
     } else if (target == _callMethodTarget) {
       // Never trust types on explicit `js_util` calls.
-      node = _lowerCallMethod(node, shouldTrustType: false);
+      invocation = _lowerCallMethod(node, shouldTrustType: false);
     } else if (target == _callConstructorTarget) {
-      node = _lowerCallConstructor(node);
-    } else if (target.isExternal) {
-      tryTransformProcedure(target);
+      invocation = _lowerCallConstructor(node);
+    } else if (target.isExternal &&
+        !JsInteropChecks.isAllowedCustomStaticInteropImplementation(target)) {
+      final builder = _externalInvocationBuilders.putIfAbsent(
+          target, () => _getExternalInvocationBuilder(target));
+      if (builder != null) invocation = builder(node.arguments, node);
     }
+    invocation.transformChildren(this);
+    return invocation;
+  }
 
-    // Make sure to call [tryTransformProcedure] before specializing, just in
-    // case we haven't visited the [Procedure] yet.
-    if (_proceduresToSpecialize.containsKey(target)) {
-      final function = target.function;
-      final positional = node.arguments.positional;
-      if (positional.length < function.positionalParameters.length) {
-        final specialization = _proceduresToSpecialize[target]!;
-        switch (specialization.type) {
-          case _MethodSpecializationType.method:
-            node = _getExternalMethodInvocation(
-                target,
-                specialization.shouldTrustType,
-                positional,
-                specialization.maybeReceiver)
-              ..fileOffset = node.fileOffset;
-            break;
-          case _MethodSpecializationType.constructor:
-            node = _getExternalConstructorInvocation(
-                target, specialization.maybeReceiver!, positional)
-              ..fileOffset = node.fileOffset;
-        }
-      }
+  @override
+  TreeNode visitStaticGet(StaticGet node) {
+    Expression invocation = node;
+    final target = node.target;
+    if (target.isExternal && target is Procedure) {
+      // Reference to a static interop getter declared as static. Note that we
+      // provide no arguments as static getters do not have a 'this'.
+      final builder = _externalInvocationBuilders.putIfAbsent(
+          target, () => _getExternalInvocationBuilder(target));
+      if (builder != null) invocation = builder(Arguments([]), node);
     }
-    node.transformChildren(this);
-    return node;
+    invocation.transformChildren(this);
+    return invocation;
+  }
+
+  @override
+  TreeNode visitStaticSet(StaticSet node) {
+    Expression invocation = node;
+    final target = node.target;
+    if (target.isExternal && target is Procedure) {
+      // Reference to a static interop setter declared as static. Note that we
+      // provide only the value as static setters do not have a 'this'.
+      final builder = _externalInvocationBuilders.putIfAbsent(
+          target, () => _getExternalInvocationBuilder(target));
+      if (builder != null) invocation = builder(Arguments([node.value]), node);
+    }
+    invocation.transformChildren(this);
+    return invocation;
   }
 
   /// Lowers the given js_util `setProperty` call to `_setPropertyUnchecked`
@@ -721,36 +678,48 @@ class JsUtilOptimizer extends Transformer {
   }
 }
 
-/// Lazily-initialized indexes for extension members and inline class members.
+/// Lazily-initialized indexes for extension and inline class interop members.
+///
+/// As the query APIs are called, we process the enclosing libraries of the
+/// member in question if needed. We only process JS interop inline classes and
+/// extensions on either JS interop or @Native classes.
 class InlineExtensionIndex {
-  late Map<Reference, Annotatable> _extensionAnnotatableIndex;
-  late Map<Reference, Extension> _extensionIndex;
-  Map<Reference, ExtensionMemberDescriptor>? _extensionMemberIndex;
-  late Map<Reference, InlineClass> _inlineClassIndex;
-  Map<Reference, InlineClassMemberDescriptor>? _inlineMemberIndex;
-  late Set<Reference> _shouldTrustType;
+  final CoreTypes _coreTypes;
+  final Map<Reference, Annotatable> _extensionAnnotatableIndex = {};
+  final Map<Reference, Extension> _extensionIndex = {};
+  final Map<Reference, ExtensionMemberDescriptor> _extensionMemberIndex = {};
+  final Map<Reference, Reference> _extensionTearOffIndex = {};
+  final Map<Reference, InlineClass> _inlineClassIndex = {};
+  final Map<Reference, InlineClassMemberDescriptor> _inlineMemberIndex = {};
+  final Map<Reference, Reference> _inlineTearOffIndex = {};
+  final Map<Reference, bool> _interopInlineClassIndex = {};
+  final Set<Library> _processedExtensionLibraries = {};
+  final Set<Library> _processedInlineLibraries = {};
+  final Set<Reference> _shouldTrustType = {};
+  final TypeEnvironment _typeEnvironment;
 
-  final Library _library;
+  InlineExtensionIndex(this._coreTypes, this._typeEnvironment);
 
-  InlineExtensionIndex(this._library);
-
-  /// For all extension members in `_library` whose on-type has a
-  /// `@JS` or `@Native` annotation, initializes `_extensionMemberIndex` to an
-  /// index of the extension member references to the member's
-  /// `ExtensionMemberDescriptor`.
+  /// If unprocessed, for all extension members in [library] whose on-type is a
+  /// JS interop or `@Native` class, does the following:
   ///
-  /// Also initializes `_shouldTrustType` to the set of extension member
-  /// references whose on-type has a `@trustTypes` annotation.
-  void _createExtensionIndexes() {
-    if (_extensionMemberIndex != null) return;
-    _extensionMemberIndex = {};
-    _shouldTrustType = {};
-    _extensionAnnotatableIndex = {};
-    _extensionIndex = {};
-    for (var extension in _library.extensions) {
+  /// - Maps the member to its on-type in `_extensionAnnotatableIndex`.
+  /// - Maps the member to its extension in `_extensionIndex`.
+  /// - Maps the member to its descriptor in `_extensionMemberIndex`.
+  /// - Adds the member to `_shouldTrustTypes` if the on-type has a
+  /// `@trustTypes` annotation.
+  /// - Maps the tear-off member to the member it tears off in
+  /// `extensionTearOffIndex`.
+  void _indexExtensions(Library library) {
+    if (_processedExtensionLibraries.contains(library)) return;
+    for (var extension in library.extensions) {
+      // Descriptors of tear-offs have the same name as the member they tear
+      // off. This is used to find the tear-offs and their associated member.
+      final descriptorNames = <String, ExtensionMemberDescriptor>{};
       for (var descriptor in extension.members) {
         var reference = descriptor.member;
         var onType = extension.onType;
+        bool isInteropOnType = false;
         Annotatable? cls;
         if (onType is InterfaceType) {
           cls = onType.classNode;
@@ -759,66 +728,163 @@ class InlineExtensionIndex {
           if (hasTrustTypesAnnotation(cls)) {
             _shouldTrustType.add(reference);
           }
+          isInteropOnType =
+              hasJSInteropAnnotation(cls) || hasNativeAnnotation(cls);
         } else if (onType is InlineType) {
-          cls = onType.inlineClass;
+          final inlineClass = onType.inlineClass;
+          cls = inlineClass;
+          isInteropOnType = isInteropInlineClass(inlineClass);
         }
-        if (cls == null) continue;
-        if (hasJSInteropAnnotation(cls) || hasNativeAnnotation(cls)) {
-          _extensionMemberIndex![reference] = descriptor;
-          _extensionAnnotatableIndex[reference] = cls;
-          _extensionIndex[reference] = extension;
+        if (!isInteropOnType) continue;
+        _extensionMemberIndex[reference] = descriptor;
+        _extensionAnnotatableIndex[reference] = cls!;
+        _extensionIndex[reference] = extension;
+        if (descriptor.kind == ExtensionMemberKind.Method ||
+            descriptor.kind == ExtensionMemberKind.TearOff) {
+          final descriptorName = descriptor.name.text;
+          if (descriptorNames.containsKey(descriptorName)) {
+            final previousDesc = descriptorNames[descriptorName]!;
+            if (previousDesc.kind == ExtensionMemberKind.TearOff) {
+              _extensionTearOffIndex[previousDesc.member] = descriptor.member;
+            } else {
+              _extensionTearOffIndex[descriptor.member] = previousDesc.member;
+            }
+          } else {
+            descriptorNames[descriptorName] = descriptor;
+          }
         }
       }
     }
+    _processedExtensionLibraries.add(library);
   }
 
-  Annotatable? getExtensionAnnotatable(Reference reference) {
-    _createExtensionIndexes();
-    return _extensionAnnotatableIndex[reference];
+  Annotatable? getExtensionAnnotatable(Member member) {
+    if (!member.isExtensionMember) return null;
+    _indexExtensions(member.enclosingLibrary);
+    return _extensionAnnotatableIndex[member.reference];
   }
 
-  Extension? getExtension(Reference reference) {
-    _createExtensionIndexes();
-    return _extensionIndex[reference];
+  Extension? getExtension(Member member) {
+    if (!member.isExtensionMember) return null;
+    _indexExtensions(member.enclosingLibrary);
+    return _extensionIndex[member.reference];
   }
 
-  ExtensionMemberDescriptor? getExtensionDescriptor(Reference reference) {
-    _createExtensionIndexes();
-    return _extensionMemberIndex![reference];
+  ExtensionMemberDescriptor? getExtensionDescriptor(Member member) {
+    if (!member.isExtensionMember) return null;
+    _indexExtensions(member.enclosingLibrary);
+    return _extensionMemberIndex[member.reference];
   }
 
-  bool isTrustTypesMember(Reference reference) {
-    _createExtensionIndexes();
-    return _shouldTrustType.contains(reference);
+  bool isTrustTypesMember(Member member) {
+    if (!member.isExtensionMember) return false;
+    _indexExtensions(member.enclosingLibrary);
+    return _shouldTrustType.contains(member.reference);
   }
 
-  /// For all inline class members in `_library` whose class has a `@JS`
-  /// annotation, initializes `_inlineMemberIndex` and `_inlineClassIndex` to
-  /// indices of the inline class member references to the member's
-  /// `InlineClassMemberDescriptor` and `InlineClass`.
-  void _createInlineIndexes() {
-    if (_inlineMemberIndex != null) return;
-    _inlineMemberIndex = {};
-    _inlineClassIndex = {};
-    for (var inlineClass in _library.inlineClasses) {
-      if (hasJSInteropAnnotation(inlineClass)) {
+  Reference? getExtensionMemberForTearOff(Member member) {
+    if (!member.isExtensionMember) return null;
+    _indexExtensions(member.enclosingLibrary);
+    return _extensionTearOffIndex[member.reference];
+  }
+
+  /// Caches and returns whether the ultimate representation type that
+  /// corresponds to [inlineClass]' representation type is an interop type that
+  /// can be statically interoperable.
+  ///
+  /// This currently allows the interface type to be:
+  /// - all package:js classes
+  /// - dart:js_types types
+  /// - @Native types that implement JavaScriptObject
+  bool isInteropInlineClass(InlineClass inlineClass) {
+    final reference = inlineClass.reference;
+    if (_interopInlineClassIndex.containsKey(reference)) {
+      return _interopInlineClassIndex[reference]!;
+    }
+    DartType repType = inlineClass.declaredRepresentationType;
+    // TODO(srujzs): This iteration is currently needed since
+    // `instantiatedRepresentationType` doesn't do this for us. Remove this
+    // iteration when the CFE changes this getter.
+    while (repType is InlineType) {
+      repType = repType.instantiatedRepresentationType;
+    }
+    if (repType is InterfaceType) {
+      final cls = repType.classNode;
+      // TODO(srujzs): Note that dart:_js_types types currently use a custom
+      // lowering of @staticInterop. Once
+      // https://github.com/dart-lang/sdk/issues/52687 is handled, we should
+      // modify this if-check to handle the new representation.
+      final javaScriptObject = _coreTypes.index
+          .tryGetClass('dart:_interceptors', 'JavaScriptObject');
+      if (hasStaticInteropAnnotation(cls) ||
+          (javaScriptObject != null &&
+              hasNativeAnnotation(cls) &&
+              _typeEnvironment.isSubtypeOf(
+                  repType,
+                  InterfaceType(javaScriptObject, Nullability.nullable),
+                  SubtypeCheckMode.withNullabilities))) {
+        _interopInlineClassIndex[reference] = true;
+        return true;
+      }
+    }
+    _interopInlineClassIndex[reference] = false;
+    return false;
+  }
+
+  /// If unprocessed, for all inline class members in [library] whose inline
+  /// class is static interop, does the following:
+  ///
+  /// - Maps the inline class to its interop type
+  /// - Maps the member to its inline class in `_inlineClassIndex`.
+  /// - Maps the member to its descriptor in `_inlineMemberIndex`.
+  /// - Maps the tear-off member to the member it tears off in
+  /// `inlineTearOffIndex`.
+  void _indexInlineClasses(Library library) {
+    if (_processedInlineLibraries.contains(library)) return;
+    for (var inlineClass in library.inlineClasses) {
+      if (isInteropInlineClass(inlineClass)) {
+        final descriptorNames = <String, InlineClassMemberDescriptor>{};
         for (var descriptor in inlineClass.members) {
-          var reference = descriptor.member;
-          _inlineMemberIndex![reference] = descriptor;
+          final reference = descriptor.member;
+          _inlineMemberIndex[reference] = descriptor;
           _inlineClassIndex[reference] = inlineClass;
+          if (descriptor.kind == InlineClassMemberKind.Method ||
+              descriptor.kind == InlineClassMemberKind.Constructor ||
+              descriptor.kind == InlineClassMemberKind.TearOff) {
+            final descriptorName = descriptor.name.text;
+            if (descriptorNames.containsKey(descriptorName)) {
+              final previousDesc = descriptorNames[descriptorName]!;
+              if (previousDesc.kind == InlineClassMemberKind.TearOff) {
+                _inlineTearOffIndex[previousDesc.member] = descriptor.member;
+              } else {
+                _inlineTearOffIndex[descriptor.member] = previousDesc.member;
+              }
+            } else {
+              descriptorNames[descriptorName] = descriptor;
+            }
+          }
         }
       }
     }
+    _processedInlineLibraries.add(library);
   }
 
-  InlineClassMemberDescriptor? getInlineDescriptor(Reference reference) {
-    _createInlineIndexes();
-    return _inlineMemberIndex![reference];
+  InlineClassMemberDescriptor? getInlineDescriptor(Member member) {
+    if (!member.isInlineClassMember) return null;
+    _indexInlineClasses(member.enclosingLibrary);
+    return _inlineMemberIndex[member.reference];
   }
 
-  InlineClass? getInlineClass(Reference reference) {
-    _createInlineIndexes();
-    return _inlineClassIndex[reference];
+  InlineClass? getInlineClass(Member member) {
+    if (!member.isInlineClassMember) return null;
+    _indexInlineClasses(member.enclosingLibrary);
+    return _inlineClassIndex[member.reference];
+  }
+
+  Reference? getInlineMemberForTearOff(Member member) {
+    if (!member.isInlineClassMember) return null;
+    _indexInlineClasses(member.enclosingLibrary);
+    return _inlineTearOffIndex[member.reference];
   }
 
   /// Return whether [node] is either an extension member that's declared as
@@ -826,10 +892,10 @@ class InlineExtensionIndex {
   /// and is not a factory or constructor.
   bool isInstanceInteropMember(Member node) {
     if (node.isExtensionMember) {
-      var descriptor = getExtensionDescriptor(node.reference);
+      var descriptor = getExtensionDescriptor(node);
       return descriptor != null && !descriptor.isStatic;
     } else if (node.isInlineClassMember) {
-      var descriptor = getInlineDescriptor(node.reference);
+      var descriptor = getInlineDescriptor(node);
       return descriptor != null &&
           !descriptor.isStatic &&
           descriptor.kind != InlineClassMemberKind.Constructor &&
@@ -840,11 +906,10 @@ class InlineExtensionIndex {
 
   bool _isOneOfKinds(Procedure node, InlineClassMemberKind inlineKind,
       ExtensionMemberKind extensionKind, ProcedureKind procedureKind) {
-    var reference = node.reference;
     if (node.isInlineClassMember) {
-      return getInlineDescriptor(reference)?.kind == inlineKind;
+      return getInlineDescriptor(node)?.kind == inlineKind;
     } else if (node.isExtensionMember) {
-      return getExtensionDescriptor(reference)?.kind == extensionKind;
+      return getExtensionDescriptor(node)?.kind == extensionKind;
     } else {
       return node.kind == procedureKind;
     }
@@ -874,45 +939,32 @@ class InlineExtensionIndex {
       ExtensionMemberKind.Operator,
       ProcedureKind.Operator);
 
-  String operatorName(Procedure node) {
-    if (getJSName(node).isNotEmpty) {
-      throw Exception('Operators cannot have `@JS` annotations.');
-    }
-    final reference = node.reference;
-    final String name;
+  /// Return whether [node] is an external static interop constructor/factory.
+  ///
+  /// If [literal] is true, we check if [node] is an object literal constructor,
+  /// and if not, we check that it's a non-literal constructor.
+  bool _isStaticInteropConstructor(Procedure node, {required bool literal}) {
+    if (!node.isExternal) return false;
     if (node.isInlineClassMember) {
-      name = getInlineDescriptor(reference)!.name.text;
-    } else if (node.isExtensionMember) {
-      name = getExtensionDescriptor(reference)!.name.text;
-    } else {
-      throw Exception(
-          'Operators are only allowed on extensions / inline classes');
+      final kind = getInlineDescriptor(node)?.kind;
+      final namedParams = node.function.namedParameters;
+      return (kind == InlineClassMemberKind.Constructor ||
+                  kind == InlineClassMemberKind.Factory) &&
+              literal
+          ? namedParams.isNotEmpty
+          : namedParams.isEmpty;
+    } else if (node.kind == ProcedureKind.Factory &&
+        node.enclosingClass != null &&
+        hasJSInteropAnnotation(node.enclosingClass!)) {
+      final isAnonymous = hasAnonymousAnnotation(node.enclosingClass!);
+      return literal ? isAnonymous : !isAnonymous;
     }
-    return name;
-  }
-
-  bool isJSInteropMember(Procedure node) {
-    if (hasInternalJSInteropAnnotation(node) ||
-        hasInternalJSInteropAnnotation(node.enclosingLibrary) ||
-        (node.enclosingClass != null &&
-            hasInternalJSInteropAnnotation(node.enclosingClass!))) {
-      return true;
-    }
-
-    if (node.isExtensionMember) {
-      final annotatable = getExtensionAnnotatable(node.reference);
-      if (annotatable != null) {
-        return hasInternalJSInteropAnnotation(annotatable);
-      }
-    }
-
-    if (node.isInlineClassMember) {
-      final cls = getInlineClass(node.reference);
-      if (cls != null) {
-        return hasInternalJSInteropAnnotation(cls);
-      }
-    }
-
     return false;
   }
+
+  bool isLiteralConstructor(Procedure node) =>
+      _isStaticInteropConstructor(node, literal: true);
+
+  bool isNonLiteralConstructor(Procedure node) =>
+      _isStaticInteropConstructor(node, literal: false);
 }

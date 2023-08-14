@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "main_lib.dart" as mai;
@@ -112,7 +112,7 @@ abstract class C8 extends mai::C5 implements mai::C7 {
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 

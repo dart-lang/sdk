@@ -34,7 +34,7 @@ class VmService {
   static const char* GetServerAddress() { return &server_uri_[0]; }
 
  private:
-  static const intptr_t kServerUriStringBufferSize = 1024;
+  static constexpr intptr_t kServerUriStringBufferSize = 1024;
   friend void NotifyServerState(Dart_NativeArguments args);
 
   static void SetServerAddress(const char* server_uri_);

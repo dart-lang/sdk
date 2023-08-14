@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ReplaceCascadeWithDot extends CorrectionProducer {
+class ReplaceCascadeWithDot extends ResolvedCorrectionProducer {
   static final Map<TokenType, String> _indexReplacement = {
     TokenType.PERIOD_PERIOD: '',
     TokenType.QUESTION_PERIOD_PERIOD: '?',

@@ -19,7 +19,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 bool hasFix(ErrorCode errorCode) {
   if (errorCode is LintCode) {
     var lintName = errorCode.name;
-    return FixProcessor.lintProducerMap.containsKey(lintName);
+    return FixProcessor.lintProducerMap.containsKey(lintName) ||
+        FixProcessor.lintMultiProducerMap.containsKey(lintName);
   }
   // TODO(brianwilkerson) Either deprecate the part of the protocol supported by
   //  this function, or handle error codes associated with non-dart files.
@@ -223,6 +224,11 @@ class DartFixKind {
     70,
     "Add required argument '{0}'",
   );
+  static const ADD_MISSING_SWITCH_CASES = FixKind(
+    'dart.fix.add.missingSwitchCases',
+    DartFixKindPriority.DEFAULT,
+    'Add missing switch cases',
+  );
   static const ADD_NE_NULL = FixKind(
     'dart.fix.add.neNull',
     DartFixKindPriority.DEFAULT,
@@ -247,6 +253,16 @@ class DartFixKind {
     'dart.fix.add.override.multi',
     DartFixKindPriority.IN_FILE,
     "Add '@override' annotations everywhere in file",
+  );
+  static const ADD_REOPEN = FixKind(
+    'dart.fix.add.reopen',
+    DartFixKindPriority.DEFAULT,
+    "Add '@reopen' annotation",
+  );
+  static const ADD_REOPEN_MULTI = FixKind(
+    'dart.fix.add.reopen.multi',
+    DartFixKindPriority.IN_FILE,
+    "Add '@reopen' annotations everywhere in file",
   );
   static const ADD_REQUIRED = FixKind(
     'dart.fix.add.required',
@@ -413,10 +429,25 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Convert the quotes and remove escapes everywhere in file',
   );
+  static const CONVERT_TO_BOOL_EXPRESSION = FixKind(
+    'dart.fix.convert.toBoolExpression',
+    DartFixKindPriority.DEFAULT,
+    'Convert to boolean expression',
+  );
+  static const CONVERT_TO_BOOL_EXPRESSION_MULTI = FixKind(
+    'dart.fix.convert.toBoolExpression.multi',
+    DartFixKindPriority.DEFAULT,
+    'Convert to boolean expressions everywhere in file',
+  );
   static const CONVERT_TO_CASCADE = FixKind(
     'dart.fix.convert.toCascade',
     DartFixKindPriority.DEFAULT,
     'Convert to cascade notation',
+  );
+  static const CONVERT_TO_CONSTANT_PATTERN = FixKind(
+    'dart.fix.convert.toConstantPattern',
+    49,
+    "Convert to constant pattern",
   );
   static const CONVERT_TO_CONTAINS = FixKind(
     'dart.fix.convert.toContains',
@@ -648,11 +679,6 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Convert to wildcard pattern",
   );
-  static const CONVERT_TO_WILDCARD_PATTERN_MULTI = FixKind(
-    'dart.fix.convert.toWildcardPattern.multi',
-    DartFixKindPriority.DEFAULT,
-    "Convert to wildcard pattern everywhere in file",
-  );
   static const CREATE_CLASS = FixKind(
     'dart.fix.create.class',
     DartFixKindPriority.DEFAULT,
@@ -667,6 +693,11 @@ class DartFixKind {
     'dart.fix.create.constructorForFinalFields',
     DartFixKindPriority.DEFAULT,
     'Create constructor for final fields',
+  );
+  static const CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS_REQUIRED_NAMED = FixKind(
+    'dart.fix.create.constructorForFinalFields.requiredNamed',
+    DartFixKindPriority.DEFAULT,
+    'Create constructor for final fields, required named',
   );
   static const CREATE_CONSTRUCTOR_SUPER = FixKind(
     'dart.fix.create.constructorSuper',
@@ -753,7 +784,7 @@ class DartFixKind {
   static const IGNORE_ERROR_FILE = FixKind(
     'dart.fix.ignore.file',
     DartFixKindPriority.IGNORE - 1,
-    "Ignore '{0}' for this file",
+    "Ignore '{0}' for the whole file",
   );
   static const IMPORT_ASYNC = FixKind(
     'dart.fix.import.async',
@@ -993,6 +1024,11 @@ class DartFixKind {
     'dart.fix.remove.const',
     DartFixKindPriority.DEFAULT,
     'Remove const',
+  );
+  static const REMOVE_CONSTRUCTOR = FixKind(
+    'dart.fix.remove.constructor',
+    DartFixKindPriority.DEFAULT,
+    'Remove the constructor',
   );
   static const REMOVE_CONSTRUCTOR_NAME = FixKind(
     'dart.fix.remove.constructorName',
@@ -1378,6 +1414,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove all unnecessary string interpolations in file',
   );
+  static const REMOVE_UNNECESSARY_TO_LIST = FixKind(
+    'dart.fix.remove.unnecessaryToList',
+    DartFixKindPriority.DEFAULT,
+    "Remove unnecessary 'toList' call",
+  );
+  static const REMOVE_UNNECESSARY_TO_LIST_MULTI = FixKind(
+    'dart.fix.remove.unnecessaryToList.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove unnecessary 'toList' calls in file",
+  );
   static const REMOVE_UNNECESSARY_WILDCARD_PATTERN = FixKind(
     'dart.fix.remove.unnecessaryWildcardPattern',
     DartFixKindPriority.DEFAULT,
@@ -1715,6 +1761,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Replace the '{0}' with a '{1}' in the invocation",
   );
+  static const REPLACE_WITH_PART_OF_URI = FixKind(
+    'dart.fix.replace.withPartOfUri',
+    DartFixKindPriority.DEFAULT,
+    "Replace with 'part of {0}'",
+  );
   static const REPLACE_WITH_TEAR_OFF = FixKind(
     'dart.fix.replace.withTearOff',
     DartFixKindPriority.DEFAULT,
@@ -1739,6 +1790,16 @@ class DartFixKind {
     'dart.fix.replace.withVar.multi',
     DartFixKindPriority.IN_FILE,
     "Replace type annotations with 'var' everywhere in file",
+  );
+  static const REPLACE_WITH_WILDCARD = FixKind(
+    'dart.fix.replace.withWildcard',
+    DartFixKindPriority.DEFAULT,
+    "Replace with '_'",
+  );
+  static const REPLACE_WITH_WILDCARD_MULTI = FixKind(
+    'dart.fix.replace.withWildcard.multi',
+    DartFixKindPriority.DEFAULT,
+    "Replace with '_' everywhere in file",
   );
   static const SORT_CHILD_PROPERTY_LAST = FixKind(
     'dart.fix.sort.childPropertyLast',
@@ -1779,6 +1840,16 @@ class DartFixKind {
     'dart.fix.sort.sortUnnamedConstructorFirst.multi',
     DartFixKindPriority.DEFAULT,
     'Move all unnamed constructors before named constructors',
+  );
+  static const SPLIT_MULTIPLE_DECLARATIONS = FixKind(
+    'dart.fix.split.multipleDeclarations',
+    DartFixKindPriority.DEFAULT,
+    'Split multiple declarations into multiple lines',
+  );
+  static const SPLIT_MULTIPLE_DECLARATIONS_MULTI = FixKind(
+    'dart.fix.split.multipleDeclarations.multi',
+    DartFixKindPriority.DEFAULT,
+    'Split all multiple declarations into multiple lines',
   );
   static const SURROUND_WITH_PARENTHESES = FixKind(
     'dart.fix.surround.parentheses',

@@ -353,6 +353,11 @@ class Package implements Comparable<Package> {
           continue;
         }
 
+        // Skip 'pkg/native_assets_builder/test/test_projects/'.
+        if (name == 'test_projects') {
+          continue;
+        }
+
         if (!name.startsWith('.')) {
           _collectDartFiles(entity, files);
         }

@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -49,7 +49,7 @@ class SubClass extends self::_SubClass&Class&Mixin {
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as cov;
 import "dart:core" as core;
 

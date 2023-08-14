@@ -374,13 +374,25 @@ f(int expr) {
 
   Future<void> test_negateCascade() async {
     await _prepareCompletion('.not', '''
-f(bool expr) {
+void f(bool expr) {
   if (expr..a..b..c.not)
+}
+
+extension on bool {
+  void a() {}
+  void b() {}
+  void c() {}
 }
 ''');
     _assertHasChange('Expand .not', '''
-f(bool expr) {
+void f(bool expr) {
   if (!expr..a..b..c)
+}
+
+extension on bool {
+  void a() {}
+  void b() {}
+  void c() {}
 }
 ''');
   }

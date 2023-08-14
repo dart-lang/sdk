@@ -36,7 +36,7 @@ namespace bin {
 
 int Process::global_exit_code_ = 0;
 Mutex* Process::global_exit_code_mutex_ = nullptr;
-Process::ExitHook Process::exit_hook_ = NULL;
+Process::ExitHook Process::exit_hook_ = nullptr;
 
 // ProcessInfo is used to map a process id to the file descriptor for
 // the pipe used to communicate the exit code of the process to Dart.
@@ -81,7 +81,7 @@ class ProcessInfoList {
   static intptr_t LookupProcessExitFd(pid_t pid) {
     MutexLocker locker(mutex_);
     ProcessInfo* current = active_processes_;
-    while (current != NULL) {
+    while (current != nullptr) {
       if (current->pid() == pid) {
         return current->fd();
       }
@@ -92,11 +92,11 @@ class ProcessInfoList {
 
   static void RemoveProcess(pid_t pid) {
     MutexLocker locker(mutex_);
-    ProcessInfo* prev = NULL;
+    ProcessInfo* prev = nullptr;
     ProcessInfo* current = active_processes_;
-    while (current != NULL) {
+    while (current != nullptr) {
       if (current->pid() == pid) {
-        if (prev == NULL) {
+        if (prev == nullptr) {
           active_processes_ = current->next();
         } else {
           prev->set_next(current->next());
@@ -121,7 +121,7 @@ class ProcessInfoList {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessInfoList);
 };
 
-ProcessInfo* ProcessInfoList::active_processes_ = NULL;
+ProcessInfo* ProcessInfoList::active_processes_ = nullptr;
 Mutex* ProcessInfoList::mutex_ = nullptr;
 
 // The exit code handler sets up a separate thread which waits for child
@@ -291,16 +291,16 @@ class ProcessStarter {
     for (int i = 0; i < arguments_length; i++) {
       program_arguments_[i + 1] = arguments[i];
     }
-    program_arguments_[arguments_length + 1] = NULL;
+    program_arguments_[arguments_length + 1] = nullptr;
 
-    program_environment_ = NULL;
-    if (environment != NULL) {
+    program_environment_ = nullptr;
+    if (environment != nullptr) {
       program_environment_ = reinterpret_cast<char**>(Dart_ScopeAllocate(
           (environment_length + 1) * sizeof(*program_environment_)));
       for (int i = 0; i < environment_length; i++) {
         program_environment_[i] = environment[i];
       }
-      program_environment_[environment_length] = NULL;
+      program_environment_[environment_length] = nullptr;
     }
   }
 
@@ -452,7 +452,7 @@ class ProcessStarter {
   // be reported to the parent.
   bool FindPathInNamespace(char* realpath, intptr_t realpath_size) {
     // Perform a PATH search if there's no slash in the path.
-    if (strchr(path_, '/') == NULL) {
+    if (strchr(path_, '/') == nullptr) {
       // TODO(zra): If there is a non-default namespace, the entries in PATH
       // should be treated as relative to the namespace.
       strncpy(realpath, path_, realpath_size);
@@ -495,12 +495,12 @@ class ProcessStarter {
       ASSERT(mode_ == kInheritStdio);
     }
 
-    if (working_directory_ != NULL &&
+    if (working_directory_ != nullptr &&
         !Directory::SetCurrent(namespc_, working_directory_)) {
       ReportChildError();
     }
 
-    if (program_environment_ != NULL) {
+    if (program_environment_ != nullptr) {
       environ = program_environment_;
     }
 
@@ -549,11 +549,11 @@ class ProcessStarter {
             SetupDetachedWithStdio();
           }
 
-          if ((working_directory_ != NULL) &&
+          if ((working_directory_ != nullptr) &&
               !Directory::SetCurrent(namespc_, working_directory_)) {
             ReportChildError();
           }
-          if (program_environment_ != NULL) {
+          if (program_environment_ != nullptr) {
             environ = program_environment_;
           }
 
@@ -745,13 +745,13 @@ class ProcessStarter {
 
   void ReadChildError() {
     char* message = DartUtils::ScopedCString(kErrorBufferSize);
-    if (message != NULL) {
+    if (message != nullptr) {
       FDUtils::ReadFromBlocking(exec_control_[0], message, kErrorBufferSize);
       message[kErrorBufferSize - 1] = '\0';
       *os_error_message_ = message;
     } else {
-      // Could not get error message. It will be NULL.
-      ASSERT(*os_error_message_ == NULL);
+      // Could not get error message. It will be nullptr.
+      ASSERT(*os_error_message_ == nullptr);
     }
   }
 
@@ -939,7 +939,7 @@ int64_t Process::CurrentRSS() {
   // It is not possible to use getrusage() because the interested fields are not
   // implemented by the linux kernel.
   FILE* statm = fopen("/proc/self/statm", "r");
-  if (statm == NULL) {
+  if (statm == nullptr) {
     return -1;
   }
   int64_t current_rss_pages = 0;
@@ -963,8 +963,8 @@ int64_t Process::MaxRSS() {
 }
 
 static Mutex* signal_mutex = nullptr;
-static SignalInfo* signal_handlers = NULL;
-static const int kSignalsCount = 7;
+static SignalInfo* signal_handlers = nullptr;
+static constexpr int kSignalsCount = 7;
 static const int kSignals[kSignalsCount] = {
     SIGHUP, SIGINT, SIGTERM, SIGUSR1, SIGUSR2, SIGWINCH,
     SIGQUIT  // Allow VMService to listen on SIGQUIT.
@@ -977,7 +977,7 @@ SignalInfo::~SignalInfo() {
 static void SignalHandler(int signal) {
   MutexLocker lock(signal_mutex);
   const SignalInfo* handler = signal_handlers;
-  while (handler != NULL) {
+  while (handler != nullptr) {
     if (handler->signal() == signal) {
       int value = 0;
       VOID_TEMP_FAILURE_RETRY(write(handler->fd(), &value, 1));
@@ -1006,7 +1006,7 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
   SignalInfo* handler = signal_handlers;
   bool listen = true;
   sa_handler_t oldact_handler = nullptr;
-  while (handler != NULL) {
+  while (handler != nullptr) {
     if (handler->signal() == signal) {
       oldact_handler = handler->oldact();
       listen = false;
@@ -1044,7 +1044,7 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
   sa_handler_t oldact_handler = SIG_DFL;
   bool any_removed = false;
   bool any_remaining = false;
-  while (handler != NULL) {
+  while (handler != nullptr) {
     bool remove = false;
     if (handler->signal() == signal) {
       if ((port == ILLEGAL_PORT) || (handler->port() == port)) {
@@ -1068,7 +1068,7 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
   if (any_removed && !any_remaining) {
     struct sigaction act = {};
     act.sa_handler = oldact_handler;
-    VOID_NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
+    VOID_NO_RETRY_EXPECTED(sigaction(signal, &act, nullptr));
   }
 }
 
@@ -1079,7 +1079,7 @@ void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {
   sa_handler_t oldact_handler = SIG_DFL;
   bool any_remaining = false;
   intptr_t signal = -1;
-  while (handler != NULL) {
+  while (handler != nullptr) {
     bool remove = false;
     if (handler->fd() == fd) {
       if ((port == ILLEGAL_PORT) || (handler->port() == port)) {
@@ -1102,12 +1102,12 @@ void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {
   if ((signal != -1) && !any_remaining) {
     struct sigaction act = {};
     act.sa_handler = oldact_handler;
-    VOID_NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
+    VOID_NO_RETRY_EXPECTED(sigaction(signal, &act, nullptr));
   }
 }
 
 void ProcessInfoList::Init() {
-  active_processes_ = NULL;
+  active_processes_ = nullptr;
   ASSERT(ProcessInfoList::mutex_ == nullptr);
   ProcessInfoList::mutex_ = new Mutex();
 }
@@ -1138,7 +1138,7 @@ void Process::Init() {
 
   ASSERT(signal_mutex == nullptr);
   signal_mutex = new Mutex();
-  signal_handlers = NULL;
+  signal_handlers = nullptr;
 
   ASSERT(Process::global_exit_code_mutex_ == nullptr);
   Process::global_exit_code_mutex_ = new Mutex();

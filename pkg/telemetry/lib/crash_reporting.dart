@@ -9,6 +9,7 @@ import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:stack_trace/stack_trace.dart';
+import 'package:telemetry/src/pii_regexp.dart';
 
 import 'src/utils.dart';
 
@@ -129,7 +130,7 @@ class CrashReportSender {
       fields['osVersion'] = Platform.operatingSystemVersion;
       fields['type'] = _dartTypeId;
       fields['error_runtime_type'] = '${error.runtimeType}';
-      fields['error_message'] = '$error';
+      fields['error_message'] = filterPiiFromErrorMessage('$error');
 
       // Optional comments.
       if (comment != null) {

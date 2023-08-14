@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "field_promotion_and_no_such_method_lib.dart" as fie;
@@ -23,7 +23,7 @@ class E extends core::Object implements self::D {
   method noSuchMethod(core::Invocation invocation) → dynamic
     ;
   no-such-method-forwarder get _f1() → core::int?
-    return this.{self::E::noSuchMethod}(new core::_InvocationMirror::_withType(#_f1, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?;
+    return this.{self::E::noSuchMethod}(new core::_InvocationMirror::_withType(#_f1, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int?;
 }
 class F extends core::Object implements fie::C {
   synthetic constructor •() → self::F
@@ -41,7 +41,7 @@ static method testConflictsWithNoSuchMethodForwarder(self::C c) → void
 static method testNoConflictWithNoSuchMethodForwarderForDifferentLib(self::C c) → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as fie;
 import "dart:core" as core;
 

@@ -5,9 +5,11 @@
 @JS()
 library static_interop;
 
-import 'package:js/js.dart';
+import 'dart:js_interop';
 
-abstract class A {}
+@JS()
+@staticInterop
+class A {}
 
 @JS()
 inline class B {
@@ -44,19 +46,13 @@ void method(A a) {
   a = b1.field;
   b1.field = a;
   a = b1.method();
-  var f1 = b1.method;
   b2 = b2.genericMethod(b2);
-  var f2 = b2.genericMethod;
-  int Function(int) f3 = b2.genericMethod;
   b1 = b2.getter;
   b1.setter = b2;
   a = B.staticField;
   B.staticField = a;
   a = B.staticMethod();
-  var f4 = B.staticMethod;
   b2 = B.staticGenericMethod(b2);
-  var f5 = B.staticGenericMethod;
-  String Function(String) f6 = B.staticGenericMethod;
   b1 = B.staticGetter;
   B.staticSetter = b2;
 }

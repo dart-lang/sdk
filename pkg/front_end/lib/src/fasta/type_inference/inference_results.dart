@@ -222,9 +222,7 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
 
   WrapInProblemInferenceResult(this.inferredType, this.functionType,
       this.message, this.fileOffset, this.length, this.helper,
-      {required this.isInapplicable, required this.hoistedArguments})
-      // ignore: unnecessary_null_comparison
-      : assert(isInapplicable != null);
+      {required this.isInapplicable, required this.hoistedArguments});
 
   @override
   Expression applyResult(Expression expression) {
@@ -345,9 +343,7 @@ class ExpressionInferenceResult {
 
   ExpressionInferenceResult(this.inferredType, this.expression,
       {this.postCoercionType = null})
-      // ignore: unnecessary_null_comparison
-      : assert(expression != null),
-        assert(isKnown(inferredType));
+      : assert(isKnown(inferredType));
 
   /// The guards used for null-aware access if the expression is part of a
   /// null-shorting.
@@ -377,13 +373,7 @@ class NullAwareGuard {
   final InferenceVisitorBase _inferrer;
 
   NullAwareGuard(
-      this._nullAwareVariable, this._nullAwareFileOffset, this._inferrer)
-      // ignore: unnecessary_null_comparison
-      : assert(_nullAwareVariable != null),
-        // ignore: unnecessary_null_comparison
-        assert(_nullAwareFileOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(_inferrer != null) {
+      this._nullAwareVariable, this._nullAwareFileOffset, this._inferrer) {
     // Ensure the initializer of [_nullAwareVariable] is promoted to
     // non-nullable.
     _inferrer.flowAnalysis.nullAwareAccess_rightBegin(
@@ -447,9 +437,7 @@ class NullAwareExpressionInferenceResult implements ExpressionInferenceResult {
 
   NullAwareExpressionInferenceResult(this.inferredType,
       this.nullAwareActionType, this.nullAwareGuards, this.nullAwareAction)
-      : assert(nullAwareGuards.isNotEmpty),
-        // ignore: unnecessary_null_comparison
-        assert(nullAwareAction != null);
+      : assert(nullAwareGuards.isNotEmpty);
 
   @override
   Expression get expression {

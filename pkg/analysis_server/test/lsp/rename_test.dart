@@ -27,6 +27,26 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     return _test_prepare(content, 'MyClass');
   }
 
+  Future<void> test_prepare_class_typeParameter_atDeclaration() async {
+    const content = '''
+class A<[[T^]]> {
+  final List<T> values = [];
+}
+''';
+
+    return _test_prepare(content, 'T');
+  }
+
+  Future<void> test_prepare_class_typeParameter_atReference() async {
+    const content = '''
+class A<T> {
+  final List<[[T^]]> values = [];
+}
+''';
+
+    return _test_prepare(content, 'T');
+  }
+
   Future<void> test_prepare_classNewKeyword() async {
     const content = '''
     class MyClass {}
@@ -164,6 +184,18 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     ''';
 
     return _test_prepare(content, 'variable');
+  }
+
+  Future<void> test_prepare_variable_forEach_statement() async {
+    const content = '''
+void f(List<int> values) {
+  for (final [[value^]] in values) {
+    value;
+  }
+}
+''';
+
+    return _test_prepare(content, 'value');
   }
 
   Future<void> test_rename_class() {
@@ -363,6 +395,22 @@ class RenameTest extends AbstractLspAnalysisServerTest {
       },
       {'renameFilesWithClasses': 'always'},
     );
+  }
+
+  Future<void> test_rename_class_typeParameter_atDeclaration() {
+    const content = '''
+class A<[[T^]]> {
+  final List<T> values = [];
+}
+''';
+
+    const expectedContent = '''
+class A<U> {
+  final List<U> values = [];
+}
+''';
+
+    return _test_rename_withDocumentChanges(content, 'U', expectedContent);
   }
 
   Future<void> test_rename_classNewKeyword() {
@@ -825,6 +873,25 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     }
     ''';
     return _test_rename_withDocumentChanges(content, 'foo', expectedContent);
+  }
+
+  Future<void> test_rename_variable_forEach_statement() {
+    const content = '''
+void f(List<int> values) {
+  for (final [[value^]] in values) {
+    value;
+  }
+}
+''';
+    const expectedContent = '''
+void f(List<int> values) {
+  for (final newName in values) {
+    newName;
+  }
+}
+''';
+    return _test_rename_withDocumentChanges(
+        content, 'newName', expectedContent);
   }
 
   Future<void> test_rename_withoutVersionedIdentifier() {

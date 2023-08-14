@@ -290,7 +290,7 @@ class ArgumentError extends Error {
   ArgumentError([message]);
 
   @Since("2.1")
-  static T checkNotNull<T>(T argument, [String, name]) => argument;
+  static T checkNotNull<@Since("2.8") T>(T? argument, [String? name]) => argument!;
 }
 
 abstract final class BigInt implements Comparable<BigInt> {
@@ -774,6 +774,14 @@ final class Pointer<T extends NativeType> extends NativeType {
 }
 
 final Pointer<Never> nullptr = Pointer.fromAddress(0);
+
+class NativeCallable<T extends Function> {
+  NativeCallable.listener(@DartRepresentationOf('T') Function callback) {}
+
+  Pointer<NativeFunction<T>> get nativeFunction;
+
+  void close();
+}
 
 extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
@@ -1282,7 +1290,7 @@ abstract class Socket {
 
 final MockSdkLibrary _LIB_ISOLATE = MockSdkLibrary('isolate', [
   MockSdkLibraryUnit(
-    'isolate.dart',
+    'isolate/isolate.dart',
     '''
 library dart.isolate;
 

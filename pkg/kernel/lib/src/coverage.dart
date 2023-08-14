@@ -62,12 +62,6 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitRedirectingFactory(RedirectingFactory node) {
-    visited.add(MemberKind.RedirectingFactory);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitProcedure(Procedure node) {
     visited.add(MemberKind.Procedure);
     node.visitChildren(this);
@@ -1093,8 +1087,6 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitConstructorReference(Constructor node) {}
   @override
-  void visitRedirectingFactoryReference(RedirectingFactory node) {}
-  @override
   void visitProcedureReference(Procedure node) {}
   @override
   void defaultConstantReference(Constant node) {}
@@ -1240,7 +1232,6 @@ enum MemberKind {
   Constructor,
   Field,
   Procedure,
-  RedirectingFactory,
 }
 
 enum InitializerKind {

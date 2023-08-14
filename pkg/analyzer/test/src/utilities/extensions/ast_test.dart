@@ -42,6 +42,37 @@ library myLib;
     node as CompilationUnit;
   }
 
+  Future<void> test_atBOF_atClass() async {
+    var node = await coveringNode('''
+^class A {}
+''');
+    node as ClassDeclaration;
+  }
+
+  Future<void> test_atBOF_atComment() async {
+    var node = await coveringNode('''
+^// comment
+class A {}
+''');
+    node as CompilationUnit;
+  }
+
+  Future<void> test_atCommentEnd() async {
+    var node = await coveringNode('''
+/// ^
+class A {}
+''');
+    node as Comment;
+  }
+
+  Future<void> test_atEOF() async {
+    var node = await coveringNode('''
+library myLib;
+
+^''');
+    node as CompilationUnit;
+  }
+
   Future<void> test_before_firstNonEOF() async {
     var node = await coveringNode('''
 ^
@@ -49,6 +80,19 @@ library myLib;
 library myLib;
 ''');
     node as CompilationUnit;
+  }
+
+  Future<void> test_between_arrowAndIdentifier() async {
+    var node = await coveringNode('''
+void f(int i) {
+  return switch (i) {
+    1 =>^g();
+    _ => 0;
+  }
+}
+int g() => 0;
+''');
+    node as SimpleIdentifier;
   }
 
   Future<void> test_between_classMembers() async {
@@ -62,13 +106,44 @@ class C {
     node as ClassDeclaration;
   }
 
+  Future<void> test_between_colonAndIdentifier_namedExpression() async {
+    var node = await coveringNode('''
+void f(int i) {
+  g(a:^i)
+}
+void g({required int a}) {}
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_between_colonAndIdentifier_switchCase() async {
+    var node = await coveringNode('''
+void f(int i) {
+  switch (i) {
+    case 1:^g();
+  }
+}
+void g() {}
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_between_commaAndComma_arguments_synthetic() async {
+    var node = await coveringNode('''
+void f(int a, int b, int c) {
+  f(a,^,c);
+}
+''');
+    node as SimpleIdentifier;
+  }
+
   Future<void> test_between_commaAndIdentifier_arguments() async {
     var node = await coveringNode('''
 void f(int a, int b) {
   f(a,^b);
 }
 ''');
-    node as ArgumentList;
+    node as SimpleIdentifier;
   }
 
   Future<void> test_between_commaAndIdentifier_parameters() async {
@@ -77,21 +152,21 @@ class C {
   void m(int a,^int b) {}
 }
 ''');
-    node as FormalParameterList;
+    node as NamedType;
   }
 
   Future<void> test_between_commaAndIdentifier_typeArguments() async {
     var node = await coveringNode('''
 var m = Map<int,^int>();
 ''');
-    node as TypeArgumentList;
+    node as NamedType;
   }
 
   Future<void> test_between_commaAndIdentifier_typeParameters() async {
     var node = await coveringNode('''
 class C<S,^T> {}
 ''');
-    node as TypeParameterList;
+    node as TypeParameter;
   }
 
   Future<void> test_between_declarations() async {
@@ -112,13 +187,37 @@ import 'dart:core';
     node as CompilationUnit;
   }
 
+  Future<void> test_between_identifierAndArgumentList() async {
+    var node = await coveringNode('''
+void f(C c) {
+  c.m^();
+}
+class C {
+  void m() {}
+}
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_between_identifierAndArgumentList_synthetic() async {
+    var node = await coveringNode('''
+void f(C c) {
+  c.^();
+}
+class C {
+  void m() {}
+}
+''');
+    node as SimpleIdentifier;
+  }
+
   Future<void> test_between_identifierAndComma_arguments() async {
     var node = await coveringNode('''
 void f(int a, int b) {
   f(a^, b);
 }
 ''');
-    node as ArgumentList;
+    node as SimpleIdentifier;
   }
 
   Future<void> test_between_identifierAndComma_parameters() async {
@@ -127,28 +226,55 @@ class C {
   void m(int a^, int b) {}
 }
 ''');
-    node as FormalParameterList;
+    node as SimpleFormalParameter;
   }
 
   Future<void> test_between_identifierAndComma_typeArguments() async {
     var node = await coveringNode('''
 var m = Map<int^, int>();
 ''');
-    node as TypeArgumentList;
+    node as NamedType;
   }
 
   Future<void> test_between_identifierAndComma_typeParameters() async {
     var node = await coveringNode('''
 class C<S^, T> {}
 ''');
-    node as TypeParameterList;
+    node as TypeParameter;
+  }
+
+  Future<void> test_between_identifierAndParameterList() async {
+    var node = await coveringNode('''
+void f^() {}
+''');
+    node as FunctionDeclaration;
   }
 
   Future<void> test_between_identifierAndPeriod() async {
     var node = await coveringNode('''
 var x = o^.m();
 ''');
-    node as MethodInvocation;
+    node as SimpleIdentifier;
+  }
+
+  Future<void>
+      test_between_identifierAndTypeArgumentList_methodInvocation() async {
+    var node = await coveringNode('''
+void f(C c) {
+  c.m^<int>();
+}
+class C {
+  void m<T>() {}
+}
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_between_identifierAndTypeParameterList() async {
+    var node = await coveringNode('''
+class C^<T> {}
+''');
+    node as ClassDeclaration;
   }
 
   Future<void> test_between_modifierAndFunctionBody() async {
@@ -178,7 +304,7 @@ class C {
     var node = await coveringNode('''
 var x = o.^m();
 ''');
-    node as MethodInvocation;
+    node as SimpleIdentifier;
   }
 
   Future<void> test_between_statements() async {
@@ -205,7 +331,7 @@ class C {}
 /// A [B.^b].
 class C {}
 ''');
-    node as PrefixedIdentifier;
+    node as SimpleIdentifier;
   }
 
   Future<void> test_inComment_end() async {
@@ -292,11 +418,7 @@ void f() { ^ }
     var node = await coveringNode('''
 class C { void call() {} }  Function f = C^();
 ''');
-    node as InstanceCreationExpression;
-    var parent = node.parent;
-    parent as ImplicitCallReference;
-    expect(parent.offset, node.offset);
-    expect(parent.length, node.length);
+    node as NamedType;
   }
 
   Future<SourceRange> _range(String sourceCode) async {

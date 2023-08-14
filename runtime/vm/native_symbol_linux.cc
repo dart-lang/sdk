@@ -22,17 +22,17 @@ char* NativeSymbolResolver::LookupSymbolName(uword pc, uword* start) {
   Dl_info info;
   int r = dladdr(reinterpret_cast<void*>(pc), &info);
   if (r == 0) {
-    return NULL;
+    return nullptr;
   }
-  if (info.dli_sname == NULL) {
-    return NULL;
+  if (info.dli_sname == nullptr) {
+    return nullptr;
   }
-  if (start != NULL) {
+  if (start != nullptr) {
     *start = reinterpret_cast<uword>(info.dli_saddr);
   }
   int status = 0;
   size_t len = 0;
-  char* demangled = abi::__cxa_demangle(info.dli_sname, NULL, &len, &status);
+  char* demangled = abi::__cxa_demangle(info.dli_sname, nullptr, &len, &status);
   MSAN_UNPOISON(demangled, len);
   if (status == 0) {
     return demangled;

@@ -174,7 +174,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  String get debugName => "FunctionBuilder";
+  String get debugName => "${runtimeType}";
 
   @override
   AsyncMarker get asyncModifier;
@@ -205,6 +205,10 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   bool get isAssignable => false;
+
+  /// Returns `true` if this member is augmented, either by being the origin
+  /// of a augmented member or by not being the last among augmentations.
+  bool get isAugmented;
 
   @override
   Scope computeFormalParameterScope(Scope parent) {
@@ -416,7 +420,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         _thisVariable = new VariableDeclarationImpl(syntheticThisName,
             isFinal: true,
             type: new InlineType(inlineClassBuilder.inlineClass,
-                libraryBuilder.nonNullable, typeArguments));
+                libraryBuilder.nonNullable, typeArguments))
+          ..fileOffset = charOffset
+          ..isLowered = true;
       } else {
         _thisVariable = function.positionalParameters.first;
       }
@@ -470,19 +476,21 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!_hasBuiltOutlineExpressions) {
       DeclarationBuilder? classOrExtensionBuilder =
-          isClassMember || isExtensionMember
+          isClassMember || isExtensionMember || isInlineClassMember
               ? parent as DeclarationBuilder
               : null;
       Scope parentScope =
           classOrExtensionBuilder?.scope ?? libraryBuilder.scope;
-      MetadataBuilder.buildAnnotations(member, metadata, libraryBuilder,
-          classOrExtensionBuilder, this, fileUri, parentScope);
+      for (Annotatable annotatable in annotatables) {
+        MetadataBuilder.buildAnnotations(annotatable, metadata,
+            bodyBuilderContext, libraryBuilder, fileUri, parentScope,
+            createFileUriExpression: isAugmented);
+      }
       if (typeVariables != null) {
         for (int i = 0; i < typeVariables!.length; i++) {
           typeVariables![i].buildOutlineExpressions(
               libraryBuilder,
-              classOrExtensionBuilder,
-              this,
+              bodyBuilderContext,
               classHierarchy,
               delayedActionPerformers,
               computeTypeParameterScope(parentScope));

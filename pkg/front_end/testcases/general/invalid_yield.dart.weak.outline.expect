@@ -1,0 +1,11 @@
+library;
+import self as self;
+
+static method method1(dynamic a) → dynamic
+  ;
+static method method2() → dynamic
+  ;
+static method method3() → dynamic async 
+  ;
+static method method4() → dynamic async 
+  ;

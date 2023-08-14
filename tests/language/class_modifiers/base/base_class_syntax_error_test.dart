@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=class-modifiers
-
 // Syntax errors such as using `base` keyword in a place other than a class or
 // mixin.
 
 abstract class BaseMembers {
   base int foo;
 //^^^^
-// [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'base' isn't a type.
 //     ^^^
@@ -80,12 +77,8 @@ base extension StringExtension on String {}
 
 base enum Enum { x }
 // [error column 1, length 4]
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
-// [cfe] 'base' is already declared in this scope.
-// [cfe] Expected ';' after this.
-// [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [analyzer] SYNTACTIC_ERROR.BASE_ENUM
+// [cfe] Enums can't be declared to be 'base'.
 
 base typedef EnumTypedef = Enum;
 // [error column 1, length 4]

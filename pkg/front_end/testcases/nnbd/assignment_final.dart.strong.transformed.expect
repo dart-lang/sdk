@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -54,7 +54,7 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
   initializedLateFinal = x; // Error
   ^^^^^^^^^^^^^^^^^^^^";
   definitelyUnassignedFinal = x;
-  definitelyUnassignedLateFinal = y as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  definitelyUnassignedLateFinal = y as{TypeError,ForDynamic} core::int;
   invalid-expression "pkg/front_end/testcases/nnbd/assignment_final.dart:37:3: Error: Final variable 'definitelyAssignedFinal' might already be assigned at this point.
   definitelyAssignedFinal = y; // Error
   ^^^^^^^^^^^^^^^^^^^^^^^" in definitelyAssignedFinal = y;
@@ -63,6 +63,6 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
   ^^^^^^^^^^^^^^^^^^^^^^^^^^^" in definitelyAssignedLateFinal = z;
   invalid-expression "pkg/front_end/testcases/nnbd/assignment_final.dart:40:3: Error: Final variable 'notDefinitelyAssignedFinal' might already be assigned at this point.
   notDefinitelyAssignedFinal = z; // Error
-  ^^^^^^^^^^^^^^^^^^^^^^^^^^" in notDefinitelyAssignedFinal = z as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
-  notDefinitelyAssignedLateFinal = z as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^" in notDefinitelyAssignedFinal = z as{TypeError,ForDynamic} core::int;
+  notDefinitelyAssignedLateFinal = z as{TypeError,ForDynamic} core::int;
 }

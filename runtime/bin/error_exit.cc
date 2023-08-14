@@ -27,7 +27,7 @@ void ErrorExit(int exit_code, const char* format, ...) {
   Process::TerminateExitCodeHandler();
 
   char* error = Dart_Cleanup();
-  if (error != NULL) {
+  if (error != nullptr) {
     Syslog::PrintErr("VM cleanup failed: %s\n", error);
     free(error);
   }

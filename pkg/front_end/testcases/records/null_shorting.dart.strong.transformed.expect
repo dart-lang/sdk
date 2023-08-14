@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -165,12 +165,12 @@ Try calling using ?.call instead.
   let final core::List<(core::int, core::String, {required c: self::Class, required d: core::double, required f: () → void})>? #t29 = list in #t29 == null ?{() →? void} null : #t29{core::List<(core::int, core::String, {required c: self::Class, required d: core::double, required f: () → void})>}.{core::Iterable::first}{(core::int, core::String, {required c: self::Class, required d: core::double, required f: () → void})}.f{() → void}.call;
   let final core::List<(core::int, core::String, {required c: self::Class, required d: core::double, required f: () → void})>? #t30 = list in #t30 == null ?{() →? void} null : #t30{core::List<(core::int, core::String, {required c: self::Class, required d: core::double, required f: () → void})>}.{core::Iterable::first}{(core::int, core::String, {required c: self::Class, required d: core::double, required f: () → void})}.c{self::Class}.{self::Class::call}{() → void};
 }
-static method _extension#0|call(lowered final core::int #this) → void {}
-static method _extension#0|get#call(lowered final core::int #this) → () → void
+static extension-member method _extension#0|call(lowered final core::int #this) → void {}
+static extension-member method _extension#0|get#call(lowered final core::int #this) → () → void
   return () → void => self::_extension#0|call(#this);
-static method _extension#1|call(lowered final core::String #this) → void {}
-static method _extension#1|get#call(lowered final core::String #this) → () → void
+static extension-member method _extension#1|call(lowered final core::String #this) → void {}
+static extension-member method _extension#1|get#call(lowered final core::String #this) → () → void
   return () → void => self::_extension#1|call(#this);
-static method _extension#2|call(lowered final core::double #this) → void {}
-static method _extension#2|get#call(lowered final core::double #this) → () → void
+static extension-member method _extension#2|call(lowered final core::double #this) → void {}
+static extension-member method _extension#2|get#call(lowered final core::double #this) → () → void
   return () → void => self::_extension#2|call(#this);

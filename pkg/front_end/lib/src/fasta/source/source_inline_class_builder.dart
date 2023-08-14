@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/kernel/body_builder_context.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../../base/common.dart';
 import '../builder/builder.dart';
+import '../builder/constructor_reference_builder.dart';
 import '../builder/inline_class_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -25,13 +27,17 @@ import '../scope.dart';
 import '../util/helpers.dart';
 import 'class_declaration.dart';
 import 'source_builder_mixins.dart';
+import 'source_constructor_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 
 class SourceInlineClassBuilder extends InlineClassBuilderImpl
-    with SourceDeclarationBuilderMixin
+    with SourceDeclarationBuilderMixin, ClassDeclarationMixin
     implements ClassDeclaration {
+  @override
+  final List<ConstructorReferenceBuilder>? constructorReferences;
+
   final InlineClass _inlineClass;
 
   SourceInlineClassBuilder? _origin;
@@ -55,6 +61,7 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
       Scope scope,
       ConstructorScope constructorScope,
       SourceLibraryBuilder parent,
+      this.constructorReferences,
       int startOffset,
       int nameOffset,
       int endOffset,
@@ -157,6 +164,7 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
       case BuiltMemberKind.RedirectingFactory:
       case BuiltMemberKind.Field:
       case BuiltMemberKind.Method:
+      case BuiltMemberKind.Factory:
       case BuiltMemberKind.ExtensionMethod:
       case BuiltMemberKind.ExtensionGetter:
       case BuiltMemberKind.ExtensionSetter:
@@ -170,6 +178,12 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
         break;
       case BuiltMemberKind.InlineClassConstructor:
         kind = InlineClassMemberKind.Constructor;
+        break;
+      case BuiltMemberKind.InlineClassFactory:
+        kind = InlineClassMemberKind.Factory;
+        break;
+      case BuiltMemberKind.InlineClassRedirectingFactory:
+        kind = InlineClassMemberKind.RedirectingFactory;
         break;
       case BuiltMemberKind.InlineClassMethod:
         kind = InlineClassMemberKind.Method;
@@ -188,12 +202,7 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
       case BuiltMemberKind.InlineClassTearOff:
         kind = InlineClassMemberKind.TearOff;
         break;
-      case BuiltMemberKind.InlineClassFactory:
-        kind = InlineClassMemberKind.Factory;
-        break;
     }
-    // ignore: unnecessary_null_comparison
-    assert(kind != null);
     inlineClass.members.add(new InlineClassMemberDescriptor(
         name: new Name(name, libraryBuilder.library),
         member: memberReference,
@@ -234,6 +243,20 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
     }
   }
 
+  /// Looks up the constructor by [name] on the class built by this class
+  /// builder.
+  SourceInlineClassConstructorBuilder? lookupConstructor(Name name) {
+    if (name.text == "new") {
+      name = new Name("", name.library);
+    }
+
+    Builder? builder = constructorScope.lookupLocalMember(name.text);
+    if (builder is SourceInlineClassConstructorBuilder) {
+      return builder;
+    }
+    return null;
+  }
+
   // TODO(johnniwinther): Implement representationType.
   @override
   DartType get declaredRepresentationType => throw new UnimplementedError();
@@ -270,6 +293,10 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
     // TODO(johnniwinther): Support default constructor? and factories.
     return true;
   }
+
+  @override
+  BodyBuilderContext get bodyBuilderContext =>
+      new InlineClassBodyBuilderContext(this);
 }
 
 class _SourceInlineClassBuilderAugmentationAccess

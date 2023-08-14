@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -26,7 +26,7 @@ static method main() → dynamic {
     return invalid-expression "pkg/front_end/testcases/inference/local_return_and_yield.dart:21:38: Error: A value of type 'Future<dynamic Function(dynamic)>' can't be assigned to a variable of type 'FutureOr<int Function(int)>'.
  - 'Future' is from 'dart:async'.
     return /*@ returnType=dynamic */ (/*@ type=dynamic */ x) => x;
-                                     ^" in ((dynamic x) → dynamic => x) as{TypeError} FutureOr<(core::int*) →* core::int*>*;
+                                     ^" in ((dynamic x) → dynamic => x) as{TypeError,ForLegacy} FutureOr<(core::int*) →* core::int*>*;
   }
   function c() → core::Iterable<(core::int*) →* core::int*>* sync* {
     yield(core::int* x) → core::int* => x;

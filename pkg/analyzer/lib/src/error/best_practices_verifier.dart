@@ -5,7 +5,6 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -146,7 +145,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitAsExpression(AsExpression node) {
     if (isUnnecessaryCast(node, _typeSystem)) {
-      _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node);
+      _errorReporter.reportErrorForNode(WarningCode.UNNECESSARY_CAST, node);
     }
     var type = node.type.type;
     if (_isNonNullableByDefault &&
@@ -346,6 +345,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _deprecatedVerifier.popInDeprecated();
     }
+  }
+
+  @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    _deprecatedVerifier.extensionOverride(node);
+    super.visitExtensionOverride(node);
   }
 
   @override
@@ -622,17 +627,21 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
+    _deprecatedVerifier.namedType(node);
+    _invalidAccessVerifier.verifyNamedType(node);
     var question = node.question;
     if (question != null) {
-      var name = node.name.name;
       var type = node.typeOrThrow;
       // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
       // not report synthetic `dynamic` in place of an unresolved type.
       if ((type is InterfaceType && type.element == _nullType.element ||
-              (type.isDynamic && name == 'dynamic')) &&
+              (type is DynamicType && node.name2.lexeme == 'dynamic')) &&
           type.alias == null) {
         _errorReporter.reportErrorForToken(
-            WarningCode.UNNECESSARY_QUESTION_MARK, question, [name]);
+          WarningCode.UNNECESSARY_QUESTION_MARK,
+          question,
+          [node.qualifiedName],
+        );
       }
     }
     super.visitNamedType(node);
@@ -737,6 +746,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// [WarningCode.UNNECESSARY_TYPE_CHECK_FALSE].
   bool _checkAllTypeChecks(IsExpression node) {
     var leftNode = node.expression;
+    var leftType = leftNode.typeOrThrow;
+
     var rightNode = node.type;
     var rightType = rightNode.type as TypeImpl;
 
@@ -749,13 +760,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       );
     }
 
+    // `cannotResolve is X` or `cannotResolve is! X`
+    if (leftType is InvalidType) {
+      return false;
+    }
+
     // `is dynamic` or `is! dynamic`
-    if (rightType.isDynamic) {
-      var rightTypeStr = rightNode is NamedType ? rightNode.name.name : null;
-      if (rightTypeStr == Keyword.DYNAMIC.lexeme) {
-        report();
-        return true;
-      }
+    if (rightType is DynamicType) {
+      report();
+      return true;
+    }
+
+    // `is CannotResolveType` or `is! CannotResolveType`
+    if (rightType is InvalidType) {
       return false;
     }
 
@@ -775,7 +792,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (_isNonNullableByDefault) {
-      var leftType = leftNode.typeOrThrow;
       if (_typeSystem.isSubtypeOf(leftType, rightType)) {
         report();
         return true;
@@ -794,7 +810,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void _checkFinalParameter(FormalParameter node, Token? keyword) {
     if (node.isFinal) {
       _errorReporter.reportErrorForToken(
-        HintCode.UNNECESSARY_FINAL,
+        WarningCode.UNNECESSARY_FINAL,
         keyword!,
       );
     }
@@ -1136,7 +1152,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // TODO(jwren) We should modify ConstructorElement.getDisplayName(), or
       // have the logic centralized elsewhere, instead of doing this logic
       // here.
-      String fullConstructorName = constructorName.type.name.name;
+      String fullConstructorName = constructorName.type.qualifiedName;
       if (constructorName.name != null) {
         fullConstructorName = '$fullConstructorName.${constructorName.name}';
       }
@@ -1286,7 +1302,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     // NULL_AWARE_IN_CONDITION
-    if (parent is IfStatement && parent.condition == childOfParent ||
+    if (parent is IfStatement && parent.expression == childOfParent ||
         parent is ForPartsWithDeclarations &&
             parent.condition == childOfParent ||
         parent is DoStatement && parent.condition == childOfParent ||
@@ -1519,14 +1535,29 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// In "strict-inference" mode, check that [returnType] is specified.
   void _checkStrictInferenceReturnType(
       AstNode? returnType, AstNode reportNode, String displayName) {
-    if (!_strictInference) {
+    if (!_strictInference || returnType != null) {
       return;
     }
-    if (returnType == null) {
-      _errorReporter.reportErrorForNode(
+
+    switch (reportNode) {
+      case MethodDeclaration():
+        _errorReporter.reportErrorForToken(
+          WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
+          reportNode.name,
+          [displayName],
+        );
+      case FunctionDeclaration():
+        _errorReporter.reportErrorForToken(
+          WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
+          reportNode.name,
+          [displayName],
+        );
+      case _:
+        _errorReporter.reportErrorForNode(
           WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
           reportNode,
-          [displayName]);
+          [displayName],
+        );
     }
   }
 
@@ -1588,22 +1619,32 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return _workspacePackage!.contains(library.source);
   }
 
-  /// Checks for the passed as expression for the [HintCode.UNNECESSARY_CAST]
+  /// Checks for the passed as expression for the [WarningCode.UNNECESSARY_CAST]
   /// hint code.
   ///
   /// Returns `true` if and only if an unnecessary cast hint should be generated
-  /// on [node].  See [HintCode.UNNECESSARY_CAST].
+  /// on [node].  See [WarningCode.UNNECESSARY_CAST].
   static bool isUnnecessaryCast(AsExpression node, TypeSystemImpl typeSystem) {
     var leftType = node.expression.typeOrThrow;
     var rightType = node.type.typeOrThrow;
 
     // `dynamicValue as SomeType` is a valid use case.
-    if (leftType.isDynamic) {
+    if (leftType is DynamicType) {
+      return false;
+    }
+
+    // `cannotResolve is SomeType` is already reported.
+    if (leftType is InvalidType) {
+      return false;
+    }
+
+    // `x as dynamic` is a valid use case.
+    if (rightType is DynamicType) {
       return false;
     }
 
     // `x as Unresolved` is already reported as an error.
-    if (rightType.isDynamic) {
+    if (rightType is InvalidType) {
       return false;
     }
 
@@ -1730,7 +1771,12 @@ class _InvalidAccessVerifier {
       return;
     }
 
-    _checkForInvalidInternalAccess(identifier, element);
+    _checkForInvalidInternalAccess(
+      parent: identifier.parent,
+      nameToken: identifier.token,
+      element: element,
+    );
+
     _checkForOtherInvalidAccess(identifier, element);
   }
 
@@ -1766,6 +1812,27 @@ class _InvalidAccessVerifier {
           node,
           [node.uri.stringValue!]);
     }
+  }
+
+  void verifyNamedType(NamedType node) {
+    var element = node.element;
+
+    final parent = node.parent;
+    if (parent is ConstructorName) {
+      element = parent.staticElement;
+    }
+
+    if (element == null || _inCurrentLibrary(element)) {
+      return;
+    }
+
+    _checkForInvalidInternalAccess(
+      parent: node,
+      nameToken: node.name2,
+      element: element,
+    );
+
+    _checkForOtherInvalidAccess(node, element);
   }
 
   void verifyPatternField(PatternFieldImpl node) {
@@ -1805,24 +1872,32 @@ class _InvalidAccessVerifier {
     }
   }
 
-  void _checkForInvalidInternalAccess(Identifier identifier, Element element) {
+  void _checkForInvalidInternalAccess({
+    required AstNode? parent,
+    required Token nameToken,
+    required Element element,
+  }) {
     if (_hasInternal(element) &&
         !_isLibraryInWorkspacePackage(element.library)) {
       String name;
-      AstNode node;
+      SyntacticEntity node;
 
-      var grandparent = identifier.parent?.parent;
+      var grandparent = parent?.parent;
 
       if (grandparent is ConstructorName) {
         name = grandparent.toSource();
         node = grandparent;
       } else {
-        name = identifier.name;
-        node = identifier;
+        name = nameToken.lexeme;
+        node = nameToken;
       }
 
-      _errorReporter.reportErrorForNode(
-          WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, node, [name]);
+      _errorReporter.reportErrorForOffset(
+        WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
+        node.offset,
+        node.length,
+        [name],
+      );
     }
   }
 
@@ -1858,13 +1933,21 @@ class _InvalidAccessVerifier {
     String name;
     SyntacticEntity errorEntity = node;
 
-    var grandparent = node.parent?.parent;
+    var parent = node.parent;
+    var grandparent = parent?.parent;
     if (node is Identifier) {
       if (grandparent is ConstructorName) {
         name = grandparent.toSource();
         errorEntity = grandparent;
       } else {
         name = node.name;
+      }
+    } else if (node is NamedType) {
+      if (parent is ConstructorName) {
+        name = parent.toSource();
+        errorEntity = parent;
+      } else {
+        name = node.name2.lexeme;
       }
     } else if (node is PatternFieldImpl) {
       name = element.displayName;
@@ -2001,6 +2084,17 @@ class _InvalidAccessVerifier {
     return false;
   }
 
+  bool _hasVisibleOutsideTemplate(Element element) {
+    if (element.hasVisibleOutsideTemplate) {
+      return true;
+    }
+    if (element is PropertyAccessorElement &&
+        element.variable.hasVisibleOutsideTemplate) {
+      return true;
+    }
+    return false;
+  }
+
   bool _inCommentReference(SimpleIdentifier identifier) {
     var parent = identifier.parent;
     return parent is CommentReference || parent?.parent is CommentReference;
@@ -2022,16 +2116,20 @@ class _InvalidAccessVerifier {
 
   /// Check if @visibleForTemplate is applied to the given [Element].
   ///
-  /// [ClassElement] and [EnumElement] are excluded from the @visibleForTemplate
-  /// access checks. Instead, the access restriction is cascaded to the
-  /// corresponding class members and enum constants. For other types of
-  /// elements, check if they are annotated based on `hasVisibleForTemplate`
-  /// value.
-  bool _isVisibleForTemplateApplied(Element? element) {
-    if (element is ClassElement || element is EnumElement) {
+  /// [ClassElement], [EnumElement] and [MixinElement] are excluded from the
+  /// @visibleForTemplate access checks. Instead, the access restriction is
+  /// cascaded to all the corresponding members not annotated by
+  /// @visibleOutsideTemplate.
+  /// For other types of elements, check if they are annotated based on
+  /// `hasVisibleForTemplate` value.
+  bool _isVisibleForTemplateApplied(Element element) {
+    if (element is ClassElement ||
+        element is EnumElement ||
+        element is MixinElement) {
       return false;
     } else {
-      return _hasVisibleForTemplate(element);
+      return _hasVisibleForTemplate(element) &&
+          !_hasVisibleOutsideTemplate(element);
     }
   }
 }

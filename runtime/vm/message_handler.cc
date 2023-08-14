@@ -23,11 +23,11 @@ DECLARE_FLAG(bool, trace_service_pause_events);
 class MessageHandlerTask : public ThreadPool::Task {
  public:
   explicit MessageHandlerTask(MessageHandler* handler) : handler_(handler) {
-    ASSERT(handler != NULL);
+    ASSERT(handler != nullptr);
   }
 
   virtual void Run() {
-    ASSERT(handler_ != NULL);
+    ASSERT(handler_ != nullptr);
     handler_->TaskCallback();
   }
 
@@ -69,20 +69,20 @@ MessageHandler::MessageHandler()
 #endif
       task_running_(false),
       delete_me_(false),
-      pool_(NULL),
-      start_callback_(NULL),
-      end_callback_(NULL),
+      pool_(nullptr),
+      start_callback_(nullptr),
+      end_callback_(nullptr),
       callback_data_(0) {
-  ASSERT(queue_ != NULL);
-  ASSERT(oob_queue_ != NULL);
+  ASSERT(queue_ != nullptr);
+  ASSERT(oob_queue_ != nullptr);
 }
 
 MessageHandler::~MessageHandler() {
   delete queue_;
   delete oob_queue_;
-  queue_ = NULL;
-  oob_queue_ = NULL;
-  pool_ = NULL;
+  queue_ = nullptr;
+  oob_queue_ = nullptr;
+  pool_ = nullptr;
 }
 
 const char* MessageHandler::name() const {
@@ -110,7 +110,7 @@ bool MessageHandler::Run(ThreadPool* pool,
         "\thandler:    %s\n",
         name());
   }
-  ASSERT(pool_ == NULL);
+  ASSERT(pool_ == nullptr);
   ASSERT(!delete_me_);
   pool_ = pool;
   start_callback_ = start_callback;
@@ -292,7 +292,7 @@ MessageHandler::MessageStatus MessageHandler::HandleNextMessage() {
   // We can only call HandleNextMessage when this handler is not
   // assigned to a thread pool.
   MonitorLocker ml(&monitor_);
-  ASSERT(pool_ == NULL);
+  ASSERT(pool_ == nullptr);
   ASSERT(!delete_me_);
 #if defined(DEBUG)
   CheckAccess();
@@ -351,7 +351,7 @@ MessageHandler::MessageStatus MessageHandler::HandleOOBMessages() {
 #if !defined(PRODUCT)
 bool MessageHandler::ShouldPauseOnStart(MessageStatus status) const {
   Isolate* owning_isolate = isolate();
-  if (owning_isolate == NULL) {
+  if (owning_isolate == nullptr) {
     return false;
   }
   // If we are restarting or shutting down, we do not want to honor
@@ -362,7 +362,7 @@ bool MessageHandler::ShouldPauseOnStart(MessageStatus status) const {
 
 bool MessageHandler::ShouldPauseOnExit(MessageStatus status) const {
   Isolate* owning_isolate = isolate();
-  if (owning_isolate == NULL) {
+  if (owning_isolate == nullptr) {
     return false;
   }
   return (status != MessageHandler::kShutdown) && should_pause_on_exit() &&
@@ -375,17 +375,25 @@ bool MessageHandler::HasOOBMessages() {
   return !oob_queue_->IsEmpty();
 }
 
+#if defined(TESTING)
+std::unique_ptr<Message> MessageHandler::StealOOBMessage() {
+  MonitorLocker ml(&monitor_);
+  ASSERT(!oob_queue_->IsEmpty());
+  return oob_queue_->Dequeue();
+}
+#endif
+
 bool MessageHandler::HasMessages() {
   MonitorLocker ml(&monitor_);
   return !queue_->IsEmpty();
 }
 
 void MessageHandler::TaskCallback() {
-  ASSERT(Isolate::Current() == NULL);
+  ASSERT(Isolate::Current() == nullptr);
   MessageStatus status = kOK;
   bool run_end_callback = false;
   bool delete_me = false;
-  EndCallback end_callback = NULL;
+  EndCallback end_callback = nullptr;
   CallbackData callback_data = 0;
   {
     // We will occasionally release and reacquire this monitor in this
@@ -440,8 +448,8 @@ void MessageHandler::TaskCallback() {
         // Release the monitor_ temporarily while we call the start callback.
         ml.Exit();
         status = start_callback_(callback_data_);
-        ASSERT(Isolate::Current() == NULL);
-        start_callback_ = NULL;
+        ASSERT(Isolate::Current() == nullptr);
+        start_callback_ = nullptr;
         ml.Enter();
       }
 
@@ -478,7 +486,7 @@ void MessageHandler::TaskCallback() {
       }
 #endif  // !defined(PRODUCT)
       if (FLAG_trace_isolates) {
-        if (status != kOK && thread() != NULL) {
+        if (status != kOK && thread() != nullptr) {
           const Error& error = Error::Handle(thread()->sticky_error());
           OS::PrintErr(
               "[-] Stopping message handler (%s):\n"
@@ -492,11 +500,11 @@ void MessageHandler::TaskCallback() {
               MessageStatusString(status), name());
         }
       }
-      pool_ = NULL;
+      pool_ = nullptr;
       // Decide if we have a callback before releasing the monitor.
       end_callback = end_callback_;
       callback_data = callback_data_;
-      run_end_callback = end_callback_ != NULL;
+      run_end_callback = end_callback_ != nullptr;
       delete_me = delete_me_;
     }
 
@@ -513,7 +521,7 @@ void MessageHandler::TaskCallback() {
   ASSERT(!delete_me || !run_end_callback);
 
   if (run_end_callback) {
-    ASSERT(end_callback != NULL);
+    ASSERT(end_callback != nullptr);
     end_callback(callback_data);
     // The handler may have been deleted after this point.
   }
@@ -607,7 +615,7 @@ void MessageHandler::PausedOnStartLocked(MonitorLocker* ml, bool paused) {
     paused_timestamp_ = -1;
     // Resumed. Clear the resume request of the owning isolate.
     Isolate* owning_isolate = isolate();
-    if (owning_isolate != NULL) {
+    if (owning_isolate != nullptr) {
       owning_isolate->GetAndClearResumeRequest();
     }
     is_paused_on_start_ = false;
@@ -638,7 +646,7 @@ void MessageHandler::PausedOnExitLocked(MonitorLocker* ml, bool paused) {
     paused_timestamp_ = -1;
     // Resumed. Clear the resume request of the owning isolate.
     Isolate* owning_isolate = isolate();
-    if (owning_isolate != NULL) {
+    if (owning_isolate != nullptr) {
       owning_isolate->GetAndClearResumeRequest();
     }
     is_paused_on_exit_ = false;
@@ -648,12 +656,12 @@ void MessageHandler::PausedOnExitLocked(MonitorLocker* ml, bool paused) {
 
 MessageHandler::AcquiredQueues::AcquiredQueues(MessageHandler* handler)
     : handler_(handler), ml_(&handler->monitor_) {
-  ASSERT(handler != NULL);
+  ASSERT(handler != nullptr);
   handler_->oob_message_handling_allowed_ = false;
 }
 
 MessageHandler::AcquiredQueues::~AcquiredQueues() {
-  ASSERT(handler_ != NULL);
+  ASSERT(handler_ != nullptr);
   handler_->oob_message_handling_allowed_ = true;
 }
 

@@ -239,7 +239,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "List<Object> implements List<Object>, JSIndexable<Object>"
+    "List<Object> implements List<Object>, JSIndexable<Object>, TrustedGetRuntimeType"
 ]
 -----------------------------------
 Test: List<Object> definition formatting body
@@ -1788,7 +1788,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "List<int> implements List<int>, JSIndexable<int>"
+    "List<int> implements List<int>, JSIndexable<int>, TrustedGetRuntimeType"
 ]
 -----------------------------------
 Test: List<int> large definition formatting body

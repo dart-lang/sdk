@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -68,7 +68,7 @@ class B extends core::_Enum /*isEnum*/  {
 }
 static method a1(self::A? a) → core::int? {
   #L1:
-  switch(a) /*isExplicitlyExhaustive*/ {
+  switch(a) /* isExplicitlyExhaustive, self::A? */ {
     #L2:
     case #C3:
       {
@@ -81,7 +81,7 @@ static method a1(self::A? a) → core::int? {
 }
 static method a2(self::A? a) → core::int? {
   #L4:
-  switch(a) /*isExplicitlyExhaustive*/ {
+  switch(a) /* isExplicitlyExhaustive, self::A? */ {
     #L5:
     case #C11:
       {
@@ -99,7 +99,7 @@ static method a2(self::A? a) → core::int? {
 }
 static method b1(self::B b) → core::int {
   #L8:
-  switch(b) /*isExplicitlyExhaustive*/ {
+  switch(b) /* isExplicitlyExhaustive, self::B */ {
     #L9:
     case #C8:
       {
@@ -117,7 +117,7 @@ static method b1(self::B b) → core::int {
 }
 static method b2(self::B? b) → core::int? {
   #L12:
-  switch(b) /*isExplicitlyExhaustive*/ {
+  switch(b) /* isExplicitlyExhaustive, self::B? */ {
     #L13:
     case #C11:
       {
@@ -135,7 +135,7 @@ static method b2(self::B? b) → core::int? {
 }
 static method c1(mai::C? c) → core::int? {
   #L16:
-  switch(c) /*isExplicitlyExhaustive*/ {
+  switch(c) /* isExplicitlyExhaustive, mai::C? */ {
     #L17:
     case #C12:
       {
@@ -148,7 +148,7 @@ static method c1(mai::C? c) → core::int? {
 }
 static method c2(mai::C? c) → core::int? {
   #L19:
-  switch(c) /*isExplicitlyExhaustive*/ {
+  switch(c) /* isExplicitlyExhaustive, mai::C? */ {
     #L20:
     case #C11:
       {
@@ -166,7 +166,7 @@ static method c2(mai::C? c) → core::int? {
 }
 static method d1(mai::D d) → core::int {
   #L23:
-  switch(d) /*isExplicitlyExhaustive*/ {
+  switch(d) /* isExplicitlyExhaustive, mai::D */ {
     #L24:
     case #C13:
       {
@@ -184,7 +184,7 @@ static method d1(mai::D d) → core::int {
 }
 static method d2(mai::D? d) → core::int? {
   #L27:
-  switch(d) /*isExplicitlyExhaustive*/ {
+  switch(d) /* isExplicitlyExhaustive, mai::D? */ {
     #L28:
     case #C11:
       {
@@ -211,7 +211,7 @@ static method test() → void {
   self::d2(#C14);
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 

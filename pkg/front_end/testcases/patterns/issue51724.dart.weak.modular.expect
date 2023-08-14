@@ -1,10 +1,10 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
   self::throws(() → void {
-    if(self::val(10) =={core::num::==}{(core::Object) → core::bool} 10 && self::guard(42) as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool) {
+    if(self::val(10) =={core::num::==}{(core::Object) → core::bool} 10 && self::guard(42) as{TypeError,ForDynamic} core::bool) {
       core::print("cast on conditions catches non-bools");
     }
   });
@@ -12,7 +12,7 @@ static method main() → dynamic {
     (core::int) r = (10);
     {
       final synthesized(core::int) #0#0 = r;
-      if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0.$1{core::int} && self::guard(42) as{TypeError,ForNonNullableByDefault} core::bool) {
+      if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0.$1{core::int} && self::guard(42) as{TypeError} core::bool) {
         core::print("missing cast on conditions allows this code to execute");
       }
     }

@@ -1,16 +1,15 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 typedef B<T extends core::Object? = dynamic> = self::A<T%>;
 typedef C<unrelated T extends core::Object? = dynamic> = self::A<core::int>;
 class A<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::redirect]/*isLegacy*/;
   constructor •() → self::A<self::A::T%>
     ;
   static factory fact<T extends core::Object? = dynamic>() → self::A<self::A::fact::T%>
     ;
-  static factory redirect<T extends core::Object? = dynamic>() → self::A<self::A::redirect::T%>
+  static factory redirect<T extends core::Object? = dynamic>() → self::A<self::A::redirect::T%> /* redirection-target: self::A::•<self::A::redirect::T%>*/
     return new self::A::•<self::A::redirect::T%>();
 }
 static const field <T extends core::Object? = dynamic>() → self::A<T%> a = self::A::•;
@@ -38,7 +37,6 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///const_tear_off.dart:5:7 -> ConstructorTearOffConstant(A.redirect)
 Evaluated: ConstructorTearOff @ org-dartlang-testcase:///const_tear_off.dart:14:11 -> ConstructorTearOffConstant(A.)
 Evaluated: Instantiation @ org-dartlang-testcase:///const_tear_off.dart:15:11 -> InstantiationConstant(A.<int*>)
 Evaluated: ConstructorTearOff @ org-dartlang-testcase:///const_tear_off.dart:16:11 -> ConstructorTearOffConstant(A.fact)
@@ -57,4 +55,4 @@ Evaluated: TypedefTearOff @ org-dartlang-testcase:///const_tear_off.dart:28:11 -
 Evaluated: Instantiation @ org-dartlang-testcase:///const_tear_off.dart:29:11 -> InstantiationConstant(A.fact<int*>)
 Evaluated: TypedefTearOff @ org-dartlang-testcase:///const_tear_off.dart:30:11 -> TypedefTearOffConstant(<T>A.redirect<int>)
 Evaluated: Instantiation @ org-dartlang-testcase:///const_tear_off.dart:31:11 -> InstantiationConstant(A.redirect<int*>)
-Extra constant evaluation: evaluated: 21, effectively constant: 19
+Extra constant evaluation: evaluated: 19, effectively constant: 18

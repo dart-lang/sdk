@@ -846,6 +846,13 @@ class PowersetDomain with AbstractValueDomain {
           MemberHierarchyBuilder memberHierarchyBuilder) =>
       _abstractValueDomain.findRootsOfTargets(
           receiver.abstractValue, selector, memberHierarchyBuilder);
+
+  @override
+  bool isValidRefinement(
+      covariant PowersetValue before, covariant PowersetValue after) {
+    return _abstractValueDomain.isValidRefinement(
+        before._abstractValue, after._abstractValue);
+  }
 }
 
 class PowersetStrategy implements AbstractValueStrategy {

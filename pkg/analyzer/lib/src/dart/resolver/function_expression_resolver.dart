@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/generated/migration.dart';
@@ -53,7 +53,7 @@ class FunctionExpressionResolver {
       if (instantiatedType is FunctionType) {
         _inferFormalParameters(node.parameters, instantiatedType);
         var returnType = instantiatedType.returnType;
-        if (!returnType.isDynamic) {
+        if (!(returnType is DynamicType || returnType is UnknownInferredType)) {
           imposedType = returnType;
         }
       }
@@ -91,7 +91,7 @@ class FunctionExpressionResolver {
     void inferType(ParameterElementImpl p, DartType inferredType) {
       // Check that there is no declared type, and that we have not already
       // inferred a type in some fashion.
-      if (p.hasImplicitType && p.type.isDynamic) {
+      if (p.hasImplicitType && p.type is DynamicType) {
         // If no type is declared for a parameter and there is a
         // corresponding parameter in the context type schema with type
         // schema `K`, the parameter is given an inferred type `T` where `T`
@@ -111,7 +111,7 @@ class FunctionExpressionResolver {
         } else {
           inferredType = _typeSystem.nonNullifyLegacy(inferredType);
         }
-        if (!inferredType.isDynamic) {
+        if (inferredType is! DynamicType) {
           p.type = inferredType;
         }
       }

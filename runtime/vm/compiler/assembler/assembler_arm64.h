@@ -577,35 +577,25 @@ class Assembler : public AssemblerBase {
 
   void LoadAcquire(Register dst,
                    Register address,
-                   int32_t offset = 0) override {
-    if (offset != 0) {
-      AddImmediate(TMP2, address, offset);
-      ldar(dst, TMP2);
-#if defined(USING_THREAD_SANITIZER)
-      TsanLoadAcquire(TMP2);
-#endif
-    } else {
-      ldar(dst, address);
-#if defined(USING_THREAD_SANITIZER)
-      TsanLoadAcquire(address);
-#endif
-    }
-  }
-
-  void LoadAcquireCompressed(Register dst,
-                             Register address,
-                             int32_t offset = 0) override {
+                   int32_t offset = 0,
+                   OperandSize size = kEightBytes) override {
     Register src = address;
     if (offset != 0) {
       AddImmediate(TMP2, address, offset);
       src = TMP2;
     }
-    ldar(dst, src, kObjectBytes);  // ldar does zero extension for 4 bytes.
-#if defined(DART_COMPRESSED_POINTERS)
-    add(dst, dst, Operand(HEAP_BITS, LSL, 32));
-#endif
+    ldar(dst, src, size);
 #if defined(USING_THREAD_SANITIZER)
     TsanLoadAcquire(src);
+#endif
+  }
+
+  void LoadAcquireCompressed(Register dst,
+                             Register address,
+                             int32_t offset = 0) override {
+    LoadAcquire(dst, address, offset, kObjectBytes);
+#if defined(DART_COMPRESSED_POINTERS)
+    add(dst, dst, Operand(HEAP_BITS, LSL, 32));
 #endif
   }
 
@@ -646,22 +636,9 @@ class Assembler : public AssemblerBase {
 
   void CompareWithMemoryValue(Register value,
                               Address address,
-                              OperandSize sz = kEightBytes) {
+                              OperandSize sz = kEightBytes) override {
     LoadFromOffset(TMP, address, sz);
     cmp(value, Operand(TMP), sz);
-  }
-
-  void LoadAbstractTypeNullability(Register dst, Register type) override {
-    ldr(dst, FieldAddress(type, compiler::target::AbstractType::flags_offset()),
-        kUnsignedByte);
-    AndImmediate(dst, dst,
-                 compiler::target::UntaggedAbstractType::kNullabilityMask);
-  }
-  void CompareAbstractTypeNullabilityWith(Register type,
-                                          /*Nullability*/ int8_t value,
-                                          Register scratch) override {
-    LoadAbstractTypeNullability(scratch, type);
-    cmp(scratch, Operand(value));
   }
 
   bool use_far_branches() const {
@@ -689,7 +666,7 @@ class Assembler : public AssemblerBase {
   // Instruction pattern from entrypoint is used in Dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
   // RawInstruction object corresponding to the code running in the frame.
-  static const intptr_t kEntryPointToPcMarkerOffset = 0;
+  static constexpr intptr_t kEntryPointToPcMarkerOffset = 0;
   static intptr_t EntryPointToPcMarkerOffset() {
     return kEntryPointToPcMarkerOffset;
   }
@@ -1881,7 +1858,7 @@ class Assembler : public AssemblerBase {
                     Register rn,
                     int64_t imm,
                     OperandSize sz = kEightBytes);
-  void AndImmediate(Register rd, int64_t imm) {
+  void AndImmediate(Register rd, int64_t imm) override {
     AndImmediate(rd, rd, imm);
   }
   void AndRegisters(Register dst,

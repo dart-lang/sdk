@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -263,7 +263,7 @@ static method method<T extends core::Object? = dynamic>(dynamic o) → dynamic {
       return #C1 =={core::num::==}{(core::Object) → core::bool} #0#0;
     late final synthesized core::bool #0#4 = ##0#4#initializer(){() → core::bool};
     function ##0#6#initializer() → core::bool
-      return #C2 =={core::num::==}{(core::Object) → core::bool} #0#0 as{ForNonNullableByDefault} self::method::T%;
+      return #C2 =={core::num::==}{(core::Object) → core::bool} #0#0 as self::method::T%;
     late final synthesized core::bool #0#6 = ##0#6#initializer(){() → core::bool};
     function ##0#10#initializer() → core::bool
       return #C3 =={core::num::==}{(core::Object) → core::bool} #0#0;
@@ -302,7 +302,7 @@ static method method<T extends core::Object? = dynamic>(dynamic o) → dynamic {
     case --o: // Error
            ^";
     {
-      if(#0#2 || #0#4 || #0#2 && #0#4 || (let final self::method::T% #t1 = #0#0 as{ForNonNullableByDefault} self::method::T% in #0#6) || #C11 =={core::Object::==}{(core::Object) → core::bool} #0#0 || #0#10 || #0#12 || #0#4 || #0#14 || #0#16 || #0#2 || #0#18 || #0#20 || #0#10 || #0#16 || #0#10 || #0#20 || #0#20 || #0#18 || #0#18 || #0#22 || #0#16 || #0#16 || #0#24 || (let final self::method::T% #t2 = #0#0 as{ForNonNullableByDefault} self::method::T% in #0#6) || (let final self::method::T% #t3 = #0#0 as{ForNonNullableByDefault} self::method::T% in #C1 =={core::num::==}{(core::Object) → core::bool} #0#0 as{ForNonNullableByDefault} self::method::T%) || (let final core::int #t4 = #0#0 as{ForNonNullableByDefault} core::int in #C2 =={core::num::==}{(core::Object) → core::bool} #0#0 as{ForNonNullableByDefault} core::int) || #0#10 || #0#12 || #0#4 || #0#14 || #0#16 || #0#2 || #0#18 || #0#20 || #0#10 || #0#16 || #0#10 || #0#20 || #0#20 || #0#18 || #0#18 || #0#22 || #0#16 || #0#16 || #0#24 || #0#18 || (let final core::List<self::method::T%> #t5 = #0#0 as{ForNonNullableByDefault} core::List<self::method::T%> in #C12 =={core::List::==}{(core::Object) → core::bool} #0#0 as{ForNonNullableByDefault} core::List<self::method::T%>) || #0#10 || #0#12 || #0#4 || #0#14 || #0#16 || #0#2 || #0#18 || #0#20 || #0#10 || #0#16 || #0#10 || #0#20 || #0#20 || #0#18 || #0#18 || #0#22 || #0#16 || #0#16 || #0#24 || #0#2) {
+      if(#0#2 || #0#4 || #0#2 && #0#4 || (let final self::method::T% #t1 = #0#0 as self::method::T% in #0#6) || #C11 =={core::Object::==}{(core::Object) → core::bool} #0#0 || #0#10 || #0#12 || #0#4 || #0#14 || #0#16 || #0#2 || #0#18 || #0#20 || #0#10 || #0#16 || #0#10 || #0#20 || #0#20 || #0#18 || #0#18 || #0#22 || #0#16 || #0#16 || #0#24 || (let final self::method::T% #t2 = #0#0 as self::method::T% in #0#6) || (let final self::method::T% #t3 = #0#0 as self::method::T% in #C1 =={core::num::==}{(core::Object) → core::bool} #0#0 as self::method::T%) || (let final core::int #t4 = #0#0 as core::int in #C2 =={core::num::==}{(core::Object) → core::bool} #0#0 as core::int) || #0#10 || #0#12 || #0#4 || #0#14 || #0#16 || #0#2 || #0#18 || #0#20 || #0#10 || #0#16 || #0#10 || #0#20 || #0#20 || #0#18 || #0#18 || #0#22 || #0#16 || #0#16 || #0#24 || #0#18 || (let final core::List<self::method::T%> #t5 = #0#0 as core::List<self::method::T%> in #C12 =={core::List::==}{(core::Object) → core::bool} #0#0 as core::List<self::method::T%>) || #0#10 || #0#12 || #0#4 || #0#14 || #0#16 || #0#2 || #0#18 || #0#20 || #0#10 || #0#16 || #0#10 || #0#20 || #0#20 || #0#18 || #0#18 || #0#22 || #0#16 || #0#16 || #0#24 || #0#2) {
         {
           let final invalid-type #t6 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns_binary.dart:81:12: Error: This couldn't be parsed.
     case 1 ?? 2: // Error

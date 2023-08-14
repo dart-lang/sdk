@@ -81,29 +81,29 @@ library from "org-dartlang-test:///foo.dart" as foo {
   static const field wid::_WidgetFactory* nullableAlias = #C1;
   static const field wid::_WidgetFactory* nonNullableAlias = #C2;
   @#C2
-  static method FooExtension|foo(lowered final dart.core::Object* #this, {wid::_Location* $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo*
+  static extension-member method FooExtension|foo(lowered final dart.core::Object* #this, {wid::_Location* $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo*
     return new foo::Foo::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
-  static method FooExtension|get#foo(lowered final dart.core::Object* #this) → () →* foo::Foo*
+  static extension-member method FooExtension|get#foo(lowered final dart.core::Object* #this) → () →* foo::Foo*
     return () → foo::Foo* => foo::FooExtension|foo(#this, $creationLocationd_0dea112b090073317d4: #C15);
   @#C2
-  static method FooExtension|bar(lowered final dart.core::Object* #this, {wid::_Location* $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo*
+  static extension-member method FooExtension|bar(lowered final dart.core::Object* #this, {wid::_Location* $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo*
     return new foo::Foo::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
-  static method FooExtension|get#bar(lowered final dart.core::Object* #this) → () →* foo::Foo*
+  static extension-member method FooExtension|get#bar(lowered final dart.core::Object* #this) → () →* foo::Foo*
     return () → foo::Foo* => foo::FooExtension|bar(#this, $creationLocationd_0dea112b090073317d4: #C18);
   @#C1
-  static method FooExtension|baz(lowered final dart.core::Object* #this, {wid::_Location* $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo*
+  static extension-member method FooExtension|baz(lowered final dart.core::Object* #this, {wid::_Location* $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo*
     return new foo::Foo::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
-  static method FooExtension|get#baz(lowered final dart.core::Object* #this) → () →* foo::Foo*
+  static extension-member method FooExtension|get#baz(lowered final dart.core::Object* #this) → () →* foo::Foo*
     return () → foo::Foo* => foo::FooExtension|baz(#this, $creationLocationd_0dea112b090073317d4: #C21);
   @#C2
-  static method FooExtension|boz(lowered final dart.core::Object* #this, {wid::_Location* $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo*
+  static extension-member method FooExtension|boz(lowered final dart.core::Object* #this, {wid::_Location* $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo*
     return new foo::Foo::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
-  static method FooExtension|get#boz(lowered final dart.core::Object* #this) → () →* foo::Foo*
+  static extension-member method FooExtension|get#boz(lowered final dart.core::Object* #this) → () →* foo::Foo*
     return () → foo::Foo* => foo::FooExtension|boz(#this, $creationLocationd_0dea112b090073317d4: #C24);
   @#C2
-  static method FooExtension|constFoo(lowered final dart.core::Object* #this, {wid::_Location* $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo*
+  static extension-member method FooExtension|constFoo(lowered final dart.core::Object* #this, {wid::_Location* $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo*
     return #C28;
-  static method FooExtension|get#constFoo(lowered final dart.core::Object* #this) → () →* foo::Foo*
+  static extension-member method FooExtension|get#constFoo(lowered final dart.core::Object* #this) → () →* foo::Foo*
     return () → foo::Foo* => foo::FooExtension|constFoo(#this, $creationLocationd_0dea112b090073317d4: #C30);
 }
 library from "org-dartlang-test:///main.dart" as main {

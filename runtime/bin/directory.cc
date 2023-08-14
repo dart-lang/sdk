@@ -19,12 +19,12 @@
 namespace dart {
 namespace bin {
 
-char* Directory::system_temp_path_override_ = NULL;
+char* Directory::system_temp_path_override_ = nullptr;
 
 void FUNCTION_NAME(Directory_Current)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   const char* current = Directory::Current(namespc);
-  if (current != NULL) {
+  if (current != nullptr) {
     Dart_Handle str = ThrowIfError(DartUtils::NewString(current));
     Dart_SetReturnValue(args, str);
   } else {
@@ -56,8 +56,8 @@ void FUNCTION_NAME(Directory_SetCurrent)(Dart_NativeArguments args) {
 }
 
 void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
-  static const int kExists = 1;
-  static const int kDoesNotExist = 0;
+  const int kExists = 1;
+  const int kDoesNotExist = 0;
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   Dart_Handle path = Dart_GetNativeArgument(args, 1);
   OSError os_error;
@@ -115,18 +115,18 @@ void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   Dart_Handle path = Dart_GetNativeArgument(args, 1);
   OSError os_error;
-  const char* result = NULL;
+  const char* result = nullptr;
   {
     TypedDataScope data(path);
     ASSERT(data.type() == Dart_TypedData_kUint8);
     const char* name = data.GetCString();
     result = Directory::CreateTemp(namespc, name);
-    if (result == NULL) {
+    if (result == nullptr) {
       // Errors must be caught before TypedDataScope data is destroyed.
       os_error.Reload();
     }
   }
-  if (result != NULL) {
+  if (result != nullptr) {
     Dart_Handle str = ThrowIfError(DartUtils::NewString(result));
     Dart_SetReturnValue(args, str);
   } else {
@@ -212,7 +212,7 @@ void FUNCTION_NAME(Directory_FillWithDirectoryListing)(
   }
 }
 
-static const int kAsyncDirectoryListerFieldIndex = 0;
+static constexpr int kAsyncDirectoryListerFieldIndex = 0;
 
 void FUNCTION_NAME(Directory_GetAsyncDirectoryListerPointer)(
     Dart_NativeArguments args) {
@@ -222,7 +222,7 @@ void FUNCTION_NAME(Directory_GetAsyncDirectoryListerPointer)(
   ThrowIfError(
       Dart_GetNativeInstanceField(dart_this, kAsyncDirectoryListerFieldIndex,
                                   reinterpret_cast<intptr_t*>(&listing)));
-  if (listing != NULL) {
+  if (listing != nullptr) {
     intptr_t listing_pointer = reinterpret_cast<intptr_t>(listing);
     // Increment the listing's reference count. This native should only be
     // be called when we are about to send the AsyncDirectoryListing* to the
@@ -253,11 +253,11 @@ void FUNCTION_NAME(Directory_SetAsyncDirectoryListerPointer)(
 }
 
 void Directory::SetSystemTemp(const char* path) {
-  if (system_temp_path_override_ != NULL) {
+  if (system_temp_path_override_ != nullptr) {
     free(system_temp_path_override_);
-    system_temp_path_override_ = NULL;
+    system_temp_path_override_ = nullptr;
   }
-  if (path != NULL) {
+  if (path != nullptr) {
     system_temp_path_override_ = Utils::StrDup(path);
   }
 }
@@ -303,8 +303,8 @@ CObject* Directory::DeleteRequest(const CObjectArray& request) {
 }
 
 CObject* Directory::ExistsRequest(const CObjectArray& request) {
-  static const int kExists = 1;
-  static const int kDoesNotExist = 0;
+  const int kExists = 1;
+  const int kDoesNotExist = 0;
   if ((request.Length() < 1) || !request[0]->IsIntptr()) {
     return CObject::IllegalArgumentError();
   }
@@ -337,7 +337,7 @@ CObject* Directory::CreateTempRequest(const CObjectArray& request) {
   CObjectUint8Array path(request[1]);
   const char* result = Directory::CreateTemp(
       namespc, reinterpret_cast<const char*>(path.Buffer()));
-  if (result == NULL) {
+  if (result == nullptr) {
     return CObject::NewOSError();
   }
   return new CObjectString(CObject::NewString(result));
@@ -447,7 +447,7 @@ CObject* Directory::RenameRequest(const CObjectArray& request) {
 bool AsyncDirectoryListing::AddFileSystemEntityToResponse(Response type,
                                                           const char* arg) {
   array_->SetAt(index_++, new CObjectInt32(CObject::NewInt32(type)));
-  if (arg != NULL) {
+  if (arg != nullptr) {
     size_t len = strlen(arg);
     Dart_CObject* io_buffer = CObject::NewIOBuffer(len);
     uint8_t* data = io_buffer->value.as_external_typed_data.data;
@@ -475,7 +475,7 @@ bool AsyncDirectoryListing::HandleLink(const char* link_name) {
 }
 
 void AsyncDirectoryListing::HandleDone() {
-  AddFileSystemEntityToResponse(kListDone, NULL);
+  AddFileSystemEntityToResponse(kListDone, nullptr);
 }
 
 bool AsyncDirectoryListing::HandleError() {
@@ -500,7 +500,7 @@ bool SyncDirectoryListing::HandleDirectory(const char* dir_name) {
   // non-UTF-8 characters replaced with U+FFFD.
 
   size_t dir_name_length = strlen(dir_name);
-  uint8_t* buffer = NULL;
+  uint8_t* buffer = nullptr;
   Dart_Handle dir_name_dart = IOBuffer::Allocate(dir_name_length, &buffer);
   if (Dart_IsNull(dir_name_dart)) {
     dart_error_ = DartUtils::NewDartOSError();
@@ -526,7 +526,7 @@ bool SyncDirectoryListing::HandleLink(const char* link_name) {
   // non-UTF-8 characters replaced with U+FFFD.
 
   size_t link_name_length = strlen(link_name);
-  uint8_t* buffer = NULL;
+  uint8_t* buffer = nullptr;
   Dart_Handle link_name_dart = IOBuffer::Allocate(link_name_length, &buffer);
   if (Dart_IsNull(link_name_dart)) {
     dart_error_ = DartUtils::NewDartOSError();
@@ -551,7 +551,7 @@ bool SyncDirectoryListing::HandleFile(const char* file_name) {
   // non-UTF-8 characters replaced with U+FFFD.
 
   size_t file_name_length = strlen(file_name);
-  uint8_t* buffer = NULL;
+  uint8_t* buffer = nullptr;
   Dart_Handle file_name_dart = IOBuffer::Allocate(file_name_length, &buffer);
   if (Dart_IsNull(file_name_dart)) {
     dart_error_ = DartUtils::NewDartOSError();

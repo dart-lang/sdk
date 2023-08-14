@@ -37,10 +37,12 @@ import '../builder/constructor_reference_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
+import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/inline_class_builder.dart';
+import '../builder/invalid_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -53,6 +55,7 @@ import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
+import '../builder/record_type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -65,6 +68,7 @@ import '../export.dart' show Export;
 import '../fasta_codes.dart';
 import '../identifiers.dart' show QualifiedName, flattenName;
 import '../import.dart' show Import;
+import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/internal_ast.dart';
@@ -107,6 +111,7 @@ import '../operator.dart';
 import '../problems.dart' show unexpected, unhandled;
 import '../scope.dart';
 import '../util/helpers.dart';
+import 'class_declaration.dart';
 import 'constructor_declaration.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
@@ -196,11 +201,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // built.
   final List<Procedure> forwardersOrigins = <Procedure>[];
 
-  // List of types inferred in the outline.  Errors in these should be reported
-  // differently than for specified types.
-  // TODO(cstefantsova):  Find a way to mark inferred types.
-  final Set<DartType> inferredTypes = new Set<DartType>.identity();
-
   // While the bounds of type parameters aren't compiled yet, we can't tell the
   // default nullability of the corresponding type-parameter types.  This list
   // is used to collect such type-parameter types in order to set the
@@ -211,6 +211,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // This allows code generated in one library to use the private namespace of
   // another, for example during expression compilation (debugging).
   Library get nameOrigin => _nameOrigin?.library ?? library;
+
   @override
   LibraryBuilder get nameOriginBuilder => _nameOrigin ?? this;
   final LibraryBuilder? _nameOrigin;
@@ -334,7 +335,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             fileUri,
             _libraryTypeParameterScopeBuilder.toScope(importScope,
                 omittedTypeDeclarationBuilders: omittedTypes),
-            new Scope.top(kind: ScopeKind.library)) {
+            origin?.exportScope ?? new Scope.top(kind: ScopeKind.library)) {
     assert(
         _packageUri == null ||
             !importUri.isScheme('package') ||
@@ -465,6 +466,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   bool get isPart => partOfName != null || partOfUri != null;
 
+  @override
+  Iterator<T> fullMemberIterator<T extends Builder>() =>
+      new SourceLibraryBuilderMemberIterator<T>(this, includeDuplicates: false);
+
+  @override
+  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
+      new SourceLibraryBuilderMemberNameIterator<T>(this,
+          includeDuplicates: false);
+
   // TODO(johnniwinther): Can avoid using this from outside this class?
   Iterable<SourceLibraryBuilder>? get patchLibraries => _patchLibraries;
 
@@ -533,6 +543,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool? _isNonNullableByDefault;
 
   @override
+  @pragma("vm:prefer-inline")
   bool get isNonNullableByDefault {
     assert(
         _isNonNullableByDefault == null ||
@@ -540,7 +551,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         "Unstable isNonNullableByDefault property, changed "
         "from ${_isNonNullableByDefault} to "
         "${_computeIsNonNullableByDefault()}");
-    return _ensureIsNonNullableByDefault();
+    return _isNonNullableByDefault ?? _ensureIsNonNullableByDefault();
   }
 
   bool _ensureIsNonNullableByDefault() {
@@ -1023,11 +1034,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       SourceLibraryBuilder sourceLibraryBuilder, Scope scope,
       {required bool checkForInstanceVsStaticConflict,
       required bool checkForMethodVsSetterConflict}) {
-    // ignore: unnecessary_null_comparison
-    assert(checkForInstanceVsStaticConflict != null);
-    // ignore: unnecessary_null_comparison
-    assert(checkForMethodVsSetterConflict != null);
-
     scope.forEachLocalSetter((String name, MemberBuilder setter) {
       Builder? getable = scope.lookupLocalMember(name, setter: false);
       if (getable == null) {
@@ -1382,14 +1388,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void buildInitialScopes() {
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.buildInitialScopes();
-      }
-    }
-
-    NameIterator iterator = localMembersNameIterator;
+    NameIterator iterator = scope.filteredNameIterator(
+        includeDuplicates: false, includeAugmentations: false);
     while (iterator.moveNext()) {
       addToExportScope(iterator.name, iterator.current);
     }
@@ -1436,54 +1436,47 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         includeDuplicates: false, includeAugmentations: false);
     while (iterator.moveNext()) {
       String name = iterator.name;
-      Builder member = iterator.current;
-      if (member.parent != this) {
-        if (member is DynamicTypeDeclarationBuilder) {
+      Builder builder = iterator.current;
+      if (builder.parent?.origin != origin) {
+        if (builder is DynamicTypeDeclarationBuilder) {
           assert(name == 'dynamic',
               "Unexpected export name for 'dynamic': '$name'");
           (unserializableExports ??= {})[name] = exportDynamicSentinel;
-        } else if (member is NeverTypeDeclarationBuilder) {
+        } else if (builder is NeverTypeDeclarationBuilder) {
           assert(
               name == 'Never', "Unexpected export name for 'Never': '$name'");
           (unserializableExports ??= {})[name] = exportNeverSentinel;
         } else {
-          if (member is InvalidTypeDeclarationBuilder) {
+          if (builder is InvalidTypeDeclarationBuilder) {
             (unserializableExports ??= {})[name] =
-                member.message.problemMessage;
+                builder.message.problemMessage;
           } else {
-            // Eventually (in #buildBuilder) members aren't added to the
-            // library if the have 'next' pointers, so don't add them as
-            // additionalExports either. Add the last one only (the one that
-            // will eventually be added to the library).
-            Builder memberLast = member;
-            while (memberLast.next != null) {
-              memberLast = memberLast.next!;
-            }
-            if (memberLast is ClassBuilder) {
-              library.additionalExports.add(memberLast.cls.reference);
-            } else if (memberLast is InlineClassBuilder) {
-              library.additionalExports.add(memberLast.inlineClass.reference);
-            } else if (memberLast is TypeAliasBuilder) {
-              library.additionalExports.add(memberLast.typedef.reference);
-            } else if (memberLast is ExtensionBuilder) {
-              library.additionalExports.add(memberLast.extension.reference);
-            } else if (memberLast is MemberBuilder) {
-              for (Member member in memberLast.exportedMembers) {
-                if (member is Field) {
+            if (builder is ClassBuilder) {
+              library.additionalExports.add(builder.cls.reference);
+            } else if (builder is InlineClassBuilder) {
+              library.additionalExports.add(builder.inlineClass.reference);
+            } else if (builder is TypeAliasBuilder) {
+              library.additionalExports.add(builder.typedef.reference);
+            } else if (builder is ExtensionBuilder) {
+              library.additionalExports.add(builder.extension.reference);
+            } else if (builder is MemberBuilder) {
+              for (Member exportedMember in builder.exportedMembers) {
+                if (exportedMember is Field) {
                   // For fields add both getter and setter references
                   // so replacing a field with a getter/setter pair still
                   // exports correctly.
-                  library.additionalExports.add(member.getterReference);
-                  if (member.hasSetter) {
-                    library.additionalExports.add(member.setterReference!);
+                  library.additionalExports.add(exportedMember.getterReference);
+                  if (exportedMember.hasSetter) {
+                    library.additionalExports
+                        .add(exportedMember.setterReference!);
                   }
                 } else {
-                  library.additionalExports.add(member.reference);
+                  library.additionalExports.add(exportedMember.reference);
                 }
               }
             } else {
-              unhandled('member', 'exportScope', memberLast.charOffset,
-                  memberLast.fileUri);
+              unhandled(
+                  'member', 'exportScope', builder.charOffset, builder.fileUri);
             }
           }
         }
@@ -1594,9 +1587,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    Iterator<SourceClassBuilder> iterator = localMembersIteratorOfType();
+    Iterator<ClassDeclaration> iterator = localMembersIteratorOfType();
     while (iterator.moveNext()) {
-      SourceClassBuilder builder = iterator.current;
+      ClassDeclaration builder = iterator.current;
       count += builder.resolveConstructors(this);
     }
     return count;
@@ -1783,6 +1776,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return formattedMessage;
   }
 
+  void addProblemForRedirectingFactory(RedirectingFactoryBuilder factory,
+      Message message, int charOffset, int length, Uri fileUri) {
+    addProblem(message, charOffset, length, fileUri);
+    String text = loader.target.context
+        .format(
+            message.withLocation(fileUri, charOffset, length), Severity.error)
+        .plain;
+    factory.setRedirectingFactoryError(text);
+  }
+
   void addClass(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -1959,7 +1962,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
         checkTypeVariables(typeVariables, classBuilder);
-    void setParent(String name, MemberBuilder? member) {
+    void setParent(MemberBuilder? member) {
       while (member != null) {
         member.parent = classBuilder;
         member = member.next as MemberBuilder?;
@@ -1980,7 +1983,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               ]);
         }
       }
-      setParent(name, member as MemberBuilder);
+      setParent(member as MemberBuilder);
     }
 
     members.forEach(setParentAndCheckConflicts);
@@ -2032,7 +2035,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       ProcedureBuilder setterBuilder, TypeEnvironment typeEnvironment) {
     DartType getterType;
     List<TypeParameter>? getterExtensionTypeParameters;
-    if (getterBuilder.isExtensionInstanceMember) {
+    if (getterBuilder.isExtensionInstanceMember ||
+        setterBuilder.isInlineClassInstanceMember) {
       // An extension instance getter
       //
       //     extension E<T> on A {
@@ -2043,6 +2047,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       //
       //   T# E#get#property<T#>(A #this) => ...
       //
+      // Similarly for inline class instance getters.
+      //
       Procedure procedure = getterBuilder.procedure;
       getterType = procedure.function.returnType;
       getterExtensionTypeParameters = procedure.function.typeParameters;
@@ -2050,7 +2056,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       getterType = getterBuilder.procedure.getterType;
     }
     DartType setterType;
-    if (setterBuilder.isExtensionInstanceMember) {
+    if (setterBuilder.isExtensionInstanceMember ||
+        setterBuilder.isInlineClassInstanceMember) {
       // An extension instance setter
       //
       //     extension E<T> on A {
@@ -2060,6 +2067,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // is encoded as a top level method
       //
       //   void E#set#property<T#>(A #this, T# value) { ... }
+      //
+      // Similarly for inline class instance setters.
       //
       Procedure procedure = setterBuilder.procedure;
       setterType = procedure.function.positionalParameters[1].type;
@@ -2173,7 +2182,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
         checkTypeVariables(typeVariables, extensionBuilder);
-    void setParent(String name, MemberBuilder? member) {
+    void setParent(MemberBuilder? member) {
       while (member != null) {
         member.parent = extensionBuilder;
         member = member.next as MemberBuilder?;
@@ -2194,7 +2203,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               ]);
         }
       }
-      setParent(name, member as MemberBuilder);
+      setParent(member as MemberBuilder);
     }
 
     members.forEach(setParentAndCheckConflicts);
@@ -2257,6 +2266,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         memberScope,
         constructorScope,
         this,
+        new List<ConstructorReferenceBuilder>.of(constructorReferences),
         startOffset,
         nameOffset,
         endOffset,
@@ -2265,7 +2275,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
         checkTypeVariables(typeVariables, inlineClassBuilder);
-    void setParent(String name, MemberBuilder? member) {
+    void setParent(MemberBuilder? member) {
       while (member != null) {
         member.parent = inlineClassBuilder;
         member = member.next as MemberBuilder?;
@@ -2286,7 +2296,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               ]);
         }
       }
-      setParent(name, member as MemberBuilder);
+      setParent(member as MemberBuilder);
     }
 
     members.forEach(setParentAndCheckConflicts);
@@ -2428,6 +2438,42 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             }
           }
           return usesTypeVariables(type.returnType);
+        } else if (type is RecordTypeBuilder) {
+          if (type.positionalFields != null) {
+            for (RecordTypeFieldBuilder fieldBuilder
+                in type.positionalFields!) {
+              if (usesTypeVariables(fieldBuilder.type)) {
+                return true;
+              }
+            }
+          }
+          if (type.namedFields != null) {
+            for (RecordTypeFieldBuilder fieldBuilder in type.namedFields!) {
+              if (usesTypeVariables(fieldBuilder.type)) {
+                return true;
+              }
+            }
+          }
+        } else if (type is DependentTypeBuilder) {
+          return false;
+        } else if (type is FixedTypeBuilder) {
+          return false;
+        } else if (type is ImplicitTypeBuilder) {
+          return false;
+        } else if (type is InferableTypeBuilder) {
+          return false;
+        } else if (type is InvalidTypeBuilder) {
+          return false;
+        } else if (type is OmittedTypeBuilder) {
+          return false;
+        } else if (type == null) {
+          return false;
+        } else {
+          return unhandled(
+              "${type.runtimeType}",
+              "SourceLibraryBuilder._applyMixins.usesTypeVariables",
+              type.charOffset ?? TreeNode.noOffset,
+              type.fileUri ?? fileUri);
         }
         return false;
       }
@@ -2534,7 +2580,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 : isMixinDeclaration
                     ? [supertype!, mixin]
                     : null,
-            null, // No `on` clause types.
+            null,
+            // No `on` clause types.
             new Scope(
                 kind: ScopeKind.declaration,
                 local: <String, MemberBuilder>{},
@@ -2876,10 +2923,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       AsyncMarker asyncModifier,
       {required bool isInstanceMember,
       required bool isExtensionMember}) {
-    // ignore: unnecessary_null_comparison
-    assert(isInstanceMember != null);
-    // ignore: unnecessary_null_comparison
-    assert(isExtensionMember != null);
     assert(!isExtensionMember ||
         currentTypeParameterScopeBuilder.kind ==
             TypeParameterScopeKind.extensionDeclaration);
@@ -3001,9 +3044,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     ContainerType containerType =
-        currentTypeParameterScopeBuilder.parent!.containerType;
+        currentTypeParameterScopeBuilder.containerType;
     ContainerName? containerName =
-        currentTypeParameterScopeBuilder.parent!.containerName;
+        currentTypeParameterScopeBuilder.containerName;
 
     NameScheme procedureNameScheme = new NameScheme(
         containerName: containerName,
@@ -3134,7 +3177,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             charOffset,
             charEndOffset,
             name,
-            /* isMixinDeclaration = */ false,
+            /* isMixinDeclaration = */
+            false,
             typeVariables: typeVariables,
             isMacro: false,
             isSealed: false,
@@ -3165,7 +3209,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Map<String, TypeVariableBuilder>? typeVariablesByName =
         checkTypeVariables(typeVariables, enumBuilder);
 
-    void setParent(String name, MemberBuilder? member) {
+    void setParent(MemberBuilder? member) {
       while (member != null) {
         member.parent = enumBuilder;
         member = member.next as MemberBuilder?;
@@ -3186,7 +3230,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               ]);
         }
       }
-      setParent(name, member as MemberBuilder);
+      setParent(member as MemberBuilder);
     }
 
     members.forEach(setParentAndCheckConflicts);
@@ -3283,6 +3327,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return builder;
   }
 
+  BodyBuilderContext get bodyBuilderContext =>
+      new LibraryBodyBuilderContext(this);
+
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
@@ -3296,7 +3343,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     MetadataBuilder.buildAnnotations(
-        library, metadata, this, null, null, fileUri, scope);
+        library, metadata, bodyBuilderContext, this, fileUri, scope,
+        createFileUriExpression: isPatch);
 
     Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
@@ -4246,9 +4294,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       TypeParameter? typeParameter = issue.typeParameter;
 
       Message message;
-      bool issueInferred = inferred ??
-          typeArgumentsInfo?.isInferred(issue.index) ??
-          inferredTypes.contains(argument);
+      bool issueInferred =
+          inferred ?? typeArgumentsInfo?.isInferred(issue.index) ?? false;
       offset =
           typeArgumentsInfo?.getOffsetForIndex(issue.index, offset) ?? offset;
       if (issue.isGenericTypeAsArgumentIssue) {
@@ -4303,8 +4350,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           String enclosingName = issue.enclosingType == null
               ? targetName!
               : getGenericTypeName(issue.enclosingType!);
-          // ignore: unnecessary_null_comparison
-          assert(enclosingName != null);
           if (issueInferred) {
             message = templateIncorrectTypeArgumentInferred.withArguments(
                 argument,
@@ -4466,10 +4511,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       {bool inferred = false}) {
     if (node.arguments.types.isEmpty) return;
     Procedure factory = node.target;
-    assert(factory.isFactory);
-    Class klass = factory.enclosingClass!;
-    DartType constructedType = new InterfaceType(
-        klass, klass.enclosingLibrary.nonNullable, node.arguments.types);
+    assert(factory.isFactory || factory.isInlineClassMember);
+    DartType constructedType = Substitution.fromPairs(
+            node.target.function.typeParameters, node.arguments.types)
+        .substituteType(node.target.function.returnType);
     checkBoundsInType(
         constructedType, typeEnvironment, fileUri, node.fileOffset,
         inferred: inferred, allowSuperBounded: false);
@@ -4543,7 +4588,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // TODO(cstefantsova): Find a better way than relying on [interfaceTarget].
     Member? method =
         membersHierarchy.getDispatchTarget(klass, name) ?? interfaceTarget;
-    // ignore: unnecessary_null_comparison
     if (method == null || method is! Procedure) {
       return;
     }
@@ -4635,8 +4679,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Uri fileUri,
       int offset,
       {required bool inferred}) {
-    // ignore: unnecessary_null_comparison
-    assert(inferred != null);
     if (typeArguments.isEmpty) return;
 
     List<TypeParameter> functionTypeParameters = functionType.typeParameters;
@@ -4700,7 +4742,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             "Unexpected declaration ${declaration.runtimeType}");
       }
     }
-    inferredTypes.clear();
     checkPendingBoundsChecks(typeEnvironment);
   }
 
@@ -5243,17 +5284,15 @@ class TypeParameterScopeBuilder {
       this.extensions,
       this._name,
       this._charOffset,
-      this.parent) {
-    // ignore: unnecessary_null_comparison
-    assert(_name != null);
-  }
+      this.parent);
 
   TypeParameterScopeBuilder.library()
       : this(
             TypeParameterScopeKind.library,
             <String, Builder>{},
             <String, MemberBuilder>{},
-            null, // No support for constructors in library scopes.
+            null,
+            // No support for constructors in library scopes.
             <ExtensionBuilder>{},
             "<library>",
             -1,
@@ -5266,7 +5305,8 @@ class TypeParameterScopeBuilder {
         hasMembers ? <String, MemberBuilder>{} : null,
         hasMembers ? <String, MemberBuilder>{} : null,
         hasMembers ? <String, MemberBuilder>{} : null,
-        null, // No support for extensions in nested scopes.
+        null,
+        // No support for extensions in nested scopes.
         name,
         -1,
         this);
@@ -5652,9 +5692,6 @@ List<TypeVariableBuilder> _sortTypeVariablesTopologically(
 
 void _sortTypeVariablesTopologicallyFromRoot(TypeBuilder root,
     Set<TypeVariableBuilder> unhandled, List<TypeVariableBuilder> result) {
-  // ignore: unnecessary_null_comparison
-  assert(root != null);
-
   List<TypeVariableBuilder>? typeVariables;
   List<TypeBuilder>? internalDependents;
 
@@ -5747,4 +5784,105 @@ class LibraryAccess {
   final int length;
 
   LibraryAccess(this.accessor, this.fileUri, this.charOffset, this.length);
+}
+
+class SourceLibraryBuilderMemberIterator<T extends Builder>
+    implements Iterator<T> {
+  Iterator<T>? _iterator;
+  Iterator<SourceLibraryBuilder>? augmentationBuilders;
+  final bool includeDuplicates;
+
+  factory SourceLibraryBuilderMemberIterator(
+      SourceLibraryBuilder libraryBuilder,
+      {required bool includeDuplicates}) {
+    return new SourceLibraryBuilderMemberIterator._(
+        libraryBuilder.origin, libraryBuilder.origin.patchLibraries?.iterator,
+        includeDuplicates: includeDuplicates);
+  }
+
+  SourceLibraryBuilderMemberIterator._(
+      SourceLibraryBuilder libraryBuilder, this.augmentationBuilders,
+      {required this.includeDuplicates})
+      : _iterator = libraryBuilder.scope.filteredIterator<T>(
+            parent: libraryBuilder,
+            includeDuplicates: includeDuplicates,
+            includeAugmentations: false);
+
+  @override
+  bool moveNext() {
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
+      SourceLibraryBuilder augmentationLibraryBuilder =
+          augmentationBuilders!.current;
+      _iterator = augmentationLibraryBuilder.scope.filteredIterator<T>(
+          parent: augmentationLibraryBuilder,
+          includeDuplicates: includeDuplicates,
+          includeAugmentations: false);
+    }
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  T get current => _iterator?.current ?? (throw new StateError('No element'));
+}
+
+class SourceLibraryBuilderMemberNameIterator<T extends Builder>
+    implements NameIterator<T> {
+  NameIterator<T>? _iterator;
+  Iterator<SourceLibraryBuilder>? augmentationBuilders;
+  final bool includeDuplicates;
+
+  factory SourceLibraryBuilderMemberNameIterator(
+      SourceLibraryBuilder libraryBuilder,
+      {required bool includeDuplicates}) {
+    return new SourceLibraryBuilderMemberNameIterator._(
+        libraryBuilder.origin, libraryBuilder.origin.patchLibraries?.iterator,
+        includeDuplicates: includeDuplicates);
+  }
+
+  SourceLibraryBuilderMemberNameIterator._(
+      SourceLibraryBuilder libraryBuilder, this.augmentationBuilders,
+      {required this.includeDuplicates})
+      : _iterator = libraryBuilder.scope.filteredNameIterator<T>(
+            parent: libraryBuilder,
+            includeDuplicates: includeDuplicates,
+            includeAugmentations: false);
+
+  @override
+  bool moveNext() {
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
+      SourceLibraryBuilder augmentationLibraryBuilder =
+          augmentationBuilders!.current;
+      _iterator = augmentationLibraryBuilder.scope.filteredNameIterator<T>(
+          parent: augmentationLibraryBuilder,
+          includeDuplicates: includeDuplicates,
+          includeAugmentations: false);
+    }
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  T get current => _iterator?.current ?? (throw new StateError('No element'));
+
+  @override
+  String get name => _iterator?.name ?? (throw new StateError('No element'));
 }

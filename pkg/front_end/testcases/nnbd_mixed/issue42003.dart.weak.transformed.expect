@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "issue42003_lib.dart" as iss;
@@ -9,7 +9,7 @@ static method main() → dynamic {
   let final core::String* #t1 = iss::returnString() in #t1 == null ?{core::int?} null : #t1{core::String}.{core::String::length}{core::int};
 }
 
-library;
+library /*isLegacy*/;
 import self as iss;
 import "dart:core" as core;
 

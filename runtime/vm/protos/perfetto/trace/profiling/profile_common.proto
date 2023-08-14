@@ -1,0 +1,90 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// NOTE: This is a manually minified version of Perfetto's
+// profile_common.proto.
+
+// IMPORTANT: The coresponding .pbzero.h file must be regenerated after
+// any change is made to this file. This can be done by running
+// `dart runtime/vm/protos/tools/compile_perfetto_protos.dart` from the
+// SDK root directory.
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+// The interning fields in this file can refer to 2 different intern tables,
+// depending on the message they are used in. If the interned fields are present
+// in ProfilePacket proto, then the intern tables included in the ProfilePacket
+// should be used. If the intered fields are present in the
+// StreamingProfilePacket proto, then the intern tables included in all of the
+// previous InternedData message with same sequence ID should be used.
+message InternedString {
+  optional uint64 iid = 1;
+  optional bytes str = 2;
+}
+
+message Mapping {
+  // Interning key.
+  optional uint64 iid = 1;
+
+  // The linker may create multiple memory mappings for the same shared
+  // library.
+  // This is so that the ELF header is mapped as read only, while the
+  // executable memory is mapped as executable only.
+  // The details of this depend on the linker, a possible mapping of an ELF
+  // file is this:
+  //         +----------------------+
+  // ELF     |xxxxxxxxxyyyyyyyyyyyyy|
+  //         +---------+------------+
+  //         |         |
+  //         | read    | executable
+  //         v mapping v mapping
+  //         +----------------------+
+  // Memory  |xxxxxxxxx|yyyyyyyyyyyy|
+  //         +------------------+---+
+  //         ^         ^        ^
+  //         +         +        +
+  //       start     exact    relpc
+  //       offset   offset    0x1800
+  //       0x0000   0x1000
+  //
+  // exact_offset is the offset into the library file of this mapping.
+  // start_offset is the offset into the library file of the first mapping
+  // for that library. For native libraries (.so files) this should be 0.
+
+  // E.g. ["system", "lib64", "libc.so"]
+  // id of string.
+  repeated uint64 path_string_ids = 7;
+}
+
+message Frame {
+  // Interning key
+  optional uint64 iid = 1;
+
+  // E.g. "fopen"
+  // id of string.
+  optional uint64 function_name_id = 2;
+
+  optional uint64 mapping_id = 3;
+  optional uint64 rel_pc = 4;
+}
+
+message Callstack {
+  optional uint64 iid = 1;
+  // Frames of this callstack. Bottom frame first.
+  repeated uint64 frame_ids = 2;
+}

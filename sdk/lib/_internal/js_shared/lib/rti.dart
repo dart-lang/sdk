@@ -22,40 +22,11 @@ import 'dart:_interceptors'
     show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
 import 'dart:_js_helper' as records
     show createRecordTypePredicate, getRtiForRecord;
+import 'dart:_js_helper' as helper show TrustedGetRuntimeType;
 import 'dart:_js_names'
     show getSpecializedTestTag, unmangleGlobalNameIfPreservedAnyways;
 import 'dart:_js_shared_embedded_names';
 import 'dart:_recipe_syntax';
-
-/// A marker interface for classes with 'trustworthy' implementations of `get
-/// runtimeType`.
-///
-/// Generally, overrides of `get runtimeType` are not used in displaying the
-/// types of irritants in TypeErrors or computing the structural `runtimeType`
-/// of records. Instead the Rti (aka 'true') type is used.
-///
-/// The 'true' type is sometimes confusing because it shows implementation
-/// details, e.g. the true type of `42` is `JSInt` and `2.1` is `JSNumNotInt`.
-///
-/// For a limited number of implementation classes we tell a 'white lie' that
-/// the value is of another type, e.g. that `42` is an `int` and `2.1` is
-/// `double`. This is achieved by overriding `get runtimeType` to return the
-/// desired type, and marking the implementation class type with `implements
-/// [TrustedGetRuntimeType]`.
-///
-/// [TrustedGetRuntimeType] is not exposed outside the `dart:` libraries so
-/// users cannot tell lies.
-///
-/// The `Type` returned by a trusted `get runtimeType` must be an instance of
-/// the system `Type`, which is guaranteed by using a type literal. Type
-/// literals can be generic and dependent on type variables, e.g. `List<E>`.
-///
-/// Care needs to taken to ensure that the runtime does not get caught telling
-/// lies. Generally, a class's `runtimeType` lies by returning an abstract
-/// supertype of the class.  Since both the the marker interface and `get
-/// runtimeType` are inherited, there should be no way in which a user can
-/// extend the class or implement interface of the class.
-abstract class TrustedGetRuntimeType {}
 
 /// The name of a property on the constructor function of Dart Object
 /// and interceptor types, used for caching Rti types.
@@ -155,6 +126,9 @@ class Rti {
     rti._precomputed1 = precomputed;
   }
 
+  static Rti _unstar(Rti rti) =>
+      _getKind(rti) == kindStar ? _getStarArgument(rti) : rti;
+
   static Rti _getQuestionFromStar(Object? universe, Rti rti) {
     assert(_getKind(rti) == kindStar);
     Rti? question = _Utils.asRtiOrNull(_getPrecomputed1(rti));
@@ -178,7 +152,18 @@ class Rti {
 
   Object? _precomputed2;
   Object? _precomputed3;
-  Object? _precomputed4;
+
+  /// If kind == kindFunction, stores an object used for checking function
+  /// parameters in dynamic calls after the first use.
+  ///
+  /// Only used in the calling convention used by DDC.
+  Object? _dynamicCheckData;
+
+  static Object? _getDynamicCheckData(Rti rti) => rti._dynamicCheckData;
+
+  static void _setDynamicCheckData(Rti rti, Object? data) {
+    rti._dynamicCheckData = data;
+  }
 
   // Data value used by some tests.
   @pragma('dart2js:noElision')
@@ -415,6 +400,51 @@ bool pairwiseIsTest(JSArray fieldRtis, JSArray values) {
   return true;
 }
 
+/// Returns information describing the parameters of the function type [rti]
+/// for the purpose of type checking dynamic calls.
+///
+/// This method is only used in the DDC calling convention and the value
+/// returned is a JavaScript object of the shape:
+///
+///   {
+///     requiredPositional: [ Rti1, Rti2, ... ],
+///     optionalPositional: [ Rti1, Rti2, ... ],
+///     requiredNamed:      { name1: Rti1, name2: Rti2, ... },
+///     optionalNamed:      { name1: Rti1, name2: Rti2, ... }
+///   }
+Object getFunctionParametersForDynamicChecks(Object? rti) {
+  var functionRti = _Utils.asRti(rti);
+  var probe = Rti._getDynamicCheckData(functionRti);
+  if (probe != null) return probe;
+  var parameters = Rti._getFunctionParameters(functionRti);
+  var requiredNamed = JS('=Object', '{}');
+  var optionalNamed = JS('=Object', '{}');
+  var allNamed = _FunctionParameters._getNamed(parameters);
+  for (int i = 0; i < allNamed.length; i += 3) {
+    var name = allNamed[i];
+    var required = allNamed[i + 1];
+    var type = allNamed[i + 2];
+    _Utils.objectAssign(required ? requiredNamed : optionalNamed,
+        JS('=Object', '{ #: # }', name, type));
+  }
+  Object parameterInfo = JS(
+      '=Object',
+      '{ requiredPositional: #, optionalPositional: #, '
+          'requiredNamed: #, optionalNamed: # }',
+      _FunctionParameters._getRequiredPositional(parameters),
+      _FunctionParameters._getOptionalPositional(parameters),
+      requiredNamed,
+      optionalNamed);
+  Rti._setDynamicCheckData(functionRti, parameterInfo);
+  return parameterInfo;
+}
+
+bool isGenericFunctionType(Object? rti) =>
+    Rti._getKind(_Utils.asRti(rti)) == Rti.kindGenericFunction;
+
+JSArray getGenericFunctionBounds(Object? rti) =>
+    Rti._getGenericFunctionBounds(_Utils.asRti(rti));
+
 class _FunctionParameters {
   static _FunctionParameters allocate() => _FunctionParameters();
 
@@ -501,7 +531,9 @@ Rti? instantiatedGenericFunctionType(
   // instantiation appears to be an interface type instead.
   if (genericFunctionRti == null) return null;
   var bounds = Rti._getGenericFunctionBounds(genericFunctionRti);
-  var typeArguments = Rti._getInterfaceTypeArguments(instantiationRti);
+  var typeArguments = JS_GET_FLAG('DEV_COMPILER')
+      ? Rti._getBindingArguments(instantiationRti)
+      : Rti._getInterfaceTypeArguments(instantiationRti);
   assert(_Utils.arrayLength(bounds) == _Utils.arrayLength(typeArguments));
 
   var cache = Rti._getBindCache(genericFunctionRti);
@@ -516,6 +548,21 @@ Rti? instantiatedGenericFunctionType(
       Rti._getGenericFunctionBase(genericFunctionRti), typeArguments, 0);
   _Utils.mapSet(cache, key, rti);
   return rti;
+}
+
+Rti substitute(Object? rti, Object? typeArguments) =>
+    _substitute(_theUniverse(), _Utils.asRti(rti), typeArguments, 0);
+
+/// Returns a single binding [Rti] in the order of the provided [rtis].
+Rti bindingRtiFromList(JSArray rtis) {
+  Rti binding = _rtiEval(
+      rtis[0],
+      '@'
+      '${Recipe.startTypeArgumentsString}'
+      '0'
+      '${Recipe.endTypeArgumentsString}');
+  for (int i = 1; i < rtis.length; i++) binding = _rtiBind(binding, rtis[i]);
+  return binding;
 }
 
 /// Substitutes [typeArguments] for generic function parameters in [rti].
@@ -837,7 +884,8 @@ Rti _instanceTypeFromConstructorMiss(Object? instance, Object? constructor) {
     // TODO(sra): Can this test be avoided, e.g. by putting $ti on the
     // prototype of Closure/BoundClosure/StaticClosure classes?
     var effectiveConstructor = _isClosure(instance)
-        ? JS('', '#.__proto__.__proto__.constructor', instance)
+        ? JS('', 'Object.getPrototypeOf(Object.getPrototypeOf(#)).constructor',
+            instance)
         : constructor;
     rti = _Universe.findErasedType(
         _theUniverse(), JS('String', '#.name', effectiveConstructor));
@@ -933,7 +981,7 @@ Rti _structuralTypeOf(Object? object) {
   if (object is Record) return records.getRtiForRecord(object);
   final functionRti = _instanceFunctionType(object);
   if (functionRti != null) return functionRti;
-  if (object is TrustedGetRuntimeType) {
+  if (object is helper.TrustedGetRuntimeType) {
     final type = object.runtimeType;
     return _Utils.as_Type(type)._rti;
   }
@@ -970,14 +1018,7 @@ _Type _createRuntimeType(Rti rti) {
 Rti evaluateRtiForRecord(String recordRecipe, List valuesList) {
   JSArray values = JS('', '#', valuesList);
   final length = values.length;
-  if (length == 0) {
-    // TODO(50081): Remove this when DDC can handle `TYPE_REF<()>`.
-    if (JS_GET_FLAG('DEV_COMPILER')) {
-      throw UnimplementedError('evaluateRtiForRecord not supported for DDC');
-    } else {
-      return TYPE_REF<()>();
-    }
-  }
+  if (length == 0) return TYPE_REF<()>();
 
   Rti bindings = _rtiEval(
       _structuralTypeOf(values[0]),
@@ -1048,9 +1089,7 @@ bool _installSpecializedIsTest(Object? object) {
     return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isNever));
   }
 
-  Rti unstarred = Rti._getKind(testRti) == Rti.kindStar
-      ? Rti._getStarArgument(testRti)
-      : testRti;
+  Rti unstarred = Rti._unstar(testRti);
 
   if (Rti._getKind(unstarred) == Rti.kindFutureOr) {
     return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isFutureOr));
@@ -1309,8 +1348,10 @@ class _TypeError extends _Error implements TypeError {
 /// Called from generated code via Rti `_is` method.
 bool _isFutureOr(Object? object) {
   Rti testRti = _Utils.asRti(JS('', 'this'));
-  return Rti._isCheck(Rti._getFutureOrArgument(testRti), object) ||
-      Rti._isCheck(Rti._getFutureFromFutureOr(_theUniverse(), testRti), object);
+  Rti unstarred = Rti._unstar(testRti);
+  return Rti._isCheck(Rti._getFutureOrArgument(unstarred), object) ||
+      Rti._isCheck(
+          Rti._getFutureFromFutureOr(_theUniverse(), unstarred), object);
 }
 
 /// Specialization for 'is Object'.
@@ -1626,6 +1667,16 @@ String _functionRtiToString(Rti functionType, List<String>? genericContext,
   return '${typeParametersText}(${argumentsText}) => ${returnTypeText}';
 }
 
+/// Returns a human readable version of [rti].
+///
+/// The result only differs from `createRuntimeType(rti).toString()` in that
+/// this version does preserve legacy (*) information that can be printed if the
+/// option is enabled.
+///
+/// Called by the DDC runtime library for type error messages in code that
+/// supports weak null safety features.
+String rtiToString(Object rti) => _rtiToString(_Utils.asRti(rti), null);
+
 String _rtiToString(Rti rti, List<String>? genericContext) {
   int kind = Rti._getKind(rti);
 
@@ -1912,6 +1963,31 @@ class _Universe {
 
   static void addRules(Object? universe, Object? rules) =>
       _Utils.objectAssign(typeRules(universe), rules);
+
+  /// Adds or updates existing type rules in the type [universe].
+  ///
+  /// This update is intended to add new rules to the set of rules that exist
+  /// for the target type but will overwrite on a collision of rule keys.
+  ///
+  /// NOTE this operation does not support the forwarding rule format where the
+  /// rule is simply a string directing to another type rule.
+  static void addOrUpdateRules(Object? universe, Object? newRules) {
+    var targetTypes = _Utils.objectKeys(newRules);
+    var typeCount = _Utils.arrayLength(targetTypes);
+    for (int i = 0; i < typeCount; i++) {
+      var targetType = _Utils.asString(_Utils.arrayAt(targetTypes, i));
+      var updatedRule = JS('', '#.#', newRules, targetType);
+      var rule = _findRule(universe, targetType);
+      if (rule == null) {
+        // Create a completely new type rule to add to the type universe.
+        JS('', '#.#  = #', typeRules(universe), targetType, updatedRule);
+      } else {
+        // Updating a forwarding rule isn't expected.
+        assert(!_Utils.isString(rule));
+        _Utils.objectAssign(rule, updatedRule);
+      }
+    }
+  }
 
   static void addErasedTypes(Object? universe, Object? types) =>
       _Utils.objectAssign(erasedTypes(universe), types);

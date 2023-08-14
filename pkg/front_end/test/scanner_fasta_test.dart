@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
@@ -28,6 +29,12 @@ void main() {
   });
 }
 
+Uint8List encodeAsNullTerminatedUtf8(String source) {
+  final sourceBytes = const Utf8Encoder().convert(source);
+  return Uint8List(sourceBytes.length + 1)
+    ..setRange(0, sourceBytes.length, sourceBytes);
+}
+
 @reflectiveTest
 class ScannerTest_Fasta_FuzzTestAPI {
   void test_API() {
@@ -40,8 +47,7 @@ class ScannerTest_Fasta_FuzzTestAPI {
     expect(result.tokens.type, same(Keyword.CLASS));
 
     // UTF8 encode source with trailing zero
-    List<int> bytes = utf8.encode(source).toList();
-    bytes.add(0);
+    Uint8List bytes = encodeAsNullTerminatedUtf8(source);
 
     result = usedForFuzzTesting.scan(bytes);
     expect(result.hasErrors, isFalse);
@@ -54,7 +60,7 @@ class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
   @override
   Token scanWithListener(String source, ErrorListener listener,
       {ScannerConfiguration? configuration}) {
-    var bytes = utf8.encode(source).toList()..add(0);
+    var bytes = encodeAsNullTerminatedUtf8(source);
     var result =
         scan(bytes, configuration: configuration, includeComments: true);
     var token = result.tokens;
@@ -75,7 +81,7 @@ class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
   }
 
   void test_invalid_utf8() {
-    void printBytes(List<int> bytes) {
+    void printBytes(Uint8List bytes) {
       var hex = bytes.map((b) => '0x${b.toRadixString(16).toUpperCase()}');
       print('$bytes\n[${hex.join(', ')}]');
       try {
@@ -86,7 +92,7 @@ class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
       }
     }
 
-    ScannerResult scanBytes(List<int> bytes) {
+    ScannerResult scanBytes(Uint8List bytes) {
       try {
         return usedForFuzzTesting.scan(bytes);
       } catch (e) {
@@ -97,10 +103,12 @@ class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
     }
 
     for (int byte0 = 1; byte0 <= 0xFF; ++byte0) {
-      List<int> bytes = [byte0, 0];
+      Uint8List bytes = Uint8List(2)..[0] = byte0;
       scanBytes(bytes);
       for (int byte1 = 1; byte1 <= 0xFF; ++byte1) {
-        List<int> bytes = [byte0, byte1, 0];
+        Uint8List bytes = Uint8List(3)
+          ..[0] = byte0
+          ..[1] = byte1;
         scanBytes(bytes);
       }
     }
@@ -700,8 +708,7 @@ class ScannerTest_Fasta_Direct_UTF8 extends ScannerTest_Fasta_Direct {
   @override
   ScannerResult scanSource(source,
       {bool includeComments = true, bool? enableTripleShift}) {
-    List<int> encoded = utf8.encode(source).toList(growable: true);
-    encoded.add(0); // Ensure 0 terminated bytes for UTF8 scanner
+    Uint8List encoded = encodeAsNullTerminatedUtf8(source);
 
     ScannerConfiguration? configuration;
     if (enableTripleShift == true) {

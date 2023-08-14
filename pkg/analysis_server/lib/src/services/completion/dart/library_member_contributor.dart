@@ -33,9 +33,10 @@ class LibraryMemberContributor extends DartCompletionContributor {
 
   void _buildSuggestions(
       PrefixElement elem, List<LibraryImportElement> imports) {
-    var parent = request.target.containingNode.parent;
-    var typesOnly = parent is NamedType;
-    var isConstructor = parent?.parent is ConstructorName;
+    var containingNode = request.target.containingNode;
+    var typesOnly =
+        containingNode is NamedType && containingNode.importPrefix != null;
+    var isConstructor = containingNode.parent is ConstructorName;
     for (var importElem in imports) {
       if (importElem.prefix?.element.name == elem.name) {
         var library = importElem.importedLibrary;

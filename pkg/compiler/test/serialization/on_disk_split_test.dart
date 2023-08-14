@@ -14,6 +14,9 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dir = await Directory.systemTemp.createTemp('on_disk');
     Uri dillUri = dir.uri.resolve('out.dill');
+    Uri modifiedDillUri = dir.uri.resolve('modified.dill');
+    Uri closedWorldUri = dir.uri.resolve('world.data');
+    Uri globalInferenceUri = dir.uri.resolve('global.data');
     Uri outUri = dir.uri.resolve('out.js');
     String buildRoot =
         computePlatformBinariesLocation(forceBuildDir: true).toFilePath();
@@ -27,14 +30,21 @@ main(List<String> args) {
     ];
     await internalMain([
           'pkg/compiler/test/codesize/swarm/swarm.dart',
-          Flags.writeClosedWorld,
+          Flags.cfeOnly,
           '--out=${dillUri}',
         ] +
         commonArgs);
     await internalMain([
-          '${dillUri}',
-          Flags.readClosedWorld,
-          Flags.writeData,
+          'pkg/compiler/test/codesize/swarm/swarm.dart',
+          '${Flags.inputDill}=$dillUri',
+          '${Flags.writeClosedWorld}=$closedWorldUri',
+          '--out=${modifiedDillUri}',
+        ] +
+        commonArgs);
+    await internalMain([
+          '$modifiedDillUri',
+          '${Flags.readClosedWorld}=$closedWorldUri',
+          '${Flags.writeData}=$globalInferenceUri',
           '--out=${outUri}',
         ] +
         commonArgs);

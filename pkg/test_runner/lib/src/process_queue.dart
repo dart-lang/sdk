@@ -666,6 +666,7 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.add(() => device.runAdbShellCommand([
           'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
+              'export TEST_COMPILATION_DIR=$deviceTestDir;'
               '$devicedir/dart_precompiled_runtime',
           '--android-log-to-stderr',
           ...arguments,
@@ -678,6 +679,7 @@ class CommandExecutorImpl implements CommandExecutor {
     await device.waitForDevice();
 
     late AdbCommandResult result;
+    var exitCode = 0;
     for (var i = 0; i < steps.length; i++) {
       var fun = steps[i];
       var commandStopwatch = Stopwatch()..start();
@@ -696,9 +698,20 @@ class CommandExecutorImpl implements CommandExecutor {
 
       // If one command fails, we stop processing the others and return
       // immediately.
-      if (result.exitCode != 0) break;
+      if (result.exitCode != 0) {
+        // A failure in any adb step except the final step that runs the test
+        // must be reported with an adb infra failure exit code.
+        // This will make the test runner exit with an infra failure.
+        // See VMCommandOutput for the adb infra failure exit codes.
+        if (i != steps.length - 1) {
+          exitCode = 10;
+        } else {
+          exitCode = result.exitCode;
+        }
+        break;
+      }
     }
-    return command.createOutput(result.exitCode, result.timedOut,
+    return command.createOutput(exitCode, result.timedOut,
         utf8.encode('$writer'), [], stopwatch.elapsed, false);
   }
 

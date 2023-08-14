@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:dap/dap.dart';
 import 'package:json_rpc_2/error_code.dart' as json_rpc_errors;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
@@ -15,13 +16,10 @@ import 'package:vm_service/vm_service.dart' as vm;
 import '../../../dds.dart';
 import '../../rpc_error_codes.dart';
 import '../base_debug_adapter.dart';
-import '../exceptions.dart';
 import '../isolate_manager.dart';
 import '../logging.dart';
 import '../progress_reporter.dart';
-import '../protocol_common.dart';
 import '../protocol_converter.dart';
-import '../protocol_generated.dart';
 import '../protocol_stream.dart';
 import '../utils.dart';
 import '../variables.dart';
@@ -116,6 +114,7 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
     List<String>? additionalProjectPaths,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
+    bool? showGettersInDebugViews,
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
@@ -129,6 +128,7 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
           additionalProjectPaths: additionalProjectPaths,
           debugSdkLibraries: debugSdkLibraries,
           debugExternalPackageLibraries: debugExternalPackageLibraries,
+          showGettersInDebugViews: showGettersInDebugViews,
           evaluateGettersInDebugViews: evaluateGettersInDebugViews,
           evaluateToStringInDebugViews: evaluateToStringInDebugViews,
           sendLogsToClient: sendLogsToClient,
@@ -196,13 +196,19 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   /// packages as block boxes.
   final bool? debugExternalPackageLibraries;
 
-  /// Whether to evaluate getters in debug views like hovers and the variables
+  /// Whether to show getters in debug views like hovers and the variables
   /// list.
+  final bool? showGettersInDebugViews;
+
+  /// Whether to eagerly evaluate getters in debug views like hovers and the
+  /// variables list.
   ///
-  /// Invoking getters has a performance cost and may introduce side-effects,
-  /// although users may expected this functionality. null is treated like false
-  /// although clients may have their own defaults (for example Dart-Code sends
-  /// true by default at the time of writing).
+  /// If `true`, getters will be invoked automatically and included inline with
+  /// other  fields (implies [showGettersInDebugViews]).
+  ///
+  /// If `false`, getters will not be included unless [showGettersInDebugViews]
+  /// is `true`, in which case they will be wrapped and only evaluated when the
+  /// user expands them.
   final bool? evaluateGettersInDebugViews;
 
   /// Whether to call toString() on objects in debug views like hovers and the
@@ -228,6 +234,9 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
     required this.additionalProjectPaths,
     required this.debugSdkLibraries,
     required this.debugExternalPackageLibraries,
+    // TODO(dantup): Make this 'required' after Flutter subclasses have been
+    //  updated.
+    this.showGettersInDebugViews,
     required this.evaluateGettersInDebugViews,
     required this.evaluateToStringInDebugViews,
     required this.sendLogsToClient,
@@ -244,6 +253,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
         debugSdkLibraries = arg.read<bool?>(obj, 'debugSdkLibraries'),
         debugExternalPackageLibraries =
             arg.read<bool?>(obj, 'debugExternalPackageLibraries'),
+        showGettersInDebugViews =
+            arg.read<bool?>(obj, 'showGettersInDebugViews'),
         evaluateGettersInDebugViews =
             arg.read<bool?>(obj, 'evaluateGettersInDebugViews'),
         evaluateToStringInDebugViews =
@@ -262,6 +273,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
         if (debugSdkLibraries != null) 'debugSdkLibraries': debugSdkLibraries,
         if (debugExternalPackageLibraries != null)
           'debugExternalPackageLibraries': debugExternalPackageLibraries,
+        if (showGettersInDebugViews != null)
+          'showGettersInDebugViews': showGettersInDebugViews,
         if (evaluateGettersInDebugViews != null)
           'evaluateGettersInDebugViews': evaluateGettersInDebugViews,
         if (evaluateToStringInDebugViews != null)
@@ -458,13 +471,15 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// the user would not expect the script to continue to pause on breakpoints
   /// the had set while attached.
   Future<void> preventBreakingAndResume() async {
-    // Remove anything that may cause us to pause again.
-    await Future.wait([
-      isolateManager.clearAllBreakpoints(),
-      isolateManager.setExceptionPauseMode('None'),
-    ]);
-    // Once those have completed, it's safe to resume anything paused.
-    await isolateManager.resumeAll();
+    await _withErrorHandling(() async {
+      // Remove anything that may cause us to pause again.
+      await Future.wait([
+        isolateManager.clearAllBreakpoints(),
+        isolateManager.setExceptionPauseMode('None'),
+      ]);
+      // Once those have completed, it's safe to resume anything paused.
+      await isolateManager.resumeAll();
+    });
   }
 
   DartDebugAdapter(
@@ -629,7 +644,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
 
     logger?.call('Connecting to debugger at $uri');
-    sendOutput('console', 'Connecting to VM Service at $uri\n');
+    sendConsoleOutput('Connecting to VM Service at $uri');
     final vmService = await _vmServiceConnectUri(uri.toString());
     logger?.call('Connected to debugger at $uri!');
 
@@ -1063,10 +1078,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     _hasSentTerminatedEvent = true;
 
     // Always add a leading newline since the last written text might not have
-    // had one. Send directly via sendEvent and not sendOutput to ensure no
-    // async since we're about to terminate.
+    // had one.
     final reason = isDetaching ? 'Detached' : 'Exited';
-    sendEvent(OutputEventBody(output: '\n$reason$exitSuffix.'));
+    sendConsoleOutput('\n$reason$exitSuffix.');
     sendEvent(TerminatedEventBody());
   }
 
@@ -1172,8 +1186,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     await _prepareForLaunchOrAttach(args.noDebug);
 
     // Delegate to the sub-class to launch the process.
-    await launchImpl();
+    await launchAndRespond(sendResponse);
+  }
 
+  /// Overridden by sub-classes that need to control when the response is sent
+  /// during the launch process.
+  Future<void> launchAndRespond(void Function() sendResponse) async {
+    await launchImpl();
     sendResponse();
   }
 
@@ -1201,6 +1220,17 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   ) async {
     await isolateManager.resumeThread(args.threadId, vm.StepOption.kOver);
     sendResponse();
+  }
+
+  /// Handles the clients "pause" request for the thread in [args.threadId].
+  @override
+  Future<void> pauseRequest(
+    Request request,
+    PauseArguments args,
+    void Function(PauseResponseBody) sendResponse,
+  ) async {
+    await isolateManager.pauseThread(args.threadId);
+    sendResponse(PauseResponseBody());
   }
 
   /// restart is called by the client when the user invokes a restart (for
@@ -1238,8 +1268,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       scopes.add(Scope(
         name: 'Locals',
         presentationHint: 'locals',
-        variablesReference: isolateManager.storeData(
-          thread,
+        variablesReference: thread.storeData(
           FrameScopeData(frameData, FrameScopeDataKind.locals),
         ),
         expensive: false,
@@ -1248,8 +1277,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       scopes.add(Scope(
         name: 'Globals',
         presentationHint: 'globals',
-        variablesReference: isolateManager.storeData(
-          thread,
+        variablesReference: thread.storeData(
           FrameScopeData(frameData, FrameScopeDataKind.globals),
         ),
         expensive: false,
@@ -1268,6 +1296,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
 
     sendResponse(ScopesResponseBody(scopes: scopes));
+  }
+
+  /// Sends an OutputEvent with a trailing newline to the console.
+  ///
+  /// This method sends output directly and does not go through [sendOutput]
+  /// because that method is async and queues output. Console output is for
+  /// adapter-level output that does not require this and we want to ensure
+  /// it's sent immediately (for example during shutdown/exit).
+  void sendConsoleOutput(String? message) {
+    sendEvent(OutputEventBody(output: '$message\n'));
   }
 
   /// Sends an OutputEvent (without a newline, since calls to this method
@@ -1722,6 +1760,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     VariablesArguments args,
     void Function(VariablesResponseBody) sendResponse,
   ) async {
+    final service = vmService;
     final childStart = args.start;
     final childCount = args.count;
     final storedData = isolateManager.getStoredData(args.variablesReference);
@@ -1860,6 +1899,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           variablesReference: 0,
         ));
       }
+    } else if (data is VariableGetter && service != null) {
+      final variable = await _converter.createVariableForGetter(
+        service,
+        thread,
+        data.instance,
+        // Empty names for lazy variable values because they were already shown
+        // in the parent object.
+        variableName: '',
+        getterName: data.getterName,
+        evaluateName: data.parentEvaluateName,
+        allowCallingToString: data.allowCallingToString,
+        format: format,
+      );
+      variables.add(variable);
     }
 
     sendResponse(VariablesResponseBody(variables: variables));
@@ -2414,17 +2467,29 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     try {
       return await func();
     } on vm.RPCError catch (e) {
-      // If we've been asked to shut down while this request was occurring,
-      // it's normal to get some types of errors from in-flight VM Service
-      // requests and we should handle them silently.
-      if (isTerminating) {
-        // kServiceDisappeared is thrown sometimes when services disappear.
-        if (e.code == RpcErrorCodes.kServiceDisappeared) {
+      // kServiceDisappeared is thrown sometimes when the VM Service is
+      // shutting down. Usually this is because we're shutting down (and
+      // `isTerminating` is true), but it can also happen if the app is closed
+      // outside of the DAP (eg. closing the simulator) so it's possible our
+      // requests will fail in this way before we've handled any event to set
+      // `isTerminating`.
+      if (e.code == RpcErrorCodes.kServiceDisappeared) {
+        return null;
+      }
+
+      // For any other kind of server error, ignore it if we're shutting down
+      // (because lots of requests can generate all sorts of errors if the VM
+      // and Isolates are shutting down), or if it's a "client closed with
+      // pending request" error (which also indicates a shutdown, but as above,
+      // we might not have set `isTerminating` yet).
+      if (e.code == json_rpc_errors.SERVER_ERROR) {
+        // Ignore all server errors during shutdown.
+        if (isTerminating) {
           return null;
         }
-        // SERVER_ERROR can occur when DDS completes any outstanding requests
-        // with "The client closed with pending request".
-        if (e.code == json_rpc_errors.SERVER_ERROR) {
+
+        // Always ignore "closed with pending request" errors.
+        if (e.message.contains("The client closed with pending request")) {
           return null;
         }
       }
@@ -2523,6 +2588,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     List<String>? additionalProjectPaths,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
+    bool? showGettersInDebugViews,
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
@@ -2535,6 +2601,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
           additionalProjectPaths: additionalProjectPaths,
           debugSdkLibraries: debugSdkLibraries,
           debugExternalPackageLibraries: debugExternalPackageLibraries,
+          showGettersInDebugViews: showGettersInDebugViews,
           evaluateGettersInDebugViews: evaluateGettersInDebugViews,
           evaluateToStringInDebugViews: evaluateToStringInDebugViews,
           sendLogsToClient: sendLogsToClient,

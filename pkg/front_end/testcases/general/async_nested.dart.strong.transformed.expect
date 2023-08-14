@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -20,7 +20,7 @@ class Node extends core::Object {
 static method main() → void async /* futureValueType= void */ {
   core::String expected = "1 2 3 4 5 6 7 8 9 10";
   self::Node node = new self::Node::•("1", core::_GrowableList::_literal3<self::Node>(new self::Node::•("2", core::_GrowableList::•<self::Node>(0)), await asy::Future::value<self::Node>(new self::Node::•("3", core::_GrowableList::_literal1<self::Node>(await asy::Future::value<self::Node>(new self::Node::•("4", core::_GrowableList::_literal1<self::Node>(new self::Node::•("5", core::_GrowableList::_literal3<self::Node>(await asy::Future::value<self::Node>(new self::Node::•("6", core::_GrowableList::_literal1<self::Node>(await asy::Future::value<self::Node>(new self::Node::•("7", core::_GrowableList::•<self::Node>(0)))))), await asy::Future::value<self::Node>(new self::Node::•("8", core::_GrowableList::•<self::Node>(0))), await asy::Future::value<self::Node>(new self::Node::•("9", core::_GrowableList::•<self::Node>(0))))))))))), await asy::Future::value<self::Node>(new self::Node::•("10", core::_GrowableList::•<self::Node>(0)))));
-  core::String actual = node.{self::Node::toSimpleString}(){() → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+  core::String actual = node.{self::Node::toSimpleString}(){() → dynamic} as{TypeError,ForDynamic} core::String;
   core::print(actual);
   if(!(actual =={core::String::==}{(core::Object) → core::bool} expected)) {
     throw "Expected '${expected}' but got '${actual}'";

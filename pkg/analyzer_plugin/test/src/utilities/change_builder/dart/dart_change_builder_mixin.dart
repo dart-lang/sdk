@@ -20,11 +20,12 @@ mixin DartChangeBuilderMixin implements AbstractContextTest {
     expect(sourceChange, isNotNull);
 
     var fileEdits = sourceChange.edits;
-    expect(fileEdits, hasLength(1));
+    if (fileEdits.isEmpty) {
+      return [];
+    }
 
-    var fileEdit = fileEdits[0];
-    expect(fileEdit, isNotNull);
-    return fileEdit.edits;
+    expect(fileEdits, hasLength(1));
+    return fileEdits[0].edits;
   }
 
   /// Return a newly created Dart change builder.

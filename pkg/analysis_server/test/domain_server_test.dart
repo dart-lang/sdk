@@ -81,8 +81,8 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     server.clientCapabilities.requests = ['openUrlRequest'];
 
     // Send the request.
-    var responseFuture =
-        server.sendOpenUriNotification(toUri('https://dart.dev'));
+    var uri = toUri('https://dart.dev');
+    var responseFuture = server.openUriNotificationSender!.call(uri);
     expect(serverChannel.serverRequestsSent, hasLength(1));
 
     // Simulate the response.
@@ -112,7 +112,8 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
       requestId++;
 
       expect(server.clientCapabilities.requests, requests);
-      expect(server.supportsOpenUriNotification, openUrlRequest);
+      expect(server.openUriNotificationSender,
+          openUrlRequest ? isNotNull : isNull);
       expect(server.supportsShowMessageRequest, showMessageRequest);
     }
 

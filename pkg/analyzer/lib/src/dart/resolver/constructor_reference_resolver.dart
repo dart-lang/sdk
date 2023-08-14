@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -51,7 +50,7 @@ class ConstructorReferenceResolver {
       //
       // Only report errors when the constructor tearoff feature is enabled,
       // to avoid reporting redundant errors.
-      var enclosingElement = node.constructorName.type.name.staticElement;
+      var enclosingElement = node.constructorName.type.element;
       if (enclosingElement is TypeAliasElement) {
         final aliasedType = enclosingElement.aliasedType;
         enclosingElement =
@@ -137,7 +136,7 @@ class ConstructorReferenceResolver {
     } else {
       var constructorElement = constructorName.staticElement;
       if (constructorElement == null) {
-        node.staticType = DynamicTypeImpl.instance;
+        node.staticType = InvalidTypeImpl.instance;
       } else {
         node.staticType = constructorElement.type;
       }

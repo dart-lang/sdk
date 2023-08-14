@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 
 import "org-dartlang-testcase:///exhaustiveness_lib.dart";
@@ -10,7 +10,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic
 static method throws(() →* void f) → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 

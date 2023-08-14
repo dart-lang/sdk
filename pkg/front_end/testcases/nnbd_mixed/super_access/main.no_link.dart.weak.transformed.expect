@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "main_lib1.dart" as mai;
@@ -43,7 +43,7 @@ class Class<T extends core::Object* = dynamic> extends self::_Class&Object&Mixin
 }
 static method main() → dynamic {}
 
-library;
+library /*isLegacy*/;
 import self as mai;
 import "dart:core" as core;
 import "main_lib2.dart" as mai2;
@@ -89,7 +89,7 @@ abstract class Mixin2<T extends core::Object* = dynamic> extends core::Object im
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai2;
 import "dart:core" as core;
 

@@ -37,6 +37,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   final BufferedSink _metadataSink;
   late BufferedSink _sink;
   final bool includeSources;
+  final bool includeSourceBytes;
   final bool includeOffsets;
   final LibraryFilter? libraryFilter;
 
@@ -65,6 +66,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       {this.libraryFilter,
       StringIndexer? stringIndexer,
       this.includeSources = true,
+      this.includeSourceBytes = true,
       this.includeOffsets = true})
       : _mainSink = new BufferedSink(sink),
         _metadataSink = new BufferedSink(new BytesSink()),
@@ -402,15 +404,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  void writeRedirectingFactoryNodeList(List<RedirectingFactory> nodes) {
-    final int len = nodes.length;
-    writeUInt30(len);
-    for (int i = 0; i < len; i++) {
-      final RedirectingFactory node = nodes[i];
-      writeRedirectingFactoryNode(node);
-    }
-  }
-
   void writeSwitchCaseNodeList(List<SwitchCase> nodes) {
     final int len = nodes.length;
     writeUInt30(len);
@@ -503,13 +496,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeConstructorNode(Constructor node) {
-    if (_metadataSubsections != null) {
-      _writeNodeMetadata(node);
-    }
-    node.accept(this);
-  }
-
-  void writeRedirectingFactoryNode(RedirectingFactory node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
     }
@@ -869,7 +855,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       String uriAsString = "$uri";
       outputStringViaBuffer(uriAsString, buffer);
 
-      writeByteList(source.source);
+      writeByteList(includeSourceBytes ? source.source : const []);
 
       {
         List<int> lineStarts = source.lineStarts!;
@@ -953,15 +939,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeNonNullReference(Reference reference) {
-    // ignore: unnecessary_null_comparison
-    if (reference == null) {
-      throw new ArgumentError('Got null reference');
-    } else {
-      assert(reference.isConsistent, reference.getInconsistency());
-      CanonicalName name = _ensureCanonicalName(reference);
-      checkCanonicalName(name);
-      writeUInt30(name.index + 1);
-    }
+    assert(reference.isConsistent, reference.getInconsistency());
+    CanonicalName name = _ensureCanonicalName(reference);
+    checkCanonicalName(name);
+    writeUInt30(name.index + 1);
   }
 
   /// Returns the canonical name for [reference].
@@ -1044,14 +1025,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void writeNonNullCanonicalNameReference(Reference reference) {
     CanonicalName name = _ensureCanonicalName(reference);
-    // ignore: unnecessary_null_comparison
-    if (name == null) {
-      throw new ArgumentError(
-          'Expected a canonical name to be valid but was `null`.');
-    } else {
-      checkCanonicalName(name);
-      writeUInt30(name.index + 1);
-    }
+    checkCanonicalName(name);
+    writeUInt30(name.index + 1);
   }
 
   void writeOffset(int offset) {
@@ -1066,11 +1041,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeClassReference(Class class_) {
-    // ignore: unnecessary_null_comparison
-    if (class_ == null) {
-      throw new ArgumentError(
-          'Expected a class reference to be valid but was `null`.');
-    }
     writeNonNullCanonicalNameReference(class_.reference);
   }
 
@@ -1289,7 +1259,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     procedureOffsets = <int>[];
     writeProcedureNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
-    writeRedirectingFactoryNodeList(node.redirectingFactories);
     leaveScope(typeParameters: node.typeParameters);
 
     assert(procedureOffsets.length > 0);
@@ -1387,7 +1356,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOptionalNode(node.signatureType);
     writeFunctionNode(node.function);
     leaveScope(memberScope: true);
-
     _currentlyInNonimplementation = currentlyInNonimplementationSaved;
     assert(
         (node.concreteForwardingStubTarget != null) ||
@@ -1471,26 +1439,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitRedirectingFactory(RedirectingFactory node) {
-    CanonicalName? canonicalName =
-        getNonNullableMemberReferenceGetter(node).canonicalName;
-    if (canonicalName == null) {
-      throw new ArgumentError('Missing canonical name for $node');
-    }
-    writeByte(Tag.RedirectingFactory);
-    _writeNonNullCanonicalName(canonicalName);
-    writeUriReference(node.fileUri);
-    writeOffset(node.fileOffset);
-    writeOffset(node.fileEndOffset);
-    writeByte(node.flags);
-    writeName(node.name);
-    writeAnnotationList(node.annotations);
-    writeNonNullReference(node.targetReference!);
-    writeNodeList(node.typeArguments);
-    writeFunctionNode(node.function);
-  }
-
-  @override
   void visitInvalidInitializer(InvalidInitializer node) {
     writeByte(Tag.InvalidInitializer);
     writeByte(node.isSynthetic ? 1 : 0);
@@ -1556,6 +1504,28 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeVariableDeclarationList(node.namedParameters);
     writeNode(node.returnType);
     writeOptionalNode(node.futureValueType);
+    RedirectingFactoryTarget? redirectingFactoryTarget =
+        node.redirectingFactoryTarget;
+    if (redirectingFactoryTarget == null) {
+      writeByte(Tag.Nothing);
+    } else {
+      writeByte(Tag.Something);
+      writeNullAllowedReference(redirectingFactoryTarget.targetReference);
+      List<DartType>? typeArguments = redirectingFactoryTarget.typeArguments;
+      if (typeArguments == null) {
+        writeByte(Tag.Nothing);
+      } else {
+        writeByte(Tag.Something);
+        writeNodeList(typeArguments);
+      }
+      String? errorMessage = redirectingFactoryTarget.errorMessage;
+      if (errorMessage == null) {
+        writeByte(Tag.Nothing);
+      } else {
+        writeByte(Tag.Something);
+        writeStringReference(errorMessage);
+      }
+    }
     writeOptionalNode(node.body);
     _labelIndexer = oldLabels;
     _switchCaseIndexer = oldCases;
@@ -2230,10 +2200,18 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitConstantExpression(ConstantExpression node) {
-    writeByte(Tag.ConstantExpression);
-    writeOffset(node.fileOffset);
-    writeDartType(node.type);
-    writeConstantReference(node.constant);
+    if (node is FileUriConstantExpression) {
+      writeByte(Tag.FileUriConstantExpression);
+      writeOffset(node.fileOffset);
+      writeUriReference(node.fileUri);
+      writeDartType(node.type);
+      writeConstantReference(node.constant);
+    } else {
+      writeByte(Tag.ConstantExpression);
+      writeOffset(node.fileOffset);
+      writeDartType(node.type);
+      writeConstantReference(node.constant);
+    }
   }
 
   @override
@@ -2296,6 +2274,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeByte(node.isExplicitlyExhaustive ? 1 : 0);
     writeNode(node.expression);
+    writeOptionalNode(node.expressionTypeInternal);
     writeSwitchCaseNodeList(node.cases);
     switchCaseIndexer.exit(node);
   }
@@ -2448,11 +2427,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     if (node.typeArguments.isEmpty) {
       writeByte(Tag.SimpleInterfaceType);
       writeByte(node.nullability.index);
-      writeNonNullReference(node.className);
+      writeNonNullReference(node.classReference);
     } else {
       writeByte(Tag.InterfaceType);
       writeByte(node.nullability.index);
-      writeNonNullReference(node.className);
+      writeNonNullReference(node.classReference);
       writeNodeList(node.typeArguments);
     }
   }
@@ -2474,38 +2453,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitFutureOrType(FutureOrType node) {
-    // TODO(cstefantsova): Remove special treatment of FutureOr when the VM
-    // supports the new encoding: just write the tag.
-    assert(_knownCanonicalNameNonRootTops.isNotEmpty);
-    CanonicalName root = _knownCanonicalNameNonRootTops.first;
-    while (!root.isRoot) {
-      root = root.parent!;
-    }
-    CanonicalName canonicalNameOfFutureOr =
-        root.getChild("dart:async").getChild("FutureOr");
-    writeByte(Tag.InterfaceType);
+    writeByte(Tag.FutureOrType);
     writeByte(node.declaredNullability.index);
-    checkCanonicalName(canonicalNameOfFutureOr);
-    writeUInt30(canonicalNameOfFutureOr.index + 1);
-    writeUInt30(1); // Type argument count.
     writeNode(node.typeArgument);
   }
 
   @override
   void visitNullType(NullType node) {
-    // TODO(cstefantsova): Remove special treatment of Null when the VM
-    // supports the new encoding: just write the tag.
-    assert(_knownCanonicalNameNonRootTops.isNotEmpty);
-    CanonicalName root = _knownCanonicalNameNonRootTops.first;
-    while (!root.isRoot) {
-      root = root.parent!;
-    }
-    CanonicalName canonicalNameOfNull =
-        root.getChild("dart:core").getChild("Null");
-    writeByte(Tag.SimpleInterfaceType);
-    writeByte(node.declaredNullability.index);
-    checkCanonicalName(canonicalNameOfNull);
-    writeUInt30(canonicalNameOfNull.index + 1);
+    writeByte(Tag.NullType);
   }
 
   @override
@@ -2879,7 +2834,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.PatternSwitchStatement);
     writeOffset(node.fileOffset);
     writeNode(node.expression);
-    writeOptionalNode(node.expressionType);
+    writeOptionalNode(node.expressionTypeInternal);
     writeSwitchCaseNodeList(node.cases);
     switchCaseIndexer.exit(node);
   }
@@ -3192,12 +3147,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitComponent(Component node) {
     throw new UnsupportedError('serialization of Components');
-  }
-
-  @override
-  void visitRedirectingFactoryReference(RedirectingFactory node) {
-    throw new UnsupportedError(
-        'serialization of RedirectingFactory references');
   }
 
   @override

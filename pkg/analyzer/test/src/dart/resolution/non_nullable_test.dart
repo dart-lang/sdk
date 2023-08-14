@@ -5,6 +5,7 @@
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/error/codes.g.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -195,7 +196,7 @@ main() {
   f(int? a, int b) {}
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 11, 1),
+      error(WarningCode.UNUSED_ELEMENT, 11, 1),
     ]);
 
     assertType(findNode.namedType('int? a'), 'int?');
@@ -209,8 +210,8 @@ main() {
   int g() => 0;
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 16, 1),
-      error(HintCode.UNUSED_ELEMENT, 32, 1),
+      error(WarningCode.UNUSED_ELEMENT, 16, 1),
+      error(WarningCode.UNUSED_ELEMENT, 32, 1),
     ]);
 
     assertType(findNode.namedType('int? f'), 'int?');
@@ -276,9 +277,9 @@ f() {
   void f3({void p3()?}) {}
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 13, 2),
-      error(HintCode.UNUSED_ELEMENT, 37, 2),
-      error(HintCode.UNUSED_ELEMENT, 62, 2),
+      error(WarningCode.UNUSED_ELEMENT, 13, 2),
+      error(WarningCode.UNUSED_ELEMENT, 37, 2),
+      error(WarningCode.UNUSED_ELEMENT, 62, 2),
     ]);
     assertType(findElement.parameter('p1').type, 'void Function()');
     assertType(findElement.parameter('p2').type, 'void Function()?');

@@ -66,12 +66,16 @@ base class _AsyncDirectoryListerOpsImpl extends NativeFieldWrapperClass1
 // Corelib 'Uri.base' implementation.
 // Uri.base is susceptible to changes in the current working directory.
 Uri _uriBaseClosure() {
+  var overrides = IOOverrides.current;
+  if (overrides != null) {
+    return overrides.getCurrentDirectory().uri;
+  }
   var result = _Directory._current(_Namespace._namespace);
   if (result is OSError) {
-    throw new FileSystemException(
-        "Getting current working directory failed", "", result);
+    throw new FileSystemException._fromOSError(
+        result, "Getting current working directory failed", "");
   }
-  return new Uri.directory(result);
+  return new Uri.directory(result as String);
 }
 
 @pragma("vm:entry-point", "call")

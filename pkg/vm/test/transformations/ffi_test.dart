@@ -42,7 +42,8 @@ runTestCaseJit(Uri source) async {
       TestDiagnosticReporter(),
       /*referenceFromIndex=*/ null);
 
-  verifyComponent(component);
+  verifyComponent(
+      target, VerificationStage.afterModularTransformations, component);
 
   final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
 
@@ -69,7 +70,8 @@ runTestCaseAot(Uri source) async {
     treeShakeWriteOnlyFields: true,
   );
 
-  verifyComponent(component);
+  verifyComponent(
+      target, VerificationStage.afterGlobalTransformations, component);
 
   final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
 

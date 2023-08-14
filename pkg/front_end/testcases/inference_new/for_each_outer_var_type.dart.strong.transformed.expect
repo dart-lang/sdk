@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -88,7 +88,7 @@ static method test(core::Iterable<self::B> iterable, asy::Stream<self::B> stream
  - 'B' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
 Try changing the type of the variable.
   for (i in iterable) {}
-         ^" in #t7 as{TypeError,ForNonNullableByDefault} core::int;
+         ^" in #t7 as{TypeError} core::int;
       }
     }
   }
@@ -103,7 +103,7 @@ Try changing the type of the variable.
  - 'B' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
 Try changing the type of the variable.
   await for (i in stream) {}
-               ^" in #t9 as{TypeError,ForNonNullableByDefault} core::int;
+               ^" in #t9 as{TypeError} core::int;
         }
       }
     finally

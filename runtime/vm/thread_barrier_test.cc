@@ -37,8 +37,8 @@ class FuzzTask : public ThreadPool::Task {
 };
 
 VM_UNIT_TEST_CASE(ThreadBarrier) {
-  static const intptr_t kNumTasks = 5;
-  static const intptr_t kNumRounds = 500;
+  const intptr_t kNumTasks = 5;
+  const intptr_t kNumRounds = 500;
 
   ThreadBarrier* barrier = new ThreadBarrier(kNumTasks + 1, kNumTasks + 1);
   for (intptr_t i = 0; i < kNumTasks; ++i) {

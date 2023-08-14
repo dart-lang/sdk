@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -166,7 +166,7 @@ class Class<T extends core::Object* = dynamic> extends core::Object /*hasConstCo
   const constructor •(dynamic o) → self::Class<self::Class::T*>*
     : self::Class::field1 = #C1, self::Class::field5 = <invalid-type>[], self::Class::field6 = block {
       final core::Set<invalid-type>* #t1 = col::LinkedHashSet::•<invalid-type>();
-    } =>#t1, self::Class::field7 = <invalid-type, invalid-type>{}, self::Class::field8 = o is invalid-type, self::Class::field9 = o is self::Class<invalid-type>*, self::Class::field10 = o as invalid-type, self::Class::field11 = o as self::Class<invalid-type>*, self::Class::field15 = <self::Class<invalid-type>*>[], super core::Object::•()
+    } =>#t1, self::Class::field7 = <invalid-type, invalid-type>{}, self::Class::field8 = o is{ForLegacy} invalid-type, self::Class::field9 = o is{ForLegacy} self::Class<invalid-type>*, self::Class::field10 = o as{ForLegacy} invalid-type, self::Class::field11 = o as{ForLegacy} self::Class<invalid-type>*, self::Class::field15 = <self::Class<invalid-type>*>[], super core::Object::•()
     ;
   method method() → void {
     core::print(#C1);
@@ -204,7 +204,7 @@ static method id<T extends core::Object* = dynamic>(self::id::T* t) → self::id
   return t;
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -368,7 +368,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstCo
   const constructor •(dynamic o) → self2::Class<self2::Class::T%>
     : self2::Class::field1 = #C1, self2::Class::field5 = <invalid-type>[], self2::Class::field6 = block {
       final core::Set<invalid-type> #t2 = col::LinkedHashSet::•<invalid-type>();
-    } =>#t2, self2::Class::field7 = <invalid-type, invalid-type>{}, self2::Class::field8 = o is{ForNonNullableByDefault} self2::Class::T%, self2::Class::field9 = o is{ForNonNullableByDefault} self2::Class<self2::Class::T%>, self2::Class::field10 = o as{ForNonNullableByDefault} self2::Class::T%, self2::Class::field11 = o{self2::Class::T%} as{ForNonNullableByDefault} self2::Class<self2::Class::T%>, self2::Class::field15 = <self2::Class<invalid-type>>[], super core::Object::•()
+    } =>#t2, self2::Class::field7 = <invalid-type, invalid-type>{}, self2::Class::field8 = o is self2::Class::T%, self2::Class::field9 = o is self2::Class<self2::Class::T%>, self2::Class::field10 = o as self2::Class::T%, self2::Class::field11 = o{self2::Class::T%} as self2::Class<self2::Class::T%>, self2::Class::field15 = <self2::Class<invalid-type>>[], super core::Object::•()
     ;
   method method() → void {
     const self2::Class<invalid-type> local11 = invalid-expression "Expected constant 'null' to be of type 'Class<invalid-type>', but was of type 'Null'.
@@ -400,7 +400,7 @@ static method id<T extends core::Object? = dynamic>(self2::id::T% t) → self2::
   return t;
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -633,7 +633,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstCo
   const constructor •(dynamic o) → self3::Class<self3::Class::T%>
     : self3::Class::field1 = self3::Class::T%, self3::Class::field2 = self3::Class<self3::Class::T%>, self3::Class::field3 = #C28<self3::Class::T%>, self3::Class::field4 = #C28<self3::Class::T%>, self3::Class::field5 = <invalid-type>[], self3::Class::field6 = block {
       final core::Set<invalid-type> #t3 = col::LinkedHashSet::•<invalid-type>();
-    } =>#t3, self3::Class::field7 = <invalid-type, invalid-type>{}, self3::Class::field8 = o is{ForNonNullableByDefault} self3::Class::T%, self3::Class::field9 = o is{ForNonNullableByDefault} self3::Class<self3::Class::T%>, self3::Class::field10 = o as{ForNonNullableByDefault} self3::Class::T%, self3::Class::field11 = o{self3::Class::T%} as{ForNonNullableByDefault} self3::Class<self3::Class::T%>, self3::Class::field12 = #C29<self3::Class::T%>, self3::Class::field13 = #C29<self3::Class::T%>, self3::Class::field14 = #C28<self3::Class<self3::Class::T%>>, self3::Class::field15 = <self3::Class<invalid-type>>[], self3::Class::field16 = #C30, super core::Object::•()
+    } =>#t3, self3::Class::field7 = <invalid-type, invalid-type>{}, self3::Class::field8 = o is self3::Class::T%, self3::Class::field9 = o is self3::Class<self3::Class::T%>, self3::Class::field10 = o as self3::Class::T%, self3::Class::field11 = o{self3::Class::T%} as self3::Class<self3::Class::T%>, self3::Class::field12 = #C29<self3::Class::T%>, self3::Class::field13 = #C29<self3::Class::T%>, self3::Class::field14 = #C28<self3::Class<self3::Class::T%>>, self3::Class::field15 = <self3::Class<invalid-type>>[], self3::Class::field16 = #C30, super core::Object::•()
     ;
   method method() → void {
     const self3::Class<invalid-type> local11 = invalid-expression "Expected constant 'null' to be of type 'Class<invalid-type>', but was of type 'Null'.

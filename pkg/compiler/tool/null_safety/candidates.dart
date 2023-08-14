@@ -17,6 +17,7 @@
 /// (i.e. impact of migration).
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
@@ -46,7 +47,7 @@ void main(List<String> args) async {
 
   var prefix =
       argResults.rest.isEmpty ? 'pkg/compiler/' : argResults.rest.first;
-  var files = <Uri, List<int>>{};
+  var files = <Uri, Uint8List>{};
   var isLegacy = <Uri>{};
   var isNullSafe = <Uri>{};
 
@@ -150,7 +151,7 @@ void _onDiagnosticMessageHandler(DiagnosticMessage m) {
 
 /// Add to [files] all sources reachable from [start].
 void collectSources(
-    UriTranslator uriResolver, Uri start, Map<Uri, List<int>> files) {
+    UriTranslator uriResolver, Uri start, Map<Uri, Uint8List> files) {
   void helper(Uri uri) {
     if (uri.scheme == 'dart') return;
     uri = uriResolver.translate(uri) ?? uri;
@@ -168,7 +169,7 @@ void collectSources(
 
 /// Parse [contents] as a Dart program and return the URIs that appear in its
 /// import, export, and part directives.
-Set<String> extractDirectiveUris(List<int> contents) {
+Set<String> extractDirectiveUris(Uint8List contents) {
   var listener = new DirectiveListener();
   new TopLevelParser(listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe)

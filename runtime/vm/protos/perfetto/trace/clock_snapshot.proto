@@ -1,0 +1,56 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// NOTE: This is a manually minified version of Perfetto's
+// clock_snapshot.proto.
+
+// IMPORTANT: The coresponding .pbzero.h file must be regenerated after
+// any change is made to this file. This can be done by running
+// `dart runtime/vm/protos/tools/compile_perfetto_protos.dart` from the
+// SDK root directory.
+
+syntax = "proto2";
+
+import "protos/perfetto/common/builtin_clock.proto";
+
+package perfetto.protos;
+
+// A snapshot of clock readings to allow for trace alignment.
+message ClockSnapshot {
+  message Clock {
+    // Clock IDs have the following semantic:
+    // [1, 63]:    Builtin types, see BuiltinClock from
+    //             ../common/builtin_clock.proto.
+    // [64, 127]:  User-defined clocks. These clocks are sequence-scoped. They
+    //             are only valid within the same |trusted_packet_sequence_id|
+    //             (i.e. only for TracePacket(s) emitted by the same TraceWriter
+    //             that emitted the clock snapshot).
+    // [128, MAX]: Reserved for future use. The idea is to allow global clock
+    //             IDs and setting this ID to hash(full_clock_name) & ~127.
+    optional uint32 clock_id = 1;
+
+    // Absolute timestamp. Unit is ns unless specified otherwise by the
+    // unit_multiplier_ns field below.
+    optional uint64 timestamp = 2;
+  }
+  repeated Clock clocks = 1;
+
+  // The authoritative clock domain for the trace. Defaults to BOOTTIME, but can
+  // be overridden in TraceConfig's builtin_data_sources. Trace processor will
+  // attempt to translate packet/event timestamps from various data sources (and
+  // their chosen clock domains) to this domain during import.
+  optional BuiltinClock primary_trace_clock = 2;
+}

@@ -163,7 +163,7 @@ BinaryExpression
     staticType: int
   staticElement: <null>
   staticInvokeType: null
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -272,11 +272,11 @@ AssignmentExpression
     staticInvokeType: num Function(num)
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -322,7 +322,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -351,7 +351,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -396,11 +396,11 @@ AssignmentExpression
     staticInvokeType: num Function(num)
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -446,7 +446,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -690,7 +690,7 @@ PrefixExpression
   writeElement: self::@function::f::@parameter::x
   writeType: Never?
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -701,11 +701,21 @@ void f(Never x) {
 }
 ''');
 
-    assertSimpleIdentifier(
-      findNode.simple('foo'),
-      element: null,
-      type: 'Never',
-    );
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Never
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: Never
+  staticElement: <null>
+  staticType: Never
+''');
   }
 
   test_propertyAccess_never_read_hashCode() async {
@@ -715,11 +725,21 @@ void f(Never x) {
 }
 ''');
 
-    assertSimpleIdentifier(
-      findNode.simple('hashCode'),
-      element: objectElement.getGetter('hashCode'),
-      type: 'Never',
-    );
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Never
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    staticElement: dart:core::@class::Object::@getter::hashCode
+    staticType: Never
+  staticElement: dart:core::@class::Object::@getter::hashCode
+  staticType: Never
+''');
   }
 
   test_propertyAccess_never_readWrite() async {
@@ -752,11 +772,11 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: <null>
-  readType: dynamic
+  readType: InvalidType
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
-  staticType: dynamic
+  staticType: InvalidType
 ''');
   }
 
@@ -767,11 +787,21 @@ void f(Never x) {
 }
 ''');
 
-    assertSimpleIdentifier(
-      findNode.simple('toString'),
-      element: objectElement.getMethod('toString'),
-      type: 'Never',
-    );
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Never
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    staticElement: dart:core::@class::Object::@method::toString
+    staticType: Never
+  staticElement: dart:core::@class::Object::@method::toString
+  staticType: Never
+''');
   }
 
   test_propertyAccess_never_write() async {
@@ -806,7 +836,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: dynamic
+  writeType: InvalidType
   staticElement: <null>
   staticType: int
 ''');
@@ -822,11 +852,21 @@ void f(Never? x) {
           23, 3),
     ]);
 
-    assertSimpleIdentifier(
-      findNode.simple('foo'),
-      element: null,
-      type: 'dynamic',
-    );
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Never?
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: InvalidType
+  staticElement: <null>
+  staticType: InvalidType
+''');
   }
 
   test_propertyAccess_neverQ_read_hashCode() async {
@@ -836,11 +876,21 @@ void f(Never? x) {
 }
 ''');
 
-    assertSimpleIdentifier(
-      findNode.simple('hashCode'),
-      element: objectElement.getGetter('hashCode'),
-      type: 'int',
-    );
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Never?
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    staticElement: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticElement: dart:core::@class::Object::@getter::hashCode
+  staticType: int
+''');
   }
 
   test_propertyAccess_neverQ_tearOff_toString() async {
@@ -850,11 +900,21 @@ void f(Never? x) {
 }
 ''');
 
-    assertSimpleIdentifier(
-      findNode.simple('toString'),
-      element: objectElement.getMethod('toString'),
-      type: 'String Function()',
-    );
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Never?
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    staticElement: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  staticElement: dart:core::@class::Object::@method::toString
+  staticType: String Function()
+''');
   }
 }
 
@@ -943,7 +1003,7 @@ BinaryExpression
     staticType: int*
   staticElement: <null>
   staticInvokeType: null
-  staticType: dynamic
+  staticType: InvalidType
 ''');
 
     assertType(findNode.binary('1 + 2'), 'int');
@@ -988,14 +1048,27 @@ void f() {
 }
 ''');
 
-    assertSimpleIdentifier(
-      findNode.simple('toString'),
-      element: elementMatcher(
-        objectElement.getMethod('toString'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'String Function()',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: SimpleStringLiteral
+        literal: ''
+      staticType: Never*
+    rightParenthesis: )
+    staticType: Never*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: toString
+    staticElement: MethodMember
+      base: dart:core::@class::Object::@method::toString
+      isLegacy: true
+    staticType: String* Function()*
+  staticType: String* Function()*
+''');
   }
 
   test_throw_getter_hashCode() async {
@@ -1005,13 +1078,26 @@ void f() {
 }
 ''');
 
-    assertSimpleIdentifier(
-      findNode.simple('hashCode'),
-      element: elementMatcher(
-        objectElement.getGetter('hashCode'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: SimpleStringLiteral
+        literal: ''
+      staticType: Never*
+    rightParenthesis: )
+    staticType: Never*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    staticElement: PropertyAccessorMember
+      base: dart:core::@class::Object::@getter::hashCode
+      isLegacy: true
+    staticType: int*
+  staticType: int*
+''');
   }
 }

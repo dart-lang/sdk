@@ -85,6 +85,11 @@ config("common_linker_setup") {
     "/NXCOMPAT",
     "/DYNAMICBASE",
 
+    # Embed default manifest, which sets the requested UAC level to asInvoker,
+    # to prevent "installer detection" from automatically deciding to request
+    # elevated privileges (https://learn.microsoft.com/en-us/windows/security/application-security/application-control/user-account-control/how-it-works#installer-detection-technology).
+    "/MANIFEST:EMBED",
+
     # Suggested by Microsoft Devrel to avoid
     #   LINK : fatal error LNK1248: image size (80000000)
     #   exceeds maximum allowable size (80000000)

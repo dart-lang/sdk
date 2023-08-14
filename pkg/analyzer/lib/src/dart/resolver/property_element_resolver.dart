@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -53,7 +53,7 @@ class PropertyElementResolver with ScopeHelpers {
         _reportUnresolvedIndex(
           node,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          ['[]', target.staticElement!.name!],
+          ['[]', target.element.name!],
         );
       }
 
@@ -63,12 +63,13 @@ class PropertyElementResolver with ScopeHelpers {
         _reportUnresolvedIndex(
           node,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          ['[]=', target.staticElement!.name!],
+          ['[]=', target.element.name!],
         );
       }
 
       return _toIndexResult(
         result,
+        atDynamicTarget: false,
         hasRead: hasRead,
         hasWrite: hasWrite,
       );
@@ -133,6 +134,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     return _toIndexResult(
       result,
+      atDynamicTarget: targetType is DynamicType,
       hasRead: hasRead,
       hasWrite: hasWrite,
     );
@@ -228,7 +230,7 @@ class PropertyElementResolver with ScopeHelpers {
     final scopeLookupResult = node.scopeLookupResult!;
     reportDeprecatedExportUse(
       scopeLookupResult: scopeLookupResult,
-      node: node,
+      nameToken: node.token,
       hasRead: hasRead,
       hasWrite: hasWrite,
     );
@@ -258,8 +260,12 @@ class PropertyElementResolver with ScopeHelpers {
       if (readElementRequested is PropertyAccessorElement &&
           !readElementRequested.isStatic) {
         var unpromotedType = readElementRequested.returnType;
-        getType = _resolver.flowAnalysis.flow?.thisOrSuperPropertyGet(
-                node, node.name, readElementRequested, unpromotedType) ??
+        getType = _resolver.flowAnalysis.flow?.propertyGet(
+                node,
+                ThisPropertyTarget.singleton,
+                node.name,
+                readElementRequested,
+                unpromotedType) ??
             unpromotedType;
       }
       _resolver.checkReadOfNotAssignedLocalVariable(node, readElementRequested);
@@ -451,13 +457,13 @@ class PropertyElementResolver with ScopeHelpers {
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE,
           propertyName,
-          [propertyName.name, target.type.name.name],
+          [propertyName.name, target.type.qualifiedName],
         );
       } else {
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE,
           propertyName,
-          [propertyName.name, target.type.name.name],
+          [propertyName.name, target.type.qualifiedName],
         );
       }
       return PropertyElementResolverResult();
@@ -476,7 +482,14 @@ class PropertyElementResolver with ScopeHelpers {
       var unpromotedType =
           result.getter?.returnType ?? _typeSystem.typeProvider.dynamicType;
       getType = _resolver.flowAnalysis.flow?.propertyGet(
-              node, target, propertyName.name, result.getter, unpromotedType) ??
+              node,
+              isCascaded
+                  ? CascadePropertyTarget.singleton
+                      as PropertyTarget<Expression>
+                  : ExpressionPropertyTarget(target),
+              propertyName.name,
+              result.getter,
+              unpromotedType) ??
           unpromotedType;
 
       _checkForStaticMember(target, propertyName, result.getter);
@@ -506,6 +519,7 @@ class PropertyElementResolver with ScopeHelpers {
       readElementRecovery: result.setter,
       writeElementRequested: result.setter,
       writeElementRecovery: result.getter,
+      atDynamicTarget: _typeSystem.isDynamicBounded(targetType),
       recordField: result.recordField,
       getType: getType,
     );
@@ -585,13 +599,13 @@ class PropertyElementResolver with ScopeHelpers {
   }) {
     if (target.parent is CascadeExpression) {
       // Report this error and recover by treating it like a non-cascade.
-      errorReporter.reportErrorForNode(
+      errorReporter.reportErrorForToken(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
-        target.extensionName,
+        target.name,
       );
     }
 
-    var element = target.extensionName.staticElement!;
+    var element = target.element;
     var memberName = propertyName.name;
 
     var result = _extensionResolver.getOverrideMember(target, memberName);
@@ -732,7 +746,7 @@ class PropertyElementResolver with ScopeHelpers {
     var lookupResult = target.scope.lookup(identifier.name);
     reportDeprecatedExportUse(
       scopeLookupResult: lookupResult,
-      node: identifier,
+      nameToken: identifier.token,
       hasRead: hasRead,
       hasWrite: hasWrite,
     );
@@ -815,7 +829,11 @@ class PropertyElementResolver with ScopeHelpers {
         var unpromotedType =
             readElement?.returnType ?? _typeSystem.typeProvider.dynamicType;
         getType = _resolver.flowAnalysis.flow?.propertyGet(
-                node, target, propertyName.name, readElement, unpromotedType) ??
+                node,
+                SuperPropertyTarget.singleton,
+                propertyName.name,
+                readElement,
+                unpromotedType) ??
             unpromotedType;
       }
 
@@ -865,6 +883,7 @@ class PropertyElementResolver with ScopeHelpers {
 
   PropertyElementResolverResult _toIndexResult(
     ResolutionResult result, {
+    required bool atDynamicTarget,
     required bool hasRead,
     required bool hasWrite,
   }) {
@@ -876,6 +895,7 @@ class PropertyElementResolver with ScopeHelpers {
         : writeElement.firstParameterType;
 
     return PropertyElementResolverResult(
+      atDynamicTarget: atDynamicTarget,
       readElementRequested: readElement,
       writeElementRequested: writeElement,
       indexContextType: contextType,
@@ -888,7 +908,8 @@ class PropertyElementResolverResult {
   final Element? readElementRecovery;
   final Element? writeElementRequested;
   final Element? writeElementRecovery;
-  final FunctionType? functionTypeCallType;
+  final bool atDynamicTarget;
+  final DartType? functionTypeCallType;
   final RecordTypeField? recordField;
   final DartType? getType;
 
@@ -901,6 +922,7 @@ class PropertyElementResolverResult {
     this.readElementRecovery,
     this.writeElementRequested,
     this.writeElementRecovery,
+    this.atDynamicTarget = false,
     this.indexContextType,
     this.functionTypeCallType,
     this.recordField,

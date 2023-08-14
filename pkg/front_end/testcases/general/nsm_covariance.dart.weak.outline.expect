@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "nsm_covariance_lib.dart" as nsm;
@@ -54,7 +54,7 @@ class D4 extends core::Object implements nsm::B, nsm::A<core::int> {
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as nsm;
 import "dart:core" as core;
 

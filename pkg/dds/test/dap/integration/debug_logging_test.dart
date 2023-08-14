@@ -83,7 +83,7 @@ void main(List<String> args) async {
       final expectedLogMessage = '[log] $longMessage\n';
 
       final consoleOutputs = dap.client.outputEvents
-          .where((event) => event.category == 'console')
+          .where((event) => (event.category ?? 'console') == 'console')
           .map((event) => event.output);
 
       await Future.wait([

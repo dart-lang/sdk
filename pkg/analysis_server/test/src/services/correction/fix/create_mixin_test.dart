@@ -35,7 +35,7 @@ void f() {
     var libCode = r'''
 class A {}
 ''';
-    addSource('$testPackageLibPath/lib.dart', libCode);
+    newFile('$testPackageLibPath/lib.dart', libCode);
     await resolveTestCode('''
 import 'lib.dart' as lib;
 

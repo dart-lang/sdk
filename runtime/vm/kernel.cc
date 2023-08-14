@@ -162,7 +162,7 @@ void KernelTokenPositionCollector::CollectTokenPositions(
 
 void KernelTokenPositionCollector::RecordTokenPosition(TokenPosition position) {
   if (record_for_script_id_ == current_script_id_ &&
-      record_token_positions_into_ != NULL && position.IsReal()) {
+      record_token_positions_into_ != nullptr && position.IsReal()) {
     record_token_positions_into_->Add(position.Serialize());
   }
 }

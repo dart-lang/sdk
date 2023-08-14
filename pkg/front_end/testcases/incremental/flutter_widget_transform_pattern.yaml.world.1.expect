@@ -48,7 +48,7 @@ library from "org-dartlang-test:///main.dart" as main {
   }
   static method method(dynamic o) → dynamic {
     #L1:
-    switch(o) {
+    switch(o) /* dynamic */ {
       #L2:
       case #C7:
         {

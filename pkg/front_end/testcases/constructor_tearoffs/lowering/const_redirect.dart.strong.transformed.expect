@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -37,8 +37,7 @@ class Class extends core::Object /*hasConstConstructor*/  {
     return new self::Class::named(constants: constants);
 }
 abstract class Const extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C4]/*isLegacy*/;
-  static factory impl() → self::Const
+  static factory impl() → self::Const /* redirection-target: self::_ConstImpl::•<dynamic>*/
     return new self::_ConstImpl::•<dynamic>();
   static method _#impl#tearOff() → self::Const
     return new self::_ConstImpl::•<dynamic>();
@@ -58,7 +57,6 @@ constants  {
   #C1 = self::_ConstImpl<dynamic> {}
   #C2 = self::_ConstImpl<core::String> {}
   #C3 = <self::Const>[#C1, #C1, #C2]
-  #C4 = constructor-tearoff self::Const::impl
 }
 
 

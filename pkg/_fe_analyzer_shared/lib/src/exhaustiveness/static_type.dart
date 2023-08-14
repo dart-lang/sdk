@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart_template_buffer.dart';
 import 'key.dart';
 import 'space.dart';
 import 'witness.dart';
@@ -79,6 +80,9 @@ abstract class StaticType {
   /// This is used for printing [Space]s.
   String get name;
 
+  /// Writes the name of this static type to [buffer].
+  void typeToDart(DartTemplateBuffer buffer);
+
   /// Returns the nullable static type corresponding to this type.
   StaticType get nullable;
 
@@ -102,7 +106,7 @@ abstract class StaticType {
   ///
   /// If [forCorrection] is true, [witnessFields] that fully cover their static
   /// type are omitted if possible.
-  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+  void witnessToDart(DartTemplateBuffer buffer, PropertyWitness witness,
       Map<Key, PropertyWitness> witnessFields,
       {required bool forCorrection});
 }
@@ -182,7 +186,7 @@ abstract class _BaseStaticType implements StaticType {
   }
 
   @override
-  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+  void witnessToDart(DartTemplateBuffer buffer, PropertyWitness witness,
       Map<Key, PropertyWitness> witnessFields,
       {required bool forCorrection}) {
     if (this == StaticType.nullableObject && witnessFields.isEmpty) {
@@ -190,7 +194,7 @@ abstract class _BaseStaticType implements StaticType {
     } else if (this == StaticType.nullType && witnessFields.isEmpty) {
       buffer.write('null');
     } else {
-      buffer.write(name);
+      typeToDart(buffer);
       buffer.write('(');
       String comma = '';
       for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
@@ -200,7 +204,7 @@ abstract class _BaseStaticType implements StaticType {
         comma = ', ';
         buffer.write(key.name);
         buffer.write(': ');
-        witness.witnessToText(buffer, forCorrection: forCorrection);
+        witness.witnessToDart(buffer, forCorrection: forCorrection);
       }
       buffer.write(')');
     }
@@ -233,6 +237,11 @@ class _NonNullableObject extends _BaseStaticType with _ObjectFieldMixin {
 
   @override
   bool get isImplicitlyNullable => false;
+
+  @override
+  void typeToDart(DartTemplateBuffer buffer) {
+    buffer.writeCoreType(name);
+  }
 }
 
 class _NeverType extends _BaseStaticType with _ObjectFieldMixin {
@@ -258,6 +267,11 @@ class _NeverType extends _BaseStaticType with _ObjectFieldMixin {
 
   @override
   bool get isImplicitlyNullable => false;
+
+  @override
+  void typeToDart(DartTemplateBuffer buffer) {
+    buffer.writeCoreType(name);
+  }
 }
 
 class _NullType extends NullableStaticType with _ObjectFieldMixin {
@@ -280,6 +294,11 @@ class _NullType extends NullableStaticType with _ObjectFieldMixin {
 
   @override
   String get name => 'Null';
+
+  @override
+  void typeToDart(DartTemplateBuffer buffer) {
+    buffer.writeCoreType(name);
+  }
 }
 
 class NullableStaticType extends _BaseStaticType with _ObjectFieldMixin {
@@ -324,6 +343,14 @@ class NullableStaticType extends _BaseStaticType with _ObjectFieldMixin {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     return other is NullableStaticType && underlying == other.underlying;
+  }
+
+  @override
+  void typeToDart(DartTemplateBuffer buffer) {
+    underlying.typeToDart(buffer);
+    if (!underlying.isImplicitlyNullable) {
+      buffer.write('?');
+    }
   }
 }
 
@@ -385,9 +412,38 @@ class WrappedStaticType extends _BaseStaticType {
   bool get isImplicitlyNullable => wrappedType.isImplicitlyNullable;
 
   @override
-  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) => wrappedType
-      .getSubtypes(keysOfInterest)
-      .map((e) => new WrappedStaticType(e, impliedType));
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) {
+    StaticType wrappedType = this.wrappedType;
+    StaticType impliedType = this.impliedType;
+    if (wrappedType is NullableStaticType &&
+        impliedType is NullableStaticType) {
+      // With nullable types we need to avoid carrying the nullable implied type
+      // into the non-nullable subtype since it otherwise wouldn't allow for
+      // matching the non-nullable aspect of the wrapped type with the
+      // non-nullable implied type.
+      //
+      // For instance
+      //
+      //     method<O>(O? object) => switch (object) {
+      //         O object => 0,
+      //         null => 1,
+      //       };
+      //
+      // Here the static type of `O?` is `WrappedStaticType(Object?, O?)` which
+      // allows for matching both by the bound `Object?` and the exact type
+      // variable type `O?`. If we split this into the subtypes
+      // `WrappedStaticType(Object, O?)` and `WrappedStaticType(null, O?)` then
+      // we miss that `O object` covers the non-nullable aspect, since `O` is
+      // neither a super type of `Object` nor `O?`.
+      return [
+        new WrappedStaticType(wrappedType.underlying, impliedType.underlying),
+        StaticType.nullType
+      ];
+    }
+    return wrappedType
+        .getSubtypes(keysOfInterest)
+        .map((e) => new WrappedStaticType(e, impliedType));
+  }
 
   @override
   bool isSubtypeOf(StaticType other) {
@@ -408,10 +464,10 @@ class WrappedStaticType extends _BaseStaticType {
   }
 
   @override
-  void witnessToText(StringBuffer buffer, PropertyWitness witness,
+  void witnessToDart(DartTemplateBuffer buffer, PropertyWitness witness,
       Map<Key, PropertyWitness> witnessFields,
       {required bool forCorrection}) {
-    return wrappedType.witnessToText(buffer, witness, witnessFields,
+    return wrappedType.witnessToDart(buffer, witness, witnessFields,
         forCorrection: forCorrection);
   }
 
@@ -426,6 +482,11 @@ class WrappedStaticType extends _BaseStaticType {
       wrappedType.nullable == wrappedType && impliedType.nullable == impliedType
           ? this
           : new WrappedStaticType(wrappedType.nullable, impliedType.nullable);
+
+  @override
+  void typeToDart(DartTemplateBuffer buffer) {
+    wrappedType.typeToDart(buffer);
+  }
 }
 
 /// Interface for accessing the members defined on `Object`.

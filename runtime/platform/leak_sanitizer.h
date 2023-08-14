@@ -23,10 +23,10 @@ extern "C" void __lsan_unregister_root_region(const void* p, size_t size);
 #else  // defined(USING_LEAK_SANITIZER)
 #define LSAN_REGISTER_ROOT_REGION(ptr, len)                                    \
   do {                                                                         \
-  } while (false && (ptr) == 0 && (len) == 0)
+  } while (false && (ptr) == nullptr && (len) == 0)
 #define LSAN_UNREGISTER_ROOT_REGION(ptr, len)                                  \
   do {                                                                         \
-  } while (false && (ptr) == 0 && (len) == 0)
+  } while (false && (ptr) == nullptr && (len) == 0)
 #endif  // defined(USING_LEAK_SANITIZER)
 
 #endif  // RUNTIME_PLATFORM_LEAK_SANITIZER_H_

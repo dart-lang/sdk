@@ -33,28 +33,29 @@ Caller frame   | last parameter     | <- SP of caller frame
                T against a slot indicates it needs to be traversed during GC.
 */
 
-static const int kDartFrameFixedSize = 4;  // PP, FP, LR, PC marker.
-static const int kSavedPcSlotFromSp = -1;
+static constexpr int kDartFrameFixedSize = 4;  // PP, FP, LR, PC marker.
+static constexpr int kSavedPcSlotFromSp = -1;
 
-static const int kFirstObjectSlotFromFp = -1;  // Used by GC to traverse stack.
-static const int kLastFixedObjectSlotFromFp = -2;
+static constexpr int kFirstObjectSlotFromFp =
+    -1;  // Used by GC to traverse stack.
+static constexpr int kLastFixedObjectSlotFromFp = -2;
 
-static const int kFirstLocalSlotFromFp = -3;
-static const int kSavedCallerPpSlotFromFp = -2;
-static const int kPcMarkerSlotFromFp = -1;
-static const int kSavedCallerFpSlotFromFp = 0;
-static const int kSavedCallerPcSlotFromFp = 1;
-static const int kParamEndSlotFromFp = 1;  // One slot past last parameter.
-static const int kCallerSpSlotFromFp = 2;
-static const int kLastParamSlotFromEntrySp = 0;
+static constexpr int kFirstLocalSlotFromFp = -3;
+static constexpr int kSavedCallerPpSlotFromFp = -2;
+static constexpr int kPcMarkerSlotFromFp = -1;
+static constexpr int kSavedCallerFpSlotFromFp = 0;
+static constexpr int kSavedCallerPcSlotFromFp = 1;
+static constexpr int kParamEndSlotFromFp = 1;  // One slot past last parameter.
+static constexpr int kCallerSpSlotFromFp = 2;
+static constexpr int kLastParamSlotFromEntrySp = 0;
 
 // Entry and exit frame layout.
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
-static const int kExitLinkSlotFromEntryFp = -27;
+static constexpr int kExitLinkSlotFromEntryFp = -27;
 COMPILE_ASSERT(kAbiPreservedCpuRegCount == 6);
 COMPILE_ASSERT(kAbiPreservedFpuRegCount == 4);
 #else
-static const int kExitLinkSlotFromEntryFp = -28;
+static constexpr int kExitLinkSlotFromEntryFp = -28;
 COMPILE_ASSERT(kAbiPreservedCpuRegCount == 7);
 COMPILE_ASSERT(kAbiPreservedFpuRegCount == 4);
 #endif
@@ -75,7 +76,7 @@ constexpr intptr_t kCallbackSlotsBeforeSavedArguments = 2;
 //
 // [fp] holds callers fp, [fp+4] holds callers lr, [fp+8] is space for
 // return address, [fp+12] is our pushed TypedData pointer.
-static const int kFfiCallerTypedDataSlotFromFp = kCallerSpSlotFromFp + 1;
+static constexpr int kFfiCallerTypedDataSlotFromFp = kCallerSpSlotFromFp + 1;
 
 }  // namespace dart
 

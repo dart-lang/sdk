@@ -173,8 +173,8 @@ DEFINE_NATIVE_ENTRY(Double_toString, 0, 1) {
 
 DEFINE_NATIVE_ENTRY(Double_toStringAsFixed, 0, 2) {
   // The boundaries are exclusive.
-  static const double kLowerBoundary = -1e21;
-  static const double kUpperBoundary = 1e21;
+  const double kLowerBoundary = -1e21;
+  const double kUpperBoundary = 1e21;
 
   const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, fraction_digits, arguments->NativeArgAt(1));

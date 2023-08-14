@@ -344,8 +344,11 @@ class DeferredLoadTask extends CompilerTask {
 
   final KernelToElementMap _elementMap;
 
+  _DeferredLoadTaskMetrics? _deferredLoadMetrics;
+  _DeferredLoadTaskMetrics get deferredLoadMetrics =>
+      _deferredLoadMetrics ??= _DeferredLoadTaskMetrics();
   @override
-  final _DeferredLoadTaskMetrics metrics = _DeferredLoadTaskMetrics();
+  Metrics get metrics => _deferredLoadMetrics ?? Metrics.none();
 
   bool get disableProgramSplit => compiler.options.disableProgramSplit;
 
@@ -379,7 +382,7 @@ class DeferredLoadTask extends CompilerTask {
       counter++;
       importSet.unit = unit;
       _allOutputUnits.add(unit);
-      metrics.outputUnitElements.add(1);
+      deferredLoadMetrics.outputUnitElements.add(1);
     }
 
     // Generate an output unit for all import sets that are associated with an
@@ -429,7 +432,7 @@ class DeferredLoadTask extends CompilerTask {
   ///
   /// See the top-level library comment for details.
   OutputUnitData run(FunctionEntity main, KClosedWorld closedWorld) {
-    return metrics.time.measure(() => _run(main, closedWorld));
+    return deferredLoadMetrics.time.measure(() => _run(main, closedWorld));
   }
 
   OutputUnitData _run(FunctionEntity main, KClosedWorld closedWorld) {

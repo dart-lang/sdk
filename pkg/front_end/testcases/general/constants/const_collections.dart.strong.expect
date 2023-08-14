@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -198,7 +198,7 @@ class WithEquals extends core::Object /*hasConstConstructor*/  {
     : self::WithEquals::i = i, super core::Object::•()
     ;
   operator ==(core::Object o) → core::bool {
-    return o is{ForNonNullableByDefault} self::WithEquals && (o{self::WithEquals} as{ForNonNullableByDefault} self::WithEquals).{self::WithEquals::i}{core::int} =={core::num::==}{(core::Object) → core::bool} this.{self::WithEquals::i}{core::int};
+    return o is self::WithEquals && (o{self::WithEquals} as self::WithEquals).{self::WithEquals::i}{core::int} =={core::num::==}{(core::Object) → core::bool} this.{self::WithEquals::i}{core::int};
   }
 }
 class CustomIterable extends core::Iterable<core::String> /*hasConstConstructor*/  {

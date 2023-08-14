@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -13,7 +13,7 @@ extension SuetaExtension on self::Sueta {
 }
 static method main(core::List<core::String> arguments) → void {}
 static method test(core::int positional, {core::int named1 = #C1, core::int named2 = #C1}) → void {}
-static method SuetaExtension|test(core::int pos, {core::int named1 = #C1, core::int named2 = #C1}) → void {}
+static extension-member method SuetaExtension|test(core::int pos, {core::int named1 = #C1, core::int named2 = #C1}) → void {}
 static method test1() → void {
   let final core::int #t1 = 0 in self::test(1, named1: #t1, named2: 0);
 }

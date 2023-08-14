@@ -47,7 +47,7 @@ dynamic f(bool c, int a, int b) {
   return c ? a : b as int;
 }
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 51, 8),
+      error(WarningCode.UNNECESSARY_CAST, 51, 8),
     ]);
   }
 
@@ -57,7 +57,7 @@ dynamic f(bool c, int a, int b) {
   return c ? a as int : b;
 }
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 47, 8),
+      error(WarningCode.UNNECESSARY_CAST, 47, 8),
     ]);
   }
 
@@ -67,7 +67,7 @@ dynamic f(bool c, int a, dynamic b) {
   return c ? a as int : b;
 }
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 51, 8),
+      error(WarningCode.UNNECESSARY_CAST, 51, 8),
     ]);
   }
 
@@ -77,8 +77,8 @@ dynamic f(bool c, int a, int b) {
   return c ? a as int : b as int;
 }
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 47, 8),
-      error(HintCode.UNNECESSARY_CAST, 58, 8),
+      error(WarningCode.UNNECESSARY_CAST, 47, 8),
+      error(WarningCode.UNNECESSARY_CAST, 58, 8),
     ]);
   }
 
@@ -88,7 +88,7 @@ dynamic f(bool c, int a, int b) {
   return c ? a : b as int;
 }
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 51, 8),
+      error(WarningCode.UNNECESSARY_CAST, 51, 8),
     ]);
   }
 
@@ -98,6 +98,16 @@ void f(a) {
   a as Object;
 }
 ''');
+  }
+
+  test_expression_invalidType() async {
+    await assertErrorsInCode(r'''
+void f() {
+  x as int;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
+    ]);
   }
 
   test_function_toSubtype_viaParameter() async {
@@ -122,7 +132,7 @@ void f(void Function(num) a) {
   (a as void Function(int))(3);
 }
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 34, 23),
+      error(WarningCode.UNNECESSARY_CAST, 34, 23),
     ]);
   }
 
@@ -132,7 +142,7 @@ void f(int Function() a) {
   (a as num Function())();
 }
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 30, 19),
+      error(WarningCode.UNNECESSARY_CAST, 30, 19),
     ]);
   }
 
@@ -166,7 +176,7 @@ void f(int a) {
   a as Object;
 }
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 18, 11),
+      error(WarningCode.UNNECESSARY_CAST, 18, 11),
     ]);
   }
 
@@ -176,7 +186,7 @@ void f(num a) {
   a as num;
 }
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 18, 8),
+      error(WarningCode.UNNECESSARY_CAST, 18, 8),
     ]);
   }
 
@@ -186,7 +196,7 @@ void f<T extends num>(T a) {
   a as num;
 }
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 31, 8),
+      error(WarningCode.UNNECESSARY_CAST, 31, 8),
     ]);
   }
 
@@ -196,7 +206,7 @@ void f<T extends int>(T a) {
   a as num;
 }
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 31, 8),
+      error(WarningCode.UNNECESSARY_CAST, 31, 8),
     ]);
   }
 
@@ -235,7 +245,7 @@ void f() {
 }
 ''', [
       error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-      error(HintCode.UNNECESSARY_CAST, 39, 8),
+      error(WarningCode.UNNECESSARY_CAST, 39, 8),
     ]);
   }
 
@@ -264,7 +274,7 @@ void f(num a) {
   a as N;
 }
 ''', [
-      error(HintCode.UNNECESSARY_CAST, 35, 6),
+      error(WarningCode.UNNECESSARY_CAST, 35, 6),
     ]);
   }
 }

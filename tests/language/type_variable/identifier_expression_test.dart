@@ -11,7 +11,10 @@ class A {
 
 class B<T> {
   doFunc() {
-    T.func(); /*@compile-error=unspecified*/
+    T.func();
+    //^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [cfe] The method 'func' isn't defined for the class 'Type'.
   }
 }
 

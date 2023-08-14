@@ -450,12 +450,6 @@ String? textualOutline(
           ..originalPosition = originalPosition.value++);
   });
   Token firstToken = scanner.tokenize();
-  // ignore: unnecessary_null_comparison
-  if (firstToken == null) {
-    if (throwOnUnexpected) throw "firstToken is null";
-    return null;
-  }
-
   TextualOutlineListener listener = new TextualOutlineListener();
   ClassMemberParser classMemberParser = new ClassMemberParser(listener);
   classMemberParser.parseUnit(firstToken);
@@ -866,8 +860,7 @@ class TextualOutlineListener extends Listener {
 
   @override
   void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
-    // ignore: unnecessary_null_comparison
-    if (importKeyword != null && semicolon != null) {
+    if (semicolon != null) {
       importExportsStartToChunk[importKeyword] = new _ImportChunk(
           importKeyword, semicolon, firstShowOrHide, _combinators);
     }

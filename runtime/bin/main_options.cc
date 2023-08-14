@@ -32,7 +32,7 @@ static const char* const kSnapshotKindNames[] = {
     "none",
     "kernel",
     "app-jit",
-    NULL,
+    nullptr,
 };
 
 // These strings must match the enum VerbosityLevel in main_options.h.
@@ -47,7 +47,7 @@ bool Options::enable_vm_service_ = false;
 #define OPTION_FIELD(variable) Options::variable##_
 
 #define STRING_OPTION_DEFINITION(name, variable)                               \
-  const char* OPTION_FIELD(variable) = NULL;                                   \
+  const char* OPTION_FIELD(variable) = nullptr;                                \
   DEFINE_STRING_OPTION(name, OPTION_FIELD(variable))
 STRING_OPTIONS_LIST(STRING_OPTION_DEFINITION)
 #undef STRING_OPTION_DEFINITION
@@ -81,7 +81,7 @@ CB_OPTIONS_LIST(CB_OPTION_DEFINITION)
 #undef CB_OPTION_DEFINITION
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-DFE* Options::dfe_ = NULL;
+DFE* Options::dfe_ = nullptr;
 
 DEFINE_STRING_OPTION_CB(dfe, { Options::dfe()->set_frontend_filename(value); });
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -249,12 +249,12 @@ void Options::PrintUsage() {
 "be changed in any future version:\n");
     const char* print_flags = "--print_flags";
     char* error = Dart_SetVMFlags(1, &print_flags);
-    ASSERT(error == NULL);
+    ASSERT(error == nullptr);
   }
 }
 // clang-format on
 
-dart::SimpleHashMap* Options::environment_ = NULL;
+dart::SimpleHashMap* Options::environment_ = nullptr;
 bool Options::ProcessEnvironmentOption(const char* arg,
                                        CommandLineOptions* vm_options) {
   return OptionProcessor::ProcessEnvironmentOption(arg, vm_options,
@@ -262,14 +262,14 @@ bool Options::ProcessEnvironmentOption(const char* arg,
 }
 
 void Options::DestroyEnvironment() {
-  if (environment_ != NULL) {
-    for (SimpleHashMap::Entry* p = environment_->Start(); p != NULL;
+  if (environment_ != nullptr) {
+    for (SimpleHashMap::Entry* p = environment_->Start(); p != nullptr;
          p = environment_->Next(p)) {
       free(p->key);
       free(p->value);
     }
     delete environment_;
-    environment_ = NULL;
+    environment_ = nullptr;
   }
 }
 
@@ -298,7 +298,7 @@ bool Options::ExtractPortAndAddress(const char* option_value,
 
   int port = atoi(option_value + 1);
   const char* slash = strstr(option_value, "/");
-  if (slash == NULL) {
+  if (slash == nullptr) {
     *out_ip = default_ip;
     *out_port = port;
     return true;
@@ -336,7 +336,7 @@ bool Options::ProcessEnableVmServiceOption(const char* arg,
 #if !defined(PRODUCT)
   const char* value =
       OptionProcessor::ProcessOption(arg, "--enable-vm-service");
-  if (value == NULL) {
+  if (value == nullptr) {
     return false;
   }
   if (!ExtractPortAndAddress(
@@ -362,7 +362,7 @@ bool Options::ProcessObserveOption(const char* arg,
                                    CommandLineOptions* vm_options) {
 #if !defined(PRODUCT)
   const char* value = OptionProcessor::ProcessOption(arg, "--observe");
-  if (value == NULL) {
+  if (value == nullptr) {
     return false;
   }
   if (!ExtractPortAndAddress(
@@ -702,26 +702,27 @@ bool Options::ParseArguments(int argc,
   // Verify consistency of arguments.
 
   // snapshot_depfile is an alias for depfile. Passing them both is an error.
-  if ((snapshot_deps_filename_ != NULL) && (depfile_ != NULL)) {
+  if ((snapshot_deps_filename_ != nullptr) && (depfile_ != nullptr)) {
     Syslog::PrintErr("Specify only one of --depfile and --snapshot_depfile\n");
     return false;
   }
-  if (snapshot_deps_filename_ != NULL) {
+  if (snapshot_deps_filename_ != nullptr) {
     depfile_ = snapshot_deps_filename_;
-    snapshot_deps_filename_ = NULL;
+    snapshot_deps_filename_ = nullptr;
   }
 
-  if ((packages_file_ != NULL) && (strlen(packages_file_) == 0)) {
+  if ((packages_file_ != nullptr) && (strlen(packages_file_) == 0)) {
     Syslog::PrintErr("Empty package file name specified.\n");
     return false;
   }
-  if ((gen_snapshot_kind_ != kNone) && (snapshot_filename_ == NULL)) {
+  if ((gen_snapshot_kind_ != kNone) && (snapshot_filename_ == nullptr)) {
     Syslog::PrintErr(
         "Generating a snapshot requires a filename (--snapshot).\n");
     return false;
   }
-  if ((gen_snapshot_kind_ == kNone) && (depfile_ != NULL) &&
-      (snapshot_filename_ == NULL) && (depfile_output_filename_ == NULL)) {
+  if ((gen_snapshot_kind_ == kNone) && (depfile_ != nullptr) &&
+      (snapshot_filename_ == nullptr) &&
+      (depfile_output_filename_ == nullptr)) {
     Syslog::PrintErr(
         "Generating a depfile requires an output filename"
         " (--depfile-output-filename or --snapshot).\n");
@@ -735,7 +736,7 @@ bool Options::ParseArguments(int argc,
   }
 
   // If --snapshot is given without --snapshot-kind, default to script snapshot.
-  if ((snapshot_filename_ != NULL) && (gen_snapshot_kind_ == kNone)) {
+  if ((snapshot_filename_ != nullptr) && (gen_snapshot_kind_ == kNone)) {
     gen_snapshot_kind_ = kKernel;
   }
 

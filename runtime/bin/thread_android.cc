@@ -46,7 +46,7 @@ static void ComputeTimeSpecMicros(struct timespec* ts, int64_t micros) {
   struct timeval tv;
   int64_t secs = micros / kMicrosecondsPerSecond;
   int64_t remaining_micros = (micros - (secs * kMicrosecondsPerSecond));
-  int result = gettimeofday(&tv, NULL);
+  int result = gettimeofday(&tv, nullptr);
   ASSERT(result == 0);
   ts->tv_sec = tv.tv_sec + secs;
   ts->tv_nsec = (tv.tv_usec + remaining_micros) * kNanosecondsPerMicrosecond;
@@ -95,7 +95,7 @@ static void* ThreadStart(void* data_ptr) {
   // Call the supplied thread start function handing it its parameters.
   function(parameter);
 
-  return NULL;
+  return nullptr;
 }
 
 int Thread::Start(const char* name,

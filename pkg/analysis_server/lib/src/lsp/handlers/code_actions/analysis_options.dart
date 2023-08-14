@@ -79,7 +79,7 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
         fixes.map((fix) {
           final action =
               createFixAction(fix.change, diagnostic, path, lineInfo);
-          return CodeActionWithPriority(action, fix.kind.priority);
+          return (action: action, priority: fix.kind.priority);
         }),
       );
     }

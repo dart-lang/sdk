@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
@@ -13,7 +13,7 @@ class C<T extends core::Object? = dynamic> extends core::Object {
   }
 }
 static method g(self::C<core::num> c) → void {
-  let final self::C<core::num> #t2 = c in let final core::double #t3 = 1.5 in (#t2.{self::C::y}{(core::num) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::num) → void)(#t3){(core::num) → void};
+  let final self::C<core::num> #t2 = c in let final core::double #t3 = 1.5 in (#t2.{self::C::y}{(core::num) → void} as{TypeError,CovarianceCheck} (core::num) → void)(#t3){(core::num) → void};
 }
 static method main() → void {}
 

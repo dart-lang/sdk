@@ -15,6 +15,11 @@ mixin M1<T> on I<T> {}
 ///////////////////////////////////////////////////////
 
 // Error since class hierarchy is inconsistent
-class A00 with M0, M1<int> {} /*@compile-error=unspecified*/
+class A00 with M0, M1<int> {}
+//    ^
+// [cfe] 'Object with M0, M1' can't implement both 'I<dynamic>' and 'I<int>'
+// [cfe] '_A00&Object&M0' doesn't implement 'I<int>' so it can't be used with 'M1<int>'.
+//                 ^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE
 
 void main() {}

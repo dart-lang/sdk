@@ -62,10 +62,10 @@ class EditPlanTest extends AbstractSingleUnitTest {
   Future<void> test_acceptLateHint() async {
     var code = '/* late */ int x = 0;';
     await analyze(code);
-    var hint = getPrefixHint(findNode.simple('int').token)!;
+    var hint = getPrefixHint(findNode.namedType('int').name2)!;
     var changes = checkPlan(
         planner!.acceptPrefixHint(
-            planner!.passThrough(findNode.simple('int')), hint),
+            planner!.passThrough(findNode.namedType('int')), hint),
         'late int x = 0;');
     expect(changes.keys, unorderedEquals([0, 7]));
     expect(changes[7], hasLength(1));
@@ -75,20 +75,20 @@ class EditPlanTest extends AbstractSingleUnitTest {
   Future<void> test_acceptLateHint_space_needed_after() async {
     var code = '/* late */int x = 0;';
     await analyze(code);
-    var hint = getPrefixHint(findNode.simple('int').token)!;
+    var hint = getPrefixHint(findNode.namedType('int').name2)!;
     checkPlan(
         planner!.acceptPrefixHint(
-            planner!.passThrough(findNode.simple('int')), hint),
+            planner!.passThrough(findNode.namedType('int')), hint),
         'late int x = 0;');
   }
 
   Future<void> test_acceptLateHint_space_needed_before() async {
     var code = '@deprecated/* late */ int x = 0;';
     await analyze(code);
-    var hint = getPrefixHint(findNode.simple('int').token)!;
+    var hint = getPrefixHint(findNode.namedType('int').name2)!;
     checkPlan(
         planner!.acceptPrefixHint(
-            planner!.passThrough(findNode.simple('int')), hint),
+            planner!.passThrough(findNode.namedType('int')), hint),
         '@deprecated late int x = 0;');
   }
 
@@ -126,10 +126,10 @@ class C {
   Future<void> test_acceptNullabilityOrNullCheckHint() async {
     var code = 'int /*?*/ x = 0;';
     await analyze(code);
-    var intRef = findNode.simple('int');
+    var intRef = findNode.namedType('int');
     var typeName = planner!.passThrough(intRef);
     checkPlan(
-        planner!.acceptSuffixHint(typeName, getPostfixHint(intRef.token)!),
+        planner!.acceptSuffixHint(typeName, getPostfixHint(intRef.name2)!),
         'int? x = 0;');
   }
 
@@ -445,20 +445,20 @@ class C {
   Future<void> test_dropNullabilityHint() async {
     var code = 'int /*!*/ x = 0;';
     await analyze(code);
-    var intRef = findNode.simple('int');
+    var intRef = findNode.namedType('int');
     var typeName = planner!.passThrough(intRef);
     checkPlan(
-        planner!.dropNullabilityHint(typeName, getPostfixHint(intRef.token)!),
+        planner!.dropNullabilityHint(typeName, getPostfixHint(intRef.name2)!),
         'int x = 0;');
   }
 
   Future<void> test_dropNullabilityHint_space_before_must_be_kept() async {
     var code = 'int /*!*/x = 0;';
     await analyze(code);
-    var intRef = findNode.simple('int');
+    var intRef = findNode.namedType('int');
     var typeName = planner!.passThrough(intRef);
     var changes = checkPlan(
-        planner!.dropNullabilityHint(typeName, getPostfixHint(intRef.token)!),
+        planner!.dropNullabilityHint(typeName, getPostfixHint(intRef.name2)!),
         'int x = 0;');
     expect(changes.keys, unorderedEquals([code.indexOf('/*')]));
   }
@@ -466,10 +466,10 @@ class C {
   Future<void> test_dropNullabilityHint_space_needed() async {
     var code = 'int/*!*/x = 0;';
     await analyze(code);
-    var intRef = findNode.simple('int');
+    var intRef = findNode.namedType('int');
     var typeName = planner!.passThrough(intRef);
     checkPlan(
-        planner!.dropNullabilityHint(typeName, getPostfixHint(intRef.token)!),
+        planner!.dropNullabilityHint(typeName, getPostfixHint(intRef.name2)!),
         'int x = 0;');
   }
 
@@ -1219,7 +1219,7 @@ import 'dart:math';
 class C<T, U, V> {}
 C<int, double, String>? c;
 ''');
-    var typeArgument = findNode.simple('double').parent!;
+    var typeArgument = findNode.namedType('double');
     var changes = checkPlan(planner!.removeNode(typeArgument), '''
 class C<T, U, V> {}
 C<int, String>? c;
@@ -1288,7 +1288,8 @@ C<int, String>? c;
         planner!.passThrough(methodInvocation, innerPlans: [
           planner!.removeNullAwareness(methodInvocation),
           planner!.passThrough(methodInvocation.typeArguments, innerPlans: [
-            planner!.replace(findNode.simple('int'), [AtomicEdit.insert('num')])
+            planner!
+                .replace(findNode.namedType('int'), [AtomicEdit.insert('num')])
           ])
         ]),
         'f(x) => x.m<num>();');

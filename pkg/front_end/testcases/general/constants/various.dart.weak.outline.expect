@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -334,16 +334,16 @@ static const field core::bool* zeroPointZeroEqualToZero = 0.0 =={core::num::==}{
 static const field core::bool* zeroEqualToZeroPointZero = 0 =={core::num::==}{(core::Object*) →* core::bool*} 0.0;
 static const field core::bool* nanEqual = 0.{core::num::/}(0){(core::num*) →* core::double*} =={core::num::==}{(core::Object*) →* core::bool*} 0.{core::num::/}(0){(core::num*) →* core::double*};
 static const field dynamic willBecomeNull = const core::bool::fromEnvironment("foo") ?{<T extends core::Object* = dynamic>(T*) →* T*} self::id1 : null;
-static const field (core::int*) →* core::int* willBecomeNullToo = (const core::bool::fromEnvironment("foo") ?{dynamic} self::id1<core::int*> : self::willBecomeNull) as{TypeError,ForDynamic} (core::int*) →* core::int*;
-static const field (core::int*) →* core::int* partialInstantiation = (const core::bool::fromEnvironment("foo") ?{dynamic} self::willBecomeNull : self::id1<core::int*>) as{TypeError,ForDynamic} (core::int*) →* core::int*;
+static const field (core::int*) →* core::int* willBecomeNullToo = (const core::bool::fromEnvironment("foo") ?{dynamic} self::id1<core::int*> : self::willBecomeNull) as{TypeError,ForDynamic,ForLegacy} (core::int*) →* core::int*;
+static const field (core::int*) →* core::int* partialInstantiation = (const core::bool::fromEnvironment("foo") ?{dynamic} self::willBecomeNull : self::id1<core::int*>) as{TypeError,ForDynamic,ForLegacy} (core::int*) →* core::int*;
 static const field core::bool* yBool = true;
 static const field core::bool* zBool = !self::yBool;
 static const field core::Object* maybeInt = const core::bool::fromEnvironment("foo") ?{core::Object*} 42 : true;
-static const field core::bool* isItInt = self::maybeInt is core::int* ?{core::bool*} true : false;
+static const field core::bool* isItInt = self::maybeInt is{ForLegacy} core::int* ?{core::bool*} true : false;
 static const field core::Object* maybeInt2 = self::zBool ?{core::Object*} 42 : true;
-static const field core::bool* isItInt2 = self::maybeInt2 is core::int* ?{core::bool*} true : false;
+static const field core::bool* isItInt2 = self::maybeInt2 is{ForLegacy} core::int* ?{core::bool*} true : false;
 static const field core::int* maybeInt3 = self::zBool ?{core::int*} 42 : null;
-static const field core::bool* isItInt3 = self::maybeInt3 is core::int* ?{core::bool*} true : false;
+static const field core::bool* isItInt3 = self::maybeInt3 is{ForLegacy} core::int* ?{core::bool*} true : false;
 static method id1<T extends core::Object* = dynamic>(self::id1::T* t) → self::id1::T*
   ;
 static method id2<T extends core::Object* = dynamic>(self::id2::T* t) → self::id2::T*

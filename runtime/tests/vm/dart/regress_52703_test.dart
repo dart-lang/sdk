@@ -16,7 +16,7 @@ import '../../../tools/heapsnapshot/lib/src/analysis.dart';
 void main() async {
   if (buildDir.contains('Product')) return;
 
-  final dir = Directory('sdk');
+  final dir = Directory('.');
 
   StreamSubscription? current;
   Future<void> iterate() async {

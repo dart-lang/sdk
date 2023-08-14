@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -198,14 +198,14 @@ static method foo4() → <X extends (<T extends core::Object* = dynamic>() →* 
 static get corge1() → <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic
   return throw 42;
 static set grault1(<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic value) → void {}
-static method E1|bar3<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this, <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic f) → dynamic {}
-static method E1|get#bar3<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this) → (<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic) →* dynamic
+static extension-member method E1|bar3<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this, <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic f) → dynamic {}
+static extension-member method E1|get#bar3<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this) → (<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic) →* dynamic
   return (<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic f) → dynamic => self::E1|bar3<self::E1|get#bar3::X*>(#this, f);
-static method E1|bar4<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this) → <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic
+static extension-member method E1|bar4<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this) → <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic
   return throw 42;
-static method E1|get#bar4<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this) → () →* <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic
+static extension-member method E1|get#bar4<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this) → () →* <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic
   return () → <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic => self::E1|bar4<self::E1|get#bar4::X*>(#this);
-static method E1|get#baz2<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this) → <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic
+static extension-member method E1|get#baz2<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this) → <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic
   return throw 42;
-static method E1|set#qux2<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this, <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic value) → void {}
+static extension-member method E1|set#qux2<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this, <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic value) → void {}
 static method main() → dynamic {}

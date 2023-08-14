@@ -203,6 +203,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('dartdevc-module-format',
       help: 'The module format to use on for the dartdevc compiler',
       defaultsTo: 'amd')
+  ..addFlag('dartdevc-canary',
+      help: 'Enable canary features in dartdevc compiler', defaultsTo: false)
   ..addFlag('flutter-widget-cache',
       help: 'Enable the widget cache to track changes to Widget subtypes',
       defaultsTo: false)
@@ -253,9 +255,13 @@ enum _State {
   // compileExpression
   COMPILE_EXPRESSION_EXPRESSION,
   COMPILE_EXPRESSION_DEFS,
+  COMPILE_EXPRESSION_DEFTYPES,
   COMPILE_EXPRESSION_TYPEDEFS,
+  COMPILE_EXPRESSION_TYPEBOUNDS,
+  COMPILE_EXPRESSION_TYPEDEFAULTS,
   COMPILE_EXPRESSION_LIBRARY_URI,
   COMPILE_EXPRESSION_KLASS,
+  COMPILE_EXPRESSION_METHOD,
   COMPILE_EXPRESSION_IS_STATIC,
   // compileExpressionToJs
   COMPILE_EXPRESSION_TO_JS_LIBRARYURI,
@@ -367,15 +373,17 @@ class BinaryPrinterFactory {
 }
 
 class FrontendCompiler implements CompilerInterface {
-  FrontendCompiler(StringSink? outputStream,
-      {BinaryPrinterFactory? printerFactory,
-      this.transformer,
-      this.unsafePackageSerialization,
-      this.incrementalSerialization = true,
-      this.useDebuggerModuleNames = false,
-      this.emitDebugMetadata = false,
-      this.emitDebugSymbols = false})
-      : _outputStream = outputStream ?? stdout,
+  FrontendCompiler(
+    StringSink? outputStream, {
+    BinaryPrinterFactory? printerFactory,
+    this.transformer,
+    this.unsafePackageSerialization,
+    this.incrementalSerialization = true,
+    this.useDebuggerModuleNames = false,
+    this.emitDebugMetadata = false,
+    this.emitDebugSymbols = false,
+    this.canaryFeatures = false,
+  })  : _outputStream = outputStream ?? stdout,
         printerFactory = printerFactory ?? BinaryPrinterFactory();
 
   /// Fields with initializers
@@ -389,6 +397,7 @@ class FrontendCompiler implements CompilerInterface {
   final StringSink _outputStream;
   BinaryPrinterFactory printerFactory;
   bool useDebuggerModuleNames;
+  bool canaryFeatures;
 
   /// Initialized in [compile].
   late List<Uri> _additionalSources;
@@ -732,8 +741,6 @@ class FrontendCompiler implements CompilerInterface {
   Future<void> writeJavaScriptBundle(KernelCompilationResults results,
       String filename, String fileSystemScheme, String moduleFormat,
       {required bool fullComponent}) async {
-    // ignore: unnecessary_null_comparison
-    assert(fullComponent != null);
     var packageConfig = await loadPackageConfigUri(
         _compilerOptions.packagesFileUri ??
             File('.dart_tool/package_config.json').absolute.uri);
@@ -748,6 +755,7 @@ class FrontendCompiler implements CompilerInterface {
       emitDebugMetadata: emitDebugMetadata,
       moduleFormat: moduleFormat,
       soundNullSafety: soundNullSafety,
+      canaryFeatures: canaryFeatures,
     );
     if (fullComponent) {
       await bundler.initialize(component, _mainSource, packageConfig);
@@ -1347,11 +1355,21 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
           // definitions (one per line)
           // ...
           // <boundarykey>
+          // definitionTypes (one per line)
+          // ...
+          // <boundarykey>
           // type-definitions (one per line)
+          // ...
+          // <boundarykey>
+          // type-bounds (one per line)
+          // ...
+          // <boundarykey>
+          // type-defaults (one per line)
           // ...
           // <boundarykey>
           // <libraryUri: String>
           // <klass: String>
+          // <method: String>
           // <isStatic: true|false>
           compileExpressionRequest = _CompileExpressionRequest();
           boundaryKey =
@@ -1383,16 +1401,37 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         break;
       case _State.COMPILE_EXPRESSION_DEFS:
         if (string == boundaryKey) {
-          state = _State.COMPILE_EXPRESSION_TYPEDEFS;
+          state = _State.COMPILE_EXPRESSION_DEFTYPES;
         } else {
           compileExpressionRequest.defs.add(string);
         }
         break;
+      case _State.COMPILE_EXPRESSION_DEFTYPES:
+        if (string == boundaryKey) {
+          state = _State.COMPILE_EXPRESSION_TYPEDEFS;
+        } else {
+          compileExpressionRequest.defTypes.add(string);
+        }
+        break;
       case _State.COMPILE_EXPRESSION_TYPEDEFS:
+        if (string == boundaryKey) {
+          state = _State.COMPILE_EXPRESSION_TYPEBOUNDS;
+        } else {
+          compileExpressionRequest.typeDefs.add(string);
+        }
+        break;
+      case _State.COMPILE_EXPRESSION_TYPEBOUNDS:
+        if (string == boundaryKey) {
+          state = _State.COMPILE_EXPRESSION_TYPEDEFAULTS;
+        } else {
+          compileExpressionRequest.typeBounds.add(string);
+        }
+        break;
+      case _State.COMPILE_EXPRESSION_TYPEDEFAULTS:
         if (string == boundaryKey) {
           state = _State.COMPILE_EXPRESSION_LIBRARY_URI;
         } else {
-          compileExpressionRequest.typeDefs.add(string);
+          compileExpressionRequest.typeDefaults.add(string);
         }
         break;
       case _State.COMPILE_EXPRESSION_LIBRARY_URI:
@@ -1401,6 +1440,10 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         break;
       case _State.COMPILE_EXPRESSION_KLASS:
         compileExpressionRequest.klass = string.isEmpty ? null : string;
+        state = _State.COMPILE_EXPRESSION_METHOD;
+        break;
+      case _State.COMPILE_EXPRESSION_METHOD:
+        compileExpressionRequest.method = string.isEmpty ? null : string;
         state = _State.COMPILE_EXPRESSION_IS_STATIC;
         break;
       case _State.COMPILE_EXPRESSION_IS_STATIC:

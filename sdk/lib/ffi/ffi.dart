@@ -51,7 +51,8 @@ final class Pointer<T extends NativeType> extends NativeType {
   ///
   /// The returned function address can only be invoked on the mutator (main)
   /// thread of the current isolate. It will abort the process if invoked on any
-  /// other thread.
+  /// other thread. Use [NativeCallable.listener] to create callbacks that can
+  /// be invoked from any thread.
   ///
   /// The pointer returned will remain alive for the duration of the current
   /// isolate's lifetime. After the isolate it was created in is terminated,
@@ -155,6 +156,49 @@ extension NativeFunctionPointer<NF extends Function>
       {bool isLeaf = false});
 }
 
+/// A native callable which listens for calls to a native function.
+///
+/// Creates a native function linked to a Dart function, so that calling the
+/// native function will call the Dart function in some way, with the arguments
+/// converted to Dart values.
+@Since('3.1')
+final class NativeCallable<T extends Function> {
+  /// Constructs a [NativeCallable] that can be invoked from any thread.
+  ///
+  /// When the native code invokes the function [nativeFunction], the arguments
+  /// will be sent over a [SendPort] to the [Isolate] that created the
+  /// [NativeCallable], and the callback will be invoked.
+  ///
+  /// The native code does not wait for a response from the callback, so only
+  /// functions returning void are supported.
+  ///
+  /// The callback will be invoked at some time in the future. The native caller
+  /// cannot assume the callback will be run immediately. Resources passed to
+  /// the callback (such as pointers to malloc'd memory, or output parameters)
+  /// must be valid until the call completes.
+  ///
+  /// This callback must be [close]d when it is no longer needed. The [Isolate]
+  /// that created the callback will be kept alive until [close] is called.
+  external NativeCallable.listener(
+      @DartRepresentationOf("T") Function callback);
+
+  /// The native function pointer which can be used to invoke the `callback`
+  /// passed to the constructor.
+  ///
+  /// If this receiver has been [close]d, the pointer is a [nullptr].
+  external Pointer<NativeFunction<T>> get nativeFunction;
+
+  /// Closes this callback and releases its resources.
+  ///
+  /// Further calls to existing [nativeFunction]s will result in undefined
+  /// behavior. New accesses to [nativeFunction] will give a [nullptr].
+  ///
+  /// This method must not be called more than once on each native callback.
+  ///
+  /// It is safe to call [close] inside the [callback].
+  external void close();
+}
+
 //
 // The following code is generated, do not edit by hand.
 //
@@ -193,7 +237,15 @@ extension Int8Pointer on Pointer<Int8> {
   ///
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
-  external Int8List asTypedList(int length);
+  ///
+  /// If provided, [finalizer] will be run on the pointer once the typed list
+  /// is GCed. If provided, [token] will be passed to [finalizer], otherwise
+  /// the this pointer itself will be passed.
+  external Int8List asTypedList(
+    int length, {
+    @Since('3.1') Pointer<NativeFinalizerFunction>? finalizer,
+    @Since('3.1') Pointer<Void>? token,
+  });
 }
 
 /// Extension on [Pointer] specialized for the type argument [Int16].
@@ -235,8 +287,16 @@ extension Int16Pointer on Pointer<Int16> {
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
   ///
+  /// If provided, [finalizer] will be run on the pointer once the typed list
+  /// is GCed. If provided, [token] will be passed to [finalizer], otherwise
+  /// the this pointer itself will be passed.
+  ///
   /// The [address] must be 2-byte aligned.
-  external Int16List asTypedList(int length);
+  external Int16List asTypedList(
+    int length, {
+    @Since('3.1') Pointer<NativeFinalizerFunction>? finalizer,
+    @Since('3.1') Pointer<Void>? token,
+  });
 }
 
 /// Extension on [Pointer] specialized for the type argument [Int32].
@@ -278,8 +338,16 @@ extension Int32Pointer on Pointer<Int32> {
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
   ///
+  /// If provided, [finalizer] will be run on the pointer once the typed list
+  /// is GCed. If provided, [token] will be passed to [finalizer], otherwise
+  /// the this pointer itself will be passed.
+  ///
   /// The [address] must be 4-byte aligned.
-  external Int32List asTypedList(int length);
+  external Int32List asTypedList(
+    int length, {
+    @Since('3.1') Pointer<NativeFinalizerFunction>? finalizer,
+    @Since('3.1') Pointer<Void>? token,
+  });
 }
 
 /// Extension on [Pointer] specialized for the type argument [Int64].
@@ -312,8 +380,16 @@ extension Int64Pointer on Pointer<Int64> {
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
   ///
+  /// If provided, [finalizer] will be run on the pointer once the typed list
+  /// is GCed. If provided, [token] will be passed to [finalizer], otherwise
+  /// the this pointer itself will be passed.
+  ///
   /// The [address] must be 8-byte aligned.
-  external Int64List asTypedList(int length);
+  external Int64List asTypedList(
+    int length, {
+    @Since('3.1') Pointer<NativeFinalizerFunction>? finalizer,
+    @Since('3.1') Pointer<Void>? token,
+  });
 }
 
 /// Extension on [Pointer] specialized for the type argument [Uint8].
@@ -348,7 +424,15 @@ extension Uint8Pointer on Pointer<Uint8> {
   ///
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
-  external Uint8List asTypedList(int length);
+  ///
+  /// If provided, [finalizer] will be run on the pointer once the typed list
+  /// is GCed. If provided, [token] will be passed to [finalizer], otherwise
+  /// the this pointer itself will be passed.
+  external Uint8List asTypedList(
+    int length, {
+    @Since('3.1') Pointer<NativeFinalizerFunction>? finalizer,
+    @Since('3.1') Pointer<Void>? token,
+  });
 }
 
 /// Extension on [Pointer] specialized for the type argument [Uint16].
@@ -390,8 +474,16 @@ extension Uint16Pointer on Pointer<Uint16> {
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
   ///
+  /// If provided, [finalizer] will be run on the pointer once the typed list
+  /// is GCed. If provided, [token] will be passed to [finalizer], otherwise
+  /// the this pointer itself will be passed.
+  ///
   /// The [address] must be 2-byte aligned.
-  external Uint16List asTypedList(int length);
+  external Uint16List asTypedList(
+    int length, {
+    @Since('3.1') Pointer<NativeFinalizerFunction>? finalizer,
+    @Since('3.1') Pointer<Void>? token,
+  });
 }
 
 /// Extension on [Pointer] specialized for the type argument [Uint32].
@@ -433,8 +525,16 @@ extension Uint32Pointer on Pointer<Uint32> {
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
   ///
+  /// If provided, [finalizer] will be run on the pointer once the typed list
+  /// is GCed. If provided, [token] will be passed to [finalizer], otherwise
+  /// the this pointer itself will be passed.
+  ///
   /// The [address] must be 4-byte aligned.
-  external Uint32List asTypedList(int length);
+  external Uint32List asTypedList(
+    int length, {
+    @Since('3.1') Pointer<NativeFinalizerFunction>? finalizer,
+    @Since('3.1') Pointer<Void>? token,
+  });
 }
 
 /// Extension on [Pointer] specialized for the type argument [Uint64].
@@ -467,8 +567,16 @@ extension Uint64Pointer on Pointer<Uint64> {
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
   ///
+  /// If provided, [finalizer] will be run on the pointer once the typed list
+  /// is GCed. If provided, [token] will be passed to [finalizer], otherwise
+  /// the this pointer itself will be passed.
+  ///
   /// The [address] must be 8-byte aligned.
-  external Uint64List asTypedList(int length);
+  external Uint64List asTypedList(
+    int length, {
+    @Since('3.1') Pointer<NativeFinalizerFunction>? finalizer,
+    @Since('3.1') Pointer<Void>? token,
+  });
 }
 
 /// Extension on [Pointer] specialized for the type argument [Float].
@@ -510,8 +618,16 @@ extension FloatPointer on Pointer<Float> {
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
   ///
+  /// If provided, [finalizer] will be run on the pointer once the typed list
+  /// is GCed. If provided, [token] will be passed to [finalizer], otherwise
+  /// the this pointer itself will be passed.
+  ///
   /// The [address] must be 4-byte aligned.
-  external Float32List asTypedList(int length);
+  external Float32List asTypedList(
+    int length, {
+    @Since('3.1') Pointer<NativeFinalizerFunction>? finalizer,
+    @Since('3.1') Pointer<Void>? token,
+  });
 }
 
 /// Extension on [Pointer] specialized for the type argument [Double].
@@ -544,8 +660,16 @@ extension DoublePointer on Pointer<Double> {
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
   ///
+  /// If provided, [finalizer] will be run on the pointer once the typed list
+  /// is GCed. If provided, [token] will be passed to [finalizer], otherwise
+  /// the this pointer itself will be passed.
+  ///
   /// The [address] must be 8-byte aligned.
-  external Float64List asTypedList(int length);
+  external Float64List asTypedList(
+    int length, {
+    @Since('3.1') Pointer<NativeFinalizerFunction>? finalizer,
+    @Since('3.1') Pointer<Void>? token,
+  });
 }
 
 /// Extension on [Pointer] specialized for the type argument [Bool].

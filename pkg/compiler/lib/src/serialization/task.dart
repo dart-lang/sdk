@@ -62,7 +62,8 @@ class SerializationTask extends CompilerTask {
   @override
   String get name => 'Serialization';
 
-  void serializeComponent(ir.Component component) {
+  void serializeComponent(ir.Component component,
+      {bool includeSourceBytes = true}) {
     measureSubtask('serialize dill', () {
       // TODO(sigmund): remove entirely: we will do this immediately as soon as
       // we get the component in the kernel/loader.dart task once we refactor
@@ -71,7 +72,8 @@ class SerializationTask extends CompilerTask {
       api.BinaryOutputSink dillOutput =
           _outputProvider.createBinarySink(_options.outputUri!);
       BinaryOutputSinkAdapter irSink = BinaryOutputSinkAdapter(dillOutput);
-      ir.BinaryPrinter printer = ir.BinaryPrinter(irSink);
+      ir.BinaryPrinter printer =
+          ir.BinaryPrinter(irSink, includeSourceBytes: includeSourceBytes);
       printer.writeComponentFile(component);
       irSink.close();
     });
@@ -131,9 +133,11 @@ class SerializationTask extends CompilerTask {
     });
 
     measureSubtask('serialize module data', () {
-      _reporter.log('Writing data to ${_options.writeModularAnalysisUri}');
+      final outputUri =
+          _options.dataOutputUriForStage(Dart2JSStage.modularAnalysis);
+      _reporter.log('Writing data to $outputUri');
       api.BinaryOutputSink dataOutput =
-          _outputProvider.createBinarySink(_options.writeModularAnalysisUri!);
+          _outputProvider.createBinarySink(outputUri);
       DataSinkWriter sink = DataSinkWriter(
           BinaryDataSink(BinaryOutputSinkAdapter(dataOutput)), _options);
       data.toDataSink(sink);
@@ -184,9 +188,11 @@ class SerializationTask extends CompilerTask {
 
   void serializeClosedWorld(JClosedWorld closedWorld) {
     measureSubtask('serialize closed world', () {
-      _reporter.log('Writing closed world to ${_options.writeClosedWorldUri}');
+      final outputUri =
+          _options.dataOutputUriForStage(Dart2JSStage.closedWorld);
+      _reporter.log('Writing closed world to $outputUri');
       api.BinaryOutputSink dataOutput =
-          _outputProvider.createBinarySink(_options.writeClosedWorldUri!);
+          _outputProvider.createBinarySink(outputUri);
       DataSinkWriter sink = DataSinkWriter(
           BinaryDataSink(BinaryOutputSinkAdapter(dataOutput)), _options);
       serializeClosedWorldToSink(closedWorld, sink);
@@ -199,10 +205,10 @@ class SerializationTask extends CompilerTask {
       ir.Component component,
       bool useDeferredSourceReads) async {
     return await measureIoSubtask('deserialize closed world', () async {
-      _reporter.log('Reading data from ${_options.readClosedWorldUri}');
-      api.Input<List<int>> dataInput = await _provider.readFromUri(
-          _options.readClosedWorldUri!,
-          inputKind: api.InputKind.binary);
+      final uri = _options.dataInputUriForStage(Dart2JSStage.closedWorld);
+      _reporter.log('Reading data from $uri');
+      api.Input<List<int>> dataInput =
+          await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
       DataSourceReader source = DataSourceReader(
           BinaryDataSource(dataInput.data, stringInterner: _stringInterner),
           _options,
@@ -216,16 +222,12 @@ class SerializationTask extends CompilerTask {
 
   void serializeGlobalTypeInference(
       GlobalTypeInferenceResults results, DataSourceIndices indices) {
-    if (_options.outputUri != null) {
-      JClosedWorld closedWorld = results.closedWorld;
-      ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
-      serializeComponent(component);
-    }
-
     measureSubtask('serialize data', () {
-      _reporter.log('Writing data to ${_options.writeDataUri}');
+      final outputUri =
+          _options.dataOutputUriForStage(Dart2JSStage.globalInference);
+      _reporter.log('Writing data to $outputUri');
       api.BinaryOutputSink dataOutput =
-          _outputProvider.createBinarySink(_options.writeDataUri!);
+          _outputProvider.createBinarySink(outputUri);
       DataSinkWriter sink = DataSinkWriter(
           BinaryDataSink(BinaryOutputSinkAdapter(dataOutput)), _options,
           importedIndices: indices);
@@ -241,9 +243,10 @@ class SerializationTask extends CompilerTask {
           DataAndIndices<JClosedWorld> closedWorldAndIndices,
           bool useDeferredSourceReads) async {
     return await measureIoSubtask('deserialize data', () async {
-      _reporter.log('Reading data from ${_options.readDataUri}');
-      api.Input<List<int>> dataInput = await _provider
-          .readFromUri(_options.readDataUri!, inputKind: api.InputKind.binary);
+      final uri = _options.dataInputUriForStage(Dart2JSStage.globalInference);
+      _reporter.log('Reading data from $uri');
+      api.Input<List<int>> dataInput =
+          await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
       DataSourceReader source = DataSourceReader(
           BinaryDataSource(dataInput.data, stringInterner: _stringInterner),
           _options,
@@ -283,7 +286,9 @@ class SerializationTask extends CompilerTask {
       index++;
     });
     measureSubtask('serialize codegen', () {
-      Uri uri = Uri.parse('${_options.writeCodegenUri}$shard');
+      final outputUri =
+          _options.dataOutputUriForStage(Dart2JSStage.codegenSharded);
+      Uri uri = Uri.parse('$outputUri$shard');
       api.BinaryOutputSink dataOutput = _outputProvider.createBinarySink(uri);
       DataSinkWriter sink = DataSinkWriter(
           BinaryDataSink(BinaryOutputSinkAdapter(dataOutput)), _options,
@@ -310,7 +315,8 @@ class SerializationTask extends CompilerTask {
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
     Map<MemberEntity, CodegenResult> results = {};
     for (int shard = 0; shard < shards; shard++) {
-      Uri uri = Uri.parse('${_options.readCodegenUri}$shard');
+      Uri uri = Uri.parse(
+          '${_options.dataInputUriForStage(Dart2JSStage.codegenSharded)}$shard');
       await measureIoSubtask('deserialize codegen', () async {
         _reporter.log('Reading data from ${uri}');
         api.Input<List<int>> dataInput =

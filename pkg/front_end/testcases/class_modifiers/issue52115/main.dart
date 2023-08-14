@@ -15,3 +15,14 @@ final class LegacyImplementFinal implements LegacyImplementFinalCore {
   int get value => 1;
   String toString() => "Bad";
 }
+
+// Implementing a legacy class that implements a core library base class.
+abstract class LegacyImplementBaseNoModifier<E extends LinkedListEntry<E>>
+    implements LegacyImplementBaseCore<E> {}
+
+// Implementing a legacy class that implements a core library final class.
+class LegacyImplementFinalNoModifier implements LegacyImplementFinalCore {
+  int get key => 0;
+  int get value => 1;
+  String toString() => "Bad";
+}

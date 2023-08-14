@@ -271,6 +271,17 @@ void Expect::Null(const T p) {
     }                                                                          \
   } while (false)
 
+#define ASSERT_LESS_OR_EQUAL(actual, expected)                                 \
+  do {                                                                         \
+    if ((actual) > (expected)) {                                               \
+      const std::string actual_str = std::to_string(actual);                   \
+      const std::string expected_str = std::to_string(expected);               \
+      dart::Assert(__FILE__, __LINE__)                                         \
+          .Fail("expected \"%s\" = %s >= actual \"%s\" = %s", #expected,       \
+                expected_str.c_str(), #actual, actual_str.c_str());            \
+    }                                                                          \
+  } while (false)
+
 #define ASSERT_IMPLIES(antecedent, consequent)                                 \
   do {                                                                         \
     if (antecedent) {                                                          \
@@ -299,6 +310,10 @@ void Expect::Null(const T p) {
   do {                                                                         \
   } while (false && ((expected) != (actual)))
 
+#define ASSERT_LESS_OR_EQUAL(expected, actual)                                 \
+  do {                                                                         \
+  } while (false && ((actual) > (expected)))
+
 #define ASSERT_IMPLIES(antecedent, consequent)                                 \
   do {                                                                         \
   } while (false && (!(antecedent) || (consequent)))
@@ -312,6 +327,13 @@ void Expect::Null(const T p) {
 #define RELEASE_ASSERT(cond)                                                   \
   do {                                                                         \
     if (!(cond)) dart::Assert(__FILE__, __LINE__).Fail("expected: %s", #cond); \
+  } while (false)
+
+#define RELEASE_ASSERT_WITH_MSG(cond, msg)                                     \
+  do {                                                                         \
+    if (!(cond)) {                                                             \
+      dart::Assert(__FILE__, __LINE__).Fail("%s: expected: %s", msg, #cond);   \
+    }                                                                          \
   } while (false)
 
 #define COMPILE_ASSERT(expr) static_assert(expr, "")

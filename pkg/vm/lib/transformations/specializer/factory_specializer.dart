@@ -31,11 +31,6 @@ class FactorySpecializer extends BaseSpecializer {
 
   TreeNode transformStaticInvocation(StaticInvocation invocation) {
     final target = invocation.target;
-    // ignore: unnecessary_null_comparison
-    if (target == null) {
-      return invocation;
-    }
-
     final transformer = transformers[target];
     if (transformer != null) {
       return transformer(invocation);

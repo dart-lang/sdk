@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "main_lib.dart" as sta;
 
@@ -10,9 +10,9 @@ static method main() → void {
 }
 
 @#C2
-library static_interop /*isNonNullableByDefault*/;
+library static_interop;
 import self as sta;
-import "package:js/js.dart" as js;
+import "dart:_js_annotations" as _js;
 import "dart:core" as core;
 import "dart:js_util" as js_;
 
@@ -21,12 +21,11 @@ import "package:js/js.dart";
 @#C4
 @#C5
 class StaticJSClass extends core::Object {
-  static factory •() → sta::StaticJSClass
-    return js_::_callConstructorUnchecked0<sta::StaticJSClass>(js_::_getPropertyTrustType<core::Object>(js_::globalThis, "JSClass"));
+  external static factory •() → sta::StaticJSClass;
   static method _#new#tearOff() → sta::StaticJSClass
-    return sta::StaticJSClass::•();
+    return js_::_callConstructorUnchecked0<sta::StaticJSClass>(js_::_getPropertyTrustType<core::Object>(js_::globalThis, "JSClass"));
   static factory factory() → sta::StaticJSClass {
-    return sta::StaticJSClass::•();
+    return js_::_callConstructorUnchecked0<sta::StaticJSClass>(js_::_getPropertyTrustType<core::Object>(js_::globalThis, "JSClass"));
   }
   static method _#factory#tearOff() → sta::StaticJSClass
     return sta::StaticJSClass::factory();
@@ -39,14 +38,14 @@ static method setUp() → void {
 
 constants  {
   #C1 = null
-  #C2 = js::JS {name:#C1}
+  #C2 = _js::JS {name:#C1}
   #C3 = "JSClass"
-  #C4 = js::JS {name:#C3}
-  #C5 = js::_StaticInterop {}
+  #C4 = _js::JS {name:#C3}
+  #C5 = _js::_StaticInterop {}
 }
 
 
 Constructor coverage from constants:
 org-dartlang-testcase:///main_lib.dart:
-- JS. (from org-dartlang-testcase-sdk:///pkg/js/lib/js.dart:23:9)
+- JS. (from org-dartlang-sdk:///lib/js/_js_annotations.dart)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)

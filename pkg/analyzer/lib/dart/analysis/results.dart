@@ -234,7 +234,7 @@ abstract class ParseStringResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ResolvedLibraryResult
-    implements SomeResolvedLibraryResult, AnalysisResult {
+    implements ParsedLibraryResult, SomeResolvedLibraryResult {
   /// The element representing this library.
   LibraryElement get element;
 
@@ -242,12 +242,8 @@ abstract class ResolvedLibraryResult
   TypeProvider get typeProvider;
 
   /// The resolved units of the library.
+  @override
   List<ResolvedUnitResult> get units;
-
-  /// Return the declaration of the [element], or `null` if the [element]
-  /// is synthetic. Throw [ArgumentError] if the [element] is not defined in
-  /// this library.
-  ElementDeclarationResult? getElementDeclaration(Element element);
 
   /// Return the resolved unit corresponding to the [path], or `null` if there
   /// is no such unit.
@@ -259,10 +255,7 @@ abstract class ResolvedLibraryResult
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ResolvedUnitResult
-    implements SomeResolvedUnitResult, AnalysisResultWithErrors {
-  /// The content of the file that was scanned, parsed and resolved.
-  String get content;
-
+    implements ParsedUnitResult, SomeResolvedUnitResult {
   /// Return `true` if the file exists.
   bool get exists;
 
@@ -274,9 +267,6 @@ abstract class ResolvedUnitResult
 
   /// The type system used when resolving the compilation [unit].
   TypeSystem get typeSystem;
-
-  /// The fully resolved compilation unit for the [content].
-  CompilationUnit get unit;
 }
 
 /// The result of computing all of the errors contained in a single file, both

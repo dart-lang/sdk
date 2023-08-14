@@ -15,6 +15,7 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <thread>  // NOLINT
 
 #if defined(_WIN32)
 #define DART_EXPORT extern "C" __declspec(dllexport)
@@ -40,6 +41,10 @@ namespace dart {
 // sdk/runtime/tools/dartfuzz/ffiapi.dart
 
 int32_t globalVar;
+
+DART_EXPORT void InduceACrash() {
+  *reinterpret_cast<int*>(InduceACrash) = 123;
+}
 
 DART_EXPORT void SetGlobalVar(int32_t v) {
   globalVar = v;
@@ -1203,6 +1208,27 @@ DART_EXPORT int64_t VariadicStructVarArgs(VarArgs a0, ...) {
   std::cout << "result = " << result << "\n";
 
   return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Tests for async callbacks.
+
+DART_EXPORT void CallFunctionOnSameThread(int64_t response_id,
+                                          void (*fn)(int64_t, int32_t)) {
+  fn(response_id, 123);
+}
+
+DART_EXPORT void CallFunctionOnNewThreadBlocking(int64_t response_id,
+                                                 void (*fn)(int64_t, int32_t)) {
+  std::thread thread(fn, response_id, 123);
+  thread.join();
+}
+
+DART_EXPORT void CallFunctionOnNewThreadNonBlocking(int64_t response_id,
+                                                    void (*fn)(int64_t,
+                                                               int32_t)) {
+  std::thread thread(fn, response_id, 123);
+  thread.detach();
 }
 
 }  // namespace dart

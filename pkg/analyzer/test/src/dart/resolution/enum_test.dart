@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -47,20 +46,16 @@ enum E {
     assertResolvedNodeText(node, r'''
 GenericFunctionType
   returnType: NamedType
-    name: SimpleIdentifier
-      token: void
-      staticElement: <null>
-      staticType: null
+    name: void
+    element: <null>
     type: void
   functionKeyword: Function
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
-        name: SimpleIdentifier
-          token: double
-          staticElement: dart:core::@class::double
-          staticType: null
+        name: double
+        element: dart:core::@class::double
         type: double
       declaredElement: @-1
         type: double
@@ -159,10 +154,8 @@ EnumConstantDeclaration
       leftBracket: <
       arguments
         NamedType
-          name: SimpleIdentifier
-            token: double
-            staticElement: dart:core::@class::double
-            staticType: null
+          name: double
+          element: dart:core::@class::double
           type: double
       rightBracket: >
     constructorSelector: ConstructorSelector
@@ -332,10 +325,22 @@ enum E {
 }
 ''');
 
-    assertElement(
-      findNode.variableDeclaration('foo ='),
-      findElement.field('foo', of: 'E'),
-    );
+    final node = findNode.fieldDeclaration('foo =');
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: final
+    variables
+      VariableDeclaration
+        name: foo
+        equals: =
+        initializer: IntegerLiteral
+          literal: 42
+          staticType: int
+        declaredElement: self::@enum::E::@field::foo
+  semicolon: ;
+  declaredElement: <null>
+''');
   }
 
   test_getter() async {
@@ -346,16 +351,27 @@ enum E<T> {
 }
 ''');
 
-    assertElement(
-      findNode.methodDeclaration('get foo'),
-      findElement.getter('foo', of: 'E'),
-    );
-
-    assertNamedType(
-      findNode.namedType('T get'),
-      findElement.typeParameter('T'),
-      'T',
-    );
+    final node = findNode.methodDeclaration('get foo');
+    assertResolvedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: T
+    element: T@7
+    type: T
+  propertyKeyword: get
+  name: foo
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+      staticType: Never
+    semicolon: ;
+  declaredElement: self::@enum::E::@getter::foo
+    type: T Function()
+''');
   }
 
   test_inference_listLiteral() async {
@@ -373,16 +389,21 @@ var v = [E1.a, E2.b];
   test_interfaces() async {
     await assertNoErrorsInCode(r'''
 class I {}
-enum E implements I { // ref
+enum E implements I {
   v;
 }
 ''');
 
-    assertNamedType(
-      findNode.namedType('I { // ref'),
-      findElement.class_('I'),
-      'I',
-    );
+    final node = findNode.implementsClause('implements');
+    assertResolvedNodeText(node, r'''
+ImplementsClause
+  implementsKeyword: implements
+  interfaces
+    NamedType
+      name: I
+      element: self::@class::I
+      type: I
+''');
   }
 
   test_isEnumConstant() async {
@@ -406,27 +427,42 @@ enum E<T> {
 }
 ''');
 
-    assertNamedType(
-      findNode.namedType('T t'),
-      findElement.typeParameter('T'),
-      'T',
-    );
-
-    assertNamedType(
-      findNode.namedType('U u'),
-      findElement.typeParameter('U'),
-      'U',
-    );
-
-    assertSimpleFormalParameter(
-      findNode.simpleFormalParameter('T t'),
-      element: findElement.parameter('t'),
-    );
-
-    assertSimpleFormalParameter(
-      findNode.simpleFormalParameter('U u'),
-      element: findElement.parameter('u'),
-    );
+    final node = findNode.singleMethodDeclaration;
+    assertResolvedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: T
+        element: T@7
+        type: T
+      name: t
+      declaredElement: self::@enum::E::@method::foo::@parameter::t
+        type: T
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: U
+        element: U@27
+        type: U
+      name: u
+      declaredElement: self::@enum::E::@method::foo::@parameter::u
+        type: U
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredElement: self::@enum::E::@method::foo
+    type: int Function<U>(T, U)
+''');
   }
 
   test_method_toString() async {
@@ -437,25 +473,45 @@ enum E {
 }
 ''');
 
-    assertElement(
-      findNode.methodDeclaration('toString'),
-      findElement.method('toString', of: 'E'),
-    );
+    final node = findNode.methodDeclaration('toString()');
+    assertResolvedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: String
+    element: dart:core::@class::String
+    type: String
+  name: toString
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: SimpleStringLiteral
+      literal: 'E'
+    semicolon: ;
+  declaredElement: self::@enum::E::@method::toString
+    type: String Function()
+''');
   }
 
   test_mixins() async {
     await assertNoErrorsInCode(r'''
 mixin M {}
-enum E with M { // ref
+enum E with M {
   v;
 }
 ''');
 
-    assertNamedType(
-      findNode.namedType('M { // ref'),
-      findElement.mixin('M'),
-      'M',
-    );
+    final node = findNode.withClause('with M');
+    assertResolvedNodeText(node, r'''
+WithClause
+  withKeyword: with
+  mixinTypes
+    NamedType
+      name: M
+      element: self::@mixin::M
+      type: M
+''');
   }
 
   test_mixins_inference() async {
@@ -467,17 +523,28 @@ enum E with M1<int>, M2 {
 }
 ''');
 
-    assertNamedType(
-      findNode.namedType('M1<int>'),
-      findElement.mixin('M1'),
-      'M1<int>',
-    );
-
-    assertNamedType(
-      findNode.namedType('M2 {'),
-      findElement.mixin('M2'),
-      'M2<int>',
-    );
+    final node = findNode.withClause('with');
+    assertResolvedNodeText(node, r'''
+WithClause
+  withKeyword: with
+  mixinTypes
+    NamedType
+      name: M1
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: self::@mixin::M1
+      type: M1<int>
+    NamedType
+      name: M2
+      element: self::@mixin::M2
+      type: M2<int>
+''');
   }
 
   test_setter() async {
@@ -488,21 +555,29 @@ enum E<T> {
 }
 ''');
 
-    assertElement(
-      findNode.methodDeclaration('set foo'),
-      findElement.setter('foo'),
-    );
-
-    assertElement(
-      findNode.simpleFormalParameter('a) {}'),
-      findElement.setter('foo').parameter('a'),
-    );
-
-    assertNamedType(
-      findNode.namedType('T a'),
-      findElement.typeParameter('T'),
-      'T',
-    );
+    final node = findNode.methodDeclaration('set foo');
+    assertResolvedNodeText(node, r'''
+MethodDeclaration
+  propertyKeyword: set
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: T
+        element: T@7
+        type: T
+      name: a
+      declaredElement: self::@enum::E::@setter::foo::@parameter::a
+        type: T
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredElement: self::@enum::E::@setter::foo
+    type: void Function(T)
+''');
   }
 
   test_value_underscore() async {
@@ -514,10 +589,27 @@ void f() {
 }
 ''');
 
-    assertPropertyAccess2(
-      findNode.propertyAccess('index'),
-      element: typeProvider.enumElement!.getGetter('index')!,
-      type: 'int',
-    );
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: self::@enum::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: _
+      staticElement: self::@enum::E::@getter::_
+      staticType: E
+    staticElement: self::@enum::E::@getter::_
+    staticType: E
+  operator: .
+  propertyName: SimpleIdentifier
+    token: index
+    staticElement: dart:core::@class::Enum::@getter::index
+    staticType: int
+  staticType: int
+''');
   }
 }

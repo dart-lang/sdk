@@ -14,10 +14,10 @@ ThreadRegistry::~ThreadRegistry() {
   {
     MonitorLocker ml(threads_lock());
     // At this point the active list should be empty.
-    ASSERT(active_list_ == NULL);
+    ASSERT(active_list_ == nullptr);
 
     // Now delete all the threads in the free list.
-    while (free_list_ != NULL) {
+    while (free_list_ != nullptr) {
       Thread* thread = free_list_;
       free_list_ = thread->next_;
       delete thread;
@@ -28,7 +28,7 @@ ThreadRegistry::~ThreadRegistry() {
 Thread* ThreadRegistry::GetFreeThreadLocked(bool is_vm_isolate) {
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
   Thread* thread = GetFromFreelistLocked(is_vm_isolate);
-  ASSERT(thread->api_top_scope() == NULL);
+  ASSERT(thread->api_top_scope() == nullptr);
   // Now add this Thread to the active list for the isolate.
   AddToActiveListLocked(thread);
   return thread;
@@ -47,11 +47,11 @@ void ThreadRegistry::VisitObjectPointers(
     ValidationPolicy validate_frames) {
   MonitorLocker ml(threads_lock());
   Thread* thread = active_list_;
-  while (thread != NULL) {
+  while (thread != nullptr) {
     if (thread->isolate_group() == isolate_group_of_interest) {
       // The mutator thread is visited by the isolate itself (see
       // [IsolateGroup::VisitStackPointers]).
-      if (!thread->IsMutatorThread()) {
+      if (!thread->IsDartMutatorThread()) {
         thread->VisitObjectPointers(visitor, validate_frames);
       }
     }
@@ -72,7 +72,7 @@ void ThreadRegistry::ForEachThread(
 void ThreadRegistry::ReleaseStoreBuffers() {
   MonitorLocker ml(threads_lock());
   Thread* thread = active_list_;
-  while (thread != NULL) {
+  while (thread != nullptr) {
     if (!thread->BypassSafepoints()) {
       thread->ReleaseStoreBuffer();
     }
@@ -83,7 +83,7 @@ void ThreadRegistry::ReleaseStoreBuffers() {
 void ThreadRegistry::AcquireMarkingStacks() {
   MonitorLocker ml(threads_lock());
   Thread* thread = active_list_;
-  while (thread != NULL) {
+  while (thread != nullptr) {
     if (!thread->BypassSafepoints()) {
       thread->MarkingStackAcquire();
       thread->DeferredMarkingStackAcquire();
@@ -95,7 +95,7 @@ void ThreadRegistry::AcquireMarkingStacks() {
 void ThreadRegistry::ReleaseMarkingStacks() {
   MonitorLocker ml(threads_lock());
   Thread* thread = active_list_;
-  while (thread != NULL) {
+  while (thread != nullptr) {
     if (!thread->BypassSafepoints()) {
       thread->MarkingStackRelease();
       thread->DeferredMarkingStackRelease();
@@ -106,24 +106,26 @@ void ThreadRegistry::ReleaseMarkingStacks() {
 }
 
 void ThreadRegistry::AddToActiveListLocked(Thread* thread) {
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
   thread->next_ = active_list_;
   active_list_ = thread;
+  active_isolates_count_.fetch_add(1);
 }
 
 void ThreadRegistry::RemoveFromActiveListLocked(Thread* thread) {
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
-  Thread* prev = NULL;
+  Thread* prev = nullptr;
   Thread* current = active_list_;
-  while (current != NULL) {
+  while (current != nullptr) {
     if (current == thread) {
-      if (prev == NULL) {
+      if (prev == nullptr) {
         active_list_ = current->next_;
       } else {
         prev->next_ = current->next_;
       }
+      active_isolates_count_.fetch_sub(1);
       break;
     }
     prev = current;
@@ -133,9 +135,9 @@ void ThreadRegistry::RemoveFromActiveListLocked(Thread* thread) {
 
 Thread* ThreadRegistry::GetFromFreelistLocked(bool is_vm_isolate) {
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
-  Thread* thread = NULL;
+  Thread* thread = nullptr;
   // Get thread structure from free list or create a new one.
-  if (free_list_ == NULL) {
+  if (free_list_ == nullptr) {
     thread = new Thread(is_vm_isolate);
   } else {
     thread = free_list_;
@@ -145,10 +147,11 @@ Thread* ThreadRegistry::GetFromFreelistLocked(bool is_vm_isolate) {
 }
 
 void ThreadRegistry::ReturnToFreelistLocked(Thread* thread) {
-  ASSERT(thread != NULL);
-  ASSERT(thread->os_thread() == NULL);
-  ASSERT(thread->isolate_ == NULL);
-  ASSERT(thread->heap_ == NULL);
+  ASSERT(thread != nullptr);
+  ASSERT(thread->os_thread() == nullptr);
+  ASSERT(thread->isolate_ == nullptr);
+  ASSERT(thread->isolate_group_ == nullptr);
+  ASSERT(thread->field_table_values_ == nullptr);
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
   // Add thread to the free list.
   thread->next_ = free_list_;

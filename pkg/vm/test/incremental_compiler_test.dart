@@ -77,7 +77,7 @@ main() {
           .writeLibraryFile(component.mainMethod!.enclosingLibrary);
       expect(
           buffer.toString(),
-          equals('library /*isNonNullableByDefault*/;\n'
+          equals('library;\n'
               'import self as self;\n'
               '\n'
               'static method main() → dynamic {}\n'));
@@ -100,7 +100,7 @@ main() {
           .writeLibraryFile(component.mainMethod!.enclosingLibrary);
       expect(
           buffer.toString(),
-          equals('library /*isNonNullableByDefault*/;\n'
+          equals('library;\n'
               'import self as self;\n'
               '\n'
               'static method main() → dynamic {}\n'));

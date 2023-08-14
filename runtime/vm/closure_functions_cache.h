@@ -23,26 +23,21 @@ class FunctionPtr;
 // function and any inner functions. This will cause the lazy-creation of inner
 // closure functions.
 //
-// The cache is currently implemented as O(n) lookup in a growable list.
+// The cache is currently implemented as a 2-level
+// Map<OutermostMemberFunction, Map<FunctionNodeKernelOffset, Function>>.
 //
-// Parts of the VM have certain requirements that are maintained:
-//
-//   * parent functions need to come before inner functions
+// The function is also added to the growable list in order to
+// satisfy the following requirements:
 //   * closure functions list can grow while iterating
 //   * the index of closure function must be stable
 //
-// If the linear lookup turns out to be too expensive, the list of closures
-// could be maintained in a hash map, with the key being the token position of
-// the closure. There are almost no collisions with this simple hash value.
-// However, iterating over all closure functions becomes more difficult,
-// especially when the list/map changes while iterating over it (see
-// requirements above).
 class ClosureFunctionsCache : public AllStatic {
  public:
-  static FunctionPtr LookupClosureFunction(const Function& parent,
-                                           TokenPosition token_pos);
-  static FunctionPtr LookupClosureFunctionLocked(const Function& parent,
-                                                 TokenPosition token_pos);
+  static FunctionPtr LookupClosureFunction(const Function& member_function,
+                                           intptr_t kernel_offset);
+  static FunctionPtr LookupClosureFunctionLocked(
+      const Function& member_function,
+      intptr_t kernel_offset);
 
   // Normally implicit closure functions are not added to this cache, however
   // during AOT compilation we might add those implicit closure functions

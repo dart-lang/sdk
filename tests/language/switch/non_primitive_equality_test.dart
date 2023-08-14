@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns,records
-
-// With Dart 3.0, switch cases are pattersn and constants in cases are no
+// With Dart 3.0, switch cases are patterns and constants in cases are no
 // longer required to have primitive equality.
 
 import "package:expect/expect.dart";

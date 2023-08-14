@@ -892,8 +892,6 @@ class DataSourceReader {
         return const ir.VoidType();
       case DartTypeNodeKind.invalidType:
         return const ir.InvalidType();
-      case DartTypeNodeKind.doesNotComplete:
-        return const DoesNotCompleteType();
       case DartTypeNodeKind.neverType:
         ir.Nullability nullability = readEnum(ir.Nullability.values);
         return ir.NeverType.fromNullability(nullability);
@@ -1322,15 +1320,20 @@ class DataSourceReader {
         return ListConstantValue(type, entries);
       case ConstantValueKind.SET:
         final type = readDartType() as InterfaceType;
-        final entries = readConstant() as MapConstantValue;
-        return constant_system.JavaScriptSetConstant(type, entries);
+        final values = readConstants();
+        final indexObject =
+            readConstantOrNull() as JavaScriptObjectConstantValue?;
+        return constant_system.JavaScriptSetConstant(type, values, indexObject);
       case ConstantValueKind.MAP:
         final type = readDartType() as InterfaceType;
         final keyList = readConstant() as ListConstantValue;
-        List<ConstantValue> values = readConstants();
+        final valueList = readConstant() as ListConstantValue;
         bool onlyStringKeys = readBool();
+        final indexObject = onlyStringKeys
+            ? readConstant() as JavaScriptObjectConstantValue
+            : null;
         return constant_system.JavaScriptMapConstant(
-            type, keyList, values, onlyStringKeys);
+            type, keyList, valueList, onlyStringKeys, indexObject);
       case ConstantValueKind.CONSTRUCTED:
         final type = readDartType() as InterfaceType;
         Map<FieldEntity, ConstantValue> fields =
@@ -1354,6 +1357,10 @@ class DataSourceReader {
       case ConstantValueKind.INTERCEPTOR:
         ClassEntity cls = readClass();
         return InterceptorConstantValue(cls);
+      case ConstantValueKind.JAVASCRIPT_OBJECT:
+        final keys = readConstants();
+        final values = readConstants();
+        return JavaScriptObjectConstantValue(keys, values);
       case ConstantValueKind.DEFERRED_GLOBAL:
         ConstantValue constant = readConstant();
         OutputUnit unit = readOutputUnitReference();

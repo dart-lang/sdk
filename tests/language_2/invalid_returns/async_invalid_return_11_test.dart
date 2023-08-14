@@ -12,7 +12,10 @@ import 'dart:async';
 */
 Future<int> v = null;
 void test() async {
-  return /*@compile-error=unspecified*/ v;
+  return v;
+  //     ^
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
+  // [cfe] Can't return a value from a void function.
 }
 
 void main() {

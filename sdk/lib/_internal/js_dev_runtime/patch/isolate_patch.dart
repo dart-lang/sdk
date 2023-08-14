@@ -20,9 +20,6 @@ class Isolate {
   String? get debugName => _unsupported();
 
   @patch
-  static Future<Uri?> get packageRoot => _unsupported();
-
-  @patch
   static Future<Uri?> get packageConfig => _unsupported();
 
   @patch
@@ -33,7 +30,8 @@ class Isolate {
           {bool paused = false,
           bool errorsAreFatal = true,
           SendPort? onExit,
-          SendPort? onError}) =>
+          SendPort? onError,
+          String? debugName}) =>
       _unsupported();
 
   @patch

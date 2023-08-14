@@ -16,6 +16,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../../../generated/type_system_base.dart';
 import '../../../util/feature_sets.dart';
 import '../resolution/context_collection_resolution.dart';
+import 'string_types.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -1080,7 +1081,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
 }
 
 @reflectiveTest
-class InterfaceTypeImplTest extends AbstractTypeSystemTest {
+class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
   void test_allSupertypes() {
     void check(InterfaceType type, List<String> expected) {
       var actual = type.allSupertypes.map((e) {
@@ -1254,20 +1255,30 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     //
     // class C implements A, B
     //
-    var classA = class_(name: 'A');
-    InterfaceType typeA = interfaceTypeStar(classA);
-    var classB = ElementFactory.classElement2("B");
-    InterfaceType typeB = interfaceTypeStar(classB);
-    var classC = ElementFactory.classElement2("C");
-    classC.interfaces = <InterfaceType>[typeA, typeB];
-    List<InterfaceType> interfaces = interfaceTypeStar(classC).interfaces;
-    expect(interfaces, hasLength(2));
-    if (identical(interfaces[0], typeA)) {
-      expect(interfaces[1], same(typeB));
-    } else {
-      expect(interfaces[0], same(typeB));
-      expect(interfaces[1], same(typeA));
+    var A = class_(name: 'A');
+    var B = class_(name: 'B');
+    var C = class_(
+      name: 'C',
+      interfaces: [
+        interfaceTypeNone(A),
+        interfaceTypeNone(B),
+      ],
+    );
+
+    void check(NullabilitySuffix nullabilitySuffix, String expected) {
+      var type = interfaceType(C, nullabilitySuffix: nullabilitySuffix);
+      expect(typesString(type.interfaces), expected);
     }
+
+    check(NullabilitySuffix.none, r'''
+A
+B
+''');
+
+    check(NullabilitySuffix.question, r'''
+A?
+B?
+''');
   }
 
   void test_getInterfaces_parameterized() {
@@ -1283,22 +1294,32 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
       typeParameters: [F],
       interfaces: [
         A.instantiate(
-          typeArguments: [typeParameterTypeStar(F)],
-          nullabilitySuffix: NullabilitySuffix.star,
+          typeArguments: [typeParameterTypeNone(F)],
+          nullabilitySuffix: NullabilitySuffix.none,
         )
       ],
     );
-    //
-    // B<I>
-    //
-    var typeI = interfaceTypeStar(class_(name: 'I'));
-    var typeBI = interfaceTypeStar(B, typeArguments: [typeI]);
 
-    List<InterfaceType> interfaces = typeBI.interfaces;
-    expect(interfaces, hasLength(1));
-    InterfaceType result = interfaces[0];
-    expect(result.element, same(A));
-    expect(result.typeArguments[0], same(typeI));
+    //
+    // B<int>
+    //
+
+    void check(NullabilitySuffix nullabilitySuffix, String expected) {
+      var type = interfaceType(
+        B,
+        typeArguments: [intNone],
+        nullabilitySuffix: nullabilitySuffix,
+      );
+      expect(typesString(type.interfaces), expected);
+    }
+
+    check(NullabilitySuffix.none, r'''
+A<int>
+''');
+
+    check(NullabilitySuffix.question, r'''
+A<int>?
+''');
   }
 
   void test_getMethod_implemented() {
@@ -1367,20 +1388,30 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     //
     // class C extends Object with A, B
     //
-    var classA = class_(name: 'A');
-    InterfaceType typeA = interfaceTypeStar(classA);
-    var classB = ElementFactory.classElement2("B");
-    InterfaceType typeB = interfaceTypeStar(classB);
-    var classC = ElementFactory.classElement2("C");
-    classC.mixins = <InterfaceType>[typeA, typeB];
-    List<InterfaceType> interfaces = interfaceTypeStar(classC).mixins;
-    expect(interfaces, hasLength(2));
-    if (identical(interfaces[0], typeA)) {
-      expect(interfaces[1], same(typeB));
-    } else {
-      expect(interfaces[0], same(typeB));
-      expect(interfaces[1], same(typeA));
+    var A = class_(name: 'A');
+    var B = class_(name: 'B');
+    var C = class_(
+      name: 'C',
+      mixins: [
+        interfaceTypeNone(A),
+        interfaceTypeNone(B),
+      ],
+    );
+
+    void check(NullabilitySuffix nullabilitySuffix, String expected) {
+      var type = interfaceType(C, nullabilitySuffix: nullabilitySuffix);
+      expect(typesString(type.mixins), expected);
     }
+
+    check(NullabilitySuffix.none, r'''
+A
+B
+''');
+
+    check(NullabilitySuffix.question, r'''
+A?
+B?
+''');
   }
 
   void test_getMixins_parameterized() {
@@ -1397,20 +1428,27 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
       typeParameters: [F],
       mixins: [
         interfaceTypeStar(A, typeArguments: [
-          typeParameterTypeStar(F),
+          typeParameterTypeNone(F),
         ]),
       ],
     );
-    //
-    // B<I>
-    //
-    InterfaceType typeI = interfaceTypeStar(class_(name: 'I'));
-    var typeBI = interfaceTypeStar(B, typeArguments: <DartType>[typeI]);
-    List<InterfaceType> interfaces = typeBI.mixins;
-    expect(interfaces, hasLength(1));
-    InterfaceType result = interfaces[0];
-    expect(result.element, same(A));
-    expect(result.typeArguments[0], same(typeI));
+
+    void check(NullabilitySuffix nullabilitySuffix, String expected) {
+      var type = interfaceType(
+        B,
+        typeArguments: [intNone],
+        nullabilitySuffix: nullabilitySuffix,
+      );
+      expect(typesString(type.mixins), expected);
+    }
+
+    check(NullabilitySuffix.none, r'''
+A<int>
+''');
+
+    check(NullabilitySuffix.question, r'''
+A<int>?
+''');
   }
 
   void test_getSetter_implemented() {
@@ -1462,11 +1500,14 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     //
     // class B extends A
     //
-    var classA = class_(name: 'A');
-    InterfaceType typeA = interfaceTypeStar(classA);
-    var classB = ElementFactory.classElement("B", typeA);
-    InterfaceType typeB = interfaceTypeStar(classB);
-    expect(typeB.superclass, same(typeA));
+    var A = class_(name: 'A');
+    var B = class_(name: 'B', superType: interfaceTypeNone(A));
+
+    var B_none = interfaceTypeNone(B);
+    expect(typeString(B_none.superclass!), 'A');
+
+    var B_question = interfaceTypeQuestion(B);
+    expect(typeString(B_question.superclass!), 'A?');
   }
 
   void test_getSuperclass_parameterized() {
@@ -1478,23 +1519,22 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
     var A = class_(name: 'A', typeParameters: [E]);
 
     var F = typeParameter('F');
-    var typeF = typeParameterTypeStar(F);
-
     var B = class_(
       name: 'B',
       typeParameters: [F],
-      superType: interfaceTypeStar(A, typeArguments: [typeF]),
+      superType: interfaceTypeNone(
+        A,
+        typeArguments: [
+          typeParameterTypeNone(F),
+        ],
+      ),
     );
 
-    var classB = B;
-    //
-    // B<I>
-    //
-    var typeI = interfaceTypeStar(class_(name: 'I'));
-    var typeBI = interfaceTypeStar(classB, typeArguments: <DartType>[typeI]);
-    InterfaceType superclass = typeBI.superclass!;
-    expect(superclass.element, same(A));
-    expect(superclass.typeArguments[0], same(typeI));
+    var B_none = interfaceTypeNone(B, typeArguments: [intNone]);
+    expect(typeString(B_none.superclass!), 'A<int>');
+
+    var B_question = interfaceTypeQuestion(B, typeArguments: [intNone]);
+    expect(typeString(B_question.superclass!), 'A<int>?');
   }
 
   void test_getTypeArguments_empty() {
@@ -1514,6 +1554,73 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
 
     // Returns this.
     expect(type.resolveToBound(objectNone), same(type));
+  }
+
+  void test_superclassConstraints_nonParameterized() {
+    //
+    // class A
+    // mixin M on A
+    //
+    var A = class_(name: 'A');
+    var M = mixin_(
+      name: 'M',
+      constraints: [
+        interfaceTypeNone(A),
+      ],
+    );
+
+    void check(NullabilitySuffix nullabilitySuffix, String expected) {
+      var type = interfaceType(M, nullabilitySuffix: nullabilitySuffix);
+      expect(typesString(type.superclassConstraints), expected);
+    }
+
+    check(NullabilitySuffix.none, r'''
+A
+''');
+
+    check(NullabilitySuffix.question, r'''
+A?
+''');
+  }
+
+  void test_superclassConstraints_parameterized() {
+    //
+    // class A<T>
+    // mixin M<U> on A<U>
+    //
+    var T = typeParameter('T');
+    var A = class_(name: 'A', typeParameters: [T]);
+    var U = typeParameter('F');
+    var M = mixin_(
+      name: 'M',
+      typeParameters: [U],
+      constraints: [
+        interfaceTypeNone(A, typeArguments: [
+          typeParameterTypeNone(U),
+        ]),
+      ],
+    );
+
+    //
+    // M<int>
+    //
+
+    void check(NullabilitySuffix nullabilitySuffix, String expected) {
+      var type = interfaceType(
+        M,
+        typeArguments: [intNone],
+        nullabilitySuffix: nullabilitySuffix,
+      );
+      expect(typesString(type.superclassConstraints), expected);
+    }
+
+    check(NullabilitySuffix.none, r'''
+A<int>
+''');
+
+    check(NullabilitySuffix.question, r'''
+A<int>?
+''');
   }
 }
 
