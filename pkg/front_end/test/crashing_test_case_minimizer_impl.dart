@@ -56,7 +56,8 @@ import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
 import 'package:front_end/src/fasta/util/textual_outline.dart'
     show textualOutline;
 
-import 'package:kernel/ast.dart' show Component, LibraryPart;
+import 'package:kernel/ast.dart'
+    show Component, LibraryPart, Version, defaultLanguageVersion;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
@@ -1007,9 +1008,12 @@ worlds:
       // For dart files we can't truncate completely try to "outline" them
       // instead.
       if (uri.toString().endsWith(".dart")) {
-        String? textualOutlined =
-            textualOutline(data!, _getScannerConfiguration(uri))
-                ?.replaceAll(RegExp(r'\n+'), "\n");
+        Version languageVersion = _getLanguageVersion(uri, crashOnFail: false);
+        String? textualOutlined = textualOutline(
+                data!, _getScannerConfiguration(languageVersion),
+                enablePatterns:
+                    languageVersion >= ExperimentalFlag.patterns.enabledVersion)
+            ?.replaceAll(RegExp(r'\n+'), "\n");
 
         bool outlined = false;
         if (textualOutlined != null) {
@@ -1017,7 +1021,10 @@ worlds:
           // Because textual outline doesn't do the right thing for nnbd, only
           // replace if it's syntactically valid.
           if (candidate.length != _fs.data[uri]!.length &&
-              _parsesWithoutError(candidate, _isUriNnbd(uri))) {
+              _parsesWithoutError(
+                  candidate,
+                  languageVersion >=
+                      ExperimentalFlag.nonNullable.enabledVersion)) {
             if (await _shouldQuit()) return;
             _fs.data[uri] = candidate;
             if (!await _crashesOnCompile(initialComponent)) {
@@ -1778,41 +1785,49 @@ worlds:
     return false;
   }
 
-  ScannerConfiguration _getScannerConfiguration(Uri uri) {
+  ScannerConfiguration _getScannerConfiguration(Version languageVersion) {
     return new ScannerConfiguration(
-        enableExtensionMethods: true,
-        enableNonNullable: _isUriNnbd(uri, crashOnFail: false),
-        enableTripleShift: false);
+        enableExtensionMethods:
+            languageVersion >= ExperimentalFlag.extensionMethods.enabledVersion,
+        enableNonNullable:
+            languageVersion >= ExperimentalFlag.nonNullable.enabledVersion,
+        enableTripleShift:
+            languageVersion >= ExperimentalFlag.tripleShift.enabledVersion);
   }
 
-  bool _isUriNnbd(Uri uri, {bool crashOnFail = true}) {
+  Version _getLanguageVersion(Uri uri, {bool crashOnFail = true}) {
     Uri asImportUri = _getImportUri(uri);
     LibraryBuilder? libraryBuilder =
         _latestCrashingKnownInitialBuilders![asImportUri];
     if (libraryBuilder != null) {
-      return libraryBuilder.isNonNullableByDefault;
+      return libraryBuilder.library.languageVersion;
     }
     print("Couldn't lookup $uri");
     for (LibraryBuilder libraryBuilder
         in _latestCrashingKnownInitialBuilders!.values) {
       if (libraryBuilder.importUri == uri) {
         print("Found $uri as ${libraryBuilder.importUri} (!= ${asImportUri})");
-        return libraryBuilder.isNonNullableByDefault;
+        return libraryBuilder.library.languageVersion;
       }
       // Check parts too.
       for (LibraryPart part in libraryBuilder.library.parts) {
         Uri thisPartUri = libraryBuilder.importUri.resolve(part.partUri);
         if (thisPartUri == uri || thisPartUri == asImportUri) {
           print("Found $uri as part of ${libraryBuilder.importUri}");
-          return libraryBuilder.isNonNullableByDefault;
+          return libraryBuilder.library.languageVersion;
         }
       }
     }
     if (crashOnFail) {
       throw "Couldn't lookup $uri at all!";
     } else {
-      return false;
+      return defaultLanguageVersion;
     }
+  }
+
+  bool _isUriNnbd(Uri uri, {bool crashOnFail = true}) {
+    return _getLanguageVersion(uri, crashOnFail: crashOnFail) >=
+        ExperimentalFlag.nonNullable.enabledVersion;
   }
 
   Future<bool> _crashesOnCompile(Component initialComponent) async {

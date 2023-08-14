@@ -1,19 +1,28 @@
 import 'dart:math' as math;
+
 class Circle {
   Circle(this.radius);
   final double radius;
 }
-switch (x) {}
-test1(dynamic x) => 
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
+
 dynamic Function(dynamic)? captured;
-switch (x) {}
-test2(dynamic x) => 
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
 expectEquals(x, y) {}
 main() {}
+test1(dynamic x) => switch (x) {
+      Circle(radius: var r) when r > 0 => r * r * math.pi,
+      _ => null
+    };
+test2(dynamic x) => switch (x) {
+      [int a, int b]
+          when (captured = (x) {
+            return a + b;
+          }) is dynamic =>
+        captured!(a = b),
+      [String a, String b]
+          when (captured = (x) {
+            return a + b;
+          }) is dynamic =>
+        captured!(a = b),
+      _ => null
+    };
 test3(dynamic x) {}

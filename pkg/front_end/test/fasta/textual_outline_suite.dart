@@ -98,21 +98,22 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
     List<int> bytes = new File.fromUri(description.uri).readAsBytesSync();
     for (bool modelled in [false, true]) {
       String? result = textualOutline(
-        bytes,
-        new ScannerConfiguration(
-          enableExtensionMethods: isExperimentEnabled(
-              ExperimentalFlag.extensionMethods,
-              explicitExperimentalFlags: experimentalFlags),
-          enableNonNullable: isExperimentEnabled(ExperimentalFlag.nonNullable,
-              explicitExperimentalFlags: experimentalFlags),
-          enableTripleShift: isExperimentEnabled(ExperimentalFlag.tripleShift,
-              explicitExperimentalFlags: experimentalFlags),
-        ),
-        throwOnUnexpected: true,
-        performModelling: modelled,
-        addMarkerForUnknownForTest: modelled,
-        returnNullOnError: false,
-      );
+          bytes,
+          new ScannerConfiguration(
+            enableExtensionMethods: isExperimentEnabled(
+                ExperimentalFlag.extensionMethods,
+                explicitExperimentalFlags: experimentalFlags),
+            enableNonNullable: isExperimentEnabled(ExperimentalFlag.nonNullable,
+                explicitExperimentalFlags: experimentalFlags),
+            enableTripleShift: isExperimentEnabled(ExperimentalFlag.tripleShift,
+                explicitExperimentalFlags: experimentalFlags),
+          ),
+          throwOnUnexpected: true,
+          performModelling: modelled,
+          addMarkerForUnknownForTest: modelled,
+          returnNullOnError: false,
+          enablePatterns: isExperimentEnabled(ExperimentalFlag.patterns,
+              explicitExperimentalFlags: experimentalFlags));
       if (result == null) {
         return new Result(
             null, context.expectationSet["EmptyOutput"], description.uri);

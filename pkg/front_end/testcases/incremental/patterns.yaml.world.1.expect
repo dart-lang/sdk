@@ -1,0 +1,48 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+
+  static field dart.core::int value = block {
+    dart.core::int #t1;
+    final synthesized dart.core::int #0#0 = 0;
+    #L1:
+    {
+      {
+        if(#C1 =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} #0#0) {
+          #t1 = 1;
+          break #L1;
+        }
+      }
+      {
+        if(true) {
+          #t1 = 2;
+          break #L1;
+        }
+      }
+      throw new dart._internal::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t1;
+  static method main() → dynamic {}
+}
+constants  {
+  #C1 = 0
+}
+
+And 18 platform libraries:
+ - dart:_http
+ - dart:_builtin
+ - dart:vmservice_io
+ - dart:async
+ - dart:cli
+ - dart:collection
+ - dart:convert
+ - dart:core
+ - dart:developer
+ - dart:ffi
+ - dart:nativewrappers
+ - dart:_internal
+ - dart:io
+ - dart:isolate
+ - dart:math
+ - dart:mirrors
+ - dart:typed_data
+ - dart:_vmservice

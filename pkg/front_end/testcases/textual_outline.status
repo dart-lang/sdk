@@ -115,9 +115,6 @@ nnbd_mixed/inheritance_from_opt_in: FormatterCrash
 nnbd_mixed/issue41597: FormatterCrash
 nnbd_mixed/null_safety_invalid_language_version: FormatterCrash
 nonfunction_type_aliases/old_version: FormatterCrash
-patterns/issue51489: FormatterCrash
-patterns/pattern_inForInitializer_element: FormatterCrash
-patterns/simple_c_style_pattern_for_in_collections: FormatterCrash
 rasta/bad_redirection: FormatterCrash
 rasta/issue_000032: FormatterCrash
 rasta/issue_000034: FormatterCrash
@@ -127,7 +124,6 @@ rasta/issue_000046: FormatterCrash
 rasta/issue_000047: FormatterCrash
 rasta/malformed_const_constructor: FormatterCrash
 rasta/mandatory_parameter_initializer: FormatterCrash
-records/for_in_without_variable: FormatterCrash
 records/metadata: FormatterCrash
 records/names_of_positional_fields_same_as_object_members: FormatterCrash
 records/record_literal_errors: FormatterCrash

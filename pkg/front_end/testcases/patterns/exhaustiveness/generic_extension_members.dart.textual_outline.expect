@@ -12,9 +12,24 @@ extension<T> on A<T> {
   void member(T t) {}
 }
 
-exhaustiveInferred(A<num> a) => switch (a) {};
-exhaustiveTyped(A<num> a) => switch (a) {};
-unreachable(A<num> a) => switch (a) {};
-nonExhaustiveRestricted(A<num> a) => switch (a) {};
+exhaustiveInferred(A<num> a) => switch (a) {
+      A<int>(:var member) => 0,
+      A<num>(:var member) => 1,
+    };
+exhaustiveTyped(A<num> a) => switch (a) {
+      A<int>(:void Function(int) member) => 0,
+      A<num>(:void Function(num) member) => 1,
+    };
+unreachable(A<num> a) => switch (a) {
+      A<num>(:var member) => 1,
+      A<int>(:var member) => 0,
+    };
+nonExhaustiveRestricted(A<num> a) => switch (a) {
+      A<num>(:void Function(num) member) => 1,
+      A<int>(:var member) => 0,
+    };
 intersection(o) {}
-num exhaustiveMixed(I<num> i) => switch (i) {};
+num exhaustiveMixed(I<num> i) => switch (i) {
+      I<num>(:int member) => member,
+      J<num>(:double member) => member,
+    };

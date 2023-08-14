@@ -1,15 +1,18 @@
 class A implements I {}
+
 class I {}
+
+expect(expected, actual) {}
+
 extension on A {
   int get member => 87;
 }
+
 extension on I {
   int get member => 42;
 }
-method(A a) => 
-switch (a) {}
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
-expect(expected, actual) {}
+
 main() {}
+method(A a) => switch (a) {
+      I(:var member) => member,
+    };
