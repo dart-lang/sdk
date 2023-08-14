@@ -137,7 +137,7 @@ extension type E(Object o) {
 }
 ''', [
       // No lint.
-      // todo(pq): add compilation error once reported
+      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD, 47, 1),
     ]);
   }
 

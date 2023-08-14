@@ -69,7 +69,7 @@ extension type E(int i) {
 }
 ''', [
       // No lint.
-      // Specify `duplicate_constructor` diagnostic once reported.
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 28, 5),
     ]);
   }
 

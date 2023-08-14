@@ -26,9 +26,9 @@ extension type E(int i) {
   int? _i;
 }
 ''', [
-      error(WarningCode.UNUSED_FIELD, 33, 2),
       // No lint.
-      // todo(pq): report invalid field diagnostic when it's reported.
+      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD, 33, 2),
+      error(WarningCode.UNUSED_FIELD, 33, 2),
     ]);
   }
 

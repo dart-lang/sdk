@@ -41,7 +41,8 @@ extension type E(Object o) {
 }
 ''', [
       // No lint.
-      // todo(pq): specify compilation error when it's reported.
+      error(
+          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 45, 2),
     ]);
   }
 }

@@ -27,9 +27,9 @@ extension type E(Object o) {
   int _i = 0;
 }
 ''', [
-      error(WarningCode.UNUSED_FIELD, 35, 2),
       // No Lint.
-      // todo(pq): add compilation error once reported
+      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD, 35, 2),
+      error(WarningCode.UNUSED_FIELD, 35, 2),
     ]);
   }
 

@@ -86,7 +86,7 @@ extension type E(Object o) {
 }
 ''', [
       // No lint.
-      // todo(pq): Add `duplicate_constructor` diagnostic when it is reported.
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 46, 1),
     ]);
   }
 }
