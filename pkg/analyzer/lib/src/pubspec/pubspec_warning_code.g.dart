@@ -100,6 +100,7 @@ class PubspecWarningCode extends ErrorCode {
     "The 'platforms' field must be a map with platforms as keys.",
     correctionMessage:
         "Try changing the 'platforms' field to a map with platforms as keys.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -155,6 +156,7 @@ class PubspecWarningCode extends ErrorCode {
     'PLATFORM_VALUE_DISALLOWED',
     "Keys in the `platforms` field can't have values.",
     correctionMessage: "Try removing the value, while keeping the key.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -163,6 +165,7 @@ class PubspecWarningCode extends ErrorCode {
     'UNKNOWN_PLATFORM',
     "The platform '{0}' is not a recognized platform.",
     correctionMessage: "Try correcting the platform name or removing it.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:

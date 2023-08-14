@@ -944,12 +944,12 @@ Assuming that the directory `assets` doesn't exist, the following code
 produces this diagnostic because it's listed as a directory containing
 assets:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 flutter:
   assets:
-    - assets/
-```
+    - [!assets/!]
+{% endprettify %}
 
 #### Common fixes
 
@@ -972,12 +972,12 @@ referencing a file that doesn't exist.
 Assuming that the file `doesNotExist.gif` doesn't exist, the following code
 produces this diagnostic because it's listed as an asset:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 flutter:
   assets:
-    - doesNotExist.gif
-```
+    - [!doesNotExist.gif!]
+{% endprettify %}
 
 #### Common fixes
 
@@ -1001,22 +1001,22 @@ isn't a list.
 The following code produces this diagnostic because the value of the assets
 key is a string when a list is expected:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 flutter:
-  assets: assets/
-```
+  assets: [!assets/!]
+{% endprettify %}
 
 #### Common fixes
 
 Change the value of the asset list so that it's a list:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 flutter:
   assets:
     - assets/
-```
+{% endprettify %}
 
 ### asset_not_string
 
@@ -1032,24 +1032,24 @@ that isn't a string.
 The following code produces this diagnostic because the asset list contains
 a map:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 flutter:
   assets:
-    - image.gif: true
-```
+    - [!image.gif: true!]
+{% endprettify %}
 
 #### Common fixes
 
 Change the asset list so that it only contains valid POSIX-style file
 paths:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 flutter:
   assets:
     - image.gif
-```
+{% endprettify %}
 
 ### assignment_of_do_not_store
 
@@ -3912,21 +3912,21 @@ The analyzer produces this diagnostic when the value of either the
 The following code produces this diagnostic because the value of the
 top-level `dependencies` key is a list:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
-  - meta
-```
+  [!- meta!]
+{% endprettify %}
 
 #### Common fixes
 
 Use a map as the value of the `dependencies` key:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   meta: ^1.0.2
-```
+{% endprettify %}
 
 ### deprecated_colon_for_default_value
 
@@ -7059,28 +7059,28 @@ isn't a map.
 The following code produces this diagnostic because the value of the
 top-level `flutter` key is a string:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
-flutter: true
-```
+flutter: [!true!]
+{% endprettify %}
 
 #### Common fixes
 
 If you need to specify Flutter-specific options, then change the value to
 be a map:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 flutter:
   uses-material-design: true
-```
+{% endprettify %}
 
 If you don't need to specify Flutter-specific options, then remove the
 `flutter` key:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
-```
+{% endprettify %}
 
 ### for_in_of_invalid_element_type
 
@@ -8875,7 +8875,7 @@ more information about the kind of dependencies that are supported.
 The following code produces this diagnostic because the dependency on the
 package `transmogrify` isn't a pub, `git`, or `path` based dependency:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   transmogrify:
@@ -8883,7 +8883,7 @@ dependencies:
       name: transmogrify
       url: http://your-package-server.com
     version: ^1.4.0
-```
+{% endprettify %}
 
 #### Common fixes
 
@@ -8894,7 +8894,7 @@ If you don't want to publish your package to `pub.dev`, then add a
 `publish_to: none` entry to mark the package as one that isn't intended to
 be published:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 publish_to: none
 dependencies:
@@ -8903,7 +8903,7 @@ dependencies:
       name: transmogrify
       url: http://your-package-server.com
     version: ^1.4.0
-```
+{% endprettify %}
 
 ### invalid_exception_value
 
@@ -10169,41 +10169,41 @@ _The 'platforms' field must be a map with platforms as keys._
 
 The analyzer produces this diagnostic when a top-level `platforms`
 field is specified, but its value is not a map with keys.
-See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
-for details.
+To learn more about specifying your package's supported platforms,
+check out the [documentation on platform declarations](https://dart.dev/tools/pub/pubspec#platforms).
 
 #### Example
 
 The following `pubspec.yaml` produces this diagnostic because `platforms`
 should be a map.
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 platforms:
   [!- android
   - web
   - ios!]
-```
+{% endprettify %}
 
 #### Common fixes
 
 If you can rely on automatic platform detection, then omit the
 top-level `platforms` field. 
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
-```
+{% endprettify %}
 
 If you need to manually specify the list of supported platforms, then
 write the `platforms` field as a map with platform names as keys.
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 platforms:
   android:
   web:
   ios:
-```
+{% endprettify %}
 
 ### invalid_reference_to_generative_enum_constructor
 
@@ -12000,20 +12000,20 @@ The `name` key provides the name of the package, which is required.
 The following code produces this diagnostic because the package doesn't
 have a name:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 dependencies:
   meta: ^1.0.2
-```
+{% endprettify %}
 
 #### Common fixes
 
 Add the top-level key `name` with a value that's the name of the package:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   meta: ^1.0.2
-```
+{% endprettify %}
 
 ### missing_named_pattern_field_name
 
@@ -13290,18 +13290,18 @@ value that isn't a string.
 The following code produces this diagnostic because the value following the
 `name` key is a list:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name:
-  - example
-```
+  [!- example!]
+{% endprettify %}
 
 #### Common fixes
 
 Replace the value with a string:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
-```
+{% endprettify %}
 
 ### new_with_undefined_constructor_default
 
@@ -15931,12 +15931,12 @@ referencing a directory that doesn't exist.
 Assuming that the directory `doesNotExist` doesn't exist, the following
 code produces this diagnostic because it's listed as the path of a package:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   local_package:
-    path: doesNotExist
-```
+    path: [!doesNotExist!]
+{% endprettify %}
 
 #### Common fixes
 
@@ -15959,12 +15959,12 @@ whose value is a string, but isn't a POSIX-style path.
 The following code produces this diagnostic because the path following the
 `path` key is a Windows path:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   local_package:
-    path: E:\local_package
-```
+    path: [!E:\local_package!]
+{% endprettify %}
 
 #### Common fixes
 
@@ -15985,21 +15985,21 @@ Assuming that the directory `local_package` doesn't contain a file
 `pubspec.yaml`, the following code produces this diagnostic because it's
 listed as the path of a package:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   local_package:
-    path: local_package
-```
+    path: [!local_package!]
+{% endprettify %}
 
 #### Common fixes
 
 If the path is intended to be the root of a package, then add a
 `pubspec.yaml` file in the directory:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: local_package
-```
+{% endprettify %}
 
 If the path is wrong, then replace it with the correct path.
 
@@ -16229,29 +16229,29 @@ _Keys in the `platforms` field can't have values._
 
 The analyzer produces this diagnostic when a key in the `platforms` map
 has a value.
-See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
-for details.
+To learn more about specifying your package's supported platforms,
+check out the [documentation on platform declarations](https://dart.dev/tools/pub/pubspec#platforms).
 
 #### Example
 
 The following `pubspec.yaml` produces this diagnostic because the key
 `web` has a value.
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 platforms:
   web: [!"chrome"!]
-```
+{% endprettify %}
 
 #### Common fixes
 
 Omit the value and leave the key without a value:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 platforms:
   web:
-```
+{% endprettify %}
 
 Values for keys in the `platforms` field are currently reserved for
 potential future behavior.
@@ -17871,10 +17871,10 @@ import was necessary.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.1.0:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.0.0 <2.4.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces this
 diagnostic:
@@ -17888,10 +17888,10 @@ void f([!Future!] f) {}
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the classes to be referenced:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.1.0 <2.4.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then import the
 `dart:async` library.
@@ -17920,10 +17920,10 @@ won't be able to run against earlier versions of the SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.3.2:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.1.0 <2.4.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces
 this diagnostic:
@@ -17938,10 +17938,10 @@ const int i = [!n as int!];
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the expression to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.3.2 <2.4.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then either rewrite the
 code to not use an `as` expression, or change the code so that the `as`
@@ -17971,10 +17971,10 @@ SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.3.2:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.1.0 <2.4.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces this
 diagnostic:
@@ -17990,10 +17990,10 @@ const bool c = a [!&!] b;
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the operators to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
  sdk: '>=2.3.2 <2.4.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then either rewrite the
 code to not use these operators, or change the code so that the expression
@@ -18022,10 +18022,10 @@ won't be able to run against earlier versions of the SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.15:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.9.0 <2.15.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces this
 diagnostic:
@@ -18039,10 +18039,10 @@ var setConstructor = [!Set.identity!];
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the operator to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.15.0 <2.16.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then rewrite the code to
 not use constructor tear-offs:
@@ -18069,10 +18069,10 @@ code won't be able to run against earlier versions of the SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.3.2:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.1.0 <2.4.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces this
 diagnostic:
@@ -18089,10 +18089,10 @@ const bool same = a [!==!] b;
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the operator to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.3.2 <2.4.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then either rewrite the
 code to not use the `==` operator, or change the code so that the
@@ -18123,10 +18123,10 @@ SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.6.0:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
  sdk: '>=2.4.0 <2.7.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces
 this diagnostic:
@@ -18144,10 +18144,10 @@ this diagnostic:
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the syntax to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.6.0 <2.7.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then rewrite the code to
 not make use of extensions. The most common way to do this is to rewrite
@@ -18177,10 +18177,10 @@ to run against earlier versions of the SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.14.0:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
  sdk: '>=2.0.0 <2.15.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces this
 diagnostic:
@@ -18194,10 +18194,10 @@ int x = 3 [!>>>!] 4;
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the operator to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.14.0 <2.15.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then rewrite the code to
 not use the `>>>` operator:
@@ -18232,10 +18232,10 @@ won't be able to run against earlier versions of the SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.3.2:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.1.0 <2.4.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces
 this diagnostic:
@@ -18250,10 +18250,10 @@ const y = [!x is int!] ? 0 : 1;
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the expression to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.3.2 <2.4.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then either rewrite the
 code to not use the `is` operator, or, if that isn't possible, change the
@@ -18282,10 +18282,10 @@ be able to run against earlier versions of the SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.12.0:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.5.0 <2.6.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces this
 diagnostic:
@@ -18299,10 +18299,10 @@ diagnostic:
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the type to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.12.0 <2.13.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then rewrite the code to
 not reference this class:
@@ -18328,10 +18328,10 @@ to run against earlier versions of the SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.2.0:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.1.0 <2.4.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces this
 diagnostic:
@@ -18345,10 +18345,10 @@ var s = [!<int>{}!];
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the syntax to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.2.0 <2.4.0'
-```
+{% endprettify %}
 
 If you do need to support older versions of the SDK, then replace the set
 literal with code that creates the set without the use of a literal:
@@ -18375,10 +18375,10 @@ SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.3.0:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.2.0 <2.4.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces
 this diagnostic:
@@ -18392,10 +18392,10 @@ var digits = [[!for (int i = 0; i < 10; i++) i!]];
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the syntax to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.3.0 <2.4.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then rewrite the code to
 not make use of those elements:
@@ -18430,10 +18430,10 @@ won't be able to run against earlier versions of the SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.5.0:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.4.0 <2.6.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces
 this diagnostic:
@@ -18448,10 +18448,10 @@ const b = [[!...a!]];
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the syntax to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.5.0 <2.6.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then rewrite the code to
 not make use of those elements:
@@ -21134,33 +21134,33 @@ _The platform '{0}' is not a recognized platform._
 
 The analyzer produces this diagnostic when an unknown platform name is
 used as a key in the `platforms` map.
-See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
-for details.
+To learn more about specifying your package's supported platforms,
+check out the [documentation on platform declarations](https://dart.dev/tools/pub/pubspec#platforms).
 
 #### Example
 
 The following `pubspec.yaml` produces this diagnostic because the platform
 `browser` is unknown.
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 platforms:
   [!browser:!]
-```
+{% endprettify %}
 
 #### Common fixes
 
 If you can rely on automatic platform detection, then omit the
 top-level `platforms` key.
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
-```
+{% endprettify %}
 
 If you need to manually specify the list of supported platforms, then
 write the `platforms` field as a map with known platform names as keys.
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 platforms:
   # These are the known platforms
@@ -21170,7 +21170,7 @@ platforms:
   macos:
   web:
   windows:
-```
+{% endprettify %}
 
 ### unnecessary_cast
 
@@ -21223,24 +21223,24 @@ package, so there's no need to also list them under `dev_dependencies`.
 The following code produces this diagnostic because the package `meta` is
 listed under both `dependencies` and `dev_dependencies`:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   meta: ^1.0.2
 dev_dependencies:
-  meta: ^1.0.2
-```
+  [!meta!]: ^1.0.2
+{% endprettify %}
 
 #### Common fixes
 
 Remove the entry under `dev_dependencies` (and the `dev_dependencies` key
 if that's the only package listed there):
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   meta: ^1.0.2
-```
+{% endprettify %}
 
 ### unnecessary_final
 
