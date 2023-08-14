@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 [@vm.inferred-type.metadata=dart.core::_GrowableList?<dart.core::Object>]static field dynamic list = <core::Object>["abc", (42, {foo42: "foo42"})];
-[@vm.unboxing-info.metadata=(i,i,i)->b]static method recordLiteral([@vm.inferred-type.metadata=dart._boxed_int::BoxedInt] dynamic x, [@vm.inferred-type.metadata=dart._boxed_int::BoxedInt] dynamic y, [@vm.inferred-type.metadata=dart._boxed_int::BoxedInt] dynamic z) → dynamic
+[@vm.unboxing-info.metadata=(i,i,i)->b]static method recordLiteral([@vm.inferred-type.metadata=dart.core::_BoxedInt] dynamic x, [@vm.inferred-type.metadata=dart.core::_BoxedInt] dynamic y, [@vm.inferred-type.metadata=dart.core::_BoxedInt] dynamic z) → dynamic
   return (x, y, {bar: z});
 static method recordFieldAccess1([@vm.inferred-type.metadata=dart.core::Record_2](core::int, core::String) rec) → dynamic
   return rec.$1{core::int};

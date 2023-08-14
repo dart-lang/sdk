@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart._typed_data_helper;
-
 import 'dart:_internal' show UnmodifiableListBase;
 import 'dart:_js_helper' as js;
 import 'dart:_js_types';
@@ -15,11 +13,11 @@ import 'dart:typed_data';
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableByteBufferView.
-final class UnmodifiableByteBufferViewImpl
+final class _UnmodifiableByteBufferViewImpl
     implements ByteBuffer, UnmodifiableByteBufferView {
   final ByteBuffer _data;
 
-  UnmodifiableByteBufferViewImpl(ByteBuffer data) : _data = data;
+  _UnmodifiableByteBufferViewImpl(ByteBuffer data) : _data = data;
 
   int get lengthInBytes => _data.lengthInBytes;
 
@@ -76,11 +74,11 @@ final class UnmodifiableByteBufferViewImpl
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableByteDataView.
-final class UnmodifiableByteDataViewImpl
+final class _UnmodifiableByteDataViewImpl
     implements ByteData, UnmodifiableByteDataView {
   final ByteData _data;
 
-  UnmodifiableByteDataViewImpl(ByteData data) : _data = data;
+  _UnmodifiableByteDataViewImpl(ByteData data) : _data = data;
 
   int getInt8(int byteOffset) => _data.getInt8(byteOffset);
 
@@ -150,7 +148,7 @@ final class UnmodifiableByteDataViewImpl
       throw UnsupportedError("An UnmodifiableByteDataView may not be modified");
 }
 
-mixin UnmodifiableListMixin<N, L extends List<N>, TD extends TypedData> {
+mixin _UnmodifiableListMixin<N, L extends List<N>, TD extends TypedData> {
   L get _list;
   TD get _data => (_list as TD);
 
@@ -181,11 +179,11 @@ mixin UnmodifiableListMixin<N, L extends List<N>, TD extends TypedData> {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableUint8ListView.
-final class UnmodifiableUint8ListViewImpl extends UnmodifiableListBase<int>
-    with UnmodifiableListMixin<int, Uint8List, Uint8List>
+final class _UnmodifiableUint8ListViewImpl extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Uint8List, Uint8List>
     implements UnmodifiableUint8ListView {
   final Uint8List _list;
-  UnmodifiableUint8ListViewImpl(Uint8List list) : _list = list;
+  _UnmodifiableUint8ListViewImpl(Uint8List list) : _list = list;
 
   @override
   Uint8List createList(int length) => Uint8List(length);
@@ -195,11 +193,11 @@ final class UnmodifiableUint8ListViewImpl extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableInt8ListView.
-final class UnmodifiableInt8ListViewImpl extends UnmodifiableListBase<int>
-    with UnmodifiableListMixin<int, Int8List, Int8List>
+final class _UnmodifiableInt8ListViewImpl extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Int8List, Int8List>
     implements UnmodifiableInt8ListView {
   final Int8List _list;
-  UnmodifiableInt8ListViewImpl(Int8List list) : _list = list;
+  _UnmodifiableInt8ListViewImpl(Int8List list) : _list = list;
 
   @override
   Int8List createList(int length) => Int8List(length);
@@ -209,12 +207,12 @@ final class UnmodifiableInt8ListViewImpl extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableUint8ClampedListView.
-final class UnmodifiableUint8ClampedListViewImpl
+final class _UnmodifiableUint8ClampedListViewImpl
     extends UnmodifiableListBase<int>
-    with UnmodifiableListMixin<int, Uint8ClampedList, Uint8ClampedList>
+    with _UnmodifiableListMixin<int, Uint8ClampedList, Uint8ClampedList>
     implements UnmodifiableUint8ClampedListView {
   final Uint8ClampedList _list;
-  UnmodifiableUint8ClampedListViewImpl(Uint8ClampedList list) : _list = list;
+  _UnmodifiableUint8ClampedListViewImpl(Uint8ClampedList list) : _list = list;
 
   @override
   Uint8ClampedList createList(int length) => Uint8ClampedList(length);
@@ -224,11 +222,11 @@ final class UnmodifiableUint8ClampedListViewImpl
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableUint16ListView.
-final class UnmodifiableUint16ListViewImpl extends UnmodifiableListBase<int>
-    with UnmodifiableListMixin<int, Uint16List, Uint16List>
+final class _UnmodifiableUint16ListViewImpl extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Uint16List, Uint16List>
     implements UnmodifiableUint16ListView {
   final Uint16List _list;
-  UnmodifiableUint16ListViewImpl(Uint16List list) : _list = list;
+  _UnmodifiableUint16ListViewImpl(Uint16List list) : _list = list;
 
   @override
   Uint16List createList(int length) => Uint16List(length);
@@ -238,11 +236,11 @@ final class UnmodifiableUint16ListViewImpl extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableInt16ListView.
-final class UnmodifiableInt16ListViewImpl extends UnmodifiableListBase<int>
-    with UnmodifiableListMixin<int, Int16List, Int16List>
+final class _UnmodifiableInt16ListViewImpl extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Int16List, Int16List>
     implements UnmodifiableInt16ListView {
   final Int16List _list;
-  UnmodifiableInt16ListViewImpl(Int16List list) : _list = list;
+  _UnmodifiableInt16ListViewImpl(Int16List list) : _list = list;
 
   @override
   Int16List createList(int length) => Int16List(length);
@@ -252,11 +250,11 @@ final class UnmodifiableInt16ListViewImpl extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableUint32ListView.
-final class UnmodifiableUint32ListViewImpl extends UnmodifiableListBase<int>
-    with UnmodifiableListMixin<int, Uint32List, Uint32List>
+final class _UnmodifiableUint32ListViewImpl extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Uint32List, Uint32List>
     implements UnmodifiableUint32ListView {
   final Uint32List _list;
-  UnmodifiableUint32ListViewImpl(Uint32List list) : _list = list;
+  _UnmodifiableUint32ListViewImpl(Uint32List list) : _list = list;
 
   @override
   Uint32List createList(int length) => Uint32List(length);
@@ -266,11 +264,11 @@ final class UnmodifiableUint32ListViewImpl extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableInt32ListView.
-final class UnmodifiableInt32ListViewImpl extends UnmodifiableListBase<int>
-    with UnmodifiableListMixin<int, Int32List, Int32List>
+final class _UnmodifiableInt32ListViewImpl extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Int32List, Int32List>
     implements UnmodifiableInt32ListView {
   final Int32List _list;
-  UnmodifiableInt32ListViewImpl(Int32List list) : _list = list;
+  _UnmodifiableInt32ListViewImpl(Int32List list) : _list = list;
 
   @override
   Int32List createList(int length) => Int32List(length);
@@ -280,11 +278,11 @@ final class UnmodifiableInt32ListViewImpl extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableUint64ListView.
-final class UnmodifiableUint64ListViewImpl extends UnmodifiableListBase<int>
-    with UnmodifiableListMixin<int, Uint64List, Uint64List>
+final class _UnmodifiableUint64ListViewImpl extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Uint64List, Uint64List>
     implements UnmodifiableUint64ListView {
   final Uint64List _list;
-  UnmodifiableUint64ListViewImpl(Uint64List list) : _list = list;
+  _UnmodifiableUint64ListViewImpl(Uint64List list) : _list = list;
 
   @override
   Uint64List createList(int length) => Uint64List(length);
@@ -294,11 +292,11 @@ final class UnmodifiableUint64ListViewImpl extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableInt64ListView.
-final class UnmodifiableInt64ListViewImpl extends UnmodifiableListBase<int>
-    with UnmodifiableListMixin<int, Int64List, Int64List>
+final class _UnmodifiableInt64ListViewImpl extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Int64List, Int64List>
     implements UnmodifiableInt64ListView {
   final Int64List _list;
-  UnmodifiableInt64ListViewImpl(Int64List list) : _list = list;
+  _UnmodifiableInt64ListViewImpl(Int64List list) : _list = list;
 
   @override
   Int64List createList(int length) => Int64List(length);
@@ -308,12 +306,12 @@ final class UnmodifiableInt64ListViewImpl extends UnmodifiableListBase<int>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableInt32x4ListView.
-final class UnmodifiableInt32x4ListViewImpl
+final class _UnmodifiableInt32x4ListViewImpl
     extends UnmodifiableListBase<Int32x4>
-    with UnmodifiableListMixin<Int32x4, Int32x4List, Int32x4List>
+    with _UnmodifiableListMixin<Int32x4, Int32x4List, Int32x4List>
     implements UnmodifiableInt32x4ListView {
   final Int32x4List _list;
-  UnmodifiableInt32x4ListViewImpl(Int32x4List list) : _list = list;
+  _UnmodifiableInt32x4ListViewImpl(Int32x4List list) : _list = list;
 
   @override
   Int32x4List createList(int length) => Int32x4List(length);
@@ -323,12 +321,12 @@ final class UnmodifiableInt32x4ListViewImpl
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableFloat32x4ListView.
-final class UnmodifiableFloat32x4ListViewImpl
+final class _UnmodifiableFloat32x4ListViewImpl
     extends UnmodifiableListBase<Float32x4>
-    with UnmodifiableListMixin<Float32x4, Float32x4List, Float32x4List>
+    with _UnmodifiableListMixin<Float32x4, Float32x4List, Float32x4List>
     implements UnmodifiableFloat32x4ListView {
   final Float32x4List _list;
-  UnmodifiableFloat32x4ListViewImpl(Float32x4List list) : _list = list;
+  _UnmodifiableFloat32x4ListViewImpl(Float32x4List list) : _list = list;
 
   @override
   Float32x4List createList(int length) => Float32x4List(length);
@@ -338,12 +336,12 @@ final class UnmodifiableFloat32x4ListViewImpl
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableFloat64x2ListView.
-final class UnmodifiableFloat64x2ListViewImpl
+final class _UnmodifiableFloat64x2ListViewImpl
     extends UnmodifiableListBase<Float64x2>
-    with UnmodifiableListMixin<Float64x2, Float64x2List, Float64x2List>
+    with _UnmodifiableListMixin<Float64x2, Float64x2List, Float64x2List>
     implements UnmodifiableFloat64x2ListView {
   final Float64x2List _list;
-  UnmodifiableFloat64x2ListViewImpl(Float64x2List list) : _list = list;
+  _UnmodifiableFloat64x2ListViewImpl(Float64x2List list) : _list = list;
 
   @override
   Float64x2List createList(int length) => Float64x2List(length);
@@ -353,11 +351,12 @@ final class UnmodifiableFloat64x2ListViewImpl
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableFloat32ListView.
-final class UnmodifiableFloat32ListViewImpl extends UnmodifiableListBase<double>
-    with UnmodifiableListMixin<double, Float32List, Float32List>
+final class _UnmodifiableFloat32ListViewImpl
+    extends UnmodifiableListBase<double>
+    with _UnmodifiableListMixin<double, Float32List, Float32List>
     implements UnmodifiableFloat32ListView {
   final Float32List _list;
-  UnmodifiableFloat32ListViewImpl(Float32List list) : _list = list;
+  _UnmodifiableFloat32ListViewImpl(Float32List list) : _list = list;
 
   @override
   Float32List createList(int length) => Float32List(length);
@@ -367,11 +366,12 @@ final class UnmodifiableFloat32ListViewImpl extends UnmodifiableListBase<double>
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// UnmodifiableFloat64ListView.
-final class UnmodifiableFloat64ListViewImpl extends UnmodifiableListBase<double>
-    with UnmodifiableListMixin<double, Float64List, Float64List>
+final class _UnmodifiableFloat64ListViewImpl
+    extends UnmodifiableListBase<double>
+    with _UnmodifiableListMixin<double, Float64List, Float64List>
     implements UnmodifiableFloat64ListView {
   final Float64List _list;
-  UnmodifiableFloat64ListViewImpl(Float64List list) : _list = list;
+  _UnmodifiableFloat64ListViewImpl(Float64List list) : _list = list;
 
   @override
   Float64List createList(int length) => Float64List(length);

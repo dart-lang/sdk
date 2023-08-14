@@ -141,7 +141,9 @@
           "_internal/wasm/lib/string_buffer_patch.dart",
           "_internal/wasm/lib/string_patch.dart",
           "_internal/wasm/lib/sync_star_patch.dart",
-          "_internal/wasm/lib/weak_patch.dart"
+          "_internal/wasm/lib/weak_patch.dart",
+          "_internal/wasm/lib/boxed_double.dart",
+          "_internal/wasm/lib/boxed_int.dart"
         ]
       }
     }
@@ -168,7 +170,9 @@
           "_internal/wasm/lib/string_buffer_patch.dart",
           "_internal/wasm/lib/string_stringref_patch.dart",
           "_internal/wasm/lib/sync_star_patch.dart",
-          "_internal/wasm/lib/weak_patch.dart"
+          "_internal/wasm/lib/weak_patch.dart",
+          "_internal/wasm/lib/boxed_double.dart",
+          "_internal/wasm/lib/boxed_int.dart"
         ]
       }
     }
@@ -180,61 +184,72 @@
       }
     ],
     "libraries": {
-      "_typed_data_helper": {
-        "uri": "_internal/wasm_js_compatibility/lib/typed_data_helper.dart"
-      },
       "core": {
         "uri": "core/core.dart",
         "patches": [
-          "_internal/wasm/lib/core_patch.dart",
           "_internal/vm_shared/lib/array_patch.dart",
           "_internal/vm_shared/lib/bigint_patch.dart",
           "_internal/vm_shared/lib/bool_patch.dart",
           "_internal/vm_shared/lib/date_patch.dart",
           "_internal/vm_shared/lib/map_patch.dart",
           "_internal/vm_shared/lib/null_patch.dart",
+          "_internal/wasm/lib/core_patch.dart",
           "_internal/wasm/lib/date_patch_patch.dart",
           "_internal/wasm/lib/int_patch.dart",
           "_internal/wasm/lib/string_buffer_patch.dart",
           "_internal/wasm/lib/string_patch.dart",
           "_internal/wasm/lib/sync_star_patch.dart",
-          "_internal/wasm/lib/weak_patch.dart"
+          "_internal/wasm/lib/weak_patch.dart",
+          "_internal/wasm/lib/boxed_double.dart",
+          "_internal/wasm/lib/boxed_int.dart"
         ]
       },
       "typed_data": {
         "uri": "typed_data/typed_data.dart",
         "patches": [
-          "_internal/wasm_js_compatibility/lib/typed_data_patch.dart",
-          "_internal/wasm/lib/simd_patch.dart"
+          "_internal/wasm/lib/simd.dart",
+          "_internal/wasm/lib/simd_patch.dart",
+          "_internal/wasm_js_compatibility/lib/typed_data.dart",
+          "_internal/wasm_js_compatibility/lib/typed_data_patch.dart"
+        ]
+      }
+    }
+  },
+  "wasm_base": {
+    "include": [
+      {
+        "target": "wasm_common"
+      }
+    ],
+    "libraries": {
+      "typed_data": {
+        "uri": "typed_data/typed_data.dart",
+        "patches": [
+          "_internal/wasm/lib/simd.dart",
+          "_internal/wasm/lib/simd_patch.dart",
+          "_internal/wasm/lib/typed_data.dart",
+          "_internal/wasm/lib/typed_data_patch.dart"
         ]
       }
     }
   },
   "wasm_common": {
     "libraries": {
-      "_boxed_double": {
-        "uri": "_internal/wasm/lib/boxed_double.dart"
-      },
-      "_boxed_int": {
-        "uri": "_internal/wasm/lib/boxed_int.dart"
-      },
-      "_double_helper": {
-        "uri": "_internal/wasm/lib/double_helper.dart"
+      "core": {
+        "uri": "core/core.dart",
+        "patches": [
+          "_internal/wasm/lib/boxed_double.dart",
+          "_internal/wasm/lib/boxed_int.dart"
+        ]
       },
       "_http": {
         "uri": "_http/http.dart"
-      },
-      "_simd": {
-        "uri": "_internal/wasm/lib/simd.dart"
       },
       "_internal": {
         "uri": "internal/internal.dart",
         "patches": [
           "_internal/wasm/lib/internal_patch.dart"
         ]
-      },
-      "_int_helper": {
-        "uri": "_internal/wasm/lib/int_helper.dart"
       },
       "_js_annotations": {
         "uri": "js/_js_annotations.dart"
@@ -327,25 +342,6 @@
       "math": {
         "uri": "math/math.dart",
         "patches": "_internal/wasm/lib/math_patch.dart"
-      }
-    }
-  },
-  "wasm_base": {
-    "include": [
-      {
-        "target": "wasm_common"
-      }
-    ],
-    "libraries": {
-      "_typed_data": {
-        "uri": "_internal/wasm/lib/typed_data.dart"
-      },
-      "typed_data": {
-        "uri": "typed_data/typed_data.dart",
-        "patches": [
-          "_internal/wasm/lib/typed_data_patch.dart",
-          "_internal/wasm/lib/simd_patch.dart"
-        ]
       }
     }
   },

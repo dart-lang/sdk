@@ -43,4 +43,10 @@ class double {
     }
     return result;
   }
+
+  /// Wasm i64.trunc_sat_f64_s instruction.
+  external int _toInt();
+
+  /// Wasm f64.copysign instruction.
+  external double _copysign(double other);
 }
