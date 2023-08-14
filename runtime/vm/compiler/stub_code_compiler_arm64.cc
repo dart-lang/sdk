@@ -1979,21 +1979,20 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ b(&skip_marking, ZERO);
 
   {
-    // Atomically clear kOldAndNotMarkedBit.
+    // Atomically clear kNotMarkedBit.
     Label retry, done;
     __ PushRegisters(spill_set);
     __ AddImmediate(R3, R0, target::Object::tags_offset() - kHeapObjectTag);
     // R3: Untagged address of header word (atomics do not support offsets).
     if (TargetCPUFeatures::atomic_memory_supported()) {
-      __ LoadImmediate(TMP, 1 << target::UntaggedObject::kOldAndNotMarkedBit);
+      __ LoadImmediate(TMP, 1 << target::UntaggedObject::kNotMarkedBit);
       __ ldclr(TMP, TMP, R3);
-      __ tbz(&done, TMP, target::UntaggedObject::kOldAndNotMarkedBit);
+      __ tbz(&done, TMP, target::UntaggedObject::kNotMarkedBit);
     } else {
       __ Bind(&retry);
       __ ldxr(R2, R3, kEightBytes);
-      __ tbz(&done, R2, target::UntaggedObject::kOldAndNotMarkedBit);
-      __ AndImmediate(R2, R2,
-                      ~(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+      __ tbz(&done, R2, target::UntaggedObject::kNotMarkedBit);
+      __ AndImmediate(R2, R2, ~(1 << target::UntaggedObject::kNotMarkedBit));
       __ stxr(R4, R2, R3, kEightBytes);
       __ cbnz(&retry, R4);
     }
