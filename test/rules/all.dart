@@ -42,6 +42,7 @@ import 'cast_nullable_to_non_nullable_test.dart'
     as cast_nullable_to_non_nullable;
 import 'collection_methods_unrelated_type_test.dart'
     as collection_methods_unrelated_type;
+import 'comment_references_test.dart' as comment_references;
 import 'conditional_uri_does_not_exist_test.dart'
     as conditional_uri_does_not_exist;
 import 'constant_identifier_names_test.dart' as constant_identifier_names;
@@ -243,6 +244,7 @@ void main() {
   cancel_subscriptions.main();
   cast_nullable_to_non_nullable.main();
   collection_methods_unrelated_type.main();
+  comment_references.main();
   conditional_uri_does_not_exist.main();
   constant_identifier_names.main();
   dangling_library_doc_comments.main();
