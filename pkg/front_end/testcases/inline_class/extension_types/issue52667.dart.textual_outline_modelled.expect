@@ -1,0 +1,5 @@
+abstract class Foo {}
+---- unknown chunk starts ----
+extension type FooBar(int i) implements Foo {} extension type FooBaz(int i) implements Foo {}
+---- unknown chunk ends ----
+void main() {}

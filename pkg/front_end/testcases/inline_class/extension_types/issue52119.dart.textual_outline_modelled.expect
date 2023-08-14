@@ -1,0 +1,17 @@
+---- unknown chunk starts ----
+extension type Foo._(int i) {
+---- unknown chunk ends ----
+Foo(int i) : this._(i + 2);
+Foo.erroneous() : this.unresolved();
+Foo.named(int value, {required int subtract}) : i = value - subtract;
+Foo.redirectNamed1(int a, int b) : this.named(a, subtract: b);
+Foo.redirectNamed2(int a, int b) : this.named(subtract: b, a);
+---- unknown chunk starts ----
+} extension type Bar<T>._(this.i) {
+---- unknown chunk ends ----
+Bar(T i) : this._(i);
+---- unknown chunk starts ----
+}
+---- unknown chunk ends ----
+expect(expected, actual) {}
+main() {}

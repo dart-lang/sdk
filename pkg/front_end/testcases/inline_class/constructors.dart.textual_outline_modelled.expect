@@ -2,7 +2,6 @@ inline class Class1 {
   Class1(this.field);
   final int field;
 }
-
 inline class Class2 {
   Class2(this.field);
   final int field;

@@ -1,0 +1,3 @@
+---- unknown chunk starts ----
+extension type A(int it) implements B {} extension type B(int it) implements A {} extension type C(int it) implements D {} extension type D(int it) implements E {} extension type E(int it) implements F {} extension type F(int it) implements D {}
+---- unknown chunk ends ----

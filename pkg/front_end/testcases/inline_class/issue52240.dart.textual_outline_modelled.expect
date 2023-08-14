@@ -3,5 +3,4 @@ inline class X {
   X.named() : obj = 0;
   final int obj;
 }
-
 void main() {}

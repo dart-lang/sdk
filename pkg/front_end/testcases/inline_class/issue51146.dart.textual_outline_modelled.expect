@@ -2,6 +2,5 @@ inline class I<X, Y> {
   I(this.value);
   final X value;
 }
-
 void f(I<int, String> i) {}
 void main() {}

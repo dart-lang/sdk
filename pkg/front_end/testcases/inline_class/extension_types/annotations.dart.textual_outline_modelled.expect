@@ -1,0 +1,15 @@
+@Deprecated('')
+---- unknown chunk starts ----
+extension type A(
+---- unknown chunk ends ----
+@Deprecated('')
+---- unknown chunk starts ----
+int i) {
+---- unknown chunk ends ----
+@Deprecated('')
+A.constructor(this.i);
+@Deprecated('')
+void m() {}
+---- unknown chunk starts ----
+}
+---- unknown chunk ends ----

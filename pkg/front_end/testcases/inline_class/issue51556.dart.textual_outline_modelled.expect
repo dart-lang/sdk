@@ -1,38 +1,30 @@
 extension DoubleToJSNumber on double {
   JSNumber get toJS => JSNumber(this);
 }
-
 extension ListToJSArray on List<JSAny?> {
   JSArray get toJS => JSArray(this);
 }
-
 extension ObjectToJSExportedDartObject on Object {
   JSExportedDartObject get toJS => JSExportedDartObject(this);
 }
-
 inline class JSAny {
   JSAny(this.value);
   final Object value;
 }
-
 inline class JSArray implements JSObject {
   JSArray(this.value);
   final List<JSAny?> value;
 }
-
 inline class JSExportedDartObject implements JSObject {
   JSExportedDartObject(this.value);
   final Object value;
 }
-
 inline class JSNumber implements JSAny {
   JSNumber(this.value);
   final double value;
 }
-
 inline class JSObject implements JSAny {
   JSObject(this.value);
   final Object value;
 }
-
 void main() {}

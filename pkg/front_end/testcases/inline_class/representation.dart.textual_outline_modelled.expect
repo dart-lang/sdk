@@ -3,15 +3,12 @@ inline class Duplicate {
   final bool instanceField;
   final int instanceField;
 }
-
 inline class Missing {}
-
 inline class Multiple {
   Multiple(this.instanceField1);
   final bool instanceField1;
   final int instanceField2;
 }
-
 inline class Static {
   Static(this.instanceField);
   final bool instanceField;

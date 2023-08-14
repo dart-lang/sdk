@@ -1,0 +1,3 @@
+---- unknown chunk starts ----
+extension type Class1(int field) {} extension type Class2(int field) {}
+---- unknown chunk ends ----
