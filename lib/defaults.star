@@ -20,9 +20,11 @@ _CACHES = {
 # the wait_for_warm_cache field default to zero.
 _NO_CACHES = [swarming.cache("builder")]
 _NO_ANDROID = {"custom_vars": {"download_android_deps": False}}
+_ANDROID_DEPS = {"custom_vars": {"download_android_deps": True}}
 _CHROME = {"custom_vars": {"download_chrome": True}}
 _EMSCRIPTEN = {"custom_vars": {"download_emscripten": True}}
 _FIREFOX = {"custom_vars": {"download_firefox": True}}
+_FUCHSIA_DEPS = {"custom_vars": {"download_fuchsia_deps": True}}
 _JS_ENGINES = {"custom_vars": {"checkout_javascript_engines": True}}
 _SLOW_SHARDS = {"shard_timeout": (90 * time.minute) // time.second}
 
@@ -85,9 +87,11 @@ windows11 = _WINDOWS11
 
 # Properties
 
+android_deps = _ANDROID_DEPS
 chrome = _CHROME
 emscripten = _EMSCRIPTEN
 firefox = _FIREFOX
+fuchsia_deps = _FUCHSIA_DEPS
 js_engines = _JS_ENGINES
 no_android = _NO_ANDROID
 slow_shards = _SLOW_SHARDS

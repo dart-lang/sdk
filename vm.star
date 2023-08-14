@@ -9,9 +9,11 @@ load("//lib/cron.star", "cron")
 load("//lib/dart.star", "dart")
 load(
     "//lib/defaults.star",
+    "android_deps",
     "arm64",
     "flutter_pool",
     "focal",
+    "fuchsia_deps",
     "mac",
     "no_android",
     "slow_shards",
@@ -277,12 +279,12 @@ _extra_builder(
 _extra_builder(
     "vm-aot-android-release-arm_x64",
     category = "vm|aot|android|a32",
-    properties = slow_shards,
+    properties = [android_deps, slow_shards],
 )
 _extra_builder(
     "vm-aot-android-release-arm64c",
     category = "vm|aot|android|a64",
-    properties = slow_shards,
+    properties = [android_deps, slow_shards],
 )
 
 # vm|aot|product
@@ -413,8 +415,16 @@ _nightly_builder(
     dimensions = windows,
     properties = slow_shards,
 )
-_low_priority_builder("vm-fuchsia-release-arm64", category = "vm|misc|f")
-_low_priority_builder("vm-fuchsia-release-x64", category = "vm|misc|f")
+_low_priority_builder(
+    "vm-fuchsia-release-arm64",
+    category = "vm|misc|f",
+    properties = [fuchsia_deps],
+)
+_low_priority_builder(
+    "vm-fuchsia-release-x64",
+    category = "vm|misc|f",
+    properties = [fuchsia_deps],
+)
 
 # Our sysroot does not support gcc, we can't use goma on RBE for this builder
 _nightly_builder(
@@ -440,12 +450,36 @@ _nightly_builder(
 )
 
 # vm|ffi
-_extra_builder("vm-ffi-android-debug-arm", category = "vm|ffi|d32")
-_extra_builder("vm-ffi-android-release-arm", category = "vm|ffi|r32")
-_extra_builder("vm-ffi-android-product-arm", category = "vm|ffi|p32")
-_extra_builder("vm-ffi-android-debug-arm64c", category = "vm|ffi|d64")
-_extra_builder("vm-ffi-android-release-arm64c", category = "vm|ffi|r64")
-_extra_builder("vm-ffi-android-product-arm64c", category = "vm|ffi|p64")
+_extra_builder(
+    "vm-ffi-android-debug-arm",
+    category = "vm|ffi|d32",
+    properties = [android_deps],
+)
+_extra_builder(
+    "vm-ffi-android-release-arm",
+    category = "vm|ffi|r32",
+    properties = [android_deps],
+)
+_extra_builder(
+    "vm-ffi-android-product-arm",
+    category = "vm|ffi|p32",
+    properties = [android_deps],
+)
+_extra_builder(
+    "vm-ffi-android-debug-arm64c",
+    category = "vm|ffi|d64",
+    properties = [android_deps],
+)
+_extra_builder(
+    "vm-ffi-android-release-arm64c",
+    category = "vm|ffi|r64",
+    properties = [android_deps],
+)
+_extra_builder(
+    "vm-ffi-android-product-arm64c",
+    category = "vm|ffi|p64",
+    properties = [android_deps],
+)
 _extra_builder(
     "vm-ffi-qemu-linux-release-arm",
     category = "vm|ffi|qa",
