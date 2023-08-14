@@ -17,7 +17,18 @@ main() {
 @reflectiveTest
 class NonConstantIdentifierNamesPatternsTest extends LintRuleTest {
   @override
+  List<String> get experiments => ['inline-class'];
+
+  @override
   String get lintRule => 'non_constant_identifier_names';
+
+  test_extensionType_representationConstructorName() async {
+    await assertDiagnostics(r'''
+extension type e.Efg(int i) {}
+''', [
+      lint(17, 3),
+    ]);
+  }
 
   test_patternForStatement() async {
     await assertDiagnostics(r'''

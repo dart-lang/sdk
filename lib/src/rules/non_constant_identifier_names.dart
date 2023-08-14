@@ -56,6 +56,7 @@ class NonConstantIdentifierNames extends LintRule {
     registry.addCatchClause(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
     registry.addDeclaredVariablePattern(this, visitor);
+    registry.addExtensionTypeDeclaration(this, visitor);
     registry.addForEachPartsWithDeclaration(this, visitor);
     registry.addFormalParameterList(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
@@ -103,6 +104,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     if (node.parent.isFieldNameShortcut) return;
     checkIdentifier(node.name);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    checkIdentifier(node.representation.constructorName?.name);
   }
 
   @override
