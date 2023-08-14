@@ -61,9 +61,9 @@ class MyWidget extends StatelessWidget {
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
-class NoConstructorWidget extends StatefulWidget {}
+abstract class NoConstructorWidget extends StatefulWidget {}
 ''', [
-      lint(46, 19),
+      lint(55, 19),
     ]);
   }
 
@@ -94,7 +94,7 @@ abstract class MyWidget extends StatelessWidget {
 import 'package:flutter/widgets.dart';
 
 // ignore: unused_element
-class _PrivateWidget extends StatefulWidget {}
+abstract class _PrivateWidget extends StatefulWidget {}
 ''');
   }
 

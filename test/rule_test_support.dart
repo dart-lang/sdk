@@ -505,7 +505,11 @@ class NavigatorState {}
 
 abstract class StatefulWidget extends Widget {
   const StatefulWidget({super.key});
+
+  State<StatefulWidget> createState();
 }
+
+class State<T extends StatefulWidget> {}
 
 abstract class Widget {
   final Key? key;
