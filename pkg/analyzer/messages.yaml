@@ -20603,7 +20603,7 @@ PubspecWarningCode:
       name: example
       flutter:
         assets:
-          - assets/
+          - [!assets/!]
       ```
 
       #### Common fixes
@@ -20635,7 +20635,7 @@ PubspecWarningCode:
       name: example
       flutter:
         assets:
-          - doesNotExist.gif
+          - [!doesNotExist.gif!]
       ```
 
       #### Common fixes
@@ -20664,7 +20664,7 @@ PubspecWarningCode:
       %uri="pubspec.yaml"
       name: example
       flutter:
-        assets: assets/
+        assets: [!assets/!]
       ```
 
       #### Common fixes
@@ -20699,7 +20699,7 @@ PubspecWarningCode:
       name: example
       flutter:
         assets:
-          - image.gif: true
+          - [!image.gif: true!]
       ```
 
       #### Common fixes
@@ -20736,7 +20736,7 @@ PubspecWarningCode:
       %uri="pubspec.yaml"
       name: example
       dependencies:
-        - meta
+        [!- meta!]
       ```
 
       #### Common fixes
@@ -20801,7 +20801,7 @@ PubspecWarningCode:
       ```yaml
       %uri="pubspec.yaml"
       name: example
-      flutter: true
+      flutter: [!true!]
       ```
 
       #### Common fixes
@@ -20879,15 +20879,15 @@ PubspecWarningCode:
   INVALID_PLATFORMS_FIELD:
     problemMessage: "The 'platforms' field must be a map with platforms as keys."
     correctionMessage: "Try changing the 'platforms' field to a map with platforms as keys."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when a top-level `platforms`
       field is specified, but its value is not a map with keys.
-      See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
-      for details.
+      To learn more about specifying your package's supported platforms,
+      check out the [documentation on platform declarations](https://dart.dev/tools/pub/pubspec#platforms).
 
       #### Example
 
@@ -20927,7 +20927,7 @@ PubspecWarningCode:
   UNKNOWN_PLATFORM:
     problemMessage: "The platform '{0}' is not a recognized platform."
     correctionMessage: "Try correcting the platform name or removing it."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the unknown platform.
@@ -20936,8 +20936,8 @@ PubspecWarningCode:
 
       The analyzer produces this diagnostic when an unknown platform name is
       used as a key in the `platforms` map.
-      See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
-      for details.
+      To learn more about specifying your package's supported platforms,
+      check out the [documentation on platform declarations](https://dart.dev/tools/pub/pubspec#platforms).
 
       #### Example
 
@@ -20979,15 +20979,15 @@ PubspecWarningCode:
   PLATFORM_VALUE_DISALLOWED:
     problemMessage: "Keys in the `platforms` field can't have values."
     correctionMessage: "Try removing the value, while keeping the key."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when a key in the `platforms` map
       has a value.
-      See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
-      for details.
+      To learn more about specifying your package's supported platforms,
+      check out the [documentation on platform declarations](https://dart.dev/tools/pub/pubspec#platforms).
 
       #### Example
 
@@ -21065,7 +21065,7 @@ PubspecWarningCode:
       ```yaml
       %uri="pubspec.yaml"
       name:
-        - example
+        [!- example!]
       ```
 
       #### Common fixes
@@ -21099,7 +21099,7 @@ PubspecWarningCode:
       name: example
       dependencies:
         local_package:
-          path: doesNotExist
+          path: [!doesNotExist!]
       ```
 
       #### Common fixes
@@ -21131,7 +21131,7 @@ PubspecWarningCode:
       name: example
       dependencies:
         local_package:
-          path: E:\local_package
+          path: [!E:\local_package!]
       ```
 
       #### Common fixes
@@ -21161,7 +21161,7 @@ PubspecWarningCode:
       name: example
       dependencies:
         local_package:
-          path: local_package
+          path: [!local_package!]
       ```
 
       #### Common fixes
@@ -21201,7 +21201,7 @@ PubspecWarningCode:
       dependencies:
         meta: ^1.0.2
       dev_dependencies:
-        meta: ^1.0.2
+        [!meta!]: ^1.0.2
       ```
 
       #### Common fixes

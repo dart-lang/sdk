@@ -960,7 +960,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         "--snapshot-kind=app-aot-assembly",
         "--assembly=$tempDir/out.S",
       ],
-      if (_isAndroid && _isArm) '--no-sim-use-hardfp',
+      if (_isAndroid && (_isArm || _isArmX64)) ...[
+        '--no-sim-use-hardfp',
+        '--no-use-integer-division',
+      ],
       if (_configuration.isMinified) '--obfuscate',
       ..._nnbdModeArgument(_configuration),
       // The SIMARM precompiler assumes support for integer division, but the
