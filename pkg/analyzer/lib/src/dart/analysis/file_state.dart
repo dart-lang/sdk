@@ -721,7 +721,6 @@ class FileState {
       featureSet: scanner.featureSet,
       lineInfo: lineInfo,
     );
-    parser.enableOptionalNewAndConst = true;
 
     var unit = parser.parseCompilationUnit(token);
     unit.languageVersion = LibraryLanguageVersion(
