@@ -1,11 +1,4 @@
-## 3.1.1
-
-This is a patch release that:
-- Fixes Windows 7 dart crash (issue [#130554])
-
-[#130554]: https://github.com/flutter/flutter/issues/130554
-
-## 3.1.0
+## 3.1.0 - 2023-08-16
 
 ### Libraries
 
