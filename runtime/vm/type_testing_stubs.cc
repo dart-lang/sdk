@@ -260,6 +260,9 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const AbstractType& type) {
     slow_tts_stub = thread->isolate_group()->object_store()->slow_tts_stub();
   }
 
+  CompilerState compiler_state(thread, /*is_aot=*/FLAG_precompiled_mode,
+                               /*is_optimizing=*/false);
+
   const Code& code = Code::Handle(
       thread->zone(),
       RetryCompilationWithFarBranches(

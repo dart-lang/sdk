@@ -62,6 +62,8 @@ Library parseLibrary(Uri uri, String text,
       library.addTypedef(node);
     } else if (node is Extension) {
       library.addExtension(node);
+    } else if (node is ExtensionTypeDeclaration) {
+      library.addExtensionTypeDeclaration(node);
     } else {
       throw "Unsupported: $node";
     }
@@ -329,8 +331,11 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     } else if (declaration is Typedef) {
       return new TypedefType(declaration,
           interpretParsedNullability(node.parsedNullability), kernelArguments);
+    } else if (declaration is ExtensionTypeDeclaration) {
+      return new ExtensionType(declaration,
+          interpretParsedNullability(node.parsedNullability), kernelArguments);
     } else {
-      throw "Unhandled ${declaration.runtimeType}";
+      throw "Unhandled $declaration (${declaration.runtimeType})";
     }
   }
 
@@ -413,6 +418,36 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       }
     }
     return def..type = type;
+  }
+
+  @override
+  ExtensionTypeDeclaration visitExtensionTypeDeclaration(
+      ParsedExtensionTypeDeclaration node, TypeParserEnvironment environment) {
+    String name = node.name;
+    ExtensionTypeDeclaration extensionTypeDeclaration =
+        environment._registerDeclaration(
+            name,
+            new ExtensionTypeDeclaration(
+                name: name, fileUri: environment.fileUri));
+    ParameterEnvironment parameterEnvironment =
+        computeTypeParameterEnvironment(node.typeVariables, environment);
+    List<TypeParameter> parameters = parameterEnvironment.parameters;
+    setParents(parameters, extensionTypeDeclaration);
+    extensionTypeDeclaration.typeParameters
+      ..clear()
+      ..addAll(parameters);
+    {
+      TypeParserEnvironment environment = parameterEnvironment.environment;
+      extensionTypeDeclaration.representationName = 'it';
+      extensionTypeDeclaration.declaredRepresentationType =
+          _parseType(node.declaredRepresentationType, environment);
+      List<ParsedType> interfaces = node.interfaces;
+      for (int i = 0; i < interfaces.length; i++) {
+        extensionTypeDeclaration.implements
+            .add(_parseType(interfaces[i], environment));
+      }
+    }
+    return extensionTypeDeclaration;
   }
 
   @override

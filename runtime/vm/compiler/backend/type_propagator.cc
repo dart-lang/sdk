@@ -690,6 +690,18 @@ CompileType CompileType::FromCid(intptr_t cid) {
   return CompileType(cid == kNullCid, cid == kSentinelCid, cid, nullptr);
 }
 
+CompileType CompileType::FromUnboxedRepresentation(Representation rep) {
+  ASSERT(rep != kTagged);
+  ASSERT(rep != kUntagged);
+  if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    if (!Boxing::RequiresAllocation(rep)) {
+      return CompileType::Smi();
+    }
+    return CompileType::Int();
+  }
+  return CompileType::FromCid(Boxing::BoxCid(rep));
+}
+
 CompileType CompileType::Dynamic() {
   return CompileType(kCanBeNull, kCannotBeSentinel, kDynamicCid,
                      &Object::dynamic_type());
@@ -1698,7 +1710,7 @@ CompileType LoadFieldInstr::ComputeType() const {
       }
     }
   }
-  CompileType type = slot().ComputeCompileType();
+  CompileType type = slot().type();
   if (calls_initializer()) {
     type = type.CopyNonSentinel();
   }
@@ -1974,8 +1986,8 @@ static CompileType ComputeArrayElementType(Value* array) {
   // type arguments which can be used to figure out element type.
   if (auto* load_field = array->definition()->AsLoadField()) {
     if (load_field->slot().IsDartField()) {
-      elem_type =
-          ExtractElementTypeFromArrayType(load_field->slot().static_type());
+      elem_type = load_field->slot().field().type();
+      elem_type = ExtractElementTypeFromArrayType(elem_type);
     }
   }
   return CompileType::FromAbstractType(elem_type, CompileType::kCanBeNull,

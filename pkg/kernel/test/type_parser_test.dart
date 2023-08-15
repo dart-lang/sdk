@@ -55,5 +55,8 @@ A<C*>
 A<C?>
 A<C>
 <T extends bool>(T) -> void
+extension type ExtensionType(int it);
+extension type GenericExtensionType<T>(T it);
+extension type GenericExtensionType(int it) implements num;
 """);
 }

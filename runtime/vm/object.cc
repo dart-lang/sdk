@@ -1637,8 +1637,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
           UntaggedObject::ClassIdTag::update(kTypedDataInt8ArrayCid, 0);
       new_tags = UntaggedObject::SizeTag::update(leftover_size, new_tags);
       const bool is_old = obj.ptr()->IsOldObject();
-      new_tags = UntaggedObject::AlwaysSetBit::update(true, new_tags);
-      new_tags = UntaggedObject::NotMarkedBit::update(true, new_tags);
+      new_tags = UntaggedObject::OldBit::update(is_old, new_tags);
+      new_tags = UntaggedObject::OldAndNotMarkedBit::update(is_old, new_tags);
       new_tags =
           UntaggedObject::OldAndNotRememberedBit::update(is_old, new_tags);
       new_tags = UntaggedObject::NewBit::update(!is_old, new_tags);
@@ -1660,8 +1660,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       uword new_tags = UntaggedObject::ClassIdTag::update(kInstanceCid, 0);
       new_tags = UntaggedObject::SizeTag::update(leftover_size, new_tags);
       const bool is_old = obj.ptr()->IsOldObject();
-      new_tags = UntaggedObject::AlwaysSetBit::update(true, new_tags);
-      new_tags = UntaggedObject::NotMarkedBit::update(true, new_tags);
+      new_tags = UntaggedObject::OldBit::update(is_old, new_tags);
+      new_tags = UntaggedObject::OldAndNotMarkedBit::update(is_old, new_tags);
       new_tags =
           UntaggedObject::OldAndNotRememberedBit::update(is_old, new_tags);
       new_tags = UntaggedObject::NewBit::update(!is_old, new_tags);
@@ -2799,8 +2799,8 @@ void Object::InitializeObject(uword address,
   tags = UntaggedObject::SizeTag::update(size, tags);
   const bool is_old =
       (address & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
-  tags = UntaggedObject::AlwaysSetBit::update(true, tags);
-  tags = UntaggedObject::NotMarkedBit::update(true, tags);
+  tags = UntaggedObject::OldBit::update(is_old, tags);
+  tags = UntaggedObject::OldAndNotMarkedBit::update(is_old, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
   tags = UntaggedObject::NewBit::update(!is_old, tags);
   tags = UntaggedObject::ImmutableBit::update(
@@ -15259,12 +15259,12 @@ intptr_t KernelProgramInfo::KernelLibraryStartOffset(
     intptr_t library_index) const {
   const auto& blob = TypedDataBase::Handle(kernel_component());
   const intptr_t library_count =
-      Utils::BigEndianToHost32(*reinterpret_cast<uint32_t*>(
-          blob.DataAddr(blob.LengthInBytes() - 2 * 4)));
+      Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
+          blob.DataAddr(blob.LengthInBytes() - 2 * 4))));
   const intptr_t library_start =
-      Utils::BigEndianToHost32(*reinterpret_cast<uint32_t*>(
+      Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
           blob.DataAddr(blob.LengthInBytes() -
-                        (2 + 1 + (library_count - library_index)) * 4)));
+                        (2 + 1 + (library_count - library_index)) * 4))));
   return library_start;
 }
 
@@ -15280,11 +15280,11 @@ intptr_t KernelProgramInfo::KernelLibraryEndOffset(
     intptr_t library_index) const {
   const auto& blob = TypedDataBase::Handle(kernel_component());
   const intptr_t library_count =
-      Utils::BigEndianToHost32(*reinterpret_cast<uint32_t*>(
-          blob.DataAddr(blob.LengthInBytes() - 2 * 4)));
-  const intptr_t library_end =
-      Utils::BigEndianToHost32(*reinterpret_cast<uint32_t*>(blob.DataAddr(
-          blob.LengthInBytes() - (2 + (library_count - library_index)) * 4)));
+      Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
+          blob.DataAddr(blob.LengthInBytes() - 2 * 4))));
+  const intptr_t library_end = Utils::BigEndianToHost32(
+      LoadUnaligned(reinterpret_cast<uint32_t*>(blob.DataAddr(
+          blob.LengthInBytes() - (2 + (library_count - library_index)) * 4))));
   return library_end;
 }
 
@@ -26935,10 +26935,12 @@ SuspendStatePtr SuspendState::Clone(Thread* thread,
     dst.set_pc(src.pc());
     // Trigger write barrier if needed.
     if (dst.ptr()->IsOldObject()) {
-      dst.untag()->EnsureInRememberedSet(thread);
-    }
-    if (thread->is_marking()) {
-      thread->DeferredMarkingStackAddObject(dst.ptr());
+      if (!dst.untag()->IsRemembered()) {
+        dst.untag()->EnsureInRememberedSet(thread);
+      }
+      if (thread->is_marking()) {
+        thread->DeferredMarkingStackAddObject(dst.ptr());
+      }
     }
   }
   return dst.ptr();

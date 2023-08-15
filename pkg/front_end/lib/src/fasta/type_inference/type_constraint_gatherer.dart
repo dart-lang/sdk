@@ -1160,7 +1160,8 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
   List<DartType>? getExtensionTypeArgumentsAsInstanceOf(
       ExtensionType type, ExtensionTypeDeclaration superclass) {
     return environment.hierarchy
-        .getExtensionTypeArgumentsAsInstanceOf(type, superclass);
+        .getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
+            type, superclass);
   }
 
   @override

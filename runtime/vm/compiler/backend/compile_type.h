@@ -11,6 +11,7 @@
 
 #include "vm/allocation.h"
 #include "vm/class_id.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/compiler/runtime_api.h"
 
 namespace dart {
@@ -136,6 +137,11 @@ class CompileType : public ZoneAllocated {
   // Resulting CompileType can be sentinel only if cid is kDynamicCid or
   // kSentinelCid.
   static CompileType FromCid(intptr_t cid);
+
+  // Create a new CompileType representing an unboxed value
+  // with given unboxed representation.
+  // Resulting CompileType cannot be null and cannot be sentinel.
+  static CompileType FromUnboxedRepresentation(Representation rep);
 
   // Create None CompileType. It is the bottom of the lattice and is used to
   // represent type of the phi that was not yet inferred.
