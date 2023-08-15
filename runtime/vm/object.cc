@@ -15259,12 +15259,12 @@ intptr_t KernelProgramInfo::KernelLibraryStartOffset(
     intptr_t library_index) const {
   const auto& blob = TypedDataBase::Handle(kernel_component());
   const intptr_t library_count =
-      Utils::BigEndianToHost32(*reinterpret_cast<uint32_t*>(
-          blob.DataAddr(blob.LengthInBytes() - 2 * 4)));
+      Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
+          blob.DataAddr(blob.LengthInBytes() - 2 * 4))));
   const intptr_t library_start =
-      Utils::BigEndianToHost32(*reinterpret_cast<uint32_t*>(
+      Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
           blob.DataAddr(blob.LengthInBytes() -
-                        (2 + 1 + (library_count - library_index)) * 4)));
+                        (2 + 1 + (library_count - library_index)) * 4))));
   return library_start;
 }
 
@@ -15280,11 +15280,11 @@ intptr_t KernelProgramInfo::KernelLibraryEndOffset(
     intptr_t library_index) const {
   const auto& blob = TypedDataBase::Handle(kernel_component());
   const intptr_t library_count =
-      Utils::BigEndianToHost32(*reinterpret_cast<uint32_t*>(
-          blob.DataAddr(blob.LengthInBytes() - 2 * 4)));
-  const intptr_t library_end =
-      Utils::BigEndianToHost32(*reinterpret_cast<uint32_t*>(blob.DataAddr(
-          blob.LengthInBytes() - (2 + (library_count - library_index)) * 4)));
+      Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
+          blob.DataAddr(blob.LengthInBytes() - 2 * 4))));
+  const intptr_t library_end = Utils::BigEndianToHost32(
+      LoadUnaligned(reinterpret_cast<uint32_t*>(blob.DataAddr(
+          blob.LengthInBytes() - (2 + (library_count - library_index)) * 4))));
   return library_end;
 }
 
