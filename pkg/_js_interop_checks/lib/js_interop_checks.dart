@@ -658,8 +658,7 @@ class JsInteropChecks extends RecursiveVisitor {
   ///
   /// Tear-offs of the following are disallowed when using dart:js_interop:
   ///
-  /// - External extension type constructors and factories (TODO(srujzs): Add
-  /// checks for factories once they're added.)
+  /// - External extension type constructors and factories
   /// - External factories of @staticInterop classes
   /// - External interop extension type methods
   /// - External interop extension methods on @staticInterop or extension types

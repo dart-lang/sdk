@@ -851,6 +851,7 @@ class ExtensionIndex {
           _extensionTypeIndex[reference] = extensionType;
           if (descriptor.kind == ExtensionTypeMemberKind.Method ||
               descriptor.kind == ExtensionTypeMemberKind.Constructor ||
+              descriptor.kind == ExtensionTypeMemberKind.Factory ||
               descriptor.kind == ExtensionTypeMemberKind.TearOff) {
             final descriptorName = descriptor.name.text;
             if (descriptorNames.containsKey(descriptorName)) {

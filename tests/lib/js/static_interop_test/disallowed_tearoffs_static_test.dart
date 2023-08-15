@@ -14,10 +14,9 @@ extension type ExtensionType.nonExternal(JSObject _) {
   external ExtensionType();
   external ExtensionType.named();
   external ExtensionType.literal({JSNumber? a});
-  // TODO(srujzs): Once we have extension type factories, test these.
-  // external factory ExtensionType.fact();
-  // external factory ExtensionType.literalFact({JSNumber? a});
-  // factory ExtensionType.nonExternalFact() => ExtensionType();
+  external factory ExtensionType.fact();
+  external factory ExtensionType.literalFact({JSNumber? a});
+  factory ExtensionType.nonExternalFact() => ExtensionType();
 
   external static void externalStatic();
   static void nonExternalStatic() {}
@@ -110,11 +109,16 @@ void testConstructors() {
 //^
 // [web] Tear-offs of external extension type interop member 'new' are disallowed.
 
-  // TODO(srujzs): Once we have factories available, test these.
-  // ExtensionType.fact;
-  // ExtensionType.literalFact;
-  // ExtensionType.nonExternalFact;
-  // const [ExtensionType.fact];
+  ExtensionType.fact;
+//^
+// [web] Tear-offs of external extension type interop member 'fact' are disallowed.
+  ExtensionType.literalFact;
+//^
+// [web] Tear-offs of external extension type interop member 'literalFact' are disallowed.
+  ExtensionType.nonExternalFact;
+  const [ExtensionType.fact];
+//^
+// [web] Tear-offs of external extension type interop member 'fact' are disallowed.
 
   StaticInterop.new;
 //^
