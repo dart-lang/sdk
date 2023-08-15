@@ -47,11 +47,12 @@
 #### `dart:async`
 
 - **Breaking change** [#52334][]:
-  - Added `interface` modifier to purely abstract classes:
+  - Added the `interface` modifier to purely abstract classes:
     `MultiStreamController`, `StreamConsumer`, `StreamIterator` and
-    `StreamTransformer`.
+    `StreamTransformer`. As a result, these types can only be implemented,
+    not extended or mixed in.
 
-[#52334]: https://dartbug.com/52334
+[#52334]: https://github.com/dart-lang/sdk/issues/52334
 
 #### `dart:convert`
 
@@ -59,14 +60,14 @@
   - Changed return types of `utf8.encode()` and `Utf8Codec.encode()` from
     `List<int>` to `Uint8List`.
 
-[#52801]: https://dartbug.com/52801
+[#52801]: https://github.com/dart-lang/sdk/issues/52801
 
 #### `dart:core`
 
-- `Uri.base` on native platforms now respectes `IOOverrides` overriding
+- `Uri.base` on native platforms now respects `IOOverrides` overriding
    current directory ([#39796][]).
 
-[#39796]: https://darbug.com/39796
+[#39796]: https://github.com/dart-lang/sdk/issues/39796
 
 #### `dart:io`
 
@@ -119,7 +120,8 @@
 This is a patch release that:
 
 - Fixes a bug in dart2js which would cause certain uses of records to lead to
-  bad codegen causing TypeErrors/NoSuchMethodErrors at runtime (issue [#53001]).
+  bad codegen causing a `TypeError` or `NoSuchMethodError` to be thrown
+  at runtime (issue [#53001]).
 
 [#53001]: https://github.com/dart-lang/sdk/issues/53001
 
@@ -152,27 +154,27 @@ This is a patch release that:
 
 This is a patch release that:
 
-- Handles formatting nullable record types with no fields (dart_style issue [#1224]).
+- `dart format` now handles formatting nullable record types
+  with no fields (dart_style issue [#1224]).
 - Fixes error when using records when targeting the web in development mode
-(issue [#52480]).
-- Fixes a bad cast in the frontend which can manifest as a crash in the dart2js
-`ListFactorySpecializer` during Flutter web builds (issue [#52403]).
+  (issue [#52480]).
 
 [#1224]: https://github.com/dart-lang/dart_style/issues/1224
-[#52403]: https://github.com/dart-lang/sdk/issues/52403
 [#52480]: https://github.com/dart-lang/sdk/issues/52480
 
 ## 3.0.3 - 2023-02-07
 
 This is a patch release that:
 
-- Fixes an AOT compiler crash when generating an implicit getter returning an unboxed record (issue [#52449]).
-- Fixes a situation in which variables appearing in multiple branches of an or-pattern might be erroneously reported as being mismatched (issue [#52373]).
+- Fixes an AOT compiler crash when generating an implicit getter
+  returning an unboxed record (issue [#52449]).
+- Fixes a situation in which variables appearing in multiple branches of an
+  or-pattern might be erroneously reported as being mismatched (issue [#52373]).
 - Adds missing `interface` modifiers on the purely abstract classes
   `MultiStreamController`, `StreamConsumer`, `StreamIterator` and
-  `StreamTransformer` ([#52334]).
+  `StreamTransformer` (issue [#52334]).
 - Fixes an error during debugging when `InternetAddress.tryParse` is
-used (issue [#52423]).
+  used (issue [#52423]).
 - Fixes a VM issue causing crashes on hot reload (issue [#126884]).
 - Improves linter support (issue [#4195]).
 - Fixes an issue in variable patterns preventing users from expressing
@@ -194,12 +196,14 @@ used (issue [#52423]).
 
 This is a patch release that:
 
-- Fixes a dart2js crash when using a switch case expression on a record where the fields don't match the cases. (issue [#52438]).
-- Add chips for class and mixin pages on dartdoc generated pages. (issue [#3392]).
+- Fixes a dart2js crash when using a switch case expression on a record where
+  the fields don't match the cases (issue [#52438]).
+- Add class modifier chips on class and mixin pages
+  generated with `dart doc` (issue [#3392]).
 - Fixes a situation causing the parser to fail resulting in an infinite loop
-leading to higher memory usage. (issue [#52352]).
-- Add clear errors when mixing inheritence in pre and post Dart 3 libraries.
-(issue: [#52078]).
+  leading to higher memory usage (issue [#52352]).
+- Add clear errors when mixing inheritance in pre and post Dart 3 libraries
+  (issue: [#52078]).
 
 [#52438]: https://github.com/dart-lang/sdk/issues/52438
 [#3392]: https://github.com/dart-lang/dartdoc/issues/3392
@@ -220,7 +224,7 @@ This is a patch release that:
   refers to a private getter (issue [#52041]).
 - Prevent the use of `when` and `as` as variable names in patterns
   (issue [#52260]).
-- Fixes an inconsistency in type promotion between the analuzer and VM
+- Fixes an inconsistency in type promotion between the analyzer and VM
   (issue [#52241]).
 - Improve performance on functions with many parameters (issue [#1212]).
 
@@ -380,7 +384,7 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 [mixin class]: https://dart.dev/language/mixins#class-mixin-or-mixin-class
 [#50902]: https://github.com/dart-lang/sdk/issues/50902
 [label]: https://dart.dev/language/branches#switch
-[language/#2357][]: https://github.com/dart-lang/language/issues/2357
+[language/#2357]: https://github.com/dart-lang/language/issues/2357
 
 ### Libraries
 
@@ -502,7 +506,7 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [`DeferredLibrary`]: https://api.dart.dev/stable/2.18.4/dart-async/DeferredLibrary-class.html
-[`deferred as`]: https://dart.dev/guides/language/language-tour#deferred-loading
+[`deferred as`]: https://dart.dev/language/libraries#deferred-loading
 
 #### `dart:collection`
 
@@ -547,7 +551,7 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [#50231]: https://github.com/dart-lang/sdk/issues/50231
-[`MAX_USER_TAGS`]: https://api.dart.dev/stable/dart-developer/UserTag/MAX_USER_TAGS-constant.html
+[`MAX_USER_TAGS`]: https://api.dart.dev/stable/2.19.6/dart-developer/UserTag/MAX_USER_TAGS-constant.html
 [`maxUserTags`]: https://api.dart.dev/beta/2.19.0-255.2.beta/dart-developer/UserTag/maxUserTags-constant.html
 [`Metrics`]: https://api.dart.dev/stable/2.18.2/dart-developer/Metrics-class.html
 [`Metric`]: https://api.dart.dev/stable/2.18.2/dart-developer/Metric-class.html
@@ -649,7 +653,7 @@ information on the flag, see [NATIVE_NULL_ASSERTIONS.md][].
 - Protects the Dart Analysis Server against extreme memory usage by limiting
   the number of plugins per analysis context to 1. (issue [#50981][]).
 
-[changing the severity of rules]: https://dart.dev/guides/language/analysis-options#changing-the-severity-of-rules
+[changing the severity of rules]: https://dart.dev/tools/analysis#changing-the-severity-of-rules
 [Dart SDK constraint]: https://dart.dev/tools/pub/pubspec#sdk-constraints
 
 #### Linter
@@ -743,7 +747,7 @@ This is a patch release that:
 
 This is a patch release that:
 
-- Fixes fixes broken usage of `Dart_CObject_Type`. (issue [#51459]).
+- Fixes broken usage of `Dart_CObject_Type`. (issue [#51459]).
 
 [#51459]: https://github.com/dart-lang/sdk/issues/51459
 
