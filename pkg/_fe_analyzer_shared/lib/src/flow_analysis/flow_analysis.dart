@@ -3052,7 +3052,7 @@ class SsaNode<Type extends Object> {
       Map<int, VariableModel<Type>> firstVariableInfo,
       SsaNode<Type> second,
       Map<int, VariableModel<Type>> secondVariableInfo,
-      final Map<int, VariableModel<Type>> newVariableInfo) {
+      Map<int, VariableModel<Type>> newVariableInfo) {
     if (first == second) return first;
     return new SsaNode.withProperties(null,
         promotableProperties: _joinProperties(
