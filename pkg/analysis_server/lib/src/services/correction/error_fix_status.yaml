@@ -3650,6 +3650,10 @@ WarningCode.RECEIVER_OF_TYPE_NEVER:
     We _could_ remove the thing being received (method invocation, etc.)
 WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
   status: hasFix
+WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER:
+  status: needsFix
+  notes: |-
+    The fix is to remove the annotation.
 WarningCode.REMOVED_LINT_USE:
   status: needsFix
 WarningCode.REPLACED_LINT_USE:

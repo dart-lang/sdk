@@ -32,6 +32,7 @@ import 'package:analyzer/src/error/imports_verifier.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/language_version_override_verifier.dart';
 import 'package:analyzer/src/error/override_verifier.dart';
+import 'package:analyzer/src/error/redeclare_verifier.dart';
 import 'package:analyzer/src/error/todo_finder.dart';
 import 'package:analyzer/src/error/unicode_text_verifier.dart';
 import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
@@ -443,6 +444,12 @@ class LibraryAnalyzer {
     );
 
     unit.accept(OverrideVerifier(
+      _inheritance,
+      _libraryElement,
+      errorReporter,
+    ));
+
+    unit.accept(RedeclareVerifier(
       _inheritance,
       _libraryElement,
       errorReporter,

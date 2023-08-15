@@ -593,6 +593,9 @@ abstract class Element implements AnalysisTarget {
   /// Whether the element has an annotation of the form `@protected`.
   bool get hasProtected;
 
+  /// Whether the element has an annotation of the form `@redeclare`.
+  bool get hasRedeclare;
+
   /// Whether the element has an annotation of the form `@reopen`.
   bool get hasReopen;
 
