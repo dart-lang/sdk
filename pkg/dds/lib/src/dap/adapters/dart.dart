@@ -1096,7 +1096,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// If no message could be extracted, returns the whole original error.
   String extractEvaluationErrorMessage(String rawError) {
     final match = _evalErrorMessagePattern.firstMatch(rawError);
-    final shortError = match != null ? match.group(1)! : null;
+    final shortError = match?.group(1);
     return shortError ?? rawError;
   }
 
@@ -1105,7 +1105,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// If no message could be extracted, returns the whole original error.
   String extractUnhandledExceptionMessage(String rawError) {
     final match = _exceptionMessagePattern.firstMatch(rawError);
-    final shortError = match != null ? match.group(1)! : null;
+    final shortError = match?.group(1);
     return shortError ?? rawError;
   }
 

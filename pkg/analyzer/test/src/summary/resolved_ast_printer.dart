@@ -253,6 +253,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('Comment');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      if (node.fencedCodeBlocks.isNotEmpty) {
+        _sink.writelnWithIndent('fencedCodeBlocks');
+        _sink.withIndent(() {
+          for (var fencedCodeBlock in node.fencedCodeBlocks) {
+            _writeMdFencedCodeBlock(fencedCodeBlock);
+          }
+        });
+      }
     });
   }
 
@@ -1700,6 +1708,25 @@ Expected parent: (${parent.runtimeType}) $parent
         _writeType('type', element.type);
       });
     }
+  }
+
+  void _writeMdFencedCodeBlock(MdFencedCodeBlock fencedCodeBlock) {
+    _sink.writelnWithIndent('MdFencedCodeBlock');
+    _sink.withIndent(() {
+      var infoString = fencedCodeBlock.infoString;
+      _sink.writelnWithIndent('infoString: ${infoString ?? '<empty>'}');
+      assert(fencedCodeBlock.lines.isNotEmpty);
+      _sink.writelnWithIndent('lines');
+      _sink.withIndent(() {
+        for (var line in fencedCodeBlock.lines) {
+          _sink.writelnWithIndent('MdFencedCodeBlockLine');
+          _sink.withIndent(() {
+            _sink.writelnWithIndent('offset: ${line.offset}');
+            _sink.writelnWithIndent('length: ${line.length}');
+          });
+        }
+      });
+    });
   }
 
   void _writeNamedChildEntities(AstNode node) {

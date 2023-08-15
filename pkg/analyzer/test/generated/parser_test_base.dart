@@ -817,8 +817,7 @@ class ParserProxy extends analyzer.Parser {
     });
   }
 
-  List<CommentReference> parseCommentReferences(
-      List<DocumentationCommentToken> tokens) {
+  Comment parseComment(List<DocumentationCommentToken> tokens) {
     for (int index = 0; index < tokens.length - 1; ++index) {
       var next = tokens[index].next;
       if (next == null) {
@@ -827,14 +826,13 @@ class ParserProxy extends analyzer.Parser {
         expect(next, tokens[index + 1]);
       }
     }
-    expect(tokens[tokens.length - 1].next, isNull);
-    List<CommentReference> references =
-        astBuilder.parseCommentReferences(tokens.first);
+    expect(tokens.last.next, isNull);
+    var comment = astBuilder.parseDocComment(tokens.first);
     if (astBuilder.stack.isNotEmpty) {
       throw 'Expected empty stack, but found:'
           '\n  ${astBuilder.stack.values.join('\n  ')}';
     }
-    return references;
+    return comment;
   }
 
   @override

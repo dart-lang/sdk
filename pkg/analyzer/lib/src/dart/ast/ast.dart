@@ -3225,6 +3225,10 @@ sealed class CombinatorImpl extends AstNodeImpl implements Combinator {
 ///        '/ **' (CHARACTER | [CommentReference])* '&#42;/'
 ///      | ('///' (CHARACTER - EOL)* EOL)+
 abstract final class Comment implements AstNode {
+  /// The fenced code blocks parsed in this comment.
+  @experimental
+  List<MdFencedCodeBlock> get fencedCodeBlocks;
+
   /// Return `true` if this is a block comment.
   bool get isBlock;
 
@@ -3270,6 +3274,9 @@ final class CommentImpl extends AstNodeImpl implements Comment {
   /// within it.
   final NodeListImpl<CommentReferenceImpl> _references = NodeListImpl._();
 
+  @override
+  final List<MdFencedCodeBlock> fencedCodeBlocks;
+
   /// Initialize a newly created comment. The list of [tokens] must contain at
   /// least one token. The [_type] is the type of the comment. The list of
   /// [references] can be empty if the comment does not contain any embedded
@@ -3278,6 +3285,7 @@ final class CommentImpl extends AstNodeImpl implements Comment {
     required this.tokens,
     required CommentType type,
     required List<CommentReferenceImpl> references,
+    required this.fencedCodeBlocks,
   }) : _type = type {
     _references._initialize(this, references);
   }
@@ -11940,6 +11948,45 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
     typeArguments?.accept(visitor);
     elements.accept(visitor);
   }
+}
+
+/// A Markdown fenced code block found in a documentation comment.
+@experimental
+final class MdFencedCodeBlock {
+  /// The 'info string'.
+  ///
+  /// This includes any text following the opening backticks. For example, in
+  /// a fenced code block starting with "```dart", the info string is "dart".
+  ///
+  /// If no text follows the opening backticks, the info string is `null`.
+  ///
+  /// See CommonMark specification at
+  /// <https://spec.commonmark.org/0.30/#fenced-code-blocks>.
+  final String? infoString;
+
+  /// Information about the comment lines that make up this code block.
+  final List<MdFencedCodeBlockLine> lines;
+
+  MdFencedCodeBlock({
+    required this.infoString,
+    required List<MdFencedCodeBlockLine> lines,
+  }) : lines = List.of(lines, growable: false);
+}
+
+/// A Markdown fenced code block line found in a documentation comment.
+@experimental
+final class MdFencedCodeBlockLine {
+  /// The offset of the start of the fenced code block, from the beginning of
+  /// compilation unit.
+  final int offset;
+
+  /// The length of the fenced code block.
+  final int length;
+
+  MdFencedCodeBlockLine({
+    required this.offset,
+    required this.length,
+  });
 }
 
 /// A method declaration.
