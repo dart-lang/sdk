@@ -2331,7 +2331,7 @@ void Slot::Write(FlowGraphSerializer* s) const {
       s->Write<int8_t>(flags_);
       s->Write<intptr_t>(offset_in_bytes_);
       s->Write<const String&>(*DataAs<const String>());
-      s->Write<const AbstractType&>(*static_type_);
+      type_.Write(s);
       break;
     case Kind::kDartField:
       s->Write<const Field&>(field());
@@ -2344,18 +2344,17 @@ void Slot::Write(FlowGraphSerializer* s) const {
 const Slot& Slot::Read(FlowGraphDeserializer* d) {
   const Kind kind = static_cast<Kind>(d->Read<serializable_type_t<Kind>>());
   int8_t flags = 0;
-  ClassIdTagType cid = kDynamicCid;
   intptr_t offset = -1;
   const void* data = nullptr;
-  const AbstractType* static_type = nullptr;
+  CompileType type = CompileType::None();
   Representation representation = kTagged;
 
   switch (kind) {
     case Kind::kTypeArguments:
       flags = d->Read<int8_t>();
       offset = d->Read<intptr_t>();
-      cid = kTypeArgumentsCid;
       data = ":type_arguments";
+      type = CompileType::FromCid(kTypeArgumentsCid);
       break;
     case Kind::kTypeArgumentsIndex:
       flags =
@@ -2363,24 +2362,26 @@ const Slot& Slot::Read(FlowGraphDeserializer* d) {
           IsCompressedBit::encode(TypeArguments::ContainsCompressedPointers());
       offset = d->Read<intptr_t>();
       data = ":argument";
+      type = CompileType(CompileType::kCannotBeNull,
+                         CompileType::kCannotBeSentinel, kDynamicCid, nullptr);
       break;
     case Kind::kArrayElement:
-      flags = IsNullableBit::encode(true) |
-              IsCompressedBit::encode(Array::ContainsCompressedPointers());
+      flags = IsCompressedBit::encode(Array::ContainsCompressedPointers());
       offset = d->Read<intptr_t>();
       data = ":array_element";
+      type = CompileType::Dynamic();
       break;
     case Kind::kRecordField:
-      flags = IsNullableBit::encode(true) |
-              IsCompressedBit::encode(Record::ContainsCompressedPointers());
+      flags = IsCompressedBit::encode(Record::ContainsCompressedPointers());
       offset = d->Read<intptr_t>();
       data = ":record_field";
+      type = CompileType::Dynamic();
       break;
     case Kind::kCapturedVariable:
       flags = d->Read<int8_t>();
       offset = d->Read<intptr_t>();
       data = &d->Read<const String&>();
-      static_type = &d->Read<const AbstractType&>();
+      type = CompileType(d);
       break;
     case Kind::kDartField: {
       const Field& field = d->Read<const Field&>();
@@ -2390,8 +2391,8 @@ const Slot& Slot::Read(FlowGraphDeserializer* d) {
       return Slot::GetNativeSlot(kind);
   }
 
-  return GetCanonicalSlot(d->thread(), kind, flags, cid, offset, data,
-                          static_type, representation);
+  return GetCanonicalSlot(d->thread(), kind, flags, offset, data, type,
+                          representation);
 }
 
 template <>

@@ -1320,8 +1320,15 @@ ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_RepresentationChange) {
   TestRepresentationChangeDuringCanonicalization(thread, false);
 }
 
-static void TestCanonicalizationOfTypedDataViewFieldLoads(Thread* thread,
-                                                          const Slot& field) {
+enum TypeDataField {
+  TypedDataBase_length,
+  TypedDataView_offset_in_bytes,
+  TypedDataView_typed_data,
+};
+
+static void TestCanonicalizationOfTypedDataViewFieldLoads(
+    Thread* thread,
+    TypeDataField field_kind) {
   const auto& typed_data_lib = Library::Handle(Library::TypedDataLibrary());
   const auto& view_cls = Class::Handle(
       typed_data_lib.LookupClassAllowPrivate(Symbols::_Float32ArrayView()));
@@ -1335,6 +1342,19 @@ static void TestCanonicalizationOfTypedDataViewFieldLoads(Thread* thread,
   using compiler::BlockBuilder;
   CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
   FlowGraphBuilderHelper H;
+
+  const Slot* field = nullptr;
+  switch (field_kind) {
+    case TypedDataBase_length:
+      field = &Slot::TypedDataBase_length();
+      break;
+    case TypedDataView_offset_in_bytes:
+      field = &Slot::TypedDataView_offset_in_bytes();
+      break;
+    case TypedDataView_typed_data:
+      field = &Slot::TypedDataView_typed_data();
+      break;
+  }
 
   auto b1 = H.flow_graph()->graph_entry()->normal_entry();
 
@@ -1359,29 +1379,32 @@ static void TestCanonicalizationOfTypedDataViewFieldLoads(Thread* thread,
         DeoptId::kNone, 1, ICData::RebindRule::kStatic));
     // array_alias <- LoadField(view.length)
     load = builder.AddDefinition(
-        new LoadFieldInstr(new Value(view), field, InstructionSource()));
+        new LoadFieldInstr(new Value(view), *field, InstructionSource()));
     // Return(load)
     ret = builder.AddReturn(new Value(load));
   }
   H.FinishGraph();
   H.flow_graph()->Canonicalize();
 
-  if (field.IsIdentical(Slot::TypedDataBase_length())) {
-    EXPECT_PROPERTY(ret->value()->definition(), &it == constant_1);
-  } else if (field.IsIdentical(Slot::TypedDataView_offset_in_bytes())) {
-    EXPECT_PROPERTY(ret->value()->definition(), &it == constant_4);
-  } else if (field.IsIdentical(Slot::TypedDataView_typed_data())) {
-    EXPECT_PROPERTY(ret->value()->definition(), &it == array);
+  switch (field_kind) {
+    case TypedDataBase_length:
+      EXPECT_PROPERTY(ret->value()->definition(), &it == constant_1);
+      break;
+    case TypedDataView_offset_in_bytes:
+      EXPECT_PROPERTY(ret->value()->definition(), &it == constant_4);
+      break;
+    case TypedDataView_typed_data:
+      EXPECT_PROPERTY(ret->value()->definition(), &it == array);
+      break;
   }
 }
 
 ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_TypedDataViewFactory) {
+  TestCanonicalizationOfTypedDataViewFieldLoads(thread, TypedDataBase_length);
   TestCanonicalizationOfTypedDataViewFieldLoads(thread,
-                                                Slot::TypedDataBase_length());
-  TestCanonicalizationOfTypedDataViewFieldLoads(
-      thread, Slot::TypedDataView_offset_in_bytes());
-  TestCanonicalizationOfTypedDataViewFieldLoads(
-      thread, Slot::TypedDataView_typed_data());
+                                                TypedDataView_offset_in_bytes);
+  TestCanonicalizationOfTypedDataViewFieldLoads(thread,
+                                                TypedDataView_typed_data);
 }
 
 // Check that canonicalize can devirtualize InstanceCall based on type

@@ -776,7 +776,7 @@ void CallSpecializer::InlineImplicitInstanceGetter(Definition* call,
   }
   ReplaceCall(call, load);
 
-  if (load->slot().nullable_cid() != kDynamicCid) {
+  if (load->slot().type().ToNullableCid() != kDynamicCid) {
     // Reset value types if we know concrete cid.
     for (Value::Iterator it(load->input_use_list()); !it.Done(); it.Advance()) {
       it.Current()->SetReachingType(nullptr);
