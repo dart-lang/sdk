@@ -1048,10 +1048,25 @@ struct InferredTypeMetadata {
 // Helper class which provides access to inferred type metadata.
 class InferredTypeMetadataHelper : public MetadataHelper {
  public:
-  static const char* tag() { return "vm.inferred-type.metadata"; }
+  enum class Kind {
+    Type,     // Inferred type of a call, field or variable.
+    ArgType,  // Inferred incoming argument type.
+  };
+
+  static const char* tag(Kind kind) {
+    switch (kind) {
+      case Kind::Type:
+        return "vm.inferred-type.metadata";
+      case Kind::ArgType:
+        return "vm.inferred-arg-type.metadata";
+    }
+    UNREACHABLE();
+    return nullptr;
+  }
 
   explicit InferredTypeMetadataHelper(KernelReaderHelper* helper,
-                                      ConstantReader* constant_reader);
+                                      ConstantReader* constant_reader,
+                                      Kind kind = Kind::Type);
 
   InferredTypeMetadata GetInferredType(intptr_t node_offset,
                                        bool read_constant = true);

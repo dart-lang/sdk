@@ -1296,7 +1296,7 @@ class Instruction : public ZoneAllocated {
     return false;
   }
 
-  virtual void InheritDeoptTarget(Zone* zone, Instruction* other);
+  void InheritDeoptTarget(Zone* zone, Instruction* other);
 
   bool NeedsEnvironment() const {
     return ComputeCanDeoptimize() || ComputeCanDeoptimizeAfterCall() ||
@@ -1360,7 +1360,7 @@ class Instruction : public ZoneAllocated {
   // Fetch deopt id without checking if this computation can deoptimize.
   intptr_t GetDeoptId() const { return deopt_id_; }
 
-  void CopyDeoptIdFrom(const Instruction& instr) {
+  virtual void CopyDeoptIdFrom(const Instruction& instr) {
     deopt_id_ = instr.deopt_id_;
   }
 
@@ -3776,7 +3776,10 @@ class BranchInstr : public Instruction {
   }
   TargetEntryInstr* constant_target() const { return constant_target_; }
 
-  virtual void InheritDeoptTarget(Zone* zone, Instruction* other);
+  virtual void CopyDeoptIdFrom(const Instruction& instr) {
+    Instruction::CopyDeoptIdFrom(instr);
+    comparison()->CopyDeoptIdFrom(instr);
+  }
 
   virtual bool MayThrow() const { return comparison()->MayThrow(); }
 
@@ -5208,6 +5211,11 @@ class IfThenElseInstr : public Definition {
   }
 
   virtual bool MayThrow() const { return comparison()->MayThrow(); }
+
+  virtual void CopyDeoptIdFrom(const Instruction& instr) {
+    Definition::CopyDeoptIdFrom(instr);
+    comparison()->CopyDeoptIdFrom(instr);
+  }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -10169,6 +10177,11 @@ class CheckConditionInstr : public Instruction {
   virtual Value* InputAt(intptr_t i) const { return comparison()->InputAt(i); }
 
   virtual bool MayThrow() const { return false; }
+
+  virtual void CopyDeoptIdFrom(const Instruction& instr) {
+    Instruction::CopyDeoptIdFrom(instr);
+    comparison()->CopyDeoptIdFrom(instr);
+  }
 
   PRINT_OPERANDS_TO_SUPPORT
 

@@ -136,3 +136,11 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
         concreteClassReference, constantValue, flags, null);
   }
 }
+
+/// Repository for incoming argument [InferredType].
+class InferredArgTypeMetadataRepository extends InferredTypeMetadataRepository {
+  static const String repositoryTag = 'vm.inferred-arg-type.metadata';
+
+  @override
+  String get tag => repositoryTag;
+}

@@ -9,7 +9,7 @@ import "dart:math";
 import "package:expect/expect.dart";
 
 abstract class TestNamedOrderBase extends core::Object {
-[@vm.unboxing-info.metadata=(i,i,i,i)->b]  constructor •([@vm.inferred-type.metadata=int] dynamic w, [@vm.inferred-type.metadata=int] core::int? x, [@vm.inferred-type.metadata=int] core::int? y, [@vm.inferred-type.metadata=int] core::int? z) → self::TestNamedOrderBase
+[@vm.unboxing-info.metadata=(i,i,i,i)->b]  constructor •([@vm.inferred-arg-type.metadata=int] dynamic w, [@vm.inferred-arg-type.metadata=int] core::int? x, [@vm.inferred-arg-type.metadata=int] core::int? y, [@vm.inferred-arg-type.metadata=int] core::int? z) → self::TestNamedOrderBase
     : super core::Object::•() {
     self::testNamedOrder(_in::unsafeCast<core::int>(w), x, y, z);
   }
@@ -26,7 +26,7 @@ class TestNamedOrderSub extends self::TestNamedOrderBase {
   return self::global = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=int] self::global.{core::num::+}(1){(core::num) → core::int};
 [@vm.unboxing-info.metadata=()->i]static method dec() → core::int
   return self::global = [@vm.inferred-type.metadata=int] math::max<core::int>(0, self::global = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.-] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=int] self::global.{core::num::-}(1){(core::num) → core::int});
-[@vm.unboxing-info.metadata=(i,i,i,i)->b]static method testNamedOrder([@vm.inferred-type.metadata=int] core::int w, [@vm.inferred-type.metadata=int] core::int? x, [@vm.inferred-type.metadata=int] core::int? y, [@vm.inferred-type.metadata=int] core::int? z) → void {
+[@vm.unboxing-info.metadata=(i,i,i,i)->b]static method testNamedOrder([@vm.inferred-arg-type.metadata=int] core::int w, [@vm.inferred-arg-type.metadata=int] core::int? x, [@vm.inferred-arg-type.metadata=int] core::int? y, [@vm.inferred-arg-type.metadata=int] core::int? z) → void {
   exp::Expect::equals(w, 1);
   exp::Expect::equals(z, 2);
   exp::Expect::equals(y, 3);

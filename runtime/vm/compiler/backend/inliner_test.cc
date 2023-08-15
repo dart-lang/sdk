@@ -8,6 +8,7 @@
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/il_test_helper.h"
 #include "vm/compiler/compiler_pass.h"
+#include "vm/debugger_api_impl_test.h"
 #include "vm/object.h"
 #include "vm/unit_test.h"
 
@@ -367,5 +368,303 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_of_inlined) {
 }
 
 #endif  // defined(DART_PRECOMPILER)
+
+// Test that when force-optimized functions get inlined, deopt_id and
+// environment for instructions coming from those functions get overwritten
+// by deopt_id and environment from the call itself.
+ISOLATE_UNIT_TEST_CASE(Inliner_InlineForceOptimized) {
+  const char* kScript = R"(
+    import 'dart:ffi';
+
+    @pragma('vm:never-inline')
+    int foo(int x) {
+      dynamic ptr = Pointer.fromAddress(x);
+      return x + ptr.hashCode;
+    }
+    main() {
+      int r = 0;
+      for (int i = 0; i < 1000; i++) {
+        r += foo(r);
+      }
+      return r;
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+
+  Invoke(root_library, "main");
+
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+      CompilerPass::kApplyICData,
+      CompilerPass::kTryOptimizePatterns,
+      CompilerPass::kSetOuterInliningId,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyClassIds,
+  });
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  StaticCallInstr* call_instr = nullptr;
+  {
+    ILMatcher cursor(flow_graph, entry);
+    RELEASE_ASSERT(cursor.TryMatch({
+        {kMoveGlob},
+        {kMatchAndMoveStaticCall, &call_instr},
+    }));
+    EXPECT(strcmp(call_instr->function().UserVisibleNameCString(),
+                  "Pointer.fromAddress") == 0);
+  }
+
+  pipeline.RunAdditionalPasses({
+      CompilerPass::kInlining,
+  });
+
+  AllocateObjectInstr* allocate_object_instr = nullptr;
+  {
+    ILMatcher cursor(flow_graph, entry);
+    RELEASE_ASSERT(cursor.TryMatch({
+        {kMoveGlob},
+        {kMatchAndMoveAllocateObject, &allocate_object_instr},
+    }));
+  }
+
+  // Ensure that AllocateObject instruction that came from force-optimized
+  // function has deopt and environment taken from the Call instruction.
+  EXPECT(call_instr->deopt_id() == allocate_object_instr->deopt_id());
+  EXPECT(DeoptId::IsDeoptBefore(call_instr->deopt_id()));
+
+  auto allocate_object_instr_env = allocate_object_instr->env();
+  EXPECT(allocate_object_instr_env->LazyDeoptToBeforeDeoptId());
+  EXPECT(allocate_object_instr_env->Outermost()->GetDeoptId() ==
+         call_instr->deopt_id());
+  const auto call_instr_env = call_instr->env();
+  const intptr_t call_first_index =
+      call_instr_env->Length() - call_instr->InputCount();
+  const intptr_t allocate_first_index =
+      allocate_object_instr_env->Length() - call_instr->InputCount();
+  for (intptr_t i = 0; i < call_instr->InputCount(); i++) {
+    EXPECT(call_instr_env->ValueAt(call_first_index + i)->definition() ==
+           allocate_object_instr_env->ValueAt(allocate_first_index + i)
+               ->definition());
+  }
+}
+
+static void TestPrint(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle handle = Dart_GetNativeArgument(args, 0);
+  const char* str = nullptr;
+  Dart_StringToCString(handle, &str);
+  OS::Print("%s\n", str);
+  Dart_ExitScope();
+}
+
+void InspectStack(Dart_NativeArguments args) {
+#ifndef PRODUCT
+  Dart_EnterScope();
+
+  Dart_StackTrace stacktrace;
+  Dart_Handle result = Dart_GetStackTrace(&stacktrace);
+  EXPECT_VALID(result);
+
+  intptr_t frame_count = 0;
+  result = Dart_StackTraceLength(stacktrace, &frame_count);
+  EXPECT_VALID(result);
+  EXPECT_EQ(3, frame_count);
+  // Test something bigger than the preallocated size to verify nothing was
+  // truncated.
+  EXPECT(102 > StackTrace::kPreallocatedStackdepth);
+
+  Dart_Handle function_name;
+  Dart_Handle script_url;
+  intptr_t line_number = 0;
+  intptr_t column_number = 0;
+  const char* cstr = "";
+  const char* test_lib = "file:///test-lib";
+
+  // Top frame is InspectStack().
+  Dart_ActivationFrame frame;
+  result = Dart_GetActivationFrame(stacktrace, 0, &frame);
+  EXPECT_VALID(result);
+  result = Dart_ActivationFrameInfo(frame, &function_name, &script_url,
+                                    &line_number, &column_number);
+  EXPECT_VALID(result);
+  Dart_StringToCString(function_name, &cstr);
+  EXPECT_STREQ("InspectStack", cstr);
+  Dart_StringToCString(script_url, &cstr);
+  EXPECT_STREQ(test_lib, cstr);
+  EXPECT_EQ(11, line_number);
+  EXPECT_EQ(24, column_number);
+
+  // Second frame is foo() positioned at call to InspectStack().
+  result = Dart_GetActivationFrame(stacktrace, 1, &frame);
+  EXPECT_VALID(result);
+  result = Dart_ActivationFrameInfo(frame, &function_name, &script_url,
+                                    &line_number, &column_number);
+  EXPECT_VALID(result);
+  Dart_StringToCString(function_name, &cstr);
+  EXPECT_STREQ("foo", cstr);
+  Dart_StringToCString(script_url, &cstr);
+  EXPECT_STREQ(test_lib, cstr);
+
+  // Bottom frame positioned at main().
+  result = Dart_GetActivationFrame(stacktrace, frame_count - 1, &frame);
+  EXPECT_VALID(result);
+  result = Dart_ActivationFrameInfo(frame, &function_name, &script_url,
+                                    &line_number, &column_number);
+  EXPECT_VALID(result);
+  Dart_StringToCString(function_name, &cstr);
+  EXPECT_STREQ("main", cstr);
+  Dart_StringToCString(script_url, &cstr);
+  EXPECT_STREQ(test_lib, cstr);
+
+  // Out-of-bounds frames.
+  result = Dart_GetActivationFrame(stacktrace, frame_count, &frame);
+  EXPECT(Dart_IsError(result));
+  result = Dart_GetActivationFrame(stacktrace, -1, &frame);
+  EXPECT(Dart_IsError(result));
+
+  Dart_SetReturnValue(args, Dart_NewInteger(42));
+  Dart_ExitScope();
+#endif  // !PRODUCT
+}
+
+static Dart_NativeFunction PrintAndInspectResolver(Dart_Handle name,
+                                                   int argument_count,
+                                                   bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != nullptr);
+  *auto_setup_scope = true;
+  const char* cstr = nullptr;
+  Dart_Handle result = Dart_StringToCString(name, &cstr);
+  EXPECT_VALID(result);
+  if (strcmp(cstr, "testPrint") == 0) {
+    return &TestPrint;
+  } else {
+    return &InspectStack;
+  }
+}
+
+TEST_CASE(Inliner_InlineAndRunForceOptimized) {
+  auto check_handle = [](Dart_Handle handle) {
+    if (Dart_IsError(handle)) {
+      OS::PrintErr("Encountered unexpected error: %s\n", Dart_GetError(handle));
+      FATAL("Aborting");
+    }
+    return handle;
+  };
+
+  auto get_integer = [&](Dart_Handle lib, const char* name) {
+    Dart_Handle handle = Dart_GetField(lib, check_handle(NewString(name)));
+    check_handle(handle);
+
+    int64_t value = 0;
+    handle = Dart_IntegerToInt64(handle, &value);
+    check_handle(handle);
+    OS::Print("Field '%s': %" Pd64 "\n", name, value);
+    return value;
+  };
+
+  const char* kScriptChars = R"(
+import 'dart:ffi';
+import 'dart:_internal';
+
+int _add(int a, int b) => a + b;
+
+@pragma('vm:external-name', "testPrint")
+external void print(String s);
+
+@pragma("vm:external-name", "InspectStack")
+external InspectStack();
+
+@pragma('vm:never-inline')
+void nop() {}
+
+int prologueCount = 0;
+int epilogueCount = 0;
+
+@pragma('vm:never-inline')
+void countPrologue() {
+  prologueCount++;
+  print('countPrologue: $prologueCount');
+}
+
+@pragma('vm:never-inline')
+void countEpilogue() {
+  epilogueCount++;
+  print('countEpilogue: $epilogueCount');
+}
+
+@pragma('vm:force-optimize')
+@pragma('vm:idempotent')
+@pragma('vm:prefer-inline')
+int idempotentForceOptimizedFunction(int x) {
+  countPrologue();
+  print('deoptimizing');
+
+  InspectStack();
+  VMInternalsForTesting.deoptimizeFunctionsOnStack();
+  InspectStack();
+  print('deoptimizing after');
+  countEpilogue();
+  return _add(x, 1);
+}
+
+@pragma('vm:never-inline')
+int foo(int x, {bool onlyOptimizeFunction = false}) {
+  if (onlyOptimizeFunction) {
+    print('Optimizing `foo`');
+    for (int i = 0; i < 100000; i++) nop();
+  }
+  print('Running `foo`');
+  return x + idempotentForceOptimizedFunction(x+1) + 1;
+}
+
+void main() {
+  for (int i = 0; i < 100; i++) {
+    print('\n\nround=$i');
+
+    // Get the `foo` function optimized while leaving prologue/epilogue counters
+    // untouched.
+    final (a, b) = (prologueCount, epilogueCount);
+    foo(i, onlyOptimizeFunction: true);
+    prologueCount = a;
+    epilogueCount = b;
+
+    // Execute the optimized function `foo` function (which has the
+    // `idempotentForceOptimizedFunction` inlined).
+    final result = foo(i);
+    if (result != (2 * i + 3)) throw 'Expected ${2 * i + 3} but got $result!';
+  }
+}
+    )";
+  DisableBackgroundCompilationScope scope;
+
+  Dart_Handle lib =
+      check_handle(TestCase::LoadTestScript(kScriptChars, nullptr));
+  Dart_SetNativeResolver(lib, &PrintAndInspectResolver, nullptr);
+
+  // We disable OSR to ensure we control when the function gets optimized,
+  // namely afer a call to `foo(..., onlyOptimizeFunction:true)` it will be
+  // optimized and during a call to `foo(...)` it will get deoptimized.
+  IsolateGroup::Current()->set_use_osr(false);
+
+  // Run the test.
+  check_handle(Dart_Invoke(lib, NewString("main"), 0, nullptr));
+
+  // Examine the result.
+  const int64_t prologue_count = get_integer(lib, "prologueCount");
+  const int64_t epilogue_count = get_integer(lib, "epilogueCount");
+
+  // We always call the "foo" function when its optimized (and it's optimized
+  // code has the call to `idempotentForceOptimizedFunction` inlined).
+  //
+  // The `idempotentForceOptimizedFunction` will always execute prologue,
+  // lazy-deoptimize the `foo` frame, that will make the `foo` re-try the call
+  // to `idempotentForceOptimizedFunction`.
+  // = > We should see the prologue of the force-optimized function to be
+  // executed twice as many times as epilogue.
+  EXPECT_EQ(epilogue_count * 2, prologue_count);
+}
 
 }  // namespace dart

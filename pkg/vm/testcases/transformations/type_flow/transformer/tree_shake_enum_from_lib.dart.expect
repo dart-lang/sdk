@@ -23,7 +23,7 @@ class UsedClass extends core::Object implements self::UnusedInterface {
     : super core::Object::•()
     ;
 }
-static method usedMethod([@vm.inferred-type.metadata=#lib::UsedClass] self::UnusedInterface c) → dynamic {
+static method usedMethod([@vm.inferred-arg-type.metadata=#lib::UsedClass] self::UnusedInterface c) → dynamic {
   [@vm.direct-call.metadata=#lib::UsedClass.usedInterfaceField] [@vm.inferred-type.metadata=!? (skip check)] c.{self::UnusedInterface::usedInterfaceField} = [@vm.direct-call.metadata=#lib::UsedClass.usedInterfaceField] [@vm.inferred-type.metadata=dart.core::Null? (value: null)] c.{self::UnusedInterface::usedInterfaceField}{core::int?};
 }
 static method main() → dynamic {

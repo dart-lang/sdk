@@ -77,6 +77,7 @@ int sizeOf<T extends NativeType>() {
   throw UnimplementedError("$T");
 }
 
+@pragma("vm:idempotent")
 @pragma("vm:recognized", "other")
 external Pointer<T> _fromAddress<T extends NativeType>(int ptr);
 

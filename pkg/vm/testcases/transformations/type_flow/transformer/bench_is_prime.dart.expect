@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
 
-[@vm.unboxing-info.metadata=(i)->b]static method isPrime([@vm.inferred-type.metadata=int] dynamic n) → core::bool {
+[@vm.unboxing-info.metadata=(i)->b]static method isPrime([@vm.inferred-arg-type.metadata=int] dynamic n) → core::bool {
   if(_in::unsafeCast<core::bool>([@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool] n{dynamic}.<(2)))
     return false;
   for (core::int i = 2; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<=] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::*}(i){(core::num) → core::int}.{core::num::<=}(_in::unsafeCast<core::num>(n)){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {

@@ -2,9 +2,9 @@ library #lib;
 import self as self;
 import "dart:core" as core;
 
-static method test1([@vm.inferred-type.metadata=dart.core::_Closure] core::Function x, [@vm.inferred-type.metadata=dart.core::_Closure] core::Object y) → core::bool
+static method test1([@vm.inferred-arg-type.metadata=dart.core::_Closure] core::Function x, [@vm.inferred-arg-type.metadata=dart.core::_Closure] core::Object y) → core::bool
   return [@vm.direct-call.metadata=dart.core::_Closure.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] x =={core::Function::==}{(core::Object) → core::bool} y;
-static method test2([@vm.inferred-type.metadata=dart.core::_Closure] () → void x, [@vm.inferred-type.metadata=dart.core::_Closure] core::Object y) → core::bool
+static method test2([@vm.inferred-arg-type.metadata=dart.core::_Closure] () → void x, [@vm.inferred-arg-type.metadata=dart.core::_Closure] core::Object y) → core::bool
   return [@vm.direct-call.metadata=dart.core::_Closure.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] x =={core::Object::==}{(core::Object) → core::bool} y;
 static method foo1() → void {}
 static method foo2() → void {}

@@ -9021,8 +9021,34 @@ void Function::SetIsOptimizable(bool value) const {
 }
 
 bool Function::ForceOptimize() const {
-  return RecognizedKindForceOptimize() || IsFfiTrampoline() ||
-         IsTypedDataViewFactory() || IsUnmodifiableTypedDataViewFactory();
+  if (RecognizedKindForceOptimize() || IsFfiTrampoline() ||
+      IsTypedDataViewFactory() || IsUnmodifiableTypedDataViewFactory()) {
+    return true;
+  }
+
+#if defined(TESTING)
+  // For run_vm_tests we allow marking arbitrary functions as force-optimize
+  // via `@pragma('vm:force-optimize')`.
+  if (has_pragma()) {
+    return Library::FindPragma(Thread::Current(), false, *this,
+                               Symbols::vm_force_optimize());
+  }
+#endif  // defined(TESTING)
+
+  return false;
+}
+
+bool Function::IsIdempotent() const {
+  if (!has_pragma()) return false;
+
+#if defined(TESTING)
+  const bool kAllowOnlyForCoreLibFunctions = false;
+#else
+  const bool kAllowOnlyForCoreLibFunctions = true;
+#endif  // defined(TESTING)
+
+  return Library::FindPragma(Thread::Current(), kAllowOnlyForCoreLibFunctions,
+                             *this, Symbols::vm_idempotent());
 }
 
 bool Function::RecognizedKindForceOptimize() const {
@@ -9092,12 +9118,6 @@ bool Function::RecognizedKindForceOptimize() const {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 bool Function::CanBeInlined() const {
-  // Our force-optimized functions cannot deoptimize to an unoptimized frame.
-  // If the instructions of the force-optimized function body get moved via
-  // code motion, we might attempt do deoptimize a frame where the force-
-  // optimized function has only partially finished. Since force-optimized
-  // functions cannot deoptimize to unoptimized frames we prevent them from
-  // being inlined (for now).
   if (ForceOptimize()) {
     if (IsFfiTrampoline()) {
       // We currently don't support inlining FFI trampolines. Some of them
@@ -9107,7 +9127,14 @@ bool Function::CanBeInlined() const {
       // http://dartbug.com/45055.
       return false;
     }
-    return CompilerState::Current().is_aot();
+    if (CompilerState::Current().is_aot()) {
+      return true;
+    }
+    // Inlining of force-optimized functions requires target function to be
+    // idempotent becase if deoptimization is needed in inlined body, the
+    // execution of the force-optimized will be restarted at the beginning of
+    // the function.
+    return IsIdempotent();
   }
 
   if (HasBreakpoint()) {

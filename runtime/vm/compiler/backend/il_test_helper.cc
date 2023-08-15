@@ -146,14 +146,15 @@ FlowGraph* TestPipeline::RunPasses(
     BlockScheduler::AssignEdgeWeights(flow_graph_);
   }
 
-  SpeculativeInliningPolicy speculative_policy(/*enable_suppression=*/false);
-  pass_state_ = new CompilerPassState(thread, flow_graph_, &speculative_policy);
+  pass_state_ =
+      new CompilerPassState(thread, flow_graph_, speculative_policy_.get());
   pass_state_->reorder_blocks = reorder_blocks;
 
   if (optimized) {
-    JitCallSpecializer jit_call_specializer(flow_graph_, &speculative_policy);
-    AotCallSpecializer aot_call_specializer(/*precompiler=*/nullptr,
-                                            flow_graph_, &speculative_policy);
+    JitCallSpecializer jit_call_specializer(flow_graph_,
+                                            speculative_policy_.get());
+    AotCallSpecializer aot_call_specializer(
+        /*precompiler=*/nullptr, flow_graph_, speculative_policy_.get());
     if (mode_ == CompilerPass::kAOT) {
       pass_state_->call_specializer = &aot_call_specializer;
     } else {
@@ -173,11 +174,10 @@ FlowGraph* TestPipeline::RunPasses(
 
 void TestPipeline::RunAdditionalPasses(
     std::initializer_list<CompilerPass::Id> passes) {
-  SpeculativeInliningPolicy speculative_policy(/*enable_suppression=*/false);
-
-  JitCallSpecializer jit_call_specializer(flow_graph_, &speculative_policy);
+  JitCallSpecializer jit_call_specializer(flow_graph_,
+                                          speculative_policy_.get());
   AotCallSpecializer aot_call_specializer(/*precompiler=*/nullptr, flow_graph_,
-                                          &speculative_policy);
+                                          speculative_policy_.get());
   if (mode_ == CompilerPass::kAOT) {
     pass_state_->call_specializer = &aot_call_specializer;
   } else {

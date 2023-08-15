@@ -13,7 +13,7 @@ class Class extends core::Object implements lib::Interface {
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5]  set /*isLegacy*/ field2(synthesized core::int? value) → void;
 }
-static method method([@vm.inferred-type.metadata=#lib::Class] lib::Interface i) → void {
+static method method([@vm.inferred-arg-type.metadata=#lib::Class] lib::Interface i) → void {
   [@vm.direct-call.metadata=#lib::Class.field2] [@vm.inferred-type.metadata=!? (skip check)] i.{lib::Interface::field2} = [@vm.direct-call.metadata=#lib::Class.field1] [@vm.inferred-type.metadata=dart.core::Null? (value: null)] i.{lib::Interface::field1}{core::int?};
   [@vm.direct-call.metadata=#lib::Class.field3] [@vm.inferred-type.metadata=!? (skip check)] i.{lib::Interface::field3} = [@vm.direct-call.metadata=#lib::Class.field3] [@vm.inferred-type.metadata=dart.core::Null? (value: null)] i.{lib::Interface::field3}{core::int?};
 }

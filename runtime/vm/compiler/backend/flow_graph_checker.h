@@ -64,6 +64,7 @@ class FlowGraphChecker : public FlowGraphVisitor {
   void VisitIndirectGoto(IndirectGotoInstr* jmp) override;
   void VisitBranch(BranchInstr* branch) override;
   void VisitRedefinition(RedefinitionInstr* def) override;
+  void AssertArgumentsInEnv(Definition* call);
   void VisitClosureCall(ClosureCallInstr* call) override;
   void VisitStaticCall(StaticCallInstr* call) override;
   void VisitInstanceCall(InstanceCallInstr* call) override;

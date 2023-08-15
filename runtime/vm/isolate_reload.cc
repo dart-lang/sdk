@@ -1956,10 +1956,7 @@ class InvalidationCollector : public ObjectVisitor {
     if (cid == kFunctionCid) {
       const Function& func =
           Function::Handle(zone_, static_cast<FunctionPtr>(obj));
-      if (!func.ForceOptimize()) {
-        // Force-optimized functions cannot deoptimize.
-        functions_->Add(&func);
-      }
+      functions_->Add(&func);
     } else if (cid == kKernelProgramInfoCid) {
       kernel_infos_->Add(&KernelProgramInfo::Handle(
           zone_, static_cast<KernelProgramInfoPtr>(obj)));
@@ -2060,6 +2057,9 @@ void ProgramReloadContext::InvalidateFunctions(
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   for (intptr_t i = 0; i < functions.length(); i++) {
     const Function& func = *functions[i];
+
+    // Force-optimized functions cannot deoptimize.
+    if (func.ForceOptimize()) continue;
 
     // Switch to unoptimized code or the lazy compilation stub.
     func.SwitchToLazyCompiledUnoptimizedCode();

@@ -14,6 +14,7 @@
 #include "platform/allocation.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
+#include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/compiler/jit/compiler.h"
@@ -79,6 +80,8 @@ class TestPipeline : public ValueObject {
                         mode == CompilerPass::PipelineMode::kAOT,
                         is_optimizing,
                         CompilerState::ShouldTrace(function)),
+        speculative_policy_(std::unique_ptr<SpeculativeInliningPolicy>(
+            new SpeculativeInliningPolicy(/*enable_suppresson=*/false))),
         mode_(mode) {}
   ~TestPipeline() { delete pass_state_; }
 
@@ -99,6 +102,7 @@ class TestPipeline : public ValueObject {
   const Function& function_;
   Thread* thread_;
   CompilerState compiler_state_;
+  std::unique_ptr<SpeculativeInliningPolicy> speculative_policy_;
   CompilerPass::PipelineMode mode_;
   ZoneGrowableArray<const ICData*>* ic_data_array_ = nullptr;
   ParsedFunction* parsed_function_ = nullptr;

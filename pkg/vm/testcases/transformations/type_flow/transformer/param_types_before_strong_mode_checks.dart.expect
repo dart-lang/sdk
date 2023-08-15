@@ -42,7 +42,7 @@ class D extends core::Object {
   }
 }
 [@vm.inferred-type.metadata=!]late static field core::Function unknown;
-static method func1([@vm.inferred-type.metadata=#lib::T2] self::T0 t0) → void {
+static method func1([@vm.inferred-arg-type.metadata=#lib::T2] self::T0 t0) → void {
   [@vm.direct-call.metadata=#lib::T2.foo] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}(){() → void};
 }
 static method func2(self::T0 t0) → void {

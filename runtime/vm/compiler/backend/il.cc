@@ -1500,12 +1500,6 @@ void Instruction::InheritDeoptTarget(Zone* zone, Instruction* other) {
   other->env()->DeepCopyTo(zone, this);
 }
 
-void BranchInstr::InheritDeoptTarget(Zone* zone, Instruction* other) {
-  ASSERT(env() == nullptr);
-  Instruction::InheritDeoptTarget(zone, other);
-  comparison()->SetDeoptId(*this);
-}
-
 bool Instruction::IsDominatedBy(Instruction* dom) {
   BlockEntryInstr* block = GetBlock();
   BlockEntryInstr* dom_block = dom->GetBlock();

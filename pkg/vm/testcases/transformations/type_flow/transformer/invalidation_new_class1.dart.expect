@@ -24,13 +24,13 @@ class Intermediate extends core::Object {
   synthetic constructor •() → self::Intermediate
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method bar([@vm.inferred-type.metadata=#lib::B] self::A aa) → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method bar([@vm.inferred-arg-type.metadata=#lib::B] self::A aa) → dynamic
     return [@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=#lib::T1 (skip check)] aa.{self::A::foo}(){() → dynamic};
 }
 [@vm.inferred-type.metadata=!]late static field core::Function unknown;
-static method use1([@vm.inferred-type.metadata=#lib::Intermediate] self::Intermediate i, [@vm.inferred-type.metadata=#lib::B] self::A aa) → dynamic
+static method use1([@vm.inferred-arg-type.metadata=#lib::Intermediate] self::Intermediate i, [@vm.inferred-arg-type.metadata=#lib::B] self::A aa) → dynamic
   return [@vm.direct-call.metadata=#lib::Intermediate.bar] [@vm.inferred-type.metadata=#lib::T1 (skip check)] i.{self::Intermediate::bar}(aa){(self::A) → dynamic};
-static method use2([@vm.inferred-type.metadata=#lib::Intermediate] self::Intermediate i, [@vm.inferred-type.metadata=#lib::B] self::A aa) → dynamic
+static method use2([@vm.inferred-arg-type.metadata=#lib::Intermediate] self::Intermediate i, [@vm.inferred-arg-type.metadata=#lib::B] self::A aa) → dynamic
   return [@vm.direct-call.metadata=#lib::Intermediate.bar] [@vm.inferred-type.metadata=#lib::T1 (skip check)] i.{self::Intermediate::bar}(aa){(self::A) → dynamic};
 static method getDynamic() → dynamic
   return self::unknown();

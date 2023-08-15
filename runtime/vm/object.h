@@ -3569,6 +3569,13 @@ class Function : public Object {
   // run.
   bool ForceOptimize() const;
 
+  // Whether this function is idempotent (i.e. calling it twice has the same
+  // effect as calling it once - no visible side effects).
+  //
+  // If a function is idempotent VM may decide to abort halfway through one call
+  // and retry it again.
+  bool IsIdempotent() const;
+
   // Whether this function's |recognized_kind| requires optimization.
   bool RecognizedKindForceOptimize() const;
 

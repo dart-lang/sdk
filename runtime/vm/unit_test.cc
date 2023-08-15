@@ -611,8 +611,7 @@ Dart_Handle TestCase::ReloadTestScript(const char* script) {
     return result;
   }
 
-  return TriggerReload(/* kernel_buffer= */ nullptr,
-                       /* kernel_buffer_size= */ 0);
+  return TriggerReload(/*kernel_buffer=*/nullptr, /*kernel_buffer_size=*/0);
 }
 
 Dart_Handle TestCase::ReloadTestKernel(const uint8_t* kernel_buffer,

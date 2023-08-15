@@ -1802,8 +1802,9 @@ DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForMethodInvocation(
 
 InferredTypeMetadataHelper::InferredTypeMetadataHelper(
     KernelReaderHelper* helper,
-    ConstantReader* constant_reader)
-    : MetadataHelper(helper, tag(), /* precompiler_only = */ true),
+    ConstantReader* constant_reader,
+    InferredTypeMetadataHelper::Kind kind)
+    : MetadataHelper(helper, tag(kind), /* precompiler_only = */ true),
       constant_reader_(constant_reader) {}
 
 InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(

@@ -10,7 +10,7 @@ import 'package:kernel/binary/ast_from_binary.dart'
 
 import 'package:vm/metadata/direct_call.dart' show DirectCallMetadataRepository;
 import 'package:vm/metadata/inferred_type.dart'
-    show InferredTypeMetadataRepository;
+    show InferredTypeMetadataRepository, InferredArgTypeMetadataRepository;
 import 'package:vm/metadata/procedure_attributes.dart'
     show ProcedureAttributesMetadataRepository;
 import 'package:vm/metadata/table_selector.dart'
@@ -43,6 +43,7 @@ main(List<String> arguments) async {
   // Register VM-specific metadata.
   component.addMetadataRepository(new DirectCallMetadataRepository());
   component.addMetadataRepository(new InferredTypeMetadataRepository());
+  component.addMetadataRepository(new InferredArgTypeMetadataRepository());
   component.addMetadataRepository(new ProcedureAttributesMetadataRepository());
   component.addMetadataRepository(new TableSelectorMetadataRepository());
   component.addMetadataRepository(new UnboxingInfoMetadataRepository());

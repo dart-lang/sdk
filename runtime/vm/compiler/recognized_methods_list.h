@@ -302,7 +302,7 @@ namespace dart {
   V(::, _storeDouble, FfiStoreDouble, 0x428afcc3)                              \
   V(::, _storeDoubleUnaligned, FfiStoreDoubleUnaligned, 0x3dc047ba)            \
   V(::, _storePointer, FfiStorePointer, 0x8b5a5578)                            \
-  V(::, _fromAddress, FfiFromAddress, 0x810f927f)                              \
+  V(::, _fromAddress, FfiFromAddress, 0x810f9640)                              \
   V(Pointer, get:address, FfiGetAddress, 0x7ccff81d)                           \
   V(::, _asExternalTypedDataInt8, FfiAsExternalTypedDataInt8, 0x767b76f7)      \
   V(::, _asExternalTypedDataInt16, FfiAsExternalTypedDataInt16, 0xd08e6a25)    \

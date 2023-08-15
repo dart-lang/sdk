@@ -24,7 +24,7 @@ class B extends core::Object {
   return 1;
 static method used2() → core::String
   return [@vm.direct-call.metadata=dart.core::_Smi.toString] [@vm.inferred-type.metadata=dart.core::_OneByteString (skip check)] 2.{core::int::toString}(){() → core::String};
-static method register([@vm.inferred-type.metadata=dart.core::_Closure?] () →? core::String getAccessor) → void {
+static method register([@vm.inferred-arg-type.metadata=dart.core::_Closure?] () →? core::String getAccessor) → void {
   if(!(getAccessor == null)) {
     core::print(getAccessor{() → core::String}(){() → core::String});
   }
