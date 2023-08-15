@@ -15,6 +15,7 @@ import self as sta;
 import "dart:_js_annotations" as _js;
 import "dart:core" as core;
 import "dart:js_util" as js_;
+import "dart:_js_helper" as _js2;
 
 import "package:js/js.dart";
 
@@ -23,9 +24,9 @@ import "package:js/js.dart";
 class StaticJSClass extends core::Object {
   external static factory •() → sta::StaticJSClass;
   static method _#new#tearOff() → sta::StaticJSClass
-    return js_::_callConstructorUnchecked0<sta::StaticJSClass>(js_::_getPropertyTrustType<core::Object>(js_::globalThis, "JSClass"));
+    return js_::_callConstructorUnchecked0<sta::StaticJSClass>(js_::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "JSClass"));
   static factory factory() → sta::StaticJSClass {
-    return js_::_callConstructorUnchecked0<sta::StaticJSClass>(js_::_getPropertyTrustType<core::Object>(js_::globalThis, "JSClass"));
+    return js_::_callConstructorUnchecked0<sta::StaticJSClass>(js_::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "JSClass"));
   }
   static method _#factory#tearOff() → sta::StaticJSClass
     return sta::StaticJSClass::factory();

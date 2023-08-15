@@ -666,6 +666,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   bool _isDartForeignHelper(Library library) =>
       isDartLibrary(library, '_foreign_helper');
 
+  /// True when [library] is the sdk library 'dart:js_util'.
+  bool _isDartJsUtil(Library library) => isDartLibrary(library, 'js_util');
+
   @override
   bool isDartLibrary(Library library, String name) {
     var importUri = library.importUri;
@@ -5453,8 +5456,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Expression visitStaticGet(StaticGet node) =>
-      _emitStaticGet(node.target);
+  js_ast.Expression visitStaticGet(StaticGet node) {
+    final target = node.target;
+    if (_isDartJsHelper(target.enclosingLibrary)) {
+      final name = target.name.text;
+      if (name == 'staticInteropGlobalContext') {
+        return runtimeCall('global');
+      }
+    }
+    return _emitStaticGet(target);
+  }
 
   @override
   js_ast.Expression visitStaticTearOff(StaticTearOff node) =>
@@ -6395,7 +6406,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (_isDebuggerCall(target)) {
       return _emitDebuggerCall(node) as js_ast.Expression;
     }
-    if (target.enclosingLibrary.importUri.toString() == 'dart:js_util') {
+    if (_isDartJsUtil(enclosingLibrary)) {
       // We try and do further inlining here for the unchecked/trusted-type
       // variants of js_util methods. Note that we only lower the methods that
       // are used in transformations and are private. Also note that this

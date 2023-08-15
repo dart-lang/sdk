@@ -977,3 +977,22 @@ external Object? jsObjectGetPrototypeOf(@notNull Object obj);
 /// See: https://github.com/tc39/proposal-symbol-proto
 @notNull
 external Object jsObjectSetPrototypeOf(@notNull Object obj, Object? prototype);
+
+/// The global context that "static interop" members use for namespaces.
+///
+/// For example, an interop library with no library-level `@JS` annotation and a
+/// top-level external member named or renamed to 'foo' will lower a call to
+/// that member as `<staticInteropGlobalContext>.foo`. The same applies for any
+/// external constructors or class/extension type static members.
+///
+/// If the library does have a `@JS` annotation with a value, the call then gets
+/// lowered to `<staticInteropGlobalContext>.<libraryJSAnnotationValue>.foo`.
+///
+/// To see which members get lowered with this, see the transformation in
+/// `pkg/_js_interop_checks/lib/src/js_util_optimizer.dart`.
+///
+/// This should match the global context that non-static interop members use.
+/// Note that this is external. We could implement it here, but DDC will not
+/// inline the call so this will be an extra level of indirection. DDC manually
+/// inlines this method in the compiler instead.
+external Object get staticInteropGlobalContext;

@@ -43,7 +43,7 @@ class JsUtilOptimizer extends Transformer {
   final Map<Member, _InvocationBuilder?> _externalInvocationBuilders = {};
   final Procedure _getPropertyTarget;
   final Procedure _getPropertyTrustTypeTarget;
-  final Procedure _globalThisTarget;
+  final Procedure _globalContextTarget;
   final InterfaceType _objectType;
   final Procedure _setPropertyTarget;
   final Procedure _setPropertyUncheckedTarget;
@@ -90,8 +90,8 @@ class JsUtilOptimizer extends Transformer {
             .getTopLevelProcedure('dart:js_util', 'getProperty'),
         _getPropertyTrustTypeTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', '_getPropertyTrustType'),
-        _globalThisTarget = _coreTypes.index
-            .getTopLevelProcedure('dart:js_util', 'get:globalThis'),
+        _globalContextTarget = _coreTypes.index.getTopLevelProcedure(
+            'dart:_js_helper', 'get:staticInteropGlobalContext'),
         _objectType = hierarchy.coreTypes.objectNonNullableRawType,
         _setPropertyTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'setProperty'),
@@ -152,7 +152,7 @@ class JsUtilOptimizer extends Transformer {
         // constructors/factories.
         var dottedPrefix = _getDottedPrefixForStaticallyResolvableMember(node);
         if (dottedPrefix != null) {
-          var receiver = _getObjectOffGlobalThis(
+          var receiver = _getObjectOffGlobalContext(
               node, dottedPrefix.isEmpty ? [] : dottedPrefix.split('.'));
           var shouldTrustType = node.enclosingClass != null &&
               hasTrustTypesAnnotation(node.enclosingClass!);
@@ -166,8 +166,8 @@ class JsUtilOptimizer extends Transformer {
                 node, shouldTrustType, receiver);
           } else if (_extensionIndex.isNonLiteralConstructor(node)) {
             // Get the constructor object using the class name.
-            return _getExternalConstructorInvocationBuilder(
-                node, _getObjectOffGlobalThis(node, dottedPrefix.split('.')));
+            return _getExternalConstructorInvocationBuilder(node,
+                _getObjectOffGlobalContext(node, dottedPrefix.split('.')));
           }
         }
       }
@@ -245,11 +245,12 @@ class JsUtilOptimizer extends Transformer {
   }
 
   /// Given a list of strings, [selectors], recursively fetches the property
-  /// that corresponds to each string off of the `globalThis` object.
+  /// that corresponds to each string off of the global context.
   ///
   /// Returns an expression that contains the nested property gets.
-  Expression _getObjectOffGlobalThis(Procedure node, List<String> selectors) {
-    Expression currentTarget = StaticGet(_globalThisTarget);
+  Expression _getObjectOffGlobalContext(
+      Procedure node, List<String> selectors) {
+    Expression currentTarget = StaticGet(_globalContextTarget);
     for (String selector in selectors) {
       currentTarget = StaticInvocation(
           _getPropertyTrustTypeTarget,
