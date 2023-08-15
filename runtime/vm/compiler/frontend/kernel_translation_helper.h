@@ -1060,6 +1060,8 @@ class InferredTypeMetadataHelper : public MetadataHelper {
       case Kind::ArgType:
         return "vm.inferred-arg-type.metadata";
     }
+    UNREACHABLE();
+    return nullptr;
   }
 
   explicit InferredTypeMetadataHelper(KernelReaderHelper* helper,
