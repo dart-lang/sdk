@@ -54,20 +54,6 @@ class Heap {
     kNumWeakSelectors
   };
 
-  // States for a state machine that represents the worst-case set of GCs
-  // that an unreachable object could survive before begin collected:
-  // a new-space object that is involved with a cycle with an old-space object
-  // is copied to survivor space, then promoted during concurrent marking,
-  // and finally proven unreachable in the next round of old-gen marking.
-  // We ignore the case of unreachable-but-not-yet-collected objects being
-  // made reachable again by allInstances.
-  enum LeakCountState {
-    kInitial = 0,
-    kFirstScavenge,
-    kSecondScavenge,
-    kMarkingStart,
-  };
-
   // Pattern for unused new space and swept old space.
   static constexpr uint8_t kZapByte = 0xf3;
 
@@ -120,18 +106,10 @@ class Heap {
   // Collect a single generation.
   void CollectGarbage(Thread* thread, GCType type, GCReason reason);
 
-  // Collect both generations by performing a scavenge followed by a
-  // mark-sweep. This function may not collect all unreachable objects. Because
-  // mark-sweep treats new space as roots, a cycle between unreachable old and
-  // new objects will not be collected until the new objects are promoted.
-  // Verification based on heap iteration should instead use CollectAllGarbage.
-  void CollectMostGarbage(GCReason reason = GCReason::kFull,
-                          bool compact = false);
-
-  // Collect both generations by performing an evacuation followed by a
-  // mark-sweep. If incremental marking was in progress, perform another
-  // mark-sweep. This function will collect all unreachable objects, including
-  // those in inter-generational cycles or stored during incremental marking.
+  // Collect both generations by performing a mark-sweep. If incremental marking
+  // was in progress, perform another mark-sweep. This function will collect all
+  // unreachable objects, including those in inter-generational cycles or stored
+  // during incremental marking.
   void CollectAllGarbage(GCReason reason = GCReason::kFull,
                          bool compact = false);
 
@@ -289,7 +267,7 @@ class Heap {
   }
 #endif  // PRODUCT
 
-  intptr_t ReachabilityBarrier() { return stats_.reachability_barrier_; }
+  intptr_t ReachabilityBarrier() { return old_space_.collections(); }
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
   bool is_vm_isolate() const { return is_vm_isolate_; }
@@ -309,8 +287,6 @@ class Heap {
     intptr_t num_;
     GCType type_;
     GCReason reason_;
-    LeakCountState state_;  // State to track finalization of GCed object.
-    intptr_t reachability_barrier_;  // Tracks reachability of GCed objects.
 
     class Data : public ValueObject {
      public:
@@ -387,7 +363,6 @@ class Heap {
   // This heap is in read-only mode: No allocation is allowed.
   bool read_only_;
 
-  bool last_gc_was_old_space_;
   bool assume_scavenge_will_fail_;
 
   static constexpr intptr_t kNoForcedGarbageCollection = -1;

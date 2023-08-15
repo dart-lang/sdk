@@ -4620,7 +4620,7 @@ main() {
           x: model(null),
           y: model([intType])
         };
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2), {
+        expect(FlowModel.joinVariableInfo(h, p1, p2), {
           x: _matchVariableModel(chain: null, ofInterest: ['int']),
           y: _matchVariableModel(chain: null, ofInterest: ['int'])
         });
@@ -4632,7 +4632,7 @@ main() {
           x: model([intType]),
           y: model([stringType])
         };
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p, p), same(p));
+        expect(FlowModel.joinVariableInfo(h, p, p), same(p));
       });
 
       test('one input empty', () {
@@ -4642,10 +4642,8 @@ main() {
         };
         var p2 = <int, VariableModel<Type>>{};
         const expected = const <int, VariableModel<Never>>{};
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2),
-            same(expected));
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1),
-            same(expected));
+        expect(FlowModel.joinVariableInfo(h, p1, p2), same(expected));
+        expect(FlowModel.joinVariableInfo(h, p2, p1), same(expected));
       });
 
       test('promoted with unpromoted', () {
@@ -4656,8 +4654,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: null, ofInterest: ['int'])
         };
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2), expected);
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1), expected);
+        expect(FlowModel.joinVariableInfo(h, p1, p2), expected);
+        expect(FlowModel.joinVariableInfo(h, p2, p1), expected);
       });
 
       test('related type chains', () {
@@ -4670,8 +4668,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2), expected);
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1), expected);
+        expect(FlowModel.joinVariableInfo(h, p1, p2), expected);
+        expect(FlowModel.joinVariableInfo(h, p2, p1), expected);
       });
 
       test('unrelated type chains', () {
@@ -4684,8 +4682,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: null, ofInterest: ['String', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2), expected);
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1), expected);
+        expect(FlowModel.joinVariableInfo(h, p1, p2), expected);
+        expect(FlowModel.joinVariableInfo(h, p2, p1), expected);
       });
 
       test('sub-map', () {
@@ -4695,8 +4693,8 @@ main() {
           y: model([stringType])
         };
         var p2 = {x: xModel};
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2), same(p2));
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1), same(p2));
+        expect(FlowModel.joinVariableInfo(h, p1, p2), same(p2));
+        expect(FlowModel.joinVariableInfo(h, p2, p1), same(p2));
       });
 
       test('sub-map with matched subtype', () {
@@ -4710,8 +4708,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2), expected);
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1), expected);
+        expect(FlowModel.joinVariableInfo(h, p1, p2), expected);
+        expect(FlowModel.joinVariableInfo(h, p2, p1), expected);
       });
 
       test('sub-map with mismatched subtype', () {
@@ -4725,8 +4723,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p1, p2), expected);
-        expect(FlowModel.joinVariableInfo(h.typeOperations, p2, p1), expected);
+        expect(FlowModel.joinVariableInfo(h, p1, p2), expected);
+        expect(FlowModel.joinVariableInfo(h, p2, p1), expected);
       });
 
       test('assigned', () {
@@ -4734,7 +4732,7 @@ main() {
         var assigned = model(null, assigned: true);
         var p1 = {x: assigned, y: assigned, z: unassigned, w: unassigned};
         var p2 = {x: assigned, y: unassigned, z: assigned, w: unassigned};
-        var joined = FlowModel.joinVariableInfo(h.typeOperations, p1, p2);
+        var joined = FlowModel.joinVariableInfo(h, p1, p2);
         expect(joined, {
           x: same(assigned),
           y: _matchVariableModel(
@@ -4760,7 +4758,7 @@ main() {
           z: writeCapturedModel,
           w: intQModel
         };
-        var joined = FlowModel.joinVariableInfo(h.typeOperations, p1, p2);
+        var joined = FlowModel.joinVariableInfo(h, p1, p2);
         expect(joined, {
           x: same(writeCapturedModel),
           y: same(writeCapturedModel),
@@ -4792,7 +4790,7 @@ main() {
 
     test('first is null', () {
       var s1 = FlowModel.withInfo(Reachability.initial.split(), emptyMap);
-      var result = FlowModel.merge(h.typeOperations, null, s1);
+      var result = FlowModel.merge(h, null, s1);
       expect(result.reachable, same(Reachability.initial));
     });
 
@@ -4800,7 +4798,7 @@ main() {
       var splitPoint = Reachability.initial.split();
       var afterSplit = splitPoint.split();
       var s1 = FlowModel.withInfo(afterSplit, emptyMap);
-      var result = FlowModel.merge(h.typeOperations, s1, null);
+      var result = FlowModel.merge(h, s1, null);
       expect(result.reachable, same(splitPoint));
     });
 
@@ -4813,7 +4811,7 @@ main() {
       var s2 = FlowModel.withInfo(afterSplit, {
         x: varModel([stringType])
       });
-      var result = FlowModel.merge(h.typeOperations, s1, s2);
+      var result = FlowModel.merge(h, s1, s2);
       expect(result.reachable, same(splitPoint));
       expect(result.variableInfo[x]!.promotedTypes, isNull);
     });
@@ -4827,7 +4825,7 @@ main() {
       var s2 = FlowModel.withInfo(afterSplit, {
         x: varModel([stringType])
       });
-      var result = FlowModel.merge(h.typeOperations, s1, s2);
+      var result = FlowModel.merge(h, s1, s2);
       expect(result.reachable, same(splitPoint));
       expect(result.variableInfo, same(s2.variableInfo));
     });
@@ -4841,7 +4839,7 @@ main() {
       var s2 = FlowModel.withInfo(afterSplit.setUnreachable(), {
         x: varModel([stringType])
       });
-      var result = FlowModel.merge(h.typeOperations, s1, s2);
+      var result = FlowModel.merge(h, s1, s2);
       expect(result.reachable, same(splitPoint));
       expect(result.variableInfo, same(s1.variableInfo));
     });
@@ -4855,7 +4853,7 @@ main() {
       var s2 = FlowModel.withInfo(afterSplit.setUnreachable(), {
         x: varModel([stringType])
       });
-      var result = FlowModel.merge(h.typeOperations, s1, s2);
+      var result = FlowModel.merge(h, s1, s2);
       expect(result.reachable.locallyReachable, false);
       expect(result.reachable.parent, same(splitPoint.parent));
       expect(result.variableInfo[x]!.promotedTypes, isNull);
@@ -6505,6 +6503,119 @@ main() {
         x.property('_property').nonNullAssert,
         checkPromoted(x.property('_property'), 'int'),
       ]);
+    });
+
+    group('Preserved by join:', () {
+      test('Property', () {
+        h.addMember('C', '_field', 'int?', promotable: true);
+        var x = Var('x');
+        // Even though the two branches of the "if" assign different values to
+        // `x` (and hence the SSA nodes associated with `x._field` in the two
+        // branches are different), the promotion is still preserved by the
+        // join.
+        h.run([
+          declare(x, type: 'C'),
+          if_(expr('bool'), [
+            x.write(expr('C')),
+            x.property('_field').nonNullAssert,
+          ], [
+            x.write(expr('C')),
+            x.property('_field').nonNullAssert,
+          ]),
+          checkPromoted(x.property('_field'), 'int'),
+        ]);
+      });
+
+      test('Property of property', () {
+        h.addMember('C', '_i', 'int?', promotable: true);
+        h.addMember('D', '_c', 'C', promotable: true);
+        var x = Var('x');
+        // Even though the two branches of the "if" assign different values to
+        // `x` (and hence the SSA nodes associated with `x._c._i` in the two
+        // branches are different), the promotion is still preserved by the
+        // join.
+        h.run([
+          declare(x, type: 'D'),
+          if_(expr('bool'), [
+            x.write(expr('D')),
+            x.property('_c').property('_i').nonNullAssert,
+          ], [
+            x.write(expr('D')),
+            x.property('_c').property('_i').nonNullAssert,
+          ]),
+          checkPromoted(x.property('_c').property('_i'), 'int'),
+        ]);
+      });
+
+      test('Property promoted only in first joined control flow path', () {
+        h.addMember('C', '_field', 'int?', promotable: true);
+        var x = Var('x');
+        // No promotion because the property is only promoted in one control
+        // flow path.
+        h.run([
+          declare(x, type: 'C'),
+          if_(expr('bool'), [
+            x.write(expr('C')),
+            x.property('_field').nonNullAssert,
+          ], [
+            x.write(expr('C')),
+            x.property('_field'),
+          ]),
+          checkNotPromoted(x.property('_field')),
+        ]);
+      });
+
+      test('Property promoted only in second joined control flow path', () {
+        h.addMember('C', '_field', 'int?', promotable: true);
+        var x = Var('x');
+        // No promotion because the property is only promoted in one control
+        // flow path.
+        h.run([
+          declare(x, type: 'C'),
+          if_(expr('bool'), [
+            x.write(expr('C')),
+            x.property('_field'),
+          ], [
+            x.write(expr('C')),
+            x.property('_field').nonNullAssert,
+          ]),
+          checkNotPromoted(x.property('_field')),
+        ]);
+      });
+
+      test('Property accessed only in first joined control flow path', () {
+        h.addMember('C', '_field', 'int?', promotable: true);
+        var x = Var('x');
+        // No promotion because the property is only promoted in one control
+        // flow path.
+        h.run([
+          declare(x, type: 'C'),
+          if_(expr('bool'), [
+            x.write(expr('C')),
+            x.property('_field').nonNullAssert,
+          ], [
+            x.write(expr('C')),
+          ]),
+          checkNotPromoted(x.property('_field')),
+        ]);
+      });
+
+      test('Property accessed only in second joined control flow path', () {
+        h.addMember('C', '_field', 'int?', promotable: true);
+        var x = Var('x');
+        // No promotion because the property is only promoted in one control
+        // flow path.
+        h.run([
+          declare(x, type: 'C'),
+          if_(expr('bool'), [
+            x.write(expr('C')),
+          ], [
+            x.write(expr('C')),
+            x.property('_field').nonNullAssert,
+          ]),
+          checkNotPromoted(x.property('_field')),
+        ]);
+      });
     });
   });
 

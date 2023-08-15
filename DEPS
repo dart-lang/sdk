@@ -152,7 +152,7 @@ vars = {
   "json_rpc_2_rev": "509f71eef90ec5afb5486b69dab7fed97b9f1eef",
   "leak_tracker_rev": "098bafcf99a5220e3c352d895d991e163568ee03", # b/292240713
   "linter_rev": "9a4bc7910d1ea2660deadae4c212776e9cf6212e", # disable rev_sdk_deps.dart
-  "lints_rev": "1e0245ea8ef8f702621eb7842ebd5342b1192c6b",
+  "lints_rev": "54cd7a033881ccfd9ec66133bf9a4f128870cb9e",
   "logging_rev": "521498757ed3eeae151c2d4796404e8947baa04c",
   "markdown_rev": "faabb1ab9adc076a2df2349a0c8b939c92f70ca7",
   "matcher_rev": "ce8f40934c90e12992071172795b3bca29fac295",
@@ -162,7 +162,7 @@ vars = {
   "package_config_rev": "981c49dfec1e3e3e90f336dcd7c225923d2fd321",
   "path_rev": "7c2324bdb4c75a17de8a3d1e6afe8cc0756ef5f9",
   "pool_rev": "77001024a16126cc5718e654ea3e57bbf6e7fac3",
-  "protobuf_rev": "217c0306ee376a8a9c05e72fc90cffab6b60e66a",
+  "protobuf_rev": "a852ba4e4b6f319c655fc938864dac8442b7c4ad",
   "pub_rev": "42819a1e10f803eb7f6296692c5a976e1c647360", # disable rev_sdk_deps.dart
   "pub_semver_rev": "028b43506a3f7ec7f7b4673a78ba3da3d5fb138d",
   "shelf_rev": "73edd2b6e18ee50afac57e4e224b8c714b81e66d",
@@ -175,7 +175,7 @@ vars = {
   "string_scanner_rev": "413b57a3b14fa273e8ed52578edfbe0446084795",
   "sync_http_rev": "c3d6ad48ec997c56b7f076bc9f8b4134c4a9225c",
   "term_glyph_rev": "423700a3c019dc67f93d2bd6578016a1402506f7",
-  "test_rev": "9b1828f4c2456e8ee5612705d5992f60c6378e29",
+  "test_rev": "bc0a992dd84f8d3f52cd04b6bfa9f466ca172272",
   "test_descriptor_rev": "36d8617fafccbe36dfcf74ad4921c61911a6a411",
   "test_process_rev": "b360784a9149b15888aed8d7cf167bb46fe733d5",
   "test_reflective_loader_rev": "0bfaad91ed308ce9da11b48395c8210d7542c16b",
@@ -185,7 +185,7 @@ vars = {
   "vector_math_rev": "88bada3c32ba3f1d53073a003085131d60b09213",
   "watcher_rev": "7457413060ed7403b90b01533a61bd959932122e",
   "web_socket_channel_rev": "4d1b5438d1bdfc6317bf99fd9d9c6e4edb7e9ec5",
-  "webdev_rev": "f8f752cb455935a7dfe626bcb357645c41749725",
+  "webdev_rev": "19aad27b2dd0c713d0a477eeeac2bef10ecbf125",
   "webdriver_rev": "d0f78d004a5ea7bfc8c492639248b0a1b04c1d62",
   "webkit_inspection_protocol_rev": "39a3c297ff573635e7936b015ce4f3466e4739d6",
   "yaml_rev": "7930148a3d03d7985ce2b53bc5eb2be9c878dab8",

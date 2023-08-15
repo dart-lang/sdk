@@ -2552,7 +2552,7 @@ class FlowModel<Type extends Object> {
   /// promoted to one type in one state and a subtype in the other state, the
   /// less specific type promotion is kept.
   static FlowModel<Type> join<Type extends Object>(
-    TypeOperations<Type> typeOperations,
+    FlowModelHelper<Type> helper,
     FlowModel<Type>? first,
     FlowModel<Type>? second,
   ) {
@@ -2572,7 +2572,7 @@ class FlowModel<Type extends Object> {
     Reachability newReachable =
         Reachability.join(first.reachable, second.reachable);
     Map<int, VariableModel<Type>> newVariableInfo = FlowModel.joinVariableInfo(
-        typeOperations, first.variableInfo, second.variableInfo);
+        helper, first.variableInfo, second.variableInfo);
 
     return FlowModel._identicalOrNew(
         first, second, newReachable, newVariableInfo);
@@ -2581,7 +2581,7 @@ class FlowModel<Type extends Object> {
   /// Joins two "variable info" maps.  See [join] for details.
   @visibleForTesting
   static Map<int, VariableModel<Type>> joinVariableInfo<Type extends Object>(
-    TypeOperations<Type> typeOperations,
+    FlowModelHelper<Type> helper,
     Map<int, VariableModel<Type>> first,
     Map<int, VariableModel<Type>> second,
   ) {
@@ -2591,7 +2591,8 @@ class FlowModel<Type extends Object> {
     }
 
     // TODO(jensj): How often is this empty?
-    Map<int, VariableModel<Type>> result = <int, VariableModel<Type>>{};
+    Map<int, VariableModel<Type>> newVariableInfo =
+        <int, VariableModel<Type>>{};
     bool alwaysFirst = true;
     bool alwaysSecond = true;
     for (MapEntry<int, VariableModel<Type>> entry in first.entries) {
@@ -2600,24 +2601,24 @@ class FlowModel<Type extends Object> {
       if (secondModel == null) {
         alwaysFirst = false;
       } else {
-        VariableModel<Type> joined =
-            VariableModel.join<Type>(typeOperations, entry.value, secondModel);
-        result[promotionKey] = joined;
+        VariableModel<Type> joined = VariableModel.join<Type>(
+            helper, entry.value, first, secondModel, second, newVariableInfo);
+        newVariableInfo[promotionKey] = joined;
         if (!identical(joined, entry.value)) alwaysFirst = false;
         if (!identical(joined, secondModel)) alwaysSecond = false;
       }
     }
 
     if (alwaysFirst) return first;
-    if (alwaysSecond && result.length == second.length) return second;
-    if (result.isEmpty) return const {};
-    return result;
+    if (alwaysSecond && newVariableInfo.length == second.length) return second;
+    if (newVariableInfo.isEmpty) return const {};
+    return newVariableInfo;
   }
 
   /// Models the result of joining the flow models [first] and [second] at the
   /// merge of two control flow paths.
   static FlowModel<Type> merge<Type extends Object>(
-    TypeOperations<Type> typeOperations,
+    FlowModelHelper<Type> helper,
     FlowModel<Type>? first,
     FlowModel<Type>? second,
   ) {
@@ -2637,7 +2638,7 @@ class FlowModel<Type extends Object> {
     Reachability newReachable =
         Reachability.join(first.reachable, second.reachable).unsplit();
     Map<int, VariableModel<Type>> newVariableInfo = FlowModel.joinVariableInfo(
-        typeOperations, first.variableInfo, second.variableInfo);
+        helper, first.variableInfo, second.variableInfo);
 
     return FlowModel._identicalOrNew(
         first, second, newReachable, newVariableInfo);
@@ -2982,16 +2983,24 @@ class SsaNode<Type extends Object> {
 
   /// Map containing the set of promotable properties of the value tracked by
   /// this SSA node. Keys are the names of the properties.
-  final Map<String, _PropertySsaNode<Type>> _promotableProperties = {};
+  final Map<String, _PropertySsaNode<Type>> _promotableProperties;
 
   /// Map containing the set of non-promotable properties of the value tracked
   /// by this SSA node. These are tracked even though they're not promotable, so
   /// that if an error occurs due to the absence of type promotion, it will be
   /// possible to generate a message explaining to the user why type promotion
   /// failed.
-  final Map<String, _PropertySsaNode<Type>> _nonPromotableProperties = {};
+  final Map<String, _PropertySsaNode<Type>> _nonPromotableProperties;
 
-  SsaNode(this.expressionInfo);
+  SsaNode(ExpressionInfo<Type>? expressionInfo)
+      : this.withProperties(expressionInfo,
+            promotableProperties: {}, nonPromotableProperties: {});
+
+  SsaNode.withProperties(this.expressionInfo,
+      {required Map<String, _PropertySsaNode<Type>> promotableProperties,
+      required Map<String, _PropertySsaNode<Type>> nonPromotableProperties})
+      : _promotableProperties = promotableProperties,
+        _nonPromotableProperties = nonPromotableProperties;
 
   /// Gets an SSA node representing the property named [propertyName] of the
   /// value represented by `this`, creating it if necessary.
@@ -3028,6 +3037,93 @@ class SsaNode<Type extends Object> {
   String toString() {
     int id = _debugIds[this] ??= _nextDebugId++;
     return 'ssa$id';
+  }
+
+  /// Joins the promotion information for two SSA nodes, [first] and [second].
+  ///
+  /// Since SSA nodes store information about properties, and properties may
+  /// themselves be promoted, the caller must supply the variable info maps for
+  /// the two flow control paths being joined ([firstVariableInfo] and
+  /// [secondVariableInfo]), as well as the variable map being built for the
+  /// join point ([newVariableInfo]).
+  static SsaNode<Type> _join<Type extends Object>(
+      FlowModelHelper<Type> helper,
+      SsaNode<Type> first,
+      Map<int, VariableModel<Type>> firstVariableInfo,
+      SsaNode<Type> second,
+      Map<int, VariableModel<Type>> secondVariableInfo,
+      final Map<int, VariableModel<Type>> newVariableInfo) {
+    if (first == second) return first;
+    return new SsaNode.withProperties(null,
+        promotableProperties: _joinProperties(
+            helper,
+            first._promotableProperties,
+            firstVariableInfo,
+            second._promotableProperties,
+            secondVariableInfo,
+            newVariableInfo),
+        nonPromotableProperties: {});
+  }
+
+  /// Joins the promotion information for the promotable properties of two SSA
+  /// nodes, [first] and [second].
+  ///
+  /// Since properties may themselves be promoted, the caller must supply the
+  /// variable info maps for the two flow control paths being joined
+  /// ([firstVariableInfo] and [secondVariableInfo]), as well as the variable
+  /// map being built for the join point ([newVariableInfo]).
+  static Map<String, _PropertySsaNode<Type>>
+      _joinProperties<Type extends Object>(
+          FlowModelHelper<Type> helper,
+          Map<String, _PropertySsaNode<Type>> first,
+          Map<int, VariableModel<Type>> firstVariableInfo,
+          Map<String, _PropertySsaNode<Type>> second,
+          Map<int, VariableModel<Type>> secondVariableInfo,
+          final Map<int, VariableModel<Type>> newVariableInfo) {
+    Map<String, _PropertySsaNode<Type>> newProperties = {};
+    // If a property has been accessed along one of the two control flow paths
+    // being joined, but not the other, then it shouldn't be promoted after the
+    // join point, nor should any of its nested properties. So it is only
+    // necessary to examine properties common to the `first` and `second` maps.
+    for (var MapEntry(
+          key: String propertyName,
+          value: _PropertySsaNode<Type> firstProperty
+        ) in first.entries) {
+      _PropertySsaNode<Type>? secondProperty = second[propertyName];
+      if (secondProperty == null) continue;
+      // Make a new promotion key to represent the joined property.
+      int newPromotionKey = helper.promotionKeyStore.makeTemporaryKey();
+      // If the property has a variable model along both control flow paths,
+      // it might be promoted, so join the two variable models to preserve the
+      // promotion.
+      VariableModel<Type>? firstVariableModel =
+          firstVariableInfo[firstProperty.promotionKey];
+      if (firstVariableModel != null) {
+        VariableModel<Type>? secondVariableModel =
+            secondVariableInfo[secondProperty.promotionKey];
+        if (secondVariableModel != null) {
+          newVariableInfo[newPromotionKey] = VariableModel.join(
+              helper,
+              firstVariableModel,
+              firstVariableInfo,
+              secondVariableModel,
+              secondVariableInfo,
+              newVariableInfo);
+        }
+      }
+      // Join any nested properties.
+      newProperties[propertyName] = new _PropertySsaNode.withProperties(
+          newPromotionKey,
+          promotableProperties: _joinProperties(
+              helper,
+              firstProperty._promotableProperties,
+              firstVariableInfo,
+              secondProperty._promotableProperties,
+              secondVariableInfo,
+              newVariableInfo),
+          nonPromotableProperties: {});
+    }
+    return newProperties;
   }
 }
 
@@ -3483,10 +3579,19 @@ class VariableModel<Type extends Object> {
   }
 
   /// Joins two variable models.  See [FlowModel.join] for details.
+  ///
+  /// Since properties of variables may be promoted, the caller must supply the
+  /// variable info maps for the two flow control paths being joined
+  /// ([firstVariableInfo] and [secondVariableInfo]), as well as the variable
+  /// map being built for the join point ([newVariableInfo]).
   static VariableModel<Type> join<Type extends Object>(
-      TypeOperations<Type> typeOperations,
+      FlowModelHelper<Type> helper,
       VariableModel<Type> first,
-      VariableModel<Type> second) {
+      Map<int, VariableModel<Type>> firstVariableInfo,
+      VariableModel<Type> second,
+      Map<int, VariableModel<Type>> secondVariableInfo,
+      Map<int, VariableModel<Type>> newVariableInfo) {
+    TypeOperations<Type> typeOperations = helper.typeOperations;
     List<Type>? newPromotedTypes = joinPromotedTypes(
         first.promotedTypes, second.promotedTypes, typeOperations);
     newPromotedTypes = typeOperations.refinePromotedTypes(
@@ -3499,9 +3604,8 @@ class VariableModel<Type extends Object> {
         : joinTested(first.tested, second.tested, typeOperations);
     SsaNode<Type>? newSsaNode = newWriteCaptured
         ? null
-        : first.ssaNode == second.ssaNode
-            ? first.ssaNode
-            : new SsaNode<Type>(null);
+        : SsaNode._join(helper, first.ssaNode!, firstVariableInfo,
+            second.ssaNode!, secondVariableInfo, newVariableInfo);
     return _identicalOrNew(first, second, newPromotedTypes, newTested,
         newAssigned, newUnassigned, newWriteCaptured ? null : newSsaNode);
   }
@@ -5409,7 +5513,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   FlowModel<Type> _join(FlowModel<Type>? first, FlowModel<Type>? second) =>
-      FlowModel.join(operations, first, second);
+      FlowModel.join(this, first, second);
 
   /// Creates a promotion key representing a temporary variable that doesn't
   /// correspond to any variable in the user's source code.  This is used by
@@ -5436,7 +5540,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   FlowModel<Type> _merge(FlowModel<Type> first, FlowModel<Type>? second) =>
-      FlowModel.merge(operations, first, second);
+      FlowModel.merge(this, first, second);
 
   /// Computes an updated flow model representing the result of a null check
   /// performed by a pattern.  The returned flow model represents what is known
@@ -6502,6 +6606,12 @@ class _PropertySsaNode<Type extends Object> extends SsaNode<Type> {
   final _PropertySsaNode<Type>? previousSsaNode;
 
   _PropertySsaNode(this.promotionKey, {this.previousSsaNode}) : super(null);
+
+  _PropertySsaNode.withProperties(this.promotionKey,
+      {required super.promotableProperties,
+      required super.nonPromotableProperties})
+      : previousSsaNode = null,
+        super.withProperties(null);
 }
 
 /// Specialization of [ExpressionInfo] for the case where the expression is a
