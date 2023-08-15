@@ -571,8 +571,8 @@ class C {}
     DocumentationCommentToken docToken = DocumentationCommentToken(
         TokenType.MULTI_LINE_COMMENT, "/** [ some text", 5);
     createParser('');
-    List<CommentReference> references =
-        parser.parseCommentReferences(<DocumentationCommentToken>[docToken]);
+    var comment = parser.parseComment([docToken]);
+    var references = comment.references;
     expectNotNullIfNoErrors(references);
     assertNoErrors();
     expect(references, hasLength(1));

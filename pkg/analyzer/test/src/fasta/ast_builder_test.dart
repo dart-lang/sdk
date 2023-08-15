@@ -181,6 +181,19 @@ ClassDeclaration
         offset: 223
       /// and [Object].
         offset: 231
+    fencedCodeBlocks
+      MdFencedCodeBlock
+        infoString: <empty>
+        lines
+          MdFencedCodeBlockLine
+            offset: 121
+            length: 4
+          MdFencedCodeBlockLine
+            offset: 129
+            length: 36
+          MdFencedCodeBlockLine
+            offset: 169
+            length: 4
   metadata
     Annotation
       atSign: @ @45

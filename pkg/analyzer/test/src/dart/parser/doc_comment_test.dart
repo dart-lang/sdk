@@ -14,7 +14,7 @@ main() {
 
 @reflectiveTest
 class DocCommentParserTest extends ParserDiagnosticsTest {
-  test_code() {
+  test_codeSpan() {
     final parseResult = parseStringWithErrors(r'''
 /// `a[i]` and [b].
 class A {}
@@ -34,7 +34,7 @@ Comment
 ''');
   }
 
-  test_code_legacy_block() {
+  test_codeSpan_legacy_blockComment() {
     // TODO(srawlins): I believe we should drop support for `[:` `:]`.
     final parseResult = parseStringWithErrors(r'''
 /** [:xxx [a] yyy:] [b] zzz */
@@ -54,7 +54,7 @@ Comment
 ''');
   }
 
-  test_code_unterminated() {
+  test_codeSpan_unterminated_blockComment() {
     final parseResult = parseStringWithErrors(r'''
 /** `a[i] and [b] */
 class A {}
@@ -76,146 +76,7 @@ Comment
 ''');
   }
 
-  test_codeBlock_backticks() {
-    final parseResult = parseStringWithErrors(r'''
-/// First.
-/// ```dart
-/// a[i] = b[i];
-/// ```
-/// Last.
-class A {}
-''');
-    parseResult.assertNoErrors();
-
-    final node = parseResult.findNode.comment('a[i]');
-    // TODO(srawlins): Parse a backtick code block into its own node.
-    assertParsedNodeText(node, r'''
-Comment
-  tokens
-    /// First.
-    /// ```dart
-    /// a[i] = b[i];
-    /// ```
-    /// Last.
-''');
-  }
-
-  test_codeBlock_backticks_block() {
-    final parseResult = parseStringWithErrors(r'''
-/**
- * First.
- * ```dart
- * a[i] = b[i];
- * ```
- * Last.
- */
-class A {}
-''');
-    parseResult.assertNoErrors();
-
-    final node = parseResult.findNode.comment('a[i]');
-    // TODO(srawlins): Parse a backtick code block into its own node.
-    assertParsedNodeText(node, r'''
-Comment
-  tokens
-    /**
- * First.
- * ```dart
- * a[i] = b[i];
- * ```
- * Last.
- */
-''');
-  }
-
-  test_codeBlock_indented_afterBlankLine() {
-    final parseResult = parseStringWithErrors(r'''
-/// Text.
-///
-///    a[i] = b[i];
-class A {}
-''');
-    parseResult.assertNoErrors();
-
-    final node = parseResult.findNode.comment('Text');
-    // TODO(srawlins): Parse a backtick code block into its own node.
-    assertParsedNodeText(node, r'''
-Comment
-  tokens
-    /// Text.
-    ///
-    ///    a[i] = b[i];
-''');
-  }
-
-  test_codeBlock_indented_afterTextLine_notCodeBlock() {
-    final parseResult = parseStringWithErrors(r'''
-/// Text.
-///    a[i] = b[i];
-class A {}
-''');
-    parseResult.assertNoErrors();
-
-    final node = parseResult.findNode.comment('Text');
-    // TODO(srawlins): Parse an indented code block into its own node.
-    assertParsedNodeText(node, r'''
-Comment
-  references
-    CommentReference
-      expression: SimpleIdentifier
-        token: i
-    CommentReference
-      expression: SimpleIdentifier
-        token: i
-  tokens
-    /// Text.
-    ///    a[i] = b[i];
-''');
-  }
-
-  test_codeBlock_indented_firstLine() {
-    final parseResult = parseStringWithErrors(r'''
-///    a[i] = b[i];
-class A {}
-''');
-    parseResult.assertNoErrors();
-
-    final node = parseResult.findNode.comment('a[i]');
-    // TODO(srawlins): Parse an indented code block into its own node.
-    assertParsedNodeText(node, r'''
-Comment
-  tokens
-    ///    a[i] = b[i];
-''');
-  }
-
-  test_codeBlock_indented_firstLine_block() {
-    final parseResult = parseStringWithErrors(r'''
-/**
- *     a[i] = b[i];
- * [c].
- */
-class A {}
-''');
-    parseResult.assertNoErrors();
-
-    final node = parseResult.findNode.comment('a[i]');
-    // TODO(srawlins): Parse an indented code block into its own node.
-    assertParsedNodeText(node, r'''
-Comment
-  references
-    CommentReference
-      expression: SimpleIdentifier
-        token: c
-  tokens
-    /**
- *     a[i] = b[i];
- * [c].
- */
-''');
-  }
-
-  test_commentReference_block() {
+  test_commentReference_blockComment() {
     final parseResult = parseStringWithErrors(r'''
 /** [a]. */
 class A {}
@@ -275,7 +136,7 @@ Comment
 ''');
   }
 
-  test_commentReference_multiple_block() {
+  test_commentReference_multiple_blockComment() {
     final parseResult = parseStringWithErrors(r'''
 /** [a] and [b]. */
 class A {}
@@ -481,6 +342,275 @@ class A {}
 Comment
   tokens
     /// [this].
+''');
+  }
+
+  test_fencedCodeBlock_blockComment() {
+    final parseResult = parseStringWithErrors(r'''
+/**
+ * One.
+ * ```
+ * a[i] = b[i];
+ * ```
+ * Two.
+ * ```dart
+ * code;
+ * ```
+ * Three.
+ */
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('a[i]');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /**
+ * One.
+ * ```
+ * a[i] = b[i];
+ * ```
+ * Two.
+ * ```dart
+ * code;
+ * ```
+ * Three.
+ */
+  fencedCodeBlocks
+    MdFencedCodeBlock
+      infoString: <empty>
+      lines
+        MdFencedCodeBlockLine
+          offset: 15
+          length: 3
+        MdFencedCodeBlockLine
+          offset: 22
+          length: 12
+        MdFencedCodeBlockLine
+          offset: 38
+          length: 3
+    MdFencedCodeBlock
+      infoString: dart
+      lines
+        MdFencedCodeBlockLine
+          offset: 53
+          length: 7
+        MdFencedCodeBlockLine
+          offset: 64
+          length: 5
+        MdFencedCodeBlockLine
+          offset: 73
+          length: 3
+''');
+  }
+
+  test_fencedCodeBlock_nonDocCommentLines() {
+    final parseResult = parseStringWithErrors(r'''
+/// One.
+/// ```
+// This is not part of the doc comment.
+/// a[i] = b[i];
+
+/// ```
+/// Two.
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('a[i]');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// One.
+    /// ```
+    /// a[i] = b[i];
+    /// ```
+    /// Two.
+  fencedCodeBlocks
+    MdFencedCodeBlock
+      infoString: <empty>
+      lines
+        MdFencedCodeBlockLine
+          offset: 12
+          length: 4
+        MdFencedCodeBlockLine
+          offset: 60
+          length: 13
+        MdFencedCodeBlockLine
+          offset: 78
+          length: 4
+''');
+  }
+
+  test_fencedCodeBlock_nonTerminating() {
+    final parseResult = parseStringWithErrors(r'''
+/// One.
+/// ```
+/// a[i] = b[i];
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('a[i]');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// One.
+    /// ```
+    /// a[i] = b[i];
+  fencedCodeBlocks
+    MdFencedCodeBlock
+      infoString: <empty>
+      lines
+        MdFencedCodeBlockLine
+          offset: 12
+          length: 4
+        MdFencedCodeBlockLine
+          offset: 20
+          length: 13
+''');
+  }
+
+  test_fencedCodeBlocks() {
+    final parseResult = parseStringWithErrors(r'''
+/// One.
+/// ```
+/// a[i] = b[i];
+/// ```
+/// Two.
+/// ```dart
+/// code;
+/// ```
+/// Three.
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('a[i]');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// One.
+    /// ```
+    /// a[i] = b[i];
+    /// ```
+    /// Two.
+    /// ```dart
+    /// code;
+    /// ```
+    /// Three.
+  fencedCodeBlocks
+    MdFencedCodeBlock
+      infoString: <empty>
+      lines
+        MdFencedCodeBlockLine
+          offset: 12
+          length: 4
+        MdFencedCodeBlockLine
+          offset: 20
+          length: 13
+        MdFencedCodeBlockLine
+          offset: 37
+          length: 4
+    MdFencedCodeBlock
+      infoString: dart
+      lines
+        MdFencedCodeBlockLine
+          offset: 54
+          length: 8
+        MdFencedCodeBlockLine
+          offset: 66
+          length: 6
+        MdFencedCodeBlockLine
+          offset: 76
+          length: 4
+''');
+  }
+
+  test_indentedCodeBlock_afterBlankLine() {
+    final parseResult = parseStringWithErrors(r'''
+/// Text.
+///
+///    a[i] = b[i];
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('Text');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    ///
+    ///    a[i] = b[i];
+''');
+  }
+
+  test_indentedCodeBlock_afterTextLine_notCodeBlock() {
+    final parseResult = parseStringWithErrors(r'''
+/// Text.
+///    a[i] = b[i];
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('Text');
+    // TODO(srawlins): Parse an indented code block into its own node.
+    assertParsedNodeText(node, r'''
+Comment
+  references
+    CommentReference
+      expression: SimpleIdentifier
+        token: i
+    CommentReference
+      expression: SimpleIdentifier
+        token: i
+  tokens
+    /// Text.
+    ///    a[i] = b[i];
+''');
+  }
+
+  test_indentedCodeBlock_firstLine() {
+    final parseResult = parseStringWithErrors(r'''
+///    a[i] = b[i];
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('a[i]');
+    // TODO(srawlins): Parse an indented code block into its own node.
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    ///    a[i] = b[i];
+''');
+  }
+
+  test_indentedCodeBlock_firstLine_blockComment() {
+    final parseResult = parseStringWithErrors(r'''
+/**
+ *     a[i] = b[i];
+ * [c].
+ */
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('a[i]');
+    // TODO(srawlins): Parse an indented code block into its own node.
+    assertParsedNodeText(node, r'''
+Comment
+  references
+    CommentReference
+      expression: SimpleIdentifier
+        token: c
+  tokens
+    /**
+ *     a[i] = b[i];
+ * [c].
+ */
 ''');
   }
 
