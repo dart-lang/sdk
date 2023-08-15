@@ -177,6 +177,43 @@ class ParsedTypedef extends ParsedDeclaration {
   }
 }
 
+class ParsedExtensionTypeDeclaration extends ParsedDeclaration {
+  final List<ParsedTypeVariable> typeVariables;
+
+  final ParsedType declaredRepresentationType;
+
+  final List<ParsedType> interfaces;
+
+  ParsedExtensionTypeDeclaration(String name, this.typeVariables,
+      this.declaredRepresentationType, this.interfaces)
+      : super(name);
+
+  @override
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('extension type ');
+    sb.write(name);
+    if (typeVariables.isNotEmpty) {
+      sb.write('<');
+      sb.writeAll(typeVariables, ", ");
+      sb.write('>');
+    }
+    sb.write('(');
+    sb.write(declaredRepresentationType);
+    sb.write(' it)');
+    if (interfaces.isNotEmpty) {
+      sb.write(' implements ');
+      sb.writeAll(interfaces, ", ");
+    }
+    return "$sb;";
+  }
+
+  @override
+  R accept<R, A>(Visitor<R, A> visitor, A a) {
+    return visitor.visitExtensionTypeDeclaration(this, a);
+  }
+}
+
 class ParsedFunctionType extends ParsedType {
   final List<ParsedTypeVariable> typeVariables;
 
@@ -419,7 +456,13 @@ class Parser {
   ParsedType parseType() {
     if (optional("class")) return parseClass();
     if (optional("typedef")) return parseTypedef();
-    if (optional("extension")) return parseExtension();
+    if (optional("extension")) {
+      expect("extension");
+      if (optional("type")) {
+        return parseExtensionTypeDeclaration();
+      }
+      return parseExtension();
+    }
     List<ParsedType> results = <ParsedType>[];
     do {
       ParsedType type;
@@ -583,13 +626,31 @@ class Parser {
   }
 
   ParsedExtension parseExtension() {
-    expect("extension");
     String name = parseName();
     List<ParsedTypeVariable> typeVariables = parseTypeVariablesOpt();
     expect("on");
     ParsedInterfaceType onType = parseType() as ParsedInterfaceType;
     expect(";");
     return new ParsedExtension(name, typeVariables, onType);
+  }
+
+  ParsedExtensionTypeDeclaration parseExtensionTypeDeclaration() {
+    expect("type");
+    String name = parseName();
+    List<ParsedTypeVariable> typeVariables = parseTypeVariablesOpt();
+    expect("(");
+    ParsedType declaredRepresentationType = parseType();
+    expect("it");
+    expect(")");
+    List<ParsedType> interfaces = <ParsedType>[];
+    if (optionalAdvance("implements")) {
+      do {
+        interfaces.add(parseType());
+      } while (optionalAdvance(","));
+    }
+    expect(";");
+    return new ParsedExtensionTypeDeclaration(
+        name, typeVariables, declaredRepresentationType, interfaces);
   }
 
   /// This parses a general typedef on this form:
@@ -710,6 +771,8 @@ abstract class Visitor<R, A> {
   R visitClass(ParsedClass node, A a);
 
   R visitExtension(ParsedExtension node, A a);
+
+  R visitExtensionTypeDeclaration(ParsedExtensionTypeDeclaration node, A a);
 
   R visitTypedef(ParsedTypedef node, A a);
 

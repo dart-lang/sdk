@@ -1,0 +1,6 @@
+class A {}
+class B extends A {}
+---- unknown chunk starts ----
+extension type C(Object? o) {} extension type D(Object o) {} extension type E(B it) implements A {} extension type F(B it) implements E, B {} extension type G<T>(T o) {}
+---- unknown chunk ends ----
+test<T1, T2 extends A>( Object o, A a, B b, C c, D d, E e, F f, G<T1> g1, G<T2> g2) {}
