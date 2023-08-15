@@ -57,7 +57,9 @@
   case in Dart2JS and DDC. We used either `self` or DDC's `global` in non-static
   interop APIs with `package:js`. So, static interop APIs will now use one of
   those global contexts. Functionally, this should matter in only a very small
-  number of cases, like when using older browser versions.
+  number of cases, like when using older browser versions. `dart:js_interop`'s
+  `globalJSObject` is also renamed to `globalContext` and returns the global
+  context used in the lowerings.
 
 ## 3.1.0
 
