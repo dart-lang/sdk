@@ -13,8 +13,7 @@ import 'dart:js_util';
 import 'package:expect/minitest.dart';
 
 @JS()
-inline class Literal {
-  final JSObject obj;
+extension type Literal._(JSObject _) {
   external Literal({double? a, String b, bool? c});
 }
 

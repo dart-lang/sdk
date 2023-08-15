@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
-    show InlineExtensionIndex;
+    show ExtensionIndex;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
@@ -11,7 +11,7 @@ enum AnnotationType { import, export }
 
 /// A utility wrapper for [CoreTypes].
 class CoreTypesUtil {
-  final InlineExtensionIndex _inlineExtensionIndex;
+  final ExtensionIndex _extensionIndex;
   final CoreTypes coreTypes;
   final Procedure allowInteropTarget;
   final Procedure dartifyRawTarget;
@@ -27,7 +27,7 @@ class CoreTypesUtil {
   final Class wasmExternRefClass;
   final Procedure wrapDartFunctionTarget;
 
-  CoreTypesUtil(this.coreTypes, this._inlineExtensionIndex)
+  CoreTypesUtil(this.coreTypes, this._extensionIndex)
       : allowInteropTarget = coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'allowInterop'),
         dartifyRawTarget = coreTypes.index
@@ -73,7 +73,7 @@ class CoreTypesUtil {
       wasmExternRefClass.getThisType(coreTypes, Nullability.nullable);
 
   Procedure jsifyTarget(DartType type) =>
-      _inlineExtensionIndex.isStaticInteropType(type)
+      _extensionIndex.isStaticInteropType(type)
           ? jsValueUnboxTarget
           : jsifyRawTarget;
 
@@ -112,7 +112,7 @@ class CoreTypesUtil {
       return invokeOneArg(dartifyRawTarget, invocation);
     } else {
       Expression expression;
-      if (_inlineExtensionIndex.isStaticInteropType(returnType)) {
+      if (_extensionIndex.isStaticInteropType(returnType)) {
         // TODO(joshualitt): Expose boxed `JSNull` and `JSUndefined` to Dart
         // code after migrating existing users of js interop on Dart2Wasm.
         // expression = _createJSValue(invocation);

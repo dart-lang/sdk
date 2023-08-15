@@ -5,7 +5,7 @@
 import 'package:_js_interop_checks/src/js_interop.dart'
     show getJSName, hasAnonymousAnnotation, hasJSInteropAnnotation;
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
-    show InlineExtensionIndex;
+    show ExtensionIndex;
 import 'package:dart2wasm/js/method_collector.dart';
 import 'package:dart2wasm/js/util.dart';
 import 'package:kernel/ast.dart';
@@ -21,7 +21,7 @@ abstract class _Specializer {
   final Procedure interopMethod;
   final String jsString;
   late final bool firstParameterIsObject =
-      factory._inlineExtensionIndex.isInstanceInteropMember(interopMethod);
+      factory._extensionIndex.isInstanceInteropMember(interopMethod);
 
   _Specializer(this.factory, this.interopMethod, this.jsString);
 
@@ -330,8 +330,7 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
             _util.jsifyTarget(expr.getStaticType(_staticTypeContext)),
             Arguments([expr])))
         .toList();
-    assert(
-        factory._inlineExtensionIndex.isStaticInteropType(function.returnType));
+    assert(factory._extensionIndex.isStaticInteropType(function.returnType));
     return invokeOneArg(_util.jsValueBoxTarget,
         StaticInvocation(interopProcedure, Arguments(positionalArgs)));
   }
@@ -344,10 +343,10 @@ class InteropSpecializerFactory {
   final Map<Procedure, Map<int, Procedure>> _overloadedProcedures = {};
   final Map<Procedure, Map<String, Procedure>> _jsObjectLiteralMethods = {};
   late String _libraryJSString;
-  late final InlineExtensionIndex _inlineExtensionIndex;
+  late final ExtensionIndex _extensionIndex;
 
   InteropSpecializerFactory(this._staticTypeContext, this._util,
-      this._methodCollector, this._inlineExtensionIndex);
+      this._methodCollector, this._extensionIndex);
 
   void enterLibrary(Library library) {
     _libraryJSString = getJSName(library);
@@ -373,17 +372,17 @@ class InteropSpecializerFactory {
   _Specializer? _getSpecializerForMember(Procedure node, String jsString,
       [StaticInvocation? invocation]) {
     if (invocation == null) {
-      if (_inlineExtensionIndex.isGetter(node)) {
+      if (_extensionIndex.isGetter(node)) {
         return _GetterSpecializer(this, node, jsString);
-      } else if (_inlineExtensionIndex.isSetter(node)) {
+      } else if (_extensionIndex.isSetter(node)) {
         return _SetterSpecializer(this, node, jsString);
-      } else if (_inlineExtensionIndex.isOperator(node)) {
+      } else if (_extensionIndex.isOperator(node)) {
         return _OperatorSpecializer(this, node, jsString);
-      } else if (_inlineExtensionIndex.isMethod(node)) {
+      } else if (_extensionIndex.isMethod(node)) {
         return _MethodSpecializer(this, node, jsString);
       }
     } else {
-      if (_inlineExtensionIndex.isMethod(node)) {
+      if (_extensionIndex.isMethod(node)) {
         return _MethodInvocationSpecializer(this, node, jsString, invocation);
       }
     }
@@ -432,15 +431,15 @@ class InteropSpecializerFactory {
             node, '$clsString.$memberSelectorString', invocation);
       }
     } else if (node.isExtensionTypeMember) {
-      final nodeDescriptor = _inlineExtensionIndex.getInlineDescriptor(node);
+      final nodeDescriptor = _extensionIndex.getExtensionTypeDescriptor(node);
       if (nodeDescriptor != null) {
-        final cls = _inlineExtensionIndex.getInlineClass(node)!;
+        final cls = _extensionIndex.getExtensionType(node)!;
         final clsString = _getTopLevelJSString(cls, cls.name);
         final kind = nodeDescriptor.kind;
         if ((kind == ExtensionTypeMemberKind.Constructor ||
             kind == ExtensionTypeMemberKind.Factory)) {
           return _getSpecializerForConstructor(
-              _inlineExtensionIndex.isLiteralConstructor(node),
+              _extensionIndex.isLiteralConstructor(node),
               node,
               clsString,
               invocation);
@@ -457,7 +456,7 @@ class InteropSpecializerFactory {
         }
       }
     } else if (node.isExtensionMember) {
-      final nodeDescriptor = _inlineExtensionIndex.getExtensionDescriptor(node);
+      final nodeDescriptor = _extensionIndex.getExtensionDescriptor(node);
       if (nodeDescriptor != null && !nodeDescriptor.isStatic) {
         return _getSpecializerForMember(
             node, _getJSString(node, nodeDescriptor.name.text), invocation);

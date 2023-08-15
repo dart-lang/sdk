@@ -14,12 +14,11 @@ import 'package:expect/minitest.dart';
 @JS()
 external dynamic eval(String code);
 
-inline class Extension {
-  final JSObject obj;
-  external Extension();
+extension type ExtensionType._(JSObject _) {
+  external ExtensionType();
 }
 
-extension E on Extension {
+extension E on ExtensionType {
   external String field;
   @JS('field')
   external String renamedField;
@@ -40,7 +39,7 @@ extension E on Extension {
 
 void main() {
   eval('''
-    globalThis.Extension = function Extension() {
+    globalThis.ExtensionType = function ExtensionType() {
       this.field = 'field';
       this.finalField = 'finalField';
       this.getSet = 'getSet';
@@ -52,7 +51,7 @@ void main() {
       }
     }
   ''');
-  var extension = Extension();
+  var extension = ExtensionType();
 
   // Fields.
   expect(extension.field, 'field');

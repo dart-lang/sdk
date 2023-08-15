@@ -10,16 +10,14 @@ import 'dart:js_interop';
 external void topLevel();
 
 @JS()
-inline class Inline {
-  final JSObject obj;
-  external Inline();
-  external Inline.named();
-  external Inline.literal({JSNumber? a});
-  Inline.nonExternal(this.obj);
-  // TODO(srujzs): Once we have inline class factories, test these.
-  // external factory Inline.fact();
-  // external factory Inline.literalFact({JSNumber? a});
-  // factory Inline.nonExternalFact() => Inline();
+extension type ExtensionType.nonExternal(JSObject _) {
+  external ExtensionType();
+  external ExtensionType.named();
+  external ExtensionType.literal({JSNumber? a});
+  // TODO(srujzs): Once we have extension type factories, test these.
+  // external factory ExtensionType.fact();
+  // external factory ExtensionType.literalFact({JSNumber? a});
+  // factory ExtensionType.nonExternalFact() => ExtensionType();
 
   external static void externalStatic();
   static void nonExternalStatic() {}
@@ -28,7 +26,7 @@ inline class Inline {
   void nonExternalMethod() {}
 }
 
-extension on Inline {
+extension on ExtensionType {
   external void externalExtensionMethod();
   void nonExternalExtensionMethod() {}
 }
@@ -66,22 +64,22 @@ void testMethods() {
 //^
 // [web] Tear-offs of external top-level member 'topLevel' are disallowed.
 
-  Inline.externalStatic;
-  //     ^
-  // [web] Tear-offs of external inline class interop member 'externalStatic' are disallowed.
-  const [Inline.externalStatic];
+  ExtensionType.externalStatic;
+  //            ^
+  // [web] Tear-offs of external extension type interop member 'externalStatic' are disallowed.
+  const [ExtensionType.externalStatic];
 //^
-// [web] Tear-offs of external inline class interop member 'externalStatic' are disallowed.
-  Inline.nonExternalStatic;
-  final inline = Inline();
-  inline.externalMethod;
-  //     ^
-  // [web] Tear-offs of external inline class interop member 'externalMethod' are disallowed.
-  inline.nonExternalMethod;
-  inline.externalExtensionMethod;
-  //     ^
+// [web] Tear-offs of external extension type interop member 'externalStatic' are disallowed.
+  ExtensionType.nonExternalStatic;
+  final extensionType = ExtensionType();
+  extensionType.externalMethod;
+  //            ^
+  // [web] Tear-offs of external extension type interop member 'externalMethod' are disallowed.
+  extensionType.nonExternalMethod;
+  extensionType.externalExtensionMethod;
+  //            ^
   // [web] Tear-offs of external extension interop member 'externalExtensionMethod' are disallowed.
-  inline.nonExternalExtensionMethod;
+  extensionType.nonExternalExtensionMethod;
 
   StaticInterop.externalStatic;
   //            ^
@@ -98,25 +96,25 @@ void testMethods() {
 }
 
 void testConstructors() {
-  Inline.new;
+  ExtensionType.new;
 //^
-// [web] Tear-offs of external inline class interop member 'new' are disallowed.
-  Inline.named;
+// [web] Tear-offs of external extension type interop member 'new' are disallowed.
+  ExtensionType.named;
 //^
-// [web] Tear-offs of external inline class interop member 'named' are disallowed.
-  Inline.literal;
+// [web] Tear-offs of external extension type interop member 'named' are disallowed.
+  ExtensionType.literal;
 //^
-// [web] Tear-offs of external inline class interop member 'literal' are disallowed.
-  Inline.nonExternal;
-  const [Inline.new];
+// [web] Tear-offs of external extension type interop member 'literal' are disallowed.
+  ExtensionType.nonExternal;
+  const [ExtensionType.new];
 //^
-// [web] Tear-offs of external inline class interop member 'new' are disallowed.
+// [web] Tear-offs of external extension type interop member 'new' are disallowed.
 
   // TODO(srujzs): Once we have factories available, test these.
-  // Inline.fact;
-  // Inline.literalFact;
-  // Inline.nonExternalFact;
-  // const [Inline.fact];
+  // ExtensionType.fact;
+  // ExtensionType.literalFact;
+  // ExtensionType.nonExternalFact;
+  // const [ExtensionType.fact];
 
   StaticInterop.new;
 //^

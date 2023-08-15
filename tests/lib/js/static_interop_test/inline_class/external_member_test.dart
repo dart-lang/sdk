@@ -15,8 +15,7 @@ import 'package:expect/minitest.dart';
 @JS()
 external dynamic eval(String code);
 
-inline class External<T extends JSAny?, U extends Nested> {
-  final JSObject obj;
+extension type External<T extends JSAny?, U extends Nested>._(JSObject _) {
   external External();
 
   external String field;
@@ -54,8 +53,7 @@ inline class External<T extends JSAny?, U extends Nested> {
   external R combineNestedGeneric<R extends Nested>(R a, [R b]);
 }
 
-inline class Nested<T extends JSAny?> {
-  final JSObject obj;
+extension type Nested<T extends JSAny?>._(JSObject _) {
   external Nested(T value);
 
   external T get value;

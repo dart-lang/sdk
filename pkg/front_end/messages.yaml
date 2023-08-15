@@ -5474,8 +5474,8 @@ JsInteropDartClassExtendsJSClass:
   correctionMessage: "Try adding the JS interop annotation or removing it from the parent class."
 
 JsInteropDartJsInteropAnnotationForStaticInteropOnly:
-  problemMessage: "The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through inline classes or '@staticInterop'."
-  correctionMessage: "Try making this class an inline class or marking it as '@staticInterop'."
+  problemMessage: "The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through extension types or '@staticInterop' classes."
+  correctionMessage: "Try making this class an extension type or marking it as '@staticInterop'."
 
 JsInteropEnclosingClassJSAnnotation:
   problemMessage: "Member has a JS interop annotation but the enclosing class does not."
@@ -5514,6 +5514,18 @@ JsInteropExportNoExportableMembers:
   problemMessage: "Class '#name' has no exportable members in the class or the inheritance chain."
   correctionMessage: "Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain."
 
+JsInteropExtensionTypeNotInterop:
+  problemMessage: "Extension type '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'."
+  correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types."
+
+JsInteropExtensionTypeMemberNotInterop:
+  problemMessage: "Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type."
+  correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types."
+
+JsInteropExtensionTypeUsedWithWrongJsAnnotation:
+  problemMessage: "Extension types should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'."
+  correctionMessage: "Try using the '@JS' annotation from 'dart:js_interop' annotation on this extension type instead."
+
 JsInteropExternalExtensionMemberOnTypeInvalid:
   problemMessage: "JS interop or Native class required for 'external' extension members."
   correctionMessage: "Try adding a JS interop annotation to the on type class of the extension."
@@ -5525,18 +5537,6 @@ JsInteropExternalExtensionMemberWithStaticDisallowed:
 JsInteropExternalMemberNotJSAnnotated:
   problemMessage: "Only JS interop members may be 'external'."
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
-
-JsInteropInlineClassNotInterop:
-  problemMessage: "Inline class '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'."
-  correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types."
-
-JsInteropInlineClassMemberNotInterop:
-  problemMessage: "Inline class member is marked 'external', but the representation type of its inline class is not a valid JS interop type."
-  correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types."
-
-JsInteropInlineClassUsedWithWrongJsAnnotation:
-  problemMessage: "Inline classes should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'."
-  correctionMessage: "Try using the '@JS' annotation from 'dart:js_interop' annotation on this inline class instead."
 
 JsInteropInvalidStaticClassMemberName:
   problemMessage: "JS interop static class members cannot have '.' in their JS name."

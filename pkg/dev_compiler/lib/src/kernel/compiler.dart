@@ -8,7 +8,7 @@ import 'dart:io' as io;
 import 'dart:math' show max, min;
 
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
-    show InlineExtensionIndex;
+    show ExtensionIndex;
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart'
     show eraseStaticInteropTypesForJSCompilers;
 import 'package:collection/collection.dart'
@@ -275,11 +275,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Maps uri strings in asserts and elsewhere to hoisted identifiers.
   var _uriContainer = ModuleItemContainer<String>.asArray('I');
 
-  /// Index of inline and extension members in order to filter static interop
-  /// members.
+  /// Index of extension and extension type members in order to filter static
+  /// interop members.
   // TODO(srujzs): Is there some way to share this from the js_util_optimizer to
   // avoid having to recompute?
-  final InlineExtensionIndex _inlineExtensionIndex;
+  final ExtensionIndex _extensionIndex;
 
   final Class _jsArrayClass;
   final Class _privateSymbolClass;
@@ -368,8 +368,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             'dart:_runtime', 'assertInterop') as Procedure,
         _futureOrNormalizer = FutureOrNormalizer(_coreTypes),
         _typeRecipeGenerator = TypeRecipeGenerator(_coreTypes, _hierarchy),
-        _inlineExtensionIndex = InlineExtensionIndex(
-            _coreTypes, _staticTypeContext.typeEnvironment);
+        _extensionIndex =
+            ExtensionIndex(_coreTypes, _staticTypeContext.typeEnvironment);
 
   @override
   Library? get currentLibrary => _currentLibrary;
@@ -3089,13 +3089,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Users are disallowed from using these tear-offs, so we should avoid
   /// emitting them.
   bool _isStaticInteropTearOff(Procedure p) {
-    final extensionMember =
-        _inlineExtensionIndex.getExtensionMemberForTearOff(p);
+    final extensionMember = _extensionIndex.getExtensionMemberForTearOff(p);
     if (extensionMember != null && extensionMember.asProcedure.isExternal) {
       return true;
     }
-    final inlineMember = _inlineExtensionIndex.getInlineMemberForTearOff(p);
-    if (inlineMember != null && inlineMember.asProcedure.isExternal) {
+    final extensionTypeMember =
+        _extensionIndex.getExtensionTypeMemberForTearOff(p);
+    if (extensionTypeMember != null &&
+        extensionTypeMember.asProcedure.isExternal) {
       return true;
     }
     final enclosingClass = p.enclosingClass;
@@ -6380,9 +6381,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (target.isExternal &&
         target.isExtensionTypeMember &&
         target.function.namedParameters.isNotEmpty) {
-      // JS interop checks assert that only external inline class factories have
-      // named parameters. We could do a more robust check by visiting all
-      // inline classes and recording descriptors, but that's expensive.
+      // JS interop checks assert that only external extension type constructors
+      // and factories have named parameters.
       assert(target.function.positionalParameters.isEmpty);
       return _emitObjectLiteral(
           Arguments(node.arguments.positional,
