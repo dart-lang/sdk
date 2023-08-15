@@ -683,6 +683,9 @@ class _HttpParser extends Stream<_HttpIncoming> {
             _state = _State.HEADER_VALUE_START;
           } else {
             String headerField = String.fromCharCodes(_headerField);
+            // The field value does not include any leading or trailing whitespace.
+            // See https://www.rfc-editor.org/rfc/rfc7230#section-3.2.4
+            _removeTrailingSpaces(_headerValue);
             String headerValue = String.fromCharCodes(_headerValue);
             const errorIfBothText = "Both Content-Length and Transfer-Encoding "
                 "are specified, at most one is allowed";
@@ -1000,6 +1003,17 @@ class _HttpParser extends Stream<_HttpIncoming> {
 
   static bool _isValueChar(int byte) {
     return (byte > 31 && byte < 128) || (byte == _CharCode.HT);
+  }
+
+  static void _removeTrailingSpaces(List<int> value) {
+    var length = value.length;
+    while (length > 0 &&
+        (value[length - 1] == _CharCode.SP ||
+            value[length - 1] == _CharCode.HT)) {
+      --length;
+    }
+
+    value.length = length;
   }
 
   static List<String> _tokenizeFieldValue(String headerValue) {

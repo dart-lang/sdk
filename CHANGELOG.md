@@ -18,6 +18,14 @@
 
 ### Libraries
 
+#### `dart:io`
+
+- **Breaking change** [#53005][]: The headers returned by
+  `HttpClientResponse.headers` and `HttpRequest.headers` no longer include
+  trailing whitespace in their values.
+
+[#52334]: https://dartbug.com/53005
+
 #### `dart:js_interop`
 
 - **JSNumber.toDart and Object.toJS**:
