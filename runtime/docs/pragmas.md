@@ -37,6 +37,7 @@ These pragmas can cause unsound behavior if used incorrectly and therefore are o
 | --- | --- |
 | `vm:exact-result-type` | [Declaring an exact result type of a method](compiler/pragmas_recognized_by_compiler.md#providing-an-exact-result-type) |
 | `vm:recognized` | [Marking this as a recognized method](compiler/pragmas_recognized_by_compiler.md#marking-recognized-methods) |
+| `vm:idempotent` | Method marked with this pragma can be repeated or restarted multiple times without change to its effect. Loading, storing of memory values are examples of this, while reads and writes from file are examples of non-idempotent methods. At present, use of this pragma is limited to driving inlining of force-optimized functions. |
 
 ## Pragmas ignored in user code
 

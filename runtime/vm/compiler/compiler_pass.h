@@ -162,6 +162,7 @@ class CompilerPass {
 
   static void RunInliningPipeline(PipelineMode mode, CompilerPassState* state);
 
+  static void RunForceOptimizedInliningPipeline(CompilerPassState* state);
   // RunPipeline(WithPasses) may have the side effect of changing the FlowGraph
   // stored in the CompilerPassState. However, existing callers may depend on
   // the old invariant that the FlowGraph stored in the CompilerPassState was

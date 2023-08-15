@@ -298,6 +298,13 @@ void CompilerPass::RunInliningPipeline(PipelineMode mode,
   INVOKE_PASS(TryOptimizePatterns);
 }
 
+void CompilerPass::RunForceOptimizedInliningPipeline(
+    CompilerPassState* pass_state) {
+  INVOKE_PASS(TypePropagation);
+  INVOKE_PASS(Canonicalize);
+  INVOKE_PASS(ConstantPropagation);
+}
+
 // Keep in sync with TestPipeline::RunForcedOptimizedAfterSSAPasses.
 FlowGraph* CompilerPass::RunForceOptimizedPipeline(
     PipelineMode mode,

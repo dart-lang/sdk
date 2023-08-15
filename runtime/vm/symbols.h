@@ -514,15 +514,17 @@ class ObjectPointerVisitor;
   V(string_param_length, ":string_param_length")                               \
   V(system, "system")                                                          \
   V(vm_always_consider_inlining, "vm:always-consider-inlining")                \
+  V(vm_awaiter_link, "vm:awaiter-link")                                        \
   V(vm_entry_point, "vm:entry-point")                                          \
   V(vm_exact_result_type, "vm:exact-result-type")                              \
   V(vm_external_name, "vm:external-name")                                      \
   V(vm_ffi_abi_specific_mapping, "vm:ffi:abi-specific-mapping")                \
   V(vm_ffi_native_assets, "vm:ffi:native-assets")                              \
   V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
+  V(vm_force_optimize, "vm:force-optimize")                                    \
+  V(vm_idempotent, "vm:idempotent")                                            \
   V(vm_invisible, "vm:invisible")                                              \
   V(vm_isolate_unsendable, "vm:isolate-unsendable")                            \
-  V(vm_awaiter_link, "vm:awaiter-link")                                        \
   V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
   V(vm_notify_debugger_on_exception, "vm:notify-debugger-on-exception")        \
