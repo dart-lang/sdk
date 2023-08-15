@@ -311,12 +311,6 @@ struct base_ptr_type<
 #define DEFINE_COMPRESSED_POINTER(klass, base)                                 \
   class Compressed##klass##Ptr : public Compressed##base##Ptr {                \
    public:                                                                     \
-    Compressed##klass##Ptr* operator->() {                                     \
-      return this;                                                             \
-    }                                                                          \
-    const Compressed##klass##Ptr* operator->() const {                         \
-      return this;                                                             \
-    }                                                                          \
     explicit Compressed##klass##Ptr(klass##Ptr uncompressed)                   \
         : Compressed##base##Ptr(uncompressed) {}                               \
     const klass##Ptr& operator=(const klass##Ptr& other) {                     \
