@@ -6,7 +6,7 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method doTest([@vm.inferred-type.metadata=#lib::X] self::Z a) → void {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method doTest([@vm.inferred-arg-type.metadata=#lib::X] self::Z a) → void {
     core::print([@vm.direct-call.metadata=#lib::Base.appName] [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "x")] a.{self::Z::appName}{core::String?});
   }
 }

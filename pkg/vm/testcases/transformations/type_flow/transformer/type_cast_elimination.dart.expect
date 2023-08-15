@@ -37,19 +37,19 @@ static method testObjectNegative() → dynamic
   return let dynamic #t1 = #C2 in #t1 as core::Object;
 static method testNullableObject() → dynamic
   return #C2;
-static method testAOfNum1([@vm.inferred-type.metadata=#lib::B<dart.core::int>] dynamic x) → dynamic
+static method testAOfNum1([@vm.inferred-arg-type.metadata=#lib::B<dart.core::int>] dynamic x) → dynamic
   return _in::unsafeCast<self::A<core::num>>(x);
-static method testAOfNum2negative([@vm.inferred-type.metadata=#lib::B<dart.core::int?>] dynamic x) → dynamic
+static method testAOfNum2negative([@vm.inferred-arg-type.metadata=#lib::B<dart.core::int?>] dynamic x) → dynamic
   return x as self::A<core::num>;
 static method testAOfNum3negative() → dynamic
   return #C2 as self::A<core::num>;
-static method testAOfNullableNum([@vm.inferred-type.metadata=#lib::B<dart.core::int?>] dynamic x) → dynamic
+static method testAOfNullableNum([@vm.inferred-arg-type.metadata=#lib::B<dart.core::int?>] dynamic x) → dynamic
   return _in::unsafeCast<self::A<core::num?>>(x);
 static method testNullableAOfNum() → dynamic
   return _in::unsafeCast<self::A<core::num>?>(#C2);
-static method testNullableAOfNumNegative([@vm.inferred-type.metadata=#lib::B<dart.core::int?>] dynamic x) → dynamic
+static method testNullableAOfNumNegative([@vm.inferred-arg-type.metadata=#lib::B<dart.core::int?>] dynamic x) → dynamic
   return x as self::A<core::num>?;
-static method testNullableAOfNullableNum([@vm.inferred-type.metadata=#lib::B<dart.core::int?>] dynamic x) → dynamic
+static method testNullableAOfNullableNum([@vm.inferred-arg-type.metadata=#lib::B<dart.core::int?>] dynamic x) → dynamic
   return _in::unsafeCast<self::A<core::num?>?>(x);
 static method main() → void {
   self::testInt1();

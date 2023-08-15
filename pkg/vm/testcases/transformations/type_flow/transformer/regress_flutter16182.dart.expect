@@ -19,7 +19,7 @@ class A1 extends core::Object {
   synthetic constructor •() → self::A1
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method call([[@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] dynamic a1 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 2)] dynamic a2 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 3)] dynamic a3 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 4)] dynamic a4 = #C1, [@vm.inferred-type.metadata=#lib::T1] dynamic a5 = #C1]) → void {
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method call([[@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 1)] dynamic a1 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 2)] dynamic a2 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 3)] dynamic a3 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 4)] dynamic a4 = #C1, [@vm.inferred-arg-type.metadata=#lib::T1] dynamic a5 = #C1]) → void {
     [@vm.direct-call.metadata=#lib::A1.foo] [@vm.inferred-type.metadata=!? (skip check)] this.{self::A1::foo} = _in::unsafeCast<self::T1?>(a5);
   }
 }
@@ -42,7 +42,7 @@ class A2 extends core::Object {
   synthetic constructor •() → self::A2
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]  method call([[@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] dynamic a1 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 2)] dynamic a2 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 3)] dynamic a3 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 4)] dynamic a4 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 5)] dynamic a5 = #C1, [@vm.inferred-type.metadata=#lib::T2] dynamic a6 = #C1]) → void {
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]  method call([[@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 1)] dynamic a1 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 2)] dynamic a2 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 3)] dynamic a3 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 4)] dynamic a4 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 5)] dynamic a5 = #C1, [@vm.inferred-arg-type.metadata=#lib::T2] dynamic a6 = #C1]) → void {
     [@vm.direct-call.metadata=#lib::A2.foo] [@vm.inferred-type.metadata=!? (skip check)] this.{self::A2::foo} = a6;
   }
 }
@@ -75,7 +75,7 @@ class A3 extends core::Object {
   synthetic constructor •() → self::A3
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:24,getterSelectorId:25]  method call([[@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] dynamic a1 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 2)] dynamic a2 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 3)] dynamic a3 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 4)] dynamic a4 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 5)] dynamic a5 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 6)] dynamic a6 = #C1, [@vm.inferred-type.metadata=#lib::T3] dynamic a7 = #C1]) → void {
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:24,getterSelectorId:25]  method call([[@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 1)] dynamic a1 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 2)] dynamic a2 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 3)] dynamic a3 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 4)] dynamic a4 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 5)] dynamic a5 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 6)] dynamic a6 = #C1, [@vm.inferred-arg-type.metadata=#lib::T3] dynamic a7 = #C1]) → void {
     [@vm.direct-call.metadata=#lib::A3.foo] [@vm.inferred-type.metadata=!? (skip check)] this.{self::A3::foo} = a7;
   }
 }
@@ -98,7 +98,7 @@ class A4 extends core::Object {
   synthetic constructor •() → self::A4
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:32,getterSelectorId:33]  method call([[@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] dynamic a1 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 2)] dynamic a2 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 3)] dynamic a3 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 4)] dynamic a4 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 5)] dynamic a5 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 6)] dynamic a6 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 7)] dynamic a7 = #C1, [@vm.inferred-type.metadata=#lib::T4] dynamic a8 = #C1]) → void {
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:32,getterSelectorId:33]  method call([[@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 1)] dynamic a1 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 2)] dynamic a2 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 3)] dynamic a3 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 4)] dynamic a4 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 5)] dynamic a5 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 6)] dynamic a6 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 7)] dynamic a7 = #C1, [@vm.inferred-arg-type.metadata=#lib::T4] dynamic a8 = #C1]) → void {
     [@vm.direct-call.metadata=#lib::A4.foo] [@vm.inferred-type.metadata=!? (skip check)] this.{self::A4::foo} = a8;
   }
 }

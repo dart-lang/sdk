@@ -9,19 +9,19 @@ import "dart:ffi";
 
 @#C6
 final class Struct1 extends ffi::Struct {
-  constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::Struct1
+  constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::Struct1
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 }
 @#C6
 final class Struct2 extends ffi::Struct {
-  constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::Struct2
+  constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::Struct2
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 }
 @#C6
 final class Struct3 extends ffi::Struct {
-  constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::Struct3
+  constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::Struct3
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 }
@@ -36,7 +36,7 @@ abstract final class Struct7 extends ffi::Struct {
 }
 @#C10
 final class Struct11 extends ffi::Struct {
-  constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::Struct11
+  constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::Struct11
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get nested() → self::Struct12
@@ -47,7 +47,7 @@ final class Struct11 extends ffi::Struct {
 }
 @#C6
 final class Struct12 extends ffi::Struct {
-  constructor #fromTypedDataBase([@vm.inferred-type.metadata=!] synthesized core::Object #typedDataBase) → self::Struct12
+  constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=!] synthesized core::Object #typedDataBase) → self::Struct12
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 }

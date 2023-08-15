@@ -17,11 +17,11 @@ extension type IC2(core::int id) {
   static method bar1 = self::IC2|bar1;
   constructor • = self::IC2|;
 }
-[@vm.unboxing-info.metadata=(i)->i]static inline-class-member method IC2|([@vm.inferred-type.metadata=int] core::int id) → self::IC2 /* = core::int */ {
+[@vm.unboxing-info.metadata=(i)->i]static inline-class-member method IC2|([@vm.inferred-arg-type.metadata=int] core::int id) → self::IC2 /* = core::int */ {
   lowered final self::IC2 /* = core::int */ #this = id;
   return #this;
 }
-[@vm.unboxing-info.metadata=(i)->i]static inline-class-member method IC2|foo1([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] lowered final self::IC2 /* = core::int */ #this) → core::int
+[@vm.unboxing-info.metadata=(i)->i]static inline-class-member method IC2|foo1([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] lowered final self::IC2 /* = core::int */ #this) → core::int
   return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] _in::unsafeCast<core::int>(#this).{core::num::+}(1){(core::num) → core::int};
 [@vm.unboxing-info.metadata=()->i]static inline-class-member method IC2|bar1() → self::IC2 /* = core::int */
   return [@vm.inferred-type.metadata=int] self::IC2|([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] _in::unsafeCast<core::int>(#C1).{core::num::+}(1){(core::num) → core::int});

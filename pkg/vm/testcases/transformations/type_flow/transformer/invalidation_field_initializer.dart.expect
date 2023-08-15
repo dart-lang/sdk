@@ -52,13 +52,13 @@ class DeepCaller2 extends core::Object {
   synthetic constructor •() → self::DeepCaller2
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]  method barL1([@vm.inferred-type.metadata=#lib::D] self::D dd) → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]  method barL1([@vm.inferred-arg-type.metadata=#lib::D] self::D dd) → dynamic
     return [@vm.direct-call.metadata=#lib::DeepCaller2.barL2] [@vm.inferred-type.metadata=! (skip check)] this.{self::DeepCaller2::barL2}(dd){(self::D) → dynamic};
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]  method barL2([@vm.inferred-type.metadata=#lib::D] self::D dd) → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]  method barL2([@vm.inferred-arg-type.metadata=#lib::D] self::D dd) → dynamic
     return [@vm.direct-call.metadata=#lib::DeepCaller2.barL3] [@vm.inferred-type.metadata=! (skip check)] this.{self::DeepCaller2::barL3}(dd){(self::D) → dynamic};
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:17,getterSelectorId:18]  method barL3([@vm.inferred-type.metadata=#lib::D] self::D dd) → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:17,getterSelectorId:18]  method barL3([@vm.inferred-arg-type.metadata=#lib::D] self::D dd) → dynamic
     return [@vm.direct-call.metadata=#lib::DeepCaller2.barL4] [@vm.inferred-type.metadata=! (skip check)] this.{self::DeepCaller2::barL4}(dd){(self::D) → dynamic};
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:19,getterSelectorId:20]  method barL4([@vm.inferred-type.metadata=#lib::D] self::D dd) → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:19,getterSelectorId:20]  method barL4([@vm.inferred-arg-type.metadata=#lib::D] self::D dd) → dynamic
     return [@vm.direct-call.metadata=#lib::D.field2] [@vm.inferred-type.metadata=!] dd.{self::D::field2}{core::Object};
 }
 [@vm.inferred-type.metadata=!]late static field core::Function unknown;
@@ -69,9 +69,9 @@ static method getValue() → core::Object {
   self::A aa = self::getDynamic() as{TypeError,ForDynamic} self::A;
   return [@vm.inferred-type.metadata=!] aa.{self::A::foo}(){() → core::Object};
 }
-static method use1([@vm.inferred-type.metadata=#lib::DeepCaller1] self::DeepCaller1 x) → dynamic
+static method use1([@vm.inferred-arg-type.metadata=#lib::DeepCaller1] self::DeepCaller1 x) → dynamic
   return [@vm.direct-call.metadata=#lib::DeepCaller1.barL1] [@vm.inferred-type.metadata=! (skip check)] x.{self::DeepCaller1::barL1}(){() → dynamic};
-static method use2([@vm.inferred-type.metadata=#lib::DeepCaller2] self::DeepCaller2 x) → dynamic
+static method use2([@vm.inferred-arg-type.metadata=#lib::DeepCaller2] self::DeepCaller2 x) → dynamic
   return [@vm.direct-call.metadata=#lib::DeepCaller2.barL1] [@vm.inferred-type.metadata=! (skip check)] x.{self::DeepCaller2::barL1}(new self::D::•()){(self::D) → dynamic};
 static method createC() → dynamic {
   new self::C::•();

@@ -2,7 +2,7 @@ library #lib;
 import self as self;
 import "dart:core" as core;
 
-[@vm.unboxing-info.metadata=(b)->i]static method foo([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<core::int> x) → dynamic
+[@vm.unboxing-info.metadata=(b)->i]static method foo([@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<core::int> x) → dynamic
   return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] 1.{core::num::+}([@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=int (skip check)] x.{core::List::[]}(0){(core::int) → core::int}){(core::num) → core::int};
 static method main() → dynamic
   return [@vm.inferred-type.metadata=dart.core::Null? (value: null)] core::print([@vm.inferred-type.metadata=int] self::foo([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::_literal1<core::int>(1)));

@@ -72,7 +72,7 @@ class FooKeep extends pro::GeneratedMessage {
   get barKeep() → self::BarKeep
     return [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.$_getN] [@vm.inferred-type.metadata=foo.pb.dart::BarKeep (skip check)] this.{pro::GeneratedMessage::$_getN}<self::BarKeep>(){(core::int) → self::BarKeep};
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  @#C9
-  set barKeep([@vm.inferred-type.metadata=foo.pb.dart::BarKeep] self::BarKeep v) → void {
+  set barKeep([@vm.inferred-arg-type.metadata=foo.pb.dart::BarKeep] self::BarKeep v) → void {
     [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.setField] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::setField}(v){(core::int, core::Object) → void};
   }
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]  @#C11
@@ -82,7 +82,7 @@ class FooKeep extends pro::GeneratedMessage {
   get aKeep() → core::int
     return [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.$_getIZ] [@vm.inferred-type.metadata=int (skip check)] this.{pro::GeneratedMessage::$_getIZ}(4){(core::int) → core::int};
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6] [@vm.unboxing-info.metadata=(i)->b]  @#C13
-  set aKeep([@vm.inferred-type.metadata=dart.core::_Smi (value: 43)] core::int v) → void {
+  set aKeep([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 43)] core::int v) → void {
     [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.$_setSignedInt32] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::$_setSignedInt32}(4, v){(core::int, core::int) → void};
   }
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  @#C15
@@ -112,7 +112,7 @@ class BarKeep extends pro::GeneratedMessage {
   get aKeep() → core::int
     return [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.$_getIZ] [@vm.inferred-type.metadata=int (skip check)] this.{pro::GeneratedMessage::$_getIZ}(0){(core::int) → core::int};
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12] [@vm.unboxing-info.metadata=(i)->b]  @#C9
-  set aKeep([@vm.inferred-type.metadata=dart.core::_Smi] core::int v) → void {
+  set aKeep([@vm.inferred-arg-type.metadata=dart.core::_Smi] core::int v) → void {
     [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.$_setSignedInt32] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::$_setSignedInt32}(0, v){(core::int, core::int) → void};
   }
 }

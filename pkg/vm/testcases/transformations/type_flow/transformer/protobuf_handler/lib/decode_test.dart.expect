@@ -50,7 +50,7 @@ class FooKeep extends pro::GeneratedMessage {
   constructor _() → self::FooKeep
     : super pro::GeneratedMessage::•()
     ;
-  static factory fromBuffer([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<core::int> i) → self::FooKeep
+  static factory fromBuffer([@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<core::int> i) → self::FooKeep
     return let final self::FooKeep #t4 = [@vm.inferred-type.metadata=foo.pb.dart::FooKeep] self::FooKeep::create() in block {
       [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.mergeFromBuffer] [@vm.inferred-type.metadata=!? (skip check)] #t4.{pro::GeneratedMessage::mergeFromBuffer}(i){(core::List<core::int>, [pro::ExtensionRegistry]) → void};
     } =>#t4;

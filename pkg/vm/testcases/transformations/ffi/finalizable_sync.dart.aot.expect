@@ -13,7 +13,7 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
 }
 [@vm.unboxing-info.metadata=()->i]static method doSomething() → core::int
   return 3;
-[@vm.unboxing-info.metadata=(b)->i]static method useFinalizableSync([@vm.inferred-type.metadata=#lib::MyFinalizable] ffi::Finalizable finalizable) → core::int {
+[@vm.unboxing-info.metadata=(b)->i]static method useFinalizableSync([@vm.inferred-arg-type.metadata=#lib::MyFinalizable] ffi::Finalizable finalizable) → core::int {
   return block {
     final synthesized core::int :expressionValueWrappedFinalizable = [@vm.inferred-type.metadata=dart.core::_Smi (value: 3)] self::doSomething();
     _in::reachabilityFence(finalizable);

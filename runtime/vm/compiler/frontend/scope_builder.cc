@@ -33,6 +33,10 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
           parsed_function->function().KernelLibraryOffset()),
       constant_reader_(&helper_, &active_class_),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
+      inferred_arg_type_metadata_helper_(
+          &helper_,
+          &constant_reader_,
+          InferredTypeMetadataHelper::Kind::ArgType),
       procedure_attributes_metadata_helper_(&helper_),
       type_translator_(&helper_,
                        &constant_reader_,
@@ -1635,7 +1639,8 @@ void ScopeBuilder::AddVariableDeclarationParameter(
       helper_.data_program_offset_ + helper_.ReaderOffset();
   // MetadataHelper expects relative offsets and adjusts them internally
   const InferredTypeMetadata parameter_type =
-      inferred_type_metadata_helper_.GetInferredType(helper_.ReaderOffset());
+      inferred_arg_type_metadata_helper_.GetInferredType(
+          helper_.ReaderOffset());
   VariableDeclarationHelper helper(&helper_);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
   const intptr_t annotations_offset = helper_.ReaderOffset();

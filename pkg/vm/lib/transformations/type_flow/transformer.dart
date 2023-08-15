@@ -304,6 +304,7 @@ class AnnotateKernel extends RecursiveVisitor {
   final FieldMorpher fieldMorpher;
   final DirectCallMetadataRepository _directCallMetadataRepository;
   final InferredTypeMetadataRepository _inferredTypeMetadata;
+  final InferredArgTypeMetadataRepository _inferredArgTypeMetadata;
   final UnreachableNodeMetadataRepository _unreachableNodeMetadata;
   final ProcedureAttributesMetadataRepository _procedureAttributesMetadata;
   final TableSelectorMetadataRepository _tableSelectorMetadata;
@@ -318,14 +319,15 @@ class AnnotateKernel extends RecursiveVisitor {
       : _directCallMetadataRepository =
             component.metadata[DirectCallMetadataRepository.repositoryTag]
                 as DirectCallMetadataRepository,
-        _inferredTypeMetadata = new InferredTypeMetadataRepository(),
-        _unreachableNodeMetadata = new UnreachableNodeMetadataRepository(),
-        _procedureAttributesMetadata =
-            new ProcedureAttributesMetadataRepository(),
-        _tableSelectorMetadata = new TableSelectorMetadataRepository(),
-        _unboxingInfoMetadata = new UnboxingInfoMetadataRepository(),
+        _inferredTypeMetadata = InferredTypeMetadataRepository(),
+        _inferredArgTypeMetadata = InferredArgTypeMetadataRepository(),
+        _unreachableNodeMetadata = UnreachableNodeMetadataRepository(),
+        _procedureAttributesMetadata = ProcedureAttributesMetadataRepository(),
+        _tableSelectorMetadata = TableSelectorMetadataRepository(),
+        _unboxingInfoMetadata = UnboxingInfoMetadataRepository(),
         _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
     component.addMetadataRepository(_inferredTypeMetadata);
+    component.addMetadataRepository(_inferredArgTypeMetadata);
     component.addMetadataRepository(_unreachableNodeMetadata);
     component.addMetadataRepository(_procedureAttributesMetadata);
     component.addMetadataRepository(_tableSelectorMetadata);
@@ -394,6 +396,13 @@ class AnnotateKernel extends RecursiveVisitor {
         skipCheck: skipCheck, receiverNotInt: receiverNotInt);
     if (inferredType != null) {
       _inferredTypeMetadata.mapping[node] = inferredType;
+    }
+  }
+
+  void _setInferredArgType(TreeNode node, Type type, {bool skipCheck = false}) {
+    final inferredType = _convertType(type, skipCheck: skipCheck);
+    if (inferredType != null) {
+      _inferredArgTypeMetadata.mapping[node] = inferredType;
     }
   }
 
@@ -484,7 +493,7 @@ class AnnotateKernel extends RecursiveVisitor {
             firstParamIndex + positionalParams.length);
 
         for (int i = 0; i < positionalParams.length; i++) {
-          _setInferredType(
+          _setInferredArgType(
               positionalParams[i], argTypes.values[firstParamIndex + i],
               skipCheck: uncheckedParameters!.contains(positionalParams[i]));
         }
@@ -494,7 +503,7 @@ class AnnotateKernel extends RecursiveVisitor {
         final names = argTypes.names;
         for (int i = 0; i < names.length; i++) {
           final param = findNamedParameter(member.function!, names[i])!;
-          _setInferredType(param,
+          _setInferredArgType(param,
               argTypes.values[firstParamIndex + positionalParams.length + i],
               skipCheck: uncheckedParameters!.contains(param));
         }

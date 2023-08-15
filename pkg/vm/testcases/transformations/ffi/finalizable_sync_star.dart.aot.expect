@@ -13,7 +13,7 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
 }
 [@vm.unboxing-info.metadata=()->i]static method doSomething() → core::int
   return 3;
-static method useFinalizableSyncStar([@vm.inferred-type.metadata=#lib::MyFinalizable] ffi::Finalizable finalizable) → core::Iterable<core::int> sync* {
+static method useFinalizableSyncStar([@vm.inferred-arg-type.metadata=#lib::MyFinalizable] ffi::Finalizable finalizable) → core::Iterable<core::int> sync* {
   yield block {
     final synthesized core::int :expressionValueWrappedFinalizable = self::doSomething();
     _in::reachabilityFence(finalizable);

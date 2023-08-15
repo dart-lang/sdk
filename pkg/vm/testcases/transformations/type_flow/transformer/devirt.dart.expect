@@ -36,22 +36,22 @@ class E extends core::Object {
 }
 [@vm.inferred-type.metadata=#lib::D]late static field self::A dd;
 [@vm.inferred-type.metadata=#lib::E]static field self::E ee = new self::E::•();
-static method callerA1([@vm.inferred-type.metadata=!] self::A aa) → void {
+static method callerA1([@vm.inferred-arg-type.metadata=!] self::A aa) → void {
   [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}(){() → core::int};
 }
-static method callerA2([@vm.inferred-type.metadata=#lib::B] self::A aa) → void {
+static method callerA2([@vm.inferred-arg-type.metadata=#lib::B] self::A aa) → void {
   [@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}(){() → core::int};
 }
-static method callerA3([@vm.inferred-type.metadata=#lib::C] self::A aa) → void {
+static method callerA3([@vm.inferred-arg-type.metadata=#lib::C] self::A aa) → void {
   [@vm.direct-call.metadata=#lib::C.foo] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}(){() → core::int};
 }
-static method callerA4([@vm.inferred-type.metadata=#lib::D] self::A aa) → void {
+static method callerA4([@vm.inferred-arg-type.metadata=#lib::D] self::A aa) → void {
   [@vm.direct-call.metadata=#lib::C.foo] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}(){() → core::int};
 }
 static method callerE1() → void {
   [@vm.direct-call.metadata=dart.core::_StringBase.toString] [@vm.inferred-type.metadata=!? (skip check) (receiver not int)] #C1.{core::Object::toString}(){() → core::String};
 }
-static method callerE2([@vm.inferred-type.metadata=#lib::E] dynamic x) → void {
+static method callerE2([@vm.inferred-arg-type.metadata=#lib::E] dynamic x) → void {
   [@vm.direct-call.metadata=#lib::E.toString] [@vm.inferred-type.metadata=!? (skip check) (receiver not int)] x.{core::Object::toString}(){() → core::String};
 }
 static method main(core::List<core::String> args) → dynamic {
