@@ -1631,7 +1631,7 @@ class OutlineBuilder extends StackListenerImpl {
             type: formal.type,
             name: formal.name,
             charOffset: formal.charOffset);
-        formals[i] = formal.forPrimaryConstructor();
+        formals[i] = formal.forPrimaryConstructor(libraryBuilder);
       }
     }
 

@@ -331,125 +331,125 @@ extension type E24<T extends core::Object? = dynamic>(invalid-type it) {
   constructor • = self::E24|;
   tearoff • = self::E24|_#new#tearOff;
 }
-static inline-class-member method E1|(dynamic it) → self::E1 /* = invalid-type */
+static inline-class-member method E1|(self::E1 /* = invalid-type */ it) → self::E1 /* = invalid-type */
   ;
-static inline-class-member method E1|_#new#tearOff(dynamic it) → self::E1 /* = invalid-type */
+static inline-class-member method E1|_#new#tearOff(self::E1 /* = invalid-type */ it) → self::E1 /* = invalid-type */
   return self::E1|(it);
-static inline-class-member method E2a|(dynamic it) → self::E2a /* = invalid-type */
+static inline-class-member method E2a|(self::E2b /* = invalid-type */ it) → self::E2a /* = invalid-type */
   ;
-static inline-class-member method E2a|_#new#tearOff(dynamic it) → self::E2a /* = invalid-type */
+static inline-class-member method E2a|_#new#tearOff(self::E2b /* = invalid-type */ it) → self::E2a /* = invalid-type */
   return self::E2a|(it);
-static inline-class-member method E2b|(dynamic it) → self::E2b /* = invalid-type */
+static inline-class-member method E2b|(self::E2a /* = invalid-type */ it) → self::E2b /* = invalid-type */
   ;
-static inline-class-member method E2b|_#new#tearOff(dynamic it) → self::E2b /* = invalid-type */
+static inline-class-member method E2b|_#new#tearOff(self::E2a /* = invalid-type */ it) → self::E2b /* = invalid-type */
   return self::E2b|(it);
-static inline-class-member method E3a|(dynamic it) → self::E3a /* = invalid-type */
+static inline-class-member method E3a|(self::E3b /* = invalid-type */ it) → self::E3a /* = invalid-type */
   ;
-static inline-class-member method E3a|_#new#tearOff(dynamic it) → self::E3a /* = invalid-type */
+static inline-class-member method E3a|_#new#tearOff(self::E3b /* = invalid-type */ it) → self::E3a /* = invalid-type */
   return self::E3a|(it);
-static inline-class-member method E3b|(dynamic it) → self::E3b /* = invalid-type */
+static inline-class-member method E3b|(self::E3c /* = invalid-type */ it) → self::E3b /* = invalid-type */
   ;
-static inline-class-member method E3b|_#new#tearOff(dynamic it) → self::E3b /* = invalid-type */
+static inline-class-member method E3b|_#new#tearOff(self::E3c /* = invalid-type */ it) → self::E3b /* = invalid-type */
   return self::E3b|(it);
-static inline-class-member method E3c|(dynamic it) → self::E3c /* = invalid-type */
+static inline-class-member method E3c|(self::E3a /* = invalid-type */ it) → self::E3c /* = invalid-type */
   ;
-static inline-class-member method E3c|_#new#tearOff(dynamic it) → self::E3c /* = invalid-type */
+static inline-class-member method E3c|_#new#tearOff(self::E3a /* = invalid-type */ it) → self::E3c /* = invalid-type */
   return self::E3c|(it);
-static inline-class-member method E4|(dynamic it) → self::E4 /* = invalid-type */
+static inline-class-member method E4|(() → self::E4 /* = invalid-type */ it) → self::E4 /* = invalid-type */
   ;
-static inline-class-member method E4|_#new#tearOff(dynamic it) → self::E4 /* = invalid-type */
+static inline-class-member method E4|_#new#tearOff(() → self::E4 /* = invalid-type */ it) → self::E4 /* = invalid-type */
   return self::E4|(it);
-static inline-class-member method E5|(dynamic it) → self::E5 /* = invalid-type */
+static inline-class-member method E5|((self::E5 /* = invalid-type */) → void it) → self::E5 /* = invalid-type */
   ;
-static inline-class-member method E5|_#new#tearOff(dynamic it) → self::E5 /* = invalid-type */
+static inline-class-member method E5|_#new#tearOff((self::E5 /* = invalid-type */) → void it) → self::E5 /* = invalid-type */
   return self::E5|(it);
-static inline-class-member method E6|(dynamic it) → self::E6 /* = invalid-type */
+static inline-class-member method E6|((self::E6 /* = invalid-type */, core::int) it) → self::E6 /* = invalid-type */
   ;
-static inline-class-member method E6|_#new#tearOff(dynamic it) → self::E6 /* = invalid-type */
+static inline-class-member method E6|_#new#tearOff((self::E6 /* = invalid-type */, core::int) it) → self::E6 /* = invalid-type */
   return self::E6|(it);
-static inline-class-member method E7|_#new#tearOff(dynamic it) → self::E7 /* = invalid-type */
+static inline-class-member method E7|_#new#tearOff(<T extends self::E7 /* = invalid-type */ = dynamic>() → void it) → self::E7 /* = invalid-type */
   return self::E7|(it);
-static inline-class-member method E7|(dynamic it) → self::E7 /* = invalid-type */
+static inline-class-member method E7|(<T extends self::E7 /* = invalid-type */ = dynamic>() → void it) → self::E7 /* = invalid-type */
   ;
-static inline-class-member method E8|<T extends core::Object? = dynamic>(dynamic it) → self::E8<self::E8|::T%> /* = invalid-type */
+static inline-class-member method E8|<T extends core::Object? = dynamic>(core::List<self::E8<dynamic> /* = invalid-type */> it) → self::E8<self::E8|::T%> /* = invalid-type */
   ;
-static inline-class-member method E8|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::E8<self::E8|_#new#tearOff::T%> /* = invalid-type */
+static inline-class-member method E8|_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::E8<dynamic> /* = invalid-type */> it) → self::E8<self::E8|_#new#tearOff::T%> /* = invalid-type */
   return self::E8|<self::E8|_#new#tearOff::T%>(it);
-static inline-class-member method E9|(dynamic it) → self::E9 /* = invalid-type */
+static inline-class-member method E9|(self::E9 /* = invalid-type */ it) → self::E9 /* = invalid-type */
   ;
-static inline-class-member method E9|_#new#tearOff(dynamic it) → self::E9 /* = invalid-type */
+static inline-class-member method E9|_#new#tearOff(self::E9 /* = invalid-type */ it) → self::E9 /* = invalid-type */
   return self::E9|(it);
-static inline-class-member method E10|<T extends core::Object? = dynamic>(dynamic it) → self::E10<self::E10|::T%> /* = invalid-type */
+static inline-class-member method E10|<T extends core::Object? = dynamic>(self::E10<self::E10|::T%> /* = invalid-type */ it) → self::E10<self::E10|::T%> /* = invalid-type */
   ;
-static inline-class-member method E10|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::E10<self::E10|_#new#tearOff::T%> /* = invalid-type */
+static inline-class-member method E10|_#new#tearOff<T extends core::Object? = dynamic>(self::E10<self::E10|_#new#tearOff::T%> /* = invalid-type */ it) → self::E10<self::E10|_#new#tearOff::T%> /* = invalid-type */
   return self::E10|<self::E10|_#new#tearOff::T%>(it);
-static inline-class-member method E11|(dynamic it) → self::E11 /* = invalid-type */
+static inline-class-member method E11|(() → self::E11 /* = invalid-type */ it) → self::E11 /* = invalid-type */
   ;
-static inline-class-member method E11|_#new#tearOff(dynamic it) → self::E11 /* = invalid-type */
+static inline-class-member method E11|_#new#tearOff(() → self::E11 /* = invalid-type */ it) → self::E11 /* = invalid-type */
   return self::E11|(it);
-static inline-class-member method E12|(dynamic it) → self::E12 /* = invalid-type */
+static inline-class-member method E12|((self::E12 /* = invalid-type */) → void it) → self::E12 /* = invalid-type */
   ;
-static inline-class-member method E12|_#new#tearOff(dynamic it) → self::E12 /* = invalid-type */
+static inline-class-member method E12|_#new#tearOff((self::E12 /* = invalid-type */) → void it) → self::E12 /* = invalid-type */
   return self::E12|(it);
-static inline-class-member method E13|(dynamic it) → self::E13 /* = invalid-type */
+static inline-class-member method E13|(<T extends self::E13 /* = invalid-type */ = dynamic>() → void it) → self::E13 /* = invalid-type */
   ;
-static inline-class-member method E13|_#new#tearOff(dynamic it) → self::E13 /* = invalid-type */
+static inline-class-member method E13|_#new#tearOff(<T extends self::E13 /* = invalid-type */ = dynamic>() → void it) → self::E13 /* = invalid-type */
   return self::E13|(it);
-static inline-class-member method E14|(dynamic it) → self::E14 /* = core::int */
+static inline-class-member method E14|(core::int it) → self::E14 /* = core::int */
   ;
-static inline-class-member method E14|_#new#tearOff(dynamic it) → self::E14 /* = core::int */
+static inline-class-member method E14|_#new#tearOff(core::int it) → self::E14 /* = core::int */
   return self::E14|(it);
-static inline-class-member method E15a|(dynamic it) → self::E15a /* = invalid-type */
+static inline-class-member method E15a|(core::List<self::E15b /* = invalid-type */> it) → self::E15a /* = invalid-type */
   ;
-static inline-class-member method E15a|_#new#tearOff(dynamic it) → self::E15a /* = invalid-type */
+static inline-class-member method E15a|_#new#tearOff(core::List<self::E15b /* = invalid-type */> it) → self::E15a /* = invalid-type */
   return self::E15a|(it);
-static inline-class-member method E15b|(dynamic it) → self::E15b /* = invalid-type */
+static inline-class-member method E15b|(core::List<self::E15a /* = invalid-type */> it) → self::E15b /* = invalid-type */
   ;
-static inline-class-member method E15b|_#new#tearOff(dynamic it) → self::E15b /* = invalid-type */
+static inline-class-member method E15b|_#new#tearOff(core::List<self::E15a /* = invalid-type */> it) → self::E15b /* = invalid-type */
   return self::E15b|(it);
-static inline-class-member method E16a|(dynamic it) → self::E16a /* = invalid-type */
+static inline-class-member method E16a|(core::List<self::E16b /* = invalid-type */> it) → self::E16a /* = invalid-type */
   ;
-static inline-class-member method E16a|_#new#tearOff(dynamic it) → self::E16a /* = invalid-type */
+static inline-class-member method E16a|_#new#tearOff(core::List<self::E16b /* = invalid-type */> it) → self::E16a /* = invalid-type */
   return self::E16a|(it);
-static inline-class-member method E16b|(dynamic it) → self::E16b /* = invalid-type */
+static inline-class-member method E16b|(core::List<self::E16a /* = invalid-type */> it) → self::E16b /* = invalid-type */
   ;
-static inline-class-member method E16b|_#new#tearOff(dynamic it) → self::E16b /* = invalid-type */
+static inline-class-member method E16b|_#new#tearOff(core::List<self::E16a /* = invalid-type */> it) → self::E16b /* = invalid-type */
   return self::E16b|(it);
-static inline-class-member method E17|(dynamic it) → self::E17 /* = invalid-type */
+static inline-class-member method E17|((core::int, {required a: self::E17 /* = invalid-type */}) it) → self::E17 /* = invalid-type */
   ;
-static inline-class-member method E17|_#new#tearOff(dynamic it) → self::E17 /* = invalid-type */
+static inline-class-member method E17|_#new#tearOff((core::int, {required a: self::E17 /* = invalid-type */}) it) → self::E17 /* = invalid-type */
   return self::E17|(it);
-static inline-class-member method E18|(dynamic it) → self::E18 /* = invalid-type */
+static inline-class-member method E18|((self::E18 /* = invalid-type */) → void it) → self::E18 /* = invalid-type */
   ;
-static inline-class-member method E18|_#new#tearOff(dynamic it) → self::E18 /* = invalid-type */
+static inline-class-member method E18|_#new#tearOff((self::E18 /* = invalid-type */) → void it) → self::E18 /* = invalid-type */
   return self::E18|(it);
-static inline-class-member method E19a|(dynamic it) → self::E19a /* =(self::E19b /* = core::int */, self::E19b /* = core::int */) */
+static inline-class-member method E19a|((self::E19b /* = core::int */, self::E19b /* = core::int */) it) → self::E19a /* =(self::E19b /* = core::int */, self::E19b /* = core::int */) */
   ;
-static inline-class-member method E19a|_#new#tearOff(dynamic it) → self::E19a /* =(self::E19b /* = core::int */, self::E19b /* = core::int */) */
+static inline-class-member method E19a|_#new#tearOff((self::E19b /* = core::int */, self::E19b /* = core::int */) it) → self::E19a /* =(self::E19b /* = core::int */, self::E19b /* = core::int */) */
   return self::E19a|(it);
-static inline-class-member method E19b|(dynamic it) → self::E19b /* = core::int */
+static inline-class-member method E19b|(core::int it) → self::E19b /* = core::int */
   ;
-static inline-class-member method E19b|_#new#tearOff(dynamic it) → self::E19b /* = core::int */
+static inline-class-member method E19b|_#new#tearOff(core::int it) → self::E19b /* = core::int */
   return self::E19b|(it);
-static inline-class-member method E20|(dynamic it) → self::E20 /* = invalid-type */
+static inline-class-member method E20|(invalid-type it) → self::E20 /* = invalid-type */
   ;
-static inline-class-member method E20|_#new#tearOff(dynamic it) → self::E20 /* = invalid-type */
+static inline-class-member method E20|_#new#tearOff(invalid-type it) → self::E20 /* = invalid-type */
   return self::E20|(it);
-static inline-class-member method E21|(dynamic it) → self::E21 /* = invalid-type */
+static inline-class-member method E21|(invalid-type it) → self::E21 /* = invalid-type */
   ;
-static inline-class-member method E21|_#new#tearOff(dynamic it) → self::E21 /* = invalid-type */
+static inline-class-member method E21|_#new#tearOff(invalid-type it) → self::E21 /* = invalid-type */
   return self::E21|(it);
-static inline-class-member method E22|(dynamic it) → self::E22 /* = invalid-type */
+static inline-class-member method E22|(invalid-type it) → self::E22 /* = invalid-type */
   ;
-static inline-class-member method E22|_#new#tearOff(dynamic it) → self::E22 /* = invalid-type */
+static inline-class-member method E22|_#new#tearOff(invalid-type it) → self::E22 /* = invalid-type */
   return self::E22|(it);
-static inline-class-member method E23|(dynamic it) → self::E23 /* = invalid-type */
+static inline-class-member method E23|(core::List<self::E23 /* = invalid-type */> it) → self::E23 /* = invalid-type */
   ;
-static inline-class-member method E23|_#new#tearOff(dynamic it) → self::E23 /* = invalid-type */
+static inline-class-member method E23|_#new#tearOff(core::List<self::E23 /* = invalid-type */> it) → self::E23 /* = invalid-type */
   return self::E23|(it);
-static inline-class-member method E24|<T extends core::Object? = dynamic>(dynamic it) → self::E24<self::E24|::T%> /* = invalid-type */
+static inline-class-member method E24|<T extends core::Object? = dynamic>(core::List<self::E24<dynamic> /* = invalid-type */> it) → self::E24<self::E24|::T%> /* = invalid-type */
   ;
-static inline-class-member method E24|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::E24<self::E24|_#new#tearOff::T%> /* = invalid-type */
+static inline-class-member method E24|_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::E24<dynamic> /* = invalid-type */> it) → self::E24<self::E24|_#new#tearOff::T%> /* = invalid-type */
   return self::E24|<self::E24|_#new#tearOff::T%>(it);
 static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#Alias14#fromEnvironment#tearOff<unrelated T extends core::Object? = dynamic>(core::String name, {has-declared-initializer core::int defaultValue}) → core::int
   return core::int::fromEnvironment(name, defaultValue: defaultValue);

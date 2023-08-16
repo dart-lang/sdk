@@ -22,11 +22,11 @@ extension type ET1(core::int id) {
   static factory f2 = self::ET1|f2;
   static tearoff f2 = self::ET1|_#f2#tearOff;
 }
-static inline-class-member method ET1|c0(dynamic id) → self::ET1 /* = core::int */ {
+static inline-class-member method ET1|c0(core::int id) → self::ET1 /* = core::int */ {
   lowered final self::ET1 /* = core::int */ #this = id;
   return #this;
 }
-static inline-class-member method ET1|_#c0#tearOff(dynamic id) → self::ET1 /* = core::int */
+static inline-class-member method ET1|_#c0#tearOff(core::int id) → self::ET1 /* = core::int */
   return self::ET1|c0(id);
 static inline-class-member method ET1|c1() → self::ET1 /* = core::int */ {
   lowered final self::ET1 /* = core::int */ #this;

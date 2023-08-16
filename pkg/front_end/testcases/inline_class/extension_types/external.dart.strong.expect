@@ -37,11 +37,11 @@ extension type B(self::A a) {
   constructor named = self::B|named;
   tearoff named = self::B|_#named#tearOff;
 }
-static inline-class-member method B|_(dynamic a) → self::B /* = self::A */ {
+static inline-class-member method B|_(self::A a) → self::B /* = self::A */ {
   lowered final self::B /* = self::A */ #this = a;
   return #this;
 }
-static inline-class-member method B|_#_#tearOff(dynamic a) → self::B /* = self::A */
+static inline-class-member method B|_#_#tearOff(self::A a) → self::B /* = self::A */
   return self::B|_(a);
 external static inline-class-member method B|(self::A a) → self::B /* = self::A */;
 static inline-class-member method B|_#new#tearOff(self::A a) → self::B /* = self::A */

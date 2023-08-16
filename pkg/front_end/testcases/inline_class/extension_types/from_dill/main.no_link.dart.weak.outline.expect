@@ -43,9 +43,9 @@ extension type ExtensionType(core::int it) {
   static tearoff redirectingFactory = self2::ExtensionType|_#redirectingFactory#tearOff;
 }
 static field core::int ExtensionType|staticField;
-static inline-class-member method ExtensionType|(dynamic it) → self2::ExtensionType /* = core::int */
+static inline-class-member method ExtensionType|(core::int it) → self2::ExtensionType /* = core::int */
   ;
-static inline-class-member method ExtensionType|_#new#tearOff(dynamic it) → self2::ExtensionType /* = core::int */
+static inline-class-member method ExtensionType|_#new#tearOff(core::int it) → self2::ExtensionType /* = core::int */
   return self2::ExtensionType|(it);
 static inline-class-member method ExtensionType|named(core::int it) → self2::ExtensionType /* = core::int */
   ;

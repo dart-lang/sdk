@@ -10,11 +10,11 @@ extension type Class2(core::int field) {
   constructor • = self::Class2|;
   tearoff • = self::Class2|_#new#tearOff;
 }
-static inline-class-member method Class1|(dynamic field) → self::Class1 /* = core::int */
+static inline-class-member method Class1|(core::int field) → self::Class1 /* = core::int */
   ;
-static inline-class-member method Class1|_#new#tearOff(dynamic field) → self::Class1 /* = core::int */
+static inline-class-member method Class1|_#new#tearOff(core::int field) → self::Class1 /* = core::int */
   return self::Class1|(field);
-static inline-class-member method Class2|(dynamic field) → self::Class2 /* = core::int */
+static inline-class-member method Class2|(core::int field) → self::Class2 /* = core::int */
   ;
-static inline-class-member method Class2|_#new#tearOff(dynamic field) → self::Class2 /* = core::int */
+static inline-class-member method Class2|_#new#tearOff(core::int field) → self::Class2 /* = core::int */
   return self::Class2|(field);

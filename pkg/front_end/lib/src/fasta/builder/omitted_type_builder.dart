@@ -60,6 +60,13 @@ abstract class OmittedTypeBuilder extends TypeBuilder {
   DartType get type;
 }
 
+/// [TypeBuilder] for when there is no explicit type provided by the user and
+/// the type _cannot_ be inferred from context.
+///
+/// For omitted return types and parameter types of instance method,
+/// field types and initializing formal types, use [InferableTypeBuilder]
+/// instead. This should be created through
+/// [SourceLibraryBuilder.addInferableType] to ensure the type is inferred.
 class ImplicitTypeBuilder extends OmittedTypeBuilder {
   const ImplicitTypeBuilder();
 
@@ -89,6 +96,12 @@ class ImplicitTypeBuilder extends OmittedTypeBuilder {
   DartType get type => const DynamicType();
 }
 
+/// [TypeBuilder] for when there is no explicit type provided by the user but
+/// the type _can_ be inferred from context. For instance omitted return types
+/// and parameter types of instance method,
+///
+/// [InferableTypeBuilder] should be created through
+/// [SourceLibraryBuilder.addInferableType] to ensure the type is inferred.
 class InferableTypeBuilder extends OmittedTypeBuilder
     with InferableTypeBuilderMixin
     implements InferableType {

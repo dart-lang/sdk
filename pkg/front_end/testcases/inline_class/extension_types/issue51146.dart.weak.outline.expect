@@ -6,9 +6,9 @@ extension type I<X extends core::Object? = dynamic, Y extends core::Object? = dy
   constructor • = self::I|;
   tearoff • = self::I|_#new#tearOff;
 }
-static inline-class-member method I|<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(dynamic value) → self::I<self::I|::X%, self::I|::Y%> /* = self::I|::X% */
+static inline-class-member method I|<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::I|::X% value) → self::I<self::I|::X%, self::I|::Y%> /* = self::I|::X% */
   ;
-static inline-class-member method I|_#new#tearOff<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(dynamic value) → self::I<self::I|_#new#tearOff::X%, self::I|_#new#tearOff::Y%> /* = self::I|_#new#tearOff::X% */
+static inline-class-member method I|_#new#tearOff<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::I|_#new#tearOff::X% value) → self::I<self::I|_#new#tearOff::X%, self::I|_#new#tearOff::Y%> /* = self::I|_#new#tearOff::X% */
   return self::I|<self::I|_#new#tearOff::X%, self::I|_#new#tearOff::Y%>(value);
 static method f(self::I<core::int, core::String> /* = core::int */ i) → void
   ;

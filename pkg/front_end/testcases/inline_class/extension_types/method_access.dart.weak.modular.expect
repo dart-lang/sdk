@@ -60,11 +60,11 @@ extension type InlineClass(core::int it) {
 static extension-member method _extension#0|get#setter(lowered final core::Object #this) → core::int
   return 42;
 static extension-member method _extension#0|set#getter(lowered final core::Object #this, core::int value) → void {}
-static inline-class-member method InlineClass|(dynamic it) → self::InlineClass /* = core::int */ {
+static inline-class-member method InlineClass|(core::int it) → self::InlineClass /* = core::int */ {
   lowered final self::InlineClass /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method InlineClass|_#new#tearOff(dynamic it) → self::InlineClass /* = core::int */
+static inline-class-member method InlineClass|_#new#tearOff(core::int it) → self::InlineClass /* = core::int */
   return self::InlineClass|(it);
 static inline-class-member method InlineClass|test(lowered final self::InlineClass /* = core::int */ #this) → dynamic {
   core::int a = self::InlineClass|+(#this, 2);

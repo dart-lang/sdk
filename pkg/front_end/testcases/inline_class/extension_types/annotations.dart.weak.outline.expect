@@ -11,9 +11,9 @@ extension type A(core::int i) {
   constructor constructor = self::A|constructor;
   tearoff constructor = self::A|_#constructor#tearOff;
 }
-static inline-class-member method A|(dynamic i) → self::A /* = core::int */
+static inline-class-member method A|(core::int i) → self::A /* = core::int */
   ;
-static inline-class-member method A|_#new#tearOff(dynamic i) → self::A /* = core::int */
+static inline-class-member method A|_#new#tearOff(core::int i) → self::A /* = core::int */
   return self::A|(i);
 @core::Deprecated::•("")
 static inline-class-member method A|constructor(core::int i) → self::A /* = core::int */

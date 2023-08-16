@@ -34,11 +34,11 @@ extension type Class2<T extends core::Object? = dynamic>(T% it) {
   constructor named6 = self::Class2|named6;
   tearoff named6 = self::Class2|_#named6#tearOff;
 }
-static inline-class-member method Class1|(dynamic it) → self::Class1 /* = core::int */ {
+static inline-class-member method Class1|(core::int it) → self::Class1 /* = core::int */ {
   lowered final self::Class1 /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method Class1|_#new#tearOff(dynamic it) → self::Class1 /* = core::int */
+static inline-class-member method Class1|_#new#tearOff(core::int it) → self::Class1 /* = core::int */
   return self::Class1|(it);
 static inline-class-member method Class1|named1(core::int it, core::int additional) → self::Class1 /* = core::int */ {
   lowered final self::Class1 /* = core::int */ #this = it;
@@ -82,11 +82,11 @@ static inline-class-member method Class1|named6(core::String text) → self::Cla
 }
 static inline-class-member method Class1|_#named6#tearOff(core::String text) → self::Class1 /* = core::int */
   return self::Class1|named6(text);
-static inline-class-member method Class2|<T extends core::Object? = dynamic>(dynamic it) → self::Class2<self::Class2|::T%> /* = self::Class2|::T% */ {
+static inline-class-member method Class2|<T extends core::Object? = dynamic>(self::Class2|::T% it) → self::Class2<self::Class2|::T%> /* = self::Class2|::T% */ {
   lowered final self::Class2<self::Class2|::T%> /* = self::Class2|::T% */ #this = it;
   return #this;
 }
-static inline-class-member method Class2|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::Class2<self::Class2|_#new#tearOff::T%> /* = self::Class2|_#new#tearOff::T% */
+static inline-class-member method Class2|_#new#tearOff<T extends core::Object? = dynamic>(self::Class2|_#new#tearOff::T% it) → self::Class2<self::Class2|_#new#tearOff::T%> /* = self::Class2|_#new#tearOff::T% */
   return self::Class2|<self::Class2|_#new#tearOff::T%>(it);
 static inline-class-member method Class2|named1<T extends core::Object? = dynamic>(self::Class2|named1::T% it, core::int additional) → self::Class2<self::Class2|named1::T%> /* = self::Class2|named1::T% */ {
   lowered final self::Class2<self::Class2|named1::T%> /* = self::Class2|named1::T% */ #this = it;

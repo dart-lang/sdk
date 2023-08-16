@@ -37,11 +37,11 @@ extension type Bar<T extends core::Object? = dynamic>(dynamic i) {
   constructor • = self::Bar|;
   tearoff • = self::Bar|_#new#tearOff;
 }
-static inline-class-member method Foo|_(dynamic i) → self::Foo /* = core::int */ {
+static inline-class-member method Foo|_(core::int i) → self::Foo /* = core::int */ {
   lowered final self::Foo /* = core::int */ #this = i;
   return #this;
 }
-static inline-class-member method Foo|_#_#tearOff(dynamic i) → self::Foo /* = core::int */
+static inline-class-member method Foo|_#_#tearOff(core::int i) → self::Foo /* = core::int */
   return self::Foo|_(i);
 static inline-class-member method Foo|(core::int i) → self::Foo /* = core::int */ {
   lowered final self::Foo /* = core::int */ #this;

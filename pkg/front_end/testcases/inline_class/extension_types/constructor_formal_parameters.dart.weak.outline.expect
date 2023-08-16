@@ -18,9 +18,9 @@ extension type I2(core::int it) {
   constructor • = self::I2|;
   tearoff • = self::I2|_#new#tearOff;
 }
-static inline-class-member method I|_(dynamic it) → self::I /* = core::int */
+static inline-class-member method I|_(core::int it) → self::I /* = core::int */
   ;
-static inline-class-member method I|_#_#tearOff(dynamic it) → self::I /* = core::int */
+static inline-class-member method I|_#_#tearOff(core::int it) → self::I /* = core::int */
   return self::I|_(it);
 static inline-class-member method I|(core::int x, [core::int? y = null]) → self::I /* = core::int */
   ;
@@ -30,9 +30,9 @@ static inline-class-member method I|m(lowered final self::I /* = core::int */ #t
   ;
 static inline-class-member method I|get#m(lowered final self::I /* = core::int */ #this) → (core::String, [core::int]) → void
   return (core::String s, [core::int i]) → void => self::I|m(#this, s, i);
-static inline-class-member method I2|_(dynamic it) → self::I2 /* = core::int */
+static inline-class-member method I2|_(core::int it) → self::I2 /* = core::int */
   ;
-static inline-class-member method I2|_#_#tearOff(dynamic it) → self::I2 /* = core::int */
+static inline-class-member method I2|_#_#tearOff(core::int it) → self::I2 /* = core::int */
   return self::I2|_(it);
 static inline-class-member method I2|(core::int x, {core::int? y = null}) → self::I2 /* = core::int */
   ;
