@@ -57,9 +57,9 @@ static inline-class-member method ExtensionType2|(core::int it) → self::Extens
   ;
 static inline-class-member method ExtensionType2|_#new#tearOff(core::int it) → self::ExtensionType2 /* = core::int */
   return self::ExtensionType2|(it);
-static inline-class-member method ExtensionType3|<T extends core::num = dynamic>(self::ExtensionType3|::T it) → self::ExtensionType3<self::ExtensionType3|::T> /* = self::ExtensionType3|::T */
+static inline-class-member method ExtensionType3|<T extends core::num>(self::ExtensionType3|::T it) → self::ExtensionType3<self::ExtensionType3|::T> /* = self::ExtensionType3|::T */
   ;
-static inline-class-member method ExtensionType3|_#new#tearOff<T extends core::num = dynamic>(self::ExtensionType3|_#new#tearOff::T it) → self::ExtensionType3<self::ExtensionType3|_#new#tearOff::T> /* = self::ExtensionType3|_#new#tearOff::T */
+static inline-class-member method ExtensionType3|_#new#tearOff<T extends core::num>(self::ExtensionType3|_#new#tearOff::T it) → self::ExtensionType3<self::ExtensionType3|_#new#tearOff::T> /* = self::ExtensionType3|_#new#tearOff::T */
   return self::ExtensionType3|<self::ExtensionType3|_#new#tearOff::T>(it);
 static inline-class-member method ExtensionType4|(core::int it) → self::ExtensionType4 /* = core::int */
   ;
@@ -107,7 +107,7 @@ static inline-class-member method ExtensionType6|id(core::int it) → self::Exte
   ;
 static inline-class-member method ExtensionType6|_#id#tearOff(core::int it) → self::ExtensionType6 /* = core::int */
   return self::ExtensionType6|id(it);
-static inline-class-member method ExtensionType7|id<T extends core::num = dynamic>(core::int it) → self::ExtensionType7<self::ExtensionType7|id::T> /* = core::int */
+static inline-class-member method ExtensionType7|id<T extends core::num>(core::int it) → self::ExtensionType7<self::ExtensionType7|id::T> /* = core::int */
   ;
-static inline-class-member method ExtensionType7|_#id#tearOff<T extends core::num = dynamic>(core::int it) → self::ExtensionType7<self::ExtensionType7|_#id#tearOff::T> /* = core::int */
+static inline-class-member method ExtensionType7|_#id#tearOff<T extends core::num>(core::int it) → self::ExtensionType7<self::ExtensionType7|_#id#tearOff::T> /* = core::int */
   return self::ExtensionType7|id<self::ExtensionType7|_#id#tearOff::T>(it);
