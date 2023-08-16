@@ -373,7 +373,7 @@ class C {
   int get g => 0; 
 }
 
-extension type E(C c) {
+extension type E(C c) implements C {
   @redeclare
   int get g => 0; 
 }
@@ -388,7 +388,7 @@ class C {
   void m() {}
 }
 
-extension type E(C c) {
+extension type E(C c) implements C {
   @redeclare
   void m() {}
 }
@@ -403,7 +403,7 @@ class C {
   set g(int i) {}
 }
 
-extension type E(C c) {
+extension type E(C c) implements C {
   @redeclare
   set g(int i) {}
 }

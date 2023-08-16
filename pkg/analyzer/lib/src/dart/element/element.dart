@@ -2113,6 +2113,18 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  bool get hasRedeclare {
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isRedeclare) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   bool get hasReopen {
     final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
@@ -5212,6 +5224,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasProtected => false;
+
+  @override
+  bool get hasRedeclare => false;
 
   @override
   bool get hasReopen => false;

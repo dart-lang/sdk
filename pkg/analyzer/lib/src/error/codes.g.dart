@@ -6925,6 +6925,18 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  An error code indicating the use of a redeclare annotation on a member that does not redeclare.
+  ///
+  ///  Parameters:
+  ///  0: the kind of member
+  static const WarningCode REDECLARE_ON_NON_REDECLARING_MEMBER = WarningCode(
+    'REDECLARE_ON_NON_REDECLARING_MEMBER',
+    "The {0} doesn't redeclare a {0} declared in a superinterface.",
+    correctionMessage:
+        "Try updating this member to match a declaration in a superinterface, "
+        "or removing the redeclare annotation.",
+  );
+
   ///  An error code indicating use of a removed lint rule.
   ///
   ///  Parameters:

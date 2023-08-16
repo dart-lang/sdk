@@ -24102,6 +24102,14 @@ WarningCode:
     problemMessage: "A record literal with exactly one positional field requires a trailing comma."
     correctionMessage: Try adding a trailing comma.
     hasPublishedDocs: true
+  REDECLARE_ON_NON_REDECLARING_MEMBER:
+    problemMessage: "The {0} doesn't redeclare a {0} declared in a superinterface."
+    correctionMessage: Try updating this member to match a declaration in a superinterface, or removing the redeclare annotation.
+    comment: |-
+      An error code indicating the use of a redeclare annotation on a member that does not redeclare.
+
+      Parameters:
+      0: the kind of member
   REMOVED_LINT_USE:
     problemMessage: "'{0}' was removed in Dart '{1}'"
     correctionMessage: "Remove the reference to '{0}'."

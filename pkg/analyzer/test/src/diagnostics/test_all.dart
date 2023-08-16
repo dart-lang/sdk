@@ -706,6 +706,8 @@ import 'recursive_interface_inheritance_test.dart'
     as recursive_interface_inheritance;
 import 'recursive_interface_inheritance_with_test.dart'
     as recursive_interface_inheritance_with;
+import 'redeclare_on_non_redeclaring_member_test.dart'
+    as redeclare_on_non_redeclaring_member;
 import 'redirect_generative_to_missing_constructor_test.dart'
     as redirect_generative_to_missing_constructor;
 import 'redirect_generative_to_non_generative_constructor_test.dart'
@@ -1352,6 +1354,7 @@ main() {
     recursive_interface_inheritance_implements.main();
     recursive_interface_inheritance.main();
     recursive_interface_inheritance_with.main();
+    redeclare_on_non_redeclaring_member.main();
     redirect_generative_to_missing_constructor.main();
     redirect_generative_to_non_generative_constructor.main();
     redirect_to_abstract_class_constructor.main();
