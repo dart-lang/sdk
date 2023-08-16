@@ -18,6 +18,12 @@
 
 ### Libraries
 
+#### `dart:developer`
+
+- Deprecated the `Service.getIsolateID` method.
+- Added `getIsolateId` method to `Service`.
+- Added `getObjectId` method to `Service`.
+
 #### `dart:io`
 
 - **Breaking change** [#53005][]: The headers returned by
