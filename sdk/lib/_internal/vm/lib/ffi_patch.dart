@@ -79,6 +79,7 @@ int sizeOf<T extends NativeType>() {
 
 @pragma("vm:idempotent")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Pointer<T> _fromAddress<T extends NativeType>(int ptr);
 
 // The real implementation of this function (for interface calls) lives in
@@ -90,33 +91,43 @@ external DS _asFunctionInternal<DS extends Function, NS extends Function>(
     Pointer<NativeFunction<NS>> ptr, bool isLeaf);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Int8List _asExternalTypedDataInt8(Pointer<Int8> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Int16List _asExternalTypedDataInt16(Pointer<Int16> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Int32List _asExternalTypedDataInt32(Pointer<Int32> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Int64List _asExternalTypedDataInt64(Pointer<Int64> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Uint8List _asExternalTypedDataUint8(Pointer<Uint8> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Uint16List _asExternalTypedDataUint16(Pointer<Uint16> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Uint32List _asExternalTypedDataUint32(Pointer<Uint32> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Uint64List _asExternalTypedDataUint64(Pointer<Uint64> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Float32List _asExternalTypedDataFloat(Pointer<Float> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Float64List _asExternalTypedDataDouble(
     Pointer<Double> ptr, int length);
 
@@ -178,6 +189,7 @@ final class Pointer<T extends NativeType> {
 
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:idempotent")
   external int get address;
 
   Pointer<T> _offsetBy(int offsetInBytes) =>
@@ -264,6 +276,7 @@ final class Array<T extends NativeType> {
 /// calculations. See pkg/vm/lib/transformations/ffi.dart.
 @pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
+@pragma("vm:idempotent")
 external int _abi();
 
 @patch
@@ -304,123 +317,155 @@ external void _memCopy(Object target, int targetOffsetInBytes, Object source,
 // getting rid of these allocations by inlining these functions.
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadInt8(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadInt16(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadInt32(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadInt64(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadUint8(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadUint16(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadUint32(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadUint64(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadAbiSpecificInt<T extends AbiSpecificInteger>(
     Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
     Object typedDataBase, int index);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external double _loadFloat(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external double _loadDouble(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external double _loadFloatUnaligned(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external double _loadDoubleUnaligned(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Pointer<S> _loadPointer<S extends NativeType>(
     Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeInt8(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeInt16(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeInt32(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeInt64(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeUint8(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeUint16(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeUint32(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeUint64(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _storeAbiSpecificInt<T extends AbiSpecificInteger>(
     Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _storeAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
     Object typedDataBase, int index, int value);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeFloat(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeDouble(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeFloatUnaligned(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeDoubleUnaligned(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storePointer<S extends NativeType>(
     Object typedDataBase, int offsetInBytes, Pointer<S> value);
 
+@pragma("vm:prefer-inline")
 bool _loadBool(Object typedDataBase, int offsetInBytes) =>
     _loadUint8(typedDataBase, offsetInBytes) != 0;
 
+@pragma("vm:prefer-inline")
 void _storeBool(Object typedDataBase, int offsetInBytes, bool value) =>
     _storeUint8(typedDataBase, offsetInBytes, value ? 1 : 0);
 
