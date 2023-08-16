@@ -29,7 +29,7 @@ static method main() → dynamic {
   mai2::ExtensionType|staticSetter = 124;
   mai::expect(124, mai2::ExtensionType|staticField);
   mai::expect(124, mai2::ExtensionType|staticGetter);
-  mai::expect(42, #C2(42){(dynamic) → mai2::ExtensionType /* = core::int */});
+  mai::expect(42, #C2(42){(core::int) → mai2::ExtensionType /* = core::int */});
   mai::expect(43, mai2::ExtensionType|named(42));
   mai::expect(43, #C3(42){(core::int) → mai2::ExtensionType /* = core::int */});
   mai::expect(44, mai2::ExtensionType|redirectingGenerative(42));

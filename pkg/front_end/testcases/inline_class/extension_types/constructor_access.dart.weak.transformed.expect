@@ -12,11 +12,11 @@ extension type GenericClass<T extends core::Object? = dynamic>(T% it) {
   constructor • = self::GenericClass|;
   tearoff • = self::GenericClass|_#new#tearOff;
 }
-static inline-class-member method Class|(dynamic it) → self::Class /* = core::int */ {
+static inline-class-member method Class|(core::int it) → self::Class /* = core::int */ {
   lowered final self::Class /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method Class|_#new#tearOff(dynamic it) → self::Class /* = core::int */
+static inline-class-member method Class|_#new#tearOff(core::int it) → self::Class /* = core::int */
   return self::Class|(it);
 static inline-class-member method Class|named(core::int it) → self::Class /* = core::int */ {
   lowered final self::Class /* = core::int */ #this = it.{core::num::+}(1){(core::num) → core::int};
@@ -24,31 +24,31 @@ static inline-class-member method Class|named(core::int it) → self::Class /* =
 }
 static inline-class-member method Class|_#named#tearOff(core::int it) → self::Class /* = core::int */
   return self::Class|named(it);
-static inline-class-member method GenericClass|<T extends core::Object? = dynamic>(dynamic it) → self::GenericClass<self::GenericClass|::T%> /* = self::GenericClass|::T% */ {
+static inline-class-member method GenericClass|<T extends core::Object? = dynamic>(self::GenericClass|::T% it) → self::GenericClass<self::GenericClass|::T%> /* = self::GenericClass|::T% */ {
   lowered final self::GenericClass<self::GenericClass|::T%> /* = self::GenericClass|::T% */ #this = it;
   return #this;
 }
-static inline-class-member method GenericClass|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::GenericClass<self::GenericClass|_#new#tearOff::T%> /* = self::GenericClass|_#new#tearOff::T% */
+static inline-class-member method GenericClass|_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|_#new#tearOff::T%> /* = self::GenericClass|_#new#tearOff::T% */
   return self::GenericClass|<self::GenericClass|_#new#tearOff::T%>(it);
 static method main() → dynamic {
   self::Class /* = core::int */ a = self::Class|(3);
   self::Class /* = core::int */ b = self::Class|(4);
-  self::Class /* = core::int */ b2 = #C1(4){(dynamic) → self::Class /* = core::int */};
+  self::Class /* = core::int */ b2 = #C1(4){(core::int) → self::Class /* = core::int */};
   self::Class /* = core::int */ c = self::Class|named(5);
   self::Class /* = core::int */ c2 = #C2(5){(core::int) → self::Class /* = core::int */};
   self::GenericClass<core::String> /* = core::String */ d = self::GenericClass|<core::String>("foo");
-  self::GenericClass<core::String> /* = core::String */ d2 = #C4("foo"){(dynamic) → self::GenericClass<core::String> /* = core::String */};
-  self::GenericClass<core::String> /* = core::String */ d3 = #C3<core::String>("foo"){(dynamic) → self::GenericClass<core::String> /* = core::String */};
+  self::GenericClass<core::String> /* = core::String */ d2 = #C4("foo"){(core::String) → self::GenericClass<core::String> /* = core::String */};
+  self::GenericClass<core::String> /* = core::String */ d3 = #C3<core::String>("foo"){(core::String) → self::GenericClass<core::String> /* = core::String */};
   self::GenericClass<core::String> /* = core::String */ e = self::GenericClass|<core::String>("bar");
-  self::GenericClass<core::String> /* = core::String */ e2 = #C4("bar"){(dynamic) → self::GenericClass<core::String> /* = core::String */};
-  self::GenericClass<core::String> /* = core::String */ e3 = #C3<core::String>("bar"){(dynamic) → self::GenericClass<core::String> /* = core::String */};
+  self::GenericClass<core::String> /* = core::String */ e2 = #C4("bar"){(core::String) → self::GenericClass<core::String> /* = core::String */};
+  self::GenericClass<core::String> /* = core::String */ e3 = #C3<core::String>("bar"){(core::String) → self::GenericClass<core::String> /* = core::String */};
   self::GenericClass<core::int> /* = core::int */ f = self::GenericClass|<core::int>(42);
-  self::GenericClass<core::int> /* = core::int */ f2 = #C5(42){(dynamic) → self::GenericClass<core::int> /* = core::int */};
-  self::GenericClass<core::int> /* = core::int */ f3 = #C3<core::int>(42){(dynamic) → self::GenericClass<core::int> /* = core::int */};
-  self::GenericClass<dynamic> /* = dynamic */ g = self::GenericClass|<dynamic>(87);
-  self::GenericClass<dynamic> /* = dynamic */ g2 = #C3<dynamic>(87){(dynamic) → self::GenericClass<dynamic> /* = dynamic */};
+  self::GenericClass<core::int> /* = core::int */ f2 = #C5(42){(core::int) → self::GenericClass<core::int> /* = core::int */};
+  self::GenericClass<core::int> /* = core::int */ f3 = #C3<core::int>(42){(core::int) → self::GenericClass<core::int> /* = core::int */};
+  self::GenericClass<core::int> /* = core::int */ g = self::GenericClass|<core::int>(87);
+  self::GenericClass<core::int> /* = core::int */ g2 = #C3<core::int>(87){(core::int) → self::GenericClass<core::int> /* = core::int */};
   self::GenericClass<core::num> /* = core::num */ h = self::GenericClass|<core::num>(123);
-  self::GenericClass<core::num> /* = core::num */ h2 = #C3<core::num>(123){(dynamic) → self::GenericClass<core::num> /* = core::num */};
+  self::GenericClass<core::num> /* = core::num */ h2 = #C3<core::num>(123){(core::num) → self::GenericClass<core::num> /* = core::num */};
   self::expect(3, a as{Unchecked} core::int);
   self::expect(3, a);
   self::expect(4, b as{Unchecked} core::int);
@@ -77,9 +77,9 @@ static method main() → dynamic {
   self::expect(42, f2);
   self::expect(42, f3 as{Unchecked} core::int);
   self::expect(42, f3);
-  self::expect(87, g as{Unchecked} dynamic);
+  self::expect(87, g as{Unchecked} core::int);
   self::expect(87, g);
-  self::expect(87, g2 as{Unchecked} dynamic);
+  self::expect(87, g2 as{Unchecked} core::int);
   self::expect(87, g2);
   self::expect(123, h as{Unchecked} core::num);
   self::expect(123, h);

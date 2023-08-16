@@ -192,91 +192,91 @@ extension type ET_GenericExtensionType<T extends core::Object? = dynamic>(self::
   constructor • = self::ET_GenericExtensionType|;
   tearoff • = self::ET_GenericExtensionType|_#new#tearOff;
 }
-static inline-class-member method ExtensionType|(dynamic it) → self::ExtensionType /* = core::int */
+static inline-class-member method ExtensionType|(core::int it) → self::ExtensionType /* = core::int */
   ;
-static inline-class-member method ExtensionType|_#new#tearOff(dynamic it) → self::ExtensionType /* = core::int */
+static inline-class-member method ExtensionType|_#new#tearOff(core::int it) → self::ExtensionType /* = core::int */
   return self::ExtensionType|(it);
-static inline-class-member method GenericExtensionType|<T extends core::Object? = dynamic>(dynamic it) → self::GenericExtensionType<self::GenericExtensionType|::T%> /* = self::GenericExtensionType|::T% */
+static inline-class-member method GenericExtensionType|<T extends core::Object? = dynamic>(self::GenericExtensionType|::T% it) → self::GenericExtensionType<self::GenericExtensionType|::T%> /* = self::GenericExtensionType|::T% */
   ;
-static inline-class-member method GenericExtensionType|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::GenericExtensionType<self::GenericExtensionType|_#new#tearOff::T%> /* = self::GenericExtensionType|_#new#tearOff::T% */
+static inline-class-member method GenericExtensionType|_#new#tearOff<T extends core::Object? = dynamic>(self::GenericExtensionType|_#new#tearOff::T% it) → self::GenericExtensionType<self::GenericExtensionType|_#new#tearOff::T%> /* = self::GenericExtensionType|_#new#tearOff::T% */
   return self::GenericExtensionType|<self::GenericExtensionType|_#new#tearOff::T%>(it);
-static inline-class-member method ET_Null|(dynamic it) → self::ET_Null /* = Null */
+static inline-class-member method ET_Null|(Null it) → self::ET_Null /* = Null */
   ;
-static inline-class-member method ET_Null|_#new#tearOff(dynamic it) → self::ET_Null /* = Null */
+static inline-class-member method ET_Null|_#new#tearOff(Null it) → self::ET_Null /* = Null */
   return self::ET_Null|(it);
 static inline-class-member method ET_Dynamic|(dynamic it) → self::ET_Dynamic /* = dynamic */
   ;
 static inline-class-member method ET_Dynamic|_#new#tearOff(dynamic it) → self::ET_Dynamic /* = dynamic */
   return self::ET_Dynamic|(it);
-static inline-class-member method ET_Void|(dynamic it) → self::ET_Void /* = Never */
+static inline-class-member method ET_Void|(Never it) → self::ET_Void /* = Never */
   ;
-static inline-class-member method ET_Void|_#new#tearOff(dynamic it) → self::ET_Void /* = Never */
+static inline-class-member method ET_Void|_#new#tearOff(Never it) → self::ET_Void /* = Never */
   return self::ET_Void|(it);
-static inline-class-member method ET_Never|(dynamic it) → self::ET_Never /* = Never */
+static inline-class-member method ET_Never|(Never it) → self::ET_Never /* = Never */
   ;
-static inline-class-member method ET_Never|_#new#tearOff(dynamic it) → self::ET_Never /* = Never */
+static inline-class-member method ET_Never|_#new#tearOff(Never it) → self::ET_Never /* = Never */
   return self::ET_Never|(it);
-static inline-class-member method ET_Object|(dynamic it) → self::ET_Object /* = core::Object */
+static inline-class-member method ET_Object|(core::Object it) → self::ET_Object /* = core::Object */
   ;
-static inline-class-member method ET_Object|_#new#tearOff(dynamic it) → self::ET_Object /* = core::Object */
+static inline-class-member method ET_Object|_#new#tearOff(core::Object it) → self::ET_Object /* = core::Object */
   return self::ET_Object|(it);
-static inline-class-member method ET_Record|(dynamic it) → self::ET_Record /* = core::Record */
+static inline-class-member method ET_Record|(core::Record it) → self::ET_Record /* = core::Record */
   ;
-static inline-class-member method ET_Record|_#new#tearOff(dynamic it) → self::ET_Record /* = core::Record */
+static inline-class-member method ET_Record|_#new#tearOff(core::Record it) → self::ET_Record /* = core::Record */
   return self::ET_Record|(it);
-static inline-class-member method ET_RecordType|(dynamic it) → self::ET_RecordType /* =(core::int, core::String) */
+static inline-class-member method ET_RecordType|((core::int, core::String) it) → self::ET_RecordType /* =(core::int, core::String) */
   ;
-static inline-class-member method ET_RecordType|_#new#tearOff(dynamic it) → self::ET_RecordType /* =(core::int, core::String) */
+static inline-class-member method ET_RecordType|_#new#tearOff((core::int, core::String) it) → self::ET_RecordType /* =(core::int, core::String) */
   return self::ET_RecordType|(it);
-static inline-class-member method ET_Function|(dynamic it) → self::ET_Function /* = core::Function */
+static inline-class-member method ET_Function|(core::Function it) → self::ET_Function /* = core::Function */
   ;
-static inline-class-member method ET_Function|_#new#tearOff(dynamic it) → self::ET_Function /* = core::Function */
+static inline-class-member method ET_Function|_#new#tearOff(core::Function it) → self::ET_Function /* = core::Function */
   return self::ET_Function|(it);
-static inline-class-member method ET_FunctionType|(dynamic it) → self::ET_FunctionType /* = () → void */
+static inline-class-member method ET_FunctionType|(() → void it) → self::ET_FunctionType /* = () → void */
   ;
-static inline-class-member method ET_FunctionType|_#new#tearOff(dynamic it) → self::ET_FunctionType /* = () → void */
+static inline-class-member method ET_FunctionType|_#new#tearOff(() → void it) → self::ET_FunctionType /* = () → void */
   return self::ET_FunctionType|(it);
-static inline-class-member method ET_NullableInterfaceType|(dynamic it) → self::ET_NullableInterfaceType /* = core::String? */
+static inline-class-member method ET_NullableInterfaceType|(core::String? it) → self::ET_NullableInterfaceType /* = core::String? */
   ;
-static inline-class-member method ET_NullableInterfaceType|_#new#tearOff(dynamic it) → self::ET_NullableInterfaceType /* = core::String? */
+static inline-class-member method ET_NullableInterfaceType|_#new#tearOff(core::String? it) → self::ET_NullableInterfaceType /* = core::String? */
   return self::ET_NullableInterfaceType|(it);
-static inline-class-member method ET_NullableExtensionType|(dynamic it) → self::ET_NullableExtensionType /* = core::int? */
+static inline-class-member method ET_NullableExtensionType|(self::ExtensionType? /* = core::int? */ it) → self::ET_NullableExtensionType /* = core::int? */
   ;
-static inline-class-member method ET_NullableExtensionType|_#new#tearOff(dynamic it) → self::ET_NullableExtensionType /* = core::int? */
+static inline-class-member method ET_NullableExtensionType|_#new#tearOff(self::ExtensionType? /* = core::int? */ it) → self::ET_NullableExtensionType /* = core::int? */
   return self::ET_NullableExtensionType|(it);
-static inline-class-member method ET_FutureOr|(dynamic it) → self::ET_FutureOr /* = FutureOr<core::int>*/
+static inline-class-member method ET_FutureOr|(FutureOr<core::int>it) → self::ET_FutureOr /* = FutureOr<core::int>*/
   ;
-static inline-class-member method ET_FutureOr|_#new#tearOff(dynamic it) → self::ET_FutureOr /* = FutureOr<core::int>*/
+static inline-class-member method ET_FutureOr|_#new#tearOff(FutureOr<core::int>it) → self::ET_FutureOr /* = FutureOr<core::int>*/
   return self::ET_FutureOr|(it);
-static inline-class-member method ET_Extension|_#new#tearOff(dynamic it) → self::ET_Extension /* = Never */
+static inline-class-member method ET_Extension|_#new#tearOff(Never it) → self::ET_Extension /* = Never */
   return self::ET_Extension|(it);
-static inline-class-member method ET_Extension|(dynamic it) → self::ET_Extension /* = Never */
+static inline-class-member method ET_Extension|(Never it) → self::ET_Extension /* = Never */
   ;
-static inline-class-member method ET_TypeVariable|<T extends core::Object? = dynamic>(dynamic it) → self::ET_TypeVariable<self::ET_TypeVariable|::T%> /* = self::ET_TypeVariable|::T% */
+static inline-class-member method ET_TypeVariable|<T extends core::Object? = dynamic>(self::ET_TypeVariable|::T% it) → self::ET_TypeVariable<self::ET_TypeVariable|::T%> /* = self::ET_TypeVariable|::T% */
   ;
-static inline-class-member method ET_TypeVariable|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::ET_TypeVariable<self::ET_TypeVariable|_#new#tearOff::T%> /* = self::ET_TypeVariable|_#new#tearOff::T% */
+static inline-class-member method ET_TypeVariable|_#new#tearOff<T extends core::Object? = dynamic>(self::ET_TypeVariable|_#new#tearOff::T% it) → self::ET_TypeVariable<self::ET_TypeVariable|_#new#tearOff::T%> /* = self::ET_TypeVariable|_#new#tearOff::T% */
   return self::ET_TypeVariable|<self::ET_TypeVariable|_#new#tearOff::T%>(it);
-static inline-class-member method ET_Class|(dynamic it) → self::ET_Class /* = self::Class */
+static inline-class-member method ET_Class|(self::Class it) → self::ET_Class /* = self::Class */
   ;
-static inline-class-member method ET_Class|_#new#tearOff(dynamic it) → self::ET_Class /* = self::Class */
+static inline-class-member method ET_Class|_#new#tearOff(self::Class it) → self::ET_Class /* = self::Class */
   return self::ET_Class|(it);
-static inline-class-member method ET_GenericClass|<T extends core::Object? = dynamic>(dynamic it) → self::ET_GenericClass<self::ET_GenericClass|::T%> /* = self::GenericClass<self::ET_GenericClass|::T%> */
+static inline-class-member method ET_GenericClass|<T extends core::Object? = dynamic>(self::GenericClass<self::ET_GenericClass|::T%> it) → self::ET_GenericClass<self::ET_GenericClass|::T%> /* = self::GenericClass<self::ET_GenericClass|::T%> */
   ;
-static inline-class-member method ET_GenericClass|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::ET_GenericClass<self::ET_GenericClass|_#new#tearOff::T%> /* = self::GenericClass<self::ET_GenericClass|_#new#tearOff::T%> */
+static inline-class-member method ET_GenericClass|_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass<self::ET_GenericClass|_#new#tearOff::T%> it) → self::ET_GenericClass<self::ET_GenericClass|_#new#tearOff::T%> /* = self::GenericClass<self::ET_GenericClass|_#new#tearOff::T%> */
   return self::ET_GenericClass|<self::ET_GenericClass|_#new#tearOff::T%>(it);
-static inline-class-member method ET_Alias|(dynamic it) → self::ET_Alias /* = self::Class */
+static inline-class-member method ET_Alias|(self::Class it) → self::ET_Alias /* = self::Class */
   ;
-static inline-class-member method ET_Alias|_#new#tearOff(dynamic it) → self::ET_Alias /* = self::Class */
+static inline-class-member method ET_Alias|_#new#tearOff(self::Class it) → self::ET_Alias /* = self::Class */
   return self::ET_Alias|(it);
-static inline-class-member method ET_GenericAlias|<T extends core::Object? = dynamic>(dynamic it) → self::ET_GenericAlias<self::ET_GenericAlias|::T%> /* = self::GenericClass<self::ET_GenericAlias|::T%> */
+static inline-class-member method ET_GenericAlias|<T extends core::Object? = dynamic>(self::GenericClass<self::ET_GenericAlias|::T%> it) → self::ET_GenericAlias<self::ET_GenericAlias|::T%> /* = self::GenericClass<self::ET_GenericAlias|::T%> */
   ;
-static inline-class-member method ET_GenericAlias|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::ET_GenericAlias<self::ET_GenericAlias|_#new#tearOff::T%> /* = self::GenericClass<self::ET_GenericAlias|_#new#tearOff::T%> */
+static inline-class-member method ET_GenericAlias|_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass<self::ET_GenericAlias|_#new#tearOff::T%> it) → self::ET_GenericAlias<self::ET_GenericAlias|_#new#tearOff::T%> /* = self::GenericClass<self::ET_GenericAlias|_#new#tearOff::T%> */
   return self::ET_GenericAlias|<self::ET_GenericAlias|_#new#tearOff::T%>(it);
-static inline-class-member method ET_ExtensionType|(dynamic it) → self::ET_ExtensionType /* = core::int */
+static inline-class-member method ET_ExtensionType|(self::ExtensionType /* = core::int */ it) → self::ET_ExtensionType /* = core::int */
   ;
-static inline-class-member method ET_ExtensionType|_#new#tearOff(dynamic it) → self::ET_ExtensionType /* = core::int */
+static inline-class-member method ET_ExtensionType|_#new#tearOff(self::ExtensionType /* = core::int */ it) → self::ET_ExtensionType /* = core::int */
   return self::ET_ExtensionType|(it);
-static inline-class-member method ET_GenericExtensionType|<T extends core::Object? = dynamic>(dynamic it) → self::ET_GenericExtensionType<self::ET_GenericExtensionType|::T%> /* = self::ET_GenericExtensionType|::T% */
+static inline-class-member method ET_GenericExtensionType|<T extends core::Object? = dynamic>(self::GenericExtensionType<self::ET_GenericExtensionType|::T%> /* = self::ET_GenericExtensionType|::T% */ it) → self::ET_GenericExtensionType<self::ET_GenericExtensionType|::T%> /* = self::ET_GenericExtensionType|::T% */
   ;
-static inline-class-member method ET_GenericExtensionType|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::ET_GenericExtensionType<self::ET_GenericExtensionType|_#new#tearOff::T%> /* = self::ET_GenericExtensionType|_#new#tearOff::T% */
+static inline-class-member method ET_GenericExtensionType|_#new#tearOff<T extends core::Object? = dynamic>(self::GenericExtensionType<self::ET_GenericExtensionType|_#new#tearOff::T%> /* = self::ET_GenericExtensionType|_#new#tearOff::T% */ it) → self::ET_GenericExtensionType<self::ET_GenericExtensionType|_#new#tearOff::T%> /* = self::ET_GenericExtensionType|_#new#tearOff::T% */
   return self::ET_GenericExtensionType|<self::ET_GenericExtensionType|_#new#tearOff::T%>(it);

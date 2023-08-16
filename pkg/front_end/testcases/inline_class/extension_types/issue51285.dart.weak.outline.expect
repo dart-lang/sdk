@@ -20,25 +20,25 @@ extension type K<T extends core::Object? = dynamic>(T% i) {
   static factory • = self::K|;
   static tearoff • = self::K|_#new#tearOff;
 }
-static inline-class-member method I|_(dynamic i) → self::I /* = core::int */
+static inline-class-member method I|_(core::int i) → self::I /* = core::int */
   ;
-static inline-class-member method I|_#_#tearOff(dynamic i) → self::I /* = core::int */
+static inline-class-member method I|_#_#tearOff(core::int i) → self::I /* = core::int */
   return self::I|_(i);
 static inline-class-member method I|() → self::I /* = core::int */
   ;
 static inline-class-member method I|_#new#tearOff() → self::I /* = core::int */
   return self::I|();
-static inline-class-member method J|_(dynamic i) → self::J /* = core::int */
+static inline-class-member method J|_(core::int i) → self::J /* = core::int */
   ;
-static inline-class-member method J|_#_#tearOff(dynamic i) → self::J /* = core::int */
+static inline-class-member method J|_#_#tearOff(core::int i) → self::J /* = core::int */
   return self::J|_(i);
 static inline-class-member method J|(core::int i) → self::J /* = core::int */
   ;
 static inline-class-member method J|_#new#tearOff(core::int i) → self::J /* = core::int */
   return self::J|(i);
-static inline-class-member method K|_<T extends core::Object? = dynamic>(dynamic i) → self::K<self::K|_::T%> /* = self::K|_::T% */
+static inline-class-member method K|_<T extends core::Object? = dynamic>(self::K|_::T% i) → self::K<self::K|_::T%> /* = self::K|_::T% */
   ;
-static inline-class-member method K|_#_#tearOff<T extends core::Object? = dynamic>(dynamic i) → self::K<self::K|_#_#tearOff::T%> /* = self::K|_#_#tearOff::T% */
+static inline-class-member method K|_#_#tearOff<T extends core::Object? = dynamic>(self::K|_#_#tearOff::T% i) → self::K<self::K|_#_#tearOff::T%> /* = self::K|_#_#tearOff::T% */
   return self::K|_<self::K|_#_#tearOff::T%>(i);
 static inline-class-member method K|<T extends core::Object? = dynamic>(self::K|::T% i) → self::K<self::K|::T%> /* = self::K|::T% */
   ;

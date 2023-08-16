@@ -15,11 +15,11 @@ extension type A(core::int value) {
   constructor name1 = self::A|name1;
   tearoff name1 = self::A|_#name1#tearOff;
 }
-static inline-class-member method A|_(dynamic value) → self::A /* = core::int */ {
+static inline-class-member method A|_(core::int value) → self::A /* = core::int */ {
   lowered final self::A /* = core::int */ #this = value;
   return #this;
 }
-static inline-class-member method A|_#_#tearOff(dynamic value) → self::A /* = core::int */
+static inline-class-member method A|_#_#tearOff(core::int value) → self::A /* = core::int */
   return self::A|_(value);
 static inline-class-member method A|name1(core::int value) → self::A /* = core::int */ {
   lowered final self::A /* = core::int */ #this = value;

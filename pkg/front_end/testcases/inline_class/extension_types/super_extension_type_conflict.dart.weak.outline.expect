@@ -33,23 +33,23 @@ extension type E(core::int it) implements self::B<core::int> /* = core::int */, 
   constructor • = self::E|;
   tearoff • = self::E|_#new#tearOff;
 }
-static inline-class-member method A|<T extends core::Object? = dynamic>(dynamic it) → self::A<self::A|::T%> /* = core::int */
+static inline-class-member method A|<T extends core::Object? = dynamic>(core::int it) → self::A<self::A|::T%> /* = core::int */
   ;
-static inline-class-member method A|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::A<self::A|_#new#tearOff::T%> /* = core::int */
+static inline-class-member method A|_#new#tearOff<T extends core::Object? = dynamic>(core::int it) → self::A<self::A|_#new#tearOff::T%> /* = core::int */
   return self::A|<self::A|_#new#tearOff::T%>(it);
-static inline-class-member method B|<T extends core::Object? = dynamic>(dynamic it) → self::B<self::B|::T%> /* = core::int */
+static inline-class-member method B|<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|::T%> /* = core::int */
   ;
-static inline-class-member method B|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::B<self::B|_#new#tearOff::T%> /* = core::int */
+static inline-class-member method B|_#new#tearOff<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|_#new#tearOff::T%> /* = core::int */
   return self::B|<self::B|_#new#tearOff::T%>(it);
-static inline-class-member method C|<T extends core::Object? = dynamic>(dynamic it) → self::C<self::C|::T%> /* = core::int */
+static inline-class-member method C|<T extends core::Object? = dynamic>(core::int it) → self::C<self::C|::T%> /* = core::int */
   ;
-static inline-class-member method C|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::C<self::C|_#new#tearOff::T%> /* = core::int */
+static inline-class-member method C|_#new#tearOff<T extends core::Object? = dynamic>(core::int it) → self::C<self::C|_#new#tearOff::T%> /* = core::int */
   return self::C|<self::C|_#new#tearOff::T%>(it);
-static inline-class-member method D|(dynamic it) → self::D /* = core::int */
+static inline-class-member method D|(core::int it) → self::D /* = core::int */
   ;
-static inline-class-member method D|_#new#tearOff(dynamic it) → self::D /* = core::int */
+static inline-class-member method D|_#new#tearOff(core::int it) → self::D /* = core::int */
   return self::D|(it);
-static inline-class-member method E|(dynamic it) → self::E /* = core::int */
+static inline-class-member method E|(core::int it) → self::E /* = core::int */
   ;
-static inline-class-member method E|_#new#tearOff(dynamic it) → self::E /* = core::int */
+static inline-class-member method E|_#new#tearOff(core::int it) → self::E /* = core::int */
   return self::E|(it);

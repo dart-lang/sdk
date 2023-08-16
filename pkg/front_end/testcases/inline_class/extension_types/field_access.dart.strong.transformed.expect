@@ -337,11 +337,11 @@ extension type ErroneousInlineClass(core::int a) {
   tearoff • = self::ErroneousInlineClass|_#new#tearOff;
 }
 static extension-member method _extension#0|set#it(lowered final dynamic #this, dynamic value) → void {}
-static inline-class-member method InlineClass|(dynamic it) → self::InlineClass /* = core::int */ {
+static inline-class-member method InlineClass|(core::int it) → self::InlineClass /* = core::int */ {
   lowered final self::InlineClass /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method InlineClass|_#new#tearOff(dynamic it) → self::InlineClass /* = core::int */
+static inline-class-member method InlineClass|_#new#tearOff(core::int it) → self::InlineClass /* = core::int */
   return self::InlineClass|(it);
 static inline-class-member method InlineClass|test(lowered final self::InlineClass /* = core::int */ #this) → void {
   core::int a1 = #this as{Unchecked} core::int;
@@ -365,11 +365,11 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 }
 static inline-class-member method InlineClass|get#test(lowered final self::InlineClass /* = core::int */ #this) → () → void
   return () → void => self::InlineClass|test(#this);
-static inline-class-member method GenericInlineClass|<T extends core::Object? = dynamic>(dynamic it) → self::GenericInlineClass<self::GenericInlineClass|::T%> /* = self::GenericInlineClass|::T% */ {
+static inline-class-member method GenericInlineClass|<T extends core::Object? = dynamic>(self::GenericInlineClass|::T% it) → self::GenericInlineClass<self::GenericInlineClass|::T%> /* = self::GenericInlineClass|::T% */ {
   lowered final self::GenericInlineClass<self::GenericInlineClass|::T%> /* = self::GenericInlineClass|::T% */ #this = it;
   return #this;
 }
-static inline-class-member method GenericInlineClass|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::GenericInlineClass<self::GenericInlineClass|_#new#tearOff::T%> /* = self::GenericInlineClass|_#new#tearOff::T% */
+static inline-class-member method GenericInlineClass|_#new#tearOff<T extends core::Object? = dynamic>(self::GenericInlineClass|_#new#tearOff::T% it) → self::GenericInlineClass<self::GenericInlineClass|_#new#tearOff::T%> /* = self::GenericInlineClass|_#new#tearOff::T% */
   return self::GenericInlineClass|<self::GenericInlineClass|_#new#tearOff::T%>(it);
 static inline-class-member method GenericInlineClass|test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|test::T%> /* = self::GenericInlineClass|test::T% */ #this, self::GenericInlineClass|test::T% t) → void {
   self::GenericInlineClass|test::T% a1 = #this as{Unchecked} self::GenericInlineClass|test::T%;
@@ -393,11 +393,11 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 }
 static inline-class-member method GenericInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|get#test::T%> /* = self::GenericInlineClass|get#test::T% */ #this) → (self::GenericInlineClass|get#test::T%) → void
   return (self::GenericInlineClass|get#test::T% t) → void => self::GenericInlineClass|test<self::GenericInlineClass|get#test::T%>(#this, t);
-static inline-class-member method FunctionInlineClass|<T extends core::Object? = dynamic>(dynamic it) → self::FunctionInlineClass<self::FunctionInlineClass|::T%> /* = () → self::FunctionInlineClass|::T% */ {
+static inline-class-member method FunctionInlineClass|<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|::T%> /* = () → self::FunctionInlineClass|::T% */ {
   lowered final self::FunctionInlineClass<self::FunctionInlineClass|::T%> /* = () → self::FunctionInlineClass|::T% */ #this = it;
   return #this;
 }
-static inline-class-member method FunctionInlineClass|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::FunctionInlineClass<self::FunctionInlineClass|_#new#tearOff::T%> /* = () → self::FunctionInlineClass|_#new#tearOff::T% */
+static inline-class-member method FunctionInlineClass|_#new#tearOff<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|_#new#tearOff::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|_#new#tearOff::T%> /* = () → self::FunctionInlineClass|_#new#tearOff::T% */
   return self::FunctionInlineClass|<self::FunctionInlineClass|_#new#tearOff::T%>(it);
 static inline-class-member method FunctionInlineClass|test<T extends core::Object? = dynamic>(lowered final self::FunctionInlineClass<self::FunctionInlineClass|test::T%> /* = () → self::FunctionInlineClass|test::T% */ #this, () → self::FunctionInlineClass|test::T% t) → void {
   () → self::FunctionInlineClass|test::T% a1 = #this as{Unchecked} () → self::FunctionInlineClass|test::T%;
@@ -425,11 +425,11 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 }
 static inline-class-member method FunctionInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::FunctionInlineClass<self::FunctionInlineClass|get#test::T%> /* = () → self::FunctionInlineClass|get#test::T% */ #this) → (() → self::FunctionInlineClass|get#test::T%) → void
   return (() → self::FunctionInlineClass|get#test::T% t) → void => self::FunctionInlineClass|test<self::FunctionInlineClass|get#test::T%>(#this, t);
-static inline-class-member method GenericFunctionInlineClass|(dynamic it) → self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */ {
+static inline-class-member method GenericFunctionInlineClass|(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */ {
   lowered final self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */ #this = it;
   return #this;
 }
-static inline-class-member method GenericFunctionInlineClass|_#new#tearOff(dynamic it) → self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */
+static inline-class-member method GenericFunctionInlineClass|_#new#tearOff(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */
   return self::GenericFunctionInlineClass|(it);
 static inline-class-member method GenericFunctionInlineClass|test(lowered final self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */ #this) → void {
   <T extends core::Object? = dynamic>() → T% a1 = #this as{Unchecked} <T extends core::Object? = dynamic>() → T%;
@@ -493,11 +493,11 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 }
 static inline-class-member method DynamicInlineClass|get#test(lowered final self::DynamicInlineClass /* = dynamic */ #this) → () → void
   return () → void => self::DynamicInlineClass|test(#this);
-static inline-class-member method ErroneousInlineClass|(dynamic a, dynamic b) → self::ErroneousInlineClass /* = core::int */ {
+static inline-class-member method ErroneousInlineClass|(core::int a, core::String b) → self::ErroneousInlineClass /* = core::int */ {
   lowered final self::ErroneousInlineClass /* = core::int */ #this = b;
   return #this;
 }
-static inline-class-member method ErroneousInlineClass|_#new#tearOff(dynamic a, dynamic b) → self::ErroneousInlineClass /* = core::int */
+static inline-class-member method ErroneousInlineClass|_#new#tearOff(core::int a, core::String b) → self::ErroneousInlineClass /* = core::int */
   return self::ErroneousInlineClass|(a, b);
 static inline-class-member method ErroneousInlineClass|test(lowered final self::ErroneousInlineClass /* = core::int */ #this) → void {
   core::int a1 = #this as{Unchecked} core::int;
@@ -694,11 +694,11 @@ extension type PrivateInlineClass(core::int _it) {
   constructor • = self2::PrivateInlineClass|;
   tearoff • = self2::PrivateInlineClass|_#new#tearOff;
 }
-static inline-class-member method PrivateInlineClass|(dynamic _it) → self2::PrivateInlineClass /* = core::int */ {
+static inline-class-member method PrivateInlineClass|(core::int _it) → self2::PrivateInlineClass /* = core::int */ {
   lowered final self2::PrivateInlineClass /* = core::int */ #this = _it;
   return #this;
 }
-static inline-class-member method PrivateInlineClass|_#new#tearOff(dynamic _it) → self2::PrivateInlineClass /* = core::int */
+static inline-class-member method PrivateInlineClass|_#new#tearOff(core::int _it) → self2::PrivateInlineClass /* = core::int */
   return self2::PrivateInlineClass|(_it);
 static inline-class-member method PrivateInlineClass|test(lowered final self2::PrivateInlineClass /* = core::int */ #this) → void {
   core::int a1 = #this as{Unchecked} core::int;

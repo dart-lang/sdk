@@ -8,9 +8,9 @@ extension type I(core::int _i) {
   constructor • = self::I|;
   tearoff • = self::I|_#new#tearOff;
 }
-static inline-class-member method I|(dynamic _i) → self::I /* = core::int */
+static inline-class-member method I|(core::int _i) → self::I /* = core::int */
   ;
-static inline-class-member method I|_#new#tearOff(dynamic _i) → self::I /* = core::int */
+static inline-class-member method I|_#new#tearOff(core::int _i) → self::I /* = core::int */
   return self::I|(_i);
 static inline-class-member method I|get#i(lowered final self::I /* = core::int */ #this) → core::int
   ;

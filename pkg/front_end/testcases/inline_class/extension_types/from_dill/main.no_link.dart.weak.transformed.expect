@@ -29,7 +29,7 @@ static method main() → dynamic {
   mai2::ExtensionType|staticSetter = 124;
   mai::expect(124, mai2::ExtensionType|staticField);
   mai::expect(124, mai2::ExtensionType|staticGetter);
-  mai::expect(42, #C2(42){(dynamic) → mai2::ExtensionType /* = core::int */});
+  mai::expect(42, #C2(42){(core::int) → mai2::ExtensionType /* = core::int */});
   mai::expect(43, mai2::ExtensionType|named(42));
   mai::expect(43, #C3(42){(core::int) → mai2::ExtensionType /* = core::int */});
   mai::expect(44, mai2::ExtensionType|redirectingGenerative(42));
@@ -70,11 +70,11 @@ extension type ExtensionType(core::int it) {
   static tearoff redirectingFactory = mai2::ExtensionType|_#redirectingFactory#tearOff;
 }
 static field core::int ExtensionType|staticField = 123;
-static inline-class-member method ExtensionType|(dynamic it) → mai2::ExtensionType /* = core::int */ {
+static inline-class-member method ExtensionType|(core::int it) → mai2::ExtensionType /* = core::int */ {
   lowered final mai2::ExtensionType /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method ExtensionType|_#new#tearOff(dynamic it) → mai2::ExtensionType /* = core::int */
+static inline-class-member method ExtensionType|_#new#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
   return mai2::ExtensionType|(it);
 static inline-class-member method ExtensionType|named(core::int it) → mai2::ExtensionType /* = core::int */ {
   lowered final mai2::ExtensionType /* = core::int */ #this = it.{core::num::+}(1){(core::num) → core::int};

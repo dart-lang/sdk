@@ -199,12 +199,13 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         type.clone(newTypes, contextLibrary, contextDeclaration), name);
   }
 
-  FormalParameterBuilder forPrimaryConstructor() {
+  FormalParameterBuilder forPrimaryConstructor(
+      SourceLibraryBuilder sourceLibraryBuilder) {
     return new FormalParameterBuilder(
         metadata,
         kind,
         modifiers | initializingFormalMask,
-        const ImplicitTypeBuilder(),
+        sourceLibraryBuilder.addInferableType(),
         name,
         null,
         charOffset,
