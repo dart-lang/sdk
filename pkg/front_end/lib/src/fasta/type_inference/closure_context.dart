@@ -53,12 +53,16 @@ abstract class ClosureContext {
     if (isGenerator) {
       if (isAsync) {
         DartType yieldContext = inferrer.getTypeArgumentOf(
-            returnContext, inferrer.coreTypes.streamClass);
+            inferrer.typeSchemaEnvironment.getUnionFreeType(returnContext,
+                isNonNullableByDefault: inferrer.isNonNullableByDefault),
+            inferrer.coreTypes.streamClass);
         return new _AsyncStarClosureContext(
             inferrer, yieldContext, declaredReturnType, needToInferReturnType);
       } else {
         DartType yieldContext = inferrer.getTypeArgumentOf(
-            returnContext, inferrer.coreTypes.iterableClass);
+            inferrer.typeSchemaEnvironment.getUnionFreeType(returnContext,
+                isNonNullableByDefault: inferrer.isNonNullableByDefault),
+            inferrer.coreTypes.iterableClass);
         return new _SyncStarClosureContext(
             inferrer, yieldContext, declaredReturnType, needToInferReturnType);
       }

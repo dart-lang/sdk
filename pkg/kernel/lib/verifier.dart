@@ -1262,6 +1262,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
+    if (identical(node.bound, TypeParameter.unsetBoundSentinel)) {
+      problem(node, "Unset bound on type parameter $node");
+    }
+    if (identical(node.defaultType, TypeParameter.unsetDefaultTypeSentinel)) {
+      problem(node, "Unset default type on type parameter $node");
+    }
     if (inConstant) {
       // Don't expect the type parameters to have the current parent as parent.
       node.visitChildren(this);

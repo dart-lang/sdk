@@ -6,7 +6,8 @@ import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/pubspec/pubspec_validator.dart';
+import 'package:analyzer/src/pubspec/pubspec_validator.dart'
+    as pubspec_validator;
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
@@ -49,9 +50,11 @@ abstract class PubspecFixTest with ResourceProviderMixin {
     if (yamlContent is! YamlMap) {
       yamlContent = YamlMap();
     }
-    var validator =
-        PubspecValidator(resourceProvider, pubspecFile.createSource());
-    var errors = validator.validate(yamlContent.nodes);
+    final errors = pubspec_validator.validatePubspec(
+      source: pubspecFile.createSource(),
+      contents: yamlContent.nodes,
+      provider: resourceProvider,
+    );
     expect(errors.length, 1);
     error = errors[0];
   }

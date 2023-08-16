@@ -601,7 +601,8 @@ void main() {
   positiveTest(
     'Valid typedef Foo<T extends C> = C<T>',
     (TestHarness test) {
-      var param = new TypeParameter('T', test.otherLegacyRawType);
+      var param = new TypeParameter(
+          'T', test.otherLegacyRawType, test.otherLegacyRawType);
       var foo = new Typedef(
           'Foo',
           new InterfaceType(test.otherClass, Nullability.legacy,
@@ -615,7 +616,8 @@ void main() {
   positiveTest(
     'Valid typedef Foo<T extends C<T>> = C<T>',
     (TestHarness test) {
-      var param = new TypeParameter('T', test.otherLegacyRawType);
+      var param = new TypeParameter(
+          'T', test.otherLegacyRawType, test.otherLegacyRawType);
       param.bound = new InterfaceType(test.otherClass, Nullability.legacy,
           [new TypeParameterType(param, Nullability.legacy)]);
       var foo = new Typedef(
@@ -638,6 +640,7 @@ void main() {
       var barParam = new TypeParameter('T', null);
       barParam.bound = new TypedefType(foo, Nullability.legacy,
           [new TypeParameterType(barParam, Nullability.legacy)]);
+      barParam.defaultType = const DynamicType();
       var bar = new Typedef(
           'Bar',
           new InterfaceType(test.otherClass, Nullability.legacy,
@@ -659,6 +662,7 @@ void main() {
       var barParam = new TypeParameter('T', null);
       barParam.bound = new TypedefType(foo, Nullability.legacy,
           [new TypeParameterType(barParam, Nullability.legacy)]);
+      barParam.defaultType = const DynamicType();
       var bar = new Typedef(
           'Bar',
           new InterfaceType(test.otherClass, Nullability.legacy,
@@ -667,6 +671,7 @@ void main() {
           fileUri: dummyUri);
       fooParam.bound = new TypedefType(bar, Nullability.legacy,
           [new TypeParameterType(fooParam, Nullability.legacy)]);
+      fooParam.defaultType = const DynamicType();
       test.enclosingLibrary.addTypedef(foo);
       test.enclosingLibrary.addTypedef(bar);
       return foo;
@@ -686,6 +691,7 @@ void main() {
         ..fileOffset = dummyFileOffset;
       param.bound =
           new TypedefType(foo, Nullability.legacy, [const DynamicType()]);
+      param.defaultType = const DynamicType();
       test.addNode(foo);
       return foo;
     },
@@ -726,6 +732,34 @@ void main() {
     },
     (Node? foo) =>
         "${errorPrefix}Dangling reference to '$foo', parent is: 'null'",
+  );
+  negative1Test(
+    'Unset bound typedef Foo<T> = dynamic',
+    (TestHarness test) {
+      var param = new TypeParameter('T', null);
+      var foo = new Typedef('Foo', const DynamicType(),
+          typeParameters: [param], fileUri: dummyUri)
+        ..fileOffset = dummyFileOffset;
+      param.defaultType = const DynamicType();
+      test.addNode(foo);
+      return foo;
+    },
+    (Node? foo) => "${errorPrefix}"
+        "Unset bound on type parameter TypeParameter(T)",
+  );
+  negative1Test(
+    'Unset default type typedef Foo<T> = dynamic',
+    (TestHarness test) {
+      var param = new TypeParameter('T', null);
+      var foo = new Typedef('Foo', const DynamicType(),
+          typeParameters: [param], fileUri: dummyUri)
+        ..fileOffset = dummyFileOffset;
+      param.bound = const DynamicType();
+      test.addNode(foo);
+      return foo;
+    },
+    (Node? foo) => "${errorPrefix}"
+        "Unset default type on type parameter TypeParameter(T)",
   );
   negative1Test(
     'Non-static top-level field',

@@ -2,31 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:yaml/yaml.dart';
 
-class FieldValidator extends BasePubspecValidator {
-  static const deprecatedFields = [
-    'author',
-    'authors',
-    'transformers',
-    'web',
-  ];
+const _deprecatedFields = [
+  'author',
+  'authors',
+  'transformers',
+  'web',
+];
 
-  FieldValidator(super.provider, super.source);
-
-  /// Validate fields.
-  void validate(ErrorReporter reporter, Map<dynamic, YamlNode> contents) {
-    for (var field in contents.keys) {
-      var name = asString(field);
-      if (field is YamlNode &&
-          name != null &&
-          deprecatedFields.contains(name)) {
-        reportErrorForNode(
-            reporter, field, PubspecWarningCode.DEPRECATED_FIELD, [name]);
-      }
+/// Validate fields.
+void fieldValidator(PubspecValidationContext ctx) {
+  for (var field in ctx.contents.keys) {
+    var name = ctx.asString(field);
+    if (field is YamlNode && name != null && _deprecatedFields.contains(name)) {
+      ctx.reportErrorForNode(
+          field, PubspecWarningCode.DEPRECATED_FIELD, [name]);
     }
   }
 }

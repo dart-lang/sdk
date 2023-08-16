@@ -162,6 +162,38 @@ abstract class TypeEnvironment extends Types {
     }
   }
 
+  /// Computes the underlying type of a union type
+  ///
+  /// Dart doesn't have generalized union types, but two specific ones: the
+  /// FutureOr<T> type, which can be seen as a union of T and Future<T>, and the
+  /// nullable type T?, which can be seen as the union of T and Null. In both
+  /// cases the union type can be seen as application of the corresponding type
+  /// constructor, FutureOr or ?, to the underlying type T. [getUnionFreeType]
+  /// computes the underlying type of the given union type, accounting for
+  /// potential nesting of the union types.
+  ///
+  /// The following are examples of the union-free types computed on for the
+  /// given types.
+  ///
+  ///     getUnionFreeType(int) = int
+  ///     getUnionFreeType(int?) = int
+  ///     getUnionFreeType(FutureOr<int>) = int
+  ///     getUnionFreeType(FutureOr<int?>?) = int
+  DartType getUnionFreeType(DartType type,
+      {required bool isNonNullableByDefault}) {
+    if (isNullableTypeConstructorApplication(type)) {
+      return getUnionFreeType(
+          computeTypeWithoutNullabilityMarker(type,
+              isNonNullableByDefault: isNonNullableByDefault),
+          isNonNullableByDefault: isNonNullableByDefault);
+    } else if (type is FutureOrType) {
+      return getUnionFreeType(type.typeArgument,
+          isNonNullableByDefault: isNonNullableByDefault);
+    } else {
+      return type;
+    }
+  }
+
   /// True if [member] is a binary operator whose return type is defined by
   /// the both operand types.
   bool isSpecialCasedBinaryOperator(Procedure member,

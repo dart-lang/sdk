@@ -112,7 +112,6 @@ import '../problems.dart' show unexpected, unhandled;
 import '../scope.dart';
 import '../util/helpers.dart';
 import 'class_declaration.dart';
-import 'constructor_declaration.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
@@ -4261,22 +4260,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    void processSourceConstructorBuilder(SourceMemberBuilder member,
+    void processSourceConstructorBuilder(SourceFunctionBuilder member,
         {required bool inErrorRecovery}) {
-      List<FormalParameterBuilder>? formals;
-      if (member is SourceFactoryBuilder) {
-        assert(member.isFactory,
-            "Unexpected constructor member (${member.runtimeType}).");
-        count += computeDefaultTypesForVariables(member.typeVariables,
-            // Type variables are inherited from the class so if the class
-            // has issues, so does the factory constructors.
-            inErrorRecovery: inErrorRecovery);
-        formals = member.formals;
-      } else {
-        assert(member is ConstructorDeclaration,
-            "Unexpected constructor member (${member.runtimeType}).");
-        formals = (member as ConstructorDeclaration).formals;
-      }
+      count += computeDefaultTypesForVariables(member.typeVariables,
+          // Type variables are inherited from the enclosing declaration, so if
+          // it has issues, so do the constructors.
+          inErrorRecovery: inErrorRecovery);
+      List<FormalParameterBuilder>? formals = member.formals;
       if (formals != null && formals.isNotEmpty) {
         for (FormalParameterBuilder formal in formals) {
           List<NonSimplicityIssue> issues =
@@ -4294,7 +4284,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else if (member is SourceFieldBuilder) {
         processSourceFieldBuilder(member);
       } else {
-        processSourceConstructorBuilder(member,
+        assert(member is SourceFactoryBuilder ||
+            member is SourceConstructorBuilder);
+        processSourceConstructorBuilder(member as SourceFunctionBuilder,
             inErrorRecovery: inErrorRecovery);
       }
     }
@@ -4358,6 +4350,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         reportIssues(issues);
         count += computeDefaultTypesForVariables(declaration.typeParameters,
             inErrorRecovery: issues.isNotEmpty);
+
+        Iterator<SourceMemberBuilder> iterator = declaration.constructorScope
+            .filteredIterator<SourceMemberBuilder>(
+                includeDuplicates: false, includeAugmentations: true);
+        while (iterator.moveNext()) {
+          processSourceMemberBuilder(iterator.current,
+              inErrorRecovery: issues.isNotEmpty);
+        }
 
         declaration.forEach((String name, Builder member) {
           if (member is SourceMemberBuilder) {
