@@ -3868,6 +3868,45 @@ Message _withArgumentsJsInteropFunctionToJSRequiresStaticType(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateJsInteropInlineClassNotInterop = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""Inline class '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'.""",
+        correctionMessageTemplate:
+            r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types.""",
+        withArguments: _withArgumentsJsInteropInlineClassNotInterop);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeJsInteropInlineClassNotInterop = const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+  "JsInteropInlineClassNotInterop",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropInlineClassNotInterop(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeJsInteropInlineClassNotInterop,
+      problemMessage:
+          """Inline class '${name}' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '${type}'.""" +
+              labeler.originMessages,
+      correctionMessage: """Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateJsInteropStaticInteropMockNotStaticInteropType = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
@@ -3895,6 +3934,38 @@ Message _withArgumentsJsInteropStaticInteropMockNotStaticInteropType(
           """Type argument '${type}' needs to be a `@staticInterop` type.""" +
               labeler.originMessages,
       correctionMessage: """Use a `@staticInterop` class instead.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateJsInteropStaticInteropMockTypeParametersNotAllowed = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""Type argument '#type' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.""",
+        correctionMessageTemplate:
+            r"""Remove the type parameter in the type argument or replace it with its bound.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropMockTypeParametersNotAllowed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeJsInteropStaticInteropMockTypeParametersNotAllowed =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "JsInteropStaticInteropMockTypeParametersNotAllowed",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropMockTypeParametersNotAllowed(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeJsInteropStaticInteropMockTypeParametersNotAllowed,
+      problemMessage:
+          """Type argument '${type}' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.""" +
+              labeler.originMessages,
+      correctionMessage: """Remove the type parameter in the type argument or replace it with its bound.""",
       arguments: {'type': _type});
 }
 
@@ -5224,6 +5295,78 @@ Message _withArgumentsSuperBoundedHint(
           """If you want '${type}' to be a super-bounded type, note that the inverted type '${type2}' must then satisfy its bounds, which it does not.""" +
               labeler.originMessages,
       arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateSuperExtensionTypeIsIllegalAliased = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The type '#name' which is an alias of '#type' can't be implemented by an extension type.""",
+        withArguments: _withArgumentsSuperExtensionTypeIsIllegalAliased);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeSuperExtensionTypeIsIllegalAliased = const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+  "SuperExtensionTypeIsIllegalAliased",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperExtensionTypeIsIllegalAliased(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeSuperExtensionTypeIsIllegalAliased,
+      problemMessage:
+          """The type '${name}' which is an alias of '${type}' can't be implemented by an extension type.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateSuperExtensionTypeIsNullableAliased = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The type '#name' which is an alias of '#type' can't be implemented by an extension type because it is nullable.""",
+        withArguments: _withArgumentsSuperExtensionTypeIsNullableAliased);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeSuperExtensionTypeIsNullableAliased = const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+  "SuperExtensionTypeIsNullableAliased",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperExtensionTypeIsNullableAliased(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeSuperExtensionTypeIsNullableAliased,
+      problemMessage:
+          """The type '${name}' which is an alias of '${type}' can't be implemented by an extension type because it is nullable.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

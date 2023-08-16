@@ -127,8 +127,9 @@ class AstPrinter {
         includeLibraryName: _strategy.includeLibraryNamesInMembers));
   }
 
-  void writeInlineClassName(Reference? reference) {
-    _sb.write(qualifiedInlineClassNameToStringByReference(reference,
+  void writeExtensionTypeDeclarationName(Reference? reference) {
+    _sb.write(qualifiedExtensionTypeDeclarationNameToStringByReference(
+        reference,
         includeLibraryName: _strategy.includeLibraryNamesInMembers));
   }
 

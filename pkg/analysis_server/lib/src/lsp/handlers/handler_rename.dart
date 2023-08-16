@@ -14,7 +14,7 @@ import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 
-class PrepareRenameHandler extends MessageHandler<TextDocumentPositionParams,
+class PrepareRenameHandler extends LspMessageHandler<TextDocumentPositionParams,
     TextDocumentPrepareRenameResult> {
   PrepareRenameHandler(super.server);
   @override
@@ -80,10 +80,12 @@ class PrepareRenameHandler extends MessageHandler<TextDocumentPositionParams,
   }
 }
 
-class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
+class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
+    with LspHandlerHelperMixin {
   RenameHandler(super.server);
 
-  LspGlobalClientConfiguration get config => server.clientConfiguration.global;
+  LspGlobalClientConfiguration get config =>
+      server.lspClientConfiguration.global;
 
   @override
   Method get handlesMessage => Method.textDocument_rename;
@@ -93,7 +95,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
 
   /// Checks whether a client supports Rename resource operations.
   bool get _clientSupportsRename {
-    final capabilities = server.clientCapabilities;
+    final capabilities = server.lspClientCapabilities;
     return (capabilities?.documentChanges ?? false) &&
         (capabilities?.renameResourceOperations ?? false);
   }
@@ -221,7 +223,6 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
 
       // Check whether we should handle renaming the file to match the class.
       if (_clientSupportsRename && _isClassRename(refactoring)) {
-        final pathContext = server.resourceProvider.pathContext;
         // The rename must always be performed on the file that defines the
         // class which is not necessarily the one where the rename was invoked.
         final declaringFile = (refactoring as RenameUnitMemberRefactoringImpl)
@@ -244,7 +245,8 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
                     await _promptToRenameFile(actualFilename, newFilename));
             if (shouldRename) {
               final newPath = pathContext.join(folder, newFilename);
-              final renameEdit = createRenameEdit(declaringFile, newPath);
+              final renameEdit =
+                  createRenameEdit(pathContext, declaringFile, newPath);
               workspaceEdit = mergeWorkspaceEdits([workspaceEdit, renameEdit]);
             }
           }

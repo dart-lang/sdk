@@ -259,6 +259,9 @@ class JsonCodec {
 abstract mixin class StringConversionSink { }
 
 typedef StringConversionSinkMixin = StringConversionSink;
+
+String jsonEncode(Object? object,
+        {Object? toEncodable(Object? nonEncodable)?}) => '';
 ''',
     )
   ],

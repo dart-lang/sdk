@@ -10,31 +10,31 @@ import "package:expect/expect.dart";
 
 const var1 = fn();
 //           ^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 void fn() {}
 
 const var2 = fn2();
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 void fn2() {
   return;
 }
 
 const var3 = fn3();
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int? fn3() => null;
 
 const var4 = fn4();
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int? fn4() {
   return null;
 }
 
 const var5 = fn5();
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [web] Constant evaluation error:
 int fn5() {
   try {

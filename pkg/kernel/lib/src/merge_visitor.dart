@@ -219,7 +219,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   @override
   DartType? visitExtensionType(ExtensionType a, DartType b) {
     if (b is ExtensionType &&
-        a.extension == b.extension &&
+        a.extensionTypeDeclaration == b.extensionTypeDeclaration &&
         a.typeArguments.length == b.typeArguments.length) {
       Nullability? nullability = mergeNullability(a.nullability, b.nullability);
       if (nullability != null) {
@@ -234,10 +234,10 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
 
   DartType? mergeExtensionTypes(
       ExtensionType a, ExtensionType b, Nullability nullability) {
-    assert(a.extension == b.extension);
+    assert(a.extensionTypeDeclaration == b.extensionTypeDeclaration);
     assert(a.typeArguments.length == b.typeArguments.length);
     if (a.typeArguments.isEmpty) {
-      return new ExtensionType(a.extension, nullability);
+      return new ExtensionType(a.extensionTypeDeclaration, nullability);
     }
     List<DartType> newTypeArguments =
         new List<DartType>.filled(a.typeArguments.length, dummyDartType);
@@ -248,42 +248,8 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       }
       newTypeArguments[i] = newType;
     }
-    return new ExtensionType(a.extension, nullability, newTypeArguments);
-  }
-
-  @override
-  DartType? visitInlineType(InlineType a, DartType b) {
-    if (b is InlineType &&
-        a.inlineClass == b.inlineClass &&
-        a.typeArguments.length == b.typeArguments.length) {
-      Nullability? nullability = mergeNullability(a.nullability, b.nullability);
-      if (nullability != null) {
-        return mergeInlineTypes(a, b, nullability);
-      }
-    }
-    if (b is InvalidType) {
-      return b;
-    }
-    return null;
-  }
-
-  DartType? mergeInlineTypes(
-      InlineType a, InlineType b, Nullability nullability) {
-    assert(a.inlineClass == b.inlineClass);
-    assert(a.typeArguments.length == b.typeArguments.length);
-    if (a.typeArguments.isEmpty) {
-      return new InlineType(a.inlineClass, nullability);
-    }
-    List<DartType> newTypeArguments =
-        new List<DartType>.filled(a.typeArguments.length, dummyDartType);
-    for (int i = 0; i < a.typeArguments.length; i++) {
-      DartType? newType = a.typeArguments[i].accept1(this, b.typeArguments[i]);
-      if (newType == null) {
-        return null;
-      }
-      newTypeArguments[i] = newType;
-    }
-    return new InlineType(a.inlineClass, nullability, newTypeArguments);
+    return new ExtensionType(
+        a.extensionTypeDeclaration, nullability, newTypeArguments);
   }
 
   @override

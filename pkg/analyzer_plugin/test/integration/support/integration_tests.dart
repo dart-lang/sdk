@@ -514,7 +514,7 @@ class Server {
     _pendingCommands[id] = completer;
     var line = json.encode(command);
     _recordStdio('SEND: $line');
-    _process!.stdin.add(utf8.encoder.convert('$line\n'));
+    _process!.stdin.add(utf8.encode('$line\n'));
     return completer.future;
   }
 

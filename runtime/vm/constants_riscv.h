@@ -932,7 +932,9 @@ const intptr_t kReleaseShift = 25;
 const intptr_t kAcquireShift = 26;
 
 #define DEFINE_REG_ENCODING(type, name, shift)                                 \
-  inline uint32_t Is##name(type r) { return static_cast<uint32_t>(r) < 32; }   \
+  inline bool Is##name(type r) {                                               \
+    return static_cast<uint32_t>(r) < 32;                                      \
+  }                                                                            \
   inline uint32_t Encode##name(type r) {                                       \
     ASSERT(Is##name(r));                                                       \
     return static_cast<uint32_t>(r) << shift;                                  \
@@ -951,7 +953,9 @@ DEFINE_REG_ENCODING(FRegister, FRs3, 27)
 #undef DEFINE_REG_ENCODING
 
 #define DEFINE_FUNCT_ENCODING(type, name, shift, mask)                         \
-  inline uint32_t Is##name(type f) { return (f & mask) == f; }                 \
+  inline bool Is##name(type f) {                                               \
+    return (f & mask) == f;                                                    \
+  }                                                                            \
   inline uint32_t Encode##name(type f) {                                       \
     ASSERT(Is##name(f));                                                       \
     return f << shift;                                                         \
@@ -1125,7 +1129,9 @@ class Instr {
 };
 
 #define DEFINE_REG_ENCODING(type, name, shift)                                 \
-  inline uint32_t Is##name(type r) { return static_cast<uint32_t>(r) < 32; }   \
+  inline bool Is##name(type r) {                                               \
+    return static_cast<uint32_t>(r) < 32;                                      \
+  }                                                                            \
   inline uint32_t Encode##name(type r) {                                       \
     ASSERT(Is##name(r));                                                       \
     return static_cast<uint32_t>(r) << shift;                                  \
@@ -1135,7 +1141,9 @@ class Instr {
   }
 
 #define DEFINE_REG_PRIME_ENCODING(type, name, shift)                           \
-  inline uint32_t Is##name(type r) { return (r >= 8) && (r < 16); }            \
+  inline bool Is##name(type r) {                                               \
+    return (r >= 8) && (r < 16);                                               \
+  }                                                                            \
   inline uint32_t Encode##name(type r) {                                       \
     ASSERT(Is##name(r));                                                       \
     return (static_cast<uint32_t>(r) & 7) << shift;                            \

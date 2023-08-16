@@ -5,7 +5,7 @@
 import 'test_helper.dart';
 import 'service_test_common.dart';
 
-code() {
+void testMain() {
   var b = [1, 2].map((i) => i == 0).toList();
   print(b.length);
 }
@@ -18,13 +18,13 @@ const String breakpointFile =
 
 List<String> stops = [];
 
-List<String> expected = [
-  "$shortFile:${LINE + 0}:23", // on 'i == 0'
-  "$shortFile:${LINE + 0}:23", // iterate twice
-  "$shortFile:${LINE + 1}:3" //on 'b.length'
+const List<String> expected = [
+  "$shortFile:${LINE + 0}:29", // on 'i == 0'
+  "$shortFile:${LINE + 0}:29", // iterate twice
+  "$shortFile:${LINE + 1}:11" //on 'b.length'
 ];
 
-var tests = <IsolateTest>[
+final tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtLineColumn(LINE, COLUMN), // on 'i == 0'
   setBreakpointAtLineColumn(LINE + 1, 9), // on 'b.length'
@@ -34,5 +34,5 @@ var tests = <IsolateTest>[
 
 main(args) {
   runIsolateTestsSynchronous(args, tests,
-      testeeConcurrent: code, pause_on_start: true, pause_on_exit: true);
+      testeeConcurrent: testMain, pause_on_start: true, pause_on_exit: true);
 }

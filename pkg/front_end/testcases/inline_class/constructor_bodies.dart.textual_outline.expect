@@ -8,7 +8,6 @@ inline class Class1 {
   Class1.named5(int additional, int it) : this.it = it {}
   Class1.named6(String text) : it = text.length;
 }
-
 inline class Class2<T> {
   final T it;
   Class2(this.it);

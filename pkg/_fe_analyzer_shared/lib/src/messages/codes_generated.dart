@@ -4500,7 +4500,7 @@ const MessageCode messageFastaUsageLong =
     Read the SDK platform from <file>, which should be in Dill/Kernel IR format
     and contain the Dart SDK.
 
-  --target=dart2js|dart2js_server|dart2wasm|dart2wasm_stringref|dart_runner|dartdevc|flutter|flutter_runner|none|vm
+  --target=dart2js|dart2js_server|dart2wasm|dart2wasm_js_compatibility|dart2wasm_stringref|dart_runner|dartdevc|flutter|flutter_runner|none|vm
     Specify the target configuration.
 
   --enable-asserts
@@ -7803,7 +7803,7 @@ const Template<
             name)> templateJsInteropExportDisallowedMember = const Template<
         Message Function(String name)>(
     problemMessageTemplate:
-        r"""Member '#name' is not a concrete instance member, and therefore can't be exported.""",
+        r"""Member '#name' is not a concrete instance member or declares type parameters, and therefore can't be exported.""",
     correctionMessageTemplate:
         r"""Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
     withArguments: _withArgumentsJsInteropExportDisallowedMember);
@@ -7820,7 +7820,7 @@ Message _withArgumentsJsInteropExportDisallowedMember(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeJsInteropExportDisallowedMember,
       problemMessage:
-          """Member '${name}' is not a concrete instance member, and therefore can't be exported.""",
+          """Member '${name}' is not a concrete instance member or declares type parameters, and therefore can't be exported.""",
       correctionMessage: """Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
       arguments: {'name': name});
 }
@@ -7934,39 +7934,6 @@ const MessageCode messageJsInteropInlineClassMemberNotInterop = const MessageCod
         r"""Inline class member is marked 'external', but the representation type of its inline class is not a valid JS interop type.""",
     correctionMessage:
         r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String name,
-        String
-            string)> templateJsInteropInlineClassNotInterop = const Template<
-        Message Function(String name, String string)>(
-    problemMessageTemplate:
-        r"""Inline class '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#string'.""",
-    correctionMessageTemplate:
-        r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types.""",
-    withArguments: _withArgumentsJsInteropInlineClassNotInterop);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String string)>
-    codeJsInteropInlineClassNotInterop =
-    const Code<Message Function(String name, String string)>(
-  "JsInteropInlineClassNotInterop",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropInlineClassNotInterop(
-    String name, String string) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (string.isEmpty) throw 'No string provided';
-  return new Message(codeJsInteropInlineClassNotInterop,
-      problemMessage:
-          """Inline class '${name}' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '${string}'.""",
-      correctionMessage: """Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types.""",
-      arguments: {'name': name, 'string': string});
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropInlineClassUsedWithWrongJsAnnotation =
@@ -8182,18 +8149,18 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null>
-    codeJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
-    messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters;
+    codeJsInteropStaticInteropExternalMemberWithInvalidTypeParameters =
+    messageJsInteropStaticInteropExternalMemberWithInvalidTypeParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
-    messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
+    messageJsInteropStaticInteropExternalMemberWithInvalidTypeParameters =
     const MessageCode(
-        "JsInteropStaticInteropExternalExtensionMembersWithTypeParameters",
+        "JsInteropStaticInteropExternalMemberWithInvalidTypeParameters",
         problemMessage:
-            r"""`@staticInterop` classes cannot have external extension members with type parameters.""",
+            r"""External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.""",
         correctionMessage:
-            r"""Try using a Dart extension member if you need type parameters instead.""");
+            r"""Try adding a valid bound to the type parameters used in this member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropStaticInteropGenerativeConstructor =
@@ -10116,6 +10083,18 @@ const MessageCode messageNonConstFactory = const MessageCode("NonConstFactory",
         r"""Try using a constructor or factory that is 'const'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonCovariantTypeParameterInRepresentationType =
+    messageNonCovariantTypeParameterInRepresentationType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonCovariantTypeParameterInRepresentationType =
+    const MessageCode("NonCovariantTypeParameterInRepresentationType",
+        problemMessage:
+            r"""An extension type parameter can't be used non-covariantly in its representation type.""",
+        correctionMessage:
+            r"""Try removing the type parameters from function parameter types and type parameter bounds.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -11846,6 +11825,16 @@ const MessageCode messageReturnWithoutExpressionSync = const MessageCode(
         r"""A value must be explicitly returned from a non-void function.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeScriptTagInPartFile = messageScriptTagInPartFile;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageScriptTagInPartFile = const MessageCode(
+    "ScriptTagInPartFile",
+    problemMessage: r"""A part file cannot have script tag.""",
+    correctionMessage:
+        r"""Try removing the script tag or the 'part of' directive.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateSdkRootNotFound =
     const Template<Message Function(Uri uri_)>(
         problemMessageTemplate: r"""SDK root directory not found: #uri.""",
@@ -12341,6 +12330,56 @@ const MessageCode messageSuperAsIdentifier = const MessageCode(
     "SuperAsIdentifier",
     analyzerCodes: <String>["SUPER_AS_EXPRESSION"],
     problemMessage: r"""Expected identifier, but got 'super'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateSuperExtensionTypeIsIllegal =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""The type '#name' can't be implemented by an extension type.""",
+        withArguments: _withArgumentsSuperExtensionTypeIsIllegal);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeSuperExtensionTypeIsIllegal =
+    const Code<Message Function(String name)>(
+  "SuperExtensionTypeIsIllegal",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperExtensionTypeIsIllegal(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeSuperExtensionTypeIsIllegal,
+      problemMessage:
+          """The type '${name}' can't be implemented by an extension type.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateSuperExtensionTypeIsTypeVariable = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The type variable '#name' can't be implemented by an extension type.""",
+    withArguments: _withArgumentsSuperExtensionTypeIsTypeVariable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeSuperExtensionTypeIsTypeVariable =
+    const Code<Message Function(String name)>(
+  "SuperExtensionTypeIsTypeVariable",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperExtensionTypeIsTypeVariable(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeSuperExtensionTypeIsTypeVariable,
+      problemMessage:
+          """The type variable '${name}' can't be implemented by an extension type.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperInitializerNotLast = messageSuperInitializerNotLast;

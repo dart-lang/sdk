@@ -105,8 +105,8 @@ class Bar {
     final fileInsideRootPath = mainFilePath;
     final fileOutsideRootPath = convertPath('/home/unrelated/main.dart');
     await initialize();
-    await openFile(Uri.file(fileInsideRootPath), content);
-    await openFile(Uri.file(fileOutsideRootPath), content);
+    await openFile(pathContext.toUri(fileInsideRootPath), content);
+    await openFile(pathContext.toUri(fileOutsideRootPath), content);
 
     // Expect both files return the same driver
     final driverForInside = server.getAnalysisDriver(fileInsideRootPath)!;
@@ -185,7 +185,7 @@ class Bar {
     final binFolder = convertPath(join(projectFolderPath, 'bin'));
     final binMainFilePath = convertPath(join(binFolder, 'main.dart'));
     final fooFilePath = convertPath(join(binFolder, 'foo.dart'));
-    final fooUri = Uri.file(fooFilePath);
+    final fooUri = pathContext.toUri(fooFilePath);
 
     const binMainContent = '''
 import 'foo.dart';

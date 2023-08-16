@@ -11,16 +11,16 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 
 void main() async {
-  final startRss = ProcessInfo.currentRss;
+  final startRss = ProcessInfo.currentRss; //# measure: ok
 
   for (var i = 0; i < 1024; i++) {
     final subscription = Directory.systemTemp.watch().listen((event) {});
     await subscription.cancel();
   }
 
-  final endRss = ProcessInfo.currentRss;
-  final allocatedBytes = (endRss - startRss);
-  final limit = 10 * 1024 * 1024;
-  Expect.isTrue(allocatedBytes < limit,
-      'expected VM RSS growth to be below ${limit} but got ${allocatedBytes}');
+  final endRss = ProcessInfo.currentRss; //# measure: continued
+  final allocatedBytes = (endRss - startRss); //# measure: continued
+  final limit = 10 * 1024 * 1024; //# measure: continued
+  Expect.isTrue(allocatedBytes < limit, //# measure: continued
+      'expected VM RSS growth to be below ${limit} but got ${allocatedBytes}'); //# measure: continued
 }

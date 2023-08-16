@@ -7,8 +7,8 @@ static method id<X extends core::Object? = dynamic>(self::id::X% x) → self::id
 static method main() → void {
   hoisted has-declared-initializer (core::int) → core::int f;
   {
-    final synthesized dynamic #0#0 = #C2;
-    if(!(#0#0{(core::int) → core::int} is (core::int) → core::int && (let final (core::int) → core::int #t1 = f = #0#0{(core::int) → core::int} in true)))
+    final synthesized (core::int) → core::int #0#0 = #C2;
+    if(!(#0#0 is (core::int) → core::int && (let final (core::int) → core::int #t1 = f = #0#0 in true)))
       throw new core::StateError::•("Pattern matching error");
   }
 }

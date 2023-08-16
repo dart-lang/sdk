@@ -102,3 +102,6 @@ server calls. This file is validated by `coverage_test.dart`.
 - [ ] flutter.outline
 - [ ] flutter.getWidgetDescription
 - [ ] flutter.setWidgetPropertyValue
+
+## lsp domain
+- [x] lsp.handle

@@ -40,9 +40,6 @@ List<String> _parseStringOption(String filePath, String contents, String name,
     _parseOption<String>(filePath, contents, name, (string) => string,
         allowMultiple: allowMultiple);
 
-// Fake path used as sentinel for test files that don't have a path.
-final _fakePath = Path('/fake');
-
 abstract class _TestFileBase {
   /// The test suite directory containing this test.
   final Path? _suiteDirectory;
@@ -93,9 +90,9 @@ abstract class _TestFileBase {
   int get shardHash {
     // The VM C++ unit tests have a special fake TestFile with no suite
     // directory or path. Don't crash in that case.
-    // TODO(rnystrom): Is there a cleaner solution? Should we use the C++ file
-    // as the path for the TestFile?
-    if (originPath == _fakePath) return 0;
+    if (_suiteDirectory == null) {
+      return path.toString().hashCode;
+    }
 
     return originPath.relativeTo(_suiteDirectory!).toString().hashCode;
   }
@@ -318,7 +315,7 @@ class TestFile extends _TestFileBase {
   }
 
   /// A special fake test file for representing a VM unit test written in C++.
-  TestFile.vmUnitTest(
+  TestFile.vmUnitTest(String name,
       {required this.hasCompileError,
       required this.hasRuntimeError,
       required this.hasCrash})
@@ -338,7 +335,7 @@ class TestFile extends _TestFileBase {
         otherResources = [],
         experiments = [],
         isVmIntermediateLanguageTest = false,
-        super(null, _fakePath, []);
+        super(null, Path("/fake/vm/cc/$name"), []);
 
   TestFile._(Path suiteDirectory, Path path, List<StaticError> expectedErrors,
       {this.packages,

@@ -867,6 +867,37 @@ class AssignedVariablePattern extends Pattern {
   /// This is set during inference.
   bool needsCast = false;
 
+  /// If `true`, the assignment occurs in a context where effects can be
+  /// observed and must therefore be postponed until the whole pattern has been
+  /// evaluated.
+  ///
+  /// This is used an optimized encoding of pattern assignment. It is sound to
+  /// assume that all [AssignedVariablePattern]s have an observable effect.
+  ///
+  /// For instance
+  ///
+  ///     class A {
+  ///       get b => throw 'foo';
+  ///     }
+  ///     class B extends A {
+  ///       get b => 42;
+  ///     }
+  ///     method(A a) {
+  ///       var b1;
+  ///       var b2;
+  ///       A(b: b1) = a;
+  ///       try {
+  ///         A(b: b2) = a;
+  ///       } catch (_) {
+  ///       }
+  ///       print(b1);
+  ///       print(b2);
+  ///     }
+  ///
+  /// Here the assignment to `b2` has an observable effect where as `b1` has
+  /// not.
+  bool hasObservableEffect = true;
+
   AssignedVariablePattern(this.variable);
 
   @override
@@ -1560,7 +1591,7 @@ enum RelationalAccessKind {
   /// Operator defined by an interface member.
   Instance,
 
-  /// Operator defined by an extension or inline class member.
+  /// Operator defined by an extension or extension type member.
   Static,
 
   /// Operator accessed on a receiver of type `dynamic`.
@@ -1581,7 +1612,7 @@ enum ObjectAccessKind {
   /// Property defined by an interface member.
   Instance,
 
-  /// Property defined by an extension or inline class member.
+  /// Property defined by an extension or extension type member.
   Static,
 
   /// Named record field property.
@@ -1604,6 +1635,9 @@ enum ObjectAccessKind {
 
   /// Erroneous property access.
   Error,
+
+  /// Access of an extension type representation field.
+  Direct,
 }
 
 /// A [Pattern] with an optional guard [Expression].

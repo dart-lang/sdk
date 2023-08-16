@@ -2367,27 +2367,57 @@ TEST_CASE(IsolateReload_EnumShapeChangeRemove) {
                SimpleInvokeStr(lib, "main"));
 }
 
-TEST_CASE(IsolateReload_EnumShapeChangeValues) {
+TEST_CASE(IsolateReload_EnumReferentShapeChangeAdd) {
   const char* kScript =
-      "enum Fruit { Apple, Banana }\n"
+      "class Box {\n"
+      "  final x;\n"
+      "  const Box(this.x);\n"
+      "}\n"
+      "enum Fruit {\n"
+      "  Apple('Apple', const Box('A')),\n"
+      "  Banana('Banana', const Box('B')),\n"
+      "  Cherry('Cherry', const Box('C')),\n"
+      "  Durian('Durian', const Box('D')),\n"
+      "  Elderberry('Elderberry', const Box('E')),\n"
+      "  Fig('Fig', const Box('F')),\n"
+      "  Grape('Grape', const Box('G')),\n"
+      "  Huckleberry('Huckleberry', const Box('H')),\n"
+      "  Jackfruit('Jackfruit', const Box('J'));\n"
+      "  const Fruit(this.name, this.initial);\n"
+      "  final String name;\n"
+      "  final Box initial;\n"
+      "}\n"
       "var retained;\n"
       "main() {\n"
-      "  retained = Fruit.values;\n"
+      "  retained = Fruit.Apple;\n"
       "  return retained.toString();\n"
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("[Fruit.Apple, Fruit.Banana]", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
+      "class Box {\n"
+      "  final x;\n"
+      "  final y;\n"
+      "  final z;\n"
+      "  const Box(this.x, this.y, this.z);\n"
+      "}\n"
       "enum Fruit {\n"
-      "  Apple('Apple', 'A'),\n"
-      "  Banana('Banana', 'B'),\n"
-      "  Cherry('Cherry', 'C');\n"
+      "  Apple('Apple', const Box('A', 0, 0)),\n"
+      "  Banana('Banana', const Box('B', 0, 0)),\n"
+      "  Cherry('Cherry', const Box('C', 0, 0)),\n"
+      "  Durian('Durian', const Box('D', 0, 0)),\n"
+      "  Elderberry('Elderberry', const Box('E', 0, 0)),\n"
+      "  Fig('Fig', const Box('F', 0, 0)),\n"
+      "  Grape('Grape', const Box('G', 0, 0)),\n"
+      "  Huckleberry('Huckleberry', const Box('H', 0, 0)),\n"
+      "  Jackfruit('Jackfruit', const Box('J', 0, 0)),\n"
+      "  Lemon('Lemon', const Box('L', 0, 0));\n"
       "  const Fruit(this.name, this.initial);\n"
       "  final String name;\n"
-      "  final String initial;\n"
+      "  final Box initial;\n"
       "}\n"
       "var retained;\n"
       "main() {\n"
@@ -2396,8 +2426,7 @@ TEST_CASE(IsolateReload_EnumShapeChangeValues) {
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("[Fruit.Apple, Fruit.Banana, Fruit.Cherry]",
-               SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 }
 
 TEST_CASE(IsolateReload_ConstantIdentical) {
@@ -3932,6 +3961,47 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat9) {
       "}\n";
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_ERROR(lib, "type parameters have changed");
+}
+
+TEST_CASE(IsolateReload_ShapeChangeMutualReference) {
+  const char* kScript =
+      "class A{\n"
+      "  var x;\n"
+      "  get yourself => this;\n"
+      "}\n"
+      "var retained1;\n"
+      "var retained2;\n"
+      "main() {\n"
+      "  retained1 = new A();\n"
+      "  retained2 = new A();\n"
+      "  retained1.x = retained2;\n"
+      "  retained2.x = retained1;\n"
+      "  return '${identical(retained1.x.yourself, retained2)}'\n"
+      "         '${identical(retained2.x.yourself, retained1)}';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("truetrue", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class A{\n"
+      "  var x;\n"
+      "  var y;\n"
+      "  var z;\n"
+      "  var w;\n"
+      "  get yourself => this;\n"
+      "}\n"
+      "var retained1;\n"
+      "var retained2;\n"
+      "main() {\n"
+      "  return '${identical(retained1.x.yourself, retained2)}'\n"
+      "         '${identical(retained2.x.yourself, retained1)}';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("truetrue", SimpleInvokeStr(lib, "main"));
 }
 
 TEST_CASE(IsolateReload_ShapeChangeRetainsHash) {

@@ -16,7 +16,7 @@ import "ast.dart"
         ProcedureKind,
         Reference,
         Typedef,
-        InlineClass;
+        ExtensionTypeDeclaration;
 
 class ReferenceFromIndex {
   Map<Library, IndexedLibrary> _indexedLibraries =
@@ -85,8 +85,8 @@ class IndexedLibrary extends IndexedContainer {
   final Map<String, IndexedClass> _indexedClasses =
       new Map<String, IndexedClass>();
   final Map<String, Extension> _extensions = new Map<String, Extension>();
-  final Map<String, InlineClass> _inlineClasses =
-      new Map<String, InlineClass>();
+  final Map<String, ExtensionTypeDeclaration> _extensionTypeDeclarations =
+      new Map<String, ExtensionTypeDeclaration>();
   @override
   final Library library;
 
@@ -113,10 +113,12 @@ class IndexedLibrary extends IndexedContainer {
         _extensions[extension.name] = extension;
       }
     }
-    for (int i = 0; i < library.inlineClasses.length; i++) {
-      InlineClass inlineClass = library.inlineClasses[i];
-      assert(_inlineClasses[inlineClass.name] == null);
-      _inlineClasses[inlineClass.name] = inlineClass;
+    for (int i = 0; i < library.extensionTypeDeclarations.length; i++) {
+      ExtensionTypeDeclaration extensionTypeDeclaration =
+          library.extensionTypeDeclarations[i];
+      assert(_extensionTypeDeclarations[extensionTypeDeclaration.name] == null);
+      _extensionTypeDeclarations[extensionTypeDeclaration.name] =
+          extensionTypeDeclaration;
     }
     _addProcedures(library.procedures);
     _addFields(library.fields);
@@ -145,7 +147,8 @@ class IndexedLibrary extends IndexedContainer {
   Class? lookupClass(String name) => _classes[name];
   IndexedClass? lookupIndexedClass(String name) => _indexedClasses[name];
   Extension? lookupExtension(String name) => _extensions[name];
-  InlineClass? lookupInlineClass(String name) => _inlineClasses[name];
+  ExtensionTypeDeclaration? lookupExtensionTypeDeclaration(String name) =>
+      _extensionTypeDeclarations[name];
 }
 
 class IndexedClass extends IndexedContainer {

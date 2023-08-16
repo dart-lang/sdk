@@ -235,12 +235,12 @@ abstract class Substitution {
         type.classNode.typeParameters, type.typeArguments));
   }
 
-  /// Substitutes the type parameters on the inline class of [type] with the
-  /// type arguments provided in [type].
-  static Substitution fromInlineType(InlineType type) {
+  /// Substitutes the type parameters on the extension type declaration of
+  /// [type] with the type arguments provided in [type].
+  static Substitution fromExtensionType(ExtensionType type) {
     if (type.typeArguments.isEmpty) return _NullSubstitution.instance;
     return fromMap(new Map<TypeParameter, DartType>.fromIterables(
-        type.inlineClass.typeParameters, type.typeArguments));
+        type.extensionTypeDeclaration.typeParameters, type.typeArguments));
   }
 
   /// Substitutes the type parameters on the typedef of [type] with the
@@ -343,13 +343,6 @@ class _AllFreeTypeVariablesVisitor implements DartTypeVisitor<void> {
 
   @override
   void visitExtensionType(ExtensionType node) {
-    for (DartType typeArgument in node.typeArguments) {
-      typeArgument.accept(this);
-    }
-  }
-
-  @override
-  void visitInlineType(InlineType node) {
     for (DartType typeArgument in node.typeArguments) {
       typeArgument.accept(this);
     }
@@ -734,16 +727,8 @@ abstract class _TypeSubstitutor implements DartTypeVisitor<DartType> {
     int before = useCounter;
     List<DartType> typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
-    return new ExtensionType(node.extension, node.nullability, typeArguments);
-  }
-
-  @override
-  DartType visitInlineType(InlineType node) {
-    if (node.typeArguments.isEmpty) return node;
-    int before = useCounter;
-    List<DartType> typeArguments = node.typeArguments.map(visit).toList();
-    if (useCounter == before) return node;
-    return new InlineType(node.inlineClass, node.nullability, typeArguments);
+    return new ExtensionType(
+        node.extensionTypeDeclaration, node.nullability, typeArguments);
   }
 
   @override
@@ -955,11 +940,6 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitInlineType(InlineType node) {
-    return node.typeArguments.any(visit);
-  }
-
-  @override
   bool visitFutureOrType(FutureOrType node) {
     return visit(node.typeArgument);
   }
@@ -1033,11 +1013,6 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   @override
   bool visitExtensionType(ExtensionType node) {
-    return node.typeArguments.any(visit);
-  }
-
-  @override
-  bool visitInlineType(InlineType node) {
     return node.typeArguments.any(visit);
   }
 
@@ -1119,11 +1094,6 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   @override
   bool visitExtensionType(ExtensionType node) {
-    return node.typeArguments.any(visit);
-  }
-
-  @override
-  bool visitInlineType(InlineType node) {
     return node.typeArguments.any(visit);
   }
 
@@ -1249,11 +1219,6 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitInlineType(InlineType node) {
-    return node.typeArguments.isEmpty;
-  }
-
-  @override
   bool visitInvalidType(InvalidType node) {
     throw new UnsupportedError(
         "Unsupported operation: _PrimitiveTypeVerifier(InvalidType).");
@@ -1330,11 +1295,6 @@ class _NullabilityConstructorUnwrapper
 
   @override
   DartType visitExtensionType(ExtensionType node, CoreTypes coreTypes) {
-    return node.withDeclaredNullability(Nullability.nonNullable);
-  }
-
-  @override
-  DartType visitInlineType(InlineType node, CoreTypes coreTypes) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
@@ -1623,13 +1583,6 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
 
   @override
   bool visitExtensionType(ExtensionType node) {
-    assert(node.declaredNullability != Nullability.undetermined);
-    return node.declaredNullability == Nullability.nullable ||
-        node.declaredNullability == Nullability.legacy;
-  }
-
-  @override
-  bool visitInlineType(InlineType node) {
     assert(node.declaredNullability != Nullability.undetermined);
     return node.declaredNullability == Nullability.nullable ||
         node.declaredNullability == Nullability.legacy;

@@ -20,13 +20,6 @@ constexpr bool kDartPrecompiledRuntime = true;
 constexpr bool kDartPrecompiledRuntime = false;
 #endif
 
-#if defined(USING_THREAD_SANITIZER)
-// TODO(39611): Address races in the background compiler.
-constexpr bool kDartUseBackgroundCompilation = false;
-#else
-constexpr bool kDartUseBackgroundCompilation = true;
-#endif
-
 constexpr intptr_t kDefaultOptimizationCounterThreshold = 30000;
 
 // The disassembler might be force included even in product builds so we need
@@ -92,7 +85,7 @@ constexpr bool FLAG_support_il_printer = false;
     "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
   P(add_readonly_data_symbols, bool, false,                                    \
     "Add static symbols for objects in snapshot read-only data")               \
-  P(background_compilation, bool, kDartUseBackgroundCompilation,               \
+  P(background_compilation, bool, true,                                        \
     "Run optimizing compilation in background")                                \
   P(check_token_positions, bool, false,                                        \
     "Check validity of token positions while compiling flow graphs")           \
@@ -253,6 +246,8 @@ constexpr bool FLAG_support_il_printer = false;
     "Enable magical pragmas for testing purposes. Use at your own risk!")      \
   R(eliminate_type_checks, true, bool, true,                                   \
     "Eliminate type checks when allowed by static type analysis.")             \
+  P(eliminate_write_barriers, bool, true,                                      \
+    "Eliminate write barriers when allowed by allocation invariants.")         \
   D(support_rr, bool, false, "Support running within RR.")                     \
   P(verify_entry_points, bool, false,                                          \
     "Throw API error on invalid member access through native API. See "        \

@@ -829,6 +829,22 @@ class TestParser extends Parser {
   }
 
   @override
+  Token parseExtensionTypeDeclarationRest(Token token, Token extensionKeyword,
+      Token typeKeyword, Token? constKeyword, Token name) {
+    doPrint('parseExtensionTypeDeclarationRest('
+        '$token, '
+        '$extensionKeyword, '
+        '$typeKeyword, '
+        '$constKeyword, '
+        '$name)');
+    indent++;
+    var result = super.parseExtensionTypeDeclarationRest(
+        token, extensionKeyword, typeKeyword, constKeyword, name);
+    indent--;
+    return result;
+  }
+
+  @override
   Token parseStringPart(Token token) {
     doPrint('parseStringPart(' '$token)');
     indent++;
@@ -2620,103 +2636,6 @@ class TestParser extends Parser {
     doPrint('findDartDoc(' '$token)');
     indent++;
     var result = super.findDartDoc(token);
-    indent--;
-    return result;
-  }
-
-  @override
-  int parseCommentReferences(Token dartdoc) {
-    doPrint('parseCommentReferences(' '$dartdoc)');
-    indent++;
-    var result = super.parseCommentReferences(dartdoc);
-    indent--;
-    return result;
-  }
-
-  @override
-  int parseReferencesInMultiLineComment(Token multiLineDoc) {
-    doPrint('parseReferencesInMultiLineComment(' '$multiLineDoc)');
-    indent++;
-    var result = super.parseReferencesInMultiLineComment(multiLineDoc);
-    indent--;
-    return result;
-  }
-
-  @override
-  int parseReferencesInSingleLineComments(Token? token) {
-    doPrint('parseReferencesInSingleLineComments(' '$token)');
-    indent++;
-    var result = super.parseReferencesInSingleLineComments(token);
-    indent--;
-    return result;
-  }
-
-  @override
-  int parseCommentReferencesInText(Token commentToken, int start, int end) {
-    doPrint(
-        'parseCommentReferencesInText(' '$commentToken, ' '$start, ' '$end)');
-    indent++;
-    var result = super.parseCommentReferencesInText(commentToken, start, end);
-    indent--;
-    return result;
-  }
-
-  @override
-  int findReferenceEnd(String comment, int index, int end) {
-    doPrint('findReferenceEnd(' '$comment, ' '$index, ' '$end)');
-    indent++;
-    var result = super.findReferenceEnd(comment, index, end);
-    indent--;
-    return result;
-  }
-
-  @override
-  bool parseOneCommentReference(Token token, int referenceOffset) {
-    doPrint('parseOneCommentReference(' '$token, ' '$referenceOffset)');
-    indent++;
-    var result = super.parseOneCommentReference(token, referenceOffset);
-    indent--;
-    return result;
-  }
-
-  @override
-  void parseOneCommentReferenceRest(
-      Token begin,
-      int referenceOffset,
-      Token? newKeyword,
-      Token? firstToken,
-      Token? firstPeriod,
-      Token? secondToken,
-      Token? secondPeriod,
-      Token identifierOrOperator) {
-    doPrint('parseOneCommentReferenceRest('
-        '$begin, '
-        '$referenceOffset, '
-        '$newKeyword, '
-        '$firstToken, '
-        '$firstPeriod, '
-        '$secondToken, '
-        '$secondPeriod, '
-        '$identifierOrOperator)');
-    indent++;
-    var result = super.parseOneCommentReferenceRest(
-        begin,
-        referenceOffset,
-        newKeyword,
-        firstToken,
-        firstPeriod,
-        secondToken,
-        secondPeriod,
-        identifierOrOperator);
-    indent--;
-    return result;
-  }
-
-  @override
-  bool isLinkText(String comment, int rightIndex) {
-    doPrint('isLinkText(' '$comment, ' '$rightIndex)');
-    indent++;
-    var result = super.isLinkText(comment, rightIndex);
     indent--;
     return result;
   }

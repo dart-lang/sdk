@@ -282,11 +282,13 @@ final currentExpectations = [
 <asynchronous suspension>
 #3    allYield (%test%)
 <asynchronous suspension>
-#4    doTestAwaitThen (%test%)
+#4    doTestAwaitThen.<anonymous closure> (%test%)
 <asynchronous suspension>
-#5    runTest (harness.dart)
+#5    doTestAwaitThen (%test%)
 <asynchronous suspension>
-#6    main (%test%)
+#6    runTest (harness.dart)
+<asynchronous suspension>
+#7    main (%test%)
 <asynchronous suspension>""",
   """
 #0    throwSync (%test%)
@@ -352,11 +354,13 @@ final currentExpectations = [
 <asynchronous suspension>
 #2    mixedYields (%test%)
 <asynchronous suspension>
-#3    doTestAwaitThen (%test%)
+#3    doTestAwaitThen.<anonymous closure> (%test%)
 <asynchronous suspension>
-#4    runTest (harness.dart)
+#4    doTestAwaitThen (%test%)
 <asynchronous suspension>
-#5    main (%test%)
+#5    runTest (harness.dart)
+<asynchronous suspension>
+#6    main (%test%)
 <asynchronous suspension>""",
   """
 #0    throwAsync (%test%)
@@ -391,11 +395,13 @@ final currentExpectations = [
 <asynchronous suspension>
 #2    syncSuffix (%test%)
 <asynchronous suspension>
-#3    doTestAwaitThen (%test%)
+#3    doTestAwaitThen.<anonymous closure> (%test%)
 <asynchronous suspension>
-#4    runTest (harness.dart)
+#4    doTestAwaitThen (%test%)
 <asynchronous suspension>
-#5    main (%test%)
+#5    runTest (harness.dart)
+<asynchronous suspension>
+#6    main (%test%)
 <asynchronous suspension>""",
   """
 #0    throwAsync (%test%)
@@ -430,11 +436,13 @@ final currentExpectations = [
 <asynchronous suspension>
 #2    nonAsyncNoStack (%test%)
 <asynchronous suspension>
-#3    doTestAwaitThen (%test%)
+#3    doTestAwaitThen.<anonymous closure> (%test%)
 <asynchronous suspension>
-#4    runTest (harness.dart)
+#4    doTestAwaitThen (%test%)
 <asynchronous suspension>
-#5    main (%test%)
+#5    runTest (harness.dart)
+<asynchronous suspension>
+#6    main (%test%)
 <asynchronous suspension>""",
   """
 #0    throwAsync (%test%)
@@ -467,11 +475,13 @@ final currentExpectations = [
 <asynchronous suspension>
 #2    awaitEveryAsyncStarThrowSync (%test%)
 <asynchronous suspension>
-#3    doTestAwaitThen (%test%)
+#3    doTestAwaitThen.<anonymous closure> (%test%)
 <asynchronous suspension>
-#4    runTest (harness.dart)
+#4    doTestAwaitThen (%test%)
 <asynchronous suspension>
-#5    main (%test%)
+#5    runTest (harness.dart)
+<asynchronous suspension>
+#6    main (%test%)
 <asynchronous suspension>""",
   """
 #0    throwSync (%test%)
@@ -505,11 +515,13 @@ final currentExpectations = [
 <asynchronous suspension>
 #2    awaitEveryAsyncStarThrowAsync (%test%)
 <asynchronous suspension>
-#3    doTestAwaitThen (%test%)
+#3    doTestAwaitThen.<anonymous closure> (%test%)
 <asynchronous suspension>
-#4    runTest (harness.dart)
+#4    doTestAwaitThen (%test%)
 <asynchronous suspension>
-#5    main (%test%)
+#5    runTest (harness.dart)
+<asynchronous suspension>
+#6    main (%test%)
 <asynchronous suspension>""",
   """
 #0    throwAsync (%test%)
@@ -595,11 +607,13 @@ final currentExpectations = [
 <asynchronous suspension>
 #2    awaitTimeout (%test%)
 <asynchronous suspension>
-#3    doTestAwaitThen (%test%)
+#3    doTestAwaitThen.<anonymous closure> (%test%)
 <asynchronous suspension>
-#4    runTest (harness.dart)
+#4    doTestAwaitThen (%test%)
 <asynchronous suspension>
-#5    main (%test%)
+#5    runTest (harness.dart)
+<asynchronous suspension>
+#6    main (%test%)
 <asynchronous suspension>""",
   """
 #0    throwAsync (%test%)
@@ -634,11 +648,13 @@ final currentExpectations = [
 <asynchronous suspension>
 #2    awaitWait (%test%)
 <asynchronous suspension>
-#3    doTestAwaitThen (%test%)
+#3    doTestAwaitThen.<anonymous closure> (%test%)
 <asynchronous suspension>
-#4    runTest (harness.dart)
+#4    doTestAwaitThen (%test%)
 <asynchronous suspension>
-#5    main (%test%)
+#5    runTest (harness.dart)
+<asynchronous suspension>
+#6    main (%test%)
 <asynchronous suspension>""",
   """
 #0    throwAsync (%test%)
@@ -656,33 +672,7 @@ final currentExpectations = [
   """
 #0    throwAsync (%test%)
 <asynchronous suspension>
-#1    doTestAwait (%test%)
-<asynchronous suspension>
-#2    runTest (harness.dart)
-<asynchronous suspension>
-#3    main (%test%)
-<asynchronous suspension>""",
-  """
-#0    throwAsync (%test%)
-<asynchronous suspension>
-#1    doTestAwaitThen (%test%)
-<asynchronous suspension>
-#2    runTest (harness.dart)
-<asynchronous suspension>
-#3    main (%test%)
-<asynchronous suspension>""",
-  """
-#0    throwAsync (%test%)
-<asynchronous suspension>
-#1    doTestAwaitCatchError (%test%)
-<asynchronous suspension>
-#2    runTest (harness.dart)
-<asynchronous suspension>
-#3    main (%test%)
-<asynchronous suspension>""",
-  """
-#0    throwSync (%test%)
-#1    futureThen.<anonymous closure> (%test%)
+#1    futureSyncWhenComplete.<anonymous closure> (%test%)
 <asynchronous suspension>
 #2    doTestAwait (%test%)
 <asynchronous suspension>
@@ -691,10 +681,24 @@ final currentExpectations = [
 #4    main (%test%)
 <asynchronous suspension>""",
   """
-#0    throwSync (%test%)
-#1    futureThen.<anonymous closure> (%test%)
+#0    throwAsync (%test%)
 <asynchronous suspension>
-#2    doTestAwaitThen (%test%)
+#1    futureSyncWhenComplete.<anonymous closure> (%test%)
+<asynchronous suspension>
+#2    doTestAwaitThen.<anonymous closure> (%test%)
+<asynchronous suspension>
+#3    doTestAwaitThen (%test%)
+<asynchronous suspension>
+#4    runTest (harness.dart)
+<asynchronous suspension>
+#5    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    throwAsync (%test%)
+<asynchronous suspension>
+#1    futureSyncWhenComplete.<anonymous closure> (%test%)
+<asynchronous suspension>
+#2    doTestAwaitCatchError (%test%)
 <asynchronous suspension>
 #3    runTest (harness.dart)
 <asynchronous suspension>
@@ -704,11 +708,39 @@ final currentExpectations = [
 #0    throwSync (%test%)
 #1    futureThen.<anonymous closure> (%test%)
 <asynchronous suspension>
-#2    doTestAwaitCatchError (%test%)
+#2    _doSomething (%test%)
 <asynchronous suspension>
-#3    runTest (harness.dart)
+#3    doTestAwait (%test%)
 <asynchronous suspension>
-#4    main (%test%)
+#4    runTest (harness.dart)
+<asynchronous suspension>
+#5    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    throwSync (%test%)
+#1    futureThen.<anonymous closure> (%test%)
+<asynchronous suspension>
+#2    _doSomething (%test%)
+<asynchronous suspension>
+#3    doTestAwaitThen.<anonymous closure> (%test%)
+<asynchronous suspension>
+#4    doTestAwaitThen (%test%)
+<asynchronous suspension>
+#5    runTest (harness.dart)
+<asynchronous suspension>
+#6    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    throwSync (%test%)
+#1    futureThen.<anonymous closure> (%test%)
+<asynchronous suspension>
+#2    _doSomething (%test%)
+<asynchronous suspension>
+#3    doTestAwaitCatchError (%test%)
+<asynchronous suspension>
+#4    runTest (harness.dart)
+<asynchronous suspension>
+#5    main (%test%)
 <asynchronous suspension>"""
 ];
 // CURRENT EXPECTATIONS END

@@ -63,7 +63,14 @@ extension JSObjectUtilExtension on JSObject {
 @patch
 extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
   @patch
-  Function get toDart => unwrapJSWrappedDartFunction(toExternRef);
+  Function get toDart {
+    final ref = toExternRef;
+    if (!js_helper.isJSWrappedDartFunction(ref)) {
+      throw 'Expected JS wrapped function, but got type '
+          '${js_helper.typeof(ref)}.';
+    }
+    return unwrapJSWrappedDartFunction(ref);
+  }
 }
 
 @patch
@@ -81,11 +88,6 @@ extension JSBoxedDartObjectToObject on JSBoxedDartObject {
 
 @patch
 extension ObjectToJSBoxedDartObject on Object {
-  // TODO(srujzs): Remove.
-  @patch
-  JSBoxedDartObject get toJS =>
-      _box<JSBoxedDartObject>(jsObjectFromDartObject(this));
-
   @patch
   JSBoxedDartObject get toJSBox {
     if (this is JSValue) {
@@ -124,175 +126,223 @@ extension JSPromiseToFuture on JSPromise {
 @patch
 extension JSArrayBufferToByteBuffer on JSArrayBuffer {
   @patch
-  ByteBuffer get toDart => toDartByteBuffer(toExternRef);
+  ByteBuffer get toDart => js_types.JSArrayBufferImpl(toExternRef);
 }
 
 @patch
 extension ByteBufferToJSArrayBuffer on ByteBuffer {
+  // Note: While this general style of 'test for JS backed subtype' is quite
+  // common, we still specialize each case to avoid a genric `is` check.
   @patch
-  JSArrayBuffer get toJS =>
-      _box<JSArrayBuffer>(jsArrayBufferFromDartByteBuffer(this));
+  JSArrayBuffer get toJS {
+    final t = this;
+    return _box<JSArrayBuffer>(t is js_types.JSArrayBufferImpl
+        ? t.toExternRef
+        : jsArrayBufferFromDartByteBuffer(t));
+  }
 }
 
 /// [JSDataView] <-> [ByteData]
 @patch
 extension JSDataViewToByteData on JSDataView {
   @patch
-  ByteData get toDart => toDartByteData(toExternRef);
+  ByteData get toDart => js_types.JSDataViewImpl(toExternRef);
 }
 
 @patch
 extension ByteDataToJSDataView on ByteData {
   @patch
-  JSDataView get toJS => _box<JSDataView>(
-      jsDataViewFromDartByteData(this, lengthInBytes.toDouble()));
+  JSDataView get toJS {
+    final t = this;
+    return _box<JSDataView>(t is js_types.JSDataViewImpl
+        ? t.toExternRef
+        : jsDataViewFromDartByteData(t, lengthInBytes.toDouble()));
+  }
 }
 
 /// [JSInt8Array] <-> [Int8List]
 @patch
 extension JSInt8ArrayToInt8List on JSInt8Array {
   @patch
-  Int8List get toDart => toDartInt8List(toExternRef);
+  Int8List get toDart => js_types.JSInt8ArrayImpl(toExternRef);
 }
 
 @patch
 extension Int8ListToJSInt8Array on Int8List {
   @patch
-  JSInt8Array get toJS => _box<JSInt8Array>(jsInt8ArrayFromDartInt8List(this));
+  JSInt8Array get toJS {
+    final t = this;
+    return _box<JSInt8Array>(t is js_types.JSInt8ArrayImpl
+        ? t.toExternRef
+        : jsInt8ArrayFromDartInt8List(t));
+  }
 }
 
 /// [JSUint8Array] <-> [Uint8List]
 @patch
 extension JSUint8ArrayToUint8List on JSUint8Array {
   @patch
-  Uint8List get toDart => toDartUint8List(toExternRef);
+  Uint8List get toDart => js_types.JSUint8ArrayImpl(toExternRef);
 }
 
 @patch
 extension Uint8ListToJSUint8Array on Uint8List {
   @patch
-  JSUint8Array get toJS =>
-      _box<JSUint8Array>(jsUint8ArrayFromDartUint8List(this));
+  JSUint8Array get toJS {
+    final t = this;
+    return _box<JSUint8Array>(t is js_types.JSUint8ArrayImpl
+        ? t.toExternRef
+        : jsUint8ArrayFromDartUint8List(t));
+  }
 }
 
 /// [JSUint8ClampedArray] <-> [Uint8ClampedList]
 @patch
 extension JSUint8ClampedArrayToUint8ClampedList on JSUint8ClampedArray {
   @patch
-  Uint8ClampedList get toDart => toDartUint8ClampedList(toExternRef);
+  Uint8ClampedList get toDart => js_types.JSUint8ClampedArrayImpl(toExternRef);
 }
 
 @patch
 extension Uint8ClampedListToJSUint8ClampedArray on Uint8ClampedList {
   @patch
-  JSUint8ClampedArray get toJS => _box<JSUint8ClampedArray>(
-      jsUint8ClampedArrayFromDartUint8ClampedList(this));
+  JSUint8ClampedArray get toJS {
+    final t = this;
+    return _box<JSUint8ClampedArray>(t is js_types.JSUint8ClampedArrayImpl
+        ? t.toExternRef
+        : jsUint8ClampedArrayFromDartUint8ClampedList(t));
+  }
 }
 
 /// [JSInt16Array] <-> [Int16List]
 @patch
 extension JSInt16ArrayToInt16List on JSInt16Array {
   @patch
-  Int16List get toDart => toDartInt16List(toExternRef);
+  Int16List get toDart => js_types.JSInt16ArrayImpl(toExternRef);
 }
 
 @patch
 extension Int16ListToJSInt16Array on Int16List {
   @patch
-  JSInt16Array get toJS =>
-      _box<JSInt16Array>(jsInt16ArrayFromDartInt16List(this));
+  JSInt16Array get toJS {
+    final t = this;
+    return _box<JSInt16Array>(t is js_types.JSInt16ArrayImpl
+        ? t.toExternRef
+        : jsInt16ArrayFromDartInt16List(t));
+  }
 }
 
 /// [JSUint16Array] <-> [Uint16List]
 @patch
 extension JSUint16ArrayToInt16List on JSUint16Array {
   @patch
-  Uint16List get toDart => toDartUint16List(toExternRef);
+  Uint16List get toDart => js_types.JSUint16ArrayImpl(toExternRef);
 }
 
 @patch
 extension Uint16ListToJSInt16Array on Uint16List {
   @patch
-  JSUint16Array get toJS =>
-      _box<JSUint16Array>(jsUint16ArrayFromDartUint16List(this));
+  JSUint16Array get toJS {
+    final t = this;
+    return _box<JSUint16Array>(t is js_types.JSUint16ArrayImpl
+        ? t.toExternRef
+        : jsUint16ArrayFromDartUint16List(t));
+  }
 }
 
 /// [JSInt32Array] <-> [Int32List]
 @patch
 extension JSInt32ArrayToInt32List on JSInt32Array {
   @patch
-  Int32List get toDart => toDartInt32List(toExternRef);
+  Int32List get toDart => js_types.JSInt32ArrayImpl(toExternRef);
 }
 
 @patch
 extension Int32ListToJSInt32Array on Int32List {
   @patch
-  JSInt32Array get toJS =>
-      _box<JSInt32Array>(jsInt32ArrayFromDartInt32List(this));
+  JSInt32Array get toJS {
+    final t = this;
+    return _box<JSInt32Array>(t is js_types.JSInt32ArrayImpl
+        ? t.toExternRef
+        : jsInt32ArrayFromDartInt32List(t));
+  }
 }
 
 /// [JSUint32Array] <-> [Uint32List]
 @patch
 extension JSUint32ArrayToUint32List on JSUint32Array {
   @patch
-  Uint32List get toDart => toDartUint32List(toExternRef);
+  Uint32List get toDart => js_types.JSUint32ArrayImpl(toExternRef);
 }
 
 @patch
 extension Uint32ListToJSUint32Array on Uint32List {
   @patch
-  JSUint32Array get toJS =>
-      _box<JSUint32Array>(jsUint32ArrayFromDartUint32List(this));
+  JSUint32Array get toJS {
+    final t = this;
+    return _box<JSUint32Array>(t is js_types.JSUint32ArrayImpl
+        ? t.toExternRef
+        : jsUint32ArrayFromDartUint32List(t));
+  }
 }
 
 /// [JSFloat32Array] <-> [Float32List]
 @patch
 extension JSFloat32ArrayToFloat32List on JSFloat32Array {
   @patch
-  Float32List get toDart => toDartFloat32List(toExternRef);
+  Float32List get toDart => js_types.JSFloat32ArrayImpl(toExternRef);
 }
 
 @patch
 extension Float32ListToJSFloat32Array on Float32List {
   @patch
-  JSFloat32Array get toJS =>
-      _box<JSFloat32Array>(jsFloat32ArrayFromDartFloat32List(this));
+  JSFloat32Array get toJS {
+    final t = this;
+    return _box<JSFloat32Array>(t is js_types.JSFloat32ArrayImpl
+        ? t.toExternRef
+        : jsFloat32ArrayFromDartFloat32List(t));
+  }
 }
 
 /// [JSFloat64Array] <-> [Float64List]
 @patch
 extension JSFloat64ArrayToFloat64List on JSFloat64Array {
   @patch
-  Float64List get toDart => toDartFloat64List(toExternRef);
+  Float64List get toDart => js_types.JSFloat64ArrayImpl(toExternRef);
 }
 
 @patch
 extension Float64ListToJSFloat64Array on Float64List {
   @patch
-  JSFloat64Array get toJS =>
-      _box<JSFloat64Array>(jsFloat64ArrayFromDartFloat64List(this));
+  JSFloat64Array get toJS {
+    final t = this;
+    return _box<JSFloat64Array>(t is js_types.JSFloat64ArrayImpl
+        ? t.toExternRef
+        : jsFloat64ArrayFromDartFloat64List(t));
+  }
 }
 
 /// [JSArray] <-> [List]
 @patch
 extension JSArrayToList on JSArray {
   @patch
-  List<JSAny?> get toDart => toDartListJSAny(toExternRef);
+  List<JSAny?> get toDart => js_types.JSArrayImpl(toExternRef);
 }
 
 @patch
 extension ListToJSArray on List<JSAny?> {
   @patch
-  JSArray get toJS => toJSArray(this);
+  JSArray get toJS {
+    final t = this;
+    return t is js_types.JSArrayImpl
+        ? JSValue.boxT<JSArray>(t.toExternRef)
+        : toJSArray(this);
+  }
 }
 
 /// [JSNumber] -> [double] or [int].
 @patch
 extension JSNumberToNumber on JSNumber {
-  // TODO(srujzs): Remove.
-  @patch
-  double get toDart => toDartDouble;
-
   @patch
   double get toDartDouble => toDartNumber(toExternRef);
 
@@ -339,12 +389,7 @@ extension StringToJSString on String {
   @patch
   JSString get toJS {
     final t = this;
-    WasmExternRef? ref;
-    if (t is js_types.JSStringImpl) {
-      ref = t.toExternRef;
-    } else {
-      ref = jsStringFromDartString(this);
-    }
-    return _box<JSString>(ref);
+    return _box<JSString>(
+        t is js_types.JSStringImpl ? t.toExternRef : jsStringFromDartString(t));
   }
 }

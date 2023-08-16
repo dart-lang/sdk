@@ -173,6 +173,11 @@ class A<U> {
   final x = f<U>;
 }
 ''', [
+      error(
+          CompileTimeErrorCode
+              .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+          33,
+          5),
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
           58, 1),
     ]);

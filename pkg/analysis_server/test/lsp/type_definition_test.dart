@@ -18,7 +18,7 @@ void main() {
 class TypeDefinitionTest extends AbstractLspAnalysisServerTest {
   Uri get sdkCoreUri {
     final sdkCorePath = convertPath('/sdk/lib/core/core.dart');
-    return Uri.file(sdkCorePath);
+    return pathContext.toUri(sdkCorePath);
   }
 
   Future<void> test_currentFile() async {
@@ -101,7 +101,7 @@ const a = '^';
 
   Future<void> test_otherFile() async {
     final otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
-    final otherFileUri = Uri.file(otherFilePath);
+    final otherFileUri = pathContext.toUri(otherFilePath);
     final contents = '''
 import 'other.dart';
 

@@ -308,7 +308,7 @@ String? getNameOfTag(int tag) {
   if (tag == Tag.NeverType) return "NeverType";
   if (tag == Tag.IntersectionType) return "IntersectionType";
   if (tag == Tag.RecordType) return "RecordType";
-  if (tag == Tag.InlineType) return "InlineType";
+  if (tag == Tag.ExtensionType) return "ExtensionType";
 
   return null;
 }

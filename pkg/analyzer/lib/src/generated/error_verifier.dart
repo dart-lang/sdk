@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/non_covariant_type_parameter_position.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -230,6 +231,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// The features enabled in the unit currently being checked for errors.
   FeatureSet? _featureSet;
 
+  final LibraryVerificationContext libraryVerificationContext;
   final RequiredParametersVerifier _requiredParametersVerifier;
   final DuplicateDefinitionVerifier _duplicateDefinitionVerifier;
   final UseResultVerifier _checkUseVerifier;
@@ -239,13 +241,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Initialize a newly created error verifier.
   ErrorVerifier(this.errorReporter, this._currentLibrary, this._typeProvider,
-      this._inheritanceManager)
+      this._inheritanceManager, this.libraryVerificationContext)
       : _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
         _checkUseVerifier = UseResultVerifier(errorReporter),
         _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
         _duplicateDefinitionVerifier = DuplicateDefinitionVerifier(
-            _inheritanceManager, _currentLibrary, errorReporter) {
+          _inheritanceManager,
+          _currentLibrary,
+          errorReporter,
+          libraryVerificationContext.duplicationDefinitionContext,
+        ) {
     _isInSystemLibrary = _currentLibrary.source.uri.isScheme('dart');
     _isInStaticVariableDeclaration = false;
     _isInConstructorInitializer = false;
@@ -349,7 +355,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_isNonNullableByDefault) {
       checkForUseOfVoidResult(node.expression);
     }
+
     _checkForAwaitInLateLocalVariableInitializer(node);
+    _checkForAwaitOfExtensionTypeNotFuture(node);
     super.visitAwaitExpression(node);
   }
 
@@ -416,16 +424,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     var outerClass = _enclosingClass;
     try {
-      var element = node.declaredElement as ClassElementImpl;
+      final element = node.declaredElement!;
+      final augmented = element.augmented;
+      if (augmented == null) {
+        return;
+      }
+
+      final declarationElement = augmented.declaration;
+      declarationElement as ClassElementImpl;
+
       _isInNativeClass = node.nativeClause != null;
-      _enclosingClass = element;
+      _enclosingClass = declarationElement;
 
       List<ClassMember> members = node.members;
       _duplicateDefinitionVerifier.checkClass(node);
-      if (!element.isDartCoreFunctionImpl) {
+      if (!declarationElement.isDartCoreFunctionImpl) {
         _checkForBuiltInIdentifierAsName(
             node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       }
@@ -442,7 +458,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       _checkForConflictingClassMembers();
-      _constructorFieldsVerifier.enterClass(node, element);
+      _constructorFieldsVerifier.enterClass(node, declarationElement);
       _checkForFinalNotInitializedInClass(members);
       _checkForBadFunctionUse(
         superclass: node.extendsClause?.superclass,
@@ -454,13 +470,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForMixinClassErrorCodes(node, members, superclass, withClause);
       _reportMacroApplicationErrors(
         annotations: node.metadata,
-        macroErrors: element.macroApplicationErrors,
+        macroErrors: declarationElement.macroApplicationErrors,
       );
 
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
-      ).checkStaticAccessors(element.accessors);
+      ).checkStaticAccessors(declarationElement.accessors);
 
       super.visitClassDeclaration(node);
     } finally {
@@ -668,6 +684,35 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     super.visitExtensionDeclaration(node);
     _enclosingExtension = null;
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    var outerClass = _enclosingClass;
+    try {
+      final element = node.declaredElement!;
+      final augmented = element.augmented;
+      if (augmented == null) {
+        return;
+      }
+
+      final declarationElement = augmented.declaration;
+      declarationElement as ExtensionTypeElementImpl;
+
+      _enclosingClass = declarationElement;
+
+      _duplicateDefinitionVerifier.checkExtensionType(node, declarationElement);
+      _checkForConflictingClassMembers();
+      _constructorFieldsVerifier.enterExtensionType(node, declarationElement);
+      _checkForNonCovariantTypeParameterPositionInRepresentationType(
+          node, element);
+      // TODO(scheglov) Add checks.
+
+      super.visitExtensionTypeDeclaration(node);
+    } finally {
+      _constructorFieldsVerifier.leaveClass();
+      _enclosingClass = outerClass;
+    }
   }
 
   @override
@@ -1007,7 +1052,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // TODO(scheglov) Verify for all mixin errors.
     var outerClass = _enclosingClass;
     try {
-      _enclosingClass = node.declaredElement!;
+      final element = node.declaredElement!;
+      final augmented = element.augmented;
+      if (augmented == null) {
+        return;
+      }
+
+      final declarationElement = augmented.declaration;
+      declarationElement as MixinElementImpl;
+
+      _enclosingClass = declarationElement;
 
       List<ClassMember> members = node.members;
       _duplicateDefinitionVerifier.checkMixin(node);
@@ -1025,7 +1079,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _checkForConflictingClassMembers();
       _checkForFinalNotInitializedInClass(members);
-      _checkForMainFunction1(node.name, node.declaredElement!);
+      _checkForMainFunction1(node.name, declarationElement);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       //      _checkForBadFunctionUse(node);
       super.visitMixinDeclaration(node);
@@ -1737,6 +1791,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
+  void _checkForAwaitOfExtensionTypeNotFuture(AwaitExpression node) {
+    final expression = node.expression;
+    final expressionType = expression.typeOrThrow;
+    if (expressionType.element is ExtensionTypeElement) {
+      final anyFuture = typeSystem.typeProvider.futureType(
+        typeSystem.objectQuestion,
+      );
+      if (!typeSystem.isSubtypeOf(expressionType, anyFuture)) {
+        errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE,
+          node.awaitKeyword,
+        );
+      }
+    }
+  }
+
   /// Verifies that the nodes don't reference `Function` from `dart:core`.
   void _checkForBadFunctionUse({
     required NamedType? superclass,
@@ -1953,7 +2023,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           name,
           inherited.enclosingElement.displayName,
         ]);
-      } else if (inherited is PropertyAccessorElement) {
+      } else if (inherited is PropertyAccessorElement &&
+          _enclosingClass is! ExtensionTypeElement) {
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, method, [
           _enclosingClass!.displayName,
@@ -1980,7 +2051,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           name,
           inherited.enclosingElement.displayName,
         ]);
-      } else if (inherited is MethodElement) {
+      } else if (inherited is MethodElement &&
+          _enclosingClass is! ExtensionTypeElement) {
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, accessor, [
           _enclosingClass!.displayName,
@@ -4039,6 +4111,35 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT, literal);
   }
 
+  void _checkForNonCovariantTypeParameterPositionInRepresentationType(
+    ExtensionTypeDeclaration node,
+    ExtensionTypeElement element,
+  ) {
+    final typeParameters = node.typeParameters?.typeParameters;
+    if (typeParameters == null) {
+      return;
+    }
+
+    final representationType = element.representation.type;
+
+    for (final typeParameterNode in typeParameters) {
+      final typeParameterElement = typeParameterNode.declaredElement!;
+      final nonCovariant = representationType.accept(
+        NonCovariantTypeParameterPositionVisitor(
+          [typeParameterElement],
+          initialVariance: Variance.covariant,
+        ),
+      );
+      if (nonCovariant) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode
+              .NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE,
+          typeParameterNode,
+        );
+      }
+    }
+  }
+
   void _checkForNonFinalFieldInEnum(FieldDeclaration node) {
     if (node.isStatic) return;
 
@@ -4666,7 +4767,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }) {
     if (_enclosingExecutable.inStaticMethod || _isInStaticVariableDeclaration) {
       if (element is TypeParameterElement &&
-          element.enclosingElement is InterfaceElement) {
+          element.enclosingElement is InstanceElement) {
         // The class's type parameters are not in scope for static methods.
         // However all other type parameters are legal (e.g. the static method's
         // type parameters, or a local function's type parameters).
@@ -5722,6 +5823,11 @@ class HiddenElements {
   void _initializeElements(List<Statement> statements) {
     _elements.addAll(BlockScope.elementsInStatements(statements));
   }
+}
+
+/// Information to pass from from the defining unit to augmentations.
+class LibraryVerificationContext {
+  final duplicationDefinitionContext = DuplicationDefinitionContext();
 }
 
 /// Recursively visits a type annotation, looking uninstantiated bounds.

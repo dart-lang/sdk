@@ -1,12 +1,4 @@
 main = <No Member>;
-//
-// Problems in component:
-//
-// org-dartlang-test:///mypackage/c.dart:3:7: Error: 'Baz' can't implement both 'Foo<int>' and 'Foo<String>'
-//  - 'Foo' is from 'package:mypackage/a.dart' ('org-dartlang-test:///mypackage/a.dart').
-// class Baz extends Bar<int> implements Foo<String> {}
-//       ^
-//
 library from "org-dartlang-test:///main.dart" as main {
 
   import "package:mypackage/a.dart";
@@ -28,6 +20,14 @@ library from "package:mypackage/a.dart" as a {
   }
 }
 library from "package:mypackage/b.dart" as b {
+//
+// Problems in library:
+//
+// org-dartlang-test:///mypackage/c.dart:3:7: Error: 'Baz' can't implement both 'Foo<int>' and 'Foo<String>'
+//  - 'Foo' is from 'package:mypackage/a.dart' ('org-dartlang-test:///mypackage/a.dart').
+// class Baz extends Bar<int> implements Foo<String> {}
+//       ^
+//
 
   import "package:mypackage/a.dart";
 

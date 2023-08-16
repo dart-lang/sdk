@@ -55,19 +55,9 @@ class MatchingExpressionVisitor
     } else {
       valueExpression = matchedExpression;
     }
-    VariableDeclaration temporaryVariable =
-        matchingCache.createTemporaryVariable(node.variable.type,
-            fileOffset: node.fileOffset);
-    return new EffectExpression(
-        new VariableSetExpression(temporaryVariable, valueExpression,
-            fileOffset: node.fileOffset),
-        new BooleanExpression(true, fileOffset: node.fileOffset),
-        new VariableSetExpression(
-            node.variable,
-            new VariableGetExpression(temporaryVariable,
-                fileOffset: node.fileOffset),
-            allowFinalAssignment: true,
-            fileOffset: node.fileOffset));
+    return new DelayedAssignment(
+        matchingCache, node.variable, node.variable.type, valueExpression,
+        fileOffset: node.fileOffset, hasEffect: node.hasObservableEffect);
   }
 
   @override
@@ -423,6 +413,10 @@ class MatchingExpressionVisitor
               typedMatchedExpression, field.target!, field.resultType!,
               isObjectAccess: false, fileOffset: field.fileOffset);
           break;
+        case ObjectAccessKind.Direct:
+          expression = new DelayedAsExpression(
+              typedMatchedExpression, field.resultType!,
+              isUnchecked: true, fileOffset: field.fileOffset);
         case ObjectAccessKind.Static:
           expression = new DelayedExtensionInvocation(field.target as Procedure,
               [typedMatchedExpression], field.typeArguments!, field.resultType!,
@@ -696,10 +690,9 @@ class MatchingExpressionVisitor
         new PromotedCacheableExpression(matchedExpression, target.type);
     return DelayedAndExpression.merge(
         matchingExpression,
-        new EffectExpression(
-            new VariableSetExpression(target, valueExpression,
-                allowFinalAssignment: true, fileOffset: node.fileOffset),
-            new BooleanExpression(true, fileOffset: node.fileOffset)),
+        new DelayedAssignment(
+            matchingCache, target, target.type, valueExpression,
+            hasEffect: false, fileOffset: node.fileOffset),
         fileOffset: node.fileOffset);
   }
 

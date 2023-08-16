@@ -1,0 +1,46 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test(core::List<core::int> list) → dynamic {
+  hoisted has-declared-initializer core::num v;
+  {
+    final synthesized core::List<core::int> #0#0 = list;
+    if(!(let final dynamic #t1 = #0#0 as core::List<core::int> in (#0#0 as core::List<core::int>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t2 = v = (#0#0 as core::List<core::int>).{core::List::[]}(0){(core::int) → core::int} in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  self::expect(42, v);
+}
+static method test2() → dynamic {
+  core::num? x = 2.{core::num::>}(1){(core::num) → core::bool} ?{core::int?} 42 : null;
+  hoisted has-declared-initializer core::num v2;
+  {
+    final synthesized core::num? #0#0 = x;
+    #0#0!;
+    v2 = #0#0!;
+  }
+  self::expect(42, v2);
+}
+static method main() → dynamic {
+  self::test(<core::int>[42]);
+  self::throws(() → void => self::test(<core::int>[]));
+  self::throws(() → void => self::test(<core::int>[1, 2]));
+  self::test2();
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → void f) → dynamic {
+  try {
+    f(){() → void};
+  }
+  on core::Object catch(final core::Object _) {
+    return;
+  }
+  throw "Missing exception";
+}
+
+constants  {
+  #C1 = 1
+}

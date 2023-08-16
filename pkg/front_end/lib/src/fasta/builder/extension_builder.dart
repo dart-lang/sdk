@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart';
 import '../scope.dart';
-import '../source/source_library_builder.dart';
 import 'builder.dart';
 import 'builder_mixins.dart';
 import 'declaration_builder.dart';
@@ -59,14 +58,8 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
       Uri fileUri,
       int charOffset,
       {required bool hasExplicitTypeArguments}) {
-    if (library is SourceLibraryBuilder &&
-        library.libraryFeatures.extensionTypes.isEnabled) {
-      return new ExtensionType(extension, nullability, arguments);
-    } else {
-      throw new UnsupportedError(
-          "ExtensionBuilder.buildTypesWithBuiltArguments "
-          "is not supported in library '${library.importUri}'.");
-    }
+    throw new UnsupportedError("ExtensionBuilder.buildTypesWithBuiltArguments "
+        "is not supported in library '${library.importUri}'.");
   }
 
   @override

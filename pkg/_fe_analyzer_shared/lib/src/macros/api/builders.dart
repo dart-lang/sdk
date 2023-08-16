@@ -8,11 +8,9 @@ part of '../api.dart';
 /// as augment existing ones.
 abstract interface class Builder {}
 
-/// Allows you to resolve arbitrary [Identifier]s.
-///
-/// This class will likely disappear entirely once we have a different
-/// mechanism.
-abstract interface class IdentifierResolver {
+/// The interface for all introspection that is allowed during the type phase
+/// (and later).
+abstract interface class TypePhaseIntrospector {
   /// Returns an [Identifier] for a top level [name] in [library].
   ///
   /// You should only do this for libraries that are definitely in the
@@ -24,7 +22,7 @@ abstract interface class IdentifierResolver {
 
 /// The API used by [Macro]s to contribute new type declarations to the
 /// current library, and get [TypeAnnotation]s from runtime [Type] objects.
-abstract interface class TypeBuilder implements Builder, IdentifierResolver {
+abstract interface class TypeBuilder implements Builder, TypePhaseIntrospector {
   /// Adds a new type declaration to the surrounding library.
   ///
   /// The [name] must match the name of the new [typeDeclaration] (this does
@@ -32,12 +30,38 @@ abstract interface class TypeBuilder implements Builder, IdentifierResolver {
   void declareType(String name, DeclarationCode typeDeclaration);
 }
 
-/// The interface used to create [StaticType] instances, which are used to
-/// examine type relationships.
+/// The API used by macros in the type phase to add interfaces to an existing
+/// type.
+abstract interface class InterfaceTypesBuilder implements TypeBuilder {
+  /// Appends [interfaces] to the list of interfaces for this type.
+  void appendInterfaces(Iterable<TypeAnnotationCode> interfaces);
+}
+
+/// The API used by macros in the type phase to add mixins to an existing
+/// type.
+abstract interface class MixinTypesBuilder implements TypeBuilder {
+  /// Appends [mixins] to the list of mixins for this type.
+  void appendMixins(Iterable<TypeAnnotationCode> mixins);
+}
+
+/// The API used by macros in the type phase to augment classes.
+abstract interface class ClassTypeBuilder
+    implements TypeBuilder, InterfaceTypesBuilder, MixinTypesBuilder {}
+
+/// The API used by macros in the type phase to augment enums.
+abstract interface class EnumTypeBuilder
+    implements TypeBuilder, InterfaceTypesBuilder, MixinTypesBuilder {}
+
+/// The API used by macros in the type phase to augment mixins.
 ///
-/// This API is only available to the declaration and definition phases of
-/// macro expansion.
-abstract interface class TypeResolver {
+/// Note that mixins don't support mixins, only interfaces.
+abstract interface class MixinTypeBuilder
+    implements TypeBuilder, InterfaceTypesBuilder {}
+
+/// The interface for all introspection that is allowed during the declaration
+/// phase (and later).
+abstract interface class DeclarationPhaseIntrospector
+    implements TypePhaseIntrospector {
   /// Instantiates a new [StaticType] for a given [type] annotation.
   ///
   /// Throws an error if the [type] object contains [Identifier]s which cannot
@@ -46,13 +70,7 @@ abstract interface class TypeResolver {
   /// development cycle. It may be helpful for users if macros provide a best
   /// effort implementation in that case or handle the error in a useful way.
   Future<StaticType> resolve(TypeAnnotationCode type);
-}
 
-/// The API used to introspect on any [TypeDeclaration] which also has the
-/// marker interface [IntrospectableType].
-///
-/// Available in the declaration and definition phases.
-abstract interface class TypeIntrospector {
   /// The values available for [enuum].
   ///
   /// This may be incomplete if additional declaration macros are going to run
@@ -78,13 +96,19 @@ abstract interface class TypeIntrospector {
   /// on [type].
   Future<List<ConstructorDeclaration>> constructorsOf(
       covariant IntrospectableType type);
-}
 
-/// The interface used by [Macro]s to resolve any [Identifier]s pointing to
-/// types to their type declarations.
-///
-/// Only available in the declaration and definition phases of macro expansion.
-abstract interface class TypeDeclarationResolver {
+  /// [TypeDeclaration]s for all the types declared in [library].
+  ///
+  /// Note that this includes [ExtensionDeclaration]s as well, even though they
+  /// do not actually introduce a new type.
+  ///
+  /// In the declarations phase these are not [IntrospectableType]s, since
+  /// types are still incomplete at that point.
+  ///
+  /// In the definitions phase, these are [IntrospectableType]s where
+  /// appropriate (but, for instance, type aliases will not be).
+  Future<List<TypeDeclaration>> typesOf(covariant Library library);
+
   /// Resolves an [identifier] to its [TypeDeclaration].
   ///
   /// If [identifier] does not resolve to a [TypeDeclaration], then an
@@ -92,12 +116,13 @@ abstract interface class TypeDeclarationResolver {
   ///
   /// In the declaration phase, this will return [IntrospectableType] instances
   /// only for those types that are introspectable. Specifically, types are only
-  /// introspectable of the macro is running on a class declaration, and the
-  /// type appears in the type hierarchy of that class.
+  /// introspectable if they are supertypes or "on" types of the declaration the
+  /// macro originally annotated (which guarantees no cycles, and that they are
+  /// complete).
   ///
   /// In the definition phase, this will return [IntrospectableType] instances
   /// for all type definitions which can have members (ie: not type aliases).
-  Future<TypeDeclaration> declarationOf(covariant Identifier identifier);
+  Future<TypeDeclaration> typeDeclarationOf(covariant Identifier identifier);
 }
 
 /// The API used by [Macro]s to contribute new (non-type)
@@ -105,12 +130,7 @@ abstract interface class TypeDeclarationResolver {
 ///
 /// Can also be used to do subtype checks on types.
 abstract interface class DeclarationBuilder
-    implements
-        Builder,
-        IdentifierResolver,
-        TypeIntrospector,
-        TypeDeclarationResolver,
-        TypeResolver {
+    implements Builder, DeclarationPhaseIntrospector {
   /// Adds a new regular declaration to the surrounding library.
   ///
   /// Note that type declarations are not supported.
@@ -131,29 +151,62 @@ abstract interface class EnumDeclarationBuilder
   void declareEnumValue(DeclarationCode declaration);
 }
 
-/// The interface used by [Macro]s to get the inferred type for an
-/// [OmittedTypeAnnotation].
-///
-/// Only available in the definition phase of macro expansion.
-abstract interface class TypeInferrer {
+/// The interface for all introspection that is allowed during the definition
+/// phase (and later).
+abstract interface class DefinitionPhaseIntrospector
+    implements DeclarationPhaseIntrospector {
+  /// Resolves any [identifier] to its [Declaration].
+  ///
+  /// This will return [IntrospectableType] instances for type declarations.
+  Future<Declaration> declarationOf(covariant Identifier identifier);
+
+  /// Resolves an [identifier] referring to a type to its [IntrospectableType]
+  /// declaration.
+  @override
+  Future<IntrospectableType> typeDeclarationOf(covariant Identifier identifier);
+
   /// Infers a real type annotation for [omittedType].
   ///
   /// If no type could be inferred, then a type annotation representing the
   /// dynamic type will be given.
   Future<TypeAnnotation> inferType(covariant OmittedTypeAnnotation omittedType);
+
+  /// Returns a list of all the [Declaration]s in the given [library].
+  ///
+  /// Where applicable, these will be introspectable declarations.
+  Future<List<Declaration>> topLevelDeclarationsOf(covariant Library library);
 }
 
 /// The base class for builders in the definition phase. These can convert
 /// any [TypeAnnotation] into its corresponding [TypeDeclaration], and also
 /// reflect more deeply on those.
 abstract interface class DefinitionBuilder
-    implements
-        Builder,
-        IdentifierResolver,
-        TypeIntrospector,
-        TypeDeclarationResolver,
-        TypeInferrer,
-        TypeResolver {}
+    implements Builder, DefinitionPhaseIntrospector {}
+
+/// The APIs used by [Macro]s that run on library directives, to fill in the
+/// definitions of any declarations within that library.
+abstract interface class LibraryDefinitionBuilder implements DefinitionBuilder {
+  /// Retrieve a [TypeDefinitionBuilder] for a type declaration with
+  /// [identifier].
+  ///
+  /// Throws an [ArgumentError] if [identifier] does not refer to a type
+  /// declaration in this library.
+  Future<TypeDefinitionBuilder> buildType(Identifier identifier);
+
+  /// Retrieve a [FunctionDefinitionBuilder] for a function declaration with
+  /// [identifier].
+  ///
+  /// Throws an [ArgumentError] if [identifier] does not refer to a top level
+  /// function declaration in this library.
+  Future<FunctionDefinitionBuilder> buildFunction(Identifier identifier);
+
+  /// Retrieve a [VariableDefinitionBuilder] for a variable declaration with
+  /// [identifier].
+  ///
+  /// Throws an [ArgumentError] if [identifier] does not refer to a top level
+  /// variable declaration in this library.
+  Future<VariableDefinitionBuilder> buildVariable(Identifier identifier);
+}
 
 /// The APIs used by [Macro]s that run on type declarations, to fill in the
 /// definitions of any declarations within that class.

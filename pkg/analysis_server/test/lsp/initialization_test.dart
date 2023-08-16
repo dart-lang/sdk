@@ -87,7 +87,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await initialize(allowEmptyRootUri: true);
 
     // Expect that context manager includes a whole package.
-    await openFile(Uri.file(file1), '');
+    await openFile(pathContext.toUri(file1), '');
     expect(server.contextManager.includedPaths,
         equals([convertPath(packagePath)]));
   }
@@ -628,7 +628,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       test_emptyAnalysisRoots_handlesFileRequestsImmediately_resolved() async {
     const content = 'void f() {}';
     final file1 = join(projectFolderPath, 'file1.dart');
-    final file1Uri = Uri.file(file1);
+    final file1Uri = pathContext.toUri(file1);
     newFile(file1, content);
     newPubspecYamlFile(projectFolderPath, '');
 
@@ -654,7 +654,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       test_emptyAnalysisRoots_handlesFileRequestsImmediately_unresolved() async {
     const content = 'void f() {}';
     final file1 = join(projectFolderPath, 'file1.dart');
-    final file1Uri = Uri.file(file1);
+    final file1Uri = pathContext.toUri(file1);
     newFile(file1, content);
     newPubspecYamlFile(projectFolderPath, '');
 
@@ -667,10 +667,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_emptyAnalysisRoots_multipleOpenFiles() async {
     final file1 = join(projectFolderPath, 'file1.dart');
-    final file1Uri = Uri.file(file1);
+    final file1Uri = pathContext.toUri(file1);
     newFile(file1, '');
     final file2 = join(projectFolderPath, 'file2.dart');
-    final file2Uri = Uri.file(file2);
+    final file2Uri = pathContext.toUri(file2);
     newFile(file2, '');
     newPubspecYamlFile(projectFolderPath, '');
 
@@ -704,7 +704,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     projectFolderPath = convertPath('/home/empty');
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
-    final nestedFileUri = Uri.file(nestedFilePath);
+    final nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
     // The project folder shouldn't be added to start with.
@@ -719,7 +719,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_emptyAnalysisRoots_projectWithPubspec() async {
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
-    final nestedFileUri = Uri.file(nestedFilePath);
+    final nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
     newPubspecYamlFile(projectFolderPath, '');
 
@@ -855,6 +855,11 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
   }
 
+  Future<void> test_initialize_rootUri_encodedDriveLetterColon() async {
+    await initialize(rootUri: withEncodedDriveLetterColon(projectFolderUri));
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
   Future<void> test_initialize_rootUri_trailingSlash() async {
     await initialize(rootUri: withTrailingSlashUri(projectFolderUri));
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
@@ -862,6 +867,13 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_initialize_workspaceFolders() async {
     await initialize(workspaceFolders: [projectFolderUri]);
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
+  Future<void>
+      test_initialize_workspaceFolders_encodedDriveLetterColon() async {
+    await initialize(
+        workspaceFolders: [withEncodedDriveLetterColon(projectFolderUri)]);
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
   }
 
@@ -896,7 +908,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await initialize(
       workspaceFolders: [
         rootUri,
-        Uri.file(projectFolderPath),
+        pathContext.toUri(projectFolderPath),
       ],
       // We expect an error notification about the invalid file we try to open.
       failTestOnAnyErrorNotification: false,
@@ -915,7 +927,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await initialize(allowEmptyRootUri: true);
 
     // Because the file is not in a project, it should be added itself.
-    await openFile(Uri.file(file1), '');
+    await openFile(pathContext.toUri(file1), '');
     expect(server.contextManager.includedPaths, equals([file1]));
   }
 
@@ -929,7 +941,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await initialize(allowEmptyRootUri: true);
 
     // Because the file is not in a project, it should be added itself.
-    await openFile(Uri.file(file1), '');
+    await openFile(pathContext.toUri(file1), '');
     expect(server.contextManager.includedPaths, equals([file1]));
   }
 
@@ -954,10 +966,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_multipleFiles() async {
     final file1 = join(projectFolderPath, 'file1.dart');
-    final file1Uri = Uri.file(file1);
+    final file1Uri = pathContext.toUri(file1);
     newFile(file1, '');
     final file2 = join(projectFolderPath, 'file2.dart');
-    final file2Uri = Uri.file(file2);
+    final file2Uri = pathContext.toUri(file2);
     newFile(file2, '');
     newPubspecYamlFile(projectFolderPath, '');
 
@@ -995,7 +1007,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     projectFolderPath = convertPath('/home/empty');
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
-    final nestedFileUri = Uri.file(nestedFilePath);
+    final nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
     // The project folder shouldn't be added to start with.
@@ -1013,7 +1025,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_withPubpsec() async {
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
-    final nestedFileUri = Uri.file(nestedFilePath);
+    final nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
     newPubspecYamlFile(projectFolderPath, '');
 

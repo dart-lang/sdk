@@ -20,85 +20,62 @@ class UpdateSdkConstraintsTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.UPDATE_SDK_CONSTRAINTS;
 
+  /// Asserts that a library with [content] can be updated from the [from]
+  /// constraints to the [to] constraints.
+  Future<void> assertUpdate(
+      {required String content,
+      String from = '^2.0.0',
+      required String to}) async {
+    updateTestPubspecFile('''
+environment:
+  sdk: $from
+''');
+    await resolveTestCode(content);
+    await assertHasFix('''
+environment:
+  sdk: $to
+''', target: testPubspecPath);
+  }
+
+  /// Asserts that a library with `>>>` can be updated from the [from]
+  /// constraints to the [to] constraints.
+  Future<void> assertUpdateWithGtGtGt(
+      {required String from, required String to}) async {
+    await assertUpdate(content: r'''
+class C {
+  C operator >>>(C other) => this;
+}
+''', from: from, to: to);
+  }
+
   Future<void> test_any() async {
-    await testUpdate(from: 'any', to: '^2.1.0');
-  }
-
-  Future<void> test_asInConstContext() async {
-    await testUpdate(content: '''
-const dynamic a = 2;
-const c = a as int;
-''', to: '^2.2.2');
-  }
-
-  Future<void> test_boolOperator() async {
-    await testUpdate(content: '''
-const c = true & false;
-''', to: '^2.2.2');
+    await assertUpdateWithGtGtGt(from: 'any', to: '^2.14.0');
   }
 
   Future<void> test_caret() async {
-    await testUpdate(from: '^2.0.0', to: '^2.1.0');
+    await assertUpdateWithGtGtGt(from: '^2.12.0', to: '^2.14.0');
   }
 
   Future<void> test_compound() async {
-    await testUpdate(from: "'>=2.0.0 <3.0.0'", to: "'>=2.1.0 <3.0.0'");
-  }
-
-  Future<void> test_eqEqOperatorInConstContext() async {
-    await testUpdate(content: '''
-class A {
-  const A();
-}
-const A? a = A();
-const c = a == null;
-''', to: '^2.2.2');
+    await assertUpdateWithGtGtGt(
+        from: "'>=2.12.0 <3.0.0'", to: "'>=2.14.0 <3.0.0'");
   }
 
   Future<void> test_gt() async {
-    await testUpdate(from: "'>2.0.0'", to: "'>=2.1.0'");
+    await assertUpdateWithGtGtGt(from: "'>2.12.0'", to: "'>=2.14.0'");
   }
 
   Future<void> test_gte() async {
-    await testUpdate(from: "'>=2.0.0'", to: "'>=2.1.0'");
+    await assertUpdateWithGtGtGt(from: "'>=2.12.0'", to: "'>=2.14.0'");
   }
 
   Future<void> test_gtGtGtOperator() async {
     writeTestPackageConfig(languageVersion: latestLanguageVersion);
     createAnalysisOptionsFile(experiments: [EnableString.triple_shift]);
-    await testUpdate(content: '''
+    await assertUpdate(content: '''
 class C {
   C operator >>>(C other) => this;
 }
 ''', to: '^2.14.0');
-  }
-
-  Future<void> test_isInConstContext() async {
-    await testUpdate(content: '''
-const num a = 0;
-const c = a is int;
-''', to: '^2.2.2');
-  }
-
-  Future<void> test_setLiteral() async {
-    await testUpdate(content: '''
-var s = <int>{};
-''', to: '^2.2.0');
-  }
-
-  Future<void> testUpdate(
-      {String? content, String from = '^2.0.0', required String to}) async {
-    updateTestPubspecFile('''
-environment:
-  sdk: $from
-''');
-    await resolveTestCode(content ??
-        '''
-Future<int> zero() async => 0;
-''');
-    await assertHasFix('''
-environment:
-  sdk: $to
-''', target: testPubspecPath);
   }
 }

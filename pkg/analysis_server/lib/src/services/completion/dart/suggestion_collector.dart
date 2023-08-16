@@ -9,6 +9,10 @@ class SuggestionCollector {
   /// The list of candidate suggestions that have been collected.
   final List<CandidateSuggestion> suggestions = [];
 
+  /// A textual representation of the location at which completion was
+  /// requested, used to compute the relevance of the suggestions.
+  String? completionLocation;
+
   /// Initialize a newly created collector to collect candidate suggestions.
   SuggestionCollector();
 

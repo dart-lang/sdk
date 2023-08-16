@@ -318,19 +318,83 @@ final class Isolate {
   /// is a sure way to hang your program.
   external static Isolate get current;
 
-  /// The location of the package configuration of the current isolate, if any.
+  /// The location of the package configuration file of the current isolate.
   ///
-  /// If the isolate has not been setup for package resolution,
-  /// this location is `null`,
-  /// otherwise it is a URI referencing the package config file.
+  /// If the isolate was spawned without specifying its package configuration
+  /// file then the returned value is `null`.
+  ///
+  /// Otherwise, the returned value is an absolute URI specifying the location
+  /// of isolate's package configuration file.
+  ///
+  /// The package configuration file is usually named `package_config.json`,
+  /// and you can use [`package:package_config`](https://pub.dev/documentation/package_config/latest/)
+  /// to read and parse it.
   external static Future<Uri?> get packageConfig;
 
-  /// Maps a `package:` URI to a non-package Uri.
+  /// The location of the package configuration file of the current isolate.
   ///
-  /// If there is no valid mapping from the `package:` URI in the current
-  /// isolate, then this call returns `null`. Non-`package:` URIs are
-  /// returned unmodified.
+  /// If the isolate was spawned without specifying its package configuration
+  /// file then the returned value is `null`.
+  ///
+  /// Otherwise, the returned value is an absolute URI specifying the location
+  /// of isolate's package configuration file.
+  ///
+  /// The package configuration file is usually named `package_config.json`,
+  /// and you can use [`package:package_config`](https://pub.dev/documentation/package_config/latest/)
+  /// to read and parse it.
+  @Since('3.1')
+  external static Uri? get packageConfigSync;
+
+  /// Resolves a `package:` URI to its actual location.
+  ///
+  /// Returns the actual location of the file or directory specified by the
+  /// [packageUri] `package:` URI.
+  ///
+  /// If the [packageUri] is not a `package:` URI, it's returned as-is.
+  ///
+  /// Returns `null` if [packageUri] is a `package:` URI, but either
+  /// the current package configuration does not have a configuration
+  /// for the package name of the URI, or
+  /// the URI is not valid (doesn't start with `package:valid_package_name/`),
+  ///
+  /// A `package:` URI is resolved to its actual location based on
+  /// a package resolution configuration (see [packageConfig])
+  /// which specifies how to find the actual location of the file or directory
+  /// that the `package:` URI points to.
+  ///
+  /// The actual location corresponding to a `package:` URI is always a
+  /// non-`package:` URI, typically a `file:` or possibly `http:` URI.
+  ///
+  /// A program may be run in a way where source files are not available,
+  /// and if so, the returned URI may not correspond to the actual file or
+  /// directory or be `null`.
   external static Future<Uri?> resolvePackageUri(Uri packageUri);
+
+  /// Resolves a `package:` URI to its actual location.
+  ///
+  /// Returns the actual location of the file or directory specified by the
+  /// [packageUri] `package:` URI.
+  ///
+  /// If the [packageUri] is not a `package:` URI, it's returned as-is.
+  ///
+  /// Returns `null` if [packageUri] is a `package:` URI, but either
+  /// the current package configuration does not have a configuration
+  /// for the package name of the URI, or
+  /// the URI is not valid (doesn't start with `package:valid_package_name/`),
+  ///
+  /// A `package:` URI is resolved to its actual location based on
+  /// a package resolution configuration (see [packageConfig])
+  /// which specifies how to find the actual location of the file or directory
+  /// that the `package:` URI points to.
+  ///
+  /// The actual location corresponding to a `package:` URI is always a
+  /// non-`package:` URI, typically a `file:` or possibly `http:` URI.
+  ///
+  /// A program may be run in a way where source files are not available,
+  /// and if so, the returned URI may not correspond to the actual file or
+  /// directory or be `null`.
+  @Since('3.1')
+  external static Uri? resolvePackageUriSync(Uri packageUri);
 
   /// Creates and spawns an isolate that shares the same code as the current
   /// isolate.
@@ -464,9 +528,7 @@ final class Isolate {
   /// Returns a future that will complete with an [Isolate] instance if the
   /// spawning succeeded. It will complete with an error otherwise.
   external static Future<Isolate> spawnUri(
-      Uri uri,
-      List<String> args,
-      var message,
+      Uri uri, List<String> args, var message,
       {bool paused = false,
       SendPort? onExit,
       SendPort? onError,
@@ -474,11 +536,10 @@ final class Isolate {
       bool? checked,
       Map<String, String>? environment,
       @Deprecated('The packages/ dir is not supported in Dart 2')
-          Uri? packageRoot,
+      Uri? packageRoot,
       Uri? packageConfig,
       bool automaticPackageResolution = false,
-      @Since("2.3")
-          String? debugName});
+      @Since("2.3") String? debugName});
 
   /// Requests the isolate to pause.
   ///

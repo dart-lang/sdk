@@ -6,6 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -65,6 +66,33 @@ enum E {
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 3),
     ]);
   }
+
+  test_superConstructor_paramTypeMismatch() async {
+    await assertErrorsInCode(r'''
+class C {
+  final double d;
+  const C(this.d);
+}
+class D extends C {
+  const D(d) : super(d);
+}
+const f = const D('0.0');
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        106,
+        14,
+        contextMessages: [
+          ExpectedContextMessage('/home/test/lib/test.dart', 90, 1,
+              text:
+                  "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here."),
+          ExpectedContextMessage('/home/test/lib/test.dart', 77, 1,
+              text:
+                  "The evaluated constructor 'C' is called by 'D' and 'D' is defined here."),
+        ],
+      ),
+    ]);
+  }
 }
 
 @reflectiveTest
@@ -77,6 +105,35 @@ class A {
 var v = const A(3, 2);
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 61, 13),
+    ]);
+  }
+
+  test_assertion_indirect() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(int i)
+  : assert(i == 1); // (2)
+}
+class B extends A {
+  const B(int i) : super(i);
+}
+main() {
+  print(const B(2)); // (1)
+}
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        124,
+        10,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 84, 1,
+              text:
+                  "The evaluated constructor 'A' is called by 'B' and 'B' is defined here."),
+          ExpectedContextMessage(testFile.path, 31, 14,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
     ]);
   }
 
@@ -255,24 +312,6 @@ const c = [if (1 < 0) nil + 1];
 ''');
   }
 
-  test_ifElement_nonBoolCondition_map() async {
-    await assertErrorsInCode('''
-const dynamic nonBool = null;
-const c = const {if (nonBool) 'a' : 1};
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 51, 7),
-    ]);
-  }
-
-  test_ifElement_nonBoolCondition_set() async {
-    await assertErrorsInCode('''
-const dynamic nonBool = 'a';
-const c = const {if (nonBool) 3};
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 50, 7),
-    ]);
-  }
-
   test_ifElement_true_elseNotEvaluated() async {
     await assertNoErrorsInCode('''
 const dynamic nil = null;
@@ -304,21 +343,6 @@ class A {
 var v = const A.a1(0);
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 74, 13),
-    ]);
-  }
-
-  test_superConstructor_paramTypeMismatch() async {
-    await assertErrorsInCode(r'''
-class C {
-  final double d;
-  const C(this.d);
-}
-class D extends C {
-  const D(d) : super(d);
-}
-const f = const D('0.0');
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 106, 14),
     ]);
   }
 

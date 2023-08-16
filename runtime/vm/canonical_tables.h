@@ -413,6 +413,8 @@ class CanonicalInstanceTraits {
   static ObjectPtr NewKey(const CanonicalInstanceKey& obj);
 };
 
+typedef UnorderedHashSet<CanonicalInstanceTraits> CanonicalInstancesSet;
+
 struct CanonicalFfiCallbackFunctionTraits {
   static uint32_t Hash(const Object& key) { return Function::Cast(key).Hash(); }
   static const char* Name() { return "CanonicalFfiCallbackFunctionTraits"; }
@@ -423,7 +425,7 @@ struct CanonicalFfiCallbackFunctionTraits {
             f1.FfiCSignature() == f2.FfiCSignature() &&
             f1.FfiCallbackExceptionalReturn() ==
                 f2.FfiCallbackExceptionalReturn() &&
-            f1.GetFfiCallbackKind() == f2.GetFfiCallbackKind());
+            f1.GetFfiTrampolineKind() == f2.GetFfiTrampolineKind());
   }
   static bool ReportStats() { return false; }
 };

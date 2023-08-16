@@ -16,7 +16,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart' show groupBy;
 
 class CodeActionHandler
-    extends MessageHandler<CodeActionParams, TextDocumentCodeActionResult> {
+    extends LspMessageHandler<CodeActionParams, TextDocumentCodeActionResult> {
   CodeActionHandler(super.server);
 
   @override
@@ -40,7 +40,7 @@ class CodeActionHandler
       return success(const []);
     }
 
-    final capabilities = server.clientCapabilities;
+    final capabilities = server.lspClientCapabilities;
     if (capabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;

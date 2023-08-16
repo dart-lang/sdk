@@ -66,7 +66,6 @@ class ThreadRegistry {
 
   friend class Thread;
   friend class SafepointHandler;
-  friend class Scavenger;
   DISALLOW_COPY_AND_ASSIGN(ThreadRegistry);
 };
 

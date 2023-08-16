@@ -33,9 +33,13 @@ class ConstructorMember extends ExecutableMember
             const <TypeParameterElement>[]);
 
   @override
-  ConstructorAugmentationElement? get augmentation {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
+  ConstructorElement? get augmentation {
+    return declaration.augmentationTarget;
+  }
+
+  @override
+  ConstructorElement? get augmentationTarget {
+    return declaration.augmentationTarget;
   }
 
   @override
@@ -172,6 +176,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
 
   @override
   bool get isAsynchronous => declaration.isAsynchronous;
+
+  @override
+  bool get isAugmentation => declaration.isAugmentation;
 
   @override
   bool get isExternal => declaration.isExternal;
@@ -339,12 +346,6 @@ class FieldMember extends VariableMember implements FieldElement {
   );
 
   @override
-  FieldAugmentationElement? get augmentation {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
-
-  @override
   FieldElement get declaration => super.declaration as FieldElement;
 
   @override
@@ -442,6 +443,16 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
           isLegacy,
           declaration.typeParameters,
         );
+
+  @override
+  FunctionElement? get augmentation {
+    return declaration.augmentationTarget;
+  }
+
+  @override
+  FunctionElement? get augmentationTarget {
+    return declaration.augmentationTarget;
+  }
 
   @override
   FunctionElement get declaration => super.declaration as FunctionElement;
@@ -790,9 +801,14 @@ class MethodMember extends ExecutableMember implements MethodElement {
   );
 
   @override
-  MethodAugmentationElement? get augmentation {
+  MethodElement? get augmentation {
     // TODO(scheglov) implement
     throw UnimplementedError();
+  }
+
+  @override
+  MethodElement? get augmentationTarget {
+    return declaration.augmentationTarget;
   }
 
   @override
@@ -997,9 +1013,14 @@ class PropertyAccessorMember extends ExecutableMember
   );
 
   @override
-  PropertyAccessorAugmentationElement? get augmentation {
+  PropertyAccessorElement? get augmentation {
     // TODO(scheglov) implement
     throw UnimplementedError();
+  }
+
+  @override
+  PropertyAccessorElement? get augmentationTarget {
+    return declaration.augmentationTarget;
   }
 
   @override
@@ -1282,8 +1303,8 @@ class _SubstitutedTypeParameters {
       var newElement = newElements[i] as TypeParameterElementImpl;
       var bound = element.bound;
       if (bound != null) {
-        var newBound = substitution.substituteType(bound);
-        newBound = substitution2.substituteType(newBound);
+        var newBound = substitution2.substituteType(bound);
+        newBound = substitution.substituteType(newBound);
         newElement.bound = newBound;
       }
     }

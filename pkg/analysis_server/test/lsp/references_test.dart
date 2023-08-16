@@ -178,6 +178,26 @@ f^oo() {
     await _checkRanges(content, includeDeclarations: false);
   }
 
+  Future<void> test_type() async {
+    final content = '''
+class A^aa<T> {}
+
+[!Aaa!]<String>? a;
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_type_generic_end() async {
+    final content = '''
+class Aaa^<T> {}
+
+[!Aaa!]<String>? a;
+''';
+
+    await _checkRanges(content);
+  }
+
   Future<void> test_unopenFile() async {
     final code = TestCode.parse('''
     f^oo() {
@@ -205,7 +225,7 @@ f^oo() {
     final mainCode = TestCode.parse(mainContent);
     final otherCode =
         otherContent != null ? TestCode.parse(otherContent) : null;
-    final otherFileUri = Uri.file(join(projectFolderPath, 'lib', 'other.dart'));
+    final otherFileUri = toUri(join(projectFolderPath, 'lib', 'other.dart'));
 
     await initialize();
     await openFile(mainFileUri, mainCode.code);

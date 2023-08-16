@@ -207,7 +207,7 @@ class ProgramElementKeyValueTrait {
       // of these might change during precompilation: urls are changed
       // by |Precompiler::Obfuscate| and library index is changed by
       // |Precompiler::DropLibraries|.
-      return Utils::WordHash(Library::Cast(*key).kernel_offset());
+      return Utils::WordHash(Library::Cast(*key).KernelLibraryOffset());
     }
     FATAL("Unexpected type: %s\n", key->ToCString());
   }

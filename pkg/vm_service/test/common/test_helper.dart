@@ -93,10 +93,14 @@ class _ServiceTesteeRunner {
 class _ServiceTesteeLauncher {
   io.Process? process;
   List<String> args;
+
   bool killedByTester = false;
+  final _exitCodeCompleter = Completer<int>();
 
   _ServiceTesteeLauncher(String script)
       : args = [_getTestUri(script).toFilePath()];
+
+  Future<int> get exitCode => _exitCodeCompleter.future;
 
   // Spawn the testee process.
   Future<io.Process> _spawnProcess(
@@ -223,12 +227,7 @@ class _ServiceTesteeLauncher {
           .listen((line) {
         io.stdout.write('>testee>err> ${line}\n');
       });
-      process!.exitCode.then((exitCode) {
-        if ((exitCode != 0) && !killedByTester) {
-          throw "Testee exited with $exitCode";
-        }
-        print("** Process exited: $exitCode");
-      });
+      process!.exitCode.then(_exitCodeCompleter.complete);
       return completer.future;
     });
   }
@@ -320,6 +319,14 @@ class _ServiceTesterRunner {
       print('All service tests completed successfully.');
       process.requestExit();
     });
+
+    final exitCode = await process.exitCode;
+    if (exitCode != 0) {
+      if (!process.killedByTester) {
+        throw "Testee exited with unexpected exitCode: $exitCode";
+      }
+    }
+    print("** Process exited: $exitCode");
   }
 
   Future<IsolateRef> getFirstIsolate(VmService service) async {

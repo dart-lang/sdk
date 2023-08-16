@@ -11,7 +11,7 @@ import "package:expect/expect.dart";
 var varVariable = 1;
 const var1 = fn();
 //           ^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 int fn() {
   return varVariable;
@@ -20,7 +20,7 @@ int fn() {
 final finalVariable = 1;
 const var2 = fn2();
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 int fn2() {
   return finalVariable;
@@ -28,7 +28,7 @@ int fn2() {
 
 const var3 = fn3();
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn3() {
   int innerFn() {
     return x;
@@ -44,7 +44,7 @@ int fn3() {
 
 const var4 = fn4();
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn4() {
   var a = () {
     return x;
@@ -59,7 +59,7 @@ int fn4() {
 
 const var5 = fn5(1);
 //           ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 fn5(a) {
   var a = () => a;
   //  ^
@@ -75,7 +75,6 @@ void fn6() {
   int a() => x;
   const z = a();
   //        ^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //        ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   // [cfe] Constant evaluation error:
 }

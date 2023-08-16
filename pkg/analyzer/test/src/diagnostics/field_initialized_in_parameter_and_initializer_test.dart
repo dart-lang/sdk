@@ -41,4 +41,15 @@ enum E {
           52, 1),
     ]);
   }
+
+  test_extensionType_fieldFormalParameter_initializer() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  A.named(this.it) : it = 0;
+}
+''', [
+      error(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
+          48, 2),
+    ]);
+  }
 }

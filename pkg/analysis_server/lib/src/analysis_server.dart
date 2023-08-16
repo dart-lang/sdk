@@ -13,6 +13,8 @@ import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
+import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
@@ -180,6 +182,11 @@ abstract class AnalysisServer {
   /// "pub get"/"pub upgrades").
   bool isFirstAnalysisSinceContextsBuilt = true;
 
+  /// A completer that tracks in-progress analysis context rebuilds.
+  ///
+  /// Starts completed and will be replaced each time a context rebuild starts.
+  Completer<void> analysisContextRebuildCompleter = Completer()..complete();
+
   AnalysisServer(
     this.options,
     this.sdkManager,
@@ -207,7 +214,8 @@ abstract class AnalysisServer {
     final pubCommand = processRunner != null &&
             Platform.environment[PubCommand.disablePubCommandEnvironmentKey] ==
                 null
-        ? PubCommand(instrumentationService, processRunner)
+        ? PubCommand(
+            instrumentationService, resourceProvider.pathContext, processRunner)
         : null;
 
     pubPackageService = PubPackageService(
@@ -281,6 +289,14 @@ abstract class AnalysisServer {
     }
   }
 
+  /// A [Future] that completes when any in-progress analysis context rebuild
+  /// completes.
+  ///
+  /// If no context rebuild is in progress, will return an already complete
+  /// [Future].
+  Future<void> get analysisContextsRebuilt =>
+      analysisContextRebuildCompleter.future;
+
   /// The list of current analysis sessions in all contexts.
   Future<List<AnalysisSession>> get currentSessions async {
     var sessions = <AnalysisSession>[];
@@ -294,6 +310,18 @@ abstract class AnalysisServer {
   /// A table mapping [Folder]s to the [AnalysisDriver]s associated with them.
   Map<Folder, analysis.AnalysisDriver> get driverMap =>
       contextManager.driverMap;
+
+  /// The capabilities of the LSP client.
+  ///
+  /// For the legacy server, this set may be a fixed set that is not configured
+  /// by the client.
+  LspClientCapabilities? get lspClientCapabilities;
+
+  /// The configuration (user/workspace settings) from the LSP client.
+  ///
+  /// For the legacy server, this set may be a fixed set that is not controlled
+  /// by the client.
+  LspClientConfiguration get lspClientConfiguration;
 
   /// Returns the function that can send `openUri` request to the client.
   /// Returns `null` is the client does not support it.

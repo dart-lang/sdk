@@ -20,68 +20,76 @@ import 'export_checker.dart';
 import 'static_interop_mock_validator.dart';
 
 class ExportCreator extends Transformer {
-  final Procedure _allowInterop;
+  final Procedure _callMethodVarArgs;
   final Procedure _createDartExport;
   final Procedure _createStaticInteropMock;
   final JsInteropDiagnosticReporter _diagnosticReporter;
   final ExportChecker _exportChecker;
-  final InterfaceType _functionType;
+  final Procedure _functionToJS;
   final Procedure _getProperty;
-  final Procedure _globalThis;
-  final InterfaceType _objectType;
+  final Procedure _globalJSObject;
+  final Class _jsAny;
+  final Class _jsObject;
   final Procedure _setProperty;
+  final Procedure _stringToJS;
   final StaticInteropMockValidator _staticInteropMockValidator;
   final TypeEnvironment _typeEnvironment;
 
   ExportCreator(
       this._typeEnvironment, this._diagnosticReporter, this._exportChecker)
-      : _allowInterop = _typeEnvironment.coreTypes.index
-            .getTopLevelProcedure('dart:js_util', 'allowInterop'),
+      : _callMethodVarArgs = _typeEnvironment.coreTypes.index
+            .getTopLevelProcedure('dart:js_interop_unsafe',
+                'JSObjectUtilExtension|callMethodVarArgs'),
         _createDartExport = _typeEnvironment.coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'createDartExport'),
         _createStaticInteropMock = _typeEnvironment.coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'createStaticInteropMock'),
-        _functionType = _typeEnvironment.coreTypes.functionNonNullableRawType,
-        _getProperty = (_typeEnvironment.coreTypes.index.tryGetTopLevelMember(
-                'dart:js_util', '_getPropertyTrustType') ??
-            _typeEnvironment.coreTypes.index.getTopLevelProcedure(
-                'dart:js_util', 'getProperty')) as Procedure,
-        _globalThis = _typeEnvironment.coreTypes.index
-            .getTopLevelProcedure('dart:js_util', 'get:globalThis'),
-        _objectType = _typeEnvironment.coreTypes.objectNonNullableRawType,
-        _setProperty = (_typeEnvironment.coreTypes.index.tryGetTopLevelMember(
-                'dart:js_util', '_setPropertyUnchecked') ??
-            _typeEnvironment.coreTypes.index.getTopLevelProcedure(
-                'dart:js_util', 'setProperty')) as Procedure,
+        _functionToJS = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+            'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
+        _getProperty = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+            'dart:js_interop_unsafe', 'JSObjectUtilExtension|[]'),
+        _globalJSObject = _typeEnvironment.coreTypes.index
+            .getTopLevelProcedure('dart:js_interop', 'get:globalJSObject'),
+        _jsAny = _typeEnvironment.coreTypes.index
+            .getClass('dart:_js_types', 'JSAny'),
+        _jsObject = _typeEnvironment.coreTypes.index
+            .getClass('dart:_js_types', 'JSObject'),
+        _setProperty = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+            'dart:js_interop_unsafe', 'JSObjectUtilExtension|[]='),
+        _stringToJS = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+            'dart:js_interop', 'StringToJSString|get#toJS'),
         _staticInteropMockValidator = StaticInteropMockValidator(
             _diagnosticReporter, _exportChecker, _typeEnvironment);
 
   @override
   TreeNode visitStaticInvocation(StaticInvocation node) {
     if (node.target == _createDartExport) {
-      var typeArguments = node.arguments.types;
+      final typeArguments = node.arguments.types;
       assert(typeArguments.length == 1);
       if (_verifyExportable(node, typeArguments[0])) {
         return _createExport(node, typeArguments[0] as InterfaceType);
       }
     } else if (node.target == _createStaticInteropMock) {
-      var typeArguments = node.arguments.types;
+      final typeArguments = node.arguments.types;
       assert(typeArguments.length == 2);
-      var staticInteropType = typeArguments[0];
-      var dartType = typeArguments[1];
+      final staticInteropType = typeArguments[0];
+      final dartType = typeArguments[1];
 
-      var exportable = _verifyExportable(node, dartType);
-      var staticInteropTypeArgumentCorrect = _staticInteropMockValidator
+      final exportable = _verifyExportable(node, dartType);
+      final staticInteropTypeArgumentCorrect = _staticInteropMockValidator
           .validateStaticInteropTypeArgument(node, staticInteropType);
+      final dartTypeArgumentCorrect =
+          _staticInteropMockValidator.validateDartTypeArgument(node, dartType);
       if (exportable &&
           staticInteropTypeArgumentCorrect &&
+          dartTypeArgumentCorrect &&
           _staticInteropMockValidator.validateCreateStaticInteropMock(
               node,
               (staticInteropType as InterfaceType).classNode,
               (dartType as InterfaceType).classNode)) {
-        var arguments = node.arguments.positional;
+        final arguments = node.arguments.positional;
         assert(arguments.length == 1 || arguments.length == 2);
-        var proto = arguments.length == 2 ? arguments[1] : null;
+        final proto = arguments.length == 2 ? arguments[1] : null;
 
         return _createExport(node, dartType, staticInteropType, proto);
       }
@@ -164,6 +172,48 @@ class ExportCreator extends Transformer {
   /// and returns it.
   TreeNode _createExport(StaticInvocation node, InterfaceType dartType,
       [DartType? returnType, Expression? proto]) {
+    Expression asJSObject(Expression object, [bool nullable = false]) =>
+        AsExpression(
+            object,
+            InterfaceType(_jsObject,
+                nullable ? Nullability.nullable : Nullability.nonNullable))
+          ..fileOffset = node.fileOffset;
+
+    Expression toJSString(String string) =>
+        StaticInvocation(_stringToJS, Arguments([StringLiteral(string)]))
+          ..fileOffset = node.fileOffset;
+
+    StaticInvocation callMethodVarArgs(Expression jsObject, String methodName,
+        List<Expression> args, DartType returnType) {
+      // `jsObject.callMethodVarArgs(methodName.toJS, args)`
+      return StaticInvocation(
+          _callMethodVarArgs,
+          Arguments([
+            jsObject,
+            toJSString(methodName),
+            ListLiteral(args,
+                typeArgument: InterfaceType(_jsAny, Nullability.nullable))
+          ], types: [
+            returnType
+          ]))
+        ..fileOffset = node.fileOffset;
+    }
+
+    // Get the global 'Object' property.
+    Expression getObjectProperty() => asJSObject(StaticInvocation(_getProperty,
+        Arguments([StaticGet(_globalJSObject), toJSString('Object')])))
+      ..fileOffset = node.fileOffset;
+
+    // Get a fresh object literal, using the proto to create it if one was
+    // given.
+    StaticInvocation getLiteral([Expression? proto]) {
+      return callMethodVarArgs(
+          getObjectProperty(),
+          'create',
+          [asJSObject(proto ?? NullLiteral(), true)],
+          InterfaceType(_jsObject, Nullability.nonNullable));
+    }
+
     var exportMap =
         _exportChecker.exportClassToMemberMap[dartType.classNode.reference]!;
 
@@ -178,23 +228,9 @@ class ExportCreator extends Transformer {
       ..parent = node.parent;
     block.add(dartInstance);
 
-    // Get the global 'Object' property.
-    StaticInvocation getObjectProperty() => StaticInvocation(
-        _getProperty,
-        Arguments([StaticGet(_globalThis), StringLiteral('Object')],
-            types: [_objectType]));
-
-    // Get a fresh object literal, using the proto to create it if one was
-    // given.
-    StaticInvocation getLiteral([Expression? proto]) {
-      return _callMethod(getObjectProperty(), StringLiteral('create'),
-          [proto ?? NullLiteral()], _objectType);
-    }
-
     var jsExporter = VariableDeclaration('#jsExporter',
-        initializer: AsExpression(getLiteral(proto), returnType)
-          ..fileOffset = node.fileOffset,
-        type: returnType,
+        initializer: getLiteral(proto),
+        type: InterfaceType(_jsObject, Nullability.nonNullable),
         isSynthesized: true)
       ..fileOffset = node.fileOffset
       ..parent = node.parent;
@@ -202,13 +238,11 @@ class ExportCreator extends Transformer {
 
     for (var exportName in exportMap.keys) {
       var exports = exportMap[exportName]!;
-      ExpressionStatement setProperty(VariableGet jsObject, String propertyName,
-          StaticInvocation wrappedValue) {
-        // `setProperty(jsObject, propertyName, wrappedValue)`
-        return ExpressionStatement(StaticInvocation(
-            _setProperty,
-            Arguments([jsObject, StringLiteral(propertyName), wrappedValue],
-                types: [_objectType])))
+      ExpressionStatement setProperty(
+          VariableGet jsObject, String propertyName, StaticInvocation jsValue) {
+        // `jsObject[propertyName.toJS] = jsValue`
+        return ExpressionStatement(StaticInvocation(_setProperty,
+            Arguments([jsObject, toJSString(propertyName), jsValue])))
           ..fileOffset = node.fileOffset
           ..parent = node.parent;
       }
@@ -217,19 +251,19 @@ class ExportCreator extends Transformer {
       // With methods, there's only one export per export name.
       if (firstExport is Procedure &&
           firstExport.kind == ProcedureKind.Method) {
-        // `setProperty(jsMock, jsName, allowInterop(dartMock.tearoffMethod))`
+        // `jsExport[jsName.toJS] = dartMock.tearoffMethod.toJS`
         block.add(setProperty(
             VariableGet(jsExporter),
             exportName,
             StaticInvocation(
-                _allowInterop,
+                _functionToJS,
                 Arguments([
                   InstanceTearOff(InstanceAccessKind.Instance,
                       VariableGet(dartInstance), firstExport.name,
                       interfaceTarget: firstExport,
-                      resultType: firstExport.getterType)
-                ], types: [
-                  _functionType
+                      resultType: _staticInteropMockValidator
+                          .typeParameterResolver
+                          .resolve(firstExport.getterType))
                 ]))));
       } else {
         // Create the mapping from `get` and `set` to their `dartInstance` calls
@@ -242,17 +276,17 @@ class ExportCreator extends Transformer {
         // The AST code looks like:
         //
         // ```
-        // setProperty(getSetMap, 'get', allowInterop(() {
+        // getSetMap['get'.toJS] = () {
         //   return dartInstance.getter;
-        // }));
+        // }.toJS;
         // ```
         //
         // in the case of a getter and:
         //
         // ```
-        // setProperty(getSetMap, 'set', allowInterop((val) {
+        // getSetMap['set'.toJS] = (val) {
         //  dartInstance.setter = val;
-        // }));
+        // }.toJS;
         // ```
         //
         // in the case of a setter.
@@ -260,7 +294,9 @@ class ExportCreator extends Transformer {
         // A new map VariableDeclaration is created and added to the block of
         // statements for each export name.
         var getSetMap = VariableDeclaration('#${exportName}Mapping',
-            initializer: getLiteral(), type: _objectType, isSynthesized: true)
+            initializer: getLiteral(),
+            type: InterfaceType(_jsObject, Nullability.nonNullable),
+            isSynthesized: true)
           ..fileOffset = node.fileOffset
           ..parent = node.parent;
         block.add(getSetMap);
@@ -272,28 +308,30 @@ class ExportCreator extends Transformer {
               VariableGet(getSetMap),
               'get',
               StaticInvocation(
-                  _allowInterop,
+                  _functionToJS,
                   Arguments([
                     FunctionExpression(FunctionNode(ReturnStatement(InstanceGet(
                         InstanceAccessKind.Instance,
                         VariableGet(dartInstance),
                         getter.name,
                         interfaceTarget: getter,
-                        resultType: getter.getterType))))
-                  ], types: [
-                    _functionType
+                        resultType: _staticInteropMockValidator
+                            .typeParameterResolver
+                            .resolve(getter.getterType)))))
                   ]))));
         }
         if (setter != null) {
           var setterParameter = VariableDeclaration('#val',
-              type: setter.setterType, isSynthesized: true)
+              type: _staticInteropMockValidator.typeParameterResolver
+                  .resolve(setter.setterType),
+              isSynthesized: true)
             ..fileOffset = node.fileOffset
             ..parent = node.parent;
           block.add(setProperty(
               VariableGet(getSetMap),
               'set',
               StaticInvocation(
-                  _allowInterop,
+                  _functionToJS,
                   Arguments([
                     FunctionExpression(FunctionNode(
                         ExpressionStatement(InstanceSet(
@@ -303,19 +341,17 @@ class ExportCreator extends Transformer {
                             VariableGet(setterParameter),
                             interfaceTarget: setter)),
                         positionalParameters: [setterParameter]))
-                  ], types: [
-                    _functionType
                   ]))));
         }
         // Call `Object.defineProperty` to define the export name with the
         // 'get' and/or 'set' mapping. This allows us to treat get/set
         // semantics as methods.
-        block.add(ExpressionStatement(_callMethod(
+        block.add(ExpressionStatement(callMethodVarArgs(
             getObjectProperty(),
-            StringLiteral('defineProperty'),
+            'defineProperty',
             [
               VariableGet(jsExporter),
-              StringLiteral(exportName),
+              toJSString(exportName),
               VariableGet(getSetMap)
             ],
             VoidType()))
@@ -324,7 +360,8 @@ class ExportCreator extends Transformer {
       }
     }
 
-    block.add(ReturnStatement(VariableGet(jsExporter)));
+    block.add(ReturnStatement(AsExpression(VariableGet(jsExporter), returnType)
+      ..fileOffset = node.fileOffset));
     // Return a call to evaluate the entire block of code and return the JS mock
     // that was created.
     return FunctionInvocation(
@@ -334,25 +371,5 @@ class ExportCreator extends Transformer {
         functionType: FunctionType([], returnType, Nullability.nonNullable))
       ..fileOffset = node.fileOffset
       ..parent = node.parent;
-  }
-
-  // Optimize `callMethod` calls if possible.
-  StaticInvocation _callMethod(Expression object, StringLiteral methodName,
-      List<Expression> args, DartType returnType) {
-    var index = args.length;
-    var callMethodOptimized = _typeEnvironment.coreTypes.index
-        .tryGetTopLevelMember(
-            'dart:js_util', '_callMethodUncheckedTrustType$index');
-    if (callMethodOptimized == null) {
-      var callMethod = _typeEnvironment.coreTypes.index
-          .getTopLevelProcedure('dart:js_util', 'callMethod');
-      return StaticInvocation(
-          callMethod,
-          Arguments([object, methodName, ListLiteral(args)],
-              types: [returnType]));
-    } else {
-      return StaticInvocation(callMethodOptimized as Procedure,
-          Arguments([object, methodName, ...args], types: [returnType]));
-    }
   }
 }

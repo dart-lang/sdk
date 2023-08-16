@@ -117,11 +117,14 @@ class DocumentationValidator {
     'PubspecWarningCode.DEPRECATED_FIELD',
     'PubspecWarningCode.FLUTTER_FIELD_NOT_MAP',
     'PubspecWarningCode.INVALID_DEPENDENCY',
+    'PubspecWarningCode.INVALID_PLATFORMS_FIELD',
     'PubspecWarningCode.MISSING_NAME',
     'PubspecWarningCode.NAME_NOT_STRING',
     'PubspecWarningCode.PATH_DOES_NOT_EXIST',
     'PubspecWarningCode.PATH_NOT_POSIX',
     'PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST',
+    'PubspecWarningCode.PLATFORM_VALUE_DISALLOWED',
+    'PubspecWarningCode.UNKNOWN_PLATFORM',
     'PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY',
 
     // Reports CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY

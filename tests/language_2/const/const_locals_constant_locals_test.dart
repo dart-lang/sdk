@@ -27,7 +27,7 @@ void main() {
   const c5 = constField;
   const c6 = method();
   //         ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   // [cfe] Method invocation is not a constant expression.
   const c7 = new Class();
   //         ^^^^^^^^^^^

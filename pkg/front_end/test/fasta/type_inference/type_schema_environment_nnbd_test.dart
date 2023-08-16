@@ -1357,12 +1357,12 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     //
     // resulting in
     //
-    //     (T & Object)? = T? & Object
+    //     (T & Object)? = T? & Object?
     //
     checkUpperBound(
         type1: "T",
         type2: "Null",
-        upperBound: "T? & Object",
+        upperBound: "T? & Object?",
         typeParameters: "T extends Object?",
         nonNull1: true);
 
@@ -1372,12 +1372,12 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     //
     // resulting in
     //
-    //     (T & bool)? = T? & bool
+    //     (T & bool)? = T? & bool?
     //
     checkUpperBound(
         type1: "T",
         type2: "Null",
-        upperBound: "T? & bool",
+        upperBound: "T? & bool?",
         typeParameters: "T extends bool?",
         nonNull1: true);
 

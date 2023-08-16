@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 
 const b = fn(4);
 //        ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn(int a) {
   if (a == 1) return 1;
   return a * fn(a - 1);
@@ -24,7 +24,7 @@ int localTest() {
 
   const c = fnLocal(4);
   //        ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   return c;
 }
 

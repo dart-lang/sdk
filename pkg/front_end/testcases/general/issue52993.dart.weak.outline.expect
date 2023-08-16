@@ -1,0 +1,39 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef E<invariant T extends core::Object? = dynamic> = (T%) → T%;
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends core::Object implements self::A {
+  synthetic constructor •() → self::B
+    ;
+}
+class C extends core::Object implements self::A {
+  synthetic constructor •() → self::C
+    ;
+}
+class D extends core::Object implements self::B, self::C {
+  synthetic constructor •() → self::D
+    ;
+}
+class Rt<T extends core::Object? = dynamic> extends core::Object {
+  constructor •(self::Rt::T% t) → self::Rt<self::Rt::T%>
+    ;
+  method rt<covariant-by-class T2 extends (self::Rt::T%) → self::Rt::T%>() → void
+    ;
+}
+extension St<T extends core::Object? = dynamic> on T% {
+  method st = self::St|st;
+  tearoff st = self::St|get#st;
+}
+static method main() → void
+  ;
+static method foo<X extends core::Object? = dynamic>(core::bool not, self::foo::X% b, self::foo::X% c) → void
+  ;
+static extension-member method St|st<T extends core::Object? = dynamic, T2 extends (self::St|st::T%) → self::St|st::T% = (dynamic) → dynamic>(lowered final self::St|st::T% #this) → void
+  ;
+static extension-member method St|get#st<T extends core::Object? = dynamic>(lowered final self::St|get#st::T% #this) → <T2 extends (self::St|get#st::T%) → self::St|get#st::T% = (dynamic) → dynamic>() → void
+  return <T2 extends (self::St|get#st::T%) → self::St|get#st::T% = (dynamic) → dynamic>() → void => self::St|st<self::St|get#st::T%, T2>(#this);

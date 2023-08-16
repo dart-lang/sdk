@@ -1,0 +1,73 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class B extends core::Object /*hasConstConstructor*/  {
+  final field core::bool autofocus;
+  const constructor •({required core::bool autofocus = #C1}) → self::B
+    : self::B::autofocus = autofocus, super core::Object::•()
+    ;
+}
+class O1 extends self::B /*hasConstConstructor*/  {
+  const constructor •({core::bool autofocus = #C2}) → self::O1
+    : super self::B::•(autofocus: autofocus)
+    ;
+  static method _#new#tearOff({core::bool autofocus = #C2}) → self::O1
+    return new self::O1::•(autofocus: autofocus);
+}
+class O2 extends self::B /*hasConstConstructor*/  {
+  const constructor •({core::bool autofocus = #C2}) → self::O2
+    : super self::B::•(autofocus: autofocus)
+    ;
+  static method _#new#tearOff({core::bool autofocus = #C2}) → self::O2
+    return new self::O2::•(autofocus: autofocus);
+}
+abstract class C extends core::Object /*hasConstConstructor*/  {
+  final field core::bool a;
+  final field core::bool b;
+  const constructor •({core::bool a = #C2, core::bool b = #C3}) → self::C
+    : self::C::a = a, self::C::b = b, super core::Object::•()
+    ;
+}
+class P1 extends self::C /*hasConstConstructor*/  {
+  final field core::int c;
+  const constructor •(core::int c, {core::bool a = #C2, core::bool b = #C3}) → self::P1
+    : self::P1::c = c, super self::C::•(a: a, b: b)
+    ;
+  static method _#new#tearOff(core::int c, {core::bool a = #C2, core::bool b = #C3}) → self::P1
+    return new self::P1::•(c, a: a, b: b);
+}
+class P2 extends self::C /*hasConstConstructor*/  {
+  const constructor •({core::bool b = #C3, core::bool a = #C2}) → self::P2
+    : super self::C::•(b: b, a: a)
+    ;
+  static method _#new#tearOff({core::bool b = #C3, core::bool a = #C2}) → self::P2
+    return new self::P2::•(b: b, a: a);
+}
+static method main() → dynamic {
+  ({autofocus: core::bool}) → self::O1 tearoff1 = #C4;
+  ({autofocus: core::bool}) → self::O2 tearoff2 = #C5;
+  (core::int, {a: core::bool, b: core::bool}) → self::P1 tearoff3 = #C6;
+  ({a: core::bool, b: core::bool}) → self::P2 tearoff4 = #C7;
+  self::expect(true, tearoff1(){({autofocus: core::bool}) → self::O1}.{self::B::autofocus}{core::bool});
+  self::expect(true, tearoff2(){({autofocus: core::bool}) → self::O2}.{self::B::autofocus}{core::bool});
+  self::expect(true, tearoff3(0){(core::int, {a: core::bool, b: core::bool}) → self::P1}.{self::C::a}{core::bool});
+  self::expect(false, tearoff3(0){(core::int, {a: core::bool, b: core::bool}) → self::P1}.{self::C::b}{core::bool});
+  self::expect(0, tearoff3(0){(core::int, {a: core::bool, b: core::bool}) → self::P1}.{self::P1::c}{core::int});
+  self::expect(true, tearoff4(){({a: core::bool, b: core::bool}) → self::P2}.{self::C::a}{core::bool});
+  self::expect(false, tearoff4(){({a: core::bool, b: core::bool}) → self::P2}.{self::C::b}{core::bool});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = null
+  #C2 = true
+  #C3 = false
+  #C4 = static-tearoff self::O1::_#new#tearOff
+  #C5 = static-tearoff self::O2::_#new#tearOff
+  #C6 = static-tearoff self::P1::_#new#tearOff
+  #C7 = static-tearoff self::P2::_#new#tearOff
+}

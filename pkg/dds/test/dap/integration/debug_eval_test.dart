@@ -216,6 +216,86 @@ void foo() {
       );
     });
 
+    group('global evaluation', () {
+      test('can evaluate when not paused given a script URI', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile(globalEvaluationProgram);
+
+        await Future.wait([
+          client.initialize(),
+          client.launch(testFile.path),
+        ], eagerError: true);
+
+        // Wait for a '.' to be printed to know the script is up and running.
+        await dap.client.outputEvents
+            .firstWhere((event) => event.output.trim() == '.');
+
+        await client.expectGlobalEvalResult(
+          'myGlobal',
+          '"Hello, world!"',
+          context: Uri.file(testFile.path).toString(),
+        );
+      });
+
+      test('returns a suitable error with no context', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile(globalEvaluationProgram);
+
+        await Future.wait([
+          client.initialize(),
+          client.launch(testFile.path),
+        ], eagerError: true);
+
+        // Wait for a '.' to be printed to know the script is up and running.
+        await dap.client.outputEvents
+            .firstWhere((event) => event.output.trim() == '.');
+
+        final response = await client.sendRequest(
+          EvaluateArguments(
+            expression: 'myGlobal',
+          ),
+          allowFailure: true,
+        );
+        expect(response.success, isFalse);
+        expect(
+          response.message,
+          contains(
+            'Global evaluation not currently supported without a Dart script context',
+          ),
+        );
+      });
+
+      test('returns a suitable error with an unknown script context', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile(globalEvaluationProgram);
+
+        await Future.wait([
+          client.initialize(),
+          client.launch(testFile.path),
+        ], eagerError: true);
+
+        // Wait for a '.' to be printed to know the script is up and running.
+        await dap.client.outputEvents
+            .firstWhere((event) => event.output.trim() == '.');
+
+        final context =
+            Uri.file(testFile.path.replaceAll('.dart', '_invalid.dart'))
+                .toString();
+        final response = await client.sendRequest(
+          EvaluateArguments(
+            expression: 'myGlobal',
+            context: context,
+          ),
+          allowFailure: true,
+        );
+        expect(response.success, isFalse);
+        expect(
+          response.message,
+          contains('Unable to find the library for file:'),
+        );
+      });
+    });
+
     group('format specifiers', () {
       test('",nq" suppresses quotes on strings', () async {
         final client = dap.client;

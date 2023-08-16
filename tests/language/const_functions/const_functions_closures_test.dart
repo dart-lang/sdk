@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 
 const var1 = foo();
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int foo() {
   var f = () {
     int count = 0;
@@ -43,7 +43,7 @@ int foo() {
 
 const var2 = fn();
 //           ^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn() {
   return (() => 0)();
 }
@@ -51,7 +51,7 @@ int fn() {
 const y = 1;
 const var3 = fn3();
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn3() {
   int y = 2;
   return y;
@@ -59,7 +59,7 @@ int fn3() {
 
 const var4 = fn4();
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn4() {
   var x = 0;
   int innerFn() {
@@ -71,7 +71,7 @@ int fn4() {
 
 const var5 = fn5(3);
 //           ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn5(int a) {
   int recurse(int b) {
     if (b == 1) return 1;
@@ -84,7 +84,7 @@ int fn5(int a) {
 
 const var6 = fn6(4);
 //           ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn6(int a) {
   int recurse() {
     a--;

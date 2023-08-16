@@ -621,14 +621,21 @@ class TypeArgumentsVerifier {
   /// Determines if the given [namedType] occurs in a context where
   /// super-bounded types are allowed.
   bool _shouldAllowSuperBoundedTypes(NamedType namedType) {
-    var parent = namedType.parent;
-    if (parent is ExtendsClause) return false;
-    if (parent is OnClause) return false;
-    if (parent is ClassTypeAlias) return false;
-    if (parent is WithClause) return false;
-    if (parent is ConstructorName) return false;
-    if (parent is ImplementsClause) return false;
-    if (parent is GenericTypeAlias) return false;
+    switch (namedType.parent) {
+      case ClassTypeAlias _:
+      case ConstructorName _:
+      case ExtendsClause _:
+      case GenericTypeAlias _:
+      case ImplementsClause _:
+      case OnClause _:
+      case WithClause _:
+        return false;
+    }
+
+    if (namedType.type?.element is ExtensionTypeElement) {
+      return false;
+    }
+
     return true;
   }
 

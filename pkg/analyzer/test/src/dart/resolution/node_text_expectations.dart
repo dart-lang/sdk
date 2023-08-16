@@ -13,8 +13,10 @@ class NodeTextExpectationsCollector {
 
   static const assertMethods = {
     'ContextResolutionTest.assertDriverStateString',
+    'ElementsBaseTest.checkElementText',
     'FileResolutionTest.assertStateString',
     'IndexTest.assertElementIndexText',
+    'InheritanceManager3Test_ExtensionType.assertInterfaceText',
     'ParserDiagnosticsTest.assertParsedNodeText',
     'ResolutionTest.assertParsedNodeText',
     'ResolutionTest.assertResolvedNodeText',
@@ -41,13 +43,13 @@ class NodeTextExpectationsCollector {
           }
           var invocationLine = traceLines[traceIndex];
           var locationMatch = RegExp(
-            r'file://(.+_test.dart):(\d+):',
+            r'(file://.+_test.dart):(\d+):',
           ).firstMatch(invocationLine);
           if (locationMatch == null) {
             fail('Cannot parse: $invocationLine');
           }
 
-          var path = locationMatch.group(1)!;
+          var path = Uri.parse(locationMatch.group(1)!).toFilePath();
           var line = int.parse(locationMatch.group(2)!);
           var file = _getFile(path);
 

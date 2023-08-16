@@ -12,7 +12,6 @@ import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter, Target;
-import 'package:kernel/transformations/value_class.dart' as valueClass;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart' show VerificationStage;
@@ -68,8 +67,8 @@ import '../source/class_declaration.dart';
 import '../source/constructor_declaration.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
+import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_field_builder.dart';
-import '../source/source_inline_class_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../target_implementation.dart' show TargetImplementation;
@@ -324,21 +323,6 @@ class KernelTarget extends TargetImplementation {
     return entryPoint;
   }
 
-  /// The class [cls] is involved in a cyclic definition. This method should
-  /// ensure that the cycle is broken, for example, by removing superclass and
-  /// implemented interfaces.
-  void breakCycle(ClassBuilder builder) {
-    Class cls = builder.cls;
-    cls.implementedTypes.clear();
-    cls.supertype = null;
-    cls.mixedInType = null;
-    builder.supertypeBuilder = new NamedTypeBuilder.fromTypeDeclarationBuilder(
-        objectClassBuilder, const NullabilityBuilder.omitted(),
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
-    builder.interfaceBuilders = null;
-    builder.mixedInTypeBuilder = null;
-  }
-
   bool _hasComputedNeededPrecompilations = false;
 
   Future<NeededPrecompilations?> computeNeededPrecompilations() async {
@@ -447,7 +431,10 @@ class KernelTarget extends TargetImplementation {
       }
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSemantics);
-      List<SourceClassBuilder>? sortedSourceClassBuilders =
+      List<SourceClassBuilder>? sortedSourceClassBuilders;
+      List<SourceExtensionTypeDeclarationBuilder>?
+          sortedSourceExtensionTypeBuilders;
+      (sortedSourceClassBuilders, sortedSourceExtensionTypeBuilders) =
           loader.checkClassCycles(objectClassBuilder);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_finishTypeVariables);
@@ -472,7 +459,8 @@ class KernelTarget extends TargetImplementation {
       computeCoreTypes();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_buildClassHierarchy);
-      loader.buildClassHierarchy(sortedSourceClassBuilders, objectClassBuilder);
+      loader.buildClassHierarchy(sortedSourceClassBuilders,
+          sortedSourceExtensionTypeBuilders, objectClassBuilder);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
       loader.checkSupertypes(sortedSourceClassBuilders, objectClass, enumClass,
@@ -515,6 +503,10 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.outline_installTypedefTearOffs);
       loader.installTypedefTearOffs();
 
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.outline_computeFieldPromotability);
+      loader.computeFieldPromotability();
+
       benchmarker?.enterPhase(BenchmarkPhases.outline_performTopLevelInference);
       loader.performTopLevelInference(sortedSourceClassBuilders);
 
@@ -523,10 +515,6 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkAbstractMembers);
       loader.checkAbstractMembers(sortedSourceClassBuilders);
-
-      benchmarker
-          ?.enterPhase(BenchmarkPhases.outline_computeFieldPromotability);
-      loader.computeFieldPromotability(sortedSourceClassBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkMixins);
       loader.checkMixins(sortedSourceClassBuilders);
@@ -621,8 +609,9 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker?.enterPhase(BenchmarkPhases.body_collectSourceClasses);
       List<SourceClassBuilder>? sourceClasses = [];
-      List<SourceInlineClassBuilder>? inlineClasses = [];
-      loader.collectSourceClasses(sourceClasses, inlineClasses);
+      List<SourceExtensionTypeDeclarationBuilder>? extensionTypeDeclarations =
+          [];
+      loader.collectSourceClasses(sourceClasses, extensionTypeDeclarations);
 
       benchmarker?.enterPhase(BenchmarkPhases.body_finishNativeMethods);
       loader.finishNativeMethods();
@@ -631,7 +620,7 @@ class KernelTarget extends TargetImplementation {
       loader.buildBodyNodes();
 
       benchmarker?.enterPhase(BenchmarkPhases.body_finishAllConstructors);
-      finishAllConstructors(sourceClasses, inlineClasses);
+      finishAllConstructors(sourceClasses, extensionTypeDeclarations);
 
       benchmarker?.enterPhase(BenchmarkPhases.body_runBuildTransformations);
       runBuildTransformations();
@@ -657,7 +646,7 @@ class KernelTarget extends TargetImplementation {
       // (for whatever amount of time) even though we convert them to dill
       // library builders. To avoid it we null it out here.
       sourceClasses = null;
-      inlineClasses = null;
+      extensionTypeDeclarations = null;
       return new BuildResult(
           component: component, macroApplications: macroApplications);
     }, () => loader.currentUriForCrashReporting);
@@ -1007,6 +996,7 @@ class KernelTarget extends TargetImplementation {
       VariableDeclaration copy = new VariableDeclaration(formal.name,
           isFinal: formal.isFinal,
           isConst: formal.isConst,
+          isRequired: formal.isRequired,
           hasDeclaredInitializer: formal.hasDeclaredInitializer,
           type: const UnknownType());
       if (!hasTypeDependency && formal.type is! UnknownType) {
@@ -1084,7 +1074,7 @@ class KernelTarget extends TargetImplementation {
         cls.fileUri,
         cls.fileOffset,
         tearOffReference,
-        forAbstractClassOrEnum: classBuilder.isAbstract);
+        forAbstractClassOrEnumOrMixin: classBuilder.isAbstract);
 
     if (constructorTearOff != null) {
       buildConstructorTearOffProcedure(
@@ -1163,7 +1153,7 @@ class KernelTarget extends TargetImplementation {
         enclosingClass.fileUri,
         enclosingClass.fileOffset,
         tearOffReference,
-        forAbstractClassOrEnum:
+        forAbstractClassOrEnumOrMixin:
             enclosingClass.isAbstract || enclosingClass.isEnum);
     if (constructorTearOff != null) {
       buildConstructorTearOffProcedure(
@@ -1252,8 +1242,10 @@ class KernelTarget extends TargetImplementation {
     loader.computeCoreTypes(platformLibraries);
   }
 
-  void finishAllConstructors(List<SourceClassBuilder> sourceClassBuilders,
-      List<SourceInlineClassBuilder> inlineClassBuilders) {
+  void finishAllConstructors(
+      List<SourceClassBuilder> sourceClassBuilders,
+      List<SourceExtensionTypeDeclarationBuilder>
+          sourceExtensionTypeDeclarationBuilders) {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in sourceClassBuilders) {
       Class cls = builder.cls;
@@ -1261,8 +1253,9 @@ class KernelTarget extends TargetImplementation {
         finishConstructors(builder);
       }
     }
-    for (SourceInlineClassBuilder builder in inlineClassBuilders) {
-      finishInlineConstructors(builder);
+    for (SourceExtensionTypeDeclarationBuilder builder
+        in sourceExtensionTypeDeclarationBuilders) {
+      finishExtensionTypeConstructors(builder);
     }
 
     ticker.logMs("Finished constructors");
@@ -1331,8 +1324,9 @@ class KernelTarget extends TargetImplementation {
     _finishConstructors(classBuilder);
   }
 
-  void finishInlineConstructors(SourceInlineClassBuilder inlineClass) {
-    _finishConstructors(inlineClass);
+  void finishExtensionTypeConstructors(
+      SourceExtensionTypeDeclarationBuilder extensionTypeDeclaration) {
+    _finishConstructors(extensionTypeDeclaration);
   }
 
   void _finishConstructors(ClassDeclaration classDeclaration) {
@@ -1561,12 +1555,6 @@ class KernelTarget extends TargetImplementation {
       }
     });
     ticker.logMs("Added constant coverage");
-
-    if (loader.target.context.options.globalFeatures.valueClass.isEnabled) {
-      valueClass.transformComponent(component!, loader.coreTypes,
-          loader.hierarchy, loader.referenceFromIndex, environment);
-      ticker.logMs("Lowered value classes");
-    }
 
     backendTarget.performModularTransformationsOnLibraries(
         component!,

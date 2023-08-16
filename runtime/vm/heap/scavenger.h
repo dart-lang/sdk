@@ -152,12 +152,12 @@ class Scavenger {
   // Collect the garbage in this scavenger.
   void Scavenge(Thread* thread, GCType type, GCReason reason);
 
-  int64_t UsedInWords() const {
+  intptr_t UsedInWords() const {
     MutexLocker ml(&space_lock_);
     return to_->used_in_words();
   }
-  int64_t CapacityInWords() const { return to_->max_capacity_in_words(); }
-  int64_t ExternalInWords() const { return external_size_ >> kWordSizeLog2; }
+  intptr_t CapacityInWords() const { return to_->max_capacity_in_words(); }
+  intptr_t ExternalInWords() const { return external_size_ >> kWordSizeLog2; }
   SpaceUsage GetCurrentUsage() const {
     SpaceUsage usage;
     usage.used_in_words = UsedInWords();
@@ -270,15 +270,15 @@ class Scavenger {
   void IterateObjectIdTable(ObjectPointerVisitor* visitor);
   template <bool parallel>
   void IterateRoots(ScavengerVisitorBase<parallel>* visitor);
+  void IterateWeak();
   void MournWeakHandles();
+  void MournWeakTables();
   void Epilogue(SemiSpace* from);
 
   void VerifyStoreBuffers(const char* msg);
 
   void UpdateMaxHeapCapacity();
   void UpdateMaxHeapUsage();
-
-  void MournWeakTables();
 
   intptr_t NewSizeInWords(intptr_t old_size_in_words, GCReason reason) const;
 
@@ -294,6 +294,7 @@ class Scavenger {
   bool scavenging_;
   bool early_tenure_ = false;
   RelaxedAtomic<intptr_t> root_slices_started_;
+  RelaxedAtomic<intptr_t> weak_slices_started_;
   StoreBufferBlock* blocks_ = nullptr;
 
   int64_t gc_time_micros_;
@@ -315,8 +316,6 @@ class Scavenger {
 
   template <bool>
   friend class ScavengerVisitorBase;
-  friend class ScavengerWeakVisitor;
-  friend class ScavengerFinalizerVisitor;
 
   DISALLOW_COPY_AND_ASSIGN(Scavenger);
 };

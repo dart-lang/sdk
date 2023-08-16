@@ -2,10 +2,9 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/extension_types_feature_not_enabled.dart:9:11: Error: This requires the experimental 'extension-types' language feature to be enabled.
-// Try passing the '--enable-experiment=extension-types' command line option.
+// pkg/front_end/testcases/general/extension_types_feature_not_enabled.dart:9:18: Error: Unexpected token 'on'.
 // extension type E on A {} // Error because of 'type'.
-//           ^^^^
+//                  ^^
 //
 import self as self;
 import "dart:core" as core;
@@ -15,6 +14,6 @@ class A extends core::Object {
     : super core::Object::•()
     ;
 }
-extension type E on self::A {
+extension E on self::A {
 }
 static method main() → dynamic {}

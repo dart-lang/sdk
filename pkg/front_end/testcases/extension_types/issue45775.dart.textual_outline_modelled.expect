@@ -1,5 +1,0 @@
-class Foo {}
-
-extension Bar on Foo {}
-
-void main() {}

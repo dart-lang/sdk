@@ -144,7 +144,7 @@ static method relationalPatternOperatorReturnTypeNotAssignableToBool(self::Class
 static method patternTypeMismatchInIrrefutableContext(core::List<core::String> list) → dynamic {
   has-declared-initializer core::int a;
   {
-    final synthesized dynamic #0#0 = list;
+    final synthesized core::List<core::String> #0#0 = list;
     if(!invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:26:12: Error: The matched value of type 'List<String>' isn't assignable to the required type 'List<int>'.
  - 'List' is from 'dart:core'.
 Try changing the required type of the pattern, or the matched value type.
@@ -155,16 +155,14 @@ Try changing the required type of the pattern, or the matched value type.
 }
 static method duplicateAssignmentPatternVariable(core::List<core::String> list) → dynamic {
   core::String a = "";
-  block {
-    core::String #t1;
-    final synthesized dynamic #0#0 = list;
-    if(!(#0#0{core::List<core::String>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::String #t2 = #t1 = #0#0{core::List<core::String>}.{core::List::[]}(0){(core::int) → core::String} in true) && invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:31:7: Error: The variable 'a' is already assigned in this pattern.
+  {
+    final synthesized core::List<core::String> #0#0 = list;
+    if(!(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::String #t1 = a = #0#0.{core::List::[]}(0){(core::int) → core::String} in true) && invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:31:7: Error: The variable 'a' is already assigned in this pattern.
 Try renaming the variable.
   [a, a] = list; // Error
       ^"))
       throw new core::StateError::•("Pattern matching error");
-    a = #t1;
-  } =>#0#0;
+  }
 }
 static method duplicateRecordPatternField(dynamic o) → dynamic {
   #L3:
@@ -177,7 +175,7 @@ static method duplicateRecordPatternField(dynamic o) → dynamic {
       if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:36:28: Error: The field 'field' is already matched in this pattern.
 Try removing the duplicate field.
     case (field: 1, field: 2): // Error
-                           ^" || #0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#2 && (let final core::int #t3 = #0#2 in invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:37:33: Error: The field 'field' is already matched in this pattern.
+                           ^" || #0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#2 && (let final core::int #t2 = #0#2 in invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:37:33: Error: The field 'field' is already matched in this pattern.
 Try removing the duplicate field.
     case Class(field: 1, field: 2): // Error
                                 ^")) {
@@ -239,7 +237,7 @@ static method matchedTypeIsStrictlyNonNullable(core::List<core::int> list) → d
     function ##0#6#initializer() → core::int
       return #0#0.{core::List::[]}(1){(core::int) → core::int};
     late final synthesized core::int #0#6 = ##0#6#initializer(){() → core::int};
-    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t4 = #0#4! in let final core::int #t5 = a = #0#4! in true) && (!(#0#6 == null) ?{core::bool} let final core::int #t6 = b = #0#6 in true : false)) {
+    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t3 = #0#4! in let final core::int #t4 = a = #0#4! in true) && (!(#0#6 == null) ?{core::bool} let final core::int #t5 = b = #0#6 in true : false)) {
       core::print(0);
     }
   }
@@ -258,8 +256,8 @@ Try changing the condition.
 static method refutablePatternInIrrefutableContext(core::int? x) → dynamic {
   hoisted has-declared-initializer core::int a;
   {
-    final synthesized dynamic #0#0 = x;
-    if(!(!(#0#0 == null) ?{core::bool} let final core::int #t7 = a = #0#0{core::int} in true : false))
+    final synthesized core::int? #0#0 = x;
+    if(!(!(#0#0 == null) ?{core::bool} let final core::int #t6 = a = #0#0{core::int} in true : false))
       throw new core::StateError::•("Pattern matching error");
   }
 }

@@ -1,0 +1,19 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue43400.dart:8:18: Error: Type variables can't be used in static members.
+//   static Generic<A> field = null;
+//                  ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Generic<A extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Generic<self::Generic::A%>
+    ;
+}
+extension Extension<A extends core::Object? = dynamic> on self::Generic<A%> {
+  static field field = self::Extension|field;
+}
+static field self::Generic<invalid-type> Extension|field;

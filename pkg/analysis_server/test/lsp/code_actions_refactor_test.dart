@@ -7,10 +7,12 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
+import '../utils/test_code_extensions.dart';
 import 'code_actions_abstract.dart';
 
 void main() {
@@ -28,7 +30,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertGetterToMethodCodeActionsTest extends AbstractCodeActionsTest {
+class ConvertGetterToMethodCodeActionsTest extends RefactorCodeActionsTest {
   final refactorTitle = 'Convert Getter to Method';
 
   Future<void> test_refactor() async {
@@ -46,37 +48,30 @@ void f() {
   var b = test();
 }
 ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri,
-        position: positionFromMarker(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, refactorTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: refactorTitle,
+    );
   }
 
   Future<void> test_setter_notAvailable() async {
     const content = '''
 set ^a(String value) {}
-
 ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri,
-        position: positionFromMarker(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, refactorTitle);
-
-    expect(codeAction, isNull);
+    await expectNoAction(
+      content,
+      command: Commands.performRefactor,
+      title: refactorTitle,
+    );
   }
 }
 
 @reflectiveTest
-class ConvertMethodToGetterCodeActionsTest extends AbstractCodeActionsTest {
+class ConvertMethodToGetterCodeActionsTest extends RefactorCodeActionsTest {
   final refactorTitle = 'Convert Method to Getter';
 
   Future<void> test_constructor_notAvailable() async {
@@ -85,15 +80,12 @@ class A {
   ^A();
 }
 ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri,
-        position: positionFromMarker(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, refactorTitle);
-
-    expect(codeAction, isNull);
+    await expectNoAction(
+      content,
+      command: Commands.performRefactor,
+      title: refactorTitle,
+    );
   }
 
   Future<void> test_refactor() async {
@@ -111,21 +103,18 @@ void f() {
   var b = test;
 }
 ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri,
-        position: positionFromMarker(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, refactorTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: refactorTitle,
+    );
   }
 }
 
 @reflectiveTest
-class ExtractMethodRefactorCodeActionsTest extends AbstractCodeActionsTest {
+class ExtractMethodRefactorCodeActionsTest extends RefactorCodeActionsTest {
   final extractMethodTitle = 'Extract Method';
 
   /// A stream of strings (CREATE, BEGIN, END) corresponding to progress
@@ -166,9 +155,9 @@ class ExtractMethodRefactorCodeActionsTest extends AbstractCodeActionsTest {
     const content = '''
 void f() {
   print('Test!');
-  [[print('Test!');]]
+  [!print('Test!');!]
 }
-    ''';
+''';
     const expectedContent = '''
 void f() {
   print('Test!');
@@ -178,27 +167,24 @@ void f() {
 void newMethod() {
   print('Test!');
 }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
-
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+''';
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
+    );
   }
 
   Future<void> test_cancelsInProgress() async {
     const content = '''
 void f() {
   print('Test!');
-  [[print('Test!');]]
+  [!print('Test!');!]
 }
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 void f() {
   print('Test!');
   newMethod();
@@ -207,14 +193,13 @@ void f() {
 void newMethod() {
   print('Test!');
 }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
+    final codeAction = await expectAction(
+      content,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
+    );
 
     // Respond to any applyEdit requests from the server with successful responses
     // and capturing the last edit.
@@ -229,8 +214,8 @@ void newMethod() {
     });
 
     // Send two requests together.
-    final req1 = executeCodeAction(codeAction);
-    final req2 = executeCodeAction(codeAction);
+    final req1 = executeCommand(codeAction.command!);
+    final req2 = executeCommand(codeAction.command!);
 
     // Expect the first will have cancelled the second.
     await expectLater(
@@ -238,30 +223,26 @@ void newMethod() {
     await req2;
 
     // Ensure applying the changes will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(content),
-    };
-    applyChanges(contents, edit.changes!);
-    expect(contents[mainFilePath], equals(expectedContent));
+    verifyEdit(edit, expectedContent);
   }
 
   Future<void> test_contentModified() async {
     const content = '''
 void f() {
   print('Test!');
-  [[print('Test!');]]
+  [!print('Test!');!]
 }
-    ''';
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+''';
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
+    final codeAction = await expectAction(
+      content,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
+      openTargetFile: true,
+    );
 
     // Send an edit request immediately after the refactor request.
-    final req1 = executeCodeAction(codeAction);
+    final req1 = executeCommand(codeAction.command!);
     final req2 = replaceFile(100, mainFileUri, 'new test content');
 
     // Expect the first to fail because of the modified content.
@@ -274,10 +255,11 @@ void f() {
     const content = '''
 void f() {
   print('Test!');
-  [[print('Test!');]]
+  [!print('Test!');!]
 }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
+''';
+    final code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
         emptyTextDocumentClientCapabilities,
@@ -287,7 +269,7 @@ void f() {
 
     ofKind(CodeActionKind kind) => getCodeActions(
           mainFileUri,
-          range: rangeFromMarkers(content),
+          range: code.range.range,
           kinds: [kind],
         );
 
@@ -321,12 +303,12 @@ void f() {
   Future<void> test_generatesNames() async {
     const content = '''
 Object F() {
-  return Container([[Text('Test!')]]);
+  return Container([!Text('Test!')!]);
 }
 
 Object Container(Object text) => null;
 Object Text(Object text) => null;
-    ''';
+''';
     const expectedContent = '''
 Object F() {
   return Container(text());
@@ -336,17 +318,14 @@ Object text() => Text('Test!');
 
 Object Container(Object text) => null;
 Object Text(Object text) => null;
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
+    );
   }
 
   Future<void> test_invalidLocation() async {
@@ -354,15 +333,13 @@ Object Text(Object text) => null;
 import 'dart:convert';
 ^
 void f() {}
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions = await getCodeActions(mainFileUri,
-        position: positionFromMarker(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
-    expect(codeAction, isNull);
+    await expectNoAction(
+      content,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
+    );
   }
 
   Future<void> test_invalidLocation_importPrefix() async {
@@ -370,35 +347,31 @@ void f() {}
 import 'dart:io' as io;
 
 i^o.File a;
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions = await getCodeActions(mainFileUri,
-        position: positionFromMarker(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
-    expect(codeAction, isNull);
+    await expectNoAction(
+      content,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
+    );
   }
 
   Future<void> test_logsAction() async {
     const content = '''
 void f() {
   print('Test!');
-  [[print('Test!');]]
+  [!print('Test!');!]
 }
 ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
-    final command =
-        codeAction.map((command) => command, (action) => action.command)!;
+    setDocumentChangesSupport(false);
+    final action = await expectAction(
+      content,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
+    );
 
-    await executeCommandForEdits(command, {mainFilePath: content});
+    await executeCommandForEdits(action.command!);
     expectCommandLogged('dart.refactor.extract_method');
   }
 
@@ -406,9 +379,9 @@ void f() {
     const content = '''
 void f() {
   print('Test!');
-  [[print('Test!');]]
+  [!print('Test!');!]
 }
-    ''';
+''';
     const expectedContent = '''
 void f() {
   print('Test!');
@@ -418,33 +391,28 @@ void f() {
 void newMethod() {
   print('Test!');
 }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize(
-        windowCapabilities:
-            withWorkDoneProgressSupport(emptyWindowClientCapabilities));
+''';
 
     // Expect begin/end progress updates without a create, since the
     // token was supplied by us (the client).
     expect(progressUpdates, emitsInOrder(['BEGIN', 'END']));
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent,
-        workDoneToken: clientProvidedTestWorkDoneToken);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
+      commandWorkDoneToken: clientProvidedTestWorkDoneToken,
+    );
   }
 
   Future<void> test_progress_notSupported() async {
     const content = '''
 void f() {
   print('Test!');
-  [[print('Test!');]]
+  [!print('Test!');!]
 }
-    ''';
+''';
     const expectedContent = '''
 void f() {
   print('Test!');
@@ -454,22 +422,17 @@ void f() {
 void newMethod() {
   print('Test!');
 }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
     var didGetProgressNotifications = false;
-    notificationsFromServer
-        .where((n) => n.method == Method.progress)
-        .listen((_) => didGetProgressNotifications = true);
+    progressUpdates.listen((_) => didGetProgressNotifications = true);
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
+    );
 
     expect(didGetProgressNotifications, isFalse);
   }
@@ -478,9 +441,9 @@ void newMethod() {
     const content = '''
 void f() {
   print('Test!');
-  [[print('Test!');]]
+  [!print('Test!');!]
 }
-    ''';
+''';
     const expectedContent = '''
 void f() {
   print('Test!');
@@ -490,47 +453,37 @@ void f() {
 void newMethod() {
   print('Test!');
 }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize(
-        windowCapabilities:
-            withWorkDoneProgressSupport(emptyWindowClientCapabilities));
-
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
+''';
 
     // Ensure the progress messages come through and in the correct order.
     expect(progressUpdates, emitsInOrder(['CREATE', 'BEGIN', 'END']));
 
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    setWorkDoneProgressSupport();
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
+    );
   }
 
   Future<void> test_validLocation_failsInitialValidation() async {
     const content = '''
 f() {
   var a = 0;
-  doFoo([[() => print(a)]]);
+  doFoo([!() => print(a)!]);
   print(a);
 }
 
 void doFoo(void Function() a) => a();
 
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
-
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
-
-    final command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command!,
+''';
+    final codeAction = await expectAction(
+      content,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
     );
+    final command = codeAction.command!;
 
     // Call the `refactor.validate` command with the same arguments.
     // Clients that want validation behaviour will need to implement this
@@ -553,28 +506,22 @@ void doFoo(void Function() a) => a();
     const content = '''
 f() {
   var a = 0;
-  doFoo([[() => print(a)]]);
+  doFoo([!() => print(a)!]);
   print(a);
 }
 
 void doFoo(void Function() a) => a();
+''';
 
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize(
+    final codeAction = await expectAction(
+      content,
+      command: Commands.performRefactor,
+
+      title: extractMethodTitle,
       // We expect an error notification so don't fail on it.
       failTestOnAnyErrorNotification: false,
     );
-
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
-
-    final command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command!,
-    );
+    final command = codeAction.command!;
 
     // Call the refactor without any validation and expected an error message
     // without a request failure.
@@ -596,24 +543,19 @@ void doFoo(void Function() a) => a();
   Future<void> test_validLocation_passesInitialValidation() async {
     const content = '''
 f() {
-  doFoo([[() => print(1)]]);
+  doFoo([!() => print(1)!]);
 }
 
 void doFoo(void Function() a) => a();
 
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
-
-    final command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command!,
+    final codeAction = await expectAction(
+      content,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
     );
+    final command = codeAction.command!;
 
     // Call the `Commands.validateRefactor` command with the same arguments.
     // Clients that want validation behaviour will need to implement this
@@ -632,7 +574,7 @@ void doFoo(void Function() a) => a();
 }
 
 @reflectiveTest
-class ExtractVariableRefactorCodeActionsTest extends AbstractCodeActionsTest {
+class ExtractVariableRefactorCodeActionsTest extends RefactorCodeActionsTest {
   final convertMethodToGetterTitle = 'Convert Method to Getter';
   final extractVariableTitle = 'Extract Local Variable';
   final inlineMethodTitle = 'Inline Method';
@@ -640,11 +582,11 @@ class ExtractVariableRefactorCodeActionsTest extends AbstractCodeActionsTest {
   Future<void> test_appliesCorrectEdits() async {
     const content = '''
 void f() {
-  foo([[1 + 2]]);
+  foo([!1 + 2!]);
 }
 
 void foo(int arg) {}
-    ''';
+''';
     const expectedContent = '''
 void f() {
   var arg = 1 + 2;
@@ -652,28 +594,25 @@ void f() {
 }
 
 void foo(int arg) {}
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction = findCommand(
-        codeActions, Commands.performRefactor, extractVariableTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: extractVariableTitle,
+    );
   }
 
   Future<void> test_doesNotCreateNameConflicts() async {
     const content = '''
 void f() {
   var arg = "test";
-  foo([[1 + 2]]);
+  foo([!1 + 2!]);
 }
 
 void foo(int arg) {}
-    ''';
+''';
     const expectedContent = '''
 void f() {
   var arg = "test";
@@ -682,79 +621,70 @@ void f() {
 }
 
 void foo(int arg) {}
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction = findCommand(
-        codeActions, Commands.performRefactor, extractVariableTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: extractVariableTitle,
+    );
   }
 
   Future<void> test_inlineMethod_function_startOfParameterList() async {
     const content = '''
-test[[]](a, b) {
+test^(a, b) {
   print(a);
   print(b);
 }
 void f() {
   test(1, 2);
 }
-    ''';
+''';
     const expectedContent = '''
 void f() {
   print(1);
   print(2);
 }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: inlineMethodTitle,
+    );
   }
 
   Future<void> test_inlineMethod_function_startOfTypeParameterList() async {
     const content = '''
-test[[]]<T>(T a, T b) {
+test^<T>(T a, T b) {
   print(a);
   print(b);
 }
 void f() {
   test(1, 2);
 }
-    ''';
+''';
     const expectedContent = '''
 void f() {
   print(1);
   print(2);
 }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: inlineMethodTitle,
+    );
   }
 
   Future<void> test_inlineMethod_method_startOfParameterList() async {
     const content = '''
 class A {
-  test[[]](a, b) {
+  test^(a, b) {
     print(a);
     print(b);
   }
@@ -762,7 +692,7 @@ class A {
     test(1, 2);
   }
 }
-    ''';
+''';
     const expectedContent = '''
 class A {
   void f() {
@@ -770,23 +700,20 @@ class A {
     print(2);
   }
 }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: inlineMethodTitle,
+    );
   }
 
   Future<void> test_inlineMethod_method_startOfTypeParameterList() async {
     const content = '''
 class A {
-  test[[]]<T>(T a, T b) {
+  test^<T>(T a, T b) {
     print(a);
     print(b);
   }
@@ -794,7 +721,7 @@ class A {
     test(1, 2);
   }
 }
-    ''';
+''';
     const expectedContent = '''
 class A {
   void f() {
@@ -802,106 +729,91 @@ class A {
     print(2);
   }
 }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: inlineMethodTitle,
+    );
   }
 
   Future<void> test_methodToGetter_function_startOfParameterList() async {
     const content = '''
-int test[[]]() => 42;
-    ''';
+int test^() => 42;
+''';
     const expectedContent = '''
 int get test => 42;
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction = findCommand(
-        codeActions, Commands.performRefactor, convertMethodToGetterTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: convertMethodToGetterTitle,
+    );
   }
 
   Future<void> test_methodToGetter_function_startOfTypeParameterList() async {
     const content = '''
-int test[[]]<T>() => 42;
-    ''';
+int test^<T>() => 42;
+''';
     const expectedContent = '''
 int get test<T> => 42;
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction = findCommand(
-        codeActions, Commands.performRefactor, convertMethodToGetterTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: convertMethodToGetterTitle,
+    );
   }
 
   Future<void> test_methodToGetter_method_startOfParameterList() async {
     const content = '''
 class A {
-  int test[[]]() => 42;
+  int test^() => 42;
 }
-    ''';
+''';
     const expectedContent = '''
 class A {
   int get test => 42;
 }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction = findCommand(
-        codeActions, Commands.performRefactor, convertMethodToGetterTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: convertMethodToGetterTitle,
+    );
   }
 
   Future<void> test_methodToGetter_method_startOfTypeParameterList() async {
     const content = '''
 class A {
-  int test[[]]<T>() => 42;
+  int test^<T>() => 42;
 }
-    ''';
+''';
     const expectedContent = '''
 class A {
   int get test<T> => 42;
 }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction = findCommand(
-        codeActions, Commands.performRefactor, convertMethodToGetterTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: convertMethodToGetterTitle,
+    );
   }
 }
 
 @reflectiveTest
-class ExtractWidgetRefactorCodeActionsTest extends AbstractCodeActionsTest {
+class ExtractWidgetRefactorCodeActionsTest extends RefactorCodeActionsTest {
   final extractWidgetTitle = 'Extract Widget';
 
   String get expectedNewWidgetConstructorDeclaration => '''
@@ -909,6 +821,7 @@ const NewWidget({
     super.key,
   });
 ''';
+
   @override
   void setUp() {
     super.setUp();
@@ -916,6 +829,8 @@ const NewWidget({
       projectFolderPath,
       flutter: true,
     );
+
+    setDocumentChangesSupport();
   }
 
   Future<void> test_appliesCorrectEdits() async {
@@ -927,7 +842,7 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return new Row(
       children: <Widget>[
-        new [[Column]](
+        new [!Column!](
           children: <Widget>[
             new Text('AAA'),
             new Text('BBB'),
@@ -939,7 +854,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 }
-    ''';
+''';
     final expectedContent = '''
 import 'package:flutter/material.dart';
 
@@ -968,17 +883,14 @@ class NewWidget extends StatelessWidget {
     );
   }
 }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractWidgetTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: extractWidgetTitle,
+    );
   }
 
   Future<void> test_invalidLocation() async {
@@ -986,15 +898,13 @@ class NewWidget extends StatelessWidget {
 import 'dart:convert';
 ^
 void f() {}
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions = await getCodeActions(mainFileUri,
-        position: positionFromMarker(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractWidgetTitle);
-    expect(codeAction, isNull);
+    await expectNoAction(
+      content,
+      command: Commands.performRefactor,
+      title: extractWidgetTitle,
+    );
   }
 }
 
@@ -1014,7 +924,7 @@ const NewWidget({
 
 @reflectiveTest
 class InlineLocalVariableRefactorCodeActionsTest
-    extends AbstractCodeActionsTest {
+    extends RefactorCodeActionsTest {
   final inlineVariableTitle = 'Inline Local Variable';
 
   Future<void> test_appliesCorrectEdits() async {
@@ -1025,29 +935,26 @@ void f() {
   print(a);
   print(a);
 }
-    ''';
+''';
     const expectedContent = '''
 void f() {
   print(1);
   print(1);
   print(1);
 }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions = await getCodeActions(mainFileUri,
-        position: positionFromMarker(content));
-    final codeAction = findCommand(
-        codeActions, Commands.performRefactor, inlineVariableTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: inlineVariableTitle,
+    );
   }
 }
 
 @reflectiveTest
-class InlineMethodRefactorCodeActionsTest extends AbstractCodeActionsTest {
+class InlineMethodRefactorCodeActionsTest extends RefactorCodeActionsTest {
   final inlineMethodTitle = 'Inline Method';
 
   Future<void> test_inlineAtCallSite() async {
@@ -1063,7 +970,7 @@ void foo2() {
 void bar() {
   print('test');
 }
-    ''';
+''';
     const expectedContent = '''
 void foo1() {
   print('test');
@@ -1076,17 +983,14 @@ void foo2() {
 void bar() {
   print('test');
 }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions = await getCodeActions(mainFileUri,
-        position: positionFromMarker(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
-
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: inlineMethodTitle,
+    );
   }
 
   Future<void> test_inlineAtMethod() async {
@@ -1102,7 +1006,7 @@ void foo2() {
 void ba^r() {
   print('test');
 }
-    ''';
+''';
     const expectedContent = '''
 void foo1() {
   print('test');
@@ -1111,16 +1015,21 @@ void foo1() {
 void foo2() {
   print('test');
 }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize();
+''';
 
-    final codeActions = await getCodeActions(mainFileUri,
-        position: positionFromMarker(content));
-    final codeAction =
-        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: inlineMethodTitle,
+    );
+  }
+}
 
-    await verifyCodeActionEdits(
-        codeAction, withoutMarkers(content), expectedContent);
+abstract class RefactorCodeActionsTest extends AbstractCodeActionsTest {
+  @override
+  void setUp() {
+    super.setUp();
+    setSupportedCodeActionKinds([CodeActionKind.Refactor]);
   }
 }

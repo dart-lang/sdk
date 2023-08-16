@@ -301,7 +301,7 @@ PatternVariableDeclarationStatement
             matchedValueType: int
           element: <null>
       rightParenthesis: )
-      matchedValueType: (int)
+      matchedValueType: (int,)
     equals: =
     expression: MethodInvocation
       methodName: SimpleIdentifier
@@ -318,13 +318,13 @@ PatternVariableDeclarationStatement
                 literal: 0
                 staticType: int
             rightParenthesis: )
-            staticType: (int)
+            staticType: (int,)
         rightParenthesis: )
-      staticInvokeType: (int) Function((int))
-      staticType: (int)
+      staticInvokeType: (int,) Function((int,))
+      staticType: (int,)
       typeArgumentTypes
-        (int)
-    patternTypeSchema: (_)
+        (int,)
+    patternTypeSchema: (_,)
   semicolon: ;
 ''');
   }

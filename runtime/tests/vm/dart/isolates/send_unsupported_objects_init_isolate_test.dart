@@ -8,6 +8,8 @@ import 'dart:isolate';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
+import '../use_flag_test_helper.dart';
+
 import 'send_unsupported_objects_test.dart';
 
 main() async {
@@ -16,18 +18,32 @@ main() async {
   final fu = Fu.unsendable('fu');
   try {
     // Pass a closure that captures [fu]
-    await Isolate.spawn((arg) {
-      arg();
-    }, () {
-      print('${fu.label}');
-      Expect.fail('This closure should fail to be sent, shouldn\'t be called');
-    });
+    await () async {
+      final foo1 = Foo();
+      await () async {
+        final foo2 = Foo();
+        await () async {
+          final foo3 = Foo();
+          await Isolate.spawn((arg) {
+            arg();
+          }, () {
+            print('${fu.label} $foo1 $foo2 $foo3');
+            Expect.fail('This closure should fail to be sent, '
+                'shouldn\'t be called');
+          });
+        }();
+      }();
+    }();
   } catch (e) {
     Expect.isTrue(checkForRetainingPath(e, <String>[
       'Baz',
       'Fu',
-      'Context',
-      'Closure',
+      if (isAOTRuntime) ...[
+        'Context',
+        'main.<anonymous closure>'
+      ] else ...[
+        'field fu in main.<anonymous closure>'
+      ],
     ]));
     asyncEnd();
   }

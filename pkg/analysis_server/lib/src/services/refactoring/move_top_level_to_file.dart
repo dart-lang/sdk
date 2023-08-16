@@ -51,7 +51,9 @@ class MoveTopLevelToFile extends RefactoringProducer {
           parameterTitle: 'Select a file to move to',
           actionLabel: 'Move',
           // defaultValue is a String URI.
-          defaultValue: Uri.file(defaultFilePath).toString(),
+          defaultValue: refactoringContext.server.pathContext
+              .toUri(defaultFilePath)
+              .toString(),
           filters: {
             'Dart': ['dart']
           },

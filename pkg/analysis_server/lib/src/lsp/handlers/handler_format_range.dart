@@ -9,7 +9,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 
 class FormatRangeHandler
-    extends MessageHandler<DocumentRangeFormattingParams, List<TextEdit>?> {
+    extends LspMessageHandler<DocumentRangeFormattingParams, List<TextEdit>?> {
   FormatRangeHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_rangeFormatting;
@@ -30,7 +30,8 @@ class FormatRangeHandler
       return success(null);
     }
 
-    final lineLength = server.clientConfiguration.forResource(path).lineLength;
+    final lineLength =
+        server.lspClientConfiguration.forResource(path).lineLength;
     return generateEditsForFormatting(result, lineLength, range: range);
   }
 
@@ -43,7 +44,7 @@ class FormatRangeHandler
 
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) {
-      if (!server.clientConfiguration.forResource(path).enableSdkFormatter) {
+      if (!server.lspClientConfiguration.forResource(path).enableSdkFormatter) {
         // Because we now support formatting for just some WorkspaceFolders
         // we should silently do nothing for those that are disabled.
         return success(null);

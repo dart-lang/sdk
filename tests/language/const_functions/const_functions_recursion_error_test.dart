@@ -14,7 +14,7 @@ const dependsOnB = b;
 // [cfe] Constant evaluation error:
 const b = fn(4);
 //        ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn(int a) {
   if (a == 1) return dependsOnB;
   return dependsOnB * fn(a - 1);

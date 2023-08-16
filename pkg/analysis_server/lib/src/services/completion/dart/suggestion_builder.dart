@@ -420,7 +420,12 @@ class SuggestionBuilder {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
-    var enclosingClass = constructor.enclosingElement;
+
+    var enclosingClass = constructor.enclosingElement.augmented?.declaration;
+    if (enclosingClass == null) {
+      return;
+    }
+
     var className = enclosingClass.name;
     if (className.isEmpty) {
       return;
@@ -443,7 +448,7 @@ class SuggestionBuilder {
     }
 
     if (_couldMatch(completion, prefix)) {
-      var returnType = _instantiateInterfaceElement(enclosingClass);
+      var returnType = _instantiateInstanceElement(enclosingClass);
       var relevance =
           _computeTopLevelRelevance(constructor, elementType: returnType);
       _addBuilder(
@@ -621,7 +626,7 @@ class SuggestionBuilder {
     var completion = elementData.completion;
     if (_couldMatch(completion, prefix)) {
       var relevance = _computeTopLevelRelevance(element,
-          elementType: _instantiateInterfaceElement(element));
+          elementType: _instantiateInstanceElement(element));
       _addBuilder(
         _createCompletionSuggestionBuilder(
           element,
@@ -828,7 +833,8 @@ class SuggestionBuilder {
     var element = parameter.enclosingElement;
     // If appendColon is false, default values should never be appended.
     if (element is ConstructorElement && appendColon) {
-      if (Flutter.instance.isWidget(element.enclosingElement)) {
+      if (Flutter.instance
+          .isWidget(element.enclosingElement.augmented?.declaration)) {
         var codeStyleOptions = request
             .analysisSession.analysisContext.analysisOptions.codeStyleOptions;
         // Don't bother with nullability. It won't affect default list values.
@@ -1588,7 +1594,7 @@ class SuggestionBuilder {
     }
   }
 
-  InterfaceType _instantiateInterfaceElement(InterfaceElement element) {
+  InterfaceType _instantiateInstanceElement(InterfaceElement element) {
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {

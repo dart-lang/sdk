@@ -13,185 +13,61 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import '../../../testing/id_testing_utils.dart' show typeToText;
 import '../../builder/builder.dart';
 import '../../builder/class_builder.dart';
+import '../../builder/extension_type_declaration_builder.dart';
+import '../../builder/library_builder.dart';
 import '../../builder/named_type_builder.dart';
 import '../../builder/type_alias_builder.dart';
 import '../../builder/type_builder.dart';
+import '../../fasta_codes.dart';
+import '../../source/source_library_builder.dart';
 import '../../type_inference/type_schema.dart' show UnknownType;
 import 'hierarchy_builder.dart';
 import 'mixin_inferrer.dart';
 
-class ClassHierarchyNodeBuilder {
-  final ClassHierarchyBuilder hierarchy;
+abstract class HierarchyNodeBuilder {
+  final ClassHierarchyBuilder _hierarchy;
 
-  final ClassBuilder classBuilder;
+  HierarchyNodeBuilder(this._hierarchy);
 
-  bool hasNoSuchMethod = false;
+  LibraryBuilder get _libraryBuilder;
 
-  final Map<Class, Substitution> substitutions;
+  String get _name;
 
-  ClassHierarchyNodeBuilder(
-      this.hierarchy, this.classBuilder, this.substitutions);
+  int get _fileOffset;
 
-  ClassBuilder get objectClass => hierarchy.objectClassBuilder;
+  Uri get _fileUri;
 
-  ClassHierarchyNode build() {
-    assert(!classBuilder.isPatch);
-    ClassHierarchyNode? supernode;
-    if (objectClass != classBuilder.origin) {
-      supernode =
-          hierarchy.getNodeFromTypeBuilder(classBuilder.supertypeBuilder!);
-      if (supernode == null) {
-        supernode = hierarchy.getNodeFromClassBuilder(objectClass);
+  Supertype _resolveSupertypeConflict(Supertype type, Supertype superclass) {
+    if (_libraryBuilder.isNonNullableByDefault) {
+      Supertype? merge = nnbdTopMergeSupertype(
+          _hierarchy.coreTypes,
+          normSupertype(_hierarchy.coreTypes, superclass),
+          normSupertype(_hierarchy.coreTypes, type));
+      if (merge != null) {
+        return merge;
       }
+    } else if (type == superclass) {
+      return superclass;
     }
-
-    List<Supertype> superclasses;
-    List<Supertype> interfacesList;
-    int maxInheritancePath;
-
-    ClassHierarchyNode? mixedInNode;
-    List<ClassHierarchyNode>? interfaceNodes;
-
-    if (classBuilder.isMixinApplication) {
-      mixedInNode = inferMixinApplication();
+    LibraryBuilder libraryBuilder = _libraryBuilder;
+    if (libraryBuilder is SourceLibraryBuilder) {
+      libraryBuilder.addProblem(
+          templateAmbiguousSupertypes.withArguments(
+              _name,
+              superclass.asInterfaceType,
+              type.asInterfaceType,
+              libraryBuilder.isNonNullableByDefault),
+          _fileOffset,
+          noLength,
+          _fileUri);
     }
-
-    if (supernode == null) {
-      // This should be Object.
-      superclasses = new List<Supertype>.filled(0, dummySupertype);
-      interfacesList = new List<Supertype>.filled(0, dummySupertype);
-      maxInheritancePath = 0;
-    } else {
-      maxInheritancePath = supernode.maxInheritancePath + 1;
-
-      superclasses = new List<Supertype>.filled(
-          supernode.superclasses.length + 1, dummySupertype);
-      Supertype? supertype = classBuilder.supertypeBuilder!
-          .buildSupertype(classBuilder.libraryBuilder);
-      if (supertype == null) {
-        // If the superclass is not an interface type we use Object instead.
-        // A similar normalization is performed on [supernode] above.
-        supertype =
-            new Supertype(hierarchy.coreTypes.objectClass, const <DartType>[]);
-      }
-      superclasses.setRange(0, superclasses.length - 1,
-          substSupertypes(supertype, supernode.superclasses));
-      superclasses[superclasses.length - 1] = supertype;
-      if (!classBuilder.libraryBuilder.isNonNullableByDefault &&
-          supernode.classBuilder.libraryBuilder.isNonNullableByDefault) {
-        for (int i = 0; i < superclasses.length; i++) {
-          superclasses[i] = legacyErasureSupertype(superclasses[i]);
-        }
-      }
-
-      List<TypeBuilder>? directInterfaceBuilders =
-          ignoreFunction(classBuilder.interfaceBuilders);
-      if (classBuilder.isMixinApplication) {
-        if (directInterfaceBuilders == null) {
-          directInterfaceBuilders = <TypeBuilder>[
-            classBuilder.mixedInTypeBuilder!
-          ];
-        } else {
-          directInterfaceBuilders = <TypeBuilder>[
-            classBuilder.mixedInTypeBuilder!
-          ]..addAll(directInterfaceBuilders);
-        }
-      }
-
-      List<Supertype> superclassInterfaces = supernode.interfaces;
-      if (superclassInterfaces.isNotEmpty) {
-        superclassInterfaces = substSupertypes(supertype, superclassInterfaces);
-      }
-
-      if (directInterfaceBuilders != null) {
-        Map<Class, Supertype> interfaces = {};
-        if (superclassInterfaces.isNotEmpty) {
-          for (int i = 0; i < superclassInterfaces.length; i++) {
-            addInterface(interfaces, superclasses, superclassInterfaces[i]);
-          }
-        }
-
-        for (int i = 0; i < directInterfaceBuilders.length; i++) {
-          Supertype? directInterface = directInterfaceBuilders[i]
-              .buildSupertype(classBuilder.libraryBuilder);
-          if (directInterface != null) {
-            addInterface(interfaces, superclasses, directInterface);
-            ClassHierarchyNode interfaceNode =
-                hierarchy.getNodeFromClass(directInterface.classNode);
-            (interfaceNodes ??= []).add(interfaceNode);
-
-            if (maxInheritancePath < interfaceNode.maxInheritancePath + 1) {
-              maxInheritancePath = interfaceNode.maxInheritancePath + 1;
-            }
-
-            List<Supertype> types =
-                substSupertypes(directInterface, interfaceNode.superclasses);
-            for (int i = 0; i < types.length; i++) {
-              addInterface(interfaces, superclasses, types[i]);
-            }
-            if (interfaceNode.interfaces.isNotEmpty) {
-              List<Supertype> types =
-                  substSupertypes(directInterface, interfaceNode.interfaces);
-              for (int i = 0; i < types.length; i++) {
-                addInterface(interfaces, superclasses, types[i]);
-              }
-            }
-          }
-        }
-        interfacesList = interfaces.values.toList();
-      } else if (superclassInterfaces.isNotEmpty &&
-          !classBuilder.libraryBuilder.isNonNullableByDefault &&
-          supernode.classBuilder.libraryBuilder.isNonNullableByDefault) {
-        Map<Class, Supertype> interfaces = {};
-        for (int i = 0; i < superclassInterfaces.length; i++) {
-          addInterface(interfaces, superclasses, superclassInterfaces[i]);
-        }
-        interfacesList = interfaces.values.toList();
-      } else {
-        interfacesList = superclassInterfaces;
-      }
-    }
-
-    for (Supertype superclass in superclasses) {
-      recordSupertype(superclass);
-    }
-    for (Supertype superinterface in interfacesList) {
-      recordSupertype(superinterface);
-    }
-
-    return new ClassHierarchyNode(classBuilder, supernode, mixedInNode,
-        interfaceNodes, superclasses, interfacesList, maxInheritancePath);
+    return superclass;
   }
 
-  Supertype recordSupertype(Supertype supertype) {
-    debug?.log("In ${this.classBuilder.fullNameForErrors} "
-        "recordSupertype(${supertype})");
-    Class cls = supertype.classNode;
-    List<TypeParameter> supertypeTypeParameters = cls.typeParameters;
-    if (supertypeTypeParameters.isEmpty) {
-      substitutions[cls] = Substitution.empty;
-    } else {
-      List<DartType> arguments = supertype.typeArguments;
-      List<DartType> typeArguments =
-          new List<DartType>.filled(arguments.length, dummyDartType);
-      List<TypeParameter> typeParameters =
-          new List<TypeParameter>.filled(arguments.length, dummyTypeParameter);
-      for (int i = 0; i < arguments.length; i++) {
-        typeParameters[i] = supertypeTypeParameters[i];
-        typeArguments[i] = arguments[i];
-      }
-      substitutions[cls] =
-          Substitution.fromPairs(typeParameters, typeArguments);
-    }
-    return supertype;
-  }
-
-  List<Supertype> substSupertypes(
+  List<Supertype> _substSupertypes(
       Supertype supertype, List<Supertype> supertypes) {
     List<TypeParameter> typeVariables = supertype.classNode.typeParameters;
     if (typeVariables.isEmpty) {
-      debug?.log("In ${this.classBuilder.fullNameForErrors} "
-          "$supertypes aren't substed");
       return supertypes;
     }
     Map<TypeParameter, DartType> map = <TypeParameter, DartType>{};
@@ -205,112 +81,225 @@ class ClassHierarchyNodeBuilder {
       Supertype supertype = supertypes[i];
       Supertype substituted = substitution.substituteSupertype(supertype);
       if (supertype != substituted) {
-        debug?.log("In ${this.classBuilder.fullNameForErrors} $supertype"
-            " -> $substituted");
         result ??= supertypes.toList();
         result[i] = substituted;
-      } else {
-        debug?.log("In ${this.classBuilder.fullNameForErrors} "
-            "$supertype isn't substed");
       }
     }
     return result ?? supertypes;
   }
 
-  void addInterface(Map<Class, Supertype> interfaces,
+  /// The class Function from dart:core is supposed to be ignored when used as
+  /// an interface.
+  List<TypeBuilder>? _ignoreFunction(List<TypeBuilder>? interfaces) {
+    if (interfaces == null) return null;
+    for (int i = 0; i < interfaces!.length; i++) {
+      ClassBuilder? classBuilder = getClass(interfaces[i]);
+      if (classBuilder != null &&
+          classBuilder.cls == _hierarchy.functionClass) {
+        if (interfaces.length == 1) {
+          return null;
+        } else {
+          interfaces = interfaces.toList();
+          interfaces.removeAt(i);
+          return _ignoreFunction(interfaces);
+        }
+      }
+    }
+    return interfaces;
+  }
+}
+
+class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
+  final ClassBuilder _classBuilder;
+
+  ClassHierarchyNodeBuilder(super.hierarchy, this._classBuilder);
+
+  ClassBuilder get _objectClass => _hierarchy.objectClassBuilder;
+
+  @override
+  LibraryBuilder get _libraryBuilder => _classBuilder.libraryBuilder;
+
+  @override
+  String get _name => _classBuilder.name;
+
+  @override
+  int get _fileOffset => _classBuilder.charOffset;
+
+  @override
+  Uri get _fileUri => _classBuilder.fileUri;
+
+  ClassHierarchyNode build() {
+    assert(!_classBuilder.isPatch);
+    ClassHierarchyNode? supernode;
+    if (_objectClass != _classBuilder.origin) {
+      ClassBuilder? superClassBuilder =
+          getClass(_classBuilder.supertypeBuilder!);
+      supernode =
+          _hierarchy.getNodeFromClassBuilder(superClassBuilder ?? _objectClass);
+    }
+
+    List<Supertype> superclasses;
+    List<Supertype> interfacesList;
+    int maxInheritancePath;
+
+    ClassHierarchyNode? mixedInNode;
+    List<ClassHierarchyNode>? interfaceNodes;
+
+    if (_classBuilder.isMixinApplication) {
+      mixedInNode = _inferMixinApplication();
+    }
+
+    if (supernode == null) {
+      // This should be Object.
+      superclasses = new List<Supertype>.filled(0, dummySupertype);
+      interfacesList = new List<Supertype>.filled(0, dummySupertype);
+      maxInheritancePath = 0;
+    } else {
+      maxInheritancePath = supernode.maxInheritancePath + 1;
+
+      superclasses = new List<Supertype>.filled(
+          supernode.superclasses.length + 1, dummySupertype);
+      Supertype? supertype = _classBuilder.supertypeBuilder!
+          .buildSupertype(_classBuilder.libraryBuilder);
+      if (supertype == null) {
+        // If the superclass is not an interface type we use Object instead.
+        // A similar normalization is performed on [supernode] above.
+        supertype =
+            new Supertype(_hierarchy.coreTypes.objectClass, const <DartType>[]);
+      }
+      superclasses.setRange(0, superclasses.length - 1,
+          _substSupertypes(supertype, supernode.superclasses));
+      superclasses[superclasses.length - 1] = supertype;
+      if (!_classBuilder.libraryBuilder.isNonNullableByDefault &&
+          supernode.classBuilder.libraryBuilder.isNonNullableByDefault) {
+        for (int i = 0; i < superclasses.length; i++) {
+          superclasses[i] = legacyErasureSupertype(superclasses[i]);
+        }
+      }
+
+      List<TypeBuilder>? directInterfaceBuilders =
+          _ignoreFunction(_classBuilder.interfaceBuilders);
+      if (_classBuilder.isMixinApplication) {
+        if (directInterfaceBuilders == null) {
+          directInterfaceBuilders = <TypeBuilder>[
+            _classBuilder.mixedInTypeBuilder!
+          ];
+        } else {
+          directInterfaceBuilders = <TypeBuilder>[
+            _classBuilder.mixedInTypeBuilder!
+          ]..addAll(directInterfaceBuilders);
+        }
+      }
+
+      List<Supertype> superclassInterfaces = supernode.interfaces;
+      if (superclassInterfaces.isNotEmpty) {
+        superclassInterfaces =
+            _substSupertypes(supertype, superclassInterfaces);
+      }
+
+      if (directInterfaceBuilders != null) {
+        Map<Class, Supertype> interfaces = {};
+        if (superclassInterfaces.isNotEmpty) {
+          for (int i = 0; i < superclassInterfaces.length; i++) {
+            _addInterface(interfaces, superclasses, superclassInterfaces[i]);
+          }
+        }
+
+        for (int i = 0; i < directInterfaceBuilders.length; i++) {
+          Supertype? directInterface = directInterfaceBuilders[i]
+              .buildSupertype(_classBuilder.libraryBuilder);
+          if (directInterface != null) {
+            _addInterface(interfaces, superclasses, directInterface);
+            ClassHierarchyNode interfaceNode =
+                _hierarchy.getNodeFromClass(directInterface.classNode);
+            (interfaceNodes ??= []).add(interfaceNode);
+
+            if (maxInheritancePath < interfaceNode.maxInheritancePath + 1) {
+              maxInheritancePath = interfaceNode.maxInheritancePath + 1;
+            }
+
+            List<Supertype> types =
+                _substSupertypes(directInterface, interfaceNode.superclasses);
+            for (int i = 0; i < types.length; i++) {
+              _addInterface(interfaces, superclasses, types[i]);
+            }
+            if (interfaceNode.interfaces.isNotEmpty) {
+              List<Supertype> types =
+                  _substSupertypes(directInterface, interfaceNode.interfaces);
+              for (int i = 0; i < types.length; i++) {
+                _addInterface(interfaces, superclasses, types[i]);
+              }
+            }
+          }
+        }
+        interfacesList = interfaces.values.toList();
+      } else if (superclassInterfaces.isNotEmpty &&
+          !_classBuilder.libraryBuilder.isNonNullableByDefault &&
+          supernode.classBuilder.libraryBuilder.isNonNullableByDefault) {
+        Map<Class, Supertype> interfaces = {};
+        for (int i = 0; i < superclassInterfaces.length; i++) {
+          _addInterface(interfaces, superclasses, superclassInterfaces[i]);
+        }
+        interfacesList = interfaces.values.toList();
+      } else {
+        interfacesList = superclassInterfaces;
+      }
+    }
+
+    return new ClassHierarchyNode(_classBuilder, supernode, mixedInNode,
+        interfaceNodes, superclasses, interfacesList, maxInheritancePath);
+  }
+
+  void _addInterface(Map<Class, Supertype> interfaces,
       List<Supertype> superclasses, Supertype type) {
-    if (!classBuilder.libraryBuilder.isNonNullableByDefault) {
+    if (!_libraryBuilder.isNonNullableByDefault) {
       type = legacyErasureSupertype(type);
     }
-    ClassHierarchyNode node = hierarchy.getNodeFromClass(type.classNode);
+    ClassHierarchyNode node = _hierarchy.getNodeFromClass(type.classNode);
     int depth = node.depth;
     int myDepth = superclasses.length;
     Supertype? superclass = depth < myDepth ? superclasses[depth] : null;
     if (superclass != null && superclass.classNode == type.classNode) {
       // This is a potential conflict.
-      if (classBuilder.libraryBuilder.isNonNullableByDefault) {
-        superclass = nnbdTopMergeSupertype(
-            hierarchy.coreTypes,
-            normSupertype(hierarchy.coreTypes, superclass),
-            normSupertype(hierarchy.coreTypes, type));
-        if (superclass == null) {
-          // This is a conflict.
-          // TODO(johnniwinther): Report errors here instead of through
-          // the computation of the [ClassHierarchy].
-          superclass = superclasses[depth];
-        } else {
-          superclasses[depth] = superclass;
-        }
-      }
+      superclasses[depth] = _resolveSupertypeConflict(type, superclass);
       return;
     } else {
       Supertype? interface = interfaces[type.classNode];
       if (interface != null) {
         // This is a potential conflict.
-        if (classBuilder.libraryBuilder.isNonNullableByDefault) {
-          interface = nnbdTopMergeSupertype(
-              hierarchy.coreTypes,
-              normSupertype(hierarchy.coreTypes, interface),
-              normSupertype(hierarchy.coreTypes, type));
-          if (interface == null) {
-            // This is a conflict.
-            // TODO(johnniwinther): Report errors here instead of through
-            // the computation of the [ClassHierarchy].
-          } else {
-            interfaces[type.classNode] = interface;
-          }
-        }
+        interfaces[type.classNode] = _resolveSupertypeConflict(type, interface);
         return;
       }
     }
     interfaces[type.classNode] = type;
   }
 
-  ClassHierarchyNode? inferMixinApplication() {
-    Class cls = classBuilder.cls;
+  ClassHierarchyNode? _inferMixinApplication() {
+    Class cls = _classBuilder.cls;
     Supertype? mixedInType = cls.mixedInType;
     if (mixedInType == null) return null;
     ClassHierarchyNode? mixinNode =
-        hierarchy.getNodeFromClass(mixedInType.classNode);
+        _hierarchy.getNodeFromClass(mixedInType.classNode);
     List<DartType> typeArguments = mixedInType.typeArguments;
     if (typeArguments.isEmpty || typeArguments.first is! UnknownType) {
       return mixinNode;
     }
     new BuilderMixinInferrer(
-            classBuilder,
-            hierarchy.coreTypes,
+            _classBuilder,
+            _hierarchy.coreTypes,
             new TypeBuilderConstraintGatherer(
-                hierarchy, mixedInType.classNode.typeParameters,
+                _hierarchy, mixedInType.classNode.typeParameters,
                 isNonNullableByDefault:
                     cls.enclosingLibrary.isNonNullableByDefault))
         .infer(cls);
     List<TypeBuilder> inferredArguments = new List<TypeBuilder>.generate(
         typeArguments.length,
-        (int i) => hierarchy.loader.computeTypeBuilder(typeArguments[i]),
+        (int i) => _hierarchy.loader.computeTypeBuilder(typeArguments[i]),
         growable: false);
     NamedTypeBuilder mixedInTypeBuilder =
-        classBuilder.mixedInTypeBuilder as NamedTypeBuilder;
+        _classBuilder.mixedInTypeBuilder as NamedTypeBuilder;
     mixedInTypeBuilder.arguments = inferredArguments;
     return mixinNode;
-  }
-
-  /// The class Function from dart:core is supposed to be ignored when used as
-  /// an interface.
-  List<TypeBuilder>? ignoreFunction(List<TypeBuilder>? interfaces) {
-    if (interfaces == null) return null;
-    for (int i = 0; i < interfaces!.length; i++) {
-      ClassBuilder? classBuilder = getClass(interfaces[i]);
-      if (classBuilder != null && classBuilder.cls == hierarchy.functionClass) {
-        if (interfaces.length == 1) {
-          return null;
-        } else {
-          interfaces = interfaces.toList();
-          interfaces.removeAt(i);
-          return ignoreFunction(interfaces);
-        }
-      }
-    }
-    return interfaces;
   }
 }
 
@@ -413,6 +402,212 @@ class ClassHierarchyNode {
   }
 }
 
+class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
+  final ExtensionTypeDeclarationBuilder _extensionTypeBuilder;
+
+  ExtensionTypeHierarchyNodeBuilder(
+      super._hierarchy, this._extensionTypeBuilder);
+
+  @override
+  LibraryBuilder get _libraryBuilder => _extensionTypeBuilder.libraryBuilder;
+
+  @override
+  String get _name => _extensionTypeBuilder.name;
+
+  @override
+  int get _fileOffset => _extensionTypeBuilder.charOffset;
+
+  @override
+  Uri get _fileUri => _extensionTypeBuilder.fileUri;
+
+  ExtensionTypeHierarchyNode build() {
+    assert(!_extensionTypeBuilder.isPatch);
+    Map<Class, Supertype> superclasses = {};
+    Map<ExtensionTypeDeclaration, ExtensionType> superExtensionTypes = {};
+    List<ClassHierarchyNode>? superclassNodes;
+    List<ExtensionTypeHierarchyNode>? superExtensionTypeNodes;
+    int maxInheritancePath = 1;
+
+    List<TypeBuilder>? directInterfaceBuilders =
+        _ignoreFunction(_extensionTypeBuilder.interfaceBuilders);
+    if (directInterfaceBuilders != null) {
+      for (int i = 0; i < directInterfaceBuilders.length; i++) {
+        DartType directInterface = directInterfaceBuilders[i]
+            .build(_extensionTypeBuilder.libraryBuilder, TypeUse.superType);
+        if (directInterface is InterfaceType) {
+          Supertype supertype = new Supertype.byReference(
+              directInterface.classReference, directInterface.typeArguments);
+          _addSuperClass(superclasses, supertype);
+          ClassHierarchyNode interfaceNode =
+              _hierarchy.getNodeFromClass(directInterface.classNode);
+          (superclassNodes ??= []).add(interfaceNode);
+
+          if (maxInheritancePath < interfaceNode.maxInheritancePath + 1) {
+            maxInheritancePath = interfaceNode.maxInheritancePath + 1;
+          }
+
+          List<Supertype> types =
+              _substSupertypes(supertype, interfaceNode.superclasses);
+          for (int i = 0; i < types.length; i++) {
+            _addSuperClass(superclasses, types[i]);
+          }
+          if (interfaceNode.interfaces.isNotEmpty) {
+            List<Supertype> types =
+                _substSupertypes(supertype, interfaceNode.interfaces);
+            for (int i = 0; i < types.length; i++) {
+              _addSuperClass(superclasses, types[i]);
+            }
+          }
+        } else if (directInterface is ExtensionType) {
+          _addSuperExtensionType(superExtensionTypes, directInterface);
+          ExtensionTypeHierarchyNode interfaceNode =
+              _hierarchy.getNodeFromExtensionType(
+                  directInterface.extensionTypeDeclaration);
+          (superExtensionTypeNodes ??= []).add(interfaceNode);
+
+          if (maxInheritancePath < interfaceNode.maxInheritancePath + 1) {
+            maxInheritancePath = interfaceNode.maxInheritancePath + 1;
+          }
+
+          List<ExtensionType> types = _substSuperExtensionTypes(
+              directInterface, interfaceNode.superExtensionTypes);
+          for (int i = 0; i < types.length; i++) {
+            _addSuperExtensionType(superExtensionTypes, types[i]);
+          }
+          if (interfaceNode.superExtensionTypes.isNotEmpty) {
+            List<ExtensionType> types = _substSuperExtensionTypes(
+                directInterface, interfaceNode.superExtensionTypes);
+            for (int i = 0; i < types.length; i++) {
+              _addSuperExtensionType(superExtensionTypes, types[i]);
+            }
+          }
+        }
+      }
+    }
+
+    return new ExtensionTypeHierarchyNode(
+        _extensionTypeBuilder,
+        superclasses.values.toList(),
+        superExtensionTypes.values.toList(),
+        superclassNodes,
+        superExtensionTypeNodes,
+        maxInheritancePath);
+  }
+
+  void _addSuperClass(Map<Class, Supertype> superClasses, Supertype type) {
+    if (!_libraryBuilder.isNonNullableByDefault) {
+      type = legacyErasureSupertype(type);
+    }
+    Supertype? interface = superClasses[type.classNode];
+    if (interface != null) {
+      // This is a potential conflict.
+      superClasses[type.classNode] = _resolveSupertypeConflict(type, interface);
+      return;
+    }
+    superClasses[type.classNode] = type;
+  }
+
+  ExtensionType _resolveSuperExtensionTypeConflict(
+      ExtensionType type, ExtensionType superclass) {
+    if (_libraryBuilder.isNonNullableByDefault) {
+      DartType? merge = nnbdTopMerge(
+          _hierarchy.coreTypes,
+          norm(_hierarchy.coreTypes, superclass),
+          norm(_hierarchy.coreTypes, type));
+      if (merge != null) {
+        return merge as ExtensionType;
+      }
+    } else if (type == superclass) {
+      return superclass;
+    }
+    LibraryBuilder libraryBuilder = _libraryBuilder;
+    if (libraryBuilder is SourceLibraryBuilder) {
+      libraryBuilder.addProblem(
+          templateAmbiguousSupertypes.withArguments(
+              _name, superclass, type, libraryBuilder.isNonNullableByDefault),
+          _fileOffset,
+          noLength,
+          _fileUri);
+    }
+    return superclass;
+  }
+
+  void _addSuperExtensionType(
+      Map<ExtensionTypeDeclaration, ExtensionType> interfaces,
+      ExtensionType type) {
+    if (!_libraryBuilder.isNonNullableByDefault) {
+      type = legacyErasure(type) as ExtensionType;
+    }
+    ExtensionType? interface = interfaces[type.extensionTypeDeclaration];
+    if (interface != null) {
+      // This is a potential conflict.
+      interfaces[type.extensionTypeDeclaration] =
+          _resolveSuperExtensionTypeConflict(type, interface);
+      return;
+    }
+    interfaces[type.extensionTypeDeclaration] = type;
+  }
+
+  List<ExtensionType> _substSuperExtensionTypes(
+      ExtensionType superExtensionType,
+      List<ExtensionType> superExtensionTypes) {
+    List<TypeParameter> typeVariables =
+        superExtensionType.extensionTypeDeclaration.typeParameters;
+    if (typeVariables.isEmpty) {
+      return superExtensionTypes;
+    }
+    Map<TypeParameter, DartType> map = <TypeParameter, DartType>{};
+    List<DartType> arguments = superExtensionType.typeArguments;
+    for (int i = 0; i < typeVariables.length; i++) {
+      map[typeVariables[i]] = arguments[i];
+    }
+    Substitution substitution = Substitution.fromMap(map);
+    List<ExtensionType>? result;
+    for (int i = 0; i < superExtensionTypes.length; i++) {
+      ExtensionType supertype = superExtensionTypes[i];
+      ExtensionType substituted =
+          substitution.substituteType(supertype) as ExtensionType;
+      if (supertype != substituted) {
+        result ??= superExtensionTypes.toList();
+        result[i] = substituted;
+      }
+    }
+    return result ?? superExtensionTypes;
+  }
+}
+
+class ExtensionTypeHierarchyNode {
+  /// The extension type corresponding to this hierarchy node.
+  final ExtensionTypeDeclarationBuilder extensionTypeBuilder;
+
+  /// The list of all classes implemented by [extensionTypeBuilder] and its
+  /// superclasses.
+  final List<Supertype> superclasses;
+
+  /// The list of all extension types implemented by [extensionTypeBuilder]
+  /// and its super extension types.
+  final List<ExtensionType> superExtensionTypes;
+
+  /// The [ClassHierarchyNode]s for the direct superclasses of
+  /// [extensionTypeBuilder].
+  final List<ClassHierarchyNode>? directSuperclassNodes;
+
+  /// The [ExtensionTypeHierarchyNode]s for the direct super extension types of
+  /// [extensionTypeBuilder].
+  final List<ExtensionTypeHierarchyNode>? directSuperExtensionTypeNodes;
+
+  /// The longest inheritance path from [extensionTypeBuilder] to `Object`.
+  final int maxInheritancePath;
+
+  ExtensionTypeHierarchyNode(
+      this.extensionTypeBuilder,
+      this.superclasses,
+      this.superExtensionTypes,
+      this.directSuperclassNodes,
+      this.directSuperExtensionTypeNodes,
+      this.maxInheritancePath);
+}
+
 ClassBuilder? getClass(TypeBuilder type) {
   Builder? declaration = type.declaration;
   if (declaration is TypeAliasBuilder) {
@@ -421,12 +616,4 @@ ClassBuilder? getClass(TypeBuilder type) {
     declaration = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
   }
   return declaration is ClassBuilder ? declaration : null;
-}
-
-const DebugLogger? debug =
-    const bool.fromEnvironment("debug.hierarchy") ? const DebugLogger() : null;
-
-class DebugLogger {
-  const DebugLogger();
-  void log(Object message) => print(message);
 }

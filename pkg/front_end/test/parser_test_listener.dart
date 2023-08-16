@@ -261,18 +261,6 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
-      Token? hideKeyword, int hideElementCount) {
-    seen(showKeyword);
-    seen(hideKeyword);
-    doPrint('handleExtensionShowHide('
-        '$showKeyword, '
-        '$showElementCount, '
-        '$hideKeyword, '
-        '$hideElementCount)');
-  }
-
-  @override
   void handleClassHeader(Token begin, Token classKeyword, Token? nativeToken) {
     seen(begin);
     seen(classKeyword);
@@ -356,22 +344,56 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token endToken) {
     indent--;
     seen(extensionKeyword);
-    seen(typeKeyword);
     seen(onKeyword);
-    seen(showKeyword);
-    seen(hideKeyword);
     seen(endToken);
     doPrint('endExtensionDeclaration('
         '$extensionKeyword, '
-        '$typeKeyword, '
         '$onKeyword, '
-        '$showKeyword, '
-        '$hideKeyword, '
         '$endToken)');
+  }
+
+  @override
+  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+    seen(extensionKeyword);
+    seen(name);
+    doPrint('beginExtensionTypeDeclaration(' '$extensionKeyword, ' '$name)');
+    indent++;
+  }
+
+  @override
+  void endExtensionTypeDeclaration(
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
+    indent--;
+    seen(extensionKeyword);
+    seen(typeKeyword);
+    seen(endToken);
+    doPrint('endExtensionTypeDeclaration('
+        '$extensionKeyword, '
+        '$typeKeyword, '
+        '$endToken)');
+  }
+
+  @override
+  void beginPrimaryConstructor(Token beginToken) {
+    seen(beginToken);
+    doPrint('beginPrimaryConstructor(' '$beginToken)');
+    indent++;
+  }
+
+  @override
+  void endPrimaryConstructor(
+      Token beginToken, Token? constKeyword, bool hasConstructorName) {
+    indent--;
+    seen(beginToken);
+    seen(constKeyword);
+    doPrint('endPrimaryConstructor('
+        '$beginToken, '
+        '$constKeyword, '
+        '$hasConstructorName)');
   }
 
   @override
@@ -632,6 +654,19 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void endExtensionTypeFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    indent--;
+    seen(beginToken);
+    seen(factoryKeyword);
+    seen(endToken);
+    doPrint('endExtensionTypeFactoryMethod('
+        '$beginToken, '
+        '$factoryKeyword, '
+        '$endToken)');
+  }
+
+  @override
   void beginFormalParameter(Token token, MemberKind kind, Token? requiredToken,
       Token? covariantToken, Token? varFinalOrConst) {
     seen(token);
@@ -794,6 +829,41 @@ class ParserTestListener implements Listener {
     seen(beginToken);
     seen(endToken);
     doPrint('endExtensionFields('
+        '$abstractToken, '
+        '$augmentToken, '
+        '$externalToken, '
+        '$staticToken, '
+        '$covariantToken, '
+        '$lateToken, '
+        '$varFinalOrConst, '
+        '$count, '
+        '$beginToken, '
+        '$endToken)');
+  }
+
+  @override
+  void endExtensionTypeFields(
+      Token? abstractToken,
+      Token? augmentToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    indent--;
+    seen(abstractToken);
+    seen(augmentToken);
+    seen(externalToken);
+    seen(staticToken);
+    seen(covariantToken);
+    seen(lateToken);
+    seen(varFinalOrConst);
+    seen(beginToken);
+    seen(endToken);
+    doPrint('endExtensionTypeFields('
         '$abstractToken, '
         '$augmentToken, '
         '$externalToken, '
@@ -1611,6 +1681,23 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void endExtensionTypeMethod(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    indent--;
+    seen(getOrSet);
+    seen(beginToken);
+    seen(beginParam);
+    seen(beginInitializers);
+    seen(endToken);
+    doPrint('endExtensionTypeMethod('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
+  }
+
+  @override
   void endClassConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     indent--;
@@ -1654,6 +1741,23 @@ class ParserTestListener implements Listener {
     seen(beginInitializers);
     seen(endToken);
     doPrint('endExtensionConstructor('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
+  }
+
+  @override
+  void endExtensionTypeConstructor(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    indent--;
+    seen(getOrSet);
+    seen(beginToken);
+    seen(beginParam);
+    seen(beginInitializers);
+    seen(endToken);
+    doPrint('endExtensionTypeConstructor('
         '$getOrSet, '
         '$beginToken, '
         '$beginParam, '
@@ -3111,40 +3215,6 @@ class ParserTestListener implements Listener {
   void handleScript(Token token) {
     seen(token);
     doPrint('handleScript(' '$token)');
-  }
-
-  @override
-  void handleCommentReferenceText(String referenceSource, int referenceOffset) {
-    doPrint(
-        'handleCommentReferenceText(' '$referenceSource, ' '$referenceOffset)');
-  }
-
-  @override
-  void handleCommentReference(
-      Token? newKeyword,
-      Token? firstToken,
-      Token? firstPeriod,
-      Token? secondToken,
-      Token? secondPeriod,
-      Token thirdToken) {
-    seen(newKeyword);
-    seen(firstToken);
-    seen(firstPeriod);
-    seen(secondToken);
-    seen(secondPeriod);
-    seen(thirdToken);
-    doPrint('handleCommentReference('
-        '$newKeyword, '
-        '$firstToken, '
-        '$firstPeriod, '
-        '$secondToken, '
-        '$secondPeriod, '
-        '$thirdToken)');
-  }
-
-  @override
-  void handleNoCommentReference() {
-    doPrint('handleNoCommentReference()');
   }
 
   @override

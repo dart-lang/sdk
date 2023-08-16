@@ -139,6 +139,7 @@ src/org/dartlang/vm/service/element/Timestamp.java
 src/org/dartlang/vm/service/element/TypeArguments.java
 src/org/dartlang/vm/service/element/TypeArgumentsRef.java
 src/org/dartlang/vm/service/element/TypeParameters.java
+src/org/dartlang/vm/service/element/TypeParametersRef.java
 src/org/dartlang/vm/service/element/UnresolvedSourceLocation.java
 src/org/dartlang/vm/service/element/UriList.java
 src/org/dartlang/vm/service/element/VM.java

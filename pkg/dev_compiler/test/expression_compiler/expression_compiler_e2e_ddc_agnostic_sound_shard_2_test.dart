@@ -8,8 +8,9 @@ import 'package:test/test.dart';
 
 import 'expression_compiler_e2e_shared.dart';
 import 'expression_compiler_e2e_suite.dart';
+import 'setup_compiler_options.dart';
 
-void main() async {
+void main(List<String> args) async {
   var driver = await TestDriver.init();
 
   group('(Sound null safety) (Agnostic code shard 2)', () {
@@ -19,9 +20,11 @@ void main() async {
 
     group('(DDC module system)', () {
       var setup = SetupCompilerOptions(
-          soundNullSafety: true,
-          legacyCode: false,
-          moduleFormat: ModuleFormat.ddc);
+        soundNullSafety: true,
+        legacyCode: false,
+        moduleFormat: ModuleFormat.ddc,
+        args: args,
+      );
       runAgnosticSharedTestsShard2(setup, driver);
     });
   });

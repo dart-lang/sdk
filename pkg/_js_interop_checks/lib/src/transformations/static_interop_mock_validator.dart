@@ -12,8 +12,11 @@ import 'package:_js_interop_checks/js_interop_checks.dart'
     show JsInteropDiagnosticReporter;
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
 import 'package:front_end/src/fasta/fasta_codes.dart'
-    show templateJsInteropStaticInteropMockNotStaticInteropType;
+    show
+        templateJsInteropStaticInteropMockNotStaticInteropType,
+        templateJsInteropStaticInteropMockTypeParametersNotAllowed;
 import 'package:kernel/ast.dart';
+import 'package:kernel/src/replacement_visitor.dart';
 import 'package:kernel/type_environment.dart';
 
 import 'export_checker.dart';
@@ -26,9 +29,10 @@ class StaticInteropMockValidator {
   // members and those members' export names.
   final Map<Class, Map<String, Set<ExtensionMemberDescriptor>>>
       _staticInteropExportNameToDescriptorMap = {};
-  final TypeEnvironment _typeEnvironment;
   late final Map<Reference, Set<Extension>>
       _staticInteropClassesWithExtensions = _computeStaticInteropExtensionMap();
+  final TypeEnvironment _typeEnvironment;
+  final TypeParameterResolver typeParameterResolver = TypeParameterResolver();
   StaticInteropMockValidator(
       this._diagnosticReporter, this._exportChecker, this._typeEnvironment);
 
@@ -43,6 +47,48 @@ class StaticInteropMockValidator {
           node.name.text.length,
           node.location?.file);
       return false;
+    } else {
+      return _validateNoTypeParametersInTypeArgument(node, staticInteropType);
+    }
+  }
+
+  bool validateDartTypeArgument(StaticInvocation node, DartType dartType) =>
+      _validateNoTypeParametersInTypeArgument(node, dartType);
+
+  /// Validate that [type] argument does not pass type arguments beyond the
+  /// bounds.
+  ///
+  /// [node] is the createStaticInteropMock call that [type] occurs in.
+  ///
+  /// We do this check because reasoning about type arguments beyond their
+  /// bounds is complex and requires substitution in multiple places. It gets
+  /// even more complex when you have to account for extensions and supertypes
+  /// having their own type parameters too. In order to properly handle all
+  /// these cases, we'd have to keep constraints around and see what extensions
+  /// apply and what extensions don't. This may be simpler to do for inline
+  /// classes/extension types, as all the members are in the class and not in an
+  /// extension, but for now, we require that users must implement members with
+  /// type parameters based on their bounds.
+  ///
+  /// Returns whether the validation passed.
+  bool _validateNoTypeParametersInTypeArgument(
+      StaticInvocation node, DartType type) {
+    if (type is InterfaceType) {
+      final typeArguments = type.typeArguments;
+      final typeParams = type.classNode.typeParameters;
+      for (var i = 0; i < typeParams.length; i++) {
+        final arg = typeArguments[i];
+        // Uninstantiated type parameters are replaced with dynamic by the CFE.
+        if (arg is! DynamicType && arg != typeParams[i].bound) {
+          _diagnosticReporter.report(
+              templateJsInteropStaticInteropMockTypeParametersNotAllowed
+                  .withArguments(type, true),
+              node.fileOffset,
+              node.name.text.length,
+              node.location?.file);
+          return false;
+        }
+      }
     }
     return true;
   }
@@ -72,6 +118,7 @@ class StaticInteropMockValidator {
             type = FunctionType([type], VoidType(), Nullability.nonNullable);
             name += '=';
           }
+          type = typeParameterResolver.resolve(type);
           return '$extension.$name ($type)';
         }).toList()
           ..sort();
@@ -161,15 +208,17 @@ class StaticInteropMockValidator {
       return interopMember.function.positionalParameters[1].type;
     } else {
       assert(interopDescriptor.isMethod);
-      var interopMemberType =
-          interopMember.function.computeFunctionType(Nullability.nonNullable);
+      // We don't care about the method's own type parameters to determine
+      // subtyping. We simply substitute them by their bounds, if any.
+      final interopMemberType = interopMember.function
+          .computeThisFunctionType(Nullability.nonNullable)
+          .withoutTypeParameters;
       // Ignore the first argument `this` in the generated procedure.
       return FunctionType(
           interopMemberType.positionalParameters.skip(1).toList(),
           interopMemberType.returnType,
           interopMemberType.declaredNullability,
           namedParameters: interopMemberType.namedParameters,
-          typeParameters: interopMemberType.typeParameters,
           requiredParameterCount: interopMemberType.requiredParameterCount - 1);
     }
   }
@@ -190,8 +239,12 @@ class StaticInteropMockValidator {
     }
 
     bool isSubtypeOf(DartType dartType, DartType interopType) {
+      // Remove and substitute type parameters with their bounds/instantiated
+      // type arguments.
       return _typeEnvironment.isSubtypeOf(
-          dartType, interopType, SubtypeCheckMode.withNullabilities);
+          typeParameterResolver.resolve(dartType),
+          typeParameterResolver.resolve(interopType),
+          SubtypeCheckMode.withNullabilities);
     }
 
     var interopType = _getTypeOfDescriptor(interopDescriptor);
@@ -208,7 +261,8 @@ class StaticInteropMockValidator {
       if (!isSubtypeOf(
           (dartMember as Procedure)
               .function
-              .computeFunctionType(Nullability.nonNullable),
+              .computeThisFunctionType(Nullability.nonNullable)
+              .withoutTypeParameters,
           interopType)) {
         return false;
       }
@@ -300,5 +354,20 @@ class StaticInteropMockValidator {
 
     return _staticInteropExportNameToDescriptorMap[staticInteropClass] =
         exportNameToDescriptors;
+  }
+}
+
+/// Visitor that replaces each type parameter with its bound.
+///
+/// We use this to determine conformance of interop methods that use type
+/// parameters.
+class TypeParameterResolver extends ReplacementVisitor {
+  @override
+  DartType? visitTypeParameterType(TypeParameterType node, int variance) {
+    return node.resolveTypeParameterType;
+  }
+
+  DartType resolve(DartType node) {
+    return node.accept1(this, Variance.unrelated) ?? node;
   }
 }

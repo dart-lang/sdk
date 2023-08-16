@@ -299,13 +299,33 @@ class PatternAssignmentAnalysisResult<Type extends Object>
   });
 }
 
+/// Container for the result of running type analysis on a pattern variable
+/// declaration.
+class PatternVariableDeclarationAnalysisResult<Type extends Object> {
+  /// The type schema of the pattern on the left hand size of the declaration.
+  final Type patternSchema;
+
+  /// The type of the initializer expression.
+  final Type initializerType;
+
+  PatternVariableDeclarationAnalysisResult({
+    required this.patternSchema,
+    required this.initializerType,
+  });
+}
+
 /// Result for analyzing a pattern-for-in statement or element in
 /// [TypeAnalyzer.analyzePatternForIn].
-class PatternForInResult<Error> {
+class PatternForInResult<Type extends Object, Error> {
+  /// The static type of the elements of the for in expression.
+  final Type elementType;
+
   /// Error for when the expression is not an iterable.
   final Error? patternForInExpressionIsNotIterableError;
 
-  PatternForInResult({required this.patternForInExpressionIsNotIterableError});
+  PatternForInResult(
+      {required this.elementType,
+      required this.patternForInExpressionIsNotIterableError});
 }
 
 /// Result for analyzing a record pattern in

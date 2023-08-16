@@ -17,9 +17,9 @@ static method test() → dynamic {
                       ^" in 0 as{TypeError} core::Iterable<dynamic>) {
     hoisted core::int x;
     {
-      final synthesized dynamic #0#0 = #t1;
-      late final synthesized invalid-type #0#6 = (#0#0 as{Unchecked} invalid-type).{core::List::[]}(0){(core::int) → invalid-type};
-      if(!(#0#0{invalid-type} is core::List<invalid-type> && #0#0{invalid-type}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is core::int && (let final dynamic #t2 = x = #0#6 in true))))
+      final synthesized invalid-type #0#0 = #t1;
+      late final synthesized invalid-type #0#6 = #0#0.{core::List::[]}(0){(core::int) → invalid-type};
+      if(!(#0#0 is core::List<invalid-type> && #0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is core::int && (let final dynamic #t2 = x = #0#6 in true))))
         throw new core::StateError::•("Pattern matching error");
     }
   }

@@ -13,11 +13,6 @@
     "Dynamic access of 'start'.": 1,
     "Dynamic access of 'boolValue'.": 2
   },
-  "pkg/kernel/lib/transformations/value_class.dart": {
-    "Dynamic access of 'text'.": 2,
-    "Dynamic access of 'name'.": 2,
-    "Dynamic access of 'type'.": 1
-  },
   "pkg/front_end/lib/src/fasta/dill/dill_member_builder.dart": {
     "Dynamic access of 'fileUri'.": 1
   }

@@ -12,271 +12,15 @@ Update instructions: https://github.com/dart-lang/site-www/issues/1949
 This page lists diagnostic messages produced by the Dart analyzer,
 with details about what those messages mean and how you can fix your code.
 For more information about the analyzer, see
-[Customizing static analysis](/guides/language/analysis-options).
+[Customizing static analysis](/tools/analysis).
 
-## Glossary
-
-This page uses the following terms:
-
-* [constant context][]
-* [definite assignment][]
-* [mixin application][]
-* [override inference][]
-* [part file][]
-* [potentially non-nullable][]
-* [public library][]
-
-[constant context]: #constant-context
-[definite assignment]: #definite-assignment
-[mixin application]: #mixin-application
-[override inference]: #override-inference
-[part file]: #part-file
-[potentially non-nullable]: #potentially-non-nullable
-[public library]: #public-library
-
-### Constant context
-
-A _constant context_ is a region of code in which it isn't necessary to include
-the `const` keyword because it's implied by the fact that everything in that
-region is required to be a constant. The following locations are constant
-contexts:
-
-* Everything inside a list, map or set literal that's prefixed by the
-  `const` keyword. Example:
-
-  ```dart
-  var l = const [/*constant context*/];
-  ```
-
-* The arguments inside an invocation of a constant constructor. Example:
-
-  ```dart
-  var p = const Point(/*constant context*/);
-  ```
-
-* The initializer for a variable that's prefixed by the `const` keyword.
-  Example:
-
-  ```dart
-  const v = /*constant context*/;
-  ```
-
-* Annotations
-
-* The expression in a `case` clause. Example:
-
-  ```dart
-  void f(int e) {
-    switch (e) {
-      case /*constant context*/:
-        break;
-    }
-  }
-  ```
-
-### Definite assignment
-
-Definite assignment analysis is the process of determining, for each local
-variable at each point in the code, which of the following is true:
-- The variable has definitely been assigned a value (_definitely assigned_).
-- The variable has definitely not been assigned a value (_definitely
-  unassigned_).
-- The variable might or might not have been assigned a value, depending on the
-  execution path taken to arrive at that point.
-
-Definite assignment analysis helps find problems in code, such as places where a
-variable that might not have been assigned a value is being referenced, or
-places where a variable that can only be assigned a value one time is being
-assigned after it might already have been assigned a value.
-
-For example, in the following code the variable `s` is definitely unassigned
-when it’s passed as an argument to `print`:
-
-```dart
-void f() {
-  String s;
-  print(s);
-}
-```
-
-But in the following code, the variable `s` is definitely assigned:
-
-```dart
-void f(String name) {
-  String s = 'Hello $name!';
-  print(s);
-}
-```
-
-Definite assignment analysis can even tell whether a variable is definitely
-assigned (or unassigned) when there are multiple possible execution paths. In
-the following code the `print` function is called if execution goes through
-either the true or the false branch of the `if` statement, but because `s` is
-assigned no matter which branch is taken, it’s definitely assigned before it’s
-passed to `print`:
-
-```dart
-void f(String name, bool casual) {
-  String s;
-  if (casual) {
-    s = 'Hi $name!';
-  } else {
-    s = 'Hello $name!';
-  }
-  print(s);
-}
-```
-
-In flow analysis, the end of the `if` statement is referred to as a _join_—a
-place where two or more execution paths merge back together. Where there's a
-join, the analysis says that a variable is definitely assigned if it’s
-definitely assigned along all of the paths that are merging, and definitely
-unassigned if it’s definitely unassigned along all of the paths.
-
-Sometimes a variable is assigned a value on one path but not on another, in
-which case the variable might or might not have been assigned a value. In the
-following example, the true branch of the `if` statement might or might not be
-executed, so the variable might or might be assigned a value:
-
-```dart
-void f(String name, bool casual) {
-  String s;
-  if (casual) {
-    s = 'Hi $name!';
-  }
-  print(s);
-}
-```
-
-The same is true if there is a false branch that doesn’t assign a value to `s`.
-
-The analysis of loops is a little more complicated, but it follows the same
-basic reasoning. For example, the condition in a `while` loop is always
-executed, but the body might or might not be. So just like an `if` statement,
-there's a join at the end of the `while` statement between the path in which the
-condition is `true` and the path in which the condition is `false`.
-
-For additional details, see the
-[specification of definite assignment][definiteAssignmentSpec].
-
-[definiteAssignmentSpec]: https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md
-
-### Mixin application
-
-A _mixin application_ is the class created when a mixin is applied to a class.
-For example, consider the following declarations:
-
-```dart
-class A {}
-
-mixin M {}
-
-class B extends A with M {}
-```
-
-The class `B` is a subclass of the mixin application of `M` to `A`, sometimes
-nomenclated as `A+M`. The class `A+M` is a subclass of `A` and has members that
-are copied from `M`.
-
-You can give an actual name to a mixin application by defining it as:
-
-```dart
-class A {}
-
-mixin M {}
-
-class A_M = A with M;
-```
-
-Given this declaration of `A_M`, the following declaration of `B` is equivalent
-to the declaration of `B` in the original example:
-
-```dart
-class B extends A_M {}
-```
-
-### Override inference
-
-Override inference is the process by which any missing types in a method
-declaration are inferred based on the corresponding types from the method or
-methods that it overrides.
-
-If a candidate method (the method that's missing type information) overrides a
-single inherited method, then the corresponding types from the overridden method
-are inferred. For example, consider the following code:
-
-```dart
-class A {
-  int m(String s) => 0;
-}
-
-class B extends A {
-  @override
-  m(s) => 1;
-}
-```
-
-The declaration of `m` in `B` is a candidate because it's missing both the
-return type and the parameter type. Because it overrides a single method (the
-method `m` in `A`), the types from the overridden method will be used to infer
-the missing types and it will be as if the method in `B` had been declared as
-`int m(String s) => 1;`.
-
-If a candidate method overrides multiple methods, and the function type one of
-those overridden methods, M<sub>s</sub>, is a supertype of the function types of
-all of the other overridden methods, then M<sub>s</sub> is used to infer the
-missing types. For example, consider the following code:
-
-```dart
-class A {
-  int m(num n) => 0;
-}
-
-class B {
-  num m(int i) => 0;
-}
-
-class C implements A, B {
-  @override
-  m(n) => 1;
-}
-```
-
-The declaration of `m` in `C` is a candidate for override inference because it's
-missing both the return type and the parameter type. It overrides both `m` in
-`A` and `m` in `B`, so we need to choose one of them from which the missing
-types can be inferred. But because the function type of `m` in `A`
-(`int Function(num)`) is a supertype of the function type of `m` in `B`
-(`num Function(int)`), the function in `A` is used to infer the missing types.
-The result is the same as declaring the method in `C` as `int m(num n) => 1;`.
-
-It is an error if none of the overridden methods has a function type that is a
-supertype of all the other overridden methods.
-
-### Part file
-
-A part file is a Dart source file that contains a `part of` directive.
-
-### Potentially non-nullable
-
-A type is _potentially non-nullable_ if it's either explicitly non-nullable or
-if it's a type parameter.
-
-A type is explicitly non-nullable if it is a type name that isn't followed by a
-question mark. Note that there are a few types that are always nullable, such as
-`Null` and `dynamic`, and that `FutureOr` is only non-nullable if it isn't
-followed by a question mark _and_ the type argument is non-nullable (such as
-`FutureOr<String>`).
-
-Type parameters are potentially non-nullable because the actual runtime type
-(the type specified as a type argument) might be non-nullable. For example,
-given a declaration of `class C<T> {}`, the type `C` could be used with a
-non-nullable type argument as in `C<int>`.
-
-### Public library
-
-A public library is a library that is located inside the package's `lib`
-directory but not inside the `lib/src` directory.
+[constant context]: /resources/glossary#constant-context
+[definite assignment]: /resources/glossary#definite-assignment
+[mixin application]: /resources/glossary#mixin-application
+[override inference]: /resources/glossary#override-inference
+[part file]: /resources/glossary#part-file
+[potentially non-nullable]: /resources/glossary#potentially-non-nullable
+[public library]: /resources/glossary#public-library
 
 ## Diagnostics
 
@@ -2849,8 +2593,9 @@ The following code produces this diagnostic because the field `s` is
 initialized to a non-constant value:
 
 {% prettify dart tag=pre+code %}
+String x = '3';
 class C {
-  final String s = 3.toString();
+  final String s = x;
   [!const!] C();
 }
 {% endprettify %}
@@ -2871,8 +2616,9 @@ If the field can't be initialized to a constant value, then remove the
 keyword `const` from the constructor:
 
 {% prettify dart tag=pre+code %}
+String x = '3';
 class C {
-  final String s = 3.toString();
+  final String s = x;
   C();
 }
 {% endprettify %}
@@ -10411,6 +10157,50 @@ void f(Object? x) {
 }
 {% endprettify %}
 
+### invalid_platforms_field
+
+_The 'platforms' field must be a map with platforms as keys._
+
+#### Description
+
+The analyzer produces this diagnostic when a top-level `platforms`
+field is specified, but its value is not a map with keys.
+See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
+for details.
+
+#### Example
+
+The following `pubspec.yaml` produces this diagnostic because `platforms`
+should be a map.
+
+```yaml
+name: example
+platforms:
+  [!- android
+  - web
+  - ios!]
+```
+
+#### Common fixes
+
+If you can rely on automatic platform detection, then omit the
+top-level `platforms` field. 
+
+```yaml
+name: example
+```
+
+If you need to manually specify the list of supported platforms, then
+write the `platforms` field as a map with platform names as keys.
+
+```yaml
+name: example
+platforms:
+  android:
+  web:
+  ios:
+```
+
 ### invalid_reference_to_generative_enum_constructor
 
 _Generative enum constructors can only be used as targets of redirection._
@@ -14417,7 +14207,8 @@ String f(E e) => [!switch!] (e) {
 
 #### Common fixes
 
-Add a case for each of the constants that aren't currently being matched:
+If the missing values are distinctly meaningful to the switch expression,
+then add a case for each of the values missing a match:
 
 {% prettify dart tag=pre+code %}
 enum E { one, two, three }
@@ -14429,8 +14220,8 @@ String f(E e) => switch (e) {
   };
 {% endprettify %}
 
-If the missing values don't need to be matched, then add  a wildcard
-pattern:
+If the missing values don't need to be matched, then add a wildcard
+pattern that returns a simple default:
 
 {% prettify dart tag=pre+code %}
 enum E { one, two, three }
@@ -14442,9 +14233,9 @@ String f(E e) => switch (e) {
   };
 {% endprettify %}
 
-But be aware that adding a wildcard pattern will cause any future values
-of the type to also be handled, so you will have lost the ability for the
-compiler to warn you if the `switch` needs to be updated.
+Be aware that a wildcard pattern will handle any values added to the type
+in the future. You will lose the ability to have the compiler warn you if
+the `switch` needs to be updated to account for newly added types.
 
 ### non_exhaustive_switch_statement
 
@@ -16425,6 +16216,41 @@ void f(int x) {
 }
 {% endprettify %}
 
+### platform_value_disallowed
+
+_Keys in the `platforms` field can't have values._
+
+#### Description
+
+The analyzer produces this diagnostic when a key in the `platforms` map
+has a value.
+See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
+for details.
+
+#### Example
+
+The following `pubspec.yaml` produces this diagnostic because the key
+`web` has a value.
+
+```yaml
+name: example
+platforms:
+  web: [!"chrome"!]
+```
+
+#### Common fixes
+
+Omit the value and leave the key without a value:
+
+```yaml
+name: example
+platforms:
+  web:
+```
+
+Values for keys in the `platforms` field are currently reserved for
+potential future behavior.
+
 ### positional_field_in_object_pattern
 
 _Object patterns can only use named fields._
@@ -16432,15 +16258,15 @@ _Object patterns can only use named fields._
 #### Description
 
 The analyzer produces this diagnostic when an object pattern contains a
-field that doesn't have a getter name. The fields provide a pattern to
-match against the value returned by a getter, and not specifying the name
-of the getter means that there's no way to access the value that the
-pattern is intended to match against.
+field without specifying the getter name. Object pattern fields match
+against values that the object's getters return. Without a getter name
+specified, the pattern field can't access a value to attempt to match against.
 
 #### Example
 
 The following code produces this diagnostic because the object pattern
-`String(1)` doesn't say which value to compare with `1`:
+`String(1)` doesn't specify which getter of `String` to access and compare
+with the value `1`:
 
 {% prettify dart tag=pre+code %}
 void f(Object o) {
@@ -16450,8 +16276,8 @@ void f(Object o) {
 
 #### Common fixes
 
-Add both the name of the getter to use to access the value and a colon
-before the value:
+Add the getter name to access the value, followed
+by a colon before the pattern to match against:
 
 {% prettify dart tag=pre+code %}
 void f(Object o) {
@@ -17691,14 +17517,14 @@ _A map pattern can't contain a rest pattern._
 #### Description
 
 The analyzer produces this diagnostic when a map pattern contains a rest
-pattern. The matching for map patterns already allows the map to have
-more keys than those explicitly given in the pattern, so a rest pattern
-wouldn't add anything.
+pattern. Map patterns match a map with more keys
+than those explicitly given in the pattern (as long as the given keys match),
+so a rest pattern is unnecesssary.
 
 #### Example
 
-The following code produces this diagnostic because there's a rest
-pattern in a map pattern:
+The following code produces this diagnostic because the map pattern contains
+a rest pattern:
 
 {% prettify dart tag=pre+code %}
 void f(Map<int, String> x) {
@@ -18022,158 +17848,6 @@ int f() {
 }
 {% endprettify %}
 
-### sdk_version_async_exported_from_core
-
-_The class '{0}' wasn't exported from 'dart:core' until version 2.1, but this
-code is required to be able to run on earlier versions._
-
-#### Description
-
-The analyzer produces this diagnostic when either the class `Future` or
-`Stream` is referenced in a library that doesn't import `dart:async` in
-code that has an SDK constraint whose lower bound is less than 2.1.0. In
-earlier versions, these classes weren't defined in `dart:core`, so the
-import was necessary.
-
-#### Example
-
-Here's an example of a pubspec that defines an SDK constraint with a lower
-bound of less than 2.1.0:
-
-```yaml
-environment:
-  sdk: '>=2.0.0 <2.4.0'
-```
-
-In the package that has that pubspec, code like the following produces this
-diagnostic:
-
-{% prettify dart tag=pre+code %}
-void f([!Future!] f) {}
-{% endprettify %}
-
-#### Common fixes
-
-If you don't need to support older versions of the SDK, then you can
-increase the SDK constraint to allow the classes to be referenced:
-
-```yaml
-environment:
-  sdk: '>=2.1.0 <2.4.0'
-```
-
-If you need to support older versions of the SDK, then import the
-`dart:async` library.
-
-{% prettify dart tag=pre+code %}
-import 'dart:async';
-
-void f(Future f) {}
-{% endprettify %}
-
-### sdk_version_as_expression_in_const_context
-
-_The use of an as expression in a constant expression wasn't supported until
-version 2.3.2, but this code is required to be able to run on earlier versions._
-
-#### Description
-
-The analyzer produces this diagnostic when an `as` expression inside a
-[constant context][] is found in code that has an SDK constraint whose
-lower bound is less than 2.3.2. Using an `as` expression in a
-[constant context][] wasn't supported in earlier versions, so this code
-won't be able to run against earlier versions of the SDK.
-
-#### Example
-
-Here's an example of a pubspec that defines an SDK constraint with a lower
-bound of less than 2.3.2:
-
-```yaml
-environment:
-  sdk: '>=2.1.0 <2.4.0'
-```
-
-In the package that has that pubspec, code like the following produces
-this diagnostic:
-
-{% prettify dart tag=pre+code %}
-const num n = 3;
-const int i = [!n as int!];
-{% endprettify %}
-
-#### Common fixes
-
-If you don't need to support older versions of the SDK, then you can
-increase the SDK constraint to allow the expression to be used:
-
-```yaml
-environment:
-  sdk: '>=2.3.2 <2.4.0'
-```
-
-If you need to support older versions of the SDK, then either rewrite the
-code to not use an `as` expression, or change the code so that the `as`
-expression isn't in a [constant context][]:
-
-{% prettify dart tag=pre+code %}
-num x = 3;
-int y = x as int;
-{% endprettify %}
-
-### sdk_version_bool_operator_in_const_context
-
-_The use of the operator '{0}' for 'bool' operands in a constant context wasn't
-supported until version 2.3.2, but this code is required to be able to run on earlier versions._
-
-#### Description
-
-The analyzer produces this diagnostic when any use of the `&`, `|`, or `^`
-operators on the class `bool` inside a [constant context][] is found in
-code that has an SDK constraint whose lower bound is less than 2.3.2. Using
-these operators in a [constant context][] wasn't supported in earlier
-versions, so this code won't be able to run against earlier versions of the
-SDK.
-
-#### Example
-
-Here's an example of a pubspec that defines an SDK constraint with a lower
-bound of less than 2.3.2:
-
-```yaml
-environment:
-  sdk: '>=2.1.0 <2.4.0'
-```
-
-In the package that has that pubspec, code like the following produces this
-diagnostic:
-
-{% prettify dart tag=pre+code %}
-const bool a = true;
-const bool b = false;
-const bool c = a [!&!] b;
-{% endprettify %}
-
-#### Common fixes
-
-If you don't need to support older versions of the SDK, then you can
-increase the SDK constraint to allow the operators to be used:
-
-```yaml
-environment:
- sdk: '>=2.3.2 <2.4.0'
-```
-
-If you need to support older versions of the SDK, then either rewrite the
-code to not use these operators, or change the code so that the expression
-isn't in a [constant context][]:
-
-{% prettify dart tag=pre+code %}
-const bool a = true;
-const bool b = false;
-bool c = a & b;
-{% endprettify %}
-
 ### sdk_version_constructor_tearoffs
 
 _Tearing off a constructor requires the 'constructor-tearoffs' language
@@ -18218,115 +17892,6 @@ not use constructor tear-offs:
 
 {% prettify dart tag=pre+code %}
 var setConstructor = () => Set.identity();
-{% endprettify %}
-
-### sdk_version_eq_eq_operator_in_const_context
-
-_Using the operator '==' for non-primitive types wasn't supported until version
-2.3.2, but this code is required to be able to run on earlier versions._
-
-#### Description
-
-The analyzer produces this diagnostic when the operator `==` is used on a
-non-primitive type inside a [constant context][] is found in code that has
-an SDK constraint whose lower bound is less than 2.3.2. Using this operator
-in a [constant context][] wasn't supported in earlier versions, so this
-code won't be able to run against earlier versions of the SDK.
-
-#### Example
-
-Here's an example of a pubspec that defines an SDK constraint with a lower
-bound of less than 2.3.2:
-
-```yaml
-environment:
-  sdk: '>=2.1.0 <2.4.0'
-```
-
-In the package that has that pubspec, code like the following produces this
-diagnostic:
-
-{% prettify dart tag=pre+code %}
-class C {}
-const C a = null;
-const C b = null;
-const bool same = a [!==!] b;
-{% endprettify %}
-
-#### Common fixes
-
-If you don't need to support older versions of the SDK, then you can
-increase the SDK constraint to allow the operator to be used:
-
-```yaml
-environment:
-  sdk: '>=2.3.2 <2.4.0'
-```
-
-If you need to support older versions of the SDK, then either rewrite the
-code to not use the `==` operator, or change the code so that the
-expression isn't in a [constant context][]:
-
-{% prettify dart tag=pre+code %}
-class C {}
-const C a = null;
-const C b = null;
-bool same = a == b;
-{% endprettify %}
-
-### sdk_version_extension_methods
-
-_Extension methods weren't supported until version 2.6.0, but this code is
-required to be able to run on earlier versions._
-
-#### Description
-
-The analyzer produces this diagnostic when an extension declaration or an
-extension override is found in code that has an SDK constraint whose lower
-bound is less than 2.6.0. Using extensions wasn't supported in earlier
-versions, so this code won't be able to run against earlier versions of the
-SDK.
-
-#### Example
-
-Here's an example of a pubspec that defines an SDK constraint with a lower
-bound of less than 2.6.0:
-
-```yaml
-environment:
- sdk: '>=2.4.0 <2.7.0'
-```
-
-In the package that has that pubspec, code like the following produces
-this diagnostic:
-
-{% prettify dart tag=pre+code %}
-[!extension!] E on String {
-  void sayHello() {
-    print('Hello $this');
-  }
-}
-{% endprettify %}
-
-#### Common fixes
-
-If you don't need to support older versions of the SDK, then you can
-increase the SDK constraint to allow the syntax to be used:
-
-```yaml
-environment:
-  sdk: '>=2.6.0 <2.7.0'
-```
-
-If you need to support older versions of the SDK, then rewrite the code to
-not make use of extensions. The most common way to do this is to rewrite
-the members of the extension as top-level functions (or methods) that take
-the value that would have been bound to `this` as a parameter:
-
-{% prettify dart tag=pre+code %}
-void sayHello(String s) {
-  print('Hello $s');
-}
 {% endprettify %}
 
 ### sdk_version_gt_gt_gt_operator
@@ -18383,57 +17948,6 @@ int logicalShiftRight(int leftOperand, int rightOperand) {
 }
 {% endprettify %}
 
-### sdk_version_is_expression_in_const_context
-
-_The use of an is expression in a constant context wasn't supported until
-version 2.3.2, but this code is required to be able to run on earlier versions._
-
-#### Description
-
-The analyzer produces this diagnostic when an `is` expression inside a
-[constant context][] is found in code that has an SDK constraint whose
-lower bound is less than 2.3.2. Using an `is` expression in a
-[constant context][] wasn't supported in earlier versions, so this code
-won't be able to run against earlier versions of the SDK.
-
-#### Example
-
-Here's an example of a pubspec that defines an SDK constraint with a lower
-bound of less than 2.3.2:
-
-```yaml
-environment:
-  sdk: '>=2.1.0 <2.4.0'
-```
-
-In the package that has that pubspec, code like the following produces
-this diagnostic:
-
-{% prettify dart tag=pre+code %}
-const Object x = 4;
-const y = [!x is int!] ? 0 : 1;
-{% endprettify %}
-
-#### Common fixes
-
-If you don't need to support older versions of the SDK, then you can
-increase the SDK constraint to allow the expression to be used:
-
-```yaml
-environment:
-  sdk: '>=2.3.2 <2.4.0'
-```
-
-If you need to support older versions of the SDK, then either rewrite the
-code to not use the `is` operator, or, if that isn't possible, change the
-code so that the `is` expression isn't in a
-[constant context][]:
-
-{% prettify dart tag=pre+code %}
-const Object x = 4;
-var y = x is int ? 0 : 1;
-{% endprettify %}
-
 ### sdk_version_never
 
 _The type 'Never' wasn't supported until version 2.12.0, but this code is
@@ -18478,164 +17992,6 @@ not reference this class:
 
 {% prettify dart tag=pre+code %}
 dynamic x;
-{% endprettify %}
-
-### sdk_version_set_literal
-
-_Set literals weren't supported until version 2.2, but this code is required to
-be able to run on earlier versions._
-
-#### Description
-
-The analyzer produces this diagnostic when a set literal is found in code
-that has an SDK constraint whose lower bound is less than 2.2.0. Set
-literals weren't supported in earlier versions, so this code won't be able
-to run against earlier versions of the SDK.
-
-#### Example
-
-Here's an example of a pubspec that defines an SDK constraint with a lower
-bound of less than 2.2.0:
-
-```yaml
-environment:
-  sdk: '>=2.1.0 <2.4.0'
-```
-
-In the package that has that pubspec, code like the following produces this
-diagnostic:
-
-{% prettify dart tag=pre+code %}
-var s = [!<int>{}!];
-{% endprettify %}
-
-#### Common fixes
-
-If you don't need to support older versions of the SDK, then you can
-increase the SDK constraint to allow the syntax to be used:
-
-```yaml
-environment:
-  sdk: '>=2.2.0 <2.4.0'
-```
-
-If you do need to support older versions of the SDK, then replace the set
-literal with code that creates the set without the use of a literal:
-
-{% prettify dart tag=pre+code %}
-var s = new Set<int>();
-{% endprettify %}
-
-### sdk_version_ui_as_code
-
-_The for, if, and spread elements weren't supported until version 2.3.0, but
-this code is required to be able to run on earlier versions._
-
-#### Description
-
-The analyzer produces this diagnostic when a for, if, or spread element is
-found in code that has an SDK constraint whose lower bound is less than
-2.3.0. Using a for, if, or spread element wasn't supported in earlier
-versions, so this code won't be able to run against earlier versions of the
-SDK.
-
-#### Example
-
-Here's an example of a pubspec that defines an SDK constraint with a lower
-bound of less than 2.3.0:
-
-```yaml
-environment:
-  sdk: '>=2.2.0 <2.4.0'
-```
-
-In the package that has that pubspec, code like the following produces
-this diagnostic:
-
-{% prettify dart tag=pre+code %}
-var digits = [[!for (int i = 0; i < 10; i++) i!]];
-{% endprettify %}
-
-#### Common fixes
-
-If you don't need to support older versions of the SDK, then you can
-increase the SDK constraint to allow the syntax to be used:
-
-```yaml
-environment:
-  sdk: '>=2.3.0 <2.4.0'
-```
-
-If you need to support older versions of the SDK, then rewrite the code to
-not make use of those elements:
-
-{% prettify dart tag=pre+code %}
-var digits = _initializeDigits();
-
-List<int> _initializeDigits() {
-  var digits = <int>[];
-  for (int i = 0; i < 10; i++) {
-    digits.add(i);
-  }
-  return digits;
-}
-{% endprettify %}
-
-### sdk_version_ui_as_code_in_const_context
-
-_The if and spread elements weren't supported in constant expressions until
-version 2.5.0, but this code is required to be able to run on earlier versions._
-
-#### Description
-
-The analyzer produces this diagnostic when an if or spread element inside
-a [constant context][] is found in code that has an SDK constraint whose
-lower bound is less than 2.5.0. Using an if or spread element inside a
-[constant context][] wasn't supported in earlier versions, so this code
-won't be able to run against earlier versions of the SDK.
-
-#### Example
-
-Here's an example of a pubspec that defines an SDK constraint with a lower
-bound of less than 2.5.0:
-
-```yaml
-environment:
-  sdk: '>=2.4.0 <2.6.0'
-```
-
-In the package that has that pubspec, code like the following produces
-this diagnostic:
-
-{% prettify dart tag=pre+code %}
-const a = [1, 2];
-const b = [[!...a!]];
-{% endprettify %}
-
-#### Common fixes
-
-If you don't need to support older versions of the SDK, then you can
-increase the SDK constraint to allow the syntax to be used:
-
-```yaml
-environment:
-  sdk: '>=2.5.0 <2.6.0'
-```
-
-If you need to support older versions of the SDK, then rewrite the code to
-not make use of those elements:
-
-{% prettify dart tag=pre+code %}
-const a = [1, 2];
-const b = [1, 2];
-{% endprettify %}
-
-If that isn't possible, change the code so that the element isn't in a
-[constant context][]:
-
-{% prettify dart tag=pre+code %}
-const a = [1, 2];
-var b = [...a];
 {% endprettify %}
 
 ### set_element_type_not_assignable
@@ -21294,6 +20650,52 @@ remove the `super.`.
 
 If the member isn't defined, then either add the member to one of the
 superclasses or remove the invocation.
+
+### unknown_platform
+
+_The platform '{0}' is not a recognized platform._
+
+#### Description
+
+The analyzer produces this diagnostic when an unknown platform name is
+used as a key in the `platforms` map.
+See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
+for details.
+
+#### Example
+
+The following `pubspec.yaml` produces this diagnostic because the platform
+`browser` is unknown.
+
+```yaml
+name: example
+platforms:
+  [!browser:!]
+```
+
+#### Common fixes
+
+If you can rely on automatic platform detection, then omit the
+top-level `platforms` key.
+
+```yaml
+name: example
+```
+
+If you need to manually specify the list of supported platforms, then
+write the `platforms` field as a map with known platform names as keys.
+
+```yaml
+name: example
+platforms:
+  # These are the known platforms
+  android:
+  ios:
+  linux:
+  macos:
+  web:
+  windows:
+```
 
 ### unnecessary_cast
 

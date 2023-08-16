@@ -1,0 +1,45 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef E<invariant T extends core::Object? = dynamic> = (T%) → T%;
+extension Ext<T extends core::Object? = dynamic> on T% {
+  method st = self::Ext|st;
+  tearoff st = self::Ext|get#st;
+}
+static method main() → void {
+  self::foo<core::num>(false, 0, 0);
+}
+static method foo<X extends core::Object? = dynamic>(core::bool test, self::foo::X% a, self::foo::X% b) → void {
+  if(!(a is core::int))
+    return;
+  {
+    self::foo::X% c = let final self::foo::X% & core::int /* '%' & '!' = '!' */ #t1 = test ?{self::foo::X% & core::int /* '%' & '!' = '!' */} a{self::foo::X% & core::int /* '%' & '!' = '!' */} : a{self::foo::X% & core::int /* '%' & '!' = '!' */} in block {
+      #t1.{core::int::toRadixString}(2){(core::int) → core::String};
+      self::Ext|st<self::foo::X%, (self::foo::X%) → self::foo::X%>(#t1);
+    } =>#t1;
+    {
+      self::foo::X% v1 = c{self::foo::X% & core::int /* '%' & '!' = '!' */};
+      core::int v2 = c{self::foo::X% & core::int /* '%' & '!' = '!' */};
+      self::Ext|get#st<self::foo::X%>(c{self::foo::X% & core::int /* '%' & '!' = '!' */})<(self::foo::X%) → self::foo::X%>;
+      c = a{self::foo::X% & core::int /* '%' & '!' = '!' */};
+    }
+  }
+  if(!(b is core::int))
+    return;
+  {
+    self::foo::X% c = let final self::foo::X% & core::int /* '%' & '!' = '!' */ #t2 = test ?{self::foo::X% & core::int /* '%' & '!' = '!' */} a{self::foo::X% & core::int /* '%' & '!' = '!' */} : b{self::foo::X% & core::int /* '%' & '!' = '!' */} in block {
+      #t2.{core::int::toRadixString}(2){(core::int) → core::String};
+      self::Ext|st<self::foo::X%, (self::foo::X%) → self::foo::X%>(#t2);
+    } =>#t2;
+    {
+      self::foo::X% v1 = c{self::foo::X% & core::int /* '%' & '!' = '!' */};
+      core::int v2 = c{self::foo::X% & core::int /* '%' & '!' = '!' */};
+      self::Ext|get#st<self::foo::X%>(c{self::foo::X% & core::int /* '%' & '!' = '!' */})<(self::foo::X%) → self::foo::X%>;
+      c = a{self::foo::X% & core::int /* '%' & '!' = '!' */};
+    }
+  }
+}
+static extension-member method Ext|st<T extends core::Object? = dynamic, S extends (self::Ext|st::T%) → self::Ext|st::T% = (dynamic) → dynamic>(lowered final self::Ext|st::T% #this) → void {}
+static extension-member method Ext|get#st<T extends core::Object? = dynamic>(lowered final self::Ext|get#st::T% #this) → <S extends (self::Ext|get#st::T%) → self::Ext|get#st::T% = (dynamic) → dynamic>() → void
+  return <S extends (self::Ext|get#st::T%) → self::Ext|get#st::T% = (dynamic) → dynamic>() → void => self::Ext|st<self::Ext|get#st::T%, S>(#this);

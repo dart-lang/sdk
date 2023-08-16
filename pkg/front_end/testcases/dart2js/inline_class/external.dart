@@ -23,7 +23,7 @@ inline class B {
 
   external A method();
 
-  external T genericMethod<T>(T t);
+  external T genericMethod<T extends B>(T t);
 
   external B get getter;
 
@@ -33,7 +33,7 @@ inline class B {
 
   external static A staticMethod();
 
-  external static T staticGenericMethod<T>(T t);
+  external static T staticGenericMethod<T extends B>(T t);
 
   external static B get staticGetter;
 

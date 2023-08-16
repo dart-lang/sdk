@@ -7,12 +7,10 @@ inline class Foo {
   Foo.named(int value, {required int subtract}) : i = value - subtract;
   Foo.erroneous() : this.unresolved();
 }
-
 inline class Bar<T> {
   final T i;
   Bar(T i) : this._(i);
   Bar._(this.i);
 }
-
 main() {}
 expect(expected, actual) {}

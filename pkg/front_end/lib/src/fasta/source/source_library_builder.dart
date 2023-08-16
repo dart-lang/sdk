@@ -7,6 +7,7 @@ library fasta.source_library_builder;
 import 'dart:collection';
 import 'dart:convert' show jsonEncode;
 
+import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
@@ -36,12 +37,12 @@ import '../builder/class_builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/extension_builder.dart';
+import '../builder/extension_type_declaration_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/function_type_builder.dart';
-import '../builder/inline_class_builder.dart';
 import '../builder/invalid_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
@@ -107,7 +108,6 @@ import '../modifier.dart'
         namedMixinApplicationMask,
         staticMask;
 import '../names.dart' show indexSetName;
-import '../operator.dart';
 import '../problems.dart' show unexpected, unhandled;
 import '../scope.dart';
 import '../util/helpers.dart';
@@ -118,10 +118,10 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_extension_builder.dart';
+import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
-import 'source_inline_class_builder.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'source_member_builder.dart';
 import 'source_procedure_builder.dart';
@@ -167,6 +167,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   String? partOfName;
 
   Uri? partOfUri;
+
+  /// Offset of the first script tag (`#!...`) in this library or part.
+  int? _scriptTokenOffset;
 
   List<MetadataBuilder>? metadata;
 
@@ -830,10 +833,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addPart(List<MetadataBuilder>? metadata, String uri, int charOffset) {
-    Uri resolvedUri;
-    Uri newFileUri;
-    resolvedUri = resolve(this.importUri, uri, charOffset, isPart: true);
-    newFileUri = resolve(fileUri, uri, charOffset);
+    Uri resolvedUri = resolve(this.importUri, uri, charOffset, isPart: true);
+    // To support absolute paths from within packages in the part uri, we try to
+    // translate the file uri from the resolved import uri before resolving
+    // through the file uri of this library. See issue #52964.
+    Uri newFileUri = loader.target.uriTranslator.translate(resolvedUri) ??
+        resolve(fileUri, uri, charOffset);
     // TODO(johnniwinther): Add a LibraryPartBuilder instead of using
     // [LibraryBuilder] to represent both libraries and parts.
     parts.add(loader.read(resolvedUri, charOffset,
@@ -850,10 +855,22 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int uriOffset) {
     partOfName = name;
     if (uri != null) {
-      partOfUri = resolve(this.importUri, uri, uriOffset);
-      Uri newFileUri = resolve(fileUri, uri, uriOffset);
+      Uri resolvedUri = partOfUri = resolve(this.importUri, uri, uriOffset);
+      // To support absolute paths from within packages in the part of uri, we
+      // try to translate the file uri from the resolved import uri before
+      // resolving through the file uri of this library. See issue #52964.
+      Uri newFileUri = loader.target.uriTranslator.translate(resolvedUri) ??
+          resolve(fileUri, uri, uriOffset);
       loader.read(partOfUri!, uriOffset, fileUri: newFileUri, accessor: this);
     }
+    if (_scriptTokenOffset != null) {
+      addProblem(
+          messageScriptTagInPartFile, _scriptTokenOffset!, noLength, fileUri);
+    }
+  }
+
+  void addScriptToken(int charOffset) {
+    _scriptTokenOffset ??= charOffset;
   }
 
   void addFields(List<MetadataBuilder>? metadata, int modifiers,
@@ -1453,8 +1470,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           } else {
             if (builder is ClassBuilder) {
               library.additionalExports.add(builder.cls.reference);
-            } else if (builder is InlineClassBuilder) {
-              library.additionalExports.add(builder.inlineClass.reference);
+            } else if (builder is ExtensionTypeDeclarationBuilder) {
+              library.additionalExports
+                  .add(builder.extensionTypeDeclaration.reference);
             } else if (builder is TypeAliasBuilder) {
               library.additionalExports.add(builder.typedef.reference);
             } else if (builder is ExtensionBuilder) {
@@ -1553,12 +1571,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void collectSourceClasses(List<SourceClassBuilder> sourceClasses,
-      List<SourceInlineClassBuilder>? inlineClasses) {
+  void collectSourceClassesAndExtensionTypes(
+      List<SourceClassBuilder> sourceClasses,
+      List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes) {
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.collectSourceClasses(sourceClasses, inlineClasses);
+        patchLibrary.collectSourceClassesAndExtensionTypes(
+            sourceClasses, sourceExtensionTypes);
       }
     }
 
@@ -1567,10 +1587,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Builder member = iterator.current;
       if (member is SourceClassBuilder && !member.isPatch) {
         sourceClasses.add(member);
-      } else if (inlineClasses != null &&
-          member is SourceInlineClassBuilder &&
+      } else if (member is SourceExtensionTypeDeclarationBuilder &&
           !member.isPatch) {
-        inlineClasses.add(member);
+        sourceExtensionTypes.add(member);
       }
     }
   }
@@ -1593,6 +1612,40 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       count += builder.resolveConstructors(this);
     }
     return count;
+  }
+
+  /// Sets [unpromotablePrivateFieldNames] based on the contents of this
+  /// library.
+  void computeFieldPromotability() {
+    _FieldPromotability fieldPromotability = new _FieldPromotability();
+
+    // Iterate through all the classes, enums, and mixins in the library,
+    // recording the non-synthetic instance fields and getters of each.
+    Iterator<SourceClassBuilder> iterator = localMembersIteratorOfType();
+    while (iterator.moveNext()) {
+      SourceClassBuilder class_ = iterator.current;
+      ClassInfo<Class> classInfo = fieldPromotability.addClass(class_.actualCls,
+          isAbstract: class_.isAbstract);
+      Iterator<SourceMemberBuilder> memberIterator =
+          class_.fullMemberIterator<SourceMemberBuilder>();
+      while (memberIterator.moveNext()) {
+        SourceMemberBuilder member = memberIterator.current;
+        if (member.isStatic) continue;
+        if (member is SourceFieldBuilder) {
+          if (member.isSynthesized) continue;
+          fieldPromotability.addField(classInfo, member.name,
+              isFinal: member.isFinal, isAbstract: member.isAbstract);
+        } else if (member is SourceProcedureBuilder && member.isGetter) {
+          if (member.isSynthetic) continue;
+          fieldPromotability.addGetter(classInfo, member.name,
+              isAbstract: member.isAbstract);
+        }
+      }
+    }
+
+    // Compute the set of field names that are not promotable.
+    unpromotablePrivateFieldNames =
+        fieldPromotability.computeUnpromotablePrivateFieldNames();
   }
 
   @override
@@ -2036,7 +2089,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     DartType getterType;
     List<TypeParameter>? getterExtensionTypeParameters;
     if (getterBuilder.isExtensionInstanceMember ||
-        setterBuilder.isInlineClassInstanceMember) {
+        setterBuilder.isExtensionTypeInstanceMember) {
       // An extension instance getter
       //
       //     extension E<T> on A {
@@ -2047,7 +2100,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       //
       //   T# E#get#property<T#>(A #this) => ...
       //
-      // Similarly for inline class instance getters.
+      // Similarly for extension type instance getters.
       //
       Procedure procedure = getterBuilder.procedure;
       getterType = procedure.function.returnType;
@@ -2057,7 +2110,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     DartType setterType;
     if (setterBuilder.isExtensionInstanceMember ||
-        setterBuilder.isInlineClassInstanceMember) {
+        setterBuilder.isExtensionTypeInstanceMember) {
       // An extension instance setter
       //
       //     extension E<T> on A {
@@ -2068,7 +2121,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       //
       //   void E#set#property<T#>(A #this, T# value) { ... }
       //
-      // Similarly for inline class instance setters.
+      // Similarly for extension type instance setters.
       //
       Procedure procedure = setterBuilder.procedure;
       setterType = procedure.function.positionalParameters[1].type;
@@ -2137,12 +2190,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String? name,
       List<TypeVariableBuilder>? typeVariables,
       TypeBuilder type,
-      ExtensionTypeShowHideClauseBuilder extensionTypeShowHideClauseBuilder,
-      bool isExtensionTypeDeclaration,
       int startOffset,
       int nameOffset,
       int endOffset) {
-    // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
+    // Nested declaration began in
+    // `OutlineBuilder.beginExtensionDeclarationPrelude`.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(TypeParameterScopeKind.extensionDeclaration, name)
           ..resolveNamedTypes(typeVariables, this);
@@ -2171,10 +2223,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         extensionName,
         typeVariables,
         type,
-        extensionTypeShowHideClauseBuilder,
         classScope,
         this,
-        isExtensionTypeDeclaration,
         startOffset,
         nameOffset,
         endOffset,
@@ -2213,6 +2263,102 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         getterReference: referenceFrom?.reference);
   }
 
+  void addExtensionTypeDeclaration(
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      String name,
+      List<TypeVariableBuilder>? typeVariables,
+      List<TypeBuilder>? interfaces,
+      int startOffset,
+      int nameOffset,
+      int endOffset) {
+    // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
+    TypeParameterScopeBuilder declaration = endNestedDeclaration(
+        TypeParameterScopeKind.extensionTypeDeclaration, name)
+      ..resolveNamedTypes(typeVariables, this);
+    assert(declaration.parent == _libraryTypeParameterScopeBuilder);
+    Map<String, Builder> members = declaration.members!;
+    Map<String, MemberBuilder> constructors = declaration.constructors!;
+    Map<String, MemberBuilder> setters = declaration.setters!;
+
+    Scope memberScope = new Scope(
+        kind: ScopeKind.declaration,
+        local: members,
+        setters: setters,
+        parent: scope.withTypeVariables(typeVariables),
+        debugName: "extension type $name",
+        isModifiable: false);
+    ConstructorScope constructorScope =
+        new ConstructorScope(name, constructors);
+
+    ExtensionTypeDeclaration? referenceFrom =
+        referencesFromIndexed?.lookupExtensionTypeDeclaration(name);
+
+    SourceFieldBuilder? representationFieldBuilder;
+    outer:
+    for (Builder? member in members.values) {
+      while (member != null) {
+        if (!member.isDuplicate &&
+            member is SourceFieldBuilder &&
+            !member.isStatic) {
+          representationFieldBuilder = member;
+          break outer;
+        }
+        member = member.next;
+      }
+    }
+
+    ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
+        new SourceExtensionTypeDeclarationBuilder(
+            metadata,
+            modifiers,
+            declaration.name,
+            typeVariables,
+            interfaces,
+            memberScope,
+            constructorScope,
+            this,
+            new List<ConstructorReferenceBuilder>.of(constructorReferences),
+            startOffset,
+            nameOffset,
+            endOffset,
+            referenceFrom,
+            representationFieldBuilder);
+    constructorReferences.clear();
+    Map<String, TypeVariableBuilder>? typeVariablesByName =
+        checkTypeVariables(typeVariables, extensionTypeDeclarationBuilder);
+    void setParent(MemberBuilder? member) {
+      while (member != null) {
+        member.parent = extensionTypeDeclarationBuilder;
+        member = member.next as MemberBuilder?;
+      }
+    }
+
+    void setParentAndCheckConflicts(String name, Builder member) {
+      if (typeVariablesByName != null) {
+        TypeVariableBuilder? tv = typeVariablesByName[name];
+        if (tv != null) {
+          extensionTypeDeclarationBuilder.addProblem(
+              templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset,
+              name.length,
+              context: [
+                messageConflictsWithTypeVariableCause.withLocation(
+                    tv.fileUri!, tv.charOffset, name.length)
+              ]);
+        }
+      }
+      setParent(member as MemberBuilder);
+    }
+
+    members.forEach(setParentAndCheckConflicts);
+    constructors.forEach(setParentAndCheckConflicts);
+    setters.forEach(setParentAndCheckConflicts);
+    addBuilder(extensionTypeDeclarationBuilder.name,
+        extensionTypeDeclarationBuilder, nameOffset,
+        getterReference: referenceFrom?.reference);
+  }
+
   void addInlineClassDeclaration(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -2236,12 +2382,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         local: members,
         setters: setters,
         parent: scope.withTypeVariables(typeVariables),
-        debugName: "inline class $name",
+        debugName: "extension type $name",
         isModifiable: false);
     ConstructorScope constructorScope =
         new ConstructorScope(name, constructors);
 
-    InlineClass? referenceFrom = referencesFromIndexed?.lookupInlineClass(name);
+    ExtensionTypeDeclaration? referenceFrom =
+        referencesFromIndexed?.lookupExtensionTypeDeclaration(name);
 
     SourceFieldBuilder? representationFieldBuilder;
     outer:
@@ -2257,27 +2404,28 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    InlineClassBuilder inlineClassBuilder = new SourceInlineClassBuilder(
-        metadata,
-        modifiers,
-        declaration.name,
-        typeVariables,
-        interfaces,
-        memberScope,
-        constructorScope,
-        this,
-        new List<ConstructorReferenceBuilder>.of(constructorReferences),
-        startOffset,
-        nameOffset,
-        endOffset,
-        referenceFrom,
-        representationFieldBuilder);
+    ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
+        new SourceExtensionTypeDeclarationBuilder(
+            metadata,
+            modifiers,
+            declaration.name,
+            typeVariables,
+            interfaces,
+            memberScope,
+            constructorScope,
+            this,
+            new List<ConstructorReferenceBuilder>.of(constructorReferences),
+            startOffset,
+            nameOffset,
+            endOffset,
+            referenceFrom,
+            representationFieldBuilder);
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
-        checkTypeVariables(typeVariables, inlineClassBuilder);
+        checkTypeVariables(typeVariables, extensionTypeDeclarationBuilder);
     void setParent(MemberBuilder? member) {
       while (member != null) {
-        member.parent = inlineClassBuilder;
+        member.parent = extensionTypeDeclarationBuilder;
         member = member.next as MemberBuilder?;
       }
     }
@@ -2286,7 +2434,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (typeVariablesByName != null) {
         TypeVariableBuilder? tv = typeVariablesByName[name];
         if (tv != null) {
-          inlineClassBuilder.addProblem(
+          extensionTypeDeclarationBuilder.addProblem(
               templateConflictsWithTypeVariable.withArguments(name),
               member.charOffset,
               name.length,
@@ -2302,7 +2450,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     members.forEach(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
-    addBuilder(inlineClassBuilder.name, inlineClassBuilder, nameOffset,
+    addBuilder(extensionTypeDeclarationBuilder.name,
+        extensionTypeDeclarationBuilder, nameOffset,
         getterReference: referenceFrom?.reference);
   }
 
@@ -2688,7 +2837,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     checkTypeVariables(typeVariables, supertype.declaration);
   }
 
-  void addField(
+  SourceFieldBuilder addField(
       List<MetadataBuilder>? metadata,
       int modifiers,
       bool isTopLevel,
@@ -2809,6 +2958,45 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     addBuilder(name, fieldBuilder, charOffset,
         getterReference: fieldGetterReference,
         setterReference: fieldSetterReference);
+    return fieldBuilder;
+  }
+
+  void addPrimaryConstructorField(
+      {required List<MetadataBuilder>? metadata,
+      required TypeBuilder type,
+      required String name,
+      required int charOffset}) {
+    addField(
+        metadata,
+        finalMask,
+        /* isTopLevel = */ false,
+        type,
+        name,
+        /* charOffset = */ charOffset,
+        /* charEndOffset = */ charOffset,
+        /* initializerToken = */ null,
+        /* hasInitializer = */ false);
+  }
+
+  void addPrimaryConstructor(
+      {required String constructorName,
+      required List<TypeVariableBuilder>? typeVariables,
+      required List<FormalParameterBuilder>? formals,
+      required int charOffset,
+      required bool isConst}) {
+    addConstructor(
+        null,
+        isConst ? constMask : 0,
+        null,
+        constructorName,
+        typeVariables,
+        formals,
+        /* startCharOffset = */ charOffset,
+        charOffset,
+        /* charOpenParenOffset = */ charOffset,
+        /* charEndOffset = */ charOffset,
+        /* nativeMethodName = */ null,
+        forAbstractClassOrMixin: false);
   }
 
   void addConstructor(
@@ -2824,7 +3012,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charEndOffset,
       String? nativeMethodName,
       {Token? beginInitializers,
-      required bool forAbstractClass}) {
+      required bool forAbstractClassOrMixin}) {
     Reference? constructorReference;
     Reference? tearOffReference;
     if (_currentClassReferencesFromIndexed != null) {
@@ -2850,8 +3038,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             ? new LibraryName(referencesFrom!.reference)
             : libraryName);
     if (currentTypeParameterScopeBuilder.kind ==
-        TypeParameterScopeKind.inlineClassDeclaration) {
-      constructorBuilder = new SourceInlineClassConstructorBuilder(
+            TypeParameterScopeKind.inlineClassDeclaration ||
+        currentTypeParameterScopeBuilder.kind ==
+            TypeParameterScopeKind.extensionTypeDeclaration) {
+      constructorBuilder = new SourceExtensionTypeConstructorBuilder(
           metadata,
           modifiers & ~abstractMask,
           addInferableType(),
@@ -2867,7 +3057,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           tearOffReference,
           nameScheme,
           nativeMethodName: nativeMethodName,
-          forAbstractClassOrEnum: forAbstractClass);
+          forAbstractClassOrEnumOrMixin: forAbstractClassOrMixin);
     } else {
       constructorBuilder = new DeclaredSourceConstructorBuilder(
           metadata,
@@ -2885,7 +3075,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           tearOffReference,
           nameScheme,
           nativeMethodName: nativeMethodName,
-          forAbstractClassOrEnum: forAbstractClass);
+          forAbstractClassOrEnumOrMixin: forAbstractClassOrMixin);
     }
     checkTypeVariables(typeVariables, constructorBuilder);
     // TODO(johnniwinther): There is no way to pass the tear off reference here.
@@ -3310,9 +3500,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
         metadata, kind, modifiers, type, name, this, charOffset,
-        fileUri: fileUri)
-      ..initializerToken = initializerToken
-      ..hasDeclaredInitializer = (initializerToken != null);
+        fileUri: fileUri,
+        hasImmediatelyDeclaredInitializer: initializerToken != null)
+      ..initializerToken = initializerToken;
     return formal;
   }
 
@@ -3355,7 +3545,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else if (declaration is SourceExtensionBuilder) {
         declaration.buildOutlineExpressions(classHierarchy,
             delayedActionPerformers, delayedDefaultValueCloners);
-      } else if (declaration is SourceInlineClassBuilder) {
+      } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
         declaration.buildOutlineExpressions(classHierarchy,
             delayedActionPerformers, delayedDefaultValueCloners);
       } else if (declaration is SourceMemberBuilder) {
@@ -3398,11 +3588,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
         library.addExtension(extension);
       }
-    } else if (declaration is SourceInlineClassBuilder) {
-      InlineClass inlineClass = declaration.build(coreLibrary,
-          addMembersToLibrary: !declaration.isDuplicate);
+    } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
+      ExtensionTypeDeclaration extensionTypeDeclaration = declaration
+          .build(coreLibrary, addMembersToLibrary: !declaration.isDuplicate);
       if (!declaration.isPatch && !declaration.isDuplicate) {
-        library.addInlineClass(inlineClass);
+        library.addExtensionTypeDeclaration(extensionTypeDeclaration);
       }
     } else if (declaration is SourceMemberBuilder) {
       declaration
@@ -4161,7 +4351,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 "Unexpected extension member $member (${member.runtimeType}).");
           }
         });
-      } else if (declaration is SourceInlineClassBuilder) {
+      } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
         List<NonSimplicityIssue> issues = getNonSimplicityIssuesForDeclaration(
             declaration,
             performErrorRecovery: true);
@@ -4176,7 +4366,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           } else {
             assert(
                 false,
-                "Unexpected inline class member "
+                "Unexpected extension type member "
                 "$member (${member.runtimeType}).");
           }
         });
@@ -4264,7 +4454,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else if (builder is SourceExtensionBuilder) {
         count +=
             builder.buildBodyNodes(addMembersToLibrary: !builder.isDuplicate);
-      } else if (builder is SourceInlineClassBuilder) {
+      } else if (builder is SourceExtensionTypeDeclarationBuilder) {
         count +=
             builder.buildBodyNodes(addMembersToLibrary: !builder.isDuplicate);
       } else if (builder is SourceClassBuilder) {
@@ -4511,7 +4701,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       {bool inferred = false}) {
     if (node.arguments.types.isEmpty) return;
     Procedure factory = node.target;
-    assert(factory.isFactory || factory.isInlineClassMember);
+    assert(factory.isFactory || factory.isExtensionTypeMember);
     DartType constructedType = Substitution.fromPairs(
             node.target.function.typeParameters, node.arguments.types)
         .substituteType(node.target.function.returnType);
@@ -4731,7 +4921,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceExtensionBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
-      } else if (declaration is SourceInlineClassBuilder) {
+      } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceTypeAliasBuilder) {
         // Do nothing.
@@ -4761,10 +4951,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (extensionBuilder is! SourceExtensionBuilder) continue;
       DartType onType = extensionBuilder.extension.onType;
       if (onType is InterfaceType) {
-        ExtensionTypeShowHideClause showHideClause =
-            extensionBuilder.extension.showHideClause ??
-                new ExtensionTypeShowHideClause();
-
         // TODO(cstefantsova): Handle private names.
         List<Supertype> supertypes = membersBuilder.hierarchyBuilder
             .getNodeFromClass(onType.classNode)
@@ -4774,190 +4960,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           // TODO(cstefantsova): Should only non-generic supertypes be allowed?
           supertypesByName[supertype.classNode.name] = supertype;
         }
-
-        // Handling elements of the 'show' clause.
-        for (String memberOrTypeName in extensionBuilder
-            .extensionTypeShowHideClauseBuilder.shownMembersOrTypes) {
-          Member? getableMember = membersBuilder.getInterfaceMember(
-              onType.classNode, new Name(memberOrTypeName));
-          if (getableMember != null) {
-            if (getableMember is Field) {
-              showHideClause.shownGetters.add(getableMember.getterReference);
-            } else if (getableMember.hasGetter) {
-              showHideClause.shownGetters.add(getableMember.reference);
-            }
-          }
-          if (getableMember is Procedure &&
-              getableMember.kind == ProcedureKind.Method) {
-            showHideClause.shownMethods.add(getableMember.reference);
-          }
-          Member? setableMember = membersBuilder.getInterfaceMember(
-              onType.classNode, new Name(memberOrTypeName),
-              setter: true);
-          if (setableMember != null) {
-            if (setableMember is Field) {
-              if (setableMember.setterReference != null) {
-                showHideClause.shownSetters.add(setableMember.setterReference!);
-              } else {
-                // TODO(cstefantsova): Report an error.
-              }
-            } else if (setableMember.hasSetter) {
-              showHideClause.shownSetters.add(setableMember.reference);
-            } else {
-              // TODO(cstefantsova): Report an error.
-            }
-          }
-          if (getableMember == null && setableMember == null) {
-            if (supertypesByName.containsKey(memberOrTypeName)) {
-              showHideClause.shownSupertypes
-                  .add(supertypesByName[memberOrTypeName]!);
-            } else {
-              // TODO(cstefantsova): Report an error.
-            }
-          }
-        }
-        for (String getterName in extensionBuilder
-            .extensionTypeShowHideClauseBuilder.shownGetters) {
-          Member? member = membersBuilder.getInterfaceMember(
-              onType.classNode, new Name(getterName));
-          if (member != null) {
-            if (member is Field) {
-              showHideClause.shownGetters.add(member.getterReference);
-            } else if (member.hasGetter) {
-              showHideClause.shownGetters.add(member.reference);
-            } else {
-              // TODO(cstefantsova): Handle the erroneous case.
-            }
-          } else {
-            // TODO(cstefantsova): Handle the erroneous case.
-          }
-        }
-        for (String setterName in extensionBuilder
-            .extensionTypeShowHideClauseBuilder.shownSetters) {
-          Member? member = membersBuilder.getInterfaceMember(
-              onType.classNode, new Name(setterName),
-              setter: true);
-          if (member != null) {
-            if (member is Field) {
-              if (member.setterReference != null) {
-                showHideClause.shownSetters.add(member.setterReference!);
-              } else {
-                // TODO(cstefantsova): Report an error.
-              }
-            } else if (member.hasSetter) {
-              showHideClause.shownSetters.add(member.reference);
-            } else {
-              // TODO(cstefantsova): Report an error.
-            }
-          } else {
-            // TODO(cstefantsova): Search for a non-setter and report an error.
-          }
-        }
-        for (Operator operator in extensionBuilder
-            .extensionTypeShowHideClauseBuilder.shownOperators) {
-          Member? member = membersBuilder.getInterfaceMember(
-              onType.classNode, new Name(operatorToString(operator)));
-          if (member != null) {
-            showHideClause.shownOperators.add(member.reference);
-          } else {
-            // TODO(cstefantsova): Handle the erroneous case.
-          }
-        }
-
-        // TODO(cstefantsova): Add a helper function to share logic between
-        // handling the 'show' and 'hide' parts.
-
-        // Handling elements of the 'hide' clause.
-        for (String memberOrTypeName in extensionBuilder
-            .extensionTypeShowHideClauseBuilder.hiddenMembersOrTypes) {
-          Member? getableMember = membersBuilder.getInterfaceMember(
-              onType.classNode, new Name(memberOrTypeName));
-          if (getableMember != null) {
-            if (getableMember is Field) {
-              showHideClause.hiddenGetters.add(getableMember.getterReference);
-            } else if (getableMember.hasGetter) {
-              showHideClause.hiddenGetters.add(getableMember.reference);
-            }
-          }
-          if (getableMember is Procedure &&
-              getableMember.kind == ProcedureKind.Method) {
-            showHideClause.hiddenMethods.add(getableMember.reference);
-          }
-          Member? setableMember = membersBuilder.getInterfaceMember(
-              onType.classNode, new Name(memberOrTypeName),
-              setter: true);
-          if (setableMember != null) {
-            if (setableMember is Field) {
-              if (setableMember.setterReference != null) {
-                showHideClause.hiddenSetters
-                    .add(setableMember.setterReference!);
-              } else {
-                // TODO(cstefantsova): Report an error.
-              }
-            } else if (setableMember.hasSetter) {
-              showHideClause.hiddenSetters.add(setableMember.reference);
-            } else {
-              // TODO(cstefantsova): Report an error.
-            }
-          }
-          if (getableMember == null && setableMember == null) {
-            if (supertypesByName.containsKey(memberOrTypeName)) {
-              showHideClause.hiddenSupertypes
-                  .add(supertypesByName[memberOrTypeName]!);
-            } else {
-              // TODO(cstefantsova): Report an error.
-            }
-          }
-        }
-        for (String getterName in extensionBuilder
-            .extensionTypeShowHideClauseBuilder.hiddenGetters) {
-          Member? member = membersBuilder.getInterfaceMember(
-              onType.classNode, new Name(getterName));
-          if (member != null) {
-            if (member is Field) {
-              showHideClause.hiddenGetters.add(member.getterReference);
-            } else if (member.hasGetter) {
-              showHideClause.hiddenGetters.add(member.reference);
-            } else {
-              // TODO(cstefantsova): Handle the erroneous case.
-            }
-          } else {
-            // TODO(cstefantsova): Handle the erroneous case.
-          }
-        }
-        for (String setterName in extensionBuilder
-            .extensionTypeShowHideClauseBuilder.hiddenSetters) {
-          Member? member = membersBuilder.getInterfaceMember(
-              onType.classNode, new Name(setterName),
-              setter: true);
-          if (member != null) {
-            if (member is Field) {
-              if (member.setterReference != null) {
-                showHideClause.hiddenSetters.add(member.setterReference!);
-              } else {
-                // TODO(cstefantsova): Report an error.
-              }
-            } else if (member.hasSetter) {
-              showHideClause.hiddenSetters.add(member.reference);
-            } else {
-              // TODO(cstefantsova): Report an error.
-            }
-          } else {
-            // TODO(cstefantsova): Search for a non-setter and report an error.
-          }
-        }
-        for (Operator operator in extensionBuilder
-            .extensionTypeShowHideClauseBuilder.hiddenOperators) {
-          Member? member = membersBuilder.getInterfaceMember(
-              onType.classNode, new Name(operatorToString(operator)));
-          if (member != null) {
-            showHideClause.hiddenOperators.add(member.reference);
-          } else {
-            // TODO(cstefantsova): Handle the erroneous case.
-          }
-        }
-
-        extensionBuilder.extension.showHideClause ??= showHideClause;
       }
     }
   }
@@ -5159,6 +5161,35 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 }
 
+/// This class examines all the [Class]es in a library and determines which
+/// fields are promotable within that library.
+class _FieldPromotability extends FieldPromotability<Class> {
+  @override
+  Iterable<Class> getSuperclasses(Class class_,
+      {required bool ignoreImplements}) {
+    List<Class> result = [];
+    Class? superclass = class_.superclass;
+    if (superclass != null) {
+      result.add(superclass);
+    }
+    Class? mixedInClass = class_.mixedInClass;
+    if (mixedInClass != null) {
+      result.add(mixedInClass);
+    }
+    if (!ignoreImplements) {
+      for (Supertype interface in class_.implementedTypes) {
+        result.add(interface.classNode);
+      }
+      if (class_.isMixinDeclaration) {
+        for (Supertype supertype in class_.onClause) {
+          result.add(supertype.classNode);
+        }
+      }
+    }
+    return result;
+  }
+}
+
 // The kind of type parameter scope built by a [TypeParameterScopeBuilder]
 // object.
 enum TypeParameterScopeKind {
@@ -5168,7 +5199,9 @@ enum TypeParameterScopeKind {
   mixinDeclaration,
   unnamedMixinApplication,
   namedMixinApplication,
+  extensionOrExtensionTypeDeclaration,
   extensionDeclaration,
+  extensionTypeDeclaration,
   inlineClassDeclaration,
   typedef,
   staticMethod,
@@ -5193,6 +5226,7 @@ extension on TypeParameterScopeBuilder {
       case TypeParameterScopeKind.unnamedMixinApplication:
       case TypeParameterScopeKind.namedMixinApplication:
       case TypeParameterScopeKind.enumDeclaration:
+      case TypeParameterScopeKind.extensionTypeDeclaration:
       case TypeParameterScopeKind.inlineClassDeclaration:
         return new ClassName(name);
       case TypeParameterScopeKind.extensionDeclaration:
@@ -5204,6 +5238,7 @@ extension on TypeParameterScopeBuilder {
       case TypeParameterScopeKind.topLevelMethod:
       case TypeParameterScopeKind.factoryMethod:
       case TypeParameterScopeKind.functionType:
+      case TypeParameterScopeKind.extensionOrExtensionTypeDeclaration:
         throw new UnsupportedError("Unexpected field container: ${this}");
     }
   }
@@ -5222,8 +5257,9 @@ extension on TypeParameterScopeBuilder {
         return ContainerType.Class;
       case TypeParameterScopeKind.extensionDeclaration:
         return ContainerType.Extension;
+      case TypeParameterScopeKind.extensionTypeDeclaration:
       case TypeParameterScopeKind.inlineClassDeclaration:
-        return ContainerType.InlineClass;
+        return ContainerType.ExtensionType;
       case TypeParameterScopeKind.typedef:
       case TypeParameterScopeKind.staticMethod:
       case TypeParameterScopeKind.instanceMethod:
@@ -5231,6 +5267,7 @@ extension on TypeParameterScopeBuilder {
       case TypeParameterScopeKind.topLevelMethod:
       case TypeParameterScopeKind.factoryMethod:
       case TypeParameterScopeKind.functionType:
+      case TypeParameterScopeKind.extensionOrExtensionTypeDeclaration:
         throw new UnsupportedError("Unexpected field container: ${this}");
     }
   }
@@ -5355,12 +5392,25 @@ class TypeParameterScopeBuilder {
   /// the given [name] and [typeVariables] located [charOffset].
   void markAsExtensionDeclaration(
       String? name, int charOffset, List<TypeVariableBuilder>? typeVariables) {
-    assert(_kind == TypeParameterScopeKind.extensionDeclaration,
+    assert(_kind == TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
         "Unexpected declaration kind: $_kind");
+    _kind = TypeParameterScopeKind.extensionDeclaration;
     _extensionName = name != null
         ? new FixedExtensionName(name)
         : new UnnamedExtensionName();
     _name = _extensionName!.name;
+    _charOffset = charOffset;
+    _typeVariables = typeVariables;
+  }
+
+  /// Registers that this builder is preparing for an extension type declaration
+  /// with the given [name] and [typeVariables] located [charOffset].
+  void markAsExtensionTypeDeclaration(
+      String name, int charOffset, List<TypeVariableBuilder>? typeVariables) {
+    assert(_kind == TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
+        "Unexpected declaration kind: $_kind");
+    _kind = TypeParameterScopeKind.extensionTypeDeclaration;
+    _name = name;
     _charOffset = charOffset;
     _typeVariables = typeVariables;
   }

@@ -629,9 +629,9 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
   }
 
   @override
-  bool isValidRefinement(covariant ComputableAbstractValue before,
+  bool isInvalidRefinement(covariant ComputableAbstractValue before,
       covariant ComputableAbstractValue after) {
-    return _wrappedDomain.isValidRefinement(_unwrap(before), _unwrap(after));
+    return _wrappedDomain.isInvalidRefinement(_unwrap(before), _unwrap(after));
   }
 
   @override

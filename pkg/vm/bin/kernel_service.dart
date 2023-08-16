@@ -82,6 +82,7 @@ CompilerOptions setupCompilerOptions(
     FileSystem fileSystem,
     Uri? platformKernelPath,
     bool enableAsserts,
+    bool embedSources,
     bool nullSafety,
     List<String>? experimentalFlags,
     Uri? packagesUri,
@@ -104,6 +105,7 @@ CompilerOptions setupCompilerOptions(
         soundNullSafety: nullSafety, supportMirrors: enableMirrors))
     ..packagesFileUri = packagesUri
     ..sdkSummary = platformKernelPath
+    ..embedSourceText = embedSources
     ..verbose = verbose
     ..omitPlatform = false // so that compilation results can be rejected,
     // which potentially is only relevant for
@@ -156,6 +158,7 @@ abstract class Compiler {
   final FileSystem fileSystem;
   final Uri? platformKernelPath;
   final bool enableAsserts;
+  final bool embedSources;
   final bool nullSafety;
   final List<String>? experimentalFlags;
   final String? packageConfig;
@@ -175,6 +178,7 @@ abstract class Compiler {
 
   Compiler(this.isolateGroupId, this.fileSystem, this.platformKernelPath,
       {this.enableAsserts = false,
+      this.embedSources = true,
       this.nullSafety = true,
       this.experimentalFlags = null,
       this.supportCodeCoverage = false,
@@ -200,6 +204,7 @@ abstract class Compiler {
         fileSystem,
         platformKernelPath,
         enableAsserts,
+        embedSources,
         nullSafety,
         experimentalFlags,
         packagesUri,
@@ -385,6 +390,7 @@ class SingleShotCompilerWrapper extends Compiler {
       int isolateGroupId, FileSystem fileSystem, Uri platformKernelPath,
       {this.requireMain = false,
       bool enableAsserts = false,
+      bool embedSources = true,
       bool nullSafety = true,
       List<String>? experimentalFlags,
       String? packageConfig,
@@ -393,6 +399,7 @@ class SingleShotCompilerWrapper extends Compiler {
       required bool enableMirrors})
       : super(isolateGroupId, fileSystem, platformKernelPath,
             enableAsserts: enableAsserts,
+            embedSources: embedSources,
             nullSafety: nullSafety,
             experimentalFlags: experimentalFlags,
             packageConfig: packageConfig,
@@ -701,7 +708,7 @@ String _escapeDependency(Uri uri) {
 }
 
 Uint8List _serializeDependencies(List<Uri> uris) {
-  return utf8.encode(uris.map(_escapeDependency).join(" ")) as Uint8List;
+  return utf8.encode(uris.map(_escapeDependency).join(" "));
 }
 
 Future _processListDependenciesRequest(
@@ -765,8 +772,7 @@ Future _processLoadRequest(request) async {
   }
 
   final SendPort port = request[1];
-  final int isolateGroupId = request[7];
-
+  final int isolateGroupId = request[8];
   if (tag == kListDependenciesTag) {
     await _processListDependenciesRequest(port, isolateGroupId);
     return;
@@ -776,17 +782,18 @@ Future _processLoadRequest(request) async {
   final Uri? script =
       inputFileUri != null ? Uri.base.resolve(inputFileUri) : null;
   final bool incremental = request[4];
-  final bool snapshot = request[5];
-  final bool nullSafety = request[6];
-  final List sourceFiles = request[8];
-  final bool enableAsserts = request[9];
+  final bool forSnapshot = request[5];
+  final bool embedSources = request[6];
+  final bool nullSafety = request[7];
+  final List sourceFiles = request[9];
+  final bool enableAsserts = request[10];
   final List<String>? experimentalFlags =
-      request[10] != null ? request[10].cast<String>() : null;
-  final String? packageConfig = request[11];
-  final String? multirootFilepaths = request[12];
-  final String? multirootScheme = request[13];
-  final String verbosityLevel = request[15];
-  final bool enableMirrors = request[16];
+      request[11] != null ? request[11].cast<String>() : null;
+  final String? packageConfig = request[12];
+  final String? multirootFilepaths = request[13];
+  final String? multirootScheme = request[14];
+  final String verbosityLevel = request[16];
+  final bool enableMirrors = request[17];
   Uri platformKernelPath;
   List<int>? platformKernel = null;
   if (request[3] is String) {
@@ -799,7 +806,7 @@ Future _processLoadRequest(request) async {
         computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
   }
 
-  final String invocationModes = snapshot ? 'compile' : '';
+  final String invocationModes = forSnapshot ? 'compile' : '';
 
   Compiler? compiler;
 
@@ -871,6 +878,7 @@ Future _processLoadRequest(request) async {
     compiler = new SingleShotCompilerWrapper(
         isolateGroupId, fileSystem, platformKernelPath,
         requireMain: false,
+        embedSources: embedSources,
         enableAsserts: enableAsserts,
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
@@ -1122,7 +1130,8 @@ Future trainInternal(String scriptUri, String? platformKernelPath) async {
     scriptUri,
     platformKernelPath,
     false /* incremental */,
-    false /* snapshot */,
+    false /* for_snapshot */,
+    true /* embed_sources */,
     true /* null safety */,
     1 /* isolateGroupId chosen randomly */,
     [] /* source files */,

@@ -6,7 +6,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:devtools_shared/devtools_extensions.dart';
 import 'package:devtools_shared/devtools_server.dart';
+import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_static/shelf_static.dart';
@@ -15,6 +17,7 @@ import 'package:sse/server/sse_handler.dart';
 import '../constants.dart';
 import '../dds_impl.dart';
 import 'client.dart';
+import 'utils.dart';
 
 /// Returns a [Handler] which handles serving DevTools and the DevTools server
 /// API.
@@ -56,8 +59,28 @@ FutureOr<Handler> defaultHandler({
     // from DevTools, assume any single-segment path with no extension is a
     // DevTools page that needs to serve up index.html).
     final pathSegments = request.url.pathSegments;
+
+    final isExtensionRequest = pathSegments.safeGet(0) == extensionRequestPath;
+    if (isExtensionRequest) {
+      final extensionName = pathSegments.safeGet(1);
+      if (extensionName != null) {
+        final extensionAssetPath = path.join(
+          buildDir,
+          path.joinAll(pathSegments),
+        );
+        final contentType = lookupMimeType(extensionAssetPath) ?? 'text/html';
+        return _serveStaticFile(
+          request,
+          File(extensionAssetPath),
+          contentType,
+          baseHref: '$appRoot$extensionRequestPath/$extensionName/',
+        );
+      }
+    }
+
     final isValidRootPage = pathSegments.isEmpty ||
         (pathSegments.length == 1 && !pathSegments[0].contains('.'));
+
     if (isValidRootPage) {
       return _serveStaticFile(
         request,
@@ -92,8 +115,8 @@ FutureOr<Handler> defaultHandler({
   FutureOr<Response> devtoolsHandler(Request request) {
     // If the request isn't of the form api/<method> assume it's a request for
     // DevTools assets.
-    if (request.url.pathSegments.length < 2 ||
-        request.url.pathSegments.first != 'api') {
+    final pathSegments = request.url.pathSegments;
+    if (pathSegments.length < 2 || pathSegments.first != 'api') {
       return devtoolsAssetHandler(request);
     }
     final method = request.url.pathSegments[1];
@@ -108,7 +131,7 @@ FutureOr<Handler> defaultHandler({
     if (!ServerApi.canHandle(request)) {
       return Response.notFound('$method is not a valid API');
     }
-    return ServerApi.handle(request);
+    return ServerApi.handle(request, ExtensionsManager(buildDir: buildDir));
   }
 
   return (Request request) {
@@ -126,8 +149,8 @@ FutureOr<Handler> defaultHandler({
 
 /// Serves [file] for all requests.
 ///
-/// If [baseHref] is provided, any existing `<base href="">` tag will be
-/// rewritten with this path.
+/// For files with [contentType] 'text/html' and a provided [baseHref] value,
+/// any existing `<base href="">` tag will be rewritten with the provided path.
 Future<Response> _serveStaticFile(
   Request request,
   File file,
@@ -135,8 +158,12 @@ Future<Response> _serveStaticFile(
   String? baseHref,
 }) async {
   final headers = {HttpHeaders.contentTypeHeader: contentType};
-  var contents = file.readAsStringSync();
 
+  if (contentType != 'text/html') {
+    return Response.ok(file.readAsBytesSync(), headers: headers);
+  }
+
+  var contents = file.readAsStringSync();
   if (baseHref != null) {
     assert(baseHref.startsWith('/'));
     assert(baseHref.endsWith('/'));
@@ -147,6 +174,5 @@ Future<Response> _serveStaticFile(
       '<base href="${htmlEscape.convert(baseHref)}">',
     );
   }
-
   return Response.ok(contents, headers: headers);
 }

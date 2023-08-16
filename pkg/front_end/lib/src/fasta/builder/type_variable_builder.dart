@@ -34,8 +34,8 @@ enum TypeVariableKind {
   /// A type variable declared on a class, mixin or enum.
   classMixinOrEnum,
 
-  /// A type variable declared on an extension.
-  extension,
+  /// A type variable declared on an extension or an extension type.
+  extensionOrExtensionType,
 
   /// A type variable on an extension instance member synthesized from an
   /// extension type variable.

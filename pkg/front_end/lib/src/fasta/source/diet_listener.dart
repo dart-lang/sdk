@@ -55,9 +55,9 @@ import 'diet_parser.dart';
 import 'source_class_builder.dart';
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
+import 'source_extension_type_declaration_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
-import 'source_inline_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_type_alias_builder.dart';
 import 'stack_listener_impl.dart';
@@ -636,7 +636,8 @@ class DietListener extends StackListenerImpl {
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
 
     SourceFunctionBuilderImpl builder =
-        lookupConstructor(beginToken, name!) as SourceFunctionBuilderImpl;
+        lookupConstructor(beginToken, _getConstructorName(name!))
+            as SourceFunctionBuilderImpl;
     if (_inRedirectingFactory) {
       buildRedirectingFactoryMethod(
           bodyToken, builder, MemberKind.Factory, metadata);
@@ -737,6 +738,11 @@ class DietListener extends StackListenerImpl {
   void _endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken, bool isConstructor) {
     debugEvent("Method");
+    assert(checkState(beginToken, [
+      /* bodyToken */ ValueKinds.Token,
+      /* name */ ValueKinds.NameOrQualifiedNameOrOperatorOrParserRecovery,
+      /* metadata token */ ValueKinds.TokenOrNull,
+    ]));
     // TODO(danrubel): Consider removing the beginParam parameter
     // and using bodyToken, but pushing a NullValue on the stack
     // in handleNoFormalParameters rather than the supplied token.
@@ -747,7 +753,8 @@ class DietListener extends StackListenerImpl {
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
     SourceFunctionBuilder builder;
     if (isConstructor) {
-      builder = lookupConstructor(beginToken, name!) as SourceFunctionBuilder;
+      builder = lookupConstructor(beginToken, _getConstructorName(name!))
+          as SourceFunctionBuilder;
     } else {
       Builder? memberBuilder =
           lookupBuilder(beginToken, getOrSet, name as String);
@@ -988,9 +995,63 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token endToken) {
     debugEvent("endExtensionDeclaration");
+    checkEmpty(extensionKeyword.charOffset);
+  }
+
+  @override
+  void beginExtensionTypeDeclaration(Token extensionKeyword, Token nameToken) {
+    debugEvent("beginExtensionTypeDeclaration");
+    push(nameToken.lexeme);
+    push(extensionKeyword);
+
+    // The current declaration is set in [beginClassOrMixinOrExtensionBody] but
+    // for primary constructors we need it before the body so we set it here.
+    // TODO(johnniwinther): Normalize the setting of the current declaration.
+    assert(currentDeclaration == null);
+    assert(memberScope == libraryBuilder.scope);
+
+    currentDeclaration = lookupBuilder(extensionKeyword, null, nameToken.lexeme)
+        as DeclarationBuilder;
+    memberScope = currentDeclaration!.scope;
+  }
+
+  @override
+  void beginPrimaryConstructor(Token beginToken) {
+    debugEvent("beginPrimaryConstructor");
+  }
+
+  @override
+  void endPrimaryConstructor(
+      Token beginToken, Token? constKeyword, bool hasConstructorName) {
+    assert(checkState(beginToken, [
+      /* formals begin token */ ValueKinds.Token,
+      if (hasConstructorName) ValueKinds.NameOrParserRecovery,
+    ]));
+    debugEvent("endPrimaryConstructor");
+    Token formalsToken = pop() as Token; // Pop formals begin token.
+    String constructorName = '';
+    if (hasConstructorName) {
+      constructorName = pop() as String; // Pop constructor name.
+    }
+    SourceFunctionBuilder builder =
+        lookupConstructor(formalsToken, constructorName)
+            as SourceFunctionBuilder;
+    buildPrimaryConstructor(createFunctionListener(builder), formalsToken);
+
+    // The current declaration is set in [beginClassOrMixinOrExtensionBody],
+    // assuming that it is currently `null`, so we reset it here.
+    // TODO(johnniwinther): Normalize the setting of the current declaration.
+    currentDeclaration = null;
+    memberScope = libraryBuilder.scope;
+  }
+
+  @override
+  void endExtensionTypeDeclaration(
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
+    debugEvent("endExtensionTypeDeclaration");
     checkEmpty(extensionKeyword.charOffset);
   }
 
@@ -1095,6 +1156,29 @@ class DietListener extends StackListenerImpl {
   AsyncMarker? getAsyncMarker(StackListenerImpl listener) =>
       listener.pop() as AsyncMarker?;
 
+  void buildPrimaryConstructor(BodyBuilder bodyBuilder, Token startToken) {
+    _benchmarker?.beginSubdivide(
+        BenchmarkSubdivides.diet_listener_buildPrimaryConstructor);
+    Token token = startToken;
+    try {
+      Parser parser = new Parser(bodyBuilder,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          allowPatterns: libraryFeatures.patterns.isEnabled);
+      token = parser.parseFormalParametersOpt(
+          parser.syntheticPreviousToken(token), MemberKind.PrimaryConstructor);
+      FormalParameters? formals = bodyBuilder.pop() as FormalParameters?;
+      bodyBuilder.checkEmpty(token.next!.charOffset);
+      bodyBuilder.handleNoInitializers();
+      bodyBuilder.checkEmpty(token.charOffset);
+      bodyBuilder.finishFunction(formals, AsyncMarker.Sync, null);
+      _benchmarker?.endSubdivide();
+    } on DebugAbort {
+      rethrow;
+    } catch (e, s) {
+      throw new Crash(uri, token.charOffset, e, s);
+    }
+  }
+
   void buildFunctionBody(BodyBuilder bodyBuilder, Token startToken,
       Token? metadata, MemberKind kind) {
     _benchmarker
@@ -1188,11 +1272,7 @@ class DietListener extends StackListenerImpl {
         .lookupLocalUnnamedExtension(uri, extensionToken.charOffset);
   }
 
-  Builder? lookupConstructor(Token token, Object nameOrQualified) {
-    assert(currentDeclaration != null);
-    assert(currentDeclaration is SourceClassBuilder ||
-        currentDeclaration is SourceInlineClassBuilder);
-    Builder? declaration;
+  String _getConstructorName(Object nameOrQualified) {
     String suffix;
     if (nameOrQualified is QualifiedName) {
       suffix = nameOrQualified.name;
@@ -1201,13 +1281,26 @@ class DietListener extends StackListenerImpl {
           ? ""
           : nameOrQualified as String;
     }
+    return suffix;
+  }
+
+  Builder? lookupConstructor(Token token, String constructorName) {
+    assert(currentDeclaration != null);
+    assert(currentDeclaration is SourceClassBuilder ||
+        currentDeclaration is SourceExtensionTypeDeclarationBuilder);
+    Builder? declaration;
     if (libraryFeatures.constructorTearoffs.isEnabled) {
-      suffix = suffix == "new" ? "" : suffix;
+      constructorName = constructorName == "new" ? "" : constructorName;
     }
     declaration =
-        currentDeclaration!.constructorScope.lookupLocalMember(suffix);
+        currentDeclaration!.constructorScope.lookupLocalMember(constructorName);
     declaration = handleDuplicatedName(declaration, token);
-    checkBuilder(token, declaration, nameOrQualified);
+    checkBuilder(
+        token,
+        declaration,
+        constructorName.isEmpty
+            ? currentDeclaration!.name
+            : '${currentDeclaration!.name}.$constructorName');
     return declaration;
   }
 
@@ -1240,9 +1333,9 @@ class DietListener extends StackListenerImpl {
     }
   }
 
-  void checkBuilder(Token token, Builder? declaration, Object name) {
+  void checkBuilder(Token token, Builder? declaration, String name) {
     if (declaration == null) {
-      internalProblem(templateInternalProblemNotFound.withArguments("$name"),
+      internalProblem(templateInternalProblemNotFound.withArguments(name),
           token.charOffset, uri);
     }
     if (uri != declaration.fileUri) {

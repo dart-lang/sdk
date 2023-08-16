@@ -2,20 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/code_style_options.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/code_style_options.dart';
+import 'package:analyzer/src/analysis_options/apply_options.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/lint/config.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/plugin/options.dart';
@@ -24,8 +20,6 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
-
-final _OptionsProcessor _processor = _OptionsProcessor();
 
 List<AnalysisError> analyzeAnalysisOptions(
   Source source,
@@ -197,8 +191,10 @@ List<AnalysisError> analyzeAnalysisOptions(
   return errors;
 }
 
+@Deprecated("Use 'applyOptions' made available in "
+    "'package:analyzer/src/analysis_options/apply_options.dart'")
 void applyToAnalysisOptions(AnalysisOptionsImpl options, YamlMap optionMap) {
-  _processor.applyToAnalysisOptions(options, optionMap);
+  options.applyOptions(optionMap);
 }
 
 /// Returns the name of the first plugin, if one is specified in [options],
@@ -969,249 +965,5 @@ class TopLevelOptionValidator extends OptionsValidator {
     }
     // TODO(srawlins): Report non-Map with
     //  AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT.
-  }
-}
-
-class _OptionsProcessor {
-  /// Apply the options in the given [optionMap] to the given analysis
-  /// [options].
-  void applyToAnalysisOptions(AnalysisOptionsImpl options, YamlMap? optionMap) {
-    if (optionMap == null) {
-      return;
-    }
-    var analyzer = optionMap.valueAt(AnalyzerOptions.analyzer);
-    if (analyzer is YamlMap) {
-      // Process strong mode option.
-      var strongMode = analyzer.valueAt(AnalyzerOptions.strongMode);
-      _applyStrongOptions(options, strongMode);
-
-      // Process filters.
-      var filters = analyzer.valueAt(AnalyzerOptions.errors);
-      _applyProcessors(options, filters);
-
-      // Process enabled experiments.
-      var experimentNames = analyzer.valueAt(AnalyzerOptions.enableExperiment);
-      if (experimentNames is YamlList) {
-        List<String> enabledExperiments = <String>[];
-        for (var element in experimentNames.nodes) {
-          var experimentName = _toString(element);
-          if (experimentName != null) {
-            enabledExperiments.add(experimentName);
-          }
-        }
-        options.contextFeatures = FeatureSet.fromEnableFlags2(
-          sdkLanguageVersion: ExperimentStatus.currentVersion,
-          flags: enabledExperiments,
-        );
-      }
-
-      // Process optional checks options.
-      var optionalChecks = analyzer.valueAt(AnalyzerOptions.optionalChecks);
-      _applyOptionalChecks(options, optionalChecks);
-
-      // Process language options.
-      var language = analyzer.valueAt(AnalyzerOptions.language);
-      _applyLanguageOptions(options, language);
-
-      // Process excludes.
-      var excludes = analyzer.valueAt(AnalyzerOptions.exclude);
-      _applyExcludes(options, excludes);
-
-      var cannotIgnore = analyzer.valueAt(AnalyzerOptions.cannotIgnore);
-      _applyUnignorables(options, cannotIgnore);
-
-      // Process plugins.
-      var plugins = analyzer.valueAt(AnalyzerOptions.plugins);
-      _applyPlugins(options, plugins);
-    }
-
-    // Process the 'code-style' option.
-    var codeStyle = optionMap.valueAt(AnalyzerOptions.codeStyle);
-    options.codeStyleOptions = _buildCodeStyleOptions(options, codeStyle);
-
-    var config = parseConfig(optionMap);
-    if (config != null) {
-      Iterable<LintRule> lintRules = Registry.ruleRegistry.enabled(config);
-      if (lintRules.isNotEmpty) {
-        options.lint = true;
-        options.lintRules = lintRules.toList();
-      }
-    }
-  }
-
-  void _applyExcludes(AnalysisOptionsImpl options, YamlNode? excludes) {
-    if (excludes is YamlList) {
-      // TODO(srawlins): Report non-String items
-      options.excludePatterns = excludes.whereType<String>().toList();
-    }
-    // TODO(srawlins): Report non-List with
-    //  AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT.
-  }
-
-  void _applyLanguageOption(
-      AnalysisOptionsImpl options, Object? feature, Object value) {
-    var boolValue = toBool(value);
-    if (boolValue != null) {
-      if (feature == AnalyzerOptions.strictCasts) {
-        options.strictCasts = boolValue;
-      }
-      if (feature == AnalyzerOptions.strictInference) {
-        options.strictInference = boolValue;
-      }
-      if (feature == AnalyzerOptions.strictRawTypes) {
-        options.strictRawTypes = boolValue;
-      }
-    }
-  }
-
-  void _applyLanguageOptions(AnalysisOptionsImpl options, YamlNode? configs) {
-    if (configs is YamlMap) {
-      configs.nodes.forEach((key, value) {
-        if (key is YamlScalar && value is YamlScalar) {
-          var feature = key.value?.toString();
-          _applyLanguageOption(options, feature, value.valueOrThrow);
-        }
-      });
-    }
-  }
-
-  void _applyOptionalChecks(AnalysisOptionsImpl options, YamlNode? config) {
-    if (config is YamlMap) {
-      config.nodes.forEach((k, v) {
-        if (k is YamlScalar && v is YamlScalar) {
-          _applyOptionalChecksOption(
-              options, k.value?.toString(), v.valueOrThrow);
-        }
-      });
-    }
-    if (config is YamlScalar) {
-      if (config.value?.toString() == AnalyzerOptions.chromeOsManifestChecks) {
-        options.chromeOsManifestChecks = true;
-      }
-    }
-  }
-
-  void _applyOptionalChecksOption(
-      AnalysisOptionsImpl options, String? feature, Object value) {
-    var boolValue = toBool(value);
-    if (boolValue != null) {
-      if (feature == AnalyzerOptions.chromeOsManifestChecks) {
-        options.chromeOsManifestChecks = boolValue;
-      }
-    }
-  }
-
-  void _applyPlugins(AnalysisOptionsImpl options, YamlNode? plugins) {
-    var pluginName = _toString(plugins);
-    if (pluginName != null) {
-      options.enabledPluginNames = [pluginName];
-    } else if (plugins is YamlList) {
-      for (var element in plugins.nodes) {
-        var pluginName = _toString(element);
-        if (pluginName != null) {
-          // Only the first plugin is supported.
-          options.enabledPluginNames = [pluginName];
-          return;
-        }
-      }
-    } else if (plugins is YamlMap) {
-      for (var key in plugins.nodes.keys.cast<YamlNode?>()) {
-        var pluginName = _toString(key);
-        if (pluginName != null) {
-          // Only the first plugin is supported.
-          options.enabledPluginNames = [pluginName];
-          return;
-        }
-      }
-    }
-  }
-
-  void _applyProcessors(AnalysisOptionsImpl options, YamlNode? codes) {
-    ErrorConfig config = ErrorConfig(codes);
-    options.errorProcessors = config.processors;
-  }
-
-  void _applyStrongModeOption(
-      AnalysisOptionsImpl options, String? feature, Object value) {
-    var boolValue = toBool(value);
-    if (boolValue != null) {
-      if (feature == AnalyzerOptions.implicitCasts) {
-        options.implicitCasts = boolValue;
-      }
-      if (feature == AnalyzerOptions.implicitDynamic) {
-        options.implicitDynamic = boolValue;
-      }
-      if (feature == AnalyzerOptions.propagateLinterExceptions) {
-        options.propagateLinterExceptions = boolValue;
-      }
-    }
-  }
-
-  void _applyStrongOptions(AnalysisOptionsImpl options, YamlNode? config) {
-    if (config is YamlMap) {
-      config.nodes.forEach((k, v) {
-        if (k is YamlScalar && v is YamlScalar) {
-          _applyStrongModeOption(options, k.value?.toString(), v.valueOrThrow);
-        }
-      });
-    }
-  }
-
-  void _applyUnignorables(AnalysisOptionsImpl options, YamlNode? cannotIgnore) {
-    if (cannotIgnore is YamlList) {
-      var names = <String>{};
-      var stringValues = cannotIgnore.whereType<String>().toSet();
-      for (var severity in AnalyzerOptions.severities) {
-        if (stringValues.contains(severity)) {
-          // [severity] is a marker denoting all error codes with severity
-          // equal to [severity].
-          stringValues.remove(severity);
-          // Replace name like 'error' with error codes with this named
-          // severity.
-          for (var e in errorCodeValues) {
-            // If the severity of [error] is also changed in this options file
-            // to be [severity], we add [error] to the un-ignorable list.
-            var processors = options.errorProcessors
-                .where((processor) => processor.code == e.name);
-            if (processors.isNotEmpty &&
-                processors.first.severity?.displayName == severity) {
-              names.add(e.name);
-              continue;
-            }
-            // Otherwise, add [error] if its default severity is [severity].
-            if (e.errorSeverity.displayName == severity) {
-              names.add(e.name);
-            }
-          }
-        }
-      }
-      names.addAll(stringValues.map((name) => name.toUpperCase()));
-      options.unignorableNames = names;
-    }
-  }
-
-  CodeStyleOptions _buildCodeStyleOptions(
-      AnalysisOptionsImpl options, YamlNode? config) {
-    var useFormatter = false;
-    if (config is YamlMap) {
-      var formatNode = config.valueAt(AnalyzerOptions.format);
-      if (formatNode != null) {
-        var formatValue = toBool(formatNode);
-        if (formatValue is bool) {
-          useFormatter = formatValue;
-        }
-      }
-    }
-    return CodeStyleOptionsImpl(options, useFormatter: useFormatter);
-  }
-
-  String? _toString(YamlNode? node) {
-    if (node is YamlScalar) {
-      var value = node.value;
-      if (value is String) {
-        return value;
-      }
-    }
-    return null;
   }
 }

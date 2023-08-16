@@ -25,8 +25,7 @@ namespace bin {
 
 #define BOOL_OPTIONS_LIST(V)                                                   \
   V(help, help)                                                                \
-  V(sdk_version, sdk_version)                                                  \
-  V(pp, pp)
+  V(sdk_version, sdk_version)
 
 #define STRING_OPTION_DEFINITION(flag, variable)                               \
   static const char* variable = nullptr;                                       \
@@ -52,8 +51,6 @@ static void PrintUsage() {
 "  Print the SDK version.                                                    \n"
 "--out                                                                       \n"
 "  Path to generate the analysis results JSON.                               \n"
-"--pp                                                                        \n"
-"  Flag to pretty-print analysis to stdout.                                  \n"
 "If omitting [<vm-flags>] the VM parsing the snapshot is created with the    \n"
 "following default flags:                                                    \n"
 "--enable_mirrors=false                                                      \n"
@@ -149,6 +146,10 @@ int RunAnalyzer(int argc, char** argv) {
     PrintUsage();
     return kErrorExitCode;
   }
+  if (out_path == nullptr) {
+    Syslog::PrintErr("No output path provided.\n");
+    return kErrorExitCode;
+  }
 
   // Initialize VM with default flags if none are provided.
   // TODO(#47924): Implement auto-parsing of flags from the snapshot file.
@@ -239,16 +240,11 @@ int RunAnalyzer(int argc, char** argv) {
   intptr_t out_len = 0;
 
   Dart_EnterScope();
-  if (out_path != nullptr) {
-    Dart_DumpSnapshotInformationAsJson(&out, &out_len, &info);
-    WriteFile(out_path, out, out_len);
-    // Since ownership of the JSON buffer is ours, free before we exit.
-    free(out);
-  }
+  Dart_DumpSnapshotInformationAsJson(info, &out, &out_len);
+  WriteFile(out_path, out, out_len);
 
-  if (pp) {
-    Dart_DumpSnapshotInformationPP(&info);
-  }
+  // Since ownership of the JSON buffer is ours, free before we exit.
+  free(out);
 
   Dart_ExitScope();
   Dart_ShutdownIsolate();

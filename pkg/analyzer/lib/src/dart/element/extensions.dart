@@ -26,7 +26,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
         }
       }
     } else if (element is ConstructorElement) {
-      interfaceElement = element.enclosingElement;
+      interfaceElement = element.enclosingElement.augmented?.declaration;
     }
     if (interfaceElement == null) {
       return const <TargetKind>{};
@@ -104,6 +104,12 @@ extension ExecutableElementExtension on ExecutableElement {
   bool get isEnumConstructor {
     return this is ConstructorElement && enclosingElement is EnumElementImpl;
   }
+
+  /// Whether the enclosing element is the class `Object`.
+  bool get isObjectMember {
+    final enclosing = enclosingElement;
+    return enclosing is ClassElement && enclosing.isDartCoreObject;
+  }
 }
 
 extension ExecutableElementExtensionQuestion on ExecutableElement? {
@@ -113,6 +119,38 @@ extension ExecutableElementExtensionQuestion on ExecutableElement? {
       return self.parameters.firstOrNull?.type;
     }
     return null;
+  }
+}
+
+extension InterfaceElementExtension on InterfaceElement {
+  /// The result of applying augmentations.
+  ///
+  /// The target must be a declaration, not an augmentation.
+  /// This getter will throw, if this is not the case.
+  AugmentedInterfaceElement get augmentedOfDeclaration {
+    if (isAugmentation) {
+      throw StateError(
+        'The target must be a declaration, not an augmentation.',
+      );
+    }
+    // This is safe because declarations always have it.
+    return augmented!;
+  }
+}
+
+extension MixinElementExtension on MixinElement {
+  /// The result of applying augmentations.
+  ///
+  /// The target must be a declaration, not an augmentation.
+  /// This getter will throw, if this is not the case.
+  AugmentedMixinElement get augmentedOfDeclaration {
+    if (isAugmentation) {
+      throw StateError(
+        'The target must be a declaration, not an augmentation.',
+      );
+    }
+    // This is safe because declarations always have it.
+    return augmented!;
   }
 }
 

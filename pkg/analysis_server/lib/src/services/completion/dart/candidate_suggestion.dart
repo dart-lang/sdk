@@ -76,18 +76,22 @@ final class KeywordSuggestion extends CandidateSuggestion {
   factory KeywordSuggestion.fromKeywordAndText(
       Keyword keyword, String annotatedText) {
     var lexeme = keyword.lexeme;
+    var caretIndex = annotatedText.indexOf('^');
     String completion;
-    var selectionOffset = lexeme.length + annotatedText.indexOf('^');
-    if (selectionOffset < 0) {
+    int selectionOffset;
+    if (caretIndex < 0) {
       completion = lexeme + annotatedText;
       selectionOffset = completion.length;
     } else {
       completion = lexeme +
-          annotatedText.substring(0, selectionOffset) +
-          annotatedText.substring(selectionOffset + 1);
+          annotatedText.substring(0, caretIndex) +
+          annotatedText.substring(caretIndex + 1);
+      selectionOffset = lexeme.length + caretIndex;
     }
     return KeywordSuggestion._(
-        completion: completion, selectionOffset: selectionOffset);
+      completion: completion,
+      selectionOffset: selectionOffset,
+    );
   }
 
   /// Initialize a newly created candidate suggestion to suggest a keyword.

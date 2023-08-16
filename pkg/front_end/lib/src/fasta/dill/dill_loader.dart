@@ -6,9 +6,11 @@ library fasta.dill_loader;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show Class, Component, DartType, Library;
+import 'package:kernel/ast.dart'
+    show Class, Component, DartType, ExtensionTypeDeclaration, Library;
 
 import '../builder/class_builder.dart';
+import '../builder/extension_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/type_builder.dart';
 
@@ -329,6 +331,20 @@ severity: $severity
           currentSourceLoader?.lookupLibraryBuilder(kernelLibrary.importUri);
     }
     return library!.lookupLocalMember(cls.name, required: true) as ClassBuilder;
+  }
+
+  @override
+  ExtensionTypeDeclarationBuilder
+      computeExtensionTypeBuilderFromTargetExtensionType(
+          ExtensionTypeDeclaration extensionType) {
+    Library kernelLibrary = extensionType.enclosingLibrary;
+    LibraryBuilder? library = lookupLibraryBuilder(kernelLibrary.importUri);
+    if (library == null) {
+      library =
+          currentSourceLoader?.lookupLibraryBuilder(kernelLibrary.importUri);
+    }
+    return library!.lookupLocalMember(extensionType.name, required: true)
+        as ExtensionTypeDeclarationBuilder;
   }
 
   late TypeBuilderComputer _typeBuilderComputer = new TypeBuilderComputer(this);

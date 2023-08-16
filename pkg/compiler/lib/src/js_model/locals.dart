@@ -44,8 +44,8 @@ class GlobalLocalsMap {
     Map<MemberEntity, Deferrable<KernelToLocalsMap>> _localsMaps = {};
     int mapCount = source.readInt();
     for (int i = 0; i < mapCount; i++) {
-      Deferrable<KernelToLocalsMap> localsMap = source.readDeferrable(
-          () => KernelToLocalsMapImpl.readFromDataSource(source));
+      Deferrable<KernelToLocalsMap> localsMap =
+          source.readDeferrable(KernelToLocalsMapImpl.readFromDataSource);
       List<MemberEntity> members = source.readMembers();
       for (MemberEntity member in members) {
         _localsMaps[member] = localsMap;

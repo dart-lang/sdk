@@ -61,10 +61,14 @@ suggestions
     kind: field
   f11
     kind: field
+  final
+    kind: keyword
   g01
     kind: getter
   g11
     kind: getter
+  var
+    kind: keyword
 ''');
   }
 
@@ -155,10 +159,14 @@ suggestions
     kind: field
   f11
     kind: field
+  final
+    kind: keyword
   g01
     kind: getter
   g11
     kind: getter
+  var
+    kind: keyword
 ''');
   }
 

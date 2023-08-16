@@ -10,7 +10,9 @@ import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 
 import '../../generated/test_support.dart';
+import '../../util/element_printer.dart';
 import '../../util/feature_sets.dart';
+import '../../util/tree_string_sink.dart';
 import '../dart/resolution/node_text_expectations.dart';
 import '../summary/resolved_ast_printer.dart';
 
@@ -67,12 +69,20 @@ class ParserDiagnosticsTest {
     required bool withCheckingLinking,
     required bool withOffsets,
   }) {
-    var buffer = StringBuffer();
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
+    final elementPrinter = ElementPrinter(
+      sink: sink,
+      configuration: ElementPrinterConfiguration(),
+      selfUriStr: null,
+    );
     node.accept(
       ResolvedAstPrinter(
-        selfUriStr: null,
-        sink: buffer,
-        indent: '',
+        sink: sink,
+        elementPrinter: elementPrinter,
         configuration: ResolvedNodeTextConfiguration()
           ..withCheckingLinking = withCheckingLinking,
         withResolution: false,

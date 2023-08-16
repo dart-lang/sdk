@@ -21,7 +21,7 @@ import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:collection/collection.dart';
 
-class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
+class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
     TextDocumentDefinitionResult> with LspPluginRequestHandlerMixin {
   DefinitionHandler(super.server);
   @override
@@ -72,7 +72,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
       TextDocumentPositionParams params,
       MessageInfo message,
       CancellationToken token) async {
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -215,9 +215,10 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
   Location? _toLocation(
       AnalysisNavigationParams mergedResults, NavigationTarget target) {
     final targetFilePath = mergedResults.files[target.fileIndex];
+    final targetFileUri = pathContext.toUri(targetFilePath);
     final targetLineInfo = server.getLineInfo(targetFilePath);
     return targetLineInfo != null
-        ? navigationTargetToLocation(targetFilePath, target, targetLineInfo)
+        ? navigationTargetToLocation(targetFileUri, target, targetLineInfo)
         : null;
   }
 
@@ -225,11 +226,12 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
       LineInfo sourceLineInfo, NavigationTarget target) {
     final region = mergedResults.regions.first;
     final targetFilePath = mergedResults.files[target.fileIndex];
+    final targetFileUri = pathContext.toUri(targetFilePath);
     final targetLineInfo = server.getLineInfo(targetFilePath);
 
     return targetLineInfo != null
         ? navigationTargetToLocationLink(
-            region, sourceLineInfo, targetFilePath, target, targetLineInfo)
+            region, sourceLineInfo, targetFileUri, target, targetLineInfo)
         : null;
   }
 

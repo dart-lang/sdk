@@ -12,25 +12,25 @@ void blockTest() {
   int x() => 1;
   const i = x();
   //        ^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   Expect.equals(i, 1);
   {
     int x() => 2;
     const y = x();
     //        ^^^
-    // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+    // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
     Expect.equals(y, 2);
     {
       int x() => 3;
       const y = x();
       //        ^^^
-      // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+      // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
       Expect.equals(y, 3);
     }
   }
   const z = x();
   //        ^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   Expect.equals(z, 1);
 }
 
@@ -45,7 +45,7 @@ void blockTest1() {
 
   const i = x();
   //        ^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   Expect.equals(i, 3);
 }
 

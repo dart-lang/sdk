@@ -22,6 +22,7 @@ import 'dart:_js_helper'
         checkNull,
         checkNum,
         checkString,
+        convertDartClosureToJS,
         defineProperty,
         diagnoseIndexError,
         getIsolateAffinityTag,

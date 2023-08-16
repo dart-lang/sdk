@@ -40,7 +40,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     implements InitializerVisitor<void>, StatementVisitor<void> {
   final Translator translator;
-  w.DefinedFunction function;
+  w.FunctionBuilder function;
   final Reference reference;
   late final List<w.Local> paramLocals;
   final w.Label? returnLabel;
@@ -95,7 +95,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   factory CodeGenerator.forFunction(
       Translator translator,
       FunctionNode? functionNode,
-      w.DefinedFunction function,
+      w.FunctionBuilder function,
       Reference reference) {
     bool isSyncStar = functionNode?.asyncMarker == AsyncMarker.SyncStar &&
         !reference.isTearOffReference;
@@ -112,8 +112,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
   }
 
-  w.Module get m => translator.m;
-  w.Instructions get b => function.body;
+  w.ModuleBuilder get m => translator.m;
+  w.InstructionsBuilder get b => function.body;
 
   Member get member => reference.asMember;
 
@@ -354,14 +354,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     closures.findCaptures(member);
     closures.collectContexts(member);
-    if (member is Constructor) {
-      for (Field field in member.enclosingClass.fields) {
-        if (field.isInstanceMember && field.initializer != null) {
-          closures.collectContexts(field.initializer!,
-              container: member.function);
-        }
-      }
-    }
     closures.buildContexts();
 
     allocateContext(member.function!);
@@ -475,7 +467,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   /// Generate code for the body of a lambda.
-  w.DefinedFunction generateLambda(Lambda lambda, Closures closures) {
+  w.BaseFunction generateLambda(Lambda lambda, Closures closures) {
     // Initialize closure information from enclosing member.
     this.closures = closures;
 
@@ -2752,7 +2744,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitAsExpression(AsExpression node, w.ValueType expectedType) {
-    if (translator.options.omitTypeChecks) {
+    if (translator.options.omitTypeChecks || node.isUnchecked) {
       return wrap(node.operand, expectedType);
     }
 

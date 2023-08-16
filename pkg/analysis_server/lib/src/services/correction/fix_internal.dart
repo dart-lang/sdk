@@ -781,6 +781,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.unnecessary_this: [
       RemoveThisExpression.new,
     ],
+    LintNames.unreachable_from_main: [
+      RemoveUnusedElement.new,
+    ],
     LintNames.use_decorated_box: [
       ReplaceWithDecoratedBox.new,
     ],
@@ -975,9 +978,6 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
       DataDriven.new,
-    ],
-    WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
-      ImportLibrary.dartAsync,
     ],
   };
 
@@ -1621,32 +1621,8 @@ class FixProcessor extends BaseProcessor {
     WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA: [
       AddTrailingComma.new,
     ],
-    WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
-      UpdateSdkConstraints.version_2_1_0,
-    ],
-    WarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    WarningCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    WarningCode.SDK_VERSION_EXTENSION_METHODS: [
-      UpdateSdkConstraints.version_2_6_0,
-    ],
     WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR: [
       UpdateSdkConstraints.version_2_14_0,
-    ],
-    WarningCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    WarningCode.SDK_VERSION_SET_LITERAL: [
-      UpdateSdkConstraints.version_2_2_0,
-    ],
-    WarningCode.SDK_VERSION_UI_AS_CODE: [
-      UpdateSdkConstraints.version_2_2_2,
     ],
     WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT: [
       RemoveCharacter.new,

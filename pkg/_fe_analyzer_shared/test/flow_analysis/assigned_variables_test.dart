@@ -529,6 +529,47 @@ main() {
     expect(assignedVariables.capturedInNode(node),
         [assignedVariables.keyForVariable(v2)]);
   });
+
+  group('Final assertions:', () {
+    bool assertionsEnabled = false;
+    assert(assertionsEnabled = true);
+    var asserts = assertionsEnabled
+        ? throwsA(TypeMatcher<AssertionError>())
+        : returnsNormally;
+
+    test('finish may not be called twice', () {
+      var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
+      assignedVariables.finish();
+      expect(assignedVariables.finish, asserts);
+    });
+
+    test('all deferred infos must be stored', () {
+      var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
+      assignedVariables.beginNode();
+      assignedVariables.deferNode();
+      expect(assignedVariables.finish, asserts);
+    });
+
+    test('all open nodes must be closed or deferred', () {
+      var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
+      assignedVariables.beginNode();
+      expect(assignedVariables.finish, asserts);
+    });
+
+    test('all read variables must be declared', () {
+      var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
+      var v1 = _Variable('v1');
+      assignedVariables.read(v1);
+      expect(assignedVariables.finish, asserts);
+    });
+
+    test('all written variables must be declared', () {
+      var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
+      var v1 = _Variable('v1');
+      assignedVariables.write(v1);
+      expect(assignedVariables.finish, asserts);
+    });
+  });
 }
 
 class _Node {}

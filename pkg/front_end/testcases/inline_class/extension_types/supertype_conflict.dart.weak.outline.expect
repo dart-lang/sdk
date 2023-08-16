@@ -1,0 +1,51 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inline_class/extension_types/supertype_conflict.dart:9:16: Error: 'C' is a supertype of itself.
+// extension type C<T>(A<T> it) implements C<T> {}
+//                ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/supertype_conflict.dart:13:16: Error: 'E' is a supertype of itself.
+// extension type E(A<Never> it) implements B<int>, C<String> {}
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T%>
+    ;
+}
+inline class B<T extends core::Object? = dynamic> /* declaredRepresentationType = self::A<T%> */ implements self::A<T%> {
+  constructor • = self::B|;
+  tearoff • = self::B|_#new#tearOff;
+}
+inline class C<T extends core::Object? = dynamic> /* declaredRepresentationType = self::A<T%> */ {
+  constructor • = self::C|;
+  tearoff • = self::C|_#new#tearOff;
+}
+inline class D /* declaredRepresentationType = self::A<Never> */ implements self::A<core::int>, self::B<core::String> {
+  constructor • = self::D|;
+  tearoff • = self::D|_#new#tearOff;
+}
+inline class E /* declaredRepresentationType = self::A<Never> */ {
+  constructor • = self::E|;
+  tearoff • = self::E|_#new#tearOff;
+}
+static inline-class-member method B|<T extends core::Object? = dynamic>(dynamic it) → self::B<self::B|::T%>
+  ;
+static inline-class-member method B|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::B<self::B|_#new#tearOff::T%>
+  return self::B|<self::B|_#new#tearOff::T%>(it);
+static inline-class-member method C|<T extends core::Object? = dynamic>(dynamic it) → self::C<self::C|::T%>
+  ;
+static inline-class-member method C|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::C<self::C|_#new#tearOff::T%>
+  return self::C|<self::C|_#new#tearOff::T%>(it);
+static inline-class-member method D|(dynamic it) → self::D
+  ;
+static inline-class-member method D|_#new#tearOff(dynamic it) → self::D
+  return self::D|(it);
+static inline-class-member method E|(dynamic it) → self::E
+  ;
+static inline-class-member method E|_#new#tearOff(dynamic it) → self::E
+  return self::E|(it);

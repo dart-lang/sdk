@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 
 const var1 = labelDoesNotExistSwitch(1);
 //           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int labelDoesNotExistSwitch(int x) {
   switch (x) {
     labelOtherSwitch:

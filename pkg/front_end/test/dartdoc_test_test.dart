@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
@@ -460,7 +459,7 @@ bool _expectImpl(dynamic actual, dynamic expected, StringBuffer explainer) {
 }
 
 impl.CommentString? extractFirstComment(String test) {
-  Token firstToken = impl.scanRawBytes(utf8.encode(test) as Uint8List);
+  Token firstToken = impl.scanRawBytes(utf8.encode(test));
   Token token = firstToken;
   while (true) {
     CommentToken? comment = token.precedingComments;
@@ -476,6 +475,6 @@ impl.CommentString? extractFirstComment(String test) {
 }
 
 List<impl.Test> extractTests(String test, [Uri? uri]) {
-  return impl.extractTests(utf8.encode(test) as Uint8List,
-      uri ?? new Uri(scheme: "darttest", path: "/foo.dart"));
+  return impl.extractTests(
+      utf8.encode(test), uri ?? new Uri(scheme: "darttest", path: "/foo.dart"));
 }

@@ -44,33 +44,27 @@ class Class extends core::Object {
 }
 static method method(dynamic x, dynamic y, dynamic z) → dynamic {
   dynamic a;
-  block {
-    dynamic #t1;
+  {
     final synthesized dynamic #0#0 = x as{TypeError,ForDynamic} (dynamic, invalid-type, invalid-type);
-    if(!(#0#0 is (core::Object?, core::Object?, core::Object?) && (let final dynamic #t2 = #t1 = #0#0{(core::Object?, core::Object?, core::Object?)}.$1{core::Object?} in true) && invalid-expression "declared variable pattern in assignment" && invalid-expression "declared variable pattern in assignment"))
+    if(!(#0#0 is (core::Object?, core::Object?, core::Object?) && (let final dynamic #t1 = a = #0#0{(core::Object?, core::Object?, core::Object?)}.$1{core::Object?} in true) && invalid-expression "declared variable pattern in assignment" && invalid-expression "declared variable pattern in assignment"))
       throw new core::StateError::•("Pattern matching error");
-    a = #t1;
-  } =>#0#0;
-  block {
-    dynamic #t3;
+  }
+  {
     final synthesized dynamic #1#0 = y as{TypeError,ForDynamic} core::List<invalid-type>;
-    if(!(#1#0 is core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t4 = #t3 = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && invalid-expression "declared variable pattern in assignment"))
+    if(!(#1#0 is core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t2 = a = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && invalid-expression "declared variable pattern in assignment"))
       throw new core::StateError::•("Pattern matching error");
-    a = #t3;
-  } =>#1#0;
-  block {
-    dynamic #t5;
+  }
+  {
     final synthesized dynamic #2#0 = z as{TypeError,ForDynamic} self::Class;
     late final synthesized dynamic #2#3 = (#2#0 as{Unchecked} self::Class).{self::Class::field2}{dynamic};
     late final synthesized dynamic #2#9 = (#2#3 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #2#16 = (#2#3 as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
-    if(!(#2#0 is self::Class && (let final dynamic #t6 = #t5 = #2#0{self::Class}.{self::Class::field1}{dynamic} in true) && (#2#3 is core::List<dynamic> && #2#3{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#2#9 is core::List<dynamic> && #2#9{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && invalid-expression "declared variable pattern in assignment") && (#2#16 is core::List<dynamic> && #2#16{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_declares.dart:14:42: Error: Refutable patterns can't be used in an irrefutable context.
+    if(!(#2#0 is self::Class && (let final dynamic #t3 = a = #2#0{self::Class}.{self::Class::field1}{dynamic} in true) && (#2#3 is core::List<dynamic> && #2#3{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#2#9 is core::List<dynamic> && #2#9{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && invalid-expression "declared variable pattern in assignment") && (#2#16 is core::List<dynamic> && #2#16{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_declares.dart:14:42: Error: Refutable patterns can't be used in an irrefutable context.
 Try using an if-case, a 'switch' statement, or a 'switch' expression instead.
   Class(field1: a, field2: [[var e, _], [1, var f]]) = z;
                                          ^" && invalid-expression "declared variable pattern in assignment"))))
       throw new core::StateError::•("Pattern matching error");
-    a = #t5;
-  } =>#2#0;
+  }
 }
 
 constants  {

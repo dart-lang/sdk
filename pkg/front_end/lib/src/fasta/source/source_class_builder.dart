@@ -4,7 +4,6 @@
 
 library fasta.source_class_builder;
 
-import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
@@ -95,6 +94,18 @@ class SourceClassBuilder extends ClassBuilderImpl
   final Class actualCls;
 
   @override
+  List<TypeVariableBuilder>? typeVariables;
+
+  @override
+  TypeBuilder? supertypeBuilder;
+
+  @override
+  List<TypeBuilder>? interfaceBuilders;
+
+  @override
+  List<TypeBuilder>? onTypes;
+
+  @override
   final List<ConstructorReferenceBuilder>? constructorReferences;
 
   @override
@@ -148,10 +159,10 @@ class SourceClassBuilder extends ClassBuilderImpl
       List<MetadataBuilder>? metadata,
       int modifiers,
       String name,
-      List<TypeVariableBuilder>? typeVariables,
-      TypeBuilder? supertype,
-      List<TypeBuilder>? interfaces,
-      List<TypeBuilder>? onTypes,
+      this.typeVariables,
+      this.supertypeBuilder,
+      this.interfaceBuilders,
+      this.onTypes,
       Scope scope,
       ConstructorScope constructors,
       SourceLibraryBuilder parent,
@@ -173,8 +184,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, referencesFromIndexed,
             isAugmentation: isAugmentation),
-        super(metadata, modifiers, name, typeVariables, supertype, interfaces,
-            onTypes, scope, constructors, parent, nameOffset) {
+        super(metadata, modifiers, name, scope, constructors, parent,
+            nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
 
@@ -234,7 +245,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
     Supertype? supertype = supertypeBuilder?.buildSupertype(libraryBuilder);
-    if (_isFunction(supertype, coreLibrary)) {
+    if (supertype != null &&
+        LibraryBuilder.isFunction(supertype.classNode, coreLibrary)) {
       supertype = null;
       supertypeBuilder = null;
     }
@@ -262,7 +274,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     Supertype? mixedInType =
         mixedInTypeBuilder?.buildMixedInType(libraryBuilder);
-    if (_isFunction(mixedInType, coreLibrary)) {
+    if (mixedInType != null &&
+        LibraryBuilder.isFunction(mixedInType.classNode, coreLibrary)) {
       mixedInType = null;
       mixedInTypeBuilder = null;
       actualCls.isAnonymousMixin = false;
@@ -290,7 +303,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         Supertype? supertype =
             interfaceBuilders![i].buildSupertype(libraryBuilder);
         if (supertype != null) {
-          if (_isFunction(supertype, coreLibrary)) {
+          if (LibraryBuilder.isFunction(supertype.classNode, coreLibrary)) {
             continue;
           }
           // TODO(ahe): Report an error if supertype is null.
@@ -337,25 +350,6 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     cls.procedures.sort(compareProcedures);
     return cls;
-  }
-
-  bool _isFunction(Supertype? supertype, LibraryBuilder coreLibrary) {
-    if (supertype != null) {
-      Class superclass = supertype.classNode;
-      if (superclass.name == 'Function' &&
-          // We use `superclass.parent` here instead of
-          // `superclass.enclosingLibrary` to handle platform compilation. If
-          // we are currently compiling the platform, the enclosing library of
-          // `Function` has not yet been set, so the accessing
-          // `enclosingLibrary` would result in a cast error. We assume that the
-          // SDK does not contain this error, which we otherwise not find. If we
-          // are _not_ compiling the platform, the `superclass.parent` has been
-          // set, if it is `Function` from `dart:core`.
-          superclass.parent == coreLibrary.library) {
-        return true;
-      }
-    }
-    return false;
   }
 
   BodyBuilderContext get bodyBuilderContext =>
@@ -1243,57 +1237,6 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (result != 0) return result;
     return charOffset.compareTo(other.charOffset);
   }
-
-  /// If any private field names in this library are unpromotable due to fields
-  /// in this class, adds them to [unpromotablePrivateFieldNames].
-  void addUnpromotablePrivateFieldNames(
-      Set<String> unpromotablePrivateFieldNames) {
-    for (Field field in cls.fields) {
-      // An instance field is unpromotable (and makes other fields with the same
-      // name unpromotable) if it's not final.
-      if (field.isInstanceMember &&
-          !field.isFinal &&
-          _isPrivateNameInThisLibrary(field.name)) {
-        if (isLateLoweredField(field)) {
-          // Late lowered fields do not have the finality of the declaration
-          // so we use lookup the corresponding [SourceFieldBuilder].
-          String fieldName = extractFieldNameFromLateLoweredField(field).text;
-          Builder? builder = scope.lookupLocalMember(fieldName, setter: false);
-          assert(builder is SourceFieldBuilder,
-              "Unexpected late-lowered field '$fieldName' in $this: $builder");
-          if (builder is SourceFieldBuilder && !builder.isFinal) {
-            unpromotablePrivateFieldNames.add(fieldName);
-          }
-        } else if (!isLateLoweredIsSetField(field)) {
-          unpromotablePrivateFieldNames.add(field.name.text);
-        }
-      }
-    }
-    for (Procedure procedure in cls.procedures) {
-      // An instance getter makes fields with the same name unpromotable if it's
-      // concrete.  Also, an abstract instance setter that's desugared from an
-      // abstract non-final field makes fields with the same name unpromotable.
-      if (procedure.isInstanceMember &&
-          _isPrivateNameInThisLibrary(procedure.name)) {
-        if (procedure.isGetter &&
-            !procedure.isAbstract &&
-            !isLateLoweredFieldGetter(procedure)) {
-          ProcedureStubKind procedureStubKind = procedure.stubKind;
-          if (procedureStubKind == ProcedureStubKind.Regular ||
-              procedureStubKind == ProcedureStubKind.NoSuchMethodForwarder) {
-            unpromotablePrivateFieldNames.add(procedure.name.text);
-          }
-        } else if (procedure.isSetter &&
-            procedure.isAbstractFieldAccessor &&
-            !isLateLoweredFieldSetter(procedure)) {
-          unpromotablePrivateFieldNames.add(procedure.name.text);
-        }
-      }
-    }
-  }
-
-  bool _isPrivateNameInThisLibrary(Name name) =>
-      name.isPrivate && name.library == libraryBuilder.library;
 
   void _handleSeenCovariant(
       ClassHierarchyMembers memberHierarchy,

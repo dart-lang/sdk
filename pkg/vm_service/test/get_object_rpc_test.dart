@@ -27,6 +27,8 @@ base class _DummyClass extends _DummyAbstractBaseClass {
   static var dummyVarWithInit = foo();
   late String dummyLateVarWithInit = 'bar';
   late String dummyLateVar;
+  int get dummyVarGetter => dummyVar;
+  set dummyVarSetter(int value) => dummyVar = value;
   @override
   void dummyFunction(int a, [bool b = false]) {}
   void dummyGenericFunction<K, V>(K a, {required V param}) {}
@@ -904,7 +906,7 @@ var tests = <IsolateTest>[
     expect(result.interfaces!.length, 0);
     expect(result.mixin, isNull);
     expect(result.fields!.length, 5);
-    expect(result.functions!.length, 10);
+    expect(result.functions!.length, 12);
     expect(result.subclasses!.length, 2);
     final json = result.json!;
     expect(json['_vmName'], startsWith('_DummyClass@'));
@@ -1262,7 +1264,8 @@ var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
     final isolate = await service.getIsolate(isolateId);
-    // Call eval to get a class id.
+    // Call [invoke] to get an [InstanceRef], and then use the ID of its
+    // [classRef] field to build a function ID.
     final evalResult = await service.invoke(
         isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
     final objectId = "${evalResult.classRef!.id!}/functions/dummyFunction";
@@ -1273,6 +1276,8 @@ var tests = <IsolateTest>[
     expect(result.isConst, equals(false));
     expect(result.implicit, equals(false));
     expect(result.isAbstract, equals(false));
+    expect(result.isGetter, false);
+    expect(result.isSetter, false);
     final signature = result.signature!;
     expect(signature.typeParameters, isNull);
     expect(signature.returnType, isNotNull);
@@ -1297,7 +1302,8 @@ var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
     final isolate = await service.getIsolate(isolateId);
-    // Call eval to get a class id.
+    // Call [invoke] to get an [InstanceRef], and then use the ID of its
+    // [classRef] field to build a function ID.
     final evalResult = await service.invoke(
         isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
     final objectId =
@@ -1309,6 +1315,8 @@ var tests = <IsolateTest>[
     expect(result.isConst, equals(false));
     expect(result.implicit, equals(false));
     expect(result.isAbstract, equals(false));
+    expect(result.isGetter, false);
+    expect(result.isSetter, false);
     final signature = result.signature!;
     expect(signature.typeParameters!.length, 2);
     expect(signature.returnType, isNotNull);
@@ -1362,6 +1370,8 @@ var tests = <IsolateTest>[
     expect(funcResult.isConst, equals(false));
     expect(funcResult.implicit, equals(false));
     expect(funcResult.isAbstract, equals(true));
+    expect(funcResult.isGetter, false);
+    expect(funcResult.isSetter, false);
     final signature = funcResult.signature!;
     expect(signature.typeParameters, isNull);
     expect(signature.returnType, isNotNull);
@@ -1421,11 +1431,84 @@ var tests = <IsolateTest>[
     expect(json['_guardLength'], isNotNull);
   },
 
+  // getter
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
+    // Call [invoke] to get an [InstanceRef], and then use the ID of its
+    // [classRef] field to build a function ID.
+    final evalResult = await service.invoke(
+        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
+    final objectId =
+        "${evalResult.classRef!.id!}/functions/get${Uri.encodeComponent(':')}dummyVarGetter";
+    final result = await service.getObject(isolateId, objectId) as Func;
+    expect(result.id, objectId);
+    expect(result.name, 'dummyVarGetter');
+    expect(result.isStatic, false);
+    expect(result.isConst, false);
+    expect(result.implicit, false);
+    expect(result.isAbstract, false);
+    expect(result.isGetter, true);
+    expect(result.isSetter, false);
+    final signature = result.signature!;
+    expect(signature.typeParameters, isNull);
+    expect(signature.returnType, isNotNull);
+    final parameters = signature.parameters!;
+    expect(parameters.length, 1);
+    expect(result.location, isNotNull);
+    expect(result.code, isNotNull);
+    final json = result.json!;
+    expect(json['_kind'], 'GetterFunction');
+    expect(json['_optimizable'], true);
+    expect(json['_inlinable'], true);
+    expect(json['_usageCounter'], 0);
+    expect(json['_optimizedCallSiteCount'], 0);
+    expect(json['_deoptimizations'], 0);
+  },
+
+  // setter
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
+    // Call [invoke] to get an [InstanceRef], and then use the ID of its
+    // [classRef] field to build a function ID.
+    final evalResult = await service.invoke(
+        isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
+    final objectId =
+        "${evalResult.classRef!.id!}/functions/set${Uri.encodeComponent(':')}dummyVarSetter";
+    final result = await service.getObject(isolateId, objectId) as Func;
+    expect(result.id, objectId);
+    expect(result.name, 'dummyVarSetter=');
+    expect(result.isStatic, false);
+    expect(result.isConst, false);
+    expect(result.implicit, false);
+    expect(result.isAbstract, false);
+    expect(result.isGetter, false);
+    expect(result.isSetter, true);
+    final signature = result.signature!;
+    expect(signature.typeParameters, isNull);
+    expect(signature.returnType, isNotNull);
+    final parameters = signature.parameters!;
+    expect(parameters.length, 2);
+    expect(parameters[1].parameterType!.name, equals('int'));
+    expect(parameters[1].fixed, isTrue);
+    expect(result.location, isNotNull);
+    expect(result.code, isNotNull);
+    final json = result.json!;
+    expect(json['_kind'], 'SetterFunction');
+    expect(json['_optimizable'], true);
+    expect(json['_inlinable'], true);
+    expect(json['_usageCounter'], 0);
+    expect(json['_optimizedCallSiteCount'], 0);
+    expect(json['_deoptimizations'], 0);
+  },
+
   // static field initializer
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
     final isolate = await service.getIsolate(isolateId);
-    // Call eval to get a class id.
+    // Call [invoke] to get an [InstanceRef], and then use the ID of its
+    // [classRef] field to build a function ID.
     final evalResult = await service.invoke(
         isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
     final objectId = "${evalResult.classRef!.id!}/field_inits/dummyVarWithInit";
@@ -1436,6 +1519,8 @@ var tests = <IsolateTest>[
     expect(result.isConst, equals(false));
     expect(result.implicit, equals(false));
     expect(result.isAbstract, equals(false));
+    expect(result.isGetter, false);
+    expect(result.isSetter, false);
     final signature = result.signature!;
     expect(signature.typeParameters, isNull);
     expect(signature.returnType, isNotNull);
@@ -1455,7 +1540,8 @@ var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
     final isolate = await service.getIsolate(isolateId);
-    // Call eval to get a class id.
+    // Call [invoke] to get an [InstanceRef], and then use the ID of its
+    // [classRef] field to build a function ID.
     final evalResult = await service.invoke(
         isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
     final objectId =
@@ -1467,6 +1553,8 @@ var tests = <IsolateTest>[
     expect(result.isConst, equals(false));
     expect(result.implicit, equals(false));
     expect(result.isAbstract, equals(false));
+    expect(result.isGetter, false);
+    expect(result.isSetter, false);
     final signature = result.signature!;
     expect(signature.typeParameters, isNull);
     expect(signature.returnType, isNotNull);
@@ -1547,9 +1635,11 @@ var tests = <IsolateTest>[
     final isolateId = isolateRef.id!;
     final isolate = await service.getIsolate(isolateId);
     // Call eval to get a UserTag id.
-    final evalResult = await service.invoke(
-        isolateId, isolate.rootLib!.id!, 'getUserTag', []) as InstanceRef;
-    final result = await service.getObject(isolateId, evalResult.id!) as Instance;
+    final evalResult =
+        await service.invoke(isolateId, isolate.rootLib!.id!, 'getUserTag', [])
+            as InstanceRef;
+    final result =
+        await service.getObject(isolateId, evalResult.id!) as Instance;
     expect(result.label, equals('Test Tag'));
   },
 

@@ -145,54 +145,54 @@ static method test() → dynamic {
   <self::G<self::Class<dynamic>>, self::G<self::Class<dynamic>>>{};
   <self::G<self::ConcreteClass>, self::G<self::Class<self::ConcreteClass>>>{};
   <self::G<core::Object>, self::G<core::int>>{};
-  block {
+  {
     final core::Set<self::Class<dynamic>> #t1 = new col::_Set::•<self::Class<dynamic>>();
-  } =>#t1;
-  block {
+  }
+  {
     final core::Set<dynamic> #t2 = new col::_Set::•<dynamic>();
-  } =>#t2;
-  block {
+  }
+  {
     final core::Set<self::Class<dynamic>> #t3 = new col::_Set::•<self::Class<dynamic>>();
-  } =>#t3;
-  block {
+  }
+  {
     final core::Set<self::Class<dynamic>> #t4 = new col::_Set::•<self::Class<dynamic>>();
-  } =>#t4;
-  block {
+  }
+  {
     final core::Set<core::Object> #t5 = new col::_Set::•<core::Object>();
-  } =>#t5;
-  block {
+  }
+  {
     final core::Set<core::int> #t6 = new col::_Set::•<core::int>();
-  } =>#t6;
-  block {
+  }
+  {
     final core::Set<self::ConcreteClass> #t7 = new col::_Set::•<self::ConcreteClass>();
-  } =>#t7;
-  block {
+  }
+  {
     final core::Set<self::Class<self::ConcreteClass>> #t8 = new col::_Set::•<self::Class<self::ConcreteClass>>();
-  } =>#t8;
-  block {
+  }
+  {
     final core::Set<self::G<self::Class<dynamic>>> #t9 = new col::_Set::•<self::G<self::Class<dynamic>>>();
-  } =>#t9;
-  block {
+  }
+  {
     final core::Set<self::G<self::Class<dynamic>>> #t10 = new col::_Set::•<self::G<self::Class<dynamic>>>();
-  } =>#t10;
-  block {
+  }
+  {
     final core::Set<self::G<self::Class<dynamic>>> #t11 = new col::_Set::•<self::G<self::Class<dynamic>>>();
-  } =>#t11;
-  block {
+  }
+  {
     final core::Set<self::G<self::Class<dynamic>>> #t12 = new col::_Set::•<self::G<self::Class<dynamic>>>();
-  } =>#t12;
-  block {
+  }
+  {
     final core::Set<self::G<self::ConcreteClass>> #t13 = new col::_Set::•<self::G<self::ConcreteClass>>();
-  } =>#t13;
-  block {
+  }
+  {
     final core::Set<self::G<self::Class<self::ConcreteClass>>> #t14 = new col::_Set::•<self::G<self::Class<self::ConcreteClass>>>();
-  } =>#t14;
-  block {
+  }
+  {
     final core::Set<self::G<core::Object>> #t15 = new col::_Set::•<self::G<core::Object>>();
-  } =>#t15;
-  block {
+  }
+  {
     final core::Set<self::G<core::int>> #t16 = new col::_Set::•<self::G<core::int>>();
-  } =>#t16;
+  }
   core::_GrowableList::•<self::Class<dynamic>>(0);
   core::_GrowableList::•<dynamic>(0);
   core::_GrowableList::•<self::Class<dynamic>>(0);

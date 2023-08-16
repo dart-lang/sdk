@@ -308,6 +308,41 @@ final a1 = A();
     expect(location.range, code.range.range);
   }
 
+  Future<void> test_location_records() async {
+    final code = TestCode.parse('''
+class /*[0*/A/*0]*/<T> {}
+class /*[1*/B/*1]*/ {}
+class /*[2*/C/*2]*/ {}
+final x = A<(B, C, {B b2, C c2})>();
+''');
+    final ranges = code.ranges.map((r) => r.range).toList();
+    final hints = await _fetchHints(code.code);
+    final parts = hints.single.labelParts;
+
+    // Check the parts of the label.
+    expect(
+      parts.map((p) => (p.value, p.location?.range)),
+      equals([
+        ('A', ranges[0]),
+        ('<', null),
+        ('(', null),
+        ('B', ranges[1]),
+        (', ', null),
+        ('C', ranges[2]),
+        (', ', null),
+        ('{', null),
+        ('B', ranges[1]),
+        (' b2', null),
+        (', ', null),
+        ('C', ranges[2]),
+        (' c2', null),
+        ('}', null),
+        (')', null),
+        ('>', null),
+      ]),
+    );
+  }
+
   Future<void> test_location_sdk() async {
     final code = TestCode.parse('''
 final a1 = '';
@@ -315,7 +350,8 @@ final a1 = '';
     final hints = await _fetchHints(code.code);
     final location = hints.single.labelParts.single.location!;
 
-    expect(location.uri, Uri.file(convertPath('/sdk/lib/core/core.dart')));
+    expect(location.uri,
+        pathContext.toUri(convertPath('/sdk/lib/core/core.dart')));
     // Check range looks like sensible values.
     expect(location.range.start.line, greaterThanOrEqualTo(1));
     expect(location.range.start.character,
@@ -338,28 +374,15 @@ final x = A<B<C>>();
 
     // Check the parts of the label.
     expect(
-      parts.map((p) => p.value),
+      parts.map((p) => (p.value, p.location?.range)),
       equals([
-        'A',
-        '<',
-        'B',
-        '<',
-        'C',
-        '>',
-        '>',
-      ]),
-    );
-    // Ensure each part has the correct location.
-    expect(
-      parts.map((p) => p.location?.range),
-      equals([
-        ranges[0], // A
-        null,
-        ranges[1], // B
-        null,
-        ranges[2], // C
-        null,
-        null,
+        ('A', ranges[0]),
+        ('<', null),
+        ('B', ranges[1]),
+        ('<', null),
+        ('C', ranges[2]),
+        ('>', null),
+        ('>', null),
       ]),
     );
   }
@@ -427,6 +450,78 @@ void f() {
   final (Type:A) a = A();
   a.m1(Type:<String, int>)((Parameter:a:) '', (Parameter:b:) 1);
 }
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_patterns_destructure() async {
+    final content = '''
+void f() {
+  final (i, ) = (1, );
+  final (j, k) = (1, 2);
+  final (int i2, ) = (1, );
+  final (int j2, int k2) = (1, 2);
+}
+''';
+    final expected = '''
+void f() {
+  final ((Type:int) i, ) = (1, );
+  final ((Type:int) j, (Type:int) k) = (1, 2);
+  final (int i2, ) = (1, );
+  final (int j2, int k2) = (1, 2);
+}
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_patterns_ifCase() async {
+    final content = '''
+void f() {
+  final (int, {(int, ) test}) pattern = (test: (10,), 2);
+  if (pattern case final p) {}
+}
+''';
+    final expected = '''
+void f() {
+  final (int, {(int, ) test}) pattern = (test: (10,), 2);
+  if (pattern case final (Type:(int, {(int,) test})) p) {}
+}
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_patterns_switchExpression() async {
+    final content = '''
+void f() {
+  final (int, {(int, ) test}) pattern = (test: (10,), 2);
+  final Null _switch = switch (pattern) {
+    (:final test, var i) => null,
+  };
+}
+''';
+    final expected = '''
+void f() {
+  final (int, {(int, ) test}) pattern = (test: (10,), 2);
+  final Null _switch = switch (pattern) {
+    (:final (Type:(int,)) test, var (Type:int) i) => null,
+  };
+}
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_records_singlePositionalComma() async {
+    final content = '''
+final withComma = (1,);
+final noComma1 = (1, 2);
+final noComma2 = (a: '');
+final noComma3 = (1, a: '');
+''';
+    final expected = '''
+final (Type:(int,)) withComma = (1,);
+final (Type:(int, int)) noComma1 = (1, 2);
+final (Type:({String a})) noComma2 = (a: '');
+final (Type:(int, {String a})) noComma3 = (1, a: '');
 ''';
     await _expectHints(content, expected);
   }

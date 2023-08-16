@@ -81,6 +81,7 @@ abstract class AbstractCodeActionsProducer
   Diagnostic createDiagnostic(
       LineInfo lineInfo, engine.ErrorsResultImpl result, AnalysisError error) {
     return pluginToDiagnostic(
+      server.pathContext,
       (_) => lineInfo,
       protocol.newAnalysisError_fromEngine(result, error),
       supportedTags: supportedDiagnosticTags,
@@ -130,7 +131,7 @@ abstract class AbstractCodeActionsProducer
     return engine.ErrorsResultImpl(
         session: session,
         path: path,
-        uri: Uri.file(path),
+        uri: server.pathContext.toUri(path),
         lineInfo: lineInfo,
         isAugmentation: false,
         isLibrary: true,

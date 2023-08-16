@@ -14,7 +14,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  constructor •({required invalid-type field = null}) → self::A
+  constructor •({required invalid-type field}) → self::A
     ;
 }
 class C extends core::Object {

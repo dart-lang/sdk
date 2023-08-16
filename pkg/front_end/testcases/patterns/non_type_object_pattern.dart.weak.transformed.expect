@@ -56,13 +56,11 @@ library;
 //     NonType(:var field) => "matched",
 //     ^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:44:7: Error: This requires the experimental 'extension-types' language feature to be enabled.
-// Try passing the '--enable-experiment=extension-types' command line option.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:44:7: Error: 'Extension' isn't a type.
 //   var Extension(:int field) = o;
 //       ^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:45:9: Error: This requires the experimental 'extension-types' language feature to be enabled.
-// Try passing the '--enable-experiment=extension-types' command line option.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:45:9: Error: 'Extension' isn't a type.
 //   final Extension(:o) = o;
 //         ^^^^^^^^^
 //
@@ -73,18 +71,15 @@ library;
 //   var Extension(:int field) = o;
 //                               ^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:47:14: Error: This requires the experimental 'extension-types' language feature to be enabled.
-// Try passing the '--enable-experiment=extension-types' command line option.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:47:14: Error: 'Extension' isn't a type.
 //   if (o case Extension(:var field)) {}
 //              ^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:50:10: Error: This requires the experimental 'extension-types' language feature to be enabled.
-// Try passing the '--enable-experiment=extension-types' command line option.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:50:10: Error: 'Extension' isn't a type.
 //     case Extension(:var field):
 //          ^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:54:5: Error: This requires the experimental 'extension-types' language feature to be enabled.
-// Try passing the '--enable-experiment=extension-types' command line option.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:54:5: Error: 'Extension' isn't a type.
 //     Extension(:var field) => "matched",
 //     ^^^^^^^^^
 //
@@ -142,13 +137,11 @@ library;
 //     prefix.NonType(:var field) => "matched",
 //            ^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:92:14: Error: This requires the experimental 'extension-types' language feature to be enabled.
-// Try passing the '--enable-experiment=extension-types' command line option.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:92:14: Error: 'Extension' isn't a type.
 //   var prefix.Extension(:int field) = o;
 //              ^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:93:16: Error: This requires the experimental 'extension-types' language feature to be enabled.
-// Try passing the '--enable-experiment=extension-types' command line option.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:93:16: Error: 'Extension' isn't a type.
 //   final prefix.Extension(:o) = o;
 //                ^^^^^^^^^
 //
@@ -159,18 +152,15 @@ library;
 //   var prefix.Extension(:int field) = o;
 //                                      ^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:95:21: Error: This requires the experimental 'extension-types' language feature to be enabled.
-// Try passing the '--enable-experiment=extension-types' command line option.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:95:21: Error: 'Extension' isn't a type.
 //   if (o case prefix.Extension(:var field)) {}
 //                     ^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:98:17: Error: This requires the experimental 'extension-types' language feature to be enabled.
-// Try passing the '--enable-experiment=extension-types' command line option.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:98:17: Error: 'Extension' isn't a type.
 //     case prefix.Extension(:var field):
 //                 ^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:102:12: Error: This requires the experimental 'extension-types' language feature to be enabled.
-// Try passing the '--enable-experiment=extension-types' command line option.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:102:12: Error: 'Extension' isn't a type.
 //     prefix.Extension(:var field) => "matched",
 //            ^^^^^^^^^
 //

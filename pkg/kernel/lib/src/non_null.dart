@@ -116,20 +116,6 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
 
   @override
   DartType? visitExtensionType(ExtensionType node) {
-    // NonNull(C<T1, ... , Tn>) = C<T1, ... , Tn> for class C other
-    // than Null (including Object).
-    //
-    // NonNull(T?) = NonNull(T)
-    //
-    // NonNull(T*) = NonNull(T)
-    if (node.declaredNullability == Nullability.nonNullable) {
-      return null;
-    }
-    return node.withDeclaredNullability(Nullability.nonNullable);
-  }
-
-  @override
-  DartType? visitInlineType(InlineType node) {
     // NonNull(T?) = NonNull(T)
     //
     // NonNull(T*) = NonNull(T)

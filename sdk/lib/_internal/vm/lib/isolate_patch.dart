@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Note: the VM concatenates all patch files into a single patch file. This
-/// file is the first patch in "dart:isolate" which contains all the imports
-/// used by patches of that library. We plan to change this when we have a
-/// shared front end and simply use parts.
-
 import "dart:_internal" show ClassID, VMLibraryHooks, patch;
 
 import "dart:async"
@@ -315,7 +310,12 @@ final class Isolate {
 
   @patch
   static Future<Uri?> get packageConfig {
-    var hook = VMLibraryHooks.packageConfigUriFuture;
+    return Future.value(packageConfigSync);
+  }
+
+  @patch
+  static Uri? get packageConfigSync {
+    var hook = VMLibraryHooks.packageConfigUriSync;
     if (hook == null) {
       throw new UnsupportedError("Isolate.packageConfig");
     }
@@ -324,16 +324,21 @@ final class Isolate {
 
   @patch
   static Future<Uri?> resolvePackageUri(Uri packageUri) {
-    var hook = VMLibraryHooks.resolvePackageUriFuture;
+    return Future.value(resolvePackageUriSync(packageUri));
+  }
+
+  @patch
+  static Uri? resolvePackageUriSync(Uri packageUri) {
+    var hook = VMLibraryHooks.resolvePackageUriSync;
     if (hook == null) {
-      throw new UnsupportedError("Isolate.resolvePackageUri");
+      throw new UnsupportedError("Isolate.resolvePackageUriSync");
     }
     return hook(packageUri);
   }
 
   static bool _packageSupported() =>
-      (VMLibraryHooks.packageConfigUriFuture != null) &&
-      (VMLibraryHooks.resolvePackageUriFuture != null);
+      (VMLibraryHooks.packageConfigUriSync != null) &&
+      (VMLibraryHooks.resolvePackageUriSync != null);
 
   @patch
   static Future<Isolate> spawn<T>(void entryPoint(T message), T message,
@@ -357,7 +362,7 @@ final class Isolate {
       if (Isolate._packageSupported()) {
         // resolving script uri is not really necessary, but can be useful
         // for better failed-to-lookup-function-in-a-script spawn errors.
-        script = await Isolate.resolvePackageUri(script);
+        script = Isolate.resolvePackageUriSync(script);
       }
     }
 
@@ -426,7 +431,7 @@ final class Isolate {
     // Inherit this isolate's package resolution setup if not overridden.
     if (!automaticPackageResolution && packageConfig == null) {
       if (Isolate._packageSupported()) {
-        packageConfig = await Isolate.packageConfig;
+        packageConfig = Isolate.packageConfigSync;
       }
     }
 
@@ -435,7 +440,7 @@ final class Isolate {
       // Avoid calling resolvePackageUri if not strictly necessary in case
       // the API is not supported.
       if (packageConfig.isScheme("package")) {
-        packageConfig = await Isolate.resolvePackageUri(packageConfig);
+        packageConfig = Isolate.resolvePackageUriSync(packageConfig);
       }
     }
 

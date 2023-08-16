@@ -89,7 +89,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
-import 'package:meta/meta.dart';
 
 typedef SharedMatchContext = shared.MatchContext<AstNode, Expression,
     DartPattern, DartType, PromotableElement>;
@@ -1752,11 +1751,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
   }
 
-  @visibleForTesting
-  void setThisInterfaceType(InterfaceType thisType) {
-    _thisType = thisType;
-  }
-
   @override
   void setVariableType(PromotableElement variable, DartType type) {
     if (variable is LocalVariableElementImpl) {
@@ -2103,7 +2097,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     //
     // Continue the class resolution.
     //
@@ -2118,16 +2112,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     baseOrFinalTypeVerifier.checkElement(
-        node.declaredElement as ClassOrMixinElementImpl, node.implementsClause);
+        node.declaredElement!, node.implementsClause);
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     checkUnreachableNode(node);
     node.visitChildren(this);
     elementResolver.visitClassTypeAlias(node);
     baseOrFinalTypeVerifier.checkElement(
-        node.declaredElement as ClassOrMixinElementImpl, node.implementsClause);
+        node.declaredElement!, node.implementsClause);
   }
 
   @override
@@ -2372,14 +2366,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    node as EnumConstantDeclarationImpl;
-
+  void visitEnumConstantDeclaration(
+    covariant EnumConstantDeclarationImpl node,
+  ) {
     node.documentationComment?.accept(this);
     node.metadata.accept(this);
     checkUnreachableNode(node);
 
-    var element = node.declaredElement as ConstFieldElementImpl;
+    var element = node.declaredElement!;
     var initializer = element.constantInitializer;
     if (initializer is InstanceCreationExpression) {
       var constructorName = initializer.constructorName;
@@ -2558,6 +2552,21 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
+    final outerType = enclosingClass;
+    try {
+      enclosingClass = node.declaredElement;
+      checkUnreachableNode(node);
+      node.visitChildren(this);
+      elementResolver.visitExtensionTypeDeclaration(node);
+    } finally {
+      enclosingClass = outerType;
+    }
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _thisAccessTracker.enterFieldDeclaration(node);
     try {
@@ -2580,8 +2589,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitForElement(ForElement node, {CollectionLiteralContext? context}) {
-    _forResolver.resolveElement(node as ForElementImpl, context);
+  void visitForElement(
+    covariant ForElementImpl node, {
+    CollectionLiteralContext? context,
+  }) {
+    _forResolver.resolveElement(node, context);
   }
 
   @override
@@ -3038,7 +3050,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     //
     // Continue the class resolution.
     //
@@ -3053,7 +3065,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     baseOrFinalTypeVerifier.checkElement(
-        node.declaredElement as ClassOrMixinElementImpl, node.implementsClause);
+        node.declaredElement!, node.implementsClause);
   }
 
   @override
@@ -3149,8 +3161,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant PatternVariableDeclarationImpl node,
   ) {
     final patternSchema = analyzePatternVariableDeclaration(
-        node, node.pattern, node.expression,
-        isFinal: node.keyword.keyword == Keyword.FINAL);
+            node, node.pattern, node.expression,
+            isFinal: node.keyword.keyword == Keyword.FINAL)
+        .patternSchema;
     node.patternTypeSchema = patternSchema;
     popRewrite(); // expression
   }
@@ -3328,6 +3341,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         .resolveInvocation(rawType: node.staticElement?.type);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
+  }
+
+  @override
+  void visitRepresentationConstructorName(RepresentationConstructorName node) {}
+
+  @override
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    elementResolver.visitRepresentationDeclaration(node);
   }
 
   @override
@@ -3838,7 +3861,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void _setupThisType() {
     var enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
-      _thisType = enclosingClass.thisType;
+      final augmented = enclosingClass.augmented;
+      if (augmented != null) {
+        _thisType = augmented.declaration.thisType;
+      } else {
+        _thisType = InvalidTypeImpl.instance;
+      }
     } else {
       var enclosingExtension = this.enclosingExtension;
       if (enclosingExtension != null) {

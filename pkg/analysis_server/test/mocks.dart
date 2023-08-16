@@ -68,10 +68,10 @@ class MockProcess implements Process {
   int get pid => _pid;
 
   @override
-  Stream<List<int>> get stderr => Future.value(utf8.encode(_stderr)).asStream();
+  Stream<List<int>> get stderr => Stream<List<int>>.value(utf8.encode(_stderr));
 
   @override
-  Stream<List<int>> get stdout => Future.value(utf8.encode(_stdout)).asStream();
+  Stream<List<int>> get stdout => Stream<List<int>>.value(utf8.encode(_stdout));
 
   @override
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {

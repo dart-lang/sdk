@@ -107,7 +107,8 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     uint8_t* kernel_buffer = nullptr;
     intptr_t kernel_buffer_size = -1;
     dfe.CompileAndReadScript(url_string, &kernel_buffer, &kernel_buffer_size,
-                             &error, &exit_code, nullptr, false);
+                             &error, &exit_code, nullptr,
+                             /*for_snapshot=*/false, /*embed_sources=*/true);
     if (exit_code == 0) {
       return Dart_LoadLibrary(
           WrapMallocedKernelBuffer(kernel_buffer, kernel_buffer_size));

@@ -32,7 +32,7 @@ class ElementTypeProvider {
   void freshTypeParameterCreated(TypeParameterElement newTypeParameter,
       TypeParameterElement oldTypeParameter) {}
 
-  List<InterfaceType> getClassInterfaces(AbstractClassElementImpl element) =>
+  List<InterfaceType> getClassInterfaces(InterfaceElementImpl element) =>
       element.interfacesInternal;
 
   /// Queries the parameters of an executable element's signature.

@@ -7,25 +7,23 @@ static method guard() → dynamic
 static method main() → dynamic {
   hoisted has-declared-initializer core::int a;
   {
-    final synthesized dynamic #0#0 = core::_GrowableList::_literal1<core::int>(5);
-    if(!(#0#0{core::List<core::int>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t1 = a = #0#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int} in true)))
+    final synthesized core::List<core::int> #0#0 = core::_GrowableList::_literal1<core::int>(5);
+    if(!(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t1 = a = #0#0.{core::List::[]}(0){(core::int) → core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   core::int b;
-  block {
-    core::int #t2;
-    final synthesized dynamic #2#0 = block {
-      final core::List<core::int> #t3 = core::_GrowableList::•<core::int>(0);
+  {
+    final synthesized core::List<core::int> #2#0 = block {
+      final core::List<core::int> #t2 = core::_GrowableList::•<core::int>(0);
       {
         final synthesized core::int #1#0 = a;
         if(#1#0 =={core::num::==}{(core::Object) → core::bool} #C2 && self::guard() as{TypeError} core::bool)
-          #t3.{core::List::add}{Invariant}(5){(core::int) → void};
+          #t2.{core::List::add}{Invariant}(5){(core::int) → void};
       }
-    } =>#t3;
-    if(!(#2#0{core::List<core::int>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t4 = #t2 = #2#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int} in true)))
+    } =>#t2;
+    if(!(#2#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t3 = b = #2#0.{core::List::[]}(0){(core::int) → core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
-    b = #t2;
-  } =>#2#0;
+  }
   {
     final synthesized core::int #3#0 = a;
     if(#3#0 =={core::num::==}{(core::Object) → core::bool} #C2 && self::guard() as{TypeError} core::bool) {
@@ -33,31 +31,31 @@ static method main() → dynamic {
     }
   }
   core::int c = block {
-    core::int #t5;
+    core::int #t4;
     final synthesized core::int #4#0 = a;
     #L1:
     {
       {
         hoisted core::int d;
-        if(#4#0 is core::int && (let final core::int #t6 = d = #4#0 in true) && self::guard() as{TypeError} core::bool) {
-          #t5 = d;
+        if(#4#0 is core::int && (let final core::int #t5 = d = #4#0 in true) && self::guard() as{TypeError} core::bool) {
+          #t4 = d;
           break #L1;
         }
       }
       {
         if(true) {
-          #t5 = 0;
+          #t4 = 0;
           break #L1;
         }
       }
     }
-  } =>#t5;
+  } =>#t4;
   #L2:
   {
     final synthesized core::int #5#0 = b;
     {
       hoisted core::int e;
-      if(#5#0 is core::int && (let final core::int #t7 = e = #5#0 in true) && self::guard() as{TypeError} core::bool) {
+      if(#5#0 is core::int && (let final core::int #t6 = e = #5#0 in true) && self::guard() as{TypeError} core::bool) {
         {
           core::print(a);
         }
@@ -65,13 +63,13 @@ static method main() → dynamic {
     }
   }
   core::Map<core::int, core::int> d = block {
-    final core::Map<core::int, core::int> #t8 = <core::int, core::int>{};
+    final core::Map<core::int, core::int> #t7 = <core::int, core::int>{};
     {
       final synthesized core::int #6#0 = a;
       if(#6#0 =={core::num::==}{(core::Object) → core::bool} #C2 && self::guard() as{TypeError} core::bool)
-        #t8.{core::Map::[]=}{Invariant}(5, 6){(core::int, core::int) → void};
+        #t7.{core::Map::[]=}{Invariant}(5, 6){(core::int, core::int) → void};
     }
-  } =>#t8;
+  } =>#t7;
 }
 
 constants  {

@@ -111,7 +111,7 @@ class FixDataCompletionTest extends AbstractLspAnalysisServerTest
   @override
   void setUp() {
     super.setUp();
-    fixDataUri = Uri.file(join(projectFolderPath, 'lib', 'fix_data.yaml'));
+    fixDataUri = toUri(join(projectFolderPath, 'lib', 'fix_data.yaml'));
   }
 
   Future<void> test_nested() async {

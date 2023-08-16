@@ -51,6 +51,7 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
 /// that listens on a [CommunicationChannel] for LSP messages and processes
@@ -70,7 +71,8 @@ class LspAnalysisServer extends AnalysisServer {
   /// Configuration for the workspace from the client. This is similar to
   /// initializationOptions but can be updated dynamically rather than set
   /// only when the server starts.
-  final LspClientConfiguration clientConfiguration = LspClientConfiguration();
+  @override
+  final LspClientConfiguration lspClientConfiguration;
 
   /// The channel from which messages are received and to which responses should
   /// be sent.
@@ -119,11 +121,6 @@ class LspAnalysisServer extends AnalysisServer {
   /// The subscription to the stream of incoming messages from the client.
   late final StreamSubscription<void> _channelSubscription;
 
-  /// A completer that tracks in-progress analysis context rebuilds.
-  ///
-  /// Starts completed and will be replaced each time a context rebuild starts.
-  Completer<void> _analysisContextRebuildCompleter = Completer()..complete();
-
   /// An optional manager to handle file systems which may not always be
   /// available.
   final DetachableFileSystemManager? detachableFileSystemManager;
@@ -156,7 +153,9 @@ class LspAnalysisServer extends AnalysisServer {
     // Disable to avoid using this in unit tests.
     bool enableBlazeWatcher = false,
     DartFixPromptManager? dartFixPromptManager,
-  }) : super(
+  })  : lspClientConfiguration =
+            LspClientConfiguration(baseResourceProvider.pathContext),
+        super(
           options,
           sdkManager,
           diagnosticServer,
@@ -189,14 +188,6 @@ class LspAnalysisServer extends AnalysisServer {
     }
   }
 
-  /// A [Future] that completes when any in-progress analysis context rebuild
-  /// completes.
-  ///
-  /// If no context rebuild is in progress, will return an already complete
-  /// [Future].
-  Future<void> get analysisContextsRebuilt =>
-      _analysisContextRebuildCompleter.future;
-
   /// The hosted location of the client application.
   ///
   /// This information is not part of the LSP spec so is only provided for
@@ -207,9 +198,6 @@ class LspAnalysisServer extends AnalysisServer {
   /// the name of the web embedder if provided (such as 'github.dev' or
   /// 'codespaces'), else 'web'.
   String? get clientAppHost => _initializationOptions?.appHost;
-
-  /// The capabilities of the LSP client. Will be null prior to initialization.
-  LspClientCapabilities? get clientCapabilities => _clientCapabilities;
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
   InitializeParamsClientInfo? get clientInfo => _clientInfo;
@@ -234,6 +222,10 @@ class LspAnalysisServer extends AnalysisServer {
   LspInitializationOptions get initializationOptions =>
       _initializationOptions as LspInitializationOptions;
 
+  /// The capabilities of the LSP client. Will be null prior to initialization.
+  @override
+  LspClientCapabilities? get lspClientCapabilities => _clientCapabilities;
+
   @override
   LspNotificationManager get notificationManager =>
       super.notificationManager as LspNotificationManager;
@@ -255,6 +247,8 @@ class LspAnalysisServer extends AnalysisServer {
     };
   }
 
+  path.Context get pathContext => resourceProvider.pathContext;
+
   @override
   set pluginManager(PluginManager value) {
     if (AnalysisServer.supportsPlugins) {
@@ -274,7 +268,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// 'window/showMessageRequest'.
   @override
   bool get supportsShowMessageRequest =>
-      clientCapabilities?.supportsShowMessageRequest ?? false;
+      lspClientCapabilities?.supportsShowMessageRequest ?? false;
 
   Future<void> addPriorityFile(String filePath) async {
     // When pubspecs are opened, trigger pre-loading of pub package names and
@@ -297,7 +291,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// Fetches configuration from the client (if supported) and then sends
   /// register/unregister requests for any supported/enabled dynamic registrations.
   Future<void> fetchClientConfigurationAndPerformDynamicRegistration() async {
-    if (clientCapabilities?.configuration ?? false) {
+    if (lspClientCapabilities?.configuration ?? false) {
       // Take a copy of workspace folders because we need to match up the
       // responses to the request by index and it's possible _workspaceFolders
       // will change after we sent the request but before we get the response.
@@ -312,7 +306,7 @@ class LspAnalysisServer extends AnalysisServer {
             // Dart settings for each workspace folder.
             for (final folder in folders)
               ConfigurationItem(
-                scopeUri: Uri.file(folder).toString(),
+                scopeUri: pathContext.toUri(folder).toString(),
                 section: 'dart',
               ),
             // Global Dart settings. This comes last to simplify matching up the
@@ -337,12 +331,12 @@ class LspAnalysisServer extends AnalysisServer {
         };
         final newGlobalConfig = result.last as Map<String, Object?>? ?? {};
 
-        final oldGlobalConfig = clientConfiguration.global;
-        clientConfiguration.replace(newGlobalConfig, workspaceFolderConfig);
+        final oldGlobalConfig = lspClientConfiguration.global;
+        lspClientConfiguration.replace(newGlobalConfig, workspaceFolderConfig);
 
-        if (clientConfiguration.affectsAnalysisRoots(oldGlobalConfig)) {
+        if (lspClientConfiguration.affectsAnalysisRoots(oldGlobalConfig)) {
           await _refreshAnalysisRoots();
-        } else if (clientConfiguration
+        } else if (lspClientConfiguration
             .affectsAnalysisResults(oldGlobalConfig)) {
           // Some settings affect analysis results and require re-analysis
           // (such as showTodos).
@@ -357,6 +351,9 @@ class LspAnalysisServer extends AnalysisServer {
     // config) that should not stop/delay initialization.
     unawaited(capabilitiesComputer.performDynamicRegistration());
   }
+
+  /// Gets the current version number of a document.
+  int? getDocumentVersion(String path) => documentVersions[path]?.version;
 
   /// Return a [LineInfo] for the file with the given [path].
   ///
@@ -383,7 +380,7 @@ class LspAnalysisServer extends AnalysisServer {
   OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
       String path) {
     return OptionalVersionedTextDocumentIdentifier(
-        uri: Uri.file(path), version: documentVersions[path]?.version);
+        uri: pathContext.toUri(path), version: getDocumentVersion(path));
   }
 
   @override
@@ -640,8 +637,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishClosingLabels(String path, List<ClosingLabel> labels) {
-    final params =
-        PublishClosingLabelsParams(uri: Uri.file(path), labels: labels);
+    final params = PublishClosingLabelsParams(
+        uri: pathContext.toUri(path), labels: labels);
     final message = NotificationMessage(
       method: CustomMethods.publishClosingLabels,
       params: params,
@@ -651,8 +648,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishDiagnostics(String path, List<Diagnostic> errors) {
-    final params =
-        PublishDiagnosticsParams(uri: Uri.file(path), diagnostics: errors);
+    final params = PublishDiagnosticsParams(
+        uri: pathContext.toUri(path), diagnostics: errors);
     final message = NotificationMessage(
       method: Method.textDocument_publishDiagnostics,
       params: params,
@@ -662,8 +659,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishFlutterOutline(String path, FlutterOutline outline) {
-    final params =
-        PublishFlutterOutlineParams(uri: Uri.file(path), outline: outline);
+    final params = PublishFlutterOutlineParams(
+        uri: pathContext.toUri(path), outline: outline);
     final message = NotificationMessage(
       method: CustomMethods.publishFlutterOutline,
       params: params,
@@ -673,7 +670,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishOutline(String path, Outline outline) {
-    final params = PublishOutlineParams(uri: Uri.file(path), outline: outline);
+    final params =
+        PublishOutlineParams(uri: pathContext.toUri(path), outline: outline);
     final message = NotificationMessage(
       method: CustomMethods.publishOutline,
       params: params,
@@ -775,7 +773,7 @@ class LspAnalysisServer extends AnalysisServer {
       wasAnalyzing = true;
     }
 
-    if (clientCapabilities?.workDoneProgress != true) {
+    if (lspClientCapabilities?.workDoneProgress != true) {
       channel.sendNotification(NotificationMessage(
         method: CustomMethods.analyzerStatus,
         params: AnalyzerStatusParams(isAnalyzing: isAnalyzing),
@@ -1034,7 +1032,7 @@ class LspAnalysisServer extends AnalysisServer {
         ? _workspaceFolders.toSet()
         : _getRootsForOpenFiles();
 
-    final excludedPaths = clientConfiguration.global.analysisExcludedFolders
+    final excludedPaths = lspClientConfiguration.global.analysisExcludedFolders
         .expand((excludePath) => resourceProvider.pathContext
                 .isAbsolute(excludePath)
             ? [excludePath]
@@ -1046,7 +1044,7 @@ class LspAnalysisServer extends AnalysisServer {
                 (root) => resourceProvider.pathContext.join(root, excludePath)))
         .toSet();
 
-    final completer = _analysisContextRebuildCompleter = Completer();
+    final completer = analysisContextRebuildCompleter = Completer();
     try {
       var includedPathsList = includedPaths.toList();
       var excludedPathsList = excludedPaths.toList();
@@ -1213,10 +1211,10 @@ class LspServerContextManagerCallbacks
 
     // Otherwise, show TODOs based on client configuration (either showing all,
     // or specific types of TODOs).
-    if (analysisServer.clientConfiguration.global.showAllTodos) {
+    if (analysisServer.lspClientConfiguration.global.showAllTodos) {
       return true;
     }
-    return analysisServer.clientConfiguration.global.showTodoTypes
+    return analysisServer.lspClientConfiguration.global.showTodoTypes
         .contains(error.code.toUpperCase());
   }
 }

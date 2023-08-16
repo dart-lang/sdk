@@ -136,7 +136,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   final Set<Constant> seenConstants = <Constant>{};
 
   Map<Reference, ExtensionMemberDescriptor>? _extensionsMembers;
-  Map<Reference, InlineClassMemberDescriptor>? _inlineClassMembers;
+  Map<Reference, ExtensionTypeMemberDescriptor>? _extensionTypeMembers;
 
   bool classTypeParametersAreInScope = false;
 
@@ -159,12 +159,15 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   Extension? currentExtension;
 
-  InlineClass? currentInlineClass;
+  ExtensionTypeDeclaration? currentExtensionTypeDeclaration;
 
   TreeNode? currentParent;
 
   TreeNode? get currentClassOrExtensionOrMember =>
-      currentMember ?? currentClass ?? currentExtension ?? currentInlineClass;
+      currentMember ??
+      currentClass ??
+      currentExtension ??
+      currentExtensionTypeDeclaration;
 
   static void check(Target target, VerificationStage stage, Component component,
       {required bool skipPlatform}) {
@@ -368,7 +371,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     currentLibrary = null;
     exitTreeNode(node);
     _extensionsMembers = null;
-    _inlineClassMembers = null;
+    _extensionTypeMembers = null;
   }
 
   Map<Reference, ExtensionMemberDescriptor> _computeExtensionMembers(
@@ -391,25 +394,27 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     return _extensionsMembers!;
   }
 
-  Map<Reference, InlineClassMemberDescriptor> _computeInlineClassMembers(
+  Map<Reference, ExtensionTypeMemberDescriptor> _computeExtensionTypeMembers(
       Library library) {
-    if (_inlineClassMembers == null) {
-      Map<Reference, InlineClassMemberDescriptor> map =
-          _inlineClassMembers = {};
-      for (InlineClass inlineClass in library.inlineClasses) {
-        for (InlineClassMemberDescriptor descriptor in inlineClass.members) {
+    if (_extensionTypeMembers == null) {
+      Map<Reference, ExtensionTypeMemberDescriptor> map =
+          _extensionTypeMembers = {};
+      for (ExtensionTypeDeclaration extensionTypeDeclaration
+          in library.extensionTypeDeclarations) {
+        for (ExtensionTypeMemberDescriptor descriptor
+            in extensionTypeDeclaration.members) {
           map[descriptor.member] = descriptor;
           Member member = descriptor.member.asMember;
-          if (!member.isInlineClassMember) {
+          if (!member.isExtensionTypeMember) {
             problem(
                 member,
-                "Member $member (${descriptor}) from $inlineClass is not "
-                "marked as an inline class member.");
+                "Member $member (${descriptor}) from $extensionTypeDeclaration "
+                "is not marked as an extension type member.");
           }
         }
       }
     }
-    return _inlineClassMembers!;
+    return _extensionTypeMembers!;
   }
 
   @override
@@ -428,17 +433,30 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  void visitInlineClass(InlineClass node) {
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     enterTreeNode(node);
     fileUri = checkLocation(node, node.name, node.fileUri);
-    currentInlineClass = node;
-    _computeInlineClassMembers(node.enclosingLibrary);
+    currentExtensionTypeDeclaration = node;
+    _computeExtensionTypeMembers(node.enclosingLibrary);
     declareTypeParameters(node.typeParameters);
     final TreeNode? oldParent = enterParent(node);
+    for (DartType type in node.implements) {
+      if (!(type is ExtensionType || type is InterfaceType)) {
+        problem(
+            node,
+            "Extension type can only implement extension types and interface "
+            "types. Found $type.");
+      } else if (type.isPotentiallyNullable) {
+        problem(
+            node,
+            "Extension type can only implement non-nullable types. "
+            "Found $type.");
+      }
+    }
     node.visitChildren(this);
     exitParent(oldParent);
     undeclareTypeParameters(node.typeParameters);
-    currentInlineClass = null;
+    currentExtensionTypeDeclaration = null;
     exitTreeNode(node);
   }
 
@@ -486,15 +504,15 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
   }
 
-  void _findInlineClassMember(Member node) {
-    assert(node.isInlineClassMember);
-    Map<Reference, InlineClassMemberDescriptor> inlineClassMembers =
-        _computeInlineClassMembers(node.enclosingLibrary);
-    if (!inlineClassMembers.containsKey(node.reference)) {
+  void _findExtensionTypeMember(Member node) {
+    assert(node.isExtensionTypeMember);
+    Map<Reference, ExtensionTypeMemberDescriptor> extensionTypeMembers =
+        _computeExtensionTypeMembers(node.enclosingLibrary);
+    if (!extensionTypeMembers.containsKey(node.reference)) {
       problem(
           node,
-          "Inline class member $node is not found in any inline class of the "
-          "enclosing library.");
+          "Extension type member $node is not found in any extension type "
+          "declaration of the enclosing library.");
     }
   }
 
@@ -537,8 +555,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (node.isExtensionMember) {
       _findExtensionMember(node);
     }
-    if (node.isInlineClassMember) {
-      _findInlineClassMember(node);
+    if (node.isExtensionTypeMember) {
+      _findExtensionTypeMember(node);
     }
     classTypeParametersAreInScope = !node.isStatic;
     node.initializer?.accept(this);
@@ -557,8 +575,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (node.isExtensionMember) {
       _findExtensionMember(node);
     }
-    if (node.isInlineClassMember) {
-      _findInlineClassMember(node);
+    if (node.isExtensionTypeMember) {
+      _findExtensionTypeMember(node);
     }
 
     if (node.isRedirectingFactory &&
@@ -650,8 +668,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (node.isExtensionMember) {
       _findExtensionMember(node);
     }
-    if (node.isInlineClassMember) {
-      _findInlineClassMember(node);
+    if (node.isExtensionTypeMember) {
+      _findExtensionTypeMember(node);
     }
 
     // The constructor member needs special treatment due to parameters being
@@ -1762,16 +1780,13 @@ class KnownTypes implements DartTypeVisitor<bool> {
   bool visitDynamicType(DynamicType node) => true;
 
   @override
-  bool visitExtensionType(ExtensionType node) => true;
-
-  @override
   bool visitFunctionType(FunctionType node) => true;
 
   @override
   bool visitFutureOrType(FutureOrType node) => true;
 
   @override
-  bool visitInlineType(InlineType node) => true;
+  bool visitExtensionType(ExtensionType node) => true;
 
   @override
   bool visitInterfaceType(InterfaceType node) => true;

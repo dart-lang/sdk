@@ -17,6 +17,7 @@ class DuplicateDefinitionVerifier {
   final InheritanceManager3 _inheritanceManager;
   final LibraryElement _currentLibrary;
   final ErrorReporter _errorReporter;
+  final DuplicationDefinitionContext context;
 
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
@@ -24,6 +25,7 @@ class DuplicateDefinitionVerifier {
     this._inheritanceManager,
     this._currentLibrary,
     this._errorReporter,
+    this.context,
   );
 
   /// Check that the exception and stack trace parameters have different names.
@@ -247,6 +249,21 @@ class DuplicateDefinitionVerifier {
     }
   }
 
+  void checkExtensionType(
+    ExtensionTypeDeclaration node,
+    ExtensionTypeElement element,
+  ) {
+    final declarationElement = element.augmented?.declaration;
+    if (declarationElement == null) return;
+
+    final primaryConstructorName = element.constructors.first.name;
+    _getElementContext(declarationElement)
+        .constructorNames
+        .add(primaryConstructorName);
+
+    _checkClassMembers(element, node.members);
+  }
+
   /// Check that the given list of variable declarations does not define
   /// multiple variables of the same name.
   void checkForVariables(VariableDeclarationList node) {
@@ -378,15 +395,19 @@ class DuplicateDefinitionVerifier {
 
   /// Check that there are no members with the same name.
   void _checkClassMembers(InterfaceElement element, List<ClassMember> members) {
-    var constructorNames = HashSet<String>();
-    var instanceGetters = HashMap<String, Element>();
-    var instanceSetters = HashMap<String, Element>();
-    var staticGetters = HashMap<String, Element>();
-    var staticSetters = HashMap<String, Element>();
+    final declarationElement = element.augmented?.declaration;
+    if (declarationElement == null) return;
+
+    final elementContext = _getElementContext(declarationElement);
+    final constructorNames = elementContext.constructorNames;
+    final instanceGetters = elementContext.instanceGetters;
+    final instanceSetters = elementContext.instanceSetters;
+    final staticGetters = elementContext.staticGetters;
+    final staticSetters = elementContext.staticSetters;
 
     for (ClassMember member in members) {
       if (member is ConstructorDeclaration) {
-        if (member.returnType.name != element.name) {
+        if (member.returnType.name != declarationElement.name) {
           // [member] is erroneous; do not count it as a possible duplicate.
           continue;
         }
@@ -424,7 +445,7 @@ class DuplicateDefinitionVerifier {
     }
 
     _checkConflictingConstructorAndStatic(
-      interfaceElement: element,
+      interfaceElement: declarationElement,
       staticGetters: staticGetters,
       staticSetters: staticSetters,
     );
@@ -440,7 +461,7 @@ class DuplicateDefinitionVerifier {
             String name = identifier.lexeme;
             if (instanceGetters.containsKey(name) ||
                 instanceSetters.containsKey(name)) {
-              String className = element.displayName;
+              String className = declarationElement.displayName;
               _errorReporter.reportErrorForToken(
                   CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
                   identifier,
@@ -454,7 +475,7 @@ class DuplicateDefinitionVerifier {
           String name = identifier.lexeme;
           if (instanceGetters.containsKey(name) ||
               instanceSetters.containsKey(name)) {
-            String className = element.name;
+            String className = declarationElement.name;
             _errorReporter.reportErrorForToken(
                 CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
                 identifier,
@@ -504,6 +525,13 @@ class DuplicateDefinitionVerifier {
       {required Element element, Map<String, Element>? setterScope}) {
     if (identifier.isSynthetic) {
       return;
+    }
+
+    switch (element) {
+      case ExecutableElement _:
+        if (element.isAugmentation) return;
+      case InstanceElement _:
+        if (element.isAugmentation) return;
     }
 
     // Fields define getters and setters, so check them separately.
@@ -581,6 +609,11 @@ class DuplicateDefinitionVerifier {
     }
   }
 
+  _InterfaceElementContext _getElementContext(InterfaceElement element) {
+    return context._interfaceElementContexts[element] ??=
+        _InterfaceElementContext();
+  }
+
   ExecutableElement? _getInheritedMember(
       InterfaceElement element, String baseName) {
     var libraryUri = _currentLibrary.source.uri;
@@ -615,4 +648,19 @@ class DuplicateDefinitionVerifier {
     }
     return false;
   }
+}
+
+/// Information to pass from declarations to augmentations.
+class DuplicationDefinitionContext {
+  final Map<InterfaceElement, _InterfaceElementContext>
+      _interfaceElementContexts = {};
+}
+
+/// Information accumulated for a single declaration and its augmentations.
+class _InterfaceElementContext {
+  final Set<String> constructorNames = {};
+  final Map<String, Element> instanceGetters = {};
+  final Map<String, Element> instanceSetters = {};
+  final Map<String, Element> staticGetters = {};
+  final Map<String, Element> staticSetters = {};
 }

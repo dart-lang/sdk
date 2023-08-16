@@ -125,6 +125,15 @@ abstract class DataComputer<T> {
       Map<Id, ActualData<T>> actualMap,
       {bool? verbose}) {}
 
+  /// Function that computes a data mapping for [extensionTypeDeclaration].
+  ///
+  /// Fills [actualMap] with the data.
+  void computeExtensionTypeDeclarationData(
+      TestResultData testResultData,
+      ExtensionTypeDeclaration extensionTypeDeclaration,
+      Map<Id, ActualData<T>> actualMap,
+      {bool? verbose}) {}
+
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
@@ -474,6 +483,14 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
         verbose: verbose);
   }
 
+  void processExtensionTypeDeclaration(
+      ExtensionTypeDeclaration extensionTypeDeclaration,
+      Map<Id, ActualData<T>> actualMap) {
+    dataComputer.computeExtensionTypeDeclarationData(
+        testResultData, extensionTypeDeclaration, actualMap,
+        verbose: verbose);
+  }
+
   bool excludeLibrary(Library library) {
     return forUserLibrariesOnly &&
         (library.importUri.isScheme('dart') ||
@@ -500,6 +517,11 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
     }
     for (Extension extension in library.extensions) {
       processExtension(extension, actualMapFor(extension));
+    }
+    for (ExtensionTypeDeclaration extensionTypeDeclaration
+        in library.extensionTypeDeclarations) {
+      processExtensionTypeDeclaration(
+          extensionTypeDeclaration, actualMapFor(extensionTypeDeclaration));
     }
   }
 

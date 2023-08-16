@@ -95,6 +95,14 @@ class PubspecWarningCode extends ErrorCode {
   );
 
   ///  No parameters.
+  static const PubspecWarningCode INVALID_PLATFORMS_FIELD = PubspecWarningCode(
+    'INVALID_PLATFORMS_FIELD',
+    "The 'platforms' field must be a map with platforms as keys.",
+    correctionMessage:
+        "Try changing the 'platforms' field to a map with plaforms as keys.",
+  );
+
+  ///  No parameters.
   static const PubspecWarningCode MISSING_NAME = PubspecWarningCode(
     'MISSING_NAME',
     "The 'name' field is required but missing.",
@@ -139,6 +147,22 @@ class PubspecWarningCode extends ErrorCode {
         "Try creating a pubspec in the referenced directory or using a path "
         "that has a pubspec.",
     hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const PubspecWarningCode PLATFORM_VALUE_DISALLOWED =
+      PubspecWarningCode(
+    'PLATFORM_VALUE_DISALLOWED',
+    "Keys in the `platforms` field can't have values.",
+    correctionMessage: "Try removing the value, while keeping the key.",
+  );
+
+  ///  Parameters:
+  ///  0: the unknown platform.
+  static const PubspecWarningCode UNKNOWN_PLATFORM = PubspecWarningCode(
+    'UNKNOWN_PLATFORM',
+    "The platform '{0}' is not a recognized platform.",
+    correctionMessage: "Try correcting the platform name or removing it.",
   );
 
   ///  Parameters:

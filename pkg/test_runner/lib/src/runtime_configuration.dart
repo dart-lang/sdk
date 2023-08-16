@@ -299,10 +299,17 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
 
     // TODO(dart-engprod): Remove after replacing Cavium with GCE instances.
     if (arch == Architecture.arm64 && system == System.linux) {
-      multiplier *= 2;
+      multiplier *= 4;
     }
 
     if (_configuration.useQemu) {
+      multiplier *= 2;
+    }
+
+    // Configurations where `kernel-service` doesn't run from AppJIT snapshot
+    // will make tests run very slow due to the `kernel-service` code slowly
+    // warming up the JIT. This is especially noticable in `debug` mode.
+    if (arch == Architecture.ia32) {
       multiplier *= 2;
     }
 
@@ -313,7 +320,7 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
       multiplier *= 2;
     }
     if (_configuration.sanitizer != Sanitizer.none) {
-      multiplier *= 2;
+      multiplier *= 4;
     }
     if (_configuration.rr) {
       multiplier *= 2;
@@ -470,11 +477,11 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
         type != 'application/kernel-ir-fully-linked') {
       throw "Dart VM cannot run files of type '$type'.";
     }
+    if (isCrashExpected) {
+      arguments.insert(0, '--suppress-core-dump');
+    }
     var runtimeArgs =
         FuchsiaEmulator.getTestArgs(_configuration.mode.name, arguments);
-    if (isCrashExpected) {
-      runtimeArgs.insert(0, '--suppress-core-dump');
-    }
     runtimeArgs.insert(runtimeArgs.length - 1, '--disable-dart-dev');
     return [
       VMCommand(FuchsiaEmulator.fsshTool, runtimeArgs, environmentOverrides)

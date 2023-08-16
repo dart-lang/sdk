@@ -111,6 +111,27 @@ f() => E<Null>([]).m();
 ''');
   }
 
+  test_extensionType_superBounded() async {
+    await assertErrorsInCode('''
+extension type A<T extends A<T>>(int it) {}
+
+void f(A a) {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 52, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 52, 1)]),
+    ]);
+  }
+
+  test_extensionType_withTypeArguments() async {
+    await assertErrorsInCode('''
+extension type A<T extends num>(int it) {}
+
+void f(A<String> a) {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 53, 6),
+    ]);
+  }
+
   test_functionReference() async {
     await assertErrorsInCode('''
 void foo<T extends num>(T a) {}

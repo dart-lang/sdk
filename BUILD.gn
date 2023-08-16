@@ -110,6 +110,7 @@ group("dart2js") {
 group("dart2wasm_platform") {
   deps = [
     ":runtime_precompiled",
+    "utils/dart2wasm:compile_dart2wasm_js_compatibility_platform",
     "utils/dart2wasm:compile_dart2wasm_platform",
     "utils/dart2wasm:compile_dart2wasm_stringref_platform",
     "utils/dart2wasm:dart2wasm_snapshot",
@@ -143,6 +144,11 @@ group("dartanalyzer") {
 
 group("dartdevc") {
   deps = [ "utils/dartdevc" ]
+}
+
+group("ddc") {
+  # TODO(nshahan): Update to the dartdevc snapshot target when it gets moved.
+  deps = [ "utils/ddc:ddc_stable_test" ]
 }
 
 group("analysis_server") {

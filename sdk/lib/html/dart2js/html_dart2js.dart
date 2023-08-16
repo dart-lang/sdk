@@ -32160,11 +32160,9 @@ class Window extends EventTarget
    *   from MDN.
    */
   WindowBase open(String url, String name, [String? options]) {
-    if (options == null) {
-      return _DOMWindowCrossFrame._createSafe(_open2(url, name));
-    } else {
-      return _DOMWindowCrossFrame._createSafe(_open3(url, name, options));
-    }
+    final win =
+        options == null ? _open2(url, name) : _open3(url, name, options);
+    return _DOMWindowCrossFrame._createSafe(win);
   }
 
   // API level getter and setter for Location.
@@ -33776,6 +33774,13 @@ class Window extends EventTarget
   int get scrollY => JS<bool>('bool', '("scrollY" in #)', this)
       ? JS<num>('num', '#.scrollY', this).round()
       : document.documentElement!.scrollTop;
+}
+
+class NullWindowException implements Exception {
+  @override
+  String toString() {
+    return 'Attempting to use a null window opened in Window.open.';
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40017,7 +40022,7 @@ EventTarget? _convertNativeToDart_EventTarget(e) {
     return e;
 }
 
-EventTarget? _convertDartToNative_EventTarget(e) {
+_convertDartToNative_EventTarget(e) {
   if (e is _DOMWindowCrossFrame) {
     return e._window;
   } else {
@@ -40116,7 +40121,19 @@ class _DOMWindowCrossFrame implements WindowBase {
   // Private window.  Note, this is a window in another frame, so it
   // cannot be typed as "Window" as its prototype is not patched
   // properly.  Its fields and methods can only be accessed via JavaScript.
-  final _window;
+  final Object? __window;
+
+  Object get _window {
+    // Note that we use a local variable here to avoid a null-assertion. This is
+    // needed as [__window] can be a cross-origin iframe. dart2js emits
+    // null-assertions using a field access like .toString, and since accessing
+    // properties on a cross-origin iframe (with the exception of postMessage)
+    // is a SecurityError, the null-assertion could trigger a SecurityError.
+    // This avoids the need to type [__window] as dynamic.
+    final w = __window;
+    if (w == null) throw new NullWindowException();
+    return w;
+  }
 
   // Fields.
   HistoryBase get history =>
@@ -40153,7 +40170,7 @@ class _DOMWindowCrossFrame implements WindowBase {
   }
 
   // Implementation support.
-  _DOMWindowCrossFrame(this._window);
+  _DOMWindowCrossFrame(this.__window);
 
   static WindowBase _createSafe(w) {
     if (identical(w, window)) {

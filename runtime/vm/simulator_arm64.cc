@@ -676,10 +676,10 @@ void SimulatorDebugger::Debug() {
         }
       } else if (strcmp(cmd, "flags") == 0) {
         OS::PrintErr("APSR: ");
-        OS::PrintErr("N flag: %d; ", sim_->n_flag_);
-        OS::PrintErr("Z flag: %d; ", sim_->z_flag_);
-        OS::PrintErr("C flag: %d; ", sim_->c_flag_);
-        OS::PrintErr("V flag: %d\n", sim_->v_flag_);
+        OS::PrintErr("N flag: %d; ", static_cast<int>(sim_->n_flag_));
+        OS::PrintErr("Z flag: %d; ", static_cast<int>(sim_->z_flag_));
+        OS::PrintErr("C flag: %d; ", static_cast<int>(sim_->c_flag_));
+        OS::PrintErr("V flag: %d\n", static_cast<int>(sim_->v_flag_));
       } else if (strcmp(cmd, "unstop") == 0) {
         intptr_t stop_pc = sim_->get_pc() - Instr::kInstrSize;
         Instr* stop_instr = reinterpret_cast<Instr*>(stop_pc);
@@ -1355,7 +1355,7 @@ void Simulator::DecodeMoveWide(Instr* instr) {
   const int64_t shifted_imm = static_cast<int64_t>(instr->Imm16Field())
                               << shift;
 
-  if (instr->SFField()) {
+  if (instr->SFField() != 0) {
     if (instr->Bits(29, 2) == 0) {
       // Format(instr, "movn'sf 'rd, 'imm16 'hw");
       set_register(instr, rd, ~shifted_imm, instr->RdMode());
@@ -1399,7 +1399,7 @@ void Simulator::DecodeAddSubImm(Instr* instr) {
   const Register rn = instr->RnField();
   uint32_t imm = (instr->Bit(22) == 1) ? (instr->Imm12Field() << 12)
                                        : (instr->Imm12Field());
-  if (instr->SFField()) {
+  if (instr->SFField() != 0) {
     // 64-bit add.
     const uint64_t rn_val = get_register(rn, instr->RnMode());
     const uint64_t alu_out = addition ? (rn_val + imm) : (rn_val - imm);
@@ -1894,6 +1894,7 @@ void Simulator::DecodeUnconditionalBranchReg(Instr* instr) {
   }
 }
 
+DART_FORCE_INLINE
 void Simulator::DecodeCompareBranch(Instr* instr) {
   if (instr->IsCompareAndBranchOp()) {
     DecodeCompareAndBranch(instr);
@@ -2155,7 +2156,7 @@ void Simulator::DecodeLoadStoreRegPair(Instr* instr) {
     // SIMD/FP.
     const VRegister vt = instr->VtField();
     const VRegister vt2 = instr->Vt2Field();
-    if (instr->Bit(22)) {
+    if (instr->Bit(22) != 0) {
       // Format(instr, "ldp 'vt, 'vt2, 'memop");
       switch (size) {
         case 4:
@@ -2215,7 +2216,7 @@ void Simulator::DecodeLoadStoreRegPair(Instr* instr) {
     // Integer.
     const Register rt = instr->RtField();
     const Register rt2 = instr->Rt2Field();
-    if (instr->Bit(22)) {
+    if (instr->Bit(22) != 0) {
       // Format(instr, "ldp'sf 'rt, 'rt2, 'memop");
       const bool is_signed = instr->Bit(30) == 1;
       int64_t val1 = 0;  // Sign extend into an int64_t.
@@ -2274,7 +2275,7 @@ void Simulator::DecodeLoadRegLiteral(Instr* instr) {
   const int64_t pc = reinterpret_cast<int64_t>(instr);
   const int64_t address = pc + off;
   const int64_t val = ReadX(address, instr);
-  if (instr->Bit(30)) {
+  if (instr->Bit(30) != 0) {
     // Format(instr, "ldrx 'rt, 'pcldr");
     set_register(instr, rt, val, R31IsZR);
   } else {
@@ -2400,6 +2401,7 @@ void Simulator::DecodeAtomicMemory(Instr* instr) {
   }
 }
 
+DART_FORCE_INLINE
 void Simulator::DecodeLoadStore(Instr* instr) {
   if (instr->IsAtomicMemoryOp()) {
     DecodeAtomicMemory(instr);
@@ -2487,7 +2489,8 @@ int64_t Simulator::ExtendOperand(uint8_t reg_size,
 int64_t Simulator::DecodeShiftExtendOperand(Instr* instr) {
   const Register rm = instr->RmField();
   const int64_t rm_val = get_register(rm, R31IsZR);
-  const uint8_t size = instr->SFField() ? kXRegSizeInBits : kWRegSizeInBits;
+  const uint8_t size =
+      instr->SFField() != 0 ? kXRegSizeInBits : kWRegSizeInBits;
   if (instr->IsShift()) {
     const Shift shift_type = instr->ShiftTypeField();
     const uint8_t shift_amount = instr->Imm6Field();
@@ -2509,7 +2512,7 @@ void Simulator::DecodeAddSubShiftExt(Instr* instr) {
   const Register rd = instr->RdField();
   const Register rn = instr->RnField();
   const uint64_t rm_val = DecodeShiftExtendOperand(instr);
-  if (instr->SFField()) {
+  if (instr->SFField() != 0) {
     // 64-bit add.
     const uint64_t rn_val = get_register(rn, instr->RnMode());
     const uint64_t alu_out = rn_val + (addition ? rm_val : -rm_val);
@@ -2550,7 +2553,7 @@ void Simulator::DecodeAddSubWithCarry(Instr* instr) {
   const uint64_t rm_val64 = get_register(rm, R31IsZR);
   uint32_t rm_val32 = get_wregister(rm, R31IsZR);
   const uint32_t carry_in = c_flag_ ? 1 : 0;
-  if (instr->SFField()) {
+  if (instr->SFField() != 0) {
     // 64-bit add.
     const uint64_t alu_out =
         rn_val64 + (addition ? rm_val64 : ~rm_val64) + carry_in;
@@ -2965,19 +2968,19 @@ void Simulator::DecodeSIMDCopy(Instr* instr) {
   int32_t idx4 = -1;
   int32_t idx5 = -1;
   int32_t element_bytes;
-  if (imm5 & 0x1) {
+  if ((imm5 & 0x1) != 0) {
     idx4 = imm4;
     idx5 = imm5 >> 1;
     element_bytes = 1;
-  } else if (imm5 & 0x2) {
+  } else if ((imm5 & 0x2) != 0) {
     idx4 = imm4 >> 1;
     idx5 = imm5 >> 2;
     element_bytes = 2;
-  } else if (imm5 & 0x4) {
+  } else if ((imm5 & 0x4) != 0) {
     idx4 = imm4 >> 2;
     idx5 = imm5 >> 3;
     element_bytes = 4;
-  } else if (imm5 & 0x8) {
+  } else if ((imm5 & 0x8) != 0) {
     idx4 = imm4 >> 3;
     idx5 = imm5 >> 4;
     element_bytes = 8;
@@ -3702,25 +3705,16 @@ void Simulator::DecodeDPSimd2(Instr* instr) {
 }
 
 // Executes the current instruction.
-void Simulator::InstructionDecode(Instr* instr) {
+DART_FORCE_INLINE
+void Simulator::InstructionDecodeImpl(Instr* instr) {
   pc_modified_ = false;
-  if (IsTracingExecution()) {
-    THR_Print("%" Pu64 " ", icount_);
-    const uword start = reinterpret_cast<uword>(instr);
-    const uword end = start + Instr::kInstrSize;
-    if (FLAG_support_disassembler) {
-      Disassembler::Disassemble(start, end);
-    } else {
-      THR_Print("Disassembler not supported in this mode.\n");
-    }
-  }
 
-  if (instr->IsDPImmediateOp()) {
+  if (instr->IsLoadStoreOp()) {
+    DecodeLoadStore(instr);
+  } else if (instr->IsDPImmediateOp()) {
     DecodeDPImmediate(instr);
   } else if (instr->IsCompareBranchOp()) {
     DecodeCompareBranch(instr);
-  } else if (instr->IsLoadStoreOp()) {
-    DecodeLoadStore(instr);
   } else if (instr->IsDPRegisterOp()) {
     DecodeDPRegister(instr);
   } else if (instr->IsDPSimd1Op()) {
@@ -3736,43 +3730,66 @@ void Simulator::InstructionDecode(Instr* instr) {
   }
 }
 
+void Simulator::InstructionDecode(Instr* instr) {
+  if (IsTracingExecution()) {
+    THR_Print("%" Pu64 " ", icount_);
+    const uword start = reinterpret_cast<uword>(instr);
+    const uword end = start + Instr::kInstrSize;
+    if (FLAG_support_disassembler) {
+      Disassembler::Disassemble(start, end);
+    } else {
+      THR_Print("Disassembler not supported in this mode.\n");
+    }
+  }
+  InstructionDecodeImpl(instr);
+}
+
 void Simulator::Execute() {
+  if (LIKELY(FLAG_stop_sim_at == ULLONG_MAX &&
+             FLAG_trace_sim_after == ULLONG_MAX)) {
+    ExecuteNoTrace();
+  } else {
+    ExecuteTrace();
+  }
+}
+
+void Simulator::ExecuteNoTrace() {
   // Get the PC to simulate. Cannot use the accessor here as we need the
   // raw PC value and not the one used as input to arithmetic instructions.
   uword program_counter = get_pc();
 
-  if (FLAG_stop_sim_at == ULLONG_MAX) {
-    // Fast version of the dispatch loop without checking whether the simulator
-    // should be stopping at a particular executed instruction.
-    while (program_counter != kEndSimulatingPC) {
-      Instr* instr = reinterpret_cast<Instr*>(program_counter);
-      icount_++;
-      if (IsIllegalAddress(program_counter)) {
-        HandleIllegalAccess(program_counter, instr);
-      } else {
-        InstructionDecode(instr);
-      }
-      program_counter = get_pc();
+  // Fast version of the dispatch loop without checking whether the simulator
+  // should be stopping at a particular executed instruction.
+  while (program_counter != kEndSimulatingPC) {
+    Instr* instr = reinterpret_cast<Instr*>(program_counter);
+    icount_++;
+    InstructionDecodeImpl(instr);
+    program_counter = get_pc();
+  }
+}
+
+void Simulator::ExecuteTrace() {
+  // Get the PC to simulate. Cannot use the accessor here as we need the
+  // raw PC value and not the one used as input to arithmetic instructions.
+  uword program_counter = get_pc();
+
+  // FLAG_stop_sim_at is at the non-default value. Stop in the debugger when
+  // we reach the particular instruction count or address.
+  while (program_counter != kEndSimulatingPC) {
+    Instr* instr = reinterpret_cast<Instr*>(program_counter);
+    icount_++;
+    if (icount_ == FLAG_stop_sim_at) {
+      SimulatorDebugger dbg(this);
+      dbg.Stop(instr, "Instruction count reached");
+    } else if (reinterpret_cast<uint64_t>(instr) == FLAG_stop_sim_at) {
+      SimulatorDebugger dbg(this);
+      dbg.Stop(instr, "Instruction address reached");
+    } else if (IsIllegalAddress(program_counter)) {
+      HandleIllegalAccess(program_counter, instr);
+    } else {
+      InstructionDecode(instr);
     }
-  } else {
-    // FLAG_stop_sim_at is at the non-default value. Stop in the debugger when
-    // we reach the particular instruction count or address.
-    while (program_counter != kEndSimulatingPC) {
-      Instr* instr = reinterpret_cast<Instr*>(program_counter);
-      icount_++;
-      if (icount_ == FLAG_stop_sim_at) {
-        SimulatorDebugger dbg(this);
-        dbg.Stop(instr, "Instruction count reached");
-      } else if (reinterpret_cast<uint64_t>(instr) == FLAG_stop_sim_at) {
-        SimulatorDebugger dbg(this);
-        dbg.Stop(instr, "Instruction address reached");
-      } else if (IsIllegalAddress(program_counter)) {
-        HandleIllegalAccess(program_counter, instr);
-      } else {
-        InstructionDecode(instr);
-      }
-      program_counter = get_pc();
-    }
+    program_counter = get_pc();
   }
 }
 

@@ -12,7 +12,7 @@ import 'source_function_builder.dart';
 
 /// Common interface for builders for generative constructor declarations in
 /// source code, such as a generative constructor in a regular class or a
-/// generative constructor in an inline class.
+/// generative constructor in an extension type declaration.
 abstract class ConstructorDeclaration implements SourceFunctionBuilder {
   /// Returns the enclosing [ClassDeclaration].
   ClassDeclaration get classDeclaration;
@@ -56,9 +56,9 @@ abstract class ConstructorDeclaration implements SourceFunctionBuilder {
   Set<SourceFieldBuilder>? takeInitializedFields();
 
   /// Substitute [fieldType] from the context of the enclosing class or
-  /// inline class to this constructor.
+  /// extension type declaration to this constructor.
   ///
-  /// This is used for generic inline class constructors where the type
+  /// This is used for generic extension type constructors where the type
   /// variable referring to the class type variables must be substituted for
   /// the synthesized constructor type variables.
   DartType substituteFieldType(DartType fieldType);

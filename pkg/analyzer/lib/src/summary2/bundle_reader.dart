@@ -96,13 +96,13 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
-  /// Ensure that all members of the [element] are available. This includes
-  /// being able to ask them for example using [ClassElement.methods], and
-  /// as well access them through their [Reference]s. For a class declaration
-  /// this means reading them, for a named mixin application this means
-  /// computing constructors.
-  void readMembers(ClassOrMixinElementImpl element) {
-    if (element is ClassElementImpl && element.isMixinApplication) {
+  @override
+  void readMembers(InstanceElementImpl element) {
+    if (element is! ClassElementImpl) {
+      return;
+    }
+
+    if (element.isMixinApplication) {
       element.constructors;
     } else {
       _readMembers?.call();
@@ -122,6 +122,22 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
+    element.augmentation = reader.readElement() as ClassElementImpl?;
+
+    if (element.isAugmentation) {
+      element.augmentationTarget = reader.readElement() as ClassElementImpl?;
+    } else {
+      if (reader.readBool()) {
+        final augmented = AugmentedClassElementImpl(element);
+        element.augmentedInternal = augmented;
+        augmented.mixins = reader._readInterfaceTypeList();
+        augmented.interfaces = reader._readInterfaceTypeList();
+        augmented.fields = reader.readElementList();
+        augmented.accessors = reader.readElementList();
+        augmented.methods = reader.readElementList();
+      }
+    }
+
     applyConstantOffsets?.perform();
   }
 }
@@ -199,12 +215,19 @@ abstract class ElementLinkedData<E extends ElementImpl> {
     _read(element as E, reader);
   }
 
+  /// Ensure that all members of the [element] are available. This includes
+  /// being able to ask them for example using [ClassElement.methods], and
+  /// as well access them through their [Reference]s. For a class declaration
+  /// this means reading them, for a named mixin application this means
+  /// computing constructors.
+  void readMembers(InstanceElementImpl element) {}
+
   void _addEnclosingElementTypeParameters(
     ResolutionReader reader,
     ElementImpl element,
   ) {
     var enclosing = element.enclosingElement;
-    if (enclosing is InterfaceElement) {
+    if (enclosing is InstanceElement) {
       reader._addTypeParameters(enclosing.typeParameters);
     } else if (enclosing is CompilationUnitElement) {
       // Nothing.
@@ -303,6 +326,29 @@ class ExtensionElementLinkedData
     );
     _readTypeParameters(reader, element.typeParameters);
     element.extendedType = reader.readRequiredType();
+    applyConstantOffsets?.perform();
+  }
+}
+
+class ExtensionTypeElementLinkedData
+    extends ElementLinkedData<ExtensionTypeElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
+  ExtensionTypeElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
+    required int offset,
+  }) : super(reference, libraryReader, unitElement, offset);
+
+  @override
+  void _read(element, reader) {
+    element.metadata = reader._readAnnotationList(
+      unitElement: element.enclosingElement,
+    );
+    _readTypeParameters(reader, element.typeParameters);
+    element.typeErasure = reader.readRequiredType();
+    element.interfaces = reader._readInterfaceTypeList();
     applyConstantOffsets?.perform();
   }
 }
@@ -533,6 +579,8 @@ class LibraryReader {
       _reader.readUInt30List(),
     );
 
+    final accessorAugmentationsOffset = _reader.readUInt30();
+
     libraryElement.linkedData = LibraryElementLinkedData(
       reference: _reference,
       libraryReader: this,
@@ -544,6 +592,8 @@ class LibraryReader {
 
     InformativeDataApplier(_elementFactory, _unitsInformativeBytes)
         .applyTo(libraryElement);
+
+    _readPropertyAccessorAugmentations(accessorAugmentationsOffset);
 
     return libraryElement;
   }
@@ -668,7 +718,7 @@ class LibraryReader {
 
   List<ConstructorElementImpl> _readConstructors(
     CompilationUnitElementImpl unitElement,
-    AbstractClassElementImpl classElement,
+    InterfaceElementImpl classElement,
     Reference classReference,
   ) {
     var containerRef = classReference.getChild('@constructor');
@@ -900,6 +950,52 @@ class LibraryReader {
   ) {
     unitElement.extensions = _reader.readTypedList(() {
       return _readExtensionElement(unitElement, unitReference);
+    });
+  }
+
+  ExtensionTypeElementImpl _readExtensionTypeElement(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    final resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    final name = _reader.readStringReference();
+    final containerRef = unitReference.getChild('@extensionType');
+    final reference = containerRef.getChild(name);
+
+    final element = ExtensionTypeElementImpl(name, -1);
+    element.setLinkedData(
+      reference,
+      ExtensionTypeElementLinkedData(
+        reference: reference,
+        libraryReader: this,
+        unitElement: unitElement,
+        offset: resolutionOffset,
+      ),
+    );
+    ExtensionTypeElementFlags.read(_reader, element);
+
+    element.typeParameters = _readTypeParameters();
+
+    final fields = <FieldElementImpl>[];
+    final accessors = <PropertyAccessorElementImpl>[];
+    _readFields(unitElement, element, reference, accessors, fields);
+    _readPropertyAccessors(
+        unitElement, element, reference, accessors, fields, '@field');
+    element.fields = fields;
+    element.accessors = accessors;
+
+    element.constructors = _readConstructors(unitElement, element, reference);
+    element.methods = _readMethods(unitElement, element, reference);
+
+    return element;
+  }
+
+  void _readExtensionTypes(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    unitElement.extensionTypes = _reader.readTypedList(() {
+      return _readExtensionTypeElement(unitElement, unitReference);
     });
   }
 
@@ -1255,6 +1351,20 @@ class LibraryReader {
     );
   }
 
+  /// Read resolution information for property accessor augmentations,
+  /// during which we update `getter` and `setter` of augmented variables.
+  void _readPropertyAccessorAugmentations(int offset) {
+    final reader = ResolutionReader(
+      _elementFactory,
+      _referenceReader,
+      _reader.fork(_baseResolutionOffset + offset),
+    );
+    final elements = reader.readElementList<PropertyAccessorElementImpl>();
+    for (final element in elements) {
+      element.variable;
+    }
+  }
+
   PropertyAccessorElementImpl _readPropertyAccessorElement(
     CompilationUnitElementImpl unitElement,
     ElementImpl classElement,
@@ -1301,6 +1411,10 @@ class LibraryReader {
       );
       accessors.add(accessor);
 
+      if (accessor.isAugmentation) {
+        continue;
+      }
+
       var name = accessor.displayName;
       var isGetter = accessor.isGetter;
 
@@ -1319,6 +1433,7 @@ class LibraryReader {
         } else {
           property = TopLevelVariableElementImpl(name, -1)
             ..enclosingElement = enclosingElement
+            ..reference = reference
             ..isSynthetic = true;
           reference.element ??= property;
           properties.add(property);
@@ -1329,6 +1444,7 @@ class LibraryReader {
         } else {
           property = FieldElementImpl(name, -1)
             ..enclosingElement = enclosingElement
+            ..reference = reference
             ..isStatic = accessor.isStatic
             ..isSynthetic = true;
           reference.element ??= property;
@@ -1499,6 +1615,7 @@ class LibraryReader {
     _readClasses(unitElement, unitReference);
     _readEnums(unitElement, unitReference);
     _readExtensions(unitElement, unitReference);
+    _readExtensionTypes(unitElement, unitReference);
     _readFunctions(unitElement, unitReference);
     _readMixins(unitElement, unitReference);
     _readTypeAliases(unitElement, unitReference);
@@ -1549,6 +1666,8 @@ class MethodElementLinkedData extends ElementLinkedData<MethodElementImpl> {
     _readTypeParameters(reader, element.typeParameters);
     _readFormalParameters(reader, element.parameters);
     element.returnType = reader.readRequiredType();
+    element.augmentation = reader.readElement() as MethodElementImpl?;
+    element.augmentationTarget = reader.readElement() as MethodElementImpl?;
     applyConstantOffsets?.perform();
   }
 }
@@ -1571,6 +1690,22 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
     _readTypeParameters(reader, element.typeParameters);
     element.superclassConstraints = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
+    element.augmentation = reader.readElement() as MixinElementImpl?;
+
+    if (element.isAugmentation) {
+      element.augmentationTarget = reader.readElement() as MixinElementImpl?;
+    } else {
+      if (reader.readBool()) {
+        final augmented = AugmentedMixinElementImpl(element);
+        element.augmentedInternal = augmented;
+        augmented.superclassConstraints = reader._readInterfaceTypeList();
+        augmented.interfaces = reader._readInterfaceTypeList();
+        augmented.fields = reader.readElementList();
+        augmented.accessors = reader.readElementList();
+        augmented.methods = reader.readElementList();
+      }
+    }
+
     applyConstantOffsets?.perform();
   }
 }
@@ -1596,6 +1731,21 @@ class PropertyAccessorElementLinkedData
 
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
+
+    // If augmentation...
+    if (reader.readBool()) {
+      element.augmentationTarget =
+          reader.readElement() as PropertyAccessorElementImpl?;
+      final variable = reader.readElement() as PropertyInducingElementImpl;
+      element.variable = variable;
+      if (element.isGetter) {
+        variable.getter?.augmentation = element;
+        variable.getter = element;
+      } else {
+        variable.setter?.augmentation = element;
+        variable.setter = element;
+      }
+    }
 
     applyConstantOffsets?.perform();
   }
@@ -1624,6 +1774,10 @@ class ResolutionReader {
     return _elementFactory.libraryOfUri2(uri);
   }
 
+  bool readBool() {
+    return _reader.readBool();
+  }
+
   int readByte() {
     return _reader.readByte();
   }
@@ -1646,12 +1800,16 @@ class ResolutionReader {
 
     if (memberFlags == Tag.MemberLegacyWithTypeArguments ||
         memberFlags == Tag.MemberWithTypeArguments) {
-      element as ExecutableElement;
       var enclosing = element.enclosingElement as TypeParameterizedElement;
       var typeParameters = enclosing.typeParameters;
       var typeArguments = _readTypeList();
       var substitution = Substitution.fromPairs(typeParameters, typeArguments);
-      element = ExecutableMember.from2(element, substitution);
+      if (element is ExecutableElement) {
+        element = ExecutableMember.from2(element, substitution);
+      } else {
+        element as FieldElement;
+        element = FieldMember.from2(element, substitution);
+      }
     }
 
     if (memberFlags == Tag.MemberLegacyWithoutTypeArguments ||
@@ -1664,6 +1822,10 @@ class ResolutionReader {
     }
 
     throw UnimplementedError('memberFlags: $memberFlags');
+  }
+
+  List<T> readElementList<T extends Element>() {
+    return _reader.readTypedListCast<T>(readElement);
   }
 
   FunctionType? readOptionalFunctionType() {

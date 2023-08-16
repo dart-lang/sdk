@@ -10,7 +10,6 @@ import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
 
 /// Information about Pub packages that can be converted to/from JSON and
 /// cached to disk.
@@ -370,13 +369,14 @@ class PubPackageService {
   /// Checks whether there is a DEPS file in any folder walking up from the
   /// pubspec at [pubspecPath].
   bool _hasAncestorDEPSFile(String pubspecPath) {
-    var folder = path.dirname(pubspecPath);
+    var pathContext = resourceProvider.pathContext;
+    var folder = pathContext.dirname(pubspecPath);
     do {
-      if (resourceProvider.getFile(path.join(folder, 'DEPS')).exists) {
+      if (resourceProvider.getFile(pathContext.join(folder, 'DEPS')).exists) {
         return true;
       }
-      folder = path.dirname(folder);
-    } while (folder != path.dirname(folder));
+      folder = pathContext.dirname(folder);
+    } while (folder != pathContext.dirname(folder));
     return false;
   }
 

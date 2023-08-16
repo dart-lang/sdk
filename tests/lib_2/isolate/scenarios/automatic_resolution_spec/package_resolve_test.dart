@@ -7,8 +7,8 @@
 import 'dart:io';
 import 'dart:isolate';
 
-final PACKAGE_URI = "package:foo/bar.dart";
-final PACKAGE_PATH = "file:///no/such/directory/bar.dart";
+final packageUriToResolve = Uri.parse("package:foo/bar.dart");
+final packagePath = "file:///no/such/directory/bar.dart";
 
 main([args, port]) async {
   if (port != null) {
@@ -29,7 +29,7 @@ main([args, port]) async {
       throw "Bad package config in child isolate: ${msg[0]}\n"
           "Expected: $child_pkg_config";
     }
-    if (msg[1] != PACKAGE_PATH) {
+    if (msg[1] != packagePath) {
       throw "Package path not matching: ${msg[1]}";
     }
     print("SUCCESS");
@@ -40,7 +40,13 @@ testPackageResolution(port) async {
   try {
     var packageConfigStr = Platform.packageConfig;
     var packageConfig = await Isolate.packageConfig;
-    var resolvedPkg = await Isolate.resolvePackageUri(Uri.parse(PACKAGE_URI));
+    if (packageConfig != Isolate.packageConfigSync) {
+      throw "Isolate.packageConfig != Isolate.packageConfigSync";
+    }
+    var resolvedPkg = await Isolate.resolvePackageUri(packageUriToResolve);
+    if (resolvedPkg != Isolate.resolvePackageUriSync(packageUriToResolve)) {
+      throw "Isolate.resolvePackageUri != Isolate.resolvePackageUriSync";
+    }
     print("Spawned isolate's package config flag: $packageConfigStr");
     print("Spawned isolate's loaded package config: $packageConfig");
     print("Spawned isolate's resolved package path: $resolvedPkg");

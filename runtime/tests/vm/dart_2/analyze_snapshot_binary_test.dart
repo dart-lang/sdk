@@ -123,7 +123,40 @@ Future<void> testAOT(String dillPath,
     Expect.isFalse(analyzerJson.isEmpty);
     Expect.isTrue(analyzerJson.keys
         .toSet()
-        .containsAll(['snapshot_data', 'class_table', 'object_pool']));
+        .containsAll(['snapshot_data', 'objects', 'metadata']));
+
+    final objects = (analyzerJson['objects'] as List).map((o) => o as Map);
+
+    // Find MethodChannel class.
+    final objList = objects
+        .where((o) => o['type'] == 'Class' && o['name'] == 'MethodChannel')
+        .toList();
+    Expect.isTrue(
+        objList.length == 1, 'one MethodChannel class must exist in output');
+    final int objId = objList.first['id'];
+
+    // Find string instance.
+    final stringList = objects
+        .where((o) => o['type'] == 'String' && o['value'] == 'constChannel1')
+        .toList();
+    Expect.isTrue(stringList.length == 1,
+        'one "constChannel1" string must exist in output');
+    final int stringObjId = stringList.first['id'];
+
+    // Find MethodChannel instance.
+    final instanceList = objects
+        .where((o) =>
+            o['type'] == 'Instance' &&
+            o['class'] == objId &&
+            o['references'].contains(stringObjId))
+        .toList();
+    Expect.isTrue(instanceList.length == 1, '''one instance of MethodChannel 
+        with reference to "constChannel1" must exist in output''');
+
+    Expect.isTrue(analyzerJson['metadata'].containsKey('analyzer_version'),
+        'snapshot analyzer version must be reported');
+    Expect.isTrue(analyzerJson['metadata']['analyzer_version'] == 2,
+        'invalid snapshot analyzer version');
   });
 }
 
@@ -142,7 +175,7 @@ main() async {
   await withTempDir('analyze_snapshot_binary', (String tempDir) async {
     // We only need to generate the dill file once for all JIT tests.
     final _thisTestPath = path.join(sdkDir, 'runtime', 'tests', 'vm', 'dart',
-        'use_save_debugging_info_flag_program.dart');
+        'analyze_snapshot_program.dart');
 
     // We only need to generate the dill file once for all AOT tests.
     final aotDillPath = path.join(tempDir, 'aot_test.dill');

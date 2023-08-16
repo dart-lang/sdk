@@ -8,8 +8,9 @@ import 'package:test/test.dart';
 
 import 'expression_compiler_e2e_shared.dart';
 import 'expression_compiler_e2e_suite.dart';
+import 'setup_compiler_options.dart';
 
-void main() async {
+void main(List<String> args) async {
   // Set to `true` for debug output.
   final debug = false;
   var driver = await TestDriver.init();
@@ -21,9 +22,11 @@ void main() async {
 
     group('(AMD module system)', () {
       var setup = SetupCompilerOptions(
-          soundNullSafety: true,
-          legacyCode: false,
-          moduleFormat: ModuleFormat.amd);
+        soundNullSafety: true,
+        legacyCode: false,
+        moduleFormat: ModuleFormat.amd,
+        args: args,
+      );
       setup.options.verbose = debug;
       runNullSafeSharedTests(setup, driver);
     });

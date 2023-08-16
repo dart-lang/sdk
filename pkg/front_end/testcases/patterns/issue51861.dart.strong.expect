@@ -15,15 +15,15 @@ static method main() → void {
   core::int f = 1.{core::int::unary-}(){() → core::int};
   core::int b = 1.{core::int::unary-}(){() → core::int};
   try {
-    block {
+    {
+      final synthesized self::A #0#0 = obj;
       core::int #t1;
       core::int #t2;
-      final synthesized dynamic #0#0 = obj;
-      if(!((let final dynamic #t3 = #t1 = #0#0{self::A}.{self::A::foo}{core::int} in true) && (let final dynamic #t4 = #t2 = #0#0{self::A}.{self::A::bar}{core::int} in true)))
-        throw new core::StateError::•("Pattern matching error");
+      #t1 = #0#0.{self::A::foo}{core::int};
+      #t2 = #0#0.{self::A::bar}{core::int};
       f = #t1;
       b = #t2;
-    } =>#0#0;
+    }
   }
   on core::Object catch(final core::Object _) {
   }

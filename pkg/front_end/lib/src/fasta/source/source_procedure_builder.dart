@@ -25,8 +25,8 @@ import '../source/source_loader.dart' show SourceLoader;
 import 'source_builder_mixins.dart';
 import 'source_class_builder.dart';
 import 'source_extension_builder.dart';
+import 'source_extension_type_declaration_builder.dart';
 import 'source_function_builder.dart';
-import 'source_inline_class_builder.dart';
 import 'source_member_builder.dart';
 
 class SourceProcedureBuilder extends SourceFunctionBuilderImpl
@@ -39,7 +39,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   final bool isExtensionInstanceMember;
 
   @override
-  final bool isInlineClassInstanceMember;
+  final bool isExtensionTypeInstanceMember;
 
   @override
   final TypeBuilder returnType;
@@ -96,13 +96,13 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       : assert(kind != ProcedureKind.Factory),
         this.isExtensionInstanceMember =
             nameScheme.isInstanceMember && nameScheme.isExtensionMember,
-        this.isInlineClassInstanceMember =
-            nameScheme.isInstanceMember && nameScheme.isInlineClassMember,
+        this.isExtensionTypeInstanceMember =
+            nameScheme.isInstanceMember && nameScheme.isExtensionTypeMember,
         super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
             charOffset, nativeMethodName) {
     _procedure = new Procedure(
         dummyName,
-        isExtensionInstanceMember || isInlineClassInstanceMember
+        isExtensionInstanceMember || isExtensionTypeInstanceMember
             ? ProcedureKind.Method
             : kind,
         new FunctionNode(null),
@@ -115,13 +115,13 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
     nameScheme.getProcedureMemberName(kind, name).attachMember(_procedure);
     this.asyncModifier = asyncModifier;
-    if ((isExtensionInstanceMember || isInlineClassInstanceMember) &&
+    if ((isExtensionInstanceMember || isExtensionTypeInstanceMember) &&
         kind == ProcedureKind.Method) {
       _extensionTearOff = new Procedure(
           dummyName, ProcedureKind.Method, new FunctionNode(null),
           isStatic: true,
           isExtensionMember: isExtensionInstanceMember,
-          isInlineClassMember: isInlineClassInstanceMember,
+          isExtensionTypeMember: isExtensionTypeInstanceMember,
           reference: _tearOffReference,
           fileUri: fileUri)
         ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
@@ -154,8 +154,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     return parent is SourceExtensionBuilder;
   }
 
-  bool get isInlineClassMethod {
-    return parent is SourceInlineClassBuilder;
+  bool get isExtensionTypeMethod {
+    return parent is SourceExtensionTypeDeclarationBuilder;
   }
 
   @override
@@ -277,26 +277,26 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       if (extensionTearOff != null) {
         f(extensionTearOff!, BuiltMemberKind.ExtensionTearOff);
       }
-    } else if (isInlineClassMethod) {
+    } else if (isExtensionTypeMethod) {
       switch (kind) {
         case ProcedureKind.Method:
-          f(_procedure, BuiltMemberKind.InlineClassMethod);
+          f(_procedure, BuiltMemberKind.ExtensionTypeMethod);
           break;
         case ProcedureKind.Getter:
-          f(_procedure, BuiltMemberKind.InlineClassGetter);
+          f(_procedure, BuiltMemberKind.ExtensionTypeGetter);
           break;
         case ProcedureKind.Setter:
-          f(_procedure, BuiltMemberKind.InlineClassSetter);
+          f(_procedure, BuiltMemberKind.ExtensionTypeSetter);
           break;
         case ProcedureKind.Operator:
-          f(_procedure, BuiltMemberKind.InlineClassOperator);
+          f(_procedure, BuiltMemberKind.ExtensionTypeOperator);
           break;
         case ProcedureKind.Factory:
-          f(_procedure, BuiltMemberKind.InlineClassFactory);
+          f(_procedure, BuiltMemberKind.ExtensionTypeFactory);
           break;
       }
       if (extensionTearOff != null) {
-        f(extensionTearOff!, BuiltMemberKind.InlineClassTearOff);
+        f(extensionTearOff!, BuiltMemberKind.ExtensionTypeTearOff);
       }
     } else {
       f(member, BuiltMemberKind.Method);
@@ -316,10 +316,10 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       if (isExtensionInstanceMember) {
         assert(_procedure.kind == ProcedureKind.Method);
       }
-    } else if (isInlineClassMethod) {
-      _procedure.isInlineClassMember = true;
+    } else if (isExtensionTypeMethod) {
+      _procedure.isExtensionTypeMember = true;
       _procedure.isStatic = true;
-      if (isInlineClassInstanceMember) {
+      if (isExtensionTypeInstanceMember) {
         assert(_procedure.kind == ProcedureKind.Method);
       }
     } else {

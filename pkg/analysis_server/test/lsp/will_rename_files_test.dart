@@ -88,9 +88,9 @@ class WillRenameFilesTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_renameFile_updatesImports() async {
     final otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
-    final otherFileUri = Uri.file(otherFilePath);
+    final otherFileUri = pathContext.toUri(otherFilePath);
     final otherFileNewPath = join(projectFolderPath, 'lib', 'other_new.dart');
-    final otherFileNewUri = Uri.file(otherFileNewPath);
+    final otherFileNewUri = pathContext.toUri(otherFileNewPath);
 
     final mainContent = '''
 import 'other.dart';
@@ -102,7 +102,8 @@ final a = A();
 class A {}
 ''';
 
-    final expectedMainContent = '''
+    final expectedContent = '''
+>>>>>>>>>> lib/main.dart
 import 'other_new.dart';
 
 final a = A();
@@ -118,19 +119,14 @@ final a = A();
       ),
     ]);
 
-    // Ensure applying the edit will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(mainContent),
-    };
-    applyChanges(contents, edit.changes!);
-    expect(contents[mainFilePath], equals(expectedMainContent));
+    verifyEdit(edit, expectedContent);
   }
 
   Future<void> test_renameFolder_updatesImports() async {
     final oldFolderPath = join(projectFolderPath, 'lib', 'folder');
     final newFolderPath = join(projectFolderPath, 'lib', 'folder_new');
     final otherFilePath = join(oldFolderPath, 'other.dart');
-    final otherFileUri = Uri.file(otherFilePath);
+    final otherFileUri = pathContext.toUri(otherFilePath);
 
     final mainContent = '''
 import 'folder/other.dart';
@@ -143,6 +139,7 @@ class A {}
 ''';
 
     final expectedMainContent = '''
+>>>>>>>>>> lib/main.dart
 import 'folder_new/other.dart';
 
 final a = A();
@@ -153,16 +150,11 @@ final a = A();
     await openFile(otherFileUri, otherContent);
     final edit = await onWillRename([
       FileRename(
-        oldUri: Uri.file(oldFolderPath).toString(),
-        newUri: Uri.file(newFolderPath).toString(),
+        oldUri: pathContext.toUri(oldFolderPath).toString(),
+        newUri: pathContext.toUri(newFolderPath).toString(),
       ),
     ]);
 
-    // Ensure applying the edit will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(mainContent),
-    };
-    applyChanges(contents, edit.changes!);
-    expect(contents[mainFilePath], equals(expectedMainContent));
+    verifyEdit(edit, expectedMainContent);
   }
 }

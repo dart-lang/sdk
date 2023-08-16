@@ -1,0 +1,9 @@
+extension type I._(int i) {
+factory I() => 0 as I;
+} extension type J._(int i) {
+factory J(int i) => J._(i);
+} extension type K<T>._(T i) {
+factory K(T i) => K._(i);
+}
+main() {}
+expect(expected, actual) {}

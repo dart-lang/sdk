@@ -806,7 +806,6 @@ void f() {
   E(0).foo();
 }
 ''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 33, 1),
       error(WarningCode.SDK_VERSION_SINCE, 38, 3),
     ]);
   }

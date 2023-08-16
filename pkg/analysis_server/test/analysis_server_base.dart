@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
-import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
@@ -22,6 +21,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
+import 'package:unified_analytics/unified_analytics.dart';
 
 import 'mocks.dart';
 import 'src/utilities/mock_packages.dart';
@@ -188,7 +188,7 @@ class ContextResolutionTest with ResourceProviderMixin {
       resourceProvider,
       AnalysisServerOptions(),
       DartSdkManager(sdkRoot.path),
-      AnalyticsManager(NoopAnalytics()),
+      AnalyticsManager(NoOpAnalytics()),
       CrashReportingAttachmentsBuilder.empty,
       InstrumentationService.NULL_SERVICE,
       dartFixPromptManager: dartFixPromptManager,

@@ -306,11 +306,8 @@ Future<_LoadFromSourceResult> _loadFromSource(
 
   assert(() {
     if (component != null) {
-      // TODO(johnniwinther): Support verification of erroneous programs.
-      if (!reporter.hasReportedError) {
-        verifyComponent(
-            target, VerificationStage.afterModularTransformations, component);
-      }
+      verifyComponent(
+          target, VerificationStage.afterModularTransformations, component);
     }
     return true;
   }());

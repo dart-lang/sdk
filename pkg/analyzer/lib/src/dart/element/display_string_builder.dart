@@ -34,6 +34,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeClassElement(ClassElementImpl element) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
     if (element.isSealed) {
       _write('sealed ');
     } else if (element.isAbstract) {
@@ -91,6 +95,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeExecutableElement(ExecutableElement element, String name) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
     _writeType(element.returnType);
     _write(' ');
 
@@ -171,6 +179,9 @@ class ElementDisplayStringBuilder {
   }
 
   void writeMixinElement(MixinElementImpl element) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
     if (element.isBase) {
       _write('base ');
     }
@@ -221,6 +232,11 @@ class ElementDisplayStringBuilder {
         }
       }
       _write('}');
+    }
+
+    // Add trailing comma for record types with only one position field.
+    if (positionalFields.length == 1 && namedFields.isEmpty) {
+      _write(',');
     }
 
     _write(')');

@@ -42,7 +42,8 @@ class PubspecGeneratorTest extends YamlGeneratorTest {
         InstrumentationService.NULL_SERVICE,
         resourceProvider,
         PubApi(InstrumentationService.NULL_SERVICE, httpClient, null),
-        PubCommand(InstrumentationService.NULL_SERVICE, processRunner));
+        PubCommand(InstrumentationService.NULL_SERVICE,
+            resourceProvider.pathContext, processRunner));
   }
 
   void tearDown() {

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'dart:async' show Completer, Future;
+import 'dart:async' show Future;
 import 'dart:convert' show LineSplitter, utf8;
 import 'dart:io' show File, Platform, Process, exitCode;
 
@@ -18,8 +18,7 @@ Future<void> main(List<String> args) async {
       "\n\n");
 
   List<WrappedProcess> startedProcesses = [];
-  Completer<void> startedDelayedProcess = new Completer<void>();
-  WrappedProcess? leakTest;
+
   {
     // Very slow: Leak-test.
     Uri leakTester =
@@ -30,14 +29,13 @@ Future<void> main(List<String> args) async {
     } else {
       // The tools/bots/flutter/compile_flutter.sh script passes `--path`
       // --- we'll just pass everything along.
-      leakTest = await run(
+      startedProcesses.add(await run(
         [
           leakTester.toString(),
           ...args,
         ],
         "leak test",
-      );
-      startedProcesses.add(leakTest);
+      ));
     }
   }
 
@@ -109,7 +107,6 @@ Future<void> main(List<String> args) async {
   }
 
   // Wait for everything to finish.
-  await startedDelayedProcess.future;
   List<int> exitCodes =
       await Future.wait(startedProcesses.map((e) => e.process.exitCode));
   if (exitCodes.where((e) => e != 0).isNotEmpty) {

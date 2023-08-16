@@ -216,6 +216,7 @@ uword SymbolsPredefinedAddress();
 
 const Code& StubCodeAllocateArray();
 const Code& StubCodeSubtype2TestCache();
+const Code& StubCodeSubtype3TestCache();
 const Code& StubCodeSubtype4TestCache();
 const Code& StubCodeSubtype6TestCache();
 const Code& StubCodeSubtype7TestCache();
@@ -1482,7 +1483,7 @@ class Closure : public AllStatic {
 
 class ClosureData : public AllStatic {
  public:
-  static word default_type_arguments_kind_offset();
+  static word packed_fields_offset();
   static word InstanceSize();
   FINAL_CLASS();
 };

@@ -7,8 +7,8 @@ fa5 double
 fa6 double
 fa7 double
 (a0, a1) int64[double]
-(a2, a3) int64[double]
-(a4, a5) int64[double]
+(a2, t3) int64[double]
+(t4, t5) int64[double]
 (a6, a7) int64[double]
 S+0 double
 S+8 double

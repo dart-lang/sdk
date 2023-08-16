@@ -17,7 +17,7 @@
 namespace dart {
 
 #define SERVICE_PROTOCOL_MAJOR_VERSION 4
-#define SERVICE_PROTOCOL_MINOR_VERSION 10
+#define SERVICE_PROTOCOL_MINOR_VERSION 12
 
 class Array;
 class EmbedderServiceHandler;
@@ -89,7 +89,7 @@ class StreamInfo {
  private:
   const char* id_;
   std::atomic<intptr_t> enabled_;
-  bool include_private_members_;
+  std::atomic<bool> include_private_members_;
 };
 
 class Service : public AllStatic {

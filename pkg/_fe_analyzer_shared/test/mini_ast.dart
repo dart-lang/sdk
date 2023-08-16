@@ -37,16 +37,21 @@ final RegExp _locationRegExp =
     RegExp('(file:)?[a-zA-Z0-9_./]+.dart:[0-9]+:[0-9]+');
 
 SwitchHeadDefault get default_ =>
-    SwitchHeadDefault(location: computeLocation());
+    SwitchHeadDefault._(location: computeLocation());
 
-Expression get nullLiteral => new NullLiteral._(location: computeLocation());
+ConstExpression get nullLiteral =>
+    new NullLiteral._(location: computeLocation());
 
 Expression get this_ => new This._(location: computeLocation());
 
-Statement assert_(Expression condition, [Expression? message]) =>
-    new Assert._(condition, message, location: computeLocation());
+Statement assert_(ProtoExpression condition, [ProtoExpression? message]) {
+  var location = computeLocation();
+  return new Assert._(condition.asExpression(location: location),
+      message?.asExpression(location: location),
+      location: location);
+}
 
-Statement block(List<Statement> statements) =>
+Statement block(List<ProtoStatement> statements) =>
     new Block._(statements, location: computeLocation());
 
 Expression booleanLiteral(bool value) =>
@@ -55,32 +60,32 @@ Expression booleanLiteral(bool value) =>
 Statement break_([Label? target]) =>
     new Break(target, location: computeLocation());
 
-/// Creates a pseudo-statement whose function is to verify that flow analysis
+/// Creates a pseudo-expression whose function is to verify that flow analysis
 /// considers [variable]'s assigned state to be [expectedAssignedState].
-Statement checkAssigned(Var variable, bool expectedAssignedState) =>
+Expression checkAssigned(Var variable, bool expectedAssignedState) =>
     new CheckAssigned._(variable, expectedAssignedState,
         location: computeLocation());
 
-/// Creates a pseudo-statement whose function is to verify that flow analysis
+/// Creates a pseudo-expression whose function is to verify that flow analysis
 /// considers [promotable] to be un-promoted.
-Statement checkNotPromoted(Promotable promotable) =>
+Expression checkNotPromoted(Promotable promotable) =>
     new CheckPromoted._(promotable, null, location: computeLocation());
 
-/// Creates a pseudo-statement whose function is to verify that flow analysis
+/// Creates a pseudo-expression whose function is to verify that flow analysis
 /// considers [promotable]'s assigned state to be promoted to [expectedTypeStr].
-Statement checkPromoted(Promotable promotable, String? expectedTypeStr) =>
+Expression checkPromoted(Promotable promotable, String? expectedTypeStr) =>
     new CheckPromoted._(promotable, expectedTypeStr,
         location: computeLocation());
 
-/// Creates a pseudo-statement whose function is to verify that flow analysis
+/// Creates a pseudo-expression whose function is to verify that flow analysis
 /// considers the current location's reachability state to be
 /// [expectedReachable].
-Statement checkReachable(bool expectedReachable) =>
+Expression checkReachable(bool expectedReachable) =>
     new CheckReachable(expectedReachable, location: computeLocation());
 
-/// Creates a pseudo-statement whose function is to verify that flow analysis
+/// Creates a pseudo-expression whose function is to verify that flow analysis
 /// considers [variable]'s unassigned state to be [expectedUnassignedState].
-Statement checkUnassigned(Var variable, bool expectedUnassignedState) =>
+Expression checkUnassigned(Var variable, bool expectedUnassignedState) =>
     new CheckUnassigned._(variable, expectedUnassignedState,
         location: computeLocation());
 
@@ -121,38 +126,44 @@ Statement declare(Var variable,
     {bool isLate = false,
     bool isFinal = false,
     String? type,
-    Expression? initializer,
+    ProtoExpression? initializer,
     String? expectInferredType}) {
   var location = computeLocation();
   return new Declare._(
       new VariablePattern._(
           type == null ? null : Type(type), variable, expectInferredType,
           location: location),
-      initializer,
+      initializer?.asExpression(location: location),
       isLate: isLate,
       isFinal: isFinal,
       location: location);
 }
 
-Statement do_(List<Statement> body, Expression condition) {
+Statement do_(List<ProtoStatement> body, ProtoExpression condition) {
   var location = computeLocation();
-  return Do._(Block._(body, location: location), condition, location: location);
+  return Do._(Block._(body, location: location),
+      condition.asExpression(location: location),
+      location: location);
 }
 
 /// Creates a pseudo-expression having type [typeStr] that otherwise has no
 /// effect on flow analysis.
-Expression expr(String typeStr) =>
+ConstExpression expr(String typeStr) =>
     new PlaceholderExpression._(new Type(typeStr), location: computeLocation());
 
 /// Creates a conventional `for` statement.  Optional boolean [forCollection]
 /// indicates that this `for` statement is actually a collection element, so
 /// `null` should be passed to [for_bodyBegin].
-Statement for_(Statement? initializer, Expression? condition,
-    Expression? updater, List<Statement> body,
+Statement for_(ProtoStatement? initializer, ProtoExpression? condition,
+    ProtoExpression? updater, List<ProtoStatement> body,
     {bool forCollection = false}) {
   var location = computeLocation();
-  return new For._(initializer, condition, updater,
-      Block._(body, location: location), forCollection,
+  return new For._(
+      initializer?.asStatement(location: location),
+      condition?.asExpression(location: location),
+      updater?.asExpression(location: location),
+      Block._(body, location: location),
+      forCollection,
       location: location);
 }
 
@@ -164,9 +175,11 @@ Statement for_(Statement? initializer, Expression? condition,
 ///     f(Iterable iterable) {
 ///       for (x in iterable) { ... }
 ///     }
-Statement forEachWithNonVariable(Expression iterable, List<Statement> body) {
+Statement forEachWithNonVariable(
+    ProtoExpression iterable, List<ProtoStatement> body) {
   var location = computeLocation();
-  return new ForEach._(null, iterable, Block._(body, location: location), false,
+  return new ForEach._(null, iterable.asExpression(location: location),
+      Block._(body, location: location), false,
       location: location);
 }
 
@@ -178,9 +191,11 @@ Statement forEachWithNonVariable(Expression iterable, List<Statement> body) {
 ///       for (var x in iterable) { ... }
 ///     }
 Statement forEachWithVariableDecl(
-    Var variable, Expression iterable, List<Statement> body) {
-  return new ForEach._(variable, iterable, block(body), true,
-      location: computeLocation());
+    Var variable, ProtoExpression iterable, List<ProtoStatement> body) {
+  var location = computeLocation();
+  return new ForEach._(
+      variable, iterable.asExpression(location: location), block(body), true,
+      location: location);
 }
 
 /// Creates a "for each" statement where the identifier being assigned to by the
@@ -192,28 +207,30 @@ Statement forEachWithVariableDecl(
 ///       for (x in iterable) { ... }
 ///     }
 Statement forEachWithVariableSet(
-    Var variable, Expression iterable, List<Statement> body) {
+    Var variable, ProtoExpression iterable, List<ProtoStatement> body) {
   var location = computeLocation();
-  return new ForEach._(
-      variable, iterable, Block._(body, location: location), false,
+  return new ForEach._(variable, iterable.asExpression(location: location),
+      Block._(body, location: location), false,
       location: location);
 }
 
-Statement if_(Expression condition, List<Statement> ifTrue,
-    [List<Statement>? ifFalse]) {
+Statement if_(ProtoExpression condition, List<ProtoStatement> ifTrue,
+    [List<ProtoStatement>? ifFalse]) {
   var location = computeLocation();
-  return new If._(condition, Block._(ifTrue, location: location),
+  return new If._(
+      condition.asExpression(location: location),
+      Block._(ifTrue, location: location),
       ifFalse == null ? null : Block._(ifFalse, location: location),
       location: location);
 }
 
-Statement ifCase(Expression expression, PossiblyGuardedPattern pattern,
-    List<Statement> ifTrue,
-    [List<Statement>? ifFalse]) {
+Statement ifCase(ProtoExpression expression, PossiblyGuardedPattern pattern,
+    List<ProtoStatement> ifTrue,
+    [List<ProtoStatement>? ifFalse]) {
   var location = computeLocation();
   var guardedPattern = pattern._asGuardedPattern;
   return IfCase(
-    expression,
+    expression.asExpression(location: location),
     guardedPattern.pattern,
     guardedPattern.guard,
     Block._(ifTrue, location: location),
@@ -223,44 +240,80 @@ Statement ifCase(Expression expression, PossiblyGuardedPattern pattern,
 }
 
 CollectionElement ifCaseElement(
-  Expression expression,
+  ProtoExpression expression,
   PossiblyGuardedPattern pattern,
-  CollectionElement ifTrue, [
-  CollectionElement? ifFalse,
+  ProtoCollectionElement ifTrue, [
+  ProtoCollectionElement? ifFalse,
 ]) {
   var location = computeLocation();
   var guardedPattern = pattern._asGuardedPattern;
   return new IfCaseElement(
-    expression,
+    expression.asExpression(location: location),
     guardedPattern.pattern,
     guardedPattern.guard,
-    ifTrue,
-    ifFalse,
+    ifTrue.asCollectionElement(location: location),
+    ifFalse?.asCollectionElement(location: location),
     location: location,
   );
 }
 
-CollectionElement ifElement(Expression condition, CollectionElement ifTrue,
-    [CollectionElement? ifFalse]) {
+CollectionElement ifElement(
+    ProtoExpression condition, ProtoCollectionElement ifTrue,
+    [ProtoCollectionElement? ifFalse]) {
   var location = computeLocation();
-  return new IfElement._(condition, ifTrue, ifFalse, location: location);
+  return new IfElement._(
+      condition.asExpression(location: location),
+      ifTrue.asCollectionElement(location: location),
+      ifFalse?.asCollectionElement(location: location),
+      location: location);
 }
 
-Expression intLiteral(int value, {bool? expectConversionToDouble}) =>
+ConstExpression intLiteral(int value, {bool? expectConversionToDouble}) =>
     new IntLiteral(value,
         expectConversionToDouble: expectConversionToDouble,
         location: computeLocation());
+
+/// Creates a list literal containing the given [elements].
+///
+/// [elementType] is the explicit type argument of the list literal.
+/// TODO(paulberry): support list literals with an inferred type argument.
+Expression listLiteral(List<ProtoCollectionElement> elements,
+    {required String elementType}) {
+  var location = computeLocation();
+  return ListLiteral._([
+    for (var element in elements)
+      element.asCollectionElement(location: location)
+  ], Type(elementType), location: location);
+}
 
 Pattern listPattern(List<ListPatternElement> elements, {String? elementType}) =>
     ListPattern._(elementType == null ? null : Type(elementType), elements,
         location: computeLocation());
 
-ListPatternElement listPatternRestElement([Pattern? pattern]) =>
-    RestPatternElement._(pattern, location: computeLocation());
-
-Statement localFunction(List<Statement> body) {
+Expression localFunction(List<ProtoStatement> body) {
   var location = computeLocation();
   return LocalFunction._(Block._(body, location: location), location: location);
+}
+
+/// Creates a map entry containing the given [key] and [value] subexpressions.
+CollectionElement mapEntry(ProtoExpression key, ProtoExpression value) {
+  var location = computeLocation();
+  return MapEntry._(key.asExpression(location: location),
+      value.asExpression(location: location),
+      location: location);
+}
+
+/// Creates a map literal containing the given [elements].
+///
+/// [keyType] and [valueType] are the explicit type arguments of the map
+/// literal. TODO(paulberry): support map literals with inferred type arguments.
+Expression mapLiteral(List<ProtoCollectionElement> elements,
+    {required String keyType, required String valueType}) {
+  var location = computeLocation();
+  return MapLiteral._([
+    for (var element in elements)
+      element.asCollectionElement(location: location)
+  ], Type(keyType), Type(valueType), location: location);
 }
 
 Pattern mapPattern(List<MapPatternElement> elements,
@@ -275,12 +328,11 @@ Pattern mapPattern(List<MapPatternElement> elements,
       location: location);
 }
 
-MapPatternElement mapPatternEntry(Expression key, Pattern value) {
-  return MapPatternEntry._(key, value, location: computeLocation());
+MapPatternElement mapPatternEntry(ProtoExpression key, Pattern value) {
+  var location = computeLocation();
+  return MapPatternEntry._(key.asExpression(location: location), value,
+      location: location);
 }
-
-MapPatternElement mapPatternRestElement([Pattern? pattern]) =>
-    RestPatternElement._(pattern, location: computeLocation());
 
 Pattern mapPatternWithTypeArguments({
   required String keyType,
@@ -298,10 +350,12 @@ Pattern mapPatternWithTypeArguments({
   );
 }
 
-Statement match(Pattern pattern, Expression initializer,
-        {bool isLate = false, bool isFinal = false}) =>
-    new Declare._(pattern, initializer,
-        isLate: isLate, isFinal: isFinal, location: computeLocation());
+Statement match(Pattern pattern, ProtoExpression initializer,
+    {bool isLate = false, bool isFinal = false}) {
+  var location = computeLocation();
+  return new Declare._(pattern, initializer.asExpression(location: location),
+      isLate: isLate, isFinal: isFinal, location: location);
+}
 
 Pattern objectPattern({
   required String requiredType,
@@ -326,13 +380,13 @@ Pattern objectPattern({
 ///     }
 Statement patternForIn(
   Pattern pattern,
-  Expression expression,
-  List<Statement> body, {
+  ProtoExpression expression,
+  List<ProtoStatement> body, {
   bool hasAwait = false,
 }) {
   var location = computeLocation();
-  return new PatternForIn(
-      pattern, expression, Block._(body, location: location),
+  return new PatternForIn(pattern, expression.asExpression(location: location),
+      Block._(body, location: location),
       hasAwait: hasAwait, location: location);
 }
 
@@ -344,60 +398,98 @@ Statement patternForIn(
 ///     }
 CollectionElement patternForInElement(
   Pattern pattern,
-  Expression expression,
-  CollectionElement body, {
+  ProtoExpression expression,
+  ProtoCollectionElement body, {
   bool hasAwait = false,
 }) {
   var location = computeLocation();
-  return new PatternForInElement(pattern, expression, body,
-      hasAwait: hasAwait, location: location);
+  return new PatternForInElement(
+      pattern,
+      expression.asExpression(location: location),
+      body.asCollectionElement(location: location),
+      hasAwait: hasAwait,
+      location: location);
 }
 
 Pattern recordPattern(List<RecordPatternField> fields) =>
     RecordPattern._(fields, location: computeLocation());
 
-Pattern relationalPattern(String operator, Expression operand,
+Pattern relationalPattern(String operator, ProtoExpression operand,
     {String? errorId}) {
-  var result =
-      RelationalPattern._(operator, operand, location: computeLocation());
+  var location = computeLocation();
+  var result = RelationalPattern._(
+      operator, operand.asExpression(location: location),
+      location: location);
   if (errorId != null) {
     result.errorId = errorId;
   }
   return result;
 }
 
+/// Creates a "rest" pattern with optional [subPatern], for use in a list
+/// pattern.
+///
+/// Although using a rest pattern inside a map pattern is an error, it's allowed
+/// syntactically (since this leads to better error recovery). To facilitate
+/// testing of the error recovery logic, the returned type ([RestPattern]) may
+/// be used were a [MapPatternElement] is expected.
+RestPattern restPattern([Pattern? subPattern]) =>
+    RestPattern._(subPattern, location: computeLocation());
+
 Statement return_() => new Return._(location: computeLocation());
+
+/// Models a call to a generic Dart function that takes two arguments and
+/// returns the second argument; in other words, a function defined this way:
+///
+///     T second(dynamic x, T y) => y;
+///
+/// This can be useful in situations where a test needs to verify certain
+/// properties, or establish certain preconditions, before the analysis reaches
+/// a certain subexpression.
+Expression second(ProtoExpression first, ProtoExpression second) {
+  var location = computeLocation();
+  return Second._(first.asExpression(location: location),
+      second.asExpression(location: location),
+      location: location);
+}
 
 PromotableLValue superProperty(String name) => new ThisOrSuperProperty._(name,
     location: computeLocation(), isSuperAccess: true);
 
-Statement switch_(Expression expression, List<SwitchStatementMember> cases,
-        {bool? isLegacyExhaustive,
-        bool? expectHasDefault,
-        bool? expectIsExhaustive,
-        bool? expectLastCaseTerminates,
-        bool? expectRequiresExhaustivenessValidation,
-        String? expectScrutineeType}) =>
-    new SwitchStatement(expression, cases, isLegacyExhaustive,
-        location: computeLocation(),
-        expectHasDefault: expectHasDefault,
-        expectIsExhaustive: expectIsExhaustive,
-        expectLastCaseTerminates: expectLastCaseTerminates,
-        expectRequiresExhaustivenessValidation:
-            expectRequiresExhaustivenessValidation,
-        expectScrutineeType: expectScrutineeType);
+Statement switch_(ProtoExpression expression, List<SwitchStatementMember> cases,
+    {bool? isLegacyExhaustive,
+    bool? expectHasDefault,
+    bool? expectIsExhaustive,
+    bool? expectLastCaseTerminates,
+    bool? expectRequiresExhaustivenessValidation,
+    String? expectScrutineeType}) {
+  var location = computeLocation();
+  return new SwitchStatement(
+      expression.asExpression(location: location), cases, isLegacyExhaustive,
+      location: location,
+      expectHasDefault: expectHasDefault,
+      expectIsExhaustive: expectIsExhaustive,
+      expectLastCaseTerminates: expectLastCaseTerminates,
+      expectRequiresExhaustivenessValidation:
+          expectRequiresExhaustivenessValidation,
+      expectScrutineeType: expectScrutineeType);
+}
 
-Expression switchExpr(Expression expression, List<ExpressionCase> cases) =>
-    new SwitchExpression._(expression, cases, location: computeLocation());
+Expression switchExpr(ProtoExpression expression, List<ExpressionCase> cases) {
+  var location = computeLocation();
+  return new SwitchExpression._(
+      expression.asExpression(location: location), cases,
+      location: location);
+}
 
 SwitchStatementMember switchStatementMember(
-  List<SwitchHead> cases,
-  List<Statement> body, {
+  List<ProtoSwitchHead> cases,
+  List<ProtoStatement> body, {
   bool hasLabels = false,
 }) {
   var location = computeLocation();
   return SwitchStatementMember._(
-    cases,
+    [for (var case_ in cases) case_.asSwitchHead],
     Block._(body, location: location),
     hasLabels: hasLabels,
     location: computeLocation(),
@@ -407,18 +499,22 @@ SwitchStatementMember switchStatementMember(
 PromotableLValue thisProperty(String name) => new ThisOrSuperProperty._(name,
     location: computeLocation(), isSuperAccess: false);
 
-Expression throw_(Expression operand) =>
-    new Throw._(operand, location: computeLocation());
+Expression throw_(ProtoExpression operand) {
+  var location = computeLocation();
+  return new Throw._(operand.asExpression(location: location),
+      location: location);
+}
 
-TryBuilder try_(List<Statement> body) {
+TryBuilder try_(List<ProtoStatement> body) {
   var location = computeLocation();
   return new TryStatementImpl(Block._(body, location: location), [], null,
       location: location);
 }
 
-Statement while_(Expression condition, List<Statement> body) {
+Statement while_(ProtoExpression condition, List<ProtoStatement> body) {
   var location = computeLocation();
-  return new While._(condition, Block._(body, location: location),
+  return new While._(condition.asExpression(location: location),
+      Block._(body, location: location),
       location: location);
 }
 
@@ -483,7 +579,10 @@ class Assert extends Statement {
 class Block extends Statement {
   final List<Statement> statements;
 
-  Block._(this.statements, {required super.location});
+  Block._(List<ProtoStatement> statements, {required super.location})
+      : statements = [
+          for (var s in statements) s.asStatement(location: location)
+        ];
 
   @override
   void preVisit(PreVisitor visitor) {
@@ -757,7 +856,7 @@ class CatchClause {
   }
 }
 
-class CheckAssigned extends Statement {
+class CheckAssigned extends Expression {
   final Var variable;
   final bool expectedAssignedState;
 
@@ -774,10 +873,11 @@ class CheckAssigned extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     expect(h.flow.isAssigned(variable), expectedAssignedState,
         reason: 'at $location');
-    h.irBuilder.atom('null', Kind.statement, location: location);
+    h.irBuilder.atom('null', Kind.expression, location: location);
+    return SimpleTypeAnalysisResult(type: h.typeAnalyzer.nullType);
   }
 }
 
@@ -877,7 +977,7 @@ class CheckExpressionType extends Expression {
   }
 }
 
-class CheckPromoted extends Statement {
+class CheckPromoted extends Expression {
   final Promotable promotable;
   final String? expectedTypeStr;
 
@@ -898,15 +998,14 @@ class CheckPromoted extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     var promotedType = promotable._getPromotedType(h);
     expect(promotedType?.type, expectedTypeStr, reason: 'at $location');
-    h.irBuilder
-        .apply('stmt', [Kind.expression], Kind.statement, location: location);
+    return SimpleTypeAnalysisResult(type: Type('Null'));
   }
 }
 
-class CheckReachable extends Statement {
+class CheckReachable extends Expression {
   final bool expectedReachable;
 
   CheckReachable(this.expectedReachable, {required super.location});
@@ -915,12 +1014,13 @@ class CheckReachable extends Statement {
   void preVisit(PreVisitor visitor) {}
 
   @override
-  String toString() => 'check reachable;';
+  String toString() => 'check reachable';
 
   @override
-  void visit(Harness h) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     expect(h.flow.isReachable, expectedReachable, reason: 'at $location');
-    h.irBuilder.atom('null', Kind.statement, location: location);
+    h.irBuilder.atom('null', Kind.expression, location: location);
+    return new SimpleTypeAnalysisResult(type: Type('Null'));
   }
 }
 
@@ -946,7 +1046,7 @@ class CheckStatementIR extends Statement {
   }
 }
 
-class CheckUnassigned extends Statement {
+class CheckUnassigned extends Expression {
   final Var variable;
   final bool expectedUnassignedState;
 
@@ -963,35 +1063,30 @@ class CheckUnassigned extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     expect(h.flow.isUnassigned(variable), expectedUnassignedState,
         reason: 'at $location');
-    h.irBuilder.atom('null', Kind.statement, location: location);
+    h.irBuilder.atom('null', Kind.expression, location: location);
+    return SimpleTypeAnalysisResult(type: h.typeAnalyzer.nullType);
   }
 }
 
 /// Representation of a collection element in the pseudo-Dart language used for
 /// type analysis testing.
-abstract class CollectionElement extends Node {
+abstract class CollectionElement extends Node
+    with ProtoCollectionElement<CollectionElement> {
   CollectionElement({required super.location}) : super._();
 
-  /// Wraps `this` in such a way that, when the test is run, it will verify that
-  /// the IR produced matches [expectedIR].
-  CollectionElement checkIR(String expectedIR) =>
-      CheckCollectionElementIR._(this, expectedIR, location: computeLocation());
+  @override
+  CollectionElement asCollectionElement({required String location}) => this;
 
-  /// Creates a [Statement] that, when analyzed, will analyze `this`, supplying
-  /// [type] as the context (for `List` and `Set` literals).
-  Statement inContextElementType(String type) =>
-      CollectionElementInContext(this, CollectionElementContextType(type),
-          location: computeLocation());
-
-  /// Creates a [Statement] that, when analyzed, will analyze `this`, supplying
-  /// [keyType] and [valueType] as the context (for `Map` literals).
-  Statement inContextMapEntry(String keyType, String valueType) =>
-      CollectionElementInContext(
-          this, CollectionElementContextMapEntry._(keyType, valueType),
-          location: computeLocation());
+  @override
+  CollectionElement checkIR(String expectedIR) {
+    var location = computeLocation();
+    return CheckCollectionElementIR._(
+        asCollectionElement(location: location), expectedIR,
+        location: location);
+  }
 
   void preVisit(PreVisitor visitor);
 
@@ -1004,40 +1099,13 @@ class CollectionElementContextMapEntry extends CollectionElementContext {
   final Type keyType;
   final Type valueType;
 
-  CollectionElementContextMapEntry._(String keyType, String valueType)
-      : keyType = Type(keyType),
-        valueType = Type(valueType);
+  CollectionElementContextMapEntry._(this.keyType, this.valueType);
 }
 
 class CollectionElementContextType extends CollectionElementContext {
   final Type elementType;
 
-  CollectionElementContextType(String type) : elementType = Type(type);
-}
-
-/// TODO(scheglov) This is a weird statement. We need `ListLiteral`, etc.
-class CollectionElementInContext extends Statement {
-  final CollectionElement element;
-
-  final CollectionElementContext context;
-
-  CollectionElementInContext(this.element, this.context,
-      {required super.location});
-
-  @override
-  void preVisit(PreVisitor visitor) {
-    element.preVisit(visitor);
-  }
-
-  @override
-  String toString() => '$element (in context $context);';
-
-  @override
-  void visit(Harness h) {
-    h.typeAnalyzer.dispatchCollectionElement(element, context);
-    h.irBuilder.apply('stmt', [Kind.collectionElement], Kind.statement,
-        location: location);
-  }
+  CollectionElementContextType._(this.elementType);
 }
 
 class Conditional extends Expression {
@@ -1097,6 +1165,15 @@ class ConstantPattern extends Pattern {
 
   @override
   _debugString({required bool needsKeywordOrType}) => constant.toString();
+}
+
+/// Common interface shared by constructs that represent constant expressions,
+/// in the pseudo-Dart language used for flow analysis testing.
+abstract class ConstExpression extends Expression {
+  ConstExpression._({required super.location});
+
+  /// Converts this expression into a constant pattern.
+  Pattern get pattern => ConstantPattern(this, location: computeLocation());
 }
 
 class Continue extends Statement {
@@ -1284,140 +1361,17 @@ class Equal extends Expression {
 /// Representation of an expression in the pseudo-Dart language used for flow
 /// analysis testing.  Methods in this class may be used to create more complex
 /// expressions based on this one.
-abstract class Expression extends Node {
+abstract class Expression extends Node
+    with
+        ProtoStatement<Expression>,
+        ProtoCollectionElement<Expression>,
+        ProtoExpression {
   Expression({required super.location}) : super._();
 
-  /// Creates a [CollectionElement] that, when analyzed, will analyze `this`.
-  CollectionElement get asCollectionElement =>
-      ExpressionCollectionElement(this, location: computeLocation());
-
-  /// If `this` is an expression `x`, creates the expression `x!`.
-  Expression get nonNullAssert =>
-      new NonNullAssert._(this, location: computeLocation());
-
-  /// If `this` is an expression `x`, creates the expression `!x`.
-  Expression get not => new Not._(this, location: computeLocation());
-
-  /// If `this` is an expression `x`, creates the expression `(x)`.
-  Expression get parenthesized =>
-      new ParenthesizedExpression._(this, location: computeLocation());
-
-  Pattern get pattern => ConstantPattern(this, location: computeLocation());
-
-  /// If `this` is an expression `x`, creates the statement `x;`.
-  Statement get stmt =>
-      new ExpressionStatement._(this, location: computeLocation());
-
-  /// If `this` is an expression `x`, creates the expression `x && other`.
-  Expression and(Expression other) =>
-      new Logical._(this, other, isAnd: true, location: computeLocation());
-
-  /// If `this` is an expression `x`, creates the expression `x as typeStr`.
-  Expression as_(String typeStr) =>
-      new As._(this, Type(typeStr), location: computeLocation());
-
-  /// If `this` is an expression `x`, creates a cascade expression with `x` as
-  /// the target, and [sections] as the cascade sections. [isNullAware]
-  /// indicates whether this is a null-aware cascade.
-  ///
-  /// Since each cascade section needs to implicitly refer to the target of the
-  /// cascade, the caller should pass in a closure for each cascade section; the
-  /// closures will be immediately invoked, passing in a [CascadePlaceholder]
-  /// pseudo-expression representing the implicit reference to the cascade
-  /// target.
-  Expression cascade(List<Expression Function(CascadePlaceholder)> sections,
-      {bool isNullAware = false}) {
-    var location = computeLocation();
-    return Cascade._(
-        this,
-        [
-          for (var section in sections)
-            section(CascadePlaceholder._(location: location))
-        ],
-        isNullAware: isNullAware,
-        location: location);
-  }
-
-  /// Wraps `this` in such a way that, when the test is run, it will verify that
-  /// the context provided when analyzing the expression matches
-  /// [expectedContext].
-  Expression checkContext(String expectedContext) =>
-      CheckExpressionContext._(this, expectedContext,
-          location: computeLocation());
-
-  /// Wraps `this` in such a way that, when the test is run, it will verify that
-  /// the IR produced matches [expectedIR].
-  Expression checkIR(String expectedIR) =>
-      CheckExpressionIR._(this, expectedIR, location: computeLocation());
-
-  /// Creates an [Expression] that, when analyzed, will behave the same as
-  /// `this`, but after visiting it, will verify that the type of the expression
-  /// was [expectedType].
-  Expression checkType(String expectedType) =>
-      new CheckExpressionType(this, expectedType, location: computeLocation());
-
-  /// If `this` is an expression `x`, creates the expression
-  /// `x ? ifTrue : ifFalse`.
-  Expression conditional(Expression ifTrue, Expression ifFalse) =>
-      new Conditional._(this, ifTrue, ifFalse, location: computeLocation());
-
-  /// If `this` is an expression `x`, creates the expression `x == other`.
-  Expression eq(Expression other) =>
-      new Equal._(this, other, false, location: computeLocation());
-
-  /// If `this` is an expression `x`, creates the expression `x ?? other`.
-  Expression ifNull(Expression other) =>
-      new IfNull._(this, other, location: computeLocation());
-
-  /// Creates a [Statement] that, when analyzed, will analyze `this`, supplying
-  /// a context type of [context].
-  Statement inContext(String context) =>
-      ExpressionInContext._(this, Type(context), location: computeLocation());
-
-  /// If `this` is an expression `x`, creates a method invocation with `x` as
-  /// the target, [name] as the method name, and [arguments] as the method
-  /// arguments. Named arguments are not supported.
-  Expression invokeMethod(String name, List<Expression> arguments) =>
-      new InvokeMethod._(this, name, arguments, location: computeLocation());
-
-  /// If `this` is an expression `x`, creates the expression `x is typeStr`.
-  ///
-  /// With [isInverted] set to `true`, creates the expression `x is! typeStr`.
-  Expression is_(String typeStr, {bool isInverted = false}) =>
-      new Is._(this, Type(typeStr), isInverted, location: computeLocation());
-
-  /// If `this` is an expression `x`, creates the expression `x is! typeStr`.
-  Expression isNot(String typeStr) =>
-      Is._(this, Type(typeStr), true, location: computeLocation());
-
-  /// If `this` is an expression `x`, creates the expression `x != other`.
-  Expression notEq(Expression other) =>
-      Equal._(this, other, true, location: computeLocation());
-
-  /// If `this` is an expression `x`, creates the expression `x?.other`.
-  ///
-  /// Note that in the real Dart language, the RHS of a null aware access isn't
-  /// strictly speaking an expression.  However for flow analysis it suffices to
-  /// model it as an expression.
-  Expression nullAwareAccess(Expression other, {bool isCascaded = false}) =>
-      NullAwareAccess._(this, other, isCascaded, location: computeLocation());
-
-  /// If `this` is an expression `x`, creates the expression `x || other`.
-  Expression or(Expression other) =>
-      new Logical._(this, other, isAnd: false, location: computeLocation());
+  @override
+  Expression asExpression({required String location}) => this;
 
   void preVisit(PreVisitor visitor);
-
-  /// If `this` is an expression `x`, creates the L-value `x.name`.
-  PromotableLValue property(String name) =>
-      new Property._(this, name, location: computeLocation());
-
-  /// If `this` is an expression `x`, creates a pseudo-expression that models
-  /// evaluation of `x` followed by execution of [stmt].  This can be used to
-  /// test that flow analysis is in the correct state after an expression is
-  /// visited.
-  Expression thenStmt(Statement stmt) =>
-      new WrappedExpression._(null, this, stmt, location: computeLocation());
 
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context);
 }
@@ -1837,7 +1791,7 @@ class Harness {
 
   /// Runs the given [statements] through flow analysis, checking any assertions
   /// they contain.
-  void run(List<Statement> statements,
+  void run(List<ProtoStatement> statements,
       {bool errorRecoveryOk = false, Set<String> expectedErrors = const {}}) {
     try {
       _started = true;
@@ -2114,7 +2068,7 @@ class IfNull extends Expression {
   }
 }
 
-class IntLiteral extends Expression {
+class IntLiteral extends ConstExpression {
   final int value;
 
   /// `true` or `false` if we should assert that int->double conversion either
@@ -2122,7 +2076,8 @@ class IntLiteral extends Expression {
   final bool? expectConversionToDouble;
 
   IntLiteral(this.value,
-      {this.expectConversionToDouble, required super.location});
+      {this.expectConversionToDouble, required super.location})
+      : super._();
 
   @override
   void preVisit(PreVisitor visitor) {}
@@ -2235,6 +2190,33 @@ class LabeledStatement extends Statement {
   }
 }
 
+/// Representation of a list literal in the pseudo-Dart language used for flow
+/// analysis testing.
+class ListLiteral extends Expression {
+  final List<CollectionElement> elements;
+  final Type elementType;
+
+  ListLiteral._(this.elements, this.elementType, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    for (var element in elements) {
+      element.preVisit(visitor);
+    }
+  }
+
+  @override
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    for (var element in elements) {
+      element.visit(h, CollectionElementContextType._(elementType));
+    }
+    h.irBuilder.apply('list', [for (var _ in elements) Kind.collectionElement],
+        Kind.expression,
+        location: location);
+    return SimpleTypeAnalysisResult(type: h.typeAnalyzer.listType(elementType));
+  }
+}
+
 abstract class ListOrMapPatternElement implements Node {
   ListOrMapPatternElement._();
 
@@ -2292,10 +2274,12 @@ class ListPattern extends Pattern {
 
 abstract class ListPatternElement implements ListOrMapPatternElement {}
 
-class LocalFunction extends Statement {
+class LocalFunction extends Expression {
   final Statement body;
+  final Type type;
 
-  LocalFunction._(this.body, {required super.location});
+  LocalFunction._(this.body, {String? type, required super.location})
+      : type = Type(type ?? 'void Function()');
 
   @override
   void preVisit(PreVisitor visitor) {
@@ -2309,10 +2293,13 @@ class LocalFunction extends Statement {
   String toString() => '() $body';
 
   @override
-  void visit(Harness h) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     h.flow.functionExpression_begin(this);
     h.typeAnalyzer.dispatchStatement(body);
     h.flow.functionExpression_end();
+    h.irBuilder.apply('localFunction', [Kind.statement], Kind.expression,
+        location: location);
+    return SimpleTypeAnalysisResult(type: type);
   }
 }
 
@@ -2432,11 +2419,81 @@ abstract class LValue extends Expression {
   void preVisit(PreVisitor visitor, {_LValueDisposition disposition});
 
   /// Creates an expression representing a write to this L-value.
-  Expression write(Expression? value) =>
-      new Write(this, value, location: computeLocation());
+  Expression write(ProtoExpression? value) {
+    var location = computeLocation();
+    return new Write(this, value?.asExpression(location: location),
+        location: location);
+  }
 
   void _visitWrite(Harness h, Expression assignmentExpression, Type writtenType,
       Expression? rhs);
+}
+
+/// Representation of a map entry in the pseudo-Dart language used for flow
+/// analysis testing.
+class MapEntry extends CollectionElement {
+  final Expression key;
+  final Expression value;
+
+  MapEntry._(this.key, this.value, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    key.preVisit(visitor);
+    value.preVisit(visitor);
+  }
+
+  @override
+  String toString() => '$key: $value';
+
+  @override
+  void visit(Harness h, CollectionElementContext context) {
+    Type keyContext;
+    Type valueContext;
+    switch (context) {
+      case CollectionElementContextMapEntry(:var keyType, :var valueType):
+        keyContext = keyType;
+        valueContext = valueType;
+      default:
+        keyContext = valueContext = h.typeAnalyzer.unknownType;
+    }
+    h.typeAnalyzer.analyzeExpression(key, keyContext);
+    h.typeAnalyzer.analyzeExpression(value, valueContext);
+    h.irBuilder.apply(
+        'mapEntry', [Kind.expression, Kind.expression], Kind.collectionElement,
+        location: location);
+  }
+}
+
+/// Representation of a list literal in the pseudo-Dart language used for flow
+/// analysis testing.
+class MapLiteral extends Expression {
+  final List<CollectionElement> elements;
+  final Type keyType;
+  final Type valueType;
+
+  MapLiteral._(this.elements, this.keyType, this.valueType,
+      {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    for (var element in elements) {
+      element.preVisit(visitor);
+    }
+  }
+
+  @override
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    var context = CollectionElementContextMapEntry._(keyType, valueType);
+    for (var element in elements) {
+      element.visit(h, context);
+    }
+    h.irBuilder.apply('map', [for (var _ in elements) Kind.collectionElement],
+        Kind.expression,
+        location: location);
+    return SimpleTypeAnalysisResult(
+        type: h.typeAnalyzer.mapType(keyType: keyType, valueType: valueType));
+  }
 }
 
 class MapPattern extends Pattern {
@@ -2995,8 +3052,8 @@ class NullCheckOrAssertPattern extends Pattern {
       '${inner._debugString(needsKeywordOrType: needsKeywordOrType)}?';
 }
 
-class NullLiteral extends Expression {
-  NullLiteral._({required super.location});
+class NullLiteral extends ConstExpression {
+  NullLiteral._({required super.location}) : super._();
 
   @override
   void preVisit(PreVisitor visitor) {}
@@ -3136,8 +3193,11 @@ abstract class Pattern extends Node
       new CastPattern(this, Type(type), location: computeLocation());
 
   /// Creates a pattern assignment expression assigning [rhs] to this pattern.
-  Expression assign(Expression rhs) =>
-      PatternAssignment._(this, rhs, location: computeLocation());
+  Expression assign(ProtoExpression rhs) {
+    var location = computeLocation();
+    return PatternAssignment._(this, rhs.asExpression(location: location),
+        location: location);
+  }
 
   Type computeSchema(Harness h);
 
@@ -3157,10 +3217,10 @@ abstract class Pattern extends Node
 
   void visit(Harness h, SharedMatchContext context);
 
-  GuardedPattern when(Expression? guard) {
+  GuardedPattern when(ProtoExpression? guard) {
     return GuardedPattern._(
       pattern: this,
-      guard: guard,
+      guard: guard?.asExpression(location: location),
       location: location,
     );
   }
@@ -3351,10 +3411,10 @@ class PatternVariableJoin extends Var {
   }
 }
 
-class PlaceholderExpression extends Expression {
+class PlaceholderExpression extends ConstExpression {
   final Type type;
 
-  PlaceholderExpression._(this.type, {required super.location});
+  PlaceholderExpression._(this.type, {required super.location}) : super._();
 
   @override
   void preVisit(PreVisitor visitor) {}
@@ -3373,19 +3433,18 @@ class PlaceholderExpression extends Expression {
 /// Mixin containing logic shared by [Pattern] and [GuardedPattern].  Both of
 /// these types can be used in a case where a pattern with an optional guard is
 /// expected.
-mixin PossiblyGuardedPattern on Node {
-  SwitchHead get switchCase {
-    return SwitchHeadCase._(
-      _asGuardedPattern,
-      location: location,
-    );
-  }
+mixin PossiblyGuardedPattern on Node implements ProtoSwitchHead {
+  @override
+  SwitchHead get asSwitchHead => SwitchHeadCase._(
+        _asGuardedPattern,
+        location: location,
+      );
 
   /// Converts `this` to a [GuardedPattern], including a `null` guard if
   /// necessary.
   GuardedPattern get _asGuardedPattern;
 
-  SwitchStatementMember then(List<Statement> body) {
+  SwitchStatementMember then(List<ProtoStatement> body) {
     return SwitchStatementMember._(
       [
         SwitchHeadCase._(_asGuardedPattern, location: location),
@@ -3396,8 +3455,12 @@ mixin PossiblyGuardedPattern on Node {
     );
   }
 
-  ExpressionCase thenExpr(Expression body) =>
-      ExpressionCase._(_asGuardedPattern, body, location: computeLocation());
+  ExpressionCase thenExpr(ProtoExpression body) {
+    var location = computeLocation();
+    return ExpressionCase._(
+        _asGuardedPattern, body.asExpression(location: location),
+        location: location);
+  }
 }
 
 /// Data structure holding information needed during the "pre-visit" phase of
@@ -3466,6 +3529,301 @@ class Property extends PromotableLValue {
       Expression? rhs) {
     // No flow analysis impact
   }
+}
+
+/// Common functionality shared by constructs that can be used where a
+/// collection element is expected, in in the pseudo-Dart language used for flow
+/// analysis testing.
+///
+/// The reason this mixin is distinct from the [CollectionElement] class is
+/// because both [Expression]s and other [CollectionElement]s (`if` and `for`
+/// elements) can be used where a collection element is expected (because an
+/// expression inside a collection simply becomes an
+/// [ExpressionCollectionElement]).
+mixin ProtoCollectionElement<Self extends ProtoCollectionElement<dynamic>> {
+  /// Converts `this` to a [CollectionElement]. If it's already a
+  /// [CollectionElement], it is returned unchanged. If it's an [Expression],
+  /// it's converted into a collection element.
+  ///
+  /// In general, tests shouldn't need to call this method directly; instead
+  /// they should simply be able to use either an [Expression] or some other
+  /// [CollectionElement] in a context where a [CollectionElement] is expected,
+  /// and the test infrastructure will call this getter as needed.
+  CollectionElement asCollectionElement({required String location});
+
+  /// Wraps `this` in such a way that, when the test is run, it will verify that
+  /// the IR produced matches [expectedIR].
+  Self checkIR(String expectedIR);
+}
+
+/// Common functionality shared by constructs that can be used where an
+/// expression is expected, in in the pseudo-Dart language used for flow
+/// analysis testing.
+///
+/// The reason this mixin is distinct from the [Expression] class is because
+/// both [Expression]s and [Var]s can be used where a statement is expected
+/// (because a [Var] in an expression context simply becomes a read of the
+/// variable).
+mixin ProtoExpression
+    implements ProtoStatement<Expression>, ProtoCollectionElement<Expression> {
+  /// If `this` is an expression `x`, creates the expression `x!`.
+  Expression get nonNullAssert {
+    var location = computeLocation();
+    return new NonNullAssert._(asExpression(location: location),
+        location: location);
+  }
+
+  /// If `this` is an expression `x`, creates the expression `!x`.
+  Expression get not {
+    var location = computeLocation();
+    return new Not._(asExpression(location: location), location: location);
+  }
+
+  /// If `this` is an expression `x`, creates the expression `(x)`.
+  Expression get parenthesized {
+    var location = computeLocation();
+    return new ParenthesizedExpression._(asExpression(location: location),
+        location: location);
+  }
+
+  /// If `this` is an expression `x`, creates the expression `x && other`.
+  Expression and(ProtoExpression other) {
+    var location = computeLocation();
+    return new Logical._(asExpression(location: location),
+        other.asExpression(location: location),
+        isAnd: true, location: location);
+  }
+
+  /// If `this` is an expression `x`, creates the expression `x as typeStr`.
+  Expression as_(String typeStr) {
+    var location = computeLocation();
+    return new As._(asExpression(location: location), Type(typeStr),
+        location: location);
+  }
+
+  @override
+  CollectionElement asCollectionElement({required String location}) =>
+      ExpressionCollectionElement(asExpression(location: location),
+          location: location);
+
+  /// Converts `this` to an [Expression]. If it's already an [Expression], it is
+  /// returned unchanged. If it's something else (e.g. a [Var]), it's converted
+  /// into an [Expression].
+  ///
+  /// In general, tests shouldn't need to call this method directly; instead
+  /// they should simply be able to use either anything implementing the
+  /// [ProtoExpression] interface in a context where an [Expression] is
+  /// expected, and the test infrastructure will call this getter as needed.
+  Expression asExpression({required String location});
+
+  @override
+  Statement asStatement({required String location}) =>
+      new ExpressionStatement._(asExpression(location: location),
+          location: location);
+
+  /// If `this` is an expression `x`, creates a cascade expression with `x` as
+  /// the target, and [sections] as the cascade sections. [isNullAware]
+  /// indicates whether this is a null-aware cascade.
+  ///
+  /// Since each cascade section needs to implicitly refer to the target of the
+  /// cascade, the caller should pass in a closure for each cascade section; the
+  /// closures will be immediately invoked, passing in a [CascadePlaceholder]
+  /// pseudo-expression representing the implicit reference to the cascade
+  /// target.
+  Expression cascade(
+      List<ProtoExpression Function(CascadePlaceholder)> sections,
+      {bool isNullAware = false}) {
+    var location = computeLocation();
+    return Cascade._(
+        asExpression(location: location),
+        [
+          for (var section in sections)
+            section(CascadePlaceholder._(location: location))
+                .asExpression(location: location)
+        ],
+        isNullAware: isNullAware,
+        location: location);
+  }
+
+  /// Wraps `this` in such a way that, when the test is run, it will verify that
+  /// the context provided when analyzing the expression matches
+  /// [expectedContext].
+  Expression checkContext(String expectedContext) {
+    var location = computeLocation();
+    return CheckExpressionContext._(
+        asExpression(location: location), expectedContext,
+        location: location);
+  }
+
+  /// Wraps `this` in such a way that, when the test is run, it will verify that
+  /// the IR produced matches [expectedIR].
+  @override
+  Expression checkIR(String expectedIR) {
+    var location = computeLocation();
+    return CheckExpressionIR._(asExpression(location: location), expectedIR,
+        location: location);
+  }
+
+  /// Creates an [Expression] that, when analyzed, will behave the same as
+  /// `this`, but after visiting it, will verify that the type of the expression
+  /// was [expectedType].
+  Expression checkType(String expectedType) {
+    var location = computeLocation();
+    return new CheckExpressionType(
+        asExpression(location: location), expectedType,
+        location: location);
+  }
+
+  /// If `this` is an expression `x`, creates the expression
+  /// `x ? ifTrue : ifFalse`.
+  Expression conditional(ProtoExpression ifTrue, ProtoExpression ifFalse) {
+    var location = computeLocation();
+    return new Conditional._(
+        asExpression(location: location),
+        ifTrue.asExpression(location: location),
+        ifFalse.asExpression(location: location),
+        location: location);
+  }
+
+  /// If `this` is an expression `x`, creates the expression `x == other`.
+  Expression eq(ProtoExpression other) {
+    var location = computeLocation();
+    return new Equal._(asExpression(location: location),
+        other.asExpression(location: location), false,
+        location: location);
+  }
+
+  /// If `this` is an expression `x`, creates the expression `x ?? other`.
+  Expression ifNull(ProtoExpression other) {
+    var location = computeLocation();
+    return new IfNull._(asExpression(location: location),
+        other.asExpression(location: location),
+        location: location);
+  }
+
+  /// Creates a [Statement] that, when analyzed, will analyze `this`, supplying
+  /// a context type of [context].
+  Statement inContext(String context) {
+    var location = computeLocation();
+    return ExpressionInContext._(
+        asExpression(location: location), Type(context),
+        location: location);
+  }
+
+  /// If `this` is an expression `x`, creates a method invocation with `x` as
+  /// the target, [name] as the method name, and [arguments] as the method
+  /// arguments. Named arguments are not supported.
+  Expression invokeMethod(String name, List<ProtoExpression> arguments) {
+    var location = computeLocation();
+    return new InvokeMethod._(
+        asExpression(location: location),
+        name,
+        [
+          for (var argument in arguments)
+            argument.asExpression(location: location)
+        ],
+        location: location);
+  }
+
+  /// If `this` is an expression `x`, creates the expression `x is typeStr`.
+  ///
+  /// With [isInverted] set to `true`, creates the expression `x is! typeStr`.
+  Expression is_(String typeStr, {bool isInverted = false}) {
+    var location = computeLocation();
+    return new Is._(asExpression(location: location), Type(typeStr), isInverted,
+        location: location);
+  }
+
+  /// If `this` is an expression `x`, creates the expression `x is! typeStr`.
+  Expression isNot(String typeStr) {
+    var location = computeLocation();
+    return Is._(asExpression(location: location), Type(typeStr), true,
+        location: location);
+  }
+
+  /// If `this` is an expression `x`, creates the expression `x != other`.
+  Expression notEq(ProtoExpression other) {
+    var location = computeLocation();
+    return Equal._(asExpression(location: location),
+        other.asExpression(location: location), true,
+        location: location);
+  }
+
+  /// If `this` is an expression `x`, creates the expression `x?.other`.
+  ///
+  /// Note that in the real Dart language, the RHS of a null aware access isn't
+  /// strictly speaking an expression.  However for flow analysis it suffices to
+  /// model it as an expression.
+  Expression nullAwareAccess(ProtoExpression other, {bool isCascaded = false}) {
+    var location = computeLocation();
+    return NullAwareAccess._(asExpression(location: location),
+        other.asExpression(location: location), isCascaded,
+        location: location);
+  }
+
+  /// If `this` is an expression `x`, creates the expression `x || other`.
+  Expression or(ProtoExpression other) {
+    var location = computeLocation();
+    return new Logical._(asExpression(location: location),
+        other.asExpression(location: location),
+        isAnd: false, location: location);
+  }
+
+  /// If `this` is an expression `x`, creates the L-value `x.name`.
+  PromotableLValue property(String name) {
+    var location = computeLocation();
+    return new Property._(asExpression(location: location), name,
+        location: location);
+  }
+
+  /// If `this` is an expression `x`, creates a pseudo-expression that models
+  /// evaluation of `x` followed by execution of [stmt].  This can be used to
+  /// test that flow analysis is in the correct state after an expression is
+  /// visited.
+  Expression thenStmt(ProtoStatement stmt) {
+    var location = computeLocation();
+    return new WrappedExpression._(null, asExpression(location: location),
+        stmt.asStatement(location: location),
+        location: location);
+  }
+}
+
+/// Common functionality shared by constructs that can be used where a statement
+/// is expected, in in the pseudo-Dart language used for flow analysis testing.
+///
+/// The reason this mixin is distinct from the [Statement] class is because both
+/// [Expression]s and [Statement]s can be used where a statement is expected
+/// (because an [Expression] in a statement context simply becomes an expression
+/// statement).
+mixin ProtoStatement<Self extends ProtoStatement<dynamic>> {
+  /// Converts `this` to a [Statement]. If it's already a [Statement], it is
+  /// returned unchanged. If it's an [Expression], it's converted into an
+  /// expression statement.
+  ///
+  /// In general, tests shouldn't need to call this method directly; instead
+  /// they should simply be able to use either a [Statement] or an [Expressions]
+  /// in a context where a statement is expected, and the test infrastructure
+  /// will call this getter as needed.
+  Statement asStatement({required String location});
+
+  /// Wraps `this` in such a way that, when the test is run, it will verify that
+  /// the IR produced matches [expectedIR].
+  Self checkIR(String expectedIR);
+}
+
+/// Common interface shared by constructs that can be used where a switch head
+/// (pattern with optional guard, or `default`) is expected, in the pseudo-Dart
+/// language used for flow analysis testing.
+abstract class ProtoSwitchHead {
+  /// Converts `this` to a [SwitchHead]. If it's already a [SwitchHead], it is
+  /// returned unchanged. If it's a [PossiblyGuardedPattern], it's converted
+  /// into a [SwitchHeadCase]
+  ///
+  /// In general, tests shouldn't need to call this getter directly; instead
+  /// they should simply be able to use a [Pattern], [GuardedPattern], or
+  /// [default_] in a context where a switch head is expected, and the test
+  /// infrastructure will call this getter as needed.
+  SwitchHead get asSwitchHead;
 }
 
 class RecordPattern extends Pattern {
@@ -3564,25 +3922,26 @@ class RelationalPattern extends Pattern {
   _debugString({required bool needsKeywordOrType}) => '$operator $operand';
 }
 
-class RestPatternElement extends Node
+class RestPattern extends Node
     implements ListPatternElement, MapPatternElement {
-  final Pattern? pattern;
+  final Pattern? subPattern;
 
-  RestPatternElement._(this.pattern, {required super.location}) : super._();
+  RestPattern._(this.subPattern, {required super.location}) : super._();
 
   @override
   void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
       {required bool isInAssignment}) {
-    pattern?.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
+    subPattern?.preVisit(visitor, variableBinder,
+        isInAssignment: isInAssignment);
   }
 
   @override
   String _debugString({required bool needsKeywordOrType}) {
-    var pattern = this.pattern;
-    if (pattern == null) {
+    var subPattern = this.subPattern;
+    if (subPattern == null) {
       return '...';
     } else {
-      return '...${pattern._debugString(needsKeywordOrType: false)}';
+      return '...${subPattern._debugString(needsKeywordOrType: false)}';
     }
   }
 }
@@ -3603,24 +3962,51 @@ class Return extends Statement {
   }
 }
 
+/// Representation of an invocation of a function `Second`, defined as follows:
+///
+///     T second(dynamic x, T y) => y;
+class Second extends Expression {
+  final Expression first;
+  final Expression second;
+
+  Second._(this.first, this.second, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    first.preVisit(visitor);
+    second.preVisit(visitor);
+  }
+
+  @override
+  String toString() => 'second($first, $second)';
+
+  @override
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    h.typeAnalyzer.analyzeExpression(first, h.typeAnalyzer.dynamicType);
+    var type = h.typeAnalyzer.analyzeExpression(second, context);
+    h.irBuilder.apply(
+        'second', [Kind.expression, Kind.expression], Kind.expression,
+        location: location);
+    return SimpleTypeAnalysisResult(type: type);
+  }
+}
+
 /// Representation of a statement in the pseudo-Dart language used for flow
 /// analysis testing.
-abstract class Statement extends Node {
+abstract class Statement extends Node with ProtoStatement<Statement> {
   Statement({required super.location}) : super._();
 
-  /// Wraps `this` in such a way that, when the test is run, it will verify that
-  /// the IR produced matches [expectedIR].
-  Statement checkIR(String expectedIR) =>
-      CheckStatementIR._(this, expectedIR, location: computeLocation());
+  @override
+  Statement asStatement({required String location}) => this;
+
+  @override
+  Statement checkIR(String expectedIR) {
+    var location = computeLocation();
+    return CheckStatementIR._(asStatement(location: location), expectedIR,
+        location: location);
+  }
 
   void preVisit(PreVisitor visitor);
-
-  /// If `this` is a statement `x`, creates a pseudo-expression that models
-  /// execution of `x` followed by evaluation of [expr].  This can be used to
-  /// test that flow analysis is in the correct state before an expression is
-  /// visited.
-  Expression thenExpr(Expression expr) =>
-      WrappedExpression._(this, expr, null, location: computeLocation());
 
   void visit(Harness h);
 }
@@ -3665,10 +4051,13 @@ class SwitchExpression extends Expression {
   }
 }
 
-abstract class SwitchHead extends Node {
+abstract class SwitchHead extends Node implements ProtoSwitchHead {
   SwitchHead._({required super.location}) : super._();
 
-  SwitchStatementMember then(List<Statement> body) {
+  @override
+  SwitchHead get asSwitchHead => this;
+
+  SwitchStatementMember then(List<ProtoStatement> body) {
     return SwitchStatementMember._(
       [this],
       Block._(body, location: location),
@@ -3677,8 +4066,11 @@ abstract class SwitchHead extends Node {
     );
   }
 
-  ExpressionCase thenExpr(Expression body) =>
-      ExpressionCase._(null, body, location: computeLocation());
+  ExpressionCase thenExpr(ProtoExpression body) {
+    var location = computeLocation();
+    return ExpressionCase._(null, body.asExpression(location: location),
+        location: location);
+  }
 }
 
 class SwitchHeadCase extends SwitchHead {
@@ -3688,7 +4080,7 @@ class SwitchHeadCase extends SwitchHead {
 }
 
 class SwitchHeadDefault extends SwitchHead {
-  SwitchHeadDefault({required super.location}) : super._();
+  SwitchHeadDefault._({required super.location}) : super._();
 }
 
 class SwitchStatement extends Statement {
@@ -3906,9 +4298,9 @@ class Throw extends Expression {
 
 abstract class TryBuilder {
   TryStatement catch_(
-      {Var? exception, Var? stackTrace, required List<Statement> body});
+      {Var? exception, Var? stackTrace, required List<ProtoStatement> body});
 
-  Statement finally_(List<Statement> statements);
+  Statement finally_(List<ProtoStatement> statements);
 }
 
 abstract class TryStatement extends Statement implements TryBuilder {
@@ -3926,7 +4318,7 @@ class TryStatementImpl extends TryStatement {
 
   @override
   TryStatement catch_(
-      {Var? exception, Var? stackTrace, required List<Statement> body}) {
+      {Var? exception, Var? stackTrace, required List<ProtoStatement> body}) {
     assert(finallyStatement == null, 'catch after finally');
     return TryStatementImpl(
         this.body,
@@ -3940,7 +4332,7 @@ class TryStatementImpl extends TryStatement {
   }
 
   @override
-  Statement finally_(List<Statement> statements) {
+  Statement finally_(List<ProtoStatement> statements) {
     assert(finallyStatement == null, 'multiple finally clauses');
     return TryStatementImpl(
         body, catches, Block._(statements, location: computeLocation()),
@@ -4002,7 +4394,12 @@ class UnboundLabel extends Label {
 
 /// Representation of a local variable in the pseudo-Dart language used for flow
 /// analysis testing.
-class Var extends Node implements Promotable {
+class Var extends Node
+    with
+        ProtoStatement<Expression>,
+        ProtoCollectionElement<Expression>,
+        ProtoExpression
+    implements Promotable {
   final String name;
   bool isFinal;
 
@@ -4019,10 +4416,6 @@ class Var extends Node implements Promotable {
   Var(this.name, {this.isFinal = false, String? identity, String? location})
       : identity = identity ?? name,
         super._(location: location ?? computeLocation());
-
-  /// Creates an L-value representing a reference to this variable.
-  LValue get expr =>
-      new VariableReference._(this, null, location: computeLocation());
 
   JoinedPatternVariableInconsistency get inconsistency {
     return JoinedPatternVariableInconsistency.none;
@@ -4047,6 +4440,10 @@ class Var extends Node implements Promotable {
     _type = value;
   }
 
+  @override
+  LValue asExpression({required String location}) =>
+      new VariableReference._(this, null, location: location);
+
   Pattern pattern({String? type, String? expectInferredType}) =>
       new VariablePattern._(
           type == null ? null : Type(type), this, expectInferredType,
@@ -4064,10 +4461,10 @@ class Var extends Node implements Promotable {
   String toString() => 'var $name';
 
   /// Creates an expression representing a write to this variable.
-  Expression write(Expression? value) {
+  Expression write(ProtoExpression? value) {
     var location = computeLocation();
-    return new Write(
-        new VariableReference._(this, null, location: location), value,
+    return new Write(new VariableReference._(this, null, location: location),
+        value?.asExpression(location: location),
         location: location);
   }
 
@@ -5076,7 +5473,7 @@ class _MiniAstTypeAnalyzer
 
   @override
   Pattern? getRestPatternElementPattern(Node element) {
-    return element is RestPatternElement ? element.pattern : null;
+    return element is RestPattern ? element.subPattern : null;
   }
 
   @override
@@ -5205,9 +5602,9 @@ class _MiniAstTypeAnalyzer
   @override
   void handleListPatternRestElement(
     Pattern container,
-    covariant RestPatternElement restElement,
+    covariant RestPattern restElement,
   ) {
-    if (restElement.pattern != null) {
+    if (restElement.subPattern != null) {
       _irBuilder.apply('...', [Kind.pattern], Kind.pattern,
           location: restElement.location);
     } else {
@@ -5226,9 +5623,9 @@ class _MiniAstTypeAnalyzer
   @override
   void handleMapPatternRestElement(
     Pattern container,
-    covariant RestPatternElement restElement,
+    covariant RestPattern restElement,
   ) {
-    if (restElement.pattern != null) {
+    if (restElement.subPattern != null) {
       _irBuilder.apply('...', [Kind.pattern], Kind.mapPatternElement,
           location: restElement.location);
     } else {
@@ -5303,7 +5700,7 @@ class _MiniAstTypeAnalyzer
 
   @override
   bool isRestPatternElement(Node element) {
-    return element is RestPatternElement;
+    return element is RestPattern;
   }
 
   @override

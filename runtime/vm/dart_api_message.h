@@ -15,7 +15,7 @@
 
 namespace dart {
 
-// This class handles translation of certain RawObjects to CObjects for
+// This class handles translation of certain ObjectPtrs to CObjects for
 // NativeMessageHandlers.
 //
 // TODO(zra): Expand to support not only null, but also other VM heap objects

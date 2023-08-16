@@ -579,11 +579,96 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
 
   void sort([int Function(E, E)? compare]) {
     checkMutable('sort');
-    Sort.sort(this, compare ?? _compareAny);
+    final len = length;
+    if (len < 2) return;
+    compare ??= _compareAny;
+    if (len == 2) {
+      final a = this[0];
+      final b = this[1];
+      if (compare(a, b) > 0) {
+        // Hand-coded because the compiler does not understand the array is
+        // mutable at this point.
+        JS('', '#[#] = #', this, 0, b); // this[0] = b;
+        JS('', '#[#] = #', this, 1, a); // this[1] = a;
+      }
+      return;
+    }
+
+    // Use JavaScript's sort. This requires some pre- and post- processing.
+    //
+    // Arrays have three kinds of element that represent Dart `null`:
+    //
+    //  - `null` values, which are passed to the compare function.
+    //
+    //  - `undefined` values, which are not passed to the comparator and follow
+    //    the sorted values in the resulting order.
+    //
+    //  - Empty slots or holes in the array, which look like `undefined`, are
+    //    also not passed to the comparator, and are moved to the end of the
+    //    array to follow the `undefined` values.
+    //
+    // Example
+    //
+    //     [null, /*empty*/, undefined, 'z', /*empty*/, 'a', undefined].sort()
+    //
+    // --->
+    //
+    //     ['a', null, 'z', undefined, undefined, /*empty*/, /*empty*/]
+    //
+    // (null goes between 'a' and 'z' because JavaScript's default comparator
+    // works on `ToString` of the element).
+    //
+    // In order to have the undefined and empty elements behave as `null`, they
+    // are overwritten with `null` before sorting, and reinstated as an
+    // `undefined` value after. Since all the `null` values are
+    // indistinguishable, a count is sufficient.
+    //
+    // The reason we bother with reinstating `undefined` values is so that
+    // sorting does not change the contents of an array that has `undefined`
+    // values from js-interop. Empty slots are not preserved and become
+    // non-empty slots holding the `undefined` value (which would happen anyway
+    // with an assignment like `a[i] = a[j]`.
+
+    int undefineds = 0;
+    // The element type might exclude the possibility of there being `null`s,
+    // but only in sound null safety mode.
+    if (JS_GET_FLAG('LEGACY') || null is E) {
+      for (int i = 0; i < length; i++) {
+        final E element = JS('', '#[#]', this, i);
+        if (JS('', '# === void 0', element)) {
+          // Hand-coded write since `this[i] = null;` is a compile-time error
+          // due to `E` not being nullable.
+          JS('', '#[#] = #', this, i, null);
+          undefineds++;
+        }
+      }
+    }
+    JS('', '#.sort(#)', this, convertDartClosureToJS(compare, 2));
+
+    if (undefineds > 0) _replaceSomeNullsWithUndefined(undefineds);
   }
 
   static int _compareAny(a, b) {
     return Comparable.compare(a, b);
+  }
+
+  // This is separate function since in many programs sorting an array with
+  // nulls or undefined values is rare. Keeping the code separate reduces
+  // potential JIT deoptimizations.
+  @pragma('dart2js:never-inline')
+  void _replaceSomeNullsWithUndefined(int count) {
+    assert(count > 0);
+    int i = length;
+    // Scan backwards for `null`s and replace one-by-one. They are not
+    // necessarily adjacent if the compare function places Dart `null` in the
+    // same equivalence class as some non-null value.
+    while (i-- > 0) {
+      final E element = JS('', '#[#]', this, i);
+      if (JS('', '# === null', element)) {
+        JS('', '#[#] = void 0', this, i);
+        if (--count == 0) break;
+      }
+    }
   }
 
   void shuffle([Random? random]) {

@@ -114,7 +114,7 @@ main() {
 
       // Resume thread1
       thread1.paused = true; // Fake pause to allow resume.
-      await isolateManager.resumeThread(thread1.threadId);
+      await isolateManager.resumeThread(thread1.isolateNumber);
 
       // Ensure thread1 had data cleared, but thread2 did not.
       expect(isolateManager.getStoredData(ref1), isNull);

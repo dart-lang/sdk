@@ -1,3 +1,7 @@
+## 0.2.9
+
+- Support the latest Dart SDK.
+
 ## 0.2.8
 
 - Support the latest Dart SDK.

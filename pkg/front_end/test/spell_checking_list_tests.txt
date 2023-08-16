@@ -52,6 +52,7 @@ augmented
 auth
 authority
 autobianchi
+autofocus
 automatic
 averaged
 averages
@@ -81,6 +82,7 @@ besides
 beta
 bigger
 bitmask
+bivariant
 bkonyi
 bla
 blah
@@ -320,6 +322,7 @@ foundation
 fox
 frequency
 frozen
+fruits
 fulfill
 func
 futornullable
@@ -614,6 +617,7 @@ rk
 row
 rows
 rr
+rt
 ruin
 runtimes
 rv
@@ -644,6 +648,7 @@ sheets
 shipped
 shortest
 shot
+shuffle
 sidebar
 sigint
 signalled

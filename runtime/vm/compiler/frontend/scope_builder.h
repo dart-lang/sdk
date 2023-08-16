@@ -51,7 +51,7 @@ class ScopeBuilder {
   void VisitRecordType();
   void VisitTypeParameterType();
   void VisitIntersectionType();
-  void VisitInlineType();
+  void VisitExtensionType();
   void VisitFutureOrType();
   void HandleLocalFunction(intptr_t parent_kernel_offset);
 
@@ -136,6 +136,8 @@ class ScopeBuilder {
   void HandleSpecialLoad(LocalVariable** variable,
                          const String& symbol,
                          intptr_t kernel_offset);
+
+  ScriptPtr Script() { return active_class_.ActiveScript(); }
 
   struct DepthState {
     explicit DepthState(intptr_t function)

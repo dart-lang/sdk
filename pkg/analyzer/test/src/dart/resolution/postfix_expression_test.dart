@@ -139,6 +139,43 @@ PrefixExpression
 ''');
   }
 
+  test_inc_ofExtensionType() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  int get foo => 0;
+  set foo(int _) {}
+}
+
+void f(A a) {
+  a.foo++;
+}
+''');
+
+    final node = findNode.singlePostfixExpression;
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: ++
+  readElement: self::@extensionType::A::@getter::foo
+  readType: int
+  writeElement: self::@extensionType::A::@setter::foo
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
   test_inc_propertyAccess_nullShorting() async {
     await assertNoErrorsInCode(r'''
 class A {

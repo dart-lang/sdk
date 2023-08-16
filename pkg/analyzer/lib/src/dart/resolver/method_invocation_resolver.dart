@@ -9,6 +9,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -339,14 +340,15 @@ class MethodInvocationResolver with ScopeHelpers {
   /// given [propertyName], return the element that represents the property.
   Element? _resolveElement(
       InterfaceElement classElement, SimpleIdentifier propertyName) {
+    final augmented = classElement.augmentedOfDeclaration;
     // TODO(scheglov) Replace with class hierarchy.
     String name = propertyName.name;
     Element? element;
     if (propertyName.inSetterContext()) {
-      element = classElement.getSetter(name);
+      element = augmented.getSetter(name);
     }
-    element ??= classElement.getGetter(name);
-    element ??= classElement.getMethod(name);
+    element ??= augmented.getGetter(name);
+    element ??= augmented.getMethod(name);
     if (element != null && element.isAccessibleIn(_definingLibrary)) {
       return element;
     }
@@ -593,12 +595,8 @@ class MethodInvocationResolver with ScopeHelpers {
           contextType: contextType);
     }
 
-    DartType receiverType;
-    if (_resolver.enclosingClass != null) {
-      receiverType = _resolver.enclosingClass!.thisType;
-    } else if (_resolver.enclosingExtension != null) {
-      receiverType = _resolver.enclosingExtension!.extendedType;
-    } else {
+    final receiverType = _resolver.thisType;
+    if (receiverType == null) {
       return _reportUndefinedFunction(
         node,
         prefix: null,

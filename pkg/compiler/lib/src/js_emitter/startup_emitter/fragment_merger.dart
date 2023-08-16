@@ -638,7 +638,12 @@ class FragmentMerger {
   /// Returns a json-style map for describing what files that are loaded by a
   /// given deferred import.
   /// The mapping is structured as:
-  /// library uri -> {"name": library name, "files": (prefix -> list of files)}
+  /// library uri -> {
+  ///   "name": library name,
+  ///   "imports": (loadId -> list of files),
+  ///   "importPrefixToLoadId": (prefix -> loadId)
+  /// }
+  ///
   /// Where
   ///
   /// - <library uri> is the import uri of the library making a deferred
@@ -646,6 +651,8 @@ class FragmentMerger {
   /// - <library name> is the name of the library, or "<unnamed>" if it is
   ///   unnamed.
   /// - <prefix> is the `as` prefix used for a given deferred import.
+  /// - <loadId> is the unique ID assigned by the compiler for each
+  ///   <library uri>/<prefix> pair.
   /// - <list of files> is a list of the filenames the must be loaded when that
   ///   import is loaded.
   /// TODO(joshualitt): the library name is unused and should be removed. This
@@ -666,13 +673,19 @@ class FragmentMerger {
 
       Map<String, dynamic> libraryMap = mapping.putIfAbsent(
           description.importingUri,
-          () => {"name": getName(description.importingLibrary), "imports": {}});
+          () => {
+                'name': getName(description.importingLibrary),
+                'imports': {},
+                'importPrefixToLoadId': {},
+              });
 
       List<String> partFileNames = fragments
           .map((fragment) =>
               deferredPartFileName(_options, fragment.canonicalOutputUnit.name))
           .toList();
-      (libraryMap["imports"] as Map)[importDeferName] = partFileNames;
+      (libraryMap['imports'] as Map)[importDeferName] = partFileNames;
+      (libraryMap['importPrefixToLoadId'] as Map)[import.name] =
+          importDeferName;
     });
     return mapping;
   }

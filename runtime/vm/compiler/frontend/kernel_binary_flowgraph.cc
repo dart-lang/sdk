@@ -275,7 +275,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
         });
     constructor_initialized_field_offsets.Add(-1);
 
-    ExternalTypedData& kernel_data = ExternalTypedData::Handle(Z);
+    auto& kernel_data = TypedDataView::Handle(Z);
     Array& class_fields = Array::Handle(Z, parent_class.fields());
     Field& class_field = Field::Handle(Z);
     intptr_t next_constructor_initialized_field_index = 0;
@@ -298,7 +298,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           is_constructor_initialized = true;
         }
 
-        kernel_data = class_field.KernelData();
+        kernel_data = class_field.KernelLibrary();
         ASSERT(!kernel_data.IsNull());
         AlternativeReadingScopeWithNewData alt(&reader_, &kernel_data,
                                                field_offset);
@@ -1270,7 +1270,8 @@ void StreamingFlowGraphBuilder::ReportUnexpectedTag(const char* variant,
   if ((flow_graph_builder_ == nullptr) || (parsed_function() == nullptr)) {
     KernelReaderHelper::ReportUnexpectedTag(variant, tag);
   } else {
-    H.ReportError(script_, TokenPosition::kNoSource,
+    const auto& script = Script::Handle(Z, Script());
+    H.ReportError(script, TokenPosition::kNoSource,
                   "Unexpected tag %d (%s) in %s, expected %s", tag,
                   Reader::TagName(tag),
                   parsed_function()->function().ToQualifiedCString(), variant);
@@ -2026,7 +2027,8 @@ Fragment StreamingFlowGraphBuilder::BuildInvalidExpression(
 
   // Invalid expression message has pointer to the source code, no need to
   // report it twice.
-  H.ReportError(script(), TokenPosition::kNoSource, "%s", message.ToCString());
+  const auto& script = Script::Handle(Z, Script());
+  H.ReportError(script, TokenPosition::kNoSource, "%s", message.ToCString());
   return Fragment();
 }
 
@@ -3384,9 +3386,9 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     case MethodRecognizer::kFfiAsFunctionInternal:
       return BuildFfiAsFunctionInternal();
     case MethodRecognizer::kFfiNativeCallbackFunction:
-      return BuildFfiNativeCallbackFunction(FfiCallbackKind::kSync);
+      return BuildFfiNativeCallbackFunction(FfiTrampolineKind::kSyncCallback);
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
-      return BuildFfiNativeCallbackFunction(FfiCallbackKind::kAsync);
+      return BuildFfiNativeCallbackFunction(FfiTrampolineKind::kAsyncCallback);
     case MethodRecognizer::kFfiLoadAbiSpecificInt:
       return BuildLoadAbiSpecificInt(/*at_index=*/false);
     case MethodRecognizer::kFfiLoadAbiSpecificIntAtIndex:
@@ -4297,7 +4299,8 @@ Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral(
       H.DartString(ReadStringReference());  // read index into string table.
   const Integer& integer = Integer::ZoneHandle(Z, Integer::NewCanonical(value));
   if (integer.IsNull()) {
-    H.ReportError(script_, TokenPosition::kNoSource,
+    const auto& script = Script::Handle(Z, Script());
+    H.ReportError(script, TokenPosition::kNoSource,
                   "Integer literal %s is out of range", value.ToCString());
     UNREACHABLE();
   }
@@ -4463,7 +4466,7 @@ Fragment StreamingFlowGraphBuilder::BuildLibraryPrefixAction(
     const String& selector) {
   const intptr_t dependency_index = ReadUInt();
   const Library& current_library = Library::Handle(
-      Z, Class::Handle(Z, parsed_function()->function().origin()).library());
+      Z, Class::Handle(Z, parsed_function()->function().Owner()).library());
   const Array& dependencies = Array::Handle(Z, current_library.dependencies());
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedZoneHandle(Z, dependencies.At(dependency_index));
@@ -6060,7 +6063,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
         LocalScope* scope = scopes()->function_scopes[i].scope;
         const ContextScope& context_scope = ContextScope::Handle(
-            Z, scope->PreserveOuterScope(flow_graph_builder_->context_depth_));
+            Z, scope->PreserveOuterScope(function,
+                                         flow_graph_builder_->context_depth_));
         function.set_context_scope(context_scope);
         function.set_kernel_offset(offset);
         type_translator_.SetupFunctionParameters(Class::Handle(Z), function,
@@ -6317,19 +6321,20 @@ Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
-    FfiCallbackKind kind) {
+    FfiTrampolineKind kind) {
   // The call-site must look like this (guaranteed by the FE which inserts it):
   //
-  // FfiCallbackKind::kSync:
+  // FfiTrampolineKind::kSyncCallback:
   //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
   //
-  // FfiCallbackKind::kAsync:
-  //   _nativeAsyncCallbackFunction<NativeSignatureType>(target)
+  // FfiTrampolineKind::kAsyncCallback:
+  //   _nativeAsyncCallbackFunction<NativeSignatureType>()
   //
   // The FE also guarantees that both arguments are constants.
 
   // Target, and for kSync callbacks, the exceptional return.
-  const intptr_t expected_argc = kind == FfiCallbackKind::kSync ? 2 : 1;
+  const intptr_t expected_argc =
+      kind == FfiTrampolineKind::kSyncCallback ? 2 : 0;
 
   const intptr_t argc = ReadUInt();  // Read argument count.
   ASSERT(argc == expected_argc);
@@ -6348,19 +6353,21 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
   ASSERT(positional_count == expected_argc);
 
   // Read target expression and extract the target function.
-  code += BuildExpression();  // Build first positional argument (target).
-  Definition* target_def = B->Peek();
-  ASSERT(target_def->IsConstant());
-  const Closure& target_closure =
-      Closure::Cast(target_def->AsConstant()->value());
-  ASSERT(!target_closure.IsNull());
-  Function& target = Function::Handle(Z, target_closure.function());
-  ASSERT(!target.IsNull() && target.IsImplicitClosureFunction());
-  target = target.parent_function();
-  code += Drop();
-
+  Function& target = Function::Handle(Z, Function::null());
   Instance& exceptional_return = Instance::ZoneHandle(Z, Instance::null());
-  if (kind == FfiCallbackKind::kSync) {
+  if (kind == FfiTrampolineKind::kSyncCallback) {
+    // Build first positional argument (target).
+    code += BuildExpression();
+    Definition* target_def = B->Peek();
+    ASSERT(target_def->IsConstant());
+    const Closure& target_closure =
+        Closure::Cast(target_def->AsConstant()->value());
+    ASSERT(!target_closure.IsNull());
+    target = target_closure.function();
+    ASSERT(!target.IsNull() && target.IsImplicitClosureFunction());
+    target = target.parent_function();
+    code += Drop();
+
     // Build second positional argument (exceptionalReturn).
     code += BuildExpression();
     Definition* exceptional_return_def = B->Peek();

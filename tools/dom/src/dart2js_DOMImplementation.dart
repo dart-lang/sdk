@@ -9,7 +9,19 @@ class _DOMWindowCrossFrame implements WindowBase {
   // Private window.  Note, this is a window in another frame, so it
   // cannot be typed as "Window" as its prototype is not patched
   // properly.  Its fields and methods can only be accessed via JavaScript.
-  final _window;
+  final Object? __window;
+
+  Object get _window {
+    // Note that we use a local variable here to avoid a null-assertion. This is
+    // needed as [__window] can be a cross-origin iframe. dart2js emits
+    // null-assertions using a field access like .toString, and since accessing
+    // properties on a cross-origin iframe (with the exception of postMessage)
+    // is a SecurityError, the null-assertion could trigger a SecurityError.
+    // This avoids the need to type [__window] as dynamic.
+    final w = __window;
+    if (w == null) throw new NullWindowException();
+    return w;
+  }
 
   // Fields.
   HistoryBase get history =>
@@ -46,7 +58,7 @@ class _DOMWindowCrossFrame implements WindowBase {
   }
 
   // Implementation support.
-  _DOMWindowCrossFrame(this._window);
+  _DOMWindowCrossFrame(this.__window);
 
   static WindowBase _createSafe(w) {
     if (identical(w, window)) {

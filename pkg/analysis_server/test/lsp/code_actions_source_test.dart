@@ -22,38 +22,31 @@ void main() {
 }
 
 abstract class AbstractSourceCodeActionsTest extends AbstractCodeActionsTest {
-  /// Wrapper around [checkCodeActionAvailable] for Source actions where
-  /// position/range is irrelevant (so uses [startOfDocPos]).
-  Future<void> checkSourceCodeActionAvailable(
-    Uri uri,
-    String command,
-    String title, {
-    bool asCodeActionLiteral = false,
-    bool asCommand = false,
-  }) async {
-    return checkCodeActionAvailable(
-      uri,
-      command,
-      title,
-      position: startOfDocPos,
-      asCodeActionLiteral: asCodeActionLiteral,
-      asCommand: asCommand,
-    );
-  }
-
-  /// Wrapper around [getCodeActions] for Source actions where position/range is
-  /// irrelevant (so uses [startOfDocPos]).
-  Future<List<Either2<Command, CodeAction>>> getSourceCodeActions(
+  /// For convenience since source code actions do not rely on a position (but
+  /// one must be provided), uses [startOfDocPos] to avoid every test needing
+  /// to include a '^' marker.
+  @override
+  Future<List<Either2<Command, CodeAction>>> getCodeActions(
     Uri fileUri, {
+    Range? range,
+    Position? position,
     List<CodeActionKind>? kinds,
     CodeActionTriggerKind? triggerKind,
+    ProgressToken? workDoneToken,
   }) {
-    return getCodeActions(
+    return super.getCodeActions(
       fileUri,
       position: startOfDocPos,
       kinds: kinds,
       triggerKind: triggerKind,
+      workDoneToken: workDoneToken,
     );
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    setSupportedCodeActionKinds([CodeActionKind.Source]);
   }
 }
 
@@ -79,14 +72,11 @@ final b = <String>{};
     newFile(analysisOptionsPath, analysisOptionsContent);
     newFile(mainFilePath, content);
 
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
-
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.fixAll)!;
-
-    await verifyCodeActionEdits(codeAction, content, expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.fixAll,
+    );
   }
 
   Future<void> test_multipleIterations_noOverlay() async {
@@ -111,14 +101,11 @@ void f() {
     newFile(analysisOptionsPath, analysisOptionsContent);
     newFile(mainFilePath, content);
 
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
-
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.fixAll)!;
-
-    await verifyCodeActionEdits(codeAction, content, expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.fixAll,
+    );
   }
 
   Future<void> test_multipleIterations_overlay() async {
@@ -142,15 +129,11 @@ void f() {
     registerLintRules();
     newFile(analysisOptionsPath, analysisOptionsContent);
 
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
-
-    await openFile(mainFileUri, content);
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.fixAll)!;
-
-    await verifyCodeActionEdits(codeAction, content, expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.fixAll,
+    );
   }
 
   Future<void> test_multipleIterations_withClientModification() async {
@@ -167,20 +150,15 @@ void f() {
 ''';
     registerLintRules();
     newFile(analysisOptionsPath, analysisOptionsContent);
-    newFile(mainFilePath, content);
 
-    await initialize(
-        workspaceCapabilities: withApplyEditSupport(
-            withDocumentChangesSupport(emptyWorkspaceClientCapabilities)));
-    await openFile(mainFileUri, content);
-
-    // Find the "Fix All" action command.
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.fixAll)!;
-    final command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command!,
+    final codeAction = await expectAction(
+      content,
+      command: Commands.fixAll,
     );
+    final command = codeAction.command!;
+
+    // Files must be open to apply edits.
+    await openFile(mainFileUri, content);
 
     // Execute the command with a modification and capture the edit that is
     // sent back to us.
@@ -219,14 +197,13 @@ void f() {
 
   Future<void> test_unavailable_outsideAnalysisRoot() async {
     final otherFile = convertPath('/other/file.dart');
-    newFile(otherFile, '');
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    final content = '';
 
-    final codeActions = await getSourceCodeActions(Uri.file(otherFile));
-    final codeAction = findCommand(codeActions, Commands.fixAll);
-    expect(codeAction, isNull);
+    await expectNoAction(
+      filePath: otherFile,
+      content,
+      command: Commands.organizeImports,
+    );
   }
 
   Future<void> test_unusedUsings_notRemovedIfSave() async {
@@ -235,15 +212,12 @@ import 'dart:async';
 int? a;
 ''';
 
-    newFile(mainFilePath, content);
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
-
-    final codeActions = await getSourceCodeActions(mainFileUri,
-        triggerKind: CodeActionTriggerKind.Automatic);
-    final command = findCommand(codeActions, Commands.fixAll)!
-        .map((command) => command, (action) => action.command)!;
+    final codeAction = await expectAction(
+      content,
+      command: Commands.fixAll,
+      triggerKind: CodeActionTriggerKind.Automatic,
+    );
+    final command = codeAction.command!;
 
     // We should not get an applyEdit call during the command execution because
     // no edits should be produced.
@@ -266,16 +240,11 @@ int? a;
 int? a;
 ''';
 
-    newFile(mainFilePath, content);
-
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
-
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.fixAll)!;
-
-    await verifyCodeActionEdits(codeAction, content, expectedContent);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.fixAll,
+    );
   }
 }
 
@@ -298,16 +267,12 @@ import 'dart:math';
 Completer foo;
 int minified(int x, int y) => min(x, y);
 ''';
-    newFile(mainFilePath, content);
-    await initialize(
-        workspaceCapabilities: withApplyEditSupport(
-            withDocumentChangesSupport(emptyWorkspaceClientCapabilities)));
 
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.organizeImports)!;
-
-    await verifyCodeActionEdits(codeAction, content, expectedContent,
-        expectDocumentChanges: true);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.organizeImports,
+    );
   }
 
   Future<void> test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
@@ -326,64 +291,46 @@ import 'dart:math';
 Completer foo;
 int minified(int x, int y) => min(x, y);
 ''';
-    newFile(mainFilePath, content);
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.organizeImports)!;
-
-    await verifyCodeActionEdits(codeAction, content, expectedContent);
+    setDocumentChangesSupport(false);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.organizeImports,
+    );
   }
 
   Future<void> test_availableAsCodeActionLiteral() async {
-    newFile(mainFilePath, '');
-    await initialize(
-        textDocumentCapabilities: withCodeActionKinds(
-            emptyTextDocumentClientCapabilities, [CodeActionKind.Source]),
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    const content = '';
 
-    await checkSourceCodeActionAvailable(
-      mainFileUri,
-      Commands.organizeImports,
-      'Organize Imports',
-      asCodeActionLiteral: true,
+    await expectAction(
+      content,
+      command: Commands.organizeImports,
     );
   }
 
   Future<void> test_availableAsCommand() async {
     newFile(mainFilePath, '');
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
+    await initialize();
 
-    await checkSourceCodeActionAvailable(
-      mainFileUri,
-      Commands.organizeImports,
-      'Organize Imports',
-      asCommand: true,
+    final actions = await getCodeActions(mainFileUri);
+    final action = findCommand(actions, Commands.organizeImports)!;
+    action.map(
+      (command) {},
+      (codeActionLiteral) => throw 'Expected command, got codeActionLiteral',
     );
   }
 
   Future<void> test_fileHasErrors_failsSilentlyForAutomatic() async {
     final content = 'invalid dart code';
-    newFile(mainFilePath, content);
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(
-      mainFileUri,
+    final codeAction = await expectAction(
+      content,
+      command: Commands.organizeImports,
       triggerKind: CodeActionTriggerKind.Automatic,
     );
-    final codeAction = findCommand(codeActions, Commands.organizeImports)!;
-
-    final command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command!,
-    );
+    final command = codeAction.command!;
 
     // Expect a valid null result.
     final response = await executeCommand(command);
@@ -392,18 +339,12 @@ int minified(int x, int y) => min(x, y);
 
   Future<void> test_fileHasErrors_failsWithErrorForManual() async {
     final content = 'invalid dart code';
-    newFile(mainFilePath, content);
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.organizeImports)!;
-
-    final command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command!,
+    final codeAction = await expectAction(
+      content,
+      command: Commands.organizeImports,
     );
+    final command = codeAction.command!;
 
     // Ensure the request returned an error (error responses are thrown by
     // the test helper to make consuming success results simpler).
@@ -413,11 +354,9 @@ int minified(int x, int y) => min(x, y);
 
   Future<void> test_filtersCorrectly() async {
     newFile(mainFilePath, '');
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await initialize();
 
-    ofKind(CodeActionKind kind) => getSourceCodeActions(
+    ofKind(CodeActionKind kind) => getCodeActions(
           mainFileUri,
           kinds: [kind],
         );
@@ -438,18 +377,12 @@ import 'dart:math';
 Completer foo;
 int minified(int x, int y) => min(x, y);
 ''';
-    newFile(mainFilePath, content);
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.organizeImports)!;
-
-    final command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command!,
+    final codeAction = await expectAction(
+      content,
+      command: Commands.organizeImports,
     );
+    final command = codeAction.command!;
 
     // Execute the command and it should return without needing us to process
     // a workspace/applyEdit command because there were no edits.
@@ -459,25 +392,23 @@ int minified(int x, int y) => min(x, y);
   }
 
   Future<void> test_unavailableWhenNotRequested() async {
-    newFile(mainFilePath, '');
-    await initialize(
-        textDocumentCapabilities: withCodeActionKinds(
-            emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    final content = '';
 
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.organizeImports);
-    expect(codeAction, isNull);
+    setSupportedCodeActionKinds([CodeActionKind.Refactor]); // not Source
+    await expectNoAction(
+      content,
+      command: Commands.organizeImports,
+    );
   }
 
   Future<void> test_unavailableWithoutApplyEditSupport() async {
-    newFile(mainFilePath, '');
-    await initialize();
+    final content = '';
 
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.organizeImports);
-    expect(codeAction, isNull);
+    setApplyEditSupport(false);
+    await expectNoAction(
+      content,
+      command: Commands.organizeImports,
+    );
   }
 }
 
@@ -492,16 +423,12 @@ String a;
 String a;
 String b;
 ''';
-    newFile(mainFilePath, content);
-    await initialize(
-        workspaceCapabilities: withApplyEditSupport(
-            withDocumentChangesSupport(emptyWorkspaceClientCapabilities)));
 
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.sortMembers)!;
-
-    await verifyCodeActionEdits(codeAction, content, expectedContent,
-        expectDocumentChanges: true);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.sortMembers,
+    );
   }
 
   Future<void> test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
@@ -513,44 +440,34 @@ String a;
 String a;
 String b;
 ''';
-    newFile(mainFilePath, content);
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.sortMembers)!;
-
-    await verifyCodeActionEdits(codeAction, content, expectedContent);
+    setDocumentChangesSupport(false);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      command: Commands.sortMembers,
+    );
   }
 
   Future<void> test_availableAsCodeActionLiteral() async {
-    newFile(mainFilePath, '');
-    await initialize(
-        textDocumentCapabilities: withCodeActionKinds(
-            emptyTextDocumentClientCapabilities, [CodeActionKind.Source]),
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    const content = '';
 
-    await checkSourceCodeActionAvailable(
-      mainFileUri,
-      Commands.sortMembers,
-      'Sort Members',
-      asCodeActionLiteral: true,
+    await expectAction(
+      content,
+      command: Commands.sortMembers,
     );
   }
 
   Future<void> test_availableAsCommand() async {
     newFile(mainFilePath, '');
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
+    await initialize();
 
-    await checkSourceCodeActionAvailable(
-      mainFileUri,
-      Commands.sortMembers,
-      'Sort Members',
-      asCommand: true,
+    final actions = await getCodeActions(mainFileUri);
+    final action = findCommand(actions, Commands.sortMembers)!;
+    action.map(
+      (command) {},
+      (codeActionLiteral) => throw 'Expected command, got codeActionLiteral',
     );
   }
 
@@ -559,18 +476,12 @@ String b;
 String b;
 String a;
 ''';
-    newFile(mainFilePath, content);
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.sortMembers)!;
-
-    final command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command!,
+    final codeAction = await expectAction(
+      content,
+      command: Commands.sortMembers,
     );
+    final command = codeAction.command!;
 
     final commandResponse = handleExpectedRequest<Object?,
         ApplyWorkspaceEditParams, ApplyWorkspaceEditResult>(
@@ -592,21 +503,13 @@ String a;
 
   Future<void> test_fileHasErrors_failsSilentlyForAutomatic() async {
     final content = 'invalid dart code';
-    newFile(mainFilePath, content);
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(
-      mainFileUri,
+    final codeAction = await expectAction(
+      content,
+      command: Commands.sortMembers,
       triggerKind: CodeActionTriggerKind.Automatic,
     );
-    final codeAction = findCommand(codeActions, Commands.sortMembers)!;
-
-    final command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command!,
-    );
+    final command = codeAction.command!;
 
     // Expect a valid null result.
     final response = await executeCommand(command);
@@ -615,18 +518,12 @@ String a;
 
   Future<void> test_fileHasErrors_failsWithErrorForManual() async {
     final content = 'invalid dart code';
-    newFile(mainFilePath, content);
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.sortMembers)!;
-
-    final command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command!,
+    final codeAction = await expectAction(
+      content,
+      command: Commands.sortMembers,
     );
+    final command = codeAction.command!;
 
     // Ensure the request returned an error (error responses are thrown by
     // the test helper to make consuming success results simpler).
@@ -635,36 +532,30 @@ String a;
   }
 
   Future<void> test_nonDartFile() async {
-    newFile(pubspecFilePath, simplePubspecContent);
-    await initialize(
-        textDocumentCapabilities: withCodeActionKinds(
-            emptyTextDocumentClientCapabilities, [CodeActionKind.Source]),
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
-
-    final codeActions = await getSourceCodeActions(pubspecFileUri);
-    expect(codeActions, isEmpty);
+    await expectNoAction(
+      filePath: pubspecFilePath,
+      simplePubspecContent,
+      command: Commands.sortMembers,
+    );
   }
 
   Future<void> test_unavailableWhenNotRequested() async {
-    newFile(mainFilePath, '');
-    await initialize(
-        textDocumentCapabilities: withCodeActionKinds(
-            emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    final content = '';
 
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.sortMembers);
-    expect(codeAction, isNull);
+    setSupportedCodeActionKinds([CodeActionKind.Refactor]); // not Source
+    await expectNoAction(
+      content,
+      command: Commands.sortMembers,
+    );
   }
 
   Future<void> test_unavailableWithoutApplyEditSupport() async {
-    newFile(mainFilePath, '');
-    await initialize();
+    final content = '';
 
-    final codeActions = await getSourceCodeActions(mainFileUri);
-    final codeAction = findCommand(codeActions, Commands.sortMembers);
-    expect(codeAction, isNull);
+    setApplyEditSupport(false);
+    await expectNoAction(
+      content,
+      command: Commands.sortMembers,
+    );
   }
 }

@@ -30,13 +30,13 @@ static method foo() → core::Map<self::C<core::String>, core::int>
 static method test() → dynamic {
   hoisted has-declared-initializer core::int a1;
   {
-    final synthesized dynamic #0#0 = self::foo();
+    final synthesized core::Map<self::C<core::String>, core::int> #0#0 = self::foo();
     final const synthesized invalid-type #0#1 = invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
   var {const C(:var t): a1} = foo();
              ^";
-    if(!(#0#0{core::Map<self::C<core::String>, core::int>}.{core::Map::containsKey}(invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
+    if(!(#0#0.{core::Map::containsKey}(invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
   var {const C(:var t): a1} = foo();
-             ^"){(core::Object?) → core::bool} && (let final core::int #t1 = a1 = #0#0{core::Map<self::C<core::String>, core::int>}.{core::Map::[]}(invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
+             ^"){(core::Object?) → core::bool} && (let final core::int #t1 = a1 = #0#0.{core::Map::[]}(invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
   var {const C(:var t): a1} = foo();
              ^"){(core::Object?) → core::int?} in true)))
       throw new core::StateError::•("Pattern matching error");

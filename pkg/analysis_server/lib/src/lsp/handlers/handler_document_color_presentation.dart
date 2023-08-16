@@ -21,8 +21,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 /// using a color picker (in a location returned by textDocument/documentColor)
 /// and needs a representation of this color, including the edits to insert it
 /// into the source file.
-class DocumentColorPresentationHandler
-    extends MessageHandler<ColorPresentationParams, List<ColorPresentation>> {
+class DocumentColorPresentationHandler extends LspMessageHandler<
+    ColorPresentationParams, List<ColorPresentation>> {
   DocumentColorPresentationHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_colorPresentation;

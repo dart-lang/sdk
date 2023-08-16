@@ -224,8 +224,8 @@ environment:
   ) {
     // TODO(brianwilkerson) Consider moving this to AnalysisOptionsImpl.==.
     expect(actual.enableTiming, expected.enableTiming);
-    expect(actual.hint, expected.hint);
     expect(actual.lint, expected.lint);
+    expect(actual.warning, expected.warning);
     expect(
       actual.lintRules.map((l) => l.name),
       unorderedEquals(expected.lintRules.map((l) => l.name)),

@@ -26,8 +26,18 @@ class Isolate {
   }
 
   @patch
+  static Uri? get packageConfigSync {
+    throw UnsupportedError("Isolate.packageConfigSync");
+  }
+
+  @patch
   static Future<Uri?> resolvePackageUri(Uri packageUri) {
     throw UnsupportedError("Isolate.resolvePackageUri");
+  }
+
+  @patch
+  static Uri? resolvePackageUriSync(Uri packageUri) {
+    throw UnsupportedError("Isolate.resolvePackageUriSync");
   }
 
   @patch

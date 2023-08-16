@@ -84,6 +84,28 @@ void f(Object p) {
 ''');
   }
 
+  test_class_isUsed_jsAnnotation() async {
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'js', rootPath: '$workspaceRootPath/js'),
+    );
+
+    newFile('$workspaceRootPath/js/lib/js.dart', r'''
+library _js_annotations;
+
+class JS {
+  const JS();
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:js/js.dart';
+
+@JS()
+class _A {}
+''');
+  }
+
   test_class_notUsed_isExpression_typeArgument() async {
     await assertErrorsInCode(r'''
 class _A {}

@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "has_part_lib.dart" as has;
+additionalExports = (has::C)
+
+export "org-dartlang-testcase:///has_part_lib.dart";
+
+static method main() → void
+  ;
+
+library;
+import self as has;
+import "dart:core" as core;
+
+part has_part_of_lib.dart;
+inline class C /* declaredRepresentationType = core::int */ { // from org-dartlang-testcase:///has_part_of_lib.dart
+  constructor • = has::C|;
+  tearoff • = has::_#new#tearOff;
+}
+static inline-class-member method /* from org-dartlang-testcase:///has_part_of_lib.dart */ C|(dynamic i) → has::C
+  ;
+static inline-class-member method /* from org-dartlang-testcase:///has_part_of_lib.dart */ _#new#tearOff(dynamic i) → has::C
+  return has::C|(i);

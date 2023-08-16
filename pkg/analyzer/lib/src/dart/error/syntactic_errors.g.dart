@@ -615,6 +615,20 @@ class ParserErrorCode extends ErrorCode {
     uniqueName: 'EXPECTED_NAMED_TYPE_WITH',
   );
 
+  static const ParserErrorCode EXPECTED_REPRESENTATION_FIELD = ParserErrorCode(
+    'EXPECTED_REPRESENTATION_FIELD',
+    "Expected a representation field.",
+    correctionMessage:
+        "Try providing the representation field for this extension type.",
+  );
+
+  static const ParserErrorCode EXPECTED_REPRESENTATION_TYPE = ParserErrorCode(
+    'EXPECTED_REPRESENTATION_TYPE',
+    "Expected a representation type.",
+    correctionMessage:
+        "Try providing the representation type for this extension type.",
+  );
+
   static const ParserErrorCode EXPECTED_STRING_LITERAL = ParserErrorCode(
     'EXPECTED_STRING_LITERAL',
     "Expected a string literal.",

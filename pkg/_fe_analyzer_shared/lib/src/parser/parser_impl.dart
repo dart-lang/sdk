@@ -126,11 +126,8 @@ import 'util.dart'
     show
         findNonZeroLengthToken,
         findPreviousNonZeroLengthToken,
-        isLetter,
-        isLetterOrDigit,
         isOneOf,
         isOneOfOrEof,
-        isWhitespace,
         optional;
 
 /// An event generating parser of Dart programs. This parser expects all tokens
@@ -2993,7 +2990,8 @@ class Parser {
   }
 
   /// ```
-  /// 'extension' <identifier>? <typeParameters>? 'on' <type> '?'?
+  /// 'extension' <identifier>? <typeParameters>?
+  ///     (('.' <identifier>)? <implementsClause>) | ('on' <type> '?'?)
   //   `{'
   //     <memberDeclaration>*
   //   `}'
@@ -3004,14 +3002,23 @@ class Parser {
     listener.beginExtensionDeclarationPrelude(extensionKeyword);
     Token? name = token.next!;
     Token? typeKeyword = null;
-    if (name.isIdentifier &&
-        name.lexeme == 'type' &&
-        name.next!.isIdentifier &&
-        !optional('on', name.next!)) {
-      typeKeyword = name;
-      token = token.next!;
-      name = token.next!;
+    Token? constKeyword = null;
+    if (name.isIdentifier && name.lexeme == 'type') {
+      // 'extension' 'type'
+      if (optional('const', name.next!)) {
+        // 'extension' 'type' 'const' <identifier>
+        typeKeyword = name;
+        constKeyword = name.next!;
+        token = token.next!.next!;
+        name = token.next!;
+      } else if (name.next!.isIdentifier && !optional('on', name.next!)) {
+        // 'extension' 'type' <identifier>
+        typeKeyword = name;
+        token = token.next!;
+        name = token.next!;
+      }
     }
+
     if (name.isIdentifier && !optional('on', name)) {
       token = name;
       if (name.type.isBuiltIn) {
@@ -3023,6 +3030,22 @@ class Parser {
     }
     token = computeTypeParamOrArg(token, /* inDeclaration = */ true)
         .parseVariables(token, this);
+    if (typeKeyword != null && name != null) {
+      Token next = token.next!;
+      if (optional('(', next) || optional('.', next)) {
+        return parseExtensionTypeDeclarationRest(
+            token, extensionKeyword, typeKeyword, constKeyword, name);
+      } else {
+        // TODO(johnniwinther): Change this to recover as an extension type
+        // declaration.
+        reportRecoverableError(
+            next, codes.templateUnexpectedToken.withArguments(next));
+      }
+    }
+    if (constKeyword != null) {
+      reportRecoverableError(constKeyword,
+          codes.templateUnexpectedToken.withArguments(constKeyword));
+    }
     listener.beginExtensionDeclaration(extensionKeyword, name);
     Token onKeyword = token.next!;
     if (!optional('on', onKeyword)) {
@@ -3040,62 +3063,6 @@ class Parser {
     }
     TypeInfo typeInfo = computeType(onKeyword, /* required = */ true);
     token = typeInfo.ensureTypeOrVoid(onKeyword, this);
-
-    int handleShowHideElements() {
-      int elementCount = 0;
-      do {
-        Token next = token.next!.next!;
-        if (optional('get', next)) {
-          token = IdentifierContext.extensionShowHideElementGetter
-              .ensureIdentifier(next, this);
-          listener.handleShowHideIdentifier(next, token);
-        } else if (optional('operator', next)) {
-          token = IdentifierContext.extensionShowHideElementOperator
-              .ensureIdentifier(next, this);
-          listener.handleShowHideIdentifier(next, token);
-        } else if (optional('set', next)) {
-          token = IdentifierContext.extensionShowHideElementSetter
-              .ensureIdentifier(next, this);
-          listener.handleShowHideIdentifier(next, token);
-        } else {
-          TypeInfo typeInfo = computeType(
-              token.next!,
-              /* required = */ true,
-              /* inDeclaration = */ true,
-              /* acceptKeywordForSimpleType = */ true);
-          final bool isUnambiguouslyType =
-              typeInfo.hasTypeArguments || typeInfo is PrefixedType;
-          if (isUnambiguouslyType) {
-            token = typeInfo.ensureTypeOrVoid(token.next!, this);
-          } else {
-            token = IdentifierContext.extensionShowHideElementMemberOrType
-                .ensureIdentifier(token.next!, this);
-            listener.handleShowHideIdentifier(/* modifier = */ null, token);
-          }
-        }
-        ++elementCount;
-      } while (optional(',', token.next!));
-      return elementCount;
-    }
-
-    Token? showKeyword = token.next!;
-    int showElementCount = 0;
-    if (optional('show', showKeyword)) {
-      showElementCount = handleShowHideElements();
-    } else {
-      showKeyword = null;
-    }
-
-    Token? hideKeyword = token.next!;
-    int hideElementCount = 0;
-    if (optional('hide', hideKeyword)) {
-      hideElementCount = handleShowHideElements();
-    } else {
-      hideKeyword = null;
-    }
-
-    listener.handleExtensionShowHide(
-        showKeyword, showElementCount, hideKeyword, hideElementCount);
 
     if (!optional('{', token.next!)) {
       // Recovery
@@ -3123,8 +3090,36 @@ class Parser {
     }
     token = parseClassOrMixinOrExtensionBody(
         token, DeclarationKind.Extension, name?.lexeme);
-    listener.endExtensionDeclaration(extensionKeyword, typeKeyword, onKeyword,
-        showKeyword, hideKeyword, token);
+    listener.endExtensionDeclaration(extensionKeyword, onKeyword, token);
+    return token;
+  }
+
+  /// Parses an extension type declaration after
+  ///
+  ///    'extension' 'type' 'const'? <name> <typeParameters>?
+  ///
+  /// This parses
+  ///
+  ///    ('.' <identifier>)? <formals> '{' <memberDeclaration>* '}'
+  ///
+  Token parseExtensionTypeDeclarationRest(Token token, Token extensionKeyword,
+      Token typeKeyword, Token? constKeyword, Token name) {
+    assert(optional('(', token.next!) || optional('.', token.next!));
+    listener.beginExtensionTypeDeclaration(extensionKeyword, name);
+    Token beginPrimaryConstructor = token.next!;
+    listener.beginPrimaryConstructor(beginPrimaryConstructor);
+    bool hasConstructorName = optional('.', beginPrimaryConstructor);
+    if (hasConstructorName) {
+      token = ensureIdentifier(beginPrimaryConstructor,
+          IdentifierContext.primaryConstructorDeclaration);
+    }
+    token = parseFormalParameters(token, MemberKind.PrimaryConstructor);
+    listener.endPrimaryConstructor(
+        beginPrimaryConstructor, constKeyword, hasConstructorName);
+    token = parseClassOrMixinOrEnumImplementsOpt(token);
+    token = parseClassOrMixinOrExtensionBody(
+        token, DeclarationKind.ExtensionType, name.lexeme);
+    listener.endExtensionTypeDeclaration(extensionKeyword, typeKeyword, token);
     return token;
   }
 
@@ -3674,6 +3669,19 @@ class Parser {
               firstName, codes.messageExtensionDeclaresInstanceField);
         }
         listener.endExtensionFields(
+            abstractToken,
+            augmentToken,
+            externalToken,
+            staticToken,
+            covariantToken,
+            lateToken,
+            varFinalOrConst,
+            fieldCount,
+            beforeStart.next!,
+            token);
+        break;
+      case DeclarationKind.ExtensionType:
+        listener.endExtensionTypeFields(
             abstractToken,
             augmentToken,
             externalToken,
@@ -4884,6 +4892,10 @@ class Parser {
           listener.endExtensionConstructor(getOrSet, beforeStart.next!,
               beforeParam.next!, beforeInitializers?.next, token);
           break;
+        case DeclarationKind.ExtensionType:
+          listener.endExtensionTypeConstructor(getOrSet, beforeStart.next!,
+              beforeParam.next!, beforeInitializers?.next, token);
+          break;
         case DeclarationKind.TopLevel:
           throw "Internal error: TopLevel constructor.";
         case DeclarationKind.Enum:
@@ -4915,6 +4927,11 @@ class Parser {
                 codes.messageExtensionDeclaresAbstractMember);
           }
           listener.endExtensionMethod(getOrSet, beforeStart.next!,
+              beforeParam.next!, beforeInitializers?.next, token);
+          break;
+        case DeclarationKind.ExtensionType:
+          // TODO(johnniwinther): Report an error on abstract methods.
+          listener.endExtensionTypeMethod(getOrSet, beforeStart.next!,
               beforeParam.next!, beforeInitializers?.next, token);
           break;
         case DeclarationKind.TopLevel:
@@ -5011,6 +5028,10 @@ class Parser {
         reportRecoverableError(
             factoryKeyword, codes.messageExtensionDeclaresConstructor);
         listener.endExtensionFactoryMethod(
+            beforeStart.next!, factoryKeyword, token);
+        break;
+      case DeclarationKind.ExtensionType:
+        listener.endExtensionTypeFactoryMethod(
             beforeStart.next!, factoryKeyword, token);
         break;
       case DeclarationKind.TopLevel:
@@ -9358,289 +9379,6 @@ class Parser {
       comments = comments.next;
     }
     return dartdoc;
-  }
-
-  /// Parse the comment references in a sequence of comment tokens
-  /// where [dartdoc] (not null) is the first token in the sequence.
-  /// Return the number of comment references parsed.
-  int parseCommentReferences(Token dartdoc) {
-    return dartdoc.lexeme.startsWith('///')
-        ? parseReferencesInSingleLineComments(dartdoc)
-        : parseReferencesInMultiLineComment(dartdoc);
-  }
-
-  /// Parse the comment references in a multi-line comment token.
-  /// Return the number of comment references parsed.
-  int parseReferencesInMultiLineComment(Token multiLineDoc) {
-    String comment = multiLineDoc.lexeme;
-    assert(comment.startsWith('/**'));
-    int count = 0;
-    int length = comment.length;
-    int start = 3;
-    bool inCodeBlock = false;
-    int codeBlock = comment.indexOf('```', /* start = */ 3);
-    if (codeBlock == -1) {
-      codeBlock = length;
-    }
-    while (start < length) {
-      if (isWhitespace(comment.codeUnitAt(start))) {
-        ++start;
-        continue;
-      }
-      int end = comment.indexOf('\n', start);
-      if (end == -1) {
-        end = length;
-      }
-      if (codeBlock < end) {
-        inCodeBlock = !inCodeBlock;
-        codeBlock = comment.indexOf('```', end);
-        if (codeBlock == -1) {
-          codeBlock = length;
-        }
-      }
-      if (!inCodeBlock && !comment.startsWith('*     ', start)) {
-        count += parseCommentReferencesInText(multiLineDoc, start, end);
-      }
-      start = end + 1;
-    }
-    return count;
-  }
-
-  /// Parse the comment references in a sequence of single line comment tokens
-  /// where [token] is the first comment token in the sequence.
-  /// Return the number of comment references parsed.
-  int parseReferencesInSingleLineComments(Token? token) {
-    int count = 0;
-    bool inCodeBlock = false;
-    while (token != null && !token.isEof) {
-      String comment = token.lexeme;
-      if (comment.startsWith('///')) {
-        if (comment.indexOf('```', /* start = */ 3) != -1) {
-          inCodeBlock = !inCodeBlock;
-        }
-        if (!inCodeBlock) {
-          bool parseReferences;
-          if (comment.startsWith('///    ')) {
-            String? previousComment = token.previous?.lexeme;
-            parseReferences = previousComment != null &&
-                previousComment.startsWith('///') &&
-                previousComment.trim().length > 3;
-          } else {
-            parseReferences = true;
-          }
-          if (parseReferences) {
-            count += parseCommentReferencesInText(
-                token, /* start = */ 3, comment.length);
-          }
-        }
-      }
-      token = token.next;
-    }
-    return count;
-  }
-
-  /// Parse the comment references in the text between [start] inclusive
-  /// and [end] exclusive. Return a count indicating how many were parsed.
-  int parseCommentReferencesInText(Token commentToken, int start, int end) {
-    String comment = commentToken.lexeme;
-    int count = 0;
-    int index = start;
-    while (index < end) {
-      int ch = comment.codeUnitAt(index);
-      if (ch == 0x5B /* `[` */) {
-        ++index;
-        if (index < end && comment.codeUnitAt(index) == 0x3A /* `:` */) {
-          // Skip old-style code block.
-          index = comment.indexOf(':]', index + 1) + 1;
-          if (index == 0 || index > end) {
-            break;
-          }
-        } else {
-          int referenceStart = index;
-          index = comment.indexOf(']', index);
-          if (index == -1 || index >= end) {
-            // Recovery: terminating ']' is not typed yet.
-            index = findReferenceEnd(comment, referenceStart, end);
-          }
-          if (ch != 0x27 /* `'` */ && ch != 0x22 /* `"` */) {
-            if (isLinkText(comment, index)) {
-              // TODO(brianwilkerson) Handle the case where there's a library
-              // URI in the link text.
-            } else {
-              listener.handleCommentReferenceText(
-                  comment.substring(referenceStart, index),
-                  commentToken.charOffset + referenceStart);
-              ++count;
-            }
-          }
-        }
-      } else if (ch == 0x60 /* '`' */) {
-        // Skip inline code block if there is both starting '`' and ending '`'
-        int endCodeBlock = comment.indexOf('`', index + 1);
-        if (endCodeBlock != -1 && endCodeBlock < end) {
-          index = endCodeBlock;
-        }
-      }
-      ++index;
-    }
-    return count;
-  }
-
-  /// Given a comment reference without a closing `]`,
-  /// search for a possible place where `]` should be.
-  int findReferenceEnd(String comment, int index, int end) {
-    // Find the end of the identifier if there is one
-    if (index >= end || !isLetter(comment.codeUnitAt(index))) {
-      return index;
-    }
-    while (index < end && isLetterOrDigit(comment.codeUnitAt(index))) {
-      ++index;
-    }
-
-    // Check for a trailing `.`
-    if (index >= end || comment.codeUnitAt(index) != 0x2E /* `.` */) {
-      return index;
-    }
-    ++index;
-
-    // Find end of the identifier after the `.`
-    if (index >= end || !isLetter(comment.codeUnitAt(index))) {
-      return index;
-    }
-    ++index;
-    while (index < end && isLetterOrDigit(comment.codeUnitAt(index))) {
-      ++index;
-    }
-    return index;
-  }
-
-  /// Parse the tokens in a single comment reference and generate either a
-  /// `handleCommentReference` or `handleNoCommentReference` event.
-  /// Return `true` if a comment reference was successfully parsed.
-  bool parseOneCommentReference(Token token, int referenceOffset) {
-    Token begin = token;
-    Token? newKeyword = null;
-    if (optional('new', token)) {
-      newKeyword = token;
-      token = token.next!;
-    }
-    Token? firstToken, firstPeriod, secondToken, secondPeriod;
-    if (token.isIdentifier && optional('.', token.next!)) {
-      secondToken = token;
-      secondPeriod = token.next!;
-      if (secondPeriod.next!.isIdentifier &&
-          optional('.', secondPeriod.next!.next!)) {
-        firstToken = secondToken;
-        firstPeriod = secondPeriod;
-        secondToken = secondPeriod.next!;
-        secondPeriod = secondToken.next!;
-      }
-      Token identifier = secondPeriod.next!;
-      if (identifier.kind == KEYWORD_TOKEN && optional('new', identifier)) {
-        // Treat `new` after `.` is as an identifier so that it can represent an
-        // unnamed constructor. This support is separate from the
-        // constructor-tearoffs feature.
-        rewriter.replaceTokenFollowing(
-            secondPeriod,
-            new StringToken(TokenType.IDENTIFIER, identifier.lexeme,
-                identifier.charOffset));
-      }
-      token = secondPeriod.next!;
-    }
-    if (token.isEof) {
-      // Recovery: Insert a synthetic identifier for code completion
-      token = rewriter.insertSyntheticIdentifier(
-          secondPeriod ?? newKeyword ?? syntheticPreviousToken(token));
-      if (begin == token.next!) {
-        begin = token;
-      }
-    }
-    Token? operatorKeyword = null;
-    if (optional('operator', token)) {
-      operatorKeyword = token;
-      token = token.next!;
-    }
-    if (token.isUserDefinableOperator) {
-      if (token.next!.isEof) {
-        parseOneCommentReferenceRest(begin, referenceOffset, newKeyword,
-            firstToken, firstPeriod, secondToken, secondPeriod, token);
-        return true;
-      }
-    } else {
-      token = operatorKeyword ?? token;
-      if (token.next!.isEof) {
-        if (token.isIdentifier) {
-          parseOneCommentReferenceRest(begin, referenceOffset, newKeyword,
-              firstToken, firstPeriod, secondToken, secondPeriod, token);
-          return true;
-        }
-        Keyword? keyword = token.keyword;
-        if (newKeyword == null &&
-            secondToken == null &&
-            (keyword == Keyword.THIS ||
-                keyword == Keyword.NULL ||
-                keyword == Keyword.TRUE ||
-                keyword == Keyword.FALSE)) {
-          // TODO(brianwilkerson) If we want to support this we will need to
-          // extend the definition of CommentReference to take an expression
-          // rather than an identifier. For now we just ignore it to reduce the
-          // number of errors produced, but that's probably not a valid long
-          // term approach.
-        }
-      }
-    }
-    listener.handleNoCommentReference();
-    return false;
-  }
-
-  void parseOneCommentReferenceRest(
-      Token begin,
-      int referenceOffset,
-      Token? newKeyword,
-      Token? firstToken,
-      Token? firstPeriod,
-      Token? secondToken,
-      Token? secondPeriod,
-      Token identifierOrOperator) {
-    // Adjust the token offsets to match the enclosing comment token.
-    Token token = begin;
-    do {
-      token.offset += referenceOffset;
-      token = token.next!;
-    } while (!token.isEof);
-
-    listener.handleCommentReference(newKeyword, firstToken, firstPeriod,
-        secondToken, secondPeriod, identifierOrOperator);
-  }
-
-  /// Given that we have just found bracketed text within the given [comment],
-  /// look to see whether that text is (a) followed by a parenthesized link
-  /// address, (b) followed by a colon, or (c) followed by optional whitespace
-  /// and another square bracket. The [rightIndex] is the index of the right
-  /// bracket. Return `true` if the bracketed text is followed by a link
-  /// address.
-  ///
-  /// This method uses the syntax described by the
-  /// <a href="http://daringfireball.net/projects/markdown/syntax">markdown</a>
-  /// project.
-  bool isLinkText(String comment, int rightIndex) {
-    int length = comment.length;
-    int index = rightIndex + 1;
-    if (index >= length) {
-      return false;
-    }
-    int ch = comment.codeUnitAt(index);
-    if (ch == 0x28 || ch == 0x3A) {
-      return true;
-    }
-    while (isWhitespace(ch)) {
-      index = index + 1;
-      if (index >= length) {
-        return false;
-      }
-      ch = comment.codeUnitAt(index);
-    }
-    return ch == 0x5B;
   }
 
   /// pattern               ::= logicalOrPattern

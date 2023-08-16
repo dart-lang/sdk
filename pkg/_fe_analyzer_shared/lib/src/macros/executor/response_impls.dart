@@ -255,7 +255,13 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
   final Map<IdentifierImpl, List<DeclarationCode>> enumValueAugmentations;
 
   @override
+  final Map<IdentifierImpl, List<TypeAnnotationCode>> interfaceAugmentations;
+
+  @override
   final List<DeclarationCode> libraryAugmentations;
+
+  @override
+  final Map<IdentifierImpl, List<TypeAnnotationCode>> mixinAugmentations;
 
   @override
   final List<String> newTypeNames;
@@ -265,7 +271,9 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
 
   MacroExecutionResultImpl({
     required this.enumValueAugmentations,
+    required this.interfaceAugmentations,
     required this.libraryAugmentations,
+    required this.mixinAugmentations,
     required this.newTypeNames,
     required this.typeAugmentations,
   });
@@ -275,9 +283,23 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
       ..moveNext()
       ..expectList();
     Map<IdentifierImpl, List<DeclarationCode>> enumValueAugmentations = {
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
+      for (; deserializer.moveNext();)
+        deserializer.expectRemoteInstance(): [
+          for (bool hasNextCode = (deserializer
+                    ..moveNext()
+                    ..expectList())
+                  .moveNext();
+              hasNextCode;
+              hasNextCode = deserializer.moveNext())
+            deserializer.expectCode(),
+        ]
+    };
+
+    deserializer
+      ..moveNext()
+      ..expectList();
+    Map<IdentifierImpl, List<TypeAnnotationCode>> interfaceAugmentations = {
+      for (; deserializer.moveNext();)
         deserializer.expectRemoteInstance(): [
           for (bool hasNextCode = (deserializer
                     ..moveNext()
@@ -293,29 +315,37 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
       ..moveNext()
       ..expectList();
     List<DeclarationCode> libraryAugmentations = [
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
-        deserializer.expectCode()
+      for (; deserializer.moveNext();) deserializer.expectCode()
     ];
 
     deserializer
       ..moveNext()
       ..expectList();
+    Map<IdentifierImpl, List<TypeAnnotationCode>> mixinAugmentations = {
+      for (; deserializer.moveNext();)
+        deserializer.expectRemoteInstance(): [
+          for (bool hasNextCode = (deserializer
+                    ..moveNext()
+                    ..expectList())
+                  .moveNext();
+              hasNextCode;
+              hasNextCode = deserializer.moveNext())
+            deserializer.expectCode(),
+        ]
+    };
+
+    deserializer
+      ..moveNext()
+      ..expectList();
     List<String> newTypeNames = [
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
-        deserializer.expectString()
+      for (; deserializer.moveNext();) deserializer.expectString()
     ];
 
     deserializer
       ..moveNext()
       ..expectList();
     Map<IdentifierImpl, List<DeclarationCode>> typeAugmentations = {
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
+      for (; deserializer.moveNext();)
         deserializer.expectRemoteInstance(): [
           for (bool hasNextCode = (deserializer
                     ..moveNext()
@@ -329,7 +359,9 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
 
     return new MacroExecutionResultImpl(
       enumValueAugmentations: enumValueAugmentations,
+      interfaceAugmentations: interfaceAugmentations,
       libraryAugmentations: libraryAugmentations,
+      mixinAugmentations: mixinAugmentations,
       newTypeNames: newTypeNames,
       typeAugmentations: typeAugmentations,
     );
@@ -349,10 +381,33 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
     serializer.endList();
 
     serializer.startList();
+    for (IdentifierImpl type in interfaceAugmentations.keys) {
+      type.serialize(serializer);
+      serializer.startList();
+      for (TypeAnnotationCode interface in interfaceAugmentations[type]!) {
+        interface.serialize(serializer);
+      }
+      serializer.endList();
+    }
+    serializer.endList();
+
+    serializer.startList();
     for (DeclarationCode augmentation in libraryAugmentations) {
       augmentation.serialize(serializer);
     }
     serializer.endList();
+
+    serializer.startList();
+    for (IdentifierImpl type in mixinAugmentations.keys) {
+      type.serialize(serializer);
+      serializer.startList();
+      for (TypeAnnotationCode mixin in mixinAugmentations[type]!) {
+        mixin.serialize(serializer);
+      }
+      serializer.endList();
+    }
+    serializer.endList();
+
     serializer.startList();
     for (String name in newTypeNames) {
       serializer.addString(name);

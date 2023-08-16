@@ -86,6 +86,8 @@ class ValueKinds {
   static const ValueKind FormalListOrNull =
       const SingleValueKind<List<type.FormalParameterBuilder>>(
           NullValues.FormalParameters);
+  static const ValueKind FormalParameterBuilder =
+      const SingleValueKind<type.FormalParameterBuilder>();
   static const ValueKind Generator = const SingleValueKind<type.Generator>();
   static const ValueKind Identifier = const SingleValueKind<type.Identifier>();
   static const ValueKind IdentifierOrNull =
@@ -132,6 +134,8 @@ class ValueKinds {
       const UnionValueKind([Name, Operator]);
   static const ValueKind NameOrQualifiedNameOrOperator =
       const UnionValueKind([Name, QualifiedName, Operator]);
+  static const ValueKind NameOrQualifiedNameOrOperatorOrParserRecovery =
+      const UnionValueKind([Name, QualifiedName, Operator, ParserRecovery]);
   static const ValueKind NameOrParserRecovery =
       const UnionValueKind([Name, ParserRecovery]);
   static const ValueKind NameOrParserRecoveryOrNull =

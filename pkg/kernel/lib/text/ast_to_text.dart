@@ -335,7 +335,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     return node.name;
   }
 
-  String getInlineClassName(InlineClass node) {
+  String getExtensionTypeDeclarationName(ExtensionTypeDeclaration node) {
     return node.name;
   }
 
@@ -351,8 +351,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     return '$library::$name';
   }
 
-  String getInlineClassReference(InlineClass node) {
-    String name = getInlineClassName(node);
+  String getExtensionTypeDeclarationReference(ExtensionTypeDeclaration node) {
+    String name = getExtensionTypeDeclarationName(node);
     String library = getLibraryReference(node.enclosingLibrary);
     return '$library::$name';
   }
@@ -492,7 +492,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     library.typedefs.forEach(writeNode);
     library.classes.forEach(writeNode);
     library.extensions.forEach(writeNode);
-    library.inlineClasses.forEach(writeNode);
+    library.extensionTypeDeclarations.forEach(writeNode);
     library.fields.forEach(writeNode);
     library.procedures.forEach(writeNode);
   }
@@ -515,7 +515,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
         write(prefix + '::' + node.name.text);
-      } else if (node is InlineClass) {
+      } else if (node is ExtensionTypeDeclaration) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
         write(prefix + '::' + node.name);
@@ -965,13 +965,16 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     throw "Neither node nor canonical name found";
   }
 
-  void writeInlineClassReferenceFromReference(Reference reference) {
-    writeWord(getInlineClassReferenceFromReference(reference));
+  void writeExtensionTypeDeclarationReferenceFromReference(
+      Reference reference) {
+    writeWord(getExtensionTypeDeclarationReferenceFromReference(reference));
   }
 
-  String getInlineClassReferenceFromReference(Reference reference) {
+  String getExtensionTypeDeclarationReferenceFromReference(
+      Reference reference) {
     if (reference.node != null) {
-      return getInlineClassReference(reference.asInlineClass);
+      return getExtensionTypeDeclarationReference(
+          reference.asExtensionTypeDeclaration);
     }
     if (reference.canonicalName != null) {
       return getCanonicalNameString(reference.canonicalName!);
@@ -1149,7 +1152,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeModifier(node.isForwardingStub, 'forwarding-stub');
     writeModifier(node.isForwardingSemiStub, 'forwarding-semi-stub');
     writeModifier(node.isExtensionMember, 'extension-member');
-    writeModifier(node.isInlineClassMember, 'inline-class-member');
+    writeModifier(node.isExtensionTypeMember, 'inline-class-member');
     switch (node.stubKind) {
       case ProcedureStubKind.Regular:
       case ProcedureStubKind.AbstractForwardingStub:
@@ -1314,61 +1317,6 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSpaced('on');
     writeType(node.onType);
 
-    ExtensionTypeShowHideClause? showHideClause = node.showHideClause;
-    if (showHideClause != null) {
-      // 'Show' clause elements.
-      if (showHideClause.shownSupertypes.isNotEmpty) {
-        writeSpaced('show-types');
-        writeList(showHideClause.shownSupertypes, visitSupertype);
-      }
-      if (showHideClause.shownMethods.isNotEmpty) {
-        writeSpaced('show-methods');
-        writeList(
-            showHideClause.shownMethods, writeMemberReferenceFromReference);
-      }
-      if (showHideClause.shownGetters.isNotEmpty) {
-        writeSpaced('show-getters');
-        writeList(
-            showHideClause.shownGetters, writeMemberReferenceFromReference);
-      }
-      if (showHideClause.shownSetters.isNotEmpty) {
-        writeSpaced('show-setters');
-        writeList(
-            showHideClause.shownSetters, writeMemberReferenceFromReference);
-      }
-      if (showHideClause.shownOperators.isNotEmpty) {
-        writeSpaced('show-operators');
-        writeList(
-            showHideClause.shownOperators, writeMemberReferenceFromReference);
-      }
-
-      // 'Hide' clause elements.
-      if (showHideClause.hiddenSupertypes.isNotEmpty) {
-        writeSpaced('hide-types');
-        writeList(showHideClause.hiddenSupertypes, visitSupertype);
-      }
-      if (showHideClause.hiddenMethods.isNotEmpty) {
-        writeSpaced('hide-methods');
-        writeList(
-            showHideClause.hiddenMethods, writeMemberReferenceFromReference);
-      }
-      if (showHideClause.hiddenGetters.isNotEmpty) {
-        writeSpaced('hide-getters');
-        writeList(
-            showHideClause.hiddenGetters, writeMemberReferenceFromReference);
-      }
-      if (showHideClause.hiddenSetters.isNotEmpty) {
-        writeSpaced('hide-setters');
-        writeList(
-            showHideClause.hiddenSetters, writeMemberReferenceFromReference);
-      }
-      if (showHideClause.hiddenOperators.isNotEmpty) {
-        writeSpaced('hide-operators');
-        writeList(
-            showHideClause.hiddenOperators, writeMemberReferenceFromReference);
-      }
-    }
-
     String endLineString = ' {';
     if (node.enclosingLibrary.fileUri != node.fileUri) {
       endLineString += ' // from ${node.fileUri}';
@@ -1418,11 +1366,11 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  void visitInlineClass(InlineClass node) {
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeWord('inline class');
-    writeWord(getInlineClassName(node));
+    writeWord(getExtensionTypeDeclarationName(node));
     writeTypeParameterList(node.typeParameters);
     writeWord('/* declaredRepresentationType =');
     writeType(node.declaredRepresentationType);
@@ -1438,35 +1386,35 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
     endLine(endLineString);
     ++indentation;
-    node.members.forEach((InlineClassMemberDescriptor descriptor) {
+    node.members.forEach((ExtensionTypeMemberDescriptor descriptor) {
       writeIndentation();
       writeModifier(descriptor.isStatic, 'static');
       switch (descriptor.kind) {
-        case InlineClassMemberKind.Constructor:
+        case ExtensionTypeMemberKind.Constructor:
           writeWord('constructor');
           break;
-        case InlineClassMemberKind.Factory:
+        case ExtensionTypeMemberKind.Factory:
           writeWord('factory');
           break;
-        case InlineClassMemberKind.RedirectingFactory:
+        case ExtensionTypeMemberKind.RedirectingFactory:
           writeWord('redirecting-factory');
           break;
-        case InlineClassMemberKind.Method:
+        case ExtensionTypeMemberKind.Method:
           writeWord('method');
           break;
-        case InlineClassMemberKind.Getter:
+        case ExtensionTypeMemberKind.Getter:
           writeWord('get');
           break;
-        case InlineClassMemberKind.Setter:
+        case ExtensionTypeMemberKind.Setter:
           writeWord('set');
           break;
-        case InlineClassMemberKind.Operator:
+        case ExtensionTypeMemberKind.Operator:
           writeWord('operator');
           break;
-        case InlineClassMemberKind.Field:
+        case ExtensionTypeMemberKind.Field:
           writeWord('field');
           break;
-        case InlineClassMemberKind.TearOff:
+        case ExtensionTypeMemberKind.TearOff:
           writeWord('tearoff');
           break;
       }
@@ -2696,19 +2644,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   @override
   void visitExtensionType(ExtensionType node) {
-    writeExtensionReferenceFromReference(node.extensionReference);
-    if (node.typeArguments.isNotEmpty) {
-      writeSymbol('<');
-      writeList(node.typeArguments, writeType);
-      writeSymbol('>');
-      state = Printer.WORD;
-    }
-    writeNullability(node.declaredNullability);
-  }
-
-  @override
-  void visitInlineType(InlineType node) {
-    writeInlineClassReferenceFromReference(node.inlineClassReference);
+    writeExtensionTypeDeclarationReferenceFromReference(
+        node.extensionTypeDeclarationReference);
     if (node.typeArguments.isNotEmpty) {
       writeSymbol('<');
       writeList(node.typeArguments, writeType);

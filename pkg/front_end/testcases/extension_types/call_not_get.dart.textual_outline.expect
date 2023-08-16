@@ -1,3 +1,0 @@
-extension type E on int show get ceil, floor hide get floor {}
-test(E e) {}
-main() {}

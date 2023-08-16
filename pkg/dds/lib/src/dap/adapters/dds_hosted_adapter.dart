@@ -10,7 +10,9 @@ import 'package:async/async.dart';
 import 'package:dap/dap.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
+import '../constants.dart';
 import '../protocol_stream.dart';
+import '../variables.dart';
 import 'dart.dart';
 import 'mixins.dart';
 
@@ -96,6 +98,99 @@ class DdsHostedAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     // adapter is running in the same process. We need to refactor so that we
     // call DDS/VM service methods directly instead of using the websocket.
     unawaited(connectDebugger(ddsUri!));
+  }
+
+  /// Handles custom requests that are specific to the DDS-hosted adapter, such
+  /// as translating between VM IDs and DAP IDs.
+  @override
+  Future<void> customRequest(
+    Request request,
+    RawRequestArguments? args,
+    void Function(Object?) sendResponse,
+  ) async {
+    switch (request.command) {
+      case Command.createVariableForInstance:
+        sendResponse(_createVariableForInstance(request.arguments));
+        break;
+
+      case Command.getVariablesInstanceId:
+        sendResponse(_getVariablesInstanceId(request.arguments));
+        break;
+
+      default:
+        await super.customRequest(request, args, sendResponse);
+    }
+  }
+
+  /// Creates a DAP variablesReference for a VM Instance ID.
+  Map<String, Object?> _createVariableForInstance(Object? arguments) {
+    if (arguments is! Map<String, Object?>) {
+      throw DebugAdapterException(
+        '${Command.createVariableForInstance} arguments must be Map<String, Object?>',
+      );
+    }
+    final isolateId = arguments[Parameters.isolateId];
+    final instanceId = arguments[Parameters.instanceId];
+    if (isolateId is! String) {
+      throw DebugAdapterException(
+        'createVariableForInstance requires a valid String ${Parameters.isolateId}',
+      );
+    }
+    if (instanceId is! String) {
+      throw DebugAdapterException(
+        'createVariableForInstance requires a value String ${Parameters.instanceId}',
+      );
+    }
+
+    final thread = isolateManager.threadForIsolateId(isolateId);
+    if (thread == null) {
+      throw DebugAdapterException('Isolate $isolateId is not valid');
+    }
+
+    // Create a new reference for this instance ID.
+    final variablesReference =
+        thread.storeData(WrappedInstanceVariable(instanceId));
+
+    return {
+      Parameters.variablesReference: variablesReference,
+    };
+  }
+
+  /// Tries to extract a VM Instance ID from a DAP variablesReference.
+  Map<String, Object?> _getVariablesInstanceId(Object? arguments) {
+    if (arguments is! Map<String, Object?>) {
+      throw DebugAdapterException(
+        '${Command.getVariablesInstanceId} arguments must be Map<String, Object?>',
+      );
+    }
+    final variablesReference = arguments[Parameters.variablesReference];
+    if (variablesReference is! int) {
+      throw DebugAdapterException(
+        '${Command.getVariablesInstanceId} requires a valid int ${Parameters.variablesReference}',
+      );
+    }
+
+    // Extract the stored data. This should generally always be a
+    // `WrappedInstanceVariable` (created by `_createVariableForInstance`) but
+    // for possible future compatibility, we'll also handle `VariableData` and
+    // other variables we can extract IDs for.
+    var data = isolateManager.getStoredData(variablesReference)?.data;
+
+    // Unwrap if it was wrapped for formatting.
+    if (data is VariableData) {
+      data = data.data;
+    }
+
+    // Extract the ID.
+    final instanceId = data is WrappedInstanceVariable
+        ? data.instanceId
+        : data is vm.ObjRef
+            ? data.id
+            : null;
+
+    return {
+      Parameters.instanceId: instanceId,
+    };
   }
 
   /// Called by [terminateRequest] to request that we gracefully shut down the

@@ -10,10 +10,10 @@ import "package:expect/expect.dart";
 
 const var1 = fn(2);
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 const var2 = fn(3);
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn(int a) {
   int b = a;
   int i = 0;
@@ -26,10 +26,10 @@ int fn(int a) {
 
 const var3 = fn1(2);
 //           ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 const var4 = fn1(3);
 //           ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn1(int a) {
   int b = a;
   while (true) {
@@ -40,7 +40,7 @@ int fn1(int a) {
 
 const var5 = fnContinue();
 //           ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fnContinue() {
   int a = 0;
   int i = 0;
@@ -57,10 +57,10 @@ int fnContinue() {
 
 const var6 = fnBreak(2);
 //           ^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 const var7 = fnBreak(3);
 //           ^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fnBreak(int a) {
   int b = a;
   int i = 0;
@@ -74,7 +74,7 @@ int fnBreak(int a) {
 
 const var8 = fnNestedWhile();
 //           ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fnNestedWhile() {
   int a = 0;
   while (true) {
@@ -87,7 +87,7 @@ int fnNestedWhile() {
 
 const var9 = fnBreakLabel();
 //           ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fnBreakLabel() {
   foo:
   while (true) {

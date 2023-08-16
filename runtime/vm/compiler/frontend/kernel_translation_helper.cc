@@ -29,12 +29,12 @@ TranslationHelper::TranslationHelper(Thread* thread)
       isolate_group_(thread->isolate_group()),
       allocation_space_(Heap::kNew),
       string_offsets_(TypedData::Handle(Z)),
-      string_data_(ExternalTypedData::Handle(Z)),
+      string_data_(TypedDataView::Handle(Z)),
       canonical_names_(TypedData::Handle(Z)),
-      metadata_payloads_(ExternalTypedData::Handle(Z)),
-      metadata_mappings_(ExternalTypedData::Handle(Z)),
+      metadata_payloads_(TypedDataView::Handle(Z)),
+      metadata_mappings_(TypedDataView::Handle(Z)),
       constants_(Array::Handle(Z)),
-      constants_table_(ExternalTypedData::Handle(Z)),
+      constants_table_(TypedDataView::Handle(Z)),
       info_(KernelProgramInfo::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)) {}
 
@@ -44,46 +44,39 @@ TranslationHelper::TranslationHelper(Thread* thread, Heap::Space space)
       isolate_group_(thread->isolate_group()),
       allocation_space_(space),
       string_offsets_(TypedData::Handle(Z)),
-      string_data_(ExternalTypedData::Handle(Z)),
+      string_data_(TypedDataView::Handle(Z)),
       canonical_names_(TypedData::Handle(Z)),
-      metadata_payloads_(ExternalTypedData::Handle(Z)),
-      metadata_mappings_(ExternalTypedData::Handle(Z)),
+      metadata_payloads_(TypedDataView::Handle(Z)),
+      metadata_mappings_(TypedDataView::Handle(Z)),
       constants_(Array::Handle(Z)),
-      constants_table_(ExternalTypedData::Handle(Z)),
+      constants_table_(TypedDataView::Handle(Z)),
       info_(KernelProgramInfo::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)) {}
 
 void TranslationHelper::Reset() {
   string_offsets_ = TypedData::null();
-  string_data_ = ExternalTypedData::null();
+  string_data_ = TypedDataView::null();
   canonical_names_ = TypedData::null();
-  metadata_payloads_ = ExternalTypedData::null();
-  metadata_mappings_ = ExternalTypedData::null();
+  metadata_payloads_ = TypedDataView::null();
+  metadata_mappings_ = TypedDataView::null();
   constants_ = Array::null();
-}
-
-void TranslationHelper::InitFromScript(const Script& script) {
-  const KernelProgramInfo& info =
-      KernelProgramInfo::Handle(Z, script.kernel_program_info());
-  if (info.IsNull()) {
-    // If there is no kernel data associated with the script, then
-    // do not bother initializing!.
-    // This can happen with few special functions like
-    // NoSuchMethodDispatcher and InvokeFieldDispatcher.
-    return;
-  }
-  InitFromKernelProgramInfo(info);
 }
 
 void TranslationHelper::InitFromKernelProgramInfo(
     const KernelProgramInfo& info) {
+  if (info.IsNull()) {
+    // If there is no kernel data available then do not bother initializing!
+    // This can happen with few special functions like
+    // NoSuchMethodDispatcher and InvokeFieldDispatcher.
+    return;
+  }
   SetStringOffsets(TypedData::Handle(Z, info.string_offsets()));
-  SetStringData(ExternalTypedData::Handle(Z, info.string_data()));
+  SetStringData(TypedDataView::Handle(Z, info.string_data()));
   SetCanonicalNames(TypedData::Handle(Z, info.canonical_names()));
-  SetMetadataPayloads(ExternalTypedData::Handle(Z, info.metadata_payloads()));
-  SetMetadataMappings(ExternalTypedData::Handle(Z, info.metadata_mappings()));
+  SetMetadataPayloads(TypedDataView::Handle(Z, info.metadata_payloads()));
+  SetMetadataMappings(TypedDataView::Handle(Z, info.metadata_mappings()));
   SetConstants(Array::Handle(Z, info.constants()));
-  SetConstantsTable(ExternalTypedData::Handle(Z, info.constants_table()));
+  SetConstantsTable(TypedDataView::Handle(Z, info.constants_table()));
   SetKernelProgramInfo(info);
 }
 
@@ -92,7 +85,7 @@ void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
   string_offsets_ = string_offsets.ptr();
 }
 
-void TranslationHelper::SetStringData(const ExternalTypedData& string_data) {
+void TranslationHelper::SetStringData(const TypedDataView& string_data) {
   ASSERT(string_data_.IsNull());
   string_data_ = string_data.ptr();
 }
@@ -103,14 +96,14 @@ void TranslationHelper::SetCanonicalNames(const TypedData& canonical_names) {
 }
 
 void TranslationHelper::SetMetadataPayloads(
-    const ExternalTypedData& metadata_payloads) {
+    const TypedDataView& metadata_payloads) {
   ASSERT(metadata_payloads_.IsNull());
   ASSERT(Utils::IsAligned(metadata_payloads.DataAddr(0), kWordSize));
   metadata_payloads_ = metadata_payloads.ptr();
 }
 
 void TranslationHelper::SetMetadataMappings(
-    const ExternalTypedData& metadata_mappings) {
+    const TypedDataView& metadata_mappings) {
   ASSERT(metadata_mappings_.IsNull());
   metadata_mappings_ = metadata_mappings.ptr();
 }
@@ -122,7 +115,7 @@ void TranslationHelper::SetConstants(const Array& constants) {
 }
 
 void TranslationHelper::SetConstantsTable(
-    const ExternalTypedData& constants_table) {
+    const TypedDataView& constants_table) {
   ASSERT(constants_table_.IsNull());
   constants_table_ = constants_table.ptr();
 }
@@ -1527,7 +1520,7 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
 #if defined(DEBUG)
 
 void MetadataHelper::VerifyMetadataMappings(
-    const ExternalTypedData& metadata_mappings) {
+    const TypedDataView& metadata_mappings) {
   const intptr_t kUInt32Size = 4;
   Reader reader(metadata_mappings);
   if (reader.size() == 0) {
@@ -2295,7 +2288,7 @@ void KernelReaderHelper::SkipDartType() {
       }
       return;
     }
-    case kInlineType: {
+    case kExtensionType: {
       ReadNullability();
       SkipCanonicalNameReference();  // read index for canonical name.
       SkipListOfDartTypes();         // read type arguments
@@ -3074,8 +3067,7 @@ String& KernelReaderHelper::SourceTableImportUriFor(intptr_t index) {
   return H.DartString(reader_.BufferAt(ReaderOffset()), size, Heap::kOld);
 }
 
-ExternalTypedDataPtr KernelReaderHelper::GetConstantCoverageFor(
-    intptr_t index) {
+TypedDataViewPtr KernelReaderHelper::GetConstantCoverageFor(intptr_t index) {
   AlternativeReadingScope alt(&reader_);
   SetOffset(GetOffsetForSourceInfo(index));
   SkipBytes(ReadUInt());                         // skip uri.
@@ -3098,7 +3090,7 @@ ExternalTypedDataPtr KernelReaderHelper::GetConstantCoverageFor(
 
   intptr_t end_offset = ReaderOffset();
 
-  return reader_.ExternalDataFromTo(start_offset, end_offset);
+  return reader_.ViewFromTo(start_offset, end_offset);
 }
 
 intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
@@ -3266,8 +3258,8 @@ void TypeTranslator::BuildTypeInternal() {
     case kIntersectionType:
       BuildIntersectionType();
       break;
-    case kInlineType:
-      BuildInlineType();
+    case kExtensionType:
+      BuildExtensionType();
       break;
     case kFutureOrType:
       BuildFutureOrType();
@@ -3580,8 +3572,9 @@ void TypeTranslator::BuildTypeParameterType() {
     return;
   }
 
+  const auto& script = Script::Handle(Z, Script());
   H.ReportError(
-      helper_->script(), TokenPosition::kNoSource,
+      script, TokenPosition::kNoSource,
       "Unbound type parameter found in %s.  Please report this at dartbug.com.",
       active_class_->ToCString());
 }
@@ -3591,8 +3584,8 @@ void TypeTranslator::BuildIntersectionType() {
   helper_->SkipDartType();  // read right.
 }
 
-void TypeTranslator::BuildInlineType() {
-  // We skip the inline type and only use the representation type.
+void TypeTranslator::BuildExtensionType() {
+  // We skip the extension type and only use the representation type.
   helper_->ReadNullability();
   helper_->SkipCanonicalNameReference();  // read index for canonical name.
   helper_->SkipListOfDartTypes();         // read type arguments

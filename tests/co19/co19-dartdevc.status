@@ -8,6 +8,7 @@ Language/Expressions/Constants/integer_size_t04: SkipByDesign # uses integer lit
 Language/Expressions/Constants/literal_number_t01: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Constants/math_operators_t01: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Constants/math_operators_t06: SkipByDesign # uses integer literal not representable as JavaScript number
+Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t04: SkipByDesign # uses external functions
 Language/Expressions/Numbers/integer_size_t03: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Numbers/static_type_of_int_t01: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Numbers/syntax_t06: SkipByDesign # uses integer literal not representable as JavaScript number
@@ -17,11 +18,18 @@ Language/Expressions/Shift/integer_t06: SkipByDesign # uses integer literal not 
 Language/Expressions/Shift/integer_t07: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign # dart:isolate not supported.
 Language/Functions/External_Functions/not_connected_to_a_body_t01: SkipByDesign # External variables are not supported
+Language/Functions/External_Functions/not_connected_to_a_body_t02: SkipByDesign # External variables are not supported
+Language/Functions/External_Functions/not_connected_to_a_body_t03: SkipByDesign # External variables are not supported
+Language/Functions/External_Functions/not_connected_to_a_body_t04: SkipByDesign # External variables are not supported
+Language/Functions/External_Functions/not_connected_to_a_body_t05: SkipByDesign # External variables are not supported
+Language/Functions/External_Functions/not_connected_to_a_body_t06: SkipByDesign # External variables are not supported
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: SkipByDesign # Uses dart:io.
 Language/Libraries_and_Scripts/Scripts/top_level_main_t06: SkipByDesign # Uses dart:io.
 Language/Libraries_and_Scripts/Scripts/top_level_syntax_t01: SkipByDesign # External variables are not supported
 Language/Libraries_and_Scripts/top_level_syntax_t01: SkipByDesign # External variables are not supported
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: SkipByDesign # binary '~' produces different results in JavaScript and Dart
+Language/Statements/For/Asynchronous_For_in/execution_A02_t01: Skip # Issue 49622
+Language/Statements/For/Asynchronous_For_in/execution_A02_t02: Skip # Issue 49622
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t01: SkipByDesign # External variables are not supported
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t02: SkipByDesign # External variables are not supported
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t03: SkipByDesign # External variables are not supported

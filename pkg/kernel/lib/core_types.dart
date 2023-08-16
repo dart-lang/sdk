@@ -114,8 +114,8 @@ class CoreTypes {
       new Map<Class, InterfaceType>.identity();
   final Map<Class, InterfaceType> _thisInterfaceTypes =
       new Map<Class, InterfaceType>.identity();
-  final Map<InlineClass, InlineType> _thisInlineTypes =
-      new Map<InlineClass, InlineType>.identity();
+  final Map<ExtensionTypeDeclaration, ExtensionType> _thisExtensionTypes =
+      new Map<ExtensionTypeDeclaration, ExtensionType>.identity();
   final Map<Typedef, TypedefType> _thisTypedefTypes =
       new Map<Typedef, TypedefType>.identity();
   final Map<Class, InterfaceType> _bottomInterfaceTypes =
@@ -1094,14 +1094,15 @@ class CoreTypes {
     return result;
   }
 
-  InlineType thisInlineType(InlineClass klass, Nullability nullability) {
-    InlineType? result = _thisInlineTypes[klass];
+  ExtensionType thisExtensionType(
+      ExtensionTypeDeclaration klass, Nullability nullability) {
+    ExtensionType? result = _thisExtensionTypes[klass];
     if (result == null) {
-      return _thisInlineTypes[klass] = new InlineType(klass, nullability,
+      return _thisExtensionTypes[klass] = new ExtensionType(klass, nullability,
           getAsTypeArguments(klass.typeParameters, klass.enclosingLibrary));
     }
     if (result.nullability != nullability) {
-      return _thisInlineTypes[klass] =
+      return _thisExtensionTypes[klass] =
           result.withDeclaredNullability(nullability);
     }
     return result;
@@ -1164,10 +1165,11 @@ class CoreTypes {
       return isTop(type.typeArgument);
     }
 
-    // If the instantiated representation type, R, is a top type then the inline
-    // type, V0, is a top type, otherwise V0 is a proper subtype of Object?.
+    // If the instantiated representation type, R, is a top type then the
+    // extension type, V0, is a top type, otherwise V0 is a proper subtype of
+    // Object?.
     // TODO(johnniwinther): Is this correct?
-    if (type is InlineType) {
+    if (type is ExtensionType) {
       return isTop(type.instantiatedRepresentationType);
     }
 

@@ -46,6 +46,15 @@ void f() {
     ]);
   }
 
+  test_if_map() async {
+    await assertErrorsInCode(r'''
+const dynamic nonBool = null;
+const c = const {if (nonBool) 'a' : 1};
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 51, 7),
+    ]);
+  }
+
   test_if_null() async {
     await assertErrorsInCode(r'''
 void f(Null a) {
@@ -53,6 +62,15 @@ void f(Null a) {
 }
 ''', [
       error(CompileTimeErrorCode.NON_BOOL_CONDITION, 23, 1),
+    ]);
+  }
+
+  test_if_set() async {
+    await assertErrorsInCode(r'''
+const dynamic nonBool = 'a';
+const c = const {if (nonBool) 3};
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 50, 7),
     ]);
   }
 

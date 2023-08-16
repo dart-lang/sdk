@@ -26,6 +26,16 @@ abstract class DelayedExpression {
   Expression createExpression(TypeEnvironment typeEnvironment,
       {List<Expression>? effects, required bool inCacheInitializer});
 
+  /// Adds the effect of evaluating this expression into [results].
+  ///
+  /// If [effects] is provided, observable effects of a partial evaluation of
+  /// the expression must be put in [effects] instead of [results].
+  ///
+  /// This is only supported for expressions for which [isEffectOnly] is `true`.
+  void createStatements(
+      TypeEnvironment typeEnvironment, List<Statement> results,
+      {List<Statement>? effects});
+
   /// Returns the type of the resulting expression.
   DartType getType(TypeEnvironment typeEnvironment);
 
@@ -34,6 +44,15 @@ abstract class DelayedExpression {
   /// Implementations must call recursively into subexpression, such that both
   /// direct and indirect use is counted.
   void registerUse();
+
+  /// If `true`, this expression, when used for pattern matching, does not
+  /// perform any tests.
+  ///
+  /// This occurs when for instance a pattern variable declaration or pattern
+  /// assignment is statically known to match. Such matches can be encoded as a
+  /// sequence of assignments, instead of an if-statement that assigns as a
+  /// side effect of matching and throws if the match fails.
+  bool get isEffectOnly;
 
   /// Returns `true` if this expression or subexpressions uses [expression].
   ///
@@ -52,10 +71,23 @@ abstract class DelayedExpression {
   bool uses(DelayedExpression expression);
 }
 
+abstract mixin class AbstractDelayedExpression implements DelayedExpression {
+  @override
+  void createStatements(
+      TypeEnvironment typeEnvironment, List<Statement> results,
+      {List<Statement>? effects}) {
+    results.add(createExpressionStatement(
+        createExpression(typeEnvironment, inCacheInitializer: false)));
+  }
+
+  @override
+  bool get isEffectOnly => false;
+}
+
 /// A [DelayedExpression] based on an explicit [Expression] value.
 ///
 /// This expression can only be used once.
-class FixedExpression implements DelayedExpression {
+class FixedExpression extends AbstractDelayedExpression {
   final Expression _expression;
   final DartType _type;
 
@@ -83,7 +115,7 @@ class FixedExpression implements DelayedExpression {
 }
 
 /// A bool literal expression of the boolean [value].
-class BooleanExpression implements DelayedExpression {
+class BooleanExpression extends AbstractDelayedExpression {
   final bool value;
   final int fileOffset;
 
@@ -107,7 +139,7 @@ class BooleanExpression implements DelayedExpression {
 }
 
 /// An int literal expression of the integer [value].
-class IntegerExpression implements DelayedExpression {
+class IntegerExpression extends AbstractDelayedExpression {
   final int value;
   final int fileOffset;
 
@@ -166,6 +198,9 @@ class DelayedAndExpression implements DelayedExpression {
       _left.uses(expression) ||
       _right.uses(expression);
 
+  @override
+  bool get isEffectOnly => _left.isEffectOnly && _right.isEffectOnly;
+
   static DelayedExpression merge(
       DelayedExpression? left, DelayedExpression right,
       {required int fileOffset}) {
@@ -181,10 +216,18 @@ class DelayedAndExpression implements DelayedExpression {
       return right;
     }
   }
+
+  @override
+  void createStatements(
+      TypeEnvironment typeEnvironment, List<Statement> results,
+      {List<Statement>? effects}) {
+    _left.createStatements(typeEnvironment, results, effects: effects);
+    _right.createStatements(typeEnvironment, results, effects: effects);
+  }
 }
 
 /// A lazy-or expression of the [_left] and [_right] expressions.
-class DelayedOrExpression implements DelayedExpression {
+class DelayedOrExpression extends AbstractDelayedExpression {
   final DelayedExpression _left;
   final DelayedExpression _right;
   final int fileOffset;
@@ -221,7 +264,7 @@ class DelayedOrExpression implements DelayedExpression {
 
 /// A conditional expression of the [_condition], [_then] and [_otherwise]
 /// expressions.
-class DelayedConditionalExpression implements DelayedExpression {
+class DelayedConditionalExpression extends AbstractDelayedExpression {
   final DelayedExpression _condition;
   final DelayedExpression _then;
   final DelayedExpression _otherwise;
@@ -264,7 +307,7 @@ class DelayedConditionalExpression implements DelayedExpression {
 }
 
 /// A read of [_variable].
-class VariableGetExpression implements DelayedExpression {
+class VariableGetExpression extends AbstractDelayedExpression {
   final VariableDeclaration _variable;
   final int fileOffset;
 
@@ -301,7 +344,7 @@ class VariableGetExpression implements DelayedExpression {
 /// assign to a final variable. This is used for encoding initialization of
 /// final pattern variables.
 // TODO(johnniwinther): Should we instead mark the variable as non-final?
-class VariableSetExpression implements DelayedExpression {
+class VariableSetExpression extends AbstractDelayedExpression {
   final VariableDeclaration _variable;
   final DelayedExpression _value;
   final bool allowFinalAssignment;
@@ -313,22 +356,12 @@ class VariableSetExpression implements DelayedExpression {
   @override
   Expression createExpression(TypeEnvironment typeEnvironment,
       {List<Expression>? effects, required bool inCacheInitializer}) {
-    VariableDeclaration variable = _variable;
-    if (variable is VariableDeclarationImpl && variable.lateSetter != null) {
-      return createLocalFunctionInvocation(variable.lateSetter!,
-          arguments: createArguments([
-            _value.createExpression(typeEnvironment,
-                effects: effects, inCacheInitializer: inCacheInitializer)
-          ], fileOffset: fileOffset),
-          fileOffset: fileOffset);
-    } else {
-      return createVariableSet(
-          _variable,
-          _value.createExpression(typeEnvironment,
-              effects: effects, inCacheInitializer: inCacheInitializer),
-          allowFinalAssignment: allowFinalAssignment,
-          fileOffset: fileOffset);
-    }
+    return createVariableSet(
+        _variable,
+        _value.createExpression(typeEnvironment,
+            effects: effects, inCacheInitializer: inCacheInitializer),
+        allowFinalAssignment: allowFinalAssignment,
+        fileOffset: fileOffset);
   }
 
   @override
@@ -407,10 +440,110 @@ class EffectExpression implements DelayedExpression {
       _effect.uses(expression) ||
       _result.uses(expression) ||
       (_lateEffect != null && _lateEffect!.uses(expression));
+
+  @override
+  bool get isEffectOnly => _result.isEffectOnly;
+
+  @override
+  void createStatements(
+      TypeEnvironment typeEnvironment, List<Statement> results,
+      {List<Statement>? effects}) {
+    _effect.createStatements(typeEnvironment, results, effects: effects);
+    _result.createStatements(typeEnvironment, results, effects: effects);
+    if (_lateEffect != null) {
+      if (effects != null) {
+        _lateEffect!.createStatements(typeEnvironment, effects);
+      } else {
+        _lateEffect!.createStatements(typeEnvironment, results);
+      }
+    }
+  }
+}
+
+/// A expression that assigns [_value] to [_target].
+///
+/// If [hasEffect] is `true`, the assignment uses a temporary variable created
+/// through [_cache] to separate the evaluation of [_value] from the assignment
+/// to [_target].
+class DelayedAssignment extends DelayedExpression {
+  final MatchingCache _cache;
+  final VariableDeclaration _target;
+  final DartType _type;
+  final DelayedExpression _value;
+  final bool hasEffect;
+  final int fileOffset;
+
+  DelayedAssignment(this._cache, this._target, this._type, this._value,
+      {required this.hasEffect, required this.fileOffset});
+
+  @override
+  Expression createExpression(TypeEnvironment typeEnvironment,
+      {List<Expression>? effects, required bool inCacheInitializer}) {
+    if (effects != null && hasEffect) {
+      VariableDeclaration tempVariable =
+          _cache.createTemporaryVariable(_type, fileOffset: fileOffset);
+      effects.add(createVariableSet(_target, createVariableGet(tempVariable),
+          allowFinalAssignment: true, fileOffset: fileOffset));
+      return createLetEffect(
+          effect: createVariableSet(
+              tempVariable,
+              _value.createExpression(typeEnvironment,
+                  effects: effects, inCacheInitializer: inCacheInitializer),
+              fileOffset: fileOffset),
+          result: createBoolLiteral(true, fileOffset: fileOffset));
+    } else {
+      return createLetEffect(
+          effect: createVariableSet(
+              _target,
+              _value.createExpression(typeEnvironment,
+                  effects: effects, inCacheInitializer: inCacheInitializer),
+              allowFinalAssignment: true,
+              fileOffset: fileOffset),
+          result: createBoolLiteral(true, fileOffset: fileOffset));
+    }
+  }
+
+  @override
+  void createStatements(
+      TypeEnvironment typeEnvironment, List<Statement> results,
+      {List<Statement>? effects}) {
+    if (effects != null && hasEffect) {
+      VariableDeclaration tempVariable =
+          _cache.createTemporaryVariable(_type, fileOffset: fileOffset);
+      results.add(createExpressionStatement(createVariableSet(tempVariable,
+          _value.createExpression(typeEnvironment, inCacheInitializer: false),
+          fileOffset: fileOffset)));
+      effects.add(createExpressionStatement(createVariableSet(
+          _target, createVariableGet(tempVariable),
+          fileOffset: fileOffset)));
+    } else {
+      results.add(createExpressionStatement(createVariableSet(_target,
+          _value.createExpression(typeEnvironment, inCacheInitializer: false),
+          allowFinalAssignment: true, fileOffset: fileOffset)));
+    }
+  }
+
+  @override
+  DartType getType(TypeEnvironment typeEnvironment) {
+    return typeEnvironment.coreTypes.boolNonNullableRawType;
+  }
+
+  @override
+  bool get isEffectOnly => true;
+
+  @override
+  void registerUse() {
+    _value.registerUse();
+  }
+
+  @override
+  bool uses(DelayedExpression expression) {
+    return identical(this, expression) || _value.uses(expression);
+  }
 }
 
 /// An is-test of [_operand] against [_type].
-class DelayedIsExpression implements DelayedExpression {
+class DelayedIsExpression extends AbstractDelayedExpression {
   final DelayedExpression _operand;
   final DartType _type;
   final int fileOffset;
@@ -444,7 +577,7 @@ class DelayedIsExpression implements DelayedExpression {
 }
 
 /// An as-cast of [_operand] against [_type].
-class DelayedAsExpression implements DelayedExpression {
+class DelayedAsExpression extends AbstractDelayedExpression {
   final DelayedExpression _operand;
   final DartType _type;
   final bool isUnchecked;
@@ -497,7 +630,7 @@ class DelayedAsExpression implements DelayedExpression {
 }
 
 /// An null-assert, e!, of [_operand].
-class DelayedNullAssertExpression implements DelayedExpression {
+class DelayedNullAssertExpression extends AbstractDelayedExpression {
   final DelayedExpression _operand;
   final int fileOffset;
 
@@ -528,7 +661,7 @@ class DelayedNullAssertExpression implements DelayedExpression {
 }
 
 /// An null check,e != null, of [_operand].
-class DelayedNullCheckExpression implements DelayedExpression {
+class DelayedNullCheckExpression extends AbstractDelayedExpression {
   final DelayedExpression _operand;
   final int fileOffset;
 
@@ -563,7 +696,7 @@ class DelayedNullCheckExpression implements DelayedExpression {
 /// The [_resultType] is the static type of expression. If [isObjectAccess] is
 /// `true`, the [_target] is an Object member accessed on a non-Object type,
 /// for instance a nullable access to `hashCode`.
-class DelayedInstanceGet implements DelayedExpression {
+class DelayedInstanceGet extends AbstractDelayedExpression {
   final CacheableExpression _receiver;
   final Member _target;
   final DartType _resultType;
@@ -620,7 +753,7 @@ class DelayedInstanceGet implements DelayedExpression {
 /// An access to [_propertyName] on [_receiver] with no statically known target.
 ///
 /// The [_resultType] is the static type of expression.
-class DelayedDynamicGet implements DelayedExpression {
+class DelayedDynamicGet extends AbstractDelayedExpression {
   final CacheableExpression _receiver;
   final Name _propertyName;
   final DynamicAccessKind _kind;
@@ -660,7 +793,7 @@ class DelayedDynamicGet implements DelayedExpression {
 /// An access to `call` on the function typed [_receiver].
 ///
 /// The [_resultType] is the static type of expression.
-class DelayedFunctionTearOff implements DelayedExpression {
+class DelayedFunctionTearOff extends AbstractDelayedExpression {
   final CacheableExpression _receiver;
   final DartType _resultType;
   final int fileOffset;
@@ -695,7 +828,7 @@ class DelayedFunctionTearOff implements DelayedExpression {
 /// [_arguments] and no statically known target.
 ///
 /// The [_resultType] is the static type of expression.
-class DelayedDynamicInvocation implements DelayedExpression {
+class DelayedDynamicInvocation extends AbstractDelayedExpression {
   final CacheableExpression _receiver;
   final Name _methodName;
   final List<DelayedExpression> _arguments;
@@ -752,7 +885,7 @@ class DelayedDynamicInvocation implements DelayedExpression {
 /// An indexed record field access on [_receiver] of type [_recordType].
 ///
 /// The [_resultType] is the static type of expression.
-class DelayedRecordIndexGet implements DelayedExpression {
+class DelayedRecordIndexGet extends AbstractDelayedExpression {
   final CacheableExpression _receiver;
   final RecordType _recordType;
   final int _index;
@@ -790,7 +923,7 @@ class DelayedRecordIndexGet implements DelayedExpression {
 /// An access of record field [_name] on [_receiver] of type [_recordType].
 ///
 /// The [_resultType] is the static type of expression.
-class DelayedRecordNameGet implements DelayedExpression {
+class DelayedRecordNameGet extends AbstractDelayedExpression {
   final CacheableExpression _receiver;
   final RecordType _recordType;
   final String _name;
@@ -836,7 +969,7 @@ class DelayedRecordNameGet implements DelayedExpression {
 /// An invocation of [_target] on [receiver] with the positional [_arguments].
 ///
 /// The [_functionType] is the static type of the invocation.
-class DelayedInstanceInvocation implements DelayedExpression {
+class DelayedInstanceInvocation extends AbstractDelayedExpression {
   final CacheableExpression _receiver;
   final Procedure _target;
   final FunctionType _functionType;
@@ -891,11 +1024,11 @@ class DelayedInstanceInvocation implements DelayedExpression {
   }
 }
 
-/// A static invocation of the lowered extension or inline class [_target] with
-/// the provided [_arguments] and [_typeArguments].
+/// A static invocation of the lowered extension or extension type declaration
+/// [_target] with the provided [_arguments] and [_typeArguments].
 ///
 /// The [_functionType] is the static type of the invocation.
-class DelayedExtensionInvocation implements DelayedExpression {
+class DelayedExtensionInvocation extends AbstractDelayedExpression {
   final Procedure _target;
   final List<DelayedExpression> _arguments;
   final List<DartType> _typeArguments;
@@ -947,7 +1080,7 @@ class DelayedExtensionInvocation implements DelayedExpression {
 
 /// An invocation of the `==` operator [_target] of type [_functionType] on
 /// [_left]  with [_right].
-class DelayedEqualsExpression implements DelayedExpression {
+class DelayedEqualsExpression extends AbstractDelayedExpression {
   final CacheableExpression _left;
   final DelayedExpression _right;
   final Procedure _target;
@@ -990,7 +1123,7 @@ class DelayedEqualsExpression implements DelayedExpression {
 }
 
 /// A negation of [_expression].
-class DelayedNotExpression implements DelayedExpression {
+class DelayedNotExpression extends AbstractDelayedExpression {
   final DelayedExpression _expression;
 
   DelayedNotExpression(this._expression);

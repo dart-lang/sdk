@@ -8,6 +8,7 @@
 #define RUNTIME_INCLUDE_ANALYZE_SNAPSHOT_API_H_
 
 #include <stdint.h>
+#include <optional>
 
 namespace dart {
 namespace snapshot_analyzer {
@@ -18,11 +19,10 @@ typedef struct {
   const uint8_t* vm_isolate_instructions;
 } Dart_SnapshotAnalyzerInformation;
 
-void Dart_DumpSnapshotInformationAsJson(char** buffer,
-                                        intptr_t* buffer_length,
-                                        Dart_SnapshotAnalyzerInformation* info);
-
-void Dart_DumpSnapshotInformationPP(Dart_SnapshotAnalyzerInformation* info);
+void Dart_DumpSnapshotInformationAsJson(
+    const Dart_SnapshotAnalyzerInformation& info,
+    char** buffer,
+    intptr_t* buffer_length);
 
 }  // namespace snapshot_analyzer
 }  // namespace dart

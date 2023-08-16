@@ -87,4 +87,4 @@ worlds:
 
         class Baz extends Bar<int> {}
     expectedLibraryCount: 3
-    advancedInvalidation: outlineChange
+    advancedInvalidation: problemsInLibrary

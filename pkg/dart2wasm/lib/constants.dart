@@ -20,8 +20,8 @@ const int maxArrayNewFixedLength = 10000;
 
 class ConstantInfo {
   final Constant constant;
-  final w.DefinedGlobal global;
-  final w.DefinedFunction? function;
+  final w.Global global;
+  final w.BaseFunction? function;
 
   ConstantInfo(this.constant, this.global, this.function);
 
@@ -29,7 +29,7 @@ class ConstantInfo {
 }
 
 typedef ConstantCodeGenerator = void Function(
-    w.DefinedFunction?, w.Instructions);
+    w.FunctionBuilder?, w.InstructionsBuilder);
 
 /// Handles the creation of Dart constants.
 ///
@@ -47,9 +47,9 @@ typedef ConstantCodeGenerator = void Function(
 class Constants {
   final Translator translator;
   final Map<Constant, ConstantInfo> constantInfo = {};
-  w.DataSegment? oneByteStringSegment;
-  w.DataSegment? twoByteStringSegment;
-  late final w.DefinedGlobal emptyTypeList;
+  w.DataSegmentBuilder? oneByteStringSegment;
+  w.DataSegmentBuilder? twoByteStringSegment;
+  late final w.Global emptyTypeList;
   late final ClassInfo typeInfo = translator.classInfo[translator.typeClass]!;
 
   bool currentlyCreating = false;
@@ -58,7 +58,7 @@ class Constants {
     _initEmptyTypeList();
   }
 
-  w.Module get m => translator.m;
+  w.ModuleBuilder get m => translator.m;
 
   void _initEmptyTypeList() {
     ClassInfo info = translator.classInfo[translator.immutableListClass]!;
@@ -66,8 +66,9 @@ class Constants {
 
     // Create the empty type list with its type parameter uninitialized for now.
     w.RefType emptyListType = info.nonNullableType;
-    emptyTypeList = m.addGlobal(w.GlobalType(emptyListType, mutable: false));
-    w.Instructions ib = emptyTypeList.initializer;
+    final emptyTypeListBuilder =
+        m.globals.define(w.GlobalType(emptyListType, mutable: false));
+    w.InstructionsBuilder ib = emptyTypeListBuilder.initializer;
     ib.i32_const(info.classId);
     ib.i32_const(initialIdentityHash);
     ib.ref_null(w.HeapType.none); // Initialized later
@@ -75,6 +76,7 @@ class Constants {
     ib.array_new_fixed(translator.listArrayType, 0);
     ib.struct_new(info.struct);
     ib.end(); // end of global initializer expression
+    emptyTypeList = emptyTypeListBuilder;
 
     Constant emptyTypeListConstant = ListConstant(
         InterfaceType(translator.typeClass, Nullability.nonNullable), const []);
@@ -83,7 +85,7 @@ class Constants {
 
     // Initialize the type parameter of the empty type list to the type object
     // for _Type, which itself refers to the empty type list.
-    w.Instructions b = translator.initFunction.body;
+    final b = translator.initFunction.body;
     b.global_get(emptyTypeList);
     instantiateConstant(
         translator.initFunction,
@@ -132,7 +134,7 @@ class Constants {
   }
 
   /// Emit code to push a constant onto the stack.
-  void instantiateConstant(w.DefinedFunction? function, w.Instructions b,
+  void instantiateConstant(w.BaseFunction? function, w.InstructionsBuilder b,
       Constant constant, w.ValueType expectedType) {
     if (expectedType == translator.voidMarker) return;
     ConstantInstantiator(this, function, b, expectedType).instantiate(constant);
@@ -141,15 +143,15 @@ class Constants {
 
 class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
   final Constants constants;
-  final w.DefinedFunction? function;
-  final w.Instructions b;
+  final w.BaseFunction? function;
+  final w.InstructionsBuilder b;
   final w.ValueType expectedType;
 
   ConstantInstantiator(
       this.constants, this.function, this.b, this.expectedType);
 
   Translator get translator => constants.translator;
-  w.Module get m => translator.m;
+  w.ModuleBuilder get m => translator.m;
 
   void instantiate(Constant constant) {
     w.ValueType resultType = constant.accept(this);
@@ -260,7 +262,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
   Translator get translator => constants.translator;
   Types get types => translator.types;
-  w.Module get m => constants.m;
+  w.ModuleBuilder get m => constants.m;
 
   ConstantInfo? ensureConstant(Constant constant) {
     ConstantInfo? info = constants.constantInfo[constant];
@@ -279,15 +281,14 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     assert(!type.nullable);
     if (lazy) {
       // Create uninitialized global and function to initialize it.
-      w.DefinedGlobal global =
-          m.addGlobal(w.GlobalType(type.withNullability(true)));
+      final global = m.globals.define(w.GlobalType(type.withNullability(true)));
       global.initializer.ref_null(w.HeapType.none);
       global.initializer.end();
-      w.FunctionType ftype = m.addFunctionType(const [], [type]);
-      w.DefinedFunction function = m.addFunction(ftype, "$constant");
+      w.FunctionType ftype = m.types.defineFunction(const [], [type]);
+      final function = m.functions.define(ftype, "$constant");
       generator(function, function.body);
       w.Local temp = function.addLocal(type);
-      w.Instructions b2 = function.body;
+      final b2 = function.body;
       b2.local_tee(temp);
       b2.global_set(global);
       b2.local_get(temp);
@@ -298,7 +299,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       // Create global with the constant in its initializer.
       assert(!constants.currentlyCreating);
       constants.currentlyCreating = true;
-      w.DefinedGlobal global = m.addGlobal(w.GlobalType(type, mutable: false));
+      final global = m.globals.define(w.GlobalType(type, mutable: false));
       generator(null, global.initializer);
       global.initializer.end();
       constants.currentlyCreating = false;
@@ -358,14 +359,14 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i32_const(initialIdentityHash);
       if (lazy) {
         // Initialize string contents from passive data segment.
-        w.DataSegment segment;
+        w.DataSegmentBuilder segment;
         Uint8List bytes;
         if (isOneByte) {
-          segment = constants.oneByteStringSegment ??= m.addDataSegment();
+          segment = constants.oneByteStringSegment ??= m.dataSegments.define();
           bytes = Uint8List.fromList(constant.value.codeUnits);
         } else {
           assert(Endian.host == Endian.little);
-          segment = constants.twoByteStringSegment ??= m.addDataSegment();
+          segment = constants.twoByteStringSegment ??= m.dataSegments.define();
           bytes = Uint16List.fromList(constant.value.codeUnits)
               .buffer
               .asUint8List();
@@ -617,11 +618,11 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
     final tearOffConstantInfo = ensureConstant(tearOffConstant)!;
 
-    w.DefinedFunction makeDynamicCallEntry() {
-      final w.DefinedFunction function = m.addFunction(
+    w.BaseFunction makeDynamicCallEntry() {
+      final function = m.functions.define(
           translator.dynamicCallVtableEntryFunctionType, "dynamic call entry");
 
-      final w.Instructions b = function.body;
+      final b = function.body;
 
       final closureLocal = function.locals[0];
       final typeArgsListLocal = function.locals[1]; // empty
@@ -643,19 +644,19 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     // Dynamic call entry needs to be created first (before `createConstant`)
     // as it needs to create a constant for the type list, and we cannot create
     // a constant while creating another one.
-    final w.DefinedFunction dynamicCallEntry = makeDynamicCallEntry();
+    final w.BaseFunction dynamicCallEntry = makeDynamicCallEntry();
 
     return createConstant(constant, type, (function, b) {
       ClassInfo info = translator.closureInfo;
       translator.functions.allocateClass(info.classId);
 
-      w.DefinedFunction makeTrampoline(
-          w.FunctionType signature, w.DefinedFunction tearOffFunction) {
+      w.BaseFunction makeTrampoline(
+          w.FunctionType signature, w.BaseFunction tearOffFunction) {
         assert(tearOffFunction.type.inputs.length ==
             signature.inputs.length + types.length);
-        w.DefinedFunction function =
-            m.addFunction(signature, "instantiation constant trampoline");
-        w.Instructions b = function.body;
+        final function =
+            m.functions.define(signature, "instantiation constant trampoline");
+        final b = function.body;
         b.local_get(function.locals[0]);
         for (ConstantInfo typeInfo in types) {
           b.global_get(typeInfo.global);
@@ -676,9 +677,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
         w.FunctionType signature =
             representation.getVtableFieldType(fieldIndex);
-        w.DefinedFunction tearOffFunction = tearOffClosure.functions[
+        w.BaseFunction tearOffFunction = tearOffClosure.functions[
             tearOffFieldIndex - tearOffClosure.representation.vtableBaseIndex];
-        w.DefinedFunction function =
+        w.BaseFunction function =
             translator.globals.isDummyFunction(tearOffFunction)
                 ? translator.globals.getDummyFunction(signature)
                 : makeTrampoline(signature, tearOffFunction);
@@ -806,7 +807,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       return _makeFutureOrType(constant, type, info);
     } else if (type is FunctionType) {
       return _makeFunctionType(constant, type, info);
-    } else if (type is InlineType) {
+    } else if (type is ExtensionType) {
       return ensureConstant(
           TypeLiteralConstant(type.instantiatedRepresentationType));
     } else if (type is TypeParameterType) {

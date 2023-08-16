@@ -202,7 +202,7 @@ class Types {
   /// implement.
   /// TODO(joshualitt): This implementation is just temporary. Eventually we
   /// should move to a data structure more closely resembling [typeRules].
-  w.ValueType makeTypeRulesSupers(w.Instructions b) {
+  w.ValueType makeTypeRulesSupers(w.InstructionsBuilder b) {
     w.ValueType expectedType =
         translator.classInfo[translator.immutableListClass]!.nonNullableType;
     DartType listIntType = InterfaceType(translator.immutableListClass,
@@ -222,7 +222,7 @@ class Types {
   /// Similar to the above, but provides the substitutions required for each
   /// supertype.
   /// TODO(joshualitt): Like [makeTypeRulesSupers], this is just temporary.
-  w.ValueType makeTypeRulesSubstitutions(w.Instructions b) {
+  w.ValueType makeTypeRulesSubstitutions(w.InstructionsBuilder b) {
     w.ValueType expectedType =
         translator.classInfo[translator.immutableListClass]!.nonNullableType;
     DartType listTypeType = InterfaceType(
@@ -252,7 +252,7 @@ class Types {
   }
 
   /// Returns a list of string type names for pretty printing types.
-  w.ValueType makeTypeNames(w.Instructions b) {
+  w.ValueType makeTypeNames(w.InstructionsBuilder b) {
     w.ValueType expectedType =
         translator.classInfo[translator.immutableListClass]!.nonNullableType;
     List<StringConstant> listStringConstant = [];
@@ -288,7 +288,6 @@ class Types {
       } else {
         // Masqueraded class
         assert(cls.enclosingLibrary.importUri.scheme == "dart");
-        assert(cls.name.startsWith('_'));
         assert(masquerade.classId >= TypeCategory.minMasqueradeClassId);
         assert(masquerade.classId <= TypeCategory.maxMasqueradeClassId);
         category = masquerade.classId;
@@ -296,17 +295,17 @@ class Types {
       table[i] = category;
     }
 
-    w.DataSegment segment = translator.m.addDataSegment(table);
+    final segment = translator.m.dataSegments.define(table);
     w.ArrayType arrayType =
         translator.wasmArrayType(w.PackedType.i8, "const i8", mutable: false);
-    w.DefinedGlobal global = translator.m
-        .addGlobal(w.GlobalType(w.RefType.def(arrayType, nullable: false)));
+    final global = translator.m.globals
+        .define(w.GlobalType(w.RefType.def(arrayType, nullable: false)));
     // Initialize the global to a dummy array, since `array.new_data` is not
     // a constant instruction and thus can't be used in the initializer.
     global.initializer.array_new_fixed(arrayType, 0);
     global.initializer.end();
     // Create the actual table in the init function.
-    w.Instructions b = translator.initFunction.body;
+    final b = translator.initFunction.body;
     b.i32_const(0);
     b.i32_const(table.length);
     b.array_new_data(arrayType, segment);
@@ -334,7 +333,7 @@ class Types {
             type.positional.every(_isTypeConstant) &&
             type.named.every((n) => _isTypeConstant(n.type))) ||
         type is TypeParameterType && isFunctionTypeParameter(type) ||
-        type is InlineType &&
+        type is ExtensionType &&
             _isTypeConstant(type.instantiatedRepresentationType);
   }
 
@@ -365,7 +364,7 @@ class Types {
       } else {
         return translator.interfaceTypeParameterTypeClass;
       }
-    } else if (type is InlineType) {
+    } else if (type is ExtensionType) {
       return classForType(type.instantiatedRepresentationType);
     } else if (type is RecordType) {
       return translator.recordTypeClass;
@@ -386,7 +385,7 @@ class Types {
   }
 
   void _makeInterfaceType(CodeGenerator codeGen, InterfaceType type) {
-    w.Instructions b = codeGen.b;
+    final b = codeGen.b;
     ClassInfo typeInfo = translator.classInfo[type.classNode]!;
     b.i32_const(encodedNullability(type));
     b.i64_const(typeInfo.classId);
@@ -436,7 +435,7 @@ class Types {
   }
 
   void _makeFutureOrType(CodeGenerator codeGen, FutureOrType type) {
-    w.Instructions b = codeGen.b;
+    final b = codeGen.b;
     b.i32_const(encodedNullability(type));
     makeType(codeGen, type.typeArgument);
     codeGen.call(translator.createNormalizedFutureOrType.reference);
@@ -444,7 +443,7 @@ class Types {
 
   void _makeFunctionType(CodeGenerator codeGen, FunctionType type) {
     int typeParameterOffset = computeFunctionTypeParameterOffset(type);
-    w.Instructions b = codeGen.b;
+    final b = codeGen.b;
     b.i32_const(encodedNullability(type));
     b.i64_const(typeParameterOffset);
 
@@ -501,7 +500,7 @@ class Types {
   w.ValueType makeType(CodeGenerator codeGen, DartType type) {
     // Always ensure type is normalized before making a type.
     type = normalize(type);
-    w.Instructions b = codeGen.b;
+    final b = codeGen.b;
     if (_isTypeConstant(type)) {
       translator.constants.instantiateConstant(
           codeGen.function, b, TypeLiteralConstant(type), nonNullableTypeType);
@@ -510,7 +509,7 @@ class Types {
     // All of the singleton types represented by canonical objects should be
     // created const.
     assert(type is TypeParameterType ||
-        type is InlineType ||
+        type is ExtensionType ||
         type is InterfaceType ||
         type is FutureOrType ||
         type is FunctionType ||
@@ -524,7 +523,7 @@ class Types {
       return nonNullableTypeType;
     }
 
-    if (type is InlineType) {
+    if (type is ExtensionType) {
       return makeType(codeGen, type.instantiatedRepresentationType);
     }
 
@@ -580,7 +579,7 @@ class Types {
   /// TODO(joshualitt): Remove dependency on [CodeGenerator]
   void emitTypeTest(
       CodeGenerator codeGen, DartType type, DartType operandType) {
-    w.Instructions b = codeGen.b;
+    final b = codeGen.b;
     if (type is! InterfaceType) {
       makeType(codeGen, type);
       codeGen.call(translator.isSubtype.reference);

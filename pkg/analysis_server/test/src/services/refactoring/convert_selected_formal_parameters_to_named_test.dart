@@ -28,7 +28,8 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
 void test({int a, required int b, required int c, int d}) {}
 
 void f() {
@@ -46,7 +47,8 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
 void test(int a, {required int b, required int c}) {}
 
 void f() {
@@ -93,7 +95,8 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
 void test(int a, int d, {required int b, required int c}) {}
 
 void f() {
@@ -111,7 +114,8 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
 void test(int a, {required int b}) {}
 
 void f() {
@@ -129,7 +133,8 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
 void test(int a, {required int b, int c}) {}
 
 void f() {
@@ -147,7 +152,8 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
 void test(int a, {required int? b}) {}
 
 void f() {
@@ -189,7 +195,8 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
 void test(int b, {required int a}) {}
 
 void f() {
@@ -207,7 +214,8 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
 void test(int a, {required int b}) {}
 
 void f() {
@@ -225,7 +233,8 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
 void test(int a, int c, {required int b}) {}
 
 void f() {
@@ -245,7 +254,8 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
 void test({
   required int b,
   required int a,
@@ -269,23 +279,21 @@ void f() {
     await _assertNoRefactoring();
   }
 
-  Future<void> _assertNoRefactoring() async {
-    await initializeServer();
-
-    await expectNoCodeAction(
-      ConvertSelectedFormalParametersToNamed.constTitle,
-    );
-  }
-
-  Future<void> _executeRefactoring(String expected) async {
+  Future<void> verifyRefactoring(String expected) async {
     await initializeServer();
 
     final codeAction = await expectCodeAction(
       ConvertSelectedFormalParametersToNamed.constTitle,
     );
 
-    await executeRefactor(codeAction);
+    await verifyCommandEdits(codeAction.command!, expected);
+  }
 
-    assertTextExpectation(content[mainFilePath]!, expected);
+  Future<void> _assertNoRefactoring() async {
+    await initializeServer();
+
+    await expectNoCodeAction(
+      ConvertSelectedFormalParametersToNamed.constTitle,
+    );
   }
 }

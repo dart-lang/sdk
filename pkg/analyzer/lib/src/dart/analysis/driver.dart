@@ -87,7 +87,7 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 278;
+  static const int DATA_VERSION = 296;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -1356,6 +1356,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           libraryContext.elementFactory.libraryOfUri2(library.file.uri),
           libraryContext.elementFactory.analysisSession.inheritanceManager,
           library,
+          resourceProvider.pathContext,
           testingData: testingData,
         ).analyze();
 
@@ -1465,6 +1466,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               libraryContext.elementFactory.libraryOfUri2(library.file.uri),
               libraryContext.elementFactory.analysisSession.inheritanceManager,
               library,
+              resourceProvider.pathContext,
               testingData: testingData)
           .analyze();
       var resolvedUnits = <ResolvedUnitResult>[];
@@ -1924,6 +1926,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         libraryContext.elementFactory.libraryOfUri2(library.file.uri),
         libraryContext.elementFactory.analysisSession.inheritanceManager,
         library,
+        resourceProvider.pathContext,
         testingData: testingData,
       ).analyzeForCompletion(
         file: file,

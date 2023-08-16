@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -21,6 +22,7 @@ class ClassHierarchy {
   }
 
   void remove(InterfaceElement element) {
+    assert(!element.isAugmentation);
     _map.remove(element);
   }
 
@@ -32,8 +34,9 @@ class ClassHierarchy {
   }
 
   _Hierarchy _getHierarchy(InterfaceElement element) {
-    var hierarchy = _map[element];
+    final augmented = element.augmentedOfDeclaration;
 
+    var hierarchy = _map[element];
     if (hierarchy != null) {
       return hierarchy;
     }
@@ -67,15 +70,15 @@ class ClassHierarchy {
     }
 
     append(element.supertype);
-    if (element is MixinElement) {
-      for (var type in element.superclassConstraints) {
+    if (augmented is AugmentedMixinElement) {
+      for (var type in augmented.superclassConstraints) {
         append(type);
       }
     }
-    for (var type in element.interfaces) {
+    for (var type in augmented.interfaces) {
       append(type);
     }
-    for (var type in element.mixins) {
+    for (var type in augmented.mixins) {
       append(type);
     }
 

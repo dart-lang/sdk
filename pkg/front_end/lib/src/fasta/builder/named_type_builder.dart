@@ -287,23 +287,20 @@ abstract class NamedTypeBuilder extends TypeBuilder {
             message.withLocation(fileUri!, typeNameOffset, typeNameLength));
       }
     }
-    if (_declaration!.isExtension &&
-        library is SourceLibraryBuilder &&
-        !library.libraryFeatures.extensionTypes.isEnabled) {
+    if (_declaration!.isExtension && library is SourceLibraryBuilder) {
       int typeNameLength = nameLength;
       int typeNameOffset = nameOffset;
-      Message message = library.reportFeatureNotEnabled(
-          library.libraryFeatures.extensionTypes,
-          fileUri!,
-          typeNameOffset,
-          typeNameLength);
+      // TODO(johnniwinther): Create a custom message.
+      Message message = templateNotAType.withArguments(nameText);
+      library.addProblem(message, typeNameOffset, typeNameLength, fileUri);
       _declaration = buildInvalidTypeDeclarationBuilder(
           message.withLocation(fileUri!, typeNameOffset, typeNameLength));
     } else if (_declaration!.isTypeVariable) {
       TypeVariableBuilder typeParameterBuilder =
           _declaration as TypeVariableBuilder;
       if (typeParameterBuilder.kind == TypeVariableKind.classMixinOrEnum ||
-          typeParameterBuilder.kind == TypeVariableKind.extension ||
+          typeParameterBuilder.kind ==
+              TypeVariableKind.extensionOrExtensionType ||
           typeParameterBuilder.kind == TypeVariableKind.extensionSynthesized) {
         switch (_instanceTypeVariableAccess) {
           case InstanceTypeVariableAccessState.Disallowed:

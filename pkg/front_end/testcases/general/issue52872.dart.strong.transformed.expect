@@ -1,0 +1,47 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue52872.dart:18:10: Error: Required named parameter 'v2' must be provided.
+//   C c = C(true);
+//          ^
+// pkg/front_end/testcases/general/issue52872.dart:15:7: Context: The class 'C' has a constructor that takes no arguments.
+// class C = A with M1;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::bool v1;
+  field core::num v2;
+  constructor •(core::bool v1, {required core::num v2 = #C1}) → self::A
+    : self::A::v1 = v1, self::A::v2 = v2, super core::Object::•()
+    ;
+}
+mixin class M1 extends core::Object {
+  field core::num v2 = 1.{core::int::unary-}(){() → core::int};
+  synthetic constructor •() → self::M1
+    : super core::Object::•()
+    ;
+}
+class C extends self::A implements self::M1 /*isEliminatedMixin*/  {
+  field core::num v2 = 1.{core::int::unary-}(){() → core::int};
+  synthetic constructor •(core::bool v1, {required core::num v2 = #C1}) → self::C
+    : super self::A::•(v1, v2: v2)
+    ;
+}
+static method test() → dynamic {
+  self::C c = invalid-expression "pkg/front_end/testcases/general/issue52872.dart:18:10: Error: Required named parameter 'v2' must be provided.
+  C c = C(true);
+         ^";
+}
+
+constants  {
+  #C1 = null
+}
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///issue52872.dart:12:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///issue52872.dart:12:12 -> IntConstant(-1)
+Extra constant evaluation: evaluated: 6, effectively constant: 2

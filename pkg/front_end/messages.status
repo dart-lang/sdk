@@ -619,8 +619,8 @@ JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
 JsInteropObjectLiteralConstructorPositionalParameters/analyzerCode: Fail # Web compiler specific
 JsInteropObjectLiteralConstructorPositionalParameters/example: Fail # Web compiler specific
-JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/example: Fail # Web compiler specific
+JsInteropStaticInteropExternalMemberWithInvalidTypeParameters/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropExternalMemberWithInvalidTypeParameters/example: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/example: Fail # Web compiler specific
 JsInteropStaticInteropMockMissingGetterOrSetter/analyzerCode: Fail # Web compiler specific
@@ -629,6 +629,8 @@ JsInteropStaticInteropMockMissingImplements/analyzerCode: Fail # Web compiler sp
 JsInteropStaticInteropMockMissingImplements/example: Fail # Web compiler specific
 JsInteropStaticInteropMockNotStaticInteropType/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropMockNotStaticInteropType/example: Fail # Web compiler specific
+JsInteropStaticInteropMockTypeParametersNotAllowed/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropMockTypeParametersNotAllowed/example: Fail # Web compiler specific
 JsInteropStaticInteropNoJSAnnotation/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropNoJSAnnotation/example: Fail # Web compiler specific
 JsInteropStaticInteropParameterInitializersAreIgnored/analyzerCode: Fail # Web compiler specific
@@ -755,6 +757,7 @@ NonAugmentationLibraryMemberConflict/analyzerCode: Fail
 NonAugmentationLibraryMemberConflict/part_wrapped_script: Fail # Uses imports
 NonConstConstructor/example: Fail
 NonConstFactory/example: Fail
+NonCovariantTypeParameterInRepresentationType/analyzerCode: Fail
 NonInstanceTypeVariableUse/example: Fail
 NonNullAwareSpreadIsNull/analyzerCode: Fail # There's no analyzer code for that error yet.
 NonNullableInNullAware/analyzerCode: Fail
@@ -903,6 +906,8 @@ ReturnTypeFunctionExpression/example: Fail
 ReturnWithoutExpressionAsync/analyzerCode: Fail
 ReturnWithoutExpressionSync/analyzerCode: Fail
 ReturnWithoutExpressionSync/part_wrapped_script: Fail
+ScriptTagInPartFile/analyzerCode: Fail
+ScriptTagInPartFile/example: Fail
 SdkRootNotFound/analyzerCode: Fail
 SdkRootNotFound/example: Fail
 SdkSpecificationNotFound/analyzerCode: Fail
@@ -935,6 +940,10 @@ StrongWithWeakDillLibrary/example: Fail
 StrongWithWeakDillLibrary/spelling: Fail
 SuperAsExpression/example: Fail
 SuperAsIdentifier/example: Fail
+SuperExtensionTypeIsIllegal/analyzerCode: Fail
+SuperExtensionTypeIsIllegalAliased/analyzerCode: Fail
+SuperExtensionTypeIsNullableAliased/analyzerCode: Fail
+SuperExtensionTypeIsTypeVariable/analyzerCode: Fail
 SuperNullAware/example: Fail
 SuperParameterInitializerOutsideConstructor/analyzerCode: Fail
 SuperParameterInitializerOutsideConstructor/example: Fail

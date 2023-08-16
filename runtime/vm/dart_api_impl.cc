@@ -1117,34 +1117,6 @@ Dart_NewFinalizableHandle(Dart_Handle object,
                                    callback);
 }
 
-DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
-                                         intptr_t external_size) {
-  Thread* T = Thread::Current();
-  IsolateGroup* isolate_group = T->isolate_group();
-  CHECK_ISOLATE_GROUP(isolate_group);
-  TransitionToVM transition(T);
-  ApiState* state = isolate_group->api_state();
-  ASSERT(state != nullptr);
-  ASSERT(state->IsActiveWeakPersistentHandle(object));
-  auto weak_ref = FinalizablePersistentHandle::Cast(object);
-  weak_ref->UpdateExternalSize(external_size, isolate_group);
-}
-
-DART_EXPORT void Dart_UpdateFinalizableExternalSize(
-    Dart_FinalizableHandle object,
-    Dart_Handle strong_ref_to_object,
-    intptr_t external_allocation_size) {
-  if (!::Dart_IdentityEquals(strong_ref_to_object,
-                             HandleFromFinalizable(object))) {
-    FATAL(
-        "%s expects arguments 'object' and 'strong_ref_to_object' to point to "
-        "the same object.",
-        CURRENT_FUNC);
-  }
-  auto wph_object = reinterpret_cast<Dart_WeakPersistentHandle>(object);
-  ::Dart_UpdateExternalSize(wph_object, external_allocation_size);
-}
-
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
   Thread* T = Thread::Current();
   IsolateGroup* isolate_group = T->isolate_group();
@@ -1491,11 +1463,6 @@ DART_EXPORT void Dart_ShutdownIsolate() {
   {
     StackZone zone(T);
     HandleScope handle_scope(T);
-#if defined(DEBUG)
-    if (T->isolate()->origin_id() == 0) {
-      T->isolate_group()->ValidateConstants();
-    }
-#endif
     Dart::RunShutdownCallback();
   }
   Dart::ShutdownIsolate(T);
@@ -6170,7 +6137,8 @@ Dart_CompileToKernel(const char* script_uri,
                      const uint8_t* platform_kernel,
                      intptr_t platform_kernel_size,
                      bool incremental_compile,
-                     bool snapshot_compile,
+                     bool for_snapshot,
+                     bool embed_sources,
                      const char* package_config,
                      Dart_KernelCompilationVerbosityLevel verbosity) {
   API_TIMELINE_DURATION(Thread::Current());
@@ -6182,8 +6150,8 @@ Dart_CompileToKernel(const char* script_uri,
 #else
   result = KernelIsolate::CompileToKernel(
       script_uri, platform_kernel, platform_kernel_size, 0, nullptr,
-      incremental_compile, snapshot_compile, package_config, nullptr, nullptr,
-      verbosity);
+      incremental_compile, for_snapshot, embed_sources, package_config, nullptr,
+      nullptr, verbosity);
   if (incremental_compile) {
     Dart_KernelCompilationResult ack_result =
         result.status == Dart_KernelCompilationStatus_Ok ?
@@ -6241,11 +6209,10 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
   // kernel file or the kernel file of the application,
   // figure out the null safety mode by sniffing the kernel file.
   if (kernel_buffer != nullptr) {
-    const char* error = nullptr;
-    std::unique_ptr<kernel::Program> program = kernel::Program::ReadFromBuffer(
-        kernel_buffer, kernel_buffer_size, &error);
-    if (program != nullptr) {
-      return program->compilation_mode() == NNBDCompiledMode::kStrong;
+    const auto null_safety =
+        kernel::Program::DetectNullSafety(kernel_buffer, kernel_buffer_size);
+    if (null_safety != NNBDCompiledMode::kInvalid) {
+      return null_safety == NNBDCompiledMode::kStrong;
     }
   }
 #endif

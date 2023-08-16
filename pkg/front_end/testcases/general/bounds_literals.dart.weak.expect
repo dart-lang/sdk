@@ -145,54 +145,54 @@ static method test() → dynamic {
   <self::G<self::Class<dynamic>>, self::G<self::Class<dynamic>>>{};
   <self::G<self::ConcreteClass>, self::G<self::Class<self::ConcreteClass>>>{};
   <self::G<core::Object>, self::G<core::int>>{};
-  block {
+  {
     final core::Set<self::Class<dynamic>> #t1 = col::LinkedHashSet::•<self::Class<dynamic>>();
-  } =>#t1;
-  block {
+  }
+  {
     final core::Set<dynamic> #t2 = col::LinkedHashSet::•<dynamic>();
-  } =>#t2;
-  block {
+  }
+  {
     final core::Set<self::Class<dynamic>> #t3 = col::LinkedHashSet::•<self::Class<dynamic>>();
-  } =>#t3;
-  block {
+  }
+  {
     final core::Set<self::Class<dynamic>> #t4 = col::LinkedHashSet::•<self::Class<dynamic>>();
-  } =>#t4;
-  block {
+  }
+  {
     final core::Set<core::Object> #t5 = col::LinkedHashSet::•<core::Object>();
-  } =>#t5;
-  block {
+  }
+  {
     final core::Set<core::int> #t6 = col::LinkedHashSet::•<core::int>();
-  } =>#t6;
-  block {
+  }
+  {
     final core::Set<self::ConcreteClass> #t7 = col::LinkedHashSet::•<self::ConcreteClass>();
-  } =>#t7;
-  block {
+  }
+  {
     final core::Set<self::Class<self::ConcreteClass>> #t8 = col::LinkedHashSet::•<self::Class<self::ConcreteClass>>();
-  } =>#t8;
-  block {
+  }
+  {
     final core::Set<self::G<self::Class<dynamic>>> #t9 = col::LinkedHashSet::•<self::G<self::Class<dynamic>>>();
-  } =>#t9;
-  block {
+  }
+  {
     final core::Set<self::G<self::Class<dynamic>>> #t10 = col::LinkedHashSet::•<self::G<self::Class<dynamic>>>();
-  } =>#t10;
-  block {
+  }
+  {
     final core::Set<self::G<self::Class<dynamic>>> #t11 = col::LinkedHashSet::•<self::G<self::Class<dynamic>>>();
-  } =>#t11;
-  block {
+  }
+  {
     final core::Set<self::G<self::Class<dynamic>>> #t12 = col::LinkedHashSet::•<self::G<self::Class<dynamic>>>();
-  } =>#t12;
-  block {
+  }
+  {
     final core::Set<self::G<self::ConcreteClass>> #t13 = col::LinkedHashSet::•<self::G<self::ConcreteClass>>();
-  } =>#t13;
-  block {
+  }
+  {
     final core::Set<self::G<self::Class<self::ConcreteClass>>> #t14 = col::LinkedHashSet::•<self::G<self::Class<self::ConcreteClass>>>();
-  } =>#t14;
-  block {
+  }
+  {
     final core::Set<self::G<core::Object>> #t15 = col::LinkedHashSet::•<self::G<core::Object>>();
-  } =>#t15;
-  block {
+  }
+  {
     final core::Set<self::G<core::int>> #t16 = col::LinkedHashSet::•<self::G<core::int>>();
-  } =>#t16;
+  }
   <self::Class<dynamic>>[];
   <dynamic>[];
   <self::Class<dynamic>>[];

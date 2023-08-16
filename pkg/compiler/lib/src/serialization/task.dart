@@ -26,6 +26,7 @@ import '../js_model/js_strategy.dart';
 import '../js_model/locals.dart';
 import '../options.dart';
 import '../util/sink_adapter.dart';
+import 'deferrable.dart';
 import 'serialization.dart';
 
 class _StringInterner implements ir.StringInterner, StringInterner {
@@ -299,7 +300,7 @@ class SerializationTask extends CompilerTask {
       sink.writeMemberMap(
           results,
           (MemberEntity member, CodegenResult result) =>
-              result.writeToDataSink(sink));
+              sink.writeDeferrable(() => result.writeToDataSink(sink)));
       sink.close();
     });
   }
@@ -313,7 +314,7 @@ class SerializationTask extends CompilerTask {
       SourceLookup sourceLookup) async {
     int shards = _options.codegenShards!;
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
-    Map<MemberEntity, CodegenResult> results = {};
+    Map<MemberEntity, Deferrable<CodegenResult>> results = {};
     for (int shard = 0; shard < shards; shard++) {
       Uri uri = Uri.parse(
           '${_options.dataInputUriForStage(Dart2JSStage.codegenSharded)}$shard');
@@ -329,7 +330,20 @@ class SerializationTask extends CompilerTask {
       });
     }
     return DeserializedCodegenResults(
-        globalTypeInferenceResults, codegenInputs, results);
+        globalTypeInferenceResults, codegenInputs, DeferrableValueMap(results));
+  }
+
+  static CodegenResult _readCodegenResult(
+      DataSourceReader source, JClosedWorld closedWorld) {
+    List<ModularName> modularNames = [];
+    List<ModularExpression> modularExpressions = [];
+    CodegenReader reader =
+        CodegenReaderImpl(closedWorld, modularNames, modularExpressions);
+    source.registerCodegenReader(reader);
+    CodegenResult result = CodegenResult.readFromDataSource(
+        source, modularNames, modularExpressions);
+    source.deregisterCodegenReader(reader);
+    return result;
   }
 
   void _deserializeCodegenInput(
@@ -338,7 +352,7 @@ class SerializationTask extends CompilerTask {
       Uri uri,
       api.Input<List<int>> dataInput,
       DataSourceIndices importedIndices,
-      Map<MemberEntity, CodegenResult> results,
+      Map<MemberEntity, Deferrable<CodegenResult>> results,
       bool useDeferredSourceReads,
       SourceLookup sourceLookup) {
     DataSourceReader source = DataSourceReader(
@@ -349,17 +363,10 @@ class SerializationTask extends CompilerTask {
         useDeferredStrategy: useDeferredSourceReads);
     backendStrategy.prepareCodegenReader(source);
     source.registerSourceLookup(sourceLookup);
-    Map<MemberEntity, CodegenResult> codegenResults =
+    Map<MemberEntity, Deferrable<CodegenResult>> codegenResults =
         source.readMemberMap((MemberEntity member) {
-      List<ModularName> modularNames = [];
-      List<ModularExpression> modularExpressions = [];
-      CodegenReader reader =
-          CodegenReaderImpl(closedWorld, modularNames, modularExpressions);
-      source.registerCodegenReader(reader);
-      CodegenResult result = CodegenResult.readFromDataSource(
-          source, modularNames, modularExpressions);
-      source.deregisterCodegenReader(reader);
-      return result;
+      return source.readDeferrableWithArg(_readCodegenResult, closedWorld,
+          cacheData: false);
     });
     _reporter.log('Read ${codegenResults.length} members from ${uri}');
     results.addAll(codegenResults);

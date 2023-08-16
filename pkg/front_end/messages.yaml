@@ -2271,7 +2271,7 @@ FastaUsageLong:
         Read the SDK platform from <file>, which should be in Dill/Kernel IR format
         and contain the Dart SDK.
 
-      --target=dart2js|dart2js_server|dart2wasm|dart2wasm_stringref|dart_runner|dartdevc|flutter|flutter_runner|none|vm
+      --target=dart2js|dart2js_server|dart2wasm|dart2wasm_js_compatibility|dart2wasm_stringref|dart_runner|dartdevc|flutter|flutter_runner|none|vm
         Specify the target configuration.
 
       --enable-asserts
@@ -3518,8 +3518,6 @@ SupertypeIsIllegal:
   problemMessage: "The type '#name' can't be used as supertype."
   analyzerCode: EXTENDS_NON_CLASS
   script: |
-
-
     class C extends dynamic {}
 
 SupertypeIsIllegalAliased:
@@ -3543,6 +3541,33 @@ SupertypeIsTypeVariable:
   analyzerCode: EXTENDS_NON_CLASS
   script: |
     class C<T> extends T {}
+
+SuperExtensionTypeIsIllegal:
+  problemMessage: "The type '#name' can't be implemented by an extension type."
+  experiments: inline-class
+  script: |
+    extension type E(dynamic it) implements dynamic {}
+
+SuperExtensionTypeIsIllegalAliased:
+  problemMessage: "The type '#name' which is an alias of '#type' can't be implemented by an extension type."
+  experiments: inline-class
+  script: |
+    typedef F = void Function();
+    extension type E(F it) implements F {}
+
+SuperExtensionTypeIsNullableAliased:
+  problemMessage: "The type '#name' which is an alias of '#type' can't be implemented by an extension type because it is nullable."
+  experiments: inline-class
+  script: |
+    class A {}
+    typedef B = A?;
+    extension type E(B it) implements B {}
+
+SuperExtensionTypeIsTypeVariable:
+  problemMessage: "The type variable '#name' can't be implemented by an extension type."
+  experiments: inline-class
+  script: |
+    extension type E<T>(T it) implements T {}
 
 PartOfLibraryNameMismatch:
   problemMessage: "Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'."
@@ -5470,7 +5495,7 @@ JsInteropExportDartInterfaceHasNonEmptyJSExportValue:
   severity: WARNING
 
 JsInteropExportDisallowedMember:
-  problemMessage: "Member '#name' is not a concrete instance member, and therefore can't be exported."
+  problemMessage: "Member '#name' is not a concrete instance member or declares type parameters, and therefore can't be exported."
   correctionMessage: "Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead."
 
 JsInteropExportInvalidInteropTypeArgument:
@@ -5502,7 +5527,7 @@ JsInteropExternalMemberNotJSAnnotated:
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
 
 JsInteropInlineClassNotInterop:
-  problemMessage: "Inline class '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#string'."
+  problemMessage: "Inline class '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'."
   correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types."
 
 JsInteropInlineClassMemberNotInterop:
@@ -5552,9 +5577,9 @@ JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
   correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
 
-JsInteropStaticInteropExternalExtensionMembersWithTypeParameters:
-  problemMessage: "`@staticInterop` classes cannot have external extension members with type parameters."
-  correctionMessage: "Try using a Dart extension member if you need type parameters instead."
+JsInteropStaticInteropExternalMemberWithInvalidTypeParameters:
+  problemMessage: "External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types."
+  correctionMessage: "Try adding a valid bound to the type parameters used in this member."
 
 JsInteropStaticInteropGenerativeConstructor:
   problemMessage: "`@staticInterop` classes should not contain any generative constructors."
@@ -5571,6 +5596,10 @@ JsInteropStaticInteropMockMissingImplements:
 JsInteropStaticInteropMockNotStaticInteropType:
   problemMessage: "Type argument '#type' needs to be a `@staticInterop` type."
   correctionMessage: "Use a `@staticInterop` class instead."
+
+JsInteropStaticInteropMockTypeParametersNotAllowed:
+  problemMessage: "Type argument '#type' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance."
+  correctionMessage: "Remove the type parameter in the type argument or replace it with its bound."
 
 JsInteropStaticInteropNoJSAnnotation:
   problemMessage: "`@staticInterop` classes should also have the `@JS` annotation."
@@ -7029,3 +7058,14 @@ JointPatternVariableWithLabelDefault:
 
 UnsupportedMacroApplication:
   problemMessage: "This macro application didn't apply correctly."
+
+ScriptTagInPartFile:
+  problemMessage: "A part file cannot have script tag."
+  correctionMessage: "Try removing the script tag or the 'part of' directive."
+
+NonCovariantTypeParameterInRepresentationType:
+  problemMessage: "An extension type parameter can't be used non-covariantly in its representation type."
+  correctionMessage: "Try removing the type parameters from function parameter types and type parameter bounds."
+  experiments: inline-class
+  script: |
+    extension type E<T>(void Function(T) f) {}

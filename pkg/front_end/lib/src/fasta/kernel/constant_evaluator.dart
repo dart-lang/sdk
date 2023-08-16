@@ -141,7 +141,7 @@ void transformProcedure(
       typeEnvironment,
       errorReporter,
       evaluationMode);
-  constantsTransformer.visitProcedure(procedure, null);
+  constantsTransformer.convertProcedure(procedure);
 }
 
 enum EvaluationMode {
@@ -428,7 +428,8 @@ class ConstantsTransformer extends RemovingTransformer {
     transformTypedefList(library.typedefs, library);
     transformClassList(library.classes, library);
     transformExtensionList(library.extensions, library);
-    transformInlineClassList(library.inlineClasses, library);
+    transformExtensionTypeDeclarationList(
+        library.extensionTypeDeclarations, library);
     transformProcedureList(library.procedures, library);
     transformFieldList(library.fields, library);
 
@@ -441,6 +442,14 @@ class ConstantsTransformer extends RemovingTransformer {
     }
     _staticTypeContext = null;
     _exhaustivenessCache = null;
+  }
+
+  Procedure convertProcedure(Procedure node) {
+    _exhaustivenessCache =
+        new CfeExhaustivenessCache(constantEvaluator, node.enclosingLibrary);
+    Procedure result = visitProcedure(node, null);
+    _exhaustivenessCache = null;
+    return result;
   }
 
   @override
@@ -490,7 +499,8 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
-  InlineClass visitInlineClass(InlineClass node, TreeNode? removalSentinel) {
+  ExtensionTypeDeclaration visitExtensionTypeDeclaration(
+      ExtensionTypeDeclaration node, TreeNode? removalSentinel) {
     StaticTypeContext? oldStaticTypeContext = _staticTypeContext;
     _staticTypeContext = new StaticTypeContext.forAnnotations(
         node.enclosingLibrary, typeEnvironment);
@@ -1641,8 +1651,7 @@ class ConstantsTransformer extends RemovingTransformer {
     MatchingExpressionVisitor matchingExpressionVisitor =
         new MatchingExpressionVisitor(matchingCache, typeEnvironment.coreTypes,
             constantEvaluator.evaluationMode);
-    // TODO(cstefantsova): Do we need a more precise type for the variable?
-    DartType matchedType = const DynamicType();
+    DartType matchedType = node.matchedValueType!;
     CacheableExpression matchedExpression =
         matchingCache.createRootExpression(node.initializer, matchedType);
     // This expression is used, even if the matching expression doesn't read it.
@@ -1658,23 +1667,34 @@ class ConstantsTransformer extends RemovingTransformer {
     matchedExpression.createExpression(typeEnvironment,
         inCacheInitializer: false);
 
-    Expression readMatchingExpression = matchingExpression
-        .createExpression(typeEnvironment, inCacheInitializer: false);
-
-    List<Statement> replacementStatements = [
-      ...matchingCache.declarations,
-      // TODO(cstefantsova): Provide a better diagnostic message.
-      createIfStatement(
-          createNot(readMatchingExpression),
-          createExpressionStatement(createThrow(createConstructorInvocation(
-              typeEnvironment.coreTypes.stateErrorConstructor,
-              createArguments([
-                createStringLiteral(messagePatternMatchingError.problemMessage,
-                    fileOffset: node.fileOffset)
-              ], fileOffset: node.fileOffset),
-              fileOffset: node.fileOffset))),
-          fileOffset: node.fileOffset),
-    ];
+    List<Statement> replacementStatements;
+    if (matchingExpression.isEffectOnly) {
+      replacementStatements = [];
+      matchingExpression.createStatements(
+          typeEnvironment, replacementStatements);
+      replacementStatements = [
+        ...matchingCache.declarations,
+        ...replacementStatements,
+      ];
+    } else {
+      Expression readMatchingExpression = matchingExpression
+          .createExpression(typeEnvironment, inCacheInitializer: false);
+      replacementStatements = [
+        ...matchingCache.declarations,
+        // TODO(cstefantsova): Provide a better diagnostic message.
+        createIfStatement(
+            createNot(readMatchingExpression),
+            createExpressionStatement(createThrow(createConstructorInvocation(
+                typeEnvironment.coreTypes.stateErrorConstructor,
+                createArguments([
+                  createStringLiteral(
+                      messagePatternMatchingError.problemMessage,
+                      fileOffset: node.fileOffset)
+                ], fileOffset: node.fileOffset),
+                fileOffset: node.fileOffset))),
+            fileOffset: node.fileOffset),
+      ];
+    }
     if (replacementStatements.length > 1) {
       // If we need local declarations, create a new block to avoid naming
       // collision with declarations in the same parent block.
@@ -1705,8 +1725,7 @@ class ConstantsTransformer extends RemovingTransformer {
     MatchingExpressionVisitor matchingExpressionVisitor =
         new MatchingExpressionVisitor(matchingCache, typeEnvironment.coreTypes,
             constantEvaluator.evaluationMode);
-    // TODO(cstefantsova): Do we need a more precise type for the variable?
-    DartType matchedType = const DynamicType();
+    DartType matchedType = node.matchedValueType!;
     CacheableExpression matchedExpression =
         matchingCache.createRootExpression(node.expression, matchedType);
 
@@ -1718,28 +1737,45 @@ class ConstantsTransformer extends RemovingTransformer {
 
     Expression readMatchedExpression = matchedExpression
         .createExpression(typeEnvironment, inCacheInitializer: false);
-    List<Expression> effects = [];
-    Expression readMatchingExpression = matchingExpression.createExpression(
-        typeEnvironment,
-        effects: effects,
-        inCacheInitializer: false);
 
-    List<Statement> replacementStatements = [
-      ...node.pattern.declaredVariables,
-      ...matchingCache.declarations,
-      // TODO(cstefantsova): Provide a better diagnostic message.
-      createIfStatement(
-          createNot(readMatchingExpression),
-          createExpressionStatement(createThrow(createConstructorInvocation(
-              typeEnvironment.coreTypes.stateErrorConstructor,
-              createArguments([
-                createStringLiteral(messagePatternMatchingError.problemMessage,
-                    fileOffset: node.fileOffset)
-              ], fileOffset: node.fileOffset),
-              fileOffset: node.fileOffset))),
-          fileOffset: node.fileOffset),
-      ...effects.map((e) => createExpressionStatement(e)),
-    ];
+    List<Statement> replacementStatements;
+    if (matchingExpression.isEffectOnly) {
+      List<Statement> effects = [];
+      replacementStatements = [];
+      matchingExpression.createStatements(
+          typeEnvironment, replacementStatements,
+          effects: effects);
+      replacementStatements = [
+        ...node.pattern.declaredVariables,
+        ...matchingCache.declarations,
+        ...replacementStatements,
+        ...effects,
+      ];
+    } else {
+      List<Expression> effects = [];
+      Expression readMatchingExpression = matchingExpression.createExpression(
+          typeEnvironment,
+          effects: effects,
+          inCacheInitializer: false);
+
+      replacementStatements = [
+        ...node.pattern.declaredVariables,
+        ...matchingCache.declarations,
+        // TODO(cstefantsova): Provide a better diagnostic message.
+        createIfStatement(
+            createNot(readMatchingExpression),
+            createExpressionStatement(createThrow(createConstructorInvocation(
+                typeEnvironment.coreTypes.stateErrorConstructor,
+                createArguments([
+                  createStringLiteral(
+                      messagePatternMatchingError.problemMessage,
+                      fileOffset: node.fileOffset)
+                ], fileOffset: node.fileOffset),
+                fileOffset: node.fileOffset))),
+            fileOffset: node.fileOffset),
+        ...effects.map((e) => createExpressionStatement(e)),
+      ];
+    }
 
     Expression result = createBlockExpression(
         createBlock(replacementStatements, fileOffset: node.fileOffset),
@@ -1748,6 +1784,27 @@ class ConstantsTransformer extends RemovingTransformer {
     // TODO(johnniwinther): Avoid this work-around for [getFileUri].
     result.parent = node.parent;
     return transform(result);
+  }
+
+  @override
+  TreeNode visitExpressionStatement(
+      ExpressionStatement node, TreeNode? removalSentinel) {
+    Expression expression = transform(node.expression);
+    if (expression is BlockExpression) {
+      // This avoids unnecessary [BlockExpression]s created by the lowering of
+      // [PatternAssignment]s for effect.
+      if (_exhaustivenessDataForTesting != null) {
+        ExhaustivenessResult? result =
+            _exhaustivenessDataForTesting!.switchResults[expression];
+        if (result != null) {
+          _exhaustivenessDataForTesting!.switchResults[expression.body] =
+              result;
+        }
+      }
+      return expression.body;
+    }
+    node.expression = expression..parent = node;
+    return node;
   }
 
   @override
@@ -2263,7 +2320,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   final bool enableTripleShift;
   final bool enableConstFunctions;
-  bool inInlineClassConstConstructor = false;
+  bool inExtensionTypeConstConstructor = false;
 
   final Map<Constant, Constant> canonicalizationCache;
   final Map<Node, Constant?> nodeCache;
@@ -4294,7 +4351,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // TODO(kustermann): The heuristic of allowing all [VariableGet]s on [Let]
     // variables might allow more than it should.
     final VariableDeclaration variable = node.variable;
-    if (enableConstFunctions || inInlineClassConstConstructor) {
+    if (enableConstFunctions || inExtensionTypeConstConstructor) {
       return env.lookupVariable(variable) ??
           createEvaluationErrorConstant(
               node,
@@ -4322,7 +4379,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitVariableSet(VariableSet node) {
-    if (enableConstFunctions || inInlineClassConstConstructor) {
+    if (enableConstFunctions || inExtensionTypeConstConstructor) {
       final VariableDeclaration variable = node.variable;
       Constant value = _evaluateSubexpression(node.value);
       if (value is AbortConstant) return value;
@@ -4632,19 +4689,19 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         }
         return evaluateIdentical();
       }
-    } else if (target.isInlineClassMember) {
+    } else if (target.isExtensionTypeMember) {
       if (target.isConst) {
-        bool oldInInlineClassConstructor = inInlineClassConstConstructor;
-        inInlineClassConstConstructor = true;
+        bool oldInExtensionTypeConstructor = inExtensionTypeConstConstructor;
+        inExtensionTypeConstConstructor = true;
         Constant result = _handleFunctionInvocation(
             node.target.function, typeArguments, positional, named);
-        inInlineClassConstConstructor = oldInInlineClassConstructor;
+        inExtensionTypeConstConstructor = oldInExtensionTypeConstructor;
         return result;
       } else {
         return createEvaluationErrorConstant(
             node,
-            templateNotConstantExpression
-                .withArguments('Invocation of non-const inline class member'));
+            templateNotConstantExpression.withArguments(
+                'Invocation of non-const extension type member'));
       }
     } else if (target.isExtensionMember) {
       return createEvaluationErrorConstant(node, messageConstEvalExtension);
@@ -5258,7 +5315,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   T withNewEnvironment<T>(T fn()) {
     final EvaluationEnvironment oldEnv = env;
-    if (enableConstFunctions || inInlineClassConstConstructor) {
+    if (enableConstFunctions || inExtensionTypeConstConstructor) {
       env = new EvaluationEnvironment.withParent(env);
     } else {
       env = new EvaluationEnvironment();
@@ -5385,12 +5442,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   }
 }
 
-class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
+class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
   ConstantEvaluator exprEvaluator;
 
   StatementConstantEvaluator(this.exprEvaluator) {
     if (!exprEvaluator.enableConstFunctions &&
-        !exprEvaluator.inInlineClassConstConstructor) {
+        !exprEvaluator.inExtensionTypeConstConstructor) {
       throw new UnsupportedError("Statement evaluation is only supported when "
           "in inline class const constructors or when the const functions "
           "feature is enabled.");
@@ -5634,6 +5691,37 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
     if (condition is AbortConstant) return new AbortStatus(condition);
     assert(condition is BoolConstant);
     return const ProceedStatus();
+  }
+
+  @override
+  ExecutionStatus visitForInStatement(ForInStatement node) {
+    return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(
+        node, templateConstEvalError.withArguments('For-in statement.')));
+  }
+
+  @override
+  ExecutionStatus visitIfCaseStatement(IfCaseStatement node) {
+    return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(
+        node, templateConstEvalError.withArguments('If-case statement.')));
+  }
+
+  @override
+  ExecutionStatus visitPatternSwitchStatement(PatternSwitchStatement node) {
+    return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(node,
+        templateConstEvalError.withArguments('Pattern switch statement.')));
+  }
+
+  @override
+  ExecutionStatus visitPatternVariableDeclaration(
+      PatternVariableDeclaration node) {
+    return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(node,
+        templateConstEvalError.withArguments('Pattern variable declaration.')));
+  }
+
+  @override
+  ExecutionStatus visitYieldStatement(YieldStatement node) {
+    return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(
+        node, templateConstEvalError.withArguments('Yield statement.')));
   }
 }
 
@@ -6199,12 +6287,6 @@ class IsInstantiatedVisitor implements DartTypeVisitor<bool> {
 
   @override
   bool visitExtensionType(ExtensionType node) {
-    return node.typeArguments
-        .every((DartType typeArgument) => typeArgument.accept(this));
-  }
-
-  @override
-  bool visitInlineType(InlineType node) {
     return node.typeArguments
         .every((DartType typeArgument) => typeArgument.accept(this));
   }

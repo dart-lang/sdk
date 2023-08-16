@@ -40,7 +40,7 @@ import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as package_path;
+import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
 /// The file has a `library augment` directive.
@@ -1166,7 +1166,7 @@ class FileSystemState {
     _testView = FileSystemStateTestView(this);
   }
 
-  package_path.Context get pathContext => resourceProvider.pathContext;
+  path.Context get pathContext => resourceProvider.pathContext;
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;

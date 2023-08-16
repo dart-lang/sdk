@@ -210,7 +210,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType visitInlineType(ir.InlineType node) {
+  DartType visitExtensionType(ir.ExtensionType node) {
     return node.instantiatedRepresentationType.accept(this);
   }
 

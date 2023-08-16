@@ -4035,7 +4035,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       // has named parameters is an object literal constructor. We could do a
       // more robust check by visiting all inline classes and recording
       // descriptors, but that's expensive.
-      bool isObjectLiteralConstructor = member.isInlineClassMember;
+      bool isObjectLiteralConstructor = member.isExtensionTypeMember;
       if (isAnonymousFactory || isObjectLiteralConstructor) {
         // TODO(sra): Have a "CompiledArguments" structure to just update with
         // what values we have rather than creating a map and de-populating it.
@@ -5484,7 +5484,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // robust check by visiting all inline classes and recording descriptors,
     // but that's expensive.
     bool isObjectLiteralConstructor = node is ir.Procedure &&
-        node.isInlineClassMember &&
+        node.isExtensionTypeMember &&
         node.function.namedParameters.isNotEmpty;
     if (isAnonymousFactory || isObjectLiteralConstructor) {
       // Constructor that is syntactic sugar for creating a JavaScript object

@@ -63,7 +63,7 @@ class StubCodeCompiler {
                                         bool generic);
 #endif
 
-  void EnsureIsNewOrRemembered(bool preserve_registers = true);
+  void EnsureIsNewOrRemembered(bool preserve_registers);
   static ArrayPtr BuildStaticCallsTable(
       Zone* zone,
       compiler::UnresolvedPcRelativeCalls* unresolved_calls);

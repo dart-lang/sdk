@@ -184,6 +184,7 @@ class LintNames {
   static const String unnecessary_to_list_in_spreads =
       'unnecessary_to_list_in_spreads';
   static const String unnecessary_this = 'unnecessary_this';
+  static const String unreachable_from_main = 'unreachable_from_main';
   static const String use_decorated_box = 'use_decorated_box';
   static const String use_enums = 'use_enums';
   static const String use_full_hex_values_for_flutter_colors =

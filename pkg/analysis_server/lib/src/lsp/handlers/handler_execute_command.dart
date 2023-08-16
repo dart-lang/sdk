@@ -19,7 +19,7 @@ import 'package:analysis_server/src/services/refactoring/framework/refactoring_p
 /// Handles workspace/executeCommand messages by delegating to a specific
 /// handler based on the command.
 class ExecuteCommandHandler
-    extends MessageHandler<ExecuteCommandParams, Object?> {
+    extends LspMessageHandler<ExecuteCommandParams, Object?> {
   final Map<String, CommandHandler<ExecuteCommandParams, Object>>
       commandHandlers;
 
@@ -59,7 +59,7 @@ class ExecuteCommandHandler
     final workDoneToken = params.workDoneToken;
     final progress = workDoneToken != null
         ? ProgressReporter.clientProvided(server, workDoneToken)
-        : server.clientCapabilities?.workDoneProgress ?? false
+        : server.lspClientCapabilities?.workDoneProgress ?? false
             ? ProgressReporter.serverCreated(server)
             : ProgressReporter.noop;
 

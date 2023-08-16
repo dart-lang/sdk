@@ -9,7 +9,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 
 class InlayHintHandler
-    extends MessageHandler<InlayHintParams, List<InlayHint>> {
+    extends LspMessageHandler<InlayHintParams, List<InlayHint>> {
   InlayHintHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_inlayHint;
@@ -45,7 +45,7 @@ class InlayHintHandler
         return success([]);
       }
 
-      final computer = DartInlayHintComputer(result);
+      final computer = DartInlayHintComputer(pathContext, result);
       final hints = computer.compute();
 
       return success(hints);

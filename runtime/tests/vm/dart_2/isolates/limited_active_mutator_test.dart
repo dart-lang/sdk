@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// VMOptions=--disable-heap-verification --disable-thread-pool-limit
+// VMOptions=--disable_heap_verification --disable_thread_pool_limit --no_check_function_fingerprints
 
 import 'dart:async';
 import 'dart:math' as math;

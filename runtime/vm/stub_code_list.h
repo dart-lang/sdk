@@ -109,6 +109,7 @@ namespace dart {
   V(NullIsAssignableToTypeNullSafe)                                            \
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \
+  V(Subtype3TestCache)                                                         \
   V(Subtype4TestCache)                                                         \
   V(Subtype6TestCache)                                                         \
   V(Subtype7TestCache)                                                         \

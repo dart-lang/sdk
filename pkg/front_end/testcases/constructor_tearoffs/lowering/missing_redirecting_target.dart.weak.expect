@@ -26,11 +26,17 @@ class Class extends core::Object {
     return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/missing_redirecting_target.dart:10:23: Error: Redirection constructor target not found: 'Class.nonexisting'
   factory Class.a() = Class.nonexisting;
                       ^";
-  static method _#a#tearOff() → self::Class;
+  static method _#a#tearOff() → self::Class
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/missing_redirecting_target.dart:10:23: Error: Redirection constructor target not found: 'Class.nonexisting'
+  factory Class.a() = Class.nonexisting;
+                      ^";
   static factory b() → self::Class
     return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/missing_redirecting_target.dart:11:23: Error: Redirection constructor target not found: 'Class.constructor'
   factory Class.b() = Class.constructor;
                       ^";
-  static method _#b#tearOff() → self::Class;
+  static method _#b#tearOff() → self::Class
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/missing_redirecting_target.dart:11:23: Error: Redirection constructor target not found: 'Class.constructor'
+  factory Class.b() = Class.constructor;
+                      ^";
 }
 static method main() → dynamic {}

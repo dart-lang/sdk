@@ -58,9 +58,9 @@ import '../util/helpers.dart' show DelayedActionPerformer;
 import 'class_declaration.dart';
 import 'constructor_declaration.dart';
 import 'name_scheme.dart';
+import 'source_extension_type_declaration_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
-import 'source_inline_class_builder.dart';
 
 abstract class SourceConstructorBuilder
     implements ConstructorBuilder, SourceMemberBuilder {
@@ -363,7 +363,7 @@ class DeclaredSourceConstructorBuilder
       Reference? tearOffReference,
       NameScheme nameScheme,
       {String? nativeMethodName,
-      required bool forAbstractClassOrEnum})
+      required bool forAbstractClassOrEnumOrMixin})
       : _hasSuperInitializingFormals =
             formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
         super(
@@ -390,7 +390,7 @@ class DeclaredSourceConstructorBuilder
         .attachMember(_constructor);
     _constructorTearOff = createConstructorTearOffProcedure(name,
         compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
-        forAbstractClassOrEnum: forAbstractClassOrEnum);
+        forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin);
     if (_constructorTearOff != null) {
       nameScheme
           .getConstructorMemberName(name, isTearOff: true)
@@ -655,7 +655,8 @@ class DeclaredSourceConstructorBuilder
       FormalParameterBuilder formal = formals![formalIndex];
       if (formal.isSuperInitializingFormal) {
         superInitializingFormalIndex++;
-        bool hasImmediatelyDeclaredInitializer = formal.hasDeclaredInitializer;
+        bool hasImmediatelyDeclaredInitializer =
+            formal.hasImmediatelyDeclaredInitializer;
 
         DartType? correspondingSuperFormalType;
         if (formal.isPositional) {
@@ -718,6 +719,15 @@ class DeclaredSourceConstructorBuilder
             namedSuperParameters: namedSuperParameters ?? const <String>[],
             isOutlineNode: true,
             libraryBuilder: libraryBuilder));
+        if (_constructorTearOff != null) {
+          delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
+              superTarget, _constructorTearOff!, substitution,
+              positionalSuperParameters:
+                  positionalSuperParameters ?? const <int>[],
+              namedSuperParameters: namedSuperParameters ?? const <String>[],
+              isOutlineNode: true,
+              libraryBuilder: libraryBuilder));
+        }
         _hasDefaultValueCloner = true;
       }
     }
@@ -1058,7 +1068,7 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {}
 }
 
-class SourceInlineClassConstructorBuilder
+class SourceExtensionTypeConstructorBuilder
     extends AbstractSourceConstructorBuilder {
   late final Procedure _constructor;
   late final Procedure? _constructorTearOff;
@@ -1068,7 +1078,7 @@ class SourceInlineClassConstructorBuilder
   @override
   List<Initializer> initializers = [];
 
-  SourceInlineClassConstructorBuilder(
+  SourceExtensionTypeConstructorBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
       OmittedTypeBuilder returnType,
@@ -1084,7 +1094,7 @@ class SourceInlineClassConstructorBuilder
       Reference? tearOffReference,
       NameScheme nameScheme,
       {String? nativeMethodName,
-      required bool forAbstractClassOrEnum})
+      required bool forAbstractClassOrEnumOrMixin})
       : super(
             metadata,
             modifiers,
@@ -1107,21 +1117,21 @@ class SourceInlineClassConstructorBuilder
         .attachMember(_constructor);
     _constructorTearOff = createConstructorTearOffProcedure(name,
         compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
-        forAbstractClassOrEnum: forAbstractClassOrEnum,
+        forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
         forceCreateLowering: true);
     if (_constructorTearOff != null) {
       nameScheme
           .getConstructorMemberName(name, isTearOff: true)
           .attachMember(_constructorTearOff!);
-      _constructorTearOff!.isInlineClassMember = true;
+      _constructorTearOff!.isExtensionTypeMember = true;
     }
   }
 
   @override
-  ClassDeclaration get classDeclaration => inlineClassBuilder;
+  ClassDeclaration get classDeclaration => extensionTypeDeclarationBuilder;
 
-  SourceInlineClassBuilder get inlineClassBuilder =>
-      parent as SourceInlineClassBuilder;
+  SourceExtensionTypeDeclarationBuilder get extensionTypeDeclarationBuilder =>
+      parent as SourceExtensionTypeDeclarationBuilder;
 
   @override
   Member get member => _constructor;
@@ -1153,8 +1163,8 @@ class SourceInlineClassConstructorBuilder
     if (!isExternal) {
       VariableDeclaration thisVariable = this.thisVariable!;
       List<Statement> statements = [thisVariable];
-      InlineClassInitializerToStatementConverter visitor =
-          new InlineClassInitializerToStatementConverter(
+      ExtensionTypeInitializerToStatementConverter visitor =
+          new ExtensionTypeInitializerToStatementConverter(
               statements, thisVariable);
       for (Initializer initializer in initializers) {
         initializer.accept(visitor);
@@ -1172,9 +1182,9 @@ class SourceInlineClassConstructorBuilder
   @override
   void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
     _build();
-    f(_constructor, BuiltMemberKind.InlineClassConstructor);
+    f(_constructor, BuiltMemberKind.ExtensionTypeConstructor);
     if (_constructorTearOff != null) {
-      f(_constructorTearOff!, BuiltMemberKind.InlineClassTearOff);
+      f(_constructorTearOff!, BuiltMemberKind.ExtensionTypeTearOff);
     }
   }
 
@@ -1185,7 +1195,8 @@ class SourceInlineClassConstructorBuilder
     // According to the specification §9.3 the return type of a constructor
     // function is its enclosing class.
     super.buildFunction();
-    InlineClass inlineClass = inlineClassBuilder.inlineClass;
+    ExtensionTypeDeclaration extensionTypeDeclaration =
+        extensionTypeDeclarationBuilder.extensionTypeDeclaration;
     List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < function.typeParameters.length; i++) {
       TypeParameter typeParameter = function.typeParameters[i];
@@ -1193,8 +1204,8 @@ class SourceInlineClassConstructorBuilder
           new TypeParameterType.withDefaultNullabilityForLibrary(
               typeParameter, libraryBuilder.library));
     }
-    InlineType type = new InlineType(
-        inlineClass, libraryBuilder.nonNullable, typeParameterTypes);
+    ExtensionType type = new ExtensionType(extensionTypeDeclaration,
+        libraryBuilder.nonNullable, typeParameterTypes);
     returnType.registerInferredType(type);
   }
 
@@ -1206,7 +1217,7 @@ class SourceInlineClassConstructorBuilder
       _constructor.isConst = isConst;
       _constructor.isExternal = isExternal;
       _constructor.isStatic = true;
-      _constructor.isInlineClassMember = true;
+      _constructor.isExtensionTypeMember = true;
 
       if (_constructorTearOff != null) {
         buildConstructorTearOffProcedure(
@@ -1260,7 +1271,7 @@ class SourceInlineClassConstructorBuilder
   @override
   bool get isRedirecting {
     for (Initializer initializer in initializers) {
-      if (initializer is InlineClassRedirectingInitializer) {
+      if (initializer is ExtensionTypeRedirectingInitializer) {
         return true;
       }
     }
@@ -1274,12 +1285,13 @@ class SourceInlineClassConstructorBuilder
 
   Substitution get _substitution {
     if (typeVariables != null) {
-      assert(
-          inlineClassBuilder.typeParameters!.length == typeVariables?.length);
+      assert(extensionTypeDeclarationBuilder.typeParameters!.length ==
+          typeVariables?.length);
       _substitutionCache = Substitution.fromPairs(
-          inlineClassBuilder.inlineClass.typeParameters,
+          extensionTypeDeclarationBuilder
+              .extensionTypeDeclaration.typeParameters,
           new List<DartType>.generate(
-              inlineClassBuilder.typeParameters!.length,
+              extensionTypeDeclarationBuilder.typeParameters!.length,
               (int index) =>
                   new TypeParameterType.withDefaultNullabilityForLibrary(
                       function.typeParameters[index],
@@ -1297,7 +1309,7 @@ class SourceInlineClassConstructorBuilder
 
   @override
   BodyBuilderContext get bodyBuilderContext =>
-      new InlineClassConstructorBodyBuilderContext(this);
+      new ExtensionTypeConstructorBodyBuilderContext(this);
 
   // TODO(johnniwinther): Add annotations to tear-offs.
   @override
@@ -1307,17 +1319,17 @@ class SourceInlineClassConstructorBuilder
   bool get isAugmented => false;
 }
 
-class InlineClassInitializerToStatementConverter
+class ExtensionTypeInitializerToStatementConverter
     implements InitializerVisitor<void> {
   VariableDeclaration thisVariable;
   final List<Statement> statements;
 
-  InlineClassInitializerToStatementConverter(
+  ExtensionTypeInitializerToStatementConverter(
       this.statements, this.thisVariable);
 
   @override
   void defaultInitializer(Initializer node) {
-    if (node is InlineClassRedirectingInitializer) {
+    if (node is ExtensionTypeRedirectingInitializer) {
       statements.add(new ExpressionStatement(
           new VariableSet(
               thisVariable,

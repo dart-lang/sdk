@@ -116,4 +116,22 @@ m() {
 }
 ''');
   }
+
+  /// https://github.com/dart-lang/sdk/issues/52913
+  Future<void> test_nullCheck_as() async {
+    await resolveTestCode('''
+f(int? i) {}
+m() {
+  num j = 0;
+  f(j! as int);
+}
+''');
+    await assertHasFix('''
+f(int? i) {}
+m() {
+  num j = 0;
+  f(j as int);
+}
+''');
+  }
 }

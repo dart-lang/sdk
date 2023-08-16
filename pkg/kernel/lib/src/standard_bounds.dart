@@ -256,7 +256,7 @@ mixin StandardBounds {
       DartType type1, DartType type2,
       {required bool isNonNullableByDefault}) {
     // DOWN(T, T) = T.
-    if (identical(type1, type2)) return type1;
+    if (type1 == type2) return type1;
 
     return getNullabilityAwareStandardLowerBoundInternal(type1, type2,
         isNonNullableByDefault: isNonNullableByDefault);
@@ -637,7 +637,7 @@ mixin StandardBounds {
       DartType type1, DartType type2,
       {required bool isNonNullableByDefault}) {
     // UP(T, T) = T
-    if (identical(type1, type2)) return type1;
+    if (type1 == type2) return type1;
 
     return getNullabilityAwareStandardUpperBoundInternal(type1, type2,
         isNonNullableByDefault: isNonNullableByDefault);
@@ -689,9 +689,35 @@ mixin StandardBounds {
       if (coreTypes.isNull(type2)) {
         return morebottom(type1, type2) ? type2 : type1;
       }
-      return type2.withDeclaredNullability(Nullability.nullable);
+      if (type2 is IntersectionType) {
+        // Intersection types are treated specially because of the semantics of
+        // the declared nullability and the fact that the point of declaration
+        // of the intersection type is taken as the point of declaration of the
+        // corresponding type-parameter type.
+        //
+        // In case of the upper bound, both the left-hand side and the
+        // right-hand side should be updated.
+        return new IntersectionType(
+            type2.left.withDeclaredNullability(Nullability.nullable),
+            type2.right.withDeclaredNullability(Nullability.nullable));
+      } else {
+        return type2.withDeclaredNullability(Nullability.nullable);
+      }
     } else if (coreTypes.isNull(type2)) {
-      return type1.withDeclaredNullability(Nullability.nullable);
+      if (type1 is IntersectionType) {
+        // Intersection types are treated specially because of the semantics of
+        // the declared nullability and the fact that the point of declaration
+        // of the intersection type is taken as the point of declaration of the
+        // corresponding type-parameter type.
+        //
+        // In case of the upper bound, both the left-hand side and the
+        // right-hand side should be updated.
+        return new IntersectionType(
+            type1.left.withDeclaredNullability(Nullability.nullable),
+            type1.right.withDeclaredNullability(Nullability.nullable));
+      } else {
+        return type1.withDeclaredNullability(Nullability.nullable);
+      }
     }
 
     // UP(T1, T2) where OBJECT(T1) and OBJECT(T2) =
@@ -865,10 +891,11 @@ mixin StandardBounds {
     }
 
     // UP(T1, T2) = T2 if T1 <: T2
-    //   Note that both types must be interface or inline types at this point.
-    assert(type1 is InterfaceType || type1 is InlineType,
+    //   Note that both types must be interface or extension types at this
+    //   point.
+    assert(type1 is InterfaceType || type1 is ExtensionType,
         "Expected type1 to be an interface type, got '${type1.runtimeType}'.");
-    assert(type2 is InterfaceType || type2 is InlineType,
+    assert(type2 is InterfaceType || type2 is ExtensionType,
         "Expected type2 to be an interface type, got '${type2.runtimeType}'.");
 
     // We use the non-nullable variants of the two interfaces types to determine
@@ -889,7 +916,8 @@ mixin StandardBounds {
     }
 
     // UP(T1, T2) = T1 if T2 <: T1
-    //   Note that both types must be interface or inline types at this point.
+    //   Note that both types must be interface or extension types at this
+    //   point.
     if (isSubtypeOf(typeWithoutNullabilityMarker2,
         typeWithoutNullabilityMarker1, SubtypeCheckMode.withNullabilities)) {
       return type1.withDeclaredNullability(uniteNullabilities(
@@ -898,7 +926,7 @@ mixin StandardBounds {
 
     // UP(C<T0, ..., Tn>, C<S0, ..., Sn>) = C<R0,..., Rn> where Ri is UP(Ti, Si)
     Class? cls;
-    InlineClass? inlineClass;
+    ExtensionTypeDeclaration? extensionTypeDeclaration;
     List<TypeParameter>? typeParameters;
     List<DartType>? leftArguments;
     List<DartType>? rightArguments;
@@ -910,9 +938,9 @@ mixin StandardBounds {
         rightArguments = type2.typeArguments;
       }
     }
-    if (type1 is InlineType && type2 is InlineType) {
-      if (type1.inlineClass == type2.inlineClass) {
-        inlineClass = type1.inlineClass;
+    if (type1 is ExtensionType && type2 is ExtensionType) {
+      if (type1.extensionTypeDeclaration == type2.extensionTypeDeclaration) {
+        extensionTypeDeclaration = type1.extensionTypeDeclaration;
         leftArguments = type1.typeArguments;
         rightArguments = type2.typeArguments;
       }
@@ -948,8 +976,8 @@ mixin StandardBounds {
                 type1.declaredNullability, type2.declaredNullability),
             typeArguments);
       } else {
-        return new InlineType(
-            inlineClass!,
+        return new ExtensionType(
+            extensionTypeDeclaration!,
             uniteNullabilities(
                 type1.declaredNullability, type2.declaredNullability),
             typeArguments);
@@ -967,56 +995,66 @@ mixin StandardBounds {
     if (type1 is InterfaceType && type2 is InterfaceType) {
       return hierarchy.getLegacyLeastUpperBound(type1, type2,
           isNonNullableByDefault: isNonNullableByDefault);
-    } else if (type1 is InlineType && type2 is InlineType) {
+    } else if (type1 is ExtensionType && type2 is ExtensionType) {
       // This mimics the legacy least upper bound implementation for regular
       // classes, where the least upper bound is found as the single common
       // supertype with the highest class hierarchy depth.
 
       // TODO(johnniwinther): Move this computation to [ClassHierarchyBase] and
       // cache it there.
-      Map<InlineClass, int> inlineClassDepth = {};
+      // TODO(johnniwinther): Handle non-extension type supertypes.
+      Map<ExtensionTypeDeclaration, int> extensionTypeDeclarationDepth = {};
 
-      int computeInlineClassDepth(InlineClass inlineClass) {
-        int? depth = inlineClassDepth[inlineClass];
+      int computeExtensionTypeDeclarationDepth(
+          ExtensionTypeDeclaration extensionTypeDeclaration) {
+        int? depth = extensionTypeDeclarationDepth[extensionTypeDeclaration];
         if (depth == null) {
           int maxDepth = 0;
-          for (InlineType implemented in inlineClass.implements) {
-            int supertypeDepth =
-                computeInlineClassDepth(implemented.inlineClass);
-            if (supertypeDepth >= maxDepth) {
-              maxDepth = supertypeDepth + 1;
+          for (DartType implemented in extensionTypeDeclaration.implements) {
+            if (implemented is ExtensionType) {
+              int supertypeDepth = computeExtensionTypeDeclarationDepth(
+                  implemented.extensionTypeDeclaration);
+              if (supertypeDepth >= maxDepth) {
+                maxDepth = supertypeDepth + 1;
+              }
             }
           }
-          depth = inlineClassDepth[inlineClass] = maxDepth;
+          depth = extensionTypeDeclarationDepth[extensionTypeDeclaration] =
+              maxDepth;
         }
         return depth;
       }
 
-      void computeSuperTypes(InlineType type, List<InlineType> supertypes) {
-        computeInlineClassDepth(type.inlineClass);
+      // TODO(johnniwinther): Handle non-extension type supertypes.
+      void computeSuperTypes(
+          ExtensionType type, List<ExtensionType> supertypes) {
+        computeExtensionTypeDeclarationDepth(type.extensionTypeDeclaration);
         supertypes.add(type);
-        for (InlineType implemented in type.inlineClass.implements) {
-          InlineType supertype = hierarchy.getInlineTypeAsInstanceOf(
-              type, implemented.inlineClass,
-              isNonNullableByDefault: isNonNullableByDefault)!;
-          computeSuperTypes(supertype, supertypes);
+        for (DartType implemented in type.extensionTypeDeclaration.implements) {
+          if (implemented is ExtensionType) {
+            ExtensionType supertype = hierarchy.getExtensionTypeAsInstanceOf(
+                type, implemented.extensionTypeDeclaration,
+                isNonNullableByDefault: isNonNullableByDefault)!;
+            computeSuperTypes(supertype, supertypes);
+          }
         }
       }
 
-      List<InlineType> supertypes1 = [];
+      List<ExtensionType> supertypes1 = [];
       computeSuperTypes(type1, supertypes1);
-      List<InlineType> supertypes2 = [];
+      List<ExtensionType> supertypes2 = [];
       computeSuperTypes(type2, supertypes2);
 
-      Set<InlineType> set = supertypes1.toSet()..retainAll(supertypes2);
-      Map<int, List<InlineType>> commonSupertypesByDepth = {};
-      for (InlineType type in set) {
-        (commonSupertypesByDepth[inlineClassDepth[type.inlineClass]!] ??= [])
+      Set<ExtensionType> set = supertypes1.toSet()..retainAll(supertypes2);
+      Map<int, List<ExtensionType>> commonSupertypesByDepth = {};
+      for (ExtensionType type in set) {
+        (commonSupertypesByDepth[extensionTypeDeclarationDepth[
+                type.extensionTypeDeclaration]!] ??= [])
             .add(type);
       }
       int maxDepth = -1;
-      InlineType? candidate;
-      for (MapEntry<int, List<InlineType>> entry
+      ExtensionType? candidate;
+      for (MapEntry<int, List<ExtensionType>> entry
           in commonSupertypesByDepth.entries) {
         if (entry.key > maxDepth && entry.value.length == 1) {
           maxDepth = entry.key;
@@ -1533,7 +1571,7 @@ mixin StandardBounds {
     }
     if (isSubtypeOf(type2, demoted, SubtypeCheckMode.withNullabilities)) {
       return demoted.withDeclaredNullability(uniteNullabilities(
-          type1.declaredNullability, type2.declaredNullability));
+          demoted.declaredNullability, type2.declaredNullability));
     }
     NullabilityAwareTypeVariableEliminator eliminator =
         new NullabilityAwareTypeVariableEliminator(

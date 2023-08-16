@@ -22,22 +22,19 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:test/test.dart';
 
-void runTests({
-  required ModuleFormat moduleFormat,
-  required bool soundNullSafety,
-  required bool canaryFeatures,
-  bool verbose = false,
-}) {
+import 'setup_compiler_options.dart';
+
+void runTests(SetupCompilerOptions setup, {bool verbose = false}) {
   group('expression compiler worker on startup', () {
     late Directory tempDir;
     late ReceivePort receivePort;
 
-    setUp(() async {
+    setUp(() {
       tempDir = Directory.systemTemp.createTempSync('foo bar');
       receivePort = ReceivePort();
     });
 
-    tearDown(() async {
+    tearDown(() {
       receivePort.close();
       tempDir.deleteSync(recursive: true);
     });
@@ -63,9 +60,12 @@ void runTests({
             '--dart-sdk-summary',
             badPath,
             '--module-format',
-            moduleFormat.name,
-            soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
-            if (canaryFeatures) '--canary',
+            setup.moduleFormat.name,
+            setup.soundNullSafety
+                ? '--sound-null-safety'
+                : '--no-sound-null-safety',
+            if (setup.enableAsserts) '--enable-asserts',
+            if (setup.canaryFeatures) '--canary',
             if (verbose) '--verbose',
           ],
           sendPort: receivePort.sendPort,
@@ -78,27 +78,30 @@ void runTests({
 
   group('reading assets using standard file system - ', () {
     runExpressionCompilationTests(StandardFileSystemTestDriver(
-      soundNullSafety,
-      moduleFormat,
-      canaryFeatures,
+      setup.soundNullSafety,
+      setup.moduleFormat,
+      setup.canaryFeatures,
+      setup.enableAsserts,
       verbose,
     ));
   });
 
   group('reading assets using multiroot file system - ', () {
     runExpressionCompilationTests(MultiRootFileSystemTestDriver(
-      soundNullSafety,
-      moduleFormat,
-      canaryFeatures,
+      setup.soundNullSafety,
+      setup.moduleFormat,
+      setup.canaryFeatures,
+      setup.enableAsserts,
       verbose,
     ));
   });
 
   group('reading assets using asset file system -', () {
     runExpressionCompilationTests(AssetFileSystemTestDriver(
-      soundNullSafety,
-      moduleFormat,
-      canaryFeatures,
+      setup.soundNullSafety,
+      setup.moduleFormat,
+      setup.canaryFeatures,
+      setup.enableAsserts,
       verbose,
     ));
   });
@@ -122,7 +125,7 @@ void runExpressionCompilationTests(TestDriver driver) {
       await driver.tearDown();
     });
 
-    test('can compile expressions in sdk', () async {
+    test('can compile expressions in sdk', () {
       driver.requestController.add({
         'command': 'UpdateDeps',
         'inputs': driver.inputs,
@@ -155,7 +158,7 @@ void runExpressionCompilationTests(TestDriver driver) {
           ]));
     }, skip: 'Evaluating expressions in SDK is not supported yet');
 
-    test('can compile expressions in a library', () async {
+    test('can compile expressions in a library', () {
       driver.requestController.add({
         'command': 'UpdateDeps',
         'inputs': driver.inputs,
@@ -189,7 +192,7 @@ void runExpressionCompilationTests(TestDriver driver) {
     });
 
     test('compile expressions include "dart.library..." environment defines.',
-        () async {
+        () {
       driver.requestController.add({
         'command': 'UpdateDeps',
         'inputs': driver.inputs,
@@ -222,7 +225,7 @@ void runExpressionCompilationTests(TestDriver driver) {
           ]));
     });
 
-    test('can compile expressions in main', () async {
+    test('can compile expressions in main', () {
       driver.requestController.add({
         'command': 'UpdateDeps',
         'inputs': driver.inputs,
@@ -255,7 +258,7 @@ void runExpressionCompilationTests(TestDriver driver) {
           ]));
     });
 
-    test('can compile expressions in main (extension method)', () async {
+    test('can compile expressions in main (extension method)', () {
       driver.requestController.add({
         'command': 'UpdateDeps',
         'inputs': driver.inputs,
@@ -288,7 +291,7 @@ void runExpressionCompilationTests(TestDriver driver) {
           ]));
     });
 
-    test('can compile transitive expressions in main', () async {
+    test('can compile transitive expressions in main', () {
       driver.requestController.add({
         'command': 'UpdateDeps',
         'inputs': driver.inputs,
@@ -322,8 +325,7 @@ void runExpressionCompilationTests(TestDriver driver) {
           ]));
     });
 
-    test('can compile expressions in non-strongly-connected components',
-        () async {
+    test('can compile expressions in non-strongly-connected components', () {
       driver.requestController.add({
         'command': 'UpdateDeps',
         'inputs': driver.inputs,
@@ -356,7 +358,7 @@ void runExpressionCompilationTests(TestDriver driver) {
           ]));
     });
 
-    test('can compile expressions in strongly connected components', () async {
+    test('can compile expressions in strongly connected components', () {
       driver.requestController.add({
         'command': 'UpdateDeps',
         'inputs': driver.inputs,
@@ -389,7 +391,7 @@ void runExpressionCompilationTests(TestDriver driver) {
           ]));
     });
 
-    test('can compile series of expressions in various libraries', () async {
+    test('can compile series of expressions in various libraries', () {
       driver.requestController.add({
         'command': 'UpdateDeps',
         'inputs': driver.inputs,
@@ -514,7 +516,7 @@ void runExpressionCompilationTests(TestDriver driver) {
           ]));
     });
 
-    test('can compile after dependency update', () async {
+    test('can compile after dependency update', () {
       driver.requestController.add({
         'command': 'UpdateDeps',
         'inputs': driver.inputs,
@@ -965,9 +967,9 @@ abstract class TestDriver {
   final bool soundNullSafety;
   final ModuleFormat moduleFormat;
   final bool canaryFeatures;
+  final bool enableAsserts;
   final bool verbose;
 
-  late FileSystem fileSystem;
   late FileSystem assetFileSystem;
 
   late Directory tempDir;
@@ -979,8 +981,13 @@ abstract class TestDriver {
   ExpressionCompilerWorker? worker;
   Future<void>? workerDone;
 
-  TestDriver(this.soundNullSafety, this.moduleFormat, this.canaryFeatures,
-      this.verbose);
+  TestDriver(
+    this.soundNullSafety,
+    this.moduleFormat,
+    this.canaryFeatures,
+    this.enableAsserts,
+    this.verbose,
+  );
 
   /// Initialize file systems, inputs, and start servers if needed.
   Future<void> start();
@@ -1022,6 +1029,7 @@ abstract class TestDriver {
       soundNullSafety: soundNullSafety,
       moduleFormat: moduleFormat,
       canaryFeatures: canaryFeatures,
+      enableAsserts: enableAsserts,
       verbose: verbose,
     );
     workerDone = worker?.run();
@@ -1040,14 +1048,14 @@ class StandardFileSystemTestDriver extends TestDriver {
     bool soundNullSafety,
     ModuleFormat moduleFormat,
     bool canaryFeatures,
+    bool enableAsserts,
     bool verbose,
-  ) : super(soundNullSafety, moduleFormat, canaryFeatures, verbose);
+  ) : super(soundNullSafety, moduleFormat, canaryFeatures, enableAsserts,
+            verbose);
 
   @override
   Future<void> start() async {
     inputs = config.inputPaths;
-    fileSystem = MultiRootFileSystem(
-        'org-dartlang-app', [tempDir.uri], StandardFileSystem.instance);
     assetFileSystem = StandardFileSystem.instance;
   }
 }
@@ -1057,13 +1065,15 @@ class MultiRootFileSystemTestDriver extends TestDriver {
     bool soundNullSafety,
     ModuleFormat moduleFormat,
     bool canaryFeatures,
+    bool enableAsserts,
     bool verbose,
-  ) : super(soundNullSafety, moduleFormat, canaryFeatures, verbose);
+  ) : super(soundNullSafety, moduleFormat, canaryFeatures, enableAsserts,
+            verbose);
 
   @override
   Future<void> start() async {
     inputs = config.inputUris;
-    fileSystem = MultiRootFileSystem(
+    var fileSystem = MultiRootFileSystem(
         'org-dartlang-app', [tempDir.uri], StandardFileSystem.instance);
     assetFileSystem = fileSystem;
   }
@@ -1077,13 +1087,15 @@ class AssetFileSystemTestDriver extends TestDriver {
     bool soundNullSafety,
     ModuleFormat moduleFormat,
     bool canaryFeatures,
+    bool enableAsserts,
     bool verbose,
-  ) : super(soundNullSafety, moduleFormat, canaryFeatures, verbose);
+  ) : super(soundNullSafety, moduleFormat, canaryFeatures, enableAsserts,
+            verbose);
 
   @override
   Future<void> start() async {
     inputs = config.inputRelativeUris;
-    fileSystem = MultiRootFileSystem(
+    var fileSystem = MultiRootFileSystem(
         'org-dartlang-app', [tempDir.uri], StandardFileSystem.instance);
     port = await findUnusedPort();
     server = TestAssetServer(fileSystem);
@@ -1148,10 +1160,13 @@ class DDCKernelGenerator {
   final TestProjectConfiguration config;
   final bool verbose;
   static final dart = Platform.resolvedExecutable;
+  static final sdkPath =
+      computePlatformBinariesLocation(forceBuildDir: true).toFilePath();
+
   static final dartdevc =
-      p.join(p.dirname(dart), 'snapshots', 'dartdevc.dart.snapshot');
-  static final kernelWorker =
-      p.join(p.dirname(dart), 'snapshots', 'kernel_worker.dart.snapshot');
+      p.join(sdkPath, 'dart-sdk', 'bin', 'snapshots', 'dartdevc.dart.snapshot');
+  static final kernelWorker = p.join(
+      sdkPath, 'dart-sdk', 'bin', 'snapshots', 'kernel_worker.dart.snapshot');
 
   DDCKernelGenerator(this.config, this.verbose);
 

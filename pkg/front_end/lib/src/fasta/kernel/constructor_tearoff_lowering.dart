@@ -101,9 +101,9 @@ Procedure? createConstructorTearOffProcedure(
     Uri fileUri,
     int fileOffset,
     Reference? reference,
-    {required bool forAbstractClassOrEnum,
+    {required bool forAbstractClassOrEnumOrMixin,
     bool forceCreateLowering = false}) {
-  if (!forAbstractClassOrEnum &&
+  if (!forAbstractClassOrEnumOrMixin &&
       (forceCreateLowering ||
           compilationUnit.loader.target.backendTarget
               .isConstructorTearOffLoweringEnabled)) {

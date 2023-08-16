@@ -48,8 +48,6 @@ const c = false || '';
     await assertErrorsInCode('''
 const int i = (1 ? 'alpha' : 'beta').length;
 ''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 14,
-          29),
       error(CompileTimeErrorCode.NON_BOOL_CONDITION, 15, 1),
       error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, 15, 1),
     ]);

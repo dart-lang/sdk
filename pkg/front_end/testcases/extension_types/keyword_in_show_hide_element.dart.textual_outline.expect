@@ -1,7 +1,0 @@
-class A {
-  void mixin() {}
-  void as() {}
-}
-extension type E1 on A show mixin, as {}
-extension type E2 on A hide mixin, as {}
-main() {}

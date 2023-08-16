@@ -152,13 +152,13 @@ class BodyInferenceContext {
       if (_returnTypes.isEmpty) {
         return DynamicTypeImpl.instance;
       }
-      return _returnTypes.reduce(_typeSystem.getLeastUpperBound);
+      return _returnTypes.reduce(_typeSystem.leastUpperBound);
     }
 
     var initialType = endOfBlockIsReachable
         ? _typeProvider.nullType
         : _typeProvider.neverType;
-    return _returnTypes.fold(initialType, _typeSystem.getLeastUpperBound);
+    return _returnTypes.fold(initialType, _typeSystem.leastUpperBound);
   }
 
   static BodyInferenceContext? of(FunctionBody node) {

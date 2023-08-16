@@ -308,8 +308,6 @@ suggestions
     kind: keyword
   o1
     kind: parameter
-  switch
-    kind: keyword
   true
     kind: keyword
   v1
@@ -356,8 +354,6 @@ suggestions
     kind: keyword
   o1
     kind: parameter
-  switch
-    kind: keyword
   true
     kind: keyword
   v1

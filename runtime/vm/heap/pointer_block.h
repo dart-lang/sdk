@@ -76,6 +76,8 @@ class PointerBlock : public MallocAllocated {
 
   template <int>
   friend class BlockStack;
+  template <int, typename T>
+  friend class LocalBlockWorkList;
 
   DISALLOW_COPY_AND_ASSIGN(PointerBlock);
 };
@@ -237,15 +239,17 @@ class BlockWorkList : public ValueObject {
     stack_ = nullptr;
   }
 
-  bool IsEmpty() {
+  bool IsLocalEmpty() {
     if (!local_input_->IsEmpty()) {
       return false;
     }
     if (!local_output_->IsEmpty()) {
       return false;
     }
-    return stack_->IsEmpty();
+    return true;
   }
+
+  bool IsEmpty() { return IsLocalEmpty() && stack_->IsEmpty(); }
 
  private:
   Block* local_output_;
@@ -299,6 +303,58 @@ class PromotionStack : public BlockStack<kPromotionStackBlockSize> {
 
 typedef PromotionStack::Block PromotionStackBlock;
 typedef BlockWorkList<PromotionStack> PromotionWorkList;
+
+template <int Size, typename T>
+class LocalBlockWorkList : public ValueObject {
+ public:
+  LocalBlockWorkList() { head_ = new PointerBlock<Size>(); }
+  ~LocalBlockWorkList() { ASSERT(head_ == nullptr); }
+
+  template <typename Lambda>
+  DART_FORCE_INLINE void Process(Lambda action) {
+    auto* block = head_;
+    head_ = new PointerBlock<Size>();
+    while (block != nullptr) {
+      while (!block->IsEmpty()) {
+        action(static_cast<T>(block->Pop()));
+      }
+      auto* next = block->next();
+      delete block;
+      block = next;
+    }
+  }
+
+  void Push(T obj) {
+    if (UNLIKELY(head_->IsFull())) {
+      PointerBlock<Size>* next = new PointerBlock<Size>();
+      next->next_ = head_;
+      head_ = next;
+    }
+    head_->Push(obj);
+  }
+
+  void Finalize() {
+    ASSERT(head_ != nullptr);
+    ASSERT(head_->IsEmpty());
+    delete head_;
+    head_ = nullptr;
+  }
+
+  void AbandonWork() {
+    ASSERT(head_ != nullptr);
+    auto* block = head_;
+    head_ = nullptr;
+    while (block != nullptr) {
+      auto* next = block->next_;
+      block->Reset();
+      delete block;
+      block = next;
+    }
+  }
+
+ private:
+  PointerBlock<Size>* head_;
+};
 
 }  // namespace dart
 

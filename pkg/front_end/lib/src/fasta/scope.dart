@@ -24,8 +24,8 @@ import 'kernel/kernel_helper.dart';
 import 'problems.dart' show internalProblem, unsupported;
 import 'source/source_class_builder.dart';
 import 'source/source_extension_builder.dart';
+import 'source/source_extension_type_declaration_builder.dart';
 import 'source/source_function_builder.dart';
-import 'source/source_inline_class_builder.dart';
 import 'source/source_library_builder.dart';
 import 'source/source_member_builder.dart';
 import 'util/helpers.dart' show DelayedActionPerformer;
@@ -899,7 +899,8 @@ class AccessErrorBuilder extends ProblemBuilder {
   bool get isExtensionInstanceMember => builder.isExtensionInstanceMember;
 
   @override
-  bool get isInlineClassInstanceMember => builder.isInlineClassInstanceMember;
+  bool get isExtensionTypeInstanceMember =>
+      builder.isExtensionTypeInstanceMember;
 
   @override
   bool get isStatic => builder.isStatic;
@@ -1726,7 +1727,7 @@ extension on Builder {
       return _hasPatchAnnotation(self.metadata);
     } else if (self is SourceExtensionBuilder) {
       return _hasPatchAnnotation(self.metadata);
-    } else if (self is SourceInlineClassBuilder) {
+    } else if (self is SourceExtensionTypeDeclarationBuilder) {
       return _hasPatchAnnotation(self.metadata);
     }
     return false;

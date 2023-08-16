@@ -1,5 +1,6 @@
+library;
 //
-// Problems in component:
+// Problems in library:
 //
 // pkg/front_end/testcases/nnbd_mixed/issue41567.dart:13:7: Error: 'in3' can't implement both 'A<int>' and 'A<dynamic>'
 //  - 'A' is from 'pkg/front_end/testcases/nnbd_mixed/issue41567_lib.dart'.
@@ -11,7 +12,6 @@
 // class in4 extends B implements out_int {} // error
 //       ^
 //
-library;
 import self as self;
 import "issue41567_lib.dart" as iss;
 

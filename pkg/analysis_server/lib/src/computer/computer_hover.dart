@@ -52,11 +52,15 @@ class DartUnitHoverComputer {
       locationEntity = node.name2;
     } else if (node is ConstructorDeclaration) {
       locationEntity = node.name ?? node.returnType;
+    } else if (node is DeclaredIdentifier) {
+      locationEntity = node.name;
     } else if (node is VariableDeclaration) {
       locationEntity = node.name;
     } else if (node is VariablePattern) {
       locationEntity = node.name;
     } else if (node is PatternFieldName) {
+      locationEntity = node.name;
+    } else if (node is WildcardPattern) {
       locationEntity = node.name;
     }
     if (locationEntity == null) {
@@ -84,9 +88,11 @@ class DartUnitHoverComputer {
             node is MethodDeclaration ||
             node is NamedType ||
             node is ConstructorDeclaration ||
+            node is DeclaredIdentifier ||
             node is VariableDeclaration ||
             node is VariablePattern ||
-            node is PatternFieldName)) {
+            node is PatternFieldName ||
+            node is DartPattern)) {
       // For constructors, the location should cover the type name and
       // constructor name (for both calls and declarations).
       HoverInformation hover;
@@ -181,6 +187,8 @@ class DartUnitHoverComputer {
           }
         } else if (node is PatternFieldName && parent is PatternField) {
           staticType = parent.pattern.matchedValueType;
+        } else if (node is DartPattern) {
+          staticType = node.matchedValueType;
         }
         hover.staticType = _typeDisplayString(staticType);
       }

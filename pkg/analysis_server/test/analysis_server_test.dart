@@ -6,7 +6,6 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
-import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
@@ -20,6 +19,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:unified_analytics/unified_analytics.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -54,7 +54,7 @@ class AnalysisServerTest with ResourceProviderMixin {
         resourceProvider,
         AnalysisServerOptions(),
         DartSdkManager(sdkRoot.path),
-        AnalyticsManager(NoopAnalytics()),
+        AnalyticsManager(NoOpAnalytics()),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
   }

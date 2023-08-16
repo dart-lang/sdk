@@ -41,11 +41,14 @@ static StackTracePtr CurrentStackTrace(Thread* thread,
 
   const auto& code_array = GrowableObjectArray::ZoneHandle(
       zone, GrowableObjectArray::New(kDefaultStackAllocation));
-  GrowableArray<uword> pc_offset_array;
+  GrowableArray<uword> pc_offset_array(kDefaultStackAllocation);
 
   // Collect the frames.
-  StackTraceUtils::CollectFrames(thread, code_array, &pc_offset_array,
-                                 skip_frames);
+  StackTraceUtils::CollectFrames(thread, skip_frames,
+                                 [&](const StackTraceUtils::Frame& frame) {
+                                   code_array.Add(frame.code);
+                                   pc_offset_array.Add(frame.pc_offset);
+                                 });
 
   return CreateStackTraceObject(zone, code_array, pc_offset_array);
 }

@@ -30,7 +30,7 @@ class FunctionCollector {
 
   FunctionCollector(this.translator);
 
-  w.Module get m => translator.m;
+  w.ModuleBuilder get m => translator.m;
 
   void collectImportsAndExports() {
     for (Library library in translator.libraries) {
@@ -58,13 +58,13 @@ class FunctionCollector {
           // Define the function type in a singular recursion group to enable it
           // to be unified with function types defined in FFI modules or using
           // `WebAssembly.Function`.
-          m.splitRecursionGroup();
+          m.types.splitRecursionGroup();
           w.FunctionType ftype = _makeFunctionType(
               translator, member.reference, member.function.returnType, null,
               isImportOrExport: true);
-          m.splitRecursionGroup();
+          m.types.splitRecursionGroup();
           _functions[member.reference] =
-              m.importFunction(module, name, ftype, "$importName (import)");
+              m.functions.import(module, name, ftype, "$importName (import)");
         }
       }
     }
@@ -77,11 +77,11 @@ class FunctionCollector {
         // since Binaryen's `--closed-world` optimization mode requires all
         // publicly exposed types to be defined in separate recursion groups
         // from GC types.
-        m.splitRecursionGroup();
+        m.types.splitRecursionGroup();
         _makeFunctionType(
             translator, member.reference, member.function.returnType, null,
             isImportOrExport: true);
-        m.splitRecursionGroup();
+        m.types.splitRecursionGroup();
       }
       addExport(member.reference, exportName);
     }
@@ -105,13 +105,13 @@ class FunctionCollector {
         w.FunctionType ftype = _makeFunctionType(
             translator, target, node.function.returnType, null,
             isImportOrExport: true);
-        w.DefinedFunction function = m.addFunction(ftype, "$node");
+        w.BaseFunction function = m.functions.define(ftype, "$node");
         _functions[target] = function;
-        m.exportFunction(export.value, function);
+        m.exports.export(export.value, function);
       } else if (node is Field) {
         w.Table? table = translator.getTable(node);
         if (table != null) {
-          m.exportTable(export.value, table);
+          m.exports.export(export.value, table);
         }
       }
     }
@@ -129,7 +129,7 @@ class FunctionCollector {
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
       _worklist.add(target);
-      return _getFunctionTypeAndName(target, m.addFunction);
+      return _getFunctionTypeAndName(target, m.functions.define);
     });
   }
 
@@ -153,7 +153,7 @@ class FunctionCollector {
     if (target.isTearOffReference) {
       return action(
           translator.dispatchTable.selectorForTarget(target).signature,
-          "${target.asMember}");
+          "${target.asMember} tear-off");
     }
 
     final ftype =
@@ -279,5 +279,5 @@ w.FunctionType _makeFunctionType(Translator translator, Reference target,
   final List<w.ValueType> outputs =
       emptyOutputList ? const [] : [translateType(returnType)];
 
-  return translator.m.addFunctionType(inputs, outputs);
+  return translator.m.types.defineFunction(inputs, outputs);
 }

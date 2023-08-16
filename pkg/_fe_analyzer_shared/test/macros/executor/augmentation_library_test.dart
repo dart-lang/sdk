@@ -23,6 +23,25 @@ void main() {
         staticScope: null,
         uri: Uri.parse('dart:core'));
 
+    final interfaceIdentifiers = [
+      for (var i = 0; i < 2; i++)
+        TestIdentifier(
+            id: RemoteInstance.uniqueId,
+            name: 'I$i',
+            kind: IdentifierKind.topLevelMember,
+            uri: null,
+            staticScope: null),
+    ];
+    final mixinIdentifiers = [
+      for (var i = 0; i < 2; i++)
+        TestIdentifier(
+            id: RemoteInstance.uniqueId,
+            name: 'M$i',
+            kind: IdentifierKind.topLevelMember,
+            uri: null,
+            staticScope: null),
+    ];
+
     test('can combine multiple execution results', () {
       final classes = <IdentifierImpl, ClassDeclaration>{};
       for (var i = 0; i < 2; i++) {
@@ -33,6 +52,7 @@ void main() {
               id: RemoteInstance.uniqueId,
               identifier: identifier,
               library: Fixtures.library,
+              metadata: [],
               typeParameters: [],
               interfaces: [],
               hasAbstract: false,
@@ -49,27 +69,42 @@ void main() {
       var results = [
         for (var i = 0; i < 2; i++)
           MacroExecutionResultImpl(
-              enumValueAugmentations: {},
-              typeAugmentations: {
-                for (var j = 0; j < 3; j++)
-                  classes.keys.firstWhere(
-                      (identifier) => identifier.name == 'Foo$i$j'): [
-                    DeclarationCode.fromParts(
-                        [intIdentifier, ' get i => $i;\n']),
-                    DeclarationCode.fromParts(
-                        [intIdentifier, ' get j => $j;\n']),
-                  ]
-              },
-              libraryAugmentations: [
-                for (var j = 0; j < 3; j++)
-                  DeclarationCode.fromParts(
-                      [intIdentifier, ' get i${i}j$j => ${i + j};\n']),
-              ],
-              newTypeNames: [
-                'Foo${i}0',
-                'Foo${i}1',
-                'Foo${i}2',
-              ]),
+            enumValueAugmentations: {},
+            interfaceAugmentations: {
+              for (var j = 0; j < 3; j++)
+                classes.keys
+                    .firstWhere((identifier) => identifier.name == 'Foo$i$j'): [
+                  for (var k = 0; k < j; k++)
+                    NamedTypeAnnotationCode(name: interfaceIdentifiers[k]),
+                ]
+            },
+            libraryAugmentations: [
+              for (var j = 0; j < 3; j++)
+                DeclarationCode.fromParts(
+                    [intIdentifier, ' get i${i}j$j => ${i + j};\n']),
+            ],
+            mixinAugmentations: {
+              for (var j = 0; j < 3; j++)
+                classes.keys
+                    .firstWhere((identifier) => identifier.name == 'Foo$i$j'): [
+                  for (var k = 0; k < i; k++)
+                    NamedTypeAnnotationCode(name: mixinIdentifiers[k]),
+                ]
+            },
+            newTypeNames: [
+              'Foo${i}0',
+              'Foo${i}1',
+              'Foo${i}2',
+            ],
+            typeAugmentations: {
+              for (var j = 0; j < 3; j++)
+                classes.keys
+                    .firstWhere((identifier) => identifier.name == 'Foo$i$j'): [
+                  DeclarationCode.fromParts([intIdentifier, ' get i => $i;\n']),
+                  DeclarationCode.fromParts([intIdentifier, ' get j => $j;\n']),
+                ]
+            },
+          ),
       ];
       var library = _TestExecutor().buildAugmentationLibrary(
           results,
@@ -90,23 +125,23 @@ void main() {
           prefix0.int get i => 0;
           prefix0.int get j => 0;
         }
-        augment class Foo01 {
+        augment class Foo01 implements I0 {
           prefix0.int get i => 0;
           prefix0.int get j => 1;
         }
-        augment class Foo02 {
+        augment class Foo02 implements I0, I1 {
           prefix0.int get i => 0;
           prefix0.int get j => 2;
         }
-        augment class Foo10 {
+        augment class Foo10 with M0 {
           prefix0.int get i => 1;
           prefix0.int get j => 0;
         }
-        augment class Foo11 {
+        augment class Foo11 with M0 implements I0 {
           prefix0.int get i => 1;
           prefix0.int get j => 1;
         }
-        augment class Foo12 {
+        augment class Foo12 with M0 implements I0, I1 {
           prefix0.int get i => 1;
           prefix0.int get j => 2;
         }
@@ -147,6 +182,8 @@ void main() {
       var results = [
         MacroExecutionResultImpl(
           enumValueAugmentations: {},
+          interfaceAugmentations: {},
+          mixinAugmentations: {},
           typeAugmentations: {},
           libraryAugmentations: [
             DeclarationCode.fromParts([
@@ -200,6 +237,8 @@ void main() {
       var results = [
         MacroExecutionResultImpl(
             enumValueAugmentations: {},
+            interfaceAugmentations: {},
+            mixinAugmentations: {},
             typeAugmentations: {},
             libraryAugmentations: [
               DeclarationCode.fromParts([
@@ -265,6 +304,8 @@ void main() {
       var results = [
         MacroExecutionResultImpl(
           enumValueAugmentations: {},
+          interfaceAugmentations: {},
+          mixinAugmentations: {},
           typeAugmentations: {},
           libraryAugmentations: [
             DeclarationCode.fromParts([
@@ -331,6 +372,7 @@ void main() {
             uri: Uri.parse('a.dart'),
             staticScope: null),
         library: Fixtures.library,
+        metadata: [],
         typeParameters: [],
         interfaces: [],
         mixins: [],
@@ -344,10 +386,11 @@ void main() {
               uri: Uri.parse('a.dart'),
               staticScope: null),
           library: Fixtures.library,
+          metadata: [],
           definingType: myEnum.identifier,
-          isExternal: false,
-          isFinal: true,
-          isLate: false,
+          hasExternal: false,
+          hasFinal: true,
+          hasLate: false,
           isStatic: false,
           type: NamedTypeAnnotationImpl(
               id: RemoteInstance.uniqueId,
@@ -366,6 +409,14 @@ void main() {
             DeclarationCode.fromParts(
                 ['final ', intIdentifier, ' ', myField.identifier.name, ';\n']),
           ],
+        }, interfaceAugmentations: {
+          myEnum.identifier: [
+            NamedTypeAnnotationCode(name: interfaceIdentifiers.first),
+          ],
+        }, mixinAugmentations: {
+          myEnum.identifier: [
+            NamedTypeAnnotationCode(name: mixinIdentifiers.first),
+          ],
         }, newTypeNames: [], libraryAugmentations: []),
       ];
       var library = _TestExecutor().buildAugmentationLibrary(
@@ -379,7 +430,7 @@ void main() {
         import 'a.dart' as prefix0;
         import 'dart:core' as prefix1;
 
-        augment enum MyEnum {
+        augment enum MyEnum with M0 implements I0 {
           a(1),
           ;
           MyEnum(this.value);
@@ -395,6 +446,7 @@ void main() {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyClass'),
             library: Fixtures.library,
+            metadata: [],
             typeParameters: [],
             interfaces: [],
             hasAbstract: hasKeywords,
@@ -415,6 +467,8 @@ void main() {
                   DeclarationCode.fromParts(['']),
                 ]
               },
+              interfaceAugmentations: {},
+              mixinAugmentations: {},
               newTypeNames: [],
               libraryAugmentations: []),
         ];

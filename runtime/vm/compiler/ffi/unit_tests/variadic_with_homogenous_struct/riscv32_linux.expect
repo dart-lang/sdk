@@ -8,8 +8,8 @@ fa6 double
 fa7 double
 a0 int32[float]
 P(a1 uint32) Struct(size: 12)
-(a2, a3) int64
-a4 int32
-P(a5 uint32) Struct(size: 12)
+(a2, t3) int64
+t4 int32
+P(t5 uint32) Struct(size: 12)
 =>
 fa0 double

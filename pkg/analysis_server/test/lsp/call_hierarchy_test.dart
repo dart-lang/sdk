@@ -48,7 +48,8 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-    otherFileUri = Uri.file(join(projectFolderPath, 'lib', 'other.dart'));
+    otherFileUri =
+        pathContext.toUri(join(projectFolderPath, 'lib', 'other.dart'));
   }
 
   Future<void> test_constructor() async {
@@ -315,7 +316,8 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-    otherFileUri = Uri.file(join(projectFolderPath, 'lib', 'other.dart'));
+    otherFileUri =
+        pathContext.toUri(join(projectFolderPath, 'lib', 'other.dart'));
   }
 
   Future<void> test_constructor() async {
@@ -599,7 +601,7 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-    otherFileUri = Uri.file(join(projectFolderPath, 'lib', 'other.dart'));
+    otherFileUri = toUri(join(projectFolderPath, 'lib', 'other.dart'));
   }
 
   Future<void> test_args() async {

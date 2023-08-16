@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/element/element.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 
-class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
+class TypeDefinitionHandler extends LspMessageHandler<TypeDefinitionParams,
     TextDocumentTypeDefinitionResult> with LspPluginRequestHandlerMixin {
   static const _emptyResult = TextDocumentTypeDefinitionResult.t2([]);
 
@@ -41,7 +41,7 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
       return success(_emptyResult);
     }
 
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -128,7 +128,7 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
   /// Creates an LSP [Location] for the server [location].
   Location _toLocation(plugin.Location location, LineInfo lineInfo) {
     return Location(
-      uri: Uri.file(location.file),
+      uri: pathContext.toUri(location.file),
       range: toRange(lineInfo, location.offset, location.length),
     );
   }
@@ -156,7 +156,7 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
     return LocationLink(
       originSelectionRange:
           toRange(originLineInfo, originEntity.offset, originEntity.length),
-      targetUri: Uri.file(targetLocation.file),
+      targetUri: pathContext.toUri(targetLocation.file),
       targetRange: codeRange,
       targetSelectionRange: nameRange,
     );

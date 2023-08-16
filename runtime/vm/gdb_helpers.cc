@@ -12,7 +12,7 @@ namespace dart {
 #if !defined(PRODUCT)
 
 DART_EXPORT
-void _printRawObject(ObjectPtr object) {
+void _printObjectPtr(ObjectPtr object) {
   OS::PrintErr("%s\n", Object::Handle(object).ToCString());
 }
 

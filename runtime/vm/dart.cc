@@ -7,6 +7,7 @@
 
 #include "vm/dart.h"
 
+#include "platform/thread_sanitizer.h"
 #include "platform/unwinding_records.h"
 
 #include "vm/app_snapshot.h"
@@ -399,7 +400,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
     OffsetsTable::Init();
     ArgumentsDescriptor::Init();
     ICData::Init();
-    SubtypeTestCache::Init();
     if (params->vm_snapshot_data != nullptr) {
 #if defined(SUPPORT_TIMELINE)
       TimelineBeginEndScope tbes(Timeline::GetVMStream(), "ReadVMSnapshot");
@@ -440,7 +440,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
         tbes.SetNumArguments(2);
         tbes.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
         tbes.FormatArgument(
-            1, "heapSize", "%" Pd64,
+            1, "heapSize", "%" Pd,
             vm_isolate_group()->heap()->UsedInWords(Heap::kOld) * kWordSize);
       }
 #endif  // !defined(PRODUCT)
@@ -746,7 +746,6 @@ char* Dart::Cleanup() {
   UserTags::Cleanup();
   IsolateGroup::Cleanup();
   ICData::Cleanup();
-  SubtypeTestCache::Cleanup();
   ArgumentsDescriptor::Cleanup();
   OffsetsTable::Cleanup();
   FfiCallbackMetadata::Cleanup();
@@ -861,7 +860,7 @@ ErrorPtr Dart::InitIsolateGroupFromSnapshot(
     if (tbes.enabled()) {
       tbes.SetNumArguments(2);
       tbes.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
-      tbes.FormatArgument(1, "heapSize", "%" Pd64,
+      tbes.FormatArgument(1, "heapSize", "%" Pd,
                           IG->heap()->UsedInWords(Heap::kOld) * kWordSize);
     }
 #endif  // defined(SUPPORT_TIMELINE)
@@ -1070,6 +1069,8 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
 
   if (Snapshot::IncludesCode(kind)) {
     VM_GLOBAL_FLAG_LIST(ADD_P, ADD_R, ADD_C, ADD_D);
+
+    ADD_FLAG(tsan, kTargetUsesThreadSanitizer)
 
     // Enabling assertions affects deopt ids.
     ADD_ISOLATE_GROUP_FLAG(asserts, enable_asserts, FLAG_enable_asserts);

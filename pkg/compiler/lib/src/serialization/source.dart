@@ -287,13 +287,28 @@ class DataSourceReader {
     return _sourceReader.readAtOffset(offset, f);
   }
 
-  Deferrable<E> readDeferrable<E>(E f(), {bool cacheData = true}) {
+  Deferrable<E> readDeferrable<E>(E f(DataSourceReader source),
+      {bool cacheData = true}) {
     return enableDeferredStrategy
         ? (useDeferredStrategy
             ? Deferrable<E>.deferred(this, f, _sourceReader.readDeferred(),
                 cacheData: cacheData)
-            : Deferrable<E>.eager(_sourceReader.readDeferredAsEager(f)))
-        : Deferrable<E>.eager(f());
+            : Deferrable<E>.eager(
+                _sourceReader.readDeferredAsEager(() => f(this))))
+        : Deferrable<E>.eager(f(this));
+  }
+
+  Deferrable<E> readDeferrableWithArg<E, A>(
+      E f(DataSourceReader source, A arg), A arg,
+      {bool cacheData = true}) {
+    return enableDeferredStrategy
+        ? (useDeferredStrategy
+            ? Deferrable.deferredWithArg<E, A>(
+                this, f, arg, _sourceReader.readDeferred(),
+                cacheData: cacheData)
+            : Deferrable<E>.eager(
+                _sourceReader.readDeferredAsEager(() => f(this, arg))))
+        : Deferrable<E>.eager(f(this, arg));
   }
 
   /// Invoke [f] in the context of [member]. This sets up support for
@@ -525,16 +540,17 @@ class DataSourceReader {
     return library.lookupClassByName(name)!;
   }
 
-  /// Reads a reference to a kernel inline class node from this data source.
-  ir.InlineClass readInlineClassNode() {
-    _checkDataKind(DataKind.inlineClassNode);
-    return _readInlineClassNode();
+  /// Reads a reference to a kernel extension type declaration node from this
+  /// data source.
+  ir.ExtensionTypeDeclaration readExtensionTypeDeclarationNode() {
+    _checkDataKind(DataKind.extensionTypeDeclarationNode);
+    return _readExtensionTypeDeclarationNode();
   }
 
-  ir.InlineClass _readInlineClassNode() {
+  ir.ExtensionTypeDeclaration _readExtensionTypeDeclarationNode() {
     LibraryData library = _readLibraryData();
     String name = _readString();
-    return library.lookupInlineClass(name)!;
+    return library.lookupExtensionTypeDeclaration(name)!;
   }
 
   /// Reads a reference to a kernel typedef node from this data source.
@@ -972,12 +988,14 @@ class DataSourceReader {
             _readDartTypeNodes(functionTypeVariables);
         List<ir.NamedType> named = _readNamedTypeNodes(functionTypeVariables);
         return ir.RecordType(positional, named, nullability);
-      case DartTypeNodeKind.inlineType:
-        ir.InlineClass inlineClass = readInlineClassNode();
+      case DartTypeNodeKind.extensionType:
+        ir.ExtensionTypeDeclaration extensionTypeDeclaration =
+            readExtensionTypeDeclarationNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
-        return ir.InlineType(inlineClass, nullability, typeArguments);
+        return ir.ExtensionType(
+            extensionTypeDeclaration, nullability, typeArguments);
       case DartTypeNodeKind.typedef:
         ir.Typedef typedef = readTypedefNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);

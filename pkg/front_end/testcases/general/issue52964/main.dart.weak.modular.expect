@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "package:fruits/main_lib.dart" as mai;
+
+import "package:fruits/main_lib.dart";
+
+static method main() → dynamic {
+  mai::method();
+}

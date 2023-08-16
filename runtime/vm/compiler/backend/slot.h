@@ -175,8 +175,7 @@ NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
 #define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
   AOT_ONLY_UNBOXED_NATIVE_SLOTS_LIST(V)                                        \
   V(AbstractType, UntaggedAbstractType, flags, Uint32, FINAL)                  \
-  V(ClosureData, UntaggedClosureData, default_type_arguments_kind, Uint8,      \
-    FINAL)                                                                     \
+  V(ClosureData, UntaggedClosureData, packed_fields, Uint32, FINAL)            \
   V(FinalizerBase, UntaggedFinalizerBase, isolate, IntPtr, VAR)                \
   V(FinalizerEntry, UntaggedFinalizerEntry, external_size, IntPtr, VAR)        \
   V(Function, UntaggedFunction, entry_point, Uword, FINAL)                     \
@@ -231,7 +230,7 @@ class Slot : public ZoneAllocated {
     // A slot used to store type arguments.
     kTypeArguments,
 
-    // A slot at a specific [index] in a [RawTypeArgument] vector.
+    // A slot at a specific [index] in a [UntaggedTypeArgument] vector.
     kTypeArgumentsIndex,
 
     // A slot corresponding to an array element at given offset.
@@ -261,7 +260,7 @@ class Slot : public ZoneAllocated {
   // so disambiguating type arguments fields does not improve alias analysis.
   static const Slot& GetTypeArgumentsSlotFor(Thread* thread, const Class& cls);
 
-  // Returns a slot at a specific [index] in a [RawTypeArgument] vector.
+  // Returns a slot at a specific [index] in a [UntaggedTypeArgument] vector.
   static const Slot& GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index);
 
   // Returns a slot corresponding to an array element at [offset_in_bytes].

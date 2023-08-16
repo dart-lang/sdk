@@ -32,14 +32,24 @@ import 'package:dart2wasm/compiler_options.dart' as compiler;
 import 'package:dart2wasm/js/runtime_generator.dart' as js;
 import 'package:dart2wasm/record_class_generator.dart';
 import 'package:dart2wasm/records.dart';
-import 'package:dart2wasm/target.dart';
+import 'package:dart2wasm/target.dart' hide Mode;
+import 'package:dart2wasm/target.dart' as wasm show Mode;
 import 'package:dart2wasm/translator.dart';
+import 'package:wasm_builder/wasm_builder.dart' show Module, Serializer;
 
 class CompilerOutput {
-  final Uint8List wasmModule;
+  final Module _wasmModule;
   final String jsRuntime;
 
-  CompilerOutput(this.wasmModule, this.jsRuntime);
+  late final Uint8List wasmModule = _serializeWasmModule();
+
+  Uint8List _serializeWasmModule() {
+    final s = Serializer();
+    _wasmModule.serialize(s);
+    return s.data;
+  }
+
+  CompilerOutput(this._wasmModule, this.jsRuntime);
 }
 
 /// Compile a Dart file into a Wasm module.
@@ -57,8 +67,16 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
     handleDiagnosticMessage(message);
   }
 
-  final WasmTarget target =
-      WasmTarget(removeAsserts: !options.translatorOptions.enableAsserts);
+  final wasm.Mode mode;
+  if (options.translatorOptions.useStringref) {
+    mode = wasm.Mode.stringref;
+  } else if (options.translatorOptions.jsCompatibility) {
+    mode = wasm.Mode.jsCompatibility;
+  } else {
+    mode = wasm.Mode.regular;
+  }
+  final WasmTarget target = WasmTarget(
+      removeAsserts: !options.translatorOptions.enableAsserts, mode: mode);
   CompilerOptions compilerOptions = CompilerOptions()
     ..target = target
     ..sdkRoot = options.sdkPath
@@ -117,7 +135,7 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
         options.outputFile, depFile);
   }
 
-  Uint8List wasmModule = translator.translate();
+  final wasmModule = translator.translate();
   String jsRuntime =
       jsRuntimeFinalizer.generate(translator.functions.translatedProcedures);
   return CompilerOutput(wasmModule, jsRuntime);

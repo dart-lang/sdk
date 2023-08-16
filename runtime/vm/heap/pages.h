@@ -186,8 +186,8 @@ class PageSpace {
     page_space_controller_.EvaluateAfterLoading(usage_);
   }
 
-  int64_t UsedInWords() const { return usage_.used_in_words; }
-  int64_t CapacityInWords() const {
+  intptr_t UsedInWords() const { return usage_.used_in_words; }
+  intptr_t CapacityInWords() const {
     MutexLocker ml(&pages_lock_);
     return usage_.capacity_in_words;
   }

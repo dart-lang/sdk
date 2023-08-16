@@ -131,11 +131,20 @@ void syncTests() {
               'foo'.toJS, 'bar'.toJS)
           .toDart,
       'foobar');
+  // Converting a non-function should throw.
+  Expect.throws(() => ('foo'.toJS as JSExportedDartFunction).toDart);
 
   // [JSBoxedDartObject] <-> [Object]
   edo = DartObject().toJSBox;
   expect(edo is JSBoxedDartObject, true);
   expect(((edo as JSBoxedDartObject).toDart as DartObject).foo, 'bar');
+  // Functions should be boxed without assertInterop.
+  final concat = (String a, String b) => a + b;
+  edo = concat.toJSBox;
+  expect(
+      (edo.toDart as String Function(String, String))('foo', 'bar'), 'foobar');
+  // Should not box a non Dart-object.
+  Expect.throws(() => edo.toJSBox);
 
   // [JSArray] <-> [List<JSAny?>]
   arr = [1.0.toJS, 'foo'.toJS].toJS;

@@ -1,3 +1,9 @@
+Problems reported:
+
+parser/extension_type:3:18: Unexpected token 'on'.
+extension type E on A {}
+                 ^^
+
 beginCompilationUnit(class)
   beginMetadataStar(class)
   endMetadataStar(0)
@@ -18,13 +24,13 @@ beginCompilationUnit(class)
   endMetadataStar(0)
   beginExtensionDeclarationPrelude(extension)
     handleNoTypeVariables(on)
+    handleRecoverableError(Message[UnexpectedToken, Unexpected token 'on'., null, {lexeme: on}], on, on)
     beginExtensionDeclaration(extension, E)
       handleIdentifier(A, typeReference)
       handleNoTypeArguments({)
       handleType(A, null)
-      handleExtensionShowHide(null, 0, null, 0)
       beginClassOrMixinOrExtensionBody(DeclarationKind.Extension, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.Extension, 0, {, })
-    endExtensionDeclaration(extension, type, on, null, null, })
+    endExtensionDeclaration(extension, on, })
   endTopLevelDeclaration()
 endCompilationUnit(2, )

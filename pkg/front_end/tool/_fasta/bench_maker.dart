@@ -380,11 +380,6 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     throw "not implemented";
   }
 
-  @override
-  void visitInlineType(InlineType node, StringBuffer sb) {
-    throw "not implemented";
-  }
-
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       "classes": classes,

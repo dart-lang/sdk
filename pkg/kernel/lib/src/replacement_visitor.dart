@@ -320,8 +320,8 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
     for (int i = 0; i < node.typeArguments.length; i++) {
       DartType? substitution = node.typeArguments[i].accept1(
           this,
-          Variance.combine(
-              variance, node.extension.typeParameters[i].variance));
+          Variance.combine(variance,
+              node.extensionTypeDeclaration.typeParameters[i].variance));
       if (substitution != null) {
         newTypeArguments ??= node.typeArguments.toList(growable: false);
         newTypeArguments[i] = substitution;
@@ -337,37 +337,7 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
       return null;
     } else {
       return new ExtensionType(
-          node.extension,
-          newNullability ?? node.nullability,
-          newTypeArguments ?? node.typeArguments);
-    }
-  }
-
-  @override
-  DartType? visitInlineType(InlineType node, int variance) {
-    Nullability? newNullability = visitNullability(node);
-    List<DartType>? newTypeArguments = null;
-    for (int i = 0; i < node.typeArguments.length; i++) {
-      DartType? substitution = node.typeArguments[i].accept1(
-          this,
-          Variance.combine(
-              variance, node.inlineClass.typeParameters[i].variance));
-      if (substitution != null) {
-        newTypeArguments ??= node.typeArguments.toList(growable: false);
-        newTypeArguments[i] = substitution;
-      }
-    }
-    return createInlineType(node, newNullability, newTypeArguments);
-  }
-
-  DartType? createInlineType(InlineType node, Nullability? newNullability,
-      List<DartType>? newTypeArguments) {
-    if (newNullability == null && newTypeArguments == null) {
-      // No nullability or type arguments needed to be substituted.
-      return null;
-    } else {
-      return new InlineType(
-          node.inlineClass,
+          node.extensionTypeDeclaration,
           newNullability ?? node.nullability,
           newTypeArguments ?? node.typeArguments);
     }

@@ -9,13 +9,13 @@ class C {
 }
 
 const
-// [error line 11, column 1, length 5]
+// [error column 1, length 5]
 // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
 // [cfe] Can't have modifier 'const' here.
 t() => null;
 
 const
-// [error line 17, column 1, length 5]
+// [error column 1, length 5]
 // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
 // [cfe] Can't have modifier 'const' here.
 get v => null;
@@ -24,7 +24,7 @@ main() {
   const
       dynamic x = t();
       //          ^^^
-      // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+      // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
       // [cfe] Method invocation is not a constant expression.
   const y = const C();
   //        ^^^^^

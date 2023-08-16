@@ -12,7 +12,7 @@ import 'builder.dart';
 import 'class_builder.dart';
 import 'declaration_builder.dart';
 import 'extension_builder.dart';
-import 'inline_class_builder.dart';
+import 'extension_type_declaration_builder.dart';
 import 'library_builder.dart';
 import 'modifier_builder.dart';
 
@@ -120,9 +120,10 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
     } else if (parent is ExtensionBuilder) {
       ExtensionBuilder extension = parent as ExtensionBuilder;
       return extension.libraryBuilder;
-    } else if (parent is InlineClassBuilder) {
-      InlineClassBuilder inlineClass = parent as InlineClassBuilder;
-      return inlineClass.libraryBuilder;
+    } else if (parent is ExtensionTypeDeclarationBuilder) {
+      ExtensionTypeDeclarationBuilder extensionTypeDeclaration =
+          parent as ExtensionTypeDeclarationBuilder;
+      return extensionTypeDeclaration.libraryBuilder;
     } else {
       ClassBuilder cls = parent as ClassBuilder;
       return cls.libraryBuilder;
@@ -139,7 +140,7 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   bool get isExtensionInstanceMember => isExtensionMember && !isStatic;
 
   @override
-  bool get isInlineClassInstanceMember => isInlineClassMember && !isStatic;
+  bool get isExtensionTypeInstanceMember => isExtensionTypeMember && !isStatic;
 
   @override
   bool get isDeclarationMember => parent is DeclarationBuilder;
@@ -151,7 +152,7 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   bool get isExtensionMember => parent is ExtensionBuilder;
 
   @override
-  bool get isInlineClassMember => parent is InlineClassBuilder;
+  bool get isExtensionTypeMember => parent is ExtensionTypeDeclarationBuilder;
 
   @override
   bool get isTopLevel => !isDeclarationMember;

@@ -31,11 +31,12 @@ main() async {
       print('$nestedList');
     });
   } catch (e) {
+    print(e);
     Expect.isTrue(checkForRetainingPath(e, <String>[
       'NativeClass',
       'Baz',
       'Fu',
-      'Closure',
+      'closure',
     ]));
 
     final msg = e.toString();

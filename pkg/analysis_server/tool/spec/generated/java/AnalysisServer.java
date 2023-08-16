@@ -882,6 +882,15 @@ public interface AnalysisServer {
   public boolean isSocketOpen();
 
   /**
+   * {@code lsp.handle}
+   *
+   * Call an LSP handler. Message can be requests or notifications.
+   *
+   * @param lspMessage The LSP RequestMessage.
+   */
+  public void lsp_handle(Object lspMessage, HandleConsumer consumer);
+
+  /**
    * Remove the given listener from the list of listeners that will receive notification when new
      * analysis results become available.
    *

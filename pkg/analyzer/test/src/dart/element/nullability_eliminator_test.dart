@@ -336,10 +336,10 @@ class NullabilityEliminatorTest extends AbstractTypeSystemTest
       typeArguments: [intNone],
       nullabilitySuffix: NullabilitySuffix.none,
     );
-    expect(_typeToString(input), '(int)');
+    expect(_typeToString(input), '(int,)');
 
     var result = NullabilityEliminator.perform(typeProvider, input);
-    expect(_typeToString(result), '(int*)*');
+    expect(_typeToString(result), '(int*,)*');
     _assertInstantiatedAlias(result, A, 'int*');
   }
 
@@ -360,18 +360,18 @@ class NullabilityEliminatorTest extends AbstractTypeSystemTest
   }
 
   test_recordType_positional() {
-    final expected = '(int*)*';
+    final expected = '(int*,)*';
 
-    _verify2('(int)', expected);
-    _verify2('(int?)', expected);
-    _verify2('(int*)', expected);
+    _verify2('(int,)', expected);
+    _verify2('(int?,)', expected);
+    _verify2('(int*,)', expected);
 
-    _verify2('(int)?', expected);
-    _verify2('(int?)?', expected);
-    _verify2('(int*)?', expected);
+    _verify2('(int,)?', expected);
+    _verify2('(int?,)?', expected);
+    _verify2('(int*,)?', expected);
 
-    _verify2('(int)*', expected);
-    _verify2('(int?)*', expected);
+    _verify2('(int,)*', expected);
+    _verify2('(int?,)*', expected);
     _verifySame(typeOfString(expected));
   }
 

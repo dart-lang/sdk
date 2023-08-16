@@ -232,6 +232,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try marking the function body with either 'async' or 'async*'.",
   );
 
+  static const CompileTimeErrorCode AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE =
+      CompileTimeErrorCode(
+    'AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE',
+    "The 'await' expression can't be used for an expression with an extension "
+        "type that is not a subtype of 'Future'.",
+    correctionMessage: "Try updating the extension type to implement 'Future'.",
+  );
+
   ///  Parameters:
   ///  0: the name of the base class being implemented
   static const CompileTimeErrorCode BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY =
@@ -665,6 +673,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode
+      CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY = CompileTimeErrorCode(
+    'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
+    "Constant values from a deferred library can't be used as values in a "
+        "'const' constructor.",
+    correctionMessage:
+        "Try removing the keyword 'const' from the constructor or removing the "
+        "keyword 'deferred' from the import.",
+    uniqueName: 'CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY',
+  );
+
   ///  16.12.2 Const: It is a compile-time error if evaluation of a constant
   ///  object results in an uncaught exception being thrown.
   ///
@@ -795,6 +815,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode CONST_EVAL_ASSERTION_FAILURE =
+      CompileTimeErrorCode(
+    'CONST_EVAL_ASSERTION_FAILURE',
+    "The assertion in this constant expression failed.",
+  );
+
   static const CompileTimeErrorCode CONST_EVAL_EXTENSION_METHOD =
       CompileTimeErrorCode(
     'CONST_EVAL_EXTENSION_METHOD',
@@ -807,6 +833,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Constant expressions don't support 'for' elements.",
     correctionMessage:
         "Try replacing the 'for' element with a spread, or removing 'const'.",
+  );
+
+  static const CompileTimeErrorCode CONST_EVAL_METHOD_INVOCATION =
+      CompileTimeErrorCode(
+    'CONST_EVAL_METHOD_INVOCATION',
+    "Methods can't be invoked in constant expressions.",
   );
 
   ///  16.12.2 Const: It is a compile-time error if evaluation of a constant
@@ -3516,6 +3548,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'NON_CONST_MAP_AS_EXPRESSION_STATEMENT',
     "A non-constant map or set literal without type arguments can't be used as "
         "an expression statement.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode
+      NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE =
+      CompileTimeErrorCode(
+    'NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE',
+    "An extension type parameter can't be used in a non-covariant position of "
+        "its representation type.",
+    correctionMessage:
+        "Try removing the type parameters from function parameter types and "
+        "type parameter bounds.",
   );
 
   ///  Parameters:
@@ -6834,40 +6878,6 @@ class WarningCode extends AnalyzerErrorCode {
     uniqueName: 'RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
   );
 
-  ///  Parameters:
-  ///  0: the name of the class
-  static const WarningCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE = WarningCode(
-    'SDK_VERSION_ASYNC_EXPORTED_FROM_CORE',
-    "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but "
-        "this code is required to be able to run on earlier versions.",
-    correctionMessage:
-        "Try either importing 'dart:async' or updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT =
-      WarningCode(
-    'SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT',
-    "The use of an as expression in a constant expression wasn't supported "
-        "until version 2.3.2, but this code is required to be able to run on "
-        "earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the operator
-  static const WarningCode SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT =
-      WarningCode(
-    'SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT',
-    "The use of the operator '{0}' for 'bool' operands in a constant context "
-        "wasn't supported until version 2.3.2, but this code is required to be "
-        "able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
   ///  No parameters.
   ///
   ///  There is also a [ParserError.EXPERIMENT_NOT_ENABLED] code which catches
@@ -6885,41 +6895,10 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const WarningCode SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT =
-      WarningCode(
-    'SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT',
-    "Using the operator '==' for non-primitive types wasn't supported until "
-        "version 2.3.2, but this code is required to be able to run on earlier "
-        "versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_EXTENSION_METHODS = WarningCode(
-    'SDK_VERSION_EXTENSION_METHODS',
-    "Extension methods weren't supported until version 2.6.0, but this code is "
-        "required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
   static const WarningCode SDK_VERSION_GT_GT_GT_OPERATOR = WarningCode(
     'SDK_VERSION_GT_GT_GT_OPERATOR',
     "The operator '>>>' wasn't supported until version 2.14.0, but this code "
         "is required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT =
-      WarningCode(
-    'SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT',
-    "The use of an is expression in a constant context wasn't supported until "
-        "version 2.3.2, but this code is required to be able to run on earlier "
-        "versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
   );
@@ -6933,15 +6912,6 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_SET_LITERAL = WarningCode(
-    'SDK_VERSION_SET_LITERAL',
-    "Set literals weren't supported until version 2.2, but this code is "
-        "required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
   ///  Parameters:
   ///  0: the version specified in the `@Since()` annotation
   ///  1: the SDK version constraints
@@ -6950,26 +6920,6 @@ class WarningCode extends AnalyzerErrorCode {
     "This API is available since SDK {0}, but constraints '{1}' don't "
         "guarantee it.",
     correctionMessage: "Try updating the SDK constraints.",
-  );
-
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_UI_AS_CODE = WarningCode(
-    'SDK_VERSION_UI_AS_CODE',
-    "The for, if, and spread elements weren't supported until version 2.3.0, "
-        "but this code is required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT =
-      WarningCode(
-    'SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT',
-    "The if and spread elements weren't supported in constant expressions "
-        "until version 2.5.0, but this code is required to be able to run on "
-        "earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
   );
 
   ///  When "strict-raw-types" is enabled, "raw types" must have type arguments.

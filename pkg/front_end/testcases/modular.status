@@ -5,7 +5,6 @@
 # Status file for the modular_suite.dart test suite.
 
 constructor_tearoffs/call_instantiation: TypeCheckError
-constructor_tearoffs/lowering/invalid_redirect: VerificationError
 enhanced_enums/declared_hashcode: TypeCheckError
 enhanced_enums/declared_index: TypeCheckError
 extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Expected.
@@ -48,6 +47,7 @@ general/override_check_after_inference: TypeCheckError # Issue #31620
 general/override_check_basic: TypeCheckError # Issue #31620
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general/override_setter_with_field: TypeCheckError
+general/supertype_conflict: TypeCheckError
 general/unsound_promotion: TypeCheckError
 inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
@@ -64,8 +64,6 @@ inference/mixin_inference_unification_2: TypeCheckError
 inference_new/infer_assign_to_index_super_upwards: TypeCheckError
 inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
-inference_update_2/call_invocation_with_hoisting: TypeCheckError
-inference_update_2/cascaded_field_promotion: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError

@@ -132,7 +132,7 @@ void Assembler::EnterFullSafepoint() {
   // For TSAN, we always go to the runtime so TSAN is aware of the release
   // semantics of entering the safepoint.
   Label done, slow_path;
-  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
+  if (FLAG_use_slow_path || kTargetUsesThreadSanitizer) {
     jmp(&slow_path);
   }
 
@@ -146,7 +146,7 @@ void Assembler::EnterFullSafepoint() {
   popq(RAX);
   cmpq(TMP, Immediate(target::Thread::full_safepoint_state_unacquired()));
 
-  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
+  if (!FLAG_use_slow_path && !kTargetUsesThreadSanitizer) {
     j(EQUAL, &done);
   }
 
@@ -189,7 +189,7 @@ void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
   // For TSAN, we always go to the runtime so TSAN is aware of the acquire
   // semantics of leaving the safepoint.
   Label done, slow_path;
-  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
+  if (FLAG_use_slow_path || kTargetUsesThreadSanitizer) {
     jmp(&slow_path);
   }
 
@@ -205,7 +205,7 @@ void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
   popq(RAX);
   cmpq(TMP, Immediate(target::Thread::full_safepoint_state_acquired()));
 
-  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
+  if (!FLAG_use_slow_path && !kTargetUsesThreadSanitizer) {
     j(EQUAL, &done);
   }
 
@@ -2007,7 +2007,7 @@ LeafRuntimeScope::~LeafRuntimeScope() {
   __ LeaveFrame();
 }
 
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Address addr) {
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
   leaq(CallingConventions::kArg1Reg, addr);

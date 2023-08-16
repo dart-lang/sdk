@@ -134,8 +134,12 @@ suggestions
     kind: identifier
   f02
     kind: identifier
+  final
+    kind: keyword
   g01
     kind: identifier
+  var
+    kind: keyword
 ''');
   }
 

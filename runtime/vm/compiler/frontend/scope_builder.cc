@@ -29,10 +29,8 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
       helper_(
           zone_,
           &translation_helper_,
-          Script::Handle(Z, parsed_function->function().script()),
-          ExternalTypedData::Handle(Z,
-                                    parsed_function->function().KernelData()),
-          parsed_function->function().KernelDataProgramOffset()),
+          TypedDataView::Handle(Z, parsed_function->function().KernelLibrary()),
+          parsed_function->function().KernelLibraryOffset()),
       constant_reader_(&helper_, &active_class_),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
       procedure_attributes_metadata_helper_(&helper_),
@@ -40,7 +38,9 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
                        &constant_reader_,
                        &active_class_,
                        /*finalize=*/true) {
-  H.InitFromScript(helper_.script());
+  const auto& kernel_program_info = KernelProgramInfo::Handle(
+      Z, parsed_function->function().KernelProgramInfo());
+  H.InitFromKernelProgramInfo(kernel_program_info);
   ASSERT(type_translator_.active_class_ == &active_class_);
 }
 
@@ -177,8 +177,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           for (intptr_t i = 0; i < class_fields.Length(); ++i) {
             class_field ^= class_fields.At(i);
             if (!class_field.is_static()) {
-              ExternalTypedData& kernel_data =
-                  ExternalTypedData::Handle(Z, class_field.KernelData());
+              const auto& kernel_data =
+                  TypedDataView::Handle(Z, class_field.KernelLibrary());
               ASSERT(!kernel_data.IsNull());
               intptr_t field_offset = class_field.kernel_offset();
               AlternativeReadingScopeWithNewData alt(
@@ -389,7 +389,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     case UntaggedFunction::kFfiTrampoline: {
       needs_expr_temp_ = true;
       // Callbacks and calls with handles need try/catch variables.
-      if ((function.FfiCallbackTarget() != Function::null() ||
+      if ((function.GetFfiTrampolineKind() != FfiTrampolineKind::kCall ||
            function.FfiCSignatureContainsHandles())) {
         ++depth_.try_;
         AddTryVariables();
@@ -462,7 +462,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 }
 
 void ScopeBuilder::ReportUnexpectedTag(const char* variant, Tag tag) {
-  H.ReportError(helper_.script(), TokenPosition::kNoSource,
+  const auto& script = Script::Handle(Z, Script());
+  H.ReportError(script, TokenPosition::kNoSource,
                 "Unexpected tag %d (%s) in %s, expected %s", tag,
                 Reader::TagName(tag),
                 parsed_function_->function().ToQualifiedCString(), variant);
@@ -505,8 +506,8 @@ void ScopeBuilder::VisitConstructor() {
     for (intptr_t i = 0; i < class_fields.Length(); ++i) {
       class_field ^= class_fields.At(i);
       if (!class_field.is_static()) {
-        ExternalTypedData& kernel_data =
-            ExternalTypedData::Handle(Z, class_field.KernelData());
+        const auto& kernel_data =
+            TypedDataView::Handle(Z, class_field.KernelLibrary());
         ASSERT(!kernel_data.IsNull());
         intptr_t field_offset = class_field.kernel_offset();
         AlternativeReadingScopeWithNewData alt(&helper_.reader_, &kernel_data,
@@ -550,8 +551,6 @@ void ScopeBuilder::VisitFunctionNode() {
   FunctionNodeHelper function_node_helper(&helper_);
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
 
-  const auto& function = parsed_function_->function();
-
   intptr_t list_length =
       helper_.ReadListLength();  // read type_parameters list length.
   for (intptr_t i = 0; i < list_length; ++i) {
@@ -572,19 +571,6 @@ void ScopeBuilder::VisitFunctionNode() {
     PositionScope scope(&helper_.reader_);
     VisitStatement();  // Read body
     first_body_token_position_ = helper_.reader_.min_position();
-  }
-
-  // Mark known chained futures such as _Future::timeout()'s _future.
-  if (function.recognized_kind() == MethodRecognizer::kFutureTimeout &&
-      depth_.function_ == 1) {
-    LocalVariable* future = scope_->LookupVariableByName(Symbols::_future());
-    ASSERT(future != nullptr);
-    future->set_is_chained_future();
-  } else if (function.recognized_kind() == MethodRecognizer::kFutureWait &&
-             depth_.function_ == 1) {
-    LocalVariable* future = scope_->LookupVariableByName(Symbols::_future());
-    ASSERT(future != nullptr);
-    future->set_is_chained_future();
   }
 }
 
@@ -1332,6 +1318,8 @@ void ScopeBuilder::VisitVariableDeclaration() {
   const intptr_t kernel_offset =
       helper_.data_program_offset_ + helper_.ReaderOffset();
   VariableDeclarationHelper helper(&helper_);
+  helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
+  const intptr_t annotations_offset = helper_.ReaderOffset();
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   AbstractType& type = BuildAndVisitVariableType();
 
@@ -1356,6 +1344,9 @@ void ScopeBuilder::VisitVariableDeclaration() {
   }
   LocalVariable* variable =
       MakeVariable(helper.position_, end_position, name, type, kernel_offset);
+  if (helper.annotation_count_ > 0) {
+    variable->set_annotations_offset(annotations_offset);
+  }
   if (helper.IsFinal()) {
     variable->set_is_final();
   }
@@ -1412,8 +1403,8 @@ void ScopeBuilder::VisitDartType() {
     case kIntersectionType:
       VisitIntersectionType();
       return;
-    case kInlineType:
-      VisitInlineType();
+    case kExtensionType:
+      VisitExtensionType();
       return;
     case kFutureOrType:
       VisitFutureOrType();
@@ -1531,8 +1522,8 @@ void ScopeBuilder::VisitIntersectionType() {
   helper_.SkipDartType();  // read right.
 }
 
-void ScopeBuilder::VisitInlineType() {
-  // We skip the inline type and only use the representation type.
+void ScopeBuilder::VisitExtensionType() {
+  // We skip the extension type and only use the representation type.
   helper_.ReadNullability();
   helper_.SkipCanonicalNameReference();  // read index for canonical name.
   helper_.SkipListOfDartTypes();         // read type arguments
@@ -1646,6 +1637,8 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   const InferredTypeMetadata parameter_type =
       inferred_type_metadata_helper_.GetInferredType(helper_.ReaderOffset());
   VariableDeclarationHelper helper(&helper_);
+  helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
+  const intptr_t annotations_offset = helper_.ReaderOffset();
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   String& name = H.DartSymbolObfuscate(helper.name_index_);
   ASSERT(name.Length() > 0);
@@ -1656,6 +1649,9 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   LocalVariable* variable =
       MakeVariable(helper.position_, helper.position_, name, type,
                    kernel_offset, &parameter_type);
+  if (helper.annotation_count_ > 0) {
+    variable->set_annotations_offset(annotations_offset);
+  }
   if (helper.IsFinal()) {
     variable->set_is_final();
   }
@@ -1731,7 +1727,7 @@ LocalVariable* ScopeBuilder::MakeVariable(
     TokenPosition token_pos,
     const String& name,
     const AbstractType& type,
-    intptr_t kernel_offset,
+    intptr_t kernel_offset /* = LocalVariable::kNoKernelOffset */,
     const InferredTypeMetadata* param_type_md /* = nullptr */) {
   CompileType* param_type = nullptr;
   const Object* param_value = nullptr;
@@ -1899,8 +1895,7 @@ LocalVariable* ScopeBuilder::LookupVariable(
 StringIndex ScopeBuilder::GetNameFromVariableDeclaration(
     intptr_t kernel_offset,
     const Function& function) {
-  ExternalTypedData& kernel_data =
-      ExternalTypedData::Handle(Z, function.KernelData());
+  const auto& kernel_data = TypedDataView::Handle(Z, function.KernelLibrary());
   ASSERT(!kernel_data.IsNull());
 
   // Temporarily go to the variable declaration, read the name.
@@ -1933,6 +1928,8 @@ void ScopeBuilder::HandleLoadReceiver() {
     // use-site also includes the [receiver].
     scope_->CaptureVariable(parsed_function_->receiver_var());
   }
+
+  parsed_function_->set_receiver_used();
 }
 
 void ScopeBuilder::HandleSpecialLoad(LocalVariable** variable,

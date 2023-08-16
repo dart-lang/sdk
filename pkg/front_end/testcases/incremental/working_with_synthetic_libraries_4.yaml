@@ -16,3 +16,6 @@ worlds:
     expectedLibraryCount: 1
     expectedSyntheticLibraryCount: 1
     errors: true
+    # "Error: Couldn't resolve the package 'foo' in 'package:foo/nonexisting.dart'" is reported twice since directly
+    # from the uri-translator. Once for the file-uri and once for the import-uri.
+    allowDuplicateErrors: true

@@ -45,6 +45,14 @@ abstract class DataExtractor<T> extends Visitor<void>
   /// If `null` is returned, [cls] has no associated data.
   T? computeClassValue(Id id, Class cls) => null;
 
+  /// Implement this to compute the data corresponding to
+  /// [extensionTypeDeclaration].
+  ///
+  /// If `null` is returned, [extensionTypeDeclaration] has no associated data.
+  T? computeExtensionTypeDeclarationValue(
+          Id id, ExtensionTypeDeclaration extensionTypeDeclaration) =>
+      null;
+
   /// Implement this to compute the data corresponding to [extension].
   ///
   /// If `null` is returned, [extension] has no associated data.
@@ -79,6 +87,19 @@ abstract class DataExtractor<T> extends Visitor<void>
     T? value = computeExtensionValue(id, extension);
     registerValue(
         extension.fileUri, extension.fileOffset, id, value, extension);
+  }
+
+  void computeForExtensionTypeDeclaration(
+      ExtensionTypeDeclaration extensionTypeDeclaration) {
+    ClassId id = new ClassId(extensionTypeDeclaration.name);
+    T? value =
+        computeExtensionTypeDeclarationValue(id, extensionTypeDeclaration);
+    registerValue(
+        extensionTypeDeclaration.fileUri,
+        extensionTypeDeclaration.fileOffset,
+        id,
+        value,
+        extensionTypeDeclaration);
   }
 
   void computeForMember(Member member) {

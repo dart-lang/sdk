@@ -443,9 +443,6 @@ class _MacroListener implements Listener {
     unrecognized = true;
   }
 
-  /// Called for listener events that are ignored.
-  void _ignored() {}
-
   @override
   void beginAsOperatorType(Token operator) {
     _unsupported();
@@ -1190,8 +1187,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token endToken) {
     _unexpected();
   }
 
@@ -1670,22 +1667,6 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleCommentReference(
-      Token? newKeyword,
-      Token? firstToken,
-      Token? firstPeriod,
-      Token? secondToken,
-      Token? secondPeriod,
-      Token thirdToken) {
-    _ignored();
-  }
-
-  @override
-  void handleCommentReferenceText(String referenceSource, int referenceOffset) {
-    _ignored();
-  }
-
-  @override
   void handleConditionalExpressionColon() {
     _unhandled();
   }
@@ -1769,12 +1750,6 @@ class _MacroListener implements Listener {
   @override
   void handleExpressionStatement(Token token) {
     _unsupported();
-  }
-
-  @override
-  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
-      Token? hideKeyword, int hideElementCount) {
-    _unexpected();
   }
 
   @override
@@ -1981,11 +1956,6 @@ class _MacroListener implements Listener {
   @override
   void handleNewAsIdentifier(Token token) {
     _unhandled();
-  }
-
-  @override
-  void handleNoCommentReference() {
-    _ignored();
   }
 
   @override
@@ -2321,6 +2291,61 @@ class _MacroListener implements Listener {
   @override
   void handleExperimentNotEnabled(
       ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    _unsupported();
+  }
+
+  @override
+  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+    _unsupported();
+  }
+
+  @override
+  void endExtensionTypeConstructor(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    _unsupported();
+  }
+
+  @override
+  void endExtensionTypeDeclaration(
+      Token extensionKeyword, Token? typeKeyword, Token endToken) {
+    _unsupported();
+  }
+
+  @override
+  void endExtensionTypeFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    _unsupported();
+  }
+
+  @override
+  void endExtensionTypeFields(
+      Token? abstractToken,
+      Token? augmentToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    _unsupported();
+  }
+
+  @override
+  void endExtensionTypeMethod(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    _unsupported();
+  }
+
+  @override
+  void beginPrimaryConstructor(Token beginToken) {
+    _unsupported();
+  }
+
+  @override
+  void endPrimaryConstructor(
+      Token beginToken, Token? constKeyword, bool hasName) {
     _unsupported();
   }
 }

@@ -47,12 +47,15 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/parser/quote.dart';
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show NullValues, StackListener;
+import 'package:_fe_analyzer_shared/src/parser/util.dart'
+    show isLetter, isLetterOrDigit, isWhitespace, optional;
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show KeywordToken, StringToken, SyntheticToken;
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
+import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/error.dart';
@@ -121,9 +124,6 @@ class AstBuilder extends StackListener {
   /// `true` if constructor tearoffs are enabled
   final bool enableConstructorTearoffs;
 
-  /// `true` if extension types are enabled
-  final bool enableExtensionTypes;
-
   /// `true` if named arguments anywhere are enabled
   final bool enableNamedArgumentsAnywhere;
 
@@ -166,7 +166,6 @@ class AstBuilder extends StackListener {
         enableVariance = _featureSet.isEnabled(Feature.variance),
         enableConstructorTearoffs =
             _featureSet.isEnabled(Feature.constructor_tearoffs),
-        enableExtensionTypes = _featureSet.isEnabled(Feature.extension_types),
         enableNamedArgumentsAnywhere =
             _featureSet.isEnabled(Feature.named_arguments_anywhere),
         enableSuperParameters = _featureSet.isEnabled(Feature.super_parameters),
@@ -300,7 +299,6 @@ class AstBuilder extends StackListener {
       }
     }
     push(macroToken ?? NullValues.Token);
-    push(inlineToken ?? NullValues.Token);
     push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
     push(interfaceToken ?? NullValues.Token);
@@ -335,6 +333,26 @@ class AstBuilder extends StackListener {
       metadata: metadata,
       extensionKeyword: extensionKeyword,
       name: nameToken,
+      typeParameters: typeParameters,
+      leftBracket: Tokens.openCurlyBracket(),
+      rightBracket: Tokens.closeCurlyBracket(),
+    );
+  }
+
+  @override
+  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+    assert(optional('extension', extensionKeyword));
+    assert(_classLikeBuilder == null);
+
+    final typeParameters = pop() as TypeParameterListImpl?;
+    final metadata = pop() as List<AnnotationImpl>?;
+    final comment = _findComment(metadata, extensionKeyword);
+
+    _classLikeBuilder = _ExtensionTypeDeclarationBuilder(
+      comment: comment,
+      metadata: metadata,
+      extensionKeyword: extensionKeyword,
+      name: name,
       typeParameters: typeParameters,
       leftBracket: Tokens.openCurlyBracket(),
       rightBracket: Tokens.closeCurlyBracket(),
@@ -542,6 +560,11 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void beginPrimaryConstructor(Token beginToken) {
+    debugEvent("PrimaryConstructor");
+  }
+
+  @override
   void beginSwitchCaseWhenClause(Token when) {
     debugEvent("PatternSwitchCaseGuard");
   }
@@ -652,12 +675,7 @@ class AstBuilder extends StackListener {
       } else if (left is SimpleIdentifierImpl) {
         fieldName = left;
       } else {
-        // Recovery:
-        // Parser has reported invalid assignment.
-        var superExpression = left as SuperExpressionImpl;
-        fieldName = SimpleIdentifierImpl(
-          superExpression.superKeyword,
-        );
+        return null;
       }
       return ConstructorFieldInitializerImpl(
         thisKeyword: thisKeyword,
@@ -752,7 +770,6 @@ class AstBuilder extends StackListener {
       metadata: null,
       abstractKeyword: null,
       macroKeyword: null,
-      inlineKeyword: null,
       sealedKeyword: null,
       baseKeyword: null,
       interfaceKeyword: null,
@@ -1165,6 +1182,7 @@ class AstBuilder extends StackListener {
     declarations.add(
       builder.build(),
     );
+
     _classLikeBuilder = null;
   }
 
@@ -1309,6 +1327,7 @@ class AstBuilder extends StackListener {
       MethodDeclarationImpl(
         comment: comment,
         metadata: metadata,
+        augmentKeyword: modifiers?.augmentKeyword,
         externalKeyword: modifiers?.externalKeyword,
         modifierKeyword: modifiers?.abstractKeyword ?? modifiers?.staticKeyword,
         returnType: returnType,
@@ -1559,24 +1578,9 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token token) {
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token token) {
     final builder = _classLikeBuilder as _ExtensionDeclarationBuilder;
-
-    if (typeKeyword != null && !enableExtensionTypes) {
-      _reportFeatureNotEnabled(
-        feature: ExperimentalFeatures.extension_types,
-        startToken: typeKeyword,
-      );
-    }
-
-    final showOrHideKeyword = showKeyword ?? hideKeyword;
-    if (showOrHideKeyword != null && !enableExtensionTypes) {
-      _reportFeatureNotEnabled(
-        feature: ExperimentalFeatures.extension_types,
-        startToken: showOrHideKeyword,
-      );
-    }
 
     final type = pop() as TypeAnnotationImpl;
 
@@ -1584,7 +1588,7 @@ class AstBuilder extends StackListener {
       builder.build(
         extendedType: type,
         onKeyword: onKeyword,
-        typeKeyword: typeKeyword,
+        typeKeyword: null,
       ),
     );
 
@@ -1644,6 +1648,34 @@ class AstBuilder extends StackListener {
     debugEvent("ExtensionMethod");
     endClassMethod(
         getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void endExtensionTypeDeclaration(
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
+    final implementsClause =
+        pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
+    final representation = pop() as RepresentationDeclarationImpl;
+    final constKeyword = pop() as Token?;
+
+    if (enableInlineClass) {
+      final builder = _classLikeBuilder as _ExtensionTypeDeclarationBuilder;
+      declarations.add(
+        builder.build(
+          typeKeyword: typeKeyword,
+          constKeyword: constKeyword,
+          representation: representation,
+          implementsClause: implementsClause,
+        ),
+      );
+    } else {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.inline_class,
+        startToken: typeKeyword,
+      );
+    }
+
+    _classLikeBuilder = null;
   }
 
   @override
@@ -2495,6 +2527,7 @@ class AstBuilder extends StackListener {
     declarations.add(
       builder.build(),
     );
+
     _classLikeBuilder = null;
   }
 
@@ -2752,6 +2785,81 @@ class AstBuilder extends StackListener {
       WhenClauseImpl(
         whenKeyword: when,
         expression: expression,
+      ),
+    );
+  }
+
+  @override
+  void endPrimaryConstructor(
+      Token beginToken, Token? constKeyword, bool hasConstructorName) {
+    final formalParameterList = pop() as FormalParameterListImpl;
+    final leftParenthesis = formalParameterList.leftParenthesis;
+
+    RepresentationConstructorNameImpl? constructorName;
+    if (hasConstructorName) {
+      final nameIdentifier = pop() as SimpleIdentifierImpl;
+      constructorName = RepresentationConstructorNameImpl(
+        period: beginToken,
+        name: nameIdentifier.token,
+      );
+    }
+
+    final List<AnnotationImpl> fieldMetadata;
+    final TypeAnnotationImpl fieldType;
+    final Token fieldName;
+    final firstFormalParameter = formalParameterList.parameters.firstOrNull;
+    if (firstFormalParameter is SimpleFormalParameterImpl) {
+      fieldMetadata = firstFormalParameter.metadata;
+      switch (firstFormalParameter.type) {
+        case final formalParameterType?:
+          fieldType = formalParameterType;
+        case null:
+          errorReporter.errorReporter?.reportErrorForToken(
+            ParserErrorCode.EXPECTED_REPRESENTATION_TYPE,
+            leftParenthesis.next!,
+          );
+          final typeNameToken = parser.rewriter.insertSyntheticIdentifier(
+            leftParenthesis,
+          );
+          fieldType = NamedTypeImpl(
+            importPrefix: null,
+            name2: typeNameToken,
+            typeArguments: null,
+            question: null,
+          );
+          break;
+      }
+      fieldName = firstFormalParameter.name!;
+    } else {
+      errorReporter.errorReporter?.reportErrorForToken(
+        ParserErrorCode.EXPECTED_REPRESENTATION_FIELD,
+        leftParenthesis.next!,
+      );
+      fieldMetadata = [];
+      final typeNameToken = parser.rewriter.insertSyntheticIdentifier(
+        leftParenthesis,
+      );
+      fieldType = NamedTypeImpl(
+        importPrefix: null,
+        name2: typeNameToken,
+        typeArguments: null,
+        question: null,
+      );
+      fieldName = parser.rewriter.insertSyntheticIdentifier(
+        typeNameToken,
+      );
+    }
+
+    push(constKeyword ?? const NullValue<Token>());
+
+    push(
+      RepresentationDeclarationImpl(
+        constructorName: constructorName,
+        leftParenthesis: leftParenthesis,
+        fieldMetadata: fieldMetadata,
+        fieldType: fieldType,
+        fieldName: fieldName,
+        rightParenthesis: formalParameterList.rightParenthesis,
       ),
     );
   }
@@ -3673,7 +3781,6 @@ class AstBuilder extends StackListener {
     var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
     var sealedKeyword = pop(NullValues.Token) as Token?;
-    var inlineKeyword = pop(NullValues.Token) as Token?;
     var macroKeyword = pop(NullValues.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
@@ -3688,7 +3795,6 @@ class AstBuilder extends StackListener {
       metadata: metadata,
       abstractKeyword: abstractKeyword,
       macroKeyword: macroKeyword,
-      inlineKeyword: inlineKeyword,
       sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
       interfaceKeyword: interfaceKeyword,
@@ -3724,61 +3830,6 @@ class AstBuilder extends StackListener {
         mixinTypes: mixinTypes,
       ),
     );
-  }
-
-  @override
-  void handleCommentReference(
-    Token? newKeyword,
-    Token? firstToken,
-    Token? firstPeriod,
-    Token? secondToken,
-    Token? secondPeriod,
-    Token thirdToken,
-  ) {
-    var identifier = SimpleIdentifierImpl(thirdToken);
-    if (firstToken != null) {
-      var target = PrefixedIdentifierImpl(
-        prefix: SimpleIdentifierImpl(firstToken),
-        period: firstPeriod!,
-        identifier: SimpleIdentifierImpl(secondToken!),
-      );
-      var expression = PropertyAccessImpl(
-        target: target,
-        operator: secondPeriod!,
-        propertyName: identifier,
-      );
-      push(
-        CommentReferenceImpl(
-          newKeyword: newKeyword,
-          expression: expression,
-        ),
-      );
-    } else if (secondToken != null) {
-      var expression = PrefixedIdentifierImpl(
-        prefix: SimpleIdentifierImpl(secondToken),
-        period: secondPeriod!,
-        identifier: identifier,
-      );
-      push(
-        CommentReferenceImpl(
-          newKeyword: newKeyword,
-          expression: expression,
-        ),
-      );
-    } else {
-      push(
-        CommentReferenceImpl(
-          newKeyword: newKeyword,
-          expression: identifier,
-        ),
-      );
-    }
-  }
-
-  @override
-  void handleCommentReferenceText(String referenceSource, int referenceOffset) {
-    push(referenceSource);
-    push(referenceOffset);
   }
 
   @override
@@ -5440,34 +5491,65 @@ class AstBuilder extends StackListener {
     throw UnsupportedError(message.problemMessage);
   }
 
+  /// Given that we have just found bracketed text within the given [comment],
+  /// look to see whether that text is (a) followed by a parenthesized link
+  /// address, (b) followed by a colon, or (c) followed by optional whitespace
+  /// and another square bracket.
+  ///
+  /// [rightIndex] is the index of the right bracket. Return `true` if the
+  /// bracketed text is followed by a link address.
+  ///
+  /// This method uses the syntax described by the
+  /// <a href="http://daringfireball.net/projects/markdown/syntax">markdown</a>
+  /// project.
+  bool isLinkText(String comment, int rightIndex) {
+    var length = comment.length;
+    var index = rightIndex + 1;
+    if (index >= length) {
+      return false;
+    }
+    var ch = comment.codeUnitAt(index);
+    if (ch == 0x28 || ch == 0x3A) {
+      return true;
+    }
+    while (isWhitespace(ch)) {
+      index = index + 1;
+      if (index >= length) {
+        return false;
+      }
+      ch = comment.codeUnitAt(index);
+    }
+    return ch == 0x5B;
+  }
+
   /// Return `true` if [token] is either `null` or is the symbol or keyword
   /// [value].
   bool optionalOrNull(String value, Token? token) {
     return token == null || identical(value, token.stringValue);
   }
 
+  /// Parse the comment references in a sequence of comment tokens where
+  /// [dartdoc] is the first token in the sequence.
   List<CommentReferenceImpl> parseCommentReferences(Token dartdoc) {
-    // Parse dartdoc into potential comment reference source/offset pairs
-    int count = parser.parseCommentReferences(dartdoc);
-    List sourcesAndOffsets = List.filled(count * 2, null);
-    popList(count * 2, sourcesAndOffsets);
+    // Parse dartdoc into potential comment reference source/offset pairs.
+    var sourcesAndOffsets = dartdoc.lexeme.startsWith('///')
+        ? _parseReferencesInSingleLineComments(dartdoc)
+        : _parseReferencesInMultiLineComment(dartdoc);
 
-    // Parse each of the source/offset pairs into actual comment references
-    count = 0;
-    int index = 0;
-    while (index < sourcesAndOffsets.length) {
-      var referenceSource = sourcesAndOffsets[index++] as String;
-      var referenceOffset = sourcesAndOffsets[index++] as int;
-      ScannerResult result = scanString(referenceSource);
+    var references = <CommentReferenceImpl>[];
+    // Parse each of the source/offset pairs into actual comment references.
+    for (var (:source, :offset) in sourcesAndOffsets) {
+      var result = scanString(source);
       if (!result.hasErrors) {
-        Token token = result.tokens;
-        if (parser.parseOneCommentReference(token, referenceOffset)) {
-          ++count;
+        var token = result.tokens;
+        var reference = _parseOneCommentReference(token, offset);
+        if (reference != null) {
+          references.add(reference);
         }
       }
     }
 
-    return popTypedList<CommentReferenceImpl>(count) ?? const [];
+    return references;
   }
 
   List<CollectionElementImpl> popCollectionElements(int count) {
@@ -5676,7 +5758,7 @@ class AstBuilder extends StackListener {
 
   CommentImpl? _findComment(
       List<AnnotationImpl>? metadata, Token tokenAfterMetadata) {
-    // Find the dartdoc tokens
+    // Find the dartdoc tokens.
     var dartdoc = parser.findDartDoc(tokenAfterMetadata);
     if (dartdoc == null) {
       if (metadata == null) {
@@ -5695,7 +5777,7 @@ class AstBuilder extends StackListener {
       }
     }
 
-    // Build and return the comment
+    // Build and return the comment.
     var references = parseCommentReferences(dartdoc);
     List<Token> tokens = <Token>[dartdoc];
     if (dartdoc.lexeme.startsWith('///')) {
@@ -5712,6 +5794,34 @@ class AstBuilder extends StackListener {
       type: CommentType.DOCUMENTATION,
       references: references,
     );
+  }
+
+  /// Given a comment reference without a closing `]`, search for a possible
+  /// place where `]` should be.
+  int _findCommentReferenceEnd(String comment, int index, int end) {
+    // Find the end of the identifier if there is one.
+    if (index >= end || !isLetter(comment.codeUnitAt(index))) {
+      return index;
+    }
+    while (index < end && isLetterOrDigit(comment.codeUnitAt(index))) {
+      ++index;
+    }
+
+    // Check for a trailing `.`.
+    if (index >= end || comment.codeUnitAt(index) != 0x2E /* `.` */) {
+      return index;
+    }
+    ++index;
+
+    // Find end of the identifier after the `.`.
+    if (index >= end || !isLetter(comment.codeUnitAt(index))) {
+      return index;
+    }
+    ++index;
+    while (index < end && isLetterOrDigit(comment.codeUnitAt(index))) {
+      ++index;
+    }
+    return index;
   }
 
   void _handleInstanceCreation(Token? token) {
@@ -5733,6 +5843,298 @@ class AstBuilder extends StackListener {
         typeArguments: typeArguments,
       ),
     );
+  }
+
+  /// Parses the comment references in the text between [start] inclusive
+  /// and [end] exclusive.
+  ///
+  /// Returns information about the comment references as a list of records,
+  /// each with a `source` field and an `offset` field. The `source` is the text
+  /// between the delimiting `[` and `]` characters, not including them. The
+  /// `offset` is the offset of the comment reference in the containing
+  /// compilation unit.
+  ///
+  /// For example, for the text `/// [a] and [b.c].`, two records are returned:
+  /// `(source: 'a', offset: 5)` and `(source: 'b.c', offset: 13)` (assuming the
+  /// comment is the beginning of the compilation unit).
+  List<({String source, int offset})> _parseCommentReferencesInText(
+      Token commentToken, int start, int end) {
+    var comment = commentToken.lexeme;
+    var references = <({String source, int offset})>[];
+    var index = start;
+    while (index < end) {
+      var ch = comment.codeUnitAt(index);
+      if (ch == 0x5B /* `[` */) {
+        ++index;
+        if (index < end && comment.codeUnitAt(index) == 0x3A /* `:` */) {
+          // Skip old-style code block.
+          index = comment.indexOf(':]', index + 1) + 1;
+          if (index == 0 || index > end) {
+            break;
+          }
+        } else {
+          var referenceStart = index;
+          index = comment.indexOf(']', index);
+          if (index == -1 || index >= end) {
+            // Recovery: terminating ']' is not typed yet.
+            index = _findCommentReferenceEnd(comment, referenceStart, end);
+          }
+          if (ch != 0x27 /* `'` */ && ch != 0x22 /* `"` */) {
+            if (isLinkText(comment, index)) {
+              // TODO(brianwilkerson) Handle the case where there's a library
+              // URI in the link text.
+            } else {
+              references.add((
+                source: comment.substring(referenceStart, index),
+                offset: commentToken.charOffset + referenceStart,
+              ));
+            }
+          }
+        }
+      } else if (ch == 0x60 /* '`' */) {
+        // Skip inline code block if there is both starting '`' and ending '`'.
+        var endCodeBlock = comment.indexOf('`', index + 1);
+        if (endCodeBlock != -1 && endCodeBlock < end) {
+          index = endCodeBlock;
+        }
+      }
+      ++index;
+    }
+    return references;
+  }
+
+  /// Parses the text in a single comment reference.
+  ///
+  /// Returns `null` if the text could not be parsed as a comment reference.
+  CommentReferenceImpl? _parseOneCommentReference(
+      Token token, int referenceOffset) {
+    var begin = token;
+    Token? newKeyword;
+    if (optional('new', token)) {
+      newKeyword = token;
+      token = token.next!;
+    }
+    Token? firstToken, firstPeriod, secondToken, secondPeriod;
+    if (token.isIdentifier && optional('.', token.next!)) {
+      secondToken = token;
+      secondPeriod = token.next!;
+      if (secondPeriod.next!.isIdentifier &&
+          optional('.', secondPeriod.next!.next!)) {
+        firstToken = secondToken;
+        firstPeriod = secondPeriod;
+        secondToken = secondPeriod.next!;
+        secondPeriod = secondToken.next!;
+      }
+      var identifier = secondPeriod.next!;
+      if (identifier.kind == KEYWORD_TOKEN && optional('new', identifier)) {
+        // Treat `new` after `.` is as an identifier so that it can represent an
+        // unnamed constructor. This support is separate from the
+        // constructor-tearoffs feature.
+        parser.rewriter.replaceTokenFollowing(
+            secondPeriod,
+            StringToken(TokenType.IDENTIFIER, identifier.lexeme,
+                identifier.charOffset));
+      }
+      token = secondPeriod.next!;
+    }
+    if (token.isEof) {
+      // Recovery: Insert a synthetic identifier for code completion
+      token = parser.rewriter.insertSyntheticIdentifier(
+          secondPeriod ?? newKeyword ?? parser.syntheticPreviousToken(token));
+      if (begin == token.next!) {
+        begin = token;
+      }
+    }
+    Token? operatorKeyword;
+    if (optional('operator', token)) {
+      operatorKeyword = token;
+      token = token.next!;
+    }
+    if (token.isUserDefinableOperator) {
+      if (token.next!.isEof) {
+        return _parseOneCommentReferenceRest(
+          begin,
+          referenceOffset,
+          newKeyword,
+          firstToken,
+          firstPeriod,
+          secondToken,
+          secondPeriod,
+          token,
+        );
+      }
+    } else {
+      token = operatorKeyword ?? token;
+      if (token.next!.isEof) {
+        if (token.isIdentifier) {
+          return _parseOneCommentReferenceRest(
+            begin,
+            referenceOffset,
+            newKeyword,
+            firstToken,
+            firstPeriod,
+            secondToken,
+            secondPeriod,
+            token,
+          );
+        }
+        var keyword = token.keyword;
+        if (newKeyword == null &&
+            secondToken == null &&
+            (keyword == Keyword.THIS ||
+                keyword == Keyword.NULL ||
+                keyword == Keyword.TRUE ||
+                keyword == Keyword.FALSE)) {
+          // TODO(brianwilkerson) If we want to support this we will need to
+          // extend the definition of CommentReference to take an expression
+          // rather than an identifier. For now we just ignore it to reduce the
+          // number of errors produced, but that's probably not a valid long
+          // term approach.
+        }
+      }
+    }
+    return null;
+  }
+
+  /// Parses the parameters into a [CommentReferenceImpl].
+  ///
+  /// If the reference begins with `new `, then pass the Token associated with
+  /// that text as [newToken].
+  ///
+  /// If the reference contains a single identifier or operator (aside from the
+  /// optional [newToken]), then pass the associated Token as
+  /// [identifierOrOperator].
+  ///
+  /// If the reference contains two identifiers separated by a period, then pass
+  /// the associated Tokens as [secondToken], [secondPeriod], and
+  /// [identifierOrOperator], in lexical order.
+  // TODO(srawlins): Rename the parameters or refactor this code to avoid the
+  // confusion of `null` values for the "first*" parameters and non-`null` values
+  // for the "second*" parameters.
+  ///
+  /// If the reference contains three identifiers, each separated by a period,
+  /// then pass the associated Tokens as [firstToken], [firstPeriod],
+  /// [secondToken], [secondPeriod], and [identifierOrOperator].
+  CommentReferenceImpl _parseOneCommentReferenceRest(
+      Token begin,
+      int referenceOffset,
+      Token? newKeyword,
+      Token? firstToken,
+      Token? firstPeriod,
+      Token? secondToken,
+      Token? secondPeriod,
+      Token identifierOrOperator) {
+    // Adjust the token offsets to match the enclosing comment token.
+    var token = begin;
+    do {
+      token.offset += referenceOffset;
+      token = token.next!;
+    } while (!token.isEof);
+
+    var identifier = SimpleIdentifierImpl(identifierOrOperator);
+    if (firstToken != null) {
+      var target = PrefixedIdentifierImpl(
+        prefix: SimpleIdentifierImpl(firstToken),
+        period: firstPeriod!,
+        identifier: SimpleIdentifierImpl(secondToken!),
+      );
+      var expression = PropertyAccessImpl(
+        target: target,
+        operator: secondPeriod!,
+        propertyName: identifier,
+      );
+      return CommentReferenceImpl(
+        newKeyword: newKeyword,
+        expression: expression,
+      );
+    } else if (secondToken != null) {
+      var expression = PrefixedIdentifierImpl(
+        prefix: SimpleIdentifierImpl(secondToken),
+        period: secondPeriod!,
+        identifier: identifier,
+      );
+      return CommentReferenceImpl(
+        newKeyword: newKeyword,
+        expression: expression,
+      );
+    } else {
+      return CommentReferenceImpl(
+        newKeyword: newKeyword,
+        expression: identifier,
+      );
+    }
+  }
+
+  /// Parses the comment references in a multi-line comment token.
+  List<({String source, int offset})> _parseReferencesInMultiLineComment(
+      Token multiLineDoc) {
+    var comment = multiLineDoc.lexeme;
+    assert(comment.startsWith('/**'));
+    var references = <({String source, int offset})>[];
+    var length = comment.length;
+    var start = 3;
+    var inCodeBlock = false;
+    var codeBlock = comment.indexOf('```', /* start = */ 3);
+    if (codeBlock == -1) {
+      codeBlock = length;
+    }
+    while (start < length) {
+      if (isWhitespace(comment.codeUnitAt(start))) {
+        ++start;
+        continue;
+      }
+      var end = comment.indexOf('\n', start);
+      if (end == -1) {
+        end = length;
+      }
+      if (codeBlock < end) {
+        inCodeBlock = !inCodeBlock;
+        codeBlock = comment.indexOf('```', end);
+        if (codeBlock == -1) {
+          codeBlock = length;
+        }
+      }
+      if (!inCodeBlock && !comment.startsWith('*     ', start)) {
+        references
+            .addAll(_parseCommentReferencesInText(multiLineDoc, start, end));
+      }
+      start = end + 1;
+    }
+    return references;
+  }
+
+  /// Parse the comment references in a sequence of single line comment tokens
+  /// where [token] is the first comment token in the sequence.
+  /// Return the number of comment references parsed.
+  List<({String source, int offset})> _parseReferencesInSingleLineComments(
+      Token? token) {
+    var references = <({String source, int offset})>[];
+    var inCodeBlock = false;
+    while (token != null && !token.isEof) {
+      var comment = token.lexeme;
+      if (comment.startsWith('///')) {
+        if (comment.indexOf('```', /* start = */ 3) != -1) {
+          inCodeBlock = !inCodeBlock;
+        }
+        if (!inCodeBlock) {
+          bool parseReferences;
+          if (comment.startsWith('///    ')) {
+            var previousComment = token.previous?.lexeme;
+            parseReferences = previousComment != null &&
+                previousComment.startsWith('///') &&
+                previousComment.trim().length > 3;
+          } else {
+            parseReferences = true;
+          }
+          if (parseReferences) {
+            references.addAll(_parseCommentReferencesInText(
+                token, /* start = */ 3, comment.length));
+          }
+        }
+      }
+      token = token.next;
+    }
+    return references;
   }
 
   List<NamedTypeImpl> _popNamedTypeList({
@@ -5805,14 +6207,13 @@ class AstBuilder extends StackListener {
 }
 
 class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
+  final Token? augmentKeyword;
   final Token? abstractKeyword;
   final Token? macroKeyword;
-  final Token? inlineKeyword;
   final Token? sealedKeyword;
   final Token? baseKeyword;
   final Token? interfaceKeyword;
   final Token? finalKeyword;
-  final Token? augmentKeyword;
   final Token? mixinKeyword;
   final Token classKeyword;
   final Token name;
@@ -5827,14 +6228,13 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required super.typeParameters,
     required super.leftBracket,
     required super.rightBracket,
+    required this.augmentKeyword,
     required this.abstractKeyword,
     required this.macroKeyword,
-    required this.inlineKeyword,
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
     required this.finalKeyword,
-    required this.augmentKeyword,
     required this.mixinKeyword,
     required this.classKeyword,
     required this.name,
@@ -5848,14 +6248,13 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     return ClassDeclarationImpl(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: augmentKeyword,
       abstractKeyword: abstractKeyword,
       macroKeyword: macroKeyword,
-      inlineKeyword: inlineKeyword,
       sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
       interfaceKeyword: interfaceKeyword,
       finalKeyword: finalKeyword,
-      augmentKeyword: augmentKeyword,
       mixinKeyword: mixinKeyword,
       classKeyword: classKeyword,
       name: name,
@@ -5963,6 +6362,43 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       typeParameters: typeParameters,
       onKeyword: onKeyword,
       extendedType: extendedType,
+      leftBracket: leftBracket,
+      members: members,
+      rightBracket: rightBracket,
+    );
+  }
+}
+
+class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
+  final Token extensionKeyword;
+  final Token name;
+
+  _ExtensionTypeDeclarationBuilder({
+    required super.comment,
+    required super.metadata,
+    required super.typeParameters,
+    required super.leftBracket,
+    required super.rightBracket,
+    required this.extensionKeyword,
+    required this.name,
+  });
+
+  ExtensionTypeDeclarationImpl build({
+    required Token typeKeyword,
+    required Token? constKeyword,
+    required RepresentationDeclarationImpl representation,
+    required ImplementsClauseImpl? implementsClause,
+  }) {
+    return ExtensionTypeDeclarationImpl(
+      comment: comment,
+      metadata: metadata,
+      extensionKeyword: extensionKeyword,
+      typeKeyword: typeKeyword,
+      constKeyword: constKeyword,
+      name: name,
+      typeParameters: typeParameters,
+      representation: representation,
+      implementsClause: implementsClause,
       leftBracket: leftBracket,
       members: members,
       rightBracket: rightBracket,

@@ -935,7 +935,7 @@ class PatchClassSerializationCluster : public SerializationCluster {
       AutoTraceObject(cls);
       WriteFromTo(cls);
       if (s->kind() != Snapshot::kFullAOT) {
-        s->Write<int32_t>(cls->untag()->library_kernel_offset_);
+        s->Write<int32_t>(cls->untag()->kernel_library_index_);
       }
     }
   }
@@ -965,7 +965,7 @@ class PatchClassDeserializationCluster : public DeserializationCluster {
       d.ReadFromTo(cls);
 #if !defined(DART_PRECOMPILED_RUNTIME)
       ASSERT(d_->kind() != Snapshot::kFullAOT);
-      cls->untag()->library_kernel_offset_ = d.Read<int32_t>();
+      cls->untag()->kernel_library_index_ = d.Read<int32_t>();
 #endif
     }
   }
@@ -1316,8 +1316,7 @@ class ClosureDataSerializationCluster : public SerializationCluster {
       }
       WriteCompressedField(data, parent_function);
       WriteCompressedField(data, closure);
-      s->WriteUnsigned(
-          static_cast<intptr_t>(data->untag()->default_type_arguments_kind_));
+      s->WriteUnsigned(static_cast<uint32_t>(data->untag()->packed_fields_));
     }
   }
 
@@ -1351,8 +1350,7 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
       }
       data->untag()->parent_function_ = static_cast<FunctionPtr>(d.ReadRef());
       data->untag()->closure_ = static_cast<ClosurePtr>(d.ReadRef());
-      data->untag()->default_type_arguments_kind_ =
-          static_cast<ClosureData::DefaultTypeArgumentsKind>(d.ReadUnsigned());
+      data->untag()->packed_fields_ = d.ReadUnsigned<uint32_t>();
     }
   }
 };
@@ -1388,7 +1386,7 @@ class FfiTrampolineDataSerializationCluster : public SerializationCluster {
       AutoTraceObject(data);
       WriteFromTo(data);
       s->Write<int32_t>(data->untag()->callback_id_);
-      s->Write<uint8_t>(data->untag()->callback_kind_);
+      s->Write<uint8_t>(data->untag()->trampoline_kind_);
     }
   }
 
@@ -1417,7 +1415,7 @@ class FfiTrampolineDataDeserializationCluster : public DeserializationCluster {
                                      FfiTrampolineData::InstanceSize());
       d.ReadFromTo(data);
       data->untag()->callback_id_ = d.Read<int32_t>();
-      data->untag()->callback_kind_ = d.Read<uint8_t>();
+      data->untag()->trampoline_kind_ = d.Read<uint8_t>();
     }
   }
 };
@@ -1712,7 +1710,7 @@ class LibrarySerializationCluster : public SerializationCluster {
       s->Write<int8_t>(lib->untag()->load_state_);
       s->Write<uint8_t>(lib->untag()->flags_);
       if (s->kind() != Snapshot::kFullAOT) {
-        s->Write<uint32_t>(lib->untag()->kernel_offset_);
+        s->Write<uint32_t>(lib->untag()->kernel_library_index_);
       }
     }
   }
@@ -1748,7 +1746,7 @@ class LibraryDeserializationCluster : public DeserializationCluster {
           UntaggedLibrary::InFullSnapshotBit::update(true, d.Read<uint8_t>());
 #if !defined(DART_PRECOMPILED_RUNTIME)
       ASSERT(d_->kind() != Snapshot::kFullAOT);
-      lib->untag()->kernel_offset_ = d.Read<uint32_t>();
+      lib->untag()->kernel_library_index_ = d.Read<uint32_t>();
 #endif
     }
   }
@@ -6053,6 +6051,8 @@ class VMSerializationRoots : public SerializationRoots {
     s->AddBaseObject(Object::empty_array().ptr(), "Array", "<empty_array>");
     s->AddBaseObject(Object::empty_instantiations_cache_array().ptr(), "Array",
                      "<empty_instantiations_cache_array>");
+    s->AddBaseObject(Object::empty_subtype_test_cache_array().ptr(), "Array",
+                     "<empty_subtype_test_cache_array>");
     s->AddBaseObject(Object::dynamic_type().ptr(), "Type", "<dynamic type>");
     s->AddBaseObject(Object::void_type().ptr(), "Type", "<void type>");
     s->AddBaseObject(Object::empty_type_arguments().ptr(), "TypeArguments",
@@ -6088,8 +6088,6 @@ class VMSerializationRoots : public SerializationRoots {
       s->AddBaseObject(ICData::cached_icdata_arrays_[i], "Array",
                        "<empty icdata entries>");
     }
-    s->AddBaseObject(SubtypeTestCache::cached_array_, "Array",
-                     "<empty subtype entries>");
 
     ClassTable* table = s->isolate_group()->class_table();
     for (intptr_t cid = kFirstInternalOnlyCid; cid <= kLastInternalOnlyCid;
@@ -6176,6 +6174,7 @@ class VMDeserializationRoots : public DeserializationRoots {
     d->AddBaseObject(Object::optimized_out().ptr());
     d->AddBaseObject(Object::empty_array().ptr());
     d->AddBaseObject(Object::empty_instantiations_cache_array().ptr());
+    d->AddBaseObject(Object::empty_subtype_test_cache_array().ptr());
     d->AddBaseObject(Object::dynamic_type().ptr());
     d->AddBaseObject(Object::void_type().ptr());
     d->AddBaseObject(Object::empty_type_arguments().ptr());
@@ -6199,7 +6198,6 @@ class VMDeserializationRoots : public DeserializationRoots {
     for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
       d->AddBaseObject(ICData::cached_icdata_arrays_[i]);
     }
-    d->AddBaseObject(SubtypeTestCache::cached_array_);
 
     ClassTable* table = d->isolate_group()->class_table();
     for (intptr_t cid = kFirstInternalOnlyCid; cid <= kLastInternalOnlyCid;
@@ -6937,8 +6935,8 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
       PatchClassPtr patch_cls = static_cast<PatchClassPtr>(obj);
       type = "PatchClass";
       links.Add(
-          {patch_cls->untag()->patched_class(),
-           V8SnapshotProfileWriter::Reference::Property("patched_class_")});
+          {patch_cls->untag()->wrapped_class(),
+           V8SnapshotProfileWriter::Reference::Property("wrapped_class_")});
       break;
     }
     case kLibraryCid: {
@@ -8832,7 +8830,6 @@ FullSnapshotWriter::FullSnapshotWriter(
 
 #if defined(DEBUG)
   isolate_group()->ValidateClassTable();
-  isolate_group()->ValidateConstants();
 #endif  // DEBUG
 
 #if defined(DART_PRECOMPILER)

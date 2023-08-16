@@ -327,7 +327,11 @@ Future recompileAndWait(
 Future sendAndWait(Process _server, List<String> data) async {
   completer = new Completer();
   data.forEach(_server.stdin.writeln);
+  Timer timer = Timer(const Duration(minutes: 5), () {
+    throw "Timeout in sendAndWait with $data";
+  });
   await completer.future;
+  timer.cancel();
 }
 
 Future sendAndWaitDebugDidSendFirstFrameEvent(Process _server) async {
@@ -337,10 +341,17 @@ Future sendAndWaitDebugDidSendFirstFrameEvent(Process _server) async {
     /* expression */ 'WidgetsBinding.instance.debugDidSendFirstFrameEvent',
     /* no definitions */
     /* <boundarykey> */ inputKey,
+    /* no definition types */
+    /* <boundarykey> */ inputKey,
     /* no type-definitions */
+    /* <boundarykey> */ inputKey,
+    /* no type bounds */
+    /* <boundarykey> */ inputKey,
+    /* no type defaults */
     /* <boundarykey> */ inputKey,
     /* libraryUri */ 'package:flutter/src/widgets/binding.dart',
     /* class */ '',
+    /* method */ '',
     /* isStatic */ 'true'
   ]);
 }
@@ -353,10 +364,17 @@ Future sendAndWaitSetSelection(Process _server) async {
         'arg1, "dummy_68")',
     /* definition #1 */ 'arg1',
     /* <boundarykey> */ inputKey,
+    /* definition type #1 */ 'null' /* aka dynamic */,
+    /* <boundarykey> */ inputKey,
     /* no type-definitions */
+    /* <boundarykey> */ inputKey,
+    /* no type-bounds */
+    /* <boundarykey> */ inputKey,
+    /* no type-defaults */
     /* <boundarykey> */ inputKey,
     /* libraryUri */ 'package:flutter/src/widgets/widget_inspector.dart',
     /* class */ '',
+    /* method */ '',
     /* isStatic */ 'true'
   ]);
 }
@@ -369,10 +387,17 @@ Future sendAndWaitToObject(Process _server) async {
         '"inspector-836", "tree_112")',
     /* no definitions */
     /* <boundarykey> */ inputKey,
+    /* no definition types */
+    /* <boundarykey> */ inputKey,
     /* no type-definitions */
+    /* <boundarykey> */ inputKey,
+    /* no type bounds */
+    /* <boundarykey> */ inputKey,
+    /* no type defaults */
     /* <boundarykey> */ inputKey,
     /* libraryUri */ 'package:flutter/src/widgets/widget_inspector.dart',
     /* class */ '',
+    /* method */ '',
     /* isStatic */ 'true'
   ]);
 }
@@ -385,10 +410,17 @@ Future sendAndWaitToObjectForSourceLocation(Process _server) async {
         'toObjectForSourceLocation("inspector-607", "tree_112")',
     /* no definitions */
     /* <boundarykey> */ inputKey,
+    /* no definition types */
+    /* <boundarykey> */ inputKey,
     /* no type-definitions */
+    /* <boundarykey> */ inputKey,
+    /* no type bounds */
+    /* <boundarykey> */ inputKey,
+    /* no type defaults */
     /* <boundarykey> */ inputKey,
     /* libraryUri */ 'package:flutter/src/widgets/widget_inspector.dart',
     /* class */ '',
+    /* method */ '',
     /* isStatic */ 'true'
   ]);
 }

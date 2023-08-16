@@ -346,6 +346,14 @@ class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
           var length = operator.end - offset;
           edits.add(SourceEdit(offset - linesRange.offset, length, ''));
         }
+      } else if (parent is PropertyAccess) {
+        var target = parent.target;
+        var operator = parent.operator;
+        if (target != null) {
+          var offset = target.offset;
+          var length = operator.end - offset;
+          edits.add(SourceEdit(offset - linesRange.offset, length, ''));
+        }
       }
     }
   }

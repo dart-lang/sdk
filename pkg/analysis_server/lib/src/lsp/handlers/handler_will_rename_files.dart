@@ -8,7 +8,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 
 class WillRenameFilesHandler
-    extends MessageHandler<RenameFilesParams, WorkspaceEdit?> {
+    extends LspMessageHandler<RenameFilesParams, WorkspaceEdit?> {
   WillRenameFilesHandler(super.server);
   @override
   Method get handlesMessage => Method.workspace_willRenameFiles;

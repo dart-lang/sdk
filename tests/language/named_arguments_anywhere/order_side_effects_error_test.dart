@@ -27,19 +27,13 @@ test() {
   // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
   //        ^
   // [cfe] Constant evaluation error:
-  //                          ^^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
   //                                  ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
   // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
   // [cfe] New expression is not a constant expression.
   //                                      ^
   // [cfe] New expression is not a constant expression.
   foo(y: const B(new A(42)), const B(const A(0)));
-  //     ^^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
   //             ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
   // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
   // [cfe] New expression is not a constant expression.
   //                 ^

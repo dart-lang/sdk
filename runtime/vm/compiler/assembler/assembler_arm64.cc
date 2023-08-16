@@ -254,7 +254,7 @@ void Assembler::Bind(Label* label) {
   label->BindTo(bound_pc, lr_state());
 }
 
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Register addr) {
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
   MoveRegister(R0, addr);
@@ -1650,7 +1650,7 @@ void Assembler::EnterFullSafepoint(Register state) {
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
+  if (FLAG_use_slow_path || kTargetUsesThreadSanitizer) {
     b(&slow_path);
   }
 
@@ -1665,7 +1665,7 @@ void Assembler::EnterFullSafepoint(Register state) {
   stxr(TMP, state, addr);
   cbz(&done, TMP);  // 0 means stxr was successful.
 
-  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
+  if (!FLAG_use_slow_path && !kTargetUsesThreadSanitizer) {
     b(&retry);
   }
 
@@ -1709,7 +1709,7 @@ void Assembler::ExitFullSafepoint(Register state,
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
+  if (FLAG_use_slow_path || kTargetUsesThreadSanitizer) {
     b(&slow_path);
   }
 
@@ -1724,7 +1724,7 @@ void Assembler::ExitFullSafepoint(Register state,
   stxr(TMP, state, addr);
   cbz(&done, TMP);  // 0 means stxr was successful.
 
-  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
+  if (!FLAG_use_slow_path && !kTargetUsesThreadSanitizer) {
     b(&retry);
   }
 

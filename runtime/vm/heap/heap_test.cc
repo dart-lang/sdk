@@ -24,6 +24,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(int, early_tenuring_threshold);
+
 TEST_CASE(OldGC) {
   const char* kScriptChars =
       "main() {\n"
@@ -858,6 +860,329 @@ ISOLATE_UNIT_TEST_CASE(WeakSmi) {
   EXPECT(old_weakarray.At(0) == Smi::New(42));
   EXPECT(new_finalizer.value() == Smi::New(42));
   EXPECT(old_finalizer.value() == Smi::New(42));
+}
+
+enum Generation {
+  kNew,
+  kOld,
+  kImm,
+};
+
+static void WeakProperty_Generations(Generation property_space,
+                                     Generation key_space,
+                                     Generation value_space,
+                                     bool cleared_after_minor,
+                                     bool cleared_after_major,
+                                     bool cleared_after_all) {
+  WeakProperty& property = WeakProperty::Handle();
+  GCTestHelper::CollectAllGarbage();
+  {
+    HANDLESCOPE(Thread::Current());
+    switch (property_space) {
+      case kNew:
+        property = WeakProperty::New(Heap::kNew);
+        break;
+      case kOld:
+        property = WeakProperty::New(Heap::kOld);
+        break;
+      case kImm:
+        UNREACHABLE();
+    }
+
+    Object& key = Object::Handle();
+    switch (key_space) {
+      case kNew:
+        key = OneByteString::New("key", Heap::kNew);
+        break;
+      case kOld:
+        key = OneByteString::New("key", Heap::kOld);
+        break;
+      case kImm:
+        key = Smi::New(42);
+        break;
+    }
+
+    Object& value = Object::Handle();
+    switch (value_space) {
+      case kNew:
+        value = OneByteString::New("value", Heap::kNew);
+        break;
+      case kOld:
+        value = OneByteString::New("value", Heap::kOld);
+        break;
+      case kImm:
+        value = Smi::New(84);
+        break;
+    }
+
+    property.set_key(key);
+    property.set_value(value);
+  }
+
+  OS::PrintErr("%d %d %d\n", property_space, key_space, value_space);
+
+  GCTestHelper::CollectNewSpace();
+  if (cleared_after_minor) {
+    EXPECT(property.key() == Object::null());
+    EXPECT(property.value() == Object::null());
+  } else {
+    EXPECT(property.key() != Object::null());
+    EXPECT(property.value() != Object::null());
+  }
+
+  GCTestHelper::CollectOldSpace();
+  if (cleared_after_major) {
+    EXPECT(property.key() == Object::null());
+    EXPECT(property.value() == Object::null());
+  } else {
+    EXPECT(property.key() != Object::null());
+    EXPECT(property.value() != Object::null());
+  }
+
+  GCTestHelper::CollectAllGarbage();
+  if (cleared_after_all) {
+    EXPECT(property.key() == Object::null());
+    EXPECT(property.value() == Object::null());
+  } else {
+    EXPECT(property.key() != Object::null());
+    EXPECT(property.value() != Object::null());
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(WeakProperty_Generations) {
+  FLAG_early_tenuring_threshold = 100;  // I.e., off.
+
+  WeakProperty_Generations(kNew, kNew, kNew, true, true, true);
+  WeakProperty_Generations(kNew, kNew, kOld, true, true, true);
+  WeakProperty_Generations(kNew, kNew, kImm, true, true, true);
+  WeakProperty_Generations(kNew, kOld, kNew, false, false, true);
+  WeakProperty_Generations(kNew, kOld, kOld, false, false, true);
+  WeakProperty_Generations(kNew, kOld, kImm, false, false, true);
+  WeakProperty_Generations(kNew, kImm, kNew, false, false, false);
+  WeakProperty_Generations(kNew, kImm, kOld, false, false, false);
+  WeakProperty_Generations(kNew, kImm, kImm, false, false, false);
+  WeakProperty_Generations(kOld, kNew, kNew, true, true, true);
+  WeakProperty_Generations(kOld, kNew, kOld, true, true, true);
+  WeakProperty_Generations(kOld, kNew, kImm, true, true, true);
+  WeakProperty_Generations(kOld, kOld, kNew, false, true, true);
+  WeakProperty_Generations(kOld, kOld, kOld, false, true, true);
+  WeakProperty_Generations(kOld, kOld, kImm, false, true, true);
+  WeakProperty_Generations(kOld, kImm, kNew, false, false, false);
+  WeakProperty_Generations(kOld, kImm, kOld, false, false, false);
+  WeakProperty_Generations(kOld, kImm, kImm, false, false, false);
+}
+
+static void WeakReference_Generations(Generation reference_space,
+                                      Generation target_space,
+                                      bool cleared_after_minor,
+                                      bool cleared_after_major,
+                                      bool cleared_after_all) {
+  WeakReference& reference = WeakReference::Handle();
+  GCTestHelper::CollectAllGarbage();
+  {
+    HANDLESCOPE(Thread::Current());
+    switch (reference_space) {
+      case kNew:
+        reference = WeakReference::New(Heap::kNew);
+        break;
+      case kOld:
+        reference = WeakReference::New(Heap::kOld);
+        break;
+      case kImm:
+        UNREACHABLE();
+    }
+
+    Object& target = Object::Handle();
+    switch (target_space) {
+      case kNew:
+        target = OneByteString::New("target", Heap::kNew);
+        break;
+      case kOld:
+        target = OneByteString::New("target", Heap::kOld);
+        break;
+      case kImm:
+        target = Smi::New(42);
+        break;
+    }
+
+    reference.set_target(target);
+  }
+
+  OS::PrintErr("%d %d\n", reference_space, target_space);
+
+  GCTestHelper::CollectNewSpace();
+  if (cleared_after_minor) {
+    EXPECT(reference.target() == Object::null());
+  } else {
+    EXPECT(reference.target() != Object::null());
+  }
+
+  GCTestHelper::CollectOldSpace();
+  if (cleared_after_major) {
+    EXPECT(reference.target() == Object::null());
+  } else {
+    EXPECT(reference.target() != Object::null());
+  }
+
+  GCTestHelper::CollectAllGarbage();
+  if (cleared_after_all) {
+    EXPECT(reference.target() == Object::null());
+  } else {
+    EXPECT(reference.target() != Object::null());
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(WeakReference_Generations) {
+  FLAG_early_tenuring_threshold = 100;  // I.e., off.
+
+  WeakReference_Generations(kNew, kNew, true, true, true);
+  WeakReference_Generations(kNew, kOld, false, false, true);
+  WeakReference_Generations(kNew, kImm, false, false, false);
+  WeakReference_Generations(kOld, kNew, true, true, true);
+  WeakReference_Generations(kOld, kOld, false, true, true);
+  WeakReference_Generations(kOld, kImm, false, false, false);
+}
+
+static void WeakArray_Generations(Generation array_space,
+                                  Generation element_space,
+                                  bool cleared_after_minor,
+                                  bool cleared_after_major,
+                                  bool cleared_after_all) {
+  WeakArray& array = WeakArray::Handle();
+  GCTestHelper::CollectAllGarbage();
+  {
+    HANDLESCOPE(Thread::Current());
+    switch (array_space) {
+      case kNew:
+        array = WeakArray::New(1, Heap::kNew);
+        break;
+      case kOld:
+        array = WeakArray::New(1, Heap::kOld);
+        break;
+      case kImm:
+        UNREACHABLE();
+    }
+
+    Object& element = Object::Handle();
+    switch (element_space) {
+      case kNew:
+        element = OneByteString::New("element", Heap::kNew);
+        break;
+      case kOld:
+        element = OneByteString::New("element", Heap::kOld);
+        break;
+      case kImm:
+        element = Smi::New(42);
+        break;
+    }
+
+    array.SetAt(0, element);
+  }
+
+  OS::PrintErr("%d %d\n", array_space, element_space);
+
+  GCTestHelper::CollectNewSpace();
+  if (cleared_after_minor) {
+    EXPECT(array.At(0) == Object::null());
+  } else {
+    EXPECT(array.At(0) != Object::null());
+  }
+
+  GCTestHelper::CollectOldSpace();
+  if (cleared_after_major) {
+    EXPECT(array.At(0) == Object::null());
+  } else {
+    EXPECT(array.At(0) != Object::null());
+  }
+
+  GCTestHelper::CollectAllGarbage();
+  if (cleared_after_all) {
+    EXPECT(array.At(0) == Object::null());
+  } else {
+    EXPECT(array.At(0) != Object::null());
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(WeakArray_Generations) {
+  FLAG_early_tenuring_threshold = 100;  // I.e., off.
+
+  WeakArray_Generations(kNew, kNew, true, true, true);
+  WeakArray_Generations(kNew, kOld, false, false, true);
+  WeakArray_Generations(kNew, kImm, false, false, false);
+  WeakArray_Generations(kOld, kNew, true, true, true);
+  WeakArray_Generations(kOld, kOld, false, true, true);
+  WeakArray_Generations(kOld, kImm, false, false, false);
+}
+
+static void FinalizerEntry_Generations(Generation entry_space,
+                                       Generation value_space,
+                                       bool cleared_after_minor,
+                                       bool cleared_after_major,
+                                       bool cleared_after_all) {
+  FinalizerEntry& entry = FinalizerEntry::Handle();
+  GCTestHelper::CollectAllGarbage();
+  {
+    HANDLESCOPE(Thread::Current());
+    switch (entry_space) {
+      case kNew:
+        entry = FinalizerEntry::New(FinalizerBase::Handle(), Heap::kNew);
+        break;
+      case kOld:
+        entry = FinalizerEntry::New(FinalizerBase::Handle(), Heap::kOld);
+        break;
+      case kImm:
+        UNREACHABLE();
+    }
+
+    Object& value = Object::Handle();
+    switch (value_space) {
+      case kNew:
+        value = OneByteString::New("value", Heap::kNew);
+        break;
+      case kOld:
+        value = OneByteString::New("value", Heap::kOld);
+        break;
+      case kImm:
+        value = Smi::New(42);
+        break;
+    }
+
+    entry.set_value(value);
+  }
+
+  OS::PrintErr("%d %d\n", entry_space, value_space);
+
+  GCTestHelper::CollectNewSpace();
+  if (cleared_after_minor) {
+    EXPECT(entry.value() == Object::null());
+  } else {
+    EXPECT(entry.value() != Object::null());
+  }
+
+  GCTestHelper::CollectOldSpace();
+  if (cleared_after_major) {
+    EXPECT(entry.value() == Object::null());
+  } else {
+    EXPECT(entry.value() != Object::null());
+  }
+
+  GCTestHelper::CollectAllGarbage();
+  if (cleared_after_all) {
+    EXPECT(entry.value() == Object::null());
+  } else {
+    EXPECT(entry.value() != Object::null());
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(FinalizerEntry_Generations) {
+  FLAG_early_tenuring_threshold = 100;  // I.e., off.
+
+  FinalizerEntry_Generations(kNew, kNew, true, true, true);
+  FinalizerEntry_Generations(kNew, kOld, false, false, true);
+  FinalizerEntry_Generations(kNew, kImm, false, false, false);
+  FinalizerEntry_Generations(kOld, kNew, true, true, true);
+  FinalizerEntry_Generations(kOld, kOld, false, true, true);
+  FinalizerEntry_Generations(kOld, kImm, false, false, false);
 }
 
 #if !defined(PRODUCT) && defined(DART_HOST_OS_LINUX)

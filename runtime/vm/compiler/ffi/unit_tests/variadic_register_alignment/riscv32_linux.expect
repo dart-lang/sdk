@@ -1,6 +1,6 @@
 fa0 double
 (a0, a1) int64[double]
 P(a2 uint32) Struct(size: 32)
-(a4, a5) int64[double]
+(t4, t5) int64[double]
 =>
 fa0 double

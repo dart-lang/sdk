@@ -10,11 +10,11 @@ import "package:expect/expect.dart";
 
 const var1 = finallyThrow(0);
 //           ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 const var2 = finallyThrow(1);
 //           ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 int finallyThrow(int x) {
   try {
@@ -30,11 +30,11 @@ int finallyThrow(int x) {
 
 const var3 = unhandledThrow(0);
 //           ^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 const var4 = unhandledThrow("string");
 //           ^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 int unhandledThrow(dynamic x) {
   try {
@@ -46,7 +46,7 @@ int unhandledThrow(dynamic x) {
 
 const var5 = unhandledThrow2();
 //           ^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 int unhandledThrow2() {
   int count = 0;

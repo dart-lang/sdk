@@ -4,13 +4,7 @@
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
 
-fragmentation_test: Pass, Slow # GC heavy
-fragmentation_typed_data_test: Pass, Slow # GC heavy
 io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
-
-[ $builder_tag == tsan ]
-fragmentation_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
-fragmentation_typed_data_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
 
 [ $system == android ]
 entrypoints_verification_test: Skip # Requires shared objects which the test script doesn't "adb push".
@@ -72,6 +66,7 @@ io/socket_close_test: Skip # Timeout
 io/socket_many_connections_test: Skip # Timeout
 io/web_socket_compression_test: Skip # Timeout
 io/web_socket_test: Skip # Timeout
+regress_52715_test/measure: Skip # kernel-service interferes with measuring RSS
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled ]
 io/raw_socket_test: Crash
@@ -108,3 +103,6 @@ entrypoints_verification_test: SkipByDesign # Requires VM to run. Cannot run in 
 
 [ $compiler != dartk || $runtime != vm ]
 check_for_aot_snapshot_jit_test: SkipByDesign # Test relies on paths, requires JIT test environment.
+
+[ $sanitizer == asan || $sanitizer == lsan || $sanitizer == msan || $sanitizer == tsan ]
+regress_52715_test/measure: Skip # Shadow memory and scudo quarantine interfere with measuring RSS

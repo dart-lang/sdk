@@ -9,19 +9,16 @@ import 'dart:io';
 /// The `modular_test` package is only intended to be used within the SDK at
 /// this time. We need the ability to find the sdk root in order to locate the
 /// default set of packages that are available to all modular tests.
+///
+/// Note: we don't search for the directory "sdk" because this may not be
+/// available when running this test in a shard.
 Future<Uri> findRoot() async {
-  Uri current = Platform.script;
-  while (true) {
-    var segments = current.pathSegments;
-    var index = segments.lastIndexOf('sdk');
-    if (index == -1) {
-      exitCode = 1;
-      throw "error: cannot find the root of the Dart SDK";
-    }
-    current = current.resolve("../" * (segments.length - index - 1));
-    if (await File.fromUri(current.resolve("sdk/DEPS")).exists()) {
-      break;
-    }
+  Uri script = Platform.script;
+  var segments = script.pathSegments;
+  var index = segments.lastIndexOf('pkg');
+  if (index == -1) {
+    exitCode = 1;
+    throw "error: cannot find the root of the Dart SDK";
   }
-  return current.resolve("sdk/");
+  return script.resolve("../" * (segments.length - index - 1));
 }

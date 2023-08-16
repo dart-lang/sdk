@@ -72,12 +72,12 @@ class TypeConstraintGatherer {
       var parameter = constraint.parameter;
       var mergedConstraint = result[parameter]!;
 
-      var lower = _typeSystem.getLeastUpperBound(
+      var lower = _typeSystem.leastUpperBound(
         mergedConstraint.lower,
         constraint.lower,
       );
 
-      var upper = _typeSystem.getGreatestLowerBound(
+      var upper = _typeSystem.greatestLowerBound(
         mergedConstraint.upper,
         constraint.upper,
       );

@@ -60,9 +60,6 @@ class UnknownType extends DartType {
   DartType get resolveTypeParameterType => this;
 
   @override
-  bool operator ==(Object other) => equals(other, null);
-
-  @override
   bool equals(Object other, Assumptions? assumptions) {
     // This class doesn't have any fields so all instances of `UnknownType` are
     // equal.
@@ -109,9 +106,6 @@ class _IsKnownVisitor implements DartTypeVisitor<bool> {
   bool visitDynamicType(DynamicType node) => true;
 
   @override
-  bool visitExtensionType(ExtensionType node) => true;
-
-  @override
   bool visitInvalidType(InvalidType node) => true;
 
   @override
@@ -154,7 +148,7 @@ class _IsKnownVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitInlineType(InlineType node) {
+  bool visitExtensionType(ExtensionType node) {
     for (DartType typeArgument in node.typeArguments) {
       if (!typeArgument.accept(this)) return false;
     }

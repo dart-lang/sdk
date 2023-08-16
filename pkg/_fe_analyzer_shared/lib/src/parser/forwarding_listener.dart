@@ -835,10 +835,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
-    listener?.endExtensionDeclaration(extensionKeyword, typeKeyword, onKeyword,
-        showKeyword, hideKeyword, endToken);
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token endToken) {
+    listener?.endExtensionDeclaration(extensionKeyword, onKeyword, endToken);
   }
 
   @override
@@ -1394,13 +1393,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
-      Token? hideKeyword, int hideElementCount) {
-    listener?.handleExtensionShowHide(
-        showKeyword, showElementCount, hideKeyword, hideElementCount);
-  }
-
-  @override
   void handleClassWithClause(Token withKeyword) {
     listener?.handleClassWithClause(withKeyword);
   }
@@ -1413,23 +1405,6 @@ class ForwardingListener implements Listener {
   @override
   void handleMixinWithClause(Token withKeyword) {
     listener?.handleMixinWithClause(withKeyword);
-  }
-
-  @override
-  void handleCommentReference(
-      Token? newKeyword,
-      Token? firstToken,
-      Token? firstPeriod,
-      Token? secondToken,
-      Token? secondPeriod,
-      Token thirdToken) {
-    listener?.handleCommentReference(newKeyword, firstToken, firstPeriod,
-        secondToken, secondPeriod, thirdToken);
-  }
-
-  @override
-  void handleCommentReferenceText(String referenceSource, int referenceOffset) {
-    listener?.handleCommentReferenceText(referenceSource, referenceOffset);
   }
 
   @override
@@ -1758,11 +1733,6 @@ class ForwardingListener implements Listener {
   @override
   void handleNoArguments(Token token) {
     listener?.handleNoArguments(token);
-  }
-
-  @override
-  void handleNoCommentReference() {
-    listener?.handleNoCommentReference();
   }
 
   @override
@@ -2111,6 +2081,76 @@ class ForwardingListener implements Listener {
       ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
     listener?.handleExperimentNotEnabled(
         experimentalFlag, startToken, endToken);
+  }
+
+  @override
+  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+    listener?.beginExtensionTypeDeclaration(extensionKeyword, name);
+  }
+
+  @override
+  void endExtensionTypeConstructor(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    listener?.endExtensionTypeConstructor(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void endExtensionTypeDeclaration(
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
+    listener?.endExtensionTypeDeclaration(
+        extensionKeyword, typeKeyword, endToken);
+  }
+
+  @override
+  void endExtensionTypeFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    listener?.endExtensionTypeFactoryMethod(
+        beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endExtensionTypeFields(
+      Token? abstractToken,
+      Token? augmentToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    listener?.endExtensionTypeFields(
+        abstractToken,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
+  }
+
+  @override
+  void endExtensionTypeMethod(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    listener?.endExtensionTypeMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void beginPrimaryConstructor(Token beginToken) {
+    listener?.beginPrimaryConstructor(beginToken);
+  }
+
+  @override
+  void endPrimaryConstructor(
+      Token beginToken, Token? constKeyword, bool hasConstructorName) {
+    listener?.endPrimaryConstructor(
+        beginToken, constKeyword, hasConstructorName);
   }
 }
 

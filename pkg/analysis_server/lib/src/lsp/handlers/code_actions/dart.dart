@@ -172,6 +172,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         final fixes = await fixContributor.computeFixes(context);
         if (fixes.isNotEmpty) {
           final diagnostic = toDiagnostic(
+            server.pathContext,
             unit,
             error,
             supportedTags: supportedDiagnosticTags,
@@ -198,6 +199,12 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
 
   @override
   Future<List<Either2<CodeAction, Command>>> getRefactorActions() async {
+    // If the client does not support workspace/applyEdit, we won't be able to
+    // run any of these.
+    if (!supportsApplyEdit) {
+      return const [];
+    }
+
     final refactorActions = <Either2<CodeAction, Command>>[];
 
     try {
@@ -210,7 +217,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         selectionOffset: offset,
         selectionLength: length,
         includeExperimental:
-            server.clientConfiguration.global.experimentalRefactors,
+            server.lspClientConfiguration.global.experimentalRefactors,
       );
       final processor = RefactoringProcessor(context);
       final actions = await processor.compute();

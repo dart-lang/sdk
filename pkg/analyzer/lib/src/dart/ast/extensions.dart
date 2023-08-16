@@ -86,6 +86,8 @@ extension AstNodeNullableExtension on AstNode? {
       return self.members;
     } else if (self is ExtensionDeclaration) {
       return self.members;
+    } else if (self is ExtensionTypeDeclaration) {
+      return self.members;
     } else if (self is MixinDeclaration) {
       return self.members;
     } else {

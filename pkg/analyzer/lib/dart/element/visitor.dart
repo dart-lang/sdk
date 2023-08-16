@@ -113,6 +113,10 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   R? visitExtensionElement(ExtensionElement element) => visitElement(element);
 
   @override
+  R? visitExtensionTypeElement(ExtensionTypeElement element) =>
+      visitElement(element);
+
+  @override
   R? visitFieldElement(FieldElement element) =>
       visitPropertyInducingElement(element);
 
@@ -254,6 +258,12 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R? visitExtensionElement(ExtensionElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitExtensionTypeElement(ExtensionTypeElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -414,6 +424,9 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R? visitExtensionElement(ExtensionElement element) => null;
 
   @override
+  R? visitExtensionTypeElement(ExtensionTypeElement element) => null;
+
+  @override
   R? visitFieldElement(FieldElement element) => null;
 
   @override
@@ -511,6 +524,9 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R? visitExtensionElement(ExtensionElement element) => _throw(element);
+
+  @override
+  R? visitExtensionTypeElement(ExtensionTypeElement element) => _throw(element);
 
   @override
   R? visitFieldElement(FieldElement element) => _throw(element);

@@ -48,7 +48,7 @@ import '../builder/class_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
-import '../builder/inline_class_builder.dart';
+import '../builder/extension_type_declaration_builder.dart';
 import '../builder/invalid_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
@@ -178,6 +178,9 @@ class BodyBuilder extends StackListenerImpl
   /// This is set to true when we are parsing constructor initializers.
   bool inConstructorInitializer = false;
 
+  /// This is set to `true` when we are parsing formals.
+  bool inFormals = false;
+
   /// Set to `true` when we are parsing a field initializer either directly
   /// or within an initializer list.
   ///
@@ -289,7 +292,7 @@ class BodyBuilder extends StackListenerImpl
   List<List<VariableDeclaration>>? multiVariablesWithMetadata;
 
   /// If the current member is an instance member in an extension declaration or
-  /// an instance member or constructor in and inline class declaration,
+  /// an instance member or constructor in and extension type declaration,
   /// [thisVariable] holds the synthetically added variable holding the value
   /// for `this`.
   final VariableDeclaration? thisVariable;
@@ -1210,26 +1213,32 @@ class BodyBuilder extends StackListenerImpl
       for (int i = 0; i < formals.parameters!.length; i++) {
         FormalParameterBuilder parameter = formals.parameters![i];
         Expression? initializer = parameter.variable!.initializer;
-        if (!parameter.isSuperInitializingFormal &&
-            (parameter.isOptionalPositional || initializer != null)) {
+        bool inferInitializer;
+        if (parameter.isSuperInitializingFormal) {
+          // Super-parameters can inherit the default value from the super
+          // constructor so we only handle explicit default values here.
+          inferInitializer = parameter.hasImmediatelyDeclaredInitializer;
+        } else if (initializer != null) {
+          inferInitializer = true;
+        } else {
+          inferInitializer = parameter.isOptional;
+        }
+        if (inferInitializer) {
           if (!parameter.initializerWasInferred) {
-            parameter.initializerWasInferred = true;
-            if (parameter.isOptionalPositional) {
-              initializer ??= forest.createNullLiteral(
-                  // TODO(ahe): Should store: originParameter.fileOffset
-                  // https://github.com/dart-lang/sdk/issues/32289
-                  noLocation);
-            }
+            initializer ??= forest.createNullLiteral(
+                // TODO(ahe): Should store: originParameter.fileOffset
+                // https://github.com/dart-lang/sdk/issues/32289
+                noLocation);
             VariableDeclaration originParameter =
                 _context.getFormalParameter(i);
             initializer = typeInferrer.inferParameterInitializer(
                 this,
-                initializer!,
+                initializer,
                 originParameter.type,
                 parameter.hasDeclaredInitializer);
             originParameter.initializer = initializer..parent = originParameter;
+            parameter.initializerWasInferred = true;
           }
-
           VariableDeclaration? tearOffParameter =
               _context.getTearOffParameter(i);
           if (tearOffParameter != null) {
@@ -1744,7 +1753,8 @@ class BodyBuilder extends StackListenerImpl
                     formal.name!,
                     libraryBuilder,
                     formal.fileOffset,
-                    fileUri: uri)
+                    fileUri: uri,
+                    hasImmediatelyDeclaredInitializer: false)
                   ..variable = formal;
               }, growable: false);
     enterLocalScope(new FormalParameters(formals, fileOffset, noLength, uri)
@@ -3265,7 +3275,7 @@ class BodyBuilder extends StackListenerImpl
           return new UnresolvedNameGenerator(this, token, n,
               unresolvedReadKind: UnresolvedKind.Unknown);
         }
-        if (thisVariable != null) {
+        if (!inFormals && thisVariable != null) {
           // If we are in an extension instance member we interpret this as an
           // implicit access on the 'this' parameter.
           return PropertyAccessGenerator.make(this, token,
@@ -3315,7 +3325,7 @@ class BodyBuilder extends StackListenerImpl
         return new VariableUseGenerator(this, token, variable);
       }
     } else if (declaration.isClassInstanceMember ||
-        declaration.isInlineClassInstanceMember) {
+        declaration.isExtensionTypeInstanceMember) {
       if (constantContext != ConstantContext.none &&
           !inInitializerLeftHandSide &&
           // TODO(ahe): This is a hack because Fasta sets up the scope
@@ -5348,8 +5358,8 @@ class BodyBuilder extends StackListenerImpl
           name?.name ?? '',
           libraryBuilder,
           offsetForToken(nameToken),
-          fileUri: uri)
-        ..hasDeclaredInitializer = (initializerStart != null);
+          fileUri: uri,
+          hasImmediatelyDeclaredInitializer: initializerStart != null);
     }
     VariableDeclaration variable = parameter.build(libraryBuilder);
     Expression? initializer = name?.initializer;
@@ -5472,13 +5482,34 @@ class BodyBuilder extends StackListenerImpl
   @override
   void beginFormalParameters(Token token, MemberKind kind) {
     super.push(constantContext);
+    super.push(inFormals);
     constantContext = ConstantContext.none;
+    inFormals = true;
   }
 
   @override
   void endFormalParameters(
       int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("FormalParameters");
+    assert(checkState(beginToken, [
+      if (count > 0 && peek() is List<FormalParameterBuilder>) ...[
+        ValueKinds.FormalList,
+        ...repeatedKind(
+            unionOfKinds([
+              ValueKinds.FormalParameterBuilder,
+              ValueKinds.ParserRecovery,
+            ]),
+            count - 1),
+      ] else
+        ...repeatedKind(
+            unionOfKinds([
+              ValueKinds.FormalParameterBuilder,
+              ValueKinds.ParserRecovery,
+            ]),
+            count),
+      /* inFormals */ ValueKinds.Bool,
+      /* constantContext */ ValueKinds.ConstantContext,
+    ]));
     List<FormalParameterBuilder>? optionals;
     int optionalsCount = 0;
     if (count > 0 && peek() is List<FormalParameterBuilder>) {
@@ -5495,6 +5526,7 @@ class BodyBuilder extends StackListenerImpl
     assert(parameters?.isNotEmpty ?? true);
     FormalParameters formals = new FormalParameters(parameters,
         offsetForToken(beginToken), lengthOfSpan(beginToken, endToken), uri);
+    inFormals = pop() as bool;
     constantContext = pop() as ConstantContext;
     push(formals);
     if ((inCatchClause || functionNestingLevel != 0) &&
@@ -5914,10 +5946,10 @@ class BodyBuilder extends StackListenerImpl
           addProblem(fasta.messageMissingExplicitConst, charOffset, charLength);
         }
         if (isConst && !procedure.isConst) {
-          if (procedure.isInlineClassMember) {
+          if (procedure.isExtensionTypeMember) {
             // Both generative constructors and factory constructors from
-            // inline classes are encoded as procedures so we use the message
-            // for non-const constructors here.
+            // extension type declarations are encoded as procedures so we use
+            // the message for non-const constructors here.
             return buildProblem(
                 fasta.messageNonConstConstructor, charOffset, charLength);
           } else {
@@ -6550,7 +6582,7 @@ class BodyBuilder extends StackListenerImpl
       } else {
         errorName ??= debugName(type.name, name);
       }
-    } else if (type is InlineClassBuilder) {
+    } else if (type is ExtensionTypeDeclarationBuilder) {
       MemberBuilder? b =
           type.findConstructorOrFactory(name, charOffset, uri, libraryBuilder);
       Member? target;

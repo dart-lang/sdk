@@ -257,7 +257,7 @@ class _ExceptionHandlerStack {
   /// CFG block.
   ///
   /// Call this when generating a new CFG block.
-  void generateTryBlocks(w.Instructions b) {
+  void generateTryBlocks(w.InstructionsBuilder b) {
     final handlersToCover = _handlers.length - coveredHandlers;
 
     if (handlersToCover == 0) {
@@ -543,7 +543,7 @@ class AsyncCodeGenerator extends CodeGenerator {
   }
 
   @override
-  w.DefinedFunction generateLambda(Lambda lambda, Closures closures) {
+  w.BaseFunction generateLambda(Lambda lambda, Closures closures) {
     this.closures = closures;
     setupLambdaParametersAndContexts(lambda);
     _generateBodies(lambda.functionNode);
@@ -568,8 +568,8 @@ class AsyncCodeGenerator extends CodeGenerator {
 
     // Wasm function containing the body of the `async` function
     // (`_AyncResumeFun`).
-    final w.DefinedFunction resumeFun = m.addFunction(
-        m.addFunctionType([
+    final resumeFun = m.functions.define(
+        m.types.defineFunction([
           asyncSuspendStateInfo.nonNullableType, // _AsyncSuspendState
           translator.topInfo.nullableType, // Object?, await value
           translator.topInfo.nullableType, // Object?, error value
@@ -596,8 +596,8 @@ class AsyncCodeGenerator extends CodeGenerator {
     _generateInner(functionNode, context, resumeFun);
   }
 
-  void _generateOuter(FunctionNode functionNode, Context? context,
-      w.DefinedFunction resumeFun) {
+  void _generateOuter(
+      FunctionNode functionNode, Context? context, w.BaseFunction resumeFun) {
     // Outer (wrapper) function creates async state, calls the inner function
     // (which runs until first suspension point, i.e. `await`), and returns the
     // completer's future.
@@ -712,7 +712,7 @@ class AsyncCodeGenerator extends CodeGenerator {
   }
 
   void _generateInner(FunctionNode functionNode, Context? context,
-      w.DefinedFunction resumeFun) {
+      w.FunctionBuilder resumeFun) {
     // void Function(_AsyncSuspendState, Object?)
 
     // Set the current Wasm function for the code generator to the inner

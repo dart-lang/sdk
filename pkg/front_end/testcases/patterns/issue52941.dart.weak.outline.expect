@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void
+  ;
+static method expect(core::List<dynamic>? expected, core::List<dynamic> actual) → dynamic
+  ;

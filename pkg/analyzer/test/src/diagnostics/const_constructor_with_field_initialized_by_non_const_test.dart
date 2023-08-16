@@ -42,6 +42,7 @@ int f() {
   return 3;
 }
 ''', [
+      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 26, 3),
       error(
           CompileTimeErrorCode
               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
@@ -78,6 +79,24 @@ int f() {
 ''');
   }
 
+//   test_enum_factoryConstructor() async {
+//     await assertErrorsInCode(r'''
+// enum E {
+//   v;
+//   final int i = f();
+//   const factory E();
+// }
+// int f() => 0;
+// ''', [
+//       error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 30, 3),
+//       error(
+//           CompileTimeErrorCode
+//               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+//           37,
+//           5),
+//     ]);
+//   }
+
   test_enum_instanceField() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -87,6 +106,7 @@ enum E {
 }
 int f() => 0;
 ''', [
+      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 30, 3),
       error(
           CompileTimeErrorCode
               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
@@ -103,6 +123,22 @@ enum E {
   const E();
 }
 int f() => 0;
+''');
+  }
+
+  test_mixinClass_factory() async {
+    await assertNoErrorsInCode(r'''
+int e = 3;
+mixin class MixinClassFactory {
+  final int foo = e;
+  const factory MixinClassFactory.x() = A;
+}
+
+mixin class A implements MixinClassFactory {
+  @override
+  final int foo = 0;
+  const A();
+}
 ''');
   }
 }

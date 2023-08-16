@@ -305,7 +305,7 @@ FunctionExpressionInvocation
   function: SimpleIdentifier
     token: a
     staticElement: self::@function::f::@parameter::a
-    staticType: (String)
+    staticType: (String,)
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -329,7 +329,7 @@ FunctionExpressionInvocation
   function: SimpleIdentifier
     token: a
     staticElement: self::@function::f::@parameter::a
-    staticType: (String)
+    staticType: (String,)
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -800,7 +800,7 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: r
       staticElement: self::@function::f::@parameter::r
-      staticType: (void Function(int))
+      staticType: (void Function(int),)
     operator: .
     propertyName: SimpleIdentifier
       token: $1
@@ -837,7 +837,7 @@ FunctionExpressionInvocation
       target: SimpleIdentifier
         token: r
         staticElement: self::@function::f::@parameter::r
-        staticType: (void Function(int))
+        staticType: (void Function(int),)
       operator: .
       propertyName: SimpleIdentifier
         token: $1

@@ -17,7 +17,7 @@ import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/declaration_builder.dart';
 import '../builder/extension_builder.dart';
-import '../builder/inline_class_builder.dart';
+import '../builder/extension_type_declaration_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -620,7 +620,7 @@ class ThisPropertyAccessGenerator extends Generator {
   final bool isNullAware;
 
   /// The synthetic variable used for 'this' in instance extension members
-  /// and instance inline class members/constructor bodies.
+  /// and instance extension type members/constructor bodies.
   VariableDeclaration? thisVariable;
 
   ThisPropertyAccessGenerator(
@@ -3156,7 +3156,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       bool isConstructorTearOff = send is PropertySelector &&
               _helper.libraryFeatures.constructorTearoffs.isEnabled &&
               declarationBuilder is ClassBuilder ||
-          declarationBuilder is InlineClassBuilder;
+          declarationBuilder is ExtensionTypeDeclarationBuilder;
       List<TypeBuilder>? aliasedTypeArguments = typeArguments
           ?.map((unknownType) => _helper.validateTypeVariableUse(unknownType,
               allowPotentiallyConstantType: isConstructorTearOff))
@@ -3221,7 +3221,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               "'${send.typeArguments.runtimeType}'.");
           if (_helper.libraryFeatures.constructorTearoffs.isEnabled &&
                   declarationBuilder is ClassBuilder ||
-              declarationBuilder is InlineClassBuilder) {
+              declarationBuilder is ExtensionTypeDeclarationBuilder) {
             MemberBuilder? constructor =
                 declarationBuilder.findConstructorOrFactory(
                     name.text, nameOffset, _uri, _helper.libraryBuilder);
@@ -3274,9 +3274,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                       builtTypeArguments.add(typeParameter.defaultType);
                     }
                   } else {
-                    declarationBuilder as InlineClassBuilder;
-                    for (TypeParameter typeParameter
-                        in declarationBuilder.inlineClass.typeParameters) {
+                    declarationBuilder as ExtensionTypeDeclarationBuilder;
+                    for (TypeParameter typeParameter in declarationBuilder
+                        .extensionTypeDeclaration.typeParameters) {
                       builtTypeArguments.add(typeParameter.defaultType);
                     }
                   }

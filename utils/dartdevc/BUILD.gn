@@ -8,11 +8,6 @@ import("../../utils/compile_platform.gni")
 import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
-declare_args() {
-  # Enables DDC canary features during compilation to JavaScript.
-  ddc_canary = false
-}
-
 patched_sdk_dir = "$target_gen_dir/patched_sdk"
 sdk_summary = "$target_gen_dir/ddc_sdk.sum"
 
@@ -31,10 +26,6 @@ application_snapshot("dartdevc") {
     "dartdevc.js",
     rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
   ]
-
-  if (ddc_canary) {
-    training_args += [ "--canary" ]
-  }
 
   deps = [ ":dartdevc_platform_sound" ]
   inputs = [ sdk_outline_sound_dill ]
@@ -187,10 +178,6 @@ template("dartdevc_kernel_compile") {
       "-o$out_dir/$module.js",
       "package:$module/$module.dart",
     ]
-
-    if (ddc_canary) {
-      args += [ "--canary" ]
-    }
 
     if (defined(invoker.extra_libraries)) {
       foreach(lib, invoker.extra_libraries) {
@@ -374,10 +361,6 @@ template("dartdevc_sdk_js") {
       args += [ "--sound-null-safety" ]
     } else {
       args += [ "--no-sound-null-safety" ]
-    }
-
-    if (ddc_canary) {
-      args += [ "--canary" ]
     }
   }
 }

@@ -141,9 +141,6 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final Expression func = node.arguments.positional[0];
         final DartType dartType = func.getStaticType(staticTypeContext!);
 
-        _ensureIsStaticFunction(
-            func, nativeCallableListenerConstructor.name.text);
-
         ensureNativeTypeValid(nativeType, node);
         ensureNativeTypeToDartType(nativeType, dartType, node);
 
@@ -599,7 +596,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   // void _handler(List args) => target(args[0], args[1], ...)
   // final _callback = NativeCallable<T>._(_handler, debugName);
   // _callback._pointer = _pointerAsyncFromFunction<NativeFunction<T>>(
-  //       _nativeAsyncCallbackFunction<T>(target), _callback._rawPort);
+  //       _nativeAsyncCallbackFunction<T>(), _callback._rawPort);
   // expression result: _callback;
   Expression _replaceNativeCallableListenerConstructor(
       ConstructorInvocation node) {
@@ -622,9 +619,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           functionType: Substitution.fromInterfaceType(listType)
               .substituteType(listElementAt.getterType) as FunctionType));
     }
-    final target = _getStaticFunctionTarget(node.arguments.positional[0]);
-    final handlerBody =
-        ExpressionStatement(StaticInvocation(target, Arguments(targetArgs)));
+    final target = node.arguments.positional[0];
+    final handlerBody = ExpressionStatement(FunctionInvocation(
+      FunctionAccessKind.FunctionType,
+      target,
+      Arguments(targetArgs),
+      functionType: targetType,
+    ));
     final handler = FunctionNode(handlerBody,
         positionalParameters: [args], returnType: VoidType())
       ..fileOffset = node.fileOffset;
@@ -635,7 +636,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             nativeCallablePrivateConstructor,
             Arguments([
               FunctionExpression(handler),
-              StringLiteral('NativeCallable(${target.name})'),
+              StringLiteral('NativeCallable($target)'),
             ], types: [
               targetType,
             ])),
@@ -644,12 +645,12 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       ..fileOffset = node.fileOffset;
 
     // _callback._pointer = _pointerAsyncFromFunction<NativeFunction<T>>(
-    //       _nativeAsyncCallbackFunction<T>(target), _callback._rawPort);
+    //       _nativeAsyncCallbackFunction<T>(), _callback._rawPort);
     final pointerValue = StaticInvocation(
         pointerAsyncFromFunctionProcedure,
         Arguments([
-          StaticInvocation(
-              nativeAsyncCallbackFunctionProcedure, node.arguments),
+          StaticInvocation(nativeAsyncCallbackFunctionProcedure,
+              Arguments([], types: [targetType])),
           InstanceGet(InstanceAccessKind.Instance, VariableGet(nativeCallable),
               nativeCallablePortField.name,
               interfaceTarget: nativeCallablePortField,
@@ -890,16 +891,6 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     diagnosticReporter.report(templateFfiNotStatic.withArguments(methodName),
         node.fileOffset, 1, node.location?.file);
     throw FfiStaticTypeError();
-  }
-
-  Procedure _getStaticFunctionTarget(Expression node) {
-    if (node is StaticGet) {
-      return node.target as Procedure;
-    }
-    if (node is ConstantExpression) {
-      return (node.constant as StaticTearOffConstant).target;
-    }
-    throw ArgumentError.value(node, "node", "Not a static function");
   }
 
   /// Returns the class that should not be implemented or extended.

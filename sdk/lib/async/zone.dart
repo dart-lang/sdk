@@ -1656,7 +1656,7 @@ base class _RootZone extends _Zone {
     return _rootRun(null, null, this, f);
   }
 
-  @pragma("vm:recognized", "other")
+  @pragma('vm:invisible')
   R runUnary<R, T>(R f(T arg), T arg) {
     if (identical(Zone._current, _rootZone)) return f(arg);
     return _rootRunUnary(null, null, this, f, arg);

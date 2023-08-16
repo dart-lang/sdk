@@ -109,9 +109,11 @@ class Dart2jsTarget extends Target {
         'dart:_foreign_helper',
         'dart:_interceptors',
         'dart:_js_helper',
+        'dart:_js_types',
         'dart:_late_helper',
         'dart:js',
         'dart:js_interop',
+        'dart:js_interop_unsafe',
         'dart:js_util',
         'dart:typed_data',
       ];
@@ -256,6 +258,8 @@ const implicitlyUsedLibraries = <String>[
   'dart:_interceptors',
   'dart:_js_helper',
   'dart:_late_helper',
+  // Needed since dart:js_util methods like createDartExport use this.
+  'dart:js_interop_unsafe',
   'dart:js_util'
 ];
 
@@ -294,8 +298,8 @@ const requiredLibraries = <String, List<String>>{
     'dart:isolate',
     'dart:js',
     'dart:js_interop',
-    'dart:js_util',
     'dart:js_interop_unsafe',
+    'dart:js_util',
     'dart:math',
     'dart:svg',
     'dart:typed_data',

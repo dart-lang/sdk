@@ -1,0 +1,15 @@
+extension type A(int it) {
+int methodA() => it + 5;
+} extension type B<T>(T it) {
+T methodB() => it;
+} extension type C1(int it) implements A {
+int methodC1() => it + 42;
+} extension type C2(int it) implements A, B<int> {
+int methodC2() => it + 87;
+} extension type D1(int it) implements C1 {
+int methodD1() => it + 123;
+}
+errors(A a, B<String> b1, B<num> b2, C1 c1, C2 c2, D1 d1) {}
+method(A a, B<String> b1, B<num> b2, C1 c1, C2 c2, D1 d1) {}
+main() {}
+expect(expected, actual) {}

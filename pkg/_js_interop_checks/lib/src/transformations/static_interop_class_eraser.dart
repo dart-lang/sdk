@@ -46,9 +46,8 @@ InterfaceType eraseStaticInteropTypesForJSCompilers(
         typeArguments = [coreTypes.objectNullableRawType];
         break;
       case 'JSBoxedDartObject':
-        // TODO(srujzs): This should be JavaScriptObject once we migrate Flutter
-        // off of using `Object.toJS`.
-        erasedClass = coreTypes.objectClass;
+        erasedClass =
+            coreTypes.index.getClass('dart:_interceptors', 'JSObject');
         break;
       case 'JSArrayBuffer':
         erasedClass = coreTypes.index.getClass('dart:typed_data', 'ByteBuffer');

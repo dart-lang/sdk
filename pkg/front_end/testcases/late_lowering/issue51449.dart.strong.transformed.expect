@@ -22,17 +22,14 @@ static method main() → dynamic {
       return #j = j#param;
     else
       throw new _in::LateError::localAI("j");
-  block {
-    core::int? #t3;
-    final synthesized dynamic #0#0 = (2, "Hello");
-    if(!(let final core::int #t4 = #t3 = #0#0{(core::int, core::String)}.$1{core::int} in true))
-      throw new core::StateError::•("Pattern matching error");
-    #j#set(#t3){(core::int) → dynamic};
-  } =>#0#0;
+  {
+    final synthesized(core::int, core::String) #0#0 = (2, "Hello");
+    #j#set(#0#0.$1{core::int}){(core::int) → dynamic};
+  }
   core::print(#j#get(){() → core::int});
 }
 
 
 Extra constant evaluation status:
 Evaluated: RecordLiteral @ org-dartlang-testcase:///issue51449.dart:11:12 -> RecordConstant(const (2, "Hello"))
-Extra constant evaluation: evaluated: 45, effectively constant: 1
+Extra constant evaluation: evaluated: 37, effectively constant: 1

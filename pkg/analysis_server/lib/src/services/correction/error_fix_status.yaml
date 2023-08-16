@@ -46,7 +46,7 @@
 # Stats:
 # -   0 "needsEvaluation"
 # - 381 "needsFix"
-# - 352 "hasFix"
+# - 348 "hasFix"
 # - 490 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -212,6 +212,8 @@ CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
     The fix is to remove the `late` modifier.
 CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT:
   status: hasFix
+CompileTimeErrorCode.AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE:
+  status: noFix
 CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
   status: noFix
   notes: |-
@@ -360,6 +362,10 @@ CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
+CompileTimeErrorCode.CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH:
   status: noFix
 CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH:
@@ -380,9 +386,13 @@ CompileTimeErrorCode.CONST_DEFERRED_CLASS:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
+CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE:
+  status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
   status: noFix
@@ -1177,6 +1187,8 @@ CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
   notes: |-
     Make the pattern expression a constant.
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
+  status: noFix
+CompileTimeErrorCode.NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE:
   status: noFix
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION:
   status: hasFix
@@ -2398,10 +2410,7 @@ LintCode.unnecessary_this:
 LintCode.unnecessary_to_list_in_spreads:
   status: hasFix
 LintCode.unreachable_from_main:
-  status: noFix
-  notes: |-
-    Theoretically we could remove the unreachable declaration, but that seems
-    like a dangerous option to provide.
+  status: hasFix
 LintCode.unrelated_type_equality_checks_expression:
   status: needsEvaluation
 LintCode.unrelated_type_equality_checks_pattern:
@@ -2693,6 +2702,10 @@ ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS:
 ParserErrorCode.EXPECTED_NAMED_TYPE_ON:
   status: noFix
 ParserErrorCode.EXPECTED_NAMED_TYPE_WITH:
+  status: noFix
+ParserErrorCode.EXPECTED_REPRESENTATION_FIELD:
+  status: noFix
+ParserErrorCode.EXPECTED_REPRESENTATION_TYPE:
   status: noFix
 ParserErrorCode.EXPECTED_STRING_LITERAL:
   status: noFix
@@ -3310,6 +3323,8 @@ PubspecWarningCode.FLUTTER_FIELD_NOT_MAP:
   since: ~2.15
 PubspecWarningCode.INVALID_DEPENDENCY:
   status: noFix
+PubspecWarningCode.INVALID_PLATFORMS_FIELD:
+  status: needsEvaluation
 PubspecWarningCode.MISSING_NAME:
   status: noFix
   since: ~2.15
@@ -3325,6 +3340,10 @@ PubspecWarningCode.PATH_NOT_POSIX:
     If the path is a windows path, then we should be able to convert it.
 PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST:
   status: noFix
+PubspecWarningCode.PLATFORM_VALUE_DISALLOWED:
+  status: needsEvaluation
+PubspecWarningCode.UNKNOWN_PLATFORM:
+  status: needsEvaluation
 PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY:
   status: needsFix
   since: ~2.15
@@ -3617,39 +3636,20 @@ WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR:
   status: noFix
 WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
   status: noFix
-WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
-  status: hasFix
-WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT:
-  status: hasFix
-WarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT:
-  status: hasFix
 WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS:
   status: needsFix
   since: 2.15
-WarningCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT:
-  status: hasFix
-WarningCode.SDK_VERSION_EXTENSION_METHODS:
-  status: hasFix
 WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR:
-  status: hasFix
-WarningCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT:
   status: hasFix
 WarningCode.SDK_VERSION_NEVER:
   status: noFix
   notes: Deprecated
-WarningCode.SDK_VERSION_SET_LITERAL:
-  status: hasFix
 WarningCode.SDK_VERSION_SINCE:
   status: needsFix
   notes: |-
     The fix would be to update the SDK constraints. The user would still need to
     run `dart pub` before the diagnostic would go away, and there's a question
     whether a fix that doesn't actually fix the problem is something we want.
-WarningCode.SDK_VERSION_UI_AS_CODE:
-  status: hasFix
-WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
-  status: noFix
-  notes: Deprecated
 WarningCode.STRICT_RAW_TYPE:
   status: needsFix
   notes: |-

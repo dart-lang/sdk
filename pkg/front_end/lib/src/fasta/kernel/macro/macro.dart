@@ -343,6 +343,8 @@ class MacroApplications {
               benchmarker?.beginSubdivide(BenchmarkSubdivides
                   .macroApplications_macroExecutorInstantiateMacro);
               application.instanceIdentifier = instanceIdCache[application] ??=
+                  // TODO: Dispose of these instances using
+                  // `macroExecutor.disposeMacro` once we are done with them.
                   await macroExecutor.instantiateMacro(
                       libraryUri,
                       macroClassName,
@@ -512,7 +514,7 @@ class MacroApplications {
             await _macroExecutor.executeTypesPhase(
                 macroApplication.instanceIdentifier,
                 declaration,
-                identifierResolver);
+                typePhaseIntrospector);
         if (result.isNotEmpty) {
           results.add(result);
         }
@@ -525,13 +527,13 @@ class MacroApplications {
     return results;
   }
 
-  late macro.IdentifierResolver identifierResolver;
+  late macro.TypePhaseIntrospector typePhaseIntrospector;
   late SourceLoader sourceLoader;
 
   Future<List<SourceLibraryBuilder>> applyTypeMacros(
       SourceLoader sourceLoader) async {
     this.sourceLoader = sourceLoader;
-    identifierResolver = new _IdentifierResolver(sourceLoader);
+    typePhaseIntrospector = new _TypePhaseIntrospector(sourceLoader);
     List<SourceLibraryBuilder> augmentationLibraries = [];
     _ensureApplicationData();
     for (MapEntry<SourceLibraryBuilder, LibraryMacroApplicationData> entry
@@ -605,10 +607,7 @@ class MacroApplications {
             await _macroExecutor.executeDeclarationsPhase(
                 macroApplication.instanceIdentifier,
                 declaration,
-                identifierResolver,
-                typeDeclarationResolver,
-                typeResolver,
-                typeIntrospector);
+                declarationPhaseIntrospector);
         if (result.isNotEmpty) {
           Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
           String source = _macroExecutor.buildAugmentationLibrary([result],
@@ -650,19 +649,18 @@ class MacroApplications {
     }
   }
 
+  late ClassHierarchyBuilder classHierarchy;
   late Types types;
-  late macro.TypeDeclarationResolver typeDeclarationResolver;
-  late macro.TypeResolver typeResolver;
-  late macro.TypeIntrospector typeIntrospector;
+  late macro.DeclarationPhaseIntrospector declarationPhaseIntrospector;
 
   Future<void> applyDeclarationsMacros(
       ClassHierarchyBuilder classHierarchy,
       List<SourceClassBuilder> sortedSourceClassBuilders,
       Future<void> Function(SourceLibraryBuilder) onAugmentationLibrary) async {
+    this.classHierarchy = classHierarchy;
     types = new Types(classHierarchy);
-    typeDeclarationResolver = new _TypeDeclarationResolver(this);
-    typeResolver = new _TypeResolver(this);
-    typeIntrospector = new _TypeIntrospector(this, classHierarchy);
+    declarationPhaseIntrospector =
+        new _DeclarationPhaseIntrospector(this, classHierarchy, sourceLoader);
 
     // Apply macros to classes first, in class hierarchy order.
     for (SourceClassBuilder classBuilder in sortedSourceClassBuilders) {
@@ -709,11 +707,7 @@ class MacroApplications {
             await _macroExecutor.executeDefinitionsPhase(
                 macroApplication.instanceIdentifier,
                 declaration,
-                identifierResolver,
-                typeDeclarationResolver,
-                typeResolver,
-                typeIntrospector,
-                typeInferrer);
+                definitionPhaseIntrospector);
         if (result.isNotEmpty) {
           results.add(result);
         }
@@ -726,10 +720,11 @@ class MacroApplications {
     return results;
   }
 
-  late macro.TypeInferrer typeInferrer;
+  late macro.DefinitionPhaseIntrospector definitionPhaseIntrospector;
 
   Future<List<SourceLibraryBuilder>> applyDefinitionMacros() async {
-    typeInferrer = new _TypeInferrer(this);
+    definitionPhaseIntrospector =
+        new _DefinitionPhaseIntrospector(this, classHierarchy, sourceLoader);
     List<SourceLibraryBuilder> augmentationLibraries = [];
     for (MapEntry<SourceLibraryBuilder, LibraryMacroApplicationData> entry
         in libraryData.entries) {
@@ -798,7 +793,9 @@ class MacroApplications {
           id: macro.RemoteInstance.uniqueId,
           uri: builder.importUri,
           languageVersion:
-              new macro.LanguageVersionImpl(version.major, version.minor));
+              new macro.LanguageVersionImpl(version.major, version.minor),
+          // TODO: Provide metadata annotations.
+          metadata: const []);
     }();
   }
 
@@ -844,6 +841,8 @@ class MacroApplications {
                 id: macro.RemoteInstance.uniqueId,
                 identifier: identifier,
                 library: library,
+                // TODO: Provide metadata annotations.
+                metadata: const [],
                 typeParameters: typeParameters,
                 hasBase: builder.isBase,
                 interfaces: interfaces,
@@ -856,6 +855,8 @@ class MacroApplications {
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
             library: library,
+            // TODO: Provide metadata annotations.
+            metadata: const [],
             typeParameters: typeParameters,
             interfaces: interfaces,
             hasAbstract: builder.isAbstract,
@@ -886,6 +887,8 @@ class MacroApplications {
             id: macro.RemoteInstance.uniqueId,
             name: builder.name),
         library: library,
+        // TODO: Provide metadata annotations.
+        metadata: const [],
         // TODO(johnniwinther): Support typeParameters
         typeParameters: [],
         aliasedType:
@@ -916,6 +919,8 @@ class MacroApplications {
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
             library: library,
+            // TODO: Provide metadata annotations.
+            metadata: const [],
             isRequired: formal.isRequiredNamed,
             isNamed: true,
             type: type,
@@ -925,6 +930,8 @@ class MacroApplications {
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
             library: library,
+            // TODO: Provide metadata annotations.
+            metadata: const [],
             isRequired: formal.isRequiredPositional,
             isNamed: false,
             type: type,
@@ -953,10 +960,14 @@ class MacroApplications {
           id: macro.RemoteInstance.uniqueId,
           name: builder.name),
       library: _libraryFor(builder.libraryBuilder),
+      // TODO: Provide metadata annotations.
+      metadata: const [],
       definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
-      isAbstract: builder.isAbstract,
-      isExternal: builder.isExternal,
+      hasAbstract: builder.isAbstract,
+      // TODO(johnniwinther): Real implementation of hasBody.
+      hasBody: true,
+      hasExternal: builder.isExternal,
       isGetter: builder.isGetter,
       isOperator: builder.isOperator,
       isSetter: builder.isSetter,
@@ -983,10 +994,14 @@ class MacroApplications {
           id: macro.RemoteInstance.uniqueId,
           name: builder.name),
       library: _libraryFor(builder.libraryBuilder),
+      // TODO: Provide metadata annotations.
+      metadata: const [],
       definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
-      isAbstract: builder.isAbstract,
-      isExternal: builder.isExternal,
+      hasAbstract: builder.isAbstract,
+      // TODO(johnniwinther): Real implementation of hasBody.
+      hasBody: true,
+      hasExternal: builder.isExternal,
       isGetter: builder.isGetter,
       isOperator: builder.isOperator,
       isSetter: builder.isSetter,
@@ -1020,9 +1035,13 @@ class MacroApplications {
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
           library: library,
+          // TODO: Provide metadata annotations.
+          metadata: const [],
           definingType: definingClass.identifier as macro.IdentifierImpl,
-          isAbstract: builder.isAbstract,
-          isExternal: builder.isExternal,
+          hasAbstract: builder.isAbstract,
+          // TODO(johnniwinther): Real implementation of hasBody.
+          hasBody: true,
+          hasExternal: builder.isExternal,
           isGetter: builder.isGetter,
           isOperator: builder.isOperator,
           isSetter: builder.isSetter,
@@ -1041,8 +1060,12 @@ class MacroApplications {
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
           library: library,
-          isAbstract: builder.isAbstract,
-          isExternal: builder.isExternal,
+          // TODO(johnniwinther): Provide metadata annotations.
+          metadata: const [],
+          hasAbstract: builder.isAbstract,
+          // TODO(johnniwinther): Real implementation of hasBody.
+          hasBody: true,
+          hasExternal: builder.isExternal,
           isGetter: builder.isGetter,
           isOperator: builder.isOperator,
           isSetter: builder.isSetter,
@@ -1073,10 +1096,12 @@ class MacroApplications {
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
           library: library,
+          // TODO: Provide metadata annotations.
+          metadata: const [],
           definingType: definingClass.identifier as macro.IdentifierImpl,
-          isExternal: builder.isExternal,
-          isFinal: builder.isFinal,
-          isLate: builder.isLate,
+          hasExternal: builder.isExternal,
+          hasFinal: builder.isFinal,
+          hasLate: builder.isLate,
           isStatic: builder.isStatic,
           type: computeTypeAnnotation(builder.libraryBuilder, builder.type));
     } else {
@@ -1087,9 +1112,11 @@ class MacroApplications {
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
           library: library,
-          isExternal: builder.isExternal,
-          isFinal: builder.isFinal,
-          isLate: builder.isLate,
+          // TODO: Provide metadata annotations.
+          metadata: const [],
+          hasExternal: builder.isExternal,
+          hasFinal: builder.isFinal,
+          hasLate: builder.isLate,
           type: computeTypeAnnotation(builder.libraryBuilder, builder.type));
     }
   }
@@ -1204,10 +1231,10 @@ class _StaticTypeImpl implements macro.StaticType {
   }
 }
 
-class _IdentifierResolver implements macro.IdentifierResolver {
+class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
   final SourceLoader sourceLoader;
 
-  _IdentifierResolver(this.sourceLoader);
+  _TypePhaseIntrospector(this.sourceLoader);
 
   @override
   Future<macro.Identifier> resolveIdentifier(Uri library, String name) {
@@ -1249,23 +1276,22 @@ class _IdentifierResolver implements macro.IdentifierResolver {
   }
 }
 
-class _TypeResolver implements macro.TypeResolver {
+class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
+    implements macro.DeclarationPhaseIntrospector {
+  final ClassHierarchyBuilder classHierarchy;
   final MacroApplications macroApplications;
 
-  _TypeResolver(this.macroApplications);
+  _DeclarationPhaseIntrospector(
+      this.macroApplications, this.classHierarchy, super.sourceLoader);
 
   @override
-  Future<macro.StaticType> resolve(macro.TypeAnnotationCode typeAnnotation) {
-    return new Future.value(
-        macroApplications.resolveTypeAnnotation(typeAnnotation));
+  Future<macro.TypeDeclaration> typeDeclarationOf(macro.Identifier identifier) {
+    if (identifier is IdentifierImpl) {
+      return identifier.resolveTypeDeclaration(macroApplications);
+    }
+    throw new UnsupportedError(
+        'Unsupported identifier $identifier (${identifier.runtimeType})');
   }
-}
-
-class _TypeIntrospector implements macro.TypeIntrospector {
-  final MacroApplications macroApplications;
-  final ClassHierarchyBuilder classHierarchy;
-
-  _TypeIntrospector(this.macroApplications, this.classHierarchy);
 
   @override
   Future<List<macro.ConstructorDeclaration>> constructorsOf(
@@ -1332,32 +1358,48 @@ class _TypeIntrospector implements macro.TypeIntrospector {
     }
     return new Future.value(result);
   }
-}
-
-class _TypeDeclarationResolver implements macro.TypeDeclarationResolver {
-  final MacroApplications macroApplications;
-
-  _TypeDeclarationResolver(this.macroApplications);
 
   @override
-  Future<macro.TypeDeclaration> declarationOf(macro.Identifier identifier) {
-    if (identifier is IdentifierImpl) {
-      return identifier.resolveTypeDeclaration(macroApplications);
-    }
-    throw new UnsupportedError(
-        'Unsupported identifier $identifier (${identifier.runtimeType})');
+  Future<List<macro.TypeDeclaration>> typesOf(covariant macro.Library library) {
+    // TODO: implement typesOf
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future<macro.StaticType> resolve(macro.TypeAnnotationCode typeAnnotation) {
+    return new Future.value(
+        macroApplications.resolveTypeAnnotation(typeAnnotation));
   }
 }
 
-class _TypeInferrer implements macro.TypeInferrer {
-  final MacroApplications _macroApplications;
+class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
+    implements macro.DefinitionPhaseIntrospector {
+  _DefinitionPhaseIntrospector(
+      super.macroApplications, super.classHierarchy, super.sourceLoader);
 
-  _TypeInferrer(this._macroApplications);
+  @override
+  Future<macro.IntrospectableType> typeDeclarationOf(
+          macro.Identifier identifier) async =>
+      (await super.typeDeclarationOf(identifier)) as macro.IntrospectableType;
 
   @override
   Future<macro.TypeAnnotation> inferType(
           macro.OmittedTypeAnnotation omittedType) =>
-      new Future.value(_macroApplications._inferOmittedType(omittedType));
+      new Future.value(macroApplications._inferOmittedType(omittedType));
+
+  @override
+  Future<List<macro.Declaration>> topLevelDeclarationsOf(
+      macro.Library library) {
+    // TODO: implement topLevelDeclarationsOf
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future<macro.Declaration> declarationOf(
+      covariant macro.Identifier identifier) {
+    // TODO: implement declarationOf
+    throw new UnimplementedError();
+  }
 }
 
 macro.DeclarationKind _declarationKind(macro.Declaration declaration) {

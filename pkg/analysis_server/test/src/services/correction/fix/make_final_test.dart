@@ -367,6 +367,58 @@ f() {
 ''');
   }
 
+  Future<void> test_recordPattern_declarationNestedIn_forLoop() async {
+    await resolveTestCode(r'''
+f() {
+  for (var (a, b) in g(() {
+        var (c, d) = (0, 1);
+        return (c, d);
+      })) {
+    a++;
+    b++;
+    print(a + b);
+  }
+}
+
+List<(int, int)> g((int, int) Function() f) {
+  return [f()];
+}
+''');
+    await assertHasFix(r'''
+f() {
+  for (var (a, b) in g(() {
+        final (c, d) = (0, 1);
+        return (c, d);
+      })) {
+    a++;
+    b++;
+    print(a + b);
+  }
+}
+
+List<(int, int)> g((int, int) Function() f) {
+  return [f()];
+}
+''');
+  }
+
+  Future<void> test_recordPattern_forLoop() async {
+    await resolveTestCode(r'''
+f() {
+  for (var (a) in [(1)]) {
+    print('$a');
+  }
+}
+''');
+    await assertHasFix(r'''
+f() {
+  for (final (a) in [(1)]) {
+    print('$a');
+  }
+}
+''');
+  }
+
   Future<void> test_variableDeclarationStatement_type() async {
     await resolveTestCode('''
 void f() {

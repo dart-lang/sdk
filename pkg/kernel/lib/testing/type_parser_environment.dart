@@ -329,9 +329,6 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     } else if (declaration is Typedef) {
       return new TypedefType(declaration,
           interpretParsedNullability(node.parsedNullability), kernelArguments);
-    } else if (declaration is Extension) {
-      return new ExtensionType(declaration,
-          interpretParsedNullability(node.parsedNullability), kernelArguments);
     } else {
       throw "Unhandled ${declaration.runtimeType}";
     }

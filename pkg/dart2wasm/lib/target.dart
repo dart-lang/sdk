@@ -34,11 +34,17 @@ import 'package:dart2wasm/ffi_native_transformer.dart' as wasmFfiNativeTrans;
 import 'package:dart2wasm/records.dart' show RecordShape;
 import 'package:dart2wasm/transformers.dart' as wasmTrans;
 
+enum Mode {
+  regular,
+  stringref,
+  jsCompatibility,
+}
+
 class WasmTarget extends Target {
-  WasmTarget({this.removeAsserts = true, this.useStringref = false});
+  WasmTarget({this.removeAsserts = true, this.mode = Mode.regular});
 
   bool removeAsserts;
-  bool useStringref;
+  Mode mode;
   Class? _growableList;
   Class? _immutableList;
   Class? _wasmDefaultMap;
@@ -59,47 +65,78 @@ class WasmTarget extends Target {
   Verification get verification => const WasmVerification();
 
   @override
-  String get name => useStringref ? 'wasm_stringref' : 'wasm';
+  String get name {
+    switch (mode) {
+      case Mode.regular:
+        return 'wasm';
+      case Mode.stringref:
+        return 'wasm_stringref';
+      case Mode.jsCompatibility:
+        return 'wasm_js_compatibility';
+    }
+  }
+
+  String get platformFile {
+    switch (mode) {
+      case Mode.regular:
+        return 'dart2wasm_platform.dill';
+      case Mode.stringref:
+        return 'dart2wasm_stringref_platform.dill';
+      case Mode.jsCompatibility:
+        return 'dart2wasm_js_compatibility_platform.dill';
+    }
+  }
 
   @override
   TargetFlags get flags => TargetFlags();
 
   @override
   List<String> get extraRequiredLibraries => const <String>[
-        'dart:async',
-        'dart:ffi',
-        'dart:_internal',
+        'dart:_boxed_double',
+        'dart:_boxed_int',
         'dart:_http',
+        'dart:_internal',
         'dart:_js_helper',
         'dart:_js_types',
-        'dart:typed_data',
-        'dart:nativewrappers',
+        'dart:_string',
+        'dart:_wasm',
+        'dart:async',
+        'dart:developer',
+        'dart:ffi',
         'dart:io',
+        'dart:js',
         'dart:js_interop',
         'dart:js_interop_unsafe',
-        'dart:js',
         'dart:js_util',
-        'dart:_wasm',
-        'dart:developer',
+        'dart:nativewrappers',
+        'dart:typed_data',
       ];
 
   @override
   List<String> get extraIndexedLibraries => const <String>[
         'dart:_js_helper',
         'dart:_js_types',
-        'dart:collection',
-        'dart:typed_data',
-        'dart:js_interop',
-        'dart:js_util',
+        'dart:_string',
         'dart:_wasm',
+        'dart:collection',
+        'dart:js_interop',
+        'dart:js_interop_unsafe',
+        'dart:js_util',
+        'dart:typed_data',
       ];
 
   @override
   bool mayDefineRestrictedType(Uri uri) =>
       uri.isScheme('dart') &&
       (uri.path == 'core' ||
+          uri.path == '_simd' ||
+          uri.path == '_string' ||
           uri.path == 'typed_data' ||
-          uri.path == '_js_types');
+          uri.path == '_typed_data' ||
+          uri.path == '_boxed_double' ||
+          uri.path == '_boxed_int' ||
+          uri.path == '_js_types' ||
+          uri.path == '_typed_data_helper');
 
   @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
@@ -381,11 +418,11 @@ class WasmTarget extends Target {
     for (int i = 0; i < value.length; ++i) {
       if (value.codeUnitAt(i) > maxLatin1) {
         return _twoByteString ??=
-            coreTypes.index.getClass('dart:core', '_TwoByteString');
+            coreTypes.index.getClass('dart:_string', 'TwoByteString');
       }
     }
     return _oneByteString ??=
-        coreTypes.index.getClass('dart:core', '_OneByteString');
+        coreTypes.index.getClass('dart:_string', 'OneByteString');
   }
 
   @override

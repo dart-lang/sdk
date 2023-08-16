@@ -131,7 +131,7 @@
   FIELD(Closure, function_type_arguments_offset)                               \
   FIELD(Closure, hash_offset)                                                  \
   FIELD(Closure, instantiator_type_arguments_offset)                           \
-  FIELD(ClosureData, default_type_arguments_kind_offset)                       \
+  FIELD(ClosureData, packed_fields_offset)                                     \
   FIELD(Code, instructions_offset)                                             \
   FIELD(Code, object_pool_offset)                                              \
   FIELD(Code, owner_offset)                                                    \

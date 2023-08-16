@@ -589,11 +589,11 @@ String _resolveScriptUri(String scriptName) {
 @pragma("vm:entry-point")
 _setupHooks() {
   _setupCompleted = true;
-  VMLibraryHooks.packageConfigUriFuture = _getPackageConfigFuture;
-  VMLibraryHooks.resolvePackageUriFuture = _resolvePackageUriFuture;
+  VMLibraryHooks.packageConfigUriSync = _getPackageConfigSync;
+  VMLibraryHooks.resolvePackageUriSync = _resolvePackageUriSync;
 }
 
-Future<Uri?> _getPackageConfigFuture() {
+Uri? _getPackageConfigSync() {
   if (_traceLoading) {
     _log("Request for package config from user code.");
   }
@@ -601,10 +601,10 @@ Future<Uri?> _getPackageConfigFuture() {
     _requestPackagesMap(_packagesConfigUri);
   }
   // Respond with the packages config (if any) after package resolution.
-  return Future.value(_packageConfig);
+  return _packageConfig;
 }
 
-Future<Uri?> _resolvePackageUriFuture(Uri packageUri) {
+Uri? _resolvePackageUriSync(Uri packageUri) {
   if (_traceLoading) {
     _log("Request for package Uri resolution from user code: $packageUri");
   }
@@ -613,7 +613,7 @@ Future<Uri?> _resolvePackageUriFuture(Uri packageUri) {
       _log("Non-package Uri, returning unmodified: $packageUri");
     }
     // Return the incoming parameter if not passed a package: URI.
-    return Future.value(packageUri);
+    return packageUri;
   }
   if (!_packagesReady) {
     _requestPackagesMap(_packagesConfigUri);
@@ -630,5 +630,5 @@ Future<Uri?> _resolvePackageUriFuture(Uri packageUri) {
   if (_traceLoading) {
     _log("Resolved '$packageUri' to '$resolvedUri'");
   }
-  return Future.value(resolvedUri);
+  return resolvedUri;
 }

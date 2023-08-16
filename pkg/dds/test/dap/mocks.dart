@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:dap/dap.dart' as dap;
 import 'package:dds/dap.dart';
+import 'package:dds/dds.dart';
 import 'package:dds/src/dap/adapters/dart_cli_adapter.dart';
 import 'package:dds/src/dap/adapters/dart_test_adapter.dart';
 import 'package:dds/src/dap/isolate_manager.dart';
@@ -87,6 +88,8 @@ class MockDartTestDebugAdapter extends DartTestDebugAdapter {
   late List<String> processArgs;
   late String? workingDirectory;
   late Map<String, String>? env;
+  UriConverter? _uriConverter;
+  UriConverter? ddsUriConverter;
 
   factory MockDartTestDebugAdapter() {
     final stdinController = StreamController<List<int>>();
@@ -117,6 +120,22 @@ class MockDartTestDebugAdapter extends DartTestDebugAdapter {
     this.workingDirectory = workingDirectory;
     this.env = env;
   }
+
+  @override
+  UriConverter? uriConverter() {
+    return _uriConverter;
+  }
+
+  void setUriConverter(UriConverter uriConverter) {
+    _uriConverter = uriConverter;
+  }
+
+  @override
+  Future<DartDevelopmentService> startDds(
+      Uri uri, UriConverter? converter) async {
+    ddsUriConverter = converter;
+    return MockDartDevelopmentService();
+  }
 }
 
 class MockRequest extends dap.Request {
@@ -133,8 +152,8 @@ class MockVmService implements VmServiceInterface {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
-  final isolate1 = IsolateRef(id: 'isolate1');
-  final isolate2 = IsolateRef(id: 'isolate2');
+  final isolate1 = IsolateRef(id: 'isolate1', number: '1');
+  final isolate2 = IsolateRef(id: 'isolate2', number: '2');
   final sdkLibrary = LibraryRef(id: 'libSdk', uri: 'dart:core');
   final externalPackageLibrary =
       LibraryRef(id: 'libPkgExternal', uri: 'package:external/foo.dart');
@@ -196,4 +215,46 @@ class MockVmService implements VmServiceInterface {
         ? Success()
         : throw SentinelException.parse('resume', {});
   }
+}
+
+class MockDartDevelopmentService implements DartDevelopmentService {
+  MockDartDevelopmentService();
+
+  @override
+  bool get authCodesEnabled => throw UnimplementedError();
+
+  @override
+  List<String> get cachedUserTags => throw UnimplementedError();
+
+  @override
+  Uri? get devToolsUri => throw UnimplementedError();
+
+  @override
+  Future<void> get done => throw UnimplementedError();
+
+  @override
+  bool get isRunning => throw UnimplementedError();
+
+  @override
+  Uri get remoteVmServiceUri => throw UnimplementedError();
+
+  @override
+  Uri get remoteVmServiceWsUri => throw UnimplementedError();
+
+  @override
+  void setExternalDevToolsUri(Uri uri) {}
+
+  @override
+  Future<void> shutdown() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Uri? get sseUri => throw UnimplementedError();
+
+  @override
+  Uri? get uri => throw UnimplementedError();
+
+  @override
+  Uri? get wsUri => Uri(scheme: 'ws', host: 'localhost');
 }

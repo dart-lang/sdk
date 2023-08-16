@@ -227,10 +227,12 @@ class UseResultVerifier {
         parent is FunctionExpressionInvocation ||
         parent is IfStatement ||
         parent is IndexExpression ||
+        parent is InterpolationExpression ||
         parent is ListLiteral ||
         parent is MapLiteralEntry ||
         parent is MethodInvocation ||
         parent is NamedExpression ||
+        parent is PatternVariableDeclaration ||
         parent is PropertyAccess ||
         parent is RecordLiteral ||
         parent is ReturnStatement ||

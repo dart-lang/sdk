@@ -1,0 +1,28 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue43400.dart:8:18: Error: Type variables can't be used in static members.
+//   static Generic<A> field = null;
+//                  ^
+//
+// pkg/front_end/testcases/general/issue43400.dart:8:29: Error: The value 'null' can't be assigned to a variable of type 'Generic<invalid-type>' because 'Generic<invalid-type>' is not nullable.
+//  - 'Generic' is from 'pkg/front_end/testcases/general/issue43400.dart'.
+//   static Generic<A> field = null;
+//                             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Generic<A extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Generic<self::Generic::A%>
+    : super core::Object::•()
+    ;
+}
+extension Extension<A extends core::Object? = dynamic> on self::Generic<A%> {
+  static field field = self::Extension|field;
+}
+static field self::Generic<invalid-type> Extension|field = invalid-expression "pkg/front_end/testcases/general/issue43400.dart:8:29: Error: The value 'null' can't be assigned to a variable of type 'Generic<invalid-type>' because 'Generic<invalid-type>' is not nullable.
+ - 'Generic' is from 'pkg/front_end/testcases/general/issue43400.dart'.
+  static Generic<A> field = null;
+                            ^" in let Null #t1 = null in #t1 == null ?{self::Generic<invalid-type>} #t1 as{TypeError} self::Generic<invalid-type> : #t1{self::Generic<invalid-type>};

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../../compiler_api.dart' as api;
@@ -480,60 +481,66 @@ class InferrerEngine {
     _processCalledTargets(shouldMarkCalled: true);
 
     if (debug.PRINT_SUMMARY) {
-      types.allocatedLists.values.forEach((_info) {
+      void printSorted(Iterable<String> toSort) {
+        print(toSort.sorted((a, b) => a.compareTo(b)).join('\n'));
+      }
+
+      printSorted(types.allocatedLists.values.map((_info) {
         ListTypeInformation info = _info;
-        print('${info.type} '
+        return '${info.type} '
             'for ${abstractValueDomain.getAllocationNode(info.originalType)} '
             'at ${abstractValueDomain.getAllocationElement(info.originalType)}'
-            'after ${info.refineCount}');
-      });
-      types.allocatedSets.values.forEach((_info) {
+            'after ${info.refineCount}';
+      }));
+      printSorted(types.allocatedSets.values.map((_info) {
         SetTypeInformation info = _info;
-        print('${info.type} '
+        return ('${info.type} '
             'for ${abstractValueDomain.getAllocationNode(info.originalType)} '
             'at ${abstractValueDomain.getAllocationElement(info.originalType)} '
             'after ${info.refineCount}');
-      });
-      types.allocatedMaps.values.forEach((_info) {
+      }));
+      printSorted(types.allocatedMaps.values.map((_info) {
         MapTypeInformation info = _info;
-        print('${info.type} '
+        return '${info.type} '
             'for ${abstractValueDomain.getAllocationNode(info.originalType)} '
             'at ${abstractValueDomain.getAllocationElement(info.originalType)}'
-            'after ${info.refineCount}');
-      });
-      types.allocatedClosures.forEach((TypeInformation info) {
+            'after ${info.refineCount}';
+      }));
+      printSorted(types.allocatedClosures.map((TypeInformation info) {
         if (info is ElementTypeInformation) {
-          print('${info.getInferredSignature(types)} for '
-              '${info.debugName}');
+          return '${info.getInferredSignature(types)} for '
+              '${info.debugName}';
         } else if (info is ClosureTypeInformation) {
-          print('${info.getInferredSignature(types)} for '
-              '${info.debugName}');
+          return '${info.getInferredSignature(types)} for '
+              '${info.debugName}';
         } else if (info is DynamicCallSiteTypeInformation) {
+          var str = '';
           if (info.hasClosureCallTargets) {
-            print('<Closure.call>');
+            str += '<Closure.call>';
           }
           info.forEachConcreteTarget(memberHierarchyBuilder, (member) {
             if (member is FunctionEntity) {
-              print('${types.getInferredSignatureOfMethod(member)} '
-                  'for ${member}');
+              str += '${types.getInferredSignatureOfMethod(member)} '
+                  'for ${member}';
             } else {
-              print('${types.getInferredTypeOfMember(member).type} '
-                  'for ${member}');
+              str += '${types.getInferredTypeOfMember(member).type} '
+                  'for ${member}';
             }
             return true;
           });
+          return str;
         } else if (info is StaticCallSiteTypeInformation) {
           final cls = info.calledElement.enclosingClass!;
           final callMethod = _lookupCallMethod(cls)!;
-          print('${types.getInferredSignatureOfMethod(callMethod)} for ${cls}');
+          return '${types.getInferredSignatureOfMethod(callMethod)} for ${cls}';
         } else {
-          print('${info.type} for some unknown kind of closure');
+          return '${info.type} for some unknown kind of closure';
         }
-      });
-      _analyzedElements.forEach((MemberEntity elem) {
+      }));
+      printSorted(_analyzedElements.map((MemberEntity elem) {
         TypeInformation type = types.getInferredTypeOfMember(elem);
-        print('${elem} :: ${type} from ${type.inputs} ');
-      });
+        return '${elem} :: ${type} from ${type.inputs} ';
+      }));
     }
     dump?.afterAnalysis();
 
@@ -775,7 +782,17 @@ class InferrerEngine {
       _progress.showProgress('Inferred ', _overallRefineCount, ' types.');
       TypeInformation info = _workQueue.remove();
       AbstractValue oldType = info.type;
-      AbstractValue newType = info.refine(this);
+
+      // In order to ensure that types are always getting wider we union the old
+      // and new refined types. This ensures that we do not get caught in any
+      // refinement loops that can arise from horizontal or downward
+      // (i.e. narrowing) moves in the type lattice.
+      //
+      // This tends to produce comparable results to not doing the union and
+      // often with fewer refine steps since the natural progression of these
+      // refines is to take us up the lattice anyway.
+      AbstractValue newType =
+          abstractValueDomain.union(oldType, info.refine(this));
       // Check that refinement has not accidentally changed the type.
       assert(oldType == info.type);
       if (info.abandonInferencing) info.doNotEnqueue = true;

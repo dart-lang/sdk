@@ -1,0 +1,408 @@
+# Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../../build/dart/dart_action.gni")
+import("../application_snapshot.gni")
+import("../create_timestamp.gni")
+
+sdk_outline_sound_dill = "$root_out_dir/ddc_outline.dill"
+sdk_full_sound_dill = "$root_out_dir/ddc_platform.dill"
+sdk_outline_unsound_dill = "$root_out_dir/ddc_outline_unsound.dill"
+sdk_full_unsound_dill = "$root_out_dir/ddc_platform_unsound.dill"
+
+# Builds everything needed to run tests with DDC (stable) using test.dart.
+group("ddc_stable_test") {
+  deps = [
+    ":ddc_stable_test_local",
+    "../..:create_sdk",
+
+    # TODO(nshahan): Move the dartdevc snapshot target to this file.
+    "../dartdevc:dartdevc",
+  ]
+}
+
+# Builds everything needed to run tests with DDC (canary) using test.dart.
+group("ddc_canary_test") {
+  deps = [
+    ":ddc_canary_test_local",
+    "../..:create_sdk",
+
+    # TODO(nshahan): Move the dartdevc snapshot target to this file.
+    "../dartdevc:dartdevc",
+  ]
+}
+
+# Builds everything needed to run tests with DDC (stable) locally using
+# test.dart without --use-sdk.
+#
+# This is the same as ddc_stable_test, but skips the targets that depend on
+# building the Dart VM and create_sdk.
+group("ddc_stable_test_local") {
+  deps = [
+    ":ddc_stable_sdk",
+    ":ddc_stable_test_pkg",
+    ":ddc_stable_unsound_sdk",
+  ]
+}
+
+# Builds everything needed to run tests with DDC (stable) locally using
+# test.dart without --use-sdk.
+#
+# This is the same as ddc_stable_test,but skips the targets that depend on
+# building the Dart VM and create_sdk.
+group("ddc_canary_test_local") {
+  deps = [
+    ":ddc_canary_sdk",
+    ":ddc_canary_test_pkg",
+    ":ddc_canary_unsound_sdk",
+  ]
+}
+
+create_timestamp_file("ddc_files_stamp") {
+  path = rebase_path("../../pkg/dev_compiler/lib")
+  output = "$target_gen_dir/ddc_files.stamp"
+}
+
+# Compiles to JavaScript using DDC (stable) all packages imported in tests.
+# TODO(sigmund): generate a js bundle or a module that load these indirectly so
+# we can stop referring to this list of packages explicitly in the test_runner.
+group("ddc_stable_test_pkg") {
+  deps = [
+    ":async_helper_stable_js",
+    ":async_helper_stable_unsound_js",
+    ":expect_stable_js",
+    ":expect_stable_unsound_js",
+    ":js_stable_js",
+    ":js_stable_unsound_js",
+    ":meta_stable_js",
+    ":meta_stable_unsound_js",
+  ]
+}
+
+# Compiles to JavaScript using DDC (canary) all packages imported in tests.
+group("ddc_canary_test_pkg") {
+  deps = [
+    ":async_helper_canary_js",
+    ":async_helper_canary_unsound_js",
+    ":expect_canary_js",
+    ":expect_canary_unsound_js",
+    ":js_canary_js",
+    ":js_canary_unsound_js",
+    ":meta_canary_js",
+    ":meta_canary_unsound_js",
+  ]
+}
+
+template("ddc_compile") {
+  assert(defined(invoker.package),
+         "Need 'package' in $target_name (the name of the package)")
+  assert(defined(invoker.sound_null_safety),
+         "Need 'sound_null_safety' in $target_name.")
+
+  # Determine one of four possible directories for the JavaScript output to be
+  # generated:
+  #
+  # out/gen/ddc
+  #          |- canary/pkg
+  #          |- canary_unsound/pkg
+  #          |- stable/pkg
+  #          |- stable_unsound/pkg
+  if (invoker.canary) {
+    js_gen_dir = "$target_gen_dir/canary"
+  } else {
+    js_gen_dir = "$target_gen_dir/stable"
+  }
+  if (invoker.sound_null_safety) {
+    platform_dep = "../dartdevc:dartdevc_platform_sound"
+    sdk_outline = sdk_outline_sound_dill
+    js_gen_dir = "$js_gen_dir/pkg"
+  } else {
+    platform_dep = "../dartdevc:dartdevc_platform_unsound"
+    sdk_outline = sdk_outline_unsound_dill
+    js_gen_dir = "${js_gen_dir}_unsound/pkg"
+  }
+
+  # Other optional invoker parameters:
+  #   * extra_libraries: entrypoints to include in the module as
+  #     "package:package_name/library_name.dart" (the rule implicitly adds
+  #     the default import "package:package_name/package_name.dart").
+  #   * package_dependencies: the name of other packages this package depends
+  #     on. When providing `name`, a separate `ddc_compile` target
+  #     named `${name}_js` must exist.
+  #   * args: additional args to pass to dartdevc
+
+  prebuilt_dart_action(target_name) {
+    script = "../../pkg/dev_compiler/bin/dartdevc.dart"
+    module = invoker.package
+    out_dir = rebase_path("$js_gen_dir")
+    sdk_path = rebase_path(sdk_outline)
+
+    deps = [
+      ":ddc_files_stamp",
+      platform_dep,
+    ]
+
+    inputs = [
+      sdk_outline,
+      "$target_gen_dir/ddc_files.stamp",
+    ]
+
+    outputs = [
+      "$js_gen_dir/$module.dill",
+      "$js_gen_dir/$module.js",
+    ]
+
+    vm_args = [ "-Dsdk_hash=$sdk_hash" ]
+
+    args = [
+      "--dart-sdk-summary=$sdk_path",
+      "-o$out_dir/$module.js",
+      "package:$module/$module.dart",
+    ]
+
+    if (defined(invoker.extra_libraries)) {
+      foreach(lib, invoker.extra_libraries) {
+        args += [ "package:$module/$lib.dart" ]
+      }
+    }
+
+    if (defined(invoker.package_dependencies)) {
+      foreach(dep, invoker.package_dependencies) {
+        deps += [ ":${dep}_js" ]
+        args += [ "-s$out_dir/$dep.dill" ]
+      }
+    }
+
+    if (defined(invoker.args)) {
+      args += invoker.args
+    }
+
+    if (invoker.sound_null_safety) {
+      args += [ "--sound-null-safety" ]
+    } else {
+      args += [ "--no-sound-null-safety" ]
+    }
+
+    if (invoker.canary) {
+      args += [ "--canary" ]
+    }
+  }
+}
+
+ddc_compile("async_helper_stable_js") {
+  package = "async_helper"
+  canary = false
+  sound_null_safety = true
+}
+
+ddc_compile("async_helper_canary_js") {
+  package = "async_helper"
+  canary = true
+  sound_null_safety = true
+}
+
+ddc_compile("async_helper_stable_unsound_js") {
+  package = "async_helper"
+  canary = false
+  sound_null_safety = false
+}
+
+ddc_compile("async_helper_canary_unsound_js") {
+  package = "async_helper"
+  canary = true
+  sound_null_safety = false
+}
+
+ddc_compile("expect_stable_js") {
+  package = "expect"
+  extra_libraries = [ "minitest" ]
+  canary = false
+  sound_null_safety = true
+}
+
+ddc_compile("expect_canary_js") {
+  package = "expect"
+  extra_libraries = [ "minitest" ]
+  canary = true
+  sound_null_safety = true
+}
+
+ddc_compile("expect_stable_unsound_js") {
+  package = "expect"
+  extra_libraries = [ "minitest" ]
+  canary = false
+  sound_null_safety = false
+}
+
+ddc_compile("expect_canary_unsound_js") {
+  package = "expect"
+  extra_libraries = [ "minitest" ]
+  canary = true
+  sound_null_safety = false
+}
+
+ddc_compile("js_stable_js") {
+  package = "js"
+  extra_libraries = [ "js_util" ]
+  canary = false
+  sound_null_safety = true
+}
+
+ddc_compile("js_canary_js") {
+  package = "js"
+  extra_libraries = [ "js_util" ]
+  canary = true
+  sound_null_safety = true
+}
+ddc_compile("js_stable_unsound_js") {
+  package = "js"
+  extra_libraries = [ "js_util" ]
+  canary = false
+  sound_null_safety = false
+}
+
+ddc_compile("js_canary_unsound_js") {
+  package = "js"
+  extra_libraries = [ "js_util" ]
+  canary = true
+  sound_null_safety = false
+}
+
+ddc_compile("meta_stable_js") {
+  package = "meta"
+  canary = false
+  sound_null_safety = true
+}
+
+ddc_compile("meta_canary_js") {
+  package = "meta"
+  canary = true
+  sound_null_safety = true
+}
+
+ddc_compile("meta_stable_unsound_js") {
+  package = "meta"
+  canary = false
+  sound_null_safety = false
+}
+
+ddc_compile("meta_canary_unsound_js") {
+  package = "meta"
+  canary = true
+  sound_null_safety = false
+}
+
+# Compiles the DDC SDK JavaScript modules from the platform .dill file.
+template("ddc_compile_sdk") {
+  assert(defined(invoker.sound_null_safety),
+         "Need 'sound_null_safety' in $target_name.")
+
+  # Determine one of four possible directories for the JavaScript output to be
+  # generated:
+  #
+  # out/gen/ddc
+  #          |- canary/sdk
+  #          |- canary_unsound/sdk
+  #          |- stable/sdk
+  #          |- stable_unsound/sdk
+  if (invoker.canary) {
+    js_gen_dir = "$target_gen_dir/canary"
+  } else {
+    js_gen_dir = "$target_gen_dir/stable"
+  }
+  if (invoker.sound_null_safety) {
+    platform_dep = "../dartdevc:dartdevc_platform_sound"
+    platform_input = sdk_full_sound_dill
+    js_gen_dir = "$js_gen_dir/sdk"
+  } else {
+    platform_dep = "../dartdevc:dartdevc_platform_unsound"
+    platform_input = sdk_full_unsound_dill
+    js_gen_dir = "${js_gen_dir}_unsound/sdk"
+  }
+
+  prebuilt_dart_action(target_name) {
+    deps = [
+      ":ddc_files_stamp",
+      platform_dep,
+    ]
+
+    inputs = [ platform_input ]
+
+    outputs = [
+      "$js_gen_dir/amd/dart_sdk.js",
+      "$js_gen_dir/amd/dart_sdk.js.map",
+      "$js_gen_dir/common/dart_sdk.js",
+      "$js_gen_dir/common/dart_sdk.js.map",
+      "$js_gen_dir/es6/dart_sdk.js",
+      "$js_gen_dir/es6/dart_sdk.js.map",
+      "$js_gen_dir/legacy/dart_sdk.js",
+      "$js_gen_dir/legacy/dart_sdk.js.map",
+    ]
+
+    vm_args = [ "-Dsdk_hash=$sdk_hash" ]
+
+    script = "../../pkg/dev_compiler/bin/dartdevc.dart"
+
+    args = [
+      "--multi-root-scheme",
+      "org-dartlang-sdk",
+      "--multi-root-output-path",
+
+      # This path is intended to point to a version of source files used to
+      # generate the SDK JavaScript modules.
+      # The intention is that the source map locations can be linked to the
+      # orignal source files while running SDK test suites.
+      # These JavaScript files and source maps are no longer packaged into the
+      # released SDK.
+      rebase_path("$target_gen_dir/../../../dart-sdk"),
+      "--modules",
+      "amd",
+      "-o",
+      rebase_path("$js_gen_dir/amd/dart_sdk.js"),
+      "--modules",
+      "common",
+      "-o",
+      rebase_path("$js_gen_dir/common/dart_sdk.js"),
+      "--modules",
+      "es6",
+      "-o",
+      rebase_path("$js_gen_dir/es6/dart_sdk.js"),
+      "--modules",
+      "legacy",
+      "-o",
+      rebase_path("$js_gen_dir/legacy/dart_sdk.js"),
+      rebase_path("$platform_input"),
+    ]
+
+    if (invoker.sound_null_safety) {
+      args += [ "--sound-null-safety" ]
+    } else {
+      args += [ "--no-sound-null-safety" ]
+    }
+
+    if (invoker.canary) {
+      args += [ "--canary" ]
+    }
+  }
+}
+
+ddc_compile_sdk("ddc_stable_sdk") {
+  canary = false
+  sound_null_safety = true
+}
+
+ddc_compile_sdk("ddc_stable_unsound_sdk") {
+  canary = false
+  sound_null_safety = false
+}
+
+ddc_compile_sdk("ddc_canary_sdk") {
+  canary = true
+  sound_null_safety = true
+}
+
+ddc_compile_sdk("ddc_canary_unsound_sdk") {
+  canary = true
+  sound_null_safety = false
+}

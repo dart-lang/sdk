@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/collections.dart';
@@ -18,6 +16,7 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
 import 'package:analysis_server/src/services/snippets/snippet.dart';
+import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
@@ -28,6 +27,7 @@ import 'package:analyzer/src/dart/analysis/search.dart' as server
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:collection/collection.dart';
+import 'package:path/path.dart' as path;
 
 const languageSourceName = 'dart';
 
@@ -79,7 +79,7 @@ lsp.WorkspaceEdit createPlainWorkspaceEdit(
     lsp.LspAnalysisServer server, List<server.SourceFileEdit> edits) {
   return toWorkspaceEdit(
       // Client capabilities are always available after initialization.
-      server.clientCapabilities!,
+      server.lspClientCapabilities!,
       edits
           .map((e) => FileEditInformation(
                 server.getVersionedDocumentIdentifier(e.file),
@@ -96,13 +96,14 @@ lsp.WorkspaceEdit createPlainWorkspaceEdit(
 }
 
 /// Create a [WorkspaceEdit] that renames [oldPath] to [newPath].
-WorkspaceEdit createRenameEdit(String oldPath, String newPath) {
+WorkspaceEdit createRenameEdit(
+    path.Context pathContext, String oldPath, String newPath) {
   final changes =
       <Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>[];
 
   final rename = RenameFile(
-    oldUri: Uri.file(oldPath),
-    newUri: Uri.file(newPath),
+    oldUri: pathContext.toUri(oldPath),
+    newUri: pathContext.toUri(newPath),
   );
 
   final renameUnion =
@@ -139,8 +140,8 @@ lsp.WorkspaceEdit createWorkspaceEdit(
   // existing file with a single edit and that there is either a selection or a
   // linked edit group (otherwise there's no value in snippets).
   if (!allowSnippets ||
-      !server.clientCapabilities!.experimentalSnippetTextEdit ||
-      !server.clientCapabilities!.documentChanges ||
+      !server.lspClientCapabilities!.experimentalSnippetTextEdit ||
+      !server.lspClientCapabilities!.documentChanges ||
       filePath == null ||
       lineInfo == null ||
       change.edits.length != 1 ||
@@ -375,50 +376,48 @@ lsp.SymbolKind elementKindToSymbolKind(
       .firstWhere(isSupported, orElse: () => lsp.SymbolKind.Obj);
 }
 
-String? getCompletionDetail(
-  server.CompletionSuggestion suggestion,
-  lsp.CompletionItemKind? completionKind,
-  bool supportsDeprecated,
-) {
+/// Returns additional details to be shown against a completion.
+CompletionDetail getCompletionDetail(
+  server.CompletionSuggestion suggestion, {
+  required bool supportsDeprecated,
+}) {
   final element = suggestion.element;
-  final hasElement = element != null;
-  final parameters = element?.parameters;
-  final returnType = element?.returnType;
-  final parameterType = suggestion.parameterType;
-  final hasParameters =
-      hasElement && parameters != null && parameters.isNotEmpty;
-  final hasReturnType =
-      hasElement && returnType != null && returnType.isNotEmpty;
-  final hasParameterType = parameterType != null && parameterType.isNotEmpty;
+  var parameters = element?.parameters;
+  var returnType = element?.returnType;
 
-  final prefix =
-      supportsDeprecated || !suggestion.isDeprecated ? '' : '(Deprecated) ';
-
-  if (completionKind == lsp.CompletionItemKind.Property) {
-    // Setters appear as methods with one arg but they also cause getters to not
-    // appear in the completion list, so displaying them as setters is misleading.
-    // To avoid this, always show only the return type, whether it's a getter
-    // or a setter.
-    if (element?.kind == server.ElementKind.GETTER) {
-      return prefix + (returnType ?? '');
-    } else if (parameters == null) {
-      return prefix;
-    } else {
-      // TODO(dantup): Consider having the type of a setter available on
-      //  CompletionSuggestion (or changing it to a protocol-agnostic class that
-      //  includes it).
-      return prefix +
-          (_completionSetterTypePattern.firstMatch(parameters)?.group(1) ?? '');
-    }
-  } else if (hasParameters && hasReturnType) {
-    return '$prefix$parameters → $returnType';
-  } else if (hasReturnType) {
-    return '$prefix$returnType';
-  } else if (hasParameterType) {
-    return '$prefix$parameterType';
-  } else {
-    return prefix.isNotEmpty ? prefix : null;
+  // Extract the type from setters to be shown in the place a return type
+  // would usually be shown.
+  if (returnType == null &&
+      element?.kind == server.ElementKind.SETTER &&
+      parameters != null) {
+    returnType = _completionSetterTypePattern.firstMatch(parameters)?.group(1);
+    parameters = null;
   }
+
+  final truncatedParameters = switch (parameters) {
+    null || '' => '',
+    '()' => '()',
+    _ => '(…)',
+  };
+  final fullSignature = switch ((parameters, returnType)) {
+    (null, _) => returnType ?? '',
+    (final parameters?, null) => parameters,
+    (final parameters?, '') => parameters,
+    (final parameters?, _) => '$parameters → $returnType',
+  };
+
+  // Use the full signature in the details popup.
+  var detail = fullSignature;
+  if (suggestion.isDeprecated && !supportsDeprecated) {
+    // If the item is deprecated and we don't support the native deprecated flag
+    // then include it in the details.
+    detail = '$detail\n\n(Deprecated)'.trim();
+  }
+
+  return (
+    detail: detail,
+    truncatedParams: truncatedParameters,
+  );
 }
 
 List<lsp.DiagnosticTag>? getDiagnosticTags(
@@ -485,12 +484,12 @@ WorkspaceEdit mergeWorkspaceEdits(List<WorkspaceEdit> edits) {
 }
 
 lsp.Location navigationTargetToLocation(
-  String targetFilePath,
+  Uri targetFileUri,
   server.NavigationTarget target,
   server.LineInfo targetLineInfo,
 ) {
   return lsp.Location(
-    uri: Uri.file(targetFilePath),
+    uri: targetFileUri,
     range: toRange(targetLineInfo, target.offset, target.length),
   );
 }
@@ -498,7 +497,7 @@ lsp.Location navigationTargetToLocation(
 lsp.LocationLink? navigationTargetToLocationLink(
   server.NavigationRegion region,
   server.LineInfo regionLineInfo,
-  String targetFilePath,
+  Uri targetFileUri,
   server.NavigationTarget target,
   server.LineInfo targetLineInfo,
 ) {
@@ -511,58 +510,14 @@ lsp.LocationLink? navigationTargetToLocationLink(
 
   return lsp.LocationLink(
     originSelectionRange: toRange(regionLineInfo, region.offset, region.length),
-    targetUri: Uri.file(targetFilePath),
+    targetUri: targetFileUri,
     targetRange: codeRange,
     targetSelectionRange: nameRange,
   );
 }
 
-/// Returns the file system path for a TextDocumentIdentifier.
-ErrorOr<String> pathOfDoc(lsp.TextDocumentIdentifier doc) => pathOfUri(doc.uri);
-
-/// Returns the file system path for a TextDocumentItem.
-ErrorOr<String> pathOfDocItem(lsp.TextDocumentItem doc) => pathOfUri(doc.uri);
-
-/// Returns the file system path for a file URI.
-ErrorOr<String> pathOfUri(Uri? uri) {
-  if (uri == null) {
-    return ErrorOr<String>.error(ResponseError(
-      code: lsp.ServerErrorCodes.InvalidFilePath,
-      message: 'Document URI was not supplied',
-    ));
-  }
-  final isValidFileUri = uri.isScheme('file');
-  if (!isValidFileUri) {
-    return ErrorOr<String>.error(ResponseError(
-      code: lsp.ServerErrorCodes.InvalidFilePath,
-      message: 'URI was not a valid file:// URI',
-      data: uri.toString(),
-    ));
-  }
-  try {
-    final filePath = uri.toFilePath();
-    // On Windows, paths that start with \ and not a drive letter are not
-    // supported but will return `true` from `path.isAbsolute` so check for them
-    // specifically.
-    if (Platform.isWindows && filePath.startsWith(r'\')) {
-      return ErrorOr<String>.error(ResponseError(
-        code: lsp.ServerErrorCodes.InvalidFilePath,
-        message: 'URI was not an absolute file path (missing drive letter)',
-        data: uri.toString(),
-      ));
-    }
-    return ErrorOr<String>.success(filePath);
-  } catch (e) {
-    // Even if tryParse() works and file == scheme, toFilePath() can throw on
-    // Windows if there are invalid characters.
-    return ErrorOr<String>.error(ResponseError(
-        code: lsp.ServerErrorCodes.InvalidFilePath,
-        message: 'File URI did not contain a valid file path',
-        data: uri.toString()));
-  }
-}
-
 lsp.Diagnostic pluginToDiagnostic(
+  path.Context pathContext,
   server.LineInfo? Function(String) getLineInfo,
   plugin.AnalysisError error, {
   required Set<lsp.DiagnosticTag>? supportedTags,
@@ -572,8 +527,8 @@ lsp.Diagnostic pluginToDiagnostic(
   final contextMessages = error.contextMessages;
   if (contextMessages != null && contextMessages.isNotEmpty) {
     relatedInformation = contextMessages
-        .map((message) =>
-            pluginToDiagnosticRelatedInformation(getLineInfo, message))
+        .map((message) => pluginToDiagnosticRelatedInformation(
+            pathContext, getLineInfo, message))
         .whereNotNull()
         .toList();
   }
@@ -611,9 +566,11 @@ lsp.Diagnostic pluginToDiagnostic(
 }
 
 lsp.DiagnosticRelatedInformation? pluginToDiagnosticRelatedInformation(
+    path.Context pathContext,
     server.LineInfo? Function(String) getLineInfo,
     plugin.DiagnosticMessage message) {
   final file = message.location.file;
+  final uri = pathContext.toUri(file);
   final lineInfo = getLineInfo(file);
   // We shouldn't get context messages for something we can't get a LineInfo for
   // but if we did, it's better to omit the context than fail to send the errors.
@@ -622,7 +579,7 @@ lsp.DiagnosticRelatedInformation? pluginToDiagnosticRelatedInformation(
   }
   return lsp.DiagnosticRelatedInformation(
       location: lsp.Location(
-        uri: Uri.file(file),
+        uri: uri,
         // TODO(dantup): Switch to using line/col information from the context
         // message once confirmed that AnalyzerConverter is not using the wrong
         // LineInfo.
@@ -925,9 +882,8 @@ lsp.CompletionItem toCompletionItem(
       elementKind == server.ElementKind.METHOD;
   final isInvocation =
       suggestion.kind == server.CompletionSuggestionKind.INVOCATION;
-
-  if (suggestion.displayText == null && isCallable) {
-    label += suggestion.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
+  if (!isCallable || !isInvocation) {
+    completeFunctionCalls = false;
   }
 
   final supportsCompletionDeprecatedFlag =
@@ -947,12 +903,22 @@ lsp.CompletionItem toCompletionItem(
       : suggestionKindToCompletionItemKind(
           capabilities.completionItemKinds, suggestion.kind, label);
 
+  var labelDetails = getCompletionDetail(
+    suggestion,
+    supportsDeprecated:
+        supportsCompletionDeprecatedFlag || supportsDeprecatedTag,
+  );
+
+  // Include short params on the end of labels as long as the item doesn't have
+  // custom display text (which may already include params).
+  if (suggestion.displayText == null) {
+    label += labelDetails.truncatedParams;
+  }
+
   final insertTextInfo = _buildInsertText(
     supportsSnippets: supportsSnippets,
     commitCharactersEnabled: commitCharactersEnabled,
     completeFunctionCalls: completeFunctionCalls,
-    isCallable: isCallable,
-    isInvocation: isInvocation,
     requiredArgumentListString: suggestion.defaultArgumentListString,
     requiredArgumentListTextRanges: suggestion.defaultArgumentListTextRanges,
     hasOptionalParameters: suggestion.parameterNames?.isNotEmpty ?? false,
@@ -970,8 +936,6 @@ lsp.CompletionItem toCompletionItem(
           ? suggestion.docSummary
           : null;
   var cleanedDoc = cleanDartdoc(rawDoc);
-  var detail = getCompletionDetail(suggestion, completionKind,
-      supportsCompletionDeprecatedFlag || supportsDeprecatedTag);
 
   // To improve the display of some items (like pubspec version numbers),
   // short labels in the format `_foo_` in docComplete are "upgraded" to the
@@ -981,7 +945,10 @@ lsp.CompletionItem toCompletionItem(
       : null;
   if (labelMatch != null) {
     cleanedDoc = null;
-    detail = labelMatch.group(1);
+    labelDetails = (
+      detail: labelMatch.group(1)!,
+      truncatedParams: labelDetails.truncatedParams,
+    );
   }
 
   // Because we potentially send thousands of these items, we should minimise
@@ -995,7 +962,7 @@ lsp.CompletionItem toCompletionItem(
         lsp.CompletionItemTag.Deprecated
     ]),
     data: resolutionData,
-    detail: detail,
+    detail: labelDetails.detail.nullIfEmpty,
     documentation: cleanedDoc != null
         ? asMarkupContentOrString(formats, cleanedDoc)
         : null,
@@ -1037,12 +1004,14 @@ lsp.CompletionItem toCompletionItem(
 }
 
 lsp.Diagnostic toDiagnostic(
+  path.Context pathContext,
   server.ResolvedUnitResult result,
   server.AnalysisError error, {
   required Set<lsp.DiagnosticTag> supportedTags,
   required bool clientSupportsCodeDescription,
 }) {
   return pluginToDiagnostic(
+    pathContext,
     (_) => result.lineInfo,
     server.newAnalysisError_fromEngine(result, error),
     supportedTags: supportedTags,
@@ -1128,9 +1097,10 @@ List<lsp.DocumentHighlight> toHighlights(
       .toList();
 }
 
-lsp.Location toLocation(server.Location location, server.LineInfo lineInfo) =>
+lsp.Location toLocation(path.Context pathContext, server.Location location,
+        server.LineInfo lineInfo) =>
     lsp.Location(
-      uri: Uri.file(location.file),
+      uri: pathContext.toUri(location.file),
       range: toRange(
         lineInfo,
         location.offset,
@@ -1424,8 +1394,6 @@ lsp.MarkupContent _asMarkup(
   required bool supportsSnippets,
   required bool commitCharactersEnabled,
   required bool completeFunctionCalls,
-  required bool isCallable,
-  required bool isInvocation,
   required String? requiredArgumentListString,
   required List<int>? requiredArgumentListTextRanges,
   required bool hasOptionalParameters,
@@ -1449,10 +1417,7 @@ lsp.MarkupContent _asMarkup(
   if (supportsSnippets) {
     // completeFunctionCalls should only work if commit characters are disabled
     // otherwise the editor may insert parens that we're also inserting.
-    if (!commitCharactersEnabled &&
-        completeFunctionCalls &&
-        isCallable &&
-        isInvocation) {
+    if (!commitCharactersEnabled && completeFunctionCalls) {
       insertTextFormat = lsp.InsertTextFormat.Snippet;
       final hasRequiredParameters =
           requiredArgumentListTextRanges?.isNotEmpty ?? false;
@@ -1480,3 +1445,20 @@ lsp.MarkupContent _asMarkup(
 }
 
 String _errorCode(server.ErrorCode code) => code.name.toLowerCase();
+
+/// Additional details about a completion that may be formatted differently
+/// depending on the client capabilities.
+typedef CompletionDetail = ({
+  /// Additional details to go in the details popup.
+  ///
+  /// This is usually a full signature (with full parameters) and may also
+  /// include whether the item is deprecated if the client did not support the
+  /// native deprecated tag.
+  String detail,
+
+  /// Truncated parameters. Similate to [truncatedSignature] but does not
+  /// include return types. Used in clients that cannot format signatures
+  /// differently and is appended immediately after the completion label. The
+  /// return type is ommitted to reduce noise because this text is not subtle.
+  String truncatedParams,
+});

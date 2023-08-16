@@ -17,7 +17,7 @@ part "timer_patch.dart";
 @pragma("vm:external-name", "DartAsync_fatal")
 external _fatal(msg);
 
-@pragma("vm:entry-point", "call")
+// This function is used when lowering `await for` statements.
 void _asyncStarMoveNextHelper(var stream) {
   if (stream is! _StreamImpl) {
     return;
@@ -188,16 +188,18 @@ class _SuspendState {
   }
 
   @pragma("vm:invisible")
-  @pragma("vm:recognized", "other")
   void _createAsyncCallbacks() {
+    @pragma('vm:awaiter-link')
+    final suspendState = this;
+
     @pragma("vm:invisible")
     thenCallback(value) {
-      _resume(value, null, null);
+      suspendState._resume(value, null, null);
     }
 
     @pragma("vm:invisible")
     errorCallback(Object exception, StackTrace stackTrace) {
-      _resume(null, exception, stackTrace);
+      suspendState._resume(null, exception, stackTrace);
     }
 
     final currentZone = Zone._current;
@@ -373,10 +375,12 @@ class _SuspendState {
   }
 
   @pragma("vm:invisible")
-  @pragma("vm:recognized", "other")
   _createAsyncStarCallback(_AsyncStarStreamController controller) {
+    @pragma('vm:awaiter-link')
+    final suspendState = this;
+
     controller.asyncStarBody = (value) {
-      _resume(value, null, null);
+      suspendState._resume(value, null, null);
     };
   }
 

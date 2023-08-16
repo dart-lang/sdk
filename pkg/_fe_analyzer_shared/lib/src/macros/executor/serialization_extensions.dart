@@ -17,21 +17,23 @@ extension DeserializerExtensions on Deserializer {
     moveNext();
     RemoteInstanceKind kind = RemoteInstanceKind.values[expectInt()];
     final RemoteInstance instance = switch (kind) {
-      RemoteInstanceKind.typeIntrospector ||
-      RemoteInstanceKind.identifierResolver ||
+      RemoteInstanceKind.declarationPhaseIntrospector ||
+      RemoteInstanceKind.definitionPhaseIntrospector ||
+      RemoteInstanceKind.typePhaseIntrospector ||
       RemoteInstanceKind.namedStaticType ||
-      RemoteInstanceKind.staticType ||
-      RemoteInstanceKind.typeDeclarationResolver ||
-      RemoteInstanceKind.typeResolver ||
-      RemoteInstanceKind.typeInferrer =>
+      RemoteInstanceKind.staticType =>
         // These are simple wrappers, just pass in the kind
         new RemoteInstanceImpl(id: id, kind: kind),
       RemoteInstanceKind.classDeclaration =>
         (this..moveNext())._expectClassDeclaration(id),
+      RemoteInstanceKind.constructorMetadataAnnotation =>
+        (this..moveNext())._expectConstructorMetadataAnnotation(id),
       RemoteInstanceKind.enumDeclaration =>
         (this..moveNext())._expectEnumDeclaration(id),
       RemoteInstanceKind.enumValueDeclaration =>
         (this..moveNext())._expectEnumValueDeclaration(id),
+      RemoteInstanceKind.extensionDeclaration =>
+        (this..moveNext())._expectExtensionDeclaration(id),
       RemoteInstanceKind.mixinDeclaration =>
         (this..moveNext())._expectMixinDeclaration(id),
       RemoteInstanceKind.constructorDeclaration =>
@@ -45,10 +47,14 @@ extension DeserializerExtensions on Deserializer {
       RemoteInstanceKind.functionTypeParameter =>
         (this..moveNext())._expectFunctionTypeParameter(id),
       RemoteInstanceKind.identifier => (this..moveNext())._expectIdentifier(id),
+      RemoteInstanceKind.identifierMetadataAnnotation =>
+        (this..moveNext())._expectIdentifierMetadataAnnotation(id),
       RemoteInstanceKind.introspectableClassDeclaration =>
         (this..moveNext())._expectIntrospectableClassDeclaration(id),
       RemoteInstanceKind.introspectableEnumDeclaration =>
         (this..moveNext())._expectIntrospectableEnumDeclaration(id),
+      RemoteInstanceKind.introspectableExtensionDeclaration =>
+        (this..moveNext())._expectIntrospectableExtensionDeclaration(id),
       RemoteInstanceKind.introspectableMixinDeclaration =>
         (this..moveNext())._expectIntrospectableMixinDeclaration(id),
       RemoteInstanceKind.library => (this..moveNext())._expectLibrary(id),
@@ -116,6 +122,7 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         isNamed: expectBool(),
         isRequired: (this..moveNext()).expectBool(),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
         name: (this..moveNext()).expectNullableString(),
         type: RemoteInstance.deserialize(this),
       );
@@ -130,6 +137,7 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
         isNamed: (this..moveNext()).expectBool(),
         isRequired: (this..moveNext()).expectBool(),
         type: RemoteInstance.deserialize(this),
@@ -140,6 +148,7 @@ extension DeserializerExtensions on Deserializer {
           id: id,
           identifier: expectRemoteInstance(),
           library: RemoteInstance.deserialize(this),
+          metadata: (this..moveNext())._expectRemoteInstanceList(),
           name: (this..moveNext()).expectNullableString(),
           type: (this..moveNext()).expectRemoteInstance());
 
@@ -156,6 +165,7 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
         bound: (this..moveNext()).checkNull() ? null : expectRemoteInstance(),
       );
 
@@ -164,8 +174,10 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
-        isAbstract: (this..moveNext()).expectBool(),
-        isExternal: (this..moveNext()).expectBool(),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
+        hasAbstract: (this..moveNext()).expectBool(),
+        hasBody: (this..moveNext()).expectBool(),
+        hasExternal: (this..moveNext()).expectBool(),
         isGetter: (this..moveNext()).expectBool(),
         isOperator: (this..moveNext()).expectBool(),
         isSetter: (this..moveNext()).expectBool(),
@@ -180,8 +192,10 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
-        isAbstract: (this..moveNext()).expectBool(),
-        isExternal: (this..moveNext()).expectBool(),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
+        hasAbstract: (this..moveNext()).expectBool(),
+        hasBody: (this..moveNext()).expectBool(),
+        hasExternal: (this..moveNext()).expectBool(),
         isGetter: (this..moveNext()).expectBool(),
         isOperator: (this..moveNext()).expectBool(),
         isSetter: (this..moveNext()).expectBool(),
@@ -198,8 +212,10 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
-        isAbstract: (this..moveNext()).expectBool(),
-        isExternal: (this..moveNext()).expectBool(),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
+        hasAbstract: (this..moveNext()).expectBool(),
+        hasBody: (this..moveNext()).expectBool(),
+        hasExternal: (this..moveNext()).expectBool(),
         isGetter: (this..moveNext()).expectBool(),
         isOperator: (this..moveNext()).expectBool(),
         isSetter: (this..moveNext()).expectBool(),
@@ -222,9 +238,10 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
-        isExternal: (this..moveNext()).expectBool(),
-        isFinal: (this..moveNext()).expectBool(),
-        isLate: (this..moveNext()).expectBool(),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
+        hasExternal: (this..moveNext()).expectBool(),
+        hasFinal: (this..moveNext()).expectBool(),
+        hasLate: (this..moveNext()).expectBool(),
         type: RemoteInstance.deserialize(this),
       );
 
@@ -233,9 +250,10 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
-        isExternal: (this..moveNext()).expectBool(),
-        isFinal: (this..moveNext()).expectBool(),
-        isLate: (this..moveNext()).expectBool(),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
+        hasExternal: (this..moveNext()).expectBool(),
+        hasFinal: (this..moveNext()).expectBool(),
+        hasLate: (this..moveNext()).expectBool(),
         type: RemoteInstance.deserialize(this),
         definingType: RemoteInstance.deserialize(this),
         isStatic: (this..moveNext()).expectBool(),
@@ -246,6 +264,7 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         interfaces: (this..moveNext())._expectRemoteInstanceList(),
         hasAbstract: (this..moveNext()).expectBool(),
@@ -260,12 +279,27 @@ extension DeserializerExtensions on Deserializer {
             (this..moveNext()).checkNull() ? null : expectRemoteInstance(),
       );
 
+  ConstructorMetadataAnnotationImpl _expectConstructorMetadataAnnotation(
+          int id) =>
+      new ConstructorMetadataAnnotationImpl(
+          id: id,
+          constructor: expectRemoteInstance(),
+          type: RemoteInstance.deserialize(this));
+
+  IdentifierMetadataAnnotationImpl _expectIdentifierMetadataAnnotation(
+          int id) =>
+      new IdentifierMetadataAnnotationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+      );
+
   IntrospectableClassDeclarationImpl _expectIntrospectableClassDeclaration(
           int id) =>
       new IntrospectableClassDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         interfaces: (this..moveNext())._expectRemoteInstanceList(),
         hasAbstract: (this..moveNext()).expectBool(),
@@ -284,6 +318,7 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         interfaces: (this..moveNext())._expectRemoteInstanceList(),
         mixins: (this..moveNext())._expectRemoteInstanceList(),
@@ -295,6 +330,7 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         interfaces: (this..moveNext())._expectRemoteInstanceList(),
         mixins: (this..moveNext())._expectRemoteInstanceList(),
@@ -305,6 +341,7 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         hasBase: (this..moveNext()).expectBool(),
         interfaces: (this..moveNext())._expectRemoteInstanceList(),
@@ -317,6 +354,7 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         hasBase: (this..moveNext()).expectBool(),
         interfaces: (this..moveNext())._expectRemoteInstanceList(),
@@ -328,14 +366,36 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
         definingEnum: RemoteInstance.deserialize(this),
       );
+
+  ExtensionDeclarationImpl _expectExtensionDeclaration(int id) =>
+      new ExtensionDeclarationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
+        typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        onType: RemoteInstance.deserialize(this),
+      );
+  IntrospectableExtensionDeclarationImpl
+      _expectIntrospectableExtensionDeclaration(int id) =>
+          new IntrospectableExtensionDeclarationImpl(
+            id: id,
+            identifier: expectRemoteInstance(),
+            library: RemoteInstance.deserialize(this),
+            metadata: (this..moveNext())._expectRemoteInstanceList(),
+            typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+            onType: RemoteInstance.deserialize(this),
+          );
 
   TypeAliasDeclarationImpl _expectTypeAliasDeclaration(int id) =>
       new TypeAliasDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         aliasedType: RemoteInstance.deserialize(this),
       );
@@ -344,6 +404,7 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         languageVersion: new LanguageVersionImpl(
             this.expectInt(), (this..moveNext()).expectInt()),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
         uri: (this..moveNext()).expectUri(),
       );
 
@@ -394,6 +455,8 @@ extension DeserializerExtensions on Deserializer {
 
     return switch (kind) {
       CodeKind.raw => new RawCode.fromParts(_readParts()) as T,
+      CodeKind.rawTypeAnnotation =>
+        RawTypeAnnotationCode.fromParts(_readParts()) as T,
       CodeKind.comment => new CommentCode.fromParts(_readParts()) as T,
       CodeKind.declaration => new DeclarationCode.fromParts(_readParts()) as T,
       CodeKind.expression => new ExpressionCode.fromParts(_readParts()) as T,
@@ -539,6 +602,7 @@ extension SerializeCode on Code {
       case CodeKind.declaration:
       case CodeKind.expression:
       case CodeKind.raw:
+      case CodeKind.rawTypeAnnotation:
       case CodeKind.functionBody:
         serializer.startList();
         for (Object part in parts) {

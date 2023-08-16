@@ -737,6 +737,7 @@ cyclic
 dart
 dart2js
 dart2wasm
+dart2wasm_js_compatibility
 dart2wasm_stringref
 dartdevc
 data
@@ -871,6 +872,7 @@ devise
 dfs
 diagnostic
 diagnostics
+diamond
 did
 didn't
 diet
@@ -1062,6 +1064,7 @@ equate
 equivalence
 equivalent
 equivalents
+erases
 erasure
 erroneous
 erroneously
@@ -2239,6 +2242,7 @@ phases
 physical
 pick
 picked
+picture
 piece
 pipeline
 piping

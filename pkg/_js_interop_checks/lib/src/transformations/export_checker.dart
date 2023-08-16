@@ -258,13 +258,15 @@ extension ExtensionMemberDescriptorExtension on ExtensionMemberDescriptor {
 }
 
 extension ProcedureExtension on Procedure {
-  // We only care about concrete instance procedures.
+  // We only care about concrete instance procedures that don't define their own
+  // type parameters.
   bool get exportable =>
       !isAbstract &&
       !isStatic &&
       !isExtensionMember &&
       !isFactory &&
       !isExternal &&
+      function.typeParameters.isEmpty &&
       kind != ProcedureKind.Operator;
 }
 

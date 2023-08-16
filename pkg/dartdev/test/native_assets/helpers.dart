@@ -169,6 +169,7 @@ Future<run_process.RunProcessResult> runDart({
   required List<String> arguments,
   Uri? workingDirectory,
   required Logger? logger,
+  bool expectExitCodeZero = true,
 }) async {
   final result = await runProcess(
     executable: dartExecutable,
@@ -176,6 +177,8 @@ Future<run_process.RunProcessResult> runDart({
     workingDirectory: workingDirectory,
     logger: logger,
   );
-  expect(result.exitCode, 0);
+  if (expectExitCodeZero) {
+    expect(result.exitCode, 0);
+  }
   return result;
 }

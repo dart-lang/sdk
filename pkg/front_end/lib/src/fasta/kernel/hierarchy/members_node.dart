@@ -9,7 +9,6 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/src/norm.dart';
-import 'package:kernel/type_algebra.dart' show Substitution;
 
 import '../../../base/common.dart';
 import '../../builder/class_builder.dart';
@@ -57,10 +56,7 @@ class ClassMembersNodeBuilder {
   final ClassHierarchyNode _hierarchyNode;
   final ClassMembersBuilder _membersBuilder;
 
-  final Map<Class, Substitution> substitutions;
-
-  ClassMembersNodeBuilder(
-      this._membersBuilder, this._hierarchyNode, this.substitutions);
+  ClassMembersNodeBuilder(this._membersBuilder, this._hierarchyNode);
 
   ClassHierarchyBuilder get hierarchy => _membersBuilder.hierarchyBuilder;
 

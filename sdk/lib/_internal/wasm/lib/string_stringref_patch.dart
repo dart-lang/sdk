@@ -28,15 +28,13 @@ import "dart:_internal"
         writeIntoOneByteString,
         writeIntoTwoByteString;
 
-import 'dart:_string_helper';
-
 import 'dart:_js_helper' show JS;
-
 import 'dart:_js_types' show JSStringImpl;
+import 'dart:_object_helper';
+import 'dart:_string_helper';
+import 'dart:_wasm';
 
 import "dart:typed_data" show Uint8List, Uint16List;
-
-import 'dart:_wasm';
 
 // Much of this patch file is similar to the VM `string_patch.dart`. It may make
 // sense to share some of the code when the patching mechanism supports patching
@@ -131,10 +129,10 @@ abstract final class _StringBase implements String {
   _StringBase._();
 
   int get hashCode {
-    int hash = _getHash(this);
+    int hash = getHash(this);
     if (hash != 0) return hash;
     hash = _computeHashCode();
-    _setHash(this, hash);
+    setHash(this, hash);
     return hash;
   }
 

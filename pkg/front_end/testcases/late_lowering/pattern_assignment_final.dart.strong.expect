@@ -74,49 +74,43 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
   }
   definitelyAssignedFinal = 10;
   #definitelyAssignedLateFinal#set(20){(dynamic) → dynamic};
-  block {
-    dynamic #t5;
+  {
     final synthesized dynamic #0#0 = x as{TypeError,ForDynamic} (core::int, core::int, dynamic);
     if(!(#0#0 is (core::Object?, core::Object?, core::Object?) && invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:31:4: Error: Can't assign to the final variable 'initializedFinal'.
   (initializedFinal, // Error
    ^^^^^^^^^^^^^^^^" && invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:32:7: Error: Can't assign to the final variable '#initializedLateFinal'.
       initializedLateFinal, // Error
-      ^^^^^^^^^^^^^^^^^^^^^" && (let final dynamic #t6 = #t5 = #0#0{(core::Object?, core::Object?, core::Object?)}.$3{core::Object?} in true)))
+      ^^^^^^^^^^^^^^^^^^^^^" && (let final dynamic #t5 = definitelyUnassignedFinal = #0#0{(core::Object?, core::Object?, core::Object?)}.$3{core::Object?} in true)))
       throw new core::StateError::•("Pattern matching error");
-    definitelyUnassignedFinal = #t5;
-  } =>#0#0;
-  block {
-    core::int? #t7;
+  }
+  {
     final synthesized dynamic #1#0 = y as{TypeError,ForDynamic} core::List<core::int>;
-    if(!(#1#0 is core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t8 = #t7 = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as core::int? in true) && invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:35:5: Error: Final variable 'definitelyAssignedFinal' might already be assigned at this point.
+    if(!(#1#0 is core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t6 = #definitelyUnassignedLateFinal#set(#1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as core::int?){(core::int) → dynamic} in true) && invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:35:5: Error: Final variable 'definitelyAssignedFinal' might already be assigned at this point.
     definitelyAssignedFinal] = y; // Error
     ^^^^^^^^^^^^^^^^^^^^^^^"))
       throw new core::StateError::•("Pattern matching error");
-    #definitelyUnassignedLateFinal#set(#t7){(core::int) → dynamic};
-  } =>#1#0;
-  block {
-    core::int? #t9;
+  }
+  {
     final synthesized dynamic #2#0 = z as{TypeError,ForDynamic} self::Class;
     synthesized dynamic #2#3;
     synthesized core::bool #2#3#isSet = false;
     function #2#3#func() → dynamic
-      return #2#3#isSet ?{dynamic} #2#3 : let final dynamic #t10 = #2#3#isSet = true in #2#3 = (#2#0 as{Unchecked} self::Class).{self::Class::field2}{dynamic};
+      return #2#3#isSet ?{dynamic} #2#3 : let final dynamic #t7 = #2#3#isSet = true in #2#3 = (#2#0 as{Unchecked} self::Class).{self::Class::field2}{dynamic};
     synthesized dynamic #2#9;
     synthesized core::bool #2#9#isSet = false;
     function #2#9#func() → dynamic
-      return #2#9#isSet ?{dynamic} #2#9 : let final dynamic #t11 = #2#9#isSet = true in #2#9 = (#2#3#func(){() → dynamic} as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+      return #2#9#isSet ?{dynamic} #2#9 : let final dynamic #t8 = #2#9#isSet = true in #2#9 = (#2#3#func(){() → dynamic} as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     synthesized dynamic #2#16;
     synthesized core::bool #2#16#isSet = false;
     function #2#16#func() → dynamic
-      return #2#16#isSet ?{dynamic} #2#16 : let final dynamic #t12 = #2#16#isSet = true in #2#16 = (#2#3#func(){() → dynamic} as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
-    if(!(#2#0 is self::Class && (let final dynamic #t13 = #2#0{self::Class}.{self::Class::field1}{dynamic} in invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:36:17: Error: Late final variable '#definitelyAssignedLateFinal' definitely assigned.
+      return #2#16#isSet ?{dynamic} #2#16 : let final dynamic #t9 = #2#16#isSet = true in #2#16 = (#2#3#func(){() → dynamic} as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
+    if(!(#2#0 is self::Class && (let final dynamic #t10 = #2#0{self::Class}.{self::Class::field1}{dynamic} in invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:36:17: Error: Late final variable '#definitelyAssignedLateFinal' definitely assigned.
   Class(field1: definitelyAssignedLateFinal, // Error
                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^") && (#2#3#func(){() → dynamic} is core::List<dynamic> && (#2#3#func(){() → dynamic} as{Unchecked} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#2#9#func(){() → dynamic} is core::List<dynamic> && (#2#9#func(){() → dynamic} as{Unchecked} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && invalid-expression "pkg/front_end/testcases/late_lowering/pattern_assignment_final.dart:37:17: Error: Final variable 'notDefinitelyAssignedFinal' might already be assigned at this point.
       field2: [[notDefinitelyAssignedFinal, _], // Error
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^") && (#2#16#func(){() → dynamic} is core::List<dynamic> && (#2#16#func(){() → dynamic} as{Unchecked} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t14 = #t9 = (#2#16#func(){() → dynamic} as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic} as core::int? in true)))))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^") && (#2#16#func(){() → dynamic} is core::List<dynamic> && (#2#16#func(){() → dynamic} as{Unchecked} core::List<dynamic>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t11 = #notDefinitelyAssignedLateFinal#set((#2#16#func(){() → dynamic} as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic} as core::int?){(core::int) → dynamic} in true)))))
       throw new core::StateError::•("Pattern matching error");
-    #notDefinitelyAssignedLateFinal#set(#t9){(core::int) → dynamic};
-  } =>#2#0;
+  }
 }
 
 constants  {

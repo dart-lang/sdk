@@ -1890,7 +1890,7 @@ abstract class ModularNamer {
     return 'c\$${target.nestingLevel}';
   }
 
-  late final Set<String> _jsVariableReservedCache = {
+  static final Set<String> _jsVariableReservedCache = {
     ...javaScriptKeywords,
     ...reservedPropertySymbols,
     ...reservedGlobalSymbols,

@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  get b() → dynamic
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+  get b() → dynamic
+    ;
+}
+static method method1((self::A, self::A) r) → dynamic
+  ;
+static method method2((self::A, self::A) r) → dynamic
+  ;
+static method method3((self::A, self::A) r) → dynamic
+  ;
+static method method4((self::A, self::A) r) → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() → void f) → dynamic
+  ;
+static method allowThrow(() → void f) → dynamic
+  ;

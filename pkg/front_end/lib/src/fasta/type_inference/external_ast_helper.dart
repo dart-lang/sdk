@@ -7,6 +7,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
+import '../kernel/internal_ast.dart';
 import '../names.dart';
 import 'inference_results.dart';
 import 'inference_visitor_base.dart';
@@ -32,9 +33,8 @@ StaticInvocation createStaticInvocation(Procedure target, Arguments arguments,
 InstanceInvocation createOperatorInvocation(InferenceVisitorBase base,
     DartType leftType, Expression left, Name operatorName, Expression right,
     {required int fileOffset}) {
-  ObjectAccessTarget target = base.findInterfaceMember(
-      leftType, operatorName, fileOffset,
-      callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+  ObjectAccessTarget target = base
+      .findInterfaceMember(leftType, operatorName, fileOffset, isSetter: false);
   return new InstanceInvocation(InstanceAccessKind.Instance, left, operatorName,
       createArguments([right], fileOffset: fileOffset),
       functionType: target.getFunctionType(base),
@@ -47,9 +47,8 @@ InstanceInvocation createOperatorInvocation(InferenceVisitorBase base,
 InstanceGet createInstanceGet(InferenceVisitorBase base, DartType receiverType,
     Expression receiver, Name name,
     {required int fileOffset}) {
-  ObjectAccessTarget target = base.findInterfaceMember(
-      receiverType, name, fileOffset,
-      callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+  ObjectAccessTarget target =
+      base.findInterfaceMember(receiverType, name, fileOffset, isSetter: false);
   Member? member = target.member;
   assert(member is Field || member is Procedure && member.isGetter);
   return new InstanceGet(InstanceAccessKind.Instance, receiver, name,
@@ -66,9 +65,8 @@ InstanceInvocation createInstanceInvocation(
     Name name,
     List<Expression> positionalArguments,
     {required int fileOffset}) {
-  ObjectAccessTarget target = base.findInterfaceMember(
-      receiverType, name, fileOffset,
-      callSiteAccessKind: CallSiteAccessKind.methodInvocation);
+  ObjectAccessTarget target =
+      base.findInterfaceMember(receiverType, name, fileOffset, isSetter: false);
   return new InstanceInvocation(InstanceAccessKind.Instance, receiver, name,
       createArguments(positionalArguments, fileOffset: fileOffset),
       functionType: target.getFunctionType(base),
@@ -80,9 +78,8 @@ InstanceInvocation createInstanceInvocation(
 EqualsCall createEqualsCall(InferenceVisitorBase base, DartType leftType,
     Expression left, Expression right,
     {required int fileOffset}) {
-  ObjectAccessTarget target = base.findInterfaceMember(
-      leftType, equalsName, fileOffset,
-      callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+  ObjectAccessTarget target = base
+      .findInterfaceMember(leftType, equalsName, fileOffset, isSetter: false);
   return new EqualsCall(left, right,
       functionType: target.getFunctionType(base),
       interfaceTarget: target.member as Procedure)
@@ -201,11 +198,17 @@ VariableGet createVariableGet(VariableDeclaration variable,
 }
 
 /// Creates a [VariableSet] of [variable] with the [value].
-VariableSet createVariableSet(VariableDeclaration variable, Expression value,
+Expression createVariableSet(VariableDeclaration variable, Expression value,
     {bool allowFinalAssignment = false, required int fileOffset}) {
-  assert(allowFinalAssignment || variable.isAssignable,
-      "Cannot assign to variable $variable");
-  return new VariableSet(variable, value)..fileOffset = fileOffset;
+  if (variable is VariableDeclarationImpl && variable.lateSetter != null) {
+    return createLocalFunctionInvocation(variable.lateSetter!,
+        arguments: createArguments([value], fileOffset: fileOffset),
+        fileOffset: fileOffset);
+  } else {
+    assert(allowFinalAssignment || variable.isAssignable,
+        "Cannot assign to variable $variable");
+    return new VariableSet(variable, value)..fileOffset = fileOffset;
+  }
 }
 
 /// Creates an invocation of the local function [variable] with the provided

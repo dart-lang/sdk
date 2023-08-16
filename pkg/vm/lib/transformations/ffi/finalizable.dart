@@ -45,7 +45,7 @@ mixin FinalizableTransformer on Transformer {
     Expression? appendFencesToExpression,
     bool? declaresThis,
     _Scope? precomputedCaptureScope,
-    Block? addLateValueVariablesTo,
+    Block? addPossiblyUninitializedTo,
   }) {
     final scope =
         _Scope(node, parent: _currentScope, declaresThis: declaresThis);
@@ -63,13 +63,14 @@ mixin FinalizableTransformer on Transformer {
       appendFencesToExpression.replaceWith(_wrapReachabilityFences(
           appendFencesToExpression, scope.toFenceThisScope));
     }
-    final lateValueDeclarations = _currentScope?._lateDeclarations ?? {};
-    for (final entry in lateValueDeclarations.entries) {
-      final lateVariable = entry.key;
-      final lateValueVariable = entry.value;
-      addLateValueVariablesTo!.statements.insert(
-        addLateValueVariablesTo.statements.indexOf(lateVariable),
-        lateValueVariable,
+    final possiblyUninitializedDeclarations =
+        _currentScope?._possiblyUninitializedDeclarations ?? {};
+    for (final entry in possiblyUninitializedDeclarations.entries) {
+      final possiblyUninitialized = entry.key;
+      final alwaysInitialized = entry.value;
+      addPossiblyUninitializedTo!.statements.insert(
+        addPossiblyUninitializedTo.statements.indexOf(possiblyUninitialized),
+        alwaysInitialized,
       );
     }
     assert(_currentScope == scope);
@@ -154,7 +155,7 @@ mixin FinalizableTransformer on Transformer {
       node,
       () => super.visitBlock(node),
       appendFencesToStatement: node,
-      addLateValueVariablesTo: node,
+      addPossiblyUninitializedTo: node,
     );
   }
 
@@ -247,6 +248,23 @@ mixin FinalizableTransformer on Transformer {
     );
   }
 
+  bool _possiblyUninitialized(VariableDeclaration declaration) {
+    if (declaration.isLate) {
+      // Also mark late variables with initializers as uninitialized.
+      // Otherwise we would would start running the initializer in a fence.
+      return true;
+    }
+    if (declaration.type.declaredNullability == Nullability.nonNullable &&
+        !declaration.hasDeclaredInitializer &&
+        _currentScope?.node is Block) {
+      // Variable declarations in a block without an initializer might be
+      // uninitialized. (Variable declarations in function blocks are
+      // initialized by the caller.)
+      return true;
+    }
+    return false;
+  }
+
   @override
   TreeNode visitVariableDeclaration(VariableDeclaration node) {
     node = super.visitVariableDeclaration(node) as VariableDeclaration;
@@ -255,15 +273,17 @@ mixin FinalizableTransformer on Transformer {
       return node;
     }
     if (_isFinalizable(node.type)) {
-      if (node.isLate) {
-        final lateValueDeclaration = VariableDeclaration(
+      if (_possiblyUninitialized(node)) {
+        final alwaysInitializedDeclaration = VariableDeclaration(
           ':${node.name}:finalizableValue',
           type: node.type.withDeclaredNullability(Nullability.nullable),
         );
-        _currentScope!.addLateDeclaration(node, lateValueDeclaration);
+        _currentScope!.addPossiblyUninitializedDeclaration(
+            node, alwaysInitializedDeclaration);
         final initializer = node.initializer;
         if (initializer != null) {
-          final newInitializer = VariableSet(lateValueDeclaration, initializer);
+          final newInitializer =
+              VariableSet(alwaysInitializedDeclaration, initializer);
           node.initializer = newInitializer;
           newInitializer.parent = node;
         }
@@ -284,12 +304,12 @@ mixin FinalizableTransformer on Transformer {
 
     final expression = node.value;
 
-    if (variable.isLate && variable.initializer == null) {
-      // We can't fence late variables, they might not have been set yet.
-      // Instead we fence the value variable and assign the late variable
-      // value to the value variable.
-      final valueVariable = _currentScope!
-          .lateVariableValueVariable(variable, checkAncestorScopes: true)!;
+    // We can't fence late variables, they might not have been set yet.
+    // Instead we fence the value variable and assign the late variable
+    // value to the value variable.
+    final valueVariable = _currentScope?.alwaysInitializedDeclaration(variable,
+        checkAncestorScopes: true);
+    if (valueVariable != null) {
       final newExpression = _wrapReachabilityFences(
         expression,
         [VariableGet(valueVariable)],
@@ -670,14 +690,15 @@ class _Scope {
   /// We use a list rather than a set because declarations are unique and we'd
   /// like to prevent arbitrary reorderings when generating code from this.
   ///
-  /// Includes [_lateDeclarations] keys.
+  /// Includes [_possiblyUninitializedDeclarations] keys.
   final List<VariableDeclaration> _declarations = [];
 
-  /// The late Finalizable declarations in this scope mapped to nullable non-
-  /// late variables that contain the same value.
+  /// The late and non-nullable Finalizable declarations in this scope mapped
+  /// to nullable non-late variables that contain the same value.
   ///
   /// The map is mutable, because we populate it during visiting statements.
-  final Map<VariableDeclaration, VariableDeclaration> _lateDeclarations = {};
+  final Map<VariableDeclaration, VariableDeclaration>
+      _possiblyUninitializedDeclarations = {};
 
   /// [ThisExpression] is not a [VariableDeclaration] and needs to be tracked
   /// separately.
@@ -716,29 +737,31 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
     allDeclarationsIsEmpty = false;
   }
 
-  void addLateDeclaration(VariableDeclaration declaration,
-      VariableDeclaration lateValueDeclaration) {
-    _lateDeclarations[declaration] = lateValueDeclaration;
-    addDeclaration(declaration);
+  void addPossiblyUninitializedDeclaration(
+      VariableDeclaration possiblyUninitialized,
+      VariableDeclaration nullableValue) {
+    _possiblyUninitializedDeclarations[possiblyUninitialized] = nullableValue;
+    addDeclaration(possiblyUninitialized);
   }
 
-  VariableDeclaration? lateVariableValueVariable(
-      VariableDeclaration lateVariable,
+  VariableDeclaration? alwaysInitializedDeclaration(
+      VariableDeclaration possiblyUninitialized,
       {required bool checkAncestorScopes}) {
-    final resultThisScope = _lateDeclarations[lateVariable];
+    final resultThisScope =
+        _possiblyUninitializedDeclarations[possiblyUninitialized];
     if (resultThisScope != null) {
       return resultThisScope;
     }
     if (!checkAncestorScopes) {
       return null;
     }
-    return parent?.lateVariableValueVariable(lateVariable,
+    return parent?.alwaysInitializedDeclaration(possiblyUninitialized,
         checkAncestorScopes: checkAncestorScopes);
   }
 
   VariableDeclaration variableToFence(VariableDeclaration declaration,
       {required bool checkAncestorScopes}) {
-    final possibleValueToFence = lateVariableValueVariable(declaration,
+    final possibleValueToFence = alwaysInitializedDeclaration(declaration,
         checkAncestorScopes: checkAncestorScopes);
     if (possibleValueToFence != null) {
       return possibleValueToFence;

@@ -95,9 +95,9 @@ FlowGraphBuilder::FlowGraphBuilder(
       catch_block_(nullptr),
       prepend_type_arguments_(Function::ZoneHandle(zone_)),
       throw_new_null_assertion_(Function::ZoneHandle(zone_)) {
-  const Script& script =
-      Script::Handle(Z, parsed_function->function().script());
-  H.InitFromScript(script);
+  const auto& info = KernelProgramInfo::Handle(
+      Z, parsed_function->function().KernelProgramInfo());
+  H.InitFromKernelProgramInfo(info);
 }
 
 FlowGraphBuilder::~FlowGraphBuilder() {}
@@ -810,8 +810,8 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   }
 #endif
 
-  auto& kernel_data = ExternalTypedData::Handle(Z, function.KernelData());
-  intptr_t kernel_data_program_offset = function.KernelDataProgramOffset();
+  auto& kernel_data = TypedDataView::Handle(Z, function.KernelLibrary());
+  intptr_t kernel_data_program_offset = function.KernelLibraryOffset();
 
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
       this, kernel_data, kernel_data_program_offset);
@@ -2545,9 +2545,9 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
   LocalVariable* closure_data = MakeTemporary("closure_data");
 
   store_default += LoadLocal(closure_data);
-  const auto& slot = Slot::ClosureData_default_type_arguments_kind();
-  store_default += LoadNativeField(slot);
-  store_default += Box(slot.representation());
+  store_default += BuildExtractUnboxedSlotBitFieldIntoSmi<
+      ClosureData::PackedDefaultTypeArgumentsKind>(
+      Slot::ClosureData_packed_fields());
   LocalVariable* default_tav_kind = MakeTemporary("default_tav_kind");
 
   // Two locals to drop after join, closure_data and default_tav_kind.
@@ -4740,15 +4740,16 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     const Function& function) {
-  if (function.FfiCallbackTarget() != Function::null()) {
-    if (function.GetFfiCallbackKind() == FfiCallbackKind::kSync) {
+  switch (function.GetFfiTrampolineKind()) {
+    case FfiTrampolineKind::kSyncCallback:
       return BuildGraphOfSyncFfiCallback(function);
-    } else {
+    case FfiTrampolineKind::kAsyncCallback:
       return BuildGraphOfAsyncFfiCallback(function);
-    }
-  } else {
-    return BuildGraphOfFfiNative(function);
+    case FfiTrampolineKind::kCall:
+      return BuildGraphOfFfiNative(function);
   }
+  UNREACHABLE();
+  return nullptr;
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {

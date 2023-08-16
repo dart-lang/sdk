@@ -9,7 +9,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 class InitializeMessageHandler
-    extends MessageHandler<InitializeParams, InitializeResult> {
+    extends LspMessageHandler<InitializeParams, InitializeResult> {
   InitializeMessageHandler(super.server);
 
   @override
@@ -63,7 +63,7 @@ class InitializeMessageHandler
     );
 
     final capabilities = server.capabilitiesComputer
-        .computeServerCapabilities(server.clientCapabilities!);
+        .computeServerCapabilities(server.lspClientCapabilities!);
     server.capabilities = capabilities;
 
     var sdkVersion = Platform.version;

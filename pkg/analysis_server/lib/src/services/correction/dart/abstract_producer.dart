@@ -34,6 +34,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:path/path.dart' as path;
 
 /// An object that can compute a correction (fix or assist) in a Dart file.
 abstract class CorrectionProducer<T extends ParsedUnitResult>
@@ -319,7 +320,7 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
-  LinterContext getLinterContext() {
+  LinterContext getLinterContext(path.Context pathContext) {
     return LinterContextImpl(
       [], // unused
       LinterContextUnit(unitResult.content, unitResult.unit),
@@ -329,6 +330,7 @@ abstract class ResolvedCorrectionProducer
       InheritanceManager3(), // unused
       sessionHelper.session.analysisContext.analysisOptions,
       null,
+      pathContext,
     );
   }
 

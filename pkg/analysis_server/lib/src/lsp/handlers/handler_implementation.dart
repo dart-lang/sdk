@@ -14,7 +14,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:collection/collection.dart';
 
 class ImplementationHandler
-    extends MessageHandler<TextDocumentPositionParams, List<Location>> {
+    extends LspMessageHandler<TextDocumentPositionParams, List<Location>> {
   ImplementationHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_implementation;
@@ -87,7 +87,7 @@ class ImplementationHandler
                 return null;
               }
               return Location(
-                uri: Uri.file(unitElement.source.fullName),
+                uri: pathContext.toUri(unitElement.source.fullName),
                 range: toRange(
                   unitElement.lineInfo,
                   element.nameOffset,

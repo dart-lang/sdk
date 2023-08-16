@@ -237,111 +237,6 @@ void InstanceMorpher::AddObject(ObjectPtr object) {
 }
 
 void InstanceMorpher::CreateMorphedCopies(Become* become) {
-  // Enum migriation needs to run in same phase as instance morphing since it
-  // may also involve a shape change.
-  if (old_class_.is_enum_class()) {
-    Field& field = Field::Handle(Z);
-    String& name = String::Handle(Z);
-    Array& old_values = Array::Handle(Z);
-    Array& new_values = Array::Handle(Z);
-    Instance& old_value = Instance::Handle(Z);
-    Instance& new_value = Instance::Handle(Z);
-    Instance& old_deleted = Instance::Handle(Z);
-    Instance& new_deleted = Instance::Handle(Z);
-
-    field = old_class_.LookupStaticField(Symbols::_DeletedEnumSentinel());
-    old_deleted ^= field.StaticConstFieldValue();
-
-    new_deleted = Instance::New(new_class_, Heap::kOld);
-    Thread* thread = Thread::Current();
-    field = thread->isolate_group()->object_store()->enum_name_field();
-    name = new_class_.ScrubbedName();
-    name = Symbols::FromConcat(thread, Symbols::_DeletedEnumPrefix(), name);
-    new_deleted.SetField(field, name);
-    field = thread->isolate_group()->object_store()->enum_index_field();
-    new_value = Smi::New(-1);
-    new_deleted.SetField(field, new_value);
-    field = new_class_.LookupStaticField(Symbols::_DeletedEnumSentinel());
-    // The static const field contains `Object::null()` instead of
-    // `Object::sentinel()` - so it's not considered an initializing store.
-    field.SetStaticConstFieldValue(new_deleted,
-                                   /*assert_initializing_store*/ false);
-
-    field = old_class_.LookupField(Symbols::Values());
-    old_values ^= field.StaticConstFieldValue();
-
-    field = new_class_.LookupField(Symbols::Values());
-    new_values ^= field.StaticConstFieldValue();
-
-    field = thread->isolate_group()->object_store()->enum_name_field();
-    for (intptr_t i = 0; i < old_values.Length(); i++) {
-      old_value ^= old_values.At(i);
-      ASSERT(old_value.GetClassId() == cid_);
-      bool found = false;
-      for (intptr_t j = 0; j < new_values.Length(); j++) {
-        new_value ^= new_values.At(j);
-        ASSERT(new_value.GetClassId() == cid_);
-        if (old_value.GetField(field) == new_value.GetField(field)) {
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        new_value = new_deleted.ptr();
-      }
-
-      if (old_value.ptr() == new_value.ptr()) {
-        // This probably shouldn't happen and means canonicalization is mixing
-        // before and after. At any rate, don't submit a self-fowarding to
-        // become.
-        RELEASE_ASSERT(old_value.ptr()->untag()->HeapSize() ==
-                       new_class_.host_instance_size());
-      } else {
-        // Convert the old instance into a filler object. We will switch to the
-        // new class table before the next heap walk, so there must be no
-        // instances of any class with the old size.
-        Become::MakeDummyObject(old_value);
-
-        become->Add(old_value, new_value);
-      }
-    }
-
-    // The deleted sentinel is not part of Enum.values. It doesn't exist yet for
-    // the first reload.
-    if (!old_deleted.IsNull()) {
-      // Convert the old instance into a filler object. We will switch to the
-      // new class table before the next heap walk, so there must be no
-      // instances of any class with the old size.
-      Become::MakeDummyObject(old_deleted);
-
-      become->Add(old_deleted, new_deleted);
-    }
-
-    // We also forward Enum.values. No filler is needed because arrays never
-    // change shape.
-    if (old_value.ptr() == new_value.ptr()) {
-      // This probably shouldn't happen and means canonicalization is mixing
-      // before and after. At any rate, don't submit a self-fowarding to
-      // become.
-      RELEASE_ASSERT(old_class_.host_instance_size() ==
-                     new_class_.host_instance_size());
-    } else {
-      become->Add(old_values, new_values);
-    }
-
-#if defined(DEBUG)
-    for (intptr_t i = 0; i < before_.length(); i++) {
-      const Instance& before = *before_.At(i);
-      // All instances are accounted for.
-      ASSERT((before.GetClassId() == kForwardingCorpse) ||
-             (before.ptr()->untag()->HeapSize() ==
-              new_class_.host_instance_size()));
-    }
-#endif
-
-    return;
-  }
-
   Instance& after = Instance::Handle(Z);
   Object& value = Object::Handle(Z);
   for (intptr_t i = 0; i < before_.length(); i++) {
@@ -388,8 +283,10 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
       if (from.box_cid == kIllegalCid) {
         // Boxed to boxed field migration.
         ASSERT(to.box_cid == kIllegalCid);
-        value = before.RawGetFieldAtOffset(from.offset);
-        after.RawSetFieldAtOffset(to.offset, value);
+        // No handle: raw_value might be a ForwardingCorpse for an object
+        // processed earlier in instance morphing
+        ObjectPtr raw_value = before.RawGetFieldAtOffset(from.offset);
+        after.RawSetFieldAtOffset(to.offset, raw_value);
       } else if (to.box_cid == kIllegalCid) {
         // Unboxed to boxed field migration.
         switch (from.box_cid) {
@@ -825,7 +722,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     kernel_program = kernel::Program::ReadFromFile(root_script_url);
     if (kernel_program != nullptr) {
       num_received_libs_ = kernel_program->library_count();
-      bytes_received_libs_ = kernel_program->kernel_data_size();
+      bytes_received_libs_ = kernel_program->binary().LengthInBytes();
       p_num_received_classes = &num_received_classes_;
       p_num_received_procedures = &num_received_procedures_;
     } else {
@@ -854,10 +751,9 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
 
     NoActiveIsolateScope no_active_isolate_scope;
 
-    ExternalTypedData& external_typed_data =
-        ExternalTypedData::Handle(Z, kernel_program->typed_data()->ptr());
     IsolateGroupSource* source = IsolateGroup::Current()->source();
-    source->add_loaded_blob(Z, external_typed_data);
+    source->add_loaded_blob(Z,
+                            ExternalTypedData::Cast(kernel_program->binary()));
 
     modified_libs_ = new (Z) BitVector(Z, num_old_libs_);
     kernel::KernelLoader::FindModifiedLibraries(
@@ -980,6 +876,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     // we have accepted the compilation to clear some state in the incremental
     // compiler.
     if (did_kernel_compilation) {
+      TIMELINE_SCOPE(AcceptCompilation);
       const auto& result = Object::Handle(Z, AcceptCompilation(thread));
       if (result.IsError()) {
         const auto& error = Error::Cast(result);
@@ -996,7 +893,8 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
         // layout).
         ObjectLocator locator(this);
         {
-          HeapIterationScope iteration(Thread::Current());
+          TIMELINE_SCOPE(CollectInstances);
+          HeapIterationScope iteration(thread);
           iteration.IterateObjects(&locator);
         }
 
@@ -1263,6 +1161,7 @@ char* IsolateGroupReloadContext::CompileToKernel(bool force_reload,
         root_lib_url, nullptr, 0, modified_scripts_count, modified_scripts,
         /*incremental_compile=*/true,
         /*snapshot_compile=*/false,
+        /*embed_sources=*/true,
         /*package_config=*/nullptr,
         /*multiroot_filepaths=*/nullptr,
         /*multiroot_scheme=*/nullptr);
@@ -1367,9 +1266,7 @@ void ProgramReloadContext::RegisterClass(const Class& new_cls) {
   VTIR_Print("Registering class: %s\n", new_cls.ToCString());
   new_cls.set_id(old_cls.id());
   IG->class_table()->SetAt(old_cls.id(), new_cls.ptr());
-  if (!old_cls.is_enum_class()) {
-    new_cls.CopyCanonicalConstants(old_cls);
-  }
+  new_cls.CopyCanonicalConstants(old_cls);
   new_cls.CopyDeclarationType(old_cls);
   AddBecomeMapping(old_cls, new_cls);
   AddClassMapping(new_cls, old_cls);
@@ -1841,18 +1738,16 @@ void ProgramReloadContext::CommitBeforeInstanceMorphing() {
 }
 
 void ProgramReloadContext::CommitAfterInstanceMorphing() {
-  become_.Forward();
-
   // Rehash constants map for all classes. Constants are hashed by content, and
   // content may have changed from fields being added or removed.
   {
     TIMELINE_SCOPE(RehashConstants);
-    IG->RehashConstants();
+    IG->RehashConstants(&become_);
   }
-
-#ifdef DEBUG
-  IG->ValidateConstants();
-#endif
+  {
+    TIMELINE_SCOPE(ForwardEnums);
+    become_.Forward();
+  }
 
   if (FLAG_identity_reload) {
     const auto& saved_libs = GrowableObjectArray::Handle(saved_libraries_);
@@ -2103,6 +1998,7 @@ void ProgramReloadContext::RunInvalidationVisitors() {
   GrowableArray<const Instance*> instances(4 * KB);
 
   {
+    TIMELINE_SCOPE(CollectInvalidations);
     HeapIterationScope iteration(thread);
     InvalidationCollector visitor(zone, &functions, &kernel_infos, &fields,
                                   &suspend_states, &instances);

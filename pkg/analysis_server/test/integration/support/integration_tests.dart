@@ -28,6 +28,8 @@ const Matcher isNotification = MatchesJsonObject(
     'notification', {'event': isString},
     optionalFields: {'params': isMap});
 
+const Matcher isObject = TypeMatcher<Object>();
+
 const Matcher isString = TypeMatcher<String>();
 
 final Matcher isResponse = MatchesJsonObject('response', {'id': isString},
@@ -598,7 +600,7 @@ class Server {
     _pendingCommands[id] = completer;
     var line = json.encode(command);
     _recordStdio('==> $line');
-    _process.stdin.add(utf8.encoder.convert('$line\n'));
+    _process.stdin.add(utf8.encode('$line\n'));
     return completer.future;
   }
 

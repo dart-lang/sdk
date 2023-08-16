@@ -40,8 +40,17 @@ class C5 extends S5 {
   C5([int super.x]);
 }
 
+class C5b extends S5b {
+  C5b({int super.x});
+}
+
 class C6 extends S6 {
   C6([int? super.x]);
+  int? b;
+}
+
+class C6b extends S6b {
+  C6b({int? super.x});
   int? b;
 }
 
@@ -50,13 +59,28 @@ class C7 extends S7 {
   int c;
 }
 
+class C7b extends S7b {
+  C7b({super.x}) : c = x + 1;
+  int c;
+}
+
 class C8 extends S8 {
   C8([super.x]) : c = x + 1;
   int c;
 }
 
+class C8b extends S8b {
+  const C8b({super.x}) : c = x + 1;
+  final int c;
+}
+
 class C9 extends S9 {
   C9([super.x]) : c = x + 1;
+  int c;
+}
+
+class C9b extends S9b {
+  C9b({super.x}) : c = x + 1;
   int c;
 }
 
@@ -65,9 +89,19 @@ class CC7 extends C7 {
   int cc;
 }
 
+class CC7b extends C7b {
+  CC7b({super.x}) : cc = x * 1;
+  int cc;
+}
+
 class CC8 extends C8 {
   CC8([super.x]) : cc = x * 1;
   int cc;
+}
+
+class CC8b extends C8b {
+  const CC8b({super.x}) : cc = x * 1;
+  final int cc;
 }
 
 class CC9 extends C9 {
@@ -75,8 +109,17 @@ class CC9 extends C9 {
   int cc;
 }
 
+class CC9b extends C9b {
+  CC9b({super.x}) : cc = x * 1;
+  int cc;
+}
+
 class D6 extends C6 {
   D6([int super.x]);
+}
+
+class D6b extends C6b {
+  D6b({int super.x});
 }
 
 class S1 {
@@ -104,8 +147,18 @@ class S5 {
   num a;
 }
 
+class S5b {
+  S5b({num x = 3.14}) : a = x - 1;
+  num a;
+}
+
 class S6 {
   S6([num? x = 3.14]) : a = x;
+  num? a;
+}
+
+class S6b {
+  S6b({num? x = 3.14}) : a = x;
   num? a;
 }
 
@@ -114,13 +167,28 @@ class S7 {
   int s;
 }
 
+class S7b {
+  S7b({int x = 0}) : s = x - 1;
+  int s;
+}
+
 class S8 {
   S8([int x = 0]) : s = x - 1;
   int s;
 }
 
+class S8b {
+  const S8b({int x = 0}) : s = x - 1;
+  final int s;
+}
+
 class S9 {
   S9([int x = 0]) : s = x - 1;
+  int s;
+}
+
+class S9b {
+  S9b({int x = 0}) : s = x - 1;
   int s;
 }
 

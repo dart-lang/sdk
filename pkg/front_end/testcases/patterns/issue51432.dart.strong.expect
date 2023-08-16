@@ -4,13 +4,10 @@ import "dart:core" as core;
 
 static method method() → dynamic {
   core::int v1 = 42;
-  block {
-    core::int #t1;
+  {
     final synthesized dynamic #0#0 = ("The string!" as dynamic) as{TypeError,ForDynamic} core::int;
-    if(!(let final dynamic #t2 = #t1 = #0#0 as core::int in true))
-      throw new core::StateError::•("Pattern matching error");
-    v1 = #t1;
-  } =>#0#0;
+    v1 = #0#0 as core::int;
+  }
   core::print(v1);
   core::print(v1.{core::Object::runtimeType}{core::Type});
 }

@@ -251,8 +251,8 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
       }
     }
     // Verify that all required named parameters are provided an argument.
-    if (requiredCount > 0) {
-      Iterable requiredNames = getOwnPropertyNames(requiredNamed);
+    Iterable requiredNames = getOwnPropertyNames(requiredNamed);
+    if (JS<int>('!', '#.length', requiredNames) > 0) {
       var missingRequired = namedActuals == null
           ? requiredNames
           : requiredNames.where((name) =>

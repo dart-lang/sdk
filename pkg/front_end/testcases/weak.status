@@ -4,6 +4,132 @@
 
 # Status file for the weak_suite.dart test suite.
 
+# BAD ONES:
+class_modifiers/issue52115/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53109
+class_modifiers/issue52316/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53109
+const_functions/const_functions_switch_statements: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53111
+inline_class/extension_types/has_export: SemiFuzzCrash # Unhandled ExtensionTypeDeclaration in finalizeExports - https://github.com/dart-lang/sdk/issues/53118.
+inline_class/has_export: SemiFuzzCrash # Unhandled ExtensionTypeDeclaration in finalizeExports - https://github.com/dart-lang/sdk/issues/53118.
+inline_class/extension_types/unresolved_type_extension_type_this: SemiFuzzCrash # Unhandled ExtensionTypeDeclaration in finalizeExports - https://github.com/dart-lang/sdk/issues/53118.
+
+# POSSIBLY BAD ONES
+dart2js/issue51823: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
+macros/library_members_import: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
+
+# SEMI-BAD ONES:
+offsets/step_through_patterns: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+patterns/exhaustiveness/issue2878_example1: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+patterns/exhaustiveness/issue2878_example2: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+patterns/exhaustiveness/issue2878_example3: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+patterns/exhaustiveness/issue2878_example4: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+patterns/issue51489: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+patterns/issue52191: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+patterns/map_lookup: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+patterns/negative_length: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+patterns/pattern_inForInitializer_element: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+patterns/simple_c_style_pattern_for_in_collections: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+patterns/simple_if_case_in_lists: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+patterns/simple_if_case_map_entries: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+patterns/switchExpression_onePattern_noTrailingComma: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+patterns/switchExpression_onePattern_trailingComma: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+patterns/switchExpression_twoPatterns: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+records/block_combine_statements: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+records/for_in_without_variable: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
+
+inline_class/const_constructor: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/extension_types/const_constructor: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/extension_types/cyclic_extension_types: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/extension_types/external: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/extension_types/field_access: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/extension_types/implements: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/extension_types/initializers: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/extension_types/issue52119: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/extension_types/issue52284: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/extension_types/member_not_found: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/extension_types/method_access: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/extension_types/representation: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/extension_types/super_extension_type_conflict: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/extension_types/supertype_conflict: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/field_access: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/implements: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/initializers: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/issue52119: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/issue52284: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/member_not_found: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/method_access: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/procedures: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+inline_class/representation: SemiFuzzCrash # checkEquivalence crash - https://github.com/dart-lang/sdk/issues/53115.
+
+# INCREMENTAL COMPILATION ERRORS
+dart2js/inline_class/external: SemiFuzzFailure # @methods::B| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+dart2js/inline_class/issue51285: SemiFuzzFailure # @methods::I| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+dartdevc/inline_class/external: SemiFuzzFailure # @methods::B| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+dartdevc/inline_class/issue51285: SemiFuzzFailure # @methods::I| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/annotations: SemiFuzzFailure # @methods::A| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/constructor_access: SemiFuzzFailure # @methods::Class| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/constructor_bodies: SemiFuzzFailure # @methods::Class1| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/constructor_formal_parameters: SemiFuzzFailure # @methods::I| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/constructors: SemiFuzzFailure # @methods::Class1| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/annotations: SemiFuzzFailure # @methods::A| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/constructor_access: SemiFuzzFailure # @methods::Class| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/constructor_bodies: SemiFuzzFailure # @methods::Class1| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/constructor_formal_parameters: SemiFuzzFailure # @methods::I|_ is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/constructors: SemiFuzzFailure # @methods::Class1| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/extension_type_declarations: SemiFuzzFailure # @methods::ExtensionType1| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/from_dill/main: SemiFuzzFailure # @methods::ExtensionType| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/from_dill/main.no_link: SemiFuzzFailure # @methods::ExtensionType| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/inline_class_declaration: SemiFuzzFailure # @methods::Class1| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/issue51146: SemiFuzzFailure # @methods::I| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/issue51285: SemiFuzzFailure # @methods::I|_ is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/issue51299: SemiFuzzFailure # @methods::I| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/issue51556: SemiFuzzFailure # @methods::JSAny| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/issue52240: SemiFuzzFailure # @methods::X|_ is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/issue52525: SemiFuzzFailure # @methods::IC1| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/issue52667: SemiFuzzFailure # @methods::FooBar| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/procedures: SemiFuzzFailure # @methods::Class|_ is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/external: SemiFuzzFailure # @methods::B| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/inline_class_declaration: SemiFuzzFailure # @methods::Class1| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/issue51146: SemiFuzzFailure # @methods::I| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/issue51285: SemiFuzzFailure # @methods::I| is already bound to Reference to - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/issue51299: SemiFuzzFailure # @methods::I|set#i is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/issue51556: SemiFuzzFailure # @methods::JSAny| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/issue52240: SemiFuzzFailure # @methods::X| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/issue52525: SemiFuzzFailure # @methods::IC1| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/issue52667: SemiFuzzFailure # @methods::FooBar| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+
+# EXPECTED FAILURES DUE TO PRIVACY ETC:
+records/issue51940: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
+patterns/private_names_in_object_patterns: semiFuzzFailureOnForceRebuildBodies # can't match on private field in split out library.
+patterns/issue51009: semiFuzzFailureOnForceRebuildBodies # private extension method.
+patterns/exhaustiveness/issue52048: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
+dart2js/native: semiFuzzFailureOnForceRebuildBodies # errors in the input means it can't force split.
+dart2js/native_legacy: semiFuzzFailureOnForceRebuildBodies # errors in the input means it can't force split.
+dart2js/sealed_class: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
+dartdevc/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # privacy.
+dartdevc/redirecting_factory_from_dill/main: semiFuzzFailureOnForceRebuildBodies # privacy.
+dartdevc/redirecting_factory_from_dill/main.no_link: semiFuzzFailureOnForceRebuildBodies # privacy.
+extensions/nullable_access: semiFuzzFailureOnForceRebuildBodies # private extension method.
+general/patch_annotations/main: semiFuzzFailureOnForceRebuildBodies # 'dart:test' stuff.
+general/redirecting_factory_from_dill/main: semiFuzzFailureOnForceRebuildBodies # privacy.
+general/redirecting_factory_from_dill/main.no_link: semiFuzzFailureOnForceRebuildBodies # privacy.
+general/redirection/main: semiFuzzFailureOnForceRebuildBodies # privacy.
+inference_update_2/abstract_field: semiFuzzFailureOnForceRebuildBodies # privacy.
+inference_update_2/external_field: semiFuzzFailureOnForceRebuildBodies # privacy.
+inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # privacy.
+patterns/exhaustiveness/issue51957: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
+patterns/exhaustiveness/issue52041: semiFuzzFailureOnForceRebuildBodies # can't match on private field in split out library.
+nnbd_mixed/exhaustiveness: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
+patterns/extension_access: semiFuzzFailureOnForceRebuildBodies # private extension method.
+patterns/extension_tear_off: semiFuzzFailureOnForceRebuildBodies # private extension method.
+patterns/pattern_matching: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
+inference_update_2/call_invocation_with_hoisting: semiFuzzFailureOnForceRebuildBodies # privacy
+inference_update_2/cascaded_field_promotion: semiFuzzFailureOnForceRebuildBodies # privacy
+
+# FUZZ FRAMEWORK FAILURES
+class_modifiers/invalid_enum_modifiers: SemiFuzzFailure # the invalid modifiers disappear
+general/script_tag_in_part_file: SemiFuzzFailure # `#!/usr/bin/env dart` goes away
+
+# UNSORTED ONES:
 macros/scope_access: SemiFuzzCrash
 
 const_functions/const_functions_list: SemiFuzzCrash
@@ -17,15 +143,12 @@ general/fallthrough: RuntimeError # Fallthrough cases in switch.
 general/issue48765: semiFuzzFailureOnForceRebuildBodies # private class
 general/mixin_from_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/multiple_class_patches/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
-general/no_such_method_forwarder: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242444
-general/sealed_class_declaration: SemiFuzzFailure # "sealed" experimental feature.
 general/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/view_class_declaration: SemiFuzzFailure # "view" doesn't appear to get into the reordering (experimental feature).
 general/with_dependencies/issue_43084/issue_43084: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242543
 inference_update_1/horizontal_inference_extension_method: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/245004
 inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForceRebuildBodies # Errors on split
 inference_update_2/basic_field_promotion: semiFuzzFailureOnForceRebuildBodies # Private fields.
-inference_update_2/cascaded_field_promotion: TypeCheckError
 inference_update_2/disabled: semiFuzzFailureOnForceRebuildBodies # Private fields.
 inference_update_2/field_promotion_and_no_such_method: semiFuzzFailureOnForceRebuildBodies # Private fields.
 inference_update_2/field_promotion_name_conflicts: semiFuzzFailureOnForceRebuildBodies # Private fields.
@@ -42,13 +165,6 @@ nnbd_mixed/issue43988/main.no_link: SemiFuzzFailure # https://dart-review.google
 nnbd_mixed/issue43988/main: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242540 and https://dart-review.googlesource.com/c/sdk/+/242446
 nnbd_mixed/member_inheritance_from_opt_in: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242446
 nnbd_mixed/mixed_mixin: SemiFuzzFailure
-no_such_method_forwarders/abstract_accessors_from_field: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
-no_such_method_forwarders/abstract_accessors_from_field_one_defined: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
-no_such_method_forwarders/abstract_accessors_from_field_with_substitution: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
-no_such_method_forwarders/abstract_override_abstract_different_type: SemiFuzzFailure
-no_such_method_forwarders/abstract_override_with_different_signature: SemiFuzzFailure
-no_such_method_forwarders/default_argument_values: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
-variance/generic_covariance_sound_variance: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
 
 dart2js/flutter_issue94561/main: SemiFuzzFailure
 dart2js/flutter_issue94561/main.no_link: SemiFuzzFailure
@@ -80,7 +196,6 @@ general/closure: semiFuzzFailureOnForceRebuildBodies # private field
 general/constants/rudimentary_test_01: semiFuzzFailureOnForceRebuildBodies # private method
 general/constants/with_unevaluated_agnostic/rudimentary_test_01: semiFuzzFailureOnForceRebuildBodies # private method
 general/constructor_const_inference: semiFuzzFailureOnForceRebuildBodies # private class
-general/constructor_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/issue31767: semiFuzzFailureOnForceRebuildBodies # private class, field
 general/issue45101/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/issue47036: semiFuzzFailureOnForceRebuildBodies # private class
@@ -114,7 +229,6 @@ none/mixin_super: semiFuzzFailureOnForceRebuildBodies # has private name mixin
 regress/issue_39682: semiFuzzFailureOnForceRebuildBodies # has private method
 
 constructor_tearoffs/call_instantiation: TypeCheckError
-constructor_tearoffs/lowering/invalid_redirect: VerificationError
 enhanced_enums/declared_hashcode: TypeCheckError
 enhanced_enums/declared_index: TypeCheckError
 enhanced_enums/simple_mixins: RuntimeError
@@ -186,6 +300,7 @@ general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general/override_setter_with_field: TypeCheckError
 general/redirecting_factory: RuntimeError
 general/spread_collection: RuntimeError
+general/supertype_conflict: TypeCheckError
 general/type_variable_as_super: RuntimeError
 general/unsound_promotion: TypeCheckError
 general/void_methods: RuntimeError
@@ -210,7 +325,6 @@ inference/override_equals: RuntimeError
 inference_new/infer_assign_to_index_super_upwards: TypeCheckError
 inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
-inference_update_2/call_invocation_with_hoisting: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError

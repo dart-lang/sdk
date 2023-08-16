@@ -11,7 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
 class SignatureHelpHandler
-    extends MessageHandler<SignatureHelpParams, SignatureHelp?> {
+    extends LspMessageHandler<SignatureHelpParams, SignatureHelp?> {
   SignatureHelpHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_signatureHelp;
@@ -27,7 +27,7 @@ class SignatureHelpHandler
       return success(null);
     }
 
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -73,7 +73,7 @@ class SignatureHelpHandler
         unit.result.unit,
         offset,
         documentationPreference:
-            server.clientConfiguration.global.preferredDocumentation,
+            server.lspClientConfiguration.global.preferredDocumentation,
       );
       if (!computer.offsetIsValid) {
         return success(null); // No error, just no valid hover.
@@ -110,7 +110,7 @@ class SignatureHelpHandler
     final typeArgsComputer = DartTypeArgumentsSignatureComputer(
         dartDocInfo, unit, offset, formats,
         documentationPreference:
-            server.clientConfiguration.global.preferredDocumentation);
+            server.lspClientConfiguration.global.preferredDocumentation);
     if (!typeArgsComputer.offsetIsValid) {
       return null;
     }

@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_call_hierarchy.dart'
     as call_hierarchy;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -143,7 +144,7 @@ class OutgoingCallHierarchyHandler extends _AbstractCallHierarchyCallsHandler<
 /// The target returned by this handler will be sent back to the server for
 /// incoming/outgoing calls as the user navigates the call hierarchy in the
 /// client.
-class PrepareCallHierarchyHandler extends MessageHandler<
+class PrepareCallHierarchyHandler extends LspMessageHandler<
     CallHierarchyPrepareParams,
     TextDocumentPrepareCallHierarchyResult> with _CallHierarchyUtils {
   PrepareCallHierarchyHandler(super.server);
@@ -163,7 +164,7 @@ class PrepareCallHierarchyHandler extends MessageHandler<
       return success(const []);
     }
 
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -221,7 +222,7 @@ class PrepareCallHierarchyHandler extends MessageHandler<
 /// An abstract base class for incoming and outgoing CallHierarchy handlers
 /// which perform largely the same task using different LSP classes.
 abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
-    extends MessageHandler<P, R> with _CallHierarchyUtils {
+    extends LspMessageHandler<P, R> with _CallHierarchyUtils {
   _AbstractCallHierarchyCallsHandler(super.server);
 
   /// Gets the appropriate types of calls for this handler.
@@ -237,7 +238,7 @@ abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
       return success(const []);
     }
 
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return failure(serverNotInitializedError);
@@ -327,7 +328,7 @@ abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
 }
 
 /// Utility methods used by all Call Hierarchy handlers.
-mixin _CallHierarchyUtils {
+mixin _CallHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
   /// A mapping from server kinds to LSP [SymbolKind]s.
   static const toSymbolKindMapping = {
     call_hierarchy.CallHierarchyKind.class_: SymbolKind.Class,
@@ -369,7 +370,7 @@ mixin _CallHierarchyUtils {
       name: item.displayName,
       detail: item.containerName,
       kind: toSymbolKind(supportedSymbolKinds, item.kind),
-      uri: Uri.file(item.file),
+      uri: pathContext.toUri(item.file),
       range: sourceRangeToRange(lineInfo, item.codeRange),
       selectionRange: sourceRangeToRange(lineInfo, item.nameRange),
     );

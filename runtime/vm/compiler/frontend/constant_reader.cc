@@ -22,14 +22,13 @@ ConstantReader::ConstantReader(KernelReaderHelper* helper,
       zone_(helper->zone_),
       translation_helper_(helper->translation_helper_),
       active_class_(active_class),
-      script_(helper->script()),
       result_(Object::Handle(zone_)) {}
 
 bool ConstantReader::IsPragmaInstanceConstant(
     intptr_t constant_index,
     intptr_t* pragma_name_constant_index,
     intptr_t* pragma_options_constant_index) {
-  KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
+  KernelReaderHelper reader(Z, &H, H.constants_table(), 0);
   NavigateToIndex(&reader, constant_index);
 
   if (reader.ReadByte() == kInstanceConstant) {
@@ -75,7 +74,7 @@ bool ConstantReader::IsPragmaInstanceConstant(
 
 bool ConstantReader::IsStringConstant(intptr_t constant_index,
                                       const char* name) {
-  KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
+  KernelReaderHelper reader(Z, &H, H.constants_table(), 0);
   NavigateToIndex(&reader, constant_index);
 
   if (reader.ReadByte() == kStringConstant) {
@@ -87,7 +86,7 @@ bool ConstantReader::IsStringConstant(intptr_t constant_index,
 
 bool ConstantReader::GetStringConstant(intptr_t constant_index,
                                        String* out_value) {
-  KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
+  KernelReaderHelper reader(Z, &H, H.constants_table(), 0);
   NavigateToIndex(&reader, constant_index);
 
   if (reader.ReadByte() == kStringConstant) {
@@ -104,7 +103,8 @@ InstancePtr ConstantReader::ReadConstantInitializer() {
     case kSomething:
       return ReadConstantExpression();
     default:
-      H.ReportError(script_, TokenPosition::kNoSource,
+      const auto& script = Script::Handle(Z, Script());
+      H.ReportError(script, TokenPosition::kNoSource,
                     "Not a constant expression: unexpected kernel tag %s (%d)",
                     Reader::TagName(tag), tag);
   }
@@ -128,14 +128,16 @@ InstancePtr ConstantReader::ReadConstantExpression() {
     case kInvalidExpression: {
       helper_->ReadPosition();  // Skip position.
       const String& message = H.DartString(helper_->ReadStringReference());
+      const auto& script = Script::Handle(Z, Script());
       // Invalid expression message has pointer to the source code, no need to
       // report it twice.
-      H.ReportError(helper_->script(), TokenPosition::kNoSource, "%s",
+      H.ReportError(script, TokenPosition::kNoSource, "%s",
                     message.ToCString());
       break;
     }
     default:
-      H.ReportError(script_, TokenPosition::kNoSource,
+      const auto& script = Script::Handle(Z, Script());
+      H.ReportError(script, TokenPosition::kNoSource,
                     "Not a constant expression: unexpected kernel tag %s (%d)",
                     Reader::TagName(tag), tag);
   }
@@ -168,7 +170,8 @@ InstancePtr ConstantReader::ReadConstant(intptr_t constant_index) {
   {
     SafepointMutexLocker ml(
         H.thread()->isolate_group()->kernel_constants_mutex());
-    const auto& constants_array = Array::Handle(Z, H.info().constants());
+    const auto& constants_array =
+        Array::Handle(Z, H.GetKernelProgramInfo().constants());
     ASSERT(constant_index < constants_array.Length());
     result_ = constants_array.At(constant_index);
   }
@@ -179,7 +182,8 @@ InstancePtr ConstantReader::ReadConstant(intptr_t constant_index) {
     result_ = ReadConstantInternal(constant_index);
     SafepointMutexLocker ml(
         H.thread()->isolate_group()->kernel_constants_mutex());
-    const auto& constants_array = Array::Handle(Z, H.info().constants());
+    const auto& constants_array =
+        Array::Handle(Z, H.GetKernelProgramInfo().constants());
     ASSERT(constant_index < constants_array.Length());
     constants_array.SetAt(constant_index, result_);
   }
@@ -189,7 +193,7 @@ InstancePtr ConstantReader::ReadConstant(intptr_t constant_index) {
 bool ConstantReader::IsInstanceConstant(intptr_t constant_index,
                                         const Class& clazz) {
   // Get reader directly into raw bytes of constant table/constant mapping.
-  KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
+  KernelReaderHelper reader(Z, &H, H.constants_table(), 0);
   NavigateToIndex(&reader, constant_index);
 
   // Peek for an instance of the given clazz.
@@ -202,7 +206,7 @@ bool ConstantReader::IsInstanceConstant(intptr_t constant_index,
 
 intptr_t ConstantReader::NumConstants() {
   ASSERT(!H.constants_table().IsNull());
-  KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
+  KernelReaderHelper reader(Z, &H, H.constants_table(), 0);
   return NumConstants(&reader);
 }
 
@@ -230,7 +234,7 @@ intptr_t ConstantReader::NavigateToIndex(KernelReaderHelper* reader,
 InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
   // Get reader directly into raw bytes of constant table/constant mapping.
   bool null_safety = H.thread()->isolate_group()->null_safety();
-  KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
+  KernelReaderHelper reader(Z, &H, H.constants_table(), 0);
   const intptr_t constant_offset = NavigateToIndex(&reader, constant_index);
 
   // No function types returned as part of any types built should reference
@@ -273,8 +277,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
           break;
         }
         default:
+          const auto& script = Script::Handle(Z, Script());
           H.ReportError(
-              script_, TokenPosition::kNoSource,
+              script, TokenPosition::kNoSource,
               "Cannot lazily read integer: unexpected kernel tag %s (%d)",
               Reader::TagName(integer_tag), integer_tag);
       }
@@ -594,7 +599,8 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       // We should never see unevaluated constants (kUnevaluatedConstant) in
       // the constant table, they should have been fully evaluated before we
       // get them.
-      H.ReportError(script_, TokenPosition::kNoSource,
+      const auto& script = Script::Handle(Z, Script());
+      H.ReportError(script, TokenPosition::kNoSource,
                     "Cannot lazily read constant: unexpected kernel tag (%" Pd
                     ")",
                     constant_tag);

@@ -189,7 +189,7 @@ class JsUtilOptimizer extends Transformer {
 
     var dottedPrefix = getJSName(node.enclosingLibrary);
 
-    if (!node.isInlineClassMember &&
+    if (!node.isExtensionTypeMember &&
         node.enclosingClass == null &&
         (hasDartJSInteropAnnotation(node) ||
             hasDartJSInteropAnnotation(node.enclosingLibrary))) {
@@ -205,12 +205,12 @@ class JsUtilOptimizer extends Transformer {
       }
     } else {
       Annotatable enclosingClass;
-      if (node.isInlineClassMember) {
+      if (node.isExtensionTypeMember) {
         var descriptor = _inlineExtensionIndex.getInlineDescriptor(node);
         if (descriptor == null ||
             (!descriptor.isStatic &&
-                descriptor.kind != InlineClassMemberKind.Constructor &&
-                descriptor.kind != InlineClassMemberKind.Factory)) {
+                descriptor.kind != ExtensionTypeMemberKind.Constructor &&
+                descriptor.kind != ExtensionTypeMemberKind.Factory)) {
           return null;
         }
         enclosingClass = _inlineExtensionIndex.getInlineClass(node)!;
@@ -228,7 +228,7 @@ class JsUtilOptimizer extends Transformer {
       if (className.isEmpty) {
         className = enclosingClass is Class
             ? enclosingClass.name
-            : (enclosingClass as InlineClass).name;
+            : (enclosingClass as ExtensionTypeDeclaration).name;
       }
       dottedPrefix = _concatenateJSNames(dottedPrefix, className);
     }
@@ -435,7 +435,7 @@ class JsUtilOptimizer extends Transformer {
       return jsAnnotationName.split('.').last;
     } else if (node.isExtensionMember) {
       return _inlineExtensionIndex.getExtensionDescriptor(node)!.name.text;
-    } else if (node.isInlineClassMember) {
+    } else if (node.isExtensionTypeMember) {
       return _inlineExtensionIndex.getInlineDescriptor(node)!.name.text;
     } else {
       return node.name.text;
@@ -689,8 +689,8 @@ class InlineExtensionIndex {
   final Map<Reference, Extension> _extensionIndex = {};
   final Map<Reference, ExtensionMemberDescriptor> _extensionMemberIndex = {};
   final Map<Reference, Reference> _extensionTearOffIndex = {};
-  final Map<Reference, InlineClass> _inlineClassIndex = {};
-  final Map<Reference, InlineClassMemberDescriptor> _inlineMemberIndex = {};
+  final Map<Reference, ExtensionTypeDeclaration> _inlineClassIndex = {};
+  final Map<Reference, ExtensionTypeMemberDescriptor> _inlineMemberIndex = {};
   final Map<Reference, Reference> _inlineTearOffIndex = {};
   final Map<Reference, bool> _interopInlineClassIndex = {};
   final Set<Library> _processedExtensionLibraries = {};
@@ -730,8 +730,8 @@ class InlineExtensionIndex {
           }
           isInteropOnType =
               hasJSInteropAnnotation(cls) || hasNativeAnnotation(cls);
-        } else if (onType is InlineType) {
-          final inlineClass = onType.inlineClass;
+        } else if (onType is ExtensionType) {
+          final inlineClass = onType.extensionTypeDeclaration;
           cls = inlineClass;
           isInteropOnType = isInteropInlineClass(inlineClass);
         }
@@ -796,7 +796,7 @@ class InlineExtensionIndex {
   /// - all package:js classes
   /// - dart:js_types types
   /// - @Native types that implement JavaScriptObject
-  bool isInteropInlineClass(InlineClass inlineClass) {
+  bool isInteropInlineClass(ExtensionTypeDeclaration inlineClass) {
     final reference = inlineClass.reference;
     if (_interopInlineClassIndex.containsKey(reference)) {
       return _interopInlineClassIndex[reference]!;
@@ -805,7 +805,7 @@ class InlineExtensionIndex {
     // TODO(srujzs): This iteration is currently needed since
     // `instantiatedRepresentationType` doesn't do this for us. Remove this
     // iteration when the CFE changes this getter.
-    while (repType is InlineType) {
+    while (repType is ExtensionType) {
       repType = repType.instantiatedRepresentationType;
     }
     if (repType is InterfaceType) {
@@ -841,20 +841,20 @@ class InlineExtensionIndex {
   /// `inlineTearOffIndex`.
   void _indexInlineClasses(Library library) {
     if (_processedInlineLibraries.contains(library)) return;
-    for (var inlineClass in library.inlineClasses) {
+    for (var inlineClass in library.extensionTypeDeclarations) {
       if (isInteropInlineClass(inlineClass)) {
-        final descriptorNames = <String, InlineClassMemberDescriptor>{};
+        final descriptorNames = <String, ExtensionTypeMemberDescriptor>{};
         for (var descriptor in inlineClass.members) {
           final reference = descriptor.member;
           _inlineMemberIndex[reference] = descriptor;
           _inlineClassIndex[reference] = inlineClass;
-          if (descriptor.kind == InlineClassMemberKind.Method ||
-              descriptor.kind == InlineClassMemberKind.Constructor ||
-              descriptor.kind == InlineClassMemberKind.TearOff) {
+          if (descriptor.kind == ExtensionTypeMemberKind.Method ||
+              descriptor.kind == ExtensionTypeMemberKind.Constructor ||
+              descriptor.kind == ExtensionTypeMemberKind.TearOff) {
             final descriptorName = descriptor.name.text;
             if (descriptorNames.containsKey(descriptorName)) {
               final previousDesc = descriptorNames[descriptorName]!;
-              if (previousDesc.kind == InlineClassMemberKind.TearOff) {
+              if (previousDesc.kind == ExtensionTypeMemberKind.TearOff) {
                 _inlineTearOffIndex[previousDesc.member] = descriptor.member;
               } else {
                 _inlineTearOffIndex[descriptor.member] = previousDesc.member;
@@ -869,20 +869,20 @@ class InlineExtensionIndex {
     _processedInlineLibraries.add(library);
   }
 
-  InlineClassMemberDescriptor? getInlineDescriptor(Member member) {
-    if (!member.isInlineClassMember) return null;
+  ExtensionTypeMemberDescriptor? getInlineDescriptor(Member member) {
+    if (!member.isExtensionTypeMember) return null;
     _indexInlineClasses(member.enclosingLibrary);
     return _inlineMemberIndex[member.reference];
   }
 
-  InlineClass? getInlineClass(Member member) {
-    if (!member.isInlineClassMember) return null;
+  ExtensionTypeDeclaration? getInlineClass(Member member) {
+    if (!member.isExtensionTypeMember) return null;
     _indexInlineClasses(member.enclosingLibrary);
     return _inlineClassIndex[member.reference];
   }
 
   Reference? getInlineMemberForTearOff(Member member) {
-    if (!member.isInlineClassMember) return null;
+    if (!member.isExtensionTypeMember) return null;
     _indexInlineClasses(member.enclosingLibrary);
     return _inlineTearOffIndex[member.reference];
   }
@@ -894,19 +894,19 @@ class InlineExtensionIndex {
     if (node.isExtensionMember) {
       var descriptor = getExtensionDescriptor(node);
       return descriptor != null && !descriptor.isStatic;
-    } else if (node.isInlineClassMember) {
+    } else if (node.isExtensionTypeMember) {
       var descriptor = getInlineDescriptor(node);
       return descriptor != null &&
           !descriptor.isStatic &&
-          descriptor.kind != InlineClassMemberKind.Constructor &&
-          descriptor.kind != InlineClassMemberKind.Factory;
+          descriptor.kind != ExtensionTypeMemberKind.Constructor &&
+          descriptor.kind != ExtensionTypeMemberKind.Factory;
     }
     return false;
   }
 
-  bool _isOneOfKinds(Procedure node, InlineClassMemberKind inlineKind,
+  bool _isOneOfKinds(Procedure node, ExtensionTypeMemberKind inlineKind,
       ExtensionMemberKind extensionKind, ProcedureKind procedureKind) {
-    if (node.isInlineClassMember) {
+    if (node.isExtensionTypeMember) {
       return getInlineDescriptor(node)?.kind == inlineKind;
     } else if (node.isExtensionMember) {
       return getExtensionDescriptor(node)?.kind == extensionKind;
@@ -917,25 +917,25 @@ class InlineExtensionIndex {
 
   bool isGetter(Procedure node) => _isOneOfKinds(
       node,
-      InlineClassMemberKind.Getter,
+      ExtensionTypeMemberKind.Getter,
       ExtensionMemberKind.Getter,
       ProcedureKind.Getter);
 
   bool isSetter(Procedure node) => _isOneOfKinds(
       node,
-      InlineClassMemberKind.Setter,
+      ExtensionTypeMemberKind.Setter,
       ExtensionMemberKind.Setter,
       ProcedureKind.Setter);
 
   bool isMethod(Procedure node) => _isOneOfKinds(
       node,
-      InlineClassMemberKind.Method,
+      ExtensionTypeMemberKind.Method,
       ExtensionMemberKind.Method,
       ProcedureKind.Method);
 
   bool isOperator(Procedure node) => _isOneOfKinds(
       node,
-      InlineClassMemberKind.Operator,
+      ExtensionTypeMemberKind.Operator,
       ExtensionMemberKind.Operator,
       ProcedureKind.Operator);
 
@@ -945,11 +945,11 @@ class InlineExtensionIndex {
   /// and if not, we check that it's a non-literal constructor.
   bool _isStaticInteropConstructor(Procedure node, {required bool literal}) {
     if (!node.isExternal) return false;
-    if (node.isInlineClassMember) {
+    if (node.isExtensionTypeMember) {
       final kind = getInlineDescriptor(node)?.kind;
       final namedParams = node.function.namedParameters;
-      return (kind == InlineClassMemberKind.Constructor ||
-                  kind == InlineClassMemberKind.Factory) &&
+      return (kind == ExtensionTypeMemberKind.Constructor ||
+                  kind == ExtensionTypeMemberKind.Factory) &&
               literal
           ? namedParams.isNotEmpty
           : namedParams.isEmpty;
@@ -967,4 +967,15 @@ class InlineExtensionIndex {
 
   bool isNonLiteralConstructor(Procedure node) =>
       _isStaticInteropConstructor(node, literal: false);
+
+  bool isStaticInteropType(DartType type) {
+    if (type is InterfaceType) {
+      return hasStaticInteropAnnotation(type.classNode);
+    } else if (type is ExtensionType) {
+      return isInteropInlineClass(type.extensionTypeDeclaration);
+    } else if (type is TypeParameterType) {
+      return isStaticInteropType(type.bound);
+    }
+    return false;
+  }
 }

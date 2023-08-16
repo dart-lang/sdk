@@ -149,7 +149,7 @@ ClassPtr BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass,
   return loader_->LookupClass(library_lookup_handle_, klass);
 }
 
-LibraryIndex::LibraryIndex(const ExternalTypedData& kernel_data)
+LibraryIndex::LibraryIndex(const TypedDataView& kernel_data)
     : reader_(kernel_data) {
   intptr_t data_size = reader_.size();
 
@@ -163,14 +163,7 @@ LibraryIndex::LibraryIndex(const ExternalTypedData& kernel_data)
   source_references_offset_ = reader_.ReadUInt32At(class_index_offset_ - 4);
 }
 
-ClassIndex::ClassIndex(const ProgramBinary& binary,
-                       intptr_t class_offset,
-                       intptr_t class_size)
-    : reader_(binary) {
-  Init(class_offset, class_size);
-}
-
-ClassIndex::ClassIndex(const ExternalTypedData& library_kernel_data,
+ClassIndex::ClassIndex(const TypedDataBase& library_kernel_data,
                        intptr_t class_offset,
                        intptr_t class_size)
     : reader_(library_kernel_data) {
@@ -196,7 +189,7 @@ KernelLoader::KernelLoader(Program* program,
       library_kernel_offset_(-1),  // Set to the correct value in LoadLibrary
       correction_offset_(-1),      // Set to the correct value in LoadLibrary
       loading_native_wrappers_library_(false),
-      library_kernel_data_(ExternalTypedData::ZoneHandle(zone_)),
+      library_kernel_data_(TypedDataView::ZoneHandle(zone_)),
       kernel_program_info_(KernelProgramInfo::ZoneHandle(zone_)),
       translation_helper_(this, thread_, Heap::kOld),
       helper_(zone_,
@@ -210,9 +203,6 @@ KernelLoader::KernelLoader(Program* program,
                        /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
       static_field_value_(Object::Handle(Z)),
-      pragma_class_(Class::Handle(Z)),
-      pragma_name_field_(Field::Handle(Z)),
-      pragma_options_field_(Field::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)) {
   if (!program->is_single_program()) {
@@ -244,9 +234,11 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
     return Object::Handle(loader.LoadProgram(process_pending_classes));
   }
 
-  kernel::Reader reader(program->binary());
   GrowableArray<intptr_t> subprogram_file_starts;
-  index_programs(&reader, &subprogram_file_starts);
+  {
+    kernel::Reader reader(program->binary());
+    index_programs(&reader, &subprogram_file_starts);
+  }
 
   Zone* zone = thread->zone();
   Library& library = Library::Handle(zone);
@@ -255,15 +247,15 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
   // First index all source tables.
   UriToSourceTable uri_to_source_table;
   UriToSourceTableEntry wrapper;
+  Thread* thread_ = Thread::Current();
+  Zone* zone_ = thread_->zone();
   for (intptr_t i = subprogram_count - 1; i >= 0; --i) {
     intptr_t subprogram_start = subprogram_file_starts.At(i);
     intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
-    Thread* thread_ = Thread::Current();
-    Zone* zone_ = thread_->zone();
+    const auto& component = TypedDataBase::Handle(
+        program->binary().ViewFromTo(subprogram_start, subprogram_end));
     TranslationHelper translation_helper(thread);
-    KernelReaderHelper helper_(
-        zone_, &translation_helper,
-        program->binary().SubView(subprogram_start, subprogram_end), 0);  // ,
+    KernelReaderHelper helper_(zone_, &translation_helper, component, 0);
     const intptr_t source_table_size = helper_.SourceTableSize();
     for (intptr_t index = 0; index < source_table_size; ++index) {
       const String& uri_string = helper_.SourceTableUriFor(index);
@@ -305,9 +297,9 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
   for (intptr_t i = subprogram_count - 1; i >= 0; --i) {
     intptr_t subprogram_start = subprogram_file_starts.At(i);
     intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
-    reader.set_raw_buffer(program->kernel_data() + subprogram_start);
-    reader.set_size(subprogram_end - subprogram_start);
-    reader.set_offset(0);
+    const auto& component = TypedDataBase::Handle(
+        program->binary().ViewFromTo(subprogram_start, subprogram_end));
+    Reader reader(component);
     const char* error = nullptr;
     std::unique_ptr<Program> subprogram = Program::ReadFrom(&reader, &error);
     if (subprogram == nullptr) {
@@ -355,13 +347,13 @@ void KernelLoader::index_programs(
 StringPtr KernelLoader::FindSourceForScript(const uint8_t* kernel_buffer,
                                             intptr_t kernel_buffer_length,
                                             const String& uri) {
+  const auto& binary = ExternalTypedData::Handle(ExternalTypedData::New(
+      kExternalTypedDataUint8ArrayCid, const_cast<uint8_t*>(kernel_buffer),
+      kernel_buffer_length, Heap::kNew));
+
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   TranslationHelper translation_helper(thread);
-  // Note: it is okay to have typed_data be nullptr here because we are not
-  // creating any long living views into the kernel_buffer.
-  const ProgramBinary binary = {/*typed_data=*/nullptr, kernel_buffer,
-                                kernel_buffer_length};
   KernelReaderHelper reader(zone, &translation_helper, binary, 0);
   intptr_t source_table_size = reader.SourceTableSize();
   for (intptr_t i = 0; i < source_table_size; ++i) {
@@ -378,12 +370,14 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
   const Array& scripts =
       Array::Handle(Z, Array::New(source_table_size, Heap::kOld));
 
+  const auto& binary = program_->binary();
+
   // Copy the Kernel string offsets out of the binary and into the VM's heap.
   ASSERT(program_->string_table_offset() >= 0);
-  Reader reader(program_->binary());
+  Reader reader(binary);
   reader.set_offset(program_->string_table_offset());
   intptr_t count = reader.ReadUInt() + 1;
-  TypedData& offsets = TypedData::Handle(
+  const auto& offsets = TypedData::Handle(
       Z, TypedData::New(kTypedDataUint32ArrayCid, count, Heap::kOld));
   offsets.SetUint32(0, 0);
   intptr_t end_offset = 0;
@@ -393,15 +387,12 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
   }
 
   // Create view of the string data.
-  const ExternalTypedData& data = ExternalTypedData::Handle(
-      Z,
-      reader.ExternalDataFromTo(reader.offset(), reader.offset() + end_offset));
+  const auto& string_data = TypedDataView::Handle(
+      reader.ViewFromTo(reader.offset(), reader.offset() + end_offset));
 
-  // Create a view of the constants table (first part)
-  // and the constant table index (second part).
-  const ExternalTypedData& constants_table = ExternalTypedData::Handle(
-      Z, reader.ExternalDataFromTo(program_->constant_table_offset(),
-                                   program_->name_table_offset()));
+  // Create a view of the constants table.
+  const auto& constants_table = TypedDataView::Handle(reader.ViewFromTo(
+      program_->constant_table_offset(), program_->name_table_offset()));
 
   // Copy the canonical names into the VM's heap.  Encode them as unsigned, so
   // the parent indexes are adjusted when extracted.
@@ -414,15 +405,15 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
   }
 
   // Create view of metadata payloads.
-  const ExternalTypedData& metadata_payloads = ExternalTypedData::Handle(
-      Z, reader.ExternalDataFromTo(program_->metadata_payloads_offset(),
-                                   program_->metadata_mappings_offset()));
+  const auto& metadata_payloads = TypedDataView::Handle(
+      reader.ViewFromTo(program_->metadata_payloads_offset(),
+                        program_->metadata_mappings_offset()));
+
   ASSERT(Utils::IsAligned(metadata_payloads.DataAddr(0), kWordSize));
 
   // Create view of metadata mappings.
-  const ExternalTypedData& metadata_mappings = ExternalTypedData::Handle(
-      Z, reader.ExternalDataFromTo(program_->metadata_mappings_offset(),
-                                   program_->string_table_offset()));
+  const auto& metadata_mappings = TypedDataView::Handle(reader.ViewFromTo(
+      program_->metadata_mappings_offset(), program_->string_table_offset()));
 
 #if defined(DEBUG)
   MetadataHelper::VerifyMetadataMappings(metadata_mappings);
@@ -438,10 +429,8 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
              kClassesPerLibraryGuess * program_->library_count(), Heap::kOld));
 
   kernel_program_info_ = KernelProgramInfo::New(
-      offsets, data, names, metadata_payloads, metadata_mappings,
-      constants_table, scripts, libraries_cache, classes_cache,
-      program_->typed_data() == nullptr ? Object::null_object()
-                                        : *program_->typed_data());
+      binary, string_data, metadata_payloads, metadata_mappings,
+      constants_table, offsets, names, scripts, libraries_cache, classes_cache);
 
   H.InitFromKernelProgramInfo(kernel_program_info_);
 
@@ -452,8 +441,8 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
   }
 }
 
-KernelLoader::KernelLoader(const Script& script,
-                           const ExternalTypedData& kernel_data,
+KernelLoader::KernelLoader(const KernelProgramInfo& kernel_program_info,
+                           const TypedDataBase& kernel_data,
                            intptr_t data_program_offset)
     : program_(nullptr),
       thread_(Thread::Current()),
@@ -463,11 +452,11 @@ KernelLoader::KernelLoader(const Script& script,
       library_kernel_offset_(data_program_offset),
       correction_offset_(0),
       loading_native_wrappers_library_(false),
-      library_kernel_data_(ExternalTypedData::ZoneHandle(zone_)),
+      library_kernel_data_(TypedDataView::ZoneHandle(zone_)),
       kernel_program_info_(
-          KernelProgramInfo::ZoneHandle(zone_, script.kernel_program_info())),
+          KernelProgramInfo::ZoneHandle(zone_, kernel_program_info.ptr())),
       translation_helper_(this, thread_, Heap::kOld),
-      helper_(zone_, &translation_helper_, script, kernel_data, 0),
+      helper_(zone_, &translation_helper_, kernel_data, 0),
       constant_reader_(&helper_, &active_class_),
       type_translator_(&helper_,
                        &constant_reader_,
@@ -475,14 +464,10 @@ KernelLoader::KernelLoader(const Script& script,
                        /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
       static_field_value_(Object::Handle(Z)),
-      pragma_class_(Class::Handle(Z)),
-      pragma_name_field_(Field::Handle(Z)),
-      pragma_options_field_(Field::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)) {
   ASSERT(T.active_class_ == &active_class_);
   T.finalize_ = false;
-  library_kernel_data_ = kernel_data.ptr();
   H.InitFromKernelProgramInfo(kernel_program_info_);
 }
 
@@ -526,12 +511,6 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
         return H.thread()->StealStickyError();
       }
     }
-
-    // Ensure that `pragma` class is looked up before we install the constants
-    // table: Once the constants table is installed finalization of classes will
-    // eagerly want to evaluate constants and doing so will require those two
-    // classes to be available.
-    EnsurePragmaClassIsLookedUp();
 
     // Sets the constants array to an empty array with the length equal to
     // the number of constants. The array gets filled lazily while reading
@@ -614,10 +593,9 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
   // kernel data and parent.
   const auto& eval_script = Script::Handle(Z, function.script());
   ASSERT(!expression_evaluation_library_.IsNull());
-  auto& kernel_data = ExternalTypedData::Handle(
-      Z, expression_evaluation_library_.kernel_data());
-  intptr_t kernel_offset = expression_evaluation_library_.kernel_offset();
-  function.SetKernelDataAndScript(eval_script, kernel_data, kernel_offset);
+  function.SetKernelLibraryAndEvalScript(
+      eval_script, kernel_program_info_,
+      expression_evaluation_library_.kernel_library_index());
 
   function.set_owner(real_class);
 
@@ -677,18 +655,21 @@ void KernelLoader::FindModifiedLibraries(Program* program,
       loader.walk_incremental_kernel(modified_libs, is_empty_program,
                                      p_num_classes, p_num_procedures);
     }
-    kernel::Reader reader(program->binary());
+
     GrowableArray<intptr_t> subprogram_file_starts;
-    index_programs(&reader, &subprogram_file_starts);
+    {
+      kernel::Reader reader(program->binary());
+      index_programs(&reader, &subprogram_file_starts);
+    }
 
     // Create "fake programs" for each sub-program.
     intptr_t subprogram_count = subprogram_file_starts.length() - 1;
     for (intptr_t i = 0; i < subprogram_count; ++i) {
       intptr_t subprogram_start = subprogram_file_starts.At(i);
       intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
-      reader.set_raw_buffer(program->kernel_data() + subprogram_start);
-      reader.set_size(subprogram_end - subprogram_start);
-      reader.set_offset(0);
+      const auto& component = TypedDataBase::Handle(
+          program->binary().ViewFromTo(subprogram_start, subprogram_end));
+      Reader reader(component);
       const char* error = nullptr;
       std::unique_ptr<Program> subprogram = Program::ReadFrom(&reader, &error);
       if (subprogram == nullptr) {
@@ -726,7 +707,7 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
     if (collect_library_stats) {
       intptr_t library_end = library_offset(i + 1);
       library_kernel_data_ =
-          helper_.reader_.ExternalDataFromTo(kernel_offset, library_end);
+          helper_.reader_.ViewFromTo(kernel_offset, library_end);
       LibraryIndex library_index(library_kernel_data_);
       num_classes += library_index.class_count();
       num_procedures += library_index.procedure_count();
@@ -844,11 +825,16 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   }
   library.set_nnbd_compiled_mode(mode);
 
-  library_kernel_data_ = helper_.reader_.ExternalDataFromTo(
+  library_kernel_data_ = helper_.reader_.ViewFromTo(
       library_kernel_offset_, library_kernel_offset_ + library_size);
-  library.set_kernel_data(library_kernel_data_);
-  library.set_kernel_offset(library_kernel_offset_);
+  library.set_kernel_library_index(index);
+  library.set_kernel_program_info(kernel_program_info_);
 
+  const intptr_t start_offset =
+      kernel_program_info_.KernelLibraryStartOffset(index);
+  const intptr_t end_offset =
+      kernel_program_info_.KernelLibraryEndOffset(index);
+  library_kernel_data_ = helper_.reader_.ViewFromTo(start_offset, end_offset);
   LibraryIndex library_index(library_kernel_data_);
   intptr_t class_count = library_index.class_count();
 
@@ -982,19 +968,6 @@ void KernelLoader::FinishTopLevelClassLoading(
     helper_.ReadByte();                    // skip flags.
     helper_.SkipTypeParametersList();      // skip type parameter list.
     helper_.SkipDartType();                // skip on-type.
-    Tag tag = helper_.ReadTag();
-    if (tag != kNothing) {
-      helper_.SkipListOfDartTypes();                // skip shown types.
-      helper_.SkipListOfCanonicalNameReferences();  // skip shown members.
-      helper_.SkipListOfCanonicalNameReferences();  // skip shown getters.
-      helper_.SkipListOfCanonicalNameReferences();  // skip shown setters.
-      helper_.SkipListOfCanonicalNameReferences();  // skip shown operators.
-      helper_.SkipListOfDartTypes();                // skip hidden types.
-      helper_.SkipListOfCanonicalNameReferences();  // skip hidden members.
-      helper_.SkipListOfCanonicalNameReferences();  // skip hidden getters.
-      helper_.SkipListOfCanonicalNameReferences();  // skip hidden setters.
-      helper_.SkipListOfCanonicalNameReferences();  // skip hidden operators.
-    }
 
     const intptr_t extension_member_count = helper_.ReadListLength();
     for (intptr_t j = 0; j < extension_member_count; ++j) {
@@ -1005,8 +978,8 @@ void KernelLoader::FinishTopLevelClassLoading(
     }
   }
 
-  const intptr_t inline_class_count = helper_.ReadListLength();
-  for (intptr_t i = 0; i < inline_class_count; ++i) {
+  const intptr_t extension_type_declaration_count = helper_.ReadListLength();
+  for (intptr_t i = 0; i < extension_type_declaration_count; ++i) {
     helper_.ReadTag();                     // read tag.
     helper_.SkipCanonicalNameReference();  // skip canonical name.
     helper_.SkipStringReference();         // skip name.
@@ -1019,8 +992,8 @@ void KernelLoader::FinishTopLevelClassLoading(
     helper_.SkipStringReference();         // skip representation name.
     helper_.SkipListOfDartTypes();         // skip implements types.
 
-    const intptr_t inline_class_member_count = helper_.ReadListLength();
-    for (intptr_t j = 0; j < inline_class_member_count; ++j) {
+    const intptr_t extension_type_member_count = helper_.ReadListLength();
+    for (intptr_t j = 0; j < extension_type_member_count; ++j) {
       helper_.SkipName();                    // skip name.
       helper_.ReadByte();                    // read kind.
       helper_.ReadByte();                    // read flags.
@@ -1044,11 +1017,8 @@ void KernelLoader::FinishTopLevelClassLoading(
 
     field_helper.ReadUntilExcluding(FieldHelper::kAnnotations);
     intptr_t annotation_count = helper_.ReadListLength();
-    bool has_pragma_annotation;
-    ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
-                      /*is_invisible_function=*/nullptr,
-                      /*is_isolate_unsendable=*/nullptr,
-                      &has_pragma_annotation);
+    uint32_t pragma_bits = 0;
+    ReadVMAnnotations(library, annotation_count, &pragma_bits);
     field_helper.SetJustRead(FieldHelper::kAnnotations);
 
     field_helper.ReadUntilExcluding(FieldHelper::kType);
@@ -1067,7 +1037,7 @@ void KernelLoader::FinishTopLevelClassLoading(
                               script_class, field_helper.position_,
                               field_helper.end_position_));
     field.set_kernel_offset(field_offset);
-    field.set_has_pragma(has_pragma_annotation);
+    field.set_has_pragma(HasPragma::decode(pragma_bits));
     field.set_is_extension_member(is_extension_member);
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
@@ -1090,7 +1060,7 @@ void KernelLoader::FinishTopLevelClassLoading(
     GenerateFieldAccessors(toplevel_class, field, &field_helper);
     IG->RegisterStaticField(field, static_field_value_);
 
-    if ((FLAG_enable_mirrors || has_pragma_annotation) &&
+    if ((FLAG_enable_mirrors || HasPragma::decode(pragma_bits)) &&
         annotation_count > 0) {
       library.AddMetadata(field, field_offset);
     }
@@ -1359,15 +1329,12 @@ void KernelLoader::LoadClass(const Library& library,
 
   class_helper.ReadUntilExcluding(ClassHelper::kAnnotations);
   intptr_t annotation_count = helper_.ReadListLength();
-  bool has_pragma_annotation = false;
-  bool is_isolate_unsendable = false;
-  ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
-                    /*is_invisible_function=*/nullptr, &is_isolate_unsendable,
-                    &has_pragma_annotation);
-  if (is_isolate_unsendable) {
+  uint32_t pragma_bits = 0;
+  ReadVMAnnotations(library, annotation_count, &pragma_bits);
+  if (IsolateUnsendablePragma::decode(pragma_bits)) {
     out_class->set_is_isolate_unsendable_due_to_pragma(true);
   }
-  if (has_pragma_annotation) {
+  if (HasPragma::decode(pragma_bits)) {
     out_class->set_has_pragma(true);
   }
   class_helper.SetJustRead(ClassHelper::kAnnotations);
@@ -1383,7 +1350,8 @@ void KernelLoader::LoadClass(const Library& library,
     class_helper.SetJustRead(ClassHelper::kTypeParameters);
   }
 
-  if ((FLAG_enable_mirrors || has_pragma_annotation) && annotation_count > 0) {
+  if ((FLAG_enable_mirrors || HasPragma::decode(pragma_bits)) &&
+      annotation_count > 0) {
     library.AddMetadata(*out_class, class_offset - correction_offset_);
   }
 
@@ -1442,12 +1410,9 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field_helper.SetJustRead(FieldHelper::kName);
 
       field_helper.ReadUntilExcluding(FieldHelper::kAnnotations);
-      intptr_t annotation_count = helper_.ReadListLength();
-      bool has_pragma_annotation;
-      ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
-                        /*is_invisible_function=*/nullptr,
-                        /*is_isolate_unsendable=*/nullptr,
-                        &has_pragma_annotation);
+      const intptr_t annotation_count = helper_.ReadListLength();
+      uint32_t pragma_bits = 0;
+      ReadVMAnnotations(library, annotation_count, &pragma_bits);
       field_helper.SetJustRead(FieldHelper::kAnnotations);
 
       field_helper.ReadUntilExcluding(FieldHelper::kType);
@@ -1469,7 +1434,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                         script_class, type, field_helper.position_,
                         field_helper.end_position_));
       field.set_kernel_offset(field_offset);
-      field.set_has_pragma(has_pragma_annotation);
+      field.set_has_pragma(HasPragma::decode(pragma_bits));
       field.set_is_covariant(field_helper.IsCovariant());
       field.set_is_generic_covariant_impl(
           field_helper.IsGenericCovariantImpl());
@@ -1494,7 +1459,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       if (field.is_static()) {
         IG->RegisterStaticField(field, static_field_value_);
       }
-      if ((FLAG_enable_mirrors || has_pragma_annotation) &&
+      if ((FLAG_enable_mirrors || HasPragma::decode(pragma_bits)) &&
           annotation_count > 0) {
         library.AddMetadata(field, field_offset);
       }
@@ -1569,12 +1534,9 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     ActiveMemberScope active_member_scope(&active_class_, nullptr);
     ConstructorHelper constructor_helper(&helper_);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kAnnotations);
-    intptr_t annotation_count = helper_.ReadListLength();
-    bool has_pragma_annotation;
-    bool is_invisible_function;
-    ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
-                      &is_invisible_function, /*isolate_unsendable=*/nullptr,
-                      &has_pragma_annotation);
+    const intptr_t annotation_count = helper_.ReadListLength();
+    uint32_t pragma_bits = 0;
+    ReadVMAnnotations(library, annotation_count, &pragma_bits);
     constructor_helper.SetJustRead(ConstructorHelper::kAnnotations);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
 
@@ -1602,8 +1564,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     function.set_end_token_pos(constructor_helper.end_position_);
     function.set_kernel_offset(constructor_offset);
     signature.set_result_type(T.ReceiverType(klass));
-    function.set_has_pragma(has_pragma_annotation);
-    function.set_is_visible(!is_invisible_function);
+    function.set_has_pragma(HasPragma::decode(pragma_bits));
+    function.set_is_visible(!InvisibleFunctionPragma::decode(pragma_bits));
 
     FunctionNodeHelper function_node_helper(&helper_);
     function_node_helper.ReadUntilExcluding(
@@ -1637,7 +1599,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     }
     functions_.Add(&function);
 
-    if ((FLAG_enable_mirrors || has_pragma_annotation) &&
+    if ((FLAG_enable_mirrors || HasPragma::decode(pragma_bits)) &&
         annotation_count > 0) {
       library.AddMetadata(function, constructor_offset);
     }
@@ -1681,17 +1643,20 @@ void KernelLoader::FinishLoading(const Class& klass) {
   ASSERT(klass.IsTopLevel() || (klass.kernel_offset() > 0));
 
   Zone* zone = Thread::Current()->zone();
-  const Script& script = Script::Handle(zone, klass.script());
   const Library& library = Library::Handle(zone, klass.library());
   const Class& toplevel_class = Class::Handle(zone, library.toplevel_class());
-  const ExternalTypedData& library_kernel_data =
-      ExternalTypedData::Handle(zone, library.kernel_data());
+  const auto& library_kernel_data =
+      TypedDataView::Handle(zone, library.KernelLibrary());
   ASSERT(!library_kernel_data.IsNull());
-  const intptr_t library_kernel_offset = library.kernel_offset();
-  ASSERT(library_kernel_offset > 0);
 
-  KernelLoader kernel_loader(script, library_kernel_data,
+  const auto& kernel_info =
+      KernelProgramInfo::Handle(zone, klass.KernelProgramInfo());
+  const intptr_t library_kernel_offset =
+      kernel_info.KernelLibraryStartOffset(library.kernel_library_index());
+
+  KernelLoader kernel_loader(kernel_info, library_kernel_data,
                              library_kernel_offset);
+
   LibraryIndex library_index(library_kernel_data);
 
   if (klass.IsTopLevel()) {
@@ -1721,23 +1686,15 @@ void KernelLoader::FinishLoading(const Class& klass) {
 //
 // Output parameters:
 //
-//   `is_invisible_function`: if `@pragma('vm:invisible)` was found.
+//   `native_name`: the native name if @pragma('vm:external-name)` was found.
 //
-//   `native_name`: set if @pragma('vm:external-name)` was identified.
-//
-//   `has_pragma_annotation`: if `@pragma(...)` was found (no information
-//   is given on the kind of pragma directive).
+//   `pragma_bits`: any recognized pragma that was found
 //
 void KernelLoader::ReadVMAnnotations(const Library& library,
                                      intptr_t annotation_count,
-                                     String* native_name,
-                                     bool* is_invisible_function,
-                                     bool* is_isolate_unsendable,
-                                     bool* has_pragma_annotation) {
-  if (is_invisible_function != nullptr) {
-    *is_invisible_function = false;
-  }
-  *has_pragma_annotation = false;
+                                     uint32_t* pragma_bits,
+                                     String* native_name) {
+  *pragma_bits = 0;
   if (annotation_count == 0) {
     return;
   }
@@ -1760,24 +1717,18 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
       intptr_t options_index = -1;
       if (constant_reader.IsPragmaInstanceConstant(
               index_in_constant_table, &name_index, &options_index)) {
-        *has_pragma_annotation = true;
+        *pragma_bits = HasPragma::update(true, *pragma_bits);
 
-        if (is_invisible_function != nullptr) {
-          if (constant_reader.IsStringConstant(name_index, "vm:invisible")) {
-            *is_invisible_function = true;
-          }
+        if (constant_reader.IsStringConstant(name_index, "vm:invisible")) {
+          *pragma_bits = InvisibleFunctionPragma::update(true, *pragma_bits);
         }
-        if (native_name != nullptr) {
-          if (constant_reader.IsStringConstant(name_index,
-                                               "vm:external-name")) {
-            constant_reader.GetStringConstant(options_index, native_name);
-          }
+        if (constant_reader.IsStringConstant(name_index, "vm:external-name")) {
+          *pragma_bits = ExternalNamePragma::update(true, *pragma_bits);
+          constant_reader.GetStringConstant(options_index, native_name);
         }
-        if (is_isolate_unsendable != nullptr) {
-          if (constant_reader.IsStringConstant(name_index,
-                                               "vm:isolate-unsendable")) {
-            *is_isolate_unsendable = true;
-          }
+        if (constant_reader.IsStringConstant(name_index,
+                                             "vm:isolate-unsendable")) {
+          *pragma_bits = IsolateUnsendablePragma::update(true, *pragma_bits);
         }
       }
     } else {
@@ -1814,12 +1765,9 @@ void KernelLoader::LoadProcedure(const Library& library,
   bool is_extension_member = procedure_helper.IsExtensionMember();
   bool is_synthetic = procedure_helper.IsSynthetic();
   String& native_name = String::Handle(Z);
-  bool has_pragma_annotation;
-  bool is_invisible_function;
+  uint32_t pragma_bits = 0;
   const intptr_t annotation_count = helper_.ReadListLength();
-  ReadVMAnnotations(library, annotation_count, &native_name,
-                    &is_invisible_function, /*isolate_unsendable=*/nullptr,
-                    &has_pragma_annotation);
+  ReadVMAnnotations(library, annotation_count, &pragma_bits, &native_name);
   is_external = is_external && native_name.IsNull();
   procedure_helper.SetJustRead(ProcedureHelper::kAnnotations);
   const Object& script_class =
@@ -1839,12 +1787,12 @@ void KernelLoader::LoadProcedure(const Library& library,
                        is_abstract, is_external,
                        !native_name.IsNull(),  // is_native
                        script_class, procedure_helper.start_position_));
-  function.set_has_pragma(has_pragma_annotation);
+  function.set_has_pragma(HasPragma::decode(pragma_bits));
   function.set_end_token_pos(procedure_helper.end_position_);
   function.set_is_synthetic(procedure_helper.IsNoSuchMethodForwarder() ||
                             procedure_helper.IsMemberSignature() ||
                             is_synthetic);
-  function.set_is_visible(!is_invisible_function);
+  function.set_is_visible(!InvisibleFunctionPragma::decode(pragma_bits));
   if (register_function) {
     functions_.Add(&function);
   } else {
@@ -1925,11 +1873,11 @@ const Object& KernelLoader::ClassForScriptAt(const Class& klass,
     // Use cache for patch classes. This works best for in-order usages.
     PatchClass& patch_class = PatchClass::ZoneHandle(Z);
     patch_class ^= patch_classes_.At(source_uri_index);
-    if (patch_class.IsNull() || patch_class.origin_class() != klass.ptr()) {
-      ASSERT(!library_kernel_data_.IsNull());
-      patch_class = PatchClass::New(klass, correct_script);
-      patch_class.set_library_kernel_data(library_kernel_data_);
-      patch_class.set_library_kernel_offset(library_kernel_offset_);
+    if (patch_class.IsNull() || patch_class.wrapped_class() != klass.ptr()) {
+      const auto& lib = Library::Handle(klass.library());
+      patch_class =
+          PatchClass::New(klass, kernel_program_info_, correct_script);
+      patch_class.set_kernel_library_index(lib.kernel_library_index());
       patch_classes_.SetAt(source_uri_index, patch_class);
     }
     return patch_class;
@@ -1941,10 +1889,8 @@ ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
                                      UriToSourceTable* uri_to_source_table) {
   const String& uri_string = helper_.SourceTableUriFor(index);
   const String& import_uri_string = helper_.SourceTableImportUriFor(index);
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  ExternalTypedData& constant_coverage =
-      ExternalTypedData::Handle(Z, helper_.GetConstantCoverageFor(index));
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  auto& constant_coverage = TypedDataView::Handle(Z);
+  NOT_IN_PRODUCT(constant_coverage = helper_.GetConstantCoverageFor(index));
 
   String& sources = String::Handle(Z);
   TypedData& line_starts = TypedData::Handle(Z);
@@ -1987,13 +1933,8 @@ ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
 
   const Script& script =
       Script::Handle(Z, Script::New(import_uri_string, uri_string, sources));
-  script.set_kernel_script_index(index);
-  script.set_kernel_program_info(kernel_program_info_);
-  script.set_line_starts(line_starts);
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  script.set_constant_coverage(constant_coverage);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  script.set_debug_positions(Array::null_array());
+  script.InitializeFromKernel(kernel_program_info_, index, line_starts,
+                              constant_coverage);
   return script.ptr();
 }
 
@@ -2231,12 +2172,12 @@ FunctionPtr CreateFieldInitializerFunction(Thread* thread,
   // Compare https://codereview.chromium.org//1317753004
   const Script& script = Script::Handle(zone, field.Script());
   const Class& field_owner = Class::Handle(zone, field.Owner());
-  const PatchClass& initializer_owner =
-      PatchClass::Handle(zone, PatchClass::New(field_owner, script));
+  const auto& kernel_program_info =
+      KernelProgramInfo::Handle(zone, field.KernelProgramInfo());
+  const PatchClass& initializer_owner = PatchClass::Handle(
+      zone, PatchClass::New(field_owner, kernel_program_info, script));
   const Library& lib = Library::Handle(zone, field_owner.library());
-  initializer_owner.set_library_kernel_data(
-      ExternalTypedData::Handle(zone, lib.kernel_data()));
-  initializer_owner.set_library_kernel_offset(lib.kernel_offset());
+  initializer_owner.set_kernel_library_index(lib.kernel_library_index());
 
   // Create a static initializer.
   FunctionType& signature = FunctionType::Handle(zone, FunctionType::New());
