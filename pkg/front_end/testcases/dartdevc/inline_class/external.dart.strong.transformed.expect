@@ -5,6 +5,7 @@ import "dart:js_interop" as js_;
 import "dart:_js_annotations" as _js;
 import "dart:core" as core;
 import "dart:js_util" as js_2;
+import "dart:_js_helper" as _js2;
 
 import "dart:js_interop";
 
@@ -40,10 +41,10 @@ extension type B(self::A a) {
 }
 external static inline-class-member method B|(self::A a) → self::B /* = self::A */;
 static inline-class-member method B|_#new#tearOff(self::A a) → self::B /* = self::A */
-  return js_2::_callConstructorUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), a);
+  return js_2::_callConstructorUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), a);
 external static inline-class-member method B|named(core::int i) → self::B /* = self::A */;
 static inline-class-member method B|_#named#tearOff(core::int i) → self::B /* = self::A */
-  return js_2::_callConstructorUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), i);
+  return js_2::_callConstructorUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), i);
 external static inline-class-member method B|get#field(lowered self::A #this) → self::A;
 external static inline-class-member method B|set#field(lowered self::A #this, self::A #externalFieldValue) → void;
 external static inline-class-member method B|method(lowered final self::B /* = self::A */ #this) → self::A;
@@ -61,20 +62,20 @@ external static inline-class-member method B|staticGenericMethod<T extends self:
 external static inline-class-member get B|staticGetter() → self::B /* = self::A */;
 external static inline-class-member set B|staticSetter(self::B /* = self::A */ b) → void;
 static method method(self::A a) → void {
-  self::B /* = self::A */ b1 = js_2::_callConstructorUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), a);
-  self::B /* = self::A */ b2 = js_2::_callConstructorUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), 0);
+  self::B /* = self::A */ b1 = js_2::_callConstructorUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), a);
+  self::B /* = self::A */ b2 = js_2::_callConstructorUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), 0);
   a = js_2::getProperty<self::A>(b1, "field");
   js_2::setProperty<self::A>(b1, "field", a);
   a = js_2::_callMethodUnchecked0<self::A>(b1, "method");
   b2 = js_2::callMethod<self::B /* = self::A */>(b2, "genericMethod", <dynamic>[b2]);
   b1 = js_2::getProperty<self::B /* = self::A */>(b2, "getter");
   js_2::setProperty<self::B /* = self::A */>(b1, "setter", b2);
-  a = js_2::getProperty<self::A>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticField");
-  js_2::setProperty<self::A>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticField", a);
-  a = js_2::_callMethodUnchecked0<self::A>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticMethod");
-  b2 = js_2::callMethod<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticGenericMethod", <dynamic>[b2]);
-  b1 = js_2::getProperty<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticGetter");
-  js_2::setProperty<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(js_2::globalThis, "B"), "staticSetter", b2);
+  a = js_2::getProperty<self::A>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticField");
+  js_2::setProperty<self::A>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticField", a);
+  a = js_2::_callMethodUnchecked0<self::A>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticMethod");
+  b2 = js_2::callMethod<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticGenericMethod", <dynamic>[b2]);
+  b1 = js_2::getProperty<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticGetter");
+  js_2::setProperty<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticSetter", b2);
 }
 
 constants  {

@@ -4010,7 +4010,7 @@ class ObjectPoolEntry implements M.ObjectPoolEntry {
   final int offset;
   final M.ObjectPoolEntryKind kind;
   final M.ObjectRef? asObject;
-  final int? asInteger;
+  final String? asImmediate;
 
   factory ObjectPoolEntry(map) {
     M.ObjectPoolEntryKind kind = stringToObjectPoolEntryKind(map['kind']);
@@ -4020,15 +4020,15 @@ class ObjectPoolEntry implements M.ObjectPoolEntry {
       case M.ObjectPoolEntryKind.object:
         return new ObjectPoolEntry._fromObject(map['value'], offset);
       default:
-        return new ObjectPoolEntry._fromInteger(kind, map['value'], offset);
+        return new ObjectPoolEntry._fromImmediate(kind, map['value'], offset);
     }
   }
 
   ObjectPoolEntry._fromObject(this.asObject, this.offset)
       : kind = M.ObjectPoolEntryKind.object,
-        asInteger = null;
+        asImmediate = null;
 
-  ObjectPoolEntry._fromInteger(this.kind, this.asInteger, this.offset)
+  ObjectPoolEntry._fromImmediate(this.kind, this.asImmediate, this.offset)
       : asObject = null;
 }
 

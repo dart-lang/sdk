@@ -7734,9 +7734,9 @@ const Code<Null> codeJsInteropDartJsInteropAnnotationForStaticInteropOnly =
 const MessageCode messageJsInteropDartJsInteropAnnotationForStaticInteropOnly =
     const MessageCode("JsInteropDartJsInteropAnnotationForStaticInteropOnly",
         problemMessage:
-            r"""The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through inline classes or '@staticInterop'.""",
+            r"""The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through extension types or '@staticInterop' classes.""",
         correctionMessage:
-            r"""Try making this class an inline class or marking it as '@staticInterop'.""");
+            r"""Try making this class an extension type or marking it as '@staticInterop'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropEnclosingClassJSAnnotation =
@@ -7910,6 +7910,30 @@ Message _withArgumentsJsInteropExportNoExportableMembers(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropExtensionTypeMemberNotInterop =
+    messageJsInteropExtensionTypeMemberNotInterop;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropExtensionTypeMemberNotInterop = const MessageCode(
+    "JsInteropExtensionTypeMemberNotInterop",
+    problemMessage:
+        r"""Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.""",
+    correctionMessage:
+        r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropExtensionTypeUsedWithWrongJsAnnotation =
+    messageJsInteropExtensionTypeUsedWithWrongJsAnnotation;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropExtensionTypeUsedWithWrongJsAnnotation =
+    const MessageCode("JsInteropExtensionTypeUsedWithWrongJsAnnotation",
+        problemMessage:
+            r"""Extension types should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'.""",
+        correctionMessage:
+            r"""Try using the '@JS' annotation from 'dart:js_interop' annotation on this extension type instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropExternalExtensionMemberOnTypeInvalid =
     messageJsInteropExternalExtensionMemberOnTypeInvalid;
 
@@ -7943,30 +7967,6 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated = const MessageCo
     problemMessage: r"""Only JS interop members may be 'external'.""",
     correctionMessage:
         r"""Try removing the 'external' keyword or adding a JS interop annotation.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeJsInteropInlineClassMemberNotInterop =
-    messageJsInteropInlineClassMemberNotInterop;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropInlineClassMemberNotInterop = const MessageCode(
-    "JsInteropInlineClassMemberNotInterop",
-    problemMessage:
-        r"""Inline class member is marked 'external', but the representation type of its inline class is not a valid JS interop type.""",
-    correctionMessage:
-        r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeJsInteropInlineClassUsedWithWrongJsAnnotation =
-    messageJsInteropInlineClassUsedWithWrongJsAnnotation;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropInlineClassUsedWithWrongJsAnnotation =
-    const MessageCode("JsInteropInlineClassUsedWithWrongJsAnnotation",
-        problemMessage:
-            r"""Inline classes should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'.""",
-        correctionMessage:
-            r"""Try using the '@JS' annotation from 'dart:js_interop' annotation on this inline class instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropInvalidStaticClassMemberName =

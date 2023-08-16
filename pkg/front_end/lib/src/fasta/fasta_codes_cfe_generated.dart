@@ -3837,6 +3837,45 @@ Message _withArgumentsJsInteropExportInvalidTypeArgument(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateJsInteropExtensionTypeNotInterop = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""Extension type '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'.""",
+        correctionMessageTemplate:
+            r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""",
+        withArguments: _withArgumentsJsInteropExtensionTypeNotInterop);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeJsInteropExtensionTypeNotInterop = const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+  "JsInteropExtensionTypeNotInterop",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropExtensionTypeNotInterop(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeJsInteropExtensionTypeNotInterop,
+      problemMessage:
+          """Extension type '${name}' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '${type}'.""" +
+              labeler.originMessages,
+      correctionMessage: """Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateJsInteropFunctionToJSRequiresStaticType = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
@@ -3865,45 +3904,6 @@ Message _withArgumentsJsInteropFunctionToJSRequiresStaticType(
               labeler.originMessages,
       correctionMessage: """Insert an explicit cast to the expected function type.""",
       arguments: {'type': _type});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(
-            String name, DartType _type, bool isNonNullableByDefault)>
-    templateJsInteropInlineClassNotInterop = const Template<
-            Message Function(
-                String name, DartType _type, bool isNonNullableByDefault)>(
-        problemMessageTemplate:
-            r"""Inline class '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'.""",
-        correctionMessageTemplate:
-            r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types.""",
-        withArguments: _withArgumentsJsInteropInlineClassNotInterop);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<
-        Message Function(
-            String name, DartType _type, bool isNonNullableByDefault)>
-    codeJsInteropInlineClassNotInterop = const Code<
-        Message Function(
-            String name, DartType _type, bool isNonNullableByDefault)>(
-  "JsInteropInlineClassNotInterop",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropInlineClassNotInterop(
-    String name, DartType _type, bool isNonNullableByDefault) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
-  List<Object> typeParts = labeler.labelType(_type);
-  String type = typeParts.join();
-  return new Message(codeJsInteropInlineClassNotInterop,
-      problemMessage:
-          """Inline class '${name}' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '${type}'.""" +
-              labeler.originMessages,
-      correctionMessage: """Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types.""",
-      arguments: {'name': name, 'type': _type});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

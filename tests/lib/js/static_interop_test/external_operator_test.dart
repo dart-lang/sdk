@@ -9,7 +9,6 @@ library external_operator_test;
 
 import 'dart:js_interop';
 import 'package:expect/minitest.dart';
-import 'package:js/js.dart' hide JS;
 
 @JS()
 external void eval(String code);
@@ -30,10 +29,7 @@ external Indexable get indexableArr;
 external Indexable get indexableObj;
 
 @JS()
-inline class Indexable2 {
-  final JSObject obj;
-  external Indexable2();
-
+extension type Indexable2(JSObject _) {
   external JSAny? operator [](JSNumber index);
   external void operator []=(JSNumber index, JSAny? value);
 }

@@ -588,18 +588,18 @@ JsInteropExportMemberCollision/analyzerCode: Fail # Web compiler specific
 JsInteropExportMemberCollision/example: Fail # Web compiler specific
 JsInteropExportNoExportableMembers/analyzerCode: Fail # Web compiler specific
 JsInteropExportNoExportableMembers/example: Fail # Web compiler specific
+JsInteropExtensionTypeNotInterop/analyzerCode: Fail # Web compiler specific
+JsInteropExtensionTypeNotInterop/example: Fail # Web compiler specific
+JsInteropExtensionTypeMemberNotInterop/analyzerCode: Fail # Web compiler specific
+JsInteropExtensionTypeMemberNotInterop/example: Fail # Web compiler specific
+JsInteropExtensionTypeUsedWithWrongJsAnnotation/analyzerCode: Fail # Web compiler specific
+JsInteropExtensionTypeUsedWithWrongJsAnnotation/example: Fail # Web compiler specific
 JsInteropExternalExtensionMemberOnTypeInvalid/analyzerCode: Fail # Web compiler specific
 JsInteropExternalExtensionMemberOnTypeInvalid/example: Fail # Web compiler specific
 JsInteropExternalExtensionMemberWithStaticDisallowed/analyzerCode: Fail # Web compiler specific
 JsInteropExternalExtensionMemberWithStaticDisallowed/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
-JsInteropInlineClassNotInterop/analyzerCode: Fail # Web compiler specific
-JsInteropInlineClassNotInterop/example: Fail # Web compiler specific
-JsInteropInlineClassMemberNotInterop/analyzerCode: Fail # Web compiler specific
-JsInteropInlineClassMemberNotInterop/example: Fail # Web compiler specific
-JsInteropInlineClassUsedWithWrongJsAnnotation/analyzerCode: Fail # Web compiler specific
-JsInteropInlineClassUsedWithWrongJsAnnotation/example: Fail # Web compiler specific
 JsInteropInvalidStaticClassMemberName/analyzerCode: Fail
 JsInteropInvalidStaticClassMemberName/example: Fail
 JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific

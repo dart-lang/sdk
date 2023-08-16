@@ -22,9 +22,8 @@ external set topLevelSetter(JSNumber _);
 external void topLevelMethod();
 
 @JS()
-inline class InlineClass {
-  final JSObject obj;
-  external InlineClass();
+extension type ExtensionType._(JSObject _) {
+  external ExtensionType();
 
   external JSNumber field;
   external JSNumber get getter;
@@ -55,7 +54,7 @@ inline class InlineClass {
   external static JSVoid annotatedStaticMethod();
 }
 
-extension InlineClassExtension on InlineClass {
+extension ExtensionTypeExtension on ExtensionType {
   external JSNumber extensionField;
   external JSNumber get extensionGetter;
   external set extensionSetter(JSNumber _);

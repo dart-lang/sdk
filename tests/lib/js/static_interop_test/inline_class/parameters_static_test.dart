@@ -12,10 +12,9 @@ external void topLevel({JSNumber named});
 // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
 
 @JS()
-inline class Inline {
-  final JSObject obj;
-  external Inline.positionalNamed(JSNumber positional, {JSNumber named});
-  //                                       ^
+extension type ExtensionType(JSObject _) {
+  external ExtensionType.positionalNamed(JSNumber positional, {JSNumber named});
+  //                                              ^
   // [web] Object literal constructors should not contain any positional parameters.
   external static void staticMethod({JSNumber named});
   //                                          ^
@@ -25,7 +24,7 @@ inline class Inline {
   // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
 }
 
-extension on Inline {
+extension on ExtensionType {
   external void extensionMethod({JSNumber named});
   //                                      ^
   // [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.

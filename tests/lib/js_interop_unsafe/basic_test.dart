@@ -44,11 +44,11 @@ void equalTest() {
       globalThis.funcData = function JSClass() {}
       globalThis.JSClass = new globalThis.funcData();
     ''');
-    JSObject gt = globalJSObject;
+    JSObject gc = globalContext;
     void test(String propertyName, bool testCanonicalization) {
-      Expect.equals(gt[propertyName.toJS], gt[propertyName.toJS]);
+      Expect.equals(gc[propertyName.toJS], gc[propertyName.toJS]);
       if (testCanonicalization) {
-        Expect.equals(gt[propertyName.toJS], gt[(propertyName + "2").toJS]);
+        Expect.equals(gc[propertyName.toJS], gc[(propertyName + "2").toJS]);
       }
     }
 
@@ -83,11 +83,11 @@ void typeofTest() {
   };
   void test(String property, String expectedType) {
     Expect.isTrue(
-        globalJSObject[property.toJS]?.typeofEquals(expectedType.toJS).toDart);
+        globalContext[property.toJS]?.typeofEquals(expectedType.toJS).toDart);
     for (final type in types) {
       if (type != expectedType) {
         Expect.isFalse(
-            globalJSObject[property.toJS]?.typeofEquals(type.toJS).toDart);
+            globalContext[property.toJS]?.typeofEquals(type.toJS).toDart);
       }
     }
   }
@@ -109,10 +109,10 @@ void instanceOfTest() {
 
       globalThis.obj = new JSClass1();
     ''');
-  JSObject gt = globalJSObject;
-  JSObject obj = gt['obj'.toJS] as JSObject;
-  JSFunction jsClass1Constructor = gt['JSClass1'.toJS] as JSFunction;
-  JSFunction jsClass2Constructor = gt['JSClass2'.toJS] as JSFunction;
+  JSObject gc = globalContext;
+  JSObject obj = gc['obj'.toJS] as JSObject;
+  JSFunction jsClass1Constructor = gc['JSClass1'.toJS] as JSFunction;
+  JSFunction jsClass2Constructor = gc['JSClass2'.toJS] as JSFunction;
   Expect.isTrue(obj.instanceof(jsClass1Constructor).toDart);
   Expect.isFalse(obj.instanceof(jsClass2Constructor).toDart);
 }
@@ -151,8 +151,8 @@ void evalAndConstructTest() {
     }
     globalThis.JSClass = JSClass;
   ''');
-  JSObject gt = globalJSObject;
-  JSFunction constructor = gt['JSClass'.toJS] as JSFunction;
+  JSObject gc = globalContext;
+  JSFunction constructor = gc['JSClass'.toJS] as JSFunction;
 
   // Var args
   JSObject jsObj1 =
@@ -267,17 +267,17 @@ void deepConversionsTest() {
     globalThis.keyObject1 = keyObject;
     globalThis.keyObject2 = keyObject;
   ''');
-  JSObject gt = globalJSObject;
-  Expect.isNull(gt['a'.toJS]);
-  Expect.equals('foo', gt.getProperty<JSString>('b'.toJS).toDart);
+  JSObject gc = globalContext;
+  Expect.isNull(gc['a'.toJS]);
+  Expect.equals('foo', gc.getProperty<JSString>('b'.toJS).toDart);
   _expectRecEquals(
       ['a', 'b', 'c'],
-      gt
+      gc
           .getProperty<JSArray>('c'.toJS)
           .toDart
           .map((JSAny? o) => (o as JSString).toDart));
-  Expect.equals(2.5, gt.getProperty<JSNumber>('d'.toJS).toDartDouble);
-  Expect.equals(true, gt.getProperty<JSBoolean>('e'.toJS).toDart);
+  Expect.equals(2.5, gc.getProperty<JSNumber>('d'.toJS).toDartDouble);
+  Expect.equals(true, gc.getProperty<JSBoolean>('e'.toJS).toDart);
   _expectRecEquals({
     'null': 'foo',
     'foo': null,
@@ -289,40 +289,40 @@ void deepConversionsTest() {
       'f': 2,
       'g': [2, 4, 6]
     },
-  }, gt.getProperty('g'.toJS).dartify());
+  }, gc.getProperty('g'.toJS).dartify());
   _expectRecEquals({
     'a': {},
-  }, gt.getProperty('rec'.toJS).dartify());
+  }, gc.getProperty('rec'.toJS).dartify());
 
   _expectIterableEquals(Int8List.fromList(<int>[-128, 0, 127]),
-      gt.getProperty<JSInt8Array>('int8Array'.toJS).toDart);
+      gc.getProperty<JSInt8Array>('int8Array'.toJS).toDart);
   _expectIterableEquals(Uint8List.fromList([-1, 0, 255, 256]),
-      gt.getProperty<JSUint8Array>('uint8Array'.toJS).toDart);
+      gc.getProperty<JSUint8Array>('uint8Array'.toJS).toDart);
   _expectIterableEquals(Uint8ClampedList.fromList([-1, 0, 255, 256]),
-      gt.getProperty<JSUint8ClampedArray>('uint8ClampedArray'.toJS).toDart);
+      gc.getProperty<JSUint8ClampedArray>('uint8ClampedArray'.toJS).toDart);
   _expectIterableEquals(Int16List.fromList([-32769, -32768, 0, 32767, 32768]),
-      gt.getProperty<JSInt16Array>('int16Array'.toJS).toDart);
+      gc.getProperty<JSInt16Array>('int16Array'.toJS).toDart);
   _expectIterableEquals(Uint16List.fromList([-1, 0, 65535, 65536]),
-      gt.getProperty<JSUint16Array>('uint16Array'.toJS).toDart);
+      gc.getProperty<JSUint16Array>('uint16Array'.toJS).toDart);
   _expectIterableEquals(Int32List.fromList([-2147483648, 0, 2147483647]),
-      gt.getProperty<JSInt32Array>('int32Array'.toJS).toDart);
+      gc.getProperty<JSInt32Array>('int32Array'.toJS).toDart);
   _expectIterableEquals(Uint32List.fromList([-1, 0, 4294967295, 4294967296]),
-      gt.getProperty<JSUint32Array>('uint32Array'.toJS).toDart);
+      gc.getProperty<JSUint32Array>('uint32Array'.toJS).toDart);
   _expectIterableEquals(
       Float32List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]),
-      gt.getProperty<JSFloat32Array>('float32Array'.toJS).toDart);
+      gc.getProperty<JSFloat32Array>('float32Array'.toJS).toDart);
   _expectIterableEquals(
       Float64List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]),
-      gt.getProperty<JSFloat64Array>('float64Array'.toJS).toDart);
+      gc.getProperty<JSFloat64Array>('float64Array'.toJS).toDart);
   _expectIterableEquals(Uint8List.fromList([-1, 0, 255, 256]),
-      gt.getProperty<JSArrayBuffer>('arrayBuffer'.toJS).toDart.asUint8List());
+      gc.getProperty<JSArrayBuffer>('arrayBuffer'.toJS).toDart.asUint8List());
   _expectIterableEquals(Uint8List.fromList([-1, 0, 255, 256]),
-      gt.getProperty<JSDataView>('dataView'.toJS).toDart.buffer.asUint8List());
+      gc.getProperty<JSDataView>('dataView'.toJS).toDart.buffer.asUint8List());
 
   // Confirm a function that takes a roundtrip remains a function.
-  JSFunction foo = gt['f'.toJS].dartify() as JSFunction;
+  JSFunction foo = gc['f'.toJS].dartify() as JSFunction;
   Expect.equals(
-      'hello world', gt.callMethod<JSString>('invoke'.toJS, foo).toDart);
+      'hello world', gc.callMethod<JSString>('invoke'.toJS, foo).toDart);
 
   // Confirm arrays, which need to be converted implicitly, are still
   // recursively converted by dartify() when desired.
@@ -334,12 +334,12 @@ void deepConversionsTest() {
       3,
       {'baz': 'boo'}
     ],
-  ], gt['implicitExplicit'.toJS].dartify() as Iterable);
+  ], gc['implicitExplicit'.toJS].dartify() as Iterable);
 
   // Test that JS objects behave as expected in Map / Set.
   Set<Object?> set = {};
-  JSAny? key1 = gt['keyObject1'.toJS];
-  JSAny? key2 = gt['keyObject2'.toJS];
+  JSAny? key1 = gc['keyObject1'.toJS];
+  JSAny? key2 = gc['keyObject2'.toJS];
   Expect.isTrue(set.add(key1));
   Expect.isTrue(set.contains(key1));
   Expect.isFalse(set.add(key2));
@@ -384,17 +384,17 @@ void symbolTest() {
       }
       globalThis.symbol2 = symbol2;
       ''');
-  JSObject gt = globalJSObject;
+  JSObject gc = globalContext;
   Expect.equals(
       _JSSymbol.keyFor(_JSSymbol._for('symbol'.toJS)).toDart, 'symbol');
   Expect.equals(
-      gt.getProperty<JSString>(gt.getProperty<JSAny>('symbol'.toJS)).toDart,
+      gc.getProperty<JSString>(gc.getProperty<JSAny>('symbol'.toJS)).toDart,
       'boo');
   Expect.equals(methodWithSymbol(symbol).toDart, 'symbol');
   Expect.equals(_JSSymbol.keyFor(symbol).toDart, 'symbol');
   Expect.equals(
-      _JSSymbol.keyFor(gt.getProperty<JSAny>('symbol'.toJS)).toDart, 'symbol');
-  Expect.equals(gt.callMethod<JSString>(symbol2).toDart, 'hello world');
+      _JSSymbol.keyFor(gc.getProperty<JSAny>('symbol'.toJS)).toDart, 'symbol');
+  Expect.equals(gc.callMethod<JSString>(symbol2).toDart, 'hello world');
 }
 
 void main() {

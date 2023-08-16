@@ -3352,3 +3352,20 @@ void Function(T)? wrapZoneUnaryCallback<T>(void Function(T)? callback) {
 // TODO(48585): Move this class back to the dart:_rti library when old DDC
 // runtime type system has been removed.
 abstract class TrustedGetRuntimeType {}
+
+/// The global context that "static interop" members use for namespaces.
+///
+/// For example, an interop library with no library-level `@JS` annotation and a
+/// top-level external member named or renamed to 'foo' will lower a call to
+/// that member as `<staticInteropGlobalContext>.foo`. The same applies for any
+/// external constructors or class/extension type static members.
+///
+/// If the library does have a `@JS` annotation with a value, the call then gets
+/// lowered to `<staticInteropGlobalContext>.<libraryJSAnnotationValue>.foo`.
+///
+/// To see which members get lowered with this, see the transformation in
+/// `pkg/_js_interop_checks/lib/src/js_util_optimizer.dart`.
+///
+/// This should match the global context that non-static interop members use.
+Object get staticInteropGlobalContext =>
+    JS('creates:;returns:Object;depends:none;effects:none;gvn:true', 'self');

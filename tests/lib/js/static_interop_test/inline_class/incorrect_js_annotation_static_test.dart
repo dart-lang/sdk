@@ -20,23 +20,17 @@ external jsi.JSVoid jsiTopLevel();
 external jsi.JSVoid pkgJsTopLevel();
 
 @jsi.JS()
-inline class JsiInlineClass {
-  final jsi.JSObject obj;
-  external JsiInlineClass();
-}
+extension type JsiExtensionType._(jsi.JSObject _) {}
 
 @pkgJs.JS()
-inline class PkgJsInlineClass {
-//           ^
-// [web] Inline classes should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'.
-  final jsi.JSObject obj;
-  external PkgJsInlineClass();
-}
+extension type PkgJsExtensionType._(jsi.JSObject _) {}
+//             ^
+// [web] Extension types should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'.
 
 @jsi.JS()
 class JsiClass {}
 //    ^
-// [web] The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through inline classes or '@staticInterop'.
+// [web] The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through extension types or '@staticInterop' classes.
 
 @pkgJs.JS()
 class PkgJsClass {}
@@ -45,7 +39,7 @@ class PkgJsClass {}
 @jsi.anonymous
 class JsiAnonymousClass {}
 //    ^
-// [web] The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through inline classes or '@staticInterop'.
+// [web] The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through extension types or '@staticInterop' classes.
 
 @pkgJs.JS()
 @pkgJs.anonymous

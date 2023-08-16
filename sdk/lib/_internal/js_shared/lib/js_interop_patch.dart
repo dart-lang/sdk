@@ -5,13 +5,14 @@
 import 'dart:_foreign_helper' as foreign_helper;
 import 'dart:_interceptors' show JavaScriptObject;
 import 'dart:_internal' show patch;
+import 'dart:_js_helper' show staticInteropGlobalContext;
 import 'dart:_js_types';
 import 'dart:js_util' as js_util;
 import 'dart:typed_data';
 
 @patch
 @pragma('dart2js:prefer-inline')
-JSObject get globalJSObject => js_util.globalThis as JSObject;
+JSObject get globalContext => staticInteropGlobalContext as JSObject;
 
 /// Helper for working with the [JSAny?] top type in a backend agnostic way.
 /// TODO(joshualitt): Remove conflation of null and undefined after migration.
