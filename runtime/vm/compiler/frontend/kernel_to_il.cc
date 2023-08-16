@@ -4141,7 +4141,7 @@ Fragment FlowGraphBuilder::AllocateHandle() {
       compiler::target::Thread::OffsetFromThread(&kAllocateHandleRuntimeEntry));
   code += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);  // function address.
 
-  code += CCall(/*num_arguments=*/1);
+  code += CCall(/*num_arguments=*/1, kUnboxedIntPtr);
 
   return code;
 }
