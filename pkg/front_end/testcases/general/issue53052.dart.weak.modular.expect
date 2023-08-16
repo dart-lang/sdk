@@ -1,0 +1,51 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+static method f() → FutureOr<core::Iterable<core::int>> sync* {
+  yield("Hello!" as dynamic) as{TypeError,ForDynamic} core::int;
+}
+static method g() → FutureOr<asy::Stream<core::int>> async* {
+  yield*("Hello!" as dynamic) as{TypeError,ForDynamic} asy::Stream<core::int>;
+}
+static method main() → dynamic async /* futureValueType= dynamic */ {
+  FutureOr<core::Iterable<core::int>>iterable = self::f();
+  if(iterable is asy::Future<core::Object?>)
+    return;
+  self::expectThrows(() → Null {
+    core::int i = iterable{core::Iterable<core::int>}.{core::Iterable::first}{core::int};
+  });
+  FutureOr<asy::Stream<core::int>>stream = self::g();
+  if(stream is asy::Future<core::Object?>)
+    return;
+  await self::expectAsyncThrows(() → asy::Future<Null> async /* futureValueType= Null */ {
+    core::int i = await stream{asy::Stream<core::int>}.{asy::Stream::first}{asy::Future<core::int>};
+  }) /* runtimeCheckType= asy::Future<dynamic> */ ;
+}
+static method expectThrows(dynamic f) → dynamic {
+  core::bool hasThrown = true;
+  try {
+    f{dynamic}.call();
+    hasThrown = false;
+  }
+  on core::Object catch(final core::Object e) {
+  }
+  if(!hasThrown) {
+    throw "Expected the function to throw.";
+  }
+}
+static method expectAsyncThrows(dynamic f) → dynamic async /* futureValueType= dynamic */ {
+  core::bool hasThrown = true;
+  try {
+    await f{dynamic}.call() /* runtimeCheckType= asy::Future<dynamic> */ ;
+    hasThrown = false;
+  }
+  on core::Object catch(final core::Object e) {
+  }
+  if(!hasThrown) {
+    throw "Expected the function to throw.";
+  }
+}
