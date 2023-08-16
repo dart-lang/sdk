@@ -446,10 +446,13 @@ class ContextManagerImpl implements ContextManager {
       var content = _readFile(path);
       var node = loadYamlNode(content);
       if (node is YamlMap) {
-        var validator = PubspecValidator(
-            resourceProvider, resourceProvider.getFile(path).createSource());
         var lineInfo = LineInfo.fromContent(content);
-        var errors = validator.validate(node.nodes);
+        var errors = validatePubspec(
+          contents: node.nodes,
+          source: resourceProvider.getFile(path).createSource(),
+          provider: resourceProvider,
+        );
+
         var converter = AnalyzerConverter();
         convertedErrors = converter.convertAnalysisErrors(errors,
             lineInfo: lineInfo, options: driver.analysisOptions);

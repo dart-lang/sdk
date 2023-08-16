@@ -18,7 +18,8 @@ The basic recipe for implementing a new pubspec diagnostic is as follows:
 3. Add corresponding tests to a new test library in
    `test/src/pubspec/diagnostics`.
 4. Implement analysis in a new validator in `lib/src/pubspec/validators` and
-   invoke it from PubspecValidator (or enhance an existing one).
+   add it to list of validators in `pubspec_validator.dart`
+   (or enhance an existing one).
 
 Once implemented, you’ll want to look for ecosystem breakages. Useful bots to
 watch:

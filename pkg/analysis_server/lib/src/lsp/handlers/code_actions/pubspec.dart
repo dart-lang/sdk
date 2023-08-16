@@ -55,9 +55,11 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
       yamlContent = YamlMap();
     }
 
-    final validator =
-        PubspecValidator(resourceProvider, pubspecFile.createSource());
-    final errors = validator.validate(yamlContent.nodes);
+    final errors = validatePubspec(
+      contents: yamlContent.nodes,
+      source: pubspecFile.createSource(),
+      provider: resourceProvider,
+    );
 
     final codeActions = <CodeActionWithPriority>[];
     for (final error in errors) {
