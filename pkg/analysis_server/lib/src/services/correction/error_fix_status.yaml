@@ -44,9 +44,9 @@
 #   issue created for it.
 #
 # Stats:
-# -  19 "needsEvaluation"
-# - 372 "needsFix"
-# - 359 "hasFix"
+# -  18 "needsEvaluation"
+# - 362 "needsFix"
+# - 366 "hasFix"
 # - 490 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -58,9 +58,18 @@ AnalysisOptionsErrorCode.PARSE_ERROR:
   notes: |-
     Because of the way the YAML parser works, there isn't enough information to
     be able to provide a fix.
-AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED:
+AnalysisOptionsHintCode.DEPRECATED_LINT:
   status: needsFix
-  notes: Fixed.
+  notes: |-
+    We should be able to remove the lint rule.
+AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT:
+  status: needsFix
+  notes: |-
+    We should be able to replace the deprecated lint rule with its replacement.
+AnalysisOptionsHintCode.DUPLICATE_RULE:
+  status: needsFix
+  notes: |-
+    We could offer to remove the duplicate rule.
 AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
   status: needsFix
   notes: |-
@@ -82,6 +91,11 @@ AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING:
   status: noFix
   notes: |-
     The fix needs to be made in the included file.
+AnalysisOptionsWarningCode.INCOMPATIBLE_LINT:
+  status: noFix
+  notes: |-
+    Without knowing which rule the user would prefer to use, we cannot remove
+    the reported one.
 AnalysisOptionsWarningCode.INVALID_OPTION:
   status: needsFix
   notes: |-
@@ -106,16 +120,13 @@ AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE:
 AnalysisOptionsWarningCode.REMOVED_LINT:
   status: needsFix
   notes: |-
-    The fix is to remove the name of the removed lint.
+    The fix is to remove the name of the removed lint rule.
 AnalysisOptionsWarningCode.REPLACED_LINT:
   status: needsFix
-  notes: |-
-    The fix is to replace the replaced lint name with the name of the replacing
-    lint.
-AnalysisOptionsWarningCode.SPEC_MODE_REMOVED:
+AnalysisOptionsWarningCode.UNDEFINED_LINT:
   status: needsFix
   notes: |-
-    Provide a fix to remove the deprecated setting.
+    The fix is to remove the name of the lint rule.
 AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE:
   status: needsFix
   notes: |-
@@ -1823,56 +1834,6 @@ HintCode.UNUSED_ELEMENT:
   status: hasFix
 HintCode.UNUSED_ELEMENT_PARAMETER:
   status: hasFix
-LanguageCode.IMPLICIT_DYNAMIC_FIELD:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_FUNCTION:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_INVOKE:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_LIST_LITERAL:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_MAP_LITERAL:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_METHOD:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_PARAMETER:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_RETURN:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_TYPE:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_VARIABLE:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
 LintCode.always_declare_return_types:
   status: hasFix
 LintCode.always_put_control_body_on_new_line:

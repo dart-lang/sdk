@@ -36,10 +36,6 @@ const List<ErrorClassInfo> errorClasses = [
       extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
   ErrorClassInfo(
       filePath: 'lib/src/error/codes.g.dart',
-      name: 'LanguageCode',
-      type: 'COMPILE_TIME_ERROR'),
-  ErrorClassInfo(
-      filePath: 'lib/src/error/codes.g.dart',
       name: 'StaticWarningCode',
       superclass: 'AnalyzerErrorCode',
       type: 'STATIC_WARNING',

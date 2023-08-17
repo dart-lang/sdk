@@ -823,7 +823,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       _checkForTypeAnnotationDeferredClass(returnType);
       _returnTypeVerifier.verifyReturnType(returnType);
-      _checkForImplicitDynamicReturn(node.name, node.declaredElement!);
       _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForMainFunction2(node);
       super.visitFunctionDeclaration(node);
@@ -884,20 +883,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     try {
       _checkForTypeAnnotationDeferredClass(node.returnType);
 
-      // TODO(jmesserly): ideally we'd use _checkForImplicitDynamicReturn, and
-      // we can get the function element via `node?.element?.type?.element` but
-      // it doesn't have hasImplicitReturnType set correctly.
-      if (!_options.implicitDynamic && node.returnType == null) {
-        DartType parameterType = node.declaredElement!.type;
-        if (parameterType is FunctionType &&
-            parameterType.returnType is DynamicType) {
-          errorReporter.reportErrorForToken(
-              LanguageCode.IMPLICIT_DYNAMIC_RETURN,
-              node.name,
-              [node.name.lexeme]);
-        }
-      }
-
       super.visitFunctionTypedFormalParameter(node);
     } finally {
       _isInFunctionTypedFormalParameter = old;
@@ -920,12 +905,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       node.pattern.accept(this);
     });
     node.whenClause?.accept(this);
-  }
-
-  @override
-  void visitImplementsClause(ImplementsClause node) {
-    node.interfaces.forEach(_checkForImplicitDynamicType);
-    super.visitImplementsClause(node);
   }
 
   @override
@@ -983,7 +962,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkForNewWithUndefinedConstructor(node, constructorName, namedType);
       }
     }
-    _checkForImplicitDynamicType(namedType);
     super.visitInstanceCreationExpression(node);
   }
 
@@ -1034,7 +1012,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForExtensionDeclaresMemberOfObject(node);
       _checkForTypeAnnotationDeferredClass(returnType);
       _returnTypeVerifier.verifyReturnType(returnType);
-      _checkForImplicitDynamicReturn(node.name, node.declaredElement!);
       _checkForWrongTypeParameterVarianceInMethod(node);
       super.visitMethodDeclaration(node);
     });
@@ -1238,16 +1215,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     _checkForPrivateOptionalParameter(node);
     _checkForTypeAnnotationDeferredClass(node.type);
-
-    // Checks for an implicit dynamic parameter type.
-    //
-    // We can skip other parameter kinds besides simple formal, because:
-    // - DefaultFormalParameter contains a simple one, so it gets here,
-    // - FieldFormalParameter error should be reported on the field,
-    // - FunctionTypedFormalParameter is a function type, not dynamic.
-    _checkForImplicitDynamicIdentifier(node, node.name,
-        variable: node.declaredElement!);
-
     super.visitSimpleFormalParameter(node);
   }
 
@@ -1423,7 +1390,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForBuiltInIdentifierAsName(node.name,
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME);
     _checkForTypeAnnotationDeferredClass(node.bound);
-    _checkForImplicitDynamicType(node.bound);
     _checkForGenericFunctionType(node.bound);
     node.bound?.accept(_uninstantiatedBoundChecker);
     super.visitTypeParameter(node);
@@ -1441,8 +1407,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     final nameToken = node.name;
     var initializerNode = node.initializer;
     // do checks
-    _checkForImplicitDynamicIdentifier(node, nameToken,
-        variable: node.declaredElement!);
     _checkForAbstractOrExternalVariableInitializer(node);
     // visit initializer
     String name = nameToken.lexeme;
@@ -1481,12 +1445,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _isInLateLocalVariable.removeLast();
   }
 
-  @override
-  void visitWithClause(WithClause node) {
-    node.mixinTypes.forEach(_checkForImplicitDynamicType);
-    super.visitWithClause(node);
-  }
-
   /// Checks the class for problems with the superclass, mixins, or implemented
   /// interfaces.
   void _checkClassInheritance(
@@ -1501,7 +1459,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         !_checkForImplementsClauseErrorCodes(implementsClause) &&
         !_checkForAllMixinErrorCodes(withClause) &&
         !_checkForNoGenerativeConstructorsInSuperclass(superclass)) {
-      _checkForImplicitDynamicType(superclass);
       _checkForExtendsDeferredClass(superclass);
       _checkForRepeatedType(implementsClause?.interfaces,
           CompileTimeErrorCode.IMPLEMENTS_REPEATED);
@@ -3255,61 +3212,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
     return foundError;
-  }
-
-  void _checkForImplicitDynamicIdentifier(
-    AstNode node,
-    Token? id, {
-    required VariableElement variable,
-  }) {
-    if (id == null) {
-      return;
-    }
-    if (_options.implicitDynamic) {
-      return;
-    }
-    if (variable.hasImplicitType && variable.type is DynamicType) {
-      ErrorCode errorCode;
-      if (variable is FieldElement) {
-        errorCode = LanguageCode.IMPLICIT_DYNAMIC_FIELD;
-      } else if (variable is ParameterElement) {
-        errorCode = LanguageCode.IMPLICIT_DYNAMIC_PARAMETER;
-      } else {
-        errorCode = LanguageCode.IMPLICIT_DYNAMIC_VARIABLE;
-      }
-      // Parameters associated with a variable always have a name, so we can
-      // safely rely on [id] being non-`null`.
-      errorReporter.reportErrorForNode(errorCode, node, [id.lexeme]);
-    }
-  }
-
-  void _checkForImplicitDynamicReturn(
-      Token functionName, ExecutableElement element) {
-    if (_options.implicitDynamic) {
-      return;
-    }
-    if (element is PropertyAccessorElement && element.isSetter) {
-      return;
-    }
-    if (element.hasImplicitReturnType && element.returnType is DynamicType) {
-      errorReporter.reportErrorForToken(LanguageCode.IMPLICIT_DYNAMIC_RETURN,
-          functionName, [element.displayName]);
-    }
-  }
-
-  void _checkForImplicitDynamicType(TypeAnnotation? node) {
-    if (_options.implicitDynamic ||
-        node == null ||
-        (node is NamedType && node.typeArguments != null)) {
-      return;
-    }
-    DartType type = node.typeOrThrow;
-    if (type is ParameterizedType &&
-        type.typeArguments.isNotEmpty &&
-        type.typeArguments.any((t) => t is DynamicType)) {
-      errorReporter
-          .reportErrorForNode(LanguageCode.IMPLICIT_DYNAMIC_TYPE, node, [type]);
-    }
   }
 
   /// Check that if the visiting library is not system, then any given library

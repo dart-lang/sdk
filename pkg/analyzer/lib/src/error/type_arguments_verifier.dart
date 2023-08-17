@@ -148,7 +148,6 @@ class TypeArgumentsVerifier {
       node.function.staticType,
       node.staticInvokeType,
     );
-    _checkForImplicitDynamicInvoke(node);
   }
 
   void checkFunctionReference(FunctionReference node) {
@@ -171,7 +170,6 @@ class TypeArgumentsVerifier {
       _checkTypeArgumentCount(typeArguments, 1,
           CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS);
     }
-    _checkForImplicitDynamicTypedLiteral(node);
   }
 
   void checkMapLiteral(SetOrMapLiteral node) {
@@ -186,7 +184,6 @@ class TypeArgumentsVerifier {
       _checkTypeArgumentCount(typeArguments, 2,
           CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
     }
-    _checkForImplicitDynamicTypedLiteral(node);
   }
 
   void checkMethodInvocation(MethodInvocation node) {
@@ -195,7 +192,6 @@ class TypeArgumentsVerifier {
       node.function.staticType,
       node.staticInvokeType,
     );
-    _checkForImplicitDynamicInvoke(node);
   }
 
   void checkNamedType(NamedType node) {
@@ -218,63 +214,6 @@ class TypeArgumentsVerifier {
       }
       _checkTypeArgumentCount(typeArguments, 1,
           CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS);
-    }
-    _checkForImplicitDynamicTypedLiteral(node);
-  }
-
-  void _checkForImplicitDynamicInvoke(InvocationExpression node) {
-    if (_options.implicitDynamic || node.typeArguments != null) {
-      return;
-    }
-    var invokeType = node.staticInvokeType;
-    var declaredType = node.function.staticType;
-    if (invokeType is FunctionType &&
-        declaredType is FunctionType &&
-        declaredType.typeFormals.isNotEmpty) {
-      List<DartType> typeArgs = node.typeArgumentTypes!;
-      if (typeArgs.any((t) => t is DynamicType)) {
-        // Issue an error depending on what we're trying to call.
-        Expression function = node.function;
-        if (function is Identifier) {
-          var element = function.staticElement;
-          if (element is MethodElement) {
-            _errorReporter.reportErrorForNode(
-                LanguageCode.IMPLICIT_DYNAMIC_METHOD,
-                node.function,
-                [element.displayName, element.typeParameters.join(', ')]);
-            return;
-          }
-
-          if (element is FunctionElement) {
-            _errorReporter.reportErrorForNode(
-                LanguageCode.IMPLICIT_DYNAMIC_FUNCTION,
-                node.function,
-                [element.displayName, element.typeParameters.join(', ')]);
-            return;
-          }
-        }
-
-        // The catch all case if neither of those matched.
-        // For example, invoking a function expression.
-        _errorReporter.reportErrorForNode(LanguageCode.IMPLICIT_DYNAMIC_INVOKE,
-            node.function, [declaredType]);
-      }
-    }
-  }
-
-  void _checkForImplicitDynamicTypedLiteral(TypedLiteral node) {
-    if (_options.implicitDynamic || node.typeArguments != null) {
-      return;
-    }
-    DartType type = node.typeOrThrow;
-    // It's an error if either the key or value was inferred as dynamic.
-    if (type is InterfaceType &&
-        type.typeArguments.any((t) => t is DynamicType)) {
-      // TODO(brianwilkerson) Add StrongModeCode.IMPLICIT_DYNAMIC_SET_LITERAL
-      ErrorCode errorCode = node is ListLiteral
-          ? LanguageCode.IMPLICIT_DYNAMIC_LIST_LITERAL
-          : LanguageCode.IMPLICIT_DYNAMIC_MAP_LITERAL;
-      _errorReporter.reportErrorForNode(errorCode, node);
     }
   }
 

@@ -340,11 +340,6 @@ import 'implements_repeated_test.dart' as implements_repeated;
 import 'implements_super_class_test.dart' as implements_super_class;
 import 'implements_type_alias_expands_to_type_parameter_test.dart'
     as implements_type_alias_expands_to_type_parameter;
-import 'implicit_dynamic_field_test.dart' as implicit_dynamic_field;
-import 'implicit_dynamic_function_test.dart' as implicit_dynamic_function;
-import 'implicit_dynamic_list_literal_test.dart'
-    as implicit_dynamic_list_literal;
-import 'implicit_dynamic_map_literal_test.dart' as implicit_dynamic_map_literal;
 import 'implicit_this_reference_in_initializer_test.dart'
     as implicit_this_reference_in_initializer;
 import 'import_deferred_library_with_load_function_test.dart'
@@ -1118,10 +1113,6 @@ main() {
     implements_repeated.main();
     implements_super_class.main();
     implements_type_alias_expands_to_type_parameter.main();
-    implicit_dynamic_field.main();
-    implicit_dynamic_function.main();
-    implicit_dynamic_list_literal.main();
-    implicit_dynamic_map_literal.main();
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
     import_internal_library.main();
