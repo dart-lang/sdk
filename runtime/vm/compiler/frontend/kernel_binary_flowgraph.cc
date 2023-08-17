@@ -5903,12 +5903,6 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration(
     instructions += Constant(Object::sentinel());
   } else if (!has_initializer) {
     instructions += NullConstant();
-  } else if (helper.IsConst()) {
-    // Read const initializer form current position.
-    const Instance& constant_value =
-        Instance::ZoneHandle(Z, constant_reader_.ReadConstantExpression());
-    variable->SetConstValue(constant_value);
-    instructions += Constant(constant_value);
   } else {
     // Initializer
     instructions += BuildExpression();  // read (actual) initializer.

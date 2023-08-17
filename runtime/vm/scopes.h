@@ -90,7 +90,6 @@ class LocalVariable : public ZoneAllocated {
         type_(type),
         parameter_type_(parameter_type),
         parameter_value_(parameter_value),
-        const_value_(nullptr),
         covariance_mode_(kNotCovariant),
         late_init_offset_(0),
         type_check_mode_(kDoTypeCheck),
@@ -213,18 +212,6 @@ class LocalVariable : public ZoneAllocated {
     bitfield_ = IsCapturedParameterBit::update(value, bitfield_);
   }
 
-  bool IsConst() const { return const_value_ != nullptr; }
-
-  void SetConstValue(const Instance& value) {
-    DEBUG_ASSERT(value.IsNotTemporaryScopedHandle());
-    const_value_ = &value;
-  }
-
-  const Instance* ConstValue() const {
-    ASSERT(IsConst());
-    return const_value_;
-  }
-
   bool Equals(const LocalVariable& other) const;
 
  private:
@@ -261,8 +248,6 @@ class LocalVariable : public ZoneAllocated {
 
   CompileType* const parameter_type_;  // nullptr or incoming parameter type.
   const Object* parameter_value_;      // nullptr or incoming parameter value.
-
-  const Instance* const_value_;  // nullptr or compile-time const value.
 
   uint32_t bitfield_ = 0;
   CovarianceMode covariance_mode_;

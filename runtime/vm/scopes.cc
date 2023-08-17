@@ -455,12 +455,7 @@ ContextScopePtr LocalScope::PreserveOuterScope(
         context_scope.SetLateInitOffsetAt(captured_idx,
                                           variable->late_init_offset());
       }
-      context_scope.SetIsConstAt(captured_idx, variable->IsConst());
-      if (variable->IsConst()) {
-        context_scope.SetConstValueAt(captured_idx, *variable->ConstValue());
-      } else {
-        context_scope.SetTypeAt(captured_idx, variable->type());
-      }
+      context_scope.SetTypeAt(captured_idx, variable->type());
       context_scope.SetIsInvisibleAt(captured_idx, variable->is_invisible());
       context_scope.SetContextIndexAt(captured_idx, variable->index().value());
       // Adjust the context level relative to the current context level,
@@ -509,23 +504,11 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
   LocalScope* outer_scope = new LocalScope(nullptr, -1, 0);
   // Add all variables as aliases to the outer scope.
   for (int i = 0; i < context_scope.num_variables(); i++) {
-    LocalVariable* variable;
-    if (context_scope.IsConstAt(i)) {
-      variable = new LocalVariable(context_scope.DeclarationTokenIndexAt(i),
-                                   context_scope.TokenIndexAt(i),
-                                   String::ZoneHandle(context_scope.NameAt(i)),
-                                   Object::dynamic_type(),
-                                   context_scope.KernelOffsetAt(i));
-      variable->SetConstValue(
-          Instance::ZoneHandle(context_scope.ConstValueAt(i)));
-    } else {
-      variable =
-          new LocalVariable(context_scope.DeclarationTokenIndexAt(i),
-                            context_scope.TokenIndexAt(i),
-                            String::ZoneHandle(context_scope.NameAt(i)),
-                            AbstractType::ZoneHandle(context_scope.TypeAt(i)),
-                            context_scope.KernelOffsetAt(i));
-    }
+    LocalVariable* variable = new LocalVariable(
+        context_scope.DeclarationTokenIndexAt(i), context_scope.TokenIndexAt(i),
+        String::ZoneHandle(context_scope.NameAt(i)),
+        AbstractType::ZoneHandle(context_scope.TypeAt(i)),
+        context_scope.KernelOffsetAt(i));
     variable->set_is_awaiter_link(context_scope.IsAwaiterLinkAt(i));
     variable->set_is_captured();
     variable->set_index(VariableIndex(context_scope.ContextIndexAt(i)));
@@ -586,7 +569,6 @@ ContextScopePtr LocalScope::CreateImplicitClosureScope(const Function& func) {
   context_scope.SetNameAt(0, Symbols::This());
   context_scope.ClearFlagsAt(0);
   context_scope.SetIsFinalAt(0, true);
-  context_scope.SetIsConstAt(0, false);
   const AbstractType& type = AbstractType::Handle(func.ParameterTypeAt(0));
   context_scope.SetTypeAt(0, type);
   context_scope.SetContextIndexAt(0, 0);

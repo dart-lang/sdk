@@ -18888,24 +18888,12 @@ void ContextScope::SetLateInitOffsetAt(intptr_t scope_index,
 }
 
 AbstractTypePtr ContextScope::TypeAt(intptr_t scope_index) const {
-  ASSERT(!IsConstAt(scope_index));
   return untag()->type_at(scope_index);
 }
 
 void ContextScope::SetTypeAt(intptr_t scope_index,
                              const AbstractType& type) const {
   untag()->set_type_at(scope_index, type.ptr());
-}
-
-InstancePtr ContextScope::ConstValueAt(intptr_t scope_index) const {
-  ASSERT(IsConstAt(scope_index));
-  return untag()->value_at(scope_index);
-}
-
-void ContextScope::SetConstValueAt(intptr_t scope_index,
-                                   const Instance& value) const {
-  ASSERT(IsConstAt(scope_index));
-  untag()->set_value_at(scope_index, value.ptr());
 }
 
 intptr_t ContextScope::ContextIndexAt(intptr_t scope_index) const {

@@ -1327,9 +1327,6 @@ void ScopeBuilder::VisitVariableDeclaration() {
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   AbstractType& type = BuildAndVisitVariableType();
 
-  // In case `declaration->IsConst()` the flow graph building will take care of
-  // evaluating the constant and setting it via
-  // `declaration->SetConstantValue()`.
   const String& name = (H.StringSize(helper.name_index_) == 0)
                            ? GenerateName(":var", name_index_++)
                            : H.DartSymbolObfuscate(helper.name_index_);
