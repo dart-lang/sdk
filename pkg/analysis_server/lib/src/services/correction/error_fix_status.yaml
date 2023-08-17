@@ -421,6 +421,8 @@ CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
   status: noFix
 CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
   status: noFix
+CompileTimeErrorCode.CONST_EVAL_TYPE_STRING:
+  status: noFix
 CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE:
   status: noFix
 CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE:

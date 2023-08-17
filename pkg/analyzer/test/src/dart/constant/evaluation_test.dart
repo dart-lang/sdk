@@ -2883,6 +2883,32 @@ const b = B('');
     ]);
   }
 
+  test_visitPropertyAccess_length_unresolvedType() async {
+    await assertErrorsInCode('''
+class B {
+  final l;
+  const B(String o) : l = o.length;
+}
+
+const y = B(x);
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        70,
+        4,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 47, 8,
+              text:
+                  "The exception is 'In constant expressions, operands of this operator must be of type 'String'.' and occurs here."),
+        ],
+      ),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1),
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 72, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 72,
+          1),
+    ]);
+  }
+
   test_visitSimpleIdentifier_dynamic() async {
     await resolveTestCode('''
 const a = dynamic;

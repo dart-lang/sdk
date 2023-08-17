@@ -2670,6 +2670,9 @@ CompileTimeErrorCode:
       e2, e1 / e2, e1 ~/ e2, e1 > e2, e1 < e2, e1 >= e2, e1 <= e2 or e1 % e2,
       where e, e1 and e2 are constant expressions that evaluate to a numeric
       value or to null.
+  CONST_EVAL_TYPE_STRING:
+    problemMessage: "In constant expressions, operands of this operator must be of type 'String'."
+    comment: No parameters.
   CONST_EVAL_TYPE_TYPE:
     problemMessage: "In constant expressions, operands of this operator must be of type 'Type'."
   CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE:

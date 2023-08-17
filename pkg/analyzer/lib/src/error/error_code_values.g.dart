@@ -126,6 +126,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING,
   CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
   CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
+  CompileTimeErrorCode.CONST_EVAL_TYPE_STRING,
   CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE,
   CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
   CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
