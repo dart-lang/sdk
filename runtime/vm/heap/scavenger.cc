@@ -306,7 +306,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   }
 
   bool WaitForWork(RelaxedAtomic<uintptr_t>* num_busy) {
-    return promoted_list_.WaitForWork(num_busy);
+    return promoted_list_.WaitForWork(num_busy, scavenger_->abort_);
   }
 
   void ProcessWeak() {

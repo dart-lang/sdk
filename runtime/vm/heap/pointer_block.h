@@ -110,7 +110,7 @@ class BlockStack {
 
   bool IsEmpty();
 
-  Block* WaitForWork(RelaxedAtomic<uintptr_t>* num_busy);
+  Block* WaitForWork(RelaxedAtomic<uintptr_t>* num_busy, bool abort);
 
  protected:
   class List {
@@ -209,9 +209,9 @@ class BlockWorkList : public ValueObject {
     }
   }
 
-  bool WaitForWork(RelaxedAtomic<uintptr_t>* num_busy) {
-    ASSERT(local_input_->IsEmpty());
-    Block* new_work = stack_->WaitForWork(num_busy);
+  bool WaitForWork(RelaxedAtomic<uintptr_t>* num_busy, bool abort = false) {
+    ASSERT(local_input_->IsEmpty() || abort);
+    Block* new_work = stack_->WaitForWork(num_busy, abort);
     if (new_work == nullptr) {
       return false;
     }
