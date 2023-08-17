@@ -1723,6 +1723,7 @@ class Intrinsifier {
       return true;
     }
 
+    // Error._throw
     if (member.enclosingClass == translator.errorClass && name == "_throw") {
       final objectLocal = function.locals[0]; // ref #Top
       final stackTraceLocal = function.locals[1]; // ref Object
@@ -1737,38 +1738,9 @@ class Intrinsifier {
       b.br_on_cast_fail(
           notErrorBlock, objectLocal.type as w.RefType, errorRefType);
 
-      // Binaryen can merge struct types, so we need to check class ID in the
-      // slow path
       final errorLocal = function.addLocal(errorRefType);
       b.local_tee(errorLocal);
 
-      final classIdLocal = function.addLocal(w.NumType.i32);
-      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-      b.local_set(classIdLocal);
-
-      final errorBlock = b.block();
-
-      bool isErrorClass(Class cls) =>
-          cls == translator.errorClass ||
-          (cls.superclass != null && isErrorClass(cls.superclass!));
-
-      for (ClassInfo classInfo in translator.classes) {
-        final Class? cls = classInfo.cls;
-        if (cls == null || !isErrorClass(cls)) {
-          continue;
-        }
-
-        b.local_get(classIdLocal);
-        b.i32_const(classInfo.classId);
-        b.i32_eq();
-        b.br_if(errorBlock);
-      }
-
-      b.local_get(errorLocal);
-      b.br(notErrorBlock);
-      b.end(); // errorBlock
-
-      b.local_get(errorLocal);
       b.struct_get(errorClassInfo.struct, stackTraceFieldIndex);
       b.ref_is_null();
       b.if_();
