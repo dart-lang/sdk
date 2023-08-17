@@ -1385,7 +1385,7 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
   @override
   Future<macro.TypeAnnotation> inferType(
           macro.OmittedTypeAnnotation omittedType) =>
-      new Future.value(macroApplications._inferOmittedType(omittedType));
+      new Future.value(macroApplications._inferOmittedType(omittedType)!);
 
   @override
   Future<List<macro.Declaration>> topLevelDeclarationsOf(
