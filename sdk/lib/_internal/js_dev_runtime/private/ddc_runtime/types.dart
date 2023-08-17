@@ -98,6 +98,11 @@ void nativeNonNullAsserts(bool enable) {
 /// A JavaScript Symbol used to store the Rti object on a native array.
 final arrayRti = JS('', r'Symbol("$ti")');
 
+/// A JavaScript Symbol used to store the Rti signature object on a function.
+///
+/// Accessed by a call to `JS_GET_NAME(JsGetName.SIGNATURE_NAME)`.
+final _functionRti = JS('', r'Symbol("$signatureRti")');
+
 final metadata = JS('', 'Symbol("metadata")');
 
 /// A javascript Symbol used to store a canonical version of T? on T.
