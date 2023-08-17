@@ -2843,14 +2843,6 @@ void KernelReaderHelper::SkipStatement() {
       SkipStatement();          // read body.
       return;
     }
-    case kForInStatement:
-    case kAsyncForInStatement:
-      ReadPosition();             // read position.
-      ReadPosition();             // read body position.
-      SkipVariableDeclaration();  // read variable.
-      SkipExpression();           // read iterable.
-      SkipStatement();            // read body.
-      return;
     case kSwitchStatement: {
       ReadPosition();                     // read position.
       ReadBool();                         // read exhaustive flag.
@@ -2923,6 +2915,8 @@ void KernelReaderHelper::SkipStatement() {
       SkipVariableDeclaration();  // read variable.
       SkipFunctionNode();         // read function node.
       return;
+    case kForInStatement:
+    case kAsyncForInStatement:
     case kIfCaseStatement:
     case kPatternSwitchStatement:
     case kPatternVariableDeclaration:

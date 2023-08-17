@@ -105,9 +105,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   void loop_depth_inc();
   void loop_depth_dec();
-  intptr_t for_in_depth();
-  void for_in_depth_inc();
-  void for_in_depth_dec();
   void catch_depth_inc();
   void catch_depth_dec();
   void try_depth_inc();
@@ -354,7 +351,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildWhileStatement(TokenPosition* position);
   Fragment BuildDoStatement(TokenPosition* position);
   Fragment BuildForStatement(TokenPosition* position);
-  Fragment BuildForInStatement(bool async, TokenPosition* position);
   Fragment BuildSwitchStatement(TokenPosition* position);
   Fragment BuildSwitchCase(SwitchHelper* helper, intptr_t case_index);
   Fragment BuildLinearScanSwitch(SwitchHelper* helper);

@@ -761,14 +761,6 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       CalculateStatementFingerprint();          // read body.
       return;
     }
-    case kForInStatement:
-    case kAsyncForInStatement:
-      ReadPosition();                             // read position.
-      ReadPosition();                             // read body position.
-      CalculateVariableDeclarationFingerprint();  // read variable.
-      CalculateExpressionFingerprint();           // read iterable.
-      CalculateStatementFingerprint();            // read body.
-      return;
     case kSwitchStatement: {
       ReadPosition();                          // read position.
       ReadBool();                              // read exhaustive flag.
@@ -844,6 +836,8 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       CalculateVariableDeclarationFingerprint();  // read variable.
       CalculateFunctionNodeFingerprint();         // read function node.
       return;
+    case kForInStatement:
+    case kAsyncForInStatement:
     case kIfCaseStatement:
     case kPatternSwitchStatement:
     case kPatternVariableDeclaration:
