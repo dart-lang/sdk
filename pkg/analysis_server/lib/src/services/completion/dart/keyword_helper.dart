@@ -232,17 +232,34 @@ class KeywordHelper {
       }
       if (node is Expression) {
         return !node.inConstantContext;
+      } else if (node is IfStatement) {
+        return true;
       } else if (node is PatternVariableDeclaration) {
         return true;
       } else if (node is RecordPattern) {
         // This might be a parenthesized pattern.
         return node.fields.isEmpty;
+      } else if (node is SwitchPatternCase) {
+        return true;
+      } else if (node is SwitchStatement) {
+        return true;
       } else if (node is VariableDeclaration) {
         return !node.isConst;
       } else if (node is WhenClause) {
         return true;
       }
       return false;
+    }
+
+    /// Return `true` if `switch` should be suggested for the given [node].
+    bool switchIsValid(AstNode? node) {
+      if (node is CollectionElement && node is! Expression) {
+        node = node.parent;
+      }
+      if (node is SwitchPatternCase) {
+        return false;
+      }
+      return true;
     }
 
     addKeyword(Keyword.FALSE);
@@ -259,8 +276,10 @@ class KeywordHelper {
       if (node.inAsyncMethodOrFunction) {
         addKeyword(Keyword.AWAIT);
       }
-    }
-    if (featureSet.isEnabled(Feature.patterns)) {
+      if (switchIsValid(node) && featureSet.isEnabled(Feature.patterns)) {
+        addKeyword(Keyword.SWITCH);
+      }
+    } else if (featureSet.isEnabled(Feature.patterns)) {
       addKeyword(Keyword.SWITCH);
     }
   }
@@ -310,22 +329,32 @@ class KeywordHelper {
   void addImportDirectiveKeywords(ImportDirective node) {
     var deferredKeyword = node.deferredKeyword;
     var asKeyword = node.asKeyword;
-    if (asKeyword == null) {
-      addKeyword(Keyword.AS);
-    }
-    if (deferredKeyword == null) {
-      if (asKeyword == null) {
-        addKeywordFromText(Keyword.DEFERRED, ' as');
-      } else if (offset < asKeyword.offset) {
-        addKeyword(Keyword.DEFERRED);
-      }
-    }
-    // TODO(brianwilkerson) Understand the reason for the logic below.
-    if (deferredKeyword == null || asKeyword != null) {
-      if (node.combinators.isEmpty) {
-        addKeyword(Keyword.SHOW);
+    var firstCombinator = node.combinators.firstOrNull;
+    if (firstCombinator == null || offset < firstCombinator.offset) {
+      if (deferredKeyword == null) {
+        if (asKeyword == null) {
+          addKeywordFromText(Keyword.DEFERRED, ' as');
+          addKeyword(Keyword.AS);
+          addKeyword(Keyword.HIDE);
+          addKeyword(Keyword.SHOW);
+        } else if (offset < asKeyword.offset) {
+          addKeyword(Keyword.DEFERRED);
+        } else {
+          var prefix = node.prefix;
+          if (prefix != null && offset > prefix.end) {
+            addKeyword(Keyword.HIDE);
+            addKeyword(Keyword.SHOW);
+          }
+        }
+      } else if (offset > deferredKeyword.end && asKeyword == null) {
+        addKeyword(Keyword.AS);
+      } else {
         addKeyword(Keyword.HIDE);
+        addKeyword(Keyword.SHOW);
       }
+    } else {
+      addKeyword(Keyword.HIDE);
+      addKeyword(Keyword.SHOW);
     }
   }
 
@@ -441,6 +470,17 @@ class KeywordHelper {
     }
   }
 
+  /// Add the keywords that are appropriate when the selection is after the
+  /// end of a `try` statement. [canHaveFinally] indicates whether it's valid to
+  /// suggest a `finally` clause.
+  void addTryClauseKeywords({required bool canHaveFinally}) {
+    addKeyword(Keyword.CATCH);
+    if (canHaveFinally) {
+      addKeyword(Keyword.FINALLY);
+    }
+    addKeyword(Keyword.ON);
+  }
+
   /// Add the keywords that are appropriate when the selection is at the
   /// beginning of a pattern.
   void addVariablePatternKeywords() {
@@ -463,7 +503,9 @@ extension on CollectionElement? {
         finalElement = finalElement.body;
       }
     }
-    return finalElement is IfElement && finalElement.elseKeyword == null;
+    return finalElement is IfElement &&
+        finalElement.elseKeyword == null &&
+        !finalElement.thenElement.isSynthetic;
   }
 }
 

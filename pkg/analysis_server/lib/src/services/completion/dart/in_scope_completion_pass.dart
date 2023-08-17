@@ -86,6 +86,23 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitAsExpression(AsExpression node) {
+    if (node.asOperator.coversOffset(offset) &&
+        node.expression is ParenthesizedExpression) {
+      // If the user has typed `as` after something that could be either a
+      // parenthesized expression or a parameter list, the parser will recover
+      // by parsing an `as` expression. This handles the case where the user is
+      // actually trying to write a function expression.
+      // TODO(brianwilkerson) Decide whether we should do more to ensure that
+      //  the expression could be a parameter list.
+      keywordHelper.addFunctionBodyModifiers(null);
+    } else if (node.type.coversOffset(offset)) {
+      collector.completionLocation = 'AsExpression_type';
+      keywordHelper.addKeyword(Keyword.DYNAMIC);
+    }
+  }
+
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     collector.completionLocation = 'AssignmentExpression_rightHandSide';
     _forExpression(node);
@@ -102,6 +119,40 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var operator = node.operator.lexeme;
     collector.completionLocation = 'BinaryExpression_${operator}_rightOperand';
     _forExpression(node);
+  }
+
+  @override
+  void visitBlock(Block node) {
+    if (offset <= node.leftBracket.offset) {
+      var parent = node.parent;
+      if (parent is BlockFunctionBody) {
+        parent.parent?.accept(this);
+      }
+      return;
+    }
+    collector.completionLocation = 'Block_statement';
+    var previousStatement = node.statements.elementBefore(offset);
+    if (previousStatement is TryStatement) {
+      if (previousStatement.finallyBlock == null) {
+        // TODO(brianwilkerson) Consider adding `on ^ {}`, `catch (e) {^}`, and
+        //  `finally {^}`.
+        keywordHelper.addKeyword(Keyword.ON);
+        keywordHelper.addKeyword(Keyword.CATCH);
+        keywordHelper.addKeyword(Keyword.FINALLY);
+        if (previousStatement.catchClauses.isEmpty) {
+          // If the try statement has no catch, on, or finally then only suggest
+          // these keywords, because at least one of these clauses is required.
+          return;
+        }
+      }
+    } else if (previousStatement is IfStatement &&
+        previousStatement.elseKeyword == null) {
+      keywordHelper.addKeyword(Keyword.ELSE);
+    }
+    _forStatement(node);
+    if (node.inCatchClause) {
+      keywordHelper.addKeyword(Keyword.RETHROW);
+    }
   }
 
   @override
@@ -223,6 +274,30 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitEmptyStatement(EmptyStatement node) {
+    var parent = node.parent;
+    if (parent is Block) {
+      var statements = parent.statements;
+      var index = statements.indexOf(node);
+      if (index > 0) {
+        var previousStatement = statements[index - 1];
+        if (previousStatement is TryStatement &&
+            previousStatement.finallyBlock == null) {
+          keywordHelper.addTryClauseKeywords(canHaveFinally: true);
+          if (previousStatement.catchClauses.isEmpty) {
+            // Don't suggest a new statement because the `try` statement is
+            // incomplete.
+            return;
+          }
+        }
+      }
+    }
+    if (offset <= node.semicolon.offset) {
+      _forStatement(node);
+    }
+  }
+
+  @override
   void visitEnumDeclaration(EnumDeclaration node) {
     if (!featureSet.isEnabled(Feature.enhanced_enums)) {
       return;
@@ -311,6 +386,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitFormalParameterList(FormalParameterList node) {
+    if (offset >= node.end) {
+      var parent = node.parent;
+      if (parent is FunctionExpression) {
+        visitFunctionExpression(parent);
+      }
+    }
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     // If the cursor is at the beginning of the declaration, include the
     // compilation unit keywords. See dartbug.com/41039.
@@ -320,6 +405,22 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       collector.completionLocation = 'FunctionDeclaration_returnType';
       keywordHelper.addKeyword(Keyword.DYNAMIC);
       keywordHelper.addKeyword(Keyword.VOID);
+    }
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    if (offset >=
+            (node.parameters?.end ?? node.typeParameters?.end ?? node.offset) &&
+        offset <= node.body.offset) {
+      var body = node.body;
+      keywordHelper.addFunctionBodyModifiers(body);
+      var grandParent = node.parent;
+      if (body is EmptyFunctionBody &&
+          grandParent is FunctionDeclaration &&
+          grandParent.parent is CompilationUnit) {
+        _forCompilationUnitDeclaration();
+      }
     }
   }
 
@@ -338,6 +439,83 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset >= node.equals.end && offset <= node.semicolon.offset) {
       keywordHelper.addKeyword(Keyword.DYNAMIC);
       keywordHelper.addKeyword(Keyword.VOID);
+    }
+  }
+
+  @override
+  void visitIfElement(IfElement node) {
+    var expression = node.expression;
+    if (offset > expression.end && offset <= node.rightParenthesis.offset) {
+      var caseClause = node.caseClause;
+      if (caseClause == null) {
+        keywordHelper.addKeyword(Keyword.CASE);
+        keywordHelper.addKeyword(Keyword.IS);
+      } else if (caseClause.guardedPattern.hasWhen) {
+        if (caseClause.guardedPattern.whenClause?.expression == null) {
+          keywordHelper.addExpressionKeywords(node);
+        }
+      } else {
+        keywordHelper.addKeyword(Keyword.WHEN);
+      }
+    } else if (offset >= node.leftParenthesis.end &&
+        offset <= node.rightParenthesis.offset) {
+      keywordHelper.addExpressionKeywords(node);
+    } else if (offset >= node.rightParenthesis.end) {
+      // TODO(brianwilkerson) Ensure that we are suggesting `else` after the
+      //  then expression.
+      var literal = node.thisOrAncestorOfType<TypedLiteral>();
+      if (literal is ListLiteral) {
+        _forCollectionElement(literal, literal.elements);
+      } else if (literal is SetOrMapLiteral) {
+        _forCollectionElement(literal, literal.elements);
+      }
+      // var thenElement = node.thenElement;
+      // if (offset >= thenElement.end &&
+      //     !thenElement.isSynthetic &&
+      //     node.elseKeyword == null) {
+      //   keywordHelper.addKeyword(Keyword.ELSE);
+      // }
+    }
+  }
+
+  @override
+  void visitIfStatement(IfStatement node) {
+    if (node.rightParenthesis.isSynthetic) {
+      // analyzer parser
+      // Actual: if (x i^)
+      // Parsed: if (x) i^
+      keywordHelper.addKeyword(Keyword.IS);
+      return;
+    }
+    var expression = node.expression;
+    if (offset > expression.end && offset <= node.rightParenthesis.offset) {
+      var caseClause = node.caseClause;
+      if (caseClause == null) {
+        keywordHelper.addKeyword(Keyword.CASE);
+        keywordHelper.addKeyword(Keyword.IS);
+      } else if (caseClause.guardedPattern.hasWhen) {
+        if (caseClause.guardedPattern.whenClause?.expression == null) {
+          _forExpression(node);
+        }
+      } else {
+        keywordHelper.addKeyword(Keyword.WHEN);
+      }
+    } else if (offset >= node.leftParenthesis.end &&
+        offset <= node.rightParenthesis.offset) {
+      _forExpression(node);
+    } else if (offset >= node.rightParenthesis.end) {
+      _forStatement(node);
+    }
+  }
+
+  @override
+  void visitImportDirective(ImportDirective node) {
+    if (offset <= node.uri.offset) {
+      return;
+    } else if (offset <= node.uri.end) {
+      // TODO(brianwilkerson) Complete the URI.
+    } else {
+      keywordHelper.addImportDirectiveKeywords(node);
     }
   }
 
@@ -421,6 +599,28 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     collector.completionLocation = 'MapPatternEntry_value';
     _forPattern();
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    if (offset >= node.firstTokenAfterCommentAndMetadata.previous!.offset &&
+        offset <= node.name.end) {
+      keywordHelper.addKeyword(Keyword.DYNAMIC);
+      keywordHelper.addKeyword(Keyword.VOID);
+      // If the cursor is at the beginning of the declaration, include the class
+      // body keywords.  See dartbug.com/41039.
+      keywordHelper.addClassMemberKeywords();
+    }
+    var body = node.body;
+    var tokenBeforeBody = body.beginToken.previous!;
+    if (offset >= tokenBeforeBody.end && offset <= body.offset) {
+      if (body.keyword == null) {
+        keywordHelper.addFunctionBodyModifiers(body);
+      }
+      if (body.isEmpty) {
+        keywordHelper.addClassMemberKeywords();
+      }
+    }
   }
 
   @override
@@ -589,10 +789,66 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitSwitchCase(SwitchCase node) {
+    _forStatement(node);
+  }
+
+  @override
   void visitSwitchExpression(SwitchExpression node) {
     if (offset >= node.leftParenthesis.end &&
         offset <= node.rightParenthesis.offset) {
       _forExpression(node);
+    }
+  }
+
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    if (offset <= node.colon.offset) {
+      var previous = node.colon.previous!;
+      var previousKeyword = previous.keyword;
+      if (previousKeyword == null) {
+        if (previous.isSynthetic || previous.coversOffset(offset)) {
+          keywordHelper.addExpressionKeywords(node);
+          keywordHelper.addKeyword(Keyword.FINAL);
+          keywordHelper.addKeyword(Keyword.VAR);
+        } else {
+          keywordHelper.addKeyword(Keyword.AS);
+          keywordHelper.addKeyword(Keyword.WHEN);
+        }
+      } else if (previousKeyword == Keyword.AS) {
+        keywordHelper.addKeyword(Keyword.DYNAMIC);
+      } else if (previousKeyword != Keyword.WHEN) {
+        keywordHelper.addKeyword(Keyword.AS);
+        keywordHelper.addKeyword(Keyword.WHEN);
+      }
+    } else {
+      if (node.statements.isEmpty) {
+        keywordHelper.addKeyword(Keyword.CASE);
+        keywordHelper.addKeywordFromText(Keyword.DEFAULT, ':');
+      }
+      keywordHelper.addStatementKeywords(node);
+    }
+  }
+
+  @override
+  void visitSwitchStatement(SwitchStatement node) {
+    if (offset >= node.leftParenthesis.end &&
+        offset <= node.rightParenthesis.offset) {
+      _forExpression(node);
+    } else if (offset >= node.leftBracket.end &&
+        offset <= node.rightBracket.offset) {
+      var members = node.members;
+      keywordHelper.addKeyword(Keyword.CASE);
+      keywordHelper.addKeywordFromText(Keyword.DEFAULT, ':');
+      if (members.isNotEmpty) {
+        if (!members.any((element) => element is SwitchDefault)) {
+          keywordHelper.addKeywordFromText(Keyword.DEFAULT, ':');
+        }
+        var element = members.elementBefore(offset);
+        if (element != null) {
+          _forStatement(node);
+        }
+      }
     }
   }
 
@@ -635,6 +891,25 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitTryStatement(TryStatement node) {
+    if (offset >= node.body.end) {
+      var finallyKeyword = node.finallyKeyword;
+      if (finallyKeyword == null) {
+        var catchClauses = node.catchClauses;
+        var lastClause = catchClauses.lastOrNull;
+        if (lastClause == null) {
+          keywordHelper.addTryClauseKeywords(canHaveFinally: true);
+        } else {
+          keywordHelper.addTryClauseKeywords(
+              canHaveFinally: offset >= lastClause.end);
+        }
+      } else if (offset < finallyKeyword.offset) {
+        keywordHelper.addTryClauseKeywords(canHaveFinally: false);
+      }
+    }
+  }
+
+  @override
   void visitTypeArgumentList(TypeArgumentList node) {
     keywordHelper.addKeyword(Keyword.DYNAMIC);
     keywordHelper.addKeyword(Keyword.VOID);
@@ -651,6 +926,23 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (equals != null && offset >= equals.end) {
       collector.completionLocation = 'VariableDeclaration_initializer';
       _forExpression(node);
+    }
+  }
+
+  @override
+  void visitVariableDeclarationList(VariableDeclarationList node) {
+    var keyword = node.keyword;
+    var variables = node.variables;
+    if (variables.isNotEmpty && offset <= variables[0].name.end) {
+      var type = node.type;
+      if (type == null && keyword?.keyword != Keyword.VAR) {
+        keywordHelper.addKeyword(Keyword.DYNAMIC);
+        keywordHelper.addKeyword(Keyword.VOID);
+      } else if (type is RecordTypeAnnotation) {
+        // This might be a record pattern that happens to look like a type, in
+        // which case the user might be typing `in`.
+        keywordHelper.addKeyword(Keyword.IN);
+      }
     }
   }
 
@@ -678,6 +970,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     // TODO(brianwilkerson) Suggest the variables available in the current
     //  scope.
     // _addVariablesInScope(literal);
+  }
+
+  /// Add the suggestions that are appropriate when the selection is at the
+  /// beginning of a top-level declaration.
+  void _forCompilationUnitDeclaration() {
+    keywordHelper.addCompilationUnitDeclarationKeywords();
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
@@ -724,6 +1022,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// beginning of a pattern.
   void _forPattern() {
     keywordHelper.addPatternKeywords();
+  }
+
+  /// Add the suggestions that are appropriate when the selection is at the
+  /// beginning of a statement. The [node] provides context to determine which
+  /// keywords to include.
+  void _forStatement(AstNode node) {
+    keywordHelper.addStatementKeywords(node);
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
