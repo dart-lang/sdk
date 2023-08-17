@@ -1640,6 +1640,9 @@ class FixProcessor extends BaseProcessor {
     WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA: [
       AddTrailingComma.new,
     ],
+    WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER: [
+      RemoveAnnotation.new,
+    ],
     WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR: [
       UpdateSdkConstraints.version_2_14_0,
     ],
