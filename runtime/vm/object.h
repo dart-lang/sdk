@@ -13272,7 +13272,7 @@ class UserTag : public Instance {
   static UserTagPtr DefaultTag();
 
   static bool TagTableIsFull(Thread* thread);
-  static UserTagPtr FindTagById(uword tag_id);
+  static UserTagPtr FindTagById(const Isolate* isolate, uword tag_id);
   static UserTagPtr FindTagInIsolate(Isolate* isolate,
                                      Thread* thread,
                                      const String& label);

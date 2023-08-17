@@ -946,10 +946,12 @@ class ProfileBuilder : public ValueObject {
   };
 
   ProfileBuilder(Thread* thread,
+                 Isolate* isolate,
                  SampleFilter* filter,
-                 ProcessedSampleBufferBuilder* sample_buffer,
+                 SampleBlockBuffer* sample_buffer,
                  Profile* profile)
       : thread_(thread),
+        isolate_(isolate),
         vm_isolate_(Dart::vm_isolate()),
         filter_(filter),
         sample_buffer_(sample_buffer),
@@ -1004,7 +1006,7 @@ class ProfileBuilder : public ValueObject {
     if (sample_buffer_ == nullptr) {
       return false;
     }
-    samples_ = sample_buffer_->BuildProcessedSampleBuffer(filter_);
+    samples_ = sample_buffer_->BuildProcessedSampleBuffer(isolate_, filter_);
     profile_->samples_ = samples_;
     profile_->sample_count_ = samples_->length();
     return true;
@@ -1026,9 +1028,6 @@ class ProfileBuilder : public ValueObject {
 
   void BuildCodeTable() {
     ScopeTimer sw("ProfileBuilder::BuildCodeTable", FLAG_trace_profiler);
-
-    Isolate* isolate = thread_->isolate();
-    ASSERT(isolate != nullptr);
 
     // Build the live code table eagerly by populating it with code objects
     // from the processed sample buffer.
@@ -1469,9 +1468,10 @@ class ProfileBuilder : public ValueObject {
   }
 
   Thread* thread_;
+  Isolate* isolate_;
   Isolate* vm_isolate_;
   SampleFilter* filter_;
-  ProcessedSampleBufferBuilder* sample_buffer_;
+  SampleBlockBuffer* sample_buffer_;
   Profile* profile_;
   const AbstractCode null_code_;
   const Function& null_function_;
@@ -1495,11 +1495,14 @@ Profile::Profile()
       sample_count_(0) {}
 
 void Profile::Build(Thread* thread,
+                    Isolate* isolate,
                     SampleFilter* filter,
-                    ProcessedSampleBufferBuilder* sample_buffer) {
+                    SampleBlockBuffer* sample_buffer) {
+  ASSERT(isolate != nullptr);
+
   // Disable thread interrupts while processing the buffer.
   DisableThreadInterruptsScope dtis(thread);
-  ProfileBuilder builder(thread, filter, sample_buffer, this);
+  ProfileBuilder builder(thread, isolate, filter, sample_buffer, this);
   builder.Build();
 }
 
@@ -2025,14 +2028,14 @@ void ProfilerService::PrintCommonImpl(PrintFormat format,
                                       Thread* thread,
                                       JSONStream* js,
                                       SampleFilter* filter,
-                                      ProcessedSampleBufferBuilder* buffer,
+                                      SampleBlockBuffer* buffer,
                                       bool include_code_samples) {
   // We should bail out in service.cc if the profiler is disabled.
   ASSERT(buffer != nullptr);
 
   StackZone zone(thread);
   Profile profile;
-  profile.Build(thread, filter, buffer);
+  profile.Build(thread, thread->isolate(), filter, buffer);
 
   if (format == PrintFormat::JSON) {
     profile.PrintProfileJSON(js, include_code_samples);

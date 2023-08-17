@@ -27471,10 +27471,10 @@ bool UserTag::TagTableIsFull(Thread* thread) {
   return tag_table.Length() == UserTags::kMaxUserTags;
 }
 
-UserTagPtr UserTag::FindTagById(uword tag_id) {
+UserTagPtr UserTag::FindTagById(const Isolate* isolate, uword tag_id) {
+  ASSERT(isolate != nullptr);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table =
       GrowableObjectArray::Handle(zone, isolate->tag_table());
