@@ -1,0 +1,28 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///main_lib1.dart";
+
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "main_lib2.dart" as mai;
+additionalExports = (mai::ExtensionType)
+
+export "org-dartlang-testcase:///main_lib2.dart";
+
+
+library;
+import self as mai;
+import "dart:core" as core;
+
+extension type ExtensionType(core::int i) {
+  constructor • = mai::ExtensionType|;
+  tearoff • = mai::ExtensionType|_#new#tearOff;
+}
+static inline-class-member method ExtensionType|(core::int i) → mai::ExtensionType /* = core::int */
+  ;
+static inline-class-member method ExtensionType|_#new#tearOff(core::int i) → mai::ExtensionType /* = core::int */
+  return mai::ExtensionType|(i);
