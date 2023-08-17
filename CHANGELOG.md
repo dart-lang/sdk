@@ -18,6 +18,10 @@
 
 ### Libraries
 
+#### `dart:async`
+
+- Added `broadcast` parameter to `Stream.empty` constructor.
+
 #### `dart:developer`
 
 - Deprecated the `Service.getIsolateID` method.

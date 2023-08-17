@@ -630,49 +630,97 @@ typedef void _BroadcastCallback<T>(StreamSubscription<T> subscription);
 
 /// Done subscription that will send one done event as soon as possible.
 class _DoneStreamSubscription<T> implements StreamSubscription<T> {
-  static const int _DONE_SENT = 1;
-  static const int _SCHEDULED = 2;
-  static const int _PAUSED = 4;
+  // States of the subscription.
+  //
+  // The subscription will try to send a done event.
+  // When created, it schedules a microtask to emit the
+  // event to the current [_onDone] callback.
+  // If paused when the microtask happens, the subscription won't
+  // send the done event. It will reschedule a new microtask when
+  // the subscription is resumed.
+  // If cancelled, the event will not be sent, and a new
+  // microtask won't be scheduled, and further pauses
+  // are ignored.
 
+  /// Sending a done event is allowed.
+  ///
+  /// Not paused or cancelled, no microtask scheduled.
+  static const int _stateReadyToSend = 0;
+
+  /// Set when a microtask is scheduled, and not cancelled.
+  static const int _stateScheduled = 1;
+
+  /// State set when done event sent or subscription cancelled.
+  ///
+  /// Any negative value counts as done, so we can safely subtract
+  /// [_stateScheduled] or [_statePausedOnce] without affecting
+  /// being cancelled.
+  ///
+  /// Never considered paused in this state, may still be scheduled,
+  /// and [_onDone] is always set to `null`.
+  static const int _stateDone = -1;
+
+  /// Added for each pause while not done or cancelled, subtracted on resume.
+  ///
+  /// Subscription is paused when state is at least `_statePausedOnce`.
+  static const int _statePausedOnce = 2;
+
+  int _state;
   final Zone _zone;
-  int _state = 0;
   void Function()? _onDone;
 
-  _DoneStreamSubscription(this._onDone) : _zone = Zone.current {
-    _schedule();
-  }
-
-  bool get _isSent => (_state & _DONE_SENT) != 0;
-  bool get _isScheduled => (_state & _SCHEDULED) != 0;
-  bool get isPaused => _state >= _PAUSED;
-
-  void _schedule() {
-    if (_isScheduled) return;
-    _zone.scheduleMicrotask(_sendDone);
-    _state |= _SCHEDULED;
-  }
-
-  void onData(void handleData(T data)?) {}
-  void onError(Function? handleError) {}
-  void onDone(void handleDone()?) {
-    _onDone = handleDone;
-  }
-
-  void pause([Future<void>? resumeSignal]) {
-    _state += _PAUSED;
-    if (resumeSignal != null) resumeSignal.whenComplete(resume);
-  }
-
-  void resume() {
-    if (isPaused) {
-      _state -= _PAUSED;
-      if (!isPaused && !_isSent) {
-        _schedule();
-      }
+  _DoneStreamSubscription(void Function()? onDone)
+      : _zone = Zone.current,
+        _state = _stateScheduled {
+    scheduleMicrotask(_onMicrotask);
+    if (onDone != null) {
+      _onDone = _zone.registerCallback(onDone);
     }
   }
 
-  Future cancel() => Future._nullFuture;
+  bool get isPaused => _state >= _statePausedOnce;
+
+  /// True after being cancelled, or after delivering done event.
+  static bool _isDone(int state) => state < 0;
+
+  static int _incrementPauseCount(int state) => state + _statePausedOnce;
+  static int _decrementPauseCount(int state) => state - _statePausedOnce;
+
+  void onData(void handleData(T data)?) {}
+
+  void onError(Function? handleError) {}
+
+  void onDone(void handleDone()?) {
+    if (!_isDone(_state)) {
+      if (handleDone != null) handleDone = _zone.registerCallback(handleDone);
+      _onDone = handleDone;
+    }
+  }
+
+  void pause([Future<void>? resumeSignal]) {
+    if (!_isDone(_state)) {
+      _state = _incrementPauseCount(_state);
+      if (resumeSignal != null) resumeSignal.whenComplete(resume);
+    }
+  }
+
+  void resume() {
+    var resumeState = _decrementPauseCount(_state);
+    if (resumeState < 0) return; // Wasn't paused.
+    if (resumeState == _stateReadyToSend) {
+      // No longer paused, and not already scheduled.
+      _state = _stateScheduled;
+      scheduleMicrotask(_onMicrotask);
+    } else {
+      _state = resumeState;
+    }
+  }
+
+  Future cancel() {
+    _state = _stateDone;
+    _onDone = null;
+    return Future._nullFuture;
+  }
 
   Future<E> asFuture<E>([E? futureValue]) {
     E resultValue;
@@ -684,19 +732,28 @@ class _DoneStreamSubscription<T> implements StreamSubscription<T> {
     } else {
       resultValue = futureValue;
     }
-    _Future<E> result = new _Future<E>();
-    _onDone = () {
-      result._completeWithValue(resultValue);
-    };
+    _Future<E> result = _Future<E>();
+    if (!_isDone(_state)) {
+      _onDone = _zone.registerCallback(() {
+        result._completeWithValue(resultValue);
+      });
+    }
     return result;
   }
 
-  void _sendDone() {
-    _state &= ~_SCHEDULED;
-    if (isPaused) return;
-    _state |= _DONE_SENT;
-    var doneHandler = _onDone;
-    if (doneHandler != null) _zone.runGuarded(doneHandler);
+  void _onMicrotask() {
+    var unscheduledState = _state - _stateScheduled;
+    if (unscheduledState == _stateReadyToSend) {
+      // Send the done event.
+      _state = _stateDone;
+      if (_onDone case var doneHandler?) {
+        _onDone = null;
+        _zone.runGuarded(doneHandler);
+      }
+    } else {
+      // Paused or cancelled.
+      _state = unscheduledState;
+    }
   }
 }
 
@@ -1007,11 +1064,11 @@ class _StreamIterator<T> implements StreamIterator<T> {
 
 /// An empty broadcast stream, sending a done event as soon as possible.
 class _EmptyStream<T> extends Stream<T> {
-  const _EmptyStream();
-  bool get isBroadcast => true;
-  StreamSubscription<T> listen(void onData(T data)?,
-      {Function? onError, void onDone()?, bool? cancelOnError}) {
-    return new _DoneStreamSubscription<T>(onDone);
+  const _EmptyStream({bool broadcast = true}) : isBroadcast = broadcast;
+  final bool isBroadcast;
+  StreamSubscription<T> listen(void Function(T data)? onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
+    return _DoneStreamSubscription<T>(onDone);
   }
 }
 
