@@ -1021,8 +1021,18 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     var ldFlags = <String>[];
     List<String>? target;
     if (_isAndroid) {
-      cc = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
-          "$host-x86_64/bin/$abiTriple-gcc";
+      if (_isArm || _isArmX64) {
+        cc =
+            '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/armv7a-linux-androideabi21-clang';
+      } else if (_isArm64) {
+        cc =
+            '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/aarch64-linux-android21-clang';
+      } else if (_isX64) {
+        cc =
+            '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/x86_64-linux-android21-clang';
+      } else {
+        throw 'Unimplemented';
+      }
       shared = '-shared';
       ldFlags.add('-Wl,--no-undefined');
       ldFlags.add('-Wl,-z,max-page-size=65536');
