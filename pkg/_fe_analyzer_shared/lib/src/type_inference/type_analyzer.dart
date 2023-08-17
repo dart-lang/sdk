@@ -1425,6 +1425,7 @@ mixin TypeAnalyzer<
 
     return new PatternForInResult(
         elementType: elementType,
+        expressionType: expressionType,
         patternForInExpressionIsNotIterableError:
             patternForInExpressionIsNotIterableError);
   }

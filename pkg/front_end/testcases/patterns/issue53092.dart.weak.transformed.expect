@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method test(dynamic y) → core::Iterable<dynamic> {
+  return block {
+    final core::Set<dynamic> #t1 = new col::_Set::•<dynamic>();
+    {
+      synthesized core::Iterator<dynamic> :sync-for-iterator = ( block {
+        final core::Set<dynamic> #t2 = col::LinkedHashSet::of<dynamic>(y as{TypeError,ForDynamic} core::Iterable<dynamic>);
+      } =>#t2).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t3 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        {
+          hoisted dynamic x;
+          {
+            final synthesized dynamic #0#0 = #t3;
+            if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t4 = x = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)))
+              throw new core::StateError::•("Pattern matching error");
+          }
+          #t1.{core::Set::add}{Invariant}(x){(dynamic) → core::bool};
+        }
+      }
+    }
+  } =>#t1;
+}
+
+constants  {
+  #C1 = 1
+}

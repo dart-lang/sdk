@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method test(dynamic y) → core::Iterable<dynamic> {
+  return block {
+    final core::Set<dynamic> #t1 = col::LinkedHashSet::•<dynamic>();
+    for (final dynamic #t2 in block {
+      final core::Set<dynamic> #t3 = col::LinkedHashSet::of<dynamic>(y as{TypeError,ForDynamic} core::Iterable<dynamic>);
+    } =>#t3) {
+      hoisted dynamic x;
+      {
+        final synthesized dynamic #0#0 = #t2;
+        if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t4 = x = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)))
+          throw new core::StateError::•("Pattern matching error");
+      }
+      #t1.{core::Set::add}{Invariant}(x){(dynamic) → core::bool};
+    }
+  } =>#t1;
+}
+
+constants  {
+  #C1 = 1
+}

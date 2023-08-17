@@ -8,9 +8,6 @@
 class_modifiers/issue52115/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53109
 class_modifiers/issue52316/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53109
 const_functions/const_functions_switch_statements: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53111
-inline_class/extension_types/has_export: SemiFuzzCrash # Unhandled ExtensionTypeDeclaration in finalizeExports - https://github.com/dart-lang/sdk/issues/53118.
-inline_class/has_export: SemiFuzzCrash # Unhandled ExtensionTypeDeclaration in finalizeExports - https://github.com/dart-lang/sdk/issues/53118.
-inline_class/extension_types/unresolved_type_extension_type_this: SemiFuzzCrash # Unhandled ExtensionTypeDeclaration in finalizeExports - https://github.com/dart-lang/sdk/issues/53118.
 
 # POSSIBLY BAD ONES
 dart2js/issue51823: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
@@ -76,8 +73,9 @@ inline_class/extension_types/constructor_bodies: SemiFuzzFailure # @methods::Cla
 inline_class/extension_types/constructor_formal_parameters: SemiFuzzFailure # @methods::I|_ is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/extension_types/constructors: SemiFuzzFailure # @methods::Class1| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/extension_types/extension_type_declarations: SemiFuzzFailure # @methods::ExtensionType1| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
-inline_class/extension_types/from_dill/main: SemiFuzzFailure # @methods::ExtensionType| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/extension_types/from_dill/main.no_link: SemiFuzzFailure # @methods::ExtensionType| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/from_dill/main: SemiFuzzFailure # @methods::ExtensionType| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/has_export: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53117.
 inline_class/extension_types/inline_class_declaration: SemiFuzzFailure # @methods::Class1| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/extension_types/issue51146: SemiFuzzFailure # @methods::I| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/extension_types/issue51285: SemiFuzzFailure # @methods::I|_ is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
@@ -87,7 +85,9 @@ inline_class/extension_types/issue52240: SemiFuzzFailure # @methods::X|_ is alre
 inline_class/extension_types/issue52525: SemiFuzzFailure # @methods::IC1| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/extension_types/issue52667: SemiFuzzFailure # @methods::FooBar| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/extension_types/procedures: SemiFuzzFailure # @methods::Class|_ is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/extension_types/unresolved_type_extension_type_this: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53117.
 inline_class/external: SemiFuzzFailure # @methods::B| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+inline_class/has_export: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53117.
 inline_class/inline_class_declaration: SemiFuzzFailure # @methods::Class1| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/issue51146: SemiFuzzFailure # @methods::I| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/issue51285: SemiFuzzFailure # @methods::I| is already bound to Reference to - https://github.com/dart-lang/sdk/issues/53117.
