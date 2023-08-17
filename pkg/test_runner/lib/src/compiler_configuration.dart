@@ -1025,6 +1025,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
           "$host-x86_64/bin/$abiTriple-gcc";
       shared = '-shared';
       ldFlags.add('-Wl,--no-undefined');
+      ldFlags.add('-Wl,-z,max-page-size=65536');
     } else if (Platform.isLinux) {
       if (_isSimArm || (_isArm && _configuration.useQemu)) {
         cc = 'arm-linux-gnueabihf-gcc';

@@ -25,7 +25,7 @@ void FfiCallbackMetadata::EnsureStubPageLocked() {
   const Code& trampoline_code = StubCode::FfiCallbackTrampoline();
   const uword code_start = trampoline_code.EntryPoint();
   const uword code_end = code_start + trampoline_code.Size();
-  const uword page_start = code_start & kPageMask;
+  const uword page_start = code_start & ~(VirtualMemory::PageSize() - 1);
 
   ASSERT_LESS_OR_EQUAL((code_start - page_start) + trampoline_code.Size(),
                        RXMappingSize());

@@ -388,6 +388,10 @@ config("compiler") {
       "-Wl,--exclude-libs=libc++_static.a",
 
       "-fuse-ld=lld",
+
+      # Currently defaults to 4k, but Android will be moving to 16k page size,
+      # and for future-proofing, 64k boundaries will be required.
+      "-Wl,-z,max-page-size=65536",
     ]
 
     if (is_clang) {
