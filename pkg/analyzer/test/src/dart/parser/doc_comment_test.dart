@@ -405,6 +405,70 @@ Comment
 ''');
   }
 
+  test_fencedCodeBlock_leadingSpaces() {
+    final parseResult = parseStringWithErrors(r'''
+///   ```
+///   a[i] = b[i];
+///   ```
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('a[i]');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    ///   ```
+    ///   a[i] = b[i];
+    ///   ```
+  fencedCodeBlocks
+    MdFencedCodeBlock
+      infoString: <empty>
+      lines
+        MdFencedCodeBlockLine
+          offset: 3
+          length: 6
+        MdFencedCodeBlockLine
+          offset: 13
+          length: 15
+        MdFencedCodeBlockLine
+          offset: 32
+          length: 6
+''');
+  }
+
+  test_fencedCodeBlock_noLeadingSpaces() {
+    final parseResult = parseStringWithErrors(r'''
+///```
+///a[i] = b[i];
+///```
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('a[i]');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    ///```
+    ///a[i] = b[i];
+    ///```
+  fencedCodeBlocks
+    MdFencedCodeBlock
+      infoString: <empty>
+      lines
+        MdFencedCodeBlockLine
+          offset: 3
+          length: 3
+        MdFencedCodeBlockLine
+          offset: 10
+          length: 12
+        MdFencedCodeBlockLine
+          offset: 26
+          length: 3
+''');
+  }
+
   test_fencedCodeBlock_nonDocCommentLines() {
     final parseResult = parseStringWithErrors(r'''
 /// One.
@@ -469,6 +533,44 @@ Comment
         MdFencedCodeBlockLine
           offset: 20
           length: 13
+''');
+  }
+
+  test_fencedCodeBlock_nonZeroOffset() {
+    final parseResult = parseStringWithErrors(r'''
+int x = 0;
+
+/// One.
+/// ```
+/// a[i] = b[i];
+/// ```
+/// Two.
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('a[i]');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// One.
+    /// ```
+    /// a[i] = b[i];
+    /// ```
+    /// Two.
+  fencedCodeBlocks
+    MdFencedCodeBlock
+      infoString: <empty>
+      lines
+        MdFencedCodeBlockLine
+          offset: 24
+          length: 4
+        MdFencedCodeBlockLine
+          offset: 32
+          length: 13
+        MdFencedCodeBlockLine
+          offset: 49
+          length: 4
 ''');
   }
 

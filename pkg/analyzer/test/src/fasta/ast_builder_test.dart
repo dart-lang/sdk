@@ -186,13 +186,13 @@ ClassDeclaration
         infoString: <empty>
         lines
           MdFencedCodeBlockLine
-            offset: 121
+            offset: 178
             length: 4
           MdFencedCodeBlockLine
-            offset: 129
+            offset: 186
             length: 36
           MdFencedCodeBlockLine
-            offset: 169
+            offset: 226
             length: 4
   metadata
     Annotation
