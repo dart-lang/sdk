@@ -575,7 +575,6 @@ class DartObjectImpl implements DartObject, Constant {
   DartObjectImpl isIdentical(
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
     var typeSystem = TypeSystemImpl(
-      implicitCasts: false,
       isNonNullableByDefault: false,
       strictCasts: false,
       strictInference: false,

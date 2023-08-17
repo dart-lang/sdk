@@ -41,7 +41,6 @@ class TestAnalysisContext implements AnalysisContext {
     );
 
     _typeSystemLegacy = TypeSystemImpl(
-      implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: false,
       strictCasts: _analysisOptions.strictCasts,
       strictInference: _analysisOptions.strictInference,
@@ -49,7 +48,6 @@ class TestAnalysisContext implements AnalysisContext {
     );
 
     _typeSystemNonNullableByDefault = TypeSystemImpl(
-      implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: true,
       strictCasts: _analysisOptions.strictCasts,
       strictInference: _analysisOptions.strictInference,

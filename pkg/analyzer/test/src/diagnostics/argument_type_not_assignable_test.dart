@@ -12,8 +12,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgumentTypeNotAssignableTest);
-    defineReflectiveTests(
-        ArgumentTypeNotAssignableWithoutNullSafetyAndNoImplicitCastsTest);
     defineReflectiveTests(ArgumentTypeNotAssignableWithoutNullSafetyTest);
     defineReflectiveTests(ArgumentTypeNotAssignableWithStrictCastsTest);
   });
@@ -716,31 +714,6 @@ g(C c) {
 }
 ''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 99, 1),
-    ]);
-  }
-}
-
-@reflectiveTest
-class ArgumentTypeNotAssignableWithoutNullSafetyAndNoImplicitCastsTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
-  test_functionCall() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-int f(int i) => i;
-num n = 0;
-var v = f(n);
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 1),
-    ]);
-  }
-
-  test_operator() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-num n = 0;
-int i = 0;
-var v = i & n;
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 34, 1),
     ]);
   }
 }

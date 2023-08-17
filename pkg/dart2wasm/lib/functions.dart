@@ -60,7 +60,7 @@ class FunctionCollector {
           // `WebAssembly.Function`.
           m.types.splitRecursionGroup();
           w.FunctionType ftype = _makeFunctionType(
-              translator, member.reference, member.function.returnType, null,
+              translator, member.reference, [member.function.returnType], null,
               isImportOrExport: true);
           m.types.splitRecursionGroup();
           _functions[member.reference] =
@@ -79,7 +79,7 @@ class FunctionCollector {
         // from GC types.
         m.types.splitRecursionGroup();
         _makeFunctionType(
-            translator, member.reference, member.function.returnType, null,
+            translator, member.reference, [member.function.returnType], null,
             isImportOrExport: true);
         m.types.splitRecursionGroup();
       }
@@ -103,7 +103,7 @@ class FunctionCollector {
         assert(!node.isInstanceMember);
         assert(!node.isGetter);
         w.FunctionType ftype = _makeFunctionType(
-            translator, target, node.function.returnType, null,
+            translator, target, [node.function.returnType], null,
             isImportOrExport: true);
         w.BaseFunction function = m.functions.define(ftype, "$node");
         _functions[target] = function;
@@ -204,7 +204,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
     if (!node.isInstanceMember) {
       if (target == node.fieldReference) {
         // Static field initializer function
-        return _makeFunctionType(translator, target, node.type, null);
+        return _makeFunctionType(translator, target, [node.type], null);
       }
       String kind = target == node.setterReference ? "setter" : "getter";
       throw "No implicit $kind function for static field: $node";
@@ -217,19 +217,23 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
     assert(!node.isAbstract);
     return node.isInstanceMember
         ? translator.dispatchTable.selectorForTarget(node.reference).signature
-        : _makeFunctionType(translator, target, node.function.returnType, null);
+        : _makeFunctionType(
+            translator, target, [node.function.returnType], null);
   }
 
   @override
   w.FunctionType visitConstructor(Constructor node, Reference target) {
-    return _makeFunctionType(translator, target, VoidType(),
+    return _makeFunctionType(translator, target, [],
         translator.classInfo[node.enclosingClass]!.nonNullableType);
   }
 }
 
-w.FunctionType _makeFunctionType(Translator translator, Reference target,
-    DartType returnType, w.ValueType? receiverType,
-    {bool isImportOrExport = false}) {
+List<w.ValueType> _getInputTypes(
+    Translator translator,
+    Reference target,
+    w.ValueType? receiverType,
+    bool isImportOrExport,
+    w.ValueType Function(DartType) translateType) {
   Member member = target.asMember;
   int typeParamCount = 0;
   Iterable<DartType> params;
@@ -253,31 +257,51 @@ w.FunctionType _makeFunctionType(Translator translator, Reference target,
     function.positionalParameters.map((p) => p.type);
   }
 
-  // Translate types differently for imports and exports.
-  w.ValueType translateType(DartType type) => isImportOrExport
-      ? translator.translateExternalType(type)
-      : translator.translateType(type);
-
   final List<w.ValueType> typeParameters = List.filled(
       typeParamCount,
       translateType(
           InterfaceType(translator.typeClass, Nullability.nonNullable)));
 
   final List<w.ValueType> inputs = [];
+
   if (receiverType != null) {
     assert(!isImportOrExport);
     inputs.add(receiverType);
   }
+
   inputs.addAll(typeParameters);
   inputs.addAll(params.map(translateType));
 
-  final bool emptyOutputList = member is Constructor ||
-      member is Procedure && member.isSetter ||
-      isImportOrExport && returnType is VoidType ||
-      returnType is InterfaceType &&
-          returnType.classNode == translator.wasmVoidClass;
-  final List<w.ValueType> outputs =
-      emptyOutputList ? const [] : [translateType(returnType)];
+  return inputs;
+}
+
+w.FunctionType _makeFunctionType(Translator translator, Reference target,
+    List<DartType> returnTypes, w.ValueType? receiverType,
+    {bool isImportOrExport = false}) {
+  Member member = target.asMember;
+
+  // Translate types differently for imports and exports.
+  w.ValueType translateType(DartType type) => isImportOrExport
+      ? translator.translateExternalType(type)
+      : translator.translateType(type);
+
+  final List<w.ValueType> inputs = _getInputTypes(
+      translator, target, receiverType, isImportOrExport, translateType);
+
+  // Mutable fields have initializer setters with a non-empty output list,
+  // so check that the member is a Procedure
+  final bool emptyOutputList = member is Procedure && member.isSetter;
+
+  bool isVoidType(DartType t) =>
+      (isImportOrExport && t is VoidType) ||
+      (t is InterfaceType && t.classNode == translator.wasmVoidClass);
+
+  final List<w.ValueType> outputs = emptyOutputList
+      ? const []
+      : returnTypes
+          .where((t) => !isVoidType(t))
+          .map((t) => translateType(t))
+          .toList();
 
   return translator.m.types.defineFunction(inputs, outputs);
 }

@@ -25,6 +25,8 @@ namespace dart {
 // Follow LLVM (https://reviews.llvm.org/D25079) and set maximum page size
 // to 64 KB for ARM64 Linux builds.
 static constexpr intptr_t kElfPageSize = 64 * KB;
+#elif defined(DART_TARGET_OS_ANDROID) && defined(TARGET_ARCH_IS_64_BIT)
+static constexpr intptr_t kElfPageSize = 64 * KB;
 #else
 static constexpr intptr_t kElfPageSize = 16 * KB;
 #endif

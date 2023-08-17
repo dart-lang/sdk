@@ -154,7 +154,15 @@ abstract mixin class Stream<T> {
   ///   },
   /// );
   /// ```
-  const factory Stream.empty() = _EmptyStream<T>;
+  ///
+  /// The stream defaults to being a broadcast stream,
+  /// as reported by [isBroadcast].
+  /// This value can be changed by passing `false` as
+  /// the [broadcast] parameter, which defaults to `true`.
+  ///
+  /// The stream can be listened to more than once,
+  /// whether it reports itself as broadcast or not.
+  const factory Stream.empty({@Since("3.2") bool broadcast}) = _EmptyStream<T>;
 
   /// Creates a stream which emits a single data event before closing.
   ///

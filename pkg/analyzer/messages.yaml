@@ -54,10 +54,31 @@ AnalysisOptionsErrorCode:
       Parameters:
       0: the error message from the parse error
 AnalysisOptionsHintCode:
-  STRONG_MODE_SETTING_DEPRECATED:
-    problemMessage: "The 'strong-mode: true' setting is deprecated."
-    correctionMessage: It is no longer necessary to explicitly enable strong mode.
-    comment: "An error code indicating that strong-mode: true is deprecated."
+  DEPRECATED_LINT:
+    problemMessage: "'{0}' is a deprecated lint rule and should not be used."
+    correctionMessage: Try removing '{0}'.
+    comment: |-
+      A hint code indicating reference to a deprecated lint.
+
+      Parameters:
+      0: the rule name
+  DEPRECATED_LINT_WITH_REPLACEMENT:
+    problemMessage: "'{0}' is deprecated and should be replaced by '{1}'."
+    correctionMessage: "Try replacing '{0}' with '{1}'."
+    comment: |-
+      A hint code indicating reference to a deprecated lint.
+
+      Parameters:
+      0: the deprecated lint name
+      1: the replacing rule name
+  DUPLICATE_RULE:
+    problemMessage: "The rule {0} is already specified and doesn't need to be specified again."
+    correctionMessage: "Try removing all but one specification of the rule."
+    comment: |-
+      Duplicate rules.
+
+      Parameters:
+      0: the rule name
 AnalysisOptionsWarningCode:
   ANALYSIS_OPTION_DEPRECATED:
     problemMessage: "The option '{0}' is no longer supported."
@@ -95,6 +116,15 @@ AnalysisOptionsWarningCode:
       0: the URI of the file to be included
       1: the path of the file containing the include directive
       2: the path of the context being analyzed
+  INCOMPATIBLE_LINT:
+    problemMessage: "The rule '{0}' is incompatible with the rule '{1}'."
+    correctionMessage: "Try removing one of the incompatible rules."
+    comment: |-
+      An error code indicating an incompatible rule.
+
+      Parameters:
+      0: the rule name
+      1: the incompatible rule
   INVALID_OPTION:
     problemMessage: "Invalid option specified for '{0}': {1}"
     comment: |-
@@ -147,10 +177,14 @@ AnalysisOptionsWarningCode:
       0: the rule name
       1: the SDK version in which the lint was removed
       2: the name of a replacing lint
-  SPEC_MODE_REMOVED:
-    problemMessage: "The option 'strong-mode: false' is no longer supported."
-    correctionMessage: "It's recommended to remove the 'strong-mode:' setting (and make your code Dart 2 compliant)."
-    comment: "An error code indicating that strong-mode: false is has been removed."
+  UNDEFINED_LINT:
+    problemMessage: "'{0}' is not a recognized lint rule."
+    correctionMessage: "Try using the name of a recognized lint rule."
+    comment: |-
+      An error code indicating an undefined lint rule.
+
+      Parameters:
+      0: the rule name
   UNRECOGNIZED_ERROR_CODE:
     problemMessage: "'{0}' isn't a recognized error code."
     comment: |-
@@ -20139,63 +20173,6 @@ HintCode:
   UNUSED_LOCAL_VARIABLE:
     aliasFor: WarningCode.UNUSED_LOCAL_VARIABLE
     comment: This is the deprecated alias for [WarningCode.UNUSED_LOCAL_VARIABLE].
-LanguageCode:
-  IMPLICIT_DYNAMIC_FIELD:
-    problemMessage: "Missing field type for '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the field
-  IMPLICIT_DYNAMIC_FUNCTION:
-    problemMessage: "Missing type arguments for generic function '{0}<{1}>'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the function
-      1: the names of the type arguments
-  IMPLICIT_DYNAMIC_INVOKE:
-    problemMessage: "Missing type arguments for calling generic function type '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of type
-  IMPLICIT_DYNAMIC_LIST_LITERAL:
-    problemMessage: Missing type argument for list literal.
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-  IMPLICIT_DYNAMIC_MAP_LITERAL:
-    problemMessage: Missing type arguments for map literal.
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-  IMPLICIT_DYNAMIC_METHOD:
-    problemMessage: "Missing type arguments for generic method '{0}<{1}>'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the function
-      1: the names of the type arguments
-  IMPLICIT_DYNAMIC_PARAMETER:
-    problemMessage: "Missing parameter type for '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the parameter
-  IMPLICIT_DYNAMIC_RETURN:
-    problemMessage: "Missing return type for '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the function or method
-  IMPLICIT_DYNAMIC_TYPE:
-    problemMessage: "Missing type arguments for generic type '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the type
-  IMPLICIT_DYNAMIC_VARIABLE:
-    problemMessage: "Missing variable type for '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the variable
 ManifestWarningCode:
   CAMERA_PERMISSIONS_INCOMPATIBLE:
     problemMessage: Camera permissions make app incompatible for Chrome OS, consider adding optional features "android.hardware.camera" and "android.hardware.camera.autofocus".

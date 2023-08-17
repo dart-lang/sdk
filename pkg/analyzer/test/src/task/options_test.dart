@@ -252,81 +252,12 @@ analyzer:
 ''', []);
   }
 
-  test_analyzer_strong_mode_deprecated() {
-    validate('''
-analyzer:
-  strong-mode: true
-''', [AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED]);
-  }
-
-  test_analyzer_strong_mode_deprecated_key() {
-    validate('''
-analyzer:
-  strong-mode:
-    declaration-casts: false
-''', [AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED]);
-  }
-
-  test_analyzer_strong_mode_deprecated_key_implicit_casts() {
-    validate('''
-analyzer:
-  strong-mode:
-    implicit-casts: false
-''', [AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT]);
-  }
-
-  test_analyzer_strong_mode_deprecated_key_implicit_dynamic() {
-    validate('''
-analyzer:
-  strong-mode:
-    implicit-dynamic: false
-''', [AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT]);
-  }
-
-  test_analyzer_strong_mode_error_code_supported() {
-    validate('''
-analyzer:
-  errors:
-    invalid_cast_method: ignore
-''', []);
-  }
-
-  test_analyzer_strong_mode_false_removed() {
-    validate('''
-analyzer:
-  strong-mode: false
-''', [AnalysisOptionsWarningCode.SPEC_MODE_REMOVED]);
-  }
-
-  test_analyzer_strong_mode_notAMap() {
-    validate('''
-analyzer:
-  strong-mode:
-    - implicit_casts
-''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
-  }
-
-  test_analyzer_strong_mode_unsupported_key() {
-    validate('''
-analyzer:
-  strong-mode:
-    unsupported: true
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
-  }
-
   test_analyzer_supported_exclude() {
     validate('''
 analyzer:
   exclude:
     - test/_data/p4/lib/lib1.dart
 ''', []);
-  }
-
-  test_analyzer_supported_strong_mode_supported_bad_value() {
-    validate('''
-analyzer:
-  strong-mode: w00t
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
   test_analyzer_unsupported_option() {

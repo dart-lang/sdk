@@ -2518,46 +2518,6 @@ int b = a;
     );
   }
 
-  test_reuse_incompatibleOptions_implicitCasts() async {
-    newFile('/workspace/dart/aaa/BUILD', '');
-    newAnalysisOptionsYamlFile('/workspace/dart/aaa', r'''
-analyzer:
-  strong-mode:
-    implicit-casts: false
-''');
-
-    newFile('/workspace/dart/bbb/BUILD', '');
-    newAnalysisOptionsYamlFile('/workspace/dart/bbb', r'''
-analyzer:
-  strong-mode:
-    implicit-casts: true
-''');
-
-    // Implicit casts are disabled in 'aaa'.
-    var aPath = '/workspace/dart/aaa/lib/a.dart';
-    await assertErrorsInFile(aPath, r'''
-num a = 0;
-int b = a;
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
-    ]);
-
-    // Implicit casts are enabled in 'bbb'.
-    var bPath = '/workspace/dart/bbb/lib/a.dart';
-    await assertErrorsInFile(bPath, r'''
-num a = 0;
-int b = a;
-''', []);
-
-    // Implicit casts are still disabled in 'aaa'.
-    await assertErrorsInFile(aPath, r'''
-num a = 0;
-int b = a;
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
-    ]);
-  }
-
   test_switchCase_implementsEquals_enum() async {
     await assertNoErrorsInCode(r'''
 enum MyEnum {a, b, c}

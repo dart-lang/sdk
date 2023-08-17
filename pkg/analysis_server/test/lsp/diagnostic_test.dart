@@ -99,7 +99,7 @@ linter:
     final initialDiagnostics = await firstDiagnosticsUpdate;
     expect(initialDiagnostics, hasLength(1));
     expect(initialDiagnostics!.first.severity, DiagnosticSeverity.Warning);
-    expect(initialDiagnostics.first.code, 'undefined_lint_warning');
+    expect(initialDiagnostics.first.code, 'undefined_lint');
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43926')

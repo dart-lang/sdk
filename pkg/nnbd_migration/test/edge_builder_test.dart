@@ -69,7 +69,6 @@ class AssignmentCheckerTest extends Object
     var decoratedClassHierarchy = _DecoratedClassHierarchyForTesting();
     var checker = AssignmentCheckerForTesting(
         TypeSystemImpl(
-          implicitCasts: true,
           isNonNullableByDefault: false,
           strictCasts: false,
           strictInference: false,
@@ -500,7 +499,6 @@ class AssignmentCheckerTest extends Object
   static void _setCoreLibrariesTypeSystem(TypeProviderImpl typeProvider) {
     var typeSystem = TypeSystemImpl(
       isNonNullableByDefault: false,
-      implicitCasts: true,
       strictCasts: false,
       strictInference: false,
       typeProvider: typeProvider,

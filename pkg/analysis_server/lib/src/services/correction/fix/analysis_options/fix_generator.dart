@@ -14,7 +14,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_yaml.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
@@ -65,9 +64,7 @@ class AnalysisOptionsFixGenerator {
 //    if (errorCode == AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR) {
 //    } else if (errorCode == AnalysisOptionsErrorCode.PARSE_ERROR) {
 //    } else
-    if (errorCode == AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED) {
-      await _addFix_removeSetting(coveringNodePath);
-    } else if (errorCode ==
+    if (errorCode ==
         AnalysisOptionsWarningCode
             .ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT) {
       var analyzerMap = options['analyzer'];
@@ -86,13 +83,12 @@ class AnalysisOptionsFixGenerator {
         await _addFix_replaceWithStrictRawTypes(
             coveringNodePath, analyzerMap, strongModeMap);
       }
-    } else if (errorCode == DEPRECATED_LINT_HINT) {
+    } else if (errorCode == AnalysisOptionsHintCode.DEPRECATED_LINT) {
       await _addFix_removeLint(coveringNodePath);
 //    } else if (errorCode == AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING) {
 //    } else if (errorCode == AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND) {
 //    } else if (errorCode == AnalysisOptionsWarningCode.INVALID_OPTION) {
 //    } else if (errorCode == AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT) {
-//    } else if (errorCode == AnalysisOptionsWarningCode.SPEC_MODE_REMOVED) {
 //    } else if (errorCode ==
 //        AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE) {
     } else if (errorCode ==

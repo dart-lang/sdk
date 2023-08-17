@@ -264,6 +264,10 @@ suggestions
     kind: keyword
   deferred as
     kind: keyword
+  hide
+    kind: keyword
+  show
+    kind: keyword
 ''');
   }
 
@@ -382,6 +386,10 @@ suggestions
   as
     kind: keyword
   deferred as
+    kind: keyword
+  hide
+    kind: keyword
+  show
     kind: keyword
 ''');
   }

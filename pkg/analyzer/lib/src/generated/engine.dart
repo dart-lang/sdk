@@ -207,22 +207,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// `true`.
   List<Linter>? _lintRules;
 
-  /// A flag indicating whether implicit casts are allowed in [strongMode]
-  /// (they are always allowed in Dart 1.0 mode).
-  ///
-  /// This option is experimental and subject to change.
-  bool implicitCasts = true;
-
-  /// A flag indicating whether implicit dynamic type is allowed, on by default.
-  ///
-  /// This flag can be used without necessarily enabling [strongMode], but it is
-  /// designed with strong mode's type inference in mind. Without type inference,
-  /// it will raise many errors. Also it does not provide type safety without
-  /// strong mode.
-  ///
-  /// This option is experimental and subject to change.
-  bool implicitDynamic = true;
-
   /// Indicates whether linter exceptions should be propagated to the caller (by
   /// re-throwing them)
   bool propagateLinterExceptions = false;
@@ -271,8 +255,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     lintRules = options.lintRules;
     if (options is AnalysisOptionsImpl) {
       enableTiming = options.enableTiming;
-      implicitCasts = options.implicitCasts;
-      implicitDynamic = options.implicitDynamic;
       propagateLinterExceptions = options.propagateLinterExceptions;
       strictInference = options.strictInference;
       strictRawTypes = options.strictRawTypes;
@@ -336,8 +318,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       }
 
       // Append boolean flags.
-      buffer.addBool(implicitCasts);
-      buffer.addBool(implicitDynamic);
       buffer.addBool(propagateLinterExceptions);
       buffer.addBool(strictCasts);
       buffer.addBool(strictInference);
