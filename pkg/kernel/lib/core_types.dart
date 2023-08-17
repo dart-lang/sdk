@@ -1170,7 +1170,7 @@ class CoreTypes {
     // Object?.
     // TODO(johnniwinther): Is this correct?
     if (type is ExtensionType) {
-      return isTop(type.instantiatedRepresentationType);
+      return isTop(type.typeErasure);
     }
 
     return false;

@@ -804,11 +804,8 @@ class ExtensionIndex {
       return _interopExtensionTypeIndex[reference]!;
     }
     DartType repType = extensionType.declaredRepresentationType;
-    // TODO(srujzs): This iteration is currently needed since
-    // `instantiatedRepresentationType` doesn't do this for us. Remove this
-    // iteration when the CFE changes this getter.
-    while (repType is ExtensionType) {
-      repType = repType.instantiatedRepresentationType;
+    if (repType is ExtensionType) {
+      repType = repType.typeErasure;
     }
     if (repType is InterfaceType) {
       final cls = repType.classNode;

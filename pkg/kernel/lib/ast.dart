@@ -11646,7 +11646,7 @@ class ExtensionType extends DartType {
 
   final List<DartType> typeArguments;
 
-  DartType? _instantiatedRepresentationType;
+  DartType? _typeErasure;
 
   ExtensionType(ExtensionTypeDeclaration extensionTypeDeclaration,
       Nullability declaredNullability, [List<DartType>? typeArguments])
@@ -11657,23 +11657,36 @@ class ExtensionType extends DartType {
 
   ExtensionType.byReference(this.extensionTypeDeclarationReference,
       this.declaredNullability, this.typeArguments,
-      [this._instantiatedRepresentationType]);
+      [this._typeErasure]);
 
   ExtensionTypeDeclaration get extensionTypeDeclaration =>
       extensionTypeDeclarationReference.asExtensionTypeDeclaration;
 
-  DartType get instantiatedRepresentationType =>
-      _instantiatedRepresentationType ??= _computeRepresentationType(
-          extensionTypeDeclarationReference,
-          typeArguments,
-          declaredNullability);
+  /// Returns the type erasure of this extension type.
+  ///
+  /// This is the type used at runtime for this type, for instance in is-tests
+  /// and as-checks.
+  ///
+  /// The type erasure is the recursive replacement of extension types by their
+  /// type erasures in the declared representation type of
+  /// [extensionTypeDeclaration] instantiation with [typeArguments].
+  ///
+  /// For instance
+  ///
+  ///     extension type E1(int it) {}
+  ///     extension type E2<X>(X it) {}
+  ///     extension type E3<T>(E2<List<T>> it) {}
+  ///
+  /// the type erasure of `E1` is `int`, type erasure of `E2<num>` is `num` and
+  /// the type erasure of `E3<String>` is `List<String>`.
+  DartType get typeErasure => _typeErasure ??= _computeTypeErasure(
+      extensionTypeDeclarationReference, typeArguments, declaredNullability);
 
   @override
   Nullability get nullability => declaredNullability;
 
   @override
-  DartType get resolveTypeParameterType =>
-      instantiatedRepresentationType.resolveTypeParameterType;
+  DartType get resolveTypeParameterType => typeErasure.resolveTypeParameterType;
 
   static List<DartType> _defaultTypeArguments(
       ExtensionTypeDeclaration extensionTypeDeclaration) {
@@ -11686,7 +11699,7 @@ class ExtensionType extends DartType {
     }
   }
 
-  static DartType _computeRepresentationType(
+  static DartType _computeTypeErasure(
       Reference extensionTypeDeclarationReference,
       List<DartType> typeArguments,
       Nullability declaredNullability) {
@@ -11696,7 +11709,7 @@ class ExtensionType extends DartType {
             extensionTypeDeclaration.typeParameters, typeArguments)
         .substituteType(extensionTypeDeclaration.declaredRepresentationType);
     if (result is ExtensionType) {
-      result = result.instantiatedRepresentationType;
+      result = result.typeErasure;
     }
     result = result.withDeclaredNullability(combineNullabilitiesForSubstitution(
         result.nullability, declaredNullability));

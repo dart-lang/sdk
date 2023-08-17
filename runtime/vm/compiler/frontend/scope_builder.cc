@@ -1527,11 +1527,11 @@ void ScopeBuilder::VisitIntersectionType() {
 }
 
 void ScopeBuilder::VisitExtensionType() {
-  // We skip the extension type and only use the representation type.
+  // We skip the extension type and only use the type erasure.
   helper_.ReadNullability();
   helper_.SkipCanonicalNameReference();  // read index for canonical name.
   helper_.SkipListOfDartTypes();         // read type arguments
-  VisitDartType();  // read instantiated representation type.
+  VisitDartType();                       // read type erasure.
 }
 
 void ScopeBuilder::VisitFutureOrType() {

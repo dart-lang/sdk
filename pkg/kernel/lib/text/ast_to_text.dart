@@ -2656,7 +2656,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeNullability(node.declaredNullability);
 
     writeWord("/* =");
-    writeType(node.instantiatedRepresentationType);
+    writeType(node.typeErasure);
     writeWord("*/");
   }
 
