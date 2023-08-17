@@ -11,7 +11,7 @@ import self as self;
 import "dart:core" as core;
 
 static method test() → dynamic {
-  for (final dynamic #t1 in invalid-expression "pkg/front_end/testcases/patterns/for_in_inference_error.dart:6:23: Error: The type 'int' used in the 'for' loop must implement 'Iterable<dynamic>'.
+  for (final invalid-type #t1 in invalid-expression "pkg/front_end/testcases/patterns/for_in_inference_error.dart:6:23: Error: The type 'int' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   for (var [int x] in 0) {} // Error.
                       ^" in 0 as{TypeError} core::Iterable<dynamic>) {

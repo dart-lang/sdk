@@ -1636,20 +1636,28 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ForInVariable forInVariable =
         new PatternVariableDeclarationForInVariable(patternVariableDeclaration);
 
-    DartType elementType = forInVariable.computeElementType(this);
-    ExpressionInferenceResult iterableResult =
-        inferForInIterable(iterable, elementType, isAsync: isAsync);
-    DartType inferredType = iterableResult.inferredType;
-    variable.type = inferredType;
+    variable.type = result.elementType;
+    iterable = ensureAssignable(
+        wrapType(
+            const DynamicType(),
+            isAsync ? coreTypes.streamClass : coreTypes.iterableClass,
+            libraryBuilder.nonNullable),
+        result.expressionType,
+        iterable,
+        errorTemplate: templateForInLoopTypeNotIterable,
+        nullabilityErrorTemplate: templateForInLoopTypeNotIterableNullability,
+        nullabilityPartErrorTemplate:
+            templateForInLoopTypeNotIterablePartNullability);
     // This is matched by the call to [forEach_end] in
     // [inferElement], [inferMapEntry] or [inferForInStatement].
     flowAnalysis.forEach_bodyBegin(node);
-    syntheticAssignment = forInVariable.inferAssignment(this, inferredType);
+    syntheticAssignment =
+        forInVariable.inferAssignment(this, result.elementType);
     if (syntheticAssignment is VariableSet) {
-      flowAnalysis.write(node, variable, inferredType, null);
+      flowAnalysis.write(node, variable, result.elementType, null);
     }
 
-    return new ForInResult(variable, iterableResult.expression,
+    return new ForInResult(variable, /*iterableResult.expression*/ iterable,
         syntheticAssignment, patternVariableDeclaration);
   }
 

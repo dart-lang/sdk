@@ -8,11 +8,11 @@ library;
 //   ^^^^^
 //
 import self as self;
-import "dart:async" as asy;
 import "dart:core" as core;
+import "dart:async" as asy;
 
 static method test() → dynamic {
-  await for (final dynamic #t1 in asy::Stream::fromIterable<dynamic>(<core::List<core::int>>[<core::int>[1], <core::int>[2], <core::int>[3]])) {
+  await for (final core::List<core::int> #t1 in asy::Stream::fromIterable<core::List<core::int>>(<core::List<core::int>>[<core::int>[1], <core::int>[2], <core::int>[3]])) {
     hoisted core::int v1;
     {
       final synthesized core::List<core::int> #0#0 = #t1;
