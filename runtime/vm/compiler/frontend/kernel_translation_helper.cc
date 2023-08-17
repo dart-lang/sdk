@@ -2293,7 +2293,7 @@ void KernelReaderHelper::SkipDartType() {
       ReadNullability();
       SkipCanonicalNameReference();  // read index for canonical name.
       SkipListOfDartTypes();         // read type arguments
-      SkipDartType();                // read instantiated representation type.
+      SkipDartType();                // read type erasure.
       break;
     }
     case kTypedefType:
@@ -3586,11 +3586,11 @@ void TypeTranslator::BuildIntersectionType() {
 }
 
 void TypeTranslator::BuildExtensionType() {
-  // We skip the extension type and only use the representation type.
+  // We skip the extension type and only use the type erasure.
   helper_->ReadNullability();
   helper_->SkipCanonicalNameReference();  // read index for canonical name.
   helper_->SkipListOfDartTypes();         // read type arguments
-  BuildTypeInternal();  // read instantiated representation type.
+  BuildTypeInternal();                    // read type erasure.
 }
 
 const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {

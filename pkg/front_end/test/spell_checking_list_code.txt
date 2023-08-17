@@ -507,6 +507,7 @@ equivalences
 equivalently
 erase
 erased
+erasures
 es
 escalate
 establish

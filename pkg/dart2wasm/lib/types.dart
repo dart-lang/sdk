@@ -336,8 +336,7 @@ class Types {
             type.positional.every(_isTypeConstant) &&
             type.named.every((n) => _isTypeConstant(n.type))) ||
         type is TypeParameterType && isFunctionTypeParameter(type) ||
-        type is ExtensionType &&
-            _isTypeConstant(type.instantiatedRepresentationType);
+        type is ExtensionType && _isTypeConstant(type.typeErasure);
   }
 
   Class classForType(DartType type) {
@@ -377,7 +376,7 @@ class Types {
         return translator.interfaceTypeParameterTypeClass;
       }
     } else if (type is ExtensionType) {
-      return classForType(type.instantiatedRepresentationType);
+      return classForType(type.typeErasure);
     } else if (type is RecordType) {
       return translator.recordTypeClass;
     }
@@ -544,7 +543,7 @@ class Types {
     }
 
     if (type is ExtensionType) {
-      return makeType(codeGen, type.instantiatedRepresentationType);
+      return makeType(codeGen, type.typeErasure);
     }
 
     ClassInfo info = translator.classInfo[classForType(type)]!;

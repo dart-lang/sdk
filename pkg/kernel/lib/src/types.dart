@@ -94,8 +94,7 @@ class Types with StandardBounds {
     if (t is InterfaceType) {
       if (t.classReference == hierarchy.coreTypes.objectClass.reference) {
         if (s is ExtensionType) {
-          if (s.instantiatedRepresentationType.isPotentiallyNullable &&
-              !t.isPotentiallyNullable) {
+          if (s.typeErasure.isPotentiallyNullable && !t.isPotentiallyNullable) {
             return new IsSubtypeOf.onlyIfIgnoringNullabilities(
                 subtype: s, supertype: t);
           }

@@ -269,11 +269,11 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
       break;
     }
     case kExtensionType: {
-      // We skip the extension type and only use the representation type.
+      // We skip the extension type and only use the type erasure.
       ReadNullability();
       SkipCanonicalNameReference();    // read index for canonical name.
       SkipListOfDartTypes();           // read type arguments
-      CalculateDartTypeFingerprint();  // read instantiated representation type.
+      CalculateDartTypeFingerprint();  // read type erasure.
       break;
     }
     case kFutureOrType:

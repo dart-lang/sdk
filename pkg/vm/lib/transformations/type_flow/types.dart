@@ -201,7 +201,7 @@ abstract class TypesBuilder {
         result = fromStaticType(bound, canBeNull);
       }
     } else if (type is ExtensionType) {
-      result = fromStaticType(type.instantiatedRepresentationType, canBeNull);
+      result = fromStaticType(type.typeErasure, canBeNull);
     } else {
       throw 'Unexpected type ${type.runtimeType} $type';
     }
