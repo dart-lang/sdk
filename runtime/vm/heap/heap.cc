@@ -612,7 +612,7 @@ void Heap::CheckConcurrentMarking(Thread* thread,
 
   switch (phase) {
     case PageSpace::kMarking:
-      if ((size != 0) && (mode_ != Dart_PerformanceMode_Latency)) {
+      if (mode_ != Dart_PerformanceMode_Latency) {
         old_space_.IncrementalMarkWithSizeBudget(size);
       }
       return;

@@ -146,7 +146,7 @@ class Scavenger {
     TryAllocateNewTLAB(thread, size, false);
     return TryAllocateFromTLAB(thread, size);
   }
-  void AbandonRemainingTLAB(Thread* thread);
+  intptr_t AbandonRemainingTLAB(Thread* thread);
   void AbandonRemainingTLABForDebugging(Thread* thread);
 
   // Collect the garbage in this scavenger.

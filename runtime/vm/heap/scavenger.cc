@@ -1556,10 +1556,10 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
   }
 #endif
 
-  AbandonRemainingTLAB(thread);
+  intptr_t allocated = AbandonRemainingTLAB(thread);
   if (can_safepoint && !thread->force_growth()) {
     ASSERT(thread->no_safepoint_scope_depth() == 0);
-    heap_->CheckConcurrentMarking(thread, GCReason::kNewSpace, kPageSize);
+    heap_->CheckConcurrentMarking(thread, GCReason::kNewSpace, allocated);
   }
 
   MutexLocker ml(&space_lock_);
@@ -1599,14 +1599,17 @@ void Scavenger::AbandonRemainingTLABForDebugging(Thread* thread) {
   AbandonRemainingTLAB(thread);
 }
 
-void Scavenger::AbandonRemainingTLAB(Thread* thread) {
-  if (thread->top() == 0) return;
+intptr_t Scavenger::AbandonRemainingTLAB(Thread* thread) {
+  if (thread->top() == 0) return 0;
+
   Page* page = Page::Of(thread->top() - 1);
+  intptr_t allocated;
   {
     MutexLocker ml(&space_lock_);
-    page->Release(thread);
+    allocated = page->Release(thread);
   }
   ASSERT(thread->top() == 0);
+  return allocated;
 }
 
 template <bool parallel>

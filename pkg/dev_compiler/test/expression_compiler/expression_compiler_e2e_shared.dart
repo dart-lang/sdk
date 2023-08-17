@@ -199,7 +199,9 @@ void runNullSafeSharedTests(
     test('call extension getters on a new JS object', () async {
       await driver.check(
           breakpointId: 'bp',
-          expression: 'JSCounter(createDartExport<Counter>(dartCounter)).value',
+          expression:
+              'JSCounter(createDartExport<Counter>(dartCounter) as JSObject)'
+              '.value',
           expectedResult: '2');
     });
   });

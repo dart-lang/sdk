@@ -40,6 +40,10 @@ A point at which all pointers into the Dart heap can be precisely identified.
 
 An indirect pointer to a Dart object.
 
+## Thread-local allocation buffer, TLAB
+
+A contiguous area owned by one thread for allocation, allowing it to bump allocate without locking.
+
 ## [Stack map](../vm/object.h#:~:text=class%20CompressedStackMaps)
 
 Identifies which slots in a stack frame contain objects (to be visited by the GC) and which contain raw bits (to be ignored by the GC) for each return address.
@@ -63,7 +67,7 @@ Having a large number of possible types.
 
 ## [Ahead-of-time compilation, AOT](https://en.wikipedia.org/wiki/Ahead-of-time_compilation)
 
-Compiling an program in a separate process from its execution. Uses conservative optimizations based on a closed-world assumption and whole-program analysis.
+Compiling a program in a separate process from its execution. Uses conservative optimizations based on a closed-world assumption and whole-program analysis.
 
 ## [Just-in-time compilation, JIT](https://en.wikipedia.org/wiki/Just-in-time_compilation)
 
