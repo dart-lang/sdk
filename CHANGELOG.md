@@ -30,7 +30,7 @@
   `HttpClientResponse.headers` and `HttpRequest.headers` no longer include
   trailing whitespace in their values.
 
-[#52334]: https://dartbug.com/53005
+[#53005]: https://dartbug.com/53005
 
 #### `dart:js_interop`
 
