@@ -186,7 +186,7 @@ EOF
     rm -rf tmp
   elif [ "$command" = linux-x64-build ]; then
     # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
-    ./tools/build.py --mode=release --arch=x64 create_sdk runtime gen_snapshot dart_precompiled_runtime dart2js_platform.dill dart2js_platform_unsound.dill kernel-service.dart.snapshot dartdevc_test dart2wasm_benchmark
+    ./tools/build.py --mode=release --arch=x64 create_sdk runtime gen_snapshot dart_precompiled_runtime dart2js_platform.dill dart2js_platform_unsound.dill kernel-service.dart.snapshot ddc_stable_test dart2wasm_benchmark
   elif [ "$command" = linux-x64-archive ]; then
     export GZIP=-1
     strip -w \
@@ -287,9 +287,8 @@ EOF
       third_party/d8/linux/x64 \
       third_party/firefox_jsshell/ \
       out/ReleaseX64/dart_precompiled_runtime \
-      out/ReleaseX64/gen/utils/dartdevc/kernel/ \
+      out/ReleaseX64/gen/utils/ddc \
       out/ReleaseX64/ddc_outline_unsound.dill \
-      out/ReleaseX64/gen/utils/dartdevc/sound/ \
       out/ReleaseX64/ddc_outline.dill \
       sdk \
       pkg/compiler/test/codesize/swarm \
