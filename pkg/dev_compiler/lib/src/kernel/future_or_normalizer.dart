@@ -64,7 +64,7 @@ class FutureOrNormalizer extends ReplacementVisitor {
     } else if (futureOr.declaredNullability == Nullability.nullable &&
         typeArgument.nullability == Nullability.nullable) {
       // FutureOr<T?>? --> FutureOr<T?>
-      return futureOr.withDeclaredNullability(Nullability.nonNullable);
+      return FutureOrType(typeArgument, Nullability.nonNullable);
     }
     // The following is not part of the normalization spec but this is a
     // convenient place to perform this change of nullability consistently. This
@@ -79,6 +79,9 @@ class FutureOrNormalizer extends ReplacementVisitor {
     if (futureOr.declaredNullability == Nullability.undetermined &&
         typeArgument.declaredNullability == Nullability.undetermined) {
       return futureOr.withDeclaredNullability(Nullability.nonNullable);
+    }
+    if (typeArgument != futureOr.typeArgument) {
+      return FutureOrType(typeArgument, futureOr.declaredNullability);
     }
     return null;
   }

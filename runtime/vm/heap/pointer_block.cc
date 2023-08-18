@@ -99,12 +99,16 @@ void BlockStack<BlockSize>::PushBlockImpl(Block* block) {
 
 template <int BlockSize>
 typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::WaitForWork(
-    RelaxedAtomic<uintptr_t>* num_busy) {
+    RelaxedAtomic<uintptr_t>* num_busy,
+    bool abort) {
   MonitorLocker ml(&monitor_);
   if (num_busy->fetch_sub(1u) == 1 /* 1 is before subtraction */) {
     // This is the last worker, wake the others now that we know no further work
     // will come.
     ml.NotifyAll();
+    return nullptr;
+  }
+  if (abort) {
     return nullptr;
   }
   for (;;) {

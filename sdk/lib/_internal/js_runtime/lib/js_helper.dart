@@ -1831,7 +1831,17 @@ StackTrace getTraceFromException(exception) {
   _StackTrace? trace = JS('_StackTrace|Null', r'#.$cachedTrace', exception);
   if (trace != null) return trace;
   trace = new _StackTrace(exception);
-  return JS('_StackTrace', r'#.$cachedTrace = #', exception, trace);
+
+  // When storing a property on a primitive value `v`, JavaScript converts the
+  // primitive value to an ephemeral wrapper object via `Object(v)`, and then
+  // stores the property on the wrapper object. This is either (1) a useless
+  // operation or (2) an error in "use strict" mode. So only store the cached
+  // stack trace on an exception value that is actually an object.
+  if (JS('bool', 'typeof # === "object"', exception)) {
+    JS('', r'#.$cachedTrace = #', exception, trace);
+  }
+
+  return trace;
 }
 
 class _StackTrace implements StackTrace {

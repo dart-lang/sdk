@@ -1134,7 +1134,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_unitElementRequestedFiles.isNotEmpty) {
       String path = _unitElementRequestedFiles.keys.first;
       var completers = _unitElementRequestedFiles.remove(path)!;
-      final result = await _computeUnitElement(path);
+      final result = (await _computeUnitElement(path))!;
       for (var completer in completers) {
         completer.complete(result);
       }
