@@ -2836,517 +2836,6 @@ class PatternVariableInfo<Variable> {
   final Map<String, int> patternVariablePromotionKeys = {};
 }
 
-/// Non-promotion reason describing the situation where an expression was not
-/// promoted due to the fact that it's a property get.
-class PropertyNotPromoted<Type extends Object> extends NonPromotionReason {
-  /// The name of the property.
-  final String propertyName;
-
-  /// The field or property being accessed.  This matches a `propertyMember`
-  /// value that was passed to [FlowAnalysis.propertyGet].
-  final Object? propertyMember;
-
-  /// The static type of the property at the time of the access.  This is the
-  /// type that was passed to [FlowAnalysis.whyNotPromoted]; it is provided to
-  /// the client as a convenience for ID testing.
-  final Type staticType;
-
-  PropertyNotPromoted(this.propertyName, this.propertyMember, this.staticType);
-
-  @override
-  String get documentationLink => 'http://dart.dev/go/non-promo-property';
-
-  @override
-  String get shortName => 'propertyNotPromoted';
-
-  @override
-  R accept<R, Node extends Object, Variable extends Object,
-              Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
-      visitor.visitPropertyNotPromoted(this as PropertyNotPromoted<Type>);
-}
-
-/// Target for a property access that might undergo promotion.
-sealed class PropertyTarget<Expression extends Object> {
-  const PropertyTarget._();
-}
-
-/// Immutable data structure modeling the reachability of the given point in the
-/// source code.  Reachability is tracked relative to checkpoints occurring
-/// previously along the control flow path leading up to the current point in
-/// the program.  A given point is said to be "locally reachable" if it is
-/// reachable from the most recent checkpoint, and "overall reachable" if it is
-/// reachable from the top of the function.
-@visibleForTesting
-class Reachability {
-  /// Model of the initial reachability state of the function being analyzed.
-  static const Reachability initial = const Reachability._initial();
-
-  /// Reachability of the checkpoint this reachability is relative to, or `null`
-  /// if there is no checkpoint.  Reachabilities form a tree structure that
-  /// mimics the control flow of the code being analyzed, so this is called the
-  /// "parent".
-  final Reachability? parent;
-
-  /// Whether this point in the source code is considered reachable from the
-  /// most recent checkpoint.
-  final bool locallyReachable;
-
-  /// Whether this point in the source code is considered reachable from the
-  /// beginning of the function being analyzed.
-  final bool overallReachable;
-
-  /// The number of `parent` links between this node and [initial].
-  final int depth;
-
-  Reachability._(this.parent, this.locallyReachable, this.overallReachable)
-      : depth = parent == null ? 0 : parent.depth + 1 {
-    assert(overallReachable ==
-        (locallyReachable && (parent?.overallReachable ?? true)));
-  }
-
-  const Reachability._initial()
-      : parent = null,
-        locallyReachable = true,
-        overallReachable = true,
-        depth = 0;
-
-  /// Updates `this` reachability to account for the reachability of [base].
-  ///
-  /// This is the reachability component of the algorithm in
-  /// [FlowModel.rebaseForward].
-  Reachability rebaseForward(Reachability base) {
-    // If [base] is not reachable, then the result is not reachable.
-    if (!base.locallyReachable) return base;
-    // If any of the reachability nodes between `this` and its common ancestor
-    // with [base] are locally unreachable, that means that there was an exit in
-    // the flow control path from the point at which `this` and [base] diverged
-    // up to the current point of `this`; therefore we want to mark [base] as
-    // unreachable.
-    Reachability? ancestor = commonAncestor(this, base);
-    for (Reachability? self = this;
-        self != null && !identical(self, ancestor);
-        self = self.parent) {
-      if (!self.locallyReachable) return base.setUnreachable();
-    }
-    // Otherwise, the result is as reachable as [base] was.
-    return base;
-  }
-
-  /// Returns a reachability with the same checkpoint as `this`, but where the
-  /// current point in the program is considered locally unreachable.
-  Reachability setUnreachable() {
-    if (!locallyReachable) return this;
-    return new Reachability._(parent, false, false);
-  }
-
-  /// Returns a new reachability whose checkpoint is the current point of
-  /// execution.  This models flow control within a control flow split, e.g.
-  /// inside an `if` statement.
-  Reachability split() => new Reachability._(this, true, overallReachable);
-
-  @override
-  String toString() {
-    List<bool> values = [];
-    for (Reachability? node = this; node != null; node = node.parent) {
-      values.add(node.locallyReachable);
-    }
-    return '[${values.join(', ')}]';
-  }
-
-  /// Returns a reachability that drops the most recent checkpoint but maintains
-  /// the same notion of reachability relative to the previous two checkpoints.
-  Reachability unsplit() {
-    if (locallyReachable) {
-      return parent!;
-    } else {
-      return parent!.setUnreachable();
-    }
-  }
-
-  /// Finds the common ancestor node of [r1] and [r2], if any such node exists;
-  /// otherwise `null`.  If [r1] and [r2] are the same node, that node is
-  /// returned.
-  static Reachability? commonAncestor(Reachability? r1, Reachability? r2) {
-    if (r1 == null || r2 == null) return null;
-    while (r1!.depth > r2.depth) {
-      r1 = r1.parent!;
-    }
-    while (r2!.depth > r1.depth) {
-      r2 = r2.parent!;
-    }
-    while (!identical(r1, r2)) {
-      r1 = r1!.parent;
-      r2 = r2!.parent;
-    }
-    return r1;
-  }
-
-  /// Combines two reachabilities (both of which must be based on the same
-  /// checkpoint), where the code is considered reachable from the checkpoint
-  /// iff either argument is reachable from the checkpoint.
-  ///
-  /// This is used as part of the "join" operation.
-  static Reachability join(Reachability r1, Reachability r2) {
-    assert(identical(r1.parent, r2.parent));
-    if (r2.locallyReachable) {
-      return r2;
-    } else {
-      return r1;
-    }
-  }
-
-  /// Combines two reachabilities (both of which must be based on the same
-  /// checkpoint), where the code is considered reachable from the checkpoint
-  /// iff both arguments are reachable from the checkpoint.
-  ///
-  /// This is used as part of the "restrict" operation.
-  static Reachability restrict(Reachability r1, Reachability r2) {
-    assert(identical(r1.parent, r2.parent));
-    if (r2.locallyReachable) {
-      return r1;
-    } else {
-      return r2;
-    }
-  }
-}
-
-/// Data structure representing a unique value that a variable might take on
-/// during execution of the code being analyzed.  SSA nodes are immutable (so
-/// they can be safety shared among data structures) and have identity (so that
-/// it is possible to tell whether one SSA node is the same as another).
-///
-/// This is similar to the nodes used in traditional single assignment analysis
-/// (https://en.wikipedia.org/wiki/Static_single_assignment_form) except that it
-/// does not store a complete IR of the code being analyzed.
-@visibleForTesting
-class SsaNode<Type extends Object> {
-  /// Expando mapping SSA nodes to debug ids.  Only used by `toString`.
-  static final Expando<int> _debugIds = new Expando<int>();
-
-  static int _nextDebugId = 0;
-
-  /// Flow analysis information was associated with the expression that
-  /// produced the value represented by this SSA node, if it was non-trivial.
-  /// This can be used at a later time to perform promotions if the value is
-  /// used in a control flow construct.
-  ///
-  /// We don't bother storing flow analysis information if it's trivial (see
-  /// [_TrivialExpressionInfo]) because such information does not lead to
-  /// promotions.
-  @visibleForTesting
-  final ExpressionInfo<Type>? expressionInfo;
-
-  /// Map containing the set of promotable properties of the value tracked by
-  /// this SSA node. Keys are the names of the properties.
-  final Map<String, _PropertySsaNode<Type>> _promotableProperties;
-
-  /// Map containing the set of non-promotable properties of the value tracked
-  /// by this SSA node. These are tracked even though they're not promotable, so
-  /// that if an error occurs due to the absence of type promotion, it will be
-  /// possible to generate a message explaining to the user why type promotion
-  /// failed.
-  final Map<String, _PropertySsaNode<Type>> _nonPromotableProperties;
-
-  SsaNode(ExpressionInfo<Type>? expressionInfo)
-      : this.withProperties(expressionInfo,
-            promotableProperties: {}, nonPromotableProperties: {});
-
-  SsaNode.withProperties(this.expressionInfo,
-      {required Map<String, _PropertySsaNode<Type>> promotableProperties,
-      required Map<String, _PropertySsaNode<Type>> nonPromotableProperties})
-      : _promotableProperties = promotableProperties,
-        _nonPromotableProperties = nonPromotableProperties;
-
-  /// Gets an SSA node representing the property named [propertyName] of the
-  /// value represented by `this`, creating it if necessary.
-  ///
-  /// If a new SSA node is created, it is allocated a fresh promotion key using
-  /// [promotionKeyStore], so that type promotions for it can be tracked
-  /// separately from other type promotions.
-  _PropertySsaNode<Type> getProperty(
-      String propertyName, PromotionKeyStore<Object> promotionKeyStore,
-      {required bool isPromotable}) {
-    if (isPromotable) {
-      // The property is promotable, meaning it is known to produce the same (or
-      // equivalent) value every time it is queried. So we only create an SSA
-      // node if the property hasn't been accessed before; otherwise we return
-      // the old SSA node unchanged.
-      return _promotableProperties[propertyName] ??=
-          new _PropertySsaNode(promotionKeyStore.makeTemporaryKey());
-    } else {
-      // The property isn't promotable, meaning it is not known to produce the
-      // same (or equivalent) value every time it is queried. So we create a
-      // fresh SSA node for every access; but we record the previous SSA node in
-      // `_PropertySsaNode.previousSsaNode` so that the "why not promoted" logic
-      // can figure out what promotions *would* have occurred if the field had
-      // been promotable.
-      _PropertySsaNode<Type>? previousSsaNode =
-          _nonPromotableProperties[propertyName];
-      return _nonPromotableProperties[propertyName] = new _PropertySsaNode(
-          promotionKeyStore.makeTemporaryKey(),
-          previousSsaNode: previousSsaNode);
-    }
-  }
-
-  @override
-  String toString() {
-    int id = _debugIds[this] ??= _nextDebugId++;
-    return 'ssa$id';
-  }
-
-  /// Applies the property promotions from one SSA node to another. This is done
-  /// as part of computing the effect of executing a try/finally's `try` and
-  /// `finally` blocks in sequence, to apply the promotions that occurred in the
-  /// `finally` block atop the promotions that occurred in the `try` block.
-  ///
-  /// [afterTrySsaNode] is the SSA node from the end of the `try` block, and
-  /// [finallySsaNode] is the SSA node from the end of the `finally` block (this
-  /// method is only invoked when the variable in question was not written to in
-  /// the `finally` block, so it is also the SSA node from the beginning of the
-  /// `finally` block).
-  ///
-  /// [beforeFinallyInfo] is the promotion info map from the flow state at the
-  /// beginning of the `finally` block, and [afterFinallyInfo] is the promotion
-  /// info map from the flow state at the end of the `finally` block.
-  /// [newPromotionInfo] is the promotion info map for the flow state being
-  /// built (the flow state after the try/finally block).
-  void _applyPropertyPromotions<Type extends Object>(
-      FlowModelHelper<Type> helper,
-      SsaNode<Type> afterTrySsaNode,
-      SsaNode<Type> finallySsaNode,
-      Map<int, PromotionModel<Type>> beforeFinallyInfo,
-      Map<int, PromotionModel<Type>> afterFinallyInfo,
-      Map<int, PromotionModel<Type>> newPromotionInfo) {
-    for (var MapEntry(
-          key: String propertyName,
-          value: _PropertySsaNode<Type> finallyPropertySsaNode
-        ) in finallySsaNode._promotableProperties.entries) {
-      // Since this method is only called when a variable is assigned in a `try`
-      // block, a fresh SSA node should have been assigned for the `finally`
-      // block by the conservative join in `tryFinallyStatement_finallyBegin`.
-      // So the property should have been unpromoted (and unknown) at the
-      // beginning of the `finally` block.
-      assert(beforeFinallyInfo[finallyPropertySsaNode.promotionKey] == null);
-      // Therefore all we need to do is apply any promotions that are in force
-      // at the end of the `finally` block.
-      PromotionModel<Type>? afterFinallyModel =
-          afterFinallyInfo[finallyPropertySsaNode.promotionKey];
-      _PropertySsaNode<Type> afterTryPropertySsaNode =
-          afterTrySsaNode._promotableProperties[propertyName] ??=
-              new _PropertySsaNode(helper.promotionKeyStore.makeTemporaryKey());
-      // Handle nested properties
-      _applyPropertyPromotions(
-          helper,
-          afterTryPropertySsaNode,
-          finallyPropertySsaNode,
-          beforeFinallyInfo,
-          afterFinallyInfo,
-          newPromotionInfo);
-      if (afterFinallyModel == null) continue;
-      List<Type>? afterFinallyPromotedTypes = afterFinallyModel.promotedTypes;
-      // The property was accessed in a promotion-relevant way in the `try`
-      // block, so we need to apply the promotions from the `finally` block to
-      // the flow model from the `try` block, and see what sticks.
-      PromotionModel<Type> newModel =
-          newPromotionInfo[afterTryPropertySsaNode.promotionKey] ??=
-              new PromotionModel.fresh();
-      List<Type>? newPromotedTypes = newModel.promotedTypes;
-      List<Type>? rebasedPromotedTypes = PromotionModel.rebasePromotedTypes(
-          helper.typeOperations, afterFinallyPromotedTypes, newPromotedTypes);
-      if (!identical(newPromotedTypes, rebasedPromotedTypes)) {
-        newPromotionInfo[afterTryPropertySsaNode.promotionKey] =
-            new PromotionModel<Type>(
-                promotedTypes: rebasedPromotedTypes,
-                tested: newModel.tested,
-                assigned: true,
-                unassigned: false,
-                ssaNode: newModel.ssaNode);
-      }
-    }
-  }
-
-  /// Joins the promotion information for two SSA nodes, [first] and [second].
-  ///
-  /// Since SSA nodes store information about properties, and properties may
-  /// themselves be promoted, the caller must supply the promotion info maps for
-  /// the two flow control paths being joined ([firstPromotionInfo] and
-  /// [secondPromotionInfo]), as well as the promotion info map being built for
-  /// the join point ([newPromotionInfo]).
-  static SsaNode<Type> _join<Type extends Object>(
-      FlowModelHelper<Type> helper,
-      SsaNode<Type> first,
-      Map<int, PromotionModel<Type>> firstPromotionInfo,
-      SsaNode<Type> second,
-      Map<int, PromotionModel<Type>> secondPromotionInfo,
-      Map<int, PromotionModel<Type>> newPromotionInfo) {
-    if (first == second) return first;
-    return new SsaNode.withProperties(null,
-        promotableProperties: _joinProperties(
-            helper,
-            first._promotableProperties,
-            firstPromotionInfo,
-            second._promotableProperties,
-            secondPromotionInfo,
-            newPromotionInfo),
-        nonPromotableProperties: {});
-  }
-
-  /// Joins the promotion information for the promotable properties of two SSA
-  /// nodes, [first] and [second].
-  ///
-  /// Since properties may themselves be promoted, the caller must supply the
-  /// promotion info maps for the two flow control paths being joined
-  /// ([firstPromotionInfo] and [secondPromotionInfo]), as well as the promotion
-  /// info map being built for the join point ([newPromotionInfo]).
-  static Map<String, _PropertySsaNode<Type>>
-      _joinProperties<Type extends Object>(
-          FlowModelHelper<Type> helper,
-          Map<String, _PropertySsaNode<Type>> first,
-          Map<int, PromotionModel<Type>> firstPromotionInfo,
-          Map<String, _PropertySsaNode<Type>> second,
-          Map<int, PromotionModel<Type>> secondPromotionInfo,
-          final Map<int, PromotionModel<Type>> newPromotionInfo) {
-    Map<String, _PropertySsaNode<Type>> newProperties = {};
-    // If a property has been accessed along one of the two control flow paths
-    // being joined, but not the other, then it shouldn't be promoted after the
-    // join point, nor should any of its nested properties. So it is only
-    // necessary to examine properties common to the `first` and `second` maps.
-    for (var MapEntry(
-          key: String propertyName,
-          value: _PropertySsaNode<Type> firstProperty
-        ) in first.entries) {
-      _PropertySsaNode<Type>? secondProperty = second[propertyName];
-      if (secondProperty == null) continue;
-      // Make a new promotion key to represent the joined property.
-      int newPromotionKey = helper.promotionKeyStore.makeTemporaryKey();
-      // If the property has a promotion model along both control flow paths,
-      // it might be promoted, so join the two promotion models to preserve the
-      // promotion.
-      PromotionModel<Type>? firstPromotionModel =
-          firstPromotionInfo[firstProperty.promotionKey];
-      if (firstPromotionModel != null) {
-        PromotionModel<Type>? secondPromotionModel =
-            secondPromotionInfo[secondProperty.promotionKey];
-        if (secondPromotionModel != null) {
-          newPromotionInfo[newPromotionKey] = PromotionModel.join(
-              helper,
-              firstPromotionModel,
-              firstPromotionInfo,
-              secondPromotionModel,
-              secondPromotionInfo,
-              newPromotionInfo);
-        }
-      }
-      // Join any nested properties.
-      newProperties[propertyName] = new _PropertySsaNode.withProperties(
-          newPromotionKey,
-          promotableProperties: _joinProperties(
-              helper,
-              firstProperty._promotableProperties,
-              firstPromotionInfo,
-              secondProperty._promotableProperties,
-              secondPromotionInfo,
-              newPromotionInfo),
-          nonPromotableProperties: {});
-    }
-    return newProperties;
-  }
-}
-
-/// [PropertyTarget] representing `super`.
-class SuperPropertyTarget extends PropertyTarget<Never> {
-  static const SuperPropertyTarget singleton = const SuperPropertyTarget._();
-
-  const SuperPropertyTarget._() : super._();
-
-  @override
-  String toString() => 'SuperPropertyTarget()';
-}
-
-/// Non-promotion reason describing the situation where an expression was not
-/// promoted due to the fact that it's a reference to `this`.
-class ThisNotPromoted extends NonPromotionReason {
-  @override
-  String get documentationLink => 'http://dart.dev/go/non-promo-this';
-
-  @override
-  String get shortName => 'thisNotPromoted';
-
-  @override
-  R accept<R, Node extends Object, Variable extends Object,
-              Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
-      visitor.visitThisNotPromoted(this);
-}
-
-/// [PropertyTarget] representing an implicit reference to `this`.
-class ThisPropertyTarget extends PropertyTarget<Never> {
-  static const ThisPropertyTarget singleton = const ThisPropertyTarget._();
-
-  const ThisPropertyTarget._() : super._();
-
-  @override
-  String toString() => 'ThisPropertyTarget()';
-}
-
-/// Specialization of [ExpressionInfo] for the case where the expression is a
-/// reference to a variable, and the information we have about the expression is
-/// trivial (meaning we know by construction that the expression's [after],
-/// [ifTrue], and [ifFalse] models are all the same).
-@visibleForTesting
-class TrivialVariableReference<Type extends Object> extends _Reference<Type> {
-  TrivialVariableReference(
-      {required super.type,
-      required super.after,
-      required super.promotionKey,
-      required super.isThisOrSuper,
-      required super.ssaNode})
-      : super.trivial();
-
-  /// Produces an updated version of `this` reflecting the [ifTrue] and
-  /// [ifFalse] information from [previousExpressionInfo]. This is used in the
-  /// situation where the user stores a value with potentially non-trivial flow
-  /// analysis semantics into a variable and then recalls it later.
-  ///
-  /// The information in [previousExpressionInfo] is updated to reflect
-  /// assignments that have been made since the value was stored (e.g. if the
-  /// value that was stored was the result of a null check on the variable `x`,
-  /// and `x` has been subsequently written to, then the promotion is
-  /// discarded). This is done via [FlowModel.rebaseForward].
-  ///
-  /// [current] should be the current flow model, and [typeOperations] should be
-  /// the callback object provided by the client for manipulating types.
-  _Reference<Type> addPreviousInfo(ExpressionInfo<Type>? previousExpressionInfo,
-      TypeOperations<Type> typeOperations, FlowModel<Type> current) {
-    if (previousExpressionInfo != null && previousExpressionInfo.isNonTrivial) {
-      // [previousExpression] contained non-trivial flow analysis information,
-      // so we need to rebase its [ifTrue] and [ifFalse] flow models. We don't
-      // need to rebase its [after] model, since that just represents the flow
-      // state after reading the variable (without regard to the value read), so
-      // that's just the same as [current].
-      return new _Reference(
-          promotionKey: promotionKey,
-          after: current,
-          type: _type,
-          isThisOrSuper: isThisOrSuper,
-          ifTrue: previousExpressionInfo.ifTrue
-              .rebaseForward(typeOperations, current),
-          ifFalse: previousExpressionInfo.ifFalse
-              .rebaseForward(typeOperations, current),
-          ssaNode: ssaNode);
-    } else {
-      // [previousExpression] didn't contain any non-trivial flow analysis
-      // information, so nothing needs to be updated.
-      return this;
-    }
-  }
-
-  @override
-  String toString() => 'TrivialVariableReference(type: $_type, after: $after, '
-      'promotionKey: $promotionKey, isThisOrSuper: $isThisOrSuper)';
-}
-
 /// An instance of the [PromotionModel] class represents the information
 /// gathered by flow analysis for a single variable or property at a single
 /// point in the control flow of the function or method being analyzed.
@@ -3910,6 +3399,517 @@ class PromotionModel<Type extends Object> {
     }
     return false;
   }
+}
+
+/// Non-promotion reason describing the situation where an expression was not
+/// promoted due to the fact that it's a property get.
+class PropertyNotPromoted<Type extends Object> extends NonPromotionReason {
+  /// The name of the property.
+  final String propertyName;
+
+  /// The field or property being accessed.  This matches a `propertyMember`
+  /// value that was passed to [FlowAnalysis.propertyGet].
+  final Object? propertyMember;
+
+  /// The static type of the property at the time of the access.  This is the
+  /// type that was passed to [FlowAnalysis.whyNotPromoted]; it is provided to
+  /// the client as a convenience for ID testing.
+  final Type staticType;
+
+  PropertyNotPromoted(this.propertyName, this.propertyMember, this.staticType);
+
+  @override
+  String get documentationLink => 'http://dart.dev/go/non-promo-property';
+
+  @override
+  String get shortName => 'propertyNotPromoted';
+
+  @override
+  R accept<R, Node extends Object, Variable extends Object,
+              Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
+      visitor.visitPropertyNotPromoted(this as PropertyNotPromoted<Type>);
+}
+
+/// Target for a property access that might undergo promotion.
+sealed class PropertyTarget<Expression extends Object> {
+  const PropertyTarget._();
+}
+
+/// Immutable data structure modeling the reachability of the given point in the
+/// source code.  Reachability is tracked relative to checkpoints occurring
+/// previously along the control flow path leading up to the current point in
+/// the program.  A given point is said to be "locally reachable" if it is
+/// reachable from the most recent checkpoint, and "overall reachable" if it is
+/// reachable from the top of the function.
+@visibleForTesting
+class Reachability {
+  /// Model of the initial reachability state of the function being analyzed.
+  static const Reachability initial = const Reachability._initial();
+
+  /// Reachability of the checkpoint this reachability is relative to, or `null`
+  /// if there is no checkpoint.  Reachabilities form a tree structure that
+  /// mimics the control flow of the code being analyzed, so this is called the
+  /// "parent".
+  final Reachability? parent;
+
+  /// Whether this point in the source code is considered reachable from the
+  /// most recent checkpoint.
+  final bool locallyReachable;
+
+  /// Whether this point in the source code is considered reachable from the
+  /// beginning of the function being analyzed.
+  final bool overallReachable;
+
+  /// The number of `parent` links between this node and [initial].
+  final int depth;
+
+  Reachability._(this.parent, this.locallyReachable, this.overallReachable)
+      : depth = parent == null ? 0 : parent.depth + 1 {
+    assert(overallReachable ==
+        (locallyReachable && (parent?.overallReachable ?? true)));
+  }
+
+  const Reachability._initial()
+      : parent = null,
+        locallyReachable = true,
+        overallReachable = true,
+        depth = 0;
+
+  /// Updates `this` reachability to account for the reachability of [base].
+  ///
+  /// This is the reachability component of the algorithm in
+  /// [FlowModel.rebaseForward].
+  Reachability rebaseForward(Reachability base) {
+    // If [base] is not reachable, then the result is not reachable.
+    if (!base.locallyReachable) return base;
+    // If any of the reachability nodes between `this` and its common ancestor
+    // with [base] are locally unreachable, that means that there was an exit in
+    // the flow control path from the point at which `this` and [base] diverged
+    // up to the current point of `this`; therefore we want to mark [base] as
+    // unreachable.
+    Reachability? ancestor = commonAncestor(this, base);
+    for (Reachability? self = this;
+        self != null && !identical(self, ancestor);
+        self = self.parent) {
+      if (!self.locallyReachable) return base.setUnreachable();
+    }
+    // Otherwise, the result is as reachable as [base] was.
+    return base;
+  }
+
+  /// Returns a reachability with the same checkpoint as `this`, but where the
+  /// current point in the program is considered locally unreachable.
+  Reachability setUnreachable() {
+    if (!locallyReachable) return this;
+    return new Reachability._(parent, false, false);
+  }
+
+  /// Returns a new reachability whose checkpoint is the current point of
+  /// execution.  This models flow control within a control flow split, e.g.
+  /// inside an `if` statement.
+  Reachability split() => new Reachability._(this, true, overallReachable);
+
+  @override
+  String toString() {
+    List<bool> values = [];
+    for (Reachability? node = this; node != null; node = node.parent) {
+      values.add(node.locallyReachable);
+    }
+    return '[${values.join(', ')}]';
+  }
+
+  /// Returns a reachability that drops the most recent checkpoint but maintains
+  /// the same notion of reachability relative to the previous two checkpoints.
+  Reachability unsplit() {
+    if (locallyReachable) {
+      return parent!;
+    } else {
+      return parent!.setUnreachable();
+    }
+  }
+
+  /// Finds the common ancestor node of [r1] and [r2], if any such node exists;
+  /// otherwise `null`.  If [r1] and [r2] are the same node, that node is
+  /// returned.
+  static Reachability? commonAncestor(Reachability? r1, Reachability? r2) {
+    if (r1 == null || r2 == null) return null;
+    while (r1!.depth > r2.depth) {
+      r1 = r1.parent!;
+    }
+    while (r2!.depth > r1.depth) {
+      r2 = r2.parent!;
+    }
+    while (!identical(r1, r2)) {
+      r1 = r1!.parent;
+      r2 = r2!.parent;
+    }
+    return r1;
+  }
+
+  /// Combines two reachabilities (both of which must be based on the same
+  /// checkpoint), where the code is considered reachable from the checkpoint
+  /// iff either argument is reachable from the checkpoint.
+  ///
+  /// This is used as part of the "join" operation.
+  static Reachability join(Reachability r1, Reachability r2) {
+    assert(identical(r1.parent, r2.parent));
+    if (r2.locallyReachable) {
+      return r2;
+    } else {
+      return r1;
+    }
+  }
+
+  /// Combines two reachabilities (both of which must be based on the same
+  /// checkpoint), where the code is considered reachable from the checkpoint
+  /// iff both arguments are reachable from the checkpoint.
+  ///
+  /// This is used as part of the "restrict" operation.
+  static Reachability restrict(Reachability r1, Reachability r2) {
+    assert(identical(r1.parent, r2.parent));
+    if (r2.locallyReachable) {
+      return r1;
+    } else {
+      return r2;
+    }
+  }
+}
+
+/// Data structure representing a unique value that a variable might take on
+/// during execution of the code being analyzed.  SSA nodes are immutable (so
+/// they can be safety shared among data structures) and have identity (so that
+/// it is possible to tell whether one SSA node is the same as another).
+///
+/// This is similar to the nodes used in traditional single assignment analysis
+/// (https://en.wikipedia.org/wiki/Static_single_assignment_form) except that it
+/// does not store a complete IR of the code being analyzed.
+@visibleForTesting
+class SsaNode<Type extends Object> {
+  /// Expando mapping SSA nodes to debug ids.  Only used by `toString`.
+  static final Expando<int> _debugIds = new Expando<int>();
+
+  static int _nextDebugId = 0;
+
+  /// Flow analysis information was associated with the expression that
+  /// produced the value represented by this SSA node, if it was non-trivial.
+  /// This can be used at a later time to perform promotions if the value is
+  /// used in a control flow construct.
+  ///
+  /// We don't bother storing flow analysis information if it's trivial (see
+  /// [_TrivialExpressionInfo]) because such information does not lead to
+  /// promotions.
+  @visibleForTesting
+  final ExpressionInfo<Type>? expressionInfo;
+
+  /// Map containing the set of promotable properties of the value tracked by
+  /// this SSA node. Keys are the names of the properties.
+  final Map<String, _PropertySsaNode<Type>> _promotableProperties;
+
+  /// Map containing the set of non-promotable properties of the value tracked
+  /// by this SSA node. These are tracked even though they're not promotable, so
+  /// that if an error occurs due to the absence of type promotion, it will be
+  /// possible to generate a message explaining to the user why type promotion
+  /// failed.
+  final Map<String, _PropertySsaNode<Type>> _nonPromotableProperties;
+
+  SsaNode(ExpressionInfo<Type>? expressionInfo)
+      : this.withProperties(expressionInfo,
+            promotableProperties: {}, nonPromotableProperties: {});
+
+  SsaNode.withProperties(this.expressionInfo,
+      {required Map<String, _PropertySsaNode<Type>> promotableProperties,
+      required Map<String, _PropertySsaNode<Type>> nonPromotableProperties})
+      : _promotableProperties = promotableProperties,
+        _nonPromotableProperties = nonPromotableProperties;
+
+  /// Gets an SSA node representing the property named [propertyName] of the
+  /// value represented by `this`, creating it if necessary.
+  ///
+  /// If a new SSA node is created, it is allocated a fresh promotion key using
+  /// [promotionKeyStore], so that type promotions for it can be tracked
+  /// separately from other type promotions.
+  _PropertySsaNode<Type> getProperty(
+      String propertyName, PromotionKeyStore<Object> promotionKeyStore,
+      {required bool isPromotable}) {
+    if (isPromotable) {
+      // The property is promotable, meaning it is known to produce the same (or
+      // equivalent) value every time it is queried. So we only create an SSA
+      // node if the property hasn't been accessed before; otherwise we return
+      // the old SSA node unchanged.
+      return _promotableProperties[propertyName] ??=
+          new _PropertySsaNode(promotionKeyStore.makeTemporaryKey());
+    } else {
+      // The property isn't promotable, meaning it is not known to produce the
+      // same (or equivalent) value every time it is queried. So we create a
+      // fresh SSA node for every access; but we record the previous SSA node in
+      // `_PropertySsaNode.previousSsaNode` so that the "why not promoted" logic
+      // can figure out what promotions *would* have occurred if the field had
+      // been promotable.
+      _PropertySsaNode<Type>? previousSsaNode =
+          _nonPromotableProperties[propertyName];
+      return _nonPromotableProperties[propertyName] = new _PropertySsaNode(
+          promotionKeyStore.makeTemporaryKey(),
+          previousSsaNode: previousSsaNode);
+    }
+  }
+
+  @override
+  String toString() {
+    int id = _debugIds[this] ??= _nextDebugId++;
+    return 'ssa$id';
+  }
+
+  /// Applies the property promotions from one SSA node to another. This is done
+  /// as part of computing the effect of executing a try/finally's `try` and
+  /// `finally` blocks in sequence, to apply the promotions that occurred in the
+  /// `finally` block atop the promotions that occurred in the `try` block.
+  ///
+  /// [afterTrySsaNode] is the SSA node from the end of the `try` block, and
+  /// [finallySsaNode] is the SSA node from the end of the `finally` block (this
+  /// method is only invoked when the variable in question was not written to in
+  /// the `finally` block, so it is also the SSA node from the beginning of the
+  /// `finally` block).
+  ///
+  /// [beforeFinallyInfo] is the promotion info map from the flow state at the
+  /// beginning of the `finally` block, and [afterFinallyInfo] is the promotion
+  /// info map from the flow state at the end of the `finally` block.
+  /// [newPromotionInfo] is the promotion info map for the flow state being
+  /// built (the flow state after the try/finally block).
+  void _applyPropertyPromotions<Type extends Object>(
+      FlowModelHelper<Type> helper,
+      SsaNode<Type> afterTrySsaNode,
+      SsaNode<Type> finallySsaNode,
+      Map<int, PromotionModel<Type>> beforeFinallyInfo,
+      Map<int, PromotionModel<Type>> afterFinallyInfo,
+      Map<int, PromotionModel<Type>> newPromotionInfo) {
+    for (var MapEntry(
+          key: String propertyName,
+          value: _PropertySsaNode<Type> finallyPropertySsaNode
+        ) in finallySsaNode._promotableProperties.entries) {
+      // Since this method is only called when a variable is assigned in a `try`
+      // block, a fresh SSA node should have been assigned for the `finally`
+      // block by the conservative join in `tryFinallyStatement_finallyBegin`.
+      // So the property should have been unpromoted (and unknown) at the
+      // beginning of the `finally` block.
+      assert(beforeFinallyInfo[finallyPropertySsaNode.promotionKey] == null);
+      // Therefore all we need to do is apply any promotions that are in force
+      // at the end of the `finally` block.
+      PromotionModel<Type>? afterFinallyModel =
+          afterFinallyInfo[finallyPropertySsaNode.promotionKey];
+      _PropertySsaNode<Type> afterTryPropertySsaNode =
+          afterTrySsaNode._promotableProperties[propertyName] ??=
+              new _PropertySsaNode(helper.promotionKeyStore.makeTemporaryKey());
+      // Handle nested properties
+      _applyPropertyPromotions(
+          helper,
+          afterTryPropertySsaNode,
+          finallyPropertySsaNode,
+          beforeFinallyInfo,
+          afterFinallyInfo,
+          newPromotionInfo);
+      if (afterFinallyModel == null) continue;
+      List<Type>? afterFinallyPromotedTypes = afterFinallyModel.promotedTypes;
+      // The property was accessed in a promotion-relevant way in the `try`
+      // block, so we need to apply the promotions from the `finally` block to
+      // the flow model from the `try` block, and see what sticks.
+      PromotionModel<Type> newModel =
+          newPromotionInfo[afterTryPropertySsaNode.promotionKey] ??=
+              new PromotionModel.fresh();
+      List<Type>? newPromotedTypes = newModel.promotedTypes;
+      List<Type>? rebasedPromotedTypes = PromotionModel.rebasePromotedTypes(
+          helper.typeOperations, afterFinallyPromotedTypes, newPromotedTypes);
+      if (!identical(newPromotedTypes, rebasedPromotedTypes)) {
+        newPromotionInfo[afterTryPropertySsaNode.promotionKey] =
+            new PromotionModel<Type>(
+                promotedTypes: rebasedPromotedTypes,
+                tested: newModel.tested,
+                assigned: true,
+                unassigned: false,
+                ssaNode: newModel.ssaNode);
+      }
+    }
+  }
+
+  /// Joins the promotion information for two SSA nodes, [first] and [second].
+  ///
+  /// Since SSA nodes store information about properties, and properties may
+  /// themselves be promoted, the caller must supply the promotion info maps for
+  /// the two flow control paths being joined ([firstPromotionInfo] and
+  /// [secondPromotionInfo]), as well as the promotion info map being built for
+  /// the join point ([newPromotionInfo]).
+  static SsaNode<Type> _join<Type extends Object>(
+      FlowModelHelper<Type> helper,
+      SsaNode<Type> first,
+      Map<int, PromotionModel<Type>> firstPromotionInfo,
+      SsaNode<Type> second,
+      Map<int, PromotionModel<Type>> secondPromotionInfo,
+      Map<int, PromotionModel<Type>> newPromotionInfo) {
+    if (first == second) return first;
+    return new SsaNode.withProperties(null,
+        promotableProperties: _joinProperties(
+            helper,
+            first._promotableProperties,
+            firstPromotionInfo,
+            second._promotableProperties,
+            secondPromotionInfo,
+            newPromotionInfo),
+        nonPromotableProperties: {});
+  }
+
+  /// Joins the promotion information for the promotable properties of two SSA
+  /// nodes, [first] and [second].
+  ///
+  /// Since properties may themselves be promoted, the caller must supply the
+  /// promotion info maps for the two flow control paths being joined
+  /// ([firstPromotionInfo] and [secondPromotionInfo]), as well as the promotion
+  /// info map being built for the join point ([newPromotionInfo]).
+  static Map<String, _PropertySsaNode<Type>>
+      _joinProperties<Type extends Object>(
+          FlowModelHelper<Type> helper,
+          Map<String, _PropertySsaNode<Type>> first,
+          Map<int, PromotionModel<Type>> firstPromotionInfo,
+          Map<String, _PropertySsaNode<Type>> second,
+          Map<int, PromotionModel<Type>> secondPromotionInfo,
+          final Map<int, PromotionModel<Type>> newPromotionInfo) {
+    Map<String, _PropertySsaNode<Type>> newProperties = {};
+    // If a property has been accessed along one of the two control flow paths
+    // being joined, but not the other, then it shouldn't be promoted after the
+    // join point, nor should any of its nested properties. So it is only
+    // necessary to examine properties common to the `first` and `second` maps.
+    for (var MapEntry(
+          key: String propertyName,
+          value: _PropertySsaNode<Type> firstProperty
+        ) in first.entries) {
+      _PropertySsaNode<Type>? secondProperty = second[propertyName];
+      if (secondProperty == null) continue;
+      // Make a new promotion key to represent the joined property.
+      int newPromotionKey = helper.promotionKeyStore.makeTemporaryKey();
+      // If the property has a promotion model along both control flow paths,
+      // it might be promoted, so join the two promotion models to preserve the
+      // promotion.
+      PromotionModel<Type>? firstPromotionModel =
+          firstPromotionInfo[firstProperty.promotionKey];
+      if (firstPromotionModel != null) {
+        PromotionModel<Type>? secondPromotionModel =
+            secondPromotionInfo[secondProperty.promotionKey];
+        if (secondPromotionModel != null) {
+          newPromotionInfo[newPromotionKey] = PromotionModel.join(
+              helper,
+              firstPromotionModel,
+              firstPromotionInfo,
+              secondPromotionModel,
+              secondPromotionInfo,
+              newPromotionInfo);
+        }
+      }
+      // Join any nested properties.
+      newProperties[propertyName] = new _PropertySsaNode.withProperties(
+          newPromotionKey,
+          promotableProperties: _joinProperties(
+              helper,
+              firstProperty._promotableProperties,
+              firstPromotionInfo,
+              secondProperty._promotableProperties,
+              secondPromotionInfo,
+              newPromotionInfo),
+          nonPromotableProperties: {});
+    }
+    return newProperties;
+  }
+}
+
+/// [PropertyTarget] representing `super`.
+class SuperPropertyTarget extends PropertyTarget<Never> {
+  static const SuperPropertyTarget singleton = const SuperPropertyTarget._();
+
+  const SuperPropertyTarget._() : super._();
+
+  @override
+  String toString() => 'SuperPropertyTarget()';
+}
+
+/// Non-promotion reason describing the situation where an expression was not
+/// promoted due to the fact that it's a reference to `this`.
+class ThisNotPromoted extends NonPromotionReason {
+  @override
+  String get documentationLink => 'http://dart.dev/go/non-promo-this';
+
+  @override
+  String get shortName => 'thisNotPromoted';
+
+  @override
+  R accept<R, Node extends Object, Variable extends Object,
+              Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
+      visitor.visitThisNotPromoted(this);
+}
+
+/// [PropertyTarget] representing an implicit reference to `this`.
+class ThisPropertyTarget extends PropertyTarget<Never> {
+  static const ThisPropertyTarget singleton = const ThisPropertyTarget._();
+
+  const ThisPropertyTarget._() : super._();
+
+  @override
+  String toString() => 'ThisPropertyTarget()';
+}
+
+/// Specialization of [ExpressionInfo] for the case where the expression is a
+/// reference to a variable, and the information we have about the expression is
+/// trivial (meaning we know by construction that the expression's [after],
+/// [ifTrue], and [ifFalse] models are all the same).
+@visibleForTesting
+class TrivialVariableReference<Type extends Object> extends _Reference<Type> {
+  TrivialVariableReference(
+      {required super.type,
+      required super.after,
+      required super.promotionKey,
+      required super.isThisOrSuper,
+      required super.ssaNode})
+      : super.trivial();
+
+  /// Produces an updated version of `this` reflecting the [ifTrue] and
+  /// [ifFalse] information from [previousExpressionInfo]. This is used in the
+  /// situation where the user stores a value with potentially non-trivial flow
+  /// analysis semantics into a variable and then recalls it later.
+  ///
+  /// The information in [previousExpressionInfo] is updated to reflect
+  /// assignments that have been made since the value was stored (e.g. if the
+  /// value that was stored was the result of a null check on the variable `x`,
+  /// and `x` has been subsequently written to, then the promotion is
+  /// discarded). This is done via [FlowModel.rebaseForward].
+  ///
+  /// [current] should be the current flow model, and [typeOperations] should be
+  /// the callback object provided by the client for manipulating types.
+  _Reference<Type> addPreviousInfo(ExpressionInfo<Type>? previousExpressionInfo,
+      TypeOperations<Type> typeOperations, FlowModel<Type> current) {
+    if (previousExpressionInfo != null && previousExpressionInfo.isNonTrivial) {
+      // [previousExpression] contained non-trivial flow analysis information,
+      // so we need to rebase its [ifTrue] and [ifFalse] flow models. We don't
+      // need to rebase its [after] model, since that just represents the flow
+      // state after reading the variable (without regard to the value read), so
+      // that's just the same as [current].
+      return new _Reference(
+          promotionKey: promotionKey,
+          after: current,
+          type: _type,
+          isThisOrSuper: isThisOrSuper,
+          ifTrue: previousExpressionInfo.ifTrue
+              .rebaseForward(typeOperations, current),
+          ifFalse: previousExpressionInfo.ifFalse
+              .rebaseForward(typeOperations, current),
+          ssaNode: ssaNode);
+    } else {
+      // [previousExpression] didn't contain any non-trivial flow analysis
+      // information, so nothing needs to be updated.
+      return this;
+    }
+  }
+
+  @override
+  String toString() => 'TrivialVariableReference(type: $_type, after: $after, '
+      'promotionKey: $promotionKey, isThisOrSuper: $isThisOrSuper)';
 }
 
 /// Operations on variables, abstracted from concrete type interfaces.
