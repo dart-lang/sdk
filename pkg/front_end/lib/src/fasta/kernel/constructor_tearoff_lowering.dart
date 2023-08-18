@@ -96,7 +96,7 @@ bool isTypedefTearOffLowering(Procedure procedure) {
 ///
 /// If constructor tear off lowering is not enabled, `null` is returned.
 Procedure? createConstructorTearOffProcedure(
-    String name,
+    MemberName tearOffName,
     SourceLibraryBuilder compilationUnit,
     Uri fileUri,
     int fileOffset,
@@ -107,8 +107,8 @@ Procedure? createConstructorTearOffProcedure(
       (forceCreateLowering ||
           compilationUnit.loader.target.backendTarget
               .isConstructorTearOffLoweringEnabled)) {
-    return _createTearOffProcedure(compilationUnit,
-        constructorTearOffName(name), fileUri, fileOffset, reference);
+    return _createTearOffProcedure(
+        compilationUnit, tearOffName, fileUri, fileOffset, reference);
   }
   return null;
 }
@@ -118,7 +118,7 @@ Procedure? createConstructorTearOffProcedure(
 ///
 /// If constructor tear off lowering is not enabled, `null` is returned.
 Procedure? createFactoryTearOffProcedure(
-    String name,
+    MemberName tearOffName,
     SourceLibraryBuilder compilationUnit,
     Uri fileUri,
     int fileOffset,
@@ -127,8 +127,8 @@ Procedure? createFactoryTearOffProcedure(
   if (forceCreateLowering ||
       compilationUnit
           .loader.target.backendTarget.isFactoryTearOffLoweringEnabled) {
-    return _createTearOffProcedure(compilationUnit,
-        constructorTearOffName(name), fileUri, fileOffset, reference);
+    return _createTearOffProcedure(
+        compilationUnit, tearOffName, fileUri, fileOffset, reference);
   }
   return null;
 }
@@ -143,8 +143,10 @@ Procedure createTypedefTearOffProcedure(
     Uri fileUri,
     int fileOffset,
     Reference? reference) {
-  return _createTearOffProcedure(libraryBuilder,
-      typedefTearOffName(typedefName, name), fileUri, fileOffset, reference);
+  MemberName tearOffName = new MemberName(
+      libraryBuilder.libraryName, typedefTearOffName(typedefName, name));
+  return _createTearOffProcedure(
+      libraryBuilder, tearOffName, fileUri, fileOffset, reference);
 }
 
 /// Creates the parameters and body for [tearOff] based on
@@ -348,7 +350,7 @@ DelayedDefaultValueCloner buildRedirectingFactoryTearOffBody(
 /// Creates the synthesized [Procedure] node for a tear off lowering by the
 /// given [name].
 Procedure _createTearOffProcedure(SourceLibraryBuilder libraryBuilder,
-    String name, Uri fileUri, int fileOffset, Reference? reference) {
+    MemberName tearOffName, Uri fileUri, int fileOffset, Reference? reference) {
   Procedure tearOff = new Procedure(
       dummyName, ProcedureKind.Method, new FunctionNode(null),
       fileUri: fileUri, isStatic: true, isSynthetic: true, reference: reference)
@@ -356,7 +358,6 @@ Procedure _createTearOffProcedure(SourceLibraryBuilder libraryBuilder,
     ..fileOffset = fileOffset
     ..fileEndOffset = fileOffset
     ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
-  MemberName tearOffName = new MemberName(libraryBuilder.libraryName, name);
   tearOffName.attachMember(tearOff);
   return tearOff;
 }

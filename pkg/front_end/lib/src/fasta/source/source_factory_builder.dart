@@ -96,16 +96,14 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
     nameScheme
         .getProcedureMemberName(ProcedureKind.Factory, name)
         .attachMember(_procedureInternal);
-    _factoryTearOff = createFactoryTearOffProcedure(name, libraryBuilder,
-        libraryBuilder.fileUri, charOffset, tearOffReference,
-        forceCreateLowering: nameScheme.isExtensionTypeMember);
-    if (_factoryTearOff != null) {
-      _factoryTearOff!
-        ..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
-      nameScheme
-          .getConstructorMemberName(name, isTearOff: true)
-          .attachMember(_factoryTearOff!);
-    }
+    _factoryTearOff = createFactoryTearOffProcedure(
+        nameScheme.getConstructorMemberName(name, isTearOff: true),
+        libraryBuilder,
+        libraryBuilder.fileUri,
+        charOffset,
+        tearOffReference,
+        forceCreateLowering: nameScheme.isExtensionTypeMember)
+      ?..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
     this.asyncModifier = asyncModifier;
   }
 

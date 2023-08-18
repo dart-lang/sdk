@@ -1747,7 +1747,8 @@ class OutlineBuilder extends StackListenerImpl {
           nativeMethodName,
           asyncModifier,
           isInstanceMember: false,
-          isExtensionMember: false);
+          isExtensionMember: false,
+          isExtensionTypeMember: false);
       nativeMethodName = null;
     }
     popDeclarationContext(DeclarationContext.TopLevelMethod);
@@ -1936,6 +1937,13 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  void endExtensionTypeMethod(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
+        endToken, _MethodKind.extensionTypeMethod);
+  }
+
+  @override
   void endMixinConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
@@ -1947,6 +1955,13 @@ class OutlineBuilder extends StackListenerImpl {
       Token beginParam, Token? beginInitializers, Token endToken) {
     _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
         endToken, _MethodKind.extensionConstructor);
+  }
+
+  @override
+  void endExtensionTypeConstructor(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
+        endToken, _MethodKind.extensionTypeConstructor);
   }
 
   (List<TypeVariableBuilder>?, Map<TypeVariableBuilder, TypeBuilder>?)
@@ -2124,6 +2139,7 @@ class OutlineBuilder extends StackListenerImpl {
         case _MethodKind.classConstructor:
         case _MethodKind.mixinConstructor:
         case _MethodKind.extensionConstructor:
+        case _MethodKind.extensionTypeConstructor:
         case _MethodKind.enumConstructor:
           constructorName = libraryBuilder.computeAndValidateConstructorName(
                   name, charOffset) ??
@@ -2132,6 +2148,7 @@ class OutlineBuilder extends StackListenerImpl {
         case _MethodKind.classMethod:
         case _MethodKind.mixinMethod:
         case _MethodKind.extensionMethod:
+        case _MethodKind.extensionTypeMethod:
         case _MethodKind.enumMethod:
           break;
       }
@@ -2243,6 +2260,8 @@ class OutlineBuilder extends StackListenerImpl {
             ? beginToken.charOffset
             : metadata.first.charOffset;
         bool isExtensionMember = methodKind == _MethodKind.extensionMethod;
+        bool isExtensionTypeMember =
+            methodKind == _MethodKind.extensionTypeMethod;
         libraryBuilder.addProcedure(
             metadata,
             modifiers,
@@ -2258,7 +2277,8 @@ class OutlineBuilder extends StackListenerImpl {
             nativeMethodName,
             asyncModifier,
             isInstanceMember: !isStatic,
-            isExtensionMember: isExtensionMember);
+            isExtensionMember: isExtensionMember,
+            isExtensionTypeMember: isExtensionTypeMember);
       }
     }
     nativeMethodName = null;
@@ -3903,6 +3923,8 @@ enum _MethodKind {
   mixinMethod,
   extensionConstructor,
   extensionMethod,
+  extensionTypeConstructor,
+  extensionTypeMethod,
   enumConstructor,
   enumMethod,
 }

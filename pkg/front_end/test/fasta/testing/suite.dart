@@ -1585,6 +1585,7 @@ enum FuzzOriginalType {
   Mixin,
   Enum,
   Extension,
+  ExtensionTypeDeclaration,
   LibraryName,
   Part,
   PartOf,
@@ -1752,6 +1753,14 @@ class FuzzAstVisitorSorter extends ParserAstVisitor {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzOriginalType.Extension, FuzzSorterState.sortableRest,
         startInclusive, endInclusive);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclarationEnd node,
+      Token startInclusive, Token endInclusive) {
+    // TODO(jensj): Possibly sort stuff inside of this too.
+    handleData(FuzzOriginalType.ExtensionTypeDeclaration,
+        FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 
   @override
