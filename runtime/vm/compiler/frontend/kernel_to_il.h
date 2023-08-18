@@ -608,7 +608,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   intptr_t loop_depth_;
   intptr_t try_depth_;
   intptr_t catch_depth_;
-  intptr_t for_in_depth_;
   intptr_t block_expression_depth_;
 
   GraphEntryInstr* graph_entry_;
@@ -691,14 +690,12 @@ class ProgramState {
   ProgramState(BreakableBlock* breakable_block,
                SwitchBlock* switch_block,
                intptr_t loop_depth,
-               intptr_t for_in_depth,
                intptr_t try_depth,
                intptr_t catch_depth,
                intptr_t block_expression_depth)
       : breakable_block_(breakable_block),
         switch_block_(switch_block),
         loop_depth_(loop_depth),
-        for_in_depth_(for_in_depth),
         try_depth_(try_depth),
         catch_depth_(catch_depth),
         block_expression_depth_(block_expression_depth) {}
@@ -707,7 +704,6 @@ class ProgramState {
     builder->breakable_block_ = breakable_block_;
     builder->switch_block_ = switch_block_;
     builder->loop_depth_ = loop_depth_;
-    builder->for_in_depth_ = for_in_depth_;
     builder->try_depth_ = try_depth_;
     builder->catch_depth_ = catch_depth_;
     builder->block_expression_depth_ = block_expression_depth_;
@@ -717,7 +713,6 @@ class ProgramState {
   BreakableBlock* const breakable_block_;
   SwitchBlock* const switch_block_;
   const intptr_t loop_depth_;
-  const intptr_t for_in_depth_;
   const intptr_t try_depth_;
   const intptr_t catch_depth_;
   const intptr_t block_expression_depth_;
@@ -845,7 +840,6 @@ class TryFinallyBlock {
         state_(builder_->breakable_block_,
                builder_->switch_block_,
                builder_->loop_depth_,
-               builder_->for_in_depth_,
                builder_->try_depth_ - 1,
                builder_->catch_depth_,
                builder_->block_expression_depth_) {

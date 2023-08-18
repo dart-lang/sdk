@@ -1221,10 +1221,6 @@ Fragment StreamingFlowGraphBuilder::BuildStatement(TokenPosition* position) {
       return BuildDoStatement(position);
     case kForStatement:
       return BuildForStatement(position);
-    case kForInStatement:
-      return BuildForInStatement(false, position);
-    case kAsyncForInStatement:
-      return BuildForInStatement(true, position);
     case kSwitchStatement:
       return BuildSwitchStatement(position);
     case kContinueSwitchStatement:
@@ -1243,6 +1239,8 @@ Fragment StreamingFlowGraphBuilder::BuildStatement(TokenPosition* position) {
       return BuildVariableDeclaration(position);
     case kFunctionDeclaration:
       return BuildFunctionDeclaration(offset, position);
+    case kForInStatement:
+    case kAsyncForInStatement:
     case kIfCaseStatement:
     case kPatternSwitchStatement:
     case kPatternVariableDeclaration:
@@ -1300,18 +1298,6 @@ void StreamingFlowGraphBuilder::loop_depth_inc() {
 
 void StreamingFlowGraphBuilder::loop_depth_dec() {
   --flow_graph_builder_->loop_depth_;
-}
-
-intptr_t StreamingFlowGraphBuilder::for_in_depth() {
-  return flow_graph_builder_->for_in_depth_;
-}
-
-void StreamingFlowGraphBuilder::for_in_depth_inc() {
-  ++flow_graph_builder_->for_in_depth_;
-}
-
-void StreamingFlowGraphBuilder::for_in_depth_dec() {
-  --flow_graph_builder_->for_in_depth_;
 }
 
 void StreamingFlowGraphBuilder::catch_depth_inc() {
@@ -1722,8 +1708,8 @@ Fragment StreamingFlowGraphBuilder::TranslateFinallyFinalizers(
   TryCatchBlock* const saved_try_catch_block = B->CurrentTryCatchBlock();
   const intptr_t saved_context_depth = B->context_depth_;
   const ProgramState state(B->breakable_block_, B->switch_block_,
-                           B->loop_depth_, B->for_in_depth_, B->try_depth_,
-                           B->catch_depth_, B->block_expression_depth_);
+                           B->loop_depth_, B->try_depth_, B->catch_depth_,
+                           B->block_expression_depth_);
 
   Fragment instructions;
 
@@ -4842,68 +4828,6 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement(TokenPosition* position) {
   return loop;
 }
 
-Fragment StreamingFlowGraphBuilder::BuildForInStatement(
-    bool async,
-    TokenPosition* position) {
-  intptr_t offset = ReaderOffset() - 1;  // Include the tag.
-
-  const TokenPosition pos = ReadPosition();  // read position.
-  if (position != nullptr) *position = pos;
-
-  TokenPosition body_position = ReadPosition();  // read body position.
-  intptr_t variable_kernel_position = ReaderOffset() + data_program_offset_;
-  SkipVariableDeclaration();  // read variable.
-
-  TokenPosition iterable_position = TokenPosition::kNoSource;
-  Fragment instructions =
-      BuildExpression(&iterable_position);  // read iterable.
-
-  const String& iterator_getter =
-      String::ZoneHandle(Z, Field::GetterSymbol(Symbols::Iterator()));
-  instructions +=
-      InstanceCall(iterable_position, iterator_getter, Token::kGET, 1);
-  LocalVariable* iterator = scopes()->iterator_variables[for_in_depth()];
-  instructions += StoreLocal(TokenPosition::kNoSource, iterator);
-  instructions += Drop();
-
-  for_in_depth_inc();
-  loop_depth_inc();
-  Fragment condition = LoadLocal(iterator);
-  condition +=
-      InstanceCall(iterable_position, Symbols::MoveNext(), Token::kILLEGAL, 1);
-  TargetEntryInstr* body_entry;
-  TargetEntryInstr* loop_exit;
-  condition += BranchIfTrue(&body_entry, &loop_exit, false);
-
-  Fragment body(body_entry);
-  body += EnterScope(offset);
-  body += LoadLocal(iterator);
-  const String& current_getter =
-      String::ZoneHandle(Z, Field::GetterSymbol(Symbols::Current()));
-  body += InstanceCall(body_position, current_getter, Token::kGET, 1);
-  body += StoreLocal(TokenPosition::kNoSource,
-                     LookupVariable(variable_kernel_position));
-  body += Drop();
-  body += BuildStatementWithBranchCoverage();  // read body.
-  body += ExitScope(offset);
-
-  if (body.is_open()) {
-    JoinEntryInstr* join = BuildJoinEntry();
-    instructions += Goto(join);
-    body += Goto(join);
-
-    Fragment loop(join);
-    loop += CheckStackOverflow(pos);  // may have non-empty stack
-    loop += condition;
-  } else {
-    instructions += condition;
-  }
-
-  loop_depth_dec();
-  for_in_depth_dec();
-  return Fragment(instructions.entry, loop_exit);
-}
-
 Fragment StreamingFlowGraphBuilder::BuildSwitchStatement(
     TokenPosition* position) {
   const TokenPosition pos = ReadPosition();  // read position.
@@ -5903,12 +5827,6 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration(
     instructions += Constant(Object::sentinel());
   } else if (!has_initializer) {
     instructions += NullConstant();
-  } else if (helper.IsConst()) {
-    // Read const initializer form current position.
-    const Instance& constant_value =
-        Instance::ZoneHandle(Z, constant_reader_.ReadConstantExpression());
-    variable->SetConstValue(constant_value);
-    instructions += Constant(constant_value);
   } else {
     // Initializer
     instructions += BuildExpression();  // read (actual) initializer.

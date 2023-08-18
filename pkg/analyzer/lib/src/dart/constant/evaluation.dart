@@ -1538,7 +1538,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             errorNode, CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
             arguments: [identifier.name, targetType]);
       }
-      return targetResult.stringLength(typeSystem);
+      return _dartObjectComputer.stringLength(errorNode, targetResult);
     }
 
     // TODO(kallentu): Make a more specific error here if we aren't accessing
@@ -2166,6 +2166,16 @@ class DartObjectComputer {
       DartObjectImpl rightOperand) {
     try {
       return leftOperand.shiftRight(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      // TODO(kallentu): Don't report error here.
+      _errorReporter.reportErrorForNode(exception.errorCode, node);
+      return InvalidConstant(node, exception.errorCode);
+    }
+  }
+
+  Constant stringLength(AstNode node, DartObjectImpl evaluationResult) {
+    try {
+      return evaluationResult.stringLength(_typeSystem);
     } on EvaluationException catch (exception) {
       // TODO(kallentu): Don't report error here.
       _errorReporter.reportErrorForNode(exception.errorCode, node);

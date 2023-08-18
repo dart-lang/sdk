@@ -18888,24 +18888,12 @@ void ContextScope::SetLateInitOffsetAt(intptr_t scope_index,
 }
 
 AbstractTypePtr ContextScope::TypeAt(intptr_t scope_index) const {
-  ASSERT(!IsConstAt(scope_index));
   return untag()->type_at(scope_index);
 }
 
 void ContextScope::SetTypeAt(intptr_t scope_index,
                              const AbstractType& type) const {
   untag()->set_type_at(scope_index, type.ptr());
-}
-
-InstancePtr ContextScope::ConstValueAt(intptr_t scope_index) const {
-  ASSERT(IsConstAt(scope_index));
-  return untag()->value_at(scope_index);
-}
-
-void ContextScope::SetConstValueAt(intptr_t scope_index,
-                                   const Instance& value) const {
-  ASSERT(IsConstAt(scope_index));
-  untag()->set_value_at(scope_index, value.ptr());
 }
 
 intptr_t ContextScope::ContextIndexAt(intptr_t scope_index) const {
@@ -27471,10 +27459,10 @@ bool UserTag::TagTableIsFull(Thread* thread) {
   return tag_table.Length() == UserTags::kMaxUserTags;
 }
 
-UserTagPtr UserTag::FindTagById(uword tag_id) {
+UserTagPtr UserTag::FindTagById(const Isolate* isolate, uword tag_id) {
+  ASSERT(isolate != nullptr);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table =
       GrowableObjectArray::Handle(zone, isolate->tag_table());

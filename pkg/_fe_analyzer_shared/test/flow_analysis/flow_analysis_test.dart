@@ -6617,6 +6617,291 @@ main() {
         ]);
       });
     });
+
+    group('In try/finally:', () {
+      // In a try/finally statement, the `finally` clause is analyzed as though
+      // the `try` block hasn't executed yet (and any variables written inside
+      // the `try` block have been de-promoted), to account for the fact that
+      // an exception might occur at any time during the `try` block. However,
+      // after the `finally` block is finished, any flow model changes that
+      // occurred during the `finally` block are rewound and re-applied to the
+      // flow model state after the `try` block, to account for the fact that
+      // if the try/finally statement completes normally, it is known that the
+      // `try` block executed fully.
+      //
+      // We need to verify that this rebasing logic handles all the possible
+      // ways that field promotion can occur relative to a try/finally
+      // statement.
+
+      test('Promoted in try', () {
+        h.addMember('C', '_property', 'int?', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          try_([
+            checkNotPromoted(c.property('_property')),
+            c.property('_property').nonNullAssert,
+            checkPromoted(c.property('_property'), 'int'),
+          ]).finally_([
+            checkNotPromoted(c.property('_property')),
+          ]),
+          checkPromoted(c.property('_property'), 'int'),
+        ]);
+      });
+
+      test('Promoted in try, nested', () {
+        h.addMember('C', '_i', 'int?', promotable: true);
+        h.addMember('D', '_c', 'C', promotable: true);
+        var d = Var('d');
+        h.run([
+          declare(d, initializer: expr('D')),
+          try_([
+            checkNotPromoted(d.property('_c').property('_i')),
+            d.property('_c').property('_i').nonNullAssert,
+            checkPromoted(d.property('_c').property('_i'), 'int'),
+          ]).finally_([
+            checkNotPromoted(d.property('_c').property('_i')),
+          ]),
+          checkPromoted(d.property('_c').property('_i'), 'int'),
+        ]);
+      });
+
+      test('Promoted before try/finally', () {
+        h.addMember('C', '_property', 'int?', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          c.property('_property').nonNullAssert,
+          checkPromoted(c.property('_property'), 'int'),
+          try_([
+            checkPromoted(c.property('_property'), 'int'),
+          ]).finally_([
+            checkPromoted(c.property('_property'), 'int'),
+          ]),
+          checkPromoted(c.property('_property'), 'int'),
+        ]);
+      });
+
+      test('Promoted before try/finally and in try', () {
+        h.addMember('C', '_property', 'num?', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          c.property('_property').nonNullAssert,
+          checkPromoted(c.property('_property'), 'num'),
+          try_([
+            checkPromoted(c.property('_property'), 'num'),
+            c.property('_property').as_('int'),
+            checkPromoted(c.property('_property'), 'int'),
+          ]).finally_([
+            checkPromoted(c.property('_property'), 'num'),
+          ]),
+          checkPromoted(c.property('_property'), 'int'),
+        ]);
+      });
+
+      group('Promoted in both try and finally:', () {
+        test('same type', () {
+          h.addMember('C', '_property', 'int?', promotable: true);
+          var c = Var('c');
+          h.run([
+            declare(c, initializer: expr('C')),
+            try_([
+              checkNotPromoted(c.property('_property')),
+              c.property('_property').nonNullAssert,
+              checkPromoted(c.property('_property'), 'int'),
+            ]).finally_([
+              checkNotPromoted(c.property('_property')),
+              c.property('_property').nonNullAssert,
+              checkPromoted(c.property('_property'), 'int'),
+            ]),
+            checkPromoted(c.property('_property'), 'int'),
+          ]);
+        });
+
+        test('finally type is subtype of try type', () {
+          h.addMember('C', '_property', 'num?', promotable: true);
+          var c = Var('c');
+          h.run([
+            declare(c, initializer: expr('C')),
+            try_([
+              checkNotPromoted(c.property('_property')),
+              c.property('_property').nonNullAssert,
+              checkPromoted(c.property('_property'), 'num'),
+            ]).finally_([
+              checkNotPromoted(c.property('_property')),
+              c.property('_property').as_('int'),
+              checkPromoted(c.property('_property'), 'int'),
+            ]),
+            checkPromoted(c.property('_property'), 'int'),
+          ]);
+        });
+
+        test('finally type is supertype of try type', () {
+          h.addMember('C', '_property', 'num?', promotable: true);
+          var c = Var('c');
+          h.run([
+            declare(c, initializer: expr('C')),
+            try_([
+              checkNotPromoted(c.property('_property')),
+              c.property('_property').as_('int'),
+              checkPromoted(c.property('_property'), 'int'),
+            ]).finally_([
+              checkNotPromoted(c.property('_property')),
+              c.property('_property').nonNullAssert,
+              checkPromoted(c.property('_property'), 'num'),
+            ]),
+            checkPromoted(c.property('_property'), 'int'),
+          ]);
+        });
+      });
+
+      test('Promoted in finally', () {
+        h.addMember('C', '_property', 'int?', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          try_([
+            checkNotPromoted(c.property('_property')),
+          ]).finally_([
+            checkNotPromoted(c.property('_property')),
+            c.property('_property').nonNullAssert,
+            checkPromoted(c.property('_property'), 'int'),
+          ]),
+          checkPromoted(c.property('_property'), 'int'),
+        ]);
+      });
+
+      test('Promoted in finally, nested', () {
+        h.addMember('C', '_i', 'int?', promotable: true);
+        h.addMember('D', '_c', 'C', promotable: true);
+        var d = Var('d');
+        h.run([
+          declare(d, initializer: expr('D')),
+          try_([
+            checkNotPromoted(d.property('_c').property('_i')),
+          ]).finally_([
+            checkNotPromoted(d.property('_c').property('_i')),
+            d.property('_c').property('_i').nonNullAssert,
+            checkPromoted(d.property('_c').property('_i'), 'int'),
+          ]),
+          checkPromoted(d.property('_c').property('_i'), 'int'),
+        ]);
+      });
+
+      test('Promoted before try/finally, assigned in try', () {
+        h.addMember('C', '_property', 'int?', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          c.property('_property').nonNullAssert,
+          checkPromoted(c.property('_property'), 'int'),
+          try_([
+            checkPromoted(c.property('_property'), 'int'),
+            c.write(expr('C')),
+            checkNotPromoted(c.property('_property')),
+          ]).finally_([
+            checkNotPromoted(c.property('_property')),
+          ]),
+          checkNotPromoted(c.property('_property')),
+        ]);
+      });
+
+      test('Promoted before try/finally, assigned and re-promoted in try', () {
+        h.addMember('C', '_property', 'int?', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          c.property('_property').nonNullAssert,
+          checkPromoted(c.property('_property'), 'int'),
+          try_([
+            checkPromoted(c.property('_property'), 'int'),
+            c.write(expr('C')),
+            c.property('_property').nonNullAssert,
+            checkPromoted(c.property('_property'), 'int'),
+          ]).finally_([
+            checkNotPromoted(c.property('_property')),
+          ]),
+          checkPromoted(c.property('_property'), 'int'),
+        ]);
+      });
+
+      test('Assigned in try, promoted in finally', () {
+        h.addMember('C', '_property', 'int?', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          try_([
+            // Note: no calls to `checkNotPromoted` here, because we want to
+            // trigger the code path where flow analysis doesn't even know about
+            // the property until the finally block
+            c.write(expr('C')),
+          ]).finally_([
+            c.property('_property').nonNullAssert,
+            checkPromoted(c.property('_property'), 'int'),
+          ]),
+          checkPromoted(c.property('_property'), 'int'),
+        ]);
+      });
+
+      test('Assigned in try, promoted in finally, nested', () {
+        h.addMember('C', '_i', 'int?', promotable: true);
+        h.addMember('D', '_c', 'C', promotable: true);
+        var d = Var('d');
+        h.run([
+          declare(d, initializer: expr('D')),
+          try_([
+            // Note: no calls to `checkNotPromoted` here, because we want to
+            // trigger the code path where flow analysis doesn't even know about
+            // the property until the finally block
+            d.write(expr('D')),
+          ]).finally_([
+            d.property('_c').property('_i').nonNullAssert,
+            checkPromoted(d.property('_c').property('_i'), 'int'),
+          ]),
+          checkPromoted(d.property('_c').property('_i'), 'int'),
+        ]);
+      });
+
+      test('Assigned but not promotable in try, promoted in finally', () {
+        h.addMember('C', '_property', 'int?', promotable: false);
+        h.addMember('D', '_property', 'int?', promotable: true);
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          try_([
+            c.write(expr('C')),
+            c.property('_property').nonNullAssert,
+            checkNotPromoted(c.property('_property')),
+          ]).finally_([
+            c.as_('D'),
+            c.property('_property').nonNullAssert,
+            checkPromoted(c.property('_property'), 'int'),
+          ]),
+          checkPromoted(c.property('_property'), 'int'),
+        ]);
+      });
+
+      test('Assigned and promoted in try, promoted to subtype in finally', () {
+        h.addMember('C', '_property', 'Object', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          try_([
+            checkNotPromoted(c.property('_property')),
+            c.write(expr('C')),
+            checkNotPromoted(c.property('_property')),
+            c.property('_property').as_('num'),
+            checkPromoted(c.property('_property'), 'num'),
+          ]).finally_([
+            c.property('_property').as_('int'),
+            checkPromoted(c.property('_property'), 'int'),
+          ]),
+          checkPromoted(c.property('_property'), 'int'),
+        ]);
+      });
+    });
   });
 
   group('Patterns:', () {

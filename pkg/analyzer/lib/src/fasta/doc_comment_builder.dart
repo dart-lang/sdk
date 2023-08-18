@@ -7,8 +7,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/parser/util.dart'
     show isLetter, isLetterOrDigit, isWhitespace, optional;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
-import 'package:_fe_analyzer_shared/src/scanner/token.dart'
-    show DocumentationCommentToken, StringToken;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show StringToken;
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -79,8 +78,10 @@ class DocCommentBuilder {
   final List<CommentReferenceImpl> references = [];
   final List<MdFencedCodeBlock> fencedCodeBlocks = [];
   final Token startToken;
+  final _CharacterSequence characterSequence;
 
-  DocCommentBuilder(this.parser, this.startToken);
+  DocCommentBuilder(this.parser, this.startToken)
+      : characterSequence = _CharacterSequence(startToken);
 
   CommentImpl build() {
     parseDocComment();
@@ -107,184 +108,69 @@ class DocCommentBuilder {
   ///
   /// All parsed data is added to the fields on this builder.
   void parseDocComment() {
-    // TODO(srawlins): This could be refactored into something more like a
-    // proper state machine.
-    var fromSingleLine = false;
-    var token = startToken;
-    if (token.lexeme.startsWith('///')) {
-      token = _joinSingleLineDocCommentTokens(token);
-      fromSingleLine = true;
-    }
-    var comment = token.lexeme;
-    if (!fromSingleLine) {
-      assert(comment.startsWith('/**'));
-    }
-    var length = comment.length;
-    // The offset, from the beginning of [comment], of the start of each line.
-    var start = 0;
-    // The offset, from the beginning of [comment], of the start of the content
-    // of each line.
-    var contentStart = 0;
-    int? fencedCodeBlockOffset;
-    String? fencedCodeBlockInfoString;
+    // Track whether the previous line is empty, in order to correctly parse an
+    // indented code block.
     var isPreviousLineEmpty = true;
-    var fencedCodeBlockLines = <MdFencedCodeBlockLine>[];
-    var possibleFencedCodeBlockIndex = comment.indexOf('```');
-    if (possibleFencedCodeBlockIndex == -1) {
-      // This indicates that there is no fenced code block before the end of the
-      // comment.
-      possibleFencedCodeBlockIndex = length;
-    }
-    while (start < length) {
-      if (isWhitespace(comment.codeUnitAt(start))) {
-        ++start;
-        continue;
-      }
-      var end = comment.indexOf('\n', start);
-      if (end == -1) {
-        end = length;
-      }
-      if (fromSingleLine && !comment.startsWith('///', start)) {
-        // This must be a non-doc comment line, like a blank line or a `//`
-        // comment.
-        start = end + 1;
-        continue;
-      }
-      if (fromSingleLine) {
-        contentStart = start + 3;
-      } else {
-        contentStart =
-            comment.startsWith('* ', start) ? start + '* '.length : start;
-      }
-      if (fencedCodeBlockOffset != null) {
-        fencedCodeBlockLines.add(
-          MdFencedCodeBlockLine(
-            offset: contentStart,
-            length: end - contentStart,
-          ),
+    var lineInfo = characterSequence.next();
+    while (lineInfo != null) {
+      var (:offset, :content) = lineInfo;
+
+      // TODO(srawlins): This only starts a fenced code block if the first non-
+      // whitespace characters are "```". Fix.
+      var fencedCodeBlockIndex = content.indexOf('```');
+      if (fencedCodeBlockIndex > -1) {
+        _parseFencedCodeBlock(
+          fencedCodeBlockIndex: fencedCodeBlockIndex,
+          content: content,
         );
-      }
-      if (possibleFencedCodeBlockIndex < end) {
-        if (fencedCodeBlockOffset == null) {
-          // This is the start of a fenced code block.
-          fencedCodeBlockOffset =
-              token.charOffset + possibleFencedCodeBlockIndex;
-          fencedCodeBlockInfoString = comment
-              .substring(possibleFencedCodeBlockIndex + '```'.length, end)
-              .trim();
-          if (fencedCodeBlockInfoString.isEmpty) {
-            fencedCodeBlockInfoString = null;
-          }
-          fencedCodeBlockLines.add(
-            MdFencedCodeBlockLine(
-              offset: contentStart,
-              length: end - contentStart,
-            ),
-          );
-        } else {
-          // This ends a fenced code block.
-          fencedCodeBlocks.add(
-            MdFencedCodeBlock(
-              infoString: fencedCodeBlockInfoString,
-              lines: fencedCodeBlockLines,
-            ),
-          );
-          fencedCodeBlockOffset = null;
-          fencedCodeBlockInfoString = null;
-          fencedCodeBlockLines.clear();
-        }
-        // Set the index of the next fenced code block delimiters.
-        possibleFencedCodeBlockIndex = comment.indexOf('```', end);
-        if (possibleFencedCodeBlockIndex == -1) {
-          possibleFencedCodeBlockIndex = length;
-        }
-      }
-      if (fencedCodeBlockOffset == null) {
-        var isIndentedCodeBlock = fromSingleLine
-            ? isPreviousLineEmpty && comment.startsWith('///    ', start)
-            : comment.startsWith('*     ', start);
+      } else {
+        // TODO(srawlins): I don't think the indented block decision should be
+        // different for single-line doc comments vs multi-line. But it might
+        // change behavior so... treading lightly.
+        var isIndentedCodeBlock = characterSequence._isFromSingleLineComment
+            ? isPreviousLineEmpty && content.startsWith('    ')
+            : content.startsWith('    ');
         if (!isIndentedCodeBlock) {
-          _parseDocCommentLine(token, start, end);
+          _parseDocCommentLine(offset, content);
         }
+        // Mark the previous line as being empty if this function is called with
+        // a comment Token derived from a single-line comment Token, and the
+        // line is empty.
+        isPreviousLineEmpty = content.isEmpty;
       }
-      // Mark the previous line as being empty if this function is called with
-      // a comment Token derived from a single-line comment Token, and the
-      // line is 3 characters long, which is exactly
-      isPreviousLineEmpty =
-          fromSingleLine && comment.substring(start, end) == '///';
-      start = end + 1;
-    }
-
-    // Recover a non-terminating code block.
-    if (fencedCodeBlockOffset != null) {
-      fencedCodeBlocks.add(
-        MdFencedCodeBlock(
-          infoString: fencedCodeBlockInfoString,
-          lines: fencedCodeBlockLines,
-        ),
-      );
+      lineInfo = characterSequence.next();
     }
   }
 
-  /// Joins [startToken] with all of its following tokens.
-  ///
-  /// This should only be used to parse the contents of the doc comment text.
-  Token _joinSingleLineDocCommentTokens(
-    Token startToken,
-  ) {
-    var offset = startToken.offset;
-    var buffer = StringBuffer();
-    buffer.writeln(startToken.lexeme);
-    var end = startToken.end;
-    var token = startToken.next;
-    while (token != null && !token.isEof) {
-      var gap = token.offset - (end + 1);
-      buffer.write('\n' * gap);
-      buffer.writeln(token.lexeme);
-      end = token.end;
-      token = token.next;
-    }
-    return DocumentationCommentToken(
-      TokenType.SINGLE_LINE_COMMENT,
-      buffer.toString(),
-      offset,
-    );
-  }
-
-  /// Parses the comment references in the text between [start] inclusive
-  /// and [end] exclusive.
-  void _parseDocCommentLine(
-    Token commentToken,
-    int start,
-    int end,
-  ) {
-    var comment = commentToken.lexeme;
-    var index = start;
+  /// Parses the comment references in [content] which starts at [offset].
+  void _parseDocCommentLine(int offset, String content) {
+    var index = 0;
+    final end = content.length;
     while (index < end) {
-      var ch = comment.codeUnitAt(index);
+      final ch = content.codeUnitAt(index);
       if (ch == 0x5B /* `[` */) {
         ++index;
-        if (index < end && comment.codeUnitAt(index) == 0x3A /* `:` */) {
+        if (index < end && content.codeUnitAt(index) == 0x3A /* `:` */) {
           // Skip old-style code block.
-          index = comment.indexOf(':]', index + 1) + 1;
+          index = content.indexOf(':]', index + 1) + 1;
           if (index == 0 || index > end) {
             break;
           }
         } else {
           var referenceStart = index;
-          index = comment.indexOf(']', index);
+          index = content.indexOf(']', index);
           if (index == -1 || index >= end) {
             // Recovery: terminating ']' is not typed yet.
-            index = _findCommentReferenceEnd(comment, referenceStart, end);
+            index = _findCommentReferenceEnd(content, referenceStart, end);
           }
           if (ch != 0x27 /* `'` */ && ch != 0x22 /* `"` */) {
-            if (isLinkText(comment, index)) {
+            if (isLinkText(content, index)) {
               // TODO(brianwilkerson) Handle the case where there's a library
               // URI in the link text.
             } else {
-              var reference = _parseOneCommentReference(
-                comment.substring(referenceStart, index),
-                commentToken.charOffset + referenceStart,
+              final reference = _parseOneCommentReference(
+                content.substring(referenceStart, index),
+                offset + referenceStart,
               );
               if (reference != null) {
                 references.add(reference);
@@ -294,13 +180,65 @@ class DocCommentBuilder {
         }
       } else if (ch == 0x60 /* '`' */) {
         // Skip inline code block if there is both starting '`' and ending '`'.
-        var endCodeBlock = comment.indexOf('`', index + 1);
+        final endCodeBlock = content.indexOf('`', index + 1);
         if (endCodeBlock != -1 && endCodeBlock < end) {
           index = endCodeBlock;
         }
       }
       ++index;
     }
+  }
+
+  void _parseFencedCodeBlock({
+    required int fencedCodeBlockIndex,
+    required String content,
+  }) {
+    String? fencedCodeBlockInfoString =
+        content.substring(fencedCodeBlockIndex + '```'.length).trim();
+    if (fencedCodeBlockInfoString.isEmpty) {
+      fencedCodeBlockInfoString = null;
+    }
+    var fencedCodeBlockLines = <MdFencedCodeBlockLine>[
+      MdFencedCodeBlockLine(
+        offset: characterSequence._offset,
+        length: content.length,
+      ),
+    ];
+
+    var lineInfo = characterSequence.next();
+    while (lineInfo != null) {
+      var (:offset, :content) = lineInfo;
+
+      fencedCodeBlockLines.add(
+        MdFencedCodeBlockLine(
+          offset: offset,
+          length: content.length,
+        ),
+      );
+
+      var fencedCodeBlockIndex = content.indexOf('```');
+      if (fencedCodeBlockIndex > -1) {
+        // End the fenced code block.
+        fencedCodeBlocks.add(
+          MdFencedCodeBlock(
+            infoString: fencedCodeBlockInfoString,
+            lines: fencedCodeBlockLines,
+          ),
+        );
+        return;
+      }
+
+      lineInfo = characterSequence.next();
+    }
+
+    // Non-terminating fenced code block.
+    fencedCodeBlocks.add(
+      MdFencedCodeBlock(
+        infoString: fencedCodeBlockInfoString,
+        lines: fencedCodeBlockLines,
+      ),
+    );
+    return;
   }
 
   /// Parses the [source] text, found at [offset] in a single comment reference.
@@ -468,5 +406,132 @@ class DocCommentBuilder {
         expression: identifier,
       );
     }
+  }
+}
+
+/// An abstraction of the character sequences in either a single-line doc
+/// comment (which consists of a series of [Token]s) or a multi-line doc comment
+/// (which consists of a single [Token]).
+abstract class _CharacterSequence {
+  factory _CharacterSequence(Token token) {
+    final isFromSingleLineComment = token.lexeme.startsWith('///');
+    return isFromSingleLineComment
+        ? _CharacterSequenceFromSingleLineComment(token)
+        : _CharacterSequenceFromMultiLineComment(token);
+  }
+
+  /// Whether this character sequence is extracted from a single-line doc
+  /// comment.
+  // TODO(srawlins): This should be unnecessary, but the current implementation
+  // requires this knowledge for parsing indented code blocks.
+  bool get _isFromSingleLineComment;
+
+  /// The current offset in the compilation unit, which is found in [_token].
+  int get _offset;
+
+  /// Moves the current position of the doc comment to the next line.
+  ///
+  /// In a single-line doc comment, this procedure skips past non-doc comment
+  /// tokens (comment tokens that do not start with `///`).
+  ///
+  /// Returns a record with  the current `offset` in the compilation unit, and
+  /// the `content` of the current line.
+  ({int offset, String content})? next();
+}
+
+class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
+  final Token _token;
+
+  @override
+  int _offset = -1;
+
+  int _end = -1;
+
+  _CharacterSequenceFromMultiLineComment(this._token);
+
+  @override
+  bool get _isFromSingleLineComment => false;
+
+  @override
+  ({int offset, String content})? next() {
+    final lexeme = _token.lexeme;
+    final tokenOffset = _token.charOffset;
+
+    if (_offset == -1) {
+      _offset = tokenOffset;
+      var endIndex = lexeme.indexOf('\n');
+      if (endIndex == -1) {
+        endIndex = lexeme.length;
+      }
+      _end = tokenOffset + endIndex;
+      final indexInLexeme = _offset - tokenOffset;
+      return (
+        offset: _offset,
+        content: lexeme.substring(indexInLexeme, endIndex),
+      );
+    }
+
+    _offset = _end + 1;
+    if (_offset - tokenOffset >= lexeme.length) {
+      return null;
+    }
+    while (isWhitespace(lexeme.codeUnitAt(_offset - tokenOffset))) {
+      _offset++;
+      if (_offset - tokenOffset >= lexeme.length) {
+        return null;
+      }
+    }
+
+    var endIndex = lexeme.indexOf('\n', _offset - tokenOffset);
+    if (endIndex == -1) {
+      endIndex = lexeme.length;
+    }
+    _end = tokenOffset + endIndex;
+
+    if (lexeme.startsWith('* ', _offset - tokenOffset)) {
+      _offset += '* '.length;
+    }
+
+    return (
+      offset: _offset,
+      content: lexeme.substring(_offset - tokenOffset, endIndex),
+    );
+  }
+}
+
+class _CharacterSequenceFromSingleLineComment implements _CharacterSequence {
+  Token _token;
+
+  @override
+  int _offset = -1;
+
+  _CharacterSequenceFromSingleLineComment(this._token);
+
+  @override
+  bool get _isFromSingleLineComment => true;
+
+  @override
+  ({int offset, String content})? next() {
+    const threeSlashesLength = '///'.length;
+    if (_offset == -1) {
+      _offset = _token.charOffset;
+      assert(_token.lexeme.startsWith('///'));
+    } else {
+      do {
+        final nextToken = _token.next;
+        if (nextToken == null) return null;
+        _token = nextToken;
+        _offset = nextToken.offset;
+      }
+      // The sequence of single-line doc comment tokens can contain non-doc
+      // comment tokens as well, starting with `//` (but not `///`) or `/*`.
+      while (!_token.lexeme.startsWith('///'));
+    }
+
+    _offset += threeSlashesLength;
+    return (
+      offset: _offset,
+      content: _token.lexeme.substring(threeSlashesLength),
+    );
   }
 }

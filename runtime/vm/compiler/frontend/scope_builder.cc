@@ -1118,44 +1118,6 @@ void ScopeBuilder::VisitStatement() {
       --depth_.loop_;
       return;
     }
-    case kForInStatement:
-    case kAsyncForInStatement: {
-      PositionScope scope(&helper_.reader_);
-
-      intptr_t start_offset =
-          helper_.ReaderOffset() - 1;  // -1 to include tag byte.
-
-      helper_.ReadPosition();  // read position.
-      TokenPosition body_position =
-          helper_.ReadPosition();  // read body position.
-
-      // Notice the ordering: We skip the variable, read the iterable, go back,
-      // re-read the variable, go forward to after having read the iterable.
-      intptr_t offset = helper_.ReaderOffset();
-      helper_.SkipVariableDeclaration();  // read variable.
-      VisitExpression();                  // read iterable.
-
-      ++depth_.for_in_;
-      AddIteratorVariable();
-      ++depth_.loop_;
-      EnterScope(start_offset);
-
-      {
-        AlternativeReadingScope alt(&helper_.reader_, offset);
-        VisitVariableDeclaration();  // read variable.
-      }
-      VisitStatement();  // read body.
-
-      if (!body_position.IsReal()) {
-        body_position = helper_.reader_.min_position();
-      }
-      // TODO(jensj): From kernel_binary.cc
-      // forinstmt->variable_->set_end_position(forinstmt->position_);
-      ExitScope(body_position, helper_.reader_.max_position());
-      --depth_.loop_;
-      --depth_.for_in_;
-      return;
-    }
     case kSwitchStatement: {
       AddSwitchVariable();
       helper_.ReadPosition();                     // read position.
@@ -1277,6 +1239,8 @@ void ScopeBuilder::VisitStatement() {
       HandleLocalFunction(offset);  // read function node.
       return;
     }
+    case kForInStatement:
+    case kAsyncForInStatement:
     case kIfCaseStatement:
     case kPatternSwitchStatement:
     case kPatternVariableDeclaration:
@@ -1327,9 +1291,6 @@ void ScopeBuilder::VisitVariableDeclaration() {
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   AbstractType& type = BuildAndVisitVariableType();
 
-  // In case `declaration->IsConst()` the flow graph building will take care of
-  // evaluating the constant and setting it via
-  // `declaration->SetConstantValue()`.
   const String& name = (H.StringSize(helper.name_index_) == 0)
                            ? GenerateName(":var", name_index_++)
                            : H.DartSymbolObfuscate(helper.name_index_);
@@ -1818,19 +1779,6 @@ void ScopeBuilder::FinalizeCatchVariables() {
   FinalizeExceptionVariable(
       &result_->stack_trace_variables, &result_->raw_stack_trace_variables,
       GenerateName(":raw_stacktrace", unique_id), depth_.catch_);
-}
-
-void ScopeBuilder::AddIteratorVariable() {
-  if (depth_.function_ > 0) return;
-  if (result_->iterator_variables.length() >= depth_.for_in_) return;
-
-  ASSERT(result_->iterator_variables.length() == depth_.for_in_ - 1);
-  LocalVariable* iterator =
-      MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                   GenerateName(":iterator", depth_.for_in_ - 1),
-                   AbstractType::dynamic_type());
-  current_function_scope_->AddVariable(iterator);
-  result_->iterator_variables.Add(iterator);
 }
 
 void ScopeBuilder::AddSwitchVariable() {

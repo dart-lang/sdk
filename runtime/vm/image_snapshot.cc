@@ -1172,7 +1172,11 @@ void AssemblyImageWriter::Finalize() {
 #if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
     defined(DART_TARGET_OS_FUCHSIA)
   // Non-executable stack.
-  assembly_stream_->WriteString(".section .note.GNU-stack,\"\"\n");
+#if defined(TARGET_ARCH_ARM)
+  assembly_stream_->WriteString(".section .note.GNU-stack,\"\",%progbits\n");
+#else
+  assembly_stream_->WriteString(".section .note.GNU-stack,\"\",@progbits\n");
+#endif
 #endif
 }
 

@@ -91,6 +91,7 @@ asy
 atm
 atom
 atoms
+atop
 attributes
 augment
 augmentation
@@ -1228,6 +1229,7 @@ react
 realign
 realise
 reapplies
+reapply
 reasonably
 reassigned
 reassigns
@@ -1492,6 +1494,7 @@ stdin
 stdio
 stdlib
 stdout
+sticks
 sticky
 stmt
 stopgap

@@ -2026,7 +2026,7 @@ class FlowModel<Type extends Object> {
   /// an exception, so we want to reinstate the results of any promotions and
   /// assignments that occurred during the `try` block, to the extent that they
   /// weren't invalidated by later assignments in the `finally` block.
-  FlowModel<Type> attachFinally(TypeOperations<Type> typeOperations,
+  FlowModel<Type> attachFinally(FlowModelHelper<Type> helper,
       FlowModel<Type> beforeFinally, FlowModel<Type> afterFinally) {
     // Code that follows the `try/finally` is reachable iff the end of the `try`
     // block is reachable _and_ the end of the `finally` block is reachable.
@@ -2037,6 +2037,7 @@ class FlowModel<Type extends Object> {
         <int, VariableModel<Type>>{};
     bool variableInfoMatchesThis = true;
     bool variableInfoMatchesAfterFinally = true;
+    List<(SsaNode<Type>?, SsaNode<Type>?)> fieldPromotionsToReapply = [];
     for (MapEntry<int, VariableModel<Type>> entry in variableInfo.entries) {
       int promotionKey = entry.key;
       VariableModel<Type> thisModel = entry.value;
@@ -2044,12 +2045,18 @@ class FlowModel<Type extends Object> {
           beforeFinally.variableInfo[promotionKey];
       VariableModel<Type>? afterFinallyModel =
           afterFinally.variableInfo[promotionKey];
-      if (beforeFinallyModel == null || afterFinallyModel == null) {
-        // The variable is in `this` model but not in one of the `finally`
-        // models.  This happens when the variable is declared inside the `try`
-        // block.  We can just drop the variable because it won't be in scope
-        // after the try/finally statement.
-        variableInfoMatchesThis = false;
+      if (afterFinallyModel == null) {
+        // The promotion key is in `this` model but not in the `afterFinally`
+        // model.  This happens when either:
+        // - There is a variable declared inside the `try` block, or:
+        // - A field is promoted inside the `try` block that wasn't previously
+        //   promoted (and isn't promoted in the `finally` block).
+        //
+        // In the first case, it doesn't matter what we do, because the variable
+        // won't be in scope after the try/finally statement. But in the second
+        // case, we need to preserve the promotion from the `try` block.
+        newVariableInfo[promotionKey] = thisModel;
+        variableInfoMatchesAfterFinally = false;
         continue;
       }
       // We can just use the "write captured" state from the `finally` block,
@@ -2057,14 +2064,38 @@ class FlowModel<Type extends Object> {
       // considered to take effect in the `finally` block too.
       List<Type>? newPromotedTypes;
       SsaNode<Type>? newSsaNode;
-      if (beforeFinallyModel.ssaNode == afterFinallyModel.ssaNode) {
-        // The finally clause doesn't write to the variable, so we want to keep
-        // all promotions that were done to it in both the try and finally
-        // blocks.
-        newPromotedTypes = VariableModel.rebasePromotedTypes(typeOperations,
-            thisModel.promotedTypes, afterFinallyModel.promotedTypes);
+      if (beforeFinallyModel == null ||
+          beforeFinallyModel.ssaNode == afterFinallyModel.ssaNode) {
+        // The promotion key is in `this` model and in the `afterFinally` model,
+        // and either:
+        // - It is absent from the `beforeFinally` model. This means that there
+        //   is a field that is accessed (and possibly promoted) in both the
+        //   `try` and `finally` blocks, but wasn't known about before the
+        //   try/finally statement, OR:
+        // - It is present in the `beforeFinally` model, and has the same SSA
+        //   node in both the `beforeFinally` and `afterFinally` models. This
+        //   means that there is either a variable, or a field of a variable,
+        //   that is accessed (and possibly promoted) in both the `try` and
+        //   `finally` blocks, which *was* known about before the try/finally
+        //   statement, and furthermore, if it was a variable, the variable
+        //   wasn't assigned within the `finally` block.
+        //
+        // In all of these cases, the correct thing to do is to keep all
+        // promotions that were done in both the `try` and `finally` blocks.
+        newPromotedTypes = VariableModel.rebasePromotedTypes(
+            helper.typeOperations,
+            thisModel.promotedTypes,
+            afterFinallyModel.promotedTypes);
         // And we can safely restore the SSA node from the end of the try block.
         newSsaNode = thisModel.ssaNode;
+        if (newSsaNode != afterFinallyModel.ssaNode) {
+          // The `try` block did write to the variable, so any field promotions
+          // that were applied in the finally block need to be re-applied to the
+          // new promotion keys. We postpone that until after everything else is
+          // done so that when we re-apply the promotions, we'll be applying
+          // them to the state established by the `try` block.
+          fieldPromotionsToReapply.add((newSsaNode, afterFinallyModel.ssaNode));
+        }
       } else {
         // A write to the variable occurred in the finally block, so promotions
         // from the try block aren't necessarily valid.
@@ -2096,17 +2127,36 @@ class FlowModel<Type extends Object> {
         variableInfoMatchesAfterFinally = false;
       }
     }
-    // newVariableInfo is now correct.  However, if there are any variables
-    // present in `afterFinally` that aren't present in `this`, we may
-    // erroneously think that `newVariableInfo` matches `afterFinally`.  If so,
-    // correct that.
-    if (variableInfoMatchesAfterFinally) {
-      for (int promotionKey in afterFinally.variableInfo.keys) {
-        if (!variableInfo.containsKey(promotionKey)) {
-          variableInfoMatchesAfterFinally = false;
-          break;
-        }
+    for (var MapEntry(
+          key: int promotionKey,
+          value: VariableModel<Type> afterFinallyModel
+        ) in afterFinally.variableInfo.entries) {
+      if (variableInfo.containsKey(promotionKey)) continue;
+      // The promotion key is in the `afterFinally` model but not in `this`
+      // model.  This happens when either:
+      // - There is a variable declared inside the `finally` block, or:
+      // - A field is promoted inside the `finally` block that wasn't
+      //   previously promoted (and isn't promoted in the `try` block).
+      //
+      // In the first case, it doesn't matter what we do, because the variable
+      // won't be in scope after the try/finally statement. But in the second
+      // case, we need to preserve the promotion from the `finally` block.
+      newVariableInfo[promotionKey] = afterFinallyModel;
+      variableInfoMatchesThis = false;
+    }
+    for (var (SsaNode<Type>? thisSsaNode, SsaNode<Type>? afterFinallySsaNode)
+        in fieldPromotionsToReapply) {
+      if (thisSsaNode == null || afterFinallySsaNode == null) {
+        // Variable was write-captured, so no fields can be promoted anymore.
+        continue;
       }
+      thisSsaNode._applyPropertyPromotions(
+          helper,
+          thisSsaNode,
+          afterFinallySsaNode,
+          beforeFinally.variableInfo,
+          afterFinally.variableInfo,
+          newVariableInfo);
     }
     assert(variableInfoMatchesThis ==
         _variableInfosEqual(newVariableInfo, variableInfo));
@@ -3037,6 +3087,77 @@ class SsaNode<Type extends Object> {
   String toString() {
     int id = _debugIds[this] ??= _nextDebugId++;
     return 'ssa$id';
+  }
+
+  /// Applies the property promotions from one SSA node to another. This is done
+  /// as part of computing the effect of executing a try/finally's `try` and
+  /// `finally` blocks in sequence, to apply the promotions that occurred in the
+  /// `finally` block atop the promotions that occurred in the `try` block.
+  ///
+  /// [afterTrySsaNode] is the SSA node from the end of the `try` block, and
+  /// [finallySsaNode] is the SSA node from the end of the `finally` block (this
+  /// method is only invoked when the variable in question was not written to in
+  /// the `finally` block, so it is also the SSA node from the beginning of the
+  /// `finally` block).
+  ///
+  /// [beforeFinallyInfo] is the variable info map from the flow state at the
+  /// beginning of the `finally` block, and [afterFinallyInfo] is the variable
+  /// info map from the flow state at the end of the `finally` block.
+  /// [newVariableInfo] is the variable info map for the flow state being
+  /// built (the flow state after the try/finally block).
+  void _applyPropertyPromotions<Type extends Object>(
+      FlowModelHelper<Type> helper,
+      SsaNode<Type> afterTrySsaNode,
+      SsaNode<Type> finallySsaNode,
+      Map<int, VariableModel<Type>> beforeFinallyInfo,
+      Map<int, VariableModel<Type>> afterFinallyInfo,
+      Map<int, VariableModel<Type>> newVariableInfo) {
+    for (var MapEntry(
+          key: String propertyName,
+          value: _PropertySsaNode<Type> finallyPropertySsaNode
+        ) in finallySsaNode._promotableProperties.entries) {
+      // Since this method is only called when a variable is assigned in a `try`
+      // block, a fresh SSA node should have been assigned for the `finally`
+      // block by the conservative join in `tryFinallyStatement_finallyBegin`.
+      // So the property should have been unpromoted (and unknown) at the
+      // beginning of the `finally` block.
+      assert(beforeFinallyInfo[finallyPropertySsaNode.promotionKey] == null);
+      // Therefore all we need to do is apply any promotions that are in force
+      // at the end of the `finally` block.
+      VariableModel<Type>? afterFinallyModel =
+          afterFinallyInfo[finallyPropertySsaNode.promotionKey];
+      _PropertySsaNode<Type> afterTryPropertySsaNode =
+          afterTrySsaNode._promotableProperties[propertyName] ??=
+              new _PropertySsaNode(helper.promotionKeyStore.makeTemporaryKey());
+      // Handle nested properties
+      _applyPropertyPromotions(
+          helper,
+          afterTryPropertySsaNode,
+          finallyPropertySsaNode,
+          beforeFinallyInfo,
+          afterFinallyInfo,
+          newVariableInfo);
+      if (afterFinallyModel == null) continue;
+      List<Type>? afterFinallyPromotedTypes = afterFinallyModel.promotedTypes;
+      // The property was accessed in a promotion-relevant way in the `try`
+      // block, so we need to apply the promotions from the `finally` block to
+      // the flow model from the `try` block, and see what sticks.
+      VariableModel<Type> newModel =
+          newVariableInfo[afterTryPropertySsaNode.promotionKey] ??=
+              new VariableModel.fresh();
+      List<Type>? newPromotedTypes = newModel.promotedTypes;
+      List<Type>? rebasedPromotedTypes = VariableModel.rebasePromotedTypes(
+          helper.typeOperations, afterFinallyPromotedTypes, newPromotedTypes);
+      if (!identical(newPromotedTypes, rebasedPromotedTypes)) {
+        newVariableInfo[afterTryPropertySsaNode.promotionKey] =
+            new VariableModel<Type>(
+                promotedTypes: rebasedPromotedTypes,
+                tested: newModel.tested,
+                assigned: true,
+                unassigned: false,
+                ssaNode: newModel.ssaNode);
+      }
+    }
   }
 
   /// Joins the promotion information for two SSA nodes, [first] and [second].
@@ -5083,7 +5204,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _TryFinallyContext<Type> context =
         _stack.removeLast() as _TryFinallyContext<Type>;
     _current = context._afterBodyAndCatches!
-        .attachFinally(operations, context._beforeFinally!, _current);
+        .attachFinally(this, context._beforeFinally!, _current);
   }
 
   @override

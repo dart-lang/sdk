@@ -916,6 +916,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "In constant expressions, operands of this operator must be of type 'num'.",
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_STRING =
+      CompileTimeErrorCode(
+    'CONST_EVAL_TYPE_STRING',
+    "In constant expressions, operands of this operator must be of type "
+        "'String'.",
+  );
+
   static const CompileTimeErrorCode CONST_EVAL_TYPE_TYPE = CompileTimeErrorCode(
     'CONST_EVAL_TYPE_TYPE',
     "In constant expressions, operands of this operator must be of type "

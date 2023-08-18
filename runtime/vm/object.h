@@ -7454,9 +7454,6 @@ class ContextScope : public Object {
   AbstractTypePtr TypeAt(intptr_t scope_index) const;
   void SetTypeAt(intptr_t scope_index, const AbstractType& type) const;
 
-  InstancePtr ConstValueAt(intptr_t scope_index) const;
-  void SetConstValueAt(intptr_t scope_index, const Instance& value) const;
-
   intptr_t ContextIndexAt(intptr_t scope_index) const;
   void SetContextIndexAt(intptr_t scope_index, intptr_t context_index) const;
 
@@ -13272,7 +13269,7 @@ class UserTag : public Instance {
   static UserTagPtr DefaultTag();
 
   static bool TagTableIsFull(Thread* thread);
-  static UserTagPtr FindTagById(uword tag_id);
+  static UserTagPtr FindTagById(const Isolate* isolate, uword tag_id);
   static UserTagPtr FindTagInIsolate(Isolate* isolate,
                                      Thread* thread,
                                      const String& label);
