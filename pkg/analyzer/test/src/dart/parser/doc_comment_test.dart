@@ -405,6 +405,35 @@ Comment
 ''');
   }
 
+  test_fencedCodeBlock_empty() {
+    final parseResult = parseStringWithErrors(r'''
+/// ```
+/// ```
+/// Text.
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('Text.');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// ```
+    /// ```
+    /// Text.
+  fencedCodeBlocks
+    MdFencedCodeBlock
+      infoString: <empty>
+      lines
+        MdFencedCodeBlockLine
+          offset: 3
+          length: 4
+        MdFencedCodeBlockLine
+          offset: 11
+          length: 4
+''');
+  }
+
   test_fencedCodeBlock_leadingSpaces() {
     final parseResult = parseStringWithErrors(r'''
 ///   ```
@@ -433,6 +462,48 @@ Comment
           length: 15
         MdFencedCodeBlockLine
           offset: 32
+          length: 6
+''');
+  }
+
+  test_fencedCodeBlock_moreThanThreeBackticks() {
+    final parseResult = parseStringWithErrors(r'''
+/// ````dart
+/// A code block can contain multiple backticks, as long as it is fewer than
+/// the amount in the opening:
+/// ```
+/// `````
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('A code');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// ````dart
+    /// A code block can contain multiple backticks, as long as it is fewer than
+    /// the amount in the opening:
+    /// ```
+    /// `````
+  fencedCodeBlocks
+    MdFencedCodeBlock
+      infoString: dart
+      lines
+        MdFencedCodeBlockLine
+          offset: 3
+          length: 9
+        MdFencedCodeBlockLine
+          offset: 16
+          length: 73
+        MdFencedCodeBlockLine
+          offset: 93
+          length: 27
+        MdFencedCodeBlockLine
+          offset: 124
+          length: 4
+        MdFencedCodeBlockLine
+          offset: 132
           length: 6
 ''');
   }
@@ -571,6 +642,37 @@ Comment
         MdFencedCodeBlockLine
           offset: 49
           length: 4
+''');
+  }
+
+  test_fencedCodeBlock_precededByText() {
+    final parseResult = parseStringWithErrors(r'''
+/// One. ```
+/// Two.
+/// ```
+/// Three.
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('Two.');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// One. ```
+    /// Two.
+    /// ```
+    /// Three.
+  fencedCodeBlocks
+    MdFencedCodeBlock
+      infoString: <empty>
+      lines
+        MdFencedCodeBlockLine
+          offset: 25
+          length: 4
+        MdFencedCodeBlockLine
+          offset: 33
+          length: 7
 ''');
   }
 
