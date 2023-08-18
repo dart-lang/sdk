@@ -70,7 +70,6 @@ import '../fasta_codes.dart';
 import '../identifiers.dart' show QualifiedName, flattenName;
 import '../import.dart' show Import;
 import '../kernel/body_builder_context.dart';
-import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
@@ -3012,19 +3011,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String? nativeMethodName,
       {Token? beginInitializers,
       required bool forAbstractClassOrMixin}) {
-    Reference? constructorReference;
-    Reference? tearOffReference;
-    if (_currentClassReferencesFromIndexed != null) {
-      constructorReference = _currentClassReferencesFromIndexed!
-          .lookupConstructorReference(new Name(
-              constructorName, _currentClassReferencesFromIndexed!.library));
-      tearOffReference = _currentClassReferencesFromIndexed!
-          .lookupGetterReference(new Name(
-              constructorTearOffName(constructorName),
-              _currentClassReferencesFromIndexed!.library));
-    }
-    AbstractSourceConstructorBuilder constructorBuilder;
-
     ContainerType containerType =
         currentTypeParameterScopeBuilder.containerType;
     ContainerName? containerName =
@@ -3036,6 +3022,30 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         libraryName: referencesFrom != null
             ? new LibraryName(referencesFrom!.reference)
             : libraryName);
+
+    Reference? constructorReference;
+    Reference? tearOffReference;
+
+    if (_currentClassReferencesFromIndexed != null) {
+      constructorReference = _currentClassReferencesFromIndexed!
+          .lookupConstructorReference(nameScheme
+              .getConstructorMemberName(constructorName, isTearOff: false)
+              .name);
+      tearOffReference = _currentClassReferencesFromIndexed!
+          .lookupGetterReference(nameScheme
+              .getConstructorMemberName(constructorName, isTearOff: true)
+              .name);
+    } else if (referencesFromIndexed != null) {
+      constructorReference = referencesFromIndexed!.lookupGetterReference(
+          nameScheme
+              .getConstructorMemberName(constructorName, isTearOff: false)
+              .name);
+      tearOffReference = referencesFromIndexed!.lookupGetterReference(nameScheme
+          .getConstructorMemberName(constructorName, isTearOff: true)
+          .name);
+    }
+    AbstractSourceConstructorBuilder constructorBuilder;
+
     if (currentTypeParameterScopeBuilder.kind ==
             TypeParameterScopeKind.inlineClassDeclaration ||
         currentTypeParameterScopeBuilder.kind ==
@@ -3111,10 +3121,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String? nativeMethodName,
       AsyncMarker asyncModifier,
       {required bool isInstanceMember,
-      required bool isExtensionMember}) {
+      required bool isExtensionMember,
+      required bool isExtensionTypeMember}) {
     assert(!isExtensionMember ||
         currentTypeParameterScopeBuilder.kind ==
             TypeParameterScopeKind.extensionDeclaration);
+    assert(!isExtensionTypeMember ||
+        currentTypeParameterScopeBuilder.kind ==
+            TypeParameterScopeKind.extensionTypeDeclaration);
     ContainerType containerType =
         currentTypeParameterScopeBuilder.containerType;
     ContainerName? containerName =
@@ -3149,15 +3163,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       } else {
         if (kind == ProcedureKind.Setter &&
-            // Extension instance setters are encoded as methods.
-            !(isExtensionMember && isInstanceMember)) {
+            // Extension (type) instance setters are encoded as methods.
+            !((isExtensionMember || isExtensionTypeMember) &&
+                isInstanceMember)) {
           procedureReference =
               referencesFromIndexed!.lookupSetterReference(nameToLookup);
         } else {
           procedureReference =
               referencesFromIndexed!.lookupGetterReference(nameToLookup);
         }
-        if (isExtensionMember && kind == ProcedureKind.Method) {
+        if ((isExtensionMember || isExtensionTypeMember) &&
+            kind == ProcedureKind.Method) {
           tearOffReference = referencesFromIndexed!.lookupGetterReference(
               nameScheme
                   .getProcedureMemberName(ProcedureKind.Getter, name)
@@ -3252,11 +3268,22 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Reference? tearOffReference;
     if (_currentClassReferencesFromIndexed != null) {
       constructorReference = _currentClassReferencesFromIndexed!
-          .lookupConstructorReference(new Name(
-              procedureName, _currentClassReferencesFromIndexed!.library));
+          .lookupConstructorReference(procedureNameScheme
+              .getConstructorMemberName(procedureName, isTearOff: false)
+              .name);
       tearOffReference = _currentClassReferencesFromIndexed!
-          .lookupGetterReference(new Name(constructorTearOffName(procedureName),
-              _currentClassReferencesFromIndexed!.library));
+          .lookupGetterReference(procedureNameScheme
+              .getConstructorMemberName(procedureName, isTearOff: true)
+              .name);
+    } else if (referencesFromIndexed != null) {
+      constructorReference = referencesFromIndexed!.lookupGetterReference(
+          procedureNameScheme
+              .getConstructorMemberName(procedureName, isTearOff: false)
+              .name);
+      tearOffReference = referencesFromIndexed!.lookupGetterReference(
+          procedureNameScheme
+              .getConstructorMemberName(procedureName, isTearOff: true)
+              .name);
     }
 
     SourceFactoryBuilder procedureBuilder;

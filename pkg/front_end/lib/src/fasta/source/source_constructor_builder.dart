@@ -388,14 +388,13 @@ class DeclaredSourceConstructorBuilder
     nameScheme
         .getConstructorMemberName(name, isTearOff: false)
         .attachMember(_constructor);
-    _constructorTearOff = createConstructorTearOffProcedure(name,
-        compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
+    _constructorTearOff = createConstructorTearOffProcedure(
+        nameScheme.getConstructorMemberName(name, isTearOff: true),
+        compilationUnit,
+        compilationUnit.fileUri,
+        charOffset,
+        tearOffReference,
         forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin);
-    if (_constructorTearOff != null) {
-      nameScheme
-          .getConstructorMemberName(name, isTearOff: true)
-          .attachMember(_constructorTearOff!);
-    }
   }
 
   @override
@@ -1115,16 +1114,15 @@ class SourceExtensionTypeConstructorBuilder
     nameScheme
         .getConstructorMemberName(name, isTearOff: false)
         .attachMember(_constructor);
-    _constructorTearOff = createConstructorTearOffProcedure(name,
-        compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
+    _constructorTearOff = createConstructorTearOffProcedure(
+        nameScheme.getConstructorMemberName(name, isTearOff: true),
+        compilationUnit,
+        compilationUnit.fileUri,
+        charOffset,
+        tearOffReference,
         forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
-        forceCreateLowering: true);
-    if (_constructorTearOff != null) {
-      nameScheme
-          .getConstructorMemberName(name, isTearOff: true)
-          .attachMember(_constructorTearOff!);
-      _constructorTearOff!.isExtensionTypeMember = true;
-    }
+        forceCreateLowering: true)
+      ?..isExtensionTypeMember = true;
   }
 
   @override

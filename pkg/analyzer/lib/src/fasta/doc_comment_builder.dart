@@ -114,13 +114,10 @@ class DocCommentBuilder {
     var lineInfo = characterSequence.next();
     while (lineInfo != null) {
       var (:offset, :content) = lineInfo;
-
-      // TODO(srawlins): This only starts a fenced code block if the first non-
-      // whitespace characters are "```". Fix.
-      var fencedCodeBlockIndex = content.indexOf('```');
+      var fencedCodeBlockIndex = _fencedCodeBlockDelimiter(content);
       if (fencedCodeBlockIndex > -1) {
         _parseFencedCodeBlock(
-          fencedCodeBlockIndex: fencedCodeBlockIndex,
+          index: fencedCodeBlockIndex,
           content: content,
         );
       } else {
@@ -139,6 +136,32 @@ class DocCommentBuilder {
         isPreviousLineEmpty = content.isEmpty;
       }
       lineInfo = characterSequence.next();
+    }
+  }
+
+  /// Determines if [content] can represent a fenced codeblock delimiter
+  /// (opening or closing) (starts with optional whitespace, then at least three
+  /// backticks).
+  ///
+  /// Returns the index of the three backticks.
+  int _fencedCodeBlockDelimiter(String content, {int minimumTickCount = 3}) {
+    if (content.isEmpty) return -1;
+    var index = 0;
+    var length = content.length;
+    while (isWhitespace(content.codeUnitAt(index))) {
+      index++;
+      if (index >= length) {
+        return -1;
+      }
+    }
+
+    if (index + 3 > length) {
+      return -1;
+    }
+    if (content.substring(index, index + 3) == '`' * minimumTickCount) {
+      return index;
+    } else {
+      return -1;
     }
   }
 
@@ -189,15 +212,31 @@ class DocCommentBuilder {
     }
   }
 
+  /// Parses a fenced code block, starting with [content].
+  ///
+  /// The backticks of the opening delimiter start at [index].
+  ///
+  /// When this method returns, [characterSequence] is postioned at the closing
+  /// delimiter line (`.next()` must be called to move to the next line).
   void _parseFencedCodeBlock({
-    required int fencedCodeBlockIndex,
+    required int index,
     required String content,
   }) {
-    String? fencedCodeBlockInfoString =
-        content.substring(fencedCodeBlockIndex + '```'.length).trim();
-    if (fencedCodeBlockInfoString.isEmpty) {
-      fencedCodeBlockInfoString = null;
+    var tickCount = 0;
+    var length = content.length;
+    while (content.codeUnitAt(index) == '`'.codeUnitAt(0)) {
+      tickCount++;
+      index++;
+      if (index >= length) {
+        break;
+      }
     }
+
+    var infoString = index == length ? null : content.substring(index).trim();
+    if (infoString != null && infoString.isEmpty) {
+      infoString = null;
+    }
+
     var fencedCodeBlockLines = <MdFencedCodeBlockLine>[
       MdFencedCodeBlockLine(
         offset: characterSequence._offset,
@@ -216,12 +255,14 @@ class DocCommentBuilder {
         ),
       );
 
-      var fencedCodeBlockIndex = content.indexOf('```');
+      var fencedCodeBlockIndex =
+          _fencedCodeBlockDelimiter(content, minimumTickCount: tickCount);
+
       if (fencedCodeBlockIndex > -1) {
         // End the fenced code block.
         fencedCodeBlocks.add(
           MdFencedCodeBlock(
-            infoString: fencedCodeBlockInfoString,
+            infoString: infoString,
             lines: fencedCodeBlockLines,
           ),
         );
@@ -234,7 +275,7 @@ class DocCommentBuilder {
     // Non-terminating fenced code block.
     fencedCodeBlocks.add(
       MdFencedCodeBlock(
-        infoString: fencedCodeBlockInfoString,
+        infoString: infoString,
         lines: fencedCodeBlockLines,
       ),
     );
@@ -529,6 +570,7 @@ class _CharacterSequenceFromSingleLineComment implements _CharacterSequence {
     }
 
     _offset += threeSlashesLength;
+
     return (
       offset: _offset,
       content: _token.lexeme.substring(threeSlashesLength),

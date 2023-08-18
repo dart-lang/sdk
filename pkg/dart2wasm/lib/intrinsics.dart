@@ -182,14 +182,6 @@ class Intrinsifier {
       return w.NumType.i64;
     }
 
-    // _HashAbstractImmutableBase._indexNullable
-    if (target == translator.hashImmutableIndexNullable) {
-      ClassInfo info = translator.classInfo[translator.hashFieldBaseClass]!;
-      codeGen.wrap(receiver, info.nonNullableType);
-      b.struct_get(info.struct, FieldIndex.hashBaseIndex);
-      return info.struct.fields[FieldIndex.hashBaseIndex].type.unpacked;
-    }
-
     // _Compound._typedDataBase
     if (cls == translator.ffiCompoundClass && name == '_typedDataBase') {
       // A compound (subclass of Struct or Union) is represented by its i32

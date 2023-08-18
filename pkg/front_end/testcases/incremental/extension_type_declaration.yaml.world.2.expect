@@ -1,0 +1,48 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+
+  extension type ExtensionType(dart.core::int i) {
+    method method = main::ExtensionType|method;
+    tearoff method = main::ExtensionType|get#method;
+    get getter = main::ExtensionType|get#getter;
+    static method staticMethod = main::ExtensionType|staticMethod;
+    static field staticField = main::ExtensionType|staticField;
+    set setter = main::ExtensionType|set#setter;
+    constructor • = main::ExtensionType|;
+    tearoff • = main::ExtensionType|_#new#tearOff;
+    static factory f = main::ExtensionType|f;
+    static tearoff f = main::ExtensionType|_#f#tearOff;
+    static redirecting-factory r = main::ExtensionType|r;
+    static tearoff r = main::ExtensionType|_#r#tearOff;
+  }
+  static field dart.core::int ExtensionType|staticField = 42;
+  static inline-class-member method ExtensionType|(dart.core::int i) → main::ExtensionType /* = dart.core::int */ {
+    lowered final main::ExtensionType /* = dart.core::int */ #this = i;
+    return #this;
+  }
+  static inline-class-member method ExtensionType|_#new#tearOff(dart.core::int i) → main::ExtensionType /* = dart.core::int */
+    return main::ExtensionType|(i);
+  static inline-class-member method ExtensionType|f(dart.core::int i) → main::ExtensionType /* = dart.core::int */
+    return main::ExtensionType|(i);
+  static inline-class-member method ExtensionType|_#f#tearOff(dart.core::int i) → main::ExtensionType /* = dart.core::int */
+    return main::ExtensionType|f(i);
+  static inline-class-member method ExtensionType|r(dart.core::int i) → main::ExtensionType /* = dart.core::int */ /* redirection-target: main::ExtensionType| */
+    return main::ExtensionType|(i);
+  static inline-class-member method ExtensionType|_#r#tearOff(dart.core::int i) → main::ExtensionType /* = dart.core::int */
+    return main::ExtensionType|(i);
+  static inline-class-member method ExtensionType|method(lowered final main::ExtensionType /* = dart.core::int */ #this) → dart.core::int
+    return #this as{Unchecked} dart.core::int;
+  static inline-class-member method ExtensionType|get#method(lowered final main::ExtensionType /* = dart.core::int */ #this) → () → dart.core::int
+    return () → dart.core::int => main::ExtensionType|method(#this);
+  static inline-class-member method ExtensionType|get#getter(lowered final main::ExtensionType /* = dart.core::int */ #this) → dart.core::int
+    return #this as{Unchecked} dart.core::int;
+  static inline-class-member method ExtensionType|set#setter(lowered final main::ExtensionType /* = dart.core::int */ #this, dart.core::int value) → void {}
+  static inline-class-member method ExtensionType|staticMethod() → void {}
+  static method main() → dynamic {
+    main::ExtensionType|method(main::ExtensionType|(1));
+    main::ExtensionType|get#getter(main::ExtensionType|f(1));
+    main::ExtensionType|set#setter(main::ExtensionType|(1), 42);
+    main::ExtensionType|staticMethod();
+    main::ExtensionType|staticField = main::ExtensionType|staticField.{dart.core::num::+}(2){(dart.core::num) → dart.core::int};
+  }
+}

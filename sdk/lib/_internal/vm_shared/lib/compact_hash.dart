@@ -36,11 +36,10 @@ abstract class _HashAbstractBase {
 }
 
 abstract class _HashAbstractImmutableBase extends _HashAbstractBase {
-  @pragma("wasm:entry-point")
   Uint32List? get _indexNullable;
 }
 
-abstract class _HashFieldBase implements _HashAbstractBase {
+abstract class _HashFieldBase implements _HashAbstractImmutableBase {
   // Each occupied entry in _index is a fixed-size integer that encodes a pair:
   //   [ hash pattern for key | index of entry in _data ]
   // The hash pattern is based on hashCode, but is guaranteed to be non-zero.
@@ -48,7 +47,16 @@ abstract class _HashFieldBase implements _HashAbstractBase {
   // least one unoccupied entry.
   // NOTE: When maps are deserialized, their _index and _hashMask is regenerated
   // eagerly by _regenerateIndex.
-  Uint32List _index = _uninitializedIndex;
+  Uint32List? _indexNullable = _uninitializedIndex;
+
+  @pragma("vm:exact-result-type", "dart:typed_data#_Uint32List")
+  @pragma("vm:prefer-inline")
+  @pragma("wasm:prefer-inline")
+  Uint32List get _index => _indexNullable!;
+
+  @pragma("vm:prefer-inline")
+  @pragma("wasm:prefer-inline")
+  void set _index(Uint32List value) => _indexNullable = value;
 
   // Cached in-place mask for the hash pattern component.
   int _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
