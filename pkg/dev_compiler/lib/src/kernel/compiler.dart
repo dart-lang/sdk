@@ -7059,6 +7059,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitAsExpression(AsExpression node) {
     var fromExpr = node.operand;
     var jsFrom = _visitExpression(fromExpr);
+    if (node.isUnchecked) return jsFrom;
     var to = node.type;
     var from = fromExpr.getStaticType(_staticTypeContext);
 
