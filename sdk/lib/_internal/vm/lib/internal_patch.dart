@@ -230,9 +230,11 @@ class FinalizerBase {
   /// mechanism to hold on weakly to things.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   external static List<WeakReference<FinalizerBase>>? get _isolateFinalizers;
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   external static set _isolateFinalizers(
       List<WeakReference<FinalizerBase>>? value);
 
@@ -268,6 +270,7 @@ class FinalizerBase {
   /// without a Dart_Port.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   external _setIsolate();
 
   /// All active attachments.
@@ -422,6 +425,7 @@ class FinalizerEntry {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   external int get externalSize;
 
   /// Update the external size.

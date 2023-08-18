@@ -19,8 +19,8 @@ namespace dart {
   V(_List, []=, ObjectArraySetIndexed, 0x3a3252da)                             \
   V(_GrowableList, ._withData, GrowableArrayAllocateWithData, 0x19394cc1)      \
   V(_GrowableList, []=, GrowableArraySetIndexed, 0x3a3252da)                   \
-  V(_Record, get:_fieldNames, Record_fieldNames, 0x68d6b9bd)                   \
-  V(_Record, get:_numFields, Record_numFields, 0x7bb37bb2)                     \
+  V(_Record, get:_fieldNames, Record_fieldNames, 0x68d6bd7e)                   \
+  V(_Record, get:_numFields, Record_numFields, 0x7bb37f73)                     \
   V(_Record, get:_shape, Record_shape, 0x70d29513)                             \
   V(_Record, _fieldAt, Record_fieldAt, 0xb48e2c93)                             \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 0x16155054)                    \
@@ -165,11 +165,11 @@ namespace dart {
   V(FinalizerBase, set:_detachments, FinalizerBase_setDetachments, 0x78809213) \
   V(FinalizerBase, _exchangeEntriesCollectedWithNull,                          \
     FinalizerBase_exchangeEntriesCollectedWithNull, 0x6c82991b)                \
-  V(FinalizerBase, _setIsolate, FinalizerBase_setIsolate, 0xbce94fb1)          \
+  V(FinalizerBase, _setIsolate, FinalizerBase_setIsolate, 0xbce95372)          \
   V(FinalizerBase, get:_isolateFinalizers, FinalizerBase_getIsolateFinalizers, \
-    0x70e6af4b)                                                                \
+    0x70e6b30c)                                                                \
   V(FinalizerBase, set:_isolateFinalizers, FinalizerBase_setIsolateFinalizers, \
-    0xb3d7dd48)                                                                \
+    0xb3d7e109)                                                                \
   V(_FinalizerImpl, get:_callback, Finalizer_getCallback, 0x18503118)          \
   V(_FinalizerImpl, set:_callback, Finalizer_setCallback, 0xacfcd255)          \
   V(_NativeFinalizer, get:_callback, NativeFinalizer_getCallback, 0x5ca4e915)  \
@@ -181,7 +181,7 @@ namespace dart {
   V(FinalizerEntry, set:token, FinalizerEntry_setToken, 0x63bae10f)            \
   V(FinalizerEntry, get:next, FinalizerEntry_getNext, 0x70f44bc4)              \
   V(FinalizerEntry, get:externalSize, FinalizerEntry_getExternalSize,          \
-    0x47d0c142)                                                                \
+    0x47d0c503)                                                                \
   V(Float32x4, _Float32x4FromDoubles, Float32x4FromDoubles, 0x1836ed4b)        \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 0xd3a7b422)                      \
   V(Float32x4, _Float32x4Splat, Float32x4Splat, 0x1396c6e3)                    \
@@ -314,15 +314,15 @@ namespace dart {
   V(::, _asExternalTypedDataUint64, FfiAsExternalTypedDataUint64, 0x06afe5e5)  \
   V(::, _asExternalTypedDataFloat, FfiAsExternalTypedDataFloat, 0x6f37d22c)    \
   V(::, _asExternalTypedDataDouble, FfiAsExternalTypedDataDouble, 0x40bf4e01)  \
-  V(::, _getNativeField, GetNativeField, 0xa0050fa5)                           \
+  V(::, _getNativeField, GetNativeField, 0xa0051366)                           \
   V(::, reachabilityFence, ReachabilityFence, 0x73009f9f)                      \
-  V(_Utf8Decoder, _scan, Utf8DecoderScan, 0xb98ea301)                          \
+  V(_Utf8Decoder, _scan, Utf8DecoderScan, 0xb98ea6c2)                          \
   V(_FutureListener, handleValue, FutureListenerHandleValue, 0xec1745d2)       \
   V(::, has63BitSmis, Has63BitSmis, 0xf60ccb11)                                \
-  V(::, get:extensionStreamHasListener, ExtensionStreamHasListener, 0xfaa5d763)\
+  V(::, get:extensionStreamHasListener, ExtensionStreamHasListener, 0xfaa5db24)\
   V(_Smi, get:hashCode, Smi_hashCode, 0x75d240f2)                              \
   V(_Mint, get:hashCode, Mint_hashCode, 0x75d240f2)                            \
-  V(_Double, get:hashCode, Double_hashCode, 0x75d240f2)                        \
+  V(_Double, get:hashCode, Double_hashCode, 0x75d244b3)                        \
   V(::, _memCopy, MemCopy, 0x2740bc36)                                         \
   V(::, debugger, Debugger, 0xf0b98af4)                                        \
 
