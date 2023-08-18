@@ -1986,7 +1986,7 @@ class FlowModel<Type extends Object> {
   ///
   /// Keys are the unique integers assigned by
   /// [_FlowAnalysisImpl._promotionKeyStore].
-  final Map<int, VariableModel<Type> /*!*/ > variableInfo;
+  final Map<int, PromotionModel<Type> /*!*/ > promotionInfo;
 
   /// Creates a state object with the given [reachable] status.  All variables
   /// are assumed to be unpromoted and already assigned, so joining another
@@ -1998,11 +1998,11 @@ class FlowModel<Type extends Object> {
         );
 
   @visibleForTesting
-  FlowModel.withInfo(this.reachable, this.variableInfo) {
+  FlowModel.withInfo(this.reachable, this.promotionInfo) {
     // ignore:unnecessary_null_comparison
     assert(reachable != null);
     assert(() {
-      for (VariableModel<Type> value in variableInfo.values) {
+      for (PromotionModel<Type> value in promotionInfo.values) {
         // ignore:unnecessary_null_comparison
         assert(value != null);
       }
@@ -2032,19 +2032,19 @@ class FlowModel<Type extends Object> {
     // block is reachable _and_ the end of the `finally` block is reachable.
     Reachability newReachable = afterFinally.reachable.rebaseForward(reachable);
 
-    // Consider each variable that is common to all three models.
-    Map<int, VariableModel<Type>> newVariableInfo =
-        <int, VariableModel<Type>>{};
-    bool variableInfoMatchesThis = true;
-    bool variableInfoMatchesAfterFinally = true;
+    // Consider each promotion key that is common to all three models.
+    Map<int, PromotionModel<Type>> newPromotionInfo =
+        <int, PromotionModel<Type>>{};
+    bool promotionInfoMatchesThis = true;
+    bool promotionInfoMatchesAfterFinally = true;
     List<(SsaNode<Type>?, SsaNode<Type>?)> fieldPromotionsToReapply = [];
-    for (MapEntry<int, VariableModel<Type>> entry in variableInfo.entries) {
+    for (MapEntry<int, PromotionModel<Type>> entry in promotionInfo.entries) {
       int promotionKey = entry.key;
-      VariableModel<Type> thisModel = entry.value;
-      VariableModel<Type>? beforeFinallyModel =
-          beforeFinally.variableInfo[promotionKey];
-      VariableModel<Type>? afterFinallyModel =
-          afterFinally.variableInfo[promotionKey];
+      PromotionModel<Type> thisModel = entry.value;
+      PromotionModel<Type>? beforeFinallyModel =
+          beforeFinally.promotionInfo[promotionKey];
+      PromotionModel<Type>? afterFinallyModel =
+          afterFinally.promotionInfo[promotionKey];
       if (afterFinallyModel == null) {
         // The promotion key is in `this` model but not in the `afterFinally`
         // model.  This happens when either:
@@ -2055,8 +2055,8 @@ class FlowModel<Type extends Object> {
         // In the first case, it doesn't matter what we do, because the variable
         // won't be in scope after the try/finally statement. But in the second
         // case, we need to preserve the promotion from the `try` block.
-        newVariableInfo[promotionKey] = thisModel;
-        variableInfoMatchesAfterFinally = false;
+        newPromotionInfo[promotionKey] = thisModel;
+        promotionInfoMatchesAfterFinally = false;
         continue;
       }
       // We can just use the "write captured" state from the `finally` block,
@@ -2082,7 +2082,7 @@ class FlowModel<Type extends Object> {
         //
         // In all of these cases, the correct thing to do is to keep all
         // promotions that were done in both the `try` and `finally` blocks.
-        newPromotedTypes = VariableModel.rebasePromotedTypes(
+        newPromotedTypes = PromotionModel.rebasePromotedTypes(
             helper.typeOperations,
             thisModel.promotedTypes,
             afterFinallyModel.promotedTypes);
@@ -2113,7 +2113,7 @@ class FlowModel<Type extends Object> {
       // The `finally` block inherited the "unassigned" state from the `try`
       // block so we can just inherit from it.
       bool newUnassigned = afterFinallyModel.unassigned;
-      VariableModel<Type> newModel = VariableModel._identicalOrNew(
+      PromotionModel<Type> newModel = PromotionModel._identicalOrNew(
           thisModel,
           afterFinallyModel,
           newPromotedTypes,
@@ -2121,17 +2121,17 @@ class FlowModel<Type extends Object> {
           newAssigned,
           newUnassigned,
           newSsaNode);
-      newVariableInfo[promotionKey] = newModel;
-      if (!identical(newModel, thisModel)) variableInfoMatchesThis = false;
+      newPromotionInfo[promotionKey] = newModel;
+      if (!identical(newModel, thisModel)) promotionInfoMatchesThis = false;
       if (!identical(newModel, afterFinallyModel)) {
-        variableInfoMatchesAfterFinally = false;
+        promotionInfoMatchesAfterFinally = false;
       }
     }
     for (var MapEntry(
           key: int promotionKey,
-          value: VariableModel<Type> afterFinallyModel
-        ) in afterFinally.variableInfo.entries) {
-      if (variableInfo.containsKey(promotionKey)) continue;
+          value: PromotionModel<Type> afterFinallyModel
+        ) in afterFinally.promotionInfo.entries) {
+      if (promotionInfo.containsKey(promotionKey)) continue;
       // The promotion key is in the `afterFinally` model but not in `this`
       // model.  This happens when either:
       // - There is a variable declared inside the `finally` block, or:
@@ -2141,8 +2141,8 @@ class FlowModel<Type extends Object> {
       // In the first case, it doesn't matter what we do, because the variable
       // won't be in scope after the try/finally statement. But in the second
       // case, we need to preserve the promotion from the `finally` block.
-      newVariableInfo[promotionKey] = afterFinallyModel;
-      variableInfoMatchesThis = false;
+      newPromotionInfo[promotionKey] = afterFinallyModel;
+      promotionInfoMatchesThis = false;
     }
     for (var (SsaNode<Type>? thisSsaNode, SsaNode<Type>? afterFinallySsaNode)
         in fieldPromotionsToReapply) {
@@ -2154,21 +2154,21 @@ class FlowModel<Type extends Object> {
           helper,
           thisSsaNode,
           afterFinallySsaNode,
-          beforeFinally.variableInfo,
-          afterFinally.variableInfo,
-          newVariableInfo);
+          beforeFinally.promotionInfo,
+          afterFinally.promotionInfo,
+          newPromotionInfo);
     }
-    assert(variableInfoMatchesThis ==
-        _variableInfosEqual(newVariableInfo, variableInfo));
-    assert(variableInfoMatchesAfterFinally ==
-        _variableInfosEqual(newVariableInfo, afterFinally.variableInfo));
-    if (variableInfoMatchesThis) {
-      newVariableInfo = variableInfo;
-    } else if (variableInfoMatchesAfterFinally) {
-      newVariableInfo = afterFinally.variableInfo;
+    assert(promotionInfoMatchesThis ==
+        _promotionInfosEqual(newPromotionInfo, promotionInfo));
+    assert(promotionInfoMatchesAfterFinally ==
+        _promotionInfosEqual(newPromotionInfo, afterFinally.promotionInfo));
+    if (promotionInfoMatchesThis) {
+      newPromotionInfo = promotionInfo;
+    } else if (promotionInfoMatchesAfterFinally) {
+      newPromotionInfo = afterFinally.promotionInfo;
     }
 
-    return _identicalOrNew(this, afterFinally, newReachable, newVariableInfo);
+    return _identicalOrNew(this, afterFinally, newReachable, newPromotionInfo);
   }
 
   /// Updates the state to indicate that the given [writtenVariables] are no
@@ -2196,20 +2196,21 @@ class FlowModel<Type extends Object> {
     FlowModel<Type>? newModel;
 
     for (int variableKey in writtenVariables) {
-      VariableModel<Type>? info = variableInfo[variableKey];
+      PromotionModel<Type>? info = promotionInfo[variableKey];
       if (info == null) continue;
-      VariableModel<Type> newInfo =
+      PromotionModel<Type> newInfo =
           info.discardPromotionsAndMarkNotUnassigned();
       if (!identical(info, newInfo)) {
-        (newModel ??= _clone()).variableInfo[variableKey] = newInfo;
+        (newModel ??= _clone()).promotionInfo[variableKey] = newInfo;
       }
     }
 
     for (int variableKey in capturedVariables) {
-      VariableModel<Type>? info = variableInfo[variableKey];
+      PromotionModel<Type>? info = promotionInfo[variableKey];
       if (info == null) continue;
       if (!info.writeCaptured) {
-        (newModel ??= _clone()).variableInfo[variableKey] = info.writeCapture();
+        (newModel ??= _clone()).promotionInfo[variableKey] =
+            info.writeCapture();
         // Note: there's no need to discard dependent property promotions,
         // because when deciding whether a property is promoted,
         // [_FlowAnalysisImpl._handleProperty] checks whether the variable is
@@ -2226,16 +2227,16 @@ class FlowModel<Type extends Object> {
   /// A local variable is [initialized] if its declaration has an initializer.
   /// A function parameter is always initialized, so [initialized] is `true`.
   FlowModel<Type> declare(int variableKey, bool initialized) {
-    VariableModel<Type> newInfoForVar =
-        new VariableModel.fresh(assigned: initialized);
+    PromotionModel<Type> newInfoForVar =
+        new PromotionModel.fresh(assigned: initialized);
 
-    return _updateVariableInfo(variableKey, newInfoForVar);
+    return _updatePromotionInfo(variableKey, newInfoForVar);
   }
 
   /// Gets the info for the given [promotionKey], creating it if it doesn't
   /// exist.
-  VariableModel<Type> infoFor(int promotionKey) =>
-      variableInfo[promotionKey] ?? new VariableModel.fresh();
+  PromotionModel<Type> infoFor(int promotionKey) =>
+      promotionInfo[promotionKey] ?? new PromotionModel.fresh();
 
   /// Builds a [FlowModel] based on `this`, but extending the `tested` set to
   /// include types from [other].  This is used at the bottom of certain kinds
@@ -2245,23 +2246,24 @@ class FlowModel<Type extends Object> {
   @visibleForTesting
   FlowModel<Type> inheritTested(
       TypeOperations<Type> typeOperations, FlowModel<Type> other) {
-    Map<int, VariableModel<Type>> newVariableInfo =
-        <int, VariableModel<Type>>{};
-    Map<int, VariableModel<Type>> otherVariableInfo = other.variableInfo;
+    Map<int, PromotionModel<Type>> newPromotionInfo =
+        <int, PromotionModel<Type>>{};
+    Map<int, PromotionModel<Type>> otherPromotionInfo = other.promotionInfo;
     bool changed = false;
-    for (MapEntry<int, VariableModel<Type>> entry in variableInfo.entries) {
+    for (MapEntry<int, PromotionModel<Type>> entry in promotionInfo.entries) {
       int promotionKey = entry.key;
-      VariableModel<Type> variableModel = entry.value;
-      VariableModel<Type>? otherVariableModel = otherVariableInfo[promotionKey];
-      VariableModel<Type> newVariableModel = otherVariableModel == null
-          ? variableModel
-          : VariableModel.inheritTested(
-              typeOperations, variableModel, otherVariableModel.tested);
-      newVariableInfo[promotionKey] = newVariableModel;
-      if (!identical(newVariableModel, variableModel)) changed = true;
+      PromotionModel<Type> promotionModel = entry.value;
+      PromotionModel<Type>? otherPromotionModel =
+          otherPromotionInfo[promotionKey];
+      PromotionModel<Type> newPromotionModel = otherPromotionModel == null
+          ? promotionModel
+          : PromotionModel.inheritTested(
+              typeOperations, promotionModel, otherPromotionModel.tested);
+      newPromotionInfo[promotionKey] = newPromotionModel;
+      if (!identical(newPromotionModel, promotionModel)) changed = true;
     }
     if (changed) {
-      return new FlowModel<Type>.withInfo(reachable, newVariableInfo);
+      return new FlowModel<Type>.withInfo(reachable, newPromotionInfo);
     } else {
       return this;
     }
@@ -2283,21 +2285,23 @@ class FlowModel<Type extends Object> {
     // reachable.
     Reachability newReachable = reachable.rebaseForward(base.reachable);
 
-    // Consider each variable in the new base model.
-    Map<int, VariableModel<Type>> newVariableInfo =
-        <int, VariableModel<Type>>{};
-    bool variableInfoMatchesThis = true;
-    bool variableInfoMatchesBase = true;
-    for (MapEntry<int, VariableModel<Type>> entry
-        in base.variableInfo.entries) {
+    // Consider each promotion key in the new base model.
+    Map<int, PromotionModel<Type>> newPromotionInfo =
+        <int, PromotionModel<Type>>{};
+    bool promotionInfoMatchesThis = true;
+    bool promotionInfoMatchesBase = true;
+    for (MapEntry<int, PromotionModel<Type>> entry
+        in base.promotionInfo.entries) {
       int promotionKey = entry.key;
-      VariableModel<Type> baseModel = entry.value;
-      VariableModel<Type>? thisModel = variableInfo[promotionKey];
+      PromotionModel<Type> baseModel = entry.value;
+      PromotionModel<Type>? thisModel = promotionInfo[promotionKey];
       if (thisModel == null) {
-        // The variable has newly came into scope since `thisModel`, so the
+        // Either this promotion key represents a variable that has newly come
+        // into scope since `thisModel`, or it represents a property that flow
+        // analysis became aware of since `thisModel`. In either case, the
         // information in `baseModel` is up to date.
-        newVariableInfo[promotionKey] = baseModel;
-        variableInfoMatchesThis = false;
+        newPromotionInfo[promotionKey] = baseModel;
+        promotionInfoMatchesThis = false;
         continue;
       }
       // If the variable was write captured in either `this` or the new base,
@@ -2317,12 +2321,12 @@ class FlowModel<Type extends Object> {
         // all of the promotions from `thisModel`, provided that we retain the
         // usual "promotion chain" invariant (each promoted type is a subtype of
         // the previous).
-        newPromotedTypes = VariableModel.rebasePromotedTypes(
+        newPromotedTypes = PromotionModel.rebasePromotedTypes(
             typeOperations, thisModel.promotedTypes, baseModel.promotedTypes);
       }
       // Tests are kept regardless of whether they are in `this` model or the
       // new base model.
-      List<Type> newTested = VariableModel.joinTested(
+      List<Type> newTested = PromotionModel.joinTested(
           thisModel.tested, baseModel.tested, typeOperations);
       // The variable is definitely assigned if it was definitely assigned
       // either in `this` model or the new base model.
@@ -2330,7 +2334,7 @@ class FlowModel<Type extends Object> {
       // The variable is definitely unassigned if it was definitely unassigned
       // in both `this` model and the new base model.
       bool newUnassigned = thisModel.unassigned && baseModel.unassigned;
-      VariableModel<Type> newModel = VariableModel._identicalOrNew(
+      PromotionModel<Type> newModel = PromotionModel._identicalOrNew(
           thisModel,
           baseModel,
           newPromotedTypes,
@@ -2338,32 +2342,32 @@ class FlowModel<Type extends Object> {
           newAssigned,
           newUnassigned,
           newWriteCaptured ? null : baseModel.ssaNode);
-      newVariableInfo[promotionKey] = newModel;
-      if (!identical(newModel, thisModel)) variableInfoMatchesThis = false;
-      if (!identical(newModel, baseModel)) variableInfoMatchesBase = false;
+      newPromotionInfo[promotionKey] = newModel;
+      if (!identical(newModel, thisModel)) promotionInfoMatchesThis = false;
+      if (!identical(newModel, baseModel)) promotionInfoMatchesBase = false;
     }
-    // newVariableInfo is now correct.  However, if there are any variables
+    // newPromotionInfo is now correct.  However, if there are any variables
     // present in `this` that aren't present in `base`, we may erroneously think
-    // that `newVariableInfo` matches `this`.  If so, correct that.
-    if (variableInfoMatchesThis) {
-      for (int promotionKey in variableInfo.keys) {
-        if (!base.variableInfo.containsKey(promotionKey)) {
-          variableInfoMatchesThis = false;
+    // that `newPromotionInfo` matches `this`.  If so, correct that.
+    if (promotionInfoMatchesThis) {
+      for (int promotionKey in promotionInfo.keys) {
+        if (!base.promotionInfo.containsKey(promotionKey)) {
+          promotionInfoMatchesThis = false;
           break;
         }
       }
     }
-    assert(variableInfoMatchesThis ==
-        _variableInfosEqual(newVariableInfo, variableInfo));
-    assert(variableInfoMatchesBase ==
-        _variableInfosEqual(newVariableInfo, base.variableInfo));
-    if (variableInfoMatchesThis) {
-      newVariableInfo = variableInfo;
-    } else if (variableInfoMatchesBase) {
-      newVariableInfo = base.variableInfo;
+    assert(promotionInfoMatchesThis ==
+        _promotionInfosEqual(newPromotionInfo, promotionInfo));
+    assert(promotionInfoMatchesBase ==
+        _promotionInfosEqual(newPromotionInfo, base.promotionInfo));
+    if (promotionInfoMatchesThis) {
+      newPromotionInfo = promotionInfo;
+    } else if (promotionInfoMatchesBase) {
+      newPromotionInfo = base.promotionInfo;
     }
 
-    return _identicalOrNew(this, base, newReachable, newVariableInfo);
+    return _identicalOrNew(this, base, newReachable, newPromotionInfo);
   }
 
   /// Updates the state to indicate that the control flow path is unreachable.
@@ -2371,25 +2375,25 @@ class FlowModel<Type extends Object> {
     if (!reachable.locallyReachable) return this;
 
     return new FlowModel<Type>.withInfo(
-        reachable.setUnreachable(), variableInfo);
+        reachable.setUnreachable(), promotionInfo);
   }
 
   /// Returns a [FlowModel] indicating the result of creating a control flow
   /// split.  See [Reachability.split] for more information.
   FlowModel<Type> split() =>
-      new FlowModel<Type>.withInfo(reachable.split(), variableInfo);
+      new FlowModel<Type>.withInfo(reachable.split(), promotionInfo);
 
   @override
-  String toString() => '($reachable, $variableInfo)';
+  String toString() => '($reachable, $promotionInfo)';
 
   /// Returns an [ExpressionInfo] indicating the result of checking whether the
   /// given [reference] is non-null.
   ///
-  /// Note that the state is only changed if the previous type of [variable] was
-  /// potentially nullable.
+  /// Note that the state is only changed if the previous type of [reference]
+  /// was potentially nullable.
   ExpressionInfo<Type> tryMarkNonNullable(
       FlowModelHelper<Type> helper, _Reference<Type> reference) {
-    VariableModel<Type> info = _getInfo(reference.promotionKey);
+    PromotionModel<Type> info = _getInfo(reference.promotionKey);
     if (info.writeCaptured) {
       return new ExpressionInfo<Type>.trivial(
           after: this, type: helper.boolType);
@@ -2414,13 +2418,13 @@ class FlowModel<Type extends Object> {
   /// [reference] to the given [type], as a consequence of an `as` expression.
   ///
   /// Note that the state is only changed if [type] is a subtype of the
-  /// variable's previous (possibly promoted) type.
+  /// reference's previous (possibly promoted) type.
   ///
   /// TODO(paulberry): if the type is non-nullable, should this method mark the
   /// variable as definitely assigned?  Does it matter?
   FlowModel<Type> tryPromoteForTypeCast(
       FlowModelHelper<Type> helper, _Reference<Type> reference, Type type) {
-    VariableModel<Type> info = _getInfo(reference.promotionKey);
+    PromotionModel<Type> info = _getInfo(reference.promotionKey);
     if (info.writeCaptured) {
       return this;
     }
@@ -2448,7 +2452,7 @@ class FlowModel<Type extends Object> {
   /// variable as definitely assigned?  Does it matter?
   ExpressionInfo<Type> tryPromoteForTypeCheck(
       FlowModelHelper<Type> helper, _Reference<Type> reference, Type type) {
-    VariableModel<Type> info = _getInfo(reference.promotionKey);
+    PromotionModel<Type> info = _getInfo(reference.promotionKey);
     if (info.writeCaptured) {
       return new ExpressionInfo<Type>.trivial(
           after: this, type: helper.boolType);
@@ -2487,7 +2491,7 @@ class FlowModel<Type extends Object> {
   /// Returns a [FlowModel] indicating the result of removing a control flow
   /// split.  See [Reachability.unsplit] for more information.
   FlowModel<Type> unsplit() =>
-      new FlowModel<Type>.withInfo(reachable.unsplit(), variableInfo);
+      new FlowModel<Type>.withInfo(reachable.unsplit(), promotionInfo);
 
   /// Removes control flow splits until a [FlowModel] is obtained whose
   /// reachability has the given [parent].
@@ -2497,7 +2501,7 @@ class FlowModel<Type extends Object> {
     while (!identical(reachable.parent, parent)) {
       reachable = reachable.unsplit();
     }
-    return new FlowModel<Type>.withInfo(reachable, variableInfo);
+    return new FlowModel<Type>.withInfo(reachable, promotionInfo);
   }
 
   /// Updates the state to indicate that an assignment was made to [variable],
@@ -2517,14 +2521,14 @@ class FlowModel<Type extends Object> {
       {bool promoteToTypeOfInterest = true,
       required Type unpromotedType}) {
     FlowModel<Type>? newModel;
-    VariableModel<Type>? infoForVar = variableInfo[variableKey];
+    PromotionModel<Type>? infoForVar = promotionInfo[variableKey];
     if (infoForVar != null) {
-      VariableModel<Type> newInfoForVar = infoForVar.write(
+      PromotionModel<Type> newInfoForVar = infoForVar.write(
           nonPromotionReason, variableKey, writtenType, operations, newSsaNode,
           promoteToTypeOfInterest: promoteToTypeOfInterest,
           unpromotedType: unpromotedType);
       if (!identical(newInfoForVar, infoForVar)) {
-        newModel = _updateVariableInfo(variableKey, newInfoForVar);
+        newModel = _updatePromotionInfo(variableKey, newInfoForVar);
       }
     }
 
@@ -2534,7 +2538,7 @@ class FlowModel<Type extends Object> {
   /// Makes a copy of `this` that can be safely edited.
   FlowModel<Type> _clone() {
     return new FlowModel<Type>.withInfo(
-        reachable, new Map<int, VariableModel<Type>>.of(variableInfo));
+        reachable, new Map<int, PromotionModel<Type>>.of(promotionInfo));
   }
 
   /// Common algorithm for [tryMarkNonNullable], [tryPromoteForTypeCast],
@@ -2544,34 +2548,34 @@ class FlowModel<Type extends Object> {
   /// [promotedType] to the chain of promoted types.
   ///
   /// Preconditions:
-  /// - [info] should be the result of calling `infoFor(variable)`
+  /// - [info] should be the result of calling [infoFor] on the reference.
   /// - [promotedType] should be a subtype of the currently-promoted type (i.e.
   ///   no redundant or side-promotions)
-  /// - The variable should not be write-captured.
+  /// - If the reference is a variable, it should not be write-captured.
   FlowModel<Type> _finishTypeTest(
       FlowModelHelper<Type> helper,
       _Reference<Type> reference,
-      VariableModel<Type> info,
+      PromotionModel<Type> info,
       Type? testedType,
       Type? promotedType) {
     List<Type> newTested = info.tested;
     if (testedType != null) {
-      newTested = VariableModel._addTypeToUniqueList(
+      newTested = PromotionModel._addTypeToUniqueList(
           info.tested, testedType, helper.typeOperations);
     }
 
     List<Type>? newPromotedTypes = info.promotedTypes;
     if (promotedType != null) {
       newPromotedTypes =
-          VariableModel._addToPromotedTypes(info.promotedTypes, promotedType);
+          PromotionModel._addToPromotedTypes(info.promotedTypes, promotedType);
     }
 
     return identical(newTested, info.tested) &&
             identical(newPromotedTypes, info.promotedTypes)
         ? this
-        : _updateVariableInfo(
+        : _updatePromotionInfo(
             reference.promotionKey,
-            new VariableModel<Type>(
+            new PromotionModel<Type>(
                 promotedTypes: newPromotedTypes,
                 tested: newTested,
                 assigned: info.assigned,
@@ -2582,14 +2586,14 @@ class FlowModel<Type extends Object> {
 
   /// Gets the info for [promotionKey] reference, creating it if it doesn't
   /// exist.
-  VariableModel<Type> _getInfo(int promotionKey) =>
-      variableInfo[promotionKey] ?? new VariableModel<Type>.fresh();
+  PromotionModel<Type> _getInfo(int promotionKey) =>
+      promotionInfo[promotionKey] ?? new PromotionModel<Type>.fresh();
 
   /// Returns a new [FlowModel] where the information for [reference] is
   /// replaced with [model].
-  FlowModel<Type> _updateVariableInfo(
-      int promotionKey, VariableModel<Type> model) {
-    return _clone()..variableInfo[promotionKey] = model;
+  FlowModel<Type> _updatePromotionInfo(
+      int promotionKey, PromotionModel<Type> model) {
+    return _clone()..promotionInfo[promotionKey] = model;
   }
 
   /// Forms a new state to reflect a control flow path that might have come from
@@ -2597,10 +2601,10 @@ class FlowModel<Type extends Object> {
   ///
   /// The control flow path is considered reachable if either of the input
   /// states is reachable.  Variables are considered definitely assigned if they
-  /// were definitely assigned in both of the input states.  Variable promotions
-  /// are kept only if they are common to both input states; if a variable is
-  /// promoted to one type in one state and a subtype in the other state, the
-  /// less specific type promotion is kept.
+  /// were definitely assigned in both of the input states.  Promotions are kept
+  /// only if they are common to both input states; if a reference is promoted
+  /// to one type in one state and a subtype in the other state, the less
+  /// specific type promotion is kept.
   static FlowModel<Type> join<Type extends Object>(
     FlowModelHelper<Type> helper,
     FlowModel<Type>? first,
@@ -2621,19 +2625,20 @@ class FlowModel<Type extends Object> {
 
     Reachability newReachable =
         Reachability.join(first.reachable, second.reachable);
-    Map<int, VariableModel<Type>> newVariableInfo = FlowModel.joinVariableInfo(
-        helper, first.variableInfo, second.variableInfo);
+    Map<int, PromotionModel<Type>> newPromotionInfo =
+        FlowModel.joinPromotionInfo(
+            helper, first.promotionInfo, second.promotionInfo);
 
     return FlowModel._identicalOrNew(
-        first, second, newReachable, newVariableInfo);
+        first, second, newReachable, newPromotionInfo);
   }
 
-  /// Joins two "variable info" maps.  See [join] for details.
+  /// Joins two "promotion info" maps.  See [join] for details.
   @visibleForTesting
-  static Map<int, VariableModel<Type>> joinVariableInfo<Type extends Object>(
+  static Map<int, PromotionModel<Type>> joinPromotionInfo<Type extends Object>(
     FlowModelHelper<Type> helper,
-    Map<int, VariableModel<Type>> first,
-    Map<int, VariableModel<Type>> second,
+    Map<int, PromotionModel<Type>> first,
+    Map<int, PromotionModel<Type>> second,
   ) {
     if (identical(first, second)) return first;
     if (first.isEmpty || second.isEmpty) {
@@ -2641,28 +2646,28 @@ class FlowModel<Type extends Object> {
     }
 
     // TODO(jensj): How often is this empty?
-    Map<int, VariableModel<Type>> newVariableInfo =
-        <int, VariableModel<Type>>{};
+    Map<int, PromotionModel<Type>> newPromotionInfo =
+        <int, PromotionModel<Type>>{};
     bool alwaysFirst = true;
     bool alwaysSecond = true;
-    for (MapEntry<int, VariableModel<Type>> entry in first.entries) {
+    for (MapEntry<int, PromotionModel<Type>> entry in first.entries) {
       int promotionKey = entry.key;
-      VariableModel<Type>? secondModel = second[promotionKey];
+      PromotionModel<Type>? secondModel = second[promotionKey];
       if (secondModel == null) {
         alwaysFirst = false;
       } else {
-        VariableModel<Type> joined = VariableModel.join<Type>(
-            helper, entry.value, first, secondModel, second, newVariableInfo);
-        newVariableInfo[promotionKey] = joined;
+        PromotionModel<Type> joined = PromotionModel.join<Type>(
+            helper, entry.value, first, secondModel, second, newPromotionInfo);
+        newPromotionInfo[promotionKey] = joined;
         if (!identical(joined, entry.value)) alwaysFirst = false;
         if (!identical(joined, secondModel)) alwaysSecond = false;
       }
     }
 
     if (alwaysFirst) return first;
-    if (alwaysSecond && newVariableInfo.length == second.length) return second;
-    if (newVariableInfo.isEmpty) return const {};
-    return newVariableInfo;
+    if (alwaysSecond && newPromotionInfo.length == second.length) return second;
+    if (newPromotionInfo.isEmpty) return const {};
+    return newPromotionInfo;
   }
 
   /// Models the result of joining the flow models [first] and [second] at the
@@ -2687,11 +2692,12 @@ class FlowModel<Type extends Object> {
 
     Reachability newReachable =
         Reachability.join(first.reachable, second.reachable).unsplit();
-    Map<int, VariableModel<Type>> newVariableInfo = FlowModel.joinVariableInfo(
-        helper, first.variableInfo, second.variableInfo);
+    Map<int, PromotionModel<Type>> newPromotionInfo =
+        FlowModel.joinPromotionInfo(
+            helper, first.promotionInfo, second.promotionInfo);
 
     return FlowModel._identicalOrNew(
-        first, second, newReachable, newVariableInfo);
+        first, second, newReachable, newPromotionInfo);
   }
 
   /// Creates a new [FlowModel] object, unless it is equivalent to either
@@ -2700,30 +2706,30 @@ class FlowModel<Type extends Object> {
       FlowModel<Type> first,
       FlowModel<Type> second,
       Reachability newReachable,
-      Map<int, VariableModel<Type>> newVariableInfo) {
+      Map<int, PromotionModel<Type>> newPromotionInfo) {
     if (first.reachable == newReachable &&
-        identical(first.variableInfo, newVariableInfo)) {
+        identical(first.promotionInfo, newPromotionInfo)) {
       return first;
     }
     if (second.reachable == newReachable &&
-        identical(second.variableInfo, newVariableInfo)) {
+        identical(second.promotionInfo, newPromotionInfo)) {
       return second;
     }
 
-    return new FlowModel<Type>.withInfo(newReachable, newVariableInfo);
+    return new FlowModel<Type>.withInfo(newReachable, newPromotionInfo);
   }
 
-  /// Determines whether the given "variableInfo" maps are equivalent.
+  /// Determines whether the given "promotionInfo" maps are equivalent.
   ///
-  /// The equivalence check is shallow; if two variables' models are not
-  /// identical, we return `false`.
-  static bool _variableInfosEqual<Type extends Object>(
-      Map<int, VariableModel<Type>> p1, Map<int, VariableModel<Type>> p2) {
+  /// The equivalence check is shallow; if two models are not identical, we
+  /// return `false`.
+  static bool _promotionInfosEqual<Type extends Object>(
+      Map<int, PromotionModel<Type>> p1, Map<int, PromotionModel<Type>> p2) {
     if (p1.length != p2.length) return false;
     if (!p1.keys.toSet().containsAll(p2.keys)) return false;
-    for (MapEntry<int, VariableModel<Type>> entry in p1.entries) {
-      VariableModel<Type> p1Value = entry.value;
-      VariableModel<Type>? p2Value = p2[entry.key];
+    for (MapEntry<int, PromotionModel<Type>> entry in p1.entries) {
+      PromotionModel<Type> p1Value = entry.value;
+      PromotionModel<Type>? p2Value = p2[entry.key];
       if (!identical(p1Value, p2Value)) {
         return false;
       }
@@ -3100,18 +3106,18 @@ class SsaNode<Type extends Object> {
   /// the `finally` block, so it is also the SSA node from the beginning of the
   /// `finally` block).
   ///
-  /// [beforeFinallyInfo] is the variable info map from the flow state at the
-  /// beginning of the `finally` block, and [afterFinallyInfo] is the variable
+  /// [beforeFinallyInfo] is the promotion info map from the flow state at the
+  /// beginning of the `finally` block, and [afterFinallyInfo] is the promotion
   /// info map from the flow state at the end of the `finally` block.
-  /// [newVariableInfo] is the variable info map for the flow state being
+  /// [newPromotionInfo] is the promotion info map for the flow state being
   /// built (the flow state after the try/finally block).
   void _applyPropertyPromotions<Type extends Object>(
       FlowModelHelper<Type> helper,
       SsaNode<Type> afterTrySsaNode,
       SsaNode<Type> finallySsaNode,
-      Map<int, VariableModel<Type>> beforeFinallyInfo,
-      Map<int, VariableModel<Type>> afterFinallyInfo,
-      Map<int, VariableModel<Type>> newVariableInfo) {
+      Map<int, PromotionModel<Type>> beforeFinallyInfo,
+      Map<int, PromotionModel<Type>> afterFinallyInfo,
+      Map<int, PromotionModel<Type>> newPromotionInfo) {
     for (var MapEntry(
           key: String propertyName,
           value: _PropertySsaNode<Type> finallyPropertySsaNode
@@ -3124,7 +3130,7 @@ class SsaNode<Type extends Object> {
       assert(beforeFinallyInfo[finallyPropertySsaNode.promotionKey] == null);
       // Therefore all we need to do is apply any promotions that are in force
       // at the end of the `finally` block.
-      VariableModel<Type>? afterFinallyModel =
+      PromotionModel<Type>? afterFinallyModel =
           afterFinallyInfo[finallyPropertySsaNode.promotionKey];
       _PropertySsaNode<Type> afterTryPropertySsaNode =
           afterTrySsaNode._promotableProperties[propertyName] ??=
@@ -3136,21 +3142,21 @@ class SsaNode<Type extends Object> {
           finallyPropertySsaNode,
           beforeFinallyInfo,
           afterFinallyInfo,
-          newVariableInfo);
+          newPromotionInfo);
       if (afterFinallyModel == null) continue;
       List<Type>? afterFinallyPromotedTypes = afterFinallyModel.promotedTypes;
       // The property was accessed in a promotion-relevant way in the `try`
       // block, so we need to apply the promotions from the `finally` block to
       // the flow model from the `try` block, and see what sticks.
-      VariableModel<Type> newModel =
-          newVariableInfo[afterTryPropertySsaNode.promotionKey] ??=
-              new VariableModel.fresh();
+      PromotionModel<Type> newModel =
+          newPromotionInfo[afterTryPropertySsaNode.promotionKey] ??=
+              new PromotionModel.fresh();
       List<Type>? newPromotedTypes = newModel.promotedTypes;
-      List<Type>? rebasedPromotedTypes = VariableModel.rebasePromotedTypes(
+      List<Type>? rebasedPromotedTypes = PromotionModel.rebasePromotedTypes(
           helper.typeOperations, afterFinallyPromotedTypes, newPromotedTypes);
       if (!identical(newPromotedTypes, rebasedPromotedTypes)) {
-        newVariableInfo[afterTryPropertySsaNode.promotionKey] =
-            new VariableModel<Type>(
+        newPromotionInfo[afterTryPropertySsaNode.promotionKey] =
+            new PromotionModel<Type>(
                 promotedTypes: rebasedPromotedTypes,
                 tested: newModel.tested,
                 assigned: true,
@@ -3163,26 +3169,26 @@ class SsaNode<Type extends Object> {
   /// Joins the promotion information for two SSA nodes, [first] and [second].
   ///
   /// Since SSA nodes store information about properties, and properties may
-  /// themselves be promoted, the caller must supply the variable info maps for
-  /// the two flow control paths being joined ([firstVariableInfo] and
-  /// [secondVariableInfo]), as well as the variable map being built for the
-  /// join point ([newVariableInfo]).
+  /// themselves be promoted, the caller must supply the promotion info maps for
+  /// the two flow control paths being joined ([firstPromotionInfo] and
+  /// [secondPromotionInfo]), as well as the promotion info map being built for
+  /// the join point ([newPromotionInfo]).
   static SsaNode<Type> _join<Type extends Object>(
       FlowModelHelper<Type> helper,
       SsaNode<Type> first,
-      Map<int, VariableModel<Type>> firstVariableInfo,
+      Map<int, PromotionModel<Type>> firstPromotionInfo,
       SsaNode<Type> second,
-      Map<int, VariableModel<Type>> secondVariableInfo,
-      Map<int, VariableModel<Type>> newVariableInfo) {
+      Map<int, PromotionModel<Type>> secondPromotionInfo,
+      Map<int, PromotionModel<Type>> newPromotionInfo) {
     if (first == second) return first;
     return new SsaNode.withProperties(null,
         promotableProperties: _joinProperties(
             helper,
             first._promotableProperties,
-            firstVariableInfo,
+            firstPromotionInfo,
             second._promotableProperties,
-            secondVariableInfo,
-            newVariableInfo),
+            secondPromotionInfo,
+            newPromotionInfo),
         nonPromotableProperties: {});
   }
 
@@ -3190,17 +3196,17 @@ class SsaNode<Type extends Object> {
   /// nodes, [first] and [second].
   ///
   /// Since properties may themselves be promoted, the caller must supply the
-  /// variable info maps for the two flow control paths being joined
-  /// ([firstVariableInfo] and [secondVariableInfo]), as well as the variable
-  /// map being built for the join point ([newVariableInfo]).
+  /// promotion info maps for the two flow control paths being joined
+  /// ([firstPromotionInfo] and [secondPromotionInfo]), as well as the promotion
+  /// info map being built for the join point ([newPromotionInfo]).
   static Map<String, _PropertySsaNode<Type>>
       _joinProperties<Type extends Object>(
           FlowModelHelper<Type> helper,
           Map<String, _PropertySsaNode<Type>> first,
-          Map<int, VariableModel<Type>> firstVariableInfo,
+          Map<int, PromotionModel<Type>> firstPromotionInfo,
           Map<String, _PropertySsaNode<Type>> second,
-          Map<int, VariableModel<Type>> secondVariableInfo,
-          final Map<int, VariableModel<Type>> newVariableInfo) {
+          Map<int, PromotionModel<Type>> secondPromotionInfo,
+          final Map<int, PromotionModel<Type>> newPromotionInfo) {
     Map<String, _PropertySsaNode<Type>> newProperties = {};
     // If a property has been accessed along one of the two control flow paths
     // being joined, but not the other, then it shouldn't be promoted after the
@@ -3214,22 +3220,22 @@ class SsaNode<Type extends Object> {
       if (secondProperty == null) continue;
       // Make a new promotion key to represent the joined property.
       int newPromotionKey = helper.promotionKeyStore.makeTemporaryKey();
-      // If the property has a variable model along both control flow paths,
-      // it might be promoted, so join the two variable models to preserve the
+      // If the property has a promotion model along both control flow paths,
+      // it might be promoted, so join the two promotion models to preserve the
       // promotion.
-      VariableModel<Type>? firstVariableModel =
-          firstVariableInfo[firstProperty.promotionKey];
-      if (firstVariableModel != null) {
-        VariableModel<Type>? secondVariableModel =
-            secondVariableInfo[secondProperty.promotionKey];
-        if (secondVariableModel != null) {
-          newVariableInfo[newPromotionKey] = VariableModel.join(
+      PromotionModel<Type>? firstPromotionModel =
+          firstPromotionInfo[firstProperty.promotionKey];
+      if (firstPromotionModel != null) {
+        PromotionModel<Type>? secondPromotionModel =
+            secondPromotionInfo[secondProperty.promotionKey];
+        if (secondPromotionModel != null) {
+          newPromotionInfo[newPromotionKey] = PromotionModel.join(
               helper,
-              firstVariableModel,
-              firstVariableInfo,
-              secondVariableModel,
-              secondVariableInfo,
-              newVariableInfo);
+              firstPromotionModel,
+              firstPromotionInfo,
+              secondPromotionModel,
+              secondPromotionInfo,
+              newPromotionInfo);
         }
       }
       // Join any nested properties.
@@ -3238,10 +3244,10 @@ class SsaNode<Type extends Object> {
           promotableProperties: _joinProperties(
               helper,
               firstProperty._promotableProperties,
-              firstVariableInfo,
+              firstPromotionInfo,
               secondProperty._promotableProperties,
-              secondVariableInfo,
-              newVariableInfo),
+              secondPromotionInfo,
+              newPromotionInfo),
           nonPromotableProperties: {});
     }
     return newProperties;
@@ -3341,27 +3347,29 @@ class TrivialVariableReference<Type extends Object> extends _Reference<Type> {
       'promotionKey: $promotionKey, isThisOrSuper: $isThisOrSuper)';
 }
 
-/// An instance of the [VariableModel] class represents the information gathered
-/// by flow analysis for a single variable at a single point in the control flow
-/// of the function or method being analyzed.
+/// An instance of the [PromotionModel] class represents the information
+/// gathered by flow analysis for a single variable or property at a single
+/// point in the control flow of the function or method being analyzed.
 ///
 /// Instances of this class are immutable, so the methods below that "update"
 /// the state actually leave `this` unchanged and return a new state object.
 @visibleForTesting
-class VariableModel<Type extends Object> {
-  /// Sequence of types that the variable has been promoted to, where each
-  /// element of the sequence is a subtype of the previous.  Null if the
-  /// variable hasn't been promoted.
+class PromotionModel<Type extends Object> {
+  /// Sequence of types that the variable or property has been promoted to,
+  /// where each element of the sequence is a subtype of the previous.  Null if
+  /// the variable or property hasn't been promoted.
   final List<Type>? promotedTypes;
 
   /// List of types that the variable has been tested against in all code paths
-  /// leading to the given point in the source code.
+  /// leading to the given point in the source code. Not relevant for
+  /// properties.
   final List<Type> tested;
 
-  /// Indicates whether the variable has definitely been assigned.
+  /// Indicates whether the variable has definitely been assigned. Not relevant
+  /// for properties.
   final bool assigned;
 
-  /// Indicates whether the variable is unassigned.
+  /// Indicates whether the variable is unassigned. Not relevant for properties.
   final bool unassigned;
 
   /// SSA node associated with this variable.  Every time the variable's value
@@ -3371,12 +3379,14 @@ class VariableModel<Type extends Object> {
   /// value has changed since a time in the past.
   ///
   /// `null` if the variable has been write captured.
+  ///
+  /// Not relevant for properties.
   final SsaNode<Type>? ssaNode;
 
-  /// Non-promotion history of this variable.
+  /// Non-promotion history of this variable. Not relevant for properties.
   final NonPromotionHistory<Type>? nonPromotionHistory;
 
-  VariableModel(
+  PromotionModel(
       {required this.promotedTypes,
       required this.tested,
       required this.assigned,
@@ -3394,25 +3404,26 @@ class VariableModel<Type extends Object> {
     assert(tested != null);
   }
 
-  /// Creates a [VariableModel] representing a variable that's never been seen
-  /// before.
-  VariableModel.fresh({this.assigned = false})
+  /// Creates a [PromotionModel] representing a variable or property that's
+  /// never been seen before.
+  PromotionModel.fresh({this.assigned = false})
       : promotedTypes = null,
         tested = const [],
         unassigned = !assigned,
         ssaNode = new SsaNode<Type>(null),
         nonPromotionHistory = null;
 
-  /// Indicates whether the variable has been write captured.
+  /// Indicates whether the variable has been write captured. Not relevant for
+  /// properties.
   bool get writeCaptured => ssaNode == null;
 
-  /// Returns a new [VariableModel] in which any promotions present have been
+  /// Returns a new [PromotionModel] in which any promotions present have been
   /// dropped, and the variable has been marked as "not unassigned".
   ///
   /// Used by [conservativeJoin] to update the state of variables at the top of
   /// loops whose bodies write to them.
-  VariableModel<Type> discardPromotionsAndMarkNotUnassigned() {
-    return new VariableModel<Type>(
+  PromotionModel<Type> discardPromotionsAndMarkNotUnassigned() {
+    return new PromotionModel<Type>(
         promotedTypes: null,
         tested: tested,
         assigned: assigned,
@@ -3441,16 +3452,16 @@ class VariableModel<Type extends Object> {
     if (nonPromotionHistory != null) {
       parts.add('nonPromotionHistory: $nonPromotionHistory');
     }
-    return 'VariableModel(${parts.join(', ')})';
+    return 'PromotionModel(${parts.join(', ')})';
   }
 
-  /// Returns a new [VariableModel] reflecting the fact that the variable was
+  /// Returns a new [PromotionModel] reflecting the fact that the variable was
   /// just written to.
   ///
   /// If there is any chance that the write will cause a demotion, the caller
   /// must pass in a non-null value for [nonPromotionReason] describing the
   /// reason for any potential demotion.
-  VariableModel<Type> write<Variable extends Object>(
+  PromotionModel<Type> write<Variable extends Object>(
       NonPromotionReason? nonPromotionReason,
       int variableKey,
       Type writtenType,
@@ -3459,7 +3470,7 @@ class VariableModel<Type extends Object> {
       {required bool promoteToTypeOfInterest,
       required Type unpromotedType}) {
     if (writeCaptured) {
-      return new VariableModel<Type>(
+      return new PromotionModel<Type>(
           promotedTypes: promotedTypes,
           tested: tested,
           assigned: true,
@@ -3478,7 +3489,7 @@ class VariableModel<Type extends Object> {
     // TODO(paulberry): remove demotions from demotionResult.nonPromotionHistory
     // that are no longer in effect due to re-promotion.
     if (identical(promotedTypes, newPromotedTypes) && assigned) {
-      return new VariableModel<Type>(
+      return new PromotionModel<Type>(
           promotedTypes: promotedTypes,
           tested: tested,
           assigned: assigned,
@@ -3493,7 +3504,7 @@ class VariableModel<Type extends Object> {
       newTested = tested;
     }
 
-    return new VariableModel<Type>(
+    return new PromotionModel<Type>(
         promotedTypes: newPromotedTypes,
         tested: newTested,
         assigned: true,
@@ -3502,10 +3513,10 @@ class VariableModel<Type extends Object> {
         nonPromotionHistory: demotionResult.nonPromotionHistory);
   }
 
-  /// Returns a new [VariableModel] reflecting the fact that the variable has
+  /// Returns a new [PromotionModel] reflecting the fact that the variable has
   /// been write-captured.
-  VariableModel<Type> writeCapture() {
-    return new VariableModel<Type>(
+  PromotionModel<Type> writeCapture() {
+    return new PromotionModel<Type>(
         promotedTypes: null,
         tested: const [],
         assigned: assigned,
@@ -3554,11 +3565,11 @@ class VariableModel<Type extends Object> {
     return new _DemotionResult<Type>(newPromotedTypes, newNonPromotionHistory);
   }
 
-  /// Returns a variable model that is the same as this one, but with the
+  /// Returns a promotion model that is the same as this one, but with the
   /// variable definitely assigned.
-  VariableModel<Type> _setAssigned() => assigned
+  PromotionModel<Type> _setAssigned() => assigned
       ? this
-      : new VariableModel(
+      : new PromotionModel(
           promotedTypes: promotedTypes,
           tested: tested,
           assigned: true,
@@ -3679,19 +3690,19 @@ class VariableModel<Type extends Object> {
     return promotedTypes;
   }
 
-  /// Builds a [VariableModel] based on [model], but extending the [tested] set
+  /// Builds a [PromotionModel] based on [model], but extending the [tested] set
   /// to include types from [tested].  This is used at the bottom of certain
   /// kinds of loops, to ensure that types tested within the body of the loop
   /// are consistently treated as "of interest" in code that follows the loop,
   /// regardless of the type of loop.
   @visibleForTesting
-  static VariableModel<Type> inheritTested<Type extends Object>(
+  static PromotionModel<Type> inheritTested<Type extends Object>(
       TypeOperations<Type> typeOperations,
-      VariableModel<Type> model,
+      PromotionModel<Type> model,
       List<Type> tested) {
     List<Type> newTested = joinTested(tested, model.tested, typeOperations);
     if (identical(newTested, model.tested)) return model;
-    return new VariableModel<Type>(
+    return new PromotionModel<Type>(
         promotedTypes: model.promotedTypes,
         tested: newTested,
         assigned: model.assigned,
@@ -3699,19 +3710,19 @@ class VariableModel<Type extends Object> {
         ssaNode: model.ssaNode);
   }
 
-  /// Joins two variable models.  See [FlowModel.join] for details.
+  /// Joins two promotion models.  See [FlowModel.join] for details.
   ///
   /// Since properties of variables may be promoted, the caller must supply the
-  /// variable info maps for the two flow control paths being joined
-  /// ([firstVariableInfo] and [secondVariableInfo]), as well as the variable
-  /// map being built for the join point ([newVariableInfo]).
-  static VariableModel<Type> join<Type extends Object>(
+  /// promotion info maps for the two flow control paths being joined
+  /// ([firstPromotionInfo] and [secondPromotionInfo]), as well as the promotion
+  /// info map being built for the join point ([newPromotionInfo]).
+  static PromotionModel<Type> join<Type extends Object>(
       FlowModelHelper<Type> helper,
-      VariableModel<Type> first,
-      Map<int, VariableModel<Type>> firstVariableInfo,
-      VariableModel<Type> second,
-      Map<int, VariableModel<Type>> secondVariableInfo,
-      Map<int, VariableModel<Type>> newVariableInfo) {
+      PromotionModel<Type> first,
+      Map<int, PromotionModel<Type>> firstPromotionInfo,
+      PromotionModel<Type> second,
+      Map<int, PromotionModel<Type>> secondPromotionInfo,
+      Map<int, PromotionModel<Type>> newPromotionInfo) {
     TypeOperations<Type> typeOperations = helper.typeOperations;
     List<Type>? newPromotedTypes = joinPromotedTypes(
         first.promotedTypes, second.promotedTypes, typeOperations);
@@ -3725,8 +3736,8 @@ class VariableModel<Type extends Object> {
         : joinTested(first.tested, second.tested, typeOperations);
     SsaNode<Type>? newSsaNode = newWriteCaptured
         ? null
-        : SsaNode._join(helper, first.ssaNode!, firstVariableInfo,
-            second.ssaNode!, secondVariableInfo, newVariableInfo);
+        : SsaNode._join(helper, first.ssaNode!, firstPromotionInfo,
+            second.ssaNode!, secondPromotionInfo, newPromotionInfo);
     return _identicalOrNew(first, second, newPromotedTypes, newTested,
         newAssigned, newUnassigned, newWriteCaptured ? null : newSsaNode);
   }
@@ -3860,11 +3871,11 @@ class VariableModel<Type extends Object> {
     return new List<Type>.of(types)..add(newType);
   }
 
-  /// Creates a new [VariableModel] object, unless it is equivalent to either
+  /// Creates a new [PromotionModel] object, unless it is equivalent to either
   /// [first] or [second], in which case one of those objects is re-used.
-  static VariableModel<Type> _identicalOrNew<Type extends Object>(
-      VariableModel<Type> first,
-      VariableModel<Type> second,
+  static PromotionModel<Type> _identicalOrNew<Type extends Object>(
+      PromotionModel<Type> first,
+      PromotionModel<Type> second,
       List<Type>? newPromotedTypes,
       List<Type> newTested,
       bool newAssigned,
@@ -3883,7 +3894,7 @@ class VariableModel<Type extends Object> {
         second.ssaNode == newSsaNode) {
       return second;
     } else {
-      return new VariableModel<Type>(
+      return new PromotionModel<Type>(
           promotedTypes: newPromotedTypes,
           tested: newTested,
           assigned: newAssigned,
@@ -4160,7 +4171,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void assignMatchedPatternVariable(Variable variable, int promotionKey) {
     int mergedKey = promotionKeyStore.keyForVariable(variable);
-    VariableModel<Type> info = _current.infoFor(promotionKey);
+    PromotionModel<Type> info = _current.infoFor(promotionKey);
     // Normally flow analysis is responsible for tracking whether variables are
     // definitely assigned; however for variables appearing in patterns we
     // have other logic to make sure that a value is definitely assigned (e.g.
@@ -4168,7 +4179,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // appear on the other side).  So to avoid reporting redundant errors, we
     // pretend that the variable is definitely assigned, even if it isn't.
     info = info._setAssigned();
-    _current = _current._updateVariableInfo(mergedKey, info);
+    _current = _current._updatePromotionInfo(mergedKey, info);
   }
 
   @override
@@ -4297,7 +4308,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void copyPromotionData(
       {required int sourceKey, required int destinationKey}) {
-    _current = _current._updateVariableInfo(
+    _current = _current._updatePromotionInfo(
         destinationKey, _current.infoFor(sourceKey));
   }
 
@@ -5004,7 +5015,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   SsaNode<Type>? ssaNodeForTesting(Variable variable) => _current
-      .variableInfo[promotionKeyStore.keyForVariable(variable)]?.ssaNode;
+      .promotionInfo[promotionKeyStore.keyForVariable(variable)]?.ssaNode;
 
   @override
   bool switchStatement_afterCase() {
@@ -5221,13 +5232,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   Type? variableRead(Expression expression, Variable variable) {
     Type unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
-    VariableModel<Type> variableModel = _current._getInfo(variableKey);
+    PromotionModel<Type> promotionModel = _current._getInfo(variableKey);
     _Reference<Type> expressionInfo =
         _variableReference(variableKey, unpromotedType).addPreviousInfo(
-            variableModel.ssaNode?.expressionInfo, operations, _current);
+            promotionModel.ssaNode?.expressionInfo, operations, _current);
     _storeExpressionReference(expression, expressionInfo);
     _storeExpressionInfo(expression, expressionInfo);
-    return variableModel.promotedTypes?.last;
+    return promotionModel.promotedTypes?.last;
   }
 
   @override
@@ -5260,9 +5271,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (identical(target, _expressionWithReference)) {
       _Reference<Type>? referenceWithType = _expressionReference;
       if (referenceWithType != null) {
-        VariableModel<Type>? currentVariableInfo =
-            _current.variableInfo[referenceWithType.promotionKey];
-        return _getNonPromotionReasons(referenceWithType, currentVariableInfo);
+        PromotionModel<Type>? currentPromotionInfo =
+            _current.promotionInfo[referenceWithType.promotionKey];
+        return _getNonPromotionReasons(referenceWithType, currentPromotionInfo);
       }
     }
     return () => {};
@@ -5271,8 +5282,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   Map<Type, NonPromotionReason> Function() whyNotPromotedImplicitThis(
       Type staticType) {
-    VariableModel<Type>? currentThisInfo =
-        _current.variableInfo[promotionKeyStore.thisPromotionKey];
+    PromotionModel<Type>? currentThisInfo =
+        _current.promotionInfo[promotionKeyStore.thisPromotionKey];
     if (currentThisInfo == null) {
       return () => {};
     }
@@ -5409,15 +5420,15 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   Map<Type, NonPromotionReason> Function() _getNonPromotionReasons(
-      _Reference<Type> reference, VariableModel<Type>? currentVariableInfo) {
+      _Reference<Type> reference, PromotionModel<Type>? currentPromotionInfo) {
     if (reference is _PropertyReference<Type>) {
       _PropertySsaNode<Type>? ssaNode =
           (reference.ssaNode as _PropertySsaNode<Type>).previousSsaNode;
       List<List<Type>>? allPreviouslyPromotedTypes;
       while (ssaNode != null) {
-        VariableModel<Type> previousVariableInfo =
+        PromotionModel<Type> previousPromotionInfo =
             _current._getInfo(ssaNode.promotionKey);
-        List<Type>? promotedTypes = previousVariableInfo.promotedTypes;
+        List<Type>? promotedTypes = previousPromotionInfo.promotedTypes;
         if (promotedTypes != null) {
           (allPreviouslyPromotedTypes ??= []).add(promotedTypes);
         }
@@ -5436,11 +5447,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           return result;
         };
       }
-    } else if (currentVariableInfo != null) {
+    } else if (currentPromotionInfo != null) {
       Variable? variable =
           promotionKeyStore.variableForKey(reference.promotionKey);
       if (variable == null) {
-        List<Type>? promotedTypes = currentVariableInfo.promotedTypes;
+        List<Type>? promotedTypes = currentPromotionInfo.promotedTypes;
         if (promotedTypes != null) {
           return () {
             Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
@@ -5453,10 +5464,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       } else {
         return () {
           Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
-          Type currentType = currentVariableInfo.promotedTypes?.last ??
+          Type currentType = currentPromotionInfo.promotedTypes?.last ??
               operations.variableType(variable);
           NonPromotionHistory? nonPromotionHistory =
-              currentVariableInfo.nonPromotionHistory;
+              currentPromotionInfo.nonPromotionHistory;
           while (nonPromotionHistory != null) {
             Type nonPromotedType = nonPromotionHistory.type;
             if (!operations.isSubtypeOf(currentType, nonPromotedType)) {
@@ -5644,9 +5655,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   TrivialVariableReference<Type> _makeTemporaryReference(
       SsaNode<Type> ssaNode, Type type) {
     int promotionKey = promotionKeyStore.makeTemporaryKey();
-    _current = _current._updateVariableInfo(
+    _current = _current._updatePromotionInfo(
         promotionKey,
-        new VariableModel(
+        new PromotionModel(
             promotedTypes: null,
             tested: const [],
             assigned: true,
@@ -5785,7 +5796,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   TrivialVariableReference<Type> _variableReference(
       int variableKey, Type unpromotedType) {
-    VariableModel<Type> info = _current.infoFor(variableKey);
+    PromotionModel<Type> info = _current.infoFor(variableKey);
     return new TrivialVariableReference<Type>(
         promotionKey: variableKey,
         after: _current,
@@ -6739,7 +6750,7 @@ class _PropertySsaNode<Type extends Object> extends SsaNode<Type> {
 /// reference to a variable, property, `this`, or the pseudo-expression `super`.
 class _Reference<Type extends Object> extends ExpressionInfo<Type> {
   /// The integer key representing the thing referred to by this expression in
-  /// [FlowModel.variableInfo].
+  /// [FlowModel.promotionInfo].
   final int promotionKey;
 
   /// Whether the thing referred to by this expression is `this` (or the
