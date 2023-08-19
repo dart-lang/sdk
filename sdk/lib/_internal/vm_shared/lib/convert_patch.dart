@@ -1674,6 +1674,7 @@ class _Utf8Decoder {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   int _scan(Uint8List bytes, int start, int end, String scanTable) {
     int size = 0;
     int flags = 0;

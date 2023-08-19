@@ -77,10 +77,12 @@ final class _Record implements Record {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   external int get _numFields;
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   external _List get _fieldNames;
 
   // Currently compiler does not take into account aliasing

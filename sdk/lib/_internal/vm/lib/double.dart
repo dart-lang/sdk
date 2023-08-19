@@ -12,6 +12,7 @@ final class _Double implements double {
   external factory _Double.fromInteger(int value);
 
   @pragma("vm:recognized", "other")
+  @pragma("vm:idempotent")
   external int get hashCode;
   int get _identityHashCode => hashCode;
 
