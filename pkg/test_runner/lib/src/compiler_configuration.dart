@@ -422,9 +422,18 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
     arguments = arguments.toList();
     arguments.add('--out=$outputFileName');
 
-    return Dart2jsCompilationCommand(outputFileName, bootstrapDependencies(),
-        computeCompilerPath(), arguments, environmentOverrides,
-        useSdk: _useSdk, alwaysCompile: !_useSdk);
+    var command = Dart2jsCompilationCommand(
+        outputFileName,
+        bootstrapDependencies(),
+        computeCompilerPath(),
+        arguments,
+        environmentOverrides,
+        useSdk: _useSdk,
+        alwaysCompile: !_useSdk);
+    if (_configuration.rr) {
+      return RRCommand(command);
+    }
+    return command;
   }
 
   @override
@@ -556,7 +565,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
     arguments = arguments.toList();
     arguments.add(outputFileName);
 
-    return CompilationCommand(
+    var command = CompilationCommand(
         'dart2wasm',
         outputFileName,
         bootstrapDependencies(),
@@ -564,6 +573,10 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
         arguments,
         environmentOverrides,
         alwaysCompile: !_useSdk);
+    if (_configuration.rr) {
+      return RRCommand(command);
+    }
+    return command;
   }
 
   @override
@@ -714,9 +727,13 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     var compilerPath = _useSdk
         ? '${_configuration.buildDirectory}/dart-sdk/bin/snapshots/dartdevc.dart.snapshot'
         : Repository.uri.resolve('pkg/dev_compiler/bin/dartdevc.dart').path;
-    return DevCompilerCompilationCommand(outputFile, bootstrapDependencies(),
-        computeCompilerPath(), args, environment,
+    var command = DevCompilerCompilationCommand(outputFile,
+        bootstrapDependencies(), computeCompilerPath(), args, environment,
         compilerPath: compilerPath, alwaysCompile: false);
+    if (_configuration.rr) {
+      return RRCommand(command);
+    }
+    return command;
   }
 
   @override
@@ -1191,6 +1208,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     var multiplier = 1;
     if (_isDebug) multiplier *= 2;
     if (_enableAsserts) multiplier *= 2;
+    if (_configuration.rr) multiplier *= 2;
     return multiplier;
   }
 
@@ -1219,9 +1237,13 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       arguments.insertAll(0, config.arguments);
       executable = config.executable;
     }
-    return CompilationCommand('app_jit', tempDir, bootstrapDependencies(),
-        executable, arguments, environmentOverrides,
+    var command = CompilationCommand('app_jit', tempDir,
+        bootstrapDependencies(), executable, arguments, environmentOverrides,
         alwaysCompile: !_useSdk);
+    if (_configuration.rr) {
+      return RRCommand(command);
+    }
+    return command;
   }
 
   @override

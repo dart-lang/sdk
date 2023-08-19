@@ -3167,7 +3167,8 @@
             "dart2js_platform.dill",
             "dart2js_platform_unsound.dill",
             "kernel-service.dart.snapshot",
-            "dartdevc_test",
+            "ddc_stable_test",
+            "ddc_canary_test",
             "dart2wasm_benchmark"
           ]
         },

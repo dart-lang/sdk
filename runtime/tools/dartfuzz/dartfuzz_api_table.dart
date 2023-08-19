@@ -13,7 +13,7 @@ enum Restriction { none, small }
 
 /// Class that represents Dart library methods.
 ///
-/// The invididual lists are organized by return type.
+/// The individual lists are organized by return type.
 /// Proto is a list of DartTypes whose first element is the type of the
 /// DartType of the receiver (DartType.VOID if none). The remaining elements are
 /// DartTypes of the parameters. The second element is DartType.VOID if there
@@ -86,6 +86,7 @@ class DartLib {
     DartType.UINT8CLAMPEDLIST_NULLABLE: uint8ClampedListLibsNullable,
     DartType.UINT8LIST: uint8ListLibs,
     DartType.UINT8LIST_NULLABLE: uint8ListLibsNullable,
+    DartType.VOID: voidLibs,
     DartType.VOID_NULLABLE: voidLibsNullable,
   };
   static const typedDataFloatTypes = [
@@ -104,6 +105,7 @@ class DartLib {
     DartLib('add', [DartType.SET_INT, DartType.INT], true),
     DartLib('bool.fromEnvironment', [DartType.VOID, DartType.STRING], true),
     DartLib('bool.hasEnvironment', [DartType.VOID, DartType.STRING], true),
+    DartLib('bool.parse', [DartType.VOID, DartType.STRING], true),
     DartLib('endsWith', [DartType.STRING, DartType.STRING], true),
     DartLib('flagW', [DartType.INT32X4, DartType.VOID], false),
     DartLib('flagX', [DartType.INT32X4, DartType.VOID], false),
@@ -137,6 +139,8 @@ class DartLib {
     DartLib('add', [DartType.SET_INT, DartType.INT], true),
     DartLib('bool.fromEnvironment', [DartType.VOID, DartType.STRING], true),
     DartLib('bool.hasEnvironment', [DartType.VOID, DartType.STRING], true),
+    DartLib('bool.parse', [DartType.VOID, DartType.STRING], true),
+    DartLib('bool.tryParse', [DartType.VOID, DartType.STRING], true),
     DartLib('endsWith', [DartType.STRING, DartType.STRING], true),
     DartLib('flagW', [DartType.INT32X4, DartType.VOID], false),
     DartLib('flagX', [DartType.INT32X4, DartType.VOID], false),
