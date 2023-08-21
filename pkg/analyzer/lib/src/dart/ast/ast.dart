@@ -3225,9 +3225,10 @@ sealed class CombinatorImpl extends AstNodeImpl implements Combinator {
 ///        '/ **' (CHARACTER | [CommentReference])* '&#42;/'
 ///      | ('///' (CHARACTER - EOL)* EOL)+
 abstract final class Comment implements AstNode {
-  /// The fenced code blocks parsed in this comment.
+  /// The Markdown code blocks (both fenced and indented) parsed in this
+  /// comment.
   @experimental
-  List<MdFencedCodeBlock> get fencedCodeBlocks;
+  List<MdCodeBlock> get codeBlocks;
 
   /// Return `true` if this is a block comment.
   bool get isBlock;
@@ -3275,7 +3276,7 @@ final class CommentImpl extends AstNodeImpl implements Comment {
   final NodeListImpl<CommentReferenceImpl> _references = NodeListImpl._();
 
   @override
-  final List<MdFencedCodeBlock> fencedCodeBlocks;
+  final List<MdCodeBlock> codeBlocks;
 
   /// Initialize a newly created comment. The list of [tokens] must contain at
   /// least one token. The [_type] is the type of the comment. The list of
@@ -3285,7 +3286,7 @@ final class CommentImpl extends AstNodeImpl implements Comment {
     required this.tokens,
     required CommentType type,
     required List<CommentReferenceImpl> references,
-    required this.fencedCodeBlocks,
+    required this.codeBlocks,
   }) : _type = type {
     _references._initialize(this, references);
   }
@@ -11952,41 +11953,43 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
 
 /// A Markdown fenced code block found in a documentation comment.
 @experimental
-final class MdFencedCodeBlock {
+final class MdCodeBlock {
   /// The 'info string'.
   ///
-  /// This includes any text following the opening backticks. For example, in
-  /// a fenced code block starting with "```dart", the info string is "dart".
+  /// This includes any text (trimming whitespace) following the opening
+  /// backticks (for a fenced code block). For example, in a fenced code block
+  /// starting with "```dart", the info string is "dart".
   ///
-  /// If no text follows the opening backticks, the info string is `null`.
+  /// If the code block is an indented code block, or a fenced code block with
+  /// no text following the opening backticks, the info string is `null`.
   ///
   /// See CommonMark specification at
   /// <https://spec.commonmark.org/0.30/#fenced-code-blocks>.
   final String? infoString;
 
   /// Information about the comment lines that make up this code block.
-  final List<MdFencedCodeBlockLine> lines;
+  ///
+  /// For a fenced code block, these lines include the opening and closing
+  /// fence delimiter lines.
+  final List<MdCodeBlockLine> lines;
 
-  MdFencedCodeBlock({
+  MdCodeBlock({
     required this.infoString,
-    required List<MdFencedCodeBlockLine> lines,
+    required List<MdCodeBlockLine> lines,
   }) : lines = List.of(lines, growable: false);
 }
 
-/// A Markdown fenced code block line found in a documentation comment.
+/// A Markdown code block line found in a documentation comment.
 @experimental
-final class MdFencedCodeBlockLine {
-  /// The offset of the start of the fenced code block, from the beginning of
+final class MdCodeBlockLine {
+  /// The offset of the start of the code block, from the beginning of the
   /// compilation unit.
   final int offset;
 
   /// The length of the fenced code block.
   final int length;
 
-  MdFencedCodeBlockLine({
-    required this.offset,
-    required this.length,
-  });
+  MdCodeBlockLine({required this.offset, required this.length});
 }
 
 /// A method declaration.

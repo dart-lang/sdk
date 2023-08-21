@@ -253,11 +253,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('Comment');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      if (node.fencedCodeBlocks.isNotEmpty) {
-        _sink.writelnWithIndent('fencedCodeBlocks');
+      if (node.codeBlocks.isNotEmpty) {
+        _sink.writelnWithIndent('codeBlocks');
         _sink.withIndent(() {
-          for (var fencedCodeBlock in node.fencedCodeBlocks) {
-            _writeMdFencedCodeBlock(fencedCodeBlock);
+          for (var codeBlock in node.codeBlocks) {
+            _writeMdCodeBlock(codeBlock);
           }
         });
       }
@@ -1710,16 +1710,16 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
-  void _writeMdFencedCodeBlock(MdFencedCodeBlock fencedCodeBlock) {
-    _sink.writelnWithIndent('MdFencedCodeBlock');
+  void _writeMdCodeBlock(MdCodeBlock codeBlock) {
+    _sink.writelnWithIndent('MdCodeBlock');
     _sink.withIndent(() {
-      var infoString = fencedCodeBlock.infoString;
+      var infoString = codeBlock.infoString;
       _sink.writelnWithIndent('infoString: ${infoString ?? '<empty>'}');
-      assert(fencedCodeBlock.lines.isNotEmpty);
+      assert(codeBlock.lines.isNotEmpty);
       _sink.writelnWithIndent('lines');
       _sink.withIndent(() {
-        for (var line in fencedCodeBlock.lines) {
-          _sink.writelnWithIndent('MdFencedCodeBlockLine');
+        for (var line in codeBlock.lines) {
+          _sink.writelnWithIndent('MdCodeBlockLine');
           _sink.withIndent(() {
             _sink.writelnWithIndent('offset: ${line.offset}');
             _sink.writelnWithIndent('length: ${line.length}');

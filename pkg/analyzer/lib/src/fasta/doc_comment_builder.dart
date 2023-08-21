@@ -76,7 +76,7 @@ int _findCommentReferenceEnd(String comment, int index, int end) {
 class DocCommentBuilder {
   final Parser parser;
   final List<CommentReferenceImpl> references = [];
-  final List<MdFencedCodeBlock> fencedCodeBlocks = [];
+  final List<MdCodeBlock> codeBlocks = [];
   final Token startToken;
   final _CharacterSequence characterSequence;
 
@@ -100,7 +100,7 @@ class DocCommentBuilder {
       tokens: tokens,
       type: CommentType.DOCUMENTATION,
       references: references,
-      fencedCodeBlocks: fencedCodeBlocks,
+      codeBlocks: codeBlocks,
     );
   }
 
@@ -114,27 +114,22 @@ class DocCommentBuilder {
     var lineInfo = characterSequence.next();
     while (lineInfo != null) {
       var (:offset, :content) = lineInfo;
+      var whitespaceEndIndex = _readWhitespace(content);
+      if (isPreviousLineEmpty && whitespaceEndIndex >= 4) {
+        lineInfo = _parseIndentedCodeBlock(content);
+        if (lineInfo != null) {
+          isPreviousLineEmpty = lineInfo.content.isEmpty;
+        }
+        continue;
+      }
+
       var fencedCodeBlockIndex = _fencedCodeBlockDelimiter(content);
       if (fencedCodeBlockIndex > -1) {
-        _parseFencedCodeBlock(
-          index: fencedCodeBlockIndex,
-          content: content,
-        );
+        _parseFencedCodeBlock(index: fencedCodeBlockIndex, content: content);
       } else {
-        // TODO(srawlins): I don't think the indented block decision should be
-        // different for single-line doc comments vs multi-line. But it might
-        // change behavior so... treading lightly.
-        var isIndentedCodeBlock = characterSequence._isFromSingleLineComment
-            ? isPreviousLineEmpty && content.startsWith('    ')
-            : content.startsWith('    ');
-        if (!isIndentedCodeBlock) {
-          _parseDocCommentLine(offset, content);
-        }
-        // Mark the previous line as being empty if this function is called with
-        // a comment Token derived from a single-line comment Token, and the
-        // line is empty.
-        isPreviousLineEmpty = content.isEmpty;
+        _parseDocCommentLine(offset, content);
       }
+      isPreviousLineEmpty = content.isEmpty;
       lineInfo = characterSequence.next();
     }
   }
@@ -146,15 +141,9 @@ class DocCommentBuilder {
   /// Returns the index of the three backticks.
   int _fencedCodeBlockDelimiter(String content, {int minimumTickCount = 3}) {
     if (content.isEmpty) return -1;
-    var index = 0;
-    var length = content.length;
-    while (isWhitespace(content.codeUnitAt(index))) {
-      index++;
-      if (index >= length) {
-        return -1;
-      }
-    }
+    var index = _readWhitespace(content);
 
+    var length = content.length;
     if (index + 3 > length) {
       return -1;
     }
@@ -224,7 +213,7 @@ class DocCommentBuilder {
   }) {
     var tickCount = 0;
     var length = content.length;
-    while (content.codeUnitAt(index) == '`'.codeUnitAt(0)) {
+    while (content.codeUnitAt(index) == 0x60 /* '`' */) {
       tickCount++;
       index++;
       if (index >= length) {
@@ -237,8 +226,8 @@ class DocCommentBuilder {
       infoString = null;
     }
 
-    var fencedCodeBlockLines = <MdFencedCodeBlockLine>[
-      MdFencedCodeBlockLine(
+    var fencedCodeBlockLines = <MdCodeBlockLine>[
+      MdCodeBlockLine(
         offset: characterSequence._offset,
         length: content.length,
       ),
@@ -249,10 +238,7 @@ class DocCommentBuilder {
       var (:offset, :content) = lineInfo;
 
       fencedCodeBlockLines.add(
-        MdFencedCodeBlockLine(
-          offset: offset,
-          length: content.length,
-        ),
+        MdCodeBlockLine(offset: offset, length: content.length),
       );
 
       var fencedCodeBlockIndex =
@@ -260,11 +246,8 @@ class DocCommentBuilder {
 
       if (fencedCodeBlockIndex > -1) {
         // End the fenced code block.
-        fencedCodeBlocks.add(
-          MdFencedCodeBlock(
-            infoString: infoString,
-            lines: fencedCodeBlockLines,
-          ),
+        codeBlocks.add(
+          MdCodeBlock(infoString: infoString, lines: fencedCodeBlockLines),
         );
         return;
       }
@@ -273,13 +256,43 @@ class DocCommentBuilder {
     }
 
     // Non-terminating fenced code block.
-    fencedCodeBlocks.add(
-      MdFencedCodeBlock(
-        infoString: infoString,
-        lines: fencedCodeBlockLines,
-      ),
+    codeBlocks.add(
+      MdCodeBlock(infoString: infoString, lines: fencedCodeBlockLines),
     );
-    return;
+  }
+
+  ({int offset, String content})? _parseIndentedCodeBlock(String content) {
+    var codeBlockLines = <MdCodeBlockLine>[
+      MdCodeBlockLine(
+        offset: characterSequence._offset,
+        length: content.length,
+      ),
+    ];
+
+    var lineInfo = characterSequence.next();
+    while (lineInfo != null) {
+      var (:offset, :content) = lineInfo;
+      var whitespaceEndIndex = _readWhitespace(content);
+      if (whitespaceEndIndex >= 4) {
+        codeBlockLines.add(
+          MdCodeBlockLine(offset: offset, length: content.length),
+        );
+      } else {
+        // End the code block.
+        codeBlocks.add(
+          MdCodeBlock(infoString: null, lines: codeBlockLines),
+        );
+        return lineInfo;
+      }
+
+      lineInfo = characterSequence.next();
+    }
+
+    // The indented code block ends the comment.
+    codeBlocks.add(
+      MdCodeBlock(infoString: null, lines: codeBlockLines),
+    );
+    return lineInfo;
   }
 
   /// Parses the [source] text, found at [offset] in a single comment reference.
@@ -448,6 +461,21 @@ class DocCommentBuilder {
       );
     }
   }
+
+  /// Reads past any opening whitespace in [content], returning the index after
+  /// the last whitespace character.
+  int _readWhitespace(String content) {
+    if (content.isEmpty) return 0;
+    var index = 0;
+    var length = content.length;
+    while (isWhitespace(content.codeUnitAt(index))) {
+      index++;
+      if (index >= length) {
+        return index;
+      }
+    }
+    return index;
+  }
 }
 
 /// An abstraction of the character sequences in either a single-line doc
@@ -460,12 +488,6 @@ abstract class _CharacterSequence {
         ? _CharacterSequenceFromSingleLineComment(token)
         : _CharacterSequenceFromMultiLineComment(token);
   }
-
-  /// Whether this character sequence is extracted from a single-line doc
-  /// comment.
-  // TODO(srawlins): This should be unnecessary, but the current implementation
-  // requires this knowledge for parsing indented code blocks.
-  bool get _isFromSingleLineComment;
 
   /// The current offset in the compilation unit, which is found in [_token].
   int get _offset;
@@ -489,9 +511,6 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
   int _end = -1;
 
   _CharacterSequenceFromMultiLineComment(this._token);
-
-  @override
-  bool get _isFromSingleLineComment => false;
 
   @override
   ({int offset, String content})? next() {
@@ -529,8 +548,13 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
     }
     _end = tokenOffset + endIndex;
 
+    const starSpaceLength = '* '.length;
+    const starLength = '*'.length;
     if (lexeme.startsWith('* ', _offset - tokenOffset)) {
-      _offset += '* '.length;
+      _offset += starSpaceLength;
+    } else if (_end == _offset + 1 &&
+        lexeme.codeUnitAt(_offset - tokenOffset) == 0x2A /* '*' */) {
+      _offset += starLength;
     }
 
     return (
@@ -547,9 +571,6 @@ class _CharacterSequenceFromSingleLineComment implements _CharacterSequence {
   int _offset = -1;
 
   _CharacterSequenceFromSingleLineComment(this._token);
-
-  @override
-  bool get _isFromSingleLineComment => true;
 
   @override
   ({int offset, String content})? next() {
