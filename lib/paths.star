@@ -66,6 +66,8 @@ _ANALYZER_NNBD_PATHS = _STANDARD_PATHS + [
 _ANALYZER_PATHS = _STANDARD_PATHS + [
     # "analyzer" bots analyze everything under pkg
     "pkg/.+",
+    # "analyzer-analysis-server-linux" bot also analyzes dartfuzz
+    "runtime/tools/dartfuzz/.+",
 ]
 
 _DART2WASM_PATHS = _CFE_PATHS + [
