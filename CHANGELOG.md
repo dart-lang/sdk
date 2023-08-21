@@ -79,6 +79,13 @@
   `globalJSObject` is also renamed to `globalContext` and returns the global
   context used in the lowerings.
 
+### Tools
+
+#### Dart Dev Compiler (DDC)
+
+- Applications compiled by DDC will no longer add members to the native
+  JavaScript Object prototype.
+
 ## 3.1.0
 
 ### Libraries

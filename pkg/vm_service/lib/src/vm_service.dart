@@ -1126,20 +1126,21 @@ abstract class VmServiceInterface {
   /// See [Success].
   Future<Success> registerService(String service, String alias);
 
-  /// The `reloadSources` RPC is used to perform a hot reload of an Isolate's
-  /// sources.
+  /// The `reloadSources` RPC is used to perform a hot reload of the sources of
+  /// all isolates in the same isolate group as the isolate specified by
+  /// `isolateId`.
   ///
-  /// if the `force` parameter is provided, it indicates that all of the
-  /// Isolate's sources should be reloaded regardless of modification time.
+  /// If the `force` parameter is provided, it indicates that all sources should
+  /// be reloaded regardless of modification time.
   ///
-  /// if the `pause` parameter is provided, the isolate will pause immediately
-  /// after the reload.
+  /// The `pause` parameter has been deprecated, so providing it no longer has
+  /// any effect.
   ///
-  /// if the `rootLibUri` parameter is provided, it indicates the new uri to the
-  /// Isolate's root library.
+  /// If the `rootLibUri` parameter is provided, it indicates the new uri to the
+  /// isolate group's root library.
   ///
-  /// if the `packagesUri` parameter is provided, it indicates the new uri to
-  /// the Isolate's package map (.packages) file.
+  /// If the `packagesUri` parameter is provided, it indicates the new uri to
+  /// the isolate group's package map (.packages) file.
   ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.

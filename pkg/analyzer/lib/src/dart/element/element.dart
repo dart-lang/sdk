@@ -2422,15 +2422,13 @@ abstract class ElementImpl implements Element {
 
   @override
   E? thisOrAncestorOfType<E extends Element>() {
-    Element? element = this;
-    while (element != null && element is! E) {
-      if (element is CompilationUnitElement) {
-        element = element.enclosingElement;
-      } else {
-        element = element.enclosingElement;
-      }
+    Element element = this;
+    while (element is! E) {
+      var ancestor = element.enclosingElement;
+      if (ancestor == null) return null;
+      element = ancestor ;
     }
-    return element as E?;
+    return element;
   }
 
   @override
