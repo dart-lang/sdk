@@ -85,6 +85,23 @@
 
 - Applications compiled by DDC will no longer add members to the native
   JavaScript Object prototype.
+- **Breaking change for JS interop with Symbols and BigInts**:
+  JavaScript `Symbol`s and `BigInt`s are now associated with their own
+  interceptor and should not be used with `package:js` classes. These types were
+  being intercepted with the assumption that they are a subtype of JavaScript's
+  `Object`, but this is incorrect. This lead to erroneous behavior when using
+  these types as Dart `Object`s. See [#53106][] for more details.
+
+#### Dart2js
+
+- **Breaking change for JS interop with Symbols and BigInts**:
+  JavaScript `Symbol`s and `BigInt`s are now associated with their own
+  interceptor and should not be used with `package:js` classes. These types were
+  being intercepted with the assumption that they are a subtype of JavaScript's
+  `Object`, but this is incorrect. This lead to erroneous behavior when using
+  these types as Dart `Object`s. See [#53106][] for more details.
+
+[#53106]: https://github.com/dart-lang/sdk/issues/53106
 
 ## 3.1.0
 

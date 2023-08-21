@@ -189,6 +189,9 @@ getReifiedType(obj) {
       case "string":
         return typeRep<String>();
       case "symbol":
+        return typeRep<JavaScriptSymbol>();
+      case "bigint":
+        return typeRep<JavaScriptBigInt>();
       default:
         return typeRep<LegacyJavaScriptObject>();
     }
@@ -219,6 +222,9 @@ getReifiedType(obj) {
       case "string":
         return JS('', '#', String);
       case "symbol":
+        return typeRep<JavaScriptSymbol>();
+      case "bigint":
+        return typeRep<JavaScriptBigInt>();
       default:
         return typeRep<LegacyJavaScriptObject>();
     }
