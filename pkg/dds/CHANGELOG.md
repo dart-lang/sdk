@@ -1,3 +1,6 @@
+# 2.9.5
+- [DAP] The change to use VM Service Isolate numbers for `threadId`s has been reverted because Isolate numbers can be larger than the 32-bit integers allowed in DAP.
+
 # 2.9.4
 - Updated `devtools_shared` to ^2.26.1
 

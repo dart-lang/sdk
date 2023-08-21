@@ -795,7 +795,7 @@ void main() {
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
 
       await client.expectScopeVariables(
-        await client.getTopFrameId(stop.threadId!),
+        stop.threadId!,
         'Locals',
         'foo: <not initialized>',
       );
