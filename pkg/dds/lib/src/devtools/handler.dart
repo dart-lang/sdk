@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:devtools_shared/devtools_extensions.dart';
+import 'package:devtools_shared/devtools_extensions_io.dart';
 import 'package:devtools_shared/devtools_server.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
