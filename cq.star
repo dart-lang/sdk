@@ -60,6 +60,7 @@ def basic_cq(repository):
 
 basic_cq("dart_ci")
 basic_cq("dart-docker")
+basic_cq("flute")
 basic_cq("homebrew-dart")
 basic_cq("recipes")
 
