@@ -287,8 +287,9 @@ FfiCallbackMetadata::Metadata* FfiCallbackMetadata::MetadataOfTrampoline(
 #if defined(DART_TARGET_OS_FUCHSIA)
   // On Fuchsia the metadata page is separate to the trampoline page.
   // TODO(https://dartbug.com/52579): Remove.
-  const uword page_start = Utils::RoundDown(
-      trampoline - offset_of_first_trampoline_in_page_, kPageSize);
+  const uword page_start =
+      Utils::RoundDown(trampoline - offset_of_first_trampoline_in_page_,
+                       VirtualMemory::PageSize());
   const uword index =
       (trampoline - offset_of_first_trampoline_in_page_ - page_start) /
       kNativeCallbackTrampolineSize;
