@@ -22,6 +22,14 @@
 
 - Added `broadcast` parameter to `Stream.empty` constructor.
 
+#### `dart:convert`
+
+- **Breaking change** [#52801][]:
+  - Changed return types of `utf8.encode()` and `Utf8Codec.encode()` from
+    `List<int>` to `Uint8List`.
+
+[#52801]: https://github.com/dart-lang/sdk/issues/52801
+
 #### `dart:developer`
 
 - Deprecated the `Service.getIsolateID` method.
@@ -84,14 +92,6 @@
     not extended or mixed in.
 
 [#52334]: https://github.com/dart-lang/sdk/issues/52334
-
-#### `dart:convert`
-
-- **Breaking change** [#52801][]:
-  - Changed return types of `utf8.encode()` and `Utf8Codec.encode()` from
-    `List<int>` to `Uint8List`.
-
-[#52801]: https://github.com/dart-lang/sdk/issues/52801
 
 #### `dart:core`
 
