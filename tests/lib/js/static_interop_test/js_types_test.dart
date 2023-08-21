@@ -123,6 +123,10 @@ class DartObject {
   String get foo => 'bar';
 }
 
+@pragma('dart2js:never-inline')
+@pragma('dart2js:assumeDynamic')
+confuse(x) => x;
+
 void syncTests() {
   eval('''
     globalThis.obj = {
@@ -138,10 +142,12 @@ void syncTests() {
 
   // [JSObject]
   expect(obj is JSObject, true);
+  expect(confuse(obj) is JSObject, true);
   expect((obj as SimpleObject).foo.toDart, 'bar');
 
   // [JSFunction]
   expect(fun is JSFunction, true);
+  expect(confuse(fun) is JSFunction, true);
 
   // [JSExportedDartFunction] <-> [Function]
   edf = (JSString a, JSString b) {
@@ -159,6 +165,7 @@ void syncTests() {
   // [JSBoxedDartObject] <-> [Object]
   edo = DartObject().toJSBox;
   expect(edo is JSBoxedDartObject, true);
+  expect(confuse(edo) is JSBoxedDartObject, true);
   expect(((edo as JSBoxedDartObject).toDart as DartObject).foo, 'bar');
   // Functions should be boxed without assertInterop.
   final concat = (String a, String b) => a + b;
@@ -171,6 +178,7 @@ void syncTests() {
   // [JSArray] <-> [List<JSAny?>]
   arr = [1.0.toJS, 'foo'.toJS].toJS;
   expect(arr is JSArray, true);
+  expect(confuse(arr) is JSArray, true);
   List<JSAny?> dartArr = arr.toDart;
   expect((dartArr[0] as JSNumber).toDartDouble, 1.0);
   expect((dartArr[1] as JSString).toDart, 'foo');
@@ -178,12 +186,14 @@ void syncTests() {
   // [ArrayBuffer] <-> [ByteBuffer]
   buf = Uint8List.fromList([0, 255, 0, 255]).buffer.toJS;
   expect(buf is JSArrayBuffer, true);
+  expect(confuse(buf) is JSArrayBuffer, true);
   ByteBuffer dartBuf = buf.toDart;
   expect(dartBuf.asUint8List(), equals([0, 255, 0, 255]));
 
   // [DataView] <-> [ByteData]
   dat = Uint8List.fromList([0, 255, 0, 255]).buffer.asByteData().toJS;
   expect(dat is JSDataView, true);
+  expect(confuse(dat) is JSDataView, true);
   ByteData dartDat = dat.toDart;
   expect(dartDat.getUint8(0), 0);
   expect(dartDat.getUint8(1), 255);
@@ -192,48 +202,56 @@ void syncTests() {
   // Int8
   ai8 = Int8List.fromList([-128, 0, 127]).toJS;
   expect(ai8 is JSInt8Array, true);
+  expect(confuse(ai8) is JSInt8Array, true);
   Int8List dartAi8 = ai8.toDart;
   expect(dartAi8, equals([-128, 0, 127]));
 
   // Uint8
   au8 = Uint8List.fromList([-1, 0, 255, 256]).toJS;
   expect(au8 is JSUint8Array, true);
+  expect(confuse(au8) is JSUint8Array, true);
   Uint8List dartAu8 = au8.toDart;
   expect(dartAu8, equals([255, 0, 255, 0]));
 
   // Uint8Clamped
   ac8 = Uint8ClampedList.fromList([-1, 0, 255, 256]).toJS;
   expect(ac8 is JSUint8ClampedArray, true);
+  expect(confuse(ac8) is JSUint8ClampedArray, true);
   Uint8ClampedList dartAc8 = ac8.toDart;
   expect(dartAc8, equals([0, 0, 255, 255]));
 
   // Int16
   ai16 = Int16List.fromList([-32769, -32768, 0, 32767, 32768]).toJS;
   expect(ai16 is JSInt16Array, true);
+  expect(confuse(ai16) is JSInt16Array, true);
   Int16List dartAi16 = ai16.toDart;
   expect(dartAi16, equals([32767, -32768, 0, 32767, -32768]));
 
   // Uint16
   au16 = Uint16List.fromList([-1, 0, 65535, 65536]).toJS;
   expect(au16 is JSUint16Array, true);
+  expect(confuse(au16) is JSUint16Array, true);
   Uint16List dartAu16 = au16.toDart;
   expect(dartAu16, equals([65535, 0, 65535, 0]));
 
   // Int32
   ai32 = Int32List.fromList([-2147483648, 0, 2147483647]).toJS;
   expect(ai32 is JSInt32Array, true);
+  expect(confuse(ai32) is JSInt32Array, true);
   Int32List dartAi32 = ai32.toDart;
   expect(dartAi32, equals([-2147483648, 0, 2147483647]));
 
   // Uint32
   au32 = Uint32List.fromList([-1, 0, 4294967295, 4294967296]).toJS;
   expect(au32 is JSUint32Array, true);
+  expect(confuse(au32) is JSUint32Array, true);
   Uint32List dartAu32 = au32.toDart;
   expect(dartAu32, equals([4294967295, 0, 4294967295, 0]));
 
   // Float32
   af32 = Float32List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]).toJS;
   expect(af32 is JSFloat32Array, true);
+  expect(confuse(af32) is JSFloat32Array, true);
   Float32List dartAf32 = af32.toDart;
   expect(dartAf32,
       equals(Float32List.fromList([-1000.488, -0.00001, 0.0001, 10004.888])));
@@ -241,35 +259,41 @@ void syncTests() {
   // Float64
   af64 = Float64List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]).toJS;
   expect(af64 is JSFloat64Array, true);
+  expect(confuse(af64) is JSFloat64Array, true);
   Float64List dartAf64 = af64.toDart;
   expect(dartAf64, equals([-1000.488, -0.00001, 0.0001, 10004.888]));
 
   // [JSNumber] <-> [double]
   nbr = 4.5.toJS;
   expect(nbr is JSNumber, true);
+  expect(confuse(nbr) is JSNumber, true);
   double dartNbr = nbr.toDartDouble;
   expect(dartNbr, 4.5);
 
   // [JSBoolean] <-> [bool]
   boo = true.toJS;
   expect(boo is JSBoolean, true);
+  expect(confuse(boo) is JSBoolean, true);
   bool dartBoo = boo.toDart;
   expect(dartBoo, true);
 
   // [JSString] <-> [String]
   str = 'foo'.toJS;
   expect(str is JSString, true);
+  expect(confuse(str) is JSString, true);
   String dartStr = str.toDart;
   expect(dartStr, 'foo');
 
   // [JSSymbol]
   symbol = createSymbol('foo');
   expect(symbol is JSSymbol, true);
+  expect(confuse(symbol) is JSSymbol, true);
   expect(symbol.toStringExternal(), 'Symbol(foo)');
 
   // [JSBigInt]
   bigInt = createBigInt('9876543210000000000000123456789');
   expect(bigInt is JSBigInt, true);
+  expect(confuse(bigInt) is JSBigInt, true);
   expect(bigInt.toStringExternal(), '9876543210000000000000123456789');
 
   // null and undefined can flow into `JSAny?`.
