@@ -1441,19 +1441,20 @@ ReloadReport|Sentinel reloadSources(string isolateId,
                                     string packagesUri [optional])
 ```
 
-The _reloadSources_ RPC is used to perform a hot reload of an Isolate's sources.
+The _reloadSources_ RPC is used to perform a hot reload of the sources of all
+isolates in the same isolate group as the isolate specified by `isolateId`.
 
-if the _force_ parameter is provided, it indicates that all of the Isolate's
-sources should be reloaded regardless of modification time.
+If the _force_ parameter is provided, it indicates that all sources should be
+reloaded regardless of modification time.
 
-if the _pause_ parameter is provided, the isolate will pause immediately
-after the reload.
+The _pause_ parameter has been deprecated, so providing it no longer has any
+effect.
 
-if the _rootLibUri_ parameter is provided, it indicates the new uri to the
-Isolate's root library.
+If the _rootLibUri_ parameter is provided, it indicates the new uri to the
+isolate group's root library.
 
-if the _packagesUri_ parameter is provided, it indicates the new uri to the
-Isolate's package map (.packages) file.
+If the _packagesUri_ parameter is provided, it indicates the new uri to the
+isolate group's package map (.packages) file.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
