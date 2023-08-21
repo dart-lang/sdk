@@ -758,7 +758,9 @@ class BulkFixProcessor {
     // FixProcessor.
     if (errorCode == WarningCode.DUPLICATE_IMPORT ||
         errorCode == HintCode.UNNECESSARY_IMPORT ||
-        errorCode == WarningCode.UNUSED_IMPORT) {
+        errorCode == WarningCode.UNUSED_IMPORT ||
+        (errorCode is LintCode &&
+            errorCode.name == LintNames.directives_ordering)) {
       return true;
     }
 
