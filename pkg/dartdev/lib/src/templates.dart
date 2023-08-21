@@ -8,6 +8,7 @@ import 'package:collection/collection.dart' show IterableExtension;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
+import 'templates/cli.dart';
 import 'templates/console.dart';
 import 'templates/console_simple.dart';
 import 'templates/package.dart';
@@ -18,6 +19,7 @@ final _substituteRegExp = RegExp(r'__([a-zA-Z]+)__');
 final _nonValidSubstituteRegExp = RegExp(r'[^a-zA-Z]');
 
 final List<Generator> generators = [
+  CliGenerator(),
   ConsoleGenerator(),
   PackageGenerator(),
   ServerShelfGenerator(),
