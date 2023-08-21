@@ -136,6 +136,12 @@ typedef JSBoolean = js_types.JSBoolean;
 /// The type of JS strings, [JSString] <: [JSAny].
 typedef JSString = js_types.JSString;
 
+/// The type of JS Symbols, [JSSymbol] <: [JSAny].
+typedef JSSymbol = js_types.JSSymbol;
+
+/// The type of JS BigInts, [JSBigInt] <: [JSAny].
+typedef JSBigInt = js_types.JSBigInt;
+
 /// A getter to retrieve the global context that is used in static interop
 /// lowering.
 external JSObject get globalContext;

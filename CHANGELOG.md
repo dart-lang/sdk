@@ -90,7 +90,9 @@
   interceptor and should not be used with `package:js` classes. These types were
   being intercepted with the assumption that they are a subtype of JavaScript's
   `Object`, but this is incorrect. This lead to erroneous behavior when using
-  these types as Dart `Object`s. See [#53106][] for more details.
+  these types as Dart `Object`s. See [#53106][] for more details. Use
+  `dart:js_interop`'s `JSSymbol` and `JSBigInt` with extension types to interop
+  with these types.
 
 #### Dart2js
 
@@ -99,7 +101,9 @@
   interceptor and should not be used with `package:js` classes. These types were
   being intercepted with the assumption that they are a subtype of JavaScript's
   `Object`, but this is incorrect. This lead to erroneous behavior when using
-  these types as Dart `Object`s. See [#53106][] for more details.
+  these types as Dart `Object`s. See [#53106][] for more details. Use
+  `dart:js_interop`'s `JSSymbol` and `JSBigInt` with extension types to interop
+  with these types.
 
 [#53106]: https://github.com/dart-lang/sdk/issues/53106
 

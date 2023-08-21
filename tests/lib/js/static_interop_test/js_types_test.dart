@@ -89,6 +89,28 @@ external JSBoolean boo;
 external JSString str;
 
 @JS()
+external JSSymbol symbol;
+
+@JS('Symbol')
+external JSSymbol createSymbol(String value);
+
+extension on JSSymbol {
+  @JS('toString')
+  external String toStringExternal();
+}
+
+@JS()
+external JSBigInt bigInt;
+
+@JS('BigInt')
+external JSBigInt createBigInt(String value);
+
+extension on JSBigInt {
+  @JS('toString')
+  external String toStringExternal();
+}
+
+@JS()
 external JSAny? nullAny;
 
 @JS()
@@ -239,6 +261,16 @@ void syncTests() {
   expect(str is JSString, true);
   String dartStr = str.toDart;
   expect(dartStr, 'foo');
+
+  // [JSSymbol]
+  symbol = createSymbol('foo');
+  expect(symbol is JSSymbol, true);
+  expect(symbol.toStringExternal(), 'Symbol(foo)');
+
+  // [JSBigInt]
+  bigInt = createBigInt('9876543210000000000000123456789');
+  expect(bigInt is JSBigInt, true);
+  expect(bigInt.toStringExternal(), '9876543210000000000000123456789');
 
   // null and undefined can flow into `JSAny?`.
   // TODO(joshualitt): Fix tests when `JSNull` and `JSUndefined` are no longer
