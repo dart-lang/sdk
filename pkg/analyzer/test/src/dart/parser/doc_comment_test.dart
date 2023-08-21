@@ -377,29 +377,29 @@ Comment
  * ```
  * Three.
  */
-  fencedCodeBlocks
-    MdFencedCodeBlock
+  codeBlocks
+    MdCodeBlock
       infoString: <empty>
       lines
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 15
           length: 3
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 22
           length: 12
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 38
           length: 3
-    MdFencedCodeBlock
+    MdCodeBlock
       infoString: dart
       lines
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 53
           length: 7
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 64
           length: 5
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 73
           length: 3
 ''');
@@ -421,14 +421,14 @@ Comment
     /// ```
     /// ```
     /// Text.
-  fencedCodeBlocks
-    MdFencedCodeBlock
+  codeBlocks
+    MdCodeBlock
       infoString: <empty>
       lines
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 3
           length: 4
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 11
           length: 4
 ''');
@@ -450,17 +450,17 @@ Comment
     ///   ```
     ///   a[i] = b[i];
     ///   ```
-  fencedCodeBlocks
-    MdFencedCodeBlock
+  codeBlocks
+    MdCodeBlock
       infoString: <empty>
       lines
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 3
           length: 6
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 13
           length: 15
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 32
           length: 6
 ''');
@@ -486,23 +486,23 @@ Comment
     /// the amount in the opening:
     /// ```
     /// `````
-  fencedCodeBlocks
-    MdFencedCodeBlock
+  codeBlocks
+    MdCodeBlock
       infoString: dart
       lines
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 3
           length: 9
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 16
           length: 73
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 93
           length: 27
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 124
           length: 4
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 132
           length: 6
 ''');
@@ -524,17 +524,17 @@ Comment
     ///```
     ///a[i] = b[i];
     ///```
-  fencedCodeBlocks
-    MdFencedCodeBlock
+  codeBlocks
+    MdCodeBlock
       infoString: <empty>
       lines
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 3
           length: 3
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 10
           length: 12
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 26
           length: 3
 ''');
@@ -562,17 +562,17 @@ Comment
     /// a[i] = b[i];
     /// ```
     /// Two.
-  fencedCodeBlocks
-    MdFencedCodeBlock
+  codeBlocks
+    MdCodeBlock
       infoString: <empty>
       lines
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 12
           length: 4
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 60
           length: 13
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 78
           length: 4
 ''');
@@ -594,14 +594,14 @@ Comment
     /// One.
     /// ```
     /// a[i] = b[i];
-  fencedCodeBlocks
-    MdFencedCodeBlock
+  codeBlocks
+    MdCodeBlock
       infoString: <empty>
       lines
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 12
           length: 4
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 20
           length: 13
 ''');
@@ -629,17 +629,17 @@ Comment
     /// a[i] = b[i];
     /// ```
     /// Two.
-  fencedCodeBlocks
-    MdFencedCodeBlock
+  codeBlocks
+    MdCodeBlock
       infoString: <empty>
       lines
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 24
           length: 4
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 32
           length: 13
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 49
           length: 4
 ''');
@@ -663,14 +663,14 @@ Comment
     /// Two.
     /// ```
     /// Three.
-  fencedCodeBlocks
-    MdFencedCodeBlock
+  codeBlocks
+    MdCodeBlock
       infoString: <empty>
       lines
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 25
           length: 4
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 33
           length: 7
 ''');
@@ -704,29 +704,29 @@ Comment
     /// code;
     /// ```
     /// Three.
-  fencedCodeBlocks
-    MdFencedCodeBlock
+  codeBlocks
+    MdCodeBlock
       infoString: <empty>
       lines
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 12
           length: 4
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 20
           length: 13
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 37
           length: 4
-    MdFencedCodeBlock
+    MdCodeBlock
       infoString: dart
       lines
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 54
           length: 8
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 66
           length: 6
-        MdFencedCodeBlockLine
+        MdCodeBlockLine
           offset: 76
           length: 4
 ''');
@@ -748,6 +748,13 @@ Comment
     /// Text.
     ///
     ///    a[i] = b[i];
+  codeBlocks
+    MdCodeBlock
+      infoString: <empty>
+      lines
+        MdCodeBlockLine
+          offset: 17
+          length: 16
 ''');
   }
 
@@ -789,12 +796,20 @@ class A {}
 Comment
   tokens
     ///    a[i] = b[i];
+  codeBlocks
+    MdCodeBlock
+      infoString: <empty>
+      lines
+        MdCodeBlockLine
+          offset: 3
+          length: 16
 ''');
   }
 
   test_indentedCodeBlock_firstLine_blockComment() {
     final parseResult = parseStringWithErrors(r'''
 /**
+ *
  *     a[i] = b[i];
  * [c].
  */
@@ -812,9 +827,53 @@ Comment
         token: c
   tokens
     /**
+ *
  *     a[i] = b[i];
  * [c].
  */
+  codeBlocks
+    MdCodeBlock
+      infoString: <empty>
+      lines
+        MdCodeBlockLine
+          offset: 10
+          length: 16
+''');
+  }
+
+  test_indentedCodeBlock_withFencedCodeBlock() {
+    final parseResult = parseStringWithErrors(r'''
+/// Text.
+///     ```
+///     a[i] = b[i];
+///     ```
+///     More text.
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('Text');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    ///     ```
+    ///     a[i] = b[i];
+    ///     ```
+    ///     More text.
+  codeBlocks
+    MdCodeBlock
+      infoString: <empty>
+      lines
+        MdCodeBlockLine
+          offset: 13
+          length: 8
+        MdCodeBlockLine
+          offset: 25
+          length: 17
+        MdCodeBlockLine
+          offset: 46
+          length: 8
 ''');
   }
 
@@ -855,6 +914,21 @@ Comment
         token: b
   tokens
     /// [a]: http://www.google.com Google [b]
+''');
+  }
+
+  test_onlyWhitespace() {
+    final parseResult = parseStringWithErrors('''
+///${"  "}
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('  ');
+    assertParsedNodeText(node, '''
+Comment
+  tokens
+    ///${"  "}
 ''');
   }
 
