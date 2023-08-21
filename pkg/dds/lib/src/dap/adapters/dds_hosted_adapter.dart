@@ -100,6 +100,28 @@ class DdsHostedAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     unawaited(connectDebugger(ddsUri!));
   }
 
+  /// Handles a request from the client for the list of threads.
+  ///
+  /// Unlike the base implementation, the DDS version includes additional fields
+  /// in the response for `isolateId`.
+  @override
+  Future<void> threadsRequest(
+    Request request,
+    void args,
+    void Function(ThreadsResponseBody) sendResponse,
+  ) async {
+    final threads = [
+      for (final thread in isolateManager.threads)
+        ThreadWithIsolateId(
+          id: thread.threadId,
+          name: thread.isolate.name ?? '<unnamed isolate>',
+          isolateId:
+              thread.isolate.id ?? '<unknown isolate ${thread.threadId}>',
+        )
+    ];
+    sendResponse(ThreadsResponseBody(threads: threads));
+  }
+
   /// Handles custom requests that are specific to the DDS-hosted adapter, such
   /// as translating between VM IDs and DAP IDs.
   @override
@@ -227,4 +249,23 @@ class DdsHostedAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   void setEventHandler(void Function(Event) eventHandler) {
     _dapEventsController.stream.listen(eventHandler);
   }
+}
+
+/// Extends [Thread] with [isolateId] for easier mapping for clients using both
+/// DAP and VM Service.
+class ThreadWithIsolateId extends Thread {
+  /// The ID of the Isolate this thread represents.
+  final String isolateId;
+
+  ThreadWithIsolateId({
+    required super.id,
+    required super.name,
+    required this.isolateId,
+  });
+
+  @override
+  Map<String, Object?> toJson() => {
+        ...super.toJson(),
+        'isolateId': isolateId,
+      };
 }
