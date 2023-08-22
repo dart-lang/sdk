@@ -44,6 +44,10 @@
 
 [#53005]: https://dartbug.com/53005
 
+#### `dart:isolate`
+
+- Added `Isolate.packageConfigSync` and `Isolate.resolvePackageUriSync` APIs.
+
 #### `dart:js_interop`
 
 - **JSNumber.toDart and Object.toJS**:
@@ -143,10 +147,6 @@
 
 [#51486]: https://github.com/dart-lang/sdk/issues/51486
 [#52027]: https://github.com/dart-lang/sdk/issues/52027
-
-#### `dart:isolate`
-
-- Added `Isolate.packageConfigSync` and `Isolate.resolvePackageUriSync` APIs.
 
 #### `dart:js_interop`
 
