@@ -342,7 +342,7 @@ final class Isolate {
   /// The package configuration file is usually named `package_config.json`,
   /// and you can use [`package:package_config`](https://pub.dev/documentation/package_config/latest/)
   /// to read and parse it.
-  @Since('3.1')
+  @Since('3.2')
   external static Uri? get packageConfigSync;
 
   /// Resolves a `package:` URI to its actual location.
@@ -393,7 +393,7 @@ final class Isolate {
   /// A program may be run in a way where source files are not available,
   /// and if so, the returned URI may not correspond to the actual file or
   /// directory or be `null`.
-  @Since('3.1')
+  @Since('3.2')
   external static Uri? resolvePackageUriSync(Uri packageUri);
 
   /// Creates and spawns an isolate that shares the same code as the current

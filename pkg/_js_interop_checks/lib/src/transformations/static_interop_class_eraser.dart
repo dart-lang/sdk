@@ -101,6 +101,14 @@ InterfaceType eraseStaticInteropTypesForJSCompilers(
         erasedClass =
             coreTypes.index.getClass('dart:_interceptors', 'JSObject');
         break;
+      case 'JSSymbol':
+        erasedClass =
+            coreTypes.index.getClass('dart:_interceptors', 'JavaScriptSymbol');
+        break;
+      case 'JSBigInt':
+        erasedClass =
+            coreTypes.index.getClass('dart:_interceptors', 'JavaScriptBigInt');
+        break;
       default:
         throw 'Unimplemented `dart:_js_types`: $className';
     }

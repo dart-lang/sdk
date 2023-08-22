@@ -14,31 +14,9 @@ inline_class/extension_types/representation_type: SemiFuzzCrash # https://github
 dart2js/issue51823: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
 macros/library_members_import: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
 
-# SEMI-BAD ONES:
-offsets/step_through_patterns: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-patterns/exhaustiveness/issue2878_example1: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-patterns/exhaustiveness/issue2878_example2: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-patterns/exhaustiveness/issue2878_example3: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-patterns/exhaustiveness/issue2878_example4: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-patterns/issue51489: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-patterns/issue52191: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-patterns/map_lookup: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-patterns/negative_length: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-patterns/pattern_inForInitializer_element: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-patterns/simple_c_style_pattern_for_in_collections: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-patterns/simple_if_case_in_lists: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-patterns/simple_if_case_map_entries: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-patterns/switchExpression_onePattern_noTrailingComma: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-patterns/switchExpression_onePattern_trailingComma: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-patterns/switchExpression_twoPatterns: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-records/block_combine_statements: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-records/for_in_without_variable: SemiFuzzFailure # textualOutline returns null on split with pattern stuff - https://github.com/dart-lang/sdk/issues/53116.
-
 # INCREMENTAL COMPILATION ERRORS
 dart2js/inline_class/external: SemiFuzzFailure # @methods::B| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
-dart2js/inline_class/issue51285: SemiFuzzFailure # @methods::I| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 dartdevc/inline_class/external: SemiFuzzFailure # @methods::B| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
-dartdevc/inline_class/issue51285: SemiFuzzFailure # @methods::I| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/annotations: SemiFuzzFailure # @methods::A| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/constructor_formal_parameters: SemiFuzzFailure # @methods::I| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/external: SemiFuzzFailure # @methods::A| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.

@@ -44,6 +44,10 @@
 
 [#53005]: https://dartbug.com/53005
 
+#### `dart:isolate`
+
+- Added `Isolate.packageConfigSync` and `Isolate.resolvePackageUriSync` APIs.
+
 #### `dart:js_interop`
 
 - **JSNumber.toDart and Object.toJS**:
@@ -85,6 +89,27 @@
 
 - Applications compiled by DDC will no longer add members to the native
   JavaScript Object prototype.
+- **Breaking change for JS interop with Symbols and BigInts**:
+  JavaScript `Symbol`s and `BigInt`s are now associated with their own
+  interceptor and should not be used with `package:js` classes. These types were
+  being intercepted with the assumption that they are a subtype of JavaScript's
+  `Object`, but this is incorrect. This lead to erroneous behavior when using
+  these types as Dart `Object`s. See [#53106][] for more details. Use
+  `dart:js_interop`'s `JSSymbol` and `JSBigInt` with extension types to interop
+  with these types.
+
+#### Dart2js
+
+- **Breaking change for JS interop with Symbols and BigInts**:
+  JavaScript `Symbol`s and `BigInt`s are now associated with their own
+  interceptor and should not be used with `package:js` classes. These types were
+  being intercepted with the assumption that they are a subtype of JavaScript's
+  `Object`, but this is incorrect. This lead to erroneous behavior when using
+  these types as Dart `Object`s. See [#53106][] for more details. Use
+  `dart:js_interop`'s `JSSymbol` and `JSBigInt` with extension types to interop
+  with these types.
+
+[#53106]: https://github.com/dart-lang/sdk/issues/53106
 
 ## 3.1.0
 
@@ -122,10 +147,6 @@
 
 [#51486]: https://github.com/dart-lang/sdk/issues/51486
 [#52027]: https://github.com/dart-lang/sdk/issues/52027
-
-#### `dart:isolate`
-
-- Added `Isolate.packageConfigSync` and `Isolate.resolvePackageUriSync` APIs.
 
 #### `dart:js_interop`
 
