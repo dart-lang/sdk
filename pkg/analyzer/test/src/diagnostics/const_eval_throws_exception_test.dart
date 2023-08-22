@@ -12,7 +12,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstConstructorFieldTypeMismatchContextTest);
-    defineReflectiveTests(ConstConstructorParamTypeMismatchContextTest);
     defineReflectiveTests(ConstEvalThrowsExceptionTest);
     defineReflectiveTests(ConstEvalThrowsExceptionWithoutNullSafetyTest);
   });
@@ -38,7 +37,7 @@ var v = const C<String>();
           70,
           17,
           contextMessages: [
-            ExpectedContextMessage(testFile.path, 70, 17,
+            ExpectedContextMessage(testFile.path, 27, 1,
                 text:
                     "The exception is 'In a const constructor, a value of type 'int' can't be assigned to the field 'x', which has type 'String'.' and occurs here."),
           ],
@@ -114,28 +113,96 @@ const a = const C(null);
 }
 
 @reflectiveTest
-class ConstConstructorParamTypeMismatchContextTest
-    extends PubPackageResolutionTest {
-  test_assignable_fieldFormal_typedef() async {
-    // foo has the type dynamic -> dynamic, so it is not assignable to A.f.
-    await assertErrorsInCode(r'''
-typedef String Int2String(int x);
-class A {
-  final Int2String f;
-  const A(this.f);
+class ConstEvalThrowsExceptionTest extends PubPackageResolutionTest
+    with ConstEvalThrowsExceptionTestCases {
+  test_asExpression_typeParameter() async {
+    await assertErrorsInCode('''
+class C<T> {
+  final t;
+  const C(dynamic x) : t = x as T;
 }
-foo(x) => 1;
-var v = const A(foo);
+
+main() {
+  const C<int>(0);
+  const C<int>('foo');
+  const C<int>(null);
+}
 ''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 116, 3),
       error(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        108,
-        12,
+        92,
+        19,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 116, 3,
+          ExpectedContextMessage(testFile.path, 51, 6,
               text:
-                  "The exception is 'A value of type 'dynamic Function(dynamic)' can't be assigned to a parameter of type 'String Function(int)' in a const constructor.' and occurs here."),
+                  "The error is in the field initializer of 'C', and occurs here."),
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        115,
+        18,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 51, 6,
+              text:
+                  "The error is in the field initializer of 'C', and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
+  test_asExpression_typeParameter_nested() async {
+    await assertErrorsInCode('''
+class C<T> {
+  final t;
+  const C(dynamic x) : t = x as List<T>;
+}
+
+main() {
+  const C<int>(<int>[]);
+  const C<int>(<num>[]);
+  const C<int>(null);
+}
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        104,
+        21,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 51, 12,
+              text:
+                  "The error is in the field initializer of 'C', and occurs here."),
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        129,
+        18,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 51, 12,
+              text:
+                  "The error is in the field initializer of 'C', and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
+  test_enum_constructor_initializer_asExpression() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v();
+  final int x;
+  const E({int? x}) : x = x as int;
+}
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        11,
+        3,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 57, 8,
+              text:
+                  "The error is in the field initializer of 'E', and occurs here."),
         ],
       ),
     ]);
@@ -182,318 +249,6 @@ enum E {
                   "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.' and occurs here."),
         ],
       ),
-    ]);
-  }
-
-  test_notAssignable_fieldFormal_optional() async {
-    await assertErrorsInCode(r'''
-class A {
-  final int x;
-  const A([this.x = 'foo']);
-}
-var v = const A();
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 45, 5),
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        64,
-        9,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 64, 9,
-              text:
-                  "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.' and occurs here."),
-        ],
-      ),
-    ]);
-  }
-
-  test_notAssignable_fieldFormal_supertype() async {
-    await assertErrorsInCode(r'''
-class A {
-  const A();
-}
-class B extends A {
-  const B();
-}
-class C {
-  final B b;
-  const C(this.b);
-}
-const A u = const A();
-var v = const C(u);
-''', [
-      // TODO(srawlins): It would be best to report only the first one.
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        135,
-        10,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 143, 1,
-              text:
-                  "The exception is 'A value of type 'A' can't be assigned to a parameter of type 'B' in a const constructor.' and occurs here."),
-        ],
-      ),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 143, 1),
-    ]);
-  }
-
-  test_notAssignable_fieldFormal_typedef() async {
-    // foo has type String -> int, so it is not assignable to A.f
-    // (A.f requires it to be int -> String).
-    await assertErrorsInCode(r'''
-typedef String Int2String(int x);
-class A {
-  final Int2String f;
-  const A(this.f);
-}
-int foo(String x) => 1;
-var v = const A(foo);
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 127, 3),
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        119,
-        12,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 127, 3,
-              text:
-                  "The exception is 'A value of type 'int Function(String)' can't be assigned to a parameter of type 'String Function(int)' in a const constructor.' and occurs here."),
-        ],
-      ),
-    ]);
-  }
-
-  test_notAssignable_fieldFormal_unrelated() async {
-    await assertErrorsInCode(r'''
-class A {
-  final int x;
-  const A(this.x);
-}
-var v = const A('foo');
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        54,
-        14,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 62, 5,
-              text:
-                  "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.' and occurs here."),
-        ],
-      ),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 62, 5),
-    ]);
-  }
-
-  test_notAssignable_typeSubstitution() async {
-    await assertErrorsInCode(r'''
-class A<T> {
-  const A(T x);
-}
-var v = const A<int>('foo');
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 52, 5),
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        39,
-        19,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 52, 5,
-              text:
-                  "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.' and occurs here."),
-        ],
-      ),
-    ]);
-  }
-
-  test_notAssignable_unrelated() async {
-    await assertErrorsInCode(r'''
-class A {
-  const A(int x);
-}
-var v = const A('foo');
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        38,
-        14,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 46, 5,
-              text:
-                  "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.' and occurs here."),
-        ],
-      ),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 46, 5),
-    ]);
-  }
-}
-
-@reflectiveTest
-class ConstEvalThrowsExceptionTest extends PubPackageResolutionTest
-    with ConstEvalThrowsExceptionTestCases {
-  test_asExpression_typeParameter() async {
-    await assertErrorsInCode('''
-class C<T> {
-  final t;
-  const C(dynamic x) : t = x as T;
-}
-
-main() {
-  const C<int>(0);
-  const C<int>('foo');
-  const C<int>(null);
-}
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        92,
-        19,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 51, 6,
-              text:
-                  "The exception is 'Evaluation of this constant expression throws an exception.' and occurs here."),
-        ],
-      ),
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        115,
-        18,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 51, 6,
-              text:
-                  "The exception is 'Evaluation of this constant expression throws an exception.' and occurs here."),
-        ],
-      ),
-    ]);
-  }
-
-  test_asExpression_typeParameter_nested() async {
-    await assertErrorsInCode('''
-class C<T> {
-  final t;
-  const C(dynamic x) : t = x as List<T>;
-}
-
-main() {
-  const C<int>(<int>[]);
-  const C<int>(<num>[]);
-  const C<int>(null);
-}
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        104,
-        21,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 51, 12,
-              text:
-                  "The exception is 'Evaluation of this constant expression throws an exception.' and occurs here."),
-        ],
-      ),
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        129,
-        18,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 51, 12,
-              text:
-                  "The exception is 'Evaluation of this constant expression throws an exception.' and occurs here."),
-        ],
-      ),
-    ]);
-  }
-
-  test_enum_constructor_initializer_asExpression() async {
-    await assertErrorsInCode(r'''
-enum E {
-  v();
-  final int x;
-  const E({int? x}) : x = x as int;
-}
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        11,
-        3,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 57, 8,
-              text:
-                  "The exception is 'Evaluation of this constant expression throws an exception.' and occurs here."),
-        ],
-      ),
-    ]);
-  }
-
-  test_invalid_constructorFieldInitializer_fromSeparateLibrary() async {
-    newFile('$testPackageLibPath/lib.dart', r'''
-class A<T> {
-  final int f;
-  const A() : f = T.foo;
-}
-''');
-    await assertErrorsInCode(r'''
-import 'lib.dart';
-const a = const A();
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        29,
-        9,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 46, 5,
-              text:
-                  "The exception is 'Invalid constant value.' and occurs here."),
-        ],
-      ),
-    ]);
-  }
-
-  test_property_length_invalidTarget() async {
-    await assertErrorsInCode('''
-void main() {
-  const RequiresNonEmptyList([1]);
-}
-
-class RequiresNonEmptyList {
-  const RequiresNonEmptyList(List<int> numbers) : assert(numbers.length > 0);
-}
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        16,
-        31,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 138, 14,
-              text:
-                  "The exception is 'The property 'length' can't be accessed on the type 'List<int>' in a constant expression.' and occurs here."),
-        ],
-      ),
-    ]);
-  }
-
-  test_property_length_unresolvedType() async {
-    await assertErrorsInCode('''
-class B {
-  final l;
-  const B(String o) : l = o.length;
-}
-
-const y = B(x);
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        70,
-        4,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 47, 8,
-              text:
-                  "The exception is 'In constant expressions, operands of this operator must be of type 'String'.' and occurs here."),
-        ],
-      ),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1),
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 72, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 72,
-          1),
     ]);
   }
 
@@ -703,16 +458,7 @@ var x = const C();
           CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
           39,
           1),
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        56,
-        9,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 43, 1,
-              text:
-                  "The exception is 'Evaluation of this constant expression throws an exception.' and occurs here."),
-        ],
-      ),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 56, 9),
     ]);
   }
 
@@ -733,16 +479,7 @@ var x = const C(2);
           CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
           40,
           1),
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        54,
-        10,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 54, 10,
-              text:
-                  "The exception is 'Evaluation of this constant expression throws an exception.' and occurs here."),
-        ],
-      ),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 54, 10),
     ]);
   }
 
@@ -764,27 +501,9 @@ main() {
 var b1 = const bool.fromEnvironment(1);
 var b2 = const bool.fromEnvironment('x', defaultValue: 1);
 ''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        9,
-        29,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 9, 29,
-              text:
-                  "The exception is 'Evaluation of this constant expression throws an exception.' and occurs here."),
-        ],
-      ),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 29),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        49,
-        48,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 49, 48,
-              text:
-                  "The exception is 'Evaluation of this constant expression throws an exception.' and occurs here."),
-        ],
-      ),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 49, 48),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 95, 1),
     ]);
   }
@@ -796,16 +515,7 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);
     await assertErrorsInCode('''
 var b = const bool.fromEnvironment('x', defaultValue: 1);
 ''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        8,
-        48,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 8, 48,
-              text:
-                  "The exception is 'Evaluation of this constant expression throws an exception.' and occurs here."),
-        ],
-      ),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 48),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 54, 1),
     ]);
   }
@@ -828,32 +538,14 @@ const c = [if (0 < 1) 3 else nil + 1];
     await assertErrorsInCode(r'''
 var s2 = const Symbol(3);
 ''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        9,
-        15,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 9, 15,
-              text:
-                  "The exception is 'Evaluation of this constant expression throws an exception.' and occurs here."),
-        ],
-      ),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 15),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 22, 1),
     ]);
   }
 
   test_symbolConstructor_string_digit() async {
     var expectedErrors = expectedErrorsByNullability(nullable: [], legacy: [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        8,
-        17,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 8, 17,
-              text:
-                  "The exception is 'Evaluation of this constant expression throws an exception.' and occurs here."),
-        ],
-      ),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 17),
     ]);
     await assertErrorsInCode(r'''
 var s = const Symbol('3');
@@ -862,16 +554,7 @@ var s = const Symbol('3');
 
   test_symbolConstructor_string_underscore() async {
     var expectedErrors = expectedErrorsByNullability(nullable: [], legacy: [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        8,
-        17,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 8, 17,
-              text:
-                  "The exception is 'Evaluation of this constant expression throws an exception.' and occurs here."),
-        ],
-      ),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 17),
     ]);
     await assertErrorsInCode(r'''
 var s = const Symbol('_');

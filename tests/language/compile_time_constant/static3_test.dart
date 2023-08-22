@@ -27,27 +27,25 @@ class A {
 
 var a1 = const A.a1();
 //       ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH
 var a2 = const A.a2('foo');
-//       ^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
 //                  ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
 // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
 var a3 = const A.a3();
 //       ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
 var a4 = const A.a4('foo');
-//       ^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+//                  ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
 var a5 = const A.a5('foo');
 //       ^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH
 var a6 = const A.a6('foo');
-//       ^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
 //                  ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
 // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
 
 main() {

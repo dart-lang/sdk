@@ -9,6 +9,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -319,6 +320,7 @@ class DartObjectImpl implements DartObject, Constant {
     }
 
     if (!typeSystem.isSubtypeOf(type, resultType)) {
+      // TODO(kallentu): Make a more specific error for casting.
       throw EvaluationException(
           CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
     }
@@ -1292,8 +1294,11 @@ class EvaluationException {
   /// The error code associated with the exception.
   final ErrorCode errorCode;
 
+  /// Returns `true` if the evaluation exception is a runtime exception.
+  final bool isRuntimeException;
+
   /// Initialize a newly created exception to have the given [errorCode].
-  EvaluationException(this.errorCode);
+  EvaluationException(this.errorCode, {this.isRuntimeException = false});
 }
 
 /// The state of an object representing a function.
@@ -2112,7 +2117,8 @@ class IntState extends NumState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       } else if (rightValue == 0) {
-        throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
+        throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE,
+            isRuntimeException: true);
       }
       return IntState(value! ~/ rightValue);
     } else if (rightOperand is DoubleState) {
@@ -2346,10 +2352,10 @@ class IntState extends NumState {
 
 /// An invalid constant that contains diagnostic information.
 class InvalidConstant implements Constant {
-  /// The node where we could not compute a valid constant.
-  final AstNode node;
+  /// The entity that a constant evaluator error is reported at.
+  final SyntacticEntity entity;
 
-  /// The error code that is reported at the location of the [node].
+  /// The error code that is reported at the location of the [entity].
   final ErrorCode errorCode;
 
   /// The arguments required to complete the message.
@@ -2359,13 +2365,50 @@ class InvalidConstant implements Constant {
   /// information if the error occurs within a constructor.
   final List<DiagnosticMessage> contextMessages;
 
+  /// Return `true` if the error was an exception thrown during constant
+  /// evaluation.
+  ///
+  /// In [ConstantEvaluationEngine.evaluateAndReportErrorsInConstructorCall],
+  /// we report this with a [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]
+  /// and a context message pointing to where the exception was thrown.
+  final bool isRuntimeException;
+
   /// Return `true` if the constant evaluation encounters an unresolved
   /// expression.
   final bool isUnresolved;
 
-  InvalidConstant(this.node, this.errorCode,
-      {this.arguments, this.isUnresolved = false})
-      : contextMessages = [];
+  InvalidConstant(this.entity, this.errorCode,
+      {this.arguments,
+      List<DiagnosticMessage>? contextMessages,
+      this.isUnresolved = false,
+      this.isRuntimeException = false})
+      : contextMessages = contextMessages ?? [];
+
+  /// Creates a duplicate instance of [other], with a different [entity].
+  factory InvalidConstant.forEntity(
+      InvalidConstant other, SyntacticEntity entity) {
+    return InvalidConstant(entity, other.errorCode,
+        arguments: other.arguments,
+        contextMessages: other.contextMessages,
+        isUnresolved: other.isUnresolved,
+        isRuntimeException: other.isRuntimeException);
+  }
+
+  /// Returns a generic error depending on the [node] provided.
+  factory InvalidConstant.genericError(AstNode node,
+      {bool isUnresolved = false}) {
+    final parent = node.parent;
+    final parent2 = parent?.parent;
+    if (parent is ArgumentList &&
+        parent2 is InstanceCreationExpression &&
+        parent2.isConst) {
+      return InvalidConstant(
+          node, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
+          isUnresolved: isUnresolved);
+    }
+    return InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT,
+        isUnresolved: isUnresolved);
+  }
 }
 
 /// The state of an object representing a list.

@@ -34,7 +34,9 @@ class DocumentationValidator {
     'CompileTimeErrorCode.AMBIGUOUS_IMPORT',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE',
-    // TODO(kallentu) Now reports CONST_EVAL_THROWS_EXCEPTION instead.
+    // TODO(kallentu) This is always reported with
+    // `ARGUMENT_TYPE_NOT_ASSIGNABLE` or is reported as
+    // `CONST_EVAL_THROWS_EXCEPTION` in const constructor evaluation.
     'CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.CONST_DEFERRED_CLASS',
