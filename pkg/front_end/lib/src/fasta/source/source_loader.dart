@@ -2627,13 +2627,22 @@ severity: $severity
     ticker.logMs("Computed core types");
   }
 
-  void checkSupertypes(List<SourceClassBuilder> sourceClasses,
-      Class objectClass, Class enumClass, Class underscoreEnumClass) {
+  void checkSupertypes(
+      List<SourceClassBuilder> sourceClasses,
+      List<SourceExtensionTypeDeclarationBuilder>
+          sourceExtensionTypeDeclarations,
+      Class objectClass,
+      Class enumClass,
+      Class underscoreEnumClass) {
     for (SourceClassBuilder builder in sourceClasses) {
-      if (builder.libraryBuilder.loader == this && !builder.isPatch) {
-        builder.checkSupertypes(coreTypes, hierarchyBuilder, objectClass,
-            enumClass, underscoreEnumClass, _macroClassBuilder?.cls);
-      }
+      assert(builder.libraryBuilder.loader == this && !builder.isPatch);
+      builder.checkSupertypes(coreTypes, hierarchyBuilder, objectClass,
+          enumClass, underscoreEnumClass, _macroClassBuilder?.cls);
+    }
+    for (SourceExtensionTypeDeclarationBuilder builder
+        in sourceExtensionTypeDeclarations) {
+      assert(builder.libraryBuilder.loader == this && !builder.isPatch);
+      builder.checkSupertypes(coreTypes, hierarchyBuilder);
     }
     ticker.logMs("Checked supertypes");
   }

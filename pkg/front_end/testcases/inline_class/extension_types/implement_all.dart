@@ -48,7 +48,7 @@ extension type ET_FunctionType(FunctionType it)
 extension type ET_NullableInterfaceType(NullableInterfaceType it)
     implements NullableInterfaceType /* Error */ {}
 
-extension type ET_NullableExtensionType(NullableExtensionType it)
+extension type ET_NullableExtensionType(int it)
     implements NullableExtensionType /* Error */ {}
 
 extension type ET_FutureOr(FutureOr<int> it)
@@ -68,8 +68,8 @@ extension type ET_Alias(Alias it) implements Alias /* Ok */ {}
 extension type ET_GenericAlias<T>(GenericAlias<T> it)
     implements GenericAlias<T> /* Ok */ {}
 
-extension type ET_ExtensionType(ExtensionType it)
+extension type ET_ExtensionType(int it)
     implements ExtensionType /* Ok */ {}
 
-extension type ET_GenericExtensionType<T>(GenericExtensionType<T> it)
+extension type ET_GenericExtensionType<T>(T it)
     implements GenericExtensionType<T> /* Ok */ {}

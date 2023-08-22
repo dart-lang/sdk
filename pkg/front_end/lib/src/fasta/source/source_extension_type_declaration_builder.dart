@@ -7,6 +7,9 @@ import 'package:front_end/src/fasta/builder/record_type_builder.dart';
 import 'package:front_end/src/fasta/kernel/body_builder_context.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../../base/common.dart';
 import '../builder/builder.dart';
@@ -22,6 +25,7 @@ import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
+import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../messages.dart';
 import '../problems.dart';
@@ -380,6 +384,47 @@ class SourceExtensionTypeDeclarationBuilder
     return false;
   }
 
+  void checkSupertypes(
+      CoreTypes coreTypes, ClassHierarchyBuilder hierarchyBuilder) {
+    if (interfaceBuilders != null) {
+      for (int i = 0; i < interfaceBuilders!.length; ++i) {
+        TypeBuilder typeBuilder = interfaceBuilders![i];
+        DartType interface =
+            typeBuilder.build(libraryBuilder, TypeUse.superType);
+        if (interface is InterfaceType) {
+          if (!hierarchyBuilder.types.isSubtypeOf(declaredRepresentationType,
+              interface, SubtypeCheckMode.withNullabilities)) {
+            libraryBuilder.addProblem(
+                templateInvalidExtensionTypeSuperInterface.withArguments(
+                    interface, declaredRepresentationType, name, true),
+                typeBuilder.charOffset!,
+                noLength,
+                typeBuilder.fileUri);
+          }
+        } else if (interface is ExtensionType) {
+          DartType instantiatedRepresentationType =
+              Substitution.fromExtensionType(interface).substituteType(interface
+                  .extensionTypeDeclaration.declaredRepresentationType);
+          if (!hierarchyBuilder.types.isSubtypeOf(
+              declaredRepresentationType,
+              instantiatedRepresentationType,
+              SubtypeCheckMode.withNullabilities)) {
+            libraryBuilder.addProblem(
+                templateInvalidExtensionTypeSuperExtensionType.withArguments(
+                    declaredRepresentationType,
+                    name,
+                    instantiatedRepresentationType,
+                    interface,
+                    true),
+                typeBuilder.charOffset!,
+                noLength,
+                typeBuilder.fileUri);
+          }
+        }
+      }
+    }
+  }
+
   @override
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
@@ -499,9 +544,9 @@ class SourceExtensionTypeDeclarationBuilder
     return null;
   }
 
-  // TODO(johnniwinther): Implement representationType.
   @override
-  DartType get declaredRepresentationType => throw new UnimplementedError();
+  DartType get declaredRepresentationType =>
+      _extensionTypeDeclaration.declaredRepresentationType;
 
   @override
   Iterator<T> fullMemberIterator<T extends Builder>() =>

@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class Foo {}
+class Foo {}
 
-extension type FooBar(int i) implements Foo {}
+extension type FooBar(Foo i) implements Foo {}
 
-extension type FooBaz(int i) implements Foo {}
+extension type FooBaz(Foo i) implements Foo {}
 
 void main() {
-  final a = FooBar(0);
+  final a = FooBar(Foo());
   switch (a) {
     case FooBar(i: final a):
       print("FooBar $a");
