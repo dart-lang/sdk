@@ -7084,6 +7084,21 @@ ExtensionTypeDeclarationCause:
   problemMessage: "The issue arises via this extension type declaration."
   severity: CONTEXT
 
+InvalidExtensionTypeSuperInterface:
+  problemMessage: "The implemented interface '#type' must be a supertype of the representation type '#type2' of extension type '#name'."
+  correctionMessage: "Try changing the interface type to a supertype of '#type2' or the representation type to a subtype of '#type'."
+  experiments: inline-class
+  script: |
+    extension type E(num n) implements int {}
+
+InvalidExtensionTypeSuperExtensionType:
+  problemMessage: "The representation type '#type' of extension type '#name' must be a subtype of the representation type '#type2' of the implemented extension type '#type3'."
+  correctionMessage: "Try changing the representation type to a subtype of '#type2'."
+  experiments: inline-class
+  script: |
+    extension type E1(int i) {}
+    extension type E2(num n) implements E1 {}
+
 MissingPrimaryConstructor:
   problemMessage: "An extension type declaration must have a primary constructor declaration."
   correctionMessage: "Try adding a primary constructor to the extension type declaration."

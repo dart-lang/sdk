@@ -464,7 +464,11 @@ class KernelTarget extends TargetImplementation {
           sortedSourceExtensionTypeBuilders, objectClassBuilder);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
-      loader.checkSupertypes(sortedSourceClassBuilders, objectClass, enumClass,
+      loader.checkSupertypes(
+          sortedSourceClassBuilders,
+          sortedSourceExtensionTypeBuilders,
+          objectClass,
+          enumClass,
           underscoreEnumClass);
 
       if (macroApplications != null) {

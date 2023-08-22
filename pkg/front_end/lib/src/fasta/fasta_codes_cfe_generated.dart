@@ -2731,6 +2731,107 @@ Message _withArgumentsInvalidCastTopLevelFunction(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(DartType _type, String name, DartType _type2,
+            DartType _type3, bool isNonNullableByDefault)>
+    templateInvalidExtensionTypeSuperExtensionType = const Template<
+            Message Function(DartType _type, String name, DartType _type2,
+                DartType _type3, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The representation type '#type' of extension type '#name' must be a subtype of the representation type '#type2' of the implemented extension type '#type3'.""",
+        correctionMessageTemplate:
+            r"""Try changing the representation type to a subtype of '#type2'.""",
+        withArguments: _withArgumentsInvalidExtensionTypeSuperExtensionType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            DartType _type3, bool isNonNullableByDefault)>
+    codeInvalidExtensionTypeSuperExtensionType = const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            DartType _type3, bool isNonNullableByDefault)>(
+  "InvalidExtensionTypeSuperExtensionType",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidExtensionTypeSuperExtensionType(
+    DartType _type,
+    String name,
+    DartType _type2,
+    DartType _type3,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  return new Message(codeInvalidExtensionTypeSuperExtensionType,
+      problemMessage:
+          """The representation type '${type}' of extension type '${name}' must be a subtype of the representation type '${type2}' of the implemented extension type '${type3}'.""" +
+              labeler.originMessages,
+      correctionMessage: """Try changing the representation type to a subtype of '${type2}'.""",
+      arguments: {
+        'type': _type,
+        'name': name,
+        'type2': _type2,
+        'type3': _type3
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type,
+            DartType _type2,
+            String name,
+            bool
+                isNonNullableByDefault)>
+    templateInvalidExtensionTypeSuperInterface = const Template<
+            Message Function(
+                DartType _type,
+                DartType _type2,
+                String name,
+                bool
+                    isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The implemented interface '#type' must be a supertype of the representation type '#type2' of extension type '#name'.""",
+        correctionMessageTemplate:
+            r"""Try changing the interface type to a supertype of '#type2' or the representation type to a subtype of '#type'.""",
+        withArguments: _withArgumentsInvalidExtensionTypeSuperInterface);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, String name,
+            bool isNonNullableByDefault)>
+    codeInvalidExtensionTypeSuperInterface = const Code<
+        Message Function(DartType _type, DartType _type2, String name,
+            bool isNonNullableByDefault)>(
+  "InvalidExtensionTypeSuperInterface",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidExtensionTypeSuperInterface(
+    DartType _type, DartType _type2, String name, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidExtensionTypeSuperInterface,
+      problemMessage:
+          """The implemented interface '${type}' must be a supertype of the representation type '${type2}' of extension type '${name}'.""" +
+              labeler.originMessages,
+      correctionMessage: """Try changing the interface type to a supertype of '${type2}' or the representation type to a subtype of '${type}'.""",
+      arguments: {'type': _type, 'type2': _type2, 'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String name, DartType _type2,
             String name2, bool isNonNullableByDefault)>
     templateInvalidGetterSetterType = const Template<
             Message Function(DartType _type, String name, DartType _type2,

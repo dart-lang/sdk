@@ -1678,16 +1678,16 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ b(&skip_marking, ZERO);
 
   {
-    // Atomically clear kOldAndNotMarkedBit.
+    // Atomically clear kNotMarkedBit.
     Label retry, done;
     __ PushList((1 << R2) | (1 << R3) | (1 << R4));  // Spill.
     __ AddImmediate(R3, R0, target::Object::tags_offset() - kHeapObjectTag);
     // R3: Untagged address of header word (ldrex/strex do not support offsets).
     __ Bind(&retry);
     __ ldrex(R2, R3);
-    __ tst(R2, Operand(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+    __ tst(R2, Operand(1 << target::UntaggedObject::kNotMarkedBit));
     __ b(&done, ZERO);  // Marked by another thread.
-    __ bic(R2, R2, Operand(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+    __ bic(R2, R2, Operand(1 << target::UntaggedObject::kNotMarkedBit));
     __ strex(R4, R2, R3);
     __ cmp(R4, Operand(1));
     __ b(&retry, EQ);
@@ -1711,7 +1711,6 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
     __ Bind(&done);
     __ clrex();
     __ PopList((1 << R2) | (1 << R3) | (1 << R4));  // Unspill.
-    __ Ret();
   }
 
   Label add_to_remembered_set, remember_card;

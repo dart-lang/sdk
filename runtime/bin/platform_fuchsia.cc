@@ -157,7 +157,10 @@ void Platform::SetProcessName(const char* name) {
 void Platform::Exit(int exit_code) {
   Console::RestoreConfig();
   Dart_PrepareToAbort();
-  exit(exit_code);
+  // We're not doing a full VM shutdown with Dart_Cleanup, which might block,
+  // and other VM threads may be accessing state with global destructors, so
+  // we skip global destructors by using _exit instead of exit.
+  _exit(exit_code);
 }
 
 void Platform::SetCoreDumpResourceLimit(int value) {

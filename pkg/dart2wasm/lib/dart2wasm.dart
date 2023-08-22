@@ -69,6 +69,15 @@ final List<Option> options = [
   StringOption("depfile", (o, value) => o.depFile = value),
   StringOption(
       "js-runtime-output", (o, value) => o.outputJSRuntimeFile = value),
+  StringOption(
+      "dump-kernel-after-cfe", (o, value) => o.dumpKernelAfterCfe = value,
+      hide: true),
+  StringOption(
+      "dump-kernel-before-tfa", (o, value) => o.dumpKernelBeforeTfa = value,
+      hide: true),
+  StringOption(
+      "dump-kernel-after-tfa", (o, value) => o.dumpKernelAfterTfa = value,
+      hide: true),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(

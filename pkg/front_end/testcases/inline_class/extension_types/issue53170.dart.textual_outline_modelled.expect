@@ -1,0 +1,3 @@
+---- unknown chunk starts ----
+extension type S1(num id) implements String {} extension type S2(int id) implements num {} extension type V1(num id) {} extension type V2(String id) implements V1 {} extension type V3(int id) implements V1 {} extension type W1<T>(T id) {} extension type W2(String id) implements W1<num> {} extension type W3(int id) implements W1<num> {}
+---- unknown chunk ends ----

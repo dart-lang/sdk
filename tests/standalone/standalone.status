@@ -78,9 +78,6 @@ verbose_gc_to_bmu_test: Skip # Attempts to spawn dart using Platform.executable
 [ $sanitizer == asan ]
 io/process_detached_test: Slow, Pass
 
-[ $sanitizer == msan ]
-io/process_sync_test: Skip # Flaky from global destructors race - dartbug.com/51271
-
 [ $sanitizer == tsan ]
 io/https_client_certificate_test: Slow, Pass
 

@@ -521,6 +521,8 @@ InvalidCastTopLevelFunction/example: Fail
 InvalidCatchArguments/example: Fail
 InvalidContinueTarget/analyzerCode: Fail
 InvalidContinueTarget/example: Fail
+InvalidExtensionTypeSuperExtensionType/analyzerCode: Fail
+InvalidExtensionTypeSuperInterface/analyzerCode: Fail
 InvalidGetterSetterType/analyzerCode: Fail
 InvalidGetterSetterTypeBothInheritedField/analyzerCode: Fail
 InvalidGetterSetterTypeBothInheritedFieldLegacy/analyzerCode: Fail
