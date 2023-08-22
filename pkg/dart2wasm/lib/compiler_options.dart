@@ -22,6 +22,9 @@ class CompilerOptions {
   Map<fe.ExperimentalFlag, bool> feExperimentalFlags = const {};
   String? multiRootScheme;
   List<Uri> multiRoots = const [];
+  String? dumpKernelAfterCfe;
+  String? dumpKernelBeforeTfa;
+  String? dumpKernelAfterTfa;
 
   factory CompilerOptions.defaultOptions() =>
       CompilerOptions(mainUri: Uri(), outputFile: '');

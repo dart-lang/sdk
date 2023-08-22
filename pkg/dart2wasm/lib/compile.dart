@@ -21,6 +21,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/kernel.dart' show writeComponentToText;
 import 'package:kernel/verifier.dart';
 
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
@@ -108,6 +109,11 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
   Component component = compilerResult.component!;
   CoreTypes coreTypes = compilerResult.coreTypes!;
   ClassHierarchy classHierarchy = compilerResult.classHierarchy!;
+
+  if (options.dumpKernelAfterCfe != null) {
+    writeComponentToText(component, path: options.dumpKernelAfterCfe!);
+  }
+
   js.RuntimeFinalizer jsRuntimeFinalizer =
       js.createRuntimeFinalizer(component, coreTypes, classHierarchy);
 
@@ -115,10 +121,19 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
       generateRecordClasses(component, coreTypes);
   target.recordClasses = recordClasses;
 
+  if (options.dumpKernelBeforeTfa != null) {
+    writeComponentToText(component, path: options.dumpKernelBeforeTfa!);
+  }
+
   globalTypeFlow.transformComponent(target, coreTypes, component,
       treeShakeSignatures: true,
       treeShakeWriteOnlyFields: true,
       useRapidTypeAnalysis: false);
+
+  if (options.dumpKernelAfterTfa != null) {
+    writeComponentToText(component,
+        path: options.dumpKernelAfterTfa!, showMetadata: true);
+  }
 
   assert(() {
     verifyComponent(
