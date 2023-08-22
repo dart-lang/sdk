@@ -25,14 +25,17 @@ class BisectionConfig {
 
   static const String _endKey = 'end';
 
-  /// The command to run.
+  /// The commands to run.
   ///
-  /// Should include a `--build`.
-  final String testCommand;
+  /// Typically a `python3 tools/test.py --build [...]`.
+  ///
+  /// Commands are run in [sdkPath] as working directory.
+  final List<String> testCommands;
 
-  static const String _testCommandKey = 'test_command';
+  static const String _testCommandsKey = 'test_command';
 
-  /// The pattern to recognize in the stdout of [testCommand].
+  /// The pattern to recognize in the stdout or stderr of the last item in
+  /// [testCommands].
   final String failureString;
 
   static const String _failureStringKey = 'failure_string';
@@ -53,32 +56,32 @@ class BisectionConfig {
     required this.name,
     required this.start,
     required this.end,
-    required this.testCommand,
+    required this.testCommands,
     required this.sdkPath,
     required this.failureString,
   });
 
   factory BisectionConfig.fromConfig(Config config) {
-    final testCommand = config.string(_testCommandKey);
+    final testCommands = config.stringList(_testCommandsKey);
     final name = config.optionalString(_nameKey) ??
         '${DateFormat('yyyyMMdd').format(DateTime.now())}_'
-            '${testCommand.split(' ').last.split('/').last}';
+            '${testCommands.last.split(' ').last.split('/').last}';
     final sdkPath = config.optionalPath(_sdkPathKey, mustExist: true) ??
         Directory.current.uri;
     return BisectionConfig(
       name: name,
       start: config.string(_startKey),
       end: config.string(_endKey),
-      testCommand: testCommand,
+      testCommands: testCommands,
       sdkPath: sdkPath,
       failureString: config.string(_failureStringKey),
     );
   }
 
-  Map<String, String> asMap() => {
+  Map<String, Object> asMap() => {
         _startKey: start,
         _endKey: end,
-        _testCommandKey: testCommand,
+        _testCommandsKey: testCommands,
         _failureStringKey: failureString,
         _sdkPathKey: sdkPath.toFilePath(),
         _nameKey: name,
@@ -93,8 +96,9 @@ class BisectionConfig {
     name: '20230712_package_resolve_test',
     start: '23f41452',
     end: '2c97bd78',
-    testCommand:
-        'tools/test.py --build -n dartk-linux-debug-x64 lib_2/isolate/package_resolve_test',
+    testCommands: [
+      'python3 tools/test.py --build -n dartk-linux-debug-x64 lib_2/isolate/package_resolve_test',
+    ],
     sdkPath: Directory.current.uri,
     failureString:
         "Error: The argument type 'String' can't be assigned to the parameter type 'Uri'.",
@@ -103,9 +107,11 @@ class BisectionConfig {
   static const _argumentDescriptions = {
     _startKey: 'The commit has at the start of the commit range.',
     _endKey: 'The commit has at the end of the commit range.',
-    _testCommandKey: '''The invocation of test.py.
-This should include `--build`.
+    _testCommandsKey: '''The command(s) to run to reproduce the failure.
+Typically this is "python3 tools/test.py --build [...]"
 This should be within quotes when passed in terminal because of spaces.
+This command can be supplied multiple times to run multiple commands to
+reproduce a failure.
 ''',
     _failureStringKey: '''A string from the failing output.
 Regexes are not yet supported.
@@ -123,7 +129,10 @@ The name is used for distinguishing logs.
   static String helpMessage() {
     final exampleArguments = _example.asMap().entries.map((e) {
       var value = e.value;
-      if (value.contains(' ')) {
+      if (value is List) {
+        value = value.first;
+      }
+      if ((value as String).contains(' ')) {
         value = '"$value"';
       }
       return '-D${e.key}=$value';
