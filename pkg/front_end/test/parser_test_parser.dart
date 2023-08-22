@@ -184,7 +184,6 @@ class TestParser extends Parser {
       Token start,
       Token keyword,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -193,21 +192,13 @@ class TestParser extends Parser {
         '$start, '
         '$keyword, '
         '$macroToken, '
-        '$inlineToken, '
         '$sealedToken, '
         '$baseToken, '
         '$interfaceToken, '
         '$directiveState)');
     indent++;
-    var result = super.parseTopLevelKeywordDeclaration(
-        start,
-        keyword,
-        macroToken,
-        inlineToken,
-        sealedToken,
-        baseToken,
-        interfaceToken,
-        directiveState);
+    var result = super.parseTopLevelKeywordDeclaration(start, keyword,
+        macroToken, sealedToken, baseToken, interfaceToken, directiveState);
     indent--;
     return result;
   }
@@ -665,7 +656,6 @@ class TestParser extends Parser {
   Token parseClassOrNamedMixinApplication(
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -676,7 +666,6 @@ class TestParser extends Parser {
     doPrint('parseClassOrNamedMixinApplication('
         '$abstractToken, '
         '$macroToken, '
-        '$inlineToken, '
         '$sealedToken, '
         '$baseToken, '
         '$interfaceToken, '
@@ -688,7 +677,6 @@ class TestParser extends Parser {
     var result = super.parseClassOrNamedMixinApplication(
         abstractToken,
         macroToken,
-        inlineToken,
         sealedToken,
         baseToken,
         interfaceToken,

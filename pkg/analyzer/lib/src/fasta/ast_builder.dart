@@ -222,7 +222,6 @@ class AstBuilder extends StackListener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -240,16 +239,6 @@ class AstBuilder extends StackListener {
         );
         // Pretend that 'macro' didn't occur while this feature is incomplete.
         macroToken = null;
-      }
-    }
-    if (!enableInlineClass) {
-      if (inlineToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.inline_class,
-          startToken: inlineToken,
-        );
-        // Pretend that 'inline' didn't occur while this feature is incomplete.
-        inlineToken = null;
       }
     }
     if (!enableSealedClass) {
@@ -465,7 +454,6 @@ class AstBuilder extends StackListener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -482,16 +470,6 @@ class AstBuilder extends StackListener {
         );
         // Pretend that 'macro' didn't occur while this feature is incomplete.
         macroToken = null;
-      }
-    }
-    if (!enableInlineClass) {
-      if (inlineToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.inline_class,
-          startToken: inlineToken,
-        );
-        // Pretend that 'inline' didn't occur while this feature is incomplete.
-        inlineToken = null;
       }
     }
     if (!enableSealedClass) {
@@ -540,7 +518,6 @@ class AstBuilder extends StackListener {
       }
     }
     push(macroToken ?? NullValues.Token);
-    push(inlineToken ?? NullValues.Token);
     push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
     push(interfaceToken ?? NullValues.Token);
@@ -2646,7 +2623,6 @@ class AstBuilder extends StackListener {
     var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
     var sealedKeyword = pop(NullValues.Token) as Token?;
-    var inlineKeyword = pop(NullValues.Token) as Token?;
     var macroKeyword = pop(NullValues.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
@@ -2664,7 +2640,6 @@ class AstBuilder extends StackListener {
         equals: equalsToken,
         abstractKeyword: abstractKeyword,
         macroKeyword: macroKeyword,
-        inlineKeyword: inlineKeyword,
         sealedKeyword: sealedKeyword,
         baseKeyword: baseKeyword,
         interfaceKeyword: interfaceKeyword,

@@ -532,7 +532,6 @@ class Parser {
           /* start = */ token,
           /* keyword = */ next,
           /* macroToken = */ null,
-          /* inlineToken = */ null,
           /* sealedToken = */ null,
           /* baseToken = */ null,
           /* interfaceToken = */ null,
@@ -561,16 +560,10 @@ class Parser {
     }
     next = token.next!;
     Token? macroToken;
-    Token? inlineToken;
     Token? sealedToken;
     Token? baseToken;
     Token? interfaceToken;
     if (next.isIdentifier &&
-        next.lexeme == 'inline' &&
-        optional('class', next.next!)) {
-      inlineToken = next;
-      next = next.next!;
-    } else if (next.isIdentifier &&
         next.lexeme == 'macro' &&
         optional('class', next.next!)) {
       macroToken = next;
@@ -609,7 +602,6 @@ class Parser {
           /* start = */ start,
           /* keyword = */ next,
           /* macroToken = */ macroToken,
-          /* inlineToken = */ inlineToken,
           /* sealedToken = */ sealedToken,
           /* baseToken = */ baseToken,
           /* interfaceToken = */ interfaceToken,
@@ -649,7 +641,6 @@ class Parser {
       Token start,
       Token keyword,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -661,7 +652,6 @@ class Parser {
           start,
           keyword,
           macroToken,
-          inlineToken,
           sealedToken,
           baseToken,
           interfaceToken,
@@ -742,7 +732,6 @@ class Parser {
                 start,
                 keyword.next!,
                 macroToken,
-                inlineToken,
                 sealedToken,
                 baseToken,
                 interfaceToken,
@@ -791,7 +780,6 @@ class Parser {
       Token start,
       Token classKeyword,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -820,7 +808,6 @@ class Parser {
     return parseClassOrNamedMixinApplication(
         context.abstractToken,
         macroToken,
-        inlineToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -2580,7 +2567,6 @@ class Parser {
   Token parseClassOrNamedMixinApplication(
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -2591,7 +2577,6 @@ class Parser {
     assert(optional('class', classKeyword));
     Token begin = abstractToken ??
         macroToken ??
-        inlineToken ??
         sealedToken ??
         baseToken ??
         interfaceToken ??
@@ -2613,7 +2598,6 @@ class Parser {
           begin,
           abstractToken,
           macroToken,
-          inlineToken,
           sealedToken,
           baseToken,
           interfaceToken,
@@ -2627,7 +2611,6 @@ class Parser {
           begin,
           abstractToken,
           macroToken,
-          inlineToken,
           sealedToken,
           baseToken,
           interfaceToken,

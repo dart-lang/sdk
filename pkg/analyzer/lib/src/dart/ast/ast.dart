@@ -3002,10 +3002,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   /// macro class.
   final Token? macroKeyword;
 
-  /// The token for the 'inline' keyword, or `null` if this is not defining an
-  /// inline class.
-  final Token? inlineKeyword;
-
   /// The token for the 'sealed' keyword, or `null` if this is not defining a
   /// sealed class.
   @override
@@ -3063,7 +3059,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     required this.equals,
     required this.abstractKeyword,
     required this.macroKeyword,
-    required this.inlineKeyword,
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
@@ -3088,7 +3083,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   Token get firstTokenAfterCommentAndMetadata {
     return abstractKeyword ??
         macroKeyword ??
-        inlineKeyword ??
         sealedKeyword ??
         baseKeyword ??
         interfaceKeyword ??
@@ -3133,7 +3127,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     ..addNode('typeParameters', typeParameters)
     ..addToken('equals', equals)
     ..addToken('abstractKeyword', abstractKeyword)
-    ..addToken('inlineKeyword', inlineKeyword)
     ..addToken('macroKeyword', macroKeyword)
     ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('baseKeyword', baseKeyword)

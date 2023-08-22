@@ -1,4 +1,0 @@
-inline class I {
-  int get i => 0;
-  set i(int val) {}
-}

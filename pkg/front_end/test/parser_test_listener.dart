@@ -214,7 +214,6 @@ class ParserTestListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -225,7 +224,6 @@ class ParserTestListener implements Listener {
     seen(begin);
     seen(abstractToken);
     seen(macroToken);
-    seen(inlineToken);
     seen(sealedToken);
     seen(baseToken);
     seen(interfaceToken);
@@ -237,7 +235,6 @@ class ParserTestListener implements Listener {
         '$begin, '
         '$abstractToken, '
         '$macroToken, '
-        '$inlineToken, '
         '$sealedToken, '
         '$baseToken, '
         '$interfaceToken, '
@@ -1168,7 +1165,6 @@ class ParserTestListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -1179,7 +1175,6 @@ class ParserTestListener implements Listener {
     seen(begin);
     seen(abstractToken);
     seen(macroToken);
-    seen(inlineToken);
     seen(sealedToken);
     seen(baseToken);
     seen(interfaceToken);
@@ -1191,7 +1186,6 @@ class ParserTestListener implements Listener {
         '$begin, '
         '$abstractToken, '
         '$macroToken, '
-        '$inlineToken, '
         '$sealedToken, '
         '$baseToken, '
         '$interfaceToken, '

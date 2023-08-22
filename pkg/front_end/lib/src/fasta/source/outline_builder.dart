@@ -944,7 +944,6 @@ class OutlineBuilder extends StackListenerImpl {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -963,12 +962,6 @@ class OutlineBuilder extends StackListenerImpl {
       if (reportIfNotEnabled(
           libraryFeatures.macros, macroToken.charOffset, macroToken.length)) {
         macroToken = null;
-      }
-    }
-    if (inlineToken != null) {
-      if (reportIfNotEnabled(libraryFeatures.inlineClass,
-          inlineToken.charOffset, inlineToken.length)) {
-        inlineToken = null;
       }
     }
     if (sealedToken != null) {
@@ -1001,19 +994,12 @@ class OutlineBuilder extends StackListenerImpl {
         mixinToken = null;
       }
     }
-    if (inlineToken != null) {
-      libraryBuilder.currentTypeParameterScopeBuilder
-          .markAsInlineClassDeclaration(
-              name.lexeme, name.charOffset, typeVariables);
-    } else {
-      libraryBuilder.currentTypeParameterScopeBuilder
-          .markAsClassDeclaration(name.lexeme, name.charOffset, typeVariables);
-    }
+    libraryBuilder.currentTypeParameterScopeBuilder
+        .markAsClassDeclaration(name.lexeme, name.charOffset, typeVariables);
     libraryBuilder.setCurrentClassName(name.lexeme);
     inAbstractOrSealedClass = abstractToken != null || sealedToken != null;
     push(abstractToken != null ? abstractMask : 0);
     push(macroToken ?? NullValues.Token);
-    push(inlineToken ?? NullValues.Token);
     push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
     push(interfaceToken ?? NullValues.Token);
@@ -1096,7 +1082,6 @@ class OutlineBuilder extends StackListenerImpl {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -1118,12 +1103,6 @@ class OutlineBuilder extends StackListenerImpl {
       if (reportIfNotEnabled(
           libraryFeatures.macros, macroToken.charOffset, macroToken.length)) {
         macroToken = null;
-      }
-    }
-    if (inlineToken != null) {
-      if (reportIfNotEnabled(libraryFeatures.inlineClass,
-          inlineToken.charOffset, inlineToken.length)) {
-        inlineToken = null;
       }
     }
     if (sealedToken != null) {
@@ -1157,7 +1136,6 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
     push(macroToken ?? NullValues.Token);
-    push(inlineToken ?? NullValues.Token);
     push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
     push(interfaceToken ?? NullValues.Token);
@@ -1253,7 +1231,6 @@ class OutlineBuilder extends StackListenerImpl {
       /* interface token */ ValueKinds.TokenOrNull,
       /* base token */ ValueKinds.TokenOrNull,
       /* sealed token */ ValueKinds.TokenOrNull,
-      /* inline token */ ValueKinds.TokenOrNull,
       /* macro token */ ValueKinds.TokenOrNull,
       /* modifiers */ ValueKinds.Integer,
       /* type variables */ ValueKinds.TypeVariableListOrNull,
@@ -1275,7 +1252,6 @@ class OutlineBuilder extends StackListenerImpl {
     Token? interfaceToken = pop(NullValues.Token) as Token?;
     Token? baseToken = pop(NullValues.Token) as Token?;
     Token? sealedToken = pop(NullValues.Token) as Token?;
-    Token? inlineToken = pop(NullValues.Token) as Token?;
     Token? macroToken = pop(NullValues.Token) as Token?;
     int modifiers = pop() as int;
     List<TypeVariableBuilder>? typeVariables =
@@ -1341,42 +1317,25 @@ class OutlineBuilder extends StackListenerImpl {
       if (sealedToken != null) {
         modifiers |= abstractMask;
       }
-      if (inlineToken != null) {
-        libraryBuilder.addInlineClassDeclaration(
+      libraryBuilder.addClass(
           metadata,
           modifiers,
           name as String,
           typeVariables,
-          /*supertype,
-            mixinApplication,*/
+          supertype,
+          mixinApplication,
           interfaces,
           startCharOffset,
           nameOffset,
           endToken.charOffset,
-          /*supertypeOffset,
-            isAugmentation: augmentToken != null*/
-        );
-      } else {
-        libraryBuilder.addClass(
-            metadata,
-            modifiers,
-            name as String,
-            typeVariables,
-            supertype,
-            mixinApplication,
-            interfaces,
-            startCharOffset,
-            nameOffset,
-            endToken.charOffset,
-            supertypeOffset,
-            isMacro: macroToken != null,
-            isSealed: sealedToken != null,
-            isBase: baseToken != null,
-            isInterface: interfaceToken != null,
-            isFinal: finalToken != null,
-            isAugmentation: augmentToken != null,
-            isMixinClass: mixinToken != null);
-      }
+          supertypeOffset,
+          isMacro: macroToken != null,
+          isSealed: sealedToken != null,
+          isBase: baseToken != null,
+          isInterface: interfaceToken != null,
+          isFinal: finalToken != null,
+          isAugmentation: augmentToken != null,
+          isMixinClass: mixinToken != null);
     }
     libraryBuilder.setCurrentClassName(null);
     popDeclarationContext(DeclarationContext.Class);
@@ -2356,7 +2315,6 @@ class OutlineBuilder extends StackListenerImpl {
       /* interface token */ ValueKinds.TokenOrNull,
       /* base token */ ValueKinds.TokenOrNull,
       /* sealed token */ ValueKinds.TokenOrNull,
-      /* inline token */ ValueKinds.TokenOrNull,
       /* macro token */ ValueKinds.TokenOrNull,
       /* modifiers */ ValueKinds.Integer,
       /* type variables */ ValueKinds.TypeVariableListOrNull,
@@ -2376,10 +2334,6 @@ class OutlineBuilder extends StackListenerImpl {
     Token? interfaceToken = pop(NullValues.Token) as Token?;
     Token? baseToken = pop(NullValues.Token) as Token?;
     Token? sealedToken = pop(NullValues.Token) as Token?;
-    // TODO(johnniwinther): Report error on 'inline' here; it can't be used on
-    // named mixin applications.
-    // ignore: unused_local_variable
-    Token? inlineToken = pop(NullValues.Token) as Token?;
     Token? macroToken = pop(NullValues.Token) as Token?;
     int modifiers = pop() as int;
     List<TypeVariableBuilder>? typeVariables =

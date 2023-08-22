@@ -1,25 +1,65 @@
+Problems reported:
+
+parser/inline_class/inline_class:1:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+inline class Class {}
+^^^^^^
+
+parser/inline_class/inline_class:1:1: Expected ';' after this.
+inline class Class {}
+^^^^^^
+
+parser/inline_class/inline_class:2:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+inline class Class = Object with Mixin;
+^^^^^^
+
+parser/inline_class/inline_class:2:1: Expected ';' after this.
+inline class Class = Object with Mixin;
+^^^^^^
+
 beginCompilationUnit(inline)
   beginMetadataStar(inline)
   endMetadataStar(0)
-  beginClassOrMixinOrNamedMixinApplicationPrelude(inline)
+  beginTopLevelMember(inline)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, )
+      handleRecoverableError(MissingConstFinalVarOrType, inline, inline)
+      handleNoType()
+      handleIdentifier(inline, topLevelVariableDeclaration)
+      handleNoFieldInitializer(class)
+      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], inline, inline)
+    endTopLevelFields(null, null, null, null, null, 1, inline, ;)
+  endTopLevelDeclaration(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
     handleIdentifier(Class, classOrMixinDeclaration)
     handleNoTypeVariables({)
-    beginClassDeclaration(inline, null, null, inline, null, null, null, null, null, null, Class)
+    beginClassDeclaration(class, null, null, null, null, null, null, null, null, Class)
       handleNoType(Class)
       handleClassExtends(null, 1)
       handleClassNoWithClause()
       handleImplements(null, 0)
-      handleClassHeader(inline, class, null)
+      handleClassHeader(class, class, null)
       beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
-    endClassDeclaration(inline, })
+    endClassDeclaration(class, })
   endTopLevelDeclaration(inline)
   beginMetadataStar(inline)
   endMetadataStar(0)
-  beginClassOrMixinOrNamedMixinApplicationPrelude(inline)
+  beginTopLevelMember(inline)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, })
+      handleRecoverableError(MissingConstFinalVarOrType, inline, inline)
+      handleNoType(})
+      handleIdentifier(inline, topLevelVariableDeclaration)
+      handleNoFieldInitializer(class)
+      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], inline, inline)
+    endTopLevelFields(null, null, null, null, null, 1, inline, ;)
+  endTopLevelDeclaration(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
     handleIdentifier(Class, classOrMixinDeclaration)
     handleNoTypeVariables(=)
-    beginNamedMixinApplication(inline, null, null, inline, null, null, null, null, null, null, Class)
+    beginNamedMixinApplication(class, null, null, null, null, null, null, null, null, Class)
       handleIdentifier(Object, typeReference)
       handleNoTypeArguments(with)
       handleType(Object, null)
@@ -29,6 +69,6 @@ beginCompilationUnit(inline)
         handleType(Mixin, null)
       endTypeList(1)
       handleNamedMixinApplicationWithClause(with)
-    endNamedMixinApplication(inline, class, =, null, ;)
+    endNamedMixinApplication(class, class, =, null, ;)
   endTopLevelDeclaration()
-endCompilationUnit(2, )
+endCompilationUnit(4, )
