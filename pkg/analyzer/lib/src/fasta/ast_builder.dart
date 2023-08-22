@@ -222,7 +222,6 @@ class AstBuilder extends StackListener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -240,16 +239,6 @@ class AstBuilder extends StackListener {
         );
         // Pretend that 'macro' didn't occur while this feature is incomplete.
         macroToken = null;
-      }
-    }
-    if (!enableInlineClass) {
-      if (inlineToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.inline_class,
-          startToken: inlineToken,
-        );
-        // Pretend that 'inline' didn't occur while this feature is incomplete.
-        inlineToken = null;
       }
     }
     if (!enableSealedClass) {
@@ -465,7 +454,6 @@ class AstBuilder extends StackListener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -482,16 +470,6 @@ class AstBuilder extends StackListener {
         );
         // Pretend that 'macro' didn't occur while this feature is incomplete.
         macroToken = null;
-      }
-    }
-    if (!enableInlineClass) {
-      if (inlineToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.inline_class,
-          startToken: inlineToken,
-        );
-        // Pretend that 'inline' didn't occur while this feature is incomplete.
-        inlineToken = null;
       }
     }
     if (!enableSealedClass) {
@@ -540,7 +518,6 @@ class AstBuilder extends StackListener {
       }
     }
     push(macroToken ?? NullValues.Token);
-    push(inlineToken ?? NullValues.Token);
     push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
     push(interfaceToken ?? NullValues.Token);
@@ -1655,19 +1632,23 @@ class AstBuilder extends StackListener {
       Token extensionKeyword, Token typeKeyword, Token endToken) {
     final implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
-    final representation = pop() as RepresentationDeclarationImpl;
+    final representation = pop(const NullValue<RepresentationDeclarationImpl>())
+        as RepresentationDeclarationImpl?;
     final constKeyword = pop() as Token?;
 
     if (enableInlineClass) {
       final builder = _classLikeBuilder as _ExtensionTypeDeclarationBuilder;
-      declarations.add(
-        builder.build(
-          typeKeyword: typeKeyword,
-          constKeyword: constKeyword,
-          representation: representation,
-          implementsClause: implementsClause,
-        ),
-      );
+      if (representation != null) {
+        // TODO(scheglov): Handle missing primary constructor.
+        declarations.add(
+          builder.build(
+            typeKeyword: typeKeyword,
+            constKeyword: constKeyword,
+            representation: representation,
+            implementsClause: implementsClause,
+          ),
+        );
+      }
     } else {
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.inline_class,
@@ -2646,7 +2627,6 @@ class AstBuilder extends StackListener {
     var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
     var sealedKeyword = pop(NullValues.Token) as Token?;
-    var inlineKeyword = pop(NullValues.Token) as Token?;
     var macroKeyword = pop(NullValues.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
@@ -2664,7 +2644,6 @@ class AstBuilder extends StackListener {
         equals: equalsToken,
         abstractKeyword: abstractKeyword,
         macroKeyword: macroKeyword,
-        inlineKeyword: inlineKeyword,
         sealedKeyword: sealedKeyword,
         baseKeyword: baseKeyword,
         interfaceKeyword: interfaceKeyword,
@@ -4865,6 +4844,13 @@ class AstBuilder extends StackListener {
         ),
       );
     }
+  }
+
+  @override
+  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
+    push(constKeyword ?? const NullValue<Token>());
+
+    push(const NullValue<RepresentationDeclarationImpl>());
   }
 
   @override

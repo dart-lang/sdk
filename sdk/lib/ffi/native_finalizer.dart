@@ -244,9 +244,14 @@ typedef NativeFinalizerFunction
 ///
 /// Compared to the [Finalizer] from `dart:core`, which makes no promises to
 /// ever call an attached callback, this native finalizer promises that all
-/// attached finalizers are definitely called at least once before the program
-/// ends, and the callbacks are called as soon as possible after an object
-/// is recognized as inaccessible.
+/// attached finalizers are definitely called at least once before the isolate
+/// group shuts down, and the callbacks are called as soon as possible after
+/// an object is recognized as inaccessible.
+///
+/// Note that an isolate group is not necessarily guaranteed to shutdown
+/// normally as the whole process might crash or be abruptly terminated
+/// by a function like `exit`. This means `NativeFinalizer` can not be
+/// relied upon for running actions on the programs exit.
 ///
 /// When the callback is a Dart function rather than a native function, use
 /// [Finalizer] instead.

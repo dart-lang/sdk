@@ -137,7 +137,6 @@ class Listener implements UnescapeErrorListener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -298,6 +297,10 @@ class Listener implements UnescapeErrorListener {
       Token beginToken, Token? constKeyword, bool hasConstructorName) {
     logEvent('PrimaryConstructor');
   }
+
+  /// Handle the omission of a primary constructor declaration. Currently only
+  /// occurring in extension type declarations.
+  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {}
 
   void beginCombinators(Token token) {}
 
@@ -864,7 +867,6 @@ class Listener implements UnescapeErrorListener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,

@@ -1,6 +1,8 @@
+NOTICE: Stream was rewritten by parser!
+
 class A {}
 
-extension type on A {
+extension type on {}A (){
 method() {}
 }
 
@@ -9,7 +11,7 @@ test(A a) => type(new A()).method();
 
 class[KeywordToken] A[StringToken] {[BeginToken]}[SimpleToken]
 
-extension[KeywordToken] type[StringToken] on[KeywordToken] A[StringToken] {[BeginToken]
+extension[KeywordToken] type[StringToken] on[KeywordToken] {[SyntheticBeginToken]}[SyntheticToken]A[StringToken] ([SyntheticBeginToken])[SyntheticToken]{[BeginToken]
 method[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
 }[SimpleToken]
 

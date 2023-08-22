@@ -1,8 +1,0 @@
-inline class Class1 {
-  final int field;
-  Class1(this.field);
-}
-inline class Class2 {
-  final int field;
-  Class2(this.field);
-}

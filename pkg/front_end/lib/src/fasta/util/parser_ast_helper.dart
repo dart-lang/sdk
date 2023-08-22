@@ -180,7 +180,6 @@ abstract class AbstractParserAstListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -192,7 +191,6 @@ abstract class AbstractParserAstListener implements Listener {
         begin: begin,
         abstractToken: abstractToken,
         macroToken: macroToken,
-        inlineToken: inlineToken,
         sealedToken: sealedToken,
         baseToken: baseToken,
         interfaceToken: interfaceToken,
@@ -348,6 +346,15 @@ abstract class AbstractParserAstListener implements Listener {
         beginToken: beginToken,
         constKeyword: constKeyword,
         hasConstructorName: hasConstructorName);
+    seen(data);
+  }
+
+  @override
+  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
+    NoPrimaryConstructorHandle data = new NoPrimaryConstructorHandle(
+        ParserAstType.HANDLE,
+        token: token,
+        constKeyword: constKeyword);
     seen(data);
   }
 
@@ -1041,7 +1048,6 @@ abstract class AbstractParserAstListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -1054,7 +1060,6 @@ abstract class AbstractParserAstListener implements Listener {
         begin: begin,
         abstractToken: abstractToken,
         macroToken: macroToken,
-        inlineToken: inlineToken,
         sealedToken: sealedToken,
         baseToken: baseToken,
         interfaceToken: interfaceToken,
@@ -3354,7 +3359,6 @@ class ClassDeclarationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
   final Token? macroToken;
-  final Token? inlineToken;
   final Token? sealedToken;
   final Token? baseToken;
   final Token? interfaceToken;
@@ -3367,7 +3371,6 @@ class ClassDeclarationBegin extends ParserAstNode {
       {required this.begin,
       this.abstractToken,
       this.macroToken,
-      this.inlineToken,
       this.sealedToken,
       this.baseToken,
       this.interfaceToken,
@@ -3382,7 +3385,6 @@ class ClassDeclarationBegin extends ParserAstNode {
         "begin": begin,
         "abstractToken": abstractToken,
         "macroToken": macroToken,
-        "inlineToken": inlineToken,
         "sealedToken": sealedToken,
         "baseToken": baseToken,
         "interfaceToken": interfaceToken,
@@ -3656,6 +3658,21 @@ class PrimaryConstructorEnd extends ParserAstNode {
         "beginToken": beginToken,
         "constKeyword": constKeyword,
         "hasConstructorName": hasConstructorName,
+      };
+}
+
+class NoPrimaryConstructorHandle extends ParserAstNode {
+  final Token token;
+  final Token? constKeyword;
+
+  NoPrimaryConstructorHandle(ParserAstType type,
+      {required this.token, this.constKeyword})
+      : super("NoPrimaryConstructor", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+        "constKeyword": constKeyword,
       };
 }
 
@@ -4885,7 +4902,6 @@ class NamedMixinApplicationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
   final Token? macroToken;
-  final Token? inlineToken;
   final Token? sealedToken;
   final Token? baseToken;
   final Token? interfaceToken;
@@ -4898,7 +4914,6 @@ class NamedMixinApplicationBegin extends ParserAstNode {
       {required this.begin,
       this.abstractToken,
       this.macroToken,
-      this.inlineToken,
       this.sealedToken,
       this.baseToken,
       this.interfaceToken,
@@ -4913,7 +4928,6 @@ class NamedMixinApplicationBegin extends ParserAstNode {
         "begin": begin,
         "abstractToken": abstractToken,
         "macroToken": macroToken,
-        "inlineToken": inlineToken,
         "sealedToken": sealedToken,
         "baseToken": baseToken,
         "interfaceToken": interfaceToken,

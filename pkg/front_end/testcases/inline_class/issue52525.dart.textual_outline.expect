@@ -1,6 +1,0 @@
-inline class IC1 {
-  final int id;
-  IC1(this.id);
-  factory IC1.f(int id) = IC1;
-}
-main() {}

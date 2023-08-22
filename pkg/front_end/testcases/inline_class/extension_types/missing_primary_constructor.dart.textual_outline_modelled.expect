@@ -1,0 +1,4 @@
+---- unknown chunk starts ----
+extension type ET {}
+---- unknown chunk ends ----
+test() {}

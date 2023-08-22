@@ -1,6 +1,0 @@
-inline class X {
-  final int obj;
-  X() : obj = 0;
-  X.named() : obj = 0;
-}
-void main() {}

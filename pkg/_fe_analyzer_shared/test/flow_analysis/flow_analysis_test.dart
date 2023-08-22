@@ -3367,17 +3367,6 @@ main() {
           same(provisionallyUnreachable));
     });
 
-    test('restrict', () {
-      var previous = Reachability.initial.split();
-      var reachable = previous.split();
-      var unreachable = reachable.setUnreachable();
-      expect(Reachability.restrict(reachable, reachable), same(reachable));
-      expect(Reachability.restrict(reachable, unreachable), same(unreachable));
-      expect(Reachability.restrict(unreachable, reachable), same(unreachable));
-      expect(
-          Reachability.restrict(unreachable, unreachable), same(unreachable));
-    });
-
     test('rebaseForward', () {
       var previous = Reachability.initial;
       var reachable = previous.split();
@@ -3400,16 +3389,6 @@ main() {
       expect(reachable.rebaseForward(reachable3), same(reachable3));
       expect(reachable3.rebaseForward(reachable).parent, same(previous));
       expect(reachable3.rebaseForward(reachable).locallyReachable, false);
-    });
-
-    test('join', () {
-      var previous = Reachability.initial.split();
-      var reachable = previous.split();
-      var unreachable = reachable.setUnreachable();
-      expect(Reachability.join(reachable, reachable), same(reachable));
-      expect(Reachability.join(reachable, unreachable), same(reachable));
-      expect(Reachability.join(unreachable, reachable), same(reachable));
-      expect(Reachability.join(unreachable, unreachable), same(unreachable));
     });
 
     test('commonAncestor', () {

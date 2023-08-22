@@ -2623,8 +2623,12 @@ class FlowModel<Type extends Object> {
       return second;
     }
 
-    Reachability newReachable =
-        Reachability.join(first.reachable, second.reachable);
+    // first.reachable and second.reachable are equivalent, so we don't need to
+    // join reachabilities.
+    assert(
+        first.reachable.locallyReachable == second.reachable.locallyReachable);
+    assert(first.reachable.parent == second.reachable.parent);
+    Reachability newReachable = first.reachable;
     Map<int, PromotionModel<Type>> newPromotionInfo =
         FlowModel.joinPromotionInfo(
             helper, first.promotionInfo, second.promotionInfo);
@@ -2690,8 +2694,12 @@ class FlowModel<Type extends Object> {
       return second.unsplit();
     }
 
-    Reachability newReachable =
-        Reachability.join(first.reachable, second.reachable).unsplit();
+    // first.reachable and second.reachable are equivalent, so we don't need to
+    // join reachabilities.
+    assert(
+        first.reachable.locallyReachable == second.reachable.locallyReachable);
+    assert(first.reachable.parent == second.reachable.parent);
+    Reachability newReachable = first.reachable.unsplit();
     Map<int, PromotionModel<Type>> newPromotionInfo =
         FlowModel.joinPromotionInfo(
             helper, first.promotionInfo, second.promotionInfo);
@@ -3545,34 +3553,6 @@ class Reachability {
       r2 = r2!.parent;
     }
     return r1;
-  }
-
-  /// Combines two reachabilities (both of which must be based on the same
-  /// checkpoint), where the code is considered reachable from the checkpoint
-  /// iff either argument is reachable from the checkpoint.
-  ///
-  /// This is used as part of the "join" operation.
-  static Reachability join(Reachability r1, Reachability r2) {
-    assert(identical(r1.parent, r2.parent));
-    if (r2.locallyReachable) {
-      return r2;
-    } else {
-      return r1;
-    }
-  }
-
-  /// Combines two reachabilities (both of which must be based on the same
-  /// checkpoint), where the code is considered reachable from the checkpoint
-  /// iff both arguments are reachable from the checkpoint.
-  ///
-  /// This is used as part of the "restrict" operation.
-  static Reachability restrict(Reachability r1, Reachability r2) {
-    assert(identical(r1.parent, r2.parent));
-    if (r2.locallyReachable) {
-      return r1;
-    } else {
-      return r2;
-    }
   }
 }
 

@@ -532,7 +532,6 @@ class Parser {
           /* start = */ token,
           /* keyword = */ next,
           /* macroToken = */ null,
-          /* inlineToken = */ null,
           /* sealedToken = */ null,
           /* baseToken = */ null,
           /* interfaceToken = */ null,
@@ -561,16 +560,10 @@ class Parser {
     }
     next = token.next!;
     Token? macroToken;
-    Token? inlineToken;
     Token? sealedToken;
     Token? baseToken;
     Token? interfaceToken;
     if (next.isIdentifier &&
-        next.lexeme == 'inline' &&
-        optional('class', next.next!)) {
-      inlineToken = next;
-      next = next.next!;
-    } else if (next.isIdentifier &&
         next.lexeme == 'macro' &&
         optional('class', next.next!)) {
       macroToken = next;
@@ -609,7 +602,6 @@ class Parser {
           /* start = */ start,
           /* keyword = */ next,
           /* macroToken = */ macroToken,
-          /* inlineToken = */ inlineToken,
           /* sealedToken = */ sealedToken,
           /* baseToken = */ baseToken,
           /* interfaceToken = */ interfaceToken,
@@ -649,7 +641,6 @@ class Parser {
       Token start,
       Token keyword,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -661,7 +652,6 @@ class Parser {
           start,
           keyword,
           macroToken,
-          inlineToken,
           sealedToken,
           baseToken,
           interfaceToken,
@@ -742,7 +732,6 @@ class Parser {
                 start,
                 keyword.next!,
                 macroToken,
-                inlineToken,
                 sealedToken,
                 baseToken,
                 interfaceToken,
@@ -791,7 +780,6 @@ class Parser {
       Token start,
       Token classKeyword,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -820,7 +808,6 @@ class Parser {
     return parseClassOrNamedMixinApplication(
         context.abstractToken,
         macroToken,
-        inlineToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -2580,7 +2567,6 @@ class Parser {
   Token parseClassOrNamedMixinApplication(
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -2591,7 +2577,6 @@ class Parser {
     assert(optional('class', classKeyword));
     Token begin = abstractToken ??
         macroToken ??
-        inlineToken ??
         sealedToken ??
         baseToken ??
         interfaceToken ??
@@ -2613,7 +2598,6 @@ class Parser {
           begin,
           abstractToken,
           macroToken,
-          inlineToken,
           sealedToken,
           baseToken,
           interfaceToken,
@@ -2627,7 +2611,6 @@ class Parser {
           begin,
           abstractToken,
           macroToken,
-          inlineToken,
           sealedToken,
           baseToken,
           interfaceToken,
@@ -2989,36 +2972,39 @@ class Parser {
     return token;
   }
 
-  /// ```
-  /// 'extension' <identifier>? <typeParameters>?
-  ///     (('.' <identifier>)? <implementsClause>) | ('on' <type> '?'?)
-  //   `{'
-  //     <memberDeclaration>*
-  //   `}'
-  /// ```
+  /// Parses an extension or extension type declaration.
   Token parseExtension(Token extensionKeyword) {
     assert(optional('extension', extensionKeyword));
     Token token = extensionKeyword;
     listener.beginExtensionDeclarationPrelude(extensionKeyword);
-    Token? name = token.next!;
-    Token? typeKeyword = null;
-    Token? constKeyword = null;
-    if (name.isIdentifier && name.lexeme == 'type') {
+    if (token.next!.isIdentifier && token.next!.lexeme == 'type') {
       // 'extension' 'type'
-      if (optional('const', name.next!)) {
-        // 'extension' 'type' 'const' <identifier>
-        typeKeyword = name;
-        constKeyword = name.next!;
-        token = token.next!.next!;
-        name = token.next!;
-      } else if (name.next!.isIdentifier && !optional('on', name.next!)) {
-        // 'extension' 'type' <identifier>
-        typeKeyword = name;
-        token = token.next!;
-        name = token.next!;
-      }
+      Token typeKeyword = token.next!;
+      return parseExtensionTypeDeclaration(
+          token.next!, extensionKeyword, typeKeyword);
+    } else {
+      return parseExtensionDeclaration(token, extensionKeyword);
     }
+  }
 
+  /// Parses an extension declaration after
+  ///
+  ///    'extension'
+  ///
+  /// This parses
+  ///
+  /// ```
+  ///    <identifier>? <typeParameters>?
+  ///       (('.' <identifier>)? <implementsClause>) | ('on' <type> '?'?)
+  ///   `{'
+  ///     <memberDeclaration>*
+  ///   `}'
+  /// ```
+  ///
+  Token parseExtensionDeclaration(Token token, Token extensionKeyword) {
+    assert(optional('extension', extensionKeyword));
+    assert(!optional('type', token));
+    Token? name = token.next!;
     if (name.isIdentifier && !optional('on', name)) {
       token = name;
       if (name.type.isBuiltIn) {
@@ -3030,22 +3016,6 @@ class Parser {
     }
     token = computeTypeParamOrArg(token, /* inDeclaration = */ true)
         .parseVariables(token, this);
-    if (typeKeyword != null && name != null) {
-      Token next = token.next!;
-      if (optional('(', next) || optional('.', next)) {
-        return parseExtensionTypeDeclarationRest(
-            token, extensionKeyword, typeKeyword, constKeyword, name);
-      } else {
-        // TODO(johnniwinther): Change this to recover as an extension type
-        // declaration.
-        reportRecoverableError(
-            next, codes.templateUnexpectedToken.withArguments(next));
-      }
-    }
-    if (constKeyword != null) {
-      reportRecoverableError(constKeyword,
-          codes.templateUnexpectedToken.withArguments(constKeyword));
-    }
     listener.beginExtensionDeclaration(extensionKeyword, name);
     Token onKeyword = token.next!;
     if (!optional('on', onKeyword)) {
@@ -3096,27 +3066,65 @@ class Parser {
 
   /// Parses an extension type declaration after
   ///
-  ///    'extension' 'type' 'const'? <name> <typeParameters>?
+  ///    'extension' 'type'
   ///
   /// This parses
   ///
-  ///    ('.' <identifier>)? <formals> '{' <memberDeclaration>* '}'
+  ///    'const'? <identifier> <typeParameters>?
+  ///        ('.' <identifier>)? <formals> '{' <memberDeclaration>* '}'
   ///
-  Token parseExtensionTypeDeclarationRest(Token token, Token extensionKeyword,
-      Token typeKeyword, Token? constKeyword, Token name) {
-    assert(optional('(', token.next!) || optional('.', token.next!));
-    listener.beginExtensionTypeDeclaration(extensionKeyword, name);
-    Token beginPrimaryConstructor = token.next!;
-    listener.beginPrimaryConstructor(beginPrimaryConstructor);
-    bool hasConstructorName = optional('.', beginPrimaryConstructor);
-    if (hasConstructorName) {
-      token = ensureIdentifier(beginPrimaryConstructor,
-          IdentifierContext.primaryConstructorDeclaration);
+  Token parseExtensionTypeDeclaration(
+      Token token, Token extensionKeyword, Token typeKeyword) {
+    assert(token.isIdentifier && token.lexeme == 'type');
+    Token? constKeyword = null;
+    if (optional('const', token.next!)) {
+      // 'extension' 'type' 'const' <identifier>
+      token = constKeyword = token.next!;
     }
-    token = parseFormalParameters(token, MemberKind.PrimaryConstructor);
-    listener.endPrimaryConstructor(
-        beginPrimaryConstructor, constKeyword, hasConstructorName);
+    Token? name;
+    if (token.next!.isIdentifier) {
+      name = token.next!;
+      if (name.type.isBuiltIn) {
+        reportRecoverableErrorWithToken(
+            token, codes.templateBuiltInIdentifierInDeclaration);
+      }
+    } else {
+      name = IdentifierContext.classOrMixinOrExtensionDeclaration
+          .ensureIdentifier(token, this);
+    }
+    token = name;
+    token = computeTypeParamOrArg(token, /* inDeclaration = */ true)
+        .parseVariables(token, this);
+    listener.beginExtensionTypeDeclaration(extensionKeyword, name);
+    if (optional('(', token.next!) || optional('.', token.next!)) {
+      Token beginPrimaryConstructor = token.next!;
+      listener.beginPrimaryConstructor(beginPrimaryConstructor);
+      bool hasConstructorName = optional('.', beginPrimaryConstructor);
+      if (hasConstructorName) {
+        token = ensureIdentifier(beginPrimaryConstructor,
+            IdentifierContext.primaryConstructorDeclaration);
+      }
+      if (optional('(', token.next!)) {
+        token = parseFormalParameters(token, MemberKind.PrimaryConstructor);
+      } else {
+        reportRecoverableError(
+            token, codes.messageMissingPrimaryConstructorParameters);
+        listener.handleNoFormalParameters(token, MemberKind.PrimaryConstructor);
+      }
+      listener.endPrimaryConstructor(
+          beginPrimaryConstructor, constKeyword, hasConstructorName);
+    } else {
+      reportRecoverableError(token, codes.messageMissingPrimaryConstructor);
+      listener.handleNoPrimaryConstructor(token, constKeyword);
+    }
     token = parseClassOrMixinOrEnumImplementsOpt(token);
+    if (!optional('{', token.next!)) {
+      // TODO(johnniwinther): Reuse logic from [parseClassHeaderRecovery] to
+      // handle `extends`, `with` and out-of-order/duplicate clauses.
+
+      // Recovery
+      ensureBlock(token, /* template = */ null, 'extension type declaration');
+    }
     token = parseClassOrMixinOrExtensionBody(
         token, DeclarationKind.ExtensionType, name.lexeme);
     listener.endExtensionTypeDeclaration(extensionKeyword, typeKeyword, token);

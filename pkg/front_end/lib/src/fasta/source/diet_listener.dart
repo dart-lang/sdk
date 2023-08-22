@@ -956,7 +956,6 @@ class DietListener extends StackListenerImpl {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -1041,6 +1040,15 @@ class DietListener extends StackListenerImpl {
             as SourceFunctionBuilder;
     buildPrimaryConstructor(createFunctionListener(builder), formalsToken);
 
+    // The current declaration is set in [beginClassOrMixinOrExtensionBody],
+    // assuming that it is currently `null`, so we reset it here.
+    // TODO(johnniwinther): Normalize the setting of the current declaration.
+    currentDeclaration = null;
+    memberScope = libraryBuilder.scope;
+  }
+
+  @override
+  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
     // The current declaration is set in [beginClassOrMixinOrExtensionBody],
     // assuming that it is currently `null`, so we reset it here.
     // TODO(johnniwinther): Normalize the setting of the current declaration.

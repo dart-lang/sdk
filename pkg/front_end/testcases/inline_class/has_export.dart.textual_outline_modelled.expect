@@ -1,3 +1,0 @@
-export 'has_part_lib.dart';
-
-void main() {}

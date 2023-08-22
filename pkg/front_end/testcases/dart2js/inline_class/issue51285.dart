@@ -2,22 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-inline class I {
-  final int i = 0;
-
+extension type I._(int i) {
   factory I() => 0 as I;
 }
 
-inline class J {
-  final int i;
+extension type J._(int i) {
   factory J(int i) => J._(i);
-  J._(this.i);
 }
 
-inline class K<T> {
-  final T i;
+extension type K<T>._(T i) {
   factory K(T i) => K._(i);
-  K._(this.i);
 }
 
 main() {
