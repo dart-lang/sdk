@@ -6358,6 +6358,25 @@ Instruction* CheckConditionInstr::Canonicalize(FlowGraph* graph) {
   return this;
 }
 
+LocationSummary* CheckConditionInstr::MakeLocationSummary(Zone* zone,
+                                                          bool opt) const {
+  comparison()->InitializeLocationSummary(zone, opt);
+  comparison()->locs()->set_out(0, Location::NoLocation());
+  return comparison()->locs();
+}
+
+void CheckConditionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  compiler::Label if_true;
+  compiler::Label* if_false =
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnknown);
+  BranchLabels labels = {&if_true, if_false, &if_true};
+  Condition true_condition = comparison()->EmitComparisonCode(compiler, labels);
+  if (true_condition != kInvalidCondition) {
+    __ BranchIf(InvertCondition(true_condition), if_false);
+  }
+  __ Bind(&if_true);
+}
+
 bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
   return LoadFieldInstr::IsFixedLengthArrayCid(cid);
 }

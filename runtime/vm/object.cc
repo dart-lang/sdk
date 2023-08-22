@@ -16610,7 +16610,6 @@ void CallSiteData::set_arguments_descriptor(const Array& value) const {
 void ICData::SetReceiversStaticType(const AbstractType& type) const {
   untag()->set_receivers_static_type(type.ptr());
 
-#if defined(TARGET_ARCH_X64)
   if (!type.IsNull() && type.HasTypeClass() && (NumArgsTested() == 1) &&
       type.IsInstantiated() && !type.IsFutureOrType()) {
     const Class& cls = Class::Handle(type.type_class());
@@ -16618,7 +16617,6 @@ void ICData::SetReceiversStaticType(const AbstractType& type) const {
       set_tracking_exactness(true);
     }
   }
-#endif  // defined(TARGET_ARCH_X64)
 }
 #endif
 
