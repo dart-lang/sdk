@@ -263,9 +263,7 @@ class SerializationTask extends CompilerTask {
               component,
               closedWorldAndIndices.data!,
               source),
-          source.enableDeferredStrategy
-              ? source.exportIndices()
-              : closedWorldAndIndices.indices);
+          source.exportIndices());
     });
   }
 
