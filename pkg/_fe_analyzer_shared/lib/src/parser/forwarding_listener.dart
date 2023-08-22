@@ -2148,6 +2148,11 @@ class ForwardingListener implements Listener {
     listener?.endPrimaryConstructor(
         beginToken, constKeyword, hasConstructorName);
   }
+
+  @override
+  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
+    listener?.handleNoPrimaryConstructor(token, constKeyword);
+  }
 }
 
 class NullListener extends ForwardingListener {

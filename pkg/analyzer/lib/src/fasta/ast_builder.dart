@@ -1632,19 +1632,23 @@ class AstBuilder extends StackListener {
       Token extensionKeyword, Token typeKeyword, Token endToken) {
     final implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
-    final representation = pop() as RepresentationDeclarationImpl;
+    final representation = pop(const NullValue<RepresentationDeclarationImpl>())
+        as RepresentationDeclarationImpl?;
     final constKeyword = pop() as Token?;
 
     if (enableInlineClass) {
       final builder = _classLikeBuilder as _ExtensionTypeDeclarationBuilder;
-      declarations.add(
-        builder.build(
-          typeKeyword: typeKeyword,
-          constKeyword: constKeyword,
-          representation: representation,
-          implementsClause: implementsClause,
-        ),
-      );
+      if (representation != null) {
+        // TODO(scheglov): Handle missing primary constructor.
+        declarations.add(
+          builder.build(
+            typeKeyword: typeKeyword,
+            constKeyword: constKeyword,
+            representation: representation,
+            implementsClause: implementsClause,
+          ),
+        );
+      }
     } else {
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.inline_class,
@@ -4840,6 +4844,13 @@ class AstBuilder extends StackListener {
         ),
       );
     }
+  }
+
+  @override
+  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
+    push(constKeyword ?? const NullValue<Token>());
+
+    push(const NullValue<RepresentationDeclarationImpl>());
   }
 
   @override

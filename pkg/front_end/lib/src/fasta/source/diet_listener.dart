@@ -1048,6 +1048,15 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
+    // The current declaration is set in [beginClassOrMixinOrExtensionBody],
+    // assuming that it is currently `null`, so we reset it here.
+    // TODO(johnniwinther): Normalize the setting of the current declaration.
+    currentDeclaration = null;
+    memberScope = libraryBuilder.scope;
+  }
+
+  @override
   void endExtensionTypeDeclaration(
       Token extensionKeyword, Token typeKeyword, Token endToken) {
     debugEvent("endExtensionTypeDeclaration");

@@ -350,6 +350,15 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
+    NoPrimaryConstructorHandle data = new NoPrimaryConstructorHandle(
+        ParserAstType.HANDLE,
+        token: token,
+        constKeyword: constKeyword);
+    seen(data);
+  }
+
+  @override
   void beginCombinators(Token token) {
     CombinatorsBegin data =
         new CombinatorsBegin(ParserAstType.BEGIN, token: token);
@@ -3649,6 +3658,21 @@ class PrimaryConstructorEnd extends ParserAstNode {
         "beginToken": beginToken,
         "constKeyword": constKeyword,
         "hasConstructorName": hasConstructorName,
+      };
+}
+
+class NoPrimaryConstructorHandle extends ParserAstNode {
+  final Token token;
+  final Token? constKeyword;
+
+  NoPrimaryConstructorHandle(ParserAstType type,
+      {required this.token, this.constKeyword})
+      : super("NoPrimaryConstructor", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+        "constKeyword": constKeyword,
       };
 }
 

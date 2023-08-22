@@ -180,6 +180,8 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME,
   ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME,
   ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME,
+  ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR,
+  ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -1385,6 +1387,22 @@ class ParserErrorCode extends ErrorCode {
     "Deferred imports should have a prefix.",
     correctionMessage:
         "Try adding a prefix to the import by adding an 'as' clause.",
+  );
+
+  static const ParserErrorCode MISSING_PRIMARY_CONSTRUCTOR = ParserErrorCode(
+    'MISSING_PRIMARY_CONSTRUCTOR',
+    "An extension type declaration must have a primary constructor "
+        "declaration.",
+    correctionMessage:
+        "Try adding a primary constructor to the extension type declaration.",
+  );
+
+  static const ParserErrorCode MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS =
+      ParserErrorCode(
+    'MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS',
+    "A primary constructor declaration must have formal parameters.",
+    correctionMessage:
+        "Try adding formal parameters after the primary constructor name.",
   );
 
   static const ParserErrorCode MISSING_STAR_AFTER_SYNC = ParserErrorCode(

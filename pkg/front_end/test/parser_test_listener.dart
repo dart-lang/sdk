@@ -394,6 +394,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
+    seen(token);
+    seen(constKeyword);
+    doPrint('handleNoPrimaryConstructor(' '$token, ' '$constKeyword)');
+  }
+
+  @override
   void beginCombinators(Token token) {
     seen(token);
     doPrint('beginCombinators(' '$token)');

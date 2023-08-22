@@ -9243,6 +9243,32 @@ const MessageCode messageMissingPrefixInDeferredImport = const MessageCode(
         r"""Try adding a prefix to the import by adding an 'as' clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingPrimaryConstructor =
+    messageMissingPrimaryConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingPrimaryConstructor = const MessageCode(
+    "MissingPrimaryConstructor",
+    index: 162,
+    problemMessage:
+        r"""An extension type declaration must have a primary constructor declaration.""",
+    correctionMessage:
+        r"""Try adding a primary constructor to the extension type declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingPrimaryConstructorParameters =
+    messageMissingPrimaryConstructorParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingPrimaryConstructorParameters = const MessageCode(
+    "MissingPrimaryConstructorParameters",
+    index: 163,
+    problemMessage:
+        r"""A primary constructor declaration must have formal parameters.""",
+    correctionMessage:
+        r"""Try adding formal parameters after the primary constructor name.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingTypedefParameters = messageMissingTypedefParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

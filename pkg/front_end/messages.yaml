@@ -7083,3 +7083,21 @@ CyclicRepresentationDependency:
 ExtensionTypeDeclarationCause:
   problemMessage: "The issue arises via this extension type declaration."
   severity: CONTEXT
+
+MissingPrimaryConstructor:
+  problemMessage: "An extension type declaration must have a primary constructor declaration."
+  correctionMessage: "Try adding a primary constructor to the extension type declaration."
+  index: 162
+  analyzerCode: ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR
+  experiments: inline-class
+  script: |
+    extension type E {}
+
+MissingPrimaryConstructorParameters:
+  problemMessage: "A primary constructor declaration must have formal parameters."
+  correctionMessage: "Try adding formal parameters after the primary constructor name."
+  index: 163
+  analyzerCode: ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS
+  experiments: inline-class
+  script: |
+    extension type E.name {}

@@ -1,0 +1,21 @@
+NOTICE: Stream was rewritten by parser!
+
+extension type *synthetic*(int i) {}
+extension type const *synthetic*(int i) {}
+extension type *synthetic*.name(int i) {}
+extension type const *synthetic*.name(int i) {}
+extension type *synthetic*<T>(int i) {}
+extension type const *synthetic*<T>(int i) {}
+extension type *synthetic*<T>.name(int i) {}
+extension type const *synthetic*<T>.name(int i) {}
+
+
+extension[KeywordToken] type[StringToken] [SyntheticStringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] [SyntheticStringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] [SyntheticStringToken].[SimpleToken]name[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] [SyntheticStringToken].[SimpleToken]name[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] [SyntheticStringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] [SyntheticStringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] [SyntheticStringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]name[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] [SyntheticStringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]name[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

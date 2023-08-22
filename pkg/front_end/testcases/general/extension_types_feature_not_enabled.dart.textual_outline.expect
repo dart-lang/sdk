@@ -1,3 +1,4 @@
 class A {}
-extension type E on A {}
+extension type E {}
+on A (){}
 main() {}

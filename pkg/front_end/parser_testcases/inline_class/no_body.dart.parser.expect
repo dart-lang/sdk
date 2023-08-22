@@ -1,0 +1,15 @@
+NOTICE: Stream was rewritten by parser!
+
+class C{};
+mixin M{};
+extension E on int{};
+extension type ET1(int i){};
+extension type ET2(int i) implements Foo{};
+extension type ET3(int i) implements Foo, Bar{};
+
+class[KeywordToken] C[StringToken]{[SyntheticBeginToken]}[SyntheticToken];[SimpleToken]
+mixin[KeywordToken] M[StringToken]{[SyntheticBeginToken]}[SyntheticToken];[SimpleToken]
+extension[KeywordToken] E[StringToken] on[KeywordToken] int[StringToken]{[SyntheticBeginToken]}[SyntheticToken];[SimpleToken]
+extension[KeywordToken] type[StringToken] ET1[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken]{[SyntheticBeginToken]}[SyntheticToken];[SimpleToken]
+extension[KeywordToken] type[StringToken] ET2[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] implements[KeywordToken] Foo[StringToken]{[SyntheticBeginToken]}[SyntheticToken];[SimpleToken]
+extension[KeywordToken] type[StringToken] ET3[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] implements[KeywordToken] Foo[StringToken],[SimpleToken] Bar[StringToken]{[SyntheticBeginToken]}[SyntheticToken];[SimpleToken][SimpleToken]

@@ -3025,6 +3025,10 @@ ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE:
   status: noFix
 ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT:
   status: noFix
+ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR:
+  status: needsEvaluation
+ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS:
+  status: needsEvaluation
 ParserErrorCode.MISSING_STAR_AFTER_SYNC:
   status: needsFix
   notes: |-

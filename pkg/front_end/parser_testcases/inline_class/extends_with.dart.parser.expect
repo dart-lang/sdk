@@ -1,0 +1,25 @@
+NOTICE: Stream was rewritten by parser!
+
+extension type ET1(int i) {}extends ;Foo (){}
+extension type ET2(int i) {}with ;Foo (){}
+extension type ET3(int i) {}with ;Foo, Bar ;{}
+extension type ET4(int i) {}extends ;Foo ;with ;Bar (){}
+extension type ET5(int i) {}extends ;Foo ;with ;Bar, Baz ;{}
+extension type ET6(int i) {}extends ;Foo implements ;Bar (){}
+extension type ET7(int i) {}with ;Foo implements ;Bar (){}
+extension type ET8(int i) {}with ;Foo, Bar ;implements ;Baz (){}
+extension type ET9(int i) {}extends ;Foo ;with ;Bar implements ;Baz (){}
+extension type ET10(int i) {}extends ;Foo ;with ;Bar, Baz ;implements ;Boz (){}
+
+
+extension[KeywordToken] type[StringToken] ET1[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[SyntheticBeginToken]}[SyntheticToken]extends[KeywordToken] ;[SyntheticToken]Foo[StringToken] ([SyntheticBeginToken])[SyntheticToken]{[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET2[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[SyntheticBeginToken]}[SyntheticToken]with[KeywordToken] ;[SyntheticToken]Foo[StringToken] ([SyntheticBeginToken])[SyntheticToken]{[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET3[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[SyntheticBeginToken]}[SyntheticToken]with[KeywordToken] ;[SyntheticToken]Foo[StringToken],[SimpleToken] Bar[StringToken] ;[SyntheticToken]{[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET4[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[SyntheticBeginToken]}[SyntheticToken]extends[KeywordToken] ;[SyntheticToken]Foo[StringToken] ;[SyntheticToken]with[KeywordToken] ;[SyntheticToken]Bar[StringToken] ([SyntheticBeginToken])[SyntheticToken]{[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET5[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[SyntheticBeginToken]}[SyntheticToken]extends[KeywordToken] ;[SyntheticToken]Foo[StringToken] ;[SyntheticToken]with[KeywordToken] ;[SyntheticToken]Bar[StringToken],[SimpleToken] Baz[StringToken] ;[SyntheticToken]{[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET6[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[SyntheticBeginToken]}[SyntheticToken]extends[KeywordToken] ;[SyntheticToken]Foo[StringToken] implements[KeywordToken] ;[SyntheticToken]Bar[StringToken] ([SyntheticBeginToken])[SyntheticToken]{[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET7[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[SyntheticBeginToken]}[SyntheticToken]with[KeywordToken] ;[SyntheticToken]Foo[StringToken] implements[KeywordToken] ;[SyntheticToken]Bar[StringToken] ([SyntheticBeginToken])[SyntheticToken]{[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET8[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[SyntheticBeginToken]}[SyntheticToken]with[KeywordToken] ;[SyntheticToken]Foo[StringToken],[SimpleToken] Bar[StringToken] ;[SyntheticToken]implements[KeywordToken] ;[SyntheticToken]Baz[StringToken] ([SyntheticBeginToken])[SyntheticToken]{[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET9[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[SyntheticBeginToken]}[SyntheticToken]extends[KeywordToken] ;[SyntheticToken]Foo[StringToken] ;[SyntheticToken]with[KeywordToken] ;[SyntheticToken]Bar[StringToken] implements[KeywordToken] ;[SyntheticToken]Baz[StringToken] ([SyntheticBeginToken])[SyntheticToken]{[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET10[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[SyntheticBeginToken]}[SyntheticToken]extends[KeywordToken] ;[SyntheticToken]Foo[StringToken] ;[SyntheticToken]with[KeywordToken] ;[SyntheticToken]Bar[StringToken],[SimpleToken] Baz[StringToken] ;[SyntheticToken]implements[KeywordToken] ;[SyntheticToken]Boz[StringToken] ([SyntheticBeginToken])[SyntheticToken]{[BeginToken]}[SimpleToken]
+[SimpleToken]

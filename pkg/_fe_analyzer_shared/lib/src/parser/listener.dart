@@ -298,6 +298,10 @@ class Listener implements UnescapeErrorListener {
     logEvent('PrimaryConstructor');
   }
 
+  /// Handle the omission of a primary constructor declaration. Currently only
+  /// occurring in extension type declarations.
+  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {}
+
   void beginCombinators(Token token) {}
 
   void endCombinators(int count) {

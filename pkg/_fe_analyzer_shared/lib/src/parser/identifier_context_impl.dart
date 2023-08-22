@@ -66,6 +66,8 @@ class ClassOrMixinOrExtensionIdentifierContext extends IdentifierContext {
       'implements',
       'on',
       '=',
+      '(',
+      '.',
     ];
     if (identifier.isEof ||
         (looksLikeStartOfNextTopLevelDeclaration(identifier) &&
