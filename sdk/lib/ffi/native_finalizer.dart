@@ -250,8 +250,8 @@ typedef NativeFinalizerFunction
 ///
 /// Note that an isolate group is not necessarily guaranteed to shutdown
 /// normally as the whole process might crash or be abruptly terminated
-/// by a function like `exit`. This means `NativeFinalizer` can not be 
-/// relied upon for running actions on the programs exit.   
+/// by a function like `exit`. This means `NativeFinalizer` can not be
+/// relied upon for running actions on the programs exit.
 ///
 /// When the callback is a Dart function rather than a native function, use
 /// [Finalizer] instead.
