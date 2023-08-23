@@ -3,16 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/state.dart';
-import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/utils.dart';
 
+import '../test/test_constants.dart';
 import 'crawl.dart';
 import 'parse.dart';
 import 'since.dart';
@@ -193,8 +194,8 @@ class ScoreCard {
   }
 
   static Future<ScoreCard> calculate() async {
-    var lintsWithFixes = await _getLintsWithFixes();
-    var lintsWithAssists = await _getLintsWithAssists();
+    var lintsWithFixes = _getLintsWithFixes();
+    var lintsWithAssists = _getLintsWithAssists();
     var flutterRuleset = await flutterRules;
     var flutterRepoRuleset = await flutterRepoRules;
 
@@ -220,12 +221,19 @@ class ScoreCard {
     return scorecard;
   }
 
-  static Future<List<String>> _getLintsWithAssists() async {
-    var client = http.Client();
-    var req = await client.get(Uri.parse(
-        'https://raw.githubusercontent.com/dart-lang/sdk/main/pkg/analysis_server/lib/src/services/correction/assist.dart'));
+  static List<String> _getLintsWithAssists() {
+    var assistFilePath = pathRelativeToPkgDir([
+      'analysis_server',
+      'lib',
+      'src',
+      'services',
+      'correction',
+      'assist.dart'
+    ]);
+    var contents = File(assistFilePath).readAsStringSync();
+
     var parser = CompilationUnitParser();
-    var cu = parser.parse(contents: req.body, name: 'assist.dart');
+    var cu = parser.parse(contents: contents, name: 'assist.dart');
     var assistKindClass = cu.declarations.firstWhere(
         (m) => m is ClassDeclaration && m.name.lexeme == 'DartAssistKind');
 
@@ -234,13 +242,19 @@ class ScoreCard {
     return collector.lintNames;
   }
 
-  static Future<List<String>> _getLintsWithFixes() async {
-    var client = http.Client();
-    var req = await client.get(Uri.parse(
-        'https://raw.githubusercontent.com/dart-lang/sdk/main/pkg/analysis_server/lib/src/services/linter/lint_names.dart'));
+  static List<String> _getLintsWithFixes() {
+    var lintNamesFilePath = pathRelativeToPkgDir([
+      'analysis_server',
+      'lib',
+      'src',
+      'services',
+      'linter',
+      'lint_names.dart'
+    ]);
+    var contents = File(lintNamesFilePath).readAsStringSync();
 
     var parser = CompilationUnitParser();
-    var cu = parser.parse(contents: req.body, name: 'lint_names.dart');
+    var cu = parser.parse(contents: contents, name: 'lint_names.dart');
     var lintNamesClass = cu.declarations.firstWhere(
         (m) => m is ClassDeclaration && m.name.lexeme == 'LintNames');
 

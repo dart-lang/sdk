@@ -10,8 +10,8 @@ import 'util/test_utils.dart';
 void main() {
   group('doc generation', () {
     setUp(setUpSharedTestEnvironment);
-    test('fixStatus (sanity)', () async {
-      var fixStatusMap = await fetchFixStatusMap();
+    test('fixStatus (sanity)', () {
+      var fixStatusMap = readFixStatusMap();
       // Doc generation reads the fix status map to associate fix status
       // badges with rule documentation.  Here we check one for sanity.
       // If the file moves or format changes, we'd expect this to fail.

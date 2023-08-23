@@ -18,3 +18,9 @@ String pathRelativeToPackageRoot(Iterable<String> parts) {
   split.replaceRange(split.length - 1, split.length, parts);
   return path.joinAll(split);
 }
+
+String pathRelativeToPkgDir(Iterable<String> parts) {
+  var split = path.split(path.dirname(Platform.script.path));
+  split.replaceRange(split.length - 2, split.length, parts);
+  return path.joinAll(split);
+}
