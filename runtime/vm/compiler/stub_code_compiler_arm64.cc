@@ -510,7 +510,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
   // code size on this shared stub.
   {
-    __ mov(SP, CSP);
+    __ SetupDartSP();
 
     __ EnterFrame(0);
     __ PushRegisters(all_registers);
@@ -531,8 +531,6 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(0);
 
-    __ mov(CSP, SP);
-
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
@@ -549,7 +547,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
         FfiCallbackMetadata::kGetFfiCallbackMetadata, R4);
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 
+    __ mov(CSP, SP);
     __ blr(R4);
+    __ mov(SP, CSP);
     __ mov(THR, R0);
 
     __ LeaveFrame();
@@ -564,7 +564,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ PopRegisters(all_registers);
     __ LeaveFrame();
 
-    __ mov(CSP, SP);
+    __ RestoreCSP();
   }
 
   Label async_callback;
@@ -605,7 +605,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Exit the temporary isolate.
   {
-    __ mov(SP, CSP);
+    __ SetupDartSP();
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(0);
 
@@ -631,7 +631,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ mov(THR, R0);
 
     __ LeaveFrame();
-    __ mov(CSP, SP);
+    __ RestoreCSP();
   }
 
   __ Bind(&done);
