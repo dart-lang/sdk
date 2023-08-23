@@ -14,8 +14,7 @@ class ChangeWorkspaceFoldersHandler
   bool updateAnalysisRoots;
 
   ChangeWorkspaceFoldersHandler(super.server)
-      : updateAnalysisRoots =
-            !server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles;
+      : updateAnalysisRoots = !server.onlyAnalyzeProjectsWithOpenFiles;
 
   @override
   Method get handlesMessage => Method.workspace_didChangeWorkspaceFolders;

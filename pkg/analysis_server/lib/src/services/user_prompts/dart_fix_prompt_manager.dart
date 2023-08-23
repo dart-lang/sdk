@@ -5,7 +5,11 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart'
-    show AnalysisServer, MessageType, OpenUriNotificationSender;
+    show
+        AnalysisServer,
+        MessageType,
+        OpenUriNotificationSender,
+        UserPromptSender;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
@@ -118,13 +122,14 @@ class DartFixPromptManager {
 
   @visibleForTesting
   Future<void> showPrompt({
+    required UserPromptSender userPromptSender,
     required OpenUriNotificationSender openUriNotificationSender,
   }) async {
     _hasPromptedThisSession = true;
 
     // Note: It's possible the user never responds to this until we shut down
     //  so handle the request throwing due to server shutting down.
-    final response = await server.showUserPrompt(
+    final response = await userPromptSender(
       MessageType.info,
       promptText,
       [
@@ -135,7 +140,7 @@ class DartFixPromptManager {
 
     switch (response) {
       case learnMoreActionText:
-        openUriNotificationSender(learnMoreUri);
+        unawaited(openUriNotificationSender(learnMoreUri));
       case doNotShowAgainActionText:
         preferences.showDartFixPrompts = false;
       default:
@@ -165,10 +170,11 @@ class DartFixPromptManager {
   /// The check/prompt may be skipped if not supported or the check has been run
   /// recently. If an existing check is in-progress, it will be aborted.
   Future<void> _performCheckAndPrompt() async {
+    final userPromptSender = server.userPromptSender;
     final openUriNotificationSender = server.openUriNotificationSender;
 
     if (_hasPromptedThisSession ||
-        !server.supportsShowMessageRequest ||
+        userPromptSender == null ||
         openUriNotificationSender == null ||
         !preferences.showDartFixPrompts) {
       return;
@@ -191,6 +197,7 @@ class DartFixPromptManager {
     }
 
     await showPrompt(
+      userPromptSender: userPromptSender,
       openUriNotificationSender: openUriNotificationSender,
     );
   }

@@ -29,7 +29,7 @@ class InitializedMessageHandler
 
     server.analyticsManager.initialized(openWorkspacePaths: openWorkspacePaths);
 
-    if (server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles) {
+    if (server.onlyAnalyzeProjectsWithOpenFiles) {
       await server.fetchClientConfigurationAndPerformDynamicRegistration();
     } else {
       // This method internally calls

@@ -114,7 +114,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
       expect(server.clientCapabilities.requests, requests);
       expect(server.openUriNotificationSender,
           openUrlRequest ? isNotNull : isNull);
-      expect(server.supportsShowMessageRequest, showMessageRequest);
+      expect(server.userPromptSender, showMessageRequest ? isNotNull : isNull);
     }
 
     await setCapabilities(openUrlRequest: false, showMessageRequest: false);
@@ -147,7 +147,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
 
     // Send the request.
     var responseFuture =
-        server.showUserPrompt(MessageType.warning, 'message', ['a', 'b']);
+        server.userPromptSender!(MessageType.warning, 'message', ['a', 'b']);
     expect(serverChannel.serverRequestsSent, hasLength(1));
 
     // Simulate the response.
@@ -163,7 +163,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
 
     // Send the request.
     var responseFuture =
-        server.showUserPrompt(MessageType.warning, 'message', ['a', 'b']);
+        server.userPromptSender!(MessageType.warning, 'message', ['a', 'b']);
     expect(serverChannel.serverRequestsSent, hasLength(1));
 
     // Simulate the response.

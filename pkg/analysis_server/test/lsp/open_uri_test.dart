@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -33,7 +35,7 @@ class OpenUriTest extends AbstractLspAnalysisServerTest {
     await initializeWithUriSupport();
 
     final notificationFuture = openUriNotifications.first;
-    server.openUriNotificationSender!.call(exampleUri);
+    unawaited(server.openUriNotificationSender!.call(exampleUri));
     final notification = await notificationFuture;
 
     expect(notification.uri, exampleUri);

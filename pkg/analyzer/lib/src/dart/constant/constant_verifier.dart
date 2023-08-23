@@ -263,7 +263,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         }
       }
     } else {
-      node.argumentList.accept(this);
       super.visitInstanceCreationExpression(node);
     }
   }

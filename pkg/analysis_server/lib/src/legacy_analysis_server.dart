@@ -485,6 +485,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   }
 
   @override
+  @protected
   bool get supportsShowMessageRequest =>
       clientCapabilities.requests.contains('showMessageRequest');
 
@@ -804,6 +805,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   }
 
   @override
+  @visibleForOverriding
   Future<String?> showUserPrompt(
     MessageType type,
     String message,
