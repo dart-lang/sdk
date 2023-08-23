@@ -15,6 +15,8 @@ _STANDARD_PATHS = [
     "sdk_args.gni",
     # core libraries
     ".dart_tool/package_config.json",
+    "tools/generate_package_config.py",
+    "tools/generate_package_config.dart",
     "sdk/lib/[^_].+",
     # testing
     _TEST_PY_PATHS,
