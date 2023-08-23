@@ -16,19 +16,6 @@ import 'package:watcher/watcher.dart';
 /// store data across sessions.
 string _serverdir;
 
-if (Platform.isLinux) {
-  var xdgConfigHome = Platform.environment['XDG_CONFIG_HOME'];
-  if (xdgConfigHome != null) {
-    _serverDir = '$xdgConfigHome/dartServer';
-  } else {
-    _serverDir = '${Platform.environment['HOME']}/.config/dartServer';
-  }
-} else if (Platform.isMacOS) {
-  _serverDir = '${Platform.environment['HOME']}/Library/Application Support/dartServer';
-} else if (Platform.isWindows) {
-  _serverDir = '${Platform.environment['APPDATA']}/dartServer';
-}
-
 /// Returns the path to default state location.
 ///
 /// Generally this is ~/.config/dartServer. It can be overridden via the
@@ -40,10 +27,18 @@ String? _getStandardStateLocation() {
     return env['ANALYZER_STATE_LOCATION_OVERRIDE'];
   }
 
-  final home = io.Platform.isWindows ? env['LOCALAPPDATA'] : env['HOME'];
-  return home != null && io.FileSystemEntity.isDirectorySync(home)
-      ? join(home, _serverDir)
-      : null;
+  if (Platform.isLinux) {
+    var xdgConfigHome = Platform.environment['XDG_CONFIG_HOME'];
+    if (xdgConfigHome != null) {
+      return '$xdgConfigHome/dartServer';
+    } else {
+      return '${Platform.environment['HOME']}/.config/dartServer';
+    }
+  } else if (Platform.isMacOS) {
+    return '${Platform.environment['HOME']}/Library/Application Support/dartServer';
+  } else if (Platform.isWindows) {
+    return '${Platform.environment['APPDATA']}/dartServer';
+  }
 }
 
 /// A `dart:io` based implementation of [ResourceProvider].

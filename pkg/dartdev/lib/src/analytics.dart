@@ -40,26 +40,7 @@ const String _readmeFileContents = '''
 This directory contains user-level settings for the Dart programming language
 (https://dart.dev).
 ''';
-
 String _dartDirectoryName;
-
-if (Platform.environment.containsKey('DART_CONFIG_DIR')) {
-  _dartDirectoryName = Platform.environment['DART_CONFIG_DIR'];
-} else {
-  if (Platform.isLinux) {
-    var xdgConfigHome = Platform.environment['XDG_CONFIG_HOME'];
-    if (xdgConfigHome != null) {
-      _dartDirectoryName = '$xdgConfigHome/dart';
-    } else {
-      _dartDirectoryName = '${Platform.environment['HOME']}/.config/dart';
-    }
-  } else if (Platform.isMacOS) {
-    _dartDirectoryName = '${Platform.environment['HOME']}/Library/Application Support/dart';
-  } else if (Platform.isWindows) {
-    _dartDirectoryName = '${Platform.environment['APPDATA']}/dart';
-  }
-}
-
 const String eventCategory = 'dartdev';
 const String exitCodeParam = 'exitCode';
 
@@ -69,6 +50,24 @@ Analytics get disabledAnalytics => DisabledAnalytics(_trackingId, _appName);
 
 /// Create and return an [Analytics] instance.
 Analytics createAnalyticsInstance(bool disableAnalytics) {
+  if (Platform.environment.containsKey('DART_CONFIG_DIR')) {
+    _dartDirectoryName = Platform.environment['DART_CONFIG_DIR'];
+  } else {
+    if (Platform.isLinux) {
+      var xdgConfigHome = Platform.environment['XDG_CONFIG_HOME'];
+      if (xdgConfigHome != null) {
+        _dartDirectoryName = '$xdgConfigHome/dart';
+      } else {
+        _dartDirectoryName = '${Platform.environment['HOME']}/.config/dart';
+      }
+    } else if (Platform.isMacOS) {
+      _dartDirectoryName =
+          '${Platform.environment['HOME']}/Library/Application Support/dart';
+    } else if (Platform.isWindows) {
+      _dartDirectoryName = '${Platform.environment['APPDATA']}/dart';
+    }
+  }
+
   if (Platform.environment['_DARTDEV_LOG_ANALYTICS'] != null) {
     // Used for testing what analytics messages are sent.
     return _LoggingAnalytics();
