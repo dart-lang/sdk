@@ -46,6 +46,22 @@ var v = const C(const B());
 ''');
   }
 
+  test_assignable_fieldFormal_typedef() async {
+    // foo has the type dynamic -> dynamic, so it is not assignable to A.f.
+    await assertErrorsInCode(r'''
+typedef String Int2String(int x);
+class A {
+  final Int2String f;
+  const A(this.f);
+}
+foo(x) => 1;
+var v = const A(foo);
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 116, 3),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 116, 3),
+    ]);
+  }
+
   test_assignable_fieldFormal_typeSubstitution() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
@@ -173,6 +189,69 @@ const c = C();
 ''');
   }
 
+  test_notAssignable_fieldFormal_optional() async {
+    await assertErrorsInCode(r'''
+class A {
+  final int x;
+  const A([this.x = 'foo']);
+}
+var v = const A();
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 45, 5),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 64, 9),
+    ]);
+  }
+
+  test_notAssignable_fieldFormal_supertype() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+}
+class B extends A {
+  const B();
+}
+class C {
+  final B b;
+  const C(this.b);
+}
+const A u = const A();
+var v = const C(u);
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 143, 1),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 143, 1),
+    ]);
+  }
+
+  test_notAssignable_fieldFormal_typedef() async {
+    // foo has type String -> int, so it is not assignable to A.f
+    // (A.f requires it to be int -> String).
+    await assertErrorsInCode(r'''
+typedef String Int2String(int x);
+class A {
+  final Int2String f;
+  const A(this.f);
+}
+int foo(String x) => 1;
+var v = const A(foo);
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 127, 3),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 127, 3),
+    ]);
+  }
+
+  test_notAssignable_fieldFormal_unrelated() async {
+    await assertErrorsInCode(r'''
+class A {
+  final int x;
+  const A(this.x);
+}
+var v = const A('foo');
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 62, 5),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 62, 5),
+    ]);
+  }
+
   test_notAssignable_fieldFormal_unresolved() async {
     await assertErrorsInCode(r'''
 class A {
@@ -182,6 +261,30 @@ class A {
 var v = const A('foo');
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 18, 10),
+    ]);
+  }
+
+  test_notAssignable_typeSubstitution() async {
+    await assertErrorsInCode(r'''
+class A<T> {
+  const A(T x);
+}
+var v = const A<int>('foo');
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 52, 5),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 52, 5),
+    ]);
+  }
+
+  test_notAssignable_unrelated() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(int x);
+}
+var v = const A('foo');
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 46, 5),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 46, 5),
     ]);
   }
 

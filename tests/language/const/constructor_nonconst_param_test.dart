@@ -13,7 +13,6 @@ class B {
       //    ^^^^
       // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
       // [cfe] Constant evaluation error:
-      //    ^
       // [cfe] Constant expression expected.
   ;
 }
@@ -21,5 +20,5 @@ class B {
 void main() {
   const B("");
 //^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+// [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
 }

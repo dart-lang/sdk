@@ -242,24 +242,28 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       _checkForConstWithTypeParameters(
           namedType, CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS);
 
-      node.argumentList.accept(this);
-
       // We need to evaluate the constant to see if any errors occur during its
       // evaluation.
       var constructor = node.constructorName.staticElement;
       if (constructor != null) {
         ConstantVisitor constantVisitor =
             ConstantVisitor(_evaluationEngine, _currentLibrary, _errorReporter);
-        _evaluationEngine.evaluateConstructorCall(
-            _currentLibrary,
-            node,
-            constructor.returnType.typeArguments,
-            node.argumentList.arguments,
-            constructor,
-            constantVisitor,
-            _errorReporter);
+        final result =
+            _evaluationEngine.evaluateAndReportErrorsInConstructorCall(
+                _currentLibrary,
+                node,
+                constructor.returnType.typeArguments,
+                node.argumentList.arguments,
+                constructor,
+                constantVisitor,
+                _errorReporter);
+        if (result is! InvalidConstant) {
+          // Check for further errors in individual arguments.
+          node.argumentList.accept(this);
+        }
       }
     } else {
+      node.argumentList.accept(this);
       super.visitInstanceCreationExpression(node);
     }
   }
@@ -579,6 +583,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT) ||
           identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_INT) ||
           identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM) ||
+          identical(
+              dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_STRING) ||
           identical(dataErrorCode,
               CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT) ||
           identical(dataErrorCode,

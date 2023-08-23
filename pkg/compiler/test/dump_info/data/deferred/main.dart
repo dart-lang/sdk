@@ -107,7 +107,7 @@
   "id": "outputUnit/1",
   "kind": "outputUnit",
   "name": "1",
-  "size": 1230,
+  "size": 1206,
   "filename": "out_1.part.js",
   "imports": [
     "lib"

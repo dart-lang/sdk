@@ -5,7 +5,6 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -33,16 +32,7 @@ enum E {
   const E() : x = '';
 }
 ''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        11,
-        1,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 47, 2,
-              text:
-                  "The exception is 'In a const constructor, a value of type 'String' can't be assigned to the field 'x', which has type 'int'.' and occurs here."),
-        ],
-      ),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH, 11, 1),
       error(CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE, 47, 2),
     ]);
   }

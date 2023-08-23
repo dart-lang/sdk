@@ -1469,7 +1469,6 @@ void FlowGraphCompiler::GenerateNonLazyDeoptableStubCall(
 static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
   switch (ic_data.NumArgsTested()) {
     case 1:
-#if defined(TARGET_ARCH_X64)
       if (ic_data.is_tracking_exactness()) {
         if (optimized) {
           return StubCode::OneArgOptimizedCheckInlineCacheWithExactnessCheck();
@@ -1477,10 +1476,6 @@ static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
           return StubCode::OneArgCheckInlineCacheWithExactnessCheck();
         }
       }
-#else
-      // TODO(dartbug.com/34170) Port exactness tracking to other platforms.
-      ASSERT(!ic_data.is_tracking_exactness());
-#endif
       return optimized ? StubCode::OneArgOptimizedCheckInlineCache()
                        : StubCode::OneArgCheckInlineCache();
     case 2:

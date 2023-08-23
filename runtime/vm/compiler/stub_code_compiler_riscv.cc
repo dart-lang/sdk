@@ -2349,7 +2349,6 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     GenerateUsageCounterIncrement(/*scratch=*/T0);
   }
 
-  ASSERT(exactness == kIgnoreExactness);  // Unimplemented.
   ASSERT(num_args == 1 || num_args == 2);
 #if defined(DEBUG)
   {
@@ -2509,19 +2508,51 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   }
 
   __ Bind(&found);
-  __ Comment("Update caller's counter");
   // A1: pointer to an IC data check group.
   const intptr_t target_offset =
       target::ICData::TargetIndexFor(num_args) * target::kCompressedWordSize;
   const intptr_t count_offset =
       target::ICData::CountIndexFor(num_args) * target::kCompressedWordSize;
+  const intptr_t exactness_offset =
+      target::ICData::ExactnessIndexFor(num_args) * target::kCompressedWordSize;
+
+  Label call_target_function_through_unchecked_entry;
+  if (exactness == kCheckExactness) {
+    Label exactness_ok;
+    ASSERT(num_args == 1);
+    __ LoadCompressedSmi(T1, Address(A1, exactness_offset));
+    __ LoadImmediate(
+        TMP, target::ToRawSmi(
+                 StaticTypeExactnessState::HasExactSuperType().Encode()));
+    __ blt(T1, TMP, &exactness_ok);
+    __ beq(T1, TMP, &call_target_function_through_unchecked_entry);
+
+    // Check trivial exactness.
+    // Note: UntaggedICData::receivers_static_type_ is guaranteed to be not null
+    // because we only emit calls to this stub when it is not null.
+    __ LoadCompressed(
+        T2, FieldAddress(S5, target::ICData::receivers_static_type_offset()));
+    __ LoadCompressed(T2, FieldAddress(T2, target::Type::arguments_offset()));
+    // T1 contains an offset to type arguments in words as a smi,
+    // hence TIMES_4. A0 is guaranteed to be non-smi because it is expected
+    // to have type arguments.
+    __ LoadIndexedPayload(TMP, A0, 0, T1, TIMES_COMPRESSED_HALF_WORD_SIZE,
+                          kObjectBytes);
+    __ beq(T2, TMP, &call_target_function_through_unchecked_entry);
+
+    // Update exactness state (not-exact anymore).
+    __ LoadImmediate(
+        TMP, target::ToRawSmi(StaticTypeExactnessState::NotExact().Encode()));
+    __ StoreToOffset(TMP, A1, exactness_offset, kObjectBytes);
+    __ Bind(&exactness_ok);
+  }
   __ LoadCompressedFromOffset(FUNCTION_REG, A1, target_offset);
 
   if (FLAG_optimization_counter_threshold >= 0) {
-    // Update counter, ignore overflow.
+    __ Comment("Update caller's counter");
     __ LoadCompressedSmiFromOffset(TMP, A1, count_offset);
-    __ addi(TMP, TMP, target::ToRawSmi(1));
-    __ StoreToOffset(TMP, A1, count_offset);
+    __ addi(TMP, TMP, target::ToRawSmi(1));  // Ignore overflow.
+    __ StoreToOffset(TMP, A1, count_offset, kObjectBytes);
   }
 
   __ Comment("Call target");
@@ -2537,6 +2568,24 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
                            target::Function::entry_point_offset());
   }
   __ jr(A7);  // FUNCTION_REG: Function, argument to lazy compile stub.
+
+  if (exactness == kCheckExactness) {
+    __ Bind(&call_target_function_through_unchecked_entry);
+    if (FLAG_optimization_counter_threshold >= 0) {
+      __ Comment("Update ICData counter");
+      __ LoadCompressedSmiFromOffset(TMP, A1, count_offset);
+      __ addi(TMP, TMP, target::ToRawSmi(1));  // Ignore overflow.
+      __ StoreToOffset(TMP, A1, count_offset, kObjectBytes);
+    }
+    __ Comment("Call target (via unchecked entry point)");
+    __ LoadCompressedFromOffset(FUNCTION_REG, A1, target_offset);
+    __ LoadCompressedFieldFromOffset(CODE_REG, FUNCTION_REG,
+                                     target::Function::code_offset());
+    __ LoadFieldFromOffset(
+        A7, FUNCTION_REG,
+        target::Function::entry_point_offset(CodeEntryKind::kUnchecked));
+    __ jr(A7);
+  }
 
 #if !defined(PRODUCT)
   if (optimized == kUnoptimized) {
@@ -2579,7 +2628,9 @@ void StubCodeCompiler::GenerateOneArgCheckInlineCacheStub() {
 // S5: ICData
 // RA: return address
 void StubCodeCompiler::GenerateOneArgCheckInlineCacheWithExactnessCheckStub() {
-  __ Stop("Unimplemented");
+  GenerateNArgsCheckInlineCacheStub(
+      1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
+      kUnoptimized, kInstanceCall, kCheckExactness);
 }
 
 // A0: receiver
@@ -2634,7 +2685,9 @@ void StubCodeCompiler::GenerateOneArgOptimizedCheckInlineCacheStub() {
 // RA: return address
 void StubCodeCompiler::
     GenerateOneArgOptimizedCheckInlineCacheWithExactnessCheckStub() {
-  __ Stop("Unimplemented");
+  GenerateNArgsCheckInlineCacheStub(
+      1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL, kOptimized,
+      kInstanceCall, kCheckExactness);
 }
 
 // A0: receiver

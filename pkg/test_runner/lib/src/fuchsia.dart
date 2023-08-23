@@ -49,9 +49,11 @@ class FuchsiaEmulator {
       "terminal.qemu-$arch",
       "--name",
       emulatorName,
-      "--headless",
+      "--headless"
     ]);
     _run(ffx, [
+      "-t",
+      emulatorName,
       "target",
       "repository",
       "register",
@@ -64,11 +66,14 @@ class FuchsiaEmulator {
 
   static void stop() {}
 
-  static List<String> getTestArgs(String mode, List<String> arguments) {
+  static List<String> getTestArgs(
+      String mode, String arch, List<String> arguments) {
     arguments = arguments
         .map((arg) => arg.replaceAll(Repository.uri.toFilePath(), '/pkg/data/'))
         .toList();
     return [
+      "-device-name",
+      "dart-fuchsia-$mode-$arch",
       "run",
       "fuchsia-pkg://fuchsia.com/dart_ffi_test_$mode#meta/fuchsia_ffi_test_component.cmx",
       ...arguments

@@ -1922,7 +1922,6 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
     GenerateUsageCounterIncrement(/* scratch */ EAX);
   }
 
-  ASSERT(exactness == kIgnoreExactness);  // Unimplemented.
   ASSERT(num_args == 1 || num_args == 2);
 #if defined(DEBUG)
   {
@@ -1991,6 +1990,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
       target::ICData::TargetIndexFor(num_args) * target::kWordSize;
   const intptr_t count_offset =
       target::ICData::CountIndexFor(num_args) * target::kWordSize;
+  const intptr_t exactness_offset =
+      target::ICData::ExactnessIndexFor(num_args) * target::kWordSize;
   const intptr_t entry_size = target::ICData::TestEntryLengthFor(
                                   num_args, exactness == kCheckExactness) *
                               target::kWordSize;
@@ -2067,8 +2068,40 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   }
 
   __ Bind(&found);
-
   // EBX: Pointer to an IC data check group.
+  Label call_target_function_through_unchecked_entry;
+  if (exactness == kCheckExactness) {
+    Label exactness_ok;
+    ASSERT(num_args == 1);
+    __ movl(EDI, Address(EBX, exactness_offset));
+    __ cmpl(EDI, Immediate(target::ToRawSmi(
+                     StaticTypeExactnessState::HasExactSuperType().Encode())));
+    __ j(LESS, &exactness_ok);
+    __ j(EQUAL, &call_target_function_through_unchecked_entry);
+
+    // Check trivial exactness.
+    // Note: UntaggedICData::receivers_static_type_ is guaranteed to be not null
+    // because we only emit calls to this stub when it is not null.
+    __ movl(EAX, FieldAddress(ARGS_DESC_REG,
+                              target::ArgumentsDescriptor::count_offset()));
+    __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // Receiver
+    // EDI contains an offset to type arguments in words as a smi,
+    // hence TIMES_2. EAX is guaranteed to be non-smi because it is expected
+    // to have type arguments.
+    __ movl(EDI,
+            FieldAddress(EAX, EDI, TIMES_2, 0));  // Receiver's type arguments
+    __ movl(EAX,
+            FieldAddress(ECX, target::ICData::receivers_static_type_offset()));
+    __ cmpl(EDI, FieldAddress(EAX, target::Type::arguments_offset()));
+    __ j(EQUAL, &call_target_function_through_unchecked_entry);
+
+    // Update exactness state (not-exact anymore).
+    __ movl(Address(EBX, exactness_offset),
+            Immediate(target::ToRawSmi(
+                StaticTypeExactnessState::NotExact().Encode())));
+    __ Bind(&exactness_ok);
+  }
+
   if (FLAG_optimization_counter_threshold >= 0) {
     __ Comment("Update caller's counter");
     // Ignore overflow.
@@ -2081,6 +2114,19 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   // EAX: Target function.
   __ jmp(FieldAddress(FUNCTION_REG,
                       target::Function::entry_point_offset(entry_kind)));
+
+  if (exactness == kCheckExactness) {
+    __ Bind(&call_target_function_through_unchecked_entry);
+    if (FLAG_optimization_counter_threshold >= 0) {
+      __ Comment("Update ICData counter");
+      // Ignore overflow.
+      __ addl(Address(EBX, count_offset), Immediate(target::ToRawSmi(1)));
+    }
+    __ Comment("Call target (via unchecked entry point)");
+    __ LoadCompressed(FUNCTION_REG, Address(EBX, target_offset));
+    __ jmp(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset(
+                                          CodeEntryKind::kUnchecked)));
+  }
 
 #if !defined(PRODUCT)
   if (optimized == kUnoptimized) {
@@ -2110,7 +2156,9 @@ void StubCodeCompiler::GenerateOneArgCheckInlineCacheStub() {
 // ECX: ICData
 // ESP[0]: return address
 void StubCodeCompiler::GenerateOneArgCheckInlineCacheWithExactnessCheckStub() {
-  __ Stop("Unimplemented");
+  GenerateNArgsCheckInlineCacheStub(
+      1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
+      kUnoptimized, kInstanceCall, kCheckExactness);
 }
 
 void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
@@ -2173,7 +2221,9 @@ void StubCodeCompiler::GenerateOneArgOptimizedCheckInlineCacheStub() {
 // ESP[0]: return address
 void StubCodeCompiler::
     GenerateOneArgOptimizedCheckInlineCacheWithExactnessCheckStub() {
-  __ Stop("Unimplemented");
+  GenerateNArgsCheckInlineCacheStub(
+      1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL, kOptimized,
+      kInstanceCall, kCheckExactness);
 }
 
 // EBX: receiver

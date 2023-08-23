@@ -25,5 +25,5 @@ class ConstCounter {
 main() {
   const ConstCounter(3);
 //^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+// [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
 }

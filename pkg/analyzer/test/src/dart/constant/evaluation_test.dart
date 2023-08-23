@@ -1747,13 +1747,13 @@ class RequiresNonEmptyList {
 }
 ''', [
       error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
         16,
         31,
         contextMessages: [
           ExpectedContextMessage(testFile.path, 138, 14,
               text:
-                  "The exception is 'The property 'length' can't be accessed on the type 'List<int>' in a constant expression.' and occurs here."),
+                  "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here."),
         ],
       ),
     ]);
@@ -2871,13 +2871,13 @@ class B {
 const b = B('');
 ''', [
       error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD,
         128,
         5,
         contextMessages: [
           ExpectedContextMessage(testFile.path, 105, 8,
               text:
-                  "The exception is 'Extension methods can't be used in constant expressions.' and occurs here."),
+                  "The error is in the field initializer of 'B', and occurs here."),
         ],
       ),
     ]);
@@ -2893,13 +2893,13 @@ class B {
 const y = B(x);
 ''', [
       error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        CompileTimeErrorCode.CONST_EVAL_TYPE_STRING,
         70,
         4,
         contextMessages: [
           ExpectedContextMessage(testFile.path, 47, 8,
               text:
-                  "The exception is 'In constant expressions, operands of this operator must be of type 'String'.' and occurs here."),
+                  "The error is in the field initializer of 'B', and occurs here."),
         ],
       ),
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1),
@@ -3463,15 +3463,17 @@ const a = const A<int>();
 ''', [
       error(CompileTimeErrorCode.INVALID_CONSTANT, 62, 1),
       error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        CompileTimeErrorCode.INVALID_CONSTANT,
         77,
         14,
         contextMessages: [
           ExpectedContextMessage(testFile.path, 62, 1,
               text:
-                  "The exception is 'Invalid constant value.' and occurs here."),
+                  "The error is in the field initializer of 'A', and occurs here."),
         ],
       ),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 77,
+          14),
     ]);
     final result = _topLevelVar('a');
     _assertNull(result);
@@ -3504,6 +3506,8 @@ void main() {
   const Foo(bar: data);
 }
 ''', [
+      // TODO(kallentu): Fix [InvalidConstant.genericError] to handle
+      // NamedExpressions.
       error(CompileTimeErrorCode.INVALID_CONSTANT, 148, 4),
     ]);
   }
@@ -3523,6 +3527,39 @@ A<int>
   f: Type int
   variable: self::@variable::a
 ''');
+  }
+
+  test_superInitializer_paramTypeMismatch_indirect() async {
+    await assertErrorsInCode('''
+class C {
+  final double d;
+  const C(this.d);
+}
+class D extends C {
+  const D(d) : super(d);
+}
+class E extends D {
+  const E(e) : super(e);
+}
+const f = const E('0.0');
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        153,
+        14,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 77, 1,
+              text:
+                  "The evaluated constructor 'C' is called by 'D' and 'D' is defined here."),
+          ExpectedContextMessage(testFile.path, 124, 1,
+              text:
+                  "The evaluated constructor 'D' is called by 'E' and 'E' is defined here."),
+          ExpectedContextMessage(testFile.path, 90, 1,
+              text:
+                  "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here."),
+        ],
+      ),
+    ]);
   }
 
   test_superInitializer_typeParameter() async {

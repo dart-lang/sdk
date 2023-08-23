@@ -108,6 +108,7 @@ import 'const_deferred_class_test.dart' as const_deferred_class;
 import 'const_eval_extension_method_test.dart' as const_eval_extension_method;
 import 'const_eval_for_element_test.dart' as const_eval_for_element;
 import 'const_eval_method_invocation_test.dart' as const_eval_method_invocation;
+import 'const_eval_property_access_test.dart' as const_eval_property_access;
 import 'const_eval_throws_exception_test.dart' as const_eval_throws_exception;
 import 'const_eval_throws_idbze_test.dart' as const_eval_throws_idbze;
 import 'const_eval_type_bool_int_test.dart' as const_eval_type_bool_int;
@@ -115,6 +116,7 @@ import 'const_eval_type_bool_num_string_test.dart'
     as const_eval_type_bool_num_string;
 import 'const_eval_type_bool_test.dart' as const_eval_type_bool;
 import 'const_eval_type_num_test.dart' as const_eval_type_num;
+import 'const_eval_type_string_test.dart' as const_eval_type_string;
 import 'const_field_initializer_not_assignable_test.dart'
     as const_field_initializer_not_assignable;
 import 'const_initialized_with_non_constant_value_from_deferred_library_test.dart'
@@ -963,12 +965,14 @@ main() {
     const_eval_extension_method.main();
     const_eval_for_element.main();
     const_eval_method_invocation.main();
+    const_eval_property_access.main();
     const_eval_throws_exception.main();
     const_eval_throws_idbze.main();
     const_eval_type_bool_int.main();
     const_eval_type_bool_num_string.main();
     const_eval_type_bool.main();
     const_eval_type_num.main();
+    const_eval_type_string.main();
     const_field_initializer_not_assignable.main();
     const_initialized_with_non_constant_value_from_deferred_library.main();
     const_initialized_with_non_constant_value.main();

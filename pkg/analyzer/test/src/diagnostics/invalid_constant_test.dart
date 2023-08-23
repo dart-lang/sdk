@@ -49,6 +49,33 @@ class A {
     ]);
   }
 
+  test_constructorFieldInitializer_fromSeparateLibrary() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class A<T> {
+  final int f;
+  const A() : f = T.foo;
+}
+''');
+    await assertErrorsInCode(r'''
+import 'lib.dart';
+const a = const A();
+''', [
+      error(
+        CompileTimeErrorCode.INVALID_CONSTANT,
+        29,
+        9,
+        contextMessages: [
+          ExpectedContextMessage(
+              convertPath('$testPackageLibPath/lib.dart'), 46, 5,
+              text:
+                  "The error is in the field initializer of 'A', and occurs here."),
+        ],
+      ),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 29,
+          9),
+    ]);
+  }
+
   test_in_initializer_field_as() async {
     await assertNoErrorsInCode('''
 class C<T> {
@@ -178,8 +205,6 @@ class B extends A {
   }
 
   test_in_initializer_instanceCreation() async {
-    // TODO(scheglov): the error CONST_EVAL_THROWS_EXCEPTION is redundant and
-    // ought to be suppressed. Or not?
     await assertErrorsInCode(r'''
 class A {
   A();
@@ -192,13 +217,13 @@ var b = const B();
 ''', [
       error(CompileTimeErrorCode.INVALID_CONSTANT, 47, 7),
       error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        CompileTimeErrorCode.INVALID_CONSTANT,
         77,
         9,
         contextMessages: [
           ExpectedContextMessage(testFile.path, 47, 7,
               text:
-                  "The exception is 'Invalid constant value.' and occurs here."),
+                  "The error is in the field initializer of 'B', and occurs here."),
         ],
       ),
     ]);
