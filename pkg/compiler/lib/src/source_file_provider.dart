@@ -633,12 +633,14 @@ class DataReadMetrics extends MetricsBase {
   @override
   String get namespace => 'input';
   CountMetric inputBytes = CountMetric('inputBytes');
+  CountMetric sourceBytes = CountMetric('sourceBytes');
 
   void addDataRead(api.CompilerInput input) {
     if (input is SourceFileProvider) {
       inputBytes.add(input.bytesRead);
+      sourceBytes.add(input.sourceBytesFromDill);
       if (primary.isEmpty) {
-        primary = [inputBytes];
+        primary = [inputBytes, sourceBytes];
       }
     }
   }

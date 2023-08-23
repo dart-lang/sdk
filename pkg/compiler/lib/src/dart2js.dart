@@ -16,6 +16,7 @@ import 'commandline_options.dart';
 import 'common/ram_usage.dart';
 import 'io/mapped_file.dart';
 import 'options.dart' show CompilerOptions, Dart2JSStage, FeatureOptions;
+import 'compiler.dart' as defaultCompiler show Compiler;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
@@ -1226,7 +1227,7 @@ Future<void> main(List<String> arguments) async {
   // provided. It needs to be replaced by reading all the contents of the
   // file and expanding them into the resulting argument list.
   //
-  // TODO: Move this logic to a single place and share it among all tools.
+  // TODO: Remove when internal tooling targets bazelMain instead of this.
   if (arguments.length > 0 && arguments.last.startsWith('@')) {
     var extra = _readLines(arguments.last.substring(1));
     arguments = arguments.take(arguments.length - 1).followedBy(extra).toList();
@@ -1239,6 +1240,20 @@ Future<void> main(List<String> arguments) async {
     return;
   }
   await internalMain(arguments);
+}
+
+Future<String?> bazelMain(List<String> arguments) async {
+  if (arguments.length > 0 && arguments.last.startsWith('@')) {
+    var extra = _readLines(arguments.last.substring(1));
+    arguments = arguments.take(arguments.length - 1).followedBy(extra).toList();
+  }
+  final compiler = (await internalMain(arguments)).compiler;
+  if (compiler is defaultCompiler.Compiler) {
+    final buffer = StringBuffer();
+    compiler.collectMetrics(buffer);
+    return buffer.toString();
+  }
+  return null;
 }
 
 /// Return all non-empty lines in a file found at [path].
