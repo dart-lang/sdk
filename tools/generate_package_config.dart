@@ -87,8 +87,8 @@ void main(List<String> args) {
         if (p.name == name) p
     ];
     if (name == 'linter' && matches.length > 1) {
-      final oldLinter = matches
-          .firstWhere((p) => p.rootUri.endsWith('third_party/pkg/linter'));
+      final oldLinter = matches.firstWhere((p) =>
+          p.rootUri.replaceAll(r'\', '/').endsWith('third_party/pkg/linter'));
       packages.remove(oldLinter);
       matches.remove(oldLinter);
     }
