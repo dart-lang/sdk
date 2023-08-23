@@ -50,24 +50,6 @@ Analytics get disabledAnalytics => DisabledAnalytics(_trackingId, _appName);
 
 /// Create and return an [Analytics] instance.
 Analytics createAnalyticsInstance(bool disableAnalytics) {
-  if (Platform.environment.containsKey('DART_CONFIG_DIR')) {
-    _dartDirectoryName = Platform.environment['DART_CONFIG_DIR'];
-  } else {
-    if (Platform.isLinux) {
-      var xdgConfigHome = Platform.environment['XDG_CONFIG_HOME'];
-      if (xdgConfigHome != null) {
-        _dartDirectoryName = '$xdgConfigHome/dart';
-      } else {
-        _dartDirectoryName = '${Platform.environment['HOME']}/.config/dart';
-      }
-    } else if (Platform.isMacOS) {
-      _dartDirectoryName =
-          '${Platform.environment['HOME']}/Library/Application Support/dart';
-    } else if (Platform.isWindows) {
-      _dartDirectoryName = '${Platform.environment['APPDATA']}/dart';
-    }
-  }
-
   if (Platform.environment['_DARTDEV_LOG_ANALYTICS'] != null) {
     // Used for testing what analytics messages are sent.
     return _LoggingAnalytics();
@@ -119,7 +101,7 @@ Directory? get homeDir {
 
 /// The directory used to store the analytics settings file.
 ///
-/// Typically, the directory is `~/.dart/` (and the settings file is
+/// Typically, the directory is `~/.config/dart/` (and the settings file is
 /// `dartdev.json`).
 ///
 /// This can return null under some conditions, including when the user's home
@@ -129,7 +111,22 @@ Directory? getDartStorageDirectory() {
   if (dir == null) {
     return null;
   } else {
-    return Directory(path.join(dir.path, _dartDirectoryName));
+    if (Platform.environment.containsKey('DART_CONFIG_DIR')) {
+      return Platform.environment['DART_CONFIG_DIR'];
+    } else {
+      if (Platform.isLinux) {
+        var xdgConfigHome = Platform.environment['XDG_CONFIG_HOME'];
+        if (xdgConfigHome != null) {
+          return '$xdgConfigHome/dart';
+        } else {
+          return '${Platform.environment['HOME']}/.config/dart';
+        }
+      } else if (Platform.isMacOS) {
+        return '${Platform.environment['HOME']}/Library/Application Support/dart';
+      } else if (Platform.isWindows) {
+        return '${Platform.environment['APPDATA']}/dart';
+      }
+    }
   }
 }
 
