@@ -1797,18 +1797,18 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ beqz(TMP, &skip_marking);
 
   {
-    // Atomically clear kNotMarkedBit.
+    // Atomically clear kOldAndNotMarkedBit.
     Label done;
     __ PushRegisters(spill_set);
     __ addi(T3, A1, target::Object::tags_offset() - kHeapObjectTag);
     // T3: Untagged address of header word (amo's do not support offsets).
-    __ li(TMP2, ~(1 << target::UntaggedObject::kNotMarkedBit));
+    __ li(TMP2, ~(1 << target::UntaggedObject::kOldAndNotMarkedBit));
 #if XLEN == 32
     __ amoandw(TMP2, TMP2, Address(T3, 0));
 #else
     __ amoandd(TMP2, TMP2, Address(T3, 0));
 #endif
-    __ andi(TMP2, TMP2, 1 << target::UntaggedObject::kNotMarkedBit);
+    __ andi(TMP2, TMP2, 1 << target::UntaggedObject::kOldAndNotMarkedBit);
     __ beqz(TMP2, &done);  // Was already clear -> lost race.
 
     __ lx(T4, Address(THR, target::Thread::marking_stack_block_offset()));

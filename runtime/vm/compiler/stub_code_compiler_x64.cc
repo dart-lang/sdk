@@ -1906,7 +1906,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   __ j(ZERO, &skip_marking);
 
   {
-    // Atomically clear kNotMarkedBit.
+    // Atomically clear kOldAndNotMarkedBit.
     Label retry, done;
     __ pushq(RAX);      // Spill.
     __ pushq(RCX);      // Spill.
@@ -1915,10 +1915,11 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
     __ Bind(&retry);
     __ movq(RCX, RAX);
-    __ testq(RCX, Immediate(1 << target::UntaggedObject::kNotMarkedBit));
+    __ testq(RCX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
     __ j(ZERO, &done);  // Marked by another thread.
 
-    __ andq(RCX, Immediate(~(1 << target::UntaggedObject::kNotMarkedBit)));
+    __ andq(RCX,
+            Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
     // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
     // On failure, RAX is updated with the current value.
     __ LockCmpxchgq(FieldAddress(TMP, target::Object::tags_offset()), RCX);

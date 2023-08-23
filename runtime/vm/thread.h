@@ -1396,10 +1396,8 @@ class Thread : public ThreadState {
 
   void MarkingStackRelease();
   void MarkingStackAcquire();
-  void MarkingStackFlush();
   void DeferredMarkingStackRelease();
   void DeferredMarkingStackAcquire();
-  void DeferredMarkingStackFlush();
 
   void set_safepoint_state(uint32_t value) { safepoint_state_ = value; }
   void EnterSafepointUsingLock();
