@@ -2852,7 +2852,7 @@ class CanvasRenderingContext2D extends JavaScriptObject
    * Draws an image from a CanvasImageSource to an area of this canvas.
    *
    * The image is a region of [source] that is [sourceWidth] wide and
-   * [destHeight] tall with top left corner at ([sourceX], [sourceY]).
+   * [sourceHeight] tall with top left corner at ([sourceX], [sourceY]).
    * The image will be drawn to this context with its top left corner at the
    * point ([destX], [destY]) and will be scaled to be [destWidth] wide and
    * [destHeight] tall.
