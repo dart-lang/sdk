@@ -591,7 +591,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   // Prepares all threads in an isolate for Garbage Collection.
   void ReleaseStoreBuffers();
-  void FlushMarkingStacks();
   void EnableIncrementalBarrier(MarkingStack* marking_stack,
                                 MarkingStack* deferred_marking_stack);
   void DisableIncrementalBarrier();

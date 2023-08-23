@@ -82,7 +82,16 @@ void main(List<String> args) {
   var hasDuplicatePackages = false;
 
   for (var name in uniqueNames) {
-    var matches = packages.where((p) => p.name == name).toList();
+    var matches = [
+      for (final p in packages)
+        if (p.name == name) p
+    ];
+    if (name == 'linter' && matches.length > 1) {
+      final oldLinter = matches.firstWhere((p) =>
+          p.rootUri.replaceAll(r'\', '/').endsWith('third_party/pkg/linter'));
+      packages.remove(oldLinter);
+      matches.remove(oldLinter);
+    }
     if (matches.length > 1) {
       print('Duplicates found for package:$name');
       for (var package in matches) {

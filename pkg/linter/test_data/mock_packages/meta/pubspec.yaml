@@ -1,0 +1,4 @@
+name: meta
+version: 1.1.8
+environment:
+  sdk: '>=2.2.2 <3.0.0'

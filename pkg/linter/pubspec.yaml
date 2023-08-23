@@ -1,0 +1,30 @@
+name: linter
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+description: >-
+  The implementation of the lint rules supported by the analyzer framework.
+  This package is not intended to be used directly.
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  analyzer: ^6.2.0
+  args: ^2.1.0
+  collection: ^1.15.0
+  http: ">=0.13.0 <2.0.0"
+  meta: ^1.3.0
+  path: ^1.8.0
+  pub_semver: ^2.0.0
+  source_span: ^1.8.0
+  yaml: ^3.0.0
+
+dev_dependencies:
+  benchmark_harness: ^2.0.0
+  cli_util: ^0.4.0
+  lints: ^2.0.0
+  markdown: ^7.0.0
+  matcher: ^0.12.10
+  test: ^1.16.1
+  test_reflective_loader: ^0.2.0

@@ -1,0 +1,3 @@
+rules:
+  style_guide:
+    camel_case_types: false
