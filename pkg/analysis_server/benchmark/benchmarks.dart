@@ -48,7 +48,7 @@ String get analysisServerSrcPath {
 }
 
 void deleteServerCache() {
-  // ~/.dartServer/.analysis-driver/
+  // ~/.config/dartServer/.analysis-driver/
   var resourceProvider = PhysicalResourceProvider.INSTANCE;
   var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
   try {

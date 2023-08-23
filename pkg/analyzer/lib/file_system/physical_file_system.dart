@@ -14,11 +14,24 @@ import 'package:watcher/watcher.dart';
 
 /// The name of the directory containing plugin specific subfolders used to
 /// store data across sessions.
-const String _serverDir = ".dartServer";
+string _serverdir;
+
+if (Platform.isLinux) {
+  var xdgConfigHome = Platform.environment['XDG_CONFIG_HOME'];
+  if (xdgConfigHome != null) {
+    _serverDir = '$xdgConfigHome/dartServer';
+  } else {
+    _serverDir = '${Platform.environment['HOME']}/.config/dartServer';
+  }
+} else if (Platform.isMacOS) {
+  _serverDir = '${Platform.environment['HOME']}/Library/Application Support/dartServer';
+} else if (Platform.isWindows) {
+  _serverDir = '${Platform.environment['APPDATA']}/dartServer';
+}
 
 /// Returns the path to default state location.
 ///
-/// Generally this is ~/.dartServer. It can be overridden via the
+/// Generally this is ~/.config/dartServer. It can be overridden via the
 /// ANALYZER_STATE_LOCATION_OVERRIDE environment variable, in which case this
 /// method will return the contents of that environment variable.
 String? _getStandardStateLocation() {
