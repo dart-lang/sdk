@@ -2674,40 +2674,6 @@ class FlowModel<Type extends Object> {
     return newPromotionInfo;
   }
 
-  /// Models the result of joining the flow models [first] and [second] at the
-  /// merge of two control flow paths.
-  static FlowModel<Type> merge<Type extends Object>(
-    FlowModelHelper<Type> helper,
-    FlowModel<Type>? first,
-    FlowModel<Type>? second,
-  ) {
-    if (first == null) return second!.unsplit();
-    if (second == null) return first.unsplit();
-
-    assert(identical(first.reachable.parent, second.reachable.parent));
-    if (first.reachable.locallyReachable &&
-        !second.reachable.locallyReachable) {
-      return first.unsplit();
-    }
-    if (!first.reachable.locallyReachable &&
-        second.reachable.locallyReachable) {
-      return second.unsplit();
-    }
-
-    // first.reachable and second.reachable are equivalent, so we don't need to
-    // join reachabilities.
-    assert(
-        first.reachable.locallyReachable == second.reachable.locallyReachable);
-    assert(first.reachable.parent == second.reachable.parent);
-    Reachability newReachable = first.reachable.unsplit();
-    Map<int, PromotionModel<Type>> newPromotionInfo =
-        FlowModel.joinPromotionInfo(
-            helper, first.promotionInfo, second.promotionInfo);
-
-    return FlowModel._identicalOrNew(
-        first, second, newReachable, newPromotionInfo);
-  }
-
   /// Creates a new [FlowModel] object, unless it is equivalent to either
   /// [first] or [second], in which case one of those objects is re-used.
   static FlowModel<Type> _identicalOrNew<Type extends Object>(
@@ -4139,7 +4105,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void assert_end() {
     _AssertContext<Type> context = _stack.removeLast() as _AssertContext<Type>;
-    _current = _merge(context._previous, context._conditionInfo!.ifTrue);
+    _current =
+        _join(context._previous, context._conditionInfo!.ifTrue).unsplit();
   }
 
   @override
@@ -4255,9 +4222,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         conditionalExpression,
         new ExpressionInfo(
             type: conditionalExpressionType,
-            after: _merge(thenInfo.after, elseInfo.after),
-            ifTrue: _merge(thenInfo.ifTrue, elseInfo.ifTrue),
-            ifFalse: _merge(thenInfo.ifFalse, elseInfo.ifFalse)));
+            after: _join(thenInfo.after, elseInfo.after).unsplit(),
+            ifTrue: _join(thenInfo.ifTrue, elseInfo.ifTrue).unsplit(),
+            ifFalse: _join(thenInfo.ifFalse, elseInfo.ifFalse).unsplit()));
   }
 
   @override
@@ -4345,8 +4312,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void doStatement_end(Expression condition) {
     _BranchTargetContext<Type> context =
         _stack.removeLast() as _BranchTargetContext<Type>;
-    _current = _merge(
-        _expressionEnd(condition, boolType).ifFalse, context._breakModel);
+    _current =
+        _join(_expressionEnd(condition, boolType).ifFalse, context._breakModel)
+            .unsplit();
   }
 
   @override
@@ -4448,8 +4416,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     FlowModel<Type>? breakState = context._breakModel;
     FlowModel<Type> falseCondition = context._conditionInfo.ifFalse;
 
-    _current =
-        _merge(falseCondition, breakState).inheritTested(operations, _current);
+    _current = _join(falseCondition, breakState)
+        .inheritTested(operations, _current)
+        .unsplit();
   }
 
   @override
@@ -4471,7 +4440,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void forEach_end() {
     _SimpleStatementContext<Type> context =
         _stack.removeLast() as _SimpleStatementContext<Type>;
-    _current = _merge(_current, context._previous);
+    _current = _join(_current, context._previous).unsplit();
   }
 
   @override
@@ -4557,7 +4526,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void ifNullExpression_end() {
     _IfNullExpressionContext<Type> context =
         _stack.removeLast() as _IfNullExpressionContext<Type>;
-    _current = _merge(_current, context._shortcutState);
+    _current = _join(_current, context._shortcutState).unsplit();
   }
 
   @override
@@ -4616,7 +4585,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       afterThen = _current; // no `else`, so `then` is still current
       afterElse = context._branchModel;
     }
-    _current = _merge(afterThen, afterElse);
+    _current = _join(afterThen, afterElse).unsplit();
   }
 
   @override
@@ -4686,7 +4655,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void labeledStatement_end() {
     _BranchTargetContext<Type> context =
         _stack.removeLast() as _BranchTargetContext<Type>;
-    _current = _merge(_current, context._breakModel);
+    _current = _join(_current, context._breakModel).unsplit();
   }
 
   @override
@@ -4733,7 +4702,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         wholeExpression,
         new ExpressionInfo(
             type: boolType,
-            after: _merge(trueResult, falseResult),
+            after: _join(trueResult, falseResult).unsplit(),
             ifTrue: trueResult.unsplit(),
             ifFalse: falseResult.unsplit()));
   }
@@ -4813,7 +4782,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void nullAwareAccess_end() {
     _NullAwareAccessContext<Type> context =
         _stack.removeLast() as _NullAwareAccessContext<Type>;
-    _current = _merge(_current, context._previous);
+    _current = _join(_current, context._previous).unsplit();
   }
 
   @override
@@ -5242,7 +5211,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void whileStatement_end() {
     _WhileContext<Type> context = _stack.removeLast() as _WhileContext<Type>;
-    _current = _merge(context._conditionInfo.ifFalse, context._breakModel)
+    _current = _join(context._conditionInfo.ifFalse, context._breakModel)
+        .unsplit()
         .inheritTested(operations, _current);
   }
 
@@ -5650,9 +5620,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         isThisOrSuper: false,
         ssaNode: ssaNode);
   }
-
-  FlowModel<Type> _merge(FlowModel<Type> first, FlowModel<Type>? second) =>
-      FlowModel.merge(this, first, second);
 
   /// Computes an updated flow model representing the result of a null check
   /// performed by a pattern.  The returned flow model represents what is known
