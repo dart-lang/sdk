@@ -1,0 +1,10 @@
+# Dependabot configuration file.
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels:
+      - autosubmit

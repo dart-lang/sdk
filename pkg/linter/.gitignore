@@ -1,0 +1,13 @@
+.idea
+.dart_tool
+packages
+build
+.project
+.settings
+pubspec.lock
+.packages
+linter.iml
+.atom
+/.vscode
+/.history
+/doc/lints/

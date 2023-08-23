@@ -1,0 +1,35 @@
+# A workflow to close issues where the author hasn't responded to a request for
+# more information; see https://github.com/actions/stale.
+
+name: No Response
+
+# Run as a daily cron.
+on:
+  schedule:
+    # Every day at 8am
+    - cron: '0 8 * * *'
+
+# All permissions not specified are set to 'none'.
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  no-response:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == 'dart-lang' }}
+    steps:
+      - uses: actions/stale@1160a2240286f5da8ec72b1c0816ce2481aabf84
+        with:
+          days-before-stale: -1
+          days-before-close: 14
+          stale-issue-label: "needs-info"
+          close-issue-message: >
+            Without additional information we're not able to resolve this issue.
+            Feel free to add more info or respond to any questions above and we
+            can reopen the case. Thanks for your contribution!
+          stale-pr-label: "needs-info"
+          close-pr-message: >
+            Without additional information we're not able to resolve this PR.
+            Feel free to add more info or respond to any questions above.
+            Thanks for your contribution!
