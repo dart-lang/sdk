@@ -4,10 +4,10 @@ import "dart:async" as asy;
 import "dart:core" as core;
 
 static method foo1() → asy::Future<void> async /* futureValueType= void */ {
-  await 6 /* runtimeCheckType= asy::Future<core::int> */ ;
+  await asy::_wrapAwaitedExpression<core::int>(6);
 }
 static method foo2() → asy::Future<core::int> async /* futureValueType= core::int */ {
-  return (await 6 /* runtimeCheckType= asy::Future<core::int> */ ).{core::num::+}(3){(core::num) → core::int};
+  return (await asy::_wrapAwaitedExpression<core::int>(6)).{core::num::+}(3){(core::num) → core::int};
 }
 static method foo3() → asy::Future<void> async /* futureValueType= void */ {
   #L1:

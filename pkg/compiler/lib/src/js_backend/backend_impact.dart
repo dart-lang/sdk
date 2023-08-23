@@ -110,12 +110,6 @@ class BackendImpacts {
     ],
   );
 
-  late final BackendImpact awaitExpression = BackendImpact(
-    staticUses: [
-      _commonElements.futureValueConstructor!,
-    ],
-  );
-
   late final BackendImpact asyncBody = BackendImpact(
     staticUses: [
       _commonElements.asyncHelperAwait,

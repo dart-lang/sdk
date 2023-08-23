@@ -8,6 +8,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../../options.dart';
 import 'async_lowering.dart';
+import 'await_lowering.dart';
 import 'factory_specializer.dart';
 import 'late_lowering.dart';
 
@@ -25,6 +26,7 @@ void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
 class _Lowering extends Transformer {
   final FactorySpecializer factorySpecializer;
   final LateLowering _lateLowering;
+  final AwaitLowering _awaitLowering;
   final AsyncLowering? _asyncLowering;
 
   Member? _currentMember;
@@ -33,6 +35,7 @@ class _Lowering extends Transformer {
       CoreTypes coreTypes, ClassHierarchy hierarchy, CompilerOptions? _options)
       : factorySpecializer = FactorySpecializer(coreTypes, hierarchy),
         _lateLowering = LateLowering(coreTypes, _options),
+        _awaitLowering = AwaitLowering(coreTypes),
         _asyncLowering =
             (_options?.features.simpleAsyncToFuture.isEnabled ?? false)
                 ? AsyncLowering(coreTypes)
@@ -96,7 +99,7 @@ class _Lowering extends Transformer {
   TreeNode visitAwaitExpression(AwaitExpression expression) {
     _asyncLowering?.visitAwaitExpression(expression);
     expression.transformChildren(this);
-    return expression;
+    return _awaitLowering.transformAwaitExpression(expression);
   }
 
   @override
