@@ -38,20 +38,22 @@ void testNoSuchMethodTearoff(x) {
   Expect.contains('testMethod', noSuchMethodResult.toString());
 }
 
-void testToString(x) {
+void testToString(x, String expected) {
   var toStringResult = confuse(x.toString());
   Expect.type<String>(toStringResult);
   Expect.isTrue(toStringResult.isNotEmpty);
+  Expect.equals(toStringResult, expected);
   Expect.equals(x.toString(), toStringResult);
 }
 
-void testToStringTearoff(x) {
+void testToStringTearoff(x, String expected) {
   var toStringTearoff = confuse(x.toString);
   Expect.type<String Function()>(toStringTearoff);
   Expect.equals(x.toString, toStringTearoff);
   var toStringResult = toStringTearoff();
   Expect.type<String>(toStringResult);
   Expect.isTrue(toStringResult.isNotEmpty);
+  Expect.equals(toStringResult, expected);
   Expect.equals(x.toString(), toStringResult);
 }
 

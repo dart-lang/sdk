@@ -20,11 +20,13 @@ class JavaScriptClass {
 }
 
 void main() {
+  final toStringValue = 'external toString';
   // Install a class that is accessible through interop.
   eval('''
 self.JavaScriptClass = class JavaScriptClass {
   constructor() {}
   get instanceGetter() { return 42; }
+  toString() { return '$toStringValue'; }
 }
 ''');
   var instanceOfClass = JavaScriptClass();
@@ -34,8 +36,8 @@ self.JavaScriptClass = class JavaScriptClass {
   testRuntimeType(instanceOfClass);
   testNoSuchMethod(instanceOfClass);
   testNoSuchMethodTearoff(instanceOfClass);
-  testToString(instanceOfClass);
-  testToStringTearoff(instanceOfClass);
+  testToString(instanceOfClass, toStringValue);
+  testToStringTearoff(instanceOfClass, toStringValue);
   testEquals(instanceOfClass, other);
 
   var emptyObject = eval('Object.create({})');
@@ -43,8 +45,8 @@ self.JavaScriptClass = class JavaScriptClass {
   testRuntimeType(emptyObject);
   testNoSuchMethod(emptyObject);
   testNoSuchMethodTearoff(emptyObject);
-  testToString(emptyObject);
-  testToStringTearoff(emptyObject);
+  testToString(emptyObject, '[object Object]');
+  testToStringTearoff(emptyObject, '[object Object]');
   testEquals(emptyObject, other);
 
   var objectWithNoProto = eval('Object.create(null)');
@@ -69,7 +71,7 @@ self.JavaScriptClass = class JavaScriptClass {
   testRuntimeType(jsNull);
   testNoSuchMethod(jsNull);
   testNoSuchMethodTearoff(jsNull);
-  testToString(jsNull);
-  testToStringTearoff(jsNull);
+  testToString(jsNull, 'null');
+  testToStringTearoff(jsNull, 'null');
   testEquals(jsNull, other);
 }
