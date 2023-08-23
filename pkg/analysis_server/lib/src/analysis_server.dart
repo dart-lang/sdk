@@ -74,7 +74,11 @@ import 'package:meta/meta.dart';
 import 'package:watcher/watcher.dart';
 
 /// The function for sending `openUri` request to the client.
-typedef OpenUriNotificationSender = FutureOr<void> Function(Uri uri);
+typedef OpenUriNotificationSender = Future<void> Function(Uri uri);
+
+/// The function for sending prompts to the user and collecting button presses.
+typedef UserPromptSender = Future<String?> Function(
+    MessageType type, String message, List<String> actionLabels);
 
 /// Implementations of [AnalysisServer] implement a server that listens
 /// on a [CommunicationChannel] for analysis messages and process them.
@@ -336,6 +340,9 @@ abstract class AnalysisServer {
 
   /// Whether or not the client supports showMessageRequest to show the user
   /// a message and allow them to respond by clicking buttons.
+  ///
+  /// Callers should use [userPromptSender] instead of checking this directly.
+  @protected
   bool get supportsShowMessageRequest;
 
   /// Return the total time the server's been alive.
@@ -344,6 +351,13 @@ abstract class AnalysisServer {
         DateTime.fromMillisecondsSinceEpoch(performanceDuringStartup.startTime);
     return DateTime.now().difference(start);
   }
+
+  /// Returns the function for sending prompts to the user and collecting button
+  /// presses.
+  ///
+  /// Returns `null` is the client does not support it.
+  UserPromptSender? get userPromptSender =>
+      supportsShowMessageRequest ? showUserPrompt : null;
 
   void addContextsToDeclarationsTracker() {
     declarationsTracker?.discardContexts();
@@ -734,6 +748,13 @@ abstract class AnalysisServer {
     bool fatal = false,
   });
 
+  /// Shows the user a prompt with some actions to select from using
+  /// 'window/showMessageRequest'.
+  ///
+  /// Callers should use [userPromptSender] instead of calling this method
+  /// directly because it returns null if the client does not support user
+  /// prompts.
+  @visibleForOverriding
   Future<String?> showUserPrompt(
     MessageType type,
     String message,

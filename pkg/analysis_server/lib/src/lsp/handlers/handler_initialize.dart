@@ -37,7 +37,7 @@ class InitializeMessageHandler
     // The onlyAnalyzeProjectsWithOpenFiles flag allows opening huge folders
     // without setting them as analysis roots. Instead, analysis roots will be
     // based only on the open files.
-    if (!server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles) {
+    if (!server.onlyAnalyzeProjectsWithOpenFiles) {
       if (workspaceFolders != null) {
         for (var wf in workspaceFolders) {
           final uri = wf.uri;

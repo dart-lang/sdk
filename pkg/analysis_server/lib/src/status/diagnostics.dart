@@ -1276,7 +1276,7 @@ class LspPage extends DiagnosticPageWithNav {
     });
 
     h3('Initialization Options');
-    prettyJson(server.initializationOptions.raw);
+    prettyJson(server.initializationOptions?.raw);
   }
 }
 

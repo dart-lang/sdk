@@ -175,14 +175,16 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
         return error(ServerErrorCodes.RenameNotValid,
             finalStatus.problem!.message, null);
       } else if (finalStatus.hasError || finalStatus.hasWarning) {
-        // If this change would produce errors but we can't prompt the user, just
-        // fail with the message.
-        if (!server.supportsShowMessageRequest) {
+        final prompt = server.userPromptSender;
+
+        // If this change would produce errors but we can't prompt the user,
+        // just fail with the message.
+        if (prompt == null) {
           return error(ServerErrorCodes.RenameNotValid, finalStatus.message!);
         }
 
         // Otherwise, ask the user whether to proceed with the rename.
-        final userChoice = await server.showUserPrompt(
+        final userChoice = await prompt(
           MessageType.warning,
           finalStatus.message!,
           [
@@ -268,12 +270,13 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
   /// class.
   Future<bool> _promptToRenameFile(
       String oldFilename, String newFilename) async {
+    final prompt = server.userPromptSender;
     // If we can't prompt, do the same as if they said no.
-    if (!server.supportsShowMessageRequest) {
+    if (prompt == null) {
       return false;
     }
 
-    final userChoice = await server.showUserPrompt(
+    final userChoice = await prompt(
       MessageType.info,
       "Rename '$oldFilename' to '$newFilename'?",
       [

@@ -203,10 +203,12 @@ class TestDartFixPromptManager extends DartFixPromptManager {
 
   @override
   Future<void> showPrompt({
+    required UserPromptSender userPromptSender,
     required OpenUriNotificationSender openUriNotificationSender,
   }) {
     promptsShown++;
     return super.showPrompt(
+      userPromptSender: userPromptSender,
       openUriNotificationSender: openUriNotificationSender,
     );
   }
@@ -220,9 +222,13 @@ class TestServer implements LspAnalysisServer {
   bool supportsShowMessageRequest = true;
 
   @override
-  OpenUriNotificationSender? openUriNotificationSender = (_) {};
+  OpenUriNotificationSender? openUriNotificationSender = (_) async {};
 
   TestServer(this.instrumentationService);
+
+  @override
+  UserPromptSender? get userPromptSender =>
+      supportsShowMessageRequest ? (_, __, ___) async => null : null;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
