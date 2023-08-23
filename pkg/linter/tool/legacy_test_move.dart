@@ -11,7 +11,7 @@ import 'dart:math' as math;
 /// a legacy test to a reflective test.
 void main(List<String> args) {
   if (args.isEmpty) {
-    print('Usage: move_legacy_test.dart <rule_name>');
+    print('Usage: legacy_test_move.dart <rule_name>');
     exit(1);
   }
   var ruleName = args.first;

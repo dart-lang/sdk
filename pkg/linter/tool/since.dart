@@ -7,13 +7,15 @@ import 'dart:io';
 
 import 'package:yaml/yaml.dart';
 
+import '../test/test_constants.dart';
 import 'changelog.dart';
 import 'crawl.dart';
 
 final Map<String, SinceInfo> sinceMap = _readSinceMap();
 
 Map<String, SinceInfo> _readSinceMap() {
-  var sinceFile = File('tool/since/sdk.yaml').readAsStringSync();
+  var sinceFile = File(pathRelativeToPackageRoot(['tool', 'since', 'sdk.yaml']))
+      .readAsStringSync();
   var versionMap = loadYamlNode(sinceFile) as YamlMap;
 
   var sinceMap = <String, SinceInfo>{};
@@ -26,7 +28,8 @@ Map<String, SinceInfo> _readSinceMap() {
 }
 
 class SdkVersionFile {
-  static final filePath = 'tool/since/sdk.yaml';
+  static final filePath =
+      pathRelativeToPackageRoot(['tool', 'since', 'sdk.yaml']);
 
   void addRule(String rule) {
     var sinceFile = File(filePath);

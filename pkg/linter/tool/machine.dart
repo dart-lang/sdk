@@ -12,9 +12,9 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/util/score_utils.dart' as score_utils;
 import 'package:linter/src/utils.dart';
-import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
+import '../test/test_constants.dart';
 import 'since.dart';
 
 /// Generates a list of lint rules in machine format suitable for consumption by
@@ -41,7 +41,7 @@ void main(List<String> args) async {
 }
 
 File machineJsonFile() {
-  var outPath = path.join('tool', 'machine', 'rules.json');
+  var outPath = pathRelativeToPackageRoot(['tool', 'machine', 'rules.json']);
   return File(outPath);
 }
 

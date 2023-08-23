@@ -41,18 +41,6 @@ void coreTests() {
         outSink = currentOut;
         exitCode = 0;
       });
-      test('excludes', () async {
-        await cli.run([
-          '$integrationTestDir/p2',
-          '-c',
-          '$integrationTestDir/p2/lintconfig.yaml'
-        ]);
-        expect(
-            collectingOut.trim(),
-            stringContainsInOrder(
-                ['4 files analyzed, 1 issue found (2 filtered), in']));
-        expect(exitCode, 1);
-      });
       test('overrides', () async {
         await cli.run([
           '$integrationTestDir/p2',
@@ -73,7 +61,7 @@ void coreTests() {
 
     group('examples', () {
       test('all.yaml', () {
-        var src = readFile('example/all.yaml');
+        var src = readFile(pathRelativeToPackageRoot(['example', 'all.yaml']));
 
         var options = _getOptionsFromString(src);
         var configuredLints =
