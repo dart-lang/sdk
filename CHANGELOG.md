@@ -174,6 +174,17 @@
   calling `external void foo([int a, int b])` as `foo(0)` will now result in
   `foo(0)`, and not `foo(0, null)`.
 
+### Tools
+
+#### Linter
+
+- Added new static analysis lints you can [enable][enable-lints] in
+  your package's `analysis_options.yaml` file:
+  - [`no_self_assignments`](https://dart.dev/lints/no_self_assignments)
+  - [`no_wildcard_variable_uses`](https://dart.dev/lints/no_wildcard_variable_uses)
+
+[enable-lints]: https://dart.dev/tools/analysis#enabling-linter-rules
+
 ## 3.0.7 - 2023-07-26
 
 This is a patch release that:

@@ -102,8 +102,8 @@ no_leading_underscores_for_local_identifiers: 2.16.0
 no_literal_bool_comparisons: 3.0.0
 no_logic_in_create_state: 2.8.1
 no_runtimeType_toString: 2.8.1
-no_self_assignments: 3.1.0-wip
-no_wildcard_variable_uses: 3.1.0-wip
+no_self_assignments: 3.1.0
+no_wildcard_variable_uses: 3.1.0
 non_constant_identifier_names: 2.0.0
 noop_primitive_operations: 2.14.0
 null_check_on_nullable_type_parameter: 2.12.0
