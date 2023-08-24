@@ -17,6 +17,29 @@ class AwaitOnlyFuturesTest extends LintRuleTest {
   @override
   String get lintRule => 'await_only_futures';
 
+  test_extensionType_implementingFuture() async {
+    await assertNoDiagnostics(r'''
+extension type E(Future f) implements Future { }
+
+void f() async {
+  await E(Future.value());
+}
+''');
+  }
+
+  test_extensionType_notImplementingFuture() async {
+    await assertDiagnostics(r'''
+extension type E(int c) { }
+
+void f() async {
+  await E(1);
+}
+''', [
+      // No lint
+      error(CompileTimeErrorCode.AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE, 48, 5),
+    ]);
+  }
+
   test_undefinedClass() async {
     await assertDiagnostics(r'''
 Undefined f() async => await f();
