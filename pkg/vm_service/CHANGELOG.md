@@ -1,3 +1,7 @@
+## 11.10.0
+- Add `wsUri` property to `VmService`. If set, this property can be used to associate
+  a `VmService` instance to its targeted VM service based on its URI.
+
 ## 11.9.0
 - Update to version `4.12` of the spec.
 - Add `TypeParametersRef`; change supertype of `TypeParameters` to `Obj`.
