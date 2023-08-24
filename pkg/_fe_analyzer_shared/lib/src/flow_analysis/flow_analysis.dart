@@ -2406,7 +2406,7 @@ class FlowModel<Type extends Object> {
   /// was potentially nullable.
   ExpressionInfo<Type> tryMarkNonNullable(
       FlowModelHelper<Type> helper, _Reference<Type> reference) {
-    PromotionModel<Type> info = _getInfo(reference.promotionKey);
+    PromotionModel<Type> info = infoFor(reference.promotionKey);
     if (info.writeCaptured) {
       return new ExpressionInfo<Type>.trivial(
           after: this, type: helper.boolType);
@@ -2437,7 +2437,7 @@ class FlowModel<Type extends Object> {
   /// variable as definitely assigned?  Does it matter?
   FlowModel<Type> tryPromoteForTypeCast(
       FlowModelHelper<Type> helper, _Reference<Type> reference, Type type) {
-    PromotionModel<Type> info = _getInfo(reference.promotionKey);
+    PromotionModel<Type> info = infoFor(reference.promotionKey);
     if (info.writeCaptured) {
       return this;
     }
@@ -2465,7 +2465,7 @@ class FlowModel<Type extends Object> {
   /// variable as definitely assigned?  Does it matter?
   ExpressionInfo<Type> tryPromoteForTypeCheck(
       FlowModelHelper<Type> helper, _Reference<Type> reference, Type type) {
-    PromotionModel<Type> info = _getInfo(reference.promotionKey);
+    PromotionModel<Type> info = infoFor(reference.promotionKey);
     if (info.writeCaptured) {
       return new ExpressionInfo<Type>.trivial(
           after: this, type: helper.boolType);
@@ -2596,11 +2596,6 @@ class FlowModel<Type extends Object> {
                 ssaNode: info.ssaNode,
                 nonPromotionHistory: info.nonPromotionHistory));
   }
-
-  /// Gets the info for [promotionKey] reference, creating it if it doesn't
-  /// exist.
-  PromotionModel<Type> _getInfo(int promotionKey) =>
-      promotionInfo[promotionKey] ?? new PromotionModel<Type>.fresh();
 
   /// Returns a new [FlowModel] where the information for [reference] is
   /// replaced with [model].
@@ -5201,7 +5196,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   Type? variableRead(Expression expression, Variable variable) {
     Type unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
-    PromotionModel<Type> promotionModel = _current._getInfo(variableKey);
+    PromotionModel<Type> promotionModel = _current.infoFor(variableKey);
     _Reference<Type> expressionInfo =
         _variableReference(variableKey, unpromotedType).addPreviousInfo(
             promotionModel.ssaNode?.expressionInfo, this, _current);
@@ -5397,7 +5392,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       List<List<Type>>? allPreviouslyPromotedTypes;
       while (ssaNode != null) {
         PromotionModel<Type> previousPromotionInfo =
-            _current._getInfo(ssaNode.promotionKey);
+            _current.infoFor(ssaNode.promotionKey);
         List<Type>? promotedTypes = previousPromotionInfo.promotedTypes;
         if (promotedTypes != null) {
           (allPreviouslyPromotedTypes ??= []).add(promotedTypes);
