@@ -26,7 +26,8 @@
 // VMOptions=--profiler --verify_before_gc --verify_after_gc
 // VMOptions=--profiler --verify_store_buffer
 // VMOptions=--profiler --verify_after_marking
-// VMOptions=--profiler --stress_write_barrier_elimination
+// VMOptions=--profiler --runtime_allocate_old
+// VMOptions=--profiler --runtime_allocate_spill_tlab
 // VMOptions=--profiler --no_inline_alloc
 // VMOptions=--profiler --old_gen_heap_size=100
 // VMOptions=--profiler --mark_when_idle
