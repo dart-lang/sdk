@@ -4168,23 +4168,14 @@ main() {
       test('reachability', () {
         var reachable = FlowModel<Type>(Reachability.initial);
         var unreachable = reachable.setUnreachable();
-        expect(reachable.rebaseForward(h.typeOperations, reachable),
-            same(reachable));
-        expect(reachable.rebaseForward(h.typeOperations, unreachable),
-            same(unreachable));
+        expect(reachable.rebaseForward(h, reachable), same(reachable));
+        expect(reachable.rebaseForward(h, unreachable), same(unreachable));
         expect(
-            unreachable
-                .rebaseForward(h.typeOperations, reachable)
-                .reachable
-                .overallReachable,
+            unreachable.rebaseForward(h, reachable).reachable.overallReachable,
             false);
-        expect(
-            unreachable
-                .rebaseForward(h.typeOperations, reachable)
-                .promotionInfo,
+        expect(unreachable.rebaseForward(h, reachable).promotionInfo,
             same(unreachable.promotionInfo));
-        expect(unreachable.rebaseForward(h.typeOperations, unreachable),
-            same(unreachable));
+        expect(unreachable.rebaseForward(h, unreachable), same(unreachable));
       });
 
       test('assignments', () {
@@ -4203,7 +4194,7 @@ main() {
         var s2 = s0
             ._write(h, null, a, Type('int'), new SsaNode<Type>(null))
             ._write(h, null, c, Type('int'), new SsaNode<Type>(null));
-        var result = s1.rebaseForward(h.typeOperations, s2);
+        var result = s1.rebaseForward(h, s2);
         expect(result._infoFor(h, a).assigned, true);
         expect(result._infoFor(h, b).assigned, true);
         expect(result._infoFor(h, c).assigned, true);
@@ -4223,7 +4214,7 @@ main() {
         // In s1, a and b are write captured.  In s2, a and c are.
         var s1 = s0._conservativeJoin(h, [a, b], [a, b]);
         var s2 = s1._conservativeJoin(h, [a, c], [a, c]);
-        var result = s1.rebaseForward(h.typeOperations, s2);
+        var result = s1.rebaseForward(h, s2);
         expect(
           result._infoFor(h, a),
           _matchVariableModel(writeCaptured: true, unassigned: false),
@@ -4249,11 +4240,11 @@ main() {
         var s1 = s0._conservativeJoin(h, [a], [a]);
         var s2 = s0._tryPromoteForTypeCheck(h, a, 'int').ifTrue;
         expect(
-          s1.rebaseForward(h.typeOperations, s2)._infoFor(h, a),
+          s1.rebaseForward(h, s2)._infoFor(h, a),
           _matchVariableModel(writeCaptured: true, chain: isNull),
         );
         expect(
-          s2.rebaseForward(h.typeOperations, s1)._infoFor(h, a),
+          s2.rebaseForward(h, s1)._infoFor(h, a),
           _matchVariableModel(writeCaptured: true, chain: isNull),
         );
       });
@@ -4274,7 +4265,7 @@ main() {
           var s2 = otherType == null
               ? s0
               : s0._tryPromoteForTypeCheck(h, x, otherType).ifTrue;
-          var result = s2.rebaseForward(h.typeOperations, s1);
+          var result = s2.rebaseForward(h, s1);
           if (expectedChain == null) {
             expect(result.promotionInfo,
                 contains(h.promotionKeyStore.keyForVariable(x)));
@@ -4343,7 +4334,7 @@ main() {
           var expectedFinallyChain = before.toList()..addAll(inFinally);
           _checkChain(
               finallyModel._infoFor(h, x).promotedTypes, expectedFinallyChain);
-          var result = tryModel.rebaseForward(h.typeOperations, finallyModel);
+          var result = tryModel.rebaseForward(h, finallyModel);
           _checkChain(result._infoFor(h, x).promotedTypes, expectedResult);
           // And verify that the inputs are unchanged.
           _checkChain(initialModel._infoFor(h, x).promotedTypes, before);
@@ -4385,11 +4376,11 @@ main() {
         var s1 = s0._tryPromoteForTypeCheck(h, a, 'int').ifFalse;
         var s2 = s0._tryPromoteForTypeCheck(h, a, 'String').ifFalse;
         expect(
-          s1.rebaseForward(h.typeOperations, s2)._infoFor(h, a),
+          s1.rebaseForward(h, s2)._infoFor(h, a),
           _matchVariableModel(ofInterest: ['int', 'String']),
         );
         expect(
-          s2.rebaseForward(h.typeOperations, s1)._infoFor(h, a),
+          s2.rebaseForward(h, s1)._infoFor(h, a),
           _matchVariableModel(ofInterest: ['int', 'String']),
         );
       });
@@ -4398,8 +4389,8 @@ main() {
         var x = Var('x')..type = Type('Object?');
         var s0 = FlowModel<Type>(Reachability.initial);
         var s1 = s0._declare(h, x, true);
-        expect(s1.rebaseForward(h.typeOperations, s0), same(s0));
-        expect(s0.rebaseForward(h.typeOperations, s1), same(s1));
+        expect(s1.rebaseForward(h, s0), same(s1));
+        expect(s0.rebaseForward(h, s1), same(s1));
       });
     });
   });
@@ -6792,6 +6783,167 @@ main() {
           ]),
           checkPromoted(c.property('_property'), 'int'),
         ]);
+      });
+    });
+
+    group('Via local condition variable:', () {
+      group('without intervening promotion:', () {
+        // These tests exercise the code path in `FlowModel.rebaseForward` where
+        // `this` model (which represents the state captured at the time the
+        // condition variable is written) contains a promotion key for the
+        // field, but the `base` model (which represents state just prior to
+        // reading from the condition variable) doesn't contain any promotion
+        // key for the field. Furthermore, since no other promotions occur
+        // between writing and reading the condition variable, `rebaseForward`
+        // will not create a fresh `FlowModel`; it will simply return `this`
+        // model.
+        test('using null check', () {
+          h.addMember('C', '_field', 'int?', promotable: true);
+          var c = Var('c');
+          var b = Var('b');
+          h.run([
+            declare(c, initializer: expr('C')),
+            declare(b, initializer: c.property('_field').notEq(nullLiteral)),
+            if_(b, [
+              checkPromoted(c.property('_field'), 'int'),
+            ]),
+          ]);
+        });
+
+        test('using `is` test', () {
+          h.addMember('C', '_field', 'Object', promotable: true);
+          h.addSuperInterfaces('C', (_) => [Type('Object')]);
+          var c = Var('c');
+          var b = Var('b');
+          h.run([
+            declare(c, initializer: expr('C')),
+            declare(b, initializer: c.property('_field').is_('int')),
+            if_(b, [
+              checkPromoted(c.property('_field'), 'int'),
+            ]),
+          ]);
+        });
+      });
+
+      group('with intervening related promotion:', () {
+        // These tests exercise the code path in `FlowModel.rebaseForward` where
+        // `this` model (which represents the state captured at the time the
+        // condition variable is written) and the `base` model (which represents
+        // state just prior to reading from the condition variable) both contain
+        // a promotion key for the field.
+        test('using null check', () {
+          h.addMember('C', '_field', 'int?', promotable: true);
+          var c = Var('c');
+          var b = Var('b');
+          h.run([
+            declare(c, initializer: expr('C')),
+            declare(b, initializer: c.property('_field').notEq(nullLiteral)),
+            if_(c.property('_field').notEq(nullLiteral), [
+              checkPromoted(c.property('_field'), 'int'),
+            ]),
+            if_(b, [
+              checkPromoted(c.property('_field'), 'int'),
+            ]),
+          ]);
+        });
+
+        test('using `is` test', () {
+          h.addMember('C', '_field', 'Object', promotable: true);
+          h.addSuperInterfaces('C', (_) => [Type('Object')]);
+          var c = Var('c');
+          var b = Var('b');
+          h.run([
+            declare(c, initializer: expr('C')),
+            declare(b, initializer: c.property('_field').is_('int')),
+            if_(c.property('_field').is_('int'), [
+              checkPromoted(c.property('_field'), 'int'),
+            ]),
+            if_(b, [
+              checkPromoted(c.property('_field'), 'int'),
+            ]),
+          ]);
+        });
+      });
+
+      group('with intervening unrelated promotion:', () {
+        // These tests exercise the code path in `FlowModel.rebaseForward` where
+        // `this` model (which represents the state captured at the time the
+        // condition variable is written) contains a promotion key for the
+        // field, but the `base` model (which represents state just prior to
+        // reading from the condition variable) doesn't contain any promotion
+        // key for the field. Since a different variable is promoted in between
+        // writing and reading the condition variable, `rebaseForward` will be
+        // forced to create a fresh `FlowModel`; it will not be able to simply
+        // return `this` model.
+        test('using null check', () {
+          h.addMember('C', '_field', 'int?', promotable: true);
+          var c = Var('c');
+          var unrelated = Var('unrelated');
+          var b = Var('b');
+          h.run([
+            declare(c, initializer: expr('C')),
+            declare(unrelated, initializer: expr('int?')),
+            declare(b, initializer: c.property('_field').notEq(nullLiteral)),
+            unrelated.nonNullAssert,
+            if_(b, [
+              checkPromoted(c.property('_field'), 'int'),
+            ]),
+          ]);
+        });
+
+        test('using `is` test', () {
+          h.addMember('C', '_field', 'Object', promotable: true);
+          h.addSuperInterfaces('C', (_) => [Type('Object')]);
+          var c = Var('c');
+          var unrelated = Var('unrelated');
+          var b = Var('b');
+          h.run([
+            declare(c, initializer: expr('C')),
+            declare(unrelated, initializer: expr('int?')),
+            declare(b, initializer: c.property('_field').is_('int')),
+            unrelated.nonNullAssert,
+            if_(b, [
+              checkPromoted(c.property('_field'), 'int'),
+            ]),
+          ]);
+        });
+      });
+
+      group('disabled by intervening assignment:', () {
+        test('using null check', () {
+          h.addMember('C', '_field', 'int?', promotable: true);
+          var c = Var('c');
+          var b = Var('b');
+          h.run([
+            declare(c, initializer: expr('C')),
+            declare(b, initializer: c.property('_field').notEq(nullLiteral)),
+            if_(c.property('_field').notEq(nullLiteral), [
+              checkPromoted(c.property('_field'), 'int'),
+            ]),
+            c.write(expr('C')),
+            if_(b, [
+              checkNotPromoted(c.property('_field')),
+            ]),
+          ]);
+        });
+
+        test('using `is` test', () {
+          h.addMember('C', '_field', 'Object', promotable: true);
+          h.addSuperInterfaces('C', (_) => [Type('Object')]);
+          var c = Var('c');
+          var b = Var('b');
+          h.run([
+            declare(c, initializer: expr('C')),
+            declare(b, initializer: c.property('_field').is_('int')),
+            if_(c.property('_field').is_('int'), [
+              checkPromoted(c.property('_field'), 'int'),
+            ]),
+            c.write(expr('C')),
+            if_(b, [
+              checkNotPromoted(c.property('_field')),
+            ]),
+          ]);
+        });
       });
     });
   });
