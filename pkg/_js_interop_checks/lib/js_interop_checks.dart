@@ -104,13 +104,6 @@ class JsInteropChecks extends RecursiveVisitor {
     RegExp(r'(?<!generated_)tests/lib_2/js'),
   ];
 
-  /// Libraries that need to use external extension members with static interop
-  /// types.
-  static const Iterable<String> _customStaticInteropImplementations = [
-    'js_interop',
-    'js_interop_unsafe',
-  ];
-
   /// Libraries that cannot be used when [_enforceStrictMode] is true.
   static const _disallowedLibrariesInStrictMode = [
     'package:js/js.dart',
@@ -153,14 +146,6 @@ class JsInteropChecks extends RecursiveVisitor {
     _extensionIndex =
         ExtensionIndex(_coreTypes, _staticTypeContext.typeEnvironment);
     _typeParameterBoundChecker = _TypeParameterBoundChecker(_extensionIndex);
-  }
-
-  /// Verifies given [member] is an external extension member on a static
-  /// interop type that needs custom behavior.
-  static bool isAllowedCustomStaticInteropImplementation(Member member) {
-    Uri uri = member.enclosingLibrary.importUri;
-    return uri.isScheme('dart') &&
-        _customStaticInteropImplementations.contains(uri.path);
   }
 
   /// Extract all native class names from the [component].
@@ -399,13 +384,11 @@ class JsInteropChecks extends RecursiveVisitor {
         } else {
           annotatable = node.enclosingClass;
         }
-        if (!isAllowedCustomStaticInteropImplementation(node)) {
-          if (annotatable == null ||
-              ((hasDartJSInteropAnnotation(annotatable) ||
-                  annotatable is ExtensionTypeDeclaration))) {
-            // Only restrict type parameters for dart:js_interop.
-            _checkStaticInteropMemberUsesValidTypeParameters(node);
-          }
+        if (annotatable == null ||
+            ((hasDartJSInteropAnnotation(annotatable) ||
+                annotatable is ExtensionTypeDeclaration))) {
+          // Only restrict type parameters for dart:js_interop.
+          _checkStaticInteropMemberUsesValidTypeParameters(node);
         }
       }
     }
