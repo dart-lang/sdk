@@ -11,7 +11,7 @@ import '../analyzer.dart';
 const _desc = r"Don't implicitly reopen classes.";
 
 /// todo(pq): link out to (upcoming) dart.dev docs.
-/// https://github.com/dart-lang/site-www/issues/4497
+/// https://github.com/dart-lang/site-www/issues/4833
 const _details = r'''
 Using an `interface`, `base`, `final`, or `sealed` modifier on a class,
 or a `base` modifier on a mixin,
@@ -21,7 +21,7 @@ In some cases, it's possible for an author to inadvertently relax these controls
 and implicitly "reopen" a class. (A similar reopening cannot occur with a mixin.)
 
 This lint guards against unintentionally reopening a class by requiring such
-cases to be made explicit with the 
+cases to be made explicit with the
 [`@reopen`](https://pub.dev/documentation/meta/latest/meta/reopen-constant.html)
 annotation in `package:meta`.
 
@@ -33,12 +33,6 @@ class C extends I {} // LINT
 ```
 
 **GOOD:**
-```dart
-interface class I {}
-
-final class C extends I {}
-```
-
 ```dart
 interface class I {}
 
