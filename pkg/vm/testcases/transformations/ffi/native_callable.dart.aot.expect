@@ -23,7 +23,7 @@ static method testNativeCallableListener() → void {
   [@vm.direct-call.metadata=dart.ffi::NativeCallable.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
 }
 static method testNativeCallableListenerClosure() → void {
-  core::int j = 123;
+  [@vm.inferred-type.metadata=dart.core::_Smi (value: 123)] core::int j = 123;
   function closure(core::int i) → void
     return core::print([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(j){(core::num) → core::int});
   final ffi::NativeCallable<(ffi::Int32) → ffi::Void> callback = block {

@@ -33,6 +33,7 @@ import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
+import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
@@ -73,6 +74,11 @@ import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:watcher/watcher.dart';
 
+/// Temporary flag to control whether surveys are enabled.
+///
+/// _surveyManager can be made 'late final' when this is removed.
+const _enableSurveys = false;
+
 /// The function for sending `openUri` request to the client.
 typedef OpenUriNotificationSender = Future<void> Function(Uri uri);
 
@@ -91,6 +97,10 @@ abstract class AnalysisServer {
 
   /// The object through which analytics are to be sent.
   final AnalyticsManager analyticsManager;
+
+  /// The object for managing showing surveys to users and recording their
+  /// responses.
+  SurveyManager? _surveyManager;
 
   /// The builder for attachments that should be included into crash reports.
   final CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder;
@@ -294,6 +304,11 @@ abstract class AnalysisServer {
       final promptPreferences =
           UserPromptPreferences(resourceProvider, instrumentationService);
       _dartFixPrompt = DartFixPromptManager(this, promptPreferences);
+    }
+
+    if (_enableSurveys) {
+      _surveyManager = SurveyManager(
+          this, instrumentationService, analyticsManager.analytics);
     }
   }
 
@@ -774,6 +789,7 @@ abstract class AnalysisServer {
     analyticsManager.createdAnalysisContexts(contextManager.analysisContexts);
 
     pubPackageService.shutdown();
+    _surveyManager?.shutdown();
     await analyticsManager.shutdown();
   }
 

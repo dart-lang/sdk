@@ -7882,6 +7882,22 @@ main() {
                 ]),
           ]);
         });
+
+        test('Join variable is promotable', () {
+          var x1 = Var('x', identity: 'x1');
+          var x2 = Var('x', identity: 'x2');
+          var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+          h.run([
+            ifCase(
+                expr('int?'),
+                x1.pattern(type: 'int?').nullCheck.or(x2.pattern(type: 'int?')),
+                [
+                  checkNotPromoted(x),
+                  x.nonNullAssert,
+                  checkPromoted(x, 'int'),
+                ]),
+          ]);
+        });
       });
 
       group(
@@ -7894,9 +7910,13 @@ main() {
           // it's not actually assigned on both sides of the or-pattern) because
           // this avoids redundant errors.
           h.run([
-            ifCase(expr('int?'),
+            ifCase(expr('num?'),
                 (x1.pattern().nullCheck.or(wildcard()))..errorId = 'OR', [
               checkAssigned(x, true),
+              // Also verify that the join variable is promotable
+              checkNotPromoted(x),
+              x.as_('int'),
+              checkPromoted(x, 'int'),
             ]),
           ], expectedErrors: {
             'logicalOrPatternBranchMissingVariable(node: OR, hasInLeft: true, '
@@ -7914,6 +7934,10 @@ main() {
             ifCase(expr('int?'),
                 (wildcard().nullCheck.or(x1.pattern()))..errorId = 'OR', [
               checkAssigned(x, true),
+              // Also verify that the join variable is promotable
+              checkNotPromoted(x),
+              x.nonNullAssert,
+              checkPromoted(x, 'int'),
             ]),
           ], expectedErrors: {
             'logicalOrPatternBranchMissingVariable(node: OR, hasInLeft: false, '
@@ -9783,6 +9807,24 @@ main() {
             ]),
           ]);
         });
+
+        test('Join variable is promotable', () {
+          var x1 = Var('x', identity: 'x1');
+          var x2 = Var('x', identity: 'x2');
+          var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+          h.run([
+            switch_(expr('int?'), [
+              switchStatementMember([
+                x1.pattern(type: 'int?').nullCheck,
+                x2.pattern(type: 'int?')
+              ], [
+                checkNotPromoted(x),
+                x.nonNullAssert,
+                checkPromoted(x, 'int'),
+              ]),
+            ])
+          ]);
+        });
       });
 
       group(
@@ -9795,12 +9837,16 @@ main() {
           // not actually assigned by both patterns) because this avoids
           // redundant errors.
           h.run([
-            switch_(expr('int?'), [
+            switch_(expr('num?'), [
               switchStatementMember([
                 x1.pattern().nullCheck,
                 wildcard()
               ], [
                 checkAssigned(x, true),
+                // Also verify that the join variable is promotable
+                checkNotPromoted(x),
+                x.as_('int'),
+                checkPromoted(x, 'int'),
               ])
             ]),
           ]);
@@ -9819,6 +9865,10 @@ main() {
                 x1.pattern()
               ], [
                 checkAssigned(x, true),
+                // Also verify that the join variable is promotable
+                checkNotPromoted(x),
+                x.nonNullAssert,
+                checkPromoted(x, 'int'),
               ])
             ]),
           ]);

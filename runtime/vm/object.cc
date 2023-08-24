@@ -18894,6 +18894,14 @@ void ContextScope::SetTypeAt(intptr_t scope_index,
   untag()->set_type_at(scope_index, type.ptr());
 }
 
+intptr_t ContextScope::CidAt(intptr_t scope_index) const {
+  return Smi::Value(untag()->cid_at(scope_index));
+}
+
+void ContextScope::SetCidAt(intptr_t scope_index, intptr_t cid) const {
+  untag()->set_cid_at(scope_index, Smi::New(cid));
+}
+
 intptr_t ContextScope::ContextIndexAt(intptr_t scope_index) const {
   return Smi::Value(untag()->context_index_at(scope_index));
 }

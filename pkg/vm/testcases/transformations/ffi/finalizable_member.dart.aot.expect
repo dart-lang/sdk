@@ -29,7 +29,7 @@ class B extends core::Object implements ffi::Finalizable {
 [@vm.inferred-type.metadata=dart.ffi::_NativeFinalizer]static final field ffi::NativeFinalizer _nativeFinalizer = new ffi::_NativeFinalizer::•([@vm.inferred-type.metadata=dart.ffi::Pointer] self::free);
 static method main() → asy::Future<void> async /* futureValueType= void */ {
   final self::B b = new self::B::•(new self::A::•());
-  final core::List<core::int> l = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::•<core::int>(0);
+  [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] final core::List<core::int> l = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::•<core::int>(0);
   asy::Future::doWhile(() → core::bool {
     [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dart.core::int>] [@vm.direct-call.metadata=dart.core::_GrowableList.add] [@vm.inferred-type.metadata=!? (skip check)] l.{core::List::add}(1){(core::int) → void};
     return true;

@@ -102,42 +102,14 @@ String createCompileJitJson({
       sourceString: executable,
       outputString: outputDill,
       if (args.wasParsed(defineOption)) defineOption: args[defineOption],
-      if (args.wasParsed(enableAssertsOption)) enableAssertsOption: true,
+      if (args.options.contains(enableAssertsOption) &&
+          args.wasParsed(enableAssertsOption))
+        enableAssertsOption: true,
       if (args.wasParsed(enableExperimentOption))
         enableExperimentOption: args[enableExperimentOption]
             .map((e) => '--enable-experiment=$e')
             .toList(),
       if (packages != null) packageString: packages,
-      if (args.wasParsed(verbosityOption))
-        verbosityOption: args[verbosityOption],
-    },
-  );
-}
-
-/// Used to create compile requests for AOT compilations
-String createCompileAotJson({
-  required String executable,
-  required String outputDill,
-  required ArgResults args,
-  String? packages,
-  bool productMode = false,
-  bool verbose = false,
-}) {
-  return jsonEncode(
-    <String, Object?>{
-      commandString: compileString,
-      sourceString: executable,
-      outputString: outputDill,
-      aotOption: true,
-      tfaOption: true,
-      if (productMode) '-Ddart.vm.product': true,
-      if (args.wasParsed(defineOption)) defineOption: args[defineOption],
-      if (args.wasParsed(enableExperimentOption))
-        enableExperimentOption: args[enableExperimentOption],
-      if (args.wasParsed(packageString)) packageString: args[packageString],
-      if (!args.wasParsed(packageString) && packages != null)
-        packageString: packages,
-      if (args.wasParsed(soundNullSafetyOption)) soundNullSafetyOption: true,
       if (args.wasParsed(verbosityOption))
         verbosityOption: args[verbosityOption],
     },

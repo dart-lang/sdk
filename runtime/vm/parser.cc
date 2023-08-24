@@ -201,8 +201,9 @@ void ParsedFunction::AllocateVariables() {
                          tmp, variable->kernel_offset()) == nullptr);
       raw_parameter = new LocalVariable(
           variable->declaration_token_pos(), variable->token_pos(), tmp,
-          variable->type(), variable->kernel_offset(),
-          variable->parameter_type(), variable->parameter_value());
+          variable->static_type(), variable->kernel_offset(),
+          variable->inferred_type(), variable->inferred_arg_type(),
+          variable->inferred_arg_value());
       raw_parameter->set_annotations_offset(variable->annotations_offset());
       if (variable->is_explicit_covariant_parameter()) {
         raw_parameter->set_is_explicit_covariant_parameter();
@@ -252,7 +253,7 @@ void ParsedFunction::AllocateVariables() {
       raw_type_args_parameter =
           new LocalVariable(function_type_arguments_->declaration_token_pos(),
                             function_type_arguments_->token_pos(), tmp,
-                            function_type_arguments_->type(),
+                            function_type_arguments_->static_type(),
                             function_type_arguments_->kernel_offset());
       bool ok = scope->AddVariable(raw_type_args_parameter);
       ASSERT(ok);

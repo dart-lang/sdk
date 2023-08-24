@@ -7454,6 +7454,9 @@ class ContextScope : public Object {
   AbstractTypePtr TypeAt(intptr_t scope_index) const;
   void SetTypeAt(intptr_t scope_index, const AbstractType& type) const;
 
+  intptr_t CidAt(intptr_t scope_index) const;
+  void SetCidAt(intptr_t scope_index, intptr_t cid) const;
+
   intptr_t ContextIndexAt(intptr_t scope_index) const;
   void SetContextIndexAt(intptr_t scope_index, intptr_t context_index) const;
 

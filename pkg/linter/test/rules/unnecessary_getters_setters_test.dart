@@ -15,6 +15,9 @@ main() {
 @reflectiveTest
 class UnnecessaryGettersSettersTest extends LintRuleTest {
   @override
+  List<String> get experiments => ['inline-class'];
+
+  @override
   String get lintRule => 'unnecessary_getters_setters';
 
   test_necessary_differentType() async {
@@ -74,6 +77,20 @@ class C {
   }
 }
 ''');
+  }
+
+  test_unnecessary_getterAndSetter_extensionType() async {
+    await assertDiagnostics(r'''
+extension type E(int i) {
+  static int? _x;
+  static int? get x => _x;
+  static set x(int? value) {
+    _x = value;
+  }
+}
+''', [
+      lint(62, 1),
+    ]);
   }
 
   test_unnecessary_getterAndSetterHaveBlockBody() async {

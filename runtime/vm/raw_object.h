@@ -2416,6 +2416,7 @@ class UntaggedContext : public UntaggedObject {
 #define CONTEXT_SCOPE_VARIABLE_DESC_FLAG_LIST(V)                               \
   V(Final)                                                                     \
   V(Late)                                                                      \
+  V(Nullable)                                                                  \
   V(Invisible)                                                                 \
   V(AwaiterLink)
 
@@ -2436,6 +2437,7 @@ class UntaggedContextScope : public UntaggedObject {
     };
     CompressedSmiPtr late_init_offset;
     CompressedAbstractTypePtr type;
+    CompressedSmiPtr cid;
     CompressedSmiPtr context_index;
     CompressedSmiPtr context_level;
     CompressedSmiPtr kernel_offset;
@@ -2474,6 +2476,7 @@ class UntaggedContextScope : public UntaggedObject {
   DEFINE_ACCESSOR(SmiPtr, flags)
   DEFINE_ACCESSOR(SmiPtr, late_init_offset)
   DEFINE_ACCESSOR(AbstractTypePtr, type)
+  DEFINE_ACCESSOR(SmiPtr, cid)
   DEFINE_ACCESSOR(SmiPtr, context_index)
   DEFINE_ACCESSOR(SmiPtr, context_level)
   DEFINE_ACCESSOR(SmiPtr, kernel_offset)

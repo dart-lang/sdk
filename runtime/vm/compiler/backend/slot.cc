@@ -269,10 +269,7 @@ const Slot& Slot::GetContextVariableSlotFor(Thread* thread,
       IsImmutableBit::encode(variable.is_final() && !variable.is_late()) |
           IsCompressedBit::encode(Context::ContainsCompressedPointers()),
       compiler::target::Context::variable_offset(variable.index().value()),
-      &variable.name(),
-      CompileType::FromAbstractType(variable.type(), CompileType::kCanBeNull,
-                                    variable.is_late()),
-      kTagged);
+      &variable.name(), *(variable.inferred_type()), kTagged);
 }
 
 const Slot& Slot::GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index) {

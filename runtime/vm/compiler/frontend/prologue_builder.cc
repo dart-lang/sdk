@@ -25,7 +25,7 @@ namespace kernel {
 static CompileType ParameterType(LocalVariable* param,
                                  Representation representation = kTagged) {
   return param->was_type_checked_by_caller()
-             ? CompileType::FromAbstractType(param->type(),
+             ? CompileType::FromAbstractType(param->static_type(),
                                              representation == kTagged,
                                              CompileType::kCannotBeSentinel)
              : ((representation == kTagged)
