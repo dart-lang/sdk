@@ -3870,12 +3870,9 @@ class BinaryBuilder {
     int nullabilityIndex = readByte();
     Reference reference = readNonNullExtensionTypeDeclarationReference();
     List<DartType> typeArguments = readDartTypeList();
-    DartType representationType = readDartType();
+    readDartType(); // Read type erasure.
     return new ExtensionType.byReference(
-        reference,
-        Nullability.values[nullabilityIndex],
-        typeArguments,
-        representationType);
+        reference, Nullability.values[nullabilityIndex], typeArguments);
   }
 
   DartType _readFunctionType() {

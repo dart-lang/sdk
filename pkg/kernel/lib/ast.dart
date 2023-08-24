@@ -11646,8 +11646,6 @@ class ExtensionType extends DartType {
 
   final List<DartType> typeArguments;
 
-  DartType? _typeErasure;
-
   ExtensionType(ExtensionTypeDeclaration extensionTypeDeclaration,
       Nullability declaredNullability, [List<DartType>? typeArguments])
       : this.byReference(
@@ -11656,8 +11654,7 @@ class ExtensionType extends DartType {
             typeArguments ?? _defaultTypeArguments(extensionTypeDeclaration));
 
   ExtensionType.byReference(this.extensionTypeDeclarationReference,
-      this.declaredNullability, this.typeArguments,
-      [this._typeErasure]);
+      this.declaredNullability, this.typeArguments);
 
   ExtensionTypeDeclaration get extensionTypeDeclaration =>
       extensionTypeDeclarationReference.asExtensionTypeDeclaration;
@@ -11679,7 +11676,7 @@ class ExtensionType extends DartType {
   ///
   /// the type erasure of `E1` is `int`, type erasure of `E2<num>` is `num` and
   /// the type erasure of `E3<String>` is `List<String>`.
-  DartType get typeErasure => _typeErasure ??= _computeTypeErasure(
+  DartType get typeErasure => _computeTypeErasure(
       extensionTypeDeclarationReference, typeArguments, declaredNullability);
 
   @override

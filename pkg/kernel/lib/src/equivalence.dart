@@ -5239,9 +5239,6 @@ class EquivalenceStrategy {
     if (!checkExtensionType_typeArguments(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkExtensionType_typeErasure(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     visitor.popState();
     return result;
   }
@@ -9286,12 +9283,6 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
     return visitor.checkLists(node.typeArguments, other.typeArguments,
         visitor.checkNodes, 'typeArguments');
-  }
-
-  bool checkExtensionType_typeErasure(
-      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
-    return visitor.checkNodes(
-        node.typeErasure, other.typeErasure, 'typeErasure');
   }
 
   bool checkIntersectionType_left(EquivalenceVisitor visitor,
