@@ -77,7 +77,7 @@ import 'src/printer.dart' show AstPrinter, AstTextStrategy;
 ///
 /// The "qualified name" allows a member to have a name that is private to
 /// a library other than the one containing that member.
-class CanonicalName {
+class CanonicalName implements Comparable<CanonicalName?> {
   CanonicalName? _parent;
 
   CanonicalName? get parent => _parent;
@@ -413,12 +413,25 @@ class CanonicalName {
     }
     return null;
   }
+
+  @override
+  int compareTo(CanonicalName? other) {
+    if (identical(this, other)) return 0;
+    if (other == null) return -1;
+    int result = name.compareTo(other.name);
+    if (result != 0) return result;
+    if (parent == null) {
+      if (other.parent == null) return 0;
+      return -1;
+    }
+    return parent!.compareTo(other.parent);
+  }
 }
 
 /// Indirection between a reference and its definition.
 ///
 /// There is only one reference object per [NamedNode].
-class Reference {
+class Reference implements Comparable<Reference> {
   CanonicalName? canonicalName;
 
   NamedNode? _node;
@@ -648,6 +661,16 @@ class Reference {
       return sb.toString();
     }
     return null;
+  }
+
+  @override
+  int compareTo(Reference other) {
+    final CanonicalName? thisCanonicalName = canonicalName;
+    final CanonicalName? otherCanonicalName = other.canonicalName;
+    if (thisCanonicalName == null && otherCanonicalName == null) return 0;
+    if (thisCanonicalName == null) return -1;
+    if (otherCanonicalName == null) return 1;
+    return thisCanonicalName.compareTo(otherCanonicalName);
   }
 }
 

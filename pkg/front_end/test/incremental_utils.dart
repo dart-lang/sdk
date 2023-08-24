@@ -17,8 +17,7 @@ import 'package:kernel/kernel.dart'
         Library,
         Node,
         Procedure,
-        RecursiveVisitor,
-        Reference;
+        RecursiveVisitor;
 
 List<int> postProcess(Component c) {
   postProcessComponent(c);
@@ -34,9 +33,7 @@ void postProcessComponent(Component c) {
 
   c.computeCanonicalNames();
   for (Library library in c.libraries) {
-    library.additionalExports.sort((Reference r1, Reference r2) {
-      return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
-    });
+    library.additionalExports.sort();
     library.problemsAsJson?.sort();
   }
 }

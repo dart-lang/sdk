@@ -38,7 +38,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/ast.dart'
-    show Component, Library, Reference, NonNullableByDefaultCompiledMode;
+    show Component, Library, NonNullableByDefaultCompiledMode;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
@@ -799,9 +799,7 @@ void sortComponent(Component component) {
   });
   component.computeCanonicalNames();
   for (Library lib in component.libraries) {
-    lib.additionalExports.sort((Reference a, Reference b) {
-      return a.canonicalName.toString().compareTo(b.canonicalName.toString());
-    });
+    lib.additionalExports.sort();
   }
 }
 

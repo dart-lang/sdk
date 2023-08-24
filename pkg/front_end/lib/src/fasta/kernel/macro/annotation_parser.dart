@@ -2124,7 +2124,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleRecoverClassHeader() {
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
     _unexpected();
   }
 

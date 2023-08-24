@@ -2280,7 +2280,7 @@ class FlowModel<Type extends Object> {
   /// will be promoted in the output model, provided that hasn't been reassigned
   /// since then (which would make the promotion unsound).
   FlowModel<Type> rebaseForward(
-      TypeOperations<Type> typeOperations, FlowModel<Type> base) {
+      FlowModelHelper<Type> helper, FlowModel<Type> base) {
     // The rebased model is reachable iff both `this` and the new base are
     // reachable.
     Reachability newReachable = reachable.rebaseForward(base.reachable);
@@ -2312,7 +2312,9 @@ class FlowModel<Type extends Object> {
       if (newWriteCaptured) {
         // Write captured variables can't be promoted.
         newPromotedTypes = null;
-      } else if (baseModel.ssaNode != thisModel.ssaNode) {
+      } else if (helper.promotionKeyStore.variableForKey(promotionKey) !=
+              null &&
+          baseModel.ssaNode != thisModel.ssaNode) {
         // The variable may have been written to since `thisModel`, so we can't
         // use any of the promotions from `thisModel`.
         newPromotedTypes = baseModel.promotedTypes;
@@ -2322,12 +2324,14 @@ class FlowModel<Type extends Object> {
         // usual "promotion chain" invariant (each promoted type is a subtype of
         // the previous).
         newPromotedTypes = PromotionModel.rebasePromotedTypes(
-            typeOperations, thisModel.promotedTypes, baseModel.promotedTypes);
+            helper.typeOperations,
+            thisModel.promotedTypes,
+            baseModel.promotedTypes);
       }
       // Tests are kept regardless of whether they are in `this` model or the
       // new base model.
       List<Type> newTested = PromotionModel.joinTested(
-          thisModel.tested, baseModel.tested, typeOperations);
+          thisModel.tested, baseModel.tested, helper.typeOperations);
       // The variable is definitely assigned if it was definitely assigned
       // either in `this` model or the new base model.
       bool newAssigned = thisModel.assigned || baseModel.assigned;
@@ -2346,15 +2350,24 @@ class FlowModel<Type extends Object> {
       if (!identical(newModel, thisModel)) promotionInfoMatchesThis = false;
       if (!identical(newModel, baseModel)) promotionInfoMatchesBase = false;
     }
-    // newPromotionInfo is now correct.  However, if there are any variables
-    // present in `this` that aren't present in `base`, we may erroneously think
-    // that `newPromotionInfo` matches `this`.  If so, correct that.
-    if (promotionInfoMatchesThis) {
-      for (int promotionKey in promotionInfo.keys) {
-        if (!base.promotionInfo.containsKey(promotionKey)) {
-          promotionInfoMatchesThis = false;
-          break;
-        }
+    // Check promotion keys that exist in `this` model but not in the new `base`
+    // model. This happens when either:
+    // - The promotion key is associated with a local variable that was in scope
+    //   at the time `this` model was created, but is no longer in scope as of
+    //   the `base` model, or:
+    // - The promotion key is associated with a property that was promoted in
+    //   `this` model.
+    //
+    // In the first case, it doesn't matter what we do, because the variable is
+    // no longer in scope. But in the second case, we need to preserve the
+    // promotion.
+    for (var MapEntry(
+          key: int promotionKey,
+          value: PromotionModel<Type> thisModel
+        ) in promotionInfo.entries) {
+      if (!base.promotionInfo.containsKey(promotionKey)) {
+        newPromotionInfo[promotionKey] = thisModel;
+        promotionInfoMatchesBase = false;
       }
     }
     assert(promotionInfoMatchesThis ==
@@ -2844,6 +2857,14 @@ class PromotionModel<Type extends Object> {
   /// `null` if the variable has been write captured.
   ///
   /// Not relevant for properties.
+  ///
+  /// Note: currently this field stores a bogus SSA node when the PromotionModel
+  /// represents a property; it's not the SSA node of the value stored in the
+  /// property, and it's not guaranteed to be a stable value (even if the
+  /// property itself is promotable, and thus stable).
+  /// TODO(paulberry): either ensure that flow analysis doesn't try to access
+  /// this field when the PromotionModel represents a property, or ensure that
+  /// this field always properly reflects the SSA node of the property.
   final SsaNode<Type>? ssaNode;
 
   /// Non-promotion history of this variable. Not relevant for properties.
@@ -3829,7 +3850,7 @@ class TrivialVariableReference<Type extends Object> extends _Reference<Type> {
   /// [current] should be the current flow model, and [typeOperations] should be
   /// the callback object provided by the client for manipulating types.
   _Reference<Type> addPreviousInfo(ExpressionInfo<Type>? previousExpressionInfo,
-      TypeOperations<Type> typeOperations, FlowModel<Type> current) {
+      FlowModelHelper<Type> helper, FlowModel<Type> current) {
     if (previousExpressionInfo != null && previousExpressionInfo.isNonTrivial) {
       // [previousExpression] contained non-trivial flow analysis information,
       // so we need to rebase its [ifTrue] and [ifFalse] flow models. We don't
@@ -3841,10 +3862,9 @@ class TrivialVariableReference<Type extends Object> extends _Reference<Type> {
           after: current,
           type: _type,
           isThisOrSuper: isThisOrSuper,
-          ifTrue: previousExpressionInfo.ifTrue
-              .rebaseForward(typeOperations, current),
-          ifFalse: previousExpressionInfo.ifFalse
-              .rebaseForward(typeOperations, current),
+          ifTrue: previousExpressionInfo.ifTrue.rebaseForward(helper, current),
+          ifFalse:
+              previousExpressionInfo.ifFalse.rebaseForward(helper, current),
           ssaNode: ssaNode);
     } else {
       // [previousExpression] didn't contain any non-trivial flow analysis
@@ -5184,7 +5204,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     PromotionModel<Type> promotionModel = _current._getInfo(variableKey);
     _Reference<Type> expressionInfo =
         _variableReference(variableKey, unpromotedType).addPreviousInfo(
-            promotionModel.ssaNode?.expressionInfo, operations, _current);
+            promotionModel.ssaNode?.expressionInfo, this, _current);
     _storeExpressionReference(expression, expressionInfo);
     _storeExpressionInfo(expression, expressionInfo);
     return promotionModel.promotedTypes?.last;
@@ -5445,7 +5465,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     _Reference<Type> newReference = context
         .createReference(getMatchedValueType(), _current)
-        .addPreviousInfo(context._matchedValueInfo, typeOperations, _current);
+        .addPreviousInfo(context._matchedValueInfo, this, _current);
     _EqualityCheckResult equalityCheckResult =
         _equalityCheck(newReference, equalityOperand_end(operand, operandType));
     if (equalityCheckResult is _NoEqualityInformation) {
@@ -5711,7 +5731,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     }
     return _makeTemporaryReference(
             scrutineeSsaNode ?? new SsaNode<Type>(null), scrutineeType)
-        .addPreviousInfo(scrutineeInfo, typeOperations, _current);
+        .addPreviousInfo(scrutineeInfo, this, _current);
   }
 
   /// Associates [expression], which should be the most recently visited

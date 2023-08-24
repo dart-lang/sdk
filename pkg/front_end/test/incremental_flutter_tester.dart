@@ -102,9 +102,7 @@ Future<void> main(List<String> args) async {
     c.computeCanonicalNames();
 
     for (Library library in c.libraries) {
-      library.additionalExports.sort((Reference r1, Reference r2) {
-        return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
-      });
+      library.additionalExports.sort();
       library.problemsAsJson?.sort();
 
       List<int> libSerialized =
@@ -177,9 +175,7 @@ Future<void> main(List<String> args) async {
         if (!uris.contains(uri)) continue;
 
         foundCount++;
-        library.additionalExports.sort((Reference r1, Reference r2) {
-          return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
-        });
+        library.additionalExports.sort();
         library.problemsAsJson?.sort();
 
         List<int> libSerialized =

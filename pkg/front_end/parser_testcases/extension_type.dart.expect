@@ -4,13 +4,13 @@ parser/extension_type:3:16: An extension type declaration must have a primary co
 extension type E on A {}
                ^
 
-parser/extension_type:3:16: A extension type declaration must have a body, even if it is empty.
+parser/extension_type:3:18: Expected 'extends' instead of this.
 extension type E on A {}
-               ^
+                 ^^
 
-parser/extension_type:3:21: A function declaration needs an explicit list of parameters.
+parser/extension_type:3:18: An extension type declaration can't have an 'extends' clause.
 extension type E on A {}
-                    ^
+                 ^^
 
 beginCompilationUnit(class)
   beginMetadataStar(class)
@@ -36,26 +36,17 @@ beginCompilationUnit(class)
       handleRecoverableError(MissingPrimaryConstructor, E, E)
       handleNoPrimaryConstructor(E, null)
       handleImplements(null, 0)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A extension type declaration must have a body, even if it is empty., Try adding an empty body., {string: extension type declaration}], E, E)
+      handleRecoverableError(Message[ExpectedInstead, Expected 'extends' instead of this., null, {string: extends}], on, on)
+      handleIdentifier(A, typeReference)
+      handleNoTypeArguments({)
+      handleType(A, null)
+      handleClassExtends(on, 1)
+      handleRecoverableError(ExtensionTypeExtends, on, on)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
     endExtensionTypeDeclaration(extension, type, })
-  endTopLevelDeclaration(on)
-  beginMetadataStar(on)
-  endMetadataStar(0)
-  beginTopLevelMember(on)
-    beginTopLevelMethod(}, null, null)
-      handleIdentifier(on, typeReference)
-      handleNoTypeArguments(A)
-      handleType(on, null)
-      handleIdentifier(A, topLevelFunctionDeclaration)
-      handleNoTypeVariables({)
-      handleRecoverableError(MissingFunctionParameters, A, A)
-      beginFormalParameters((, MemberKind.TopLevelMethod)
-      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
-      handleAsyncModifier(null, null)
-      beginBlockFunctionBody({)
-      endBlockFunctionBody(0, {, })
-    endTopLevelMethod(on, null, })
   endTopLevelDeclaration()
-endCompilationUnit(3, )
+endCompilationUnit(2, )

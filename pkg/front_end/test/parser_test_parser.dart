@@ -729,21 +729,50 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseClassExtendsOpt(Token token) {
-    doPrint('parseClassExtendsOpt(' '$token)');
+  Token parseExtensionTypeHeaderRecovery(Token token, Token extensionKeyword) {
+    doPrint(
+        'parseExtensionTypeHeaderRecovery(' '$token, ' '$extensionKeyword)');
     indent++;
-    var result = super.parseClassExtendsOpt(token);
+    var result =
+        super.parseExtensionTypeHeaderRecovery(token, extensionKeyword);
     indent--;
     return result;
   }
 
   @override
-  Token parseClassExtendsSeenExtendsClause(Token extendsKeyword, Token token) {
-    doPrint(
-        'parseClassExtendsSeenExtendsClause(' '$extendsKeyword, ' '$token)');
+  Token parseDeclarationHeaderRecoveryInternal(Token token, Token begin,
+      Token declarationKeyword, DeclarationHeaderKind kind) {
+    doPrint('parseDeclarationHeaderRecoveryInternal('
+        '$token, '
+        '$begin, '
+        '$declarationKeyword, '
+        '$kind)');
+    indent++;
+    var result = super.parseDeclarationHeaderRecoveryInternal(
+        token, begin, declarationKeyword, kind);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseClassExtendsOpt(Token token, DeclarationHeaderKind kind) {
+    doPrint('parseClassExtendsOpt(' '$token, ' '$kind)');
+    indent++;
+    var result = super.parseClassExtendsOpt(token, kind);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseClassExtendsSeenExtendsClause(
+      Token extendsKeyword, Token token, DeclarationHeaderKind kind) {
+    doPrint('parseClassExtendsSeenExtendsClause('
+        '$extendsKeyword, '
+        '$token, '
+        '$kind)');
     indent++;
     var result =
-        super.parseClassExtendsSeenExtendsClause(extendsKeyword, token);
+        super.parseClassExtendsSeenExtendsClause(extendsKeyword, token, kind);
     indent--;
     return result;
   }

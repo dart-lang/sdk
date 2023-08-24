@@ -4268,6 +4268,30 @@ const MessageCode messageExtensionTypeDeclarationCause = const MessageCode(
         r"""The issue arises via this extension type declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeExtends = messageExtensionTypeExtends;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeExtends = const MessageCode(
+    "ExtensionTypeExtends",
+    index: 164,
+    problemMessage:
+        r"""An extension type declaration can't have an 'extends' clause.""",
+    correctionMessage:
+        r"""Try removing the 'extends' clause or replacing the 'extends' with 'implements'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeWith = messageExtensionTypeWith;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeWith = const MessageCode(
+    "ExtensionTypeWith",
+    index: 165,
+    problemMessage:
+        r"""An extension type declaration can't have a 'with' clause.""",
+    correctionMessage:
+        r"""Try removing the 'with' clause or replacing the 'with' with 'implements'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalClass = messageExternalClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

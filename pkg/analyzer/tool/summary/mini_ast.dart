@@ -581,7 +581,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleRecoverClassHeader() {
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
     pop(); // superclass
   }
 

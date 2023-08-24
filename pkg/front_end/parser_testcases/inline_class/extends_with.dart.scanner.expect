@@ -8,6 +8,19 @@ extension type ET7(int i) with Foo implements Bar {}
 extension type ET8(int i) with Foo, Bar implements Baz {}
 extension type ET9(int i) extends Foo with Bar implements Baz {}
 extension type ET10(int i) extends Foo with Bar, Baz implements Boz {}
+extension type ET11(int i) implements Bar extends Foo {}
+extension type ET12(int i) implements Bar with Foo {}
+extension type ET13(int i) implements Bar with Foo, Bar {}
+extension type ET14(int i) implements Bar extends Foo with Bar {}
+extension type ET15(int i) implements Bar extends Foo with Bar, Baz {}
+extension type ET16(int i) implements Bar extends Foo implements Bar {}
+extension type ET17(int i) implements Bar with Foo implements Bar {}
+extension type ET18(int i) implements Bar with Foo, Bar implements Baz {}
+extension type ET19(int i) implements Bar extends Foo with Bar implements Baz {}
+extension type ET20(int i) implements Bar extends Foo with Bar, Baz implements Boz {}
+extension type ET21(int i) implements Bar implements Boz {}
+extension type ET22(int i) extends Bar extends Boz {}
+extension type ET23(int i) extends Bar, Boz {}
 
 
 extension[KeywordToken] type[StringToken] ET1[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] extends[KeywordToken] Foo[StringToken] {[BeginToken]}[SimpleToken]
@@ -20,4 +33,17 @@ extension[KeywordToken] type[StringToken] ET7[StringToken]([BeginToken]int[Strin
 extension[KeywordToken] type[StringToken] ET8[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] with[KeywordToken] Foo[StringToken],[SimpleToken] Bar[StringToken] implements[KeywordToken] Baz[StringToken] {[BeginToken]}[SimpleToken]
 extension[KeywordToken] type[StringToken] ET9[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] extends[KeywordToken] Foo[StringToken] with[KeywordToken] Bar[StringToken] implements[KeywordToken] Baz[StringToken] {[BeginToken]}[SimpleToken]
 extension[KeywordToken] type[StringToken] ET10[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] extends[KeywordToken] Foo[StringToken] with[KeywordToken] Bar[StringToken],[SimpleToken] Baz[StringToken] implements[KeywordToken] Boz[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET11[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] implements[KeywordToken] Bar[StringToken] extends[KeywordToken] Foo[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET12[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] implements[KeywordToken] Bar[StringToken] with[KeywordToken] Foo[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET13[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] implements[KeywordToken] Bar[StringToken] with[KeywordToken] Foo[StringToken],[SimpleToken] Bar[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET14[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] implements[KeywordToken] Bar[StringToken] extends[KeywordToken] Foo[StringToken] with[KeywordToken] Bar[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET15[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] implements[KeywordToken] Bar[StringToken] extends[KeywordToken] Foo[StringToken] with[KeywordToken] Bar[StringToken],[SimpleToken] Baz[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET16[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] implements[KeywordToken] Bar[StringToken] extends[KeywordToken] Foo[StringToken] implements[KeywordToken] Bar[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET17[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] implements[KeywordToken] Bar[StringToken] with[KeywordToken] Foo[StringToken] implements[KeywordToken] Bar[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET18[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] implements[KeywordToken] Bar[StringToken] with[KeywordToken] Foo[StringToken],[SimpleToken] Bar[StringToken] implements[KeywordToken] Baz[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET19[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] implements[KeywordToken] Bar[StringToken] extends[KeywordToken] Foo[StringToken] with[KeywordToken] Bar[StringToken] implements[KeywordToken] Baz[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET20[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] implements[KeywordToken] Bar[StringToken] extends[KeywordToken] Foo[StringToken] with[KeywordToken] Bar[StringToken],[SimpleToken] Baz[StringToken] implements[KeywordToken] Boz[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET21[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] implements[KeywordToken] Bar[StringToken] implements[KeywordToken] Boz[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET22[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] extends[KeywordToken] Bar[StringToken] extends[KeywordToken] Boz[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET23[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] extends[KeywordToken] Bar[StringToken],[SimpleToken] Boz[StringToken] {[BeginToken]}[SimpleToken]
 [SimpleToken]

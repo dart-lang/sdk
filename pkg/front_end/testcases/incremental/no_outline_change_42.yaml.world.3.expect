@@ -11,8 +11,8 @@ library from "org-dartlang-test:///lib2.dart" as lib2 {
     return 87;
 }
 library from "org-dartlang-test:///lib3.dart" as lib3 {
-additionalExports = (lib1::property,
-  lib2::property)
+additionalExports = (lib2::property,
+  lib1::property)
 
   export "org-dartlang-test:///lib1.dart";
   export "org-dartlang-test:///lib2.dart";

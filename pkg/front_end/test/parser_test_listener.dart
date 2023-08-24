@@ -266,8 +266,8 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleRecoverClassHeader() {
-    doPrint('handleRecoverClassHeader()');
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
+    doPrint('handleRecoverDeclarationHeader(' '$kind)');
   }
 
   @override

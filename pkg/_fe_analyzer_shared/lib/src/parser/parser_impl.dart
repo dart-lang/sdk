@@ -4,8 +4,6 @@
 
 library _fe_analyzer_shared.parser.parser;
 
-import 'package:_fe_analyzer_shared/src/parser/type_info_impl.dart';
-
 import '../experiments/flags.dart';
 
 import '../messages/codes.dart' as codes;
@@ -63,7 +61,7 @@ import 'block_kind.dart';
 
 import 'constructor_reference_context.dart' show ConstructorReferenceContext;
 
-import 'declaration_kind.dart' show DeclarationKind;
+import 'declaration_kind.dart' show DeclarationHeaderKind, DeclarationKind;
 
 import 'directive_context.dart';
 
@@ -99,7 +97,7 @@ import 'modifier_context.dart' show ModifierContext, isModifier;
 
 import 'recovery_listeners.dart'
     show
-        ClassHeaderRecoveryListener,
+        DeclarationHeaderRecoveryListener,
         ImportRecoveryListener,
         MixinHeaderRecoveryListener;
 
@@ -121,6 +119,8 @@ import 'type_info.dart'
         isValidNonRecordTypeReference,
         noType,
         noTypeParamOrArg;
+
+import 'type_info_impl.dart';
 
 import 'util.dart'
     show
@@ -2667,7 +2667,7 @@ class Parser {
   }
 
   Token parseClassHeaderOpt(Token token, Token begin, Token classKeyword) {
-    token = parseClassExtendsOpt(token);
+    token = parseClassExtendsOpt(token, DeclarationHeaderKind.Class);
     token = parseClassWithClauseOpt(token);
     token = parseClassOrMixinOrEnumImplementsOpt(token);
     Token? nativeToken;
@@ -2681,14 +2681,33 @@ class Parser {
 
   /// Recover given out-of-order clauses in a class header.
   Token parseClassHeaderRecovery(Token token, Token begin, Token classKeyword) {
+    return parseDeclarationHeaderRecoveryInternal(
+        token, begin, classKeyword, DeclarationHeaderKind.Class);
+  }
+
+  /// Recover given out-of-order clauses in an extension type header.
+  Token parseExtensionTypeHeaderRecovery(Token token, Token extensionKeyword) {
+    return parseDeclarationHeaderRecoveryInternal(token, extensionKeyword,
+        extensionKeyword, DeclarationHeaderKind.ExtensionType);
+  }
+
+  /// Recover given out-of-order clauses in a class, enum, mixin, extension, or
+  /// extension type header.
+  Token parseDeclarationHeaderRecoveryInternal(Token token, Token begin,
+      Token declarationKeyword, DeclarationHeaderKind kind) {
     final Listener primaryListener = listener;
-    final ClassHeaderRecoveryListener recoveryListener =
-        new ClassHeaderRecoveryListener();
+    final DeclarationHeaderRecoveryListener recoveryListener =
+        new DeclarationHeaderRecoveryListener();
 
     // Reparse to determine which clauses have already been parsed
     // but intercept the events so they are not sent to the primary listener.
     listener = recoveryListener;
-    token = parseClassHeaderOpt(token, begin, classKeyword);
+    switch (kind) {
+      case DeclarationHeaderKind.Class:
+        token = parseClassHeaderOpt(token, begin, declarationKeyword);
+      case DeclarationHeaderKind.ExtensionType:
+        token = parseClassOrMixinOrEnumImplementsOpt(token);
+    }
     bool hasExtends = recoveryListener.extendsKeyword != null;
     bool hasImplements = recoveryListener.implementsKeyword != null;
     bool hasWith = recoveryListener.withKeyword != null;
@@ -2702,7 +2721,7 @@ class Parser {
     do {
       start = token;
 
-      // Check for extraneous token in the middle of a class header.
+      // Check for extraneous token in the middle of a declaration header.
       token = skipUnexpectedTokenOpt(
           token, const <String>['extends', 'with', 'implements', '{']);
 
@@ -2714,39 +2733,51 @@ class Parser {
           const ['extend', 'on'].contains(token.next!.lexeme)) {
         reportRecoverableError(token.next!,
             codes.templateExpectedInstead.withArguments('extends'));
-        token = parseClassExtendsSeenExtendsClause(token.next!, token);
+        token = parseClassExtendsSeenExtendsClause(token.next!, token, kind);
       } else {
-        token = parseClassExtendsOpt(token);
+        token = parseClassExtendsOpt(token, kind);
       }
 
       if (recoveryListener.extendsKeyword != null) {
-        if (hasExtends) {
-          reportRecoverableError(
-              recoveryListener.extendsKeyword!, codes.messageMultipleExtends);
-        } else {
-          if (hasWith) {
+        switch (kind) {
+          case DeclarationHeaderKind.Class:
+            if (hasExtends) {
+              reportRecoverableError(recoveryListener.extendsKeyword!,
+                  codes.messageMultipleExtends);
+            } else {
+              if (hasWith) {
+                reportRecoverableError(recoveryListener.extendsKeyword!,
+                    codes.messageWithBeforeExtends);
+              } else if (hasImplements) {
+                reportRecoverableError(recoveryListener.extendsKeyword!,
+                    codes.messageImplementsBeforeExtends);
+              }
+              hasExtends = true;
+            }
+          case DeclarationHeaderKind.ExtensionType:
             reportRecoverableError(recoveryListener.extendsKeyword!,
-                codes.messageWithBeforeExtends);
-          } else if (hasImplements) {
-            reportRecoverableError(recoveryListener.extendsKeyword!,
-                codes.messageImplementsBeforeExtends);
-          }
-          hasExtends = true;
+                codes.messageExtensionTypeExtends);
         }
       }
 
       token = parseClassWithClauseOpt(token);
 
       if (recoveryListener.withKeyword != null) {
-        if (hasWith) {
-          reportRecoverableError(
-              recoveryListener.withKeyword!, codes.messageMultipleWith);
-        } else {
-          if (hasImplements) {
-            reportRecoverableError(recoveryListener.withKeyword!,
-                codes.messageImplementsBeforeWith);
-          }
-          hasWith = true;
+        switch (kind) {
+          case DeclarationHeaderKind.Class:
+            if (hasWith) {
+              reportRecoverableError(
+                  recoveryListener.withKeyword!, codes.messageMultipleWith);
+            } else {
+              if (hasImplements) {
+                reportRecoverableError(recoveryListener.withKeyword!,
+                    codes.messageImplementsBeforeWith);
+              }
+              hasWith = true;
+            }
+          case DeclarationHeaderKind.ExtensionType:
+            reportRecoverableError(
+                recoveryListener.withKeyword!, codes.messageExtensionTypeWith);
         }
       }
 
@@ -2761,20 +2792,20 @@ class Parser {
         }
       }
 
-      listener.handleRecoverClassHeader();
+      listener.handleRecoverDeclarationHeader(kind);
 
-      // Exit if a class body is detected, or if no progress has been made
+      // Exit if a declaration body is detected, or if no progress has been made
     } while (!optional('{', token.next!) && start != token);
 
     listener = primaryListener;
     return token;
   }
 
-  Token parseClassExtendsOpt(Token token) {
+  Token parseClassExtendsOpt(Token token, DeclarationHeaderKind kind) {
     // extends <typeNotVoid>
     Token next = token.next!;
     if (optional('extends', next)) {
-      token = parseClassExtendsSeenExtendsClause(next, token);
+      token = parseClassExtendsSeenExtendsClause(next, token, kind);
     } else {
       listener.handleNoType(token);
       listener.handleClassExtends(
@@ -2785,7 +2816,8 @@ class Parser {
     return token;
   }
 
-  Token parseClassExtendsSeenExtendsClause(Token extendsKeyword, Token token) {
+  Token parseClassExtendsSeenExtendsClause(
+      Token extendsKeyword, Token token, DeclarationHeaderKind kind) {
     Token next = extendsKeyword;
     token =
         computeType(next, /* required = */ true).ensureTypeNotVoid(next, this);
@@ -2793,7 +2825,14 @@ class Parser {
 
     // Error recovery: extends <typeNotVoid>, <typeNotVoid> [...]
     if (optional(',', token.next!)) {
-      reportRecoverableError(token.next!, codes.messageMultipleExtends);
+      switch (kind) {
+        case DeclarationHeaderKind.Class:
+          reportRecoverableError(token.next!, codes.messageMultipleExtends);
+          break;
+        case DeclarationHeaderKind.ExtensionType:
+          // This is an error case. The error is reported elsewhere.
+          break;
+      }
 
       while (optional(',', token.next!)) {
         next = token.next!;
@@ -3117,10 +3156,10 @@ class Parser {
       reportRecoverableError(token, codes.messageMissingPrimaryConstructor);
       listener.handleNoPrimaryConstructor(token, constKeyword);
     }
+    Token start = token;
     token = parseClassOrMixinOrEnumImplementsOpt(token);
     if (!optional('{', token.next!)) {
-      // TODO(johnniwinther): Reuse logic from [parseClassHeaderRecovery] to
-      // handle `extends`, `with` and out-of-order/duplicate clauses.
+      token = parseExtensionTypeHeaderRecovery(start, extensionKeyword);
 
       // Recovery
       ensureBlock(token, /* template = */ null, 'extension type declaration');

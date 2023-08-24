@@ -15,8 +15,8 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
 }
 library from "org-dartlang-test:///lib2.dart" as lib2 {
 additionalExports = (lib1::field,
-  lib1::method,
-  lib1::field)
+  lib1::field,
+  lib1::method)
 
   export "org-dartlang-test:///lib1.dart";
 

@@ -182,6 +182,8 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME,
   ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR,
   ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS,
+  ParserErrorCode.EXTENSION_TYPE_EXTENDS,
+  ParserErrorCode.EXTENSION_TYPE_WITH,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -697,6 +699,22 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage:
         "Try removing the field declaration or making it a static field",
     hasPublishedDocs: true,
+  );
+
+  static const ParserErrorCode EXTENSION_TYPE_EXTENDS = ParserErrorCode(
+    'EXTENSION_TYPE_EXTENDS',
+    "An extension type declaration can't have an 'extends' clause.",
+    correctionMessage:
+        "Try removing the 'extends' clause or replacing the 'extends' with "
+        "'implements'.",
+  );
+
+  static const ParserErrorCode EXTENSION_TYPE_WITH = ParserErrorCode(
+    'EXTENSION_TYPE_WITH',
+    "An extension type declaration can't have a 'with' clause.",
+    correctionMessage:
+        "Try removing the 'with' clause or replacing the 'with' with "
+        "'implements'.",
   );
 
   static const ParserErrorCode EXTERNAL_CLASS = ParserErrorCode(

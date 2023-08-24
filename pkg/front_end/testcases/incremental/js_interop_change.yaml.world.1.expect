@@ -1,7 +1,7 @@
 main = main::main;
 library from "package:js/js.dart" as js {
-additionalExports = (_js::staticInterop,
-  _js::JS)
+additionalExports = (_js::JS,
+  _js::staticInterop)
 
   export "dart:_js_annotations" show JS, staticInterop;
 
