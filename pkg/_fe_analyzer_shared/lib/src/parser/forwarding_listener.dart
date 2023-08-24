@@ -1918,8 +1918,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleRecoverClassHeader() {
-    listener?.handleRecoverClassHeader();
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
+    listener?.handleRecoverDeclarationHeader(kind);
   }
 
   @override

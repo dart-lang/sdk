@@ -1,344 +1,152 @@
 Problems reported:
 
-parser/inline_class/extends_with:1:25: A extension type declaration must have a body, even if it is empty.
-extension type ET1(int i) extends Foo {}
-                        ^
-
-parser/inline_class/extends_with:1:27: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/inline_class/extends_with:1:27: An extension type declaration can't have an 'extends' clause.
 extension type ET1(int i) extends Foo {}
                           ^^^^^^^
 
-parser/inline_class/extends_with:1:27: 'extends' can't be used as an identifier because it's a keyword.
-extension type ET1(int i) extends Foo {}
-                          ^^^^^^^
-
-parser/inline_class/extends_with:1:27: Expected ';' after this.
-extension type ET1(int i) extends Foo {}
-                          ^^^^^^^
-
-parser/inline_class/extends_with:1:35: A function declaration needs an explicit list of parameters.
-extension type ET1(int i) extends Foo {}
-                                  ^^^
-
-parser/inline_class/extends_with:2:25: A extension type declaration must have a body, even if it is empty.
-extension type ET2(int i) with Foo {}
-                        ^
-
-parser/inline_class/extends_with:2:27: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/inline_class/extends_with:2:27: An extension type declaration can't have a 'with' clause.
 extension type ET2(int i) with Foo {}
                           ^^^^
 
-parser/inline_class/extends_with:2:27: 'with' can't be used as an identifier because it's a keyword.
-extension type ET2(int i) with Foo {}
-                          ^^^^
-
-parser/inline_class/extends_with:2:27: Expected ';' after this.
-extension type ET2(int i) with Foo {}
-                          ^^^^
-
-parser/inline_class/extends_with:2:32: A function declaration needs an explicit list of parameters.
-extension type ET2(int i) with Foo {}
-                               ^^^
-
-parser/inline_class/extends_with:3:25: A extension type declaration must have a body, even if it is empty.
-extension type ET3(int i) with Foo, Bar {}
-                        ^
-
-parser/inline_class/extends_with:3:27: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/inline_class/extends_with:3:27: An extension type declaration can't have a 'with' clause.
 extension type ET3(int i) with Foo, Bar {}
                           ^^^^
 
-parser/inline_class/extends_with:3:27: 'with' can't be used as an identifier because it's a keyword.
-extension type ET3(int i) with Foo, Bar {}
-                          ^^^^
-
-parser/inline_class/extends_with:3:27: Expected ';' after this.
-extension type ET3(int i) with Foo, Bar {}
-                          ^^^^
-
-parser/inline_class/extends_with:3:32: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-extension type ET3(int i) with Foo, Bar {}
-                               ^^^
-
-parser/inline_class/extends_with:3:37: Expected ';' after this.
-extension type ET3(int i) with Foo, Bar {}
-                                    ^^^
-
-parser/inline_class/extends_with:3:41: Expected a declaration, but got '{'.
-extension type ET3(int i) with Foo, Bar {}
-                                        ^
-
-parser/inline_class/extends_with:4:25: A extension type declaration must have a body, even if it is empty.
-extension type ET4(int i) extends Foo with Bar {}
-                        ^
-
-parser/inline_class/extends_with:4:27: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/inline_class/extends_with:4:27: An extension type declaration can't have an 'extends' clause.
 extension type ET4(int i) extends Foo with Bar {}
                           ^^^^^^^
 
-parser/inline_class/extends_with:4:27: 'extends' can't be used as an identifier because it's a keyword.
-extension type ET4(int i) extends Foo with Bar {}
-                          ^^^^^^^
-
-parser/inline_class/extends_with:4:27: Expected ';' after this.
-extension type ET4(int i) extends Foo with Bar {}
-                          ^^^^^^^
-
-parser/inline_class/extends_with:4:35: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-extension type ET4(int i) extends Foo with Bar {}
-                                  ^^^
-
-parser/inline_class/extends_with:4:35: Expected ';' after this.
-extension type ET4(int i) extends Foo with Bar {}
-                                  ^^^
-
-parser/inline_class/extends_with:4:39: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/inline_class/extends_with:4:39: An extension type declaration can't have a 'with' clause.
 extension type ET4(int i) extends Foo with Bar {}
                                       ^^^^
 
-parser/inline_class/extends_with:4:39: 'with' can't be used as an identifier because it's a keyword.
-extension type ET4(int i) extends Foo with Bar {}
-                                      ^^^^
-
-parser/inline_class/extends_with:4:39: Expected ';' after this.
-extension type ET4(int i) extends Foo with Bar {}
-                                      ^^^^
-
-parser/inline_class/extends_with:4:44: A function declaration needs an explicit list of parameters.
-extension type ET4(int i) extends Foo with Bar {}
-                                           ^^^
-
-parser/inline_class/extends_with:5:25: A extension type declaration must have a body, even if it is empty.
-extension type ET5(int i) extends Foo with Bar, Baz {}
-                        ^
-
-parser/inline_class/extends_with:5:27: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/inline_class/extends_with:5:27: An extension type declaration can't have an 'extends' clause.
 extension type ET5(int i) extends Foo with Bar, Baz {}
                           ^^^^^^^
 
-parser/inline_class/extends_with:5:27: 'extends' can't be used as an identifier because it's a keyword.
-extension type ET5(int i) extends Foo with Bar, Baz {}
-                          ^^^^^^^
-
-parser/inline_class/extends_with:5:27: Expected ';' after this.
-extension type ET5(int i) extends Foo with Bar, Baz {}
-                          ^^^^^^^
-
-parser/inline_class/extends_with:5:35: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-extension type ET5(int i) extends Foo with Bar, Baz {}
-                                  ^^^
-
-parser/inline_class/extends_with:5:35: Expected ';' after this.
-extension type ET5(int i) extends Foo with Bar, Baz {}
-                                  ^^^
-
-parser/inline_class/extends_with:5:39: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/inline_class/extends_with:5:39: An extension type declaration can't have a 'with' clause.
 extension type ET5(int i) extends Foo with Bar, Baz {}
                                       ^^^^
 
-parser/inline_class/extends_with:5:39: 'with' can't be used as an identifier because it's a keyword.
-extension type ET5(int i) extends Foo with Bar, Baz {}
-                                      ^^^^
-
-parser/inline_class/extends_with:5:39: Expected ';' after this.
-extension type ET5(int i) extends Foo with Bar, Baz {}
-                                      ^^^^
-
-parser/inline_class/extends_with:5:44: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-extension type ET5(int i) extends Foo with Bar, Baz {}
-                                           ^^^
-
-parser/inline_class/extends_with:5:49: Expected ';' after this.
-extension type ET5(int i) extends Foo with Bar, Baz {}
-                                                ^^^
-
-parser/inline_class/extends_with:5:53: Expected a declaration, but got '{'.
-extension type ET5(int i) extends Foo with Bar, Baz {}
-                                                    ^
-
-parser/inline_class/extends_with:6:25: A extension type declaration must have a body, even if it is empty.
-extension type ET6(int i) extends Foo implements Bar {}
-                        ^
-
-parser/inline_class/extends_with:6:27: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/inline_class/extends_with:6:27: An extension type declaration can't have an 'extends' clause.
 extension type ET6(int i) extends Foo implements Bar {}
                           ^^^^^^^
 
-parser/inline_class/extends_with:6:27: 'extends' can't be used as an identifier because it's a keyword.
-extension type ET6(int i) extends Foo implements Bar {}
-                          ^^^^^^^
-
-parser/inline_class/extends_with:6:27: Expected ';' after this.
-extension type ET6(int i) extends Foo implements Bar {}
-                          ^^^^^^^
-
-parser/inline_class/extends_with:6:39: Expected ';' after this.
-extension type ET6(int i) extends Foo implements Bar {}
-                                      ^^^^^^^^^^
-
-parser/inline_class/extends_with:6:50: A function declaration needs an explicit list of parameters.
-extension type ET6(int i) extends Foo implements Bar {}
-                                                 ^^^
-
-parser/inline_class/extends_with:7:25: A extension type declaration must have a body, even if it is empty.
-extension type ET7(int i) with Foo implements Bar {}
-                        ^
-
-parser/inline_class/extends_with:7:27: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/inline_class/extends_with:7:27: An extension type declaration can't have a 'with' clause.
 extension type ET7(int i) with Foo implements Bar {}
                           ^^^^
 
-parser/inline_class/extends_with:7:27: 'with' can't be used as an identifier because it's a keyword.
-extension type ET7(int i) with Foo implements Bar {}
-                          ^^^^
-
-parser/inline_class/extends_with:7:27: Expected ';' after this.
-extension type ET7(int i) with Foo implements Bar {}
-                          ^^^^
-
-parser/inline_class/extends_with:7:36: Expected ';' after this.
-extension type ET7(int i) with Foo implements Bar {}
-                                   ^^^^^^^^^^
-
-parser/inline_class/extends_with:7:47: A function declaration needs an explicit list of parameters.
-extension type ET7(int i) with Foo implements Bar {}
-                                              ^^^
-
-parser/inline_class/extends_with:8:25: A extension type declaration must have a body, even if it is empty.
-extension type ET8(int i) with Foo, Bar implements Baz {}
-                        ^
-
-parser/inline_class/extends_with:8:27: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/inline_class/extends_with:8:27: An extension type declaration can't have a 'with' clause.
 extension type ET8(int i) with Foo, Bar implements Baz {}
                           ^^^^
 
-parser/inline_class/extends_with:8:27: 'with' can't be used as an identifier because it's a keyword.
-extension type ET8(int i) with Foo, Bar implements Baz {}
-                          ^^^^
-
-parser/inline_class/extends_with:8:27: Expected ';' after this.
-extension type ET8(int i) with Foo, Bar implements Baz {}
-                          ^^^^
-
-parser/inline_class/extends_with:8:32: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-extension type ET8(int i) with Foo, Bar implements Baz {}
-                               ^^^
-
-parser/inline_class/extends_with:8:37: Expected ';' after this.
-extension type ET8(int i) with Foo, Bar implements Baz {}
-                                    ^^^
-
-parser/inline_class/extends_with:8:41: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-extension type ET8(int i) with Foo, Bar implements Baz {}
-                                        ^^^^^^^^^^
-
-parser/inline_class/extends_with:8:41: Expected ';' after this.
-extension type ET8(int i) with Foo, Bar implements Baz {}
-                                        ^^^^^^^^^^
-
-parser/inline_class/extends_with:8:52: A function declaration needs an explicit list of parameters.
-extension type ET8(int i) with Foo, Bar implements Baz {}
-                                                   ^^^
-
-parser/inline_class/extends_with:9:25: A extension type declaration must have a body, even if it is empty.
-extension type ET9(int i) extends Foo with Bar implements Baz {}
-                        ^
-
-parser/inline_class/extends_with:9:27: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/inline_class/extends_with:9:27: An extension type declaration can't have an 'extends' clause.
 extension type ET9(int i) extends Foo with Bar implements Baz {}
                           ^^^^^^^
 
-parser/inline_class/extends_with:9:27: 'extends' can't be used as an identifier because it's a keyword.
-extension type ET9(int i) extends Foo with Bar implements Baz {}
-                          ^^^^^^^
-
-parser/inline_class/extends_with:9:27: Expected ';' after this.
-extension type ET9(int i) extends Foo with Bar implements Baz {}
-                          ^^^^^^^
-
-parser/inline_class/extends_with:9:35: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-extension type ET9(int i) extends Foo with Bar implements Baz {}
-                                  ^^^
-
-parser/inline_class/extends_with:9:35: Expected ';' after this.
-extension type ET9(int i) extends Foo with Bar implements Baz {}
-                                  ^^^
-
-parser/inline_class/extends_with:9:39: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/inline_class/extends_with:9:39: An extension type declaration can't have a 'with' clause.
 extension type ET9(int i) extends Foo with Bar implements Baz {}
                                       ^^^^
 
-parser/inline_class/extends_with:9:39: 'with' can't be used as an identifier because it's a keyword.
-extension type ET9(int i) extends Foo with Bar implements Baz {}
-                                      ^^^^
-
-parser/inline_class/extends_with:9:39: Expected ';' after this.
-extension type ET9(int i) extends Foo with Bar implements Baz {}
-                                      ^^^^
-
-parser/inline_class/extends_with:9:48: Expected ';' after this.
-extension type ET9(int i) extends Foo with Bar implements Baz {}
-                                               ^^^^^^^^^^
-
-parser/inline_class/extends_with:9:59: A function declaration needs an explicit list of parameters.
-extension type ET9(int i) extends Foo with Bar implements Baz {}
-                                                          ^^^
-
-parser/inline_class/extends_with:10:26: A extension type declaration must have a body, even if it is empty.
-extension type ET10(int i) extends Foo with Bar, Baz implements Boz {}
-                         ^
-
-parser/inline_class/extends_with:10:28: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/inline_class/extends_with:10:28: An extension type declaration can't have an 'extends' clause.
 extension type ET10(int i) extends Foo with Bar, Baz implements Boz {}
                            ^^^^^^^
 
-parser/inline_class/extends_with:10:28: 'extends' can't be used as an identifier because it's a keyword.
+parser/inline_class/extends_with:10:40: An extension type declaration can't have a 'with' clause.
 extension type ET10(int i) extends Foo with Bar, Baz implements Boz {}
+                                       ^^^^
+
+parser/inline_class/extends_with:11:43: An extension type declaration can't have an 'extends' clause.
+extension type ET11(int i) implements Bar extends Foo {}
+                                          ^^^^^^^
+
+parser/inline_class/extends_with:12:43: An extension type declaration can't have a 'with' clause.
+extension type ET12(int i) implements Bar with Foo {}
+                                          ^^^^
+
+parser/inline_class/extends_with:13:43: An extension type declaration can't have a 'with' clause.
+extension type ET13(int i) implements Bar with Foo, Bar {}
+                                          ^^^^
+
+parser/inline_class/extends_with:14:43: An extension type declaration can't have an 'extends' clause.
+extension type ET14(int i) implements Bar extends Foo with Bar {}
+                                          ^^^^^^^
+
+parser/inline_class/extends_with:14:55: An extension type declaration can't have a 'with' clause.
+extension type ET14(int i) implements Bar extends Foo with Bar {}
+                                                      ^^^^
+
+parser/inline_class/extends_with:15:43: An extension type declaration can't have an 'extends' clause.
+extension type ET15(int i) implements Bar extends Foo with Bar, Baz {}
+                                          ^^^^^^^
+
+parser/inline_class/extends_with:15:55: An extension type declaration can't have a 'with' clause.
+extension type ET15(int i) implements Bar extends Foo with Bar, Baz {}
+                                                      ^^^^
+
+parser/inline_class/extends_with:16:43: An extension type declaration can't have an 'extends' clause.
+extension type ET16(int i) implements Bar extends Foo implements Bar {}
+                                          ^^^^^^^
+
+parser/inline_class/extends_with:16:55: Each class definition can have at most one implements clause.
+extension type ET16(int i) implements Bar extends Foo implements Bar {}
+                                                      ^^^^^^^^^^
+
+parser/inline_class/extends_with:17:43: An extension type declaration can't have a 'with' clause.
+extension type ET17(int i) implements Bar with Foo implements Bar {}
+                                          ^^^^
+
+parser/inline_class/extends_with:17:52: Each class definition can have at most one implements clause.
+extension type ET17(int i) implements Bar with Foo implements Bar {}
+                                                   ^^^^^^^^^^
+
+parser/inline_class/extends_with:18:43: An extension type declaration can't have a 'with' clause.
+extension type ET18(int i) implements Bar with Foo, Bar implements Baz {}
+                                          ^^^^
+
+parser/inline_class/extends_with:18:57: Each class definition can have at most one implements clause.
+extension type ET18(int i) implements Bar with Foo, Bar implements Baz {}
+                                                        ^^^^^^^^^^
+
+parser/inline_class/extends_with:19:43: An extension type declaration can't have an 'extends' clause.
+extension type ET19(int i) implements Bar extends Foo with Bar implements Baz {}
+                                          ^^^^^^^
+
+parser/inline_class/extends_with:19:55: An extension type declaration can't have a 'with' clause.
+extension type ET19(int i) implements Bar extends Foo with Bar implements Baz {}
+                                                      ^^^^
+
+parser/inline_class/extends_with:19:64: Each class definition can have at most one implements clause.
+extension type ET19(int i) implements Bar extends Foo with Bar implements Baz {}
+                                                               ^^^^^^^^^^
+
+parser/inline_class/extends_with:20:43: An extension type declaration can't have an 'extends' clause.
+extension type ET20(int i) implements Bar extends Foo with Bar, Baz implements Boz {}
+                                          ^^^^^^^
+
+parser/inline_class/extends_with:20:55: An extension type declaration can't have a 'with' clause.
+extension type ET20(int i) implements Bar extends Foo with Bar, Baz implements Boz {}
+                                                      ^^^^
+
+parser/inline_class/extends_with:20:69: Each class definition can have at most one implements clause.
+extension type ET20(int i) implements Bar extends Foo with Bar, Baz implements Boz {}
+                                                                    ^^^^^^^^^^
+
+parser/inline_class/extends_with:21:43: Each class definition can have at most one implements clause.
+extension type ET21(int i) implements Bar implements Boz {}
+                                          ^^^^^^^^^^
+
+parser/inline_class/extends_with:22:28: An extension type declaration can't have an 'extends' clause.
+extension type ET22(int i) extends Bar extends Boz {}
                            ^^^^^^^
 
-parser/inline_class/extends_with:10:28: Expected ';' after this.
-extension type ET10(int i) extends Foo with Bar, Baz implements Boz {}
+parser/inline_class/extends_with:22:40: An extension type declaration can't have an 'extends' clause.
+extension type ET22(int i) extends Bar extends Boz {}
+                                       ^^^^^^^
+
+parser/inline_class/extends_with:23:28: An extension type declaration can't have an 'extends' clause.
+extension type ET23(int i) extends Bar, Boz {}
                            ^^^^^^^
-
-parser/inline_class/extends_with:10:36: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-extension type ET10(int i) extends Foo with Bar, Baz implements Boz {}
-                                   ^^^
-
-parser/inline_class/extends_with:10:36: Expected ';' after this.
-extension type ET10(int i) extends Foo with Bar, Baz implements Boz {}
-                                   ^^^
-
-parser/inline_class/extends_with:10:40: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-extension type ET10(int i) extends Foo with Bar, Baz implements Boz {}
-                                       ^^^^
-
-parser/inline_class/extends_with:10:40: 'with' can't be used as an identifier because it's a keyword.
-extension type ET10(int i) extends Foo with Bar, Baz implements Boz {}
-                                       ^^^^
-
-parser/inline_class/extends_with:10:40: Expected ';' after this.
-extension type ET10(int i) extends Foo with Bar, Baz implements Boz {}
-                                       ^^^^
-
-parser/inline_class/extends_with:10:45: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-extension type ET10(int i) extends Foo with Bar, Baz implements Boz {}
-                                            ^^^
-
-parser/inline_class/extends_with:10:50: Expected ';' after this.
-extension type ET10(int i) extends Foo with Bar, Baz implements Boz {}
-                                                 ^^^
-
-parser/inline_class/extends_with:10:54: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-extension type ET10(int i) extends Foo with Bar, Baz implements Boz {}
-                                                     ^^^^^^^^^^
-
-parser/inline_class/extends_with:10:54: Expected ';' after this.
-extension type ET10(int i) extends Foo with Bar, Baz implements Boz {}
-                                                     ^^^^^^^^^^
-
-parser/inline_class/extends_with:10:65: A function declaration needs an explicit list of parameters.
-extension type ET10(int i) extends Foo with Bar, Baz implements Boz {}
-                                                                ^^^
 
 beginCompilationUnit(extension)
   beginMetadataStar(extension)
@@ -360,37 +168,17 @@ beginCompilationUnit(extension)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
       endPrimaryConstructor((, null, false)
       handleImplements(null, 0)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A extension type declaration must have a body, even if it is empty., Try adding an empty body., {string: extension type declaration}], ), ))
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments({)
+      handleType(Foo, null)
+      handleClassExtends(extends, 1)
+      handleRecoverableError(ExtensionTypeExtends, extends, extends)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
     endExtensionTypeDeclaration(extension, type, })
-  endTopLevelDeclaration(extends)
-  beginMetadataStar(extends)
-  endMetadataStar(0)
-  beginTopLevelMember(extends)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, })
-      handleRecoverableError(MissingConstFinalVarOrType, extends, extends)
-      handleNoType(})
-      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'extends' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: extends}], extends, extends)
-      handleIdentifier(extends, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Foo)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], extends, extends)
-    endTopLevelFields(null, null, null, null, null, 1, extends, ;)
-  endTopLevelDeclaration(Foo)
-  beginMetadataStar(Foo)
-  endMetadataStar(0)
-  beginTopLevelMember(Foo)
-    beginTopLevelMethod(;, null, null)
-      handleNoType(;)
-      handleIdentifier(Foo, topLevelFunctionDeclaration)
-      handleNoTypeVariables({)
-      handleRecoverableError(MissingFunctionParameters, Foo, Foo)
-      beginFormalParameters((, MemberKind.TopLevelMethod)
-      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
-      handleAsyncModifier(null, null)
-      beginBlockFunctionBody({)
-      endBlockFunctionBody(0, {, })
-    endTopLevelMethod(Foo, null, })
   endTopLevelDeclaration(extension)
   beginMetadataStar(extension)
   endMetadataStar(0)
@@ -411,37 +199,20 @@ beginCompilationUnit(extension)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
       endPrimaryConstructor((, null, false)
       handleImplements(null, 0)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A extension type declaration must have a body, even if it is empty., Try adding an empty body., {string: extension type declaration}], ), ))
+      handleNoType())
+      handleClassExtends(null, 1)
+      beginTypeList(Foo)
+        handleIdentifier(Foo, typeReference)
+        handleNoTypeArguments({)
+        handleType(Foo, null)
+      endTypeList(1)
+      handleClassWithClause(with)
+      handleRecoverableError(ExtensionTypeWith, with, with)
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
     endExtensionTypeDeclaration(extension, type, })
-  endTopLevelDeclaration(with)
-  beginMetadataStar(with)
-  endMetadataStar(0)
-  beginTopLevelMember(with)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, })
-      handleRecoverableError(MissingConstFinalVarOrType, with, with)
-      handleNoType(})
-      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'with' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: with}], with, with)
-      handleIdentifier(with, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Foo)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], with, with)
-    endTopLevelFields(null, null, null, null, null, 1, with, ;)
-  endTopLevelDeclaration(Foo)
-  beginMetadataStar(Foo)
-  endMetadataStar(0)
-  beginTopLevelMember(Foo)
-    beginTopLevelMethod(;, null, null)
-      handleNoType(;)
-      handleIdentifier(Foo, topLevelFunctionDeclaration)
-      handleNoTypeVariables({)
-      handleRecoverableError(MissingFunctionParameters, Foo, Foo)
-      beginFormalParameters((, MemberKind.TopLevelMethod)
-      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
-      handleAsyncModifier(null, null)
-      beginBlockFunctionBody({)
-      endBlockFunctionBody(0, {, })
-    endTopLevelMethod(Foo, null, })
   endTopLevelDeclaration(extension)
   beginMetadataStar(extension)
   endMetadataStar(0)
@@ -462,44 +233,23 @@ beginCompilationUnit(extension)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
       endPrimaryConstructor((, null, false)
       handleImplements(null, 0)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A extension type declaration must have a body, even if it is empty., Try adding an empty body., {string: extension type declaration}], ), ))
+      handleNoType())
+      handleClassExtends(null, 1)
+      beginTypeList(Foo)
+        handleIdentifier(Foo, typeReference)
+        handleNoTypeArguments(,)
+        handleType(Foo, null)
+        handleIdentifier(Bar, typeReference)
+        handleNoTypeArguments({)
+        handleType(Bar, null)
+      endTypeList(2)
+      handleClassWithClause(with)
+      handleRecoverableError(ExtensionTypeWith, with, with)
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
     endExtensionTypeDeclaration(extension, type, })
-  endTopLevelDeclaration(with)
-  beginMetadataStar(with)
-  endMetadataStar(0)
-  beginTopLevelMember(with)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, })
-      handleRecoverableError(MissingConstFinalVarOrType, with, with)
-      handleNoType(})
-      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'with' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: with}], with, with)
-      handleIdentifier(with, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Foo)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], with, with)
-    endTopLevelFields(null, null, null, null, null, 1, with, ;)
-  endTopLevelDeclaration(Foo)
-  beginMetadataStar(Foo)
-  endMetadataStar(0)
-  beginTopLevelMember(Foo)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleRecoverableError(MissingConstFinalVarOrType, Foo, Foo)
-      handleNoType(;)
-      handleIdentifier(Foo, topLevelVariableDeclaration)
-      handleNoFieldInitializer(,)
-      handleIdentifier(Bar, topLevelVariableDeclaration)
-      handleNoFieldInitializer({)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], Bar, Bar)
-    endTopLevelFields(null, null, null, null, null, 2, Foo, ;)
-  endTopLevelDeclaration({)
-  beginMetadataStar({)
-  endMetadataStar(0)
-  beginTopLevelMember({)
-    handleRecoverableError(Message[ExpectedDeclaration, Expected a declaration, but got '{'., null, {lexeme: {}], {, {)
-    beginBlock({, BlockKind(invalid))
-    endBlock(0, {, }, BlockKind(invalid))
-    handleInvalidTopLevelBlock({)
-    handleInvalidTopLevelDeclaration(})
   endTopLevelDeclaration(extension)
   beginMetadataStar(extension)
   endMetadataStar(0)
@@ -520,60 +270,23 @@ beginCompilationUnit(extension)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
       endPrimaryConstructor((, null, false)
       handleImplements(null, 0)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A extension type declaration must have a body, even if it is empty., Try adding an empty body., {string: extension type declaration}], ), ))
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Foo, null)
+      handleClassExtends(extends, 1)
+      handleRecoverableError(ExtensionTypeExtends, extends, extends)
+      beginTypeList(Bar)
+        handleIdentifier(Bar, typeReference)
+        handleNoTypeArguments({)
+        handleType(Bar, null)
+      endTypeList(1)
+      handleClassWithClause(with)
+      handleRecoverableError(ExtensionTypeWith, with, with)
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
     endExtensionTypeDeclaration(extension, type, })
-  endTopLevelDeclaration(extends)
-  beginMetadataStar(extends)
-  endMetadataStar(0)
-  beginTopLevelMember(extends)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, })
-      handleRecoverableError(MissingConstFinalVarOrType, extends, extends)
-      handleNoType(})
-      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'extends' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: extends}], extends, extends)
-      handleIdentifier(extends, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Foo)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], extends, extends)
-    endTopLevelFields(null, null, null, null, null, 1, extends, ;)
-  endTopLevelDeclaration(Foo)
-  beginMetadataStar(Foo)
-  endMetadataStar(0)
-  beginTopLevelMember(Foo)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleRecoverableError(MissingConstFinalVarOrType, Foo, Foo)
-      handleNoType(;)
-      handleIdentifier(Foo, topLevelVariableDeclaration)
-      handleNoFieldInitializer(with)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], Foo, Foo)
-    endTopLevelFields(null, null, null, null, null, 1, Foo, ;)
-  endTopLevelDeclaration(with)
-  beginMetadataStar(with)
-  endMetadataStar(0)
-  beginTopLevelMember(with)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleRecoverableError(MissingConstFinalVarOrType, with, with)
-      handleNoType(;)
-      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'with' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: with}], with, with)
-      handleIdentifier(with, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Bar)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], with, with)
-    endTopLevelFields(null, null, null, null, null, 1, with, ;)
-  endTopLevelDeclaration(Bar)
-  beginMetadataStar(Bar)
-  endMetadataStar(0)
-  beginTopLevelMember(Bar)
-    beginTopLevelMethod(;, null, null)
-      handleNoType(;)
-      handleIdentifier(Bar, topLevelFunctionDeclaration)
-      handleNoTypeVariables({)
-      handleRecoverableError(MissingFunctionParameters, Bar, Bar)
-      beginFormalParameters((, MemberKind.TopLevelMethod)
-      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
-      handleAsyncModifier(null, null)
-      beginBlockFunctionBody({)
-      endBlockFunctionBody(0, {, })
-    endTopLevelMethod(Bar, null, })
   endTopLevelDeclaration(extension)
   beginMetadataStar(extension)
   endMetadataStar(0)
@@ -594,67 +307,26 @@ beginCompilationUnit(extension)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
       endPrimaryConstructor((, null, false)
       handleImplements(null, 0)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A extension type declaration must have a body, even if it is empty., Try adding an empty body., {string: extension type declaration}], ), ))
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Foo, null)
+      handleClassExtends(extends, 1)
+      handleRecoverableError(ExtensionTypeExtends, extends, extends)
+      beginTypeList(Bar)
+        handleIdentifier(Bar, typeReference)
+        handleNoTypeArguments(,)
+        handleType(Bar, null)
+        handleIdentifier(Baz, typeReference)
+        handleNoTypeArguments({)
+        handleType(Baz, null)
+      endTypeList(2)
+      handleClassWithClause(with)
+      handleRecoverableError(ExtensionTypeWith, with, with)
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
     endExtensionTypeDeclaration(extension, type, })
-  endTopLevelDeclaration(extends)
-  beginMetadataStar(extends)
-  endMetadataStar(0)
-  beginTopLevelMember(extends)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, })
-      handleRecoverableError(MissingConstFinalVarOrType, extends, extends)
-      handleNoType(})
-      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'extends' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: extends}], extends, extends)
-      handleIdentifier(extends, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Foo)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], extends, extends)
-    endTopLevelFields(null, null, null, null, null, 1, extends, ;)
-  endTopLevelDeclaration(Foo)
-  beginMetadataStar(Foo)
-  endMetadataStar(0)
-  beginTopLevelMember(Foo)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleRecoverableError(MissingConstFinalVarOrType, Foo, Foo)
-      handleNoType(;)
-      handleIdentifier(Foo, topLevelVariableDeclaration)
-      handleNoFieldInitializer(with)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], Foo, Foo)
-    endTopLevelFields(null, null, null, null, null, 1, Foo, ;)
-  endTopLevelDeclaration(with)
-  beginMetadataStar(with)
-  endMetadataStar(0)
-  beginTopLevelMember(with)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleRecoverableError(MissingConstFinalVarOrType, with, with)
-      handleNoType(;)
-      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'with' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: with}], with, with)
-      handleIdentifier(with, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Bar)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], with, with)
-    endTopLevelFields(null, null, null, null, null, 1, with, ;)
-  endTopLevelDeclaration(Bar)
-  beginMetadataStar(Bar)
-  endMetadataStar(0)
-  beginTopLevelMember(Bar)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleRecoverableError(MissingConstFinalVarOrType, Bar, Bar)
-      handleNoType(;)
-      handleIdentifier(Bar, topLevelVariableDeclaration)
-      handleNoFieldInitializer(,)
-      handleIdentifier(Baz, topLevelVariableDeclaration)
-      handleNoFieldInitializer({)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], Baz, Baz)
-    endTopLevelFields(null, null, null, null, null, 2, Bar, ;)
-  endTopLevelDeclaration({)
-  beginMetadataStar({)
-  endMetadataStar(0)
-  beginTopLevelMember({)
-    handleRecoverableError(Message[ExpectedDeclaration, Expected a declaration, but got '{'., null, {lexeme: {}], {, {)
-    beginBlock({, BlockKind(invalid))
-    endBlock(0, {, }, BlockKind(invalid))
-    handleInvalidTopLevelBlock({)
-    handleInvalidTopLevelDeclaration(})
   endTopLevelDeclaration(extension)
   beginMetadataStar(extension)
   endMetadataStar(0)
@@ -675,49 +347,20 @@ beginCompilationUnit(extension)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
       endPrimaryConstructor((, null, false)
       handleImplements(null, 0)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A extension type declaration must have a body, even if it is empty., Try adding an empty body., {string: extension type declaration}], ), ))
-      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
-      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
-    endExtensionTypeDeclaration(extension, type, })
-  endTopLevelDeclaration(extends)
-  beginMetadataStar(extends)
-  endMetadataStar(0)
-  beginTopLevelMember(extends)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, })
-      handleRecoverableError(MissingConstFinalVarOrType, extends, extends)
-      handleNoType(})
-      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'extends' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: extends}], extends, extends)
-      handleIdentifier(extends, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Foo)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], extends, extends)
-    endTopLevelFields(null, null, null, null, null, 1, extends, ;)
-  endTopLevelDeclaration(Foo)
-  beginMetadataStar(Foo)
-  endMetadataStar(0)
-  beginTopLevelMember(Foo)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
       handleIdentifier(Foo, typeReference)
       handleNoTypeArguments(implements)
       handleType(Foo, null)
-      handleIdentifier(implements, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Bar)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], implements, implements)
-    endTopLevelFields(null, null, null, null, null, 1, Foo, ;)
-  endTopLevelDeclaration(Bar)
-  beginMetadataStar(Bar)
-  endMetadataStar(0)
-  beginTopLevelMember(Bar)
-    beginTopLevelMethod(;, null, null)
-      handleNoType(;)
-      handleIdentifier(Bar, topLevelFunctionDeclaration)
-      handleNoTypeVariables({)
-      handleRecoverableError(MissingFunctionParameters, Bar, Bar)
-      beginFormalParameters((, MemberKind.TopLevelMethod)
-      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
-      handleAsyncModifier(null, null)
-      beginBlockFunctionBody({)
-      endBlockFunctionBody(0, {, })
-    endTopLevelMethod(Bar, null, })
+      handleClassExtends(extends, 1)
+      handleRecoverableError(ExtensionTypeExtends, extends, extends)
+      handleClassNoWithClause()
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments({)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
   endTopLevelDeclaration(extension)
   beginMetadataStar(extension)
   endMetadataStar(0)
@@ -738,49 +381,23 @@ beginCompilationUnit(extension)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
       endPrimaryConstructor((, null, false)
       handleImplements(null, 0)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A extension type declaration must have a body, even if it is empty., Try adding an empty body., {string: extension type declaration}], ), ))
+      handleNoType())
+      handleClassExtends(null, 1)
+      beginTypeList(Foo)
+        handleIdentifier(Foo, typeReference)
+        handleNoTypeArguments(implements)
+        handleType(Foo, null)
+      endTypeList(1)
+      handleClassWithClause(with)
+      handleRecoverableError(ExtensionTypeWith, with, with)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments({)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
     endExtensionTypeDeclaration(extension, type, })
-  endTopLevelDeclaration(with)
-  beginMetadataStar(with)
-  endMetadataStar(0)
-  beginTopLevelMember(with)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, })
-      handleRecoverableError(MissingConstFinalVarOrType, with, with)
-      handleNoType(})
-      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'with' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: with}], with, with)
-      handleIdentifier(with, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Foo)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], with, with)
-    endTopLevelFields(null, null, null, null, null, 1, with, ;)
-  endTopLevelDeclaration(Foo)
-  beginMetadataStar(Foo)
-  endMetadataStar(0)
-  beginTopLevelMember(Foo)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleIdentifier(Foo, typeReference)
-      handleNoTypeArguments(implements)
-      handleType(Foo, null)
-      handleIdentifier(implements, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Bar)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], implements, implements)
-    endTopLevelFields(null, null, null, null, null, 1, Foo, ;)
-  endTopLevelDeclaration(Bar)
-  beginMetadataStar(Bar)
-  endMetadataStar(0)
-  beginTopLevelMember(Bar)
-    beginTopLevelMethod(;, null, null)
-      handleNoType(;)
-      handleIdentifier(Bar, topLevelFunctionDeclaration)
-      handleNoTypeVariables({)
-      handleRecoverableError(MissingFunctionParameters, Bar, Bar)
-      beginFormalParameters((, MemberKind.TopLevelMethod)
-      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
-      handleAsyncModifier(null, null)
-      beginBlockFunctionBody({)
-      endBlockFunctionBody(0, {, })
-    endTopLevelMethod(Bar, null, })
   endTopLevelDeclaration(extension)
   beginMetadataStar(extension)
   endMetadataStar(0)
@@ -801,61 +418,26 @@ beginCompilationUnit(extension)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
       endPrimaryConstructor((, null, false)
       handleImplements(null, 0)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A extension type declaration must have a body, even if it is empty., Try adding an empty body., {string: extension type declaration}], ), ))
+      handleNoType())
+      handleClassExtends(null, 1)
+      beginTypeList(Foo)
+        handleIdentifier(Foo, typeReference)
+        handleNoTypeArguments(,)
+        handleType(Foo, null)
+        handleIdentifier(Bar, typeReference)
+        handleNoTypeArguments(implements)
+        handleType(Bar, null)
+      endTypeList(2)
+      handleClassWithClause(with)
+      handleRecoverableError(ExtensionTypeWith, with, with)
+      handleIdentifier(Baz, typeReference)
+      handleNoTypeArguments({)
+      handleType(Baz, null)
+      handleImplements(implements, 1)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
     endExtensionTypeDeclaration(extension, type, })
-  endTopLevelDeclaration(with)
-  beginMetadataStar(with)
-  endMetadataStar(0)
-  beginTopLevelMember(with)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, })
-      handleRecoverableError(MissingConstFinalVarOrType, with, with)
-      handleNoType(})
-      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'with' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: with}], with, with)
-      handleIdentifier(with, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Foo)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], with, with)
-    endTopLevelFields(null, null, null, null, null, 1, with, ;)
-  endTopLevelDeclaration(Foo)
-  beginMetadataStar(Foo)
-  endMetadataStar(0)
-  beginTopLevelMember(Foo)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleRecoverableError(MissingConstFinalVarOrType, Foo, Foo)
-      handleNoType(;)
-      handleIdentifier(Foo, topLevelVariableDeclaration)
-      handleNoFieldInitializer(,)
-      handleIdentifier(Bar, topLevelVariableDeclaration)
-      handleNoFieldInitializer(implements)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], Bar, Bar)
-    endTopLevelFields(null, null, null, null, null, 2, Foo, ;)
-  endTopLevelDeclaration(implements)
-  beginMetadataStar(implements)
-  endMetadataStar(0)
-  beginTopLevelMember(implements)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleRecoverableError(MissingConstFinalVarOrType, implements, implements)
-      handleNoType(;)
-      handleIdentifier(implements, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Baz)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], implements, implements)
-    endTopLevelFields(null, null, null, null, null, 1, implements, ;)
-  endTopLevelDeclaration(Baz)
-  beginMetadataStar(Baz)
-  endMetadataStar(0)
-  beginTopLevelMember(Baz)
-    beginTopLevelMethod(;, null, null)
-      handleNoType(;)
-      handleIdentifier(Baz, topLevelFunctionDeclaration)
-      handleNoTypeVariables({)
-      handleRecoverableError(MissingFunctionParameters, Baz, Baz)
-      beginFormalParameters((, MemberKind.TopLevelMethod)
-      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
-      handleAsyncModifier(null, null)
-      beginBlockFunctionBody({)
-      endBlockFunctionBody(0, {, })
-    endTopLevelMethod(Baz, null, })
   endTopLevelDeclaration(extension)
   beginMetadataStar(extension)
   endMetadataStar(0)
@@ -876,72 +458,26 @@ beginCompilationUnit(extension)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
       endPrimaryConstructor((, null, false)
       handleImplements(null, 0)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A extension type declaration must have a body, even if it is empty., Try adding an empty body., {string: extension type declaration}], ), ))
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Foo, null)
+      handleClassExtends(extends, 1)
+      handleRecoverableError(ExtensionTypeExtends, extends, extends)
+      beginTypeList(Bar)
+        handleIdentifier(Bar, typeReference)
+        handleNoTypeArguments(implements)
+        handleType(Bar, null)
+      endTypeList(1)
+      handleClassWithClause(with)
+      handleRecoverableError(ExtensionTypeWith, with, with)
+      handleIdentifier(Baz, typeReference)
+      handleNoTypeArguments({)
+      handleType(Baz, null)
+      handleImplements(implements, 1)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
     endExtensionTypeDeclaration(extension, type, })
-  endTopLevelDeclaration(extends)
-  beginMetadataStar(extends)
-  endMetadataStar(0)
-  beginTopLevelMember(extends)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, })
-      handleRecoverableError(MissingConstFinalVarOrType, extends, extends)
-      handleNoType(})
-      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'extends' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: extends}], extends, extends)
-      handleIdentifier(extends, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Foo)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], extends, extends)
-    endTopLevelFields(null, null, null, null, null, 1, extends, ;)
-  endTopLevelDeclaration(Foo)
-  beginMetadataStar(Foo)
-  endMetadataStar(0)
-  beginTopLevelMember(Foo)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleRecoverableError(MissingConstFinalVarOrType, Foo, Foo)
-      handleNoType(;)
-      handleIdentifier(Foo, topLevelVariableDeclaration)
-      handleNoFieldInitializer(with)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], Foo, Foo)
-    endTopLevelFields(null, null, null, null, null, 1, Foo, ;)
-  endTopLevelDeclaration(with)
-  beginMetadataStar(with)
-  endMetadataStar(0)
-  beginTopLevelMember(with)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleRecoverableError(MissingConstFinalVarOrType, with, with)
-      handleNoType(;)
-      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'with' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: with}], with, with)
-      handleIdentifier(with, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Bar)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], with, with)
-    endTopLevelFields(null, null, null, null, null, 1, with, ;)
-  endTopLevelDeclaration(Bar)
-  beginMetadataStar(Bar)
-  endMetadataStar(0)
-  beginTopLevelMember(Bar)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleIdentifier(Bar, typeReference)
-      handleNoTypeArguments(implements)
-      handleType(Bar, null)
-      handleIdentifier(implements, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Baz)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], implements, implements)
-    endTopLevelFields(null, null, null, null, null, 1, Bar, ;)
-  endTopLevelDeclaration(Baz)
-  beginMetadataStar(Baz)
-  endMetadataStar(0)
-  beginTopLevelMember(Baz)
-    beginTopLevelMethod(;, null, null)
-      handleNoType(;)
-      handleIdentifier(Baz, topLevelFunctionDeclaration)
-      handleNoTypeVariables({)
-      handleRecoverableError(MissingFunctionParameters, Baz, Baz)
-      beginFormalParameters((, MemberKind.TopLevelMethod)
-      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
-      handleAsyncModifier(null, null)
-      beginBlockFunctionBody({)
-      endBlockFunctionBody(0, {, })
-    endTopLevelMethod(Baz, null, })
   endTopLevelDeclaration(extension)
   beginMetadataStar(extension)
   endMetadataStar(0)
@@ -962,83 +498,544 @@ beginCompilationUnit(extension)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
       endPrimaryConstructor((, null, false)
       handleImplements(null, 0)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A extension type declaration must have a body, even if it is empty., Try adding an empty body., {string: extension type declaration}], ), ))
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Foo, null)
+      handleClassExtends(extends, 1)
+      handleRecoverableError(ExtensionTypeExtends, extends, extends)
+      beginTypeList(Bar)
+        handleIdentifier(Bar, typeReference)
+        handleNoTypeArguments(,)
+        handleType(Bar, null)
+        handleIdentifier(Baz, typeReference)
+        handleNoTypeArguments(implements)
+        handleType(Baz, null)
+      endTypeList(2)
+      handleClassWithClause(with)
+      handleRecoverableError(ExtensionTypeWith, with, with)
+      handleIdentifier(Boz, typeReference)
+      handleNoTypeArguments({)
+      handleType(Boz, null)
+      handleImplements(implements, 1)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
     endExtensionTypeDeclaration(extension, type, })
-  endTopLevelDeclaration(extends)
-  beginMetadataStar(extends)
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
   endMetadataStar(0)
-  beginTopLevelMember(extends)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, })
-      handleRecoverableError(MissingConstFinalVarOrType, extends, extends)
-      handleNoType(})
-      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'extends' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: extends}], extends, extends)
-      handleIdentifier(extends, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Foo)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], extends, extends)
-    endTopLevelFields(null, null, null, null, null, 1, extends, ;)
-  endTopLevelDeclaration(Foo)
-  beginMetadataStar(Foo)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(extension, ET11)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(int)
+          endMetadataStar(0)
+          beginFormalParameter(int, MemberKind.PrimaryConstructor, null, null, null)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i)
+            handleType(int, null)
+            handleIdentifier(i, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(extends)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments({)
+      handleType(Foo, null)
+      handleClassExtends(extends, 1)
+      handleRecoverableError(ExtensionTypeExtends, extends, extends)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
   endMetadataStar(0)
-  beginTopLevelMember(Foo)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleRecoverableError(MissingConstFinalVarOrType, Foo, Foo)
-      handleNoType(;)
-      handleIdentifier(Foo, topLevelVariableDeclaration)
-      handleNoFieldInitializer(with)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], Foo, Foo)
-    endTopLevelFields(null, null, null, null, null, 1, Foo, ;)
-  endTopLevelDeclaration(with)
-  beginMetadataStar(with)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(extension, ET12)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(int)
+          endMetadataStar(0)
+          beginFormalParameter(int, MemberKind.PrimaryConstructor, null, null, null)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i)
+            handleType(int, null)
+            handleIdentifier(i, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleNoType(Bar)
+      handleClassExtends(null, 1)
+      beginTypeList(Foo)
+        handleIdentifier(Foo, typeReference)
+        handleNoTypeArguments({)
+        handleType(Foo, null)
+      endTypeList(1)
+      handleClassWithClause(with)
+      handleRecoverableError(ExtensionTypeWith, with, with)
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
   endMetadataStar(0)
-  beginTopLevelMember(with)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleRecoverableError(MissingConstFinalVarOrType, with, with)
-      handleNoType(;)
-      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'with' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: with}], with, with)
-      handleIdentifier(with, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Bar)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], with, with)
-    endTopLevelFields(null, null, null, null, null, 1, with, ;)
-  endTopLevelDeclaration(Bar)
-  beginMetadataStar(Bar)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(extension, ET13)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(int)
+          endMetadataStar(0)
+          beginFormalParameter(int, MemberKind.PrimaryConstructor, null, null, null)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i)
+            handleType(int, null)
+            handleIdentifier(i, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleNoType(Bar)
+      handleClassExtends(null, 1)
+      beginTypeList(Foo)
+        handleIdentifier(Foo, typeReference)
+        handleNoTypeArguments(,)
+        handleType(Foo, null)
+        handleIdentifier(Bar, typeReference)
+        handleNoTypeArguments({)
+        handleType(Bar, null)
+      endTypeList(2)
+      handleClassWithClause(with)
+      handleRecoverableError(ExtensionTypeWith, with, with)
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
   endMetadataStar(0)
-  beginTopLevelMember(Bar)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleRecoverableError(MissingConstFinalVarOrType, Bar, Bar)
-      handleNoType(;)
-      handleIdentifier(Bar, topLevelVariableDeclaration)
-      handleNoFieldInitializer(,)
-      handleIdentifier(Baz, topLevelVariableDeclaration)
-      handleNoFieldInitializer(implements)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], Baz, Baz)
-    endTopLevelFields(null, null, null, null, null, 2, Bar, ;)
-  endTopLevelDeclaration(implements)
-  beginMetadataStar(implements)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(extension, ET14)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(int)
+          endMetadataStar(0)
+          beginFormalParameter(int, MemberKind.PrimaryConstructor, null, null, null)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i)
+            handleType(int, null)
+            handleIdentifier(i, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(extends)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Foo, null)
+      handleClassExtends(extends, 1)
+      handleRecoverableError(ExtensionTypeExtends, extends, extends)
+      beginTypeList(Bar)
+        handleIdentifier(Bar, typeReference)
+        handleNoTypeArguments({)
+        handleType(Bar, null)
+      endTypeList(1)
+      handleClassWithClause(with)
+      handleRecoverableError(ExtensionTypeWith, with, with)
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
   endMetadataStar(0)
-  beginTopLevelMember(implements)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
-      handleRecoverableError(MissingConstFinalVarOrType, implements, implements)
-      handleNoType(;)
-      handleIdentifier(implements, topLevelVariableDeclaration)
-      handleNoFieldInitializer(Boz)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], implements, implements)
-    endTopLevelFields(null, null, null, null, null, 1, implements, ;)
-  endTopLevelDeclaration(Boz)
-  beginMetadataStar(Boz)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(extension, ET15)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(int)
+          endMetadataStar(0)
+          beginFormalParameter(int, MemberKind.PrimaryConstructor, null, null, null)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i)
+            handleType(int, null)
+            handleIdentifier(i, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(extends)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Foo, null)
+      handleClassExtends(extends, 1)
+      handleRecoverableError(ExtensionTypeExtends, extends, extends)
+      beginTypeList(Bar)
+        handleIdentifier(Bar, typeReference)
+        handleNoTypeArguments(,)
+        handleType(Bar, null)
+        handleIdentifier(Baz, typeReference)
+        handleNoTypeArguments({)
+        handleType(Baz, null)
+      endTypeList(2)
+      handleClassWithClause(with)
+      handleRecoverableError(ExtensionTypeWith, with, with)
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
   endMetadataStar(0)
-  beginTopLevelMember(Boz)
-    beginTopLevelMethod(;, null, null)
-      handleNoType(;)
-      handleIdentifier(Boz, topLevelFunctionDeclaration)
-      handleNoTypeVariables({)
-      handleRecoverableError(MissingFunctionParameters, Boz, Boz)
-      beginFormalParameters((, MemberKind.TopLevelMethod)
-      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
-      handleAsyncModifier(null, null)
-      beginBlockFunctionBody({)
-      endBlockFunctionBody(0, {, })
-    endTopLevelMethod(Boz, null, })
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(extension, ET16)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(int)
+          endMetadataStar(0)
+          beginFormalParameter(int, MemberKind.PrimaryConstructor, null, null, null)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i)
+            handleType(int, null)
+            handleIdentifier(i, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(extends)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments(implements)
+      handleType(Foo, null)
+      handleClassExtends(extends, 1)
+      handleRecoverableError(ExtensionTypeExtends, extends, extends)
+      handleClassNoWithClause()
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments({)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleRecoverableError(MultipleImplements, implements, implements)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(extension, ET17)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(int)
+          endMetadataStar(0)
+          beginFormalParameter(int, MemberKind.PrimaryConstructor, null, null, null)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i)
+            handleType(int, null)
+            handleIdentifier(i, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleNoType(Bar)
+      handleClassExtends(null, 1)
+      beginTypeList(Foo)
+        handleIdentifier(Foo, typeReference)
+        handleNoTypeArguments(implements)
+        handleType(Foo, null)
+      endTypeList(1)
+      handleClassWithClause(with)
+      handleRecoverableError(ExtensionTypeWith, with, with)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments({)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleRecoverableError(MultipleImplements, implements, implements)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(extension, ET18)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(int)
+          endMetadataStar(0)
+          beginFormalParameter(int, MemberKind.PrimaryConstructor, null, null, null)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i)
+            handleType(int, null)
+            handleIdentifier(i, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleNoType(Bar)
+      handleClassExtends(null, 1)
+      beginTypeList(Foo)
+        handleIdentifier(Foo, typeReference)
+        handleNoTypeArguments(,)
+        handleType(Foo, null)
+        handleIdentifier(Bar, typeReference)
+        handleNoTypeArguments(implements)
+        handleType(Bar, null)
+      endTypeList(2)
+      handleClassWithClause(with)
+      handleRecoverableError(ExtensionTypeWith, with, with)
+      handleIdentifier(Baz, typeReference)
+      handleNoTypeArguments({)
+      handleType(Baz, null)
+      handleImplements(implements, 1)
+      handleRecoverableError(MultipleImplements, implements, implements)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(extension, ET19)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(int)
+          endMetadataStar(0)
+          beginFormalParameter(int, MemberKind.PrimaryConstructor, null, null, null)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i)
+            handleType(int, null)
+            handleIdentifier(i, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(extends)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Foo, null)
+      handleClassExtends(extends, 1)
+      handleRecoverableError(ExtensionTypeExtends, extends, extends)
+      beginTypeList(Bar)
+        handleIdentifier(Bar, typeReference)
+        handleNoTypeArguments(implements)
+        handleType(Bar, null)
+      endTypeList(1)
+      handleClassWithClause(with)
+      handleRecoverableError(ExtensionTypeWith, with, with)
+      handleIdentifier(Baz, typeReference)
+      handleNoTypeArguments({)
+      handleType(Baz, null)
+      handleImplements(implements, 1)
+      handleRecoverableError(MultipleImplements, implements, implements)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(extension, ET20)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(int)
+          endMetadataStar(0)
+          beginFormalParameter(int, MemberKind.PrimaryConstructor, null, null, null)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i)
+            handleType(int, null)
+            handleIdentifier(i, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(extends)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Foo, null)
+      handleClassExtends(extends, 1)
+      handleRecoverableError(ExtensionTypeExtends, extends, extends)
+      beginTypeList(Bar)
+        handleIdentifier(Bar, typeReference)
+        handleNoTypeArguments(,)
+        handleType(Bar, null)
+        handleIdentifier(Baz, typeReference)
+        handleNoTypeArguments(implements)
+        handleType(Baz, null)
+      endTypeList(2)
+      handleClassWithClause(with)
+      handleRecoverableError(ExtensionTypeWith, with, with)
+      handleIdentifier(Boz, typeReference)
+      handleNoTypeArguments({)
+      handleType(Boz, null)
+      handleImplements(implements, 1)
+      handleRecoverableError(MultipleImplements, implements, implements)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(extension, ET21)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(int)
+          endMetadataStar(0)
+          beginFormalParameter(int, MemberKind.PrimaryConstructor, null, null, null)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i)
+            handleType(int, null)
+            handleIdentifier(i, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(implements)
+      handleType(Bar, null)
+      handleImplements(implements, 1)
+      handleNoType(Bar)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleIdentifier(Boz, typeReference)
+      handleNoTypeArguments({)
+      handleType(Boz, null)
+      handleImplements(implements, 1)
+      handleRecoverableError(MultipleImplements, implements, implements)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(extension, ET22)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(int)
+          endMetadataStar(0)
+          beginFormalParameter(int, MemberKind.PrimaryConstructor, null, null, null)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i)
+            handleType(int, null)
+            handleIdentifier(i, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false)
+      handleImplements(null, 0)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(extends)
+      handleType(Bar, null)
+      handleClassExtends(extends, 1)
+      handleRecoverableError(ExtensionTypeExtends, extends, extends)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      handleIdentifier(Boz, typeReference)
+      handleNoTypeArguments({)
+      handleType(Boz, null)
+      handleClassExtends(extends, 1)
+      handleRecoverableError(ExtensionTypeExtends, extends, extends)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(extension, ET23)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(int)
+          endMetadataStar(0)
+          beginFormalParameter(int, MemberKind.PrimaryConstructor, null, null, null)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i)
+            handleType(int, null)
+            handleIdentifier(i, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false)
+      handleImplements(null, 0)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(,)
+      handleType(Bar, null)
+      handleIdentifier(Boz, typeReference)
+      handleNoTypeArguments({)
+      handleType(Boz, null)
+      handleClassExtends(extends, 2)
+      handleRecoverableError(ExtensionTypeExtends, extends, extends)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
   endTopLevelDeclaration()
-endCompilationUnit(47, )
+endCompilationUnit(23, )

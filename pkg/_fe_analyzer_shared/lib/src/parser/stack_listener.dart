@@ -19,6 +19,7 @@ import '../scanner/scanner.dart' show Token;
 
 import '../util/stack_checker.dart';
 import '../util/value_kind.dart';
+import 'declaration_kind.dart';
 import 'identifier_context.dart' show IdentifierContext;
 
 import 'parser.dart' show Listener, MemberKind, lengthOfSpan;
@@ -254,7 +255,7 @@ abstract class StackListener extends Listener with StackChecker {
   }
 
   @override
-  void handleRecoverClassHeader() {
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
     debugEvent("RecoverClassHeader");
   }
 

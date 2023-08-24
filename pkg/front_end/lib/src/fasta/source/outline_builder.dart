@@ -8,11 +8,12 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
         ConstructorReferenceContext,
+        DeclarationHeaderKind,
         DeclarationKind,
         FormalParameterKind,
         IdentifierContext,
-        lengthOfSpan,
         MemberKind,
+        lengthOfSpan,
         optional;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
@@ -1159,7 +1160,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void handleRecoverClassHeader() {
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
     debugEvent("handleRecoverClassHeader");
     assert(checkState(null, [
       /* interfaces */ ValueKinds.TypeBuilderListOrNull,

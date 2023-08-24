@@ -7116,3 +7116,23 @@ MissingPrimaryConstructorParameters:
   experiments: inline-class
   script: |
     extension type E.name {}
+
+ExtensionTypeExtends:
+  problemMessage: "An extension type declaration can't have an 'extends' clause."
+  correctionMessage: "Try removing the 'extends' clause or replacing the 'extends' with 'implements'."
+  index: 164
+  analyzerCode: ParserErrorCode.EXTENSION_TYPE_EXTENDS
+  experiments: inline-class
+  script: |
+    extension type F(int i) {}
+    extension type E(int i) extends F {}
+
+ExtensionTypeWith:
+  problemMessage: "An extension type declaration can't have a 'with' clause."
+  correctionMessage: "Try removing the 'with' clause or replacing the 'with' with 'implements'."
+  index: 165
+  analyzerCode: ParserErrorCode.EXTENSION_TYPE_WITH
+  experiments: inline-class
+  script: |
+    extension type F(int i) {}
+    extension type E(int i) with F {}

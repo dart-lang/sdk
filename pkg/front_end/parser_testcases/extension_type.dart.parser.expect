@@ -1,11 +1,9 @@
-NOTICE: Stream was rewritten by parser!
-
 class A {}
 
-extension type E {}on A (){}
+extension type E on A {}
 
 
 class[KeywordToken] A[StringToken] {[BeginToken]}[SimpleToken]
 
-extension[KeywordToken] type[StringToken] E[StringToken] {[SyntheticBeginToken]}[SyntheticToken]on[KeywordToken] A[StringToken] ([SyntheticBeginToken])[SyntheticToken]{[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] E[StringToken] on[KeywordToken] A[StringToken] {[BeginToken]}[SimpleToken]
 [SimpleToken]

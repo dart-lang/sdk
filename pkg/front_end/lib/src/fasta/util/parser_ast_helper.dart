@@ -223,9 +223,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleRecoverClassHeader() {
-    RecoverClassHeaderHandle data =
-        new RecoverClassHeaderHandle(ParserAstType.HANDLE);
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
+    RecoverDeclarationHeaderHandle data =
+        new RecoverDeclarationHeaderHandle(ParserAstType.HANDLE, kind: kind);
     seen(data);
   }
 
@@ -3442,12 +3442,16 @@ class ClassHeaderHandle extends ParserAstNode {
       };
 }
 
-class RecoverClassHeaderHandle extends ParserAstNode {
-  RecoverClassHeaderHandle(ParserAstType type)
-      : super("RecoverClassHeader", type);
+class RecoverDeclarationHeaderHandle extends ParserAstNode {
+  final DeclarationHeaderKind kind;
+
+  RecoverDeclarationHeaderHandle(ParserAstType type, {required this.kind})
+      : super("RecoverDeclarationHeader", type);
 
   @override
-  Map<String, Object?> get deprecatedArguments => {};
+  Map<String, Object?> get deprecatedArguments => {
+        "kind": kind,
+      };
 }
 
 class ClassDeclarationEnd extends ParserAstNode {

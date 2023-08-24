@@ -2716,6 +2716,10 @@ ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD:
   status: needsFix
   notes: |-
     Remove the field, or add `static`.
+ParserErrorCode.EXTENSION_TYPE_EXTENDS:
+  status: needsEvaluation
+ParserErrorCode.EXTENSION_TYPE_WITH:
+  status: needsEvaluation
 ParserErrorCode.EXTERNAL_CLASS:
   status: needsFix
   notes: |-

@@ -1478,9 +1478,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void handleRecoverClassHeader() {
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
     expectIn('ClassDeclaration');
-    listener?.handleRecoverClassHeader();
+    listener?.handleRecoverDeclarationHeader(kind);
   }
 
   @override
