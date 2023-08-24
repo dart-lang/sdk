@@ -276,6 +276,18 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    _deprecatedVerifier
+        .pushInDeprecatedValue(node.declaredElement?.hasDeprecated ?? false);
+
+    try {
+      super.visitExtensionTypeDeclaration(node);
+    } finally {
+      _deprecatedVerifier.popInDeprecated();
+    }
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _deprecatedVerifier.pushInDeprecatedMetadata(node.metadata);
 
