@@ -1262,7 +1262,7 @@ void StubCodeCompiler::GenerateAllocateClosureStub() {
   __ PopRegister(AllocateClosureABI::kFunctionReg);
   __ PopRegister(AllocateClosureABI::kResultReg);
   ASSERT(target::WillAllocateNewOrRememberedObject(instance_size));
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
   __ LeaveStubFrame();
 
   // AllocateClosureABI::kResultReg: new object
@@ -1413,7 +1413,7 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
   __ Drop(1);
   __ PopRegister(AllocateRecordABI::kResultReg);
 
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
   __ LeaveStubFrame();
   __ Ret();
 }
@@ -1489,7 +1489,7 @@ void StubCodeCompiler::GenerateAllocateSmallRecordStub(intptr_t num_fields,
   __ Drop(4);
   __ PopRegister(result_reg);
 
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
   __ LeaveStubFrame();
   __ Ret();
 }
