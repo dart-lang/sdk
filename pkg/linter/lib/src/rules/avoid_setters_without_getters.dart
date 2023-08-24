@@ -65,6 +65,7 @@ class AvoidSettersWithoutGetters extends LintRule {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addEnumDeclaration(this, visitor);
+    registry.addExtensionTypeDeclaration(this, visitor);
     // todo(pq): consider visiting mixin declarations
   }
 }
@@ -81,6 +82,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
+    visitMembers(node.members);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     visitMembers(node.members);
   }
 

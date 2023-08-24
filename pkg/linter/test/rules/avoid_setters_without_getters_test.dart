@@ -15,6 +15,9 @@ main() {
 @reflectiveTest
 class AvoidSettersWithoutGettersTest extends LintRuleTest {
   @override
+  List<String> get experiments => ['inline-class'];
+
+  @override
   String get lintRule => 'avoid_setters_without_getters';
 
   test_enum() async {
@@ -25,6 +28,16 @@ enum A {
 }
 ''', [
       lint(24, 1),
+    ]);
+  }
+
+  test_extensionType() async {
+    await assertDiagnostics(r'''
+extension type B(int a) {
+  set i(int i) {}
+}
+''', [
+      lint(32, 1),
     ]);
   }
 }
