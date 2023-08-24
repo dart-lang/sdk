@@ -4,7 +4,7 @@
 
 // Patch file for the dart:async library.
 
-import 'dart:_internal' show patch;
+import 'dart:_internal' show patch, unsafeCast;
 import 'dart:_js_helper'
     show
         ExceptionAndStackTrace,
@@ -734,3 +734,16 @@ class _SyncStarIterable<T> extends Iterable<T> {
   _SyncStarIterator<T> get iterator =>
       new _SyncStarIterator<T>(JS('', '#()', _outerHelper));
 }
+
+/// Wraps an `await`ed expression in [Future.value] if needed.
+///
+/// If an expression `e` has a static type of `S`, then `await e` must first
+/// check if the runtime type of `e` is `Future<flatten(S)>`. If it is, `e` can
+/// be `await`ed directly. Otherwise, we must `await Future.value(e)`. Here, [T]
+/// is expected to be `flatten(S)`.
+///
+/// It suffices to use `_Future.value` rather than `Future.value` - see the
+/// comments on https://github.com/dart-lang/sdk/issues/50601.
+@pragma('dart2js:prefer-inline')
+Future<T> _wrapAwaitedExpression<T>(Object? e) =>
+    e is Future<T> ? e : _Future<T>.value(unsafeCast<T>(e));

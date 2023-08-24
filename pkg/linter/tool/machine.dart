@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
-import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/util/score_utils.dart' as score_utils;
@@ -40,34 +39,12 @@ void main(List<String> args) async {
   }
 }
 
-File machineJsonFile() {
-  var outPath = pathRelativeToPackageRoot(['tool', 'machine', 'rules.json']);
-  return File(outPath);
-}
-
-Future<Map<String, String>> fetchFixStatusMap() async {
-  var url =
-      'https://raw.githubusercontent.com/dart-lang/sdk/main/pkg/analysis_server/lib/src/services/correction/error_fix_status.yaml';
-  printToConsole('loading $url...');
-  var req = await http.get(Uri.parse(url));
-  var yaml = loadYamlNode(req.body) as YamlMap;
-  var fixStatusMap = <String, String>{};
-  for (var entry in yaml.entries) {
-    var code = entry.key as String;
-    if (code.startsWith('LintCode.')) {
-      fixStatusMap[code.substring(9)] =
-          (entry.value as YamlMap)['status'] as String;
-    }
-  }
-  return fixStatusMap;
-}
-
 Future<String> generateRulesJson({
   bool pretty = true,
   bool includeSetInfo = true,
 }) async {
   registerLintRules();
-  var fixStatusMap = await fetchFixStatusMap();
+  var fixStatusMap = readFixStatusMap();
   return await getMachineListing(Registry.ruleRegistry,
       fixStatusMap: fixStatusMap, sinceInfo: sinceMap, pretty: pretty);
 }
@@ -109,6 +86,34 @@ Future<String> getMachineListing(
       }
   ]);
   return json;
+}
+
+File machineJsonFile() {
+  var outPath = pathRelativeToPackageRoot(['tool', 'machine', 'rules.json']);
+  return File(outPath);
+}
+
+Map<String, String> readFixStatusMap() {
+  var statusFilePath = pathRelativeToPkgDir([
+    'analysis_server',
+    'lib',
+    'src',
+    'services',
+    'correction',
+    'error_fix_status.yaml'
+  ]);
+  var contents = File(statusFilePath).readAsStringSync();
+
+  var yaml = loadYamlNode(contents) as YamlMap;
+  var fixStatusMap = <String, String>{};
+  for (var entry in yaml.entries) {
+    var code = entry.key as String;
+    if (code.startsWith('LintCode.')) {
+      fixStatusMap[code.substring(9)] =
+          (entry.value as YamlMap)['status'] as String;
+    }
+  }
+  return fixStatusMap;
 }
 
 Future<

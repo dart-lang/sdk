@@ -15,6 +15,8 @@ main() {
 @reflectiveTest
 class AnnotateOverridesTest extends LintRuleTest {
   @override
+  List<String> get experiments => ['inline-class'];
+  @override
   String get lintRule => 'annotate_overrides';
 
   test_class_fieldWithAnnotation() async {
@@ -155,5 +157,56 @@ enum A {
 ''', [
       lint(27, 8),
     ]);
+  }
+
+  test_extensionTypes_field() async {
+    await assertDiagnostics(r'''
+class A {
+  int i = 0;
+}
+
+extension type B(A a) implements A {
+  int i = 0;
+}
+''', [
+      // No lint.
+      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD, 69, 1),
+    ]);
+  }
+
+  test_extensionTypes_getter() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int i = 0;
+}
+
+extension type E(A a) implements A {
+  int get i => 1;
+}
+''');
+  }
+
+  test_extensionTypes_method() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m() { }
+}
+
+extension type E(A a) implements A {
+  void m() { }
+}
+''');
+  }
+
+  test_extensionTypes_setter() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int i = 0;
+}
+
+extension type E(A a) implements A {
+  set i(int i) {}
+}
+''');
   }
 }

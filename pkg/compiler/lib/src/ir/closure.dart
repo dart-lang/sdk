@@ -215,9 +215,6 @@ enum VariableUseKind {
 
   /// A type argument of an generic instantiation.
   instantiationTypeArgument,
-
-  /// A type variable used in the runtime check type of an `await` expression.
-  awaitCheck,
 }
 
 class VariableUse {
@@ -306,9 +303,6 @@ class VariableUse {
 
   static const VariableUse fieldType =
       VariableUse._simple(VariableUseKind.fieldType);
-
-  static const VariableUse awaitCheck =
-      VariableUse._simple(VariableUseKind.awaitCheck);
 
   @override
   int get hashCode =>

@@ -704,6 +704,55 @@ void f() {
 ''');
   }
 
+  Future<void> test_material_Curve_standardEasing_deprecated() async {
+    setPackageContent('''
+abstract class Curve {
+  const Curve();
+}
+class Cubic extends Curve {
+  const Cubic(this.a, this.b, this.c, this.d);
+}
+
+abstract final class Curves {
+  static const Cubic fastOutSlowIn = Cubic(0.4, 0.0, 0.2, 1.0);
+}
+
+class Easing {
+  static const Curve legacy = Curves.fastOutSlowIn;
+}
+
+@deprecated
+const Curve standardEasing = Curves.fastOutSlowIn;
+''');
+
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace by Easing.legacy'
+    date: 2020-09-24
+    element:
+      uris: [  '$importUri' ]
+      variable: 'standardEasing'
+    changes:
+    - kind: 'replacedBy'
+      newElement:
+        uris: [  '$importUri' ]
+        field: legacy
+        inClass: Easing
+        static: true
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+const Curve c = standardEasing;
+''');
+    await assertHasFix('''
+import '$importUri';
+
+const Curve c = Easing.legacy;
+''');
+  }
+
   Future<void> test_material_FlatButton_deprecated() async {
     setPackageContent('''
 @deprecated

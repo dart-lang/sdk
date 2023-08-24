@@ -133,7 +133,6 @@ class BackendUsageBuilder {
   bool _isValidEntity(Entity element) {
     if (element is ConstructorEntity &&
         (element == _commonElements.streamIteratorConstructor ||
-            element == _commonElements.futureValueConstructor ||
             _commonElements.isSymbolConstructor(element))) {
       // TODO(johnniwinther): These are valid but we could be more precise.
       return true;

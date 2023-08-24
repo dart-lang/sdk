@@ -226,7 +226,6 @@ class ClosureDataBuilder {
       for (VariableUse usage in useSet) {
         switch (usage.kind) {
           case VariableUseKind.explicit:
-          case VariableUseKind.awaitCheck:
             return true;
           case VariableUseKind.implicitCast:
             if (_annotationsData
