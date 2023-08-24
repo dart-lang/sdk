@@ -35,12 +35,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
   }
 }
 library from "org-dartlang-test:///lib2.dart" as lib2 {
-additionalExports = (ffi::nullptr,
-  ffi::unsized,
-  ffi::sizeOf,
-  ffi::Dart_NativeMessageHandler,
-  ffi::NativeFinalizerFunction,
-  ffi::Abi,
+additionalExports = (ffi::Abi,
   ffi::AbiSpecificInteger,
   ffi::AbiSpecificIntegerArray,
   ffi::AbiSpecificIntegerMapping,
@@ -55,6 +50,7 @@ additionalExports = (ffi::nullptr,
   ffi::Char,
   ffi::DartRepresentationOf,
   ffi::Dart_CObject,
+  ffi::Dart_NativeMessageHandler,
   ffi::DefaultAsset,
   ffi::Double,
   ffi::DoubleArray,
@@ -87,6 +83,7 @@ additionalExports = (ffi::nullptr,
   ffi::NativeApi,
   ffi::NativeCallable,
   ffi::NativeFinalizer,
+  ffi::NativeFinalizerFunction,
   ffi::NativeFunction,
   ffi::NativeFunctionPointer,
   ffi::NativePort,
@@ -126,18 +123,16 @@ additionalExports = (ffi::nullptr,
   ffi::Unsized,
   ffi::VarArgs,
   ffi::Void,
-  ffi::WChar)
+  ffi::WChar,
+  ffi::nullptr,
+  ffi::sizeOf,
+  ffi::unsized)
 
   export "org-dartlang-test:///lib3.dart";
 
 }
 library from "org-dartlang-test:///lib3.dart" as lib3 {
-additionalExports = (ffi::nullptr,
-  ffi::unsized,
-  ffi::sizeOf,
-  ffi::Dart_NativeMessageHandler,
-  ffi::NativeFinalizerFunction,
-  ffi::Abi,
+additionalExports = (ffi::Abi,
   ffi::AbiSpecificInteger,
   ffi::AbiSpecificIntegerArray,
   ffi::AbiSpecificIntegerMapping,
@@ -152,6 +147,7 @@ additionalExports = (ffi::nullptr,
   ffi::Char,
   ffi::DartRepresentationOf,
   ffi::Dart_CObject,
+  ffi::Dart_NativeMessageHandler,
   ffi::DefaultAsset,
   ffi::Double,
   ffi::DoubleArray,
@@ -184,6 +180,7 @@ additionalExports = (ffi::nullptr,
   ffi::NativeApi,
   ffi::NativeCallable,
   ffi::NativeFinalizer,
+  ffi::NativeFinalizerFunction,
   ffi::NativeFunction,
   ffi::NativeFunctionPointer,
   ffi::NativePort,
@@ -223,7 +220,10 @@ additionalExports = (ffi::nullptr,
   ffi::Unsized,
   ffi::VarArgs,
   ffi::Void,
-  ffi::WChar)
+  ffi::WChar,
+  ffi::nullptr,
+  ffi::sizeOf,
+  ffi::unsized)
 
   export "dart:ffi";
 

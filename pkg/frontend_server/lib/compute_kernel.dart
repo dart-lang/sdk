@@ -25,7 +25,7 @@ import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:front_end/src/fasta/kernel/macro/macro.dart';
 import 'package:kernel/ast.dart'
-    show Component, Library, NonNullableByDefaultCompiledMode, Reference;
+    show Component, Library, NonNullableByDefaultCompiledMode;
 import 'package:kernel/target/targets.dart';
 import 'package:vm/kernel_front_end.dart';
 import 'package:vm/native_assets/synthesizer.dart';
@@ -558,9 +558,7 @@ void makeStable(Component c) {
   c.problemsAsJson?.sort();
   c.computeCanonicalNames();
   for (Library library in c.libraries) {
-    library.additionalExports.sort((Reference r1, Reference r2) {
-      return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
-    });
+    library.additionalExports.sort();
     library.problemsAsJson?.sort();
   }
 }

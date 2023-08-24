@@ -1,8 +1,8 @@
 main = main::main;
 library from "org-dartlang-test:///lib1.dart" as lib1 {
-additionalExports = (main::main,
-  main::Class,
-  main::Extension)
+additionalExports = (main::Class,
+  main::Extension,
+  main::main)
 
   export "org-dartlang-test:///main.dart";
   import "org-dartlang-test:///main.dart";
