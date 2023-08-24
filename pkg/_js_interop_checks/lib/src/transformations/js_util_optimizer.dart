@@ -8,6 +8,7 @@ import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../../js_interop_checks.dart' show JsInteropChecks;
 import '../js_interop.dart'
     show
         getJSName,
@@ -465,7 +466,8 @@ class JsUtilOptimizer extends Transformer {
       invocation = _lowerCallMethod(node, shouldTrustType: false);
     } else if (target == _callConstructorTarget) {
       invocation = _lowerCallConstructor(node);
-    } else if (target.isExternal) {
+    } else if (target.isExternal &&
+        !JsInteropChecks.isAllowedCustomStaticInteropImplementation(target)) {
       final builder = _externalInvocationBuilders.putIfAbsent(
           target, () => _getExternalInvocationBuilder(target));
       if (builder != null) invocation = builder(node.arguments, node);
