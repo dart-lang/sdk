@@ -88,9 +88,6 @@ sealed class E {
 @reflectiveTest
 class LibraryPrivateTypesInPublicApiExtensionTypeTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['inline-class'];
-
-  @override
   String get lintRule => 'library_private_types_in_public_api';
 
   test_constructorParam() async {

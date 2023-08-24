@@ -15,9 +15,6 @@ main() {
 @reflectiveTest
 class SortConstructorsFirstTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['inline-class'];
-
-  @override
   String get lintRule => 'sort_constructors_first';
 
   test_constructorBeforeMethod() async {
