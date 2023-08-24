@@ -59,6 +59,7 @@ class CamelCaseTypes extends LintRule {
     registry.addClassTypeAlias(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
     registry.addEnumDeclaration(this, visitor);
+    registry.addExtensionTypeDeclaration(this, visitor);
   }
 }
 
@@ -86,6 +87,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
+    check(node.name);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     check(node.name);
   }
 
