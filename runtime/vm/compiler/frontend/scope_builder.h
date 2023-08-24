@@ -105,7 +105,9 @@ class ScopeBuilder {
       const String& name,
       const AbstractType& type,
       intptr_t kernel_offset = LocalVariable::kNoKernelOffset,
-      const InferredTypeMetadata* param_type_md = nullptr);
+      bool is_late = false,
+      const InferredTypeMetadata* inferred_type_md = nullptr,
+      const InferredTypeMetadata* inferred_arg_type_md = nullptr);
 
   void AddExceptionVariable(GrowableArray<LocalVariable*>* variables,
                             const char* prefix,

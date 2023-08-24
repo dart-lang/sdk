@@ -1751,9 +1751,9 @@ static const LocalScope* MakeImplicitClosureScope(Zone* Z, const Class& klass) {
   // and not the signature type.
   Type& klass_type = Type::ZoneHandle(Z, klass.DeclarationType());
 
-  LocalVariable* receiver_variable = new (Z) LocalVariable(
-      TokenPosition::kNoSource, TokenPosition::kNoSource, Symbols::This(),
-      klass_type, LocalVariable::kNoKernelOffset, /*param_type=*/nullptr);
+  LocalVariable* receiver_variable =
+      new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                            Symbols::This(), klass_type);
 
   receiver_variable->set_is_captured();
   //  receiver_variable->set_is_final();
@@ -2035,7 +2035,7 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
       param = parsed_function_->RawParameterVariable(i);
     }
 
-    const AbstractType* target_type = &param->type();
+    const AbstractType* target_type = &param->static_type();
     if (forwarding_target != nullptr) {
       // We add 1 to the parameter index to account for the receiver.
       target_type =
@@ -3852,7 +3852,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     const bool needs_type_check = function.IsDynamicInvocationForwarder() ||
                                   setter_value->needs_type_check();
     if (needs_type_check) {
-      body += CheckAssignable(setter_value->type(), setter_value->name(),
+      body += CheckAssignable(setter_value->static_type(), setter_value->name(),
                               AssertAssignableInstr::kParameterCheck,
                               field.token_pos());
     }
@@ -5150,7 +5150,7 @@ void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {
 
 Fragment FlowGraphBuilder::NullAssertion(LocalVariable* variable) {
   Fragment code;
-  if (!variable->type().NeedsNullAssertion()) {
+  if (!variable->static_type().NeedsNullAssertion()) {
     return code;
   }
 

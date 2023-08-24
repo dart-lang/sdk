@@ -12,15 +12,15 @@ class Foo extends core::Object implements ffi::Finalizable {
     ;
 }
 static method main() → void {
-  self::Foo? :foo:finalizableValue;
+  [@vm.inferred-type.metadata=#lib::Foo?] self::Foo? :foo:finalizableValue;
   function #foo#initializer() → self::Foo
     return :foo:finalizableValue = new self::Foo::•();
-  late final self::Foo foo = #foo#initializer(){() → self::Foo};
+  [@vm.inferred-type.metadata=#lib::Foo] late final self::Foo foo = #foo#initializer(){() → self::Foo};
   (() → Null {
     core::print(foo);
     _in::reachabilityFence(:foo:finalizableValue);
   })(){() → Null};
-  self::Foo? :foo2:finalizableValue;
+  [@vm.inferred-type.metadata=#lib::Foo?] self::Foo? :foo2:finalizableValue;
   function #foo2#initializer() → self::Foo
     return :foo2:finalizableValue = new self::Foo::•();
   late final self::Foo foo2 = #foo2#initializer(){() → self::Foo};

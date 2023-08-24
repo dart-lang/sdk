@@ -222,6 +222,21 @@ VariableIndex LocalScope::AllocateVariables(const Function& function,
   return min_index;
 }
 
+LocalVariable::LocalVariable(TokenPosition declaration_pos,
+                             TokenPosition token_pos,
+                             const String& name,
+                             const AbstractType& static_type,
+                             intptr_t kernel_offset)
+    : LocalVariable(declaration_pos,
+                    token_pos,
+                    name,
+                    static_type,
+                    kernel_offset,
+                    new CompileType(CompileType::FromAbstractType(
+                        static_type,
+                        CompileType::kCanBeNull,
+                        CompileType::kCannotBeSentinel))) {}
+
 // VM creates internal variables that start with ":"
 bool LocalVariable::IsFilteredIdentifier(const String& name) {
   ASSERT(name.Length() > 0);
@@ -455,7 +470,10 @@ ContextScopePtr LocalScope::PreserveOuterScope(
         context_scope.SetLateInitOffsetAt(captured_idx,
                                           variable->late_init_offset());
       }
-      context_scope.SetTypeAt(captured_idx, variable->type());
+      CompileType* type = variable->inferred_type();
+      context_scope.SetTypeAt(captured_idx, *type->ToAbstractType());
+      context_scope.SetCidAt(captured_idx, type->ToNullableCid());
+      context_scope.SetIsNullableAt(captured_idx, type->is_nullable());
       context_scope.SetIsInvisibleAt(captured_idx, variable->is_invisible());
       context_scope.SetContextIndexAt(captured_idx, variable->index().value());
       // Adjust the context level relative to the current context level,
@@ -504,18 +522,22 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
   LocalScope* outer_scope = new LocalScope(nullptr, -1, 0);
   // Add all variables as aliases to the outer scope.
   for (int i = 0; i < context_scope.num_variables(); i++) {
+    const bool is_late = context_scope.IsLateAt(i);
+    const auto& static_type = AbstractType::ZoneHandle(context_scope.TypeAt(i));
+    CompileType* inferred_type =
+        new CompileType(context_scope.IsNullableAt(i), is_late,
+                        context_scope.CidAt(i), &static_type);
     LocalVariable* variable = new LocalVariable(
         context_scope.DeclarationTokenIndexAt(i), context_scope.TokenIndexAt(i),
-        String::ZoneHandle(context_scope.NameAt(i)),
-        AbstractType::ZoneHandle(context_scope.TypeAt(i)),
-        context_scope.KernelOffsetAt(i));
+        String::ZoneHandle(context_scope.NameAt(i)), static_type,
+        context_scope.KernelOffsetAt(i), inferred_type);
     variable->set_is_awaiter_link(context_scope.IsAwaiterLinkAt(i));
     variable->set_is_captured();
     variable->set_index(VariableIndex(context_scope.ContextIndexAt(i)));
     if (context_scope.IsFinalAt(i)) {
       variable->set_is_final();
     }
-    if (context_scope.IsLateAt(i)) {
+    if (is_late) {
       variable->set_is_late();
       variable->set_late_init_offset(context_scope.LateInitOffsetAt(i));
     }
@@ -571,6 +593,7 @@ ContextScopePtr LocalScope::CreateImplicitClosureScope(const Function& func) {
   context_scope.SetIsFinalAt(0, true);
   const AbstractType& type = AbstractType::Handle(func.ParameterTypeAt(0));
   context_scope.SetTypeAt(0, type);
+  context_scope.SetCidAt(0, kIllegalCid);
   context_scope.SetContextIndexAt(0, 0);
   context_scope.SetContextLevelAt(0, 0);
   context_scope.SetKernelOffsetAt(0, LocalVariable::kNoKernelOffset);

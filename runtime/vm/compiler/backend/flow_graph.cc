@@ -1523,9 +1523,7 @@ void FlowGraph::RenameRecursive(
             // Check if phi corresponds to the same slot.
             auto* phis = phi->block()->phis();
             if ((index < phis->length()) && (*phis)[index] == phi) {
-              phi->UpdateType(CompileType::FromAbstractType(
-                  load->local().type(), CompileType::kCanBeNull,
-                  /*can_be_sentinel=*/load->local().is_late()));
+              phi->UpdateType(*load->local().inferred_type());
             } else {
               ASSERT(IsCompiledForOsr() && (phi->block()->stack_depth() > 0));
             }

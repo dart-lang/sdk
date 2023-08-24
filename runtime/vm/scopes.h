@@ -77,26 +77,35 @@ class LocalVariable : public ZoneAllocated {
   LocalVariable(TokenPosition declaration_pos,
                 TokenPosition token_pos,
                 const String& name,
-                const AbstractType& type,
-                intptr_t kernel_offset = kNoKernelOffset,
-                CompileType* parameter_type = nullptr,
-                const Object* parameter_value = nullptr)
+                const AbstractType& static_type,
+                intptr_t kernel_offset = kNoKernelOffset);
+
+  LocalVariable(TokenPosition declaration_pos,
+                TokenPosition token_pos,
+                const String& name,
+                const AbstractType& static_type,
+                intptr_t kernel_offset,
+                CompileType* inferred_type,
+                CompileType* inferred_arg_type = nullptr,
+                const Object* inferred_arg_value = nullptr)
       : declaration_pos_(declaration_pos),
         token_pos_(token_pos),
         name_(name),
         kernel_offset_(kernel_offset),
         annotations_offset_(kNoKernelOffset),
         owner_(nullptr),
-        type_(type),
-        parameter_type_(parameter_type),
-        parameter_value_(parameter_value),
+        static_type_(static_type),
+        inferred_type_(inferred_type),
+        inferred_arg_type_(inferred_arg_type),
+        inferred_arg_value_(inferred_arg_value),
         covariance_mode_(kNotCovariant),
         late_init_offset_(0),
         type_check_mode_(kDoTypeCheck),
         index_(),
         is_awaiter_link_(IsAwaiterLink::kNotLink) {
-    DEBUG_ASSERT(type.IsNotTemporaryScopedHandle());
-    ASSERT(type.IsFinalized());
+    DEBUG_ASSERT(static_type.IsNotTemporaryScopedHandle());
+    ASSERT(static_type.IsFinalized());
+    ASSERT(inferred_type != nullptr);
     ASSERT(name.IsSymbol());
     if (IsFilteredIdentifier(name)) {
       set_invisible(true);
@@ -120,10 +129,11 @@ class LocalVariable : public ZoneAllocated {
                                                    : IsAwaiterLink::kUnknown;
   }
 
-  const AbstractType& type() const { return type_; }
+  const AbstractType& static_type() const { return static_type_; }
 
-  CompileType* parameter_type() const { return parameter_type_; }
-  const Object* parameter_value() const { return parameter_value_; }
+  CompileType* inferred_type() const { return inferred_type_; }
+  CompileType* inferred_arg_type() const { return inferred_arg_type_; }
+  const Object* inferred_arg_value() const { return inferred_arg_value_; }
 
   bool is_final() const { return IsFinalBit::decode(bitfield_); }
   void set_is_final() { bitfield_ = IsFinalBit::update(true, bitfield_); }
@@ -244,10 +254,14 @@ class LocalVariable : public ZoneAllocated {
   intptr_t annotations_offset_;
   LocalScope* owner_;  // Local scope declaring this variable.
 
-  const AbstractType& type_;  // Declaration type of local variable.
+  const AbstractType& static_type_;  // Declaration type of local variable.
 
-  CompileType* const parameter_type_;  // nullptr or incoming parameter type.
-  const Object* parameter_value_;      // nullptr or incoming parameter value.
+  // Inferred variable type.
+  CompileType* const inferred_type_;
+  // nullptr or inferred type of incoming argument.
+  CompileType* const inferred_arg_type_;
+  // nullptr or inferred value of incoming argument.
+  const Object* const inferred_arg_value_;
 
   uint32_t bitfield_ = 0;
   CovarianceMode covariance_mode_;

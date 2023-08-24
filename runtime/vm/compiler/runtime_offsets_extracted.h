@@ -37,7 +37,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -747,7 +747,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x48;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -1465,7 +1465,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -2174,7 +2174,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x48;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -2895,7 +2895,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -3610,7 +3610,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -4326,7 +4326,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -5037,7 +5037,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x48;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -5753,7 +5753,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -6455,7 +6455,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x48;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -7165,7 +7165,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -7866,7 +7866,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x48;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -8579,7 +8579,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -9286,7 +9286,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -9994,7 +9994,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -10697,7 +10697,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x48;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -11408,7 +11408,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x24;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -12197,7 +12197,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x48;
+    0x50;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -12993,7 +12993,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x48;
+    0x50;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -13785,7 +13785,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x24;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -14577,7 +14577,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x24;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -15371,7 +15371,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x24;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -16161,7 +16161,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x48;
+    0x50;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -16949,7 +16949,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x24;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -17729,7 +17729,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x48;
+    0x50;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -18516,7 +18516,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x48;
+    0x50;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -19299,7 +19299,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x24;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -20082,7 +20082,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x24;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -20867,7 +20867,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x24;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -21648,7 +21648,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x48;
+    0x50;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word

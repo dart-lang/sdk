@@ -18,7 +18,7 @@ import "package:matcher/src/type_matcher.dart";
 import "package:matcher/src/util.dart";
 
 static method main() → dynamic {
-  pb::FooKeep foo = let final pb::FooKeep #t1 = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep] pb::FooKeep::•() in block {
+  [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep] pb::FooKeep foo = let final pb::FooKeep #t1 = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep] pb::FooKeep::•() in block {
     [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.barKeep] [@vm.inferred-type.metadata=!? (skip check)] #t1.{pb::FooKeep::barKeep} = let final pb::BarKeep #t2 = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep] pb::BarKeep::•() in block {
       [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pb::BarKeep::aKeep} = 5;
     } =>#t2;

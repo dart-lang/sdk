@@ -656,7 +656,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       if (showOffsets && node is TreeNode) {
         writeWord("[${node.fileOffset}]");
       }
-      if (showMetadata && node is TreeNode) {
+      if (showMetadata && node is TreeNode && node is! VariableDeclaration) {
         writeMetadata(node);
       }
 

@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_IL_TEST_HELPER_H_
 #define RUNTIME_VM_COMPILER_BACKEND_IL_TEST_HELPER_H_
 
+#include <memory>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -290,15 +291,19 @@ class FlowGraphBuilderHelper {
     return flow_graph_.GetConstant(Double::Handle(Double::NewCanonical(value)));
   }
 
-  // Adds a variable into the scope which would provide static type for the
-  // parameter.
+  // Adds a variable into the scope which would provide inferred argument type
+  // for the parameter.
   void AddVariable(const char* name,
                    const AbstractType& static_type,
-                   CompileType* param_type = nullptr) {
-    LocalVariable* v = new LocalVariable(
-        TokenPosition::kNoSource, TokenPosition::kNoSource,
-        String::Handle(Symbols::New(Thread::Current(), name)), static_type,
-        LocalVariable::kNoKernelOffset, param_type);
+                   CompileType* inferred_arg_type = nullptr) {
+    LocalVariable* v =
+        new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                          String::Handle(Symbols::New(Thread::Current(), name)),
+                          static_type, LocalVariable::kNoKernelOffset,
+                          new CompileType(CompileType::FromAbstractType(
+                              static_type, CompileType::kCanBeNull,
+                              CompileType::kCannotBeSentinel)),
+                          inferred_arg_type);
     v->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
     flow_graph()->parsed_function().scope()->AddVariable(v);
   }
