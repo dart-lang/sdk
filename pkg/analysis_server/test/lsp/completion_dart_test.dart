@@ -1093,33 +1093,74 @@ import 'package:^';
   Future<void> test_dartDocPreference_unset() =>
       assertDocumentation(null, includesSummary: true, includesFull: true);
 
-  Future<void> test_filterTextNotIncludeAdditionalText() async {
-    // Some completions (eg. overrides) have additional text that is not part
-    // of the label. That text should _not_ appear in filterText as it will
-    // affect the editors relevance ranking as the user types.
-    // https://github.com/dart-lang/sdk/issues/45157
+  Future<void> test_filterText_constructorParens() async {
+    // Constructor parens should not be included in filterText.
     final content = '''
-    abstract class Person {
-      String get name;
-    }
+class MyClass {}
 
-    class Student extends Person {
-      nam^
-    }
+void f() {
+  MyClass a = new MyCla^
+}
 ''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
-    final item = res.singleWhereOrNull((c) => c.label.startsWith('name =>'));
-    expect(item, isNotNull);
-    expect(item!.label, equals('name => …'));
-    expect(item.filterText, isNull); // Falls back to label
-    expect(item.insertText, isNull);
+    expect(res.any((c) => c.label == 'MyClass()'), isTrue);
+    final item = res.singleWhere((c) => c.label == 'MyClass()');
+
+    // filterText is set explicitly because it's not the same as label.
+    expect(item.filterText, 'MyClass');
+
+    // The text in the edit should also not contain the parens.
     final textEdit = toTextEdit(item.textEdit!);
-    expect(textEdit.newText, equals('''@override
-  // TODO: implement name
-  String get name => throw UnimplementedError();'''));
+    expect(textEdit.newText, 'MyClass');
+  }
+
+  Future<void> test_filterText_override_getter() async {
+    // Some completions (eg. overrides) have additional text that is not part
+    // of the label. That text should _not_ appear in filterText as it will
+    // affect the editors relevance ranking as the user types.
+    // https://github.com/dart-lang/sdk/issues/45157
+    final content = '''
+abstract class Person {
+  String get name;
+}
+
+class Student extends Person {
+  nam^
+}
+''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'name => …');
+    // filterText is set explicitly because it's not the same as label.
+    expect(item.filterText, 'name');
+  }
+
+  Future<void> test_filterText_override_method() async {
+    // Some completions (eg. overrides) have additional text that is not part
+    // of the label. That text should _not_ appear in filterText as it will
+    // affect the editors relevance ranking as the user types.
+    // https://github.com/dart-lang/sdk/issues/45157
+    final content = '''
+abstract class Base {
+  void myMethod() {};
+}
+
+class BaseImpl extends Base {
+  myMet^
+}
+''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'myMethod() { … }');
+    // filterText is set explicitly because it's not the same as label.
+    expect(item.filterText, 'myMethod');
   }
 
   Future<void> test_fromPlugin_dartFile() async {
@@ -2134,26 +2175,6 @@ void f() { }
 
     final completion = res.singleWhere((c) => c.label.startsWith('foo'));
     expect(completion.detail, '(int? a, [int b = 1]) → String?');
-  }
-
-  Future<void> test_parensNotInFilterTextOrEditText() async {
-    final content = '''
-    class MyClass {}
-
-    void f() {
-      MyClass a = new MyCla^
-    }
-''';
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-    expect(res.any((c) => c.label == 'MyClass()'), isTrue);
-    final item = res.singleWhere((c) => c.label == 'MyClass()');
-    expect(item.filterText, 'MyClass');
-    expect(item.insertText, isNull);
-    final textEdit = toTextEdit(item.textEdit!);
-    expect(textEdit.newText, 'MyClass');
   }
 
   Future<void> test_plainText() async {
