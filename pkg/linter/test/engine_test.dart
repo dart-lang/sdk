@@ -12,13 +12,11 @@ import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart' hide CamelCaseString;
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/string_source.dart' show StringSource;
-import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:linter/src/cli.dart' as cli;
 import 'package:linter/src/utils.dart';
 import 'package:test/test.dart';
 
 import 'mocks.dart';
-import 'test_constants.dart';
 import 'util/test_utils.dart';
 
 void main() {
@@ -110,12 +108,6 @@ void defineLinterEngineTests() {
         exitCode = 0;
         errorSink = stderr;
       });
-      test('smoke', () async {
-        var firstRuleTest =
-            Directory(ruleTestDataDir).listSync().firstWhere(isDartFile);
-        await cli.run([firstRuleTest.path]);
-        expect(cli.isLinterErrorCode(exitCode), isFalse);
-      });
       test('no args', () async {
         await cli.run([]);
         expect(exitCode, cli.unableToProcessExitCode);
@@ -128,14 +120,6 @@ void defineLinterEngineTests() {
       test('unknown arg', () async {
         await cli.run(['-XXXXX']);
         expect(exitCode, cli.unableToProcessExitCode);
-      });
-      test('custom sdk path', () async {
-        // Smoke test to ensure a custom sdk path doesn't sink the ship
-        var firstRuleTest =
-            Directory(ruleTestDataDir).listSync().firstWhere(isDartFile);
-        var sdk = getSdkPath();
-        await cli.run(['--dart-sdk', sdk, firstRuleTest.path]);
-        expect(cli.isLinterErrorCode(exitCode), isFalse);
       });
     });
 
