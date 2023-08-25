@@ -62,8 +62,8 @@ class _Lowering extends Transformer {
 
   @override
   TreeNode visitFunctionNode(FunctionNode node) {
-    _lateLowering.enterFunction();
     _asyncLowering?.enterFunction(node);
+    _lateLowering.enterFunction();
     node.transformChildren(this);
     _lateLowering.exitFunction();
     _asyncLowering?.transformFunctionNodeAndExit(node);
@@ -105,29 +105,29 @@ class _Lowering extends Transformer {
 
   @override
   TreeNode visitReturnStatement(ReturnStatement statement) {
-    _asyncLowering?.visitReturnStatement(statement);
     statement.transformChildren(this);
+    _asyncLowering?.visitReturnStatement(statement);
     return statement;
   }
 
   @override
   TreeNode visitForInStatement(ForInStatement statement) {
-    _asyncLowering?.visitForInStatement(statement);
     statement.transformChildren(this);
+    _asyncLowering?.visitForInStatement(statement);
     return statement;
   }
 
   @override
   TreeNode visitTryFinally(TryFinally statement) {
-    _asyncLowering?.visitTry();
     statement.transformChildren(this);
+    _asyncLowering?.visitTry();
     return statement;
   }
 
   @override
   TreeNode visitTryCatch(TryCatch statement) {
-    _asyncLowering?.visitTry();
     statement.transformChildren(this);
+    _asyncLowering?.visitTry();
     return statement;
   }
 }
