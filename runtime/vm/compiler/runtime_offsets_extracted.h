@@ -199,6 +199,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 0x4;
 static constexpr dart::compiler::target::word Page_card_table_offset = 0x10;
+static constexpr dart::compiler::target::word Page_original_top_offset = 0x1c;
+static constexpr dart::compiler::target::word Page_original_end_offset = 0x20;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 0x8;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 0x3;
@@ -913,6 +915,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word Page_original_top_offset = 0x38;
+static constexpr dart::compiler::target::word Page_original_end_offset = 0x40;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 0x3;
@@ -1629,6 +1633,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 0x4;
 static constexpr dart::compiler::target::word Page_card_table_offset = 0x10;
+static constexpr dart::compiler::target::word Page_original_top_offset = 0x1c;
+static constexpr dart::compiler::target::word Page_original_end_offset = 0x20;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 0x8;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 0x3;
@@ -2342,6 +2348,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word Page_original_top_offset = 0x38;
+static constexpr dart::compiler::target::word Page_original_end_offset = 0x40;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 0x3;
@@ -3061,6 +3069,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word Page_original_top_offset = 0x38;
+static constexpr dart::compiler::target::word Page_original_end_offset = 0x40;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 0x3;
@@ -3777,6 +3787,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word Page_original_top_offset = 0x38;
+static constexpr dart::compiler::target::word Page_original_end_offset = 0x40;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 0x3;
@@ -4494,6 +4506,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 0x4;
 static constexpr dart::compiler::target::word Page_card_table_offset = 0x10;
+static constexpr dart::compiler::target::word Page_original_top_offset = 0x1c;
+static constexpr dart::compiler::target::word Page_original_end_offset = 0x20;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 0x8;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 0x3;
@@ -5209,6 +5223,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word Page_original_top_offset = 0x38;
+static constexpr dart::compiler::target::word Page_original_end_offset = 0x40;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 0x3;
@@ -5921,6 +5937,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 0x4;
 static constexpr dart::compiler::target::word Page_card_table_offset = 0x10;
+static constexpr dart::compiler::target::word Page_original_top_offset = 0x1c;
+static constexpr dart::compiler::target::word Page_original_end_offset = 0x20;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 0x8;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 0x3;
@@ -6627,6 +6645,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word Page_original_top_offset = 0x38;
+static constexpr dart::compiler::target::word Page_original_end_offset = 0x40;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 0x3;
@@ -7335,6 +7355,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 0x4;
 static constexpr dart::compiler::target::word Page_card_table_offset = 0x10;
+static constexpr dart::compiler::target::word Page_original_top_offset = 0x1c;
+static constexpr dart::compiler::target::word Page_original_end_offset = 0x20;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 0x8;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 0x3;
@@ -8040,6 +8062,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word Page_original_top_offset = 0x38;
+static constexpr dart::compiler::target::word Page_original_end_offset = 0x40;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 0x3;
@@ -8751,6 +8775,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word Page_original_top_offset = 0x38;
+static constexpr dart::compiler::target::word Page_original_end_offset = 0x40;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 0x3;
@@ -9459,6 +9485,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word Page_original_top_offset = 0x38;
+static constexpr dart::compiler::target::word Page_original_end_offset = 0x40;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 0x3;
@@ -10168,6 +10196,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 0x4;
 static constexpr dart::compiler::target::word Page_card_table_offset = 0x10;
+static constexpr dart::compiler::target::word Page_original_top_offset = 0x1c;
+static constexpr dart::compiler::target::word Page_original_end_offset = 0x20;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 0x8;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 0x3;
@@ -10875,6 +10905,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word Page_original_top_offset = 0x38;
+static constexpr dart::compiler::target::word Page_original_end_offset = 0x40;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 0x3;
@@ -11604,6 +11636,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 0x4;
 static constexpr dart::compiler::target::word AOT_Page_card_table_offset = 0x10;
+static constexpr dart::compiler::target::word AOT_Page_original_top_offset =
+    0x1c;
+static constexpr dart::compiler::target::word AOT_Page_original_end_offset =
+    0x20;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask =
@@ -12395,6 +12431,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_Page_original_top_offset =
+    0x38;
+static constexpr dart::compiler::target::word AOT_Page_original_end_offset =
+    0x40;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask =
@@ -13193,6 +13233,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_Page_original_top_offset =
+    0x38;
+static constexpr dart::compiler::target::word AOT_Page_original_end_offset =
+    0x40;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask =
@@ -13987,6 +14031,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_Page_original_top_offset =
+    0x38;
+static constexpr dart::compiler::target::word AOT_Page_original_end_offset =
+    0x40;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask =
@@ -14781,6 +14829,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_Page_original_top_offset =
+    0x38;
+static constexpr dart::compiler::target::word AOT_Page_original_end_offset =
+    0x40;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask =
@@ -15577,6 +15629,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 0x4;
 static constexpr dart::compiler::target::word AOT_Page_card_table_offset = 0x10;
+static constexpr dart::compiler::target::word AOT_Page_original_top_offset =
+    0x1c;
+static constexpr dart::compiler::target::word AOT_Page_original_end_offset =
+    0x20;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask =
@@ -16369,6 +16425,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_Page_original_top_offset =
+    0x38;
+static constexpr dart::compiler::target::word AOT_Page_original_end_offset =
+    0x40;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask =
@@ -17157,6 +17217,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 0x4;
 static constexpr dart::compiler::target::word AOT_Page_card_table_offset = 0x10;
+static constexpr dart::compiler::target::word AOT_Page_original_top_offset =
+    0x1c;
+static constexpr dart::compiler::target::word AOT_Page_original_end_offset =
+    0x20;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask =
@@ -17939,6 +18003,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_Page_original_top_offset =
+    0x38;
+static constexpr dart::compiler::target::word AOT_Page_original_end_offset =
+    0x40;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask =
@@ -18728,6 +18796,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_Page_original_top_offset =
+    0x38;
+static constexpr dart::compiler::target::word AOT_Page_original_end_offset =
+    0x40;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask =
@@ -19513,6 +19585,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_Page_original_top_offset =
+    0x38;
+static constexpr dart::compiler::target::word AOT_Page_original_end_offset =
+    0x40;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask =
@@ -20298,6 +20374,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_Page_original_top_offset =
+    0x38;
+static constexpr dart::compiler::target::word AOT_Page_original_end_offset =
+    0x40;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask =
@@ -21085,6 +21165,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 0x4;
 static constexpr dart::compiler::target::word AOT_Page_card_table_offset = 0x10;
+static constexpr dart::compiler::target::word AOT_Page_original_top_offset =
+    0x1c;
+static constexpr dart::compiler::target::word AOT_Page_original_end_offset =
+    0x20;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask =
@@ -21868,6 +21952,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Page_card_table_offset = 0x20;
+static constexpr dart::compiler::target::word AOT_Page_original_top_offset =
+    0x38;
+static constexpr dart::compiler::target::word AOT_Page_original_end_offset =
+    0x40;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask =

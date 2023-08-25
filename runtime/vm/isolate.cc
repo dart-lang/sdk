@@ -2696,6 +2696,10 @@ void IsolateGroup::ReleaseStoreBuffers() {
   thread_registry()->ReleaseStoreBuffers();
 }
 
+void IsolateGroup::FlushMarkingStacks() {
+  thread_registry()->FlushMarkingStacks();
+}
+
 void Isolate::RememberLiveTemporaries() {
   if (mutator_thread_ != nullptr) {
     mutator_thread_->RememberLiveTemporaries();
