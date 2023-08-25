@@ -45,6 +45,9 @@ var denylist = [
 
   // Don't instantiate structs with bogus memory.
   'dart.ffi._AsTypedListFinalizerData',
+
+  // TODO(http://dartbug.com/53350): Re-enable after fix/investigation.
+  'dart.ffi._NativeCallableIsolateLocal',
 ];
 
 bool isDenylisted(Symbol qualifiedSymbol) {

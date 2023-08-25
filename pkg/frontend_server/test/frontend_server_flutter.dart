@@ -308,7 +308,13 @@ Future<List<String>> attemptStuff(
       Component component = loadComponentFromBytes(platformData);
       component = loadComponentFromBytes(resultBytes, component);
       verifyComponent(
-          target, VerificationStage.afterModularTransformations, component);
+        target,
+        VerificationStage.afterModularTransformations,
+        component,
+        // We load the platform from dill so it's guranteed to not have changed
+        // and has been verified already.
+        skipPlatform: true,
+      );
       logger
           .log("        => verified in ${stopwatch2.elapsedMilliseconds} ms.");
     }

@@ -14,6 +14,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:native_assets_builder/native_assets_builder.dart';
 import 'package:native_assets_cli/native_assets_cli.dart';
 import 'package:path/path.dart' as path;
+import 'package:vm/target_os.dart'; // For possible --target-os values.
 
 import '../core.dart';
 import '../native_assets.dart';
@@ -41,6 +42,9 @@ class BuildCommand extends DartdevCommand {
         allowed: ['exe', 'aot'],
         defaultsTo: 'exe',
       )
+      ..addOption('target-os',
+          help: 'Compile to a specific target operating system.',
+          allowed: TargetOS.names)
       ..addOption(
         'verbosity',
         help: 'Sets the verbosity level of the compilation.',
@@ -92,6 +96,21 @@ class BuildCommand extends DartdevCommand {
     final format = args[formatOptionName] as String;
     final outputExeUri = outputUri
         .resolve('${sourceUri.pathSegments.last.split('.').first}.$format');
+    String? targetOS = args['target-os'];
+    if (format != 'exe') {
+      assert(format == 'aot');
+      // If we're generating an AOT snapshot and not an executable, then
+      // targetOS is allowed to be null for a platform-independent snapshot
+      // or a different platform than the host.
+    } else if (targetOS == null) {
+      targetOS = Platform.operatingSystem;
+    } else if (targetOS != Platform.operatingSystem) {
+      stderr.writeln(
+          "'dart build -f $format' does not support cross-OS compilation.");
+      stderr.writeln('Host OS: ${Platform.operatingSystem}');
+      stderr.writeln('Target OS: $targetOS');
+      return 128;
+    }
 
     final outputDir = Directory.fromUri(outputUri);
     if (await outputDir.exists()) {
@@ -180,6 +199,7 @@ Use linkMode as dynamic library instead.""");
       defines: [],
       nativeAssets: nativeAssetsDartUri?.toFilePath(),
       packages: packageConfig?.toFilePath(),
+      targetOS: targetOS,
     );
 
     if (tempUri != null) {
