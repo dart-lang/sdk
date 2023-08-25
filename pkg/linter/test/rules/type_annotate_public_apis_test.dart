@@ -134,6 +134,18 @@ extension E on int {
     ]);
   }
 
+  test_instanceMethod_onExtensionType_noReturnType() async {
+    // One test should be sufficient to verify extension type
+    // support as the logic is implemented commonly for all members.
+    await assertDiagnostics(r'''
+extension type E(int i) {
+  m() {}
+}
+''', [
+      lint(28, 1),
+    ]);
+  }
+
   test_instanceMethod_parameterNameIsMultipleUnderscores() async {
     await assertNoDiagnostics(r'''
 class A {

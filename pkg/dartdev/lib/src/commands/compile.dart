@@ -266,11 +266,6 @@ class CompileNativeCommand extends CompileSubcommandCommand {
         abbr: defineOption.abbr,
         valueHelp: defineOption.valueHelp,
       );
-    if (commandName != exeCmdName) {
-      // dart compile exe creates a product mode binary, which doesn't support asserts.
-      argParser.addFlag('enable-asserts',
-          negatable: false, help: 'Enable assert statements.');
-    }
     argParser
       ..addOption(
         packagesOption.flag,
@@ -349,8 +344,6 @@ Remove debugging information from the output and save it separately to the speci
         outputFile: args['output'],
         defines: args['define'],
         packages: args['packages'],
-        enableAsserts:
-            commandName != exeCmdName ? args['enable-asserts'] : false,
         enableExperiment: args.enabledExperiments.join(','),
         soundNullSafety: args['sound-null-safety'],
         debugFile: args['save-debugging-info'],

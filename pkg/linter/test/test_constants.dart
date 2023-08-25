@@ -13,14 +13,17 @@ final String ruleTestDataDir =
 final String ruleTestDir = pathRelativeToPackageRoot(['test', 'rules']);
 final String testConfigDir = pathRelativeToPackageRoot(['test', 'configs']);
 
+List<String> get _scriptPathParts =>
+    path.split(path.dirname(path.fromUri(Platform.script.path)));
+
 String pathRelativeToPackageRoot(Iterable<String> parts) {
-  var split = path.split(path.dirname(Platform.script.path));
-  split.replaceRange(split.length - 1, split.length, parts);
-  return path.joinAll(split);
+  var pathParts = _scriptPathParts;
+  pathParts.replaceRange(pathParts.length - 1, pathParts.length, parts);
+  return path.joinAll(pathParts);
 }
 
 String pathRelativeToPkgDir(Iterable<String> parts) {
-  var split = path.split(path.dirname(Platform.script.path));
-  split.replaceRange(split.length - 2, split.length, parts);
-  return path.joinAll(split);
+  var pathParts = _scriptPathParts;
+  pathParts.replaceRange(pathParts.length - 2, pathParts.length, parts);
+  return path.joinAll(pathParts);
 }

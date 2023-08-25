@@ -15,9 +15,6 @@ main() {
 @reflectiveTest
 class PreferConstructorsOverStaticMethodsTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['inline-class'];
-
-  @override
   String get lintRule => 'prefer_constructors_over_static_methods';
 
   test_extensionMethod() async {

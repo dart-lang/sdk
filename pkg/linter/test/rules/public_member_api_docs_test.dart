@@ -20,9 +20,6 @@ class PublicMemberApiDocsExtensionTypesTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  List<String> get experiments => ['inline-class'];
-
-  @override
   String get lintRule => 'public_member_api_docs';
 
   test_extensionTypeDeclaration() async {

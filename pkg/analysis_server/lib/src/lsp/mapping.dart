@@ -49,6 +49,11 @@ final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
   ],
 };
 
+/// A regex used for splitting the display text in a completion so that
+/// filterText only includes the symbol name and not any additional text (such
+/// as parens, ` => `).
+final _completionFilterTextSplitPattern = RegExp(r'[ \(]');
+
 /// A regex to extract the type name from the parameter string of a setter
 /// completion item.
 final _completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
@@ -855,12 +860,13 @@ lsp.CompletionItem toCompletionItem(
   required bool completeFunctionCalls,
   CompletionItemResolutionInfo? resolutionData,
 }) {
-  // Build separate display and filter labels. Displayed labels may have additional
-  // info appended (for example '(...)' on callables) that should not be included
-  // in filterText.
   var label = suggestion.displayText ?? suggestion.completion;
   assert(label.isNotEmpty);
-  final filterText = label;
+
+  // Displayed labels may have additional info appended (for example '(...)' on
+  // callables and ` => ` on getters) that should not be included in filterText,
+  // so strip anything from the first paren/space.
+  final filterText = label.split(_completionFilterTextSplitPattern).first;
 
   // Trim any trailing comma from the (displayed) label.
   if (label.endsWith(',')) {

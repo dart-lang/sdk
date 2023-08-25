@@ -15,9 +15,6 @@ main() {
 @reflectiveTest
 class UnnecessaryNullChecksTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['inline-class'];
-
-  @override
   String get lintRule => 'unnecessary_this';
 
   test_extensionType_inConstructorInitializer() async {

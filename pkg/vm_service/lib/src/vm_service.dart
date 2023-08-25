@@ -1944,6 +1944,9 @@ class VmService implements VmServiceInterface {
   final Map<String, ServiceCallback> _services = {};
   late final Log _log;
 
+  /// The web socket URI pointing to the target VM service instance.
+  final String? wsUri;
+
   final StreamController<String> _onSend =
       StreamController.broadcast(sync: true);
   final StreamController<String> _onReceive =
@@ -1970,6 +1973,7 @@ class VmService implements VmServiceInterface {
     Log? log,
     DisposeHandler? disposeHandler,
     Future? streamClosed,
+    this.wsUri,
   }) {
     _streamSub = inStream.listen(_processMessage,
         onDone: () => _onDoneCompleter.complete());

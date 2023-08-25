@@ -15,9 +15,6 @@ main() {
 @reflectiveTest
 class UnnecessaryConstructorNameTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['inline-class'];
-
-  @override
   String get lintRule => 'unnecessary_constructor_name';
 
   test_constructorDeclaration_named() async {

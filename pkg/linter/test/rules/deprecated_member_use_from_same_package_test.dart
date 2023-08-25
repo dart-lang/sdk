@@ -110,6 +110,16 @@ extension E on C {}
 ''');
   }
 
+  test_deprecatedClass_usedInDeprecatedExtensionTypeRepresentation() async {
+    await assertNoDiagnostics(r'''
+@deprecated
+class C {}
+
+@deprecated
+extension type E(C c) { }
+''');
+  }
+
   test_deprecatedClass_usedInDeprecatedField_initializer() async {
     await assertNoDiagnostics(r'''
 @deprecated
@@ -206,6 +216,17 @@ class C {}
 @deprecated
 C? x;
 ''');
+  }
+
+  test_deprecatedClass_usedInExtensionTypeRepresentation() async {
+    await assertDiagnostics(r'''
+@deprecated
+class C {}
+
+extension type E(C c) { }
+''', [
+      lint(41, 1),
+    ]);
   }
 
   test_deprecatedClass_usedInFieldFormalParameter() async {
@@ -361,6 +382,52 @@ extension E on int {
 var x = E(0).f();
 ''', [
       lint(58, 1),
+    ]);
+  }
+
+  test_deprecatedExtensionType_usedInExtensionTypeImplements() async {
+    await assertDiagnostics(r'''
+@deprecated
+extension type E(int i) { }
+
+extension type F(int i) implements E { }
+''', [
+      lint(76, 1),
+    ]);
+  }
+
+  test_deprecatedExtensionType_usedInExtensionTypeRepresentation() async {
+    await assertDiagnostics(r'''
+@deprecated
+extension type E(int i) { }
+
+extension type F(E c) { }
+''', [
+      lint(58, 1),
+    ]);
+  }
+
+  test_deprecatedExtensionType_usedInField() async {
+    await assertDiagnostics(r'''
+@deprecated
+extension type E(int i) { }
+
+class C {
+  E? e;
+}
+''', [
+      lint(53, 1),
+    ]);
+  }
+
+  test_deprecatedExtensionType_usedInFunctionParam() async {
+    await assertDiagnostics(r'''
+@deprecated
+extension type E(int i) { }
+
+void f(E e) { }
+''', [
+      lint(48, 1),
     ]);
   }
 

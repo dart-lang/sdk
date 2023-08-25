@@ -16,9 +16,6 @@ main() {
 @reflectiveTest
 class PreferFinalFieldsExtensionTypesTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['inline-class'];
-
-  @override
   String get lintRule => 'prefer_final_fields';
 
   test_field_instance() async {

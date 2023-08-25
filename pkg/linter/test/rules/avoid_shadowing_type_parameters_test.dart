@@ -15,9 +15,6 @@ main() {
 @reflectiveTest
 class AvoidShadowingTypeParametersTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['inline-class'];
-
-  @override
   String get lintRule => 'avoid_shadowing_type_parameters';
 
   test_enum() async {

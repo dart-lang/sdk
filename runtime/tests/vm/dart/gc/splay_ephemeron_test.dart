@@ -28,7 +28,8 @@
 // VMOptions=--verify_before_gc --verify_after_gc
 // VMOptions=--verify_store_buffer
 // VMOptions=--verify_after_marking
-// VMOptions=--stress_write_barrier_elimination
+// VMOptions=--runtime_allocate_old
+// VMOptions=--runtime_allocate_spill_tlab
 // VMOptions=--no_inline_alloc
 // VMOptions=--old_gen_heap_size=150
 

@@ -17,9 +17,6 @@ main() {
 @reflectiveTest
 class NonConstantIdentifierNamesPatternsTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['inline-class'];
-
-  @override
   String get lintRule => 'non_constant_identifier_names';
 
   test_extensionType_representationConstructorName() async {

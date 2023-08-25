@@ -15,9 +15,6 @@ main() {
 @reflectiveTest
 class UseLateForPrivateFieldsAndVariablesTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['inline-class'];
-
-  @override
   String get lintRule => 'use_late_for_private_fields_and_variables';
 
   test_extensionType_instanceField() async {
