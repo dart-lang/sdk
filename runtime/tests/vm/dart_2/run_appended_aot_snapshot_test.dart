@@ -38,8 +38,8 @@ Future<void> main(List<String> args) async {
     }
 
     {
-      final result = await generateAotSnapshot(genSnapshot, dillPath, aotPath,
-          null, false, ['--no-sound-null-safety']);
+      final result = await generateAotSnapshot(
+          genSnapshot, dillPath, aotPath, null, ['--no-sound-null-safety']);
       Expect.equals(result.stderr, '');
       Expect.equals(result.exitCode, 0);
       Expect.equals(result.stdout, '');
