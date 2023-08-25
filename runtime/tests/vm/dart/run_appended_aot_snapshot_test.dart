@@ -42,8 +42,8 @@ Future<void> main(List<String> args) async {
     }
 
     {
-      final result = await generateAotSnapshot(
-          genSnapshot, dillPath, aotPath, null, false, []);
+      final result =
+          await generateAotSnapshot(genSnapshot, dillPath, aotPath, null, []);
       Expect.equals(result.stderr, '');
       Expect.equals(result.stdout, '');
       Expect.equals(result.exitCode, 0);

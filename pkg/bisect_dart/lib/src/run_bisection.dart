@@ -184,7 +184,7 @@ Future<List<String>> _commitHashesInRange(String commitHashStart,
     arguments: [
       'log',
       '--pretty=format:"%h"',
-      '$commitHashStart...$commitHashEnd',
+      '$commitHashEnd...$commitHashStart',
     ],
     captureOutput: true,
     logger: logger,

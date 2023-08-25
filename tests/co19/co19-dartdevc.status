@@ -48,6 +48,9 @@ LanguageFeatures/Abstract-external-fields/static_analysis_external_A05_t03: Skip
 LanguageFeatures/Abstract-external-fields/syntax_A01_t03: SkipByDesign # External variables are not supported
 LanguageFeatures/Abstract-external-fields/syntax_A02_t03: SkipByDesign # External variables are not supported
 LanguageFeatures/Enhanced-Enum/grammar_A07_t01: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Extension-types/static_analysis_extension_types_A28_t01: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Extension-types/static_analysis_extension_types_A28_t02: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Extension-types/syntax_A08_t02: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # dart:ffi is not supported
 LibTest/core/DateTime/DateTime.fromMicrosecondsSinceEpoch_A01_t01: SkipByDesign # microseconds are not supported in JavaScript
 LibTest/core/DateTime/microsecond_A01_t01: SkipByDesign # microseconds are not supported in JavaScript
