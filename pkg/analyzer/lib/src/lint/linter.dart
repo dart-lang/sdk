@@ -993,6 +993,7 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
         case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
         case CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
         case CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL:
+        case CompileTimeErrorCode.NON_BOOL_CONDITION:
         case CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT:
         case CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT:
         case CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:
