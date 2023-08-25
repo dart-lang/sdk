@@ -34,7 +34,7 @@ namespace compiler {
 //
 // WARNING: This might clobber all registers except for [EAX], [THR] and [FP].
 // The caller should simply call LeaveFrame() and return.
-void StubCodeCompiler::EnsureIsNewOrRemembered(bool preserve_registers) {
+void StubCodeCompiler::EnsureIsNewOrRemembered() {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;
@@ -44,7 +44,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(bool preserve_registers) {
   {
     LeafRuntimeScope rt(assembler,
                         /*frame_size=*/2 * target::kWordSize,
-                        preserve_registers);
+                        /*preserve_registers=*/false);
     __ movl(Address(ESP, 1 * target::kWordSize), THR);
     __ movl(Address(ESP, 0 * target::kWordSize), EAX);
     rt.Call(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
@@ -1016,7 +1016,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
   // array length). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
   __ movl(AllocateArrayABI::kResultReg, Address(ESP, 2 * target::kWordSize));
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
 
   __ popl(AllocateArrayABI::kTypeArgumentsReg);  // Pop type arguments.
   __ popl(AllocateArrayABI::kLengthReg);         // Pop array length argument.
@@ -1289,7 +1289,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
 
   // EAX: new object
   // Restore the frame pointer.
@@ -1363,7 +1363,7 @@ void StubCodeCompiler::GenerateCloneContextStub() {
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
 
   // EAX: new object
   // Restore the frame pointer.
@@ -1723,7 +1723,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
     // Write-barrier elimination is enabled for [cls] and we therefore need to
     // ensure that the object is in new-space or has remembered bit set.
-    EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+    EnsureIsNewOrRemembered();
   }
 
   // AllocateObjectABI::kResultReg: new object
