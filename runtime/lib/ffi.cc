@@ -38,22 +38,35 @@ DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 2) {
   UNREACHABLE();
 }
 
-DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
-  const auto& function = Function::CheckedHandle(zone, arguments->NativeArg0());
-  return Pointer::New(isolate->CreateSyncFfiCallback(zone, function));
-}
-
-DEFINE_NATIVE_ENTRY(Ffi_pointerAsyncFromFunction, 1, 2) {
-  const auto& function = Function::CheckedHandle(zone, arguments->NativeArg0());
+DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableListener, 1, 2) {
+  const auto& send_function =
+      Function::CheckedHandle(zone, arguments->NativeArg0());
   const auto& port =
       ReceivePort::CheckedHandle(zone, arguments->NativeArgAt(1));
   return Pointer::New(
-      isolate->CreateAsyncFfiCallback(zone, function, port.Id()));
+      isolate->CreateAsyncFfiCallback(zone, send_function, port.Id()));
 }
 
-DEFINE_NATIVE_ENTRY(Ffi_deleteAsyncFunctionPointer, 1, 1) {
+DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableIsolateLocal, 1, 3) {
+  const auto& trampoline =
+      Function::CheckedHandle(zone, arguments->NativeArg0());
+  const auto& target = Closure::CheckedHandle(zone, arguments->NativeArgAt(1));
+  const bool keep_isolate_alive =
+      Bool::CheckedHandle(zone, arguments->NativeArgAt(2)).value();
+  return Pointer::New(isolate->CreateIsolateLocalFfiCallback(
+      zone, trampoline, target, keep_isolate_alive));
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_deleteNativeCallable, 1, 1) {
   const auto& pointer = Pointer::CheckedHandle(zone, arguments->NativeArg0());
   isolate->DeleteFfiCallback(pointer.NativeAddress());
+  return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_updateNativeCallableKeepIsolateAliveCounter, 1, 1) {
+  const int64_t delta =
+      Integer::CheckedHandle(zone, arguments->NativeArg0()).AsInt64Value();
+  isolate->UpdateNativeCallableKeepIsolateAliveCounter(delta);
   return Object::null();
 }
 

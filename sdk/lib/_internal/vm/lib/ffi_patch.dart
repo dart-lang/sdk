@@ -152,21 +152,32 @@ external Float64List _asExternalTypedDataDouble(
 external dynamic _nativeCallbackFunction<NS extends Function>(
     Function target, Object? exceptionalReturn);
 
-@pragma("vm:external-name", "Ffi_pointerFromFunction")
-external Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(
-    dynamic function);
-
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_nativeAsyncCallbackFunction")
 external dynamic _nativeAsyncCallbackFunction<NS extends Function>();
 
-@pragma("vm:external-name", "Ffi_pointerAsyncFromFunction")
-external Pointer<NS> _pointerAsyncFromFunction<NS extends NativeFunction>(
+@pragma("vm:external-name", "Ffi_createNativeCallableListener")
+external Pointer<NS> _createNativeCallableListener<NS extends NativeFunction>(
     dynamic function, RawReceivePort port);
 
-@pragma("vm:external-name", "Ffi_deleteAsyncFunctionPointer")
-external void _deleteAsyncFunctionPointer<NS extends NativeFunction>(
+@pragma("vm:external-name", "Ffi_createNativeCallableIsolateLocal")
+external Pointer<NS>
+    _createNativeCallableIsolateLocal<NS extends NativeFunction>(
+        dynamic trampoline, dynamic target, bool keepIsolateAlive);
+
+@pragma("vm:external-name", "Ffi_deleteNativeCallable")
+external void _deleteNativeCallable<NS extends NativeFunction>(
     Pointer<NS> pointer);
+
+@pragma("vm:external-name", "Ffi_updateNativeCallableKeepIsolateAliveCounter")
+external void
+    _updateNativeCallableKeepIsolateAliveCounter<NS extends NativeFunction>(
+        int delta);
+
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_nativeIsolateLocalCallbackFunction")
+external dynamic _nativeIsolateLocalCallbackFunction<NS extends Function>(
+    dynamic exceptionalReturn);
 
 @patch
 @pragma("vm:entry-point")
@@ -199,40 +210,77 @@ final class Pointer<T extends NativeType> {
   Pointer<U> cast<U extends NativeType>() => Pointer.fromAddress(address);
 }
 
-@patch
-final class NativeCallable<T extends Function> {
-  Pointer<NativeFunction<T>> _pointer = nullptr;
-  final RawReceivePort _port;
+abstract final class _NativeCallableBase<T extends Function>
+    implements NativeCallable<T> {
+  Pointer<NativeFunction<T>> _pointer;
 
-  @patch
-  NativeCallable.listener(@DartRepresentationOf("T") Function callback)
-      : _port = RawReceivePort()..close() {
-    throw UnsupportedError("NativeCallable cannot be constructed dynamically.");
-  }
+  _NativeCallableBase(this._pointer);
 
-  NativeCallable._(void Function(List) handler, String portDebugName)
-      : _port = RawReceivePort(
-            Zone.current.bindUnaryCallbackGuarded(handler), portDebugName);
-
-  @patch
+  @override
   Pointer<NativeFunction<T>> get nativeFunction => _pointer;
 
-  @patch
+  @override
   void close() {
     if (_pointer == nullptr) {
       throw StateError("NativeCallable is already closed.");
     }
-    _port.close();
-    _deleteAsyncFunctionPointer(_pointer);
+    _deleteNativeCallable(_pointer);
     _pointer = nullptr;
   }
+}
 
-  @patch
+final class _NativeCallableIsolateLocal<T extends Function>
+    extends _NativeCallableBase<T> {
+  bool _keepIsolateAlive = true;
+
+  _NativeCallableIsolateLocal(super._pointer);
+
+  @override
+  void close() {
+    super.close();
+    _setKeepIsolateAlive(false);
+  }
+
+  @override
+  void set keepIsolateAlive(bool value) {
+    if (_pointer == nullptr) {
+      throw StateError("NativeCallable is already closed.");
+    }
+    _setKeepIsolateAlive(value);
+  }
+
+  void _setKeepIsolateAlive(bool value) {
+    if (_keepIsolateAlive != value) {
+      _keepIsolateAlive = value;
+      _updateNativeCallableKeepIsolateAliveCounter(value ? 1 : -1);
+    }
+  }
+
+  @override
+  bool get keepIsolateAlive => _keepIsolateAlive;
+}
+
+final class _NativeCallableListener<T extends Function>
+    extends _NativeCallableBase<T> {
+  final RawReceivePort _port;
+
+  _NativeCallableListener(void Function(List) handler, String portDebugName)
+      : _port = RawReceivePort(
+            Zone.current.bindUnaryCallbackGuarded(handler), portDebugName),
+        super(nullptr);
+
+  @override
+  void close() {
+    super.close();
+    _port.close();
+  }
+
+  @override
   void set keepIsolateAlive(bool value) {
     _port.keepIsolateAlive = value;
   }
 
-  @patch
+  @override
   bool get keepIsolateAlive => _port.keepIsolateAlive;
 }
 

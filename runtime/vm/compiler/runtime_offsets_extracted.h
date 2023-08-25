@@ -285,6 +285,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0xc;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x8;
@@ -999,6 +1000,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
@@ -1713,6 +1715,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0xc;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x8;
@@ -2426,6 +2429,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
@@ -3144,6 +3148,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
@@ -3859,6 +3864,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
@@ -4574,6 +4580,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0xc;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x8;
@@ -5289,6 +5296,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
@@ -5996,6 +6004,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0xc;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x8;
@@ -6702,6 +6711,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
@@ -7408,6 +7418,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0xc;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x8;
@@ -8113,6 +8124,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
@@ -8823,6 +8835,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
@@ -9530,6 +9543,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
@@ -10237,6 +10251,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0xc;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x8;
@@ -10944,6 +10959,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
@@ -11685,6 +11701,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0xc;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x8;
@@ -12474,6 +12492,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
@@ -13270,6 +13290,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
@@ -14062,6 +14084,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
@@ -14854,6 +14878,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
@@ -15648,6 +15674,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0xc;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x8;
@@ -16438,6 +16466,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
@@ -17220,6 +17250,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0xc;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x8;
@@ -18000,6 +18032,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
@@ -18787,6 +18821,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
@@ -19570,6 +19606,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
@@ -20353,6 +20391,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
@@ -21138,6 +21178,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0xc;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x8;
@@ -21919,6 +21961,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;

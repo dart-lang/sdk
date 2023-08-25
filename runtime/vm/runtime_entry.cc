@@ -4094,6 +4094,8 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
 
   current_thread->ExitSafepoint();
 
+  current_thread->set_unboxed_int64_runtime_arg(metadata.context());
+
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata thread %p", current_thread);
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata entry_point %p",
                      (void*)*out_entry_point);

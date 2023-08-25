@@ -58,8 +58,9 @@ final class Pointer<T extends NativeType> extends NativeType {
   /// isolate's lifetime. After the isolate it was created in is terminated,
   /// invoking it from native code will cause undefined behavior.
   ///
-  /// Does not accept dynamic invocations -- where the type of the receiver is
-  /// [dynamic].
+  /// [Pointer.fromFunction] only accepts static or top level functions. Use
+  /// [NativeCallable.isolateLocal] to create callbacks from any Dart function
+  /// or closure.
   external static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf('T') Function f,
       [Object? exceptionalReturn]);
@@ -171,7 +172,32 @@ extension NativeFunctionPointer<NF extends Function>
 /// native function will call the Dart function in some way, with the arguments
 /// converted to Dart values.
 @Since('3.1')
-final class NativeCallable<T extends Function> {
+abstract final class NativeCallable<T extends Function> {
+  /// Constructs a [NativeCallable] that must be invoked from the same thread
+  /// that created it.
+  ///
+  /// If an exception is thrown by the [callback], the native function will
+  /// return the `exceptionalReturn`, which must be assignable to the return
+  /// type of the [callback].
+  ///
+  /// The returned function address can only be invoked on the mutator (main)
+  /// thread of the current isolate. It will abort the process if invoked on any
+  /// other thread. Use [NativeCallable.listener] to create callbacks that can
+  /// be invoked from any thread.
+  ///
+  /// Unlike [Pointer.fromFunction], [NativeCallable]s can be constructed from
+  /// any Dart function or closure, not just static or top level functions.
+  ///
+  /// This callback must be [close]d when it is no longer needed, but it will
+  /// *not* keep its [Isolate] alive. After the isolate is terminated, or
+  /// [NativeCallable.close] is called, invoking the [nativeFunction] from
+  /// native code will cause undefined behavior.
+  factory NativeCallable.isolateLocal(
+      @DartRepresentationOf("T") Function callback,
+      {Object? exceptionalReturn}) {
+    throw UnsupportedError("NativeCallable cannot be constructed dynamically.");
+  }
+
   /// Constructs a [NativeCallable] that can be invoked from any thread.
   ///
   /// When the native code invokes the function [nativeFunction], the arguments
@@ -188,14 +214,16 @@ final class NativeCallable<T extends Function> {
   ///
   /// This callback must be [close]d when it is no longer needed. The [Isolate]
   /// that created the callback will be kept alive until [close] is called.
-  external NativeCallable.listener(
-      @DartRepresentationOf("T") Function callback);
+  factory NativeCallable.listener(
+      @DartRepresentationOf("T") Function callback) {
+    throw UnsupportedError("NativeCallable cannot be constructed dynamically.");
+  }
 
   /// The native function pointer which can be used to invoke the `callback`
   /// passed to the constructor.
   ///
   /// If this receiver has been [close]d, the pointer is a [nullptr].
-  external Pointer<NativeFunction<T>> get nativeFunction;
+  Pointer<NativeFunction<T>> get nativeFunction;
 
   /// Closes this callback and releases its resources.
   ///
@@ -205,15 +233,14 @@ final class NativeCallable<T extends Function> {
   /// This method must not be called more than once on each native callback.
   ///
   /// It is safe to call [close] inside the [callback].
-  external void close();
+  void close();
 
   /// Whether this [NativeCallable] keeps its [Isolate] alive.
   ///
   /// By default, [NativeCallable]s keep the [Isolate] that created them alive
   /// until [close] is called. If [keepIsolateAlive] is set to `false`, the
-  /// isolate may close while the port is still open.
-  external bool get keepIsolateAlive;
-  external void set keepIsolateAlive(bool value);
+  /// isolate may exit even if the [NativeCallable] isn't closed.
+  external bool keepIsolateAlive;
 }
 
 //

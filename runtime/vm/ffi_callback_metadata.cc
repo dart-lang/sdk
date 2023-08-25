@@ -5,6 +5,7 @@
 #include "vm/ffi_callback_metadata.h"
 
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/dart_api_state.h"
 #include "vm/flag_list.h"
 #include "vm/object.h"
 #include "vm/runtime_entry.h"
@@ -157,7 +158,7 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateMetadataEntry(
     Isolate* target_isolate,
     TrampolineType trampoline_type,
     uword target_entry_point,
-    Dart_Port send_port,
+    uint64_t context,
     Metadata** list_head) {
   MutexLocker locker(&lock_);
   EnsureFreeListNotEmptyLocked();
@@ -174,7 +175,7 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateMetadataEntry(
     next_entry->list_prev_ = entry;
   }
   *entry = Metadata(target_isolate, trampoline_type, target_entry_point,
-                    send_port, nullptr, next_entry);
+                    context, nullptr, next_entry);
   *list_head = entry;
   return TrampolineOfMetadata(entry);
 }
@@ -190,15 +191,28 @@ void FfiCallbackMetadata::AddToFreeListLocked(Metadata* entry) {
     free_list_tail_->free_list_next_ = entry;
     free_list_tail_ = entry;
   }
+  entry->context_ = 0;
   entry->target_isolate_ = nullptr;
   entry->free_list_next_ = nullptr;
+}
+
+void FfiCallbackMetadata::DeleteCallbackLocked(Metadata* entry) {
+  ASSERT(lock_.IsOwnedByCurrentThread());
+  if (entry->trampoline_type_ != TrampolineType::kAsync &&
+      entry->context_ != 0) {
+    ASSERT(entry->target_isolate_ != nullptr);
+    auto* api_state = entry->target_isolate_->group()->api_state();
+    ASSERT(api_state != nullptr);
+    api_state->FreePersistentHandle(entry->closure_handle());
+  }
+  AddToFreeListLocked(entry);
 }
 
 void FfiCallbackMetadata::DeleteAllCallbacks(Metadata** list_head) {
   MutexLocker locker(&lock_);
   for (Metadata* entry = *list_head; entry != nullptr;) {
     Metadata* next = entry->list_next();
-    AddToFreeListLocked(entry);
+    DeleteCallbackLocked(entry);
     entry = next;
   }
   *list_head = nullptr;
@@ -220,7 +234,7 @@ void FfiCallbackMetadata::DeleteCallback(Trampoline trampoline,
   if (next != nullptr) {
     next->list_prev_ = prev;
   }
-  AddToFreeListLocked(entry);
+  DeleteCallbackLocked(entry);
 }
 
 uword FfiCallbackMetadata::GetEntryPoint(Zone* zone, const Function& function) {
@@ -231,12 +245,44 @@ uword FfiCallbackMetadata::GetEntryPoint(Zone* zone, const Function& function) {
   return code.EntryPoint();
 }
 
-FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateSyncFfiCallback(
+PersistentHandle* FfiCallbackMetadata::CreatePersistentHandle(
+    Isolate* isolate,
+    const Closure& closure) {
+  auto* api_state = isolate->group()->api_state();
+  ASSERT(api_state != nullptr);
+  auto* handle = api_state->AllocatePersistentHandle();
+  handle->set_ptr(closure);
+  return handle;
+}
+
+FfiCallbackMetadata::Trampoline
+FfiCallbackMetadata::CreateIsolateLocalFfiCallback(Isolate* isolate,
+                                                   Zone* zone,
+                                                   const Function& function,
+                                                   const Closure& closure,
+                                                   Metadata** list_head) {
+  if (closure.IsNull()) {
+    // If the closure is null, it means the target is a static function, so is
+    // baked into the trampoline and is an ordinary sync callback.
+    ASSERT(function.GetFfiFunctionKind() ==
+           FfiFunctionKind::kIsolateLocalStaticCallback);
+    return CreateSyncFfiCallbackImpl(isolate, zone, function, nullptr,
+                                     list_head);
+  } else {
+    ASSERT(function.GetFfiFunctionKind() ==
+           FfiFunctionKind::kIsolateLocalClosureCallback);
+    return CreateSyncFfiCallbackImpl(isolate, zone, function,
+                                     CreatePersistentHandle(isolate, closure),
+                                     list_head);
+  }
+}
+
+FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateSyncFfiCallbackImpl(
     Isolate* isolate,
     Zone* zone,
     const Function& function,
+    PersistentHandle* closure,
     Metadata** list_head) {
-  ASSERT(function.GetFfiTrampolineKind() == FfiTrampolineKind::kSyncCallback);
   TrampolineType trampoline_type = TrampolineType::kSync;
 
 #if defined(TARGET_ARCH_IA32)
@@ -252,20 +298,20 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateSyncFfiCallback(
 #endif
 
   return CreateMetadataEntry(isolate, trampoline_type,
-                             GetEntryPoint(zone, function), ILLEGAL_PORT,
-                             list_head);
+                             GetEntryPoint(zone, function),
+                             reinterpret_cast<uint64_t>(closure), list_head);
 }
 
 FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateAsyncFfiCallback(
     Isolate* isolate,
     Zone* zone,
-    const Function& function,
+    const Function& send_function,
     Dart_Port send_port,
     Metadata** list_head) {
-  ASSERT(function.GetFfiTrampolineKind() == FfiTrampolineKind::kAsyncCallback);
+  ASSERT(send_function.GetFfiFunctionKind() == FfiFunctionKind::kAsyncCallback);
   return CreateMetadataEntry(isolate, TrampolineType::kAsync,
-                             GetEntryPoint(zone, function), send_port,
-                             list_head);
+                             GetEntryPoint(zone, send_function),
+                             static_cast<uint64_t>(send_port), list_head);
 }
 
 FfiCallbackMetadata::Trampoline FfiCallbackMetadata::TrampolineOfMetadata(

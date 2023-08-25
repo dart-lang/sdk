@@ -366,9 +366,10 @@ namespace dart {
   V(VMService_AddUserTagsToStreamableSampleList, 1)                            \
   V(VMService_RemoveUserTagsFromStreamableSampleList, 1)                       \
   V(Ffi_asFunctionInternal, 2)                                                 \
-  V(Ffi_pointerFromFunction, 1)                                                \
-  V(Ffi_pointerAsyncFromFunction, 2)                                           \
-  V(Ffi_deleteAsyncFunctionPointer, 1)                                         \
+  V(Ffi_createNativeCallableListener, 2)                                       \
+  V(Ffi_createNativeCallableIsolateLocal, 3)                                   \
+  V(Ffi_deleteNativeCallable, 1)                                               \
+  V(Ffi_updateNativeCallableKeepIsolateAliveCounter, 1)                        \
   V(Ffi_dl_open, 1)                                                            \
   V(Ffi_dl_close, 1)                                                           \
   V(Ffi_dl_lookup, 2)                                                          \

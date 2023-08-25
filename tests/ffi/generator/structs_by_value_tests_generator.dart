@@ -755,23 +755,28 @@ void ${dartName}AfterCallback() {
 """;
   }
 
-  String get dartCallbackTestConstructor {
+  String dartCallbackTestConstructor({required bool isNativeCallable}) {
+    String exceptionalPrefix = isNativeCallable ? "exceptionalReturn: " : "";
     String exceptionalReturn = "";
     if (returnValue is FundamentalType) {
       final returnValue_ = returnValue as FundamentalType;
       if (returnValue_.isFloatingPoint) {
-        exceptionalReturn = ", 0.0";
+        exceptionalReturn = ", ${exceptionalPrefix}0.0";
       } else if (returnValue_.isInteger) {
-        exceptionalReturn = ", 0";
+        exceptionalReturn = ", ${exceptionalPrefix}0";
       } else if (returnValue_.isBool) {
-        exceptionalReturn = ", false";
+        exceptionalReturn = ", ${exceptionalPrefix}false";
       } else {
         throw 'Unexpected type $returnValue_';
       }
     }
+    final T = '${cName}Type';
+    final constructor = isNativeCallable
+        ? 'NativeCallable<$T>.isolateLocal'
+        : 'Pointer.fromFunction<$T>';
     return """
   CallbackTest.withCheck("$cName",
-    Pointer.fromFunction<${cName}Type>($dartName$exceptionalReturn),
+    $constructor($dartName$exceptionalReturn),
     ${dartName}AfterCallback),
 """;
   }
@@ -1219,36 +1224,43 @@ Future<void> writeDartCallbackTest(
   List<FunctionType> functions, {
   required bool isVarArgs,
 }) async {
-  await Future.wait([
-    true,
-    if (!isVarArgs) false,
-  ].map((isNnbd) async {
-    final StringBuffer buffer = StringBuffer();
-    buffer.write(headerDartCallbackTest(
-      isNnbd: isNnbd,
-      copyrightYear: isVarArgs ? 2023 : 2020,
-    ));
+  for (bool isNnbd in [true, if (!isVarArgs) false]) {
+    for (bool isNativeCallable in [false, if (isNnbd) true]) {
+      final StringBuffer buffer = StringBuffer();
+      buffer.write(headerDartCallbackTest(
+        isNnbd: isNnbd,
+        copyrightYear: isVarArgs || isNativeCallable ? 2023 : 2020,
+      ));
 
-    buffer.write("""
-final testCases = [
-${functions.map((e) => e.dartCallbackTestConstructor).join("\n")}
-];
-""");
+      buffer.write("""
+  final testCases = [
+  ${functions.map((e) => e.dartCallbackTestConstructor(isNativeCallable: isNativeCallable)).join("\n")}
+  ];
+  """);
 
-    buffer.writeAll(functions.map((e) => e.dartCallbackCode(isNnbd: isNnbd)));
+      buffer.writeAll(functions.map((e) => e.dartCallbackCode(isNnbd: isNnbd)));
 
-    final path = callbackTestPath(isNnbd: isNnbd, isVarArgs: isVarArgs);
-    await File(path).writeAsString(buffer.toString());
-    await runProcess(Platform.resolvedExecutable, ["format", path]);
-  }));
+      final path = callbackTestPath(
+          isNnbd: isNnbd,
+          isVarArgs: isVarArgs,
+          isNativeCallable: isNativeCallable);
+      await File(path).writeAsString(buffer.toString());
+      await runProcess(Platform.resolvedExecutable, ["format", path]);
+    }
+  }
 }
 
-String callbackTestPath({required bool isNnbd, required bool isVarArgs}) {
+String callbackTestPath({
+  required bool isNnbd,
+  required bool isVarArgs,
+  required bool isNativeCallable,
+}) {
   final folder = isNnbd ? "ffi" : "ffi_2";
   final baseName = isVarArgs ? "varargs" : "structs_by_value";
+  final natCall = isNativeCallable ? "_native_callable" : "";
   return Platform.script
       .resolve(
-          "../../$folder/function_callbacks_${baseName}_generated_test.dart")
+          "../../$folder/function_callbacks_${baseName}${natCall}_generated_test.dart")
       .toFilePath();
 }
 

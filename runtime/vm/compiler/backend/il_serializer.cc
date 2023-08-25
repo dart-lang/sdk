@@ -832,10 +832,10 @@ void FlowGraphSerializer::WriteTrait<const Function&>::Write(
       return;
     }
     case UntaggedFunction::kFfiTrampoline: {
-      s->Write<uint8_t>(static_cast<uint8_t>(x.GetFfiTrampolineKind()));
+      s->Write<uint8_t>(static_cast<uint8_t>(x.GetFfiFunctionKind()));
       s->Write<const FunctionType&>(
           FunctionType::Handle(zone, x.FfiCSignature()));
-      if (x.GetFfiTrampolineKind() != FfiTrampolineKind::kCall) {
+      if (x.GetFfiFunctionKind() != FfiFunctionKind::kCall) {
         s->Write<const Function&>(
             Function::Handle(zone, x.FfiCallbackTarget()));
         s->Write<const Instance&>(
@@ -922,10 +922,10 @@ const Function& FlowGraphDeserializer::ReadTrait<const Function&>::Read(
                                   target.GetDynamicInvocationForwarder(name));
     }
     case UntaggedFunction::kFfiTrampoline: {
-      const FfiTrampolineKind kind =
-          static_cast<FfiTrampolineKind>(d->Read<uint8_t>());
+      const FfiFunctionKind kind =
+          static_cast<FfiFunctionKind>(d->Read<uint8_t>());
       const FunctionType& c_signature = d->Read<const FunctionType&>();
-      if (kind != FfiTrampolineKind::kCall) {
+      if (kind != FfiFunctionKind::kCall) {
         const Function& callback_target = d->Read<const Function&>();
         const Instance& exceptional_return = d->Read<const Instance&>();
         return Function::ZoneHandle(

@@ -204,12 +204,13 @@ class FfiCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the method
   static const FfiCode INVALID_EXCEPTION_VALUE = FfiCode(
     'INVALID_EXCEPTION_VALUE',
-    "The method 'Pointer.fromFunction' can't have an exceptional return value "
-        "(the second argument) when the return type of the function is either "
-        "'void', 'Handle' or 'Pointer'.",
+    "The method {0} can't have an exceptional return value (the second "
+        "argument) when the return type of the function is either 'void', "
+        "'Handle' or 'Pointer'.",
     correctionMessage: "Try removing the exceptional return value.",
     hasPublishedDocs: true,
   );
@@ -264,12 +265,13 @@ class FfiCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the method
   static const FfiCode MISSING_EXCEPTION_VALUE = FfiCode(
     'MISSING_EXCEPTION_VALUE',
-    "The method 'Pointer.fromFunction' must have an exceptional return value "
-        "(the second argument) when the return type of the function is neither "
-        "'void', 'Handle', nor 'Pointer'.",
+    "The method {0} must have an exceptional return value (the second "
+        "argument) when the return type of the function is neither 'void', "
+        "'Handle', nor 'Pointer'.",
     correctionMessage: "Try adding an exceptional return value.",
     hasPublishedDocs: true,
   );

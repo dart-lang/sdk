@@ -18,7 +18,7 @@ class AsyncCallbackTest {
   final Future<void> Function() afterCallbackChecks;
 
   // Either a NativeCallable or a Pointer.fromFunction.
-  final dynamic callback;
+  final Object callback;
 
   AsyncCallbackTest(this.name, this.callback, this.afterCallbackChecks) {}
 
@@ -26,11 +26,12 @@ class AsyncCallbackTest {
     final NativeAsyncCallbackTestFn tester = ffiTestFunctions.lookupFunction<
         NativeAsyncCallbackTest, NativeAsyncCallbackTestFn>("TestAsync$name");
 
-    tester(callback is NativeCallable ? callback.nativeFunction : callback);
+    final cb = callback;
+    tester(cb is NativeCallable ? cb.nativeFunction : cb as Pointer);
 
     await afterCallbackChecks();
-    if (callback is NativeCallable) {
-      callback.close();
+    if (cb is NativeCallable) {
+      cb.close();
     }
   }
 }

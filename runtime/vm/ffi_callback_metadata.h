@@ -12,6 +12,8 @@
 
 namespace dart {
 
+class PersistentHandle;
+
 // Stores metadata related to FFI callbacks (Dart functions that are assigned a
 // function pointer that can be invoked by native code). This is essentially a
 // map from trampoline pointer to Metadata, with some logic to assign and memory
@@ -37,10 +39,8 @@ class FfiCallbackMetadata {
 
   enum class TrampolineType : uint8_t {
     kSync = 0,
-    kAsync = 1,
-#if defined(TARGET_ARCH_IA32)
-    kSyncStackDelta4 = 2,
-#endif
+    kSyncStackDelta4 = 1,  // Only used by TARGET_ARCH_IA32
+    kAsync = 2,
   };
 
   enum RuntimeFunctions {
@@ -55,12 +55,6 @@ class FfiCallbackMetadata {
   // Returns the FfiCallbackMetadata singleton.
   static FfiCallbackMetadata* Instance();
 
-  // Creates a sync callback trampoline for the given function.
-  Trampoline CreateSyncFfiCallback(Isolate* isolate,
-                                   Zone* zone,
-                                   const Function& function,
-                                   Metadata** list_head);
-
   // Creates an async callback trampoline for the given function and associates
   // it with the send_port.
   Trampoline CreateAsyncFfiCallback(Isolate* isolate,
@@ -68,6 +62,13 @@ class FfiCallbackMetadata {
                                     const Function& function,
                                     Dart_Port send_port,
                                     Metadata** list_head);
+
+  // Creates an isolate local callback trampoline for the given function.
+  Trampoline CreateIsolateLocalFfiCallback(Isolate* isolate,
+                                           Zone* zone,
+                                           const Function& function,
+                                           const Closure& closure,
+                                           Metadata** list_head);
 
   // Deletes a single trampoline.
   void DeleteCallback(Trampoline trampoline, Metadata** list_head);
@@ -87,7 +88,9 @@ class FfiCallbackMetadata {
         // safe because Instructions objects are never moved by the GC.
         uword target_entry_point_;
 
-        Dart_Port send_port_;
+        // For async callbacks, this is the send port. For sync callbacks this
+        // is a persistent handle to the callback's closure, or null.
+        uint64_t context_;
 
         // Links in the Isolate's list of callbacks.
         Metadata* list_prev_;
@@ -101,13 +104,13 @@ class FfiCallbackMetadata {
     Metadata(Isolate* target_isolate,
              TrampolineType trampoline_type,
              uword target_entry_point,
-             Dart_Port send_port,
+             uint64_t context,
              Metadata* list_prev,
              Metadata* list_next)
         : target_isolate_(target_isolate),
           trampoline_type_(trampoline_type),
           target_entry_point_(target_entry_point),
-          send_port_(send_port),
+          context_(context),
           list_prev_(list_prev),
           list_next_(list_next) {}
 
@@ -119,7 +122,7 @@ class FfiCallbackMetadata {
       return target_isolate_ == other.target_isolate_ &&
              trampoline_type_ == other.trampoline_type_ &&
              target_entry_point_ == other.target_entry_point_ &&
-             send_port_ == other.send_port_;
+             context_ == other.context_;
     }
 
     // Whether the callback is still alive.
@@ -139,10 +142,27 @@ class FfiCallbackMetadata {
       return target_entry_point_;
     }
 
+    // The persistent handle to the closure that the NativeCallable.isolateLocal
+    // is wrapping.
+    PersistentHandle* closure_handle() const {
+      ASSERT(IsLive());
+      ASSERT(trampoline_type_ == TrampolineType::kSync ||
+             trampoline_type_ == TrampolineType::kSyncStackDelta4);
+      return reinterpret_cast<PersistentHandle*>(context_);
+    }
+
+    // For async callbacks, this is the send port. For sync callbacks this is a
+    // persistent handle to the callback's closure, or null.
+    uint64_t context() const {
+      ASSERT(IsLive());
+      return context_;
+    }
+
     // The send port that the async callback will send a message to.
     Dart_Port send_port() const {
       ASSERT(IsLive());
-      return send_port_;
+      ASSERT(trampoline_type_ == TrampolineType::kAsync);
+      return static_cast<Dart_Port>(context_);
     }
 
     // To efficiently delete all the callbacks for a isolate, they are stored in
@@ -265,16 +285,24 @@ class FfiCallbackMetadata {
   ~FfiCallbackMetadata();
   void EnsureStubPageLocked();
   void AddToFreeListLocked(Metadata* entry);
+  void DeleteCallbackLocked(Metadata* entry);
   void FillRuntimeFunction(VirtualMemory* page, uword index, void* function);
   VirtualMemory* AllocateTrampolinePage();
   void EnsureFreeListNotEmptyLocked();
   Trampoline CreateMetadataEntry(Isolate* target_isolate,
                                  TrampolineType trampoline_type,
                                  uword target_entry_point,
-                                 Dart_Port send_port,
+                                 uint64_t context,
                                  Metadata** list_head);
+  Trampoline CreateSyncFfiCallbackImpl(Isolate* isolate,
+                                       Zone* zone,
+                                       const Function& function,
+                                       PersistentHandle* closure,
+                                       Metadata** list_head);
   Trampoline TryAllocateFromFreeListLocked();
   static uword GetEntryPoint(Zone* zone, const Function& function);
+  static PersistentHandle* CreatePersistentHandle(Isolate* isolate,
+                                                  const Closure& closure);
 
   static FfiCallbackMetadata* singleton_;
 

@@ -395,7 +395,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     case UntaggedFunction::kFfiTrampoline: {
       needs_expr_temp_ = true;
       // Callbacks and calls with handles need try/catch variables.
-      if ((function.GetFfiTrampolineKind() != FfiTrampolineKind::kCall ||
+      if ((function.GetFfiFunctionKind() != FfiFunctionKind::kCall ||
            function.FfiCSignatureContainsHandles())) {
         ++depth_.try_;
         AddTryVariables();
