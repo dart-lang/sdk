@@ -224,15 +224,7 @@ class DataSourceReader {
   /// Registers a [CodegenReader] with this data source to support
   /// deserialization of codegen only data.
   void registerCodegenReader(CodegenReader reader) {
-    assert(_codegenReader == null);
     _codegenReader = reader;
-  }
-
-  /// Unregisters the [CodegenReader] from this data source to remove support
-  /// for deserialization of codegen only data.
-  void deregisterCodegenReader(CodegenReader reader) {
-    assert(_codegenReader == reader);
-    _codegenReader = null;
   }
 
   /// Evaluates [f] with [DataSource] for the provided [source] as the

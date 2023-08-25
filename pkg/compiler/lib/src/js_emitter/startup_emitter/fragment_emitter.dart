@@ -1618,16 +1618,17 @@ class FragmentEmitter {
         // avoid redundant declaration of local variable, for instance for
         // type arguments.
         final code = field.code as js.Fun;
+        final bodyStatements = code.body.statements;
         if (code.params.isEmpty &&
-            code.body.statements.length == 1 &&
-            code.body.statements.last is js.Return) {
+            bodyStatements.length == 1 &&
+            bodyStatements.last is js.Return) {
           // For now we only support initializers of the form
           //
           //   function() { return e; }
           //
           // To avoid unforeseen consequences of having parameters and locals
           // in the initializer code.
-          final last = code.body.statements.last as js.Return;
+          final last = bodyStatements.last as js.Return;
           statement = js.js.statement("# = #;", [location, last.value]);
         } else {
           // Safe fallback in the event of a field initializer with no return
@@ -1661,7 +1662,7 @@ class FragmentEmitter {
         js.Fun fun = staticFieldCode;
         staticFieldCode = js.ArrowFunction(fun.params, fun.body,
                 asyncModifier: fun.asyncModifier)
-            .withSourceInformation(fun.sourceInformation);
+            .withInformationFrom(fun);
       }
       js.Statement statement = js.js.statement("#(#, #, #, #);", [
         helper,

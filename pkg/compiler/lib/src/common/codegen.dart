@@ -398,8 +398,11 @@ class CodegenRegistry {
   }
 
   CodegenResult close(js.Fun? code) {
-    return CodegenResult(code, _worldImpact, _names.isEmpty ? const [] : _names,
-        _expressions.isEmpty ? const [] : _expressions);
+    return CodegenResult(
+        code,
+        _worldImpact,
+        js.DeferredExpressionData(_names.isEmpty ? [] : _names,
+            _expressions.isEmpty ? [] : _expressions));
   }
 }
 
@@ -428,47 +431,38 @@ class CodegenResult {
 
   final js.Fun? code;
   final CodegenImpact impact;
-  final Iterable<ModularName> modularNames;
-  final Iterable<ModularExpression> modularExpressions;
+  final js.DeferredExpressionData deferredExpressionData;
 
-  CodegenResult(this.code, this.impact, List<ModularName> modularNames,
-      List<ModularExpression> modularExpressions)
-      : this.modularNames =
-            modularNames.isEmpty ? const [] : List.unmodifiable(modularNames),
-        this.modularExpressions = modularExpressions.isEmpty
-            ? const []
-            : List.unmodifiable(modularExpressions);
+  CodegenResult(this.code, this.impact, this.deferredExpressionData);
 
   /// Reads a [CodegenResult] object from [source].
-  ///
-  /// The [ModularName] and [ModularExpression] nodes read during
-  /// deserialization are collected in [modularNames] and [modularExpressions]
-  /// to avoid the need for visiting the [code] node post deserialization.
-  factory CodegenResult.readFromDataSource(
-      DataSourceReader source,
-      List<ModularName> modularNames,
-      List<ModularExpression> modularExpressions) {
+  factory CodegenResult.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    final code = source.readJsNodeOrNull() as js.Fun?;
+    js.Fun? code = source.readJsNodeOrNull() as js.Fun?;
     CodegenImpact impact = CodegenImpact.readFromDataSource(source);
+    final deferredExpressionData =
+        js.DeferredExpressionData.readFromDataSource(source);
     source.end(tag);
-    return CodegenResult(code, impact, modularNames, modularExpressions);
+    if (code != null) {
+      code = code.withAnnotation(deferredExpressionData) as js.Fun;
+    }
+    return CodegenResult(code, impact, deferredExpressionData);
   }
 
   /// Writes the [CodegenResult] object to [sink].
-  ///
-  /// The [modularNames] and [modularExpressions] fields are not directly
-  /// serializes because these are embedded in the [code] node and collected
-  /// through this during deserialization.
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
+    deferredExpressionData.prepareForSerialization();
     sink.writeJsNodeOrNull(code);
     impact.writeToDataSink(sink);
+    deferredExpressionData.writeToDataSink(sink);
     sink.end(tag);
   }
 
   void applyModularState(Namer namer, Emitter emitter) {
-    for (ModularName name in modularNames) {
+    final Set<ModularName> updated = Set.identity();
+    for (ModularName name in deferredExpressionData.modularNames) {
+      if (!updated.add(name)) continue;
       switch (name.kind) {
         case ModularNameKind.rtiField:
           name.value = namer.rtiFieldJsName;
@@ -526,7 +520,8 @@ class CodegenResult {
           break;
       }
     }
-    for (ModularExpression expression in modularExpressions) {
+    for (ModularExpression expression
+        in deferredExpressionData.modularExpressions) {
       switch (expression.kind) {
         case ModularExpressionKind.constant:
           expression.value = emitter
@@ -548,8 +543,8 @@ class CodegenResult {
     sb.write('CodegenResult(code=');
     sb.write(code != null ? js.DebugPrint(code!) : '<null>,');
     sb.write('impact=$impact,');
-    sb.write('modularNames=$modularNames,');
-    sb.write('modularExpressions=$modularExpressions');
+    sb.write('modularNames=${deferredExpressionData.modularNames},');
+    sb.write('modularExpressions=${deferredExpressionData.modularExpressions}');
     sb.write(')');
     return sb.toString();
   }
@@ -796,14 +791,20 @@ enum JsAnnotationKind {
 }
 
 /// Visitor that serializes a [js.Node] into a [DataSinkWriter].
+///
+/// Collects deferred expressions into [deferredExpressionData] as it encounters
+/// them in the AST.
 class JsNodeSerializer implements js.NodeVisitor<void> {
   final DataSinkWriter sink;
+  final js.DeferredExpressionData deferredExpressionData;
 
-  JsNodeSerializer._(this.sink);
+  JsNodeSerializer._(this.sink, this.deferredExpressionData);
 
-  static void writeToDataSink(DataSinkWriter sink, js.Node node) {
+  static void writeToDataSink(DataSinkWriter sink, js.Node node,
+      js.DeferredExpressionData deferredExpressionData) {
     sink.begin(JsNodeTags.tag);
-    JsNodeSerializer serializer = JsNodeSerializer._(sink);
+    JsNodeSerializer serializer =
+        JsNodeSerializer._(sink, deferredExpressionData);
     serializer.visit(node);
     sink.end(JsNodeTags.tag);
   }
@@ -976,9 +977,12 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     if (node is ModularName) {
       sink.writeEnum(JsNodeKind.modularName);
       sink.begin(JsNodeTags.modularName);
-      node.writeToDataSink(sink);
+      sink.writeCached<ModularName>(node, (_) {
+        node.writeToDataSink(sink);
+        _writeInfo(node);
+      }, identity: true);
+      deferredExpressionData.registerModularName(node);
       sink.end(JsNodeTags.modularName);
-      _writeInfo(node);
     } else if (node is AsyncName) {
       sink.writeEnum(JsNodeKind.asyncName);
       sink.begin(JsNodeTags.asyncName);
@@ -1069,27 +1073,39 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     if (node is ModularExpression) {
       sink.writeEnum(JsNodeKind.modularExpression);
       sink.begin(JsNodeTags.modularExpression);
-      node.writeToDataSink(sink);
+      sink.writeCached<ModularExpression>(node, (_) {
+        node.writeToDataSink(sink);
+        _writeInfo(node);
+      }, identity: true);
+      deferredExpressionData.registerModularExpression(node);
       sink.end(JsNodeTags.modularExpression);
-      _writeInfo(node);
     } else if (node is TypeReference) {
       sink.writeEnum(JsNodeKind.typeReference);
       sink.begin(JsNodeTags.typeReference);
-      node.writeToDataSink(sink);
+      sink.writeCached<TypeReference>(node, (_) {
+        node.writeToDataSink(sink);
+        _writeInfo(node);
+      }, identity: true);
+      deferredExpressionData.registerTypeReference(node);
       sink.end(JsNodeTags.typeReference);
-      _writeInfo(node);
     } else if (node is StringReference) {
       sink.writeEnum(JsNodeKind.stringReference);
       sink.begin(JsNodeTags.stringReference);
-      node.writeToDataSink(sink);
+      sink.writeCached<StringReference>(node, (_) {
+        node.writeToDataSink(sink);
+        _writeInfo(node);
+      }, identity: true);
+      deferredExpressionData.registerStringReference(node);
       sink.end(JsNodeTags.stringReference);
-      _writeInfo(node);
     } else if (node is DeferredHolderExpression) {
       sink.writeEnum(JsNodeKind.deferredHolderExpression);
       sink.begin(JsNodeTags.deferredHolderExpression);
-      node.writeToDataSink(sink);
+      sink.writeCached<DeferredHolderExpression>(node, (_) {
+        node.writeToDataSink(sink);
+        _writeInfo(node);
+      }, identity: true);
+      deferredExpressionData.registerDeferredHolderExpression(node);
       sink.end(JsNodeTags.deferredHolderExpression);
-      _writeInfo(node);
     } else {
       throw UnsupportedError(
           'Unexpected deferred expression: ${node.runtimeType}.');
@@ -1101,7 +1117,8 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     sink.writeEnum(JsNodeKind.function);
     sink.begin(JsNodeTags.function);
     visitList(node.params);
-    visit(node.body);
+    sink.writeDeferrable(
+        () => sink.writeList(node.body.statements, sink.writeJsNode));
     sink.writeEnum(node.asyncModifier);
     sink.end(JsNodeTags.function);
     _writeInfo(node);
@@ -1492,23 +1509,14 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
 }
 
 /// Helper class that deserializes a [js.Node] from [DataSourceReader].
-///
-/// Deserialized [ModularName]s and [ModularExpression]s are collected in the
-/// [modularNames] and [modularExpressions] lists.
 class JsNodeDeserializer {
   final DataSourceReader source;
-  final List<ModularName> modularNames;
-  final List<ModularExpression> modularExpressions;
 
-  JsNodeDeserializer._(this.source, this.modularNames, this.modularExpressions);
+  JsNodeDeserializer._(this.source);
 
-  static js.Node readFromDataSource(
-      DataSourceReader source,
-      List<ModularName> modularNames,
-      List<ModularExpression> modularExpressions) {
+  static js.Node readFromDataSource(DataSourceReader source) {
     source.begin(JsNodeTags.tag);
-    JsNodeDeserializer deserializer =
-        JsNodeDeserializer._(source, modularNames, modularExpressions);
+    JsNodeDeserializer deserializer = JsNodeDeserializer._(source);
     js.Node node = deserializer.read();
     source.end(JsNodeTags.tag);
     return node;
@@ -1520,9 +1528,14 @@ class JsNodeDeserializer {
     return read();
   }
 
+  static List<js.Statement> _readFunBodyStatements(DataSourceReader source) {
+    return source.readList(() => source.readJsNode() as js.Statement);
+  }
+
   T read<T extends js.Node>() {
     JsNodeKind kind = source.readEnum(JsNodeKind.values);
     js.Node node;
+    bool needsInfo = true;
     switch (kind) {
       case JsNodeKind.comment:
         source.begin(JsNodeTags.comment);
@@ -1578,9 +1591,9 @@ class JsNodeDeserializer {
         break;
       case JsNodeKind.modularName:
         source.begin(JsNodeTags.modularName);
-        ModularName modularName = ModularName.readFromDataSource(source);
-        modularNames.add(modularName);
-        node = modularName;
+        needsInfo = false;
+        node = source.readCached<ModularName>(
+            () => _readInfo(ModularName.readFromDataSource(source)));
         source.end(JsNodeTags.modularName);
         break;
       case JsNodeKind.asyncName:
@@ -1629,16 +1642,16 @@ class JsNodeDeserializer {
         break;
       case JsNodeKind.modularExpression:
         source.begin(JsNodeTags.modularExpression);
-        ModularExpression modularExpression =
-            ModularExpression.readFromDataSource(source);
-        modularExpressions.add(modularExpression);
-        node = modularExpression;
+        needsInfo = false;
+        node = source.readCached<ModularExpression>(
+            () => _readInfo(ModularExpression.readFromDataSource(source)));
         source.end(JsNodeTags.modularExpression);
         break;
       case JsNodeKind.function:
         source.begin(JsNodeTags.function);
         List<js.Parameter> params = readList();
-        js.Block body = read();
+        js.Block body = js.DeferredBlock(
+            source.readDeferrable(_readFunBodyStatements, cacheData: false));
         js.AsyncModifier asyncModifier =
             source.readEnum(js.AsyncModifier.values);
         node = js.Fun(params, body, asyncModifier: asyncModifier);
@@ -1909,21 +1922,31 @@ class JsNodeDeserializer {
         break;
       case JsNodeKind.stringReference:
         source.begin(JsNodeTags.stringReference);
-        node = StringReference.readFromDataSource(source);
+        needsInfo = false;
+        node = source.readCached<StringReference>(
+            () => _readInfo(StringReference.readFromDataSource(source)));
         source.end(JsNodeTags.stringReference);
         break;
       case JsNodeKind.typeReference:
         source.begin(JsNodeTags.typeReference);
-        node = TypeReference.readFromDataSource(source);
+        needsInfo = false;
+        node = source.readCached<TypeReference>(
+            () => _readInfo(TypeReference.readFromDataSource(source)));
         source.end(JsNodeTags.typeReference);
         break;
       case JsNodeKind.deferredHolderExpression:
         source.begin(JsNodeTags.deferredHolderExpression);
-        node = DeferredHolderExpression.readFromDataSource(source);
+        needsInfo = false;
+        node = source.readCached<DeferredHolderExpression>(() =>
+            _readInfo(DeferredHolderExpression.readFromDataSource(source)));
         source.end(JsNodeTags.deferredHolderExpression);
         break;
     }
 
+    return needsInfo ? _readInfo(node) : node as T;
+  }
+
+  T _readInfo<T extends js.Node>(js.Node node) {
     final infoCode = source.readInt();
     final hasSourceInformation = infoCode.isOdd;
     final annotationCount = infoCode ~/ 2;
@@ -1956,11 +1979,8 @@ class JsNodeDeserializer {
 
 class CodegenReaderImpl implements CodegenReader {
   final JClosedWorld closedWorld;
-  final List<ModularName> modularNames;
-  final List<ModularExpression> modularExpressions;
 
-  CodegenReaderImpl(
-      this.closedWorld, this.modularNames, this.modularExpressions);
+  CodegenReaderImpl(this.closedWorld);
 
   @override
   AbstractValue readAbstractValue(DataSourceReader source) {
@@ -1970,8 +1990,7 @@ class CodegenReaderImpl implements CodegenReader {
 
   @override
   js.Node readJsNode(DataSourceReader source) {
-    return JsNodeDeserializer.readFromDataSource(
-        source, modularNames, modularExpressions);
+    return JsNodeDeserializer.readFromDataSource(source);
   }
 
   @override
@@ -1987,8 +2006,9 @@ class CodegenReaderImpl implements CodegenReader {
 
 class CodegenWriterImpl implements CodegenWriter {
   final JClosedWorld closedWorld;
+  final js.DeferredExpressionData deferredExpressionData;
 
-  CodegenWriterImpl(this.closedWorld);
+  CodegenWriterImpl(this.closedWorld, this.deferredExpressionData);
 
   @override
   void writeAbstractValue(DataSinkWriter sink, AbstractValue value) {
@@ -1997,7 +2017,7 @@ class CodegenWriterImpl implements CodegenWriter {
 
   @override
   void writeJsNode(DataSinkWriter sink, js.Node node) {
-    JsNodeSerializer.writeToDataSink(sink, node);
+    JsNodeSerializer.writeToDataSink(sink, node, deferredExpressionData);
   }
 
   @override

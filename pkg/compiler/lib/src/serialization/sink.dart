@@ -69,24 +69,27 @@ class DataSinkWriter {
   final Map<Type, IndexedSink> _generalCaches = {};
 
   EntityWriter _entityWriter = const EntityWriter();
-  late final CodegenWriter _codegenWriter;
+  late CodegenWriter _codegenWriter;
 
   final Map<String, int>? tagFrequencyMap;
 
   ir.Member? _currentMemberContext;
   MemberData? _currentMemberData;
 
-  IndexedSink<T> _createSink<T>() {
+  IndexedSink<T> _createSink<T>({bool identity = false}) {
     final indices = importedIndices;
-    if (indices == null) return UnorderedIndexedSink<T>(this);
+    if (indices == null)
+      return UnorderedIndexedSink<T>(this, identity: identity);
     final sourceInfo = indices.caches[T];
     if (sourceInfo == null) {
       return UnorderedIndexedSink<T>(this,
-          startOffset: indices.previousSourceReader?.endOffset);
+          startOffset: indices.previousSourceReader?.endOffset,
+          identity: identity);
     }
     return UnorderedIndexedSink<T>(this,
         cache: Map.from(sourceInfo.cache),
-        startOffset: indices.previousSourceReader?.endOffset);
+        startOffset: indices.previousSourceReader?.endOffset,
+        identity: identity);
   }
 
   DataSinkWriter(this._sinkWriter, CompilerOptions options,
@@ -143,9 +146,12 @@ class DataSinkWriter {
   }
 
   /// Writes a reference to [value] to this data sink. If [value] has not yet
-  /// been serialized, [f] is called to serialize the value itself.
-  void writeCached<E>(E? value, void f(E value)) {
-    IndexedSink sink = _generalCaches[E] ??= _createSink<E>();
+  /// been serialized, [f] is called to serialize the value itself. If
+  /// [identity] is true then the cache is backed by a [Map] created using
+  /// [Map.identity]. (i.e. comparisons are done using [identical] rather than
+  /// `==`)
+  void writeCached<E>(E? value, void f(E value), {bool identity = false}) {
+    IndexedSink sink = _generalCaches[E] ??= _createSink<E>(identity: identity);
     sink.write(value, (v) => f(v));
   }
 

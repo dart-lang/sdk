@@ -32,9 +32,11 @@ class UnorderedIndexedSink<E> implements IndexedSink<E> {
   final int _startOffset;
 
   UnorderedIndexedSink(this._sinkWriter,
-      {Map<E?, int>? cache, int? startOffset})
+      {Map<E?, int>? cache, int? startOffset, bool identity = false})
       : // [cache] slot 1 is pre-allocated to `null`.
-        this._cache = cache ?? {null: 1},
+        this._cache = cache != null
+            ? (identity ? (Map.identity()..addAll(cache)) : cache)
+            : ((identity ? Map.identity() : {})..[null] = 1),
         this._startOffset = startOffset ?? 0;
 
   /// Write a reference to [value] to the data sink.
