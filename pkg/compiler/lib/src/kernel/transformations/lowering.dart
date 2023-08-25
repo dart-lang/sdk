@@ -97,9 +97,10 @@ class _Lowering extends Transformer {
 
   @override
   TreeNode visitAwaitExpression(AwaitExpression expression) {
-    _asyncLowering?.visitAwaitExpression(expression);
     expression.transformChildren(this);
-    return _awaitLowering.transformAwaitExpression(expression);
+    final transformed = _awaitLowering.transformAwaitExpression(expression);
+    _asyncLowering?.visitAwaitExpression(transformed);
+    return transformed;
   }
 
   @override
