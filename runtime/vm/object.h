@@ -2949,9 +2949,10 @@ struct NameFormattingParams {
   }
 };
 
-enum class FfiTrampolineKind : uint8_t {
+enum class FfiFunctionKind : uint8_t {
   kCall,
-  kSyncCallback,
+  kIsolateLocalStaticCallback,
+  kIsolateLocalClosureCallback,
   kAsyncCallback,
 };
 
@@ -3013,10 +3014,10 @@ class Function : public Object {
   void SetFfiCallbackExceptionalReturn(const Instance& value) const;
 
   // Can only be called on FFI trampolines.
-  FfiTrampolineKind GetFfiTrampolineKind() const;
+  FfiFunctionKind GetFfiFunctionKind() const;
 
   // Can only be called on FFI trampolines.
-  void SetFfiTrampolineKind(FfiTrampolineKind value) const;
+  void SetFfiFunctionKind(FfiFunctionKind value) const;
 
   // Return the signature of this function.
   PRECOMPILER_WSR_FIELD_DECLARATION(FunctionType, signature);
@@ -4355,10 +4356,10 @@ class FfiTrampolineData : public Object {
   }
   void set_callback_exceptional_return(const Instance& value) const;
 
-  FfiTrampolineKind trampoline_kind() const {
-    return static_cast<FfiTrampolineKind>(untag()->trampoline_kind_);
+  FfiFunctionKind ffi_function_kind() const {
+    return static_cast<FfiFunctionKind>(untag()->ffi_function_kind_);
   }
-  void set_trampoline_kind(FfiTrampolineKind kind) const;
+  void set_ffi_function_kind(FfiFunctionKind kind) const;
 
   int32_t callback_id() const { return untag()->callback_id_; }
   void set_callback_id(int32_t value) const;

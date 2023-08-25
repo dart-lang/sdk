@@ -1231,4 +1231,13 @@ DART_EXPORT void CallFunctionOnNewThreadNonBlocking(int64_t response_id,
   thread.detach();
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Tests for isolate local callbacks.
+
+DART_EXPORT void CallTwoIntFunction(int32_t (*fn)(int32_t, int32_t),
+                                    int32_t a,
+                                    int32_t b) {
+  fn(a, b);
+}
+
 }  // namespace dart

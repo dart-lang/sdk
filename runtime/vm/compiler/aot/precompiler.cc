@@ -3451,7 +3451,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   }
 
   if (function.IsFfiTrampoline() &&
-      function.GetFfiTrampolineKind() != FfiTrampolineKind::kCall) {
+      function.GetFfiFunctionKind() != FfiFunctionKind::kCall) {
     compiler::ffi::SetFfiCallbackCode(thread(), function, code);
   }
 }

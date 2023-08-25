@@ -1241,14 +1241,18 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     deopt_context_ = value;
   }
 
-  FfiCallbackMetadata::Trampoline CreateSyncFfiCallback(
-      Zone* zone,
-      const Function& function);
   FfiCallbackMetadata::Trampoline CreateAsyncFfiCallback(
       Zone* zone,
       const Function& send_function,
       Dart_Port send_port);
+  FfiCallbackMetadata::Trampoline CreateIsolateLocalFfiCallback(
+      Zone* zone,
+      const Function& trampoline,
+      const Closure& target,
+      bool keep_isolate_alive);
   void DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback);
+  void UpdateNativeCallableKeepIsolateAliveCounter(intptr_t delta);
+  bool HasOpenNativeCallables();
 
   bool HasLivePorts();
   ReceivePortPtr CreateReceivePort(const String& debug_name);
@@ -1649,6 +1653,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   intptr_t defer_finalization_count_ = 0;
   DeoptContext* deopt_context_ = nullptr;
   FfiCallbackMetadata::Metadata* ffi_callback_list_head_ = nullptr;
+  intptr_t ffi_callback_keep_alive_counter_ = 0;
 
   GrowableObjectArrayPtr tag_table_;
 

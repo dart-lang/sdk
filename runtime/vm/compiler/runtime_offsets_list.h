@@ -211,6 +211,7 @@
   FIELD(ObjectStore, suspend_state_suspend_sync_star_at_start_offset)          \
   FIELD(ObjectStore, suspend_state_yield_async_star_offset)                    \
   FIELD(OneByteString, data_offset)                                            \
+  FIELD(PersistentHandle, ptr_offset)                                          \
   FIELD(PointerBase, data_offset)                                              \
   FIELD(Pointer, type_arguments_offset)                                        \
   FIELD(ReceivePort, send_port_offset)                                         \

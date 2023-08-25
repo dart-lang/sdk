@@ -984,6 +984,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiLoadPointer:
     case MethodRecognizer::kFfiNativeCallbackFunction:
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
     case MethodRecognizer::kFfiStoreInt8:
     case MethodRecognizer::kFfiStoreInt16:
     case MethodRecognizer::kFfiStoreInt32:
@@ -1267,7 +1268,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += IntConstant(static_cast<int64_t>(compiler::ffi::TargetAbi()));
       break;
     case MethodRecognizer::kFfiNativeCallbackFunction:
-    case MethodRecognizer::kFfiNativeAsyncCallbackFunction: {
+    case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction: {
       const auto& error = String::ZoneHandle(
           Z, Symbols::New(thread_,
                           "This function should be handled on call site."));
@@ -4739,12 +4741,13 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     const Function& function) {
-  switch (function.GetFfiTrampolineKind()) {
-    case FfiTrampolineKind::kSyncCallback:
+  switch (function.GetFfiFunctionKind()) {
+    case FfiFunctionKind::kIsolateLocalStaticCallback:
+    case FfiFunctionKind::kIsolateLocalClosureCallback:
       return BuildGraphOfSyncFfiCallback(function);
-    case FfiTrampolineKind::kAsyncCallback:
+    case FfiFunctionKind::kAsyncCallback:
       return BuildGraphOfAsyncFfiCallback(function);
-    case FfiTrampolineKind::kCall:
+    case FfiFunctionKind::kCall:
       return BuildGraphOfFfiNative(function);
   }
   UNREACHABLE();
@@ -4966,6 +4969,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
   RELEASE_ASSERT(error == nullptr);
   RELEASE_ASSERT(marshaller_ptr != nullptr);
   const auto& marshaller = *marshaller_ptr;
+  const bool is_closure = function.GetFfiFunctionKind() ==
+                          FfiFunctionKind::kIsolateLocalClosureCallback;
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
@@ -4985,19 +4990,46 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
   Fragment body = TryCatch(try_handler_index);
   ++try_depth_;
 
+  LocalVariable* closure = nullptr;
+  if (is_closure) {
+    // Load and unwrap closure persistent handle.
+    body += LoadThread();
+    body +=
+        LoadUntagged(compiler::target::Thread::unboxed_runtime_arg_offset());
+    body += RawLoadField(compiler::target::PersistentHandle::ptr_offset());
+    closure = MakeTemporary();
+  }
+
   // Box and push the arguments.
   for (intptr_t i = 0; i < marshaller.num_args(); i++) {
     body += LoadNativeArg(marshaller, i);
   }
 
-  // Call the target.
-  //
-  // TODO(36748): Determine the hot-reload semantics of callbacks and update the
-  // rebind-rule accordingly.
-  body += StaticCall(TokenPosition::kNoSource,
-                     Function::ZoneHandle(Z, function.FfiCallbackTarget()),
-                     marshaller.num_args(), Array::empty_array(),
-                     ICData::kNoRebind);
+  if (is_closure) {
+    // Call the target. The +1 in the argument count is because the closure
+    // itself is the first argument.
+    const intptr_t argument_count = marshaller.num_args() + 1;
+    body += LoadLocal(closure);
+    if (!FLAG_precompiled_mode) {
+      // The ClosureCallInstr() takes one explicit input (apart from arguments).
+      // It uses it to find the target address (in AOT from
+      // Closure::entry_point, in JIT from Closure::function_::entry_point).
+      body += LoadNativeField(Slot::Closure_function());
+    }
+    body +=
+        ClosureCall(Function::null_function(), TokenPosition::kNoSource,
+                    /*type_args_len=*/0, argument_count, Array::null_array());
+  } else {
+    // Call the target.
+    //
+    // TODO(36748): Determine the hot-reload semantics of callbacks and update
+    // the rebind-rule accordingly.
+    body += StaticCall(TokenPosition::kNoSource,
+                       Function::ZoneHandle(Z, function.FfiCallbackTarget()),
+                       marshaller.num_args(), Array::empty_array(),
+                       ICData::kNoRebind);
+  }
+
   if (marshaller.IsVoid(compiler::ffi::kResultIndex)) {
     body += Drop();
     body += IntConstant(0);

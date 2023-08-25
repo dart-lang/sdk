@@ -8429,7 +8429,7 @@ bool Function::FfiCSignatureReturnsStruct() const {
 
 int32_t Function::FfiCallbackId() const {
   ASSERT(IsFfiTrampoline());
-  ASSERT(GetFfiTrampolineKind() != FfiTrampolineKind::kCall);
+  ASSERT(GetFfiFunctionKind() != FfiFunctionKind::kCall);
 
   const auto& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
@@ -8442,7 +8442,7 @@ int32_t Function::FfiCallbackId() const {
 
 void Function::AssignFfiCallbackId(int32_t callback_id) const {
   ASSERT(IsFfiTrampoline());
-  ASSERT(GetFfiTrampolineKind() != FfiTrampolineKind::kCall);
+  ASSERT(GetFfiFunctionKind() != FfiFunctionKind::kCall);
 
   const auto& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
@@ -8494,18 +8494,18 @@ void Function::SetFfiCallbackExceptionalReturn(const Instance& value) const {
   FfiTrampolineData::Cast(obj).set_callback_exceptional_return(value);
 }
 
-FfiTrampolineKind Function::GetFfiTrampolineKind() const {
+FfiFunctionKind Function::GetFfiFunctionKind() const {
   ASSERT(IsFfiTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
-  return FfiTrampolineData::Cast(obj).trampoline_kind();
+  return FfiTrampolineData::Cast(obj).ffi_function_kind();
 }
 
-void Function::SetFfiTrampolineKind(FfiTrampolineKind value) const {
+void Function::SetFfiFunctionKind(FfiFunctionKind value) const {
   ASSERT(IsFfiTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
-  FfiTrampolineData::Cast(obj).set_trampoline_kind(value);
+  FfiTrampolineData::Cast(obj).set_ffi_function_kind(value);
 }
 
 const char* Function::KindToCString(UntaggedFunction::Kind kind) {
@@ -11632,8 +11632,8 @@ void FfiTrampolineData::set_callback_exceptional_return(
   untag()->set_callback_exceptional_return(value.ptr());
 }
 
-void FfiTrampolineData::set_trampoline_kind(FfiTrampolineKind kind) const {
-  StoreNonPointer(&untag()->trampoline_kind_, static_cast<uint8_t>(kind));
+void FfiTrampolineData::set_ffi_function_kind(FfiFunctionKind kind) const {
+  StoreNonPointer(&untag()->ffi_function_kind_, static_cast<uint8_t>(kind));
 }
 
 FfiTrampolineDataPtr FfiTrampolineData::New() {

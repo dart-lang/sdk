@@ -47,7 +47,7 @@ FunctionPtr TrampolineFunction(const String& name,
 
   function.SetFfiCSignature(c_signature);
   function.SetFfiIsLeaf(is_leaf);
-  function.SetFfiTrampolineKind(FfiTrampolineKind::kCall);
+  function.SetFfiFunctionKind(FfiFunctionKind::kCall);
 
   return function.ptr();
 }

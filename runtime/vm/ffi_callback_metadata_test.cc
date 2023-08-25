@@ -22,7 +22,7 @@
 
 namespace dart {
 
-FunctionPtr CreateTestFunction(FfiTrampolineKind kind) {
+FunctionPtr CreateTestFunction(FfiFunctionKind kind) {
   const auto& ffi_lib = Library::Handle(Library::FfiLibrary());
   const auto& ffi_void = Class::Handle(ffi_lib.LookupClass(Symbols::FfiVoid()));
   const auto& ffi_void_type =
@@ -91,12 +91,13 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
 
     auto* zone = thread->zone();
 
-    const auto& func =
-        Function::Handle(CreateTestFunction(FfiTrampolineKind::kSyncCallback));
+    const auto& func = Function::Handle(
+        CreateTestFunction(FfiFunctionKind::kIsolateLocalStaticCallback));
     const auto& code = Code::Handle(func.EnsureHasCode());
     EXPECT(!code.IsNull());
 
-    tramp1 = isolate->CreateSyncFfiCallback(zone, func);
+    tramp1 = isolate->CreateIsolateLocalFfiCallback(
+        zone, func, Closure::Handle(Closure::null()), false);
     EXPECT_NE(tramp1, 0u);
 
     {
@@ -105,7 +106,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
       EXPECT(m1.IsLive());
       EXPECT_EQ(m1.target_isolate(), isolate);
       EXPECT_EQ(m1.target_entry_point(), code.EntryPoint());
-      EXPECT_EQ(m1.send_port(), ILLEGAL_PORT);
+      EXPECT_EQ(m1.closure_handle(), nullptr);
       EXPECT_EQ(static_cast<int>(m1.trampoline_type()),
                 static_cast<int>(FfiCallbackMetadata::TrampolineType::kSync));
 
@@ -116,7 +117,8 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
       EXPECT_EQ(e1->list_next(), nullptr);
     }
 
-    tramp2 = isolate->CreateSyncFfiCallback(zone, func);
+    tramp2 = isolate->CreateIsolateLocalFfiCallback(
+        zone, func, Closure::Handle(Closure::null()), false);
     EXPECT_NE(tramp2, 0u);
     EXPECT_NE(tramp2, tramp1);
 
@@ -126,7 +128,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
       EXPECT(m2.IsLive());
       EXPECT_EQ(m2.target_isolate(), isolate);
       EXPECT_EQ(m2.target_entry_point(), code.EntryPoint());
-      EXPECT_EQ(m2.send_port(), ILLEGAL_PORT);
+      EXPECT_EQ(m2.closure_handle(), nullptr);
       EXPECT_EQ(static_cast<int>(m2.trampoline_type()),
                 static_cast<int>(FfiCallbackMetadata::TrampolineType::kSync));
     }
@@ -183,7 +185,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
     auto* zone = thread->zone();
 
     const Function& func =
-        Function::Handle(CreateTestFunction(FfiTrampolineKind::kAsyncCallback));
+        Function::Handle(CreateTestFunction(FfiFunctionKind::kAsyncCallback));
     const Code& code = Code::Handle(func.EnsureHasCode());
     EXPECT(!code.IsNull());
 
@@ -261,13 +263,117 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
   }
 }
 
+VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateIsolateLocalFfiCallback) {
+  auto* fcm = FfiCallbackMetadata::Instance();
+  FfiCallbackMetadata::Trampoline tramp1 = 0;
+  FfiCallbackMetadata::Trampoline tramp2 = 0;
+
+  {
+    TestIsolateScope isolate_scope;
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    ASSERT(thread->isolate() == isolate_scope.isolate());
+    TransitionNativeToVM transition(thread);
+    StackZone stack_zone(thread);
+    HandleScope handle_scope(thread);
+
+    auto* zone = thread->zone();
+
+    const Function& func = Function::Handle(
+        CreateTestFunction(FfiFunctionKind::kIsolateLocalClosureCallback));
+    const Code& code = Code::Handle(func.EnsureHasCode());
+    EXPECT(!code.IsNull());
+
+    // Using a FfiFunctionKind::kSync function as a dummy closure.
+    const Function& closure_func = Function::Handle(
+        CreateTestFunction(FfiFunctionKind::kIsolateLocalStaticCallback));
+    const Context& context = Context::Handle(Context::null());
+    const Closure& closure1 = Closure::Handle(
+        Closure::New(Object::null_type_arguments(),
+                     Object::null_type_arguments(), closure_func, context));
+
+    EXPECT_EQ(isolate->ffi_callback_list_head(), nullptr);
+
+    tramp1 = isolate->CreateIsolateLocalFfiCallback(zone, func, closure1, true);
+    EXPECT_NE(tramp1, 0u);
+
+    {
+      FfiCallbackMetadata::Metadata m1 =
+          fcm->LookupMetadataForTrampoline(tramp1);
+      EXPECT(m1.IsLive());
+      EXPECT_EQ(m1.target_isolate(), isolate);
+      EXPECT_EQ(m1.target_entry_point(), code.EntryPoint());
+      EXPECT_EQ(m1.closure_handle()->ptr(), closure1.ptr());
+      EXPECT_EQ(static_cast<int>(m1.trampoline_type()),
+                static_cast<int>(FfiCallbackMetadata::TrampolineType::kSync));
+
+      // head -> tramp1
+      auto* e1 = fcm->MetadataOfTrampoline(tramp1);
+      EXPECT_EQ(isolate->ffi_callback_list_head(), e1);
+      EXPECT_EQ(e1->list_prev(), nullptr);
+      EXPECT_EQ(e1->list_next(), nullptr);
+    }
+
+    const Closure& closure2 = Closure::Handle(
+        Closure::New(Object::null_type_arguments(),
+                     Object::null_type_arguments(), closure_func, context));
+    tramp2 = isolate->CreateIsolateLocalFfiCallback(zone, func, closure2, true);
+    EXPECT_NE(tramp2, 0u);
+    EXPECT_NE(tramp2, tramp1);
+
+    {
+      FfiCallbackMetadata::Metadata m2 =
+          fcm->LookupMetadataForTrampoline(tramp2);
+      EXPECT(m2.IsLive());
+      EXPECT_EQ(m2.target_isolate(), isolate);
+      EXPECT_EQ(m2.target_entry_point(), code.EntryPoint());
+      EXPECT_EQ(m2.closure_handle()->ptr(), closure2.ptr());
+      EXPECT_EQ(static_cast<int>(m2.trampoline_type()),
+                static_cast<int>(FfiCallbackMetadata::TrampolineType::kSync));
+    }
+
+    {
+      // head -> tramp2 -> tramp1
+      auto* e1 = fcm->MetadataOfTrampoline(tramp1);
+      auto* e2 = fcm->MetadataOfTrampoline(tramp2);
+      EXPECT_EQ(isolate->ffi_callback_list_head(), e2);
+      EXPECT_EQ(e2->list_prev(), nullptr);
+      EXPECT_EQ(e2->list_next(), e1);
+      EXPECT_EQ(e1->list_prev(), e2);
+      EXPECT_EQ(e1->list_next(), nullptr);
+    }
+
+    {
+      isolate->DeleteFfiCallback(tramp2);
+      FfiCallbackMetadata::Metadata m2 =
+          fcm->LookupMetadataForTrampoline(tramp2);
+      EXPECT(!m2.IsLive());
+
+      // head -> tramp1
+      auto* e1 = fcm->MetadataOfTrampoline(tramp1);
+      EXPECT_EQ(isolate->ffi_callback_list_head(), e1);
+      EXPECT_EQ(e1->list_prev(), nullptr);
+      EXPECT_EQ(e1->list_next(), nullptr);
+    }
+  }
+
+  {
+    // Isolate has shut down, so all callbacks should be deleted.
+    FfiCallbackMetadata::Metadata m1 = fcm->LookupMetadataForTrampoline(tramp1);
+    EXPECT(!m1.IsLive());
+
+    FfiCallbackMetadata::Metadata m2 = fcm->LookupMetadataForTrampoline(tramp2);
+    EXPECT(!m2.IsLive());
+  }
+}
+
 ISOLATE_UNIT_TEST_CASE(FfiCallbackMetadata_TrampolineRecycling) {
   Isolate* isolate = thread->isolate();
   auto* zone = thread->zone();
   auto* fcm = FfiCallbackMetadata::Instance();
 
   const Function& func =
-      Function::Handle(CreateTestFunction(FfiTrampolineKind::kAsyncCallback));
+      Function::Handle(CreateTestFunction(FfiFunctionKind::kAsyncCallback));
   const Code& code = Code::Handle(func.EnsureHasCode());
   EXPECT(!code.IsNull());
 
@@ -333,15 +439,16 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_DeleteTrampolines) {
   std::unordered_set<FfiCallbackMetadata::Trampoline> tramps;
   FfiCallbackMetadata::Metadata* list_head = nullptr;
 
-  const auto& sync_func =
-      Function::Handle(CreateTestFunction(FfiTrampolineKind::kSyncCallback));
+  const auto& sync_func = Function::Handle(
+      CreateTestFunction(FfiFunctionKind::kIsolateLocalStaticCallback));
   const auto& sync_code = Code::Handle(sync_func.EnsureHasCode());
   EXPECT(!sync_code.IsNull());
 
   // Create some callbacks.
   for (int itr = 0; itr < kCreations; ++itr) {
-    tramps.insert(fcm->CreateSyncFfiCallback(isolate, thread->zone(), sync_func,
-                                             &list_head));
+    tramps.insert(fcm->CreateIsolateLocalFfiCallback(
+        isolate, thread->zone(), sync_func, Closure::Handle(Closure::null()),
+        &list_head));
   }
 
   // Delete some of the callbacks.
@@ -414,11 +521,11 @@ static void RunBigRandomMultithreadedTest(uint64_t seed) {
   FfiCallbackMetadata::Metadata* list_head = nullptr;
 
   const Function& async_func =
-      Function::Handle(CreateTestFunction(FfiTrampolineKind::kAsyncCallback));
+      Function::Handle(CreateTestFunction(FfiFunctionKind::kAsyncCallback));
   const Code& async_code = Code::Handle(async_func.EnsureHasCode());
   EXPECT(!async_code.IsNull());
-  const Function& sync_func =
-      Function::Handle(CreateTestFunction(FfiTrampolineKind::kSyncCallback));
+  const Function& sync_func = Function::Handle(
+      CreateTestFunction(FfiFunctionKind::kIsolateLocalStaticCallback));
   const auto& sync_code = Code::Handle(sync_func.EnsureHasCode());
   EXPECT(!sync_code.IsNull());
 
@@ -452,8 +559,9 @@ static void RunBigRandomMultithreadedTest(uint64_t seed) {
       if ((random.NextUInt32() % 2) == 0) {
         // 50% chance of creating a sync callback.
         tramp.port = ILLEGAL_PORT;
-        tramp.tramp = fcm->CreateSyncFfiCallback(isolate, thread->zone(),
-                                                 sync_func, &list_head);
+        tramp.tramp = fcm->CreateIsolateLocalFfiCallback(
+            isolate, thread->zone(), sync_func,
+            Closure::Handle(Closure::null()), &list_head);
       } else {
         // 50% chance of creating an async callback.
         tramp.port = PortMap::CreatePort(new FakeMessageHandler());
@@ -469,11 +577,12 @@ static void RunBigRandomMultithreadedTest(uint64_t seed) {
       auto metadata = fcm->LookupMetadataForTrampoline(tramp.tramp);
       EXPECT(metadata.IsLive());
       EXPECT_EQ(metadata.target_isolate(), isolate);
-      EXPECT_EQ(metadata.send_port(), tramp.port);
       if (metadata.trampoline_type() ==
           FfiCallbackMetadata::TrampolineType::kSync) {
+        EXPECT_EQ(metadata.closure_handle(), nullptr);
         EXPECT_EQ(metadata.target_entry_point(), sync_code.EntryPoint());
       } else {
+        EXPECT_EQ(metadata.send_port(), tramp.port);
         EXPECT_EQ(metadata.target_entry_point(), async_code.EntryPoint());
       }
     }

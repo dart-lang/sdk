@@ -37,12 +37,19 @@ void main() {
   testFromFunctionTearOff();
   testFromFunctionAbstract();
   testFromFunctionFunctionExceptionValueMustBeConst();
-  testNativeCallableGeneric();
-  testNativeCallableGeneric2();
-  testNativeCallableWrongNativeFunctionSignature();
-  testNativeCallableTypeMismatch();
-  testNativeCallableAbstract();
-  testNativeCallableMustReturnVoid();
+  testNativeCallableListenerGeneric();
+  testNativeCallableListenerGeneric2();
+  testNativeCallableListenerWrongNativeFunctionSignature();
+  testNativeCallableListenerTypeMismatch();
+  testNativeCallableListenerAbstract();
+  testNativeCallableListenerMustReturnVoid();
+  testNativeCallableIsolateLocalGeneric();
+  testNativeCallableIsolateLocalGeneric2();
+  testNativeCallableIsolateLocalWrongNativeFunctionSignature();
+  testNativeCallableIsolateLocalTypeMismatch();
+  testNativeCallableIsolateLocalTearOff();
+  testNativeCallableIsolateLocalAbstract();
+  testNativeCallableIsolateLocalFunctionExceptionValueMustBeConst();
   testLookupFunctionGeneric();
   testLookupFunctionGeneric2();
   testLookupFunctionWrongNativeFunctionSignature();
@@ -375,7 +382,7 @@ void myVoidFunc2(int x) {
   print("x = $x");
 }
 
-void testNativeCallableGeneric() {
+void testNativeCallableListenerGeneric() {
   NativeCallable? generic<T extends Function>(T f) {
     NativeCallable<NativeVoidFunc>? result;
     result = NativeCallable.listener(f);
@@ -389,7 +396,7 @@ void testNativeCallableGeneric() {
   generic(myVoidFunc);
 }
 
-void testNativeCallableGeneric2() {
+void testNativeCallableListenerGeneric2() {
   NativeCallable<T>? generic<T extends Function>() {
     NativeCallable<T>? result;
     result = NativeCallable.listener(myVoidFunc);
@@ -403,7 +410,7 @@ void testNativeCallableGeneric2() {
   generic<NativeVoidFunc>();
 }
 
-void testNativeCallableWrongNativeFunctionSignature() {
+void testNativeCallableListenerWrongNativeFunctionSignature() {
   /**/ NativeCallable<NativeVoidFunc>.listener(myVoidFunc2);
   //                                           ^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
@@ -411,7 +418,7 @@ void testNativeCallableWrongNativeFunctionSignature() {
   // [cfe] Expected type 'void Function(int)' to be 'void Function()', which is the Dart type corresponding to 'NativeFunction<Void Function()>'.
 }
 
-void testNativeCallableTypeMismatch() {
+void testNativeCallableListenerTypeMismatch() {
   NativeCallable<NativeVoidFunc> p;
   p = NativeCallable.listener(myVoidFunc2);
   //                          ^^^^^^^^^^^
@@ -420,18 +427,91 @@ void testNativeCallableTypeMismatch() {
   // [cfe] Expected type 'void Function(int)' to be 'void Function()', which is the Dart type corresponding to 'NativeFunction<Void Function()>'.
 }
 
-void testNativeCallableAbstract() {
-  final f = NativeCallable<Function>.listener(testNativeCallableAbstract);
-  //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // [cfe] Expected type 'NativeFunction<Function>' to be a valid and instantiated subtype of 'NativeType'.
-  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
+void testNativeCallableListenerAbstract() {
+  final f = NativeCallable<Function>.listener(
+      //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      // [cfe] Expected type 'NativeFunction<Function>' to be a valid and instantiated subtype of 'NativeType'.
+      // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
+      testNativeCallableListenerAbstract);
 }
 
-void testNativeCallableMustReturnVoid() {
+void testNativeCallableListenerMustReturnVoid() {
   final f = NativeCallable<NativeDoubleUnOp>.listener(myTimesThree);
   //                                                  ^^^^^^^^^^^^
   // [cfe] The return type of the function passed to NativeCallable.listener must be void rather than 'double'.
   // [analyzer] COMPILE_TIME_ERROR.MUST_RETURN_VOID
+}
+
+void testNativeCallableIsolateLocalGeneric() {
+  NativeCallable<Function> generic<T extends Function>(T f) {
+    late NativeCallable<NativeDoubleUnOp> result;
+    result = NativeCallable.isolateLocal(f);
+    //                                   ^
+    // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
+    //                      ^
+    // [cfe] Expected type 'T' to be 'double Function(double)', which is the Dart type corresponding to 'NativeFunction<Double Function(Double)>'.
+    return result;
+  }
+
+  generic(myTimesThree);
+}
+
+void testNativeCallableIsolateLocalGeneric2() {
+  NativeCallable<T> generic<T extends Function>() {
+    late NativeCallable<T> result;
+    result = NativeCallable.isolateLocal(myTimesThree);
+    //                      ^
+    // [cfe] Expected type 'NativeFunction<T>' to be a valid and instantiated subtype of 'NativeType'.
+    //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
+    return result;
+  }
+
+  generic<NativeDoubleUnOp>();
+}
+
+void testNativeCallableIsolateLocalWrongNativeFunctionSignature() {
+  /**/ NativeCallable<IntUnOp>.isolateLocal(myTimesFour);
+  //   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
+  //   ^
+  // [cfe] Expected type 'NativeFunction<int Function(int)>' to be a valid and instantiated subtype of 'NativeType'.
+}
+
+void testNativeCallableIsolateLocalTypeMismatch() {
+  NativeCallable<NativeDoubleUnOp> p;
+  p = NativeCallable.isolateLocal(myTimesFour);
+  //                              ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
+  //                 ^
+  // [cfe] Expected type 'int Function(int)' to be 'double Function(double)', which is the Dart type corresponding to 'NativeFunction<Double Function(Double)>'.
+}
+
+void testNativeCallableIsolateLocalTearOff() {
+  DoubleUnOp fld = X().tearoff;
+  NativeCallable<NativeDoubleUnOp> p;
+  p = NativeCallable.isolateLocal(fld);
+  //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MISSING_EXCEPTION_VALUE
+  //                 ^
+  // [cfe] Expected an exceptional return value for a native callback returning 'double'.
+}
+
+void testNativeCallableIsolateLocalAbstract() {
+  NativeCallable<Function>.isolateLocal(testNativeCallableIsolateLocalAbstract);
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
+  // [cfe] Expected type 'NativeFunction<Function>' to be a valid and instantiated subtype of 'NativeType'.
+}
+
+void testNativeCallableIsolateLocalFunctionExceptionValueMustBeConst() {
+  final notAConst = 1.1;
+  NativeCallable<NativeDoubleUnOp> p;
+  p = NativeCallable.isolateLocal(myTimesThree, exceptionalReturn: notAConst);
+  //                                                               ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_MUST_BE_A_CONSTANT
+  //                 ^
+  // [cfe] Exceptional return value must be a constant.
 }
 
 void testLookupFunctionGeneric() {

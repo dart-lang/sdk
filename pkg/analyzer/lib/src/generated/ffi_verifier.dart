@@ -1074,12 +1074,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         R.isHandle ||
         R.isCompoundSubtype) {
       if (argCount != 1) {
-        _errorReporter.reportErrorForNode(
-            FfiCode.INVALID_EXCEPTION_VALUE, node.argumentList.arguments[1]);
+        _errorReporter.reportErrorForNode(FfiCode.INVALID_EXCEPTION_VALUE,
+            node.argumentList.arguments[1], ['fromFunction']);
       }
     } else if (argCount != 2) {
       _errorReporter.reportErrorForNode(
-          FfiCode.MISSING_EXCEPTION_VALUE, node.methodName);
+          FfiCode.MISSING_EXCEPTION_VALUE, node.methodName, ['fromFunction']);
     } else {
       Expression e = node.argumentList.arguments[1];
       var eType = e.typeOrThrow;
@@ -1143,10 +1143,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         node.argumentList.arguments, S, typeArguments[0]);
   }
 
-  /// Validate the invocation of the constructor `NativeCallable.listener(f)`.
+  /// Validate the invocation of the constructor `NativeCallable.listener(f)`
+  /// or `NativeCallable.isolateLocal(f)`.
   void _validateNativeCallable(InstanceCreationExpression node) {
+    final name = node.constructorName.name?.toString() ?? '';
+    final isolateLocal = name == 'isolateLocal';
+
+    // listener takes 1 arg, isolateLocal takes 1 or 2.
     var argCount = node.argumentList.arguments.length;
-    if (argCount != 1) {
+    if (!(argCount == 1 || (isolateLocal && argCount == 2))) {
       // There are other diagnostics reported against the invocation and the
       // diagnostics generated below might be inaccurate, so don't report them.
       return;
@@ -1167,10 +1172,38 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    // TODO(brianwilkerson) Validate that `f` is a top-level function.
     var retType = (funcType as FunctionType).returnType;
-    if (retType is! VoidType) {
-      _errorReporter.reportErrorForNode(FfiCode.MUST_RETURN_VOID, f, [retType]);
+    var natRetType = (typeArg as FunctionType).returnType;
+    if (isolateLocal) {
+      if (retType is VoidType ||
+          natRetType.isPointer ||
+          natRetType.isHandle ||
+          natRetType.isCompoundSubtype) {
+        if (argCount != 1) {
+          _errorReporter.reportErrorForNode(FfiCode.INVALID_EXCEPTION_VALUE,
+              node.argumentList.arguments[1], [name]);
+        }
+      } else if (argCount != 2) {
+        _errorReporter
+            .reportErrorForNode(FfiCode.MISSING_EXCEPTION_VALUE, node, [name]);
+      } else {
+        var e = (node.argumentList.arguments[1] as NamedExpression).expression;
+        var eType = e.typeOrThrow;
+        if (!_validateCompatibleNativeType(eType, natRetType,
+            checkCovariance: true)) {
+          _errorReporter.reportErrorForNode(
+              FfiCode.MUST_BE_A_SUBTYPE, e, [eType, natRetType, name]);
+        }
+        if (!_isConst(e)) {
+          _errorReporter.reportErrorForNode(
+              FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, e, ['exceptionalReturn']);
+        }
+      }
+    } else {
+      if (retType is! VoidType) {
+        _errorReporter
+            .reportErrorForNode(FfiCode.MUST_RETURN_VOID, f, [retType]);
+      }
     }
   }
 

@@ -710,6 +710,11 @@ class LocalHandle : public AllStatic {
   static word InstanceSize();
 };
 
+class PersistentHandle : public AllStatic {
+ public:
+  static word ptr_offset();
+};
+
 class Pointer : public AllStatic {
  public:
   static word type_arguments_offset();

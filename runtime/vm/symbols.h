@@ -115,11 +115,11 @@ class ObjectPointerVisitor;
   V(FfiInt64, "Int64")                                                         \
   V(FfiInt8, "Int8")                                                           \
   V(FfiIntPtr, "IntPtr")                                                       \
+  V(FfiIsolateLocalCallback, "_FfiIsolateLocalCallback")                       \
   V(FfiNativeFunction, "NativeFunction")                                       \
   V(FfiNativeType, "NativeType")                                               \
   V(FfiNativeTypes, "nativeTypes")                                             \
   V(FfiPointer, "Pointer")                                                     \
-  V(FfiPointerAsyncFromFunctionSendArgs, "_pointerAsyncFromFunctionSendArgs")  \
   V(FfiStructLayout, "_FfiStructLayout")                                       \
   V(FfiStructLayoutArray, "_FfiInlineArray")                                   \
   V(FfiTrampolineData, "FfiTrampolineData")                                    \

@@ -15,9 +15,11 @@ typedef NativeCallbackTestFn = int Function(Pointer);
 
 class CallbackTest {
   final String name;
-  final Pointer callback;
   final void Function() afterCallbackChecks;
   final bool isLeaf;
+
+  // Either a NativeCallable or a Pointer.fromFunction.
+  final Object callback;
 
   CallbackTest(this.name, this.callback, {this.isLeaf = false})
       : afterCallbackChecks = noChecks {}
@@ -31,13 +33,18 @@ class CallbackTest {
         : ffiTestFunctions.lookupFunction<NativeCallbackTest,
             NativeCallbackTestFn>("Test$name", isLeaf: false);
 
-    final int testCode = tester(callback);
+    final cb = callback;
+    final int testCode =
+        tester(cb is NativeCallable ? cb.nativeFunction : cb as Pointer);
 
     if (testCode != 0) {
       Expect.fail("Test $name failed.");
     }
 
     afterCallbackChecks();
+    if (cb is NativeCallable) {
+      cb.close();
+    }
   }
 }
 

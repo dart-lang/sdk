@@ -23,7 +23,7 @@ namespace ffi {
 FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
                                    const Function& dart_target,
                                    const Instance& exceptional_return,
-                                   FfiTrampolineKind kind);
+                                   FfiFunctionKind kind);
 
 // Builds a mapping from `callback-id` to code object / ...
 //

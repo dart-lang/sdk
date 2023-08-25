@@ -1506,8 +1506,8 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
   // Whether this is a leaf call - i.e. one that doesn't call back into Dart.
   bool is_leaf_;
 
-  // The kind of trampoline this is. See FfiTrampolineKind.
-  uint8_t trampoline_kind_;
+  // The kind of trampoline this is. See FfiFunctionKind.
+  uint8_t ffi_function_kind_;
 };
 
 class UntaggedField : public UntaggedObject {
