@@ -1420,7 +1420,8 @@ abstract class VMKernelCompilerMixin {
           name.startsWith('-D') ||
           name.startsWith('--define') ||
           name.startsWith('--packages=') ||
-          name.startsWith('--enable-experiment=')),
+          name.startsWith('--enable-experiment=') ||
+          name.startsWith('--keep-class-names-implementing=')),
       '-Ddart.vm.product=$isProductMode',
       if (_enableAsserts ||
           arguments.contains('--enable-asserts') ||

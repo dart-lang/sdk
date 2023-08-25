@@ -154,6 +154,12 @@ void declareCompilerOptions(ArgParser args) {
     valueHelp: 'dart:ui',
     defaultsTo: const <String>[],
   );
+  args.addMultiOption(
+    'keep-class-names-implementing',
+    help:
+        'Prevents obfuscation of the class names of any class implemented the given class.',
+    defaultsTo: const <String>[],
+  );
   args.addOption('invocation-modes',
       help: 'Provides information to the front end about how it is invoked.',
       defaultsTo: '');
@@ -303,6 +309,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       nativeAssets: nativeAssetsUri,
       includePlatform: additionalDills.isNotEmpty,
       deleteToStringPackageUris: options['delete-tostring-package-uri'],
+      keepClassNamesImplementing: options['keep-class-names-implementing'],
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       useRapidTypeAnalysis: rta,
@@ -410,6 +417,7 @@ Future<KernelCompilationResults> compileToKernel(
   Uri? nativeAssets,
   bool includePlatform = false,
   List<String> deleteToStringPackageUris = const <String>[],
+  List<String> keepClassNamesImplementing = const <String>[],
   bool aot = false,
   bool useGlobalTypeFlowAnalysis = false,
   bool useRapidTypeAnalysis = true,
@@ -473,7 +481,8 @@ Future<KernelCompilationResults> compileToKernel(
         targetOS: targetOS,
         minimalKernel: minimalKernel,
         treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
-        useRapidTypeAnalysis: useRapidTypeAnalysis);
+        useRapidTypeAnalysis: useRapidTypeAnalysis,
+        keepClassNamesImplementing: keepClassNamesImplementing);
 
     if (minimalKernel) {
       // compiledSources is component.uriToSource.keys.
@@ -536,6 +545,7 @@ Future runGlobalTransformations(
     bool useRapidTypeAnalysis = true,
     NnbdMode nnbdMode = NnbdMode.Weak,
     Map<String, String>? environmentDefines,
+    List<String>? keepClassNamesImplementing,
     String? targetOS}) async {
   assert(!target.flags.supportMirrors);
   if (errorDetector.hasCompilationErrors) return;
@@ -579,7 +589,8 @@ Future runGlobalTransformations(
 
   // We don't know yet whether gen_snapshot will want to do obfuscation, but if
   // it does it will need the obfuscation prohibitions.
-  obfuscationProhibitions.transformComponent(component, coreTypes, target);
+  obfuscationProhibitions.transformComponent(
+      component, coreTypes, target, hierarchy, keepClassNamesImplementing);
 
   deferred_loading.transformComponent(component, coreTypes, target);
 }
