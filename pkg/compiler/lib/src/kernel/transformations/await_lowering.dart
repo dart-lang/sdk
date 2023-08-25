@@ -16,7 +16,7 @@ class AwaitLowering {
 
   AwaitLowering(this._coreTypes);
 
-  TreeNode transformAwaitExpression(AwaitExpression node) {
+  AwaitExpression transformAwaitExpression(AwaitExpression node) {
     final runtimeCheckType = node.runtimeCheckType;
     if (runtimeCheckType == null) return node;
     // [runtimeCheckType] is guaranteed to be `Future<flatten(S)>`.

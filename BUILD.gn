@@ -48,17 +48,10 @@ group("runtime") {
     "runtime/bin:process_test",
     "runtime/bin:run_vm_tests",
     "runtime/vm:kernel_platform_files($host_toolchain)",
+    "utils/dartdev:dartdev",
+    "utils/dds:dds",
     "utils/kernel-service:kernel-service",
   ]
-
-  # TODO(bkonyi): this dep causes a segfault on Android XARM_X64 builds.
-  # See issue #41776.
-  if (dart_target_arch != "arm") {
-    deps += [
-      "utils/dartdev:dartdev",
-      "utils/dds:dds",
-    ]
-  }
 
   # This flag is set in runtime/runtime_args.gni
   # The analyze_snapshot tool is only supported on 64 bit AOT builds running

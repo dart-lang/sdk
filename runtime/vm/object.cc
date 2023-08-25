@@ -10971,11 +10971,19 @@ static void FunctionPrintNameHelper(const Function& fun,
     }
     if (params.disambiguate_names &&
         fun.name() == Symbols::AnonymousClosure().ptr()) {
-      printer->Printf("<anonymous closure @%" Pd ">", fun.token_pos().Pos());
+      if (fun.token_pos().IsReal()) {
+        printer->Printf("<anonymous closure @%" Pd ">", fun.token_pos().Pos());
+      } else {
+        printer->Printf("<anonymous closure @no position>");
+      }
     } else {
       printer->AddString(fun.NameCString(params.name_visibility));
       if (params.disambiguate_names) {
-        printer->Printf("@<%" Pd ">", fun.token_pos().Pos());
+        if (fun.token_pos().IsReal()) {
+          printer->Printf("@<%" Pd ">", fun.token_pos().Pos());
+        } else {
+          printer->Printf("@<no position>");
+        }
       }
     }
     return;
