@@ -266,6 +266,24 @@ void f() {
 ''');
   }
 
+  test_extensionType_constPrimaryConstructor() async {
+    await assertDiagnostics(r'''
+extension type const E(int i) {}
+
+var e = E(1);
+''', [
+      lint(42, 4),
+    ]);
+  }
+
+  test_extensionType_nonConstPrimaryConstructor() async {
+    await assertNoDiagnostics(r'''
+extension type E(int i) {}
+
+var e = E(1);
+''');
+  }
+
   test_extraPositionalArgument() async {
     await assertDiagnostics(r'''
 import 'package:meta/meta.dart';

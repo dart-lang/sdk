@@ -1297,8 +1297,7 @@ class InferrerEngine {
 
   /// Registers a call to await with an expression of type [argumentType] as
   /// argument.
-  TypeInformation registerAwait(
-      ir.AwaitExpression node, TypeInformation argument) {
+  TypeInformation registerAwait(ir.Node node, TypeInformation argument) {
     AwaitTypeInformation info =
         AwaitTypeInformation(abstractValueDomain, types.currentMember, node);
     info.addInput(argument);

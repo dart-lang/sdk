@@ -294,11 +294,11 @@ class SerializationTask extends CompilerTask {
           importedIndices: indices);
       _reporter.log('Writing data to ${uri}');
       sink.registerEntityWriter(entityWriter);
-      sink.registerCodegenWriter(CodegenWriterImpl(closedWorld));
-      sink.writeMemberMap(
-          results,
-          (MemberEntity member, CodegenResult result) =>
-              sink.writeDeferrable(() => result.writeToDataSink(sink)));
+      sink.writeMemberMap(results, (MemberEntity member, CodegenResult result) {
+        sink.registerCodegenWriter(
+            CodegenWriterImpl(closedWorld, result.deferredExpressionData));
+        sink.writeDeferrable(() => result.writeToDataSink(sink));
+      });
       sink.close();
     });
   }
@@ -333,14 +333,9 @@ class SerializationTask extends CompilerTask {
 
   static CodegenResult _readCodegenResult(
       DataSourceReader source, JClosedWorld closedWorld) {
-    List<ModularName> modularNames = [];
-    List<ModularExpression> modularExpressions = [];
-    CodegenReader reader =
-        CodegenReaderImpl(closedWorld, modularNames, modularExpressions);
+    CodegenReader reader = CodegenReaderImpl(closedWorld);
     source.registerCodegenReader(reader);
-    CodegenResult result = CodegenResult.readFromDataSource(
-        source, modularNames, modularExpressions);
-    source.deregisterCodegenReader(reader);
+    CodegenResult result = CodegenResult.readFromDataSource(source);
     return result;
   }
 

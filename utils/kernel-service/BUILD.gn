@@ -5,6 +5,7 @@
 import("../../build/dart/dart_action.gni")
 import("../../runtime/runtime_args.gni")
 import("../../sdk_args.gni")
+import("../aot_snapshot.gni")
 import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
@@ -60,6 +61,12 @@ application_snapshot("frontend_server") {
     rebase_path(main_dart),
   ]
   output = "$root_out_dir/frontend_server.dart.snapshot"
+}
+
+aot_snapshot("frontend_server_aot") {
+  main_dart = "../../pkg/frontend_server/bin/frontend_server_starter.dart"
+  name = "frontend_server_aot"
+  output = "$root_out_dir/frontend_server_aot.dart.snapshot"
 }
 
 template("kernel_service_dill") {
