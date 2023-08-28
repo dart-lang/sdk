@@ -30,22 +30,18 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   MarkingVisitorBase(IsolateGroup* isolate_group,
                      PageSpace* page_space,
                      MarkingStack* marking_stack,
-                     MarkingStack* new_marking_stack,
                      MarkingStack* deferred_marking_stack)
       : ObjectPointerVisitor(isolate_group),
         page_space_(page_space),
         work_list_(marking_stack),
-        new_work_list_(new_marking_stack),
         deferred_work_list_(deferred_marking_stack),
         marked_bytes_(0),
-        marked_micros_(0),
-        concurrent_(true) {}
+        marked_micros_(0) {}
   ~MarkingVisitorBase() { ASSERT(delayed_.IsEmpty()); }
 
   uintptr_t marked_bytes() const { return marked_bytes_; }
   int64_t marked_micros() const { return marked_micros_; }
   void AddMicros(int64_t micros) { marked_micros_ += micros; }
-  void set_concurrent(bool value) { concurrent_ = value; }
 
 #ifdef DEBUG
   constexpr static const char* const kName = "Marker";
@@ -53,6 +49,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
 
   static bool IsMarked(ObjectPtr raw) {
     ASSERT(raw->IsHeapObject());
+    ASSERT(raw->IsOldObject());
     return raw->untag()->IsMarked();
   }
 
@@ -65,9 +62,10 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       ObjectPtr raw_key = cur_weak->untag()->key();
       // Reset the next pointer in the weak property.
       cur_weak->untag()->next_seen_by_gc_ = WeakProperty::null();
-      if (raw_key->IsImmediateObject() || raw_key->untag()->IsMarked()) {
+      if (raw_key->IsImmediateOrNewObject() || raw_key->untag()->IsMarked()) {
         ObjectPtr raw_val = cur_weak->untag()->value();
-        if (!raw_val->IsImmediateObject() && !raw_val->untag()->IsMarked()) {
+        if (!raw_val->IsImmediateOrNewObject() &&
+            !raw_val->untag()->IsMarked()) {
           more_to_mark = true;
         }
 
@@ -87,59 +85,29 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
 
   void DrainMarkingStackWithPauseChecks() {
     do {
-      ObjectPtr obj;
-      while (work_list_.Pop(&obj)) {
-        if (obj->IsNewObject()) {
-          Page* page = Page::Of(obj);
-          uword top = page->original_top();
-          uword end = page->original_end();
-          uword addr = static_cast<uword>(obj);
-          if (top <= addr && addr < end) {
-            new_work_list_.Push(obj);
-            if (UNLIKELY(page_space_->pause_concurrent_marking())) {
-              work_list_.Flush();
-              new_work_list_.Flush();
-              deferred_work_list_.Flush();
-              page_space_->YieldConcurrentMarking();
-            }
-            continue;
-          }
-        }
-
-        const intptr_t class_id = obj->GetClassId();
-        ASSERT(class_id != kIllegalCid);
-        ASSERT(class_id != kFreeListElement);
-        ASSERT(class_id != kForwardingCorpse);
+      ObjectPtr raw_obj;
+      while (work_list_.Pop(&raw_obj)) {
+        const intptr_t class_id = raw_obj->GetClassId();
 
         intptr_t size;
         if (class_id == kWeakPropertyCid) {
-          size = ProcessWeakProperty(static_cast<WeakPropertyPtr>(obj));
+          size = ProcessWeakProperty(static_cast<WeakPropertyPtr>(raw_obj));
         } else if (class_id == kWeakReferenceCid) {
-          size = ProcessWeakReference(static_cast<WeakReferencePtr>(obj));
+          size = ProcessWeakReference(static_cast<WeakReferencePtr>(raw_obj));
         } else if (class_id == kWeakArrayCid) {
-          size = ProcessWeakArray(static_cast<WeakArrayPtr>(obj));
+          size = ProcessWeakArray(static_cast<WeakArrayPtr>(raw_obj));
         } else if (class_id == kFinalizerEntryCid) {
-          size = ProcessFinalizerEntry(static_cast<FinalizerEntryPtr>(obj));
+          size = ProcessFinalizerEntry(static_cast<FinalizerEntryPtr>(raw_obj));
         } else {
-          size = obj->untag()->VisitPointersNonvirtual(this);
+          size = raw_obj->untag()->VisitPointersNonvirtual(this);
         }
-        if (!obj->IsNewObject()) {
-          marked_bytes_ += size;
-        }
+        marked_bytes_ += size;
 
         if (UNLIKELY(page_space_->pause_concurrent_marking())) {
-          work_list_.Flush();
-          new_work_list_.Flush();
-          deferred_work_list_.Flush();
           page_space_->YieldConcurrentMarking();
         }
       }
     } while (ProcessPendingWeakProperties());
-
-    ASSERT(work_list_.IsLocalEmpty());
-    // In case of scavenge before final marking.
-    new_work_list_.Flush();
-    deferred_work_list_.Flush();
   }
 
   void DrainMarkingStack() {
@@ -168,53 +136,30 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   bool ProcessMarkingStack(intptr_t remaining_budget) {
     do {
       // First drain the marking stacks.
-      ObjectPtr obj;
-      while (work_list_.Pop(&obj)) {
-        if (sync && concurrent_ && obj->IsNewObject()) {
-          Page* page = Page::Of(obj);
-          uword top = page->original_top();
-          uword end = page->original_end();
-          uword addr = static_cast<uword>(obj);
-          if (top <= addr && addr < end) {
-            new_work_list_.Push(obj);
-            // We did some work routing this object, but didn't look at any of
-            // its slots.
-            intptr_t size = kObjectAlignment;
-            remaining_budget -= size;
-            if (remaining_budget < 0) {
-              return true;  // More to mark.
-            }
-            continue;
-          }
-        }
-
-        const intptr_t class_id = obj->GetClassId();
-        ASSERT(class_id != kIllegalCid);
-        ASSERT(class_id != kFreeListElement);
-        ASSERT(class_id != kForwardingCorpse);
+      ObjectPtr raw_obj;
+      while (work_list_.Pop(&raw_obj)) {
+        const intptr_t class_id = raw_obj->GetClassId();
 
         intptr_t size;
         if (class_id == kWeakPropertyCid) {
-          size = ProcessWeakProperty(static_cast<WeakPropertyPtr>(obj));
+          size = ProcessWeakProperty(static_cast<WeakPropertyPtr>(raw_obj));
         } else if (class_id == kWeakReferenceCid) {
-          size = ProcessWeakReference(static_cast<WeakReferencePtr>(obj));
+          size = ProcessWeakReference(static_cast<WeakReferencePtr>(raw_obj));
         } else if (class_id == kWeakArrayCid) {
-          size = ProcessWeakArray(static_cast<WeakArrayPtr>(obj));
+          size = ProcessWeakArray(static_cast<WeakArrayPtr>(raw_obj));
         } else if (class_id == kFinalizerEntryCid) {
-          size = ProcessFinalizerEntry(static_cast<FinalizerEntryPtr>(obj));
+          size = ProcessFinalizerEntry(static_cast<FinalizerEntryPtr>(raw_obj));
         } else {
           if ((class_id == kArrayCid) || (class_id == kImmutableArrayCid)) {
-            size = obj->untag()->HeapSize();
+            size = raw_obj->untag()->HeapSize();
             if (size > remaining_budget) {
-              work_list_.Push(obj);
+              work_list_.Push(raw_obj);
               return true;  // More to mark.
             }
           }
-          size = obj->untag()->VisitPointersNonvirtual(this);
+          size = raw_obj->untag()->VisitPointersNonvirtual(this);
         }
-        if (!obj->IsNewObject()) {
-          marked_bytes_ += size;
-        }
+        marked_bytes_ += size;
         remaining_budget -= size;
         if (remaining_budget < 0) {
           return true;  // More to mark.
@@ -267,7 +212,8 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     ObjectPtr raw_key =
         LoadCompressedPointerIgnoreRace(&raw_weak->untag()->key_)
             .Decompress(raw_weak->heap_base());
-    if (raw_key->IsHeapObject() && !raw_key->untag()->IsMarked()) {
+    if (raw_key->IsHeapObject() && raw_key->IsOldObject() &&
+        !raw_key->untag()->IsMarked()) {
       // Key was white. Enqueue the weak property.
       ASSERT(IsMarked(raw_weak));
       delayed_.weak_properties.Enqueue(raw_weak);
@@ -283,7 +229,8 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     ObjectPtr raw_target =
         LoadCompressedPointerIgnoreRace(&raw_weak->untag()->target_)
             .Decompress(raw_weak->heap_base());
-    if (raw_target->IsHeapObject() && !raw_target->untag()->IsMarked()) {
+    if (raw_target->IsHeapObject() && raw_target->IsOldObject() &&
+        !raw_target->untag()->IsMarked()) {
       // Target was white. Enqueue the weak reference. It is potentially dead.
       // It might still be made alive by weak properties in next rounds.
       ASSERT(IsMarked(raw_weak));
@@ -314,11 +261,9 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   }
 
   void ProcessDeferredMarking() {
-    TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessDeferredMarking");
-
-    ObjectPtr obj;
-    while (deferred_work_list_.Pop(&obj)) {
-      ASSERT(obj->IsHeapObject());
+    ObjectPtr raw_obj;
+    while (deferred_work_list_.Pop(&raw_obj)) {
+      ASSERT(raw_obj->IsHeapObject() && raw_obj->IsOldObject());
       // We need to scan objects even if they were already scanned via ordinary
       // marking. An object may have changed since its ordinary scan and been
       // added to deferred marking stack to compensate for write-barrier
@@ -335,13 +280,11 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       // encounters it during ordinary marking. This is in the same spirit as
       // the eliminated write barrier, which would have added the newly written
       // key and value to the ordinary marking stack.
-      intptr_t size = obj->untag()->VisitPointersNonvirtual(this);
+      intptr_t size = raw_obj->untag()->VisitPointersNonvirtual(this);
       // Add the size only if we win the marking race to prevent
       // double-counting.
-      if (TryAcquireMarkBit(obj)) {
-        if (!obj->IsNewObject()) {
-          marked_bytes_ += size;
-        }
+      if (TryAcquireMarkBit(raw_obj)) {
+        marked_bytes_ += size;
       }
     }
   }
@@ -350,7 +293,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   // after this will trigger an error.
   void FinalizeMarking() {
     work_list_.Finalize();
-    new_work_list_.Finalize();
     deferred_work_list_.Finalize();
     MournFinalizerEntries();
     // MournFinalizerEntries inserts newly discovered dead entries into the
@@ -410,7 +352,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   static bool ForwardOrSetNullIfCollected(ObjectPtr parent,
                                           CompressedObjectPtr* slot) {
     ObjectPtr target = slot->Decompress(parent->heap_base());
-    if (target->IsImmediateObject()) {
+    if (target->IsImmediateOrNewObject()) {
       // Object not touched during this GC.
       return false;
     }
@@ -429,7 +371,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
 
   void Flush(GCLinkedLists* global_list) {
     work_list_.Flush();
-    new_work_list_.Flush();
     deferred_work_list_.Flush();
     delayed_.FlushInto(global_list);
   }
@@ -441,7 +382,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
 
   void AbandonWork() {
     work_list_.AbandonWork();
-    new_work_list_.AbandonWork();
     deferred_work_list_.AbandonWork();
     delayed_.Release();
   }
@@ -449,47 +389,39 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   void FinalizeIncremental(GCLinkedLists* global_list) {
     work_list_.Flush();
     work_list_.Finalize();
-    new_work_list_.Flush();
-    new_work_list_.Finalize();
     deferred_work_list_.Flush();
     deferred_work_list_.Finalize();
     delayed_.FlushInto(global_list);
   }
 
-  GCLinkedLists* delayed() { return &delayed_; }
-
  private:
-  void PushMarked(ObjectPtr obj) {
-    ASSERT(obj->IsHeapObject());
+  void PushMarked(ObjectPtr raw_obj) {
+    ASSERT(raw_obj->IsHeapObject());
+    ASSERT(raw_obj->IsOldObject());
 
     // Push the marked object on the marking stack.
-    ASSERT(obj->untag()->IsMarked());
-    work_list_.Push(obj);
+    ASSERT(raw_obj->untag()->IsMarked());
+    work_list_.Push(raw_obj);
   }
 
-  static bool TryAcquireMarkBit(ObjectPtr obj) {
-    if (FLAG_write_protect_code && obj->IsInstructions()) {
+  static bool TryAcquireMarkBit(ObjectPtr raw_obj) {
+    if (FLAG_write_protect_code && raw_obj->IsInstructions()) {
       // A non-writable alias mapping may exist for instruction pages.
-      obj = Page::ToWritable(obj);
+      raw_obj = Page::ToWritable(raw_obj);
     }
     if (!sync) {
-      obj->untag()->SetMarkBitUnsynchronized();
+      raw_obj->untag()->SetMarkBitUnsynchronized();
       return true;
     } else {
-      return obj->untag()->TryAcquireMarkBit();
+      return raw_obj->untag()->TryAcquireMarkBit();
     }
   }
 
   DART_FORCE_INLINE
-  void MarkObject(ObjectPtr obj) {
-    if (obj->IsImmediateObject()) {
-      return;
-    }
-
-    if (sync && concurrent_ && obj->IsNewObject()) {
-      if (TryAcquireMarkBit(obj)) {
-        PushMarked(obj);
-      }
+  void MarkObject(ObjectPtr raw_obj) {
+    // Fast exit if the raw object is immediate or in new space. No memory
+    // access.
+    if (raw_obj->IsImmediateOrNewObject()) {
       return;
     }
 
@@ -503,36 +435,34 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     // was allocated after the concurrent marker started. It can read either a
     // zero or the header of an object allocated black, both of which appear
     // marked.
-    if (obj->untag()->IsMarkedIgnoreRace()) {
+    if (raw_obj->untag()->IsMarkedIgnoreRace()) {
       return;
     }
 
-    intptr_t class_id = obj->GetClassId();
+    intptr_t class_id = raw_obj->GetClassId();
     ASSERT(class_id != kFreeListElement);
 
     if (sync && UNLIKELY(class_id == kInstructionsCid)) {
       // If this is the concurrent marker, this object may be non-writable due
       // to W^X (--write-protect-code).
-      deferred_work_list_.Push(obj);
+      deferred_work_list_.Push(raw_obj);
       return;
     }
 
-    if (!TryAcquireMarkBit(obj)) {
+    if (!TryAcquireMarkBit(raw_obj)) {
       // Already marked.
       return;
     }
 
-    PushMarked(obj);
+    PushMarked(raw_obj);
   }
 
   PageSpace* page_space_;
   MarkerWorkList work_list_;
-  MarkerWorkList new_work_list_;
   MarkerWorkList deferred_work_list_;
   GCLinkedLists delayed_;
   uintptr_t marked_bytes_;
   int64_t marked_micros_;
-  bool concurrent_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitorBase);
 };
@@ -540,11 +470,11 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
 typedef MarkingVisitorBase<false> UnsyncMarkingVisitor;
 typedef MarkingVisitorBase<true> SyncMarkingVisitor;
 
-static bool IsUnreachable(const ObjectPtr obj) {
-  if (obj->IsImmediateObject()) {
+static bool IsUnreachable(const ObjectPtr raw_obj) {
+  if (raw_obj->IsImmediateOrNewObject()) {
     return false;
   }
-  return !obj->untag()->IsMarked();
+  return !raw_obj->untag()->IsMarked();
 }
 
 class MarkingWeakVisitor : public HandleVisitor {
@@ -554,8 +484,8 @@ class MarkingWeakVisitor : public HandleVisitor {
   void VisitHandle(uword addr) override {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
-    ObjectPtr obj = handle->ptr();
-    if (IsUnreachable(obj)) {
+    ObjectPtr raw_obj = handle->ptr();
+    if (IsUnreachable(raw_obj)) {
       handle->UpdateUnreachable(thread()->isolate_group());
     }
   }
@@ -566,10 +496,17 @@ class MarkingWeakVisitor : public HandleVisitor {
 
 void GCMarker::Prologue() {
   isolate_group_->ReleaseStoreBuffers();
-  marking_stack_.PushAll(new_marking_stack_.PopAll());
+  if (heap_->stats_.state_ == Heap::kSecondScavenge) {
+    heap_->stats_.state_ = Heap::kMarkingStart;
+  }
 }
 
-void GCMarker::Epilogue() {}
+void GCMarker::Epilogue() {
+  if (heap_->stats_.state_ == Heap::kMarkingStart) {
+    heap_->stats_.state_ = Heap::kInitial;
+    heap_->stats_.reachability_barrier_ += 1;
+  }
+}
 
 enum RootSlices {
   kIsolate = 0,
@@ -582,6 +519,10 @@ void GCMarker::ResetSlices() {
   root_slices_started_ = 0;
   root_slices_finished_ = 0;
   root_slices_count_ = kNumFixedRootSlices;
+  new_page_ = heap_->new_space()->head();
+  for (Page* p = new_page_; p != nullptr; p = p->next()) {
+    root_slices_count_++;
+  }
 
   weak_slices_started_ = 0;
 }
@@ -600,6 +541,17 @@ void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
         isolate_group_->VisitObjectPointers(
             visitor, ValidationPolicy::kDontValidateFrames);
         break;
+      }
+      default: {
+        Page* page;
+        {
+          MonitorLocker ml(&root_slices_monitor_);
+          page = new_page_;
+          ASSERT(page != nullptr);
+          new_page_ = page->next();
+        }
+        TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessNewSpace");
+        page->VisitObjectPointers(visitor);
       }
     }
 
@@ -668,23 +620,8 @@ void GCMarker::ProcessWeakTables(Thread* thread) {
     for (intptr_t i = 0; i < size; i++) {
       if (table->IsValidEntryAtExclusive(i)) {
         // The object has been collected.
-        ObjectPtr obj = table->ObjectAtExclusive(i);
-        if (obj->IsHeapObject() && !obj->untag()->IsMarked()) {
-          if (cleanup != nullptr) {
-            cleanup(reinterpret_cast<void*>(table->ValueAtExclusive(i)));
-          }
-          table->InvalidateAtExclusive(i);
-        }
-      }
-    }
-    table =
-        heap_->GetWeakTable(Heap::kNew, static_cast<Heap::WeakSelector>(sel));
-    size = table->size();
-    for (intptr_t i = 0; i < size; i++) {
-      if (table->IsValidEntryAtExclusive(i)) {
-        // The object has been collected.
-        ObjectPtr obj = table->ObjectAtExclusive(i);
-        if (obj->IsHeapObject() && !obj->untag()->IsMarked()) {
+        ObjectPtr raw_obj = table->ObjectAtExclusive(i);
+        if (raw_obj->IsHeapObject() && !raw_obj->untag()->IsMarked()) {
           if (cleanup != nullptr) {
             cleanup(reinterpret_cast<void*>(table->ValueAtExclusive(i)));
           }
@@ -699,18 +636,18 @@ void GCMarker::ProcessRememberedSet(Thread* thread) {
   TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessRememberedSet");
   // Filter collected objects from the remembered set.
   StoreBuffer* store_buffer = isolate_group_->store_buffer();
-  StoreBufferBlock* reading = store_buffer->PopAll();
+  StoreBufferBlock* reading = store_buffer->TakeBlocks();
   StoreBufferBlock* writing = store_buffer->PopNonFullBlock();
   while (reading != nullptr) {
     StoreBufferBlock* next = reading->next();
     // Generated code appends to store buffers; tell MemorySanitizer.
     MSAN_UNPOISON(reading, sizeof(*reading));
     while (!reading->IsEmpty()) {
-      ObjectPtr obj = reading->Pop();
-      ASSERT(!obj->IsForwardingCorpse());
-      ASSERT(obj->untag()->IsRemembered());
-      if (obj->untag()->IsMarked()) {
-        writing->Push(obj);
+      ObjectPtr raw_object = reading->Pop();
+      ASSERT(!raw_object->IsForwardingCorpse());
+      ASSERT(raw_object->untag()->IsRemembered());
+      if (raw_object->untag()->IsMarked()) {
+        writing->Push(raw_object);
         if (writing->IsFull()) {
           store_buffer->PushBlock(writing, StoreBuffer::kIgnoreThreshold);
           writing = store_buffer->PopNonFullBlock();
@@ -732,9 +669,9 @@ class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
 
   void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     for (ObjectPtr* current = first; current <= last; current++) {
-      ObjectPtr obj = *current;
-      ASSERT(obj->IsHeapObject());
-      if (!obj->untag()->IsMarked()) {
+      ObjectPtr raw_obj = *current;
+      ASSERT(raw_obj->IsHeapObject());
+      if (raw_obj->IsOldObject() && !raw_obj->untag()->IsMarked()) {
         // Object has become garbage. Replace it will null.
         *current = Object::null();
       }
@@ -799,7 +736,6 @@ class ParallelMarkTask : public ThreadPool::Task {
 
       // Phase 1: Iterate over roots and drain marking stack in tasks.
       num_busy_->fetch_add(1u);
-      visitor_->set_concurrent(false);
       marker_->IterateRoots(visitor_);
 
       visitor_->ProcessDeferredMarking();
@@ -955,7 +891,6 @@ GCMarker::GCMarker(IsolateGroup* isolate_group, Heap* heap)
     : isolate_group_(isolate_group),
       heap_(heap),
       marking_stack_(),
-      new_marking_stack_(),
       deferred_marking_stack_(),
       global_list_(),
       visitors_(),
@@ -1003,9 +938,8 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
   ResetSlices();
   for (intptr_t i = 0; i < num_tasks; i++) {
     ASSERT(visitors_[i] == nullptr);
-    SyncMarkingVisitor* visitor =
-        new SyncMarkingVisitor(isolate_group_, page_space, &marking_stack_,
-                               &new_marking_stack_, &deferred_marking_stack_);
+    SyncMarkingVisitor* visitor = new SyncMarkingVisitor(
+        isolate_group_, page_space, &marking_stack_, &deferred_marking_stack_);
     visitors_[i] = visitor;
 
     if (i < (num_tasks - 1)) {
@@ -1045,7 +979,7 @@ void GCMarker::IncrementalMarkWithUnlimitedBudget(PageSpace* page_space) {
                                 "IncrementalMarkWithUnlimitedBudget");
 
   SyncMarkingVisitor visitor(isolate_group_, page_space, &marking_stack_,
-                             &new_marking_stack_, &deferred_marking_stack_);
+                             &deferred_marking_stack_);
   int64_t start = OS::GetCurrentMonotonicMicros();
   visitor.DrainMarkingStack();
   int64_t stop = OS::GetCurrentMonotonicMicros();
@@ -1069,7 +1003,7 @@ void GCMarker::IncrementalMarkWithSizeBudget(PageSpace* page_space,
                                 "IncrementalMarkWithSizeBudget");
 
   SyncMarkingVisitor visitor(isolate_group_, page_space, &marking_stack_,
-                             &new_marking_stack_, &deferred_marking_stack_);
+                             &deferred_marking_stack_);
   int64_t start = OS::GetCurrentMonotonicMicros();
   visitor.ProcessMarkingStack(size);
   int64_t stop = OS::GetCurrentMonotonicMicros();
@@ -1088,7 +1022,7 @@ void GCMarker::IncrementalMarkWithTimeBudget(PageSpace* page_space,
                                 "IncrementalMarkWithTimeBudget");
 
   SyncMarkingVisitor visitor(isolate_group_, page_space, &marking_stack_,
-                             &new_marking_stack_, &deferred_marking_stack_);
+                             &deferred_marking_stack_);
   int64_t start = OS::GetCurrentMonotonicMicros();
   visitor.ProcessMarkingStackUntil(deadline);
   int64_t stop = OS::GetCurrentMonotonicMicros();
@@ -1108,8 +1042,7 @@ class VerifyAfterMarkingVisitor : public ObjectVisitor,
       : ObjectVisitor(), ObjectPointerVisitor(IsolateGroup::Current()) {}
 
   void VisitObject(ObjectPtr obj) override {
-    if (obj->untag()->IsMarked()) {
-      current_ = obj;
+    if (obj->IsNewObject() || obj->untag()->IsMarked()) {
       obj->untag()->VisitPointers(this);
     }
   }
@@ -1117,11 +1050,10 @@ class VerifyAfterMarkingVisitor : public ObjectVisitor,
   void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
     for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr obj = *ptr;
-      if (obj->IsHeapObject() && !obj->untag()->IsMarked()) {
-        OS::PrintErr("object=0x%" Px ", slot=0x%" Px ", value=0x%" Px "\n",
-                     static_cast<uword>(current_), reinterpret_cast<uword>(ptr),
-                     static_cast<uword>(obj));
-        failed_ = true;
+      if (obj->IsHeapObject() && obj->IsOldObject() &&
+          !obj->untag()->IsMarked()) {
+        FATAL("Verifying after marking: Not marked: *0x%" Px " = 0x%" Px "\n",
+              reinterpret_cast<uword>(ptr), static_cast<uword>(obj));
       }
     }
   }
@@ -1132,21 +1064,14 @@ class VerifyAfterMarkingVisitor : public ObjectVisitor,
                                CompressedObjectPtr* to) override {
     for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr obj = ptr->Decompress(heap_base);
-      if (obj->IsHeapObject() && !obj->untag()->IsMarked()) {
-        OS::PrintErr("object=0x%" Px ", slot=0x%" Px ", value=0x%" Px "\n",
-                     static_cast<uword>(current_), reinterpret_cast<uword>(ptr),
-                     static_cast<uword>(obj));
-        failed_ = true;
+      if (obj->IsHeapObject() && obj->IsOldObject() &&
+          !obj->untag()->IsMarked()) {
+        FATAL("Verifying after marking: Not marked: *0x%" Px " = 0x%" Px "\n",
+              reinterpret_cast<uword>(ptr), static_cast<uword>(obj));
       }
     }
   }
 #endif
-
-  bool failed() const { return failed_; }
-
- private:
-  ObjectPtr current_;
-  bool failed_ = false;
 };
 
 void GCMarker::MarkObjects(PageSpace* page_space) {
@@ -1163,9 +1088,7 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
       int64_t start = OS::GetCurrentMonotonicMicros();
       // Mark everything on main thread.
       UnsyncMarkingVisitor visitor(isolate_group_, page_space, &marking_stack_,
-                                   &new_marking_stack_,
                                    &deferred_marking_stack_);
-      visitor.set_concurrent(false);
       ResetSlices();
       IterateRoots(&visitor);
       visitor.ProcessDeferredMarking();
@@ -1195,9 +1118,9 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
         // Visitors may or may not have already been created depending on
         // whether we did some concurrent marking.
         if (visitor == nullptr) {
-          visitor = new SyncMarkingVisitor(isolate_group_, page_space,
-                                           &marking_stack_, &new_marking_stack_,
-                                           &deferred_marking_stack_);
+          visitor =
+              new SyncMarkingVisitor(isolate_group_, page_space,
+                                     &marking_stack_, &deferred_marking_stack_);
           visitors_[i] = visitor;
         }
 
@@ -1243,19 +1166,9 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
   if (FLAG_verify_after_marking) {
     VerifyAfterMarkingVisitor visitor;
     heap_->VisitObjects(&visitor);
-    if (visitor.failed()) {
-      FATAL("verify after marking");
-    }
   }
 
   Epilogue();
-}
-
-void GCMarker::PruneWeak(Scavenger* scavenger) {
-  scavenger->PruneWeak(&global_list_);
-  for (intptr_t i = 0, n = FLAG_marker_tasks; i < n; i++) {
-    scavenger->PruneWeak(visitors_[i]->delayed());
-  }
 }
 
 }  // namespace dart

@@ -57,9 +57,17 @@ FLAG_scavenger_tasks (default 2) workers are started on separate threads. Each w
 
 All objects have a bit in their header called the mark bit. At the start of a collection cycle, all objects have this bit clear.
 
-During the marking phase, the collector visits each of the root pointers. If the target object has its mark bit clear, the mark bit is set and the target added to the marking stack (grey set). The collector then removes and visits objects in the marking stack, marking more objects and adding them to the marking stack, until the marking stack is empty. At this point, all reachable objects have their mark bits set and all unreachable objects have their mark bits clear.
+During the marking phase, the collector visits each of the root pointers. If the target object is an old-space object and its mark bit is clear, the mark bit is set and the target added to the marking stack (grey set). The collector then removes and visits objects in the marking stack, marking more old-space objects and adding them to the marking stack, until the marking stack is empty. At this point, all reachable objects have their mark bits set and all unreachable objects have their mark bits clear.
 
-During the sweeping phase, the collector visits each object. If the mark bit is clear, the object's memory is added to a [free list](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/freelist.h) to be used for future allocations. Otherwise the object's mark bit is cleared. If every object on some page is unreachable, the page is released to the OS.
+During the sweeping phase, the collector visits each old-space object. If the mark bit is clear, the object's memory is added to a [free list](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/freelist.h) to be used for future allocations. Otherwise the object's mark bit is cleared. If every object on some page is unreachable, the page is released to the OS.
+
+### New-Space as Roots
+
+We do not mark new-space objects, and pointers to new-space objects are ignored; instead all objects in new-space are treated as part of the root set.
+
+This has the advantage of making collections of the two spaces more independent. In particular, the concurrent marker never needs to dereference any memory in new-space, avoiding several data race issues, and avoiding the need to pause or otherwise synchronize with the concurrent marker when starting a scavenge.
+
+It has the disadvantage that no single collection will collect all garbage. An unreachable old-space object that is referenced by an unreachable new-space object will not be collected until a scavenge first collects the new-space object, and unreachable objects that have a generation-crossing cycle will not be collected until the whole subgraph is promoted into old-space. The growth policy must be careful to ensure it doesn't perform old-space collections without interleaving new-space collections, such as when the program performs mostly large allocation that go directly to old-space, or old-space can accumulate such floating garbage and grow without bound.
 
 ## Mark-Compact
 
@@ -95,17 +103,17 @@ But we combine the generational and incremental checks with a shift-and-mask.
 ```c++
 enum HeaderBits {
   ...
-  kNotMarkedBit,            // Incremental barrier target.
+  kOldAndNotMarkedBit,      // Incremental barrier target.
   kNewBit,                  // Generational barrier target.
-  kAlwaysSetBit,            // Incremental barrier source.
+  kOldBit,                  // Incremental barrier source.
   kOldAndNotRememberedBit,  // Generational barrier source.
   ...
 };
 
 static constexpr intptr_t kGenerationalBarrierMask = 1 << kNewBit;
-static constexpr intptr_t kIncrementalBarrierMask = 1 << kNotMarkedBit;
+static constexpr intptr_t kIncrementalBarrierMask = 1 << kOldAndNotMarkedBit;
 static constexpr intptr_t kBarrierOverlapShift = 2;
-COMPILE_ASSERT(kNotMarkedBit + kBarrierOverlapShift == kAlwaysSetBit);
+COMPILE_ASSERT(kOldAndNotMarkedBit + kBarrierOverlapShift == kOldBit);
 COMPILE_ASSERT(kNewBit + kBarrierOverlapShift == kOldAndNotRememberedBit);
 
 StorePointer(ObjectPtr source, ObjectPtr* slot, ObjectPtr target) {

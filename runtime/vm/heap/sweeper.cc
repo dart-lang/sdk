@@ -15,48 +15,6 @@
 
 namespace dart {
 
-intptr_t GCSweeper::SweepNewPage(Page* page) {
-  ASSERT(!page->is_image());
-  ASSERT(!page->is_old());
-  ASSERT(!page->is_executable());
-
-  uword start = page->object_start();
-  uword end = page->object_end();
-  uword current = start;
-  intptr_t free = 0;
-  while (current < end) {
-    ObjectPtr raw_obj = UntaggedObject::FromAddr(current);
-    ASSERT(Page::Of(raw_obj) == page);
-    uword tags = raw_obj->untag()->tags_.load(std::memory_order_relaxed);
-    intptr_t obj_size = raw_obj->untag()->HeapSize(tags);
-    if (UntaggedObject::IsMarked(tags)) {
-      // Found marked object. Clear the mark bit and update swept bytes.
-      raw_obj->untag()->ClearMarkBitUnsynchronized();
-      ASSERT(IsAllocatableInNewSpace(obj_size));
-    } else {
-      uword free_end = current + obj_size;
-      while (free_end < end) {
-        ObjectPtr next_obj = UntaggedObject::FromAddr(free_end);
-        tags = next_obj->untag()->tags_.load(std::memory_order_relaxed);
-        if (UntaggedObject::IsMarked(tags)) {
-          // Reached the end of the free block.
-          break;
-        }
-        // Expand the free block by the size of this object.
-        free_end += next_obj->untag()->HeapSize(tags);
-      }
-      obj_size = free_end - current;
-#if defined(DEBUG)
-      memset(reinterpret_cast<void*>(current), Heap::kZapByte, obj_size);
-#endif  // DEBUG
-      FreeListElement::AsElementNew(current, obj_size);
-      free += obj_size;
-    }
-    current += obj_size;
-  }
-  return free;
-}
-
 bool GCSweeper::SweepPage(Page* page, FreeList* freelist) {
   ASSERT(!page->is_image());
   // Large executable pages are handled here. We never truncate Instructions
