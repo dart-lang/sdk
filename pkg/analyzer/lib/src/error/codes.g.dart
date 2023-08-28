@@ -1705,6 +1705,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try specifying a different type.",
   );
 
+  ///  Parameters:
+  ///  0: the name of the abstract method
+  ///  1: the name of the enclosing extension type
+  static const CompileTimeErrorCode EXTENSION_TYPE_WITH_ABSTRACT_MEMBER =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_WITH_ABSTRACT_MEMBER',
+    "'{0}' must have a method body because '{1}' is an extension type.",
+    correctionMessage: "Try adding a body to '{0}'.",
+  );
+
   static const CompileTimeErrorCode EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER =
       CompileTimeErrorCode(
     'EXTERNAL_WITH_INITIALIZER',

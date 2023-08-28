@@ -260,6 +260,8 @@ import 'extension_type_inherited_member_conflict_test.dart'
     as extension_type_inherited_member_conflict;
 import 'extension_type_representation_depends_on_itself_test.dart'
     as extension_type_representation_depends_on_itself;
+import 'extension_type_with_abstract_member_test.dart'
+    as extension_type_with_abstract_member;
 import 'external_field_constructor_initializer_test.dart'
     as external_field_constructor_initializer;
 import 'external_field_initializer_test.dart' as external_field_initializer;
@@ -1067,6 +1069,7 @@ main() {
     extension_type_implements_representation_not_supertype.main();
     extension_type_inherited_member_conflict.main();
     extension_type_representation_depends_on_itself.main();
+    extension_type_with_abstract_member.main();
     external_field_constructor_initializer.main();
     external_field_initializer.main();
     external_variable_initializer.main();

@@ -5154,6 +5154,13 @@ CompileTimeErrorCode:
     problemMessage: "The extension type representation can't depend on itself."
     correctionMessage: Try specifying a different type.
     comment: No parameters.
+  EXTENSION_TYPE_WITH_ABSTRACT_MEMBER:
+    problemMessage: "'{0}' must have a method body because '{1}' is an extension type."
+    correctionMessage: "Try adding a body to '{0}'."
+    comment: |-
+      Parameters:
+      0: the name of the abstract method
+      1: the name of the enclosing extension type
   EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
     sharedName: EXTERNAL_WITH_INITIALIZER
     problemMessage: External fields can't have initializers.
