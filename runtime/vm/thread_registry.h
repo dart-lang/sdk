@@ -37,7 +37,6 @@ class ThreadRegistry {
   void ReleaseStoreBuffers();
   void AcquireMarkingStacks();
   void ReleaseMarkingStacks();
-  void FlushMarkingStacks();
 
   // Concurrent-approximate number of active isolates in the active_list
   intptr_t active_isolates_count() { return active_isolates_count_.load(); }
