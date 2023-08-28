@@ -7286,6 +7286,45 @@ main() {
           ifCase(expr('int'), wildcard().as_('error'), []),
         ]);
       });
+
+      test('Promotable property', () {
+        h.addMember('C', '_property', 'int?', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(c.property('_property'), wildcard().as_('int'), [
+            checkPromoted(c.property('_property'), 'int'),
+          ]),
+        ]);
+      });
+
+      test('Promotable property, target changed', () {
+        h.addMember('C', '_property', 'Object', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          switch_(c.property('_property'), [
+            wildcard().as_('num').when(expr('bool')).then([
+              checkPromoted(c.property('_property'), 'num'),
+            ]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            wildcard().as_('int').then([
+              checkNotPromoted(c.property('_property')),
+            ]),
+          ]),
+        ]);
+      });
+
+      test('Non-promotable property', () {
+        h.addMember('C', '_property', 'int?', promotable: false);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(c.property('_property'), wildcard().as_('int'), [
+            checkNotPromoted(c.property('_property')),
+          ]),
+        ]);
+      });
     });
 
     group('Constant pattern:', () {
@@ -8242,6 +8281,45 @@ main() {
           ]);
         });
       });
+
+      test('Promotable property', () {
+        h.addMember('C', '_property', 'Object', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(c.property('_property'), listPattern([]), [
+            checkPromoted(c.property('_property'), 'List<Object?>'),
+          ]),
+        ]);
+      });
+
+      test('Promotable property, target changed', () {
+        h.addMember('C', '_property', 'Object', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          switch_(c.property('_property'), [
+            listPattern([]).when(expr('bool')).then([
+              checkPromoted(c.property('_property'), 'List<Object?>'),
+            ]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            listPattern([]).then([
+              checkNotPromoted(c.property('_property')),
+            ]),
+          ]),
+        ]);
+      });
+
+      test('Non-promotable property', () {
+        h.addMember('C', '_property', 'Object', promotable: false);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(c.property('_property'), listPattern([]), [
+            checkNotPromoted(c.property('_property')),
+          ]),
+        ]);
+      });
     });
 
     group('Map pattern:', () {
@@ -8367,6 +8445,49 @@ main() {
           ]);
         });
       });
+
+      test('Promotable property', () {
+        h.addMember('C', '_property', 'Object', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(c.property('_property'),
+              mapPattern([mapPatternEntry(intLiteral(0), wildcard())]), [
+            checkPromoted(c.property('_property'), 'Map<Object?, Object?>'),
+          ]),
+        ]);
+      });
+
+      test('Promotable property, target changed', () {
+        h.addMember('C', '_property', 'Object', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          switch_(c.property('_property'), [
+            mapPattern([mapPatternEntry(intLiteral(0), wildcard())])
+                .when(expr('bool'))
+                .then([
+              checkPromoted(c.property('_property'), 'Map<Object?, Object?>'),
+            ]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            mapPattern([mapPatternEntry(intLiteral(0), wildcard())]).then([
+              checkNotPromoted(c.property('_property')),
+            ]),
+          ]),
+        ]);
+      });
+
+      test('Non-promotable property', () {
+        h.addMember('C', '_property', 'Object', promotable: false);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(c.property('_property'),
+              mapPattern([mapPatternEntry(intLiteral(0), wildcard())]), [
+            checkNotPromoted(c.property('_property')),
+          ]),
+        ]);
+      });
     });
 
     group('Null-assert:', () {
@@ -8432,6 +8553,50 @@ main() {
                 [
                   checkPromoted(x, 'int?'),
                 ]),
+          ]);
+        });
+
+        test('If promotable property', () {
+          h.addMember('C', '_property', 'int?', promotable: true);
+          var c = Var('c');
+          h.run([
+            declare(c, initializer: expr('C')),
+            ifCase(c.property('_property'), wildcard().nullAssert, [
+              checkPromoted(c.property('_property'), 'int'),
+            ]),
+          ]);
+        });
+
+        test('If promotable property, target changed', () {
+          h.addMember('C', '_property', 'int?', promotable: true);
+          var c = Var('c');
+          h.run([
+            declare(c, initializer: expr('C')),
+            switch_(c.property('_property'), [
+              wildcard().nullAssert.when(expr('bool')).then([
+                checkPromoted(c.property('_property'), 'int'),
+              ]),
+              wildcard()
+                  .when(second(c.write(expr('C')), expr('bool')))
+                  .then([]),
+              (wildcard().nullAssert..errorId = 'SECOND_NULL_ASSERT').then([
+                checkNotPromoted(c.property('_property')),
+              ]),
+            ]),
+          ], expectedErrors: {
+            'matchedTypeIsStrictlyNonNullable('
+                'pattern: SECOND_NULL_ASSERT, matchedType: int)',
+          });
+        });
+
+        test('If non-promotable property', () {
+          h.addMember('C', '_property', 'int?', promotable: false);
+          var c = Var('c');
+          h.run([
+            declare(c, initializer: expr('C')),
+            ifCase(c.property('_property'), wildcard().nullAssert, [
+              checkNotPromoted(c.property('_property')),
+            ]),
           ]);
         });
       });
@@ -8556,6 +8721,47 @@ main() {
                 [
                   checkPromoted(x, 'int?'),
                 ]),
+          ]);
+        });
+
+        test('If promotable property', () {
+          h.addMember('C', '_property', 'int?', promotable: true);
+          var c = Var('c');
+          h.run([
+            declare(c, initializer: expr('C')),
+            ifCase(c.property('_property'), wildcard().nullCheck, [
+              checkPromoted(c.property('_property'), 'int'),
+            ]),
+          ]);
+        });
+
+        test('If promotable property, target changed', () {
+          h.addMember('C', '_property', 'int?', promotable: true);
+          var c = Var('c');
+          h.run([
+            declare(c, initializer: expr('C')),
+            switch_(c.property('_property'), [
+              wildcard().nullCheck.when(expr('bool')).then([
+                checkPromoted(c.property('_property'), 'int'),
+              ]),
+              wildcard()
+                  .when(second(c.write(expr('C')), expr('bool')))
+                  .then([]),
+              wildcard().nullCheck.then([
+                checkNotPromoted(c.property('_property')),
+              ]),
+            ]),
+          ]);
+        });
+
+        test('If non-promotable property', () {
+          h.addMember('C', '_property', 'int?', promotable: false);
+          var c = Var('c');
+          h.run([
+            declare(c, initializer: expr('C')),
+            ifCase(c.property('_property'), wildcard().nullCheck, [
+              checkNotPromoted(c.property('_property')),
+            ]),
           ]);
         });
       });
@@ -8707,6 +8913,49 @@ main() {
               checkReachable(false),
             ],
           ),
+        ]);
+      });
+
+      test('Promotable property', () {
+        h.addMember('C', '_property', 'Object', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(c.property('_property'),
+              objectPattern(requiredType: 'int', fields: []), [
+            checkPromoted(c.property('_property'), 'int'),
+          ]),
+        ]);
+      });
+
+      test('Promotable property, target changed', () {
+        h.addMember('C', '_property', 'Object', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          switch_(c.property('_property'), [
+            objectPattern(requiredType: 'int', fields: [])
+                .when(expr('bool'))
+                .then([
+              checkPromoted(c.property('_property'), 'int'),
+            ]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            objectPattern(requiredType: 'int', fields: []).then([
+              checkNotPromoted(c.property('_property')),
+            ]),
+          ]),
+        ]);
+      });
+
+      test('Non-promotable property', () {
+        h.addMember('C', '_property', 'Object', promotable: false);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(c.property('_property'),
+              objectPattern(requiredType: 'int', fields: []), [
+            checkNotPromoted(c.property('_property')),
+          ]),
         ]);
       });
     });
@@ -8900,6 +9149,45 @@ main() {
               [
                 checkReachable(true),
               ]),
+        ]);
+      });
+
+      test('Promotable property', () {
+        h.addMember('C', '_property', 'Object', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(c.property('_property'), recordPattern([]), [
+            checkPromoted(c.property('_property'), '()'),
+          ]),
+        ]);
+      });
+
+      test('Promotable property, target changed', () {
+        h.addMember('C', '_property', 'Object', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          switch_(c.property('_property'), [
+            recordPattern([]).when(expr('bool')).then([
+              checkPromoted(c.property('_property'), '()'),
+            ]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            recordPattern([]).then([
+              checkNotPromoted(c.property('_property')),
+            ]),
+          ]),
+        ]);
+      });
+
+      test('Non-promotable property', () {
+        h.addMember('C', '_property', 'Object', promotable: false);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(c.property('_property'), recordPattern([]), [
+            checkNotPromoted(c.property('_property')),
+          ]),
         ]);
       });
     });
@@ -10153,6 +10441,49 @@ main() {
           ]);
         });
       });
+
+      test('Promotable property', () {
+        h.addMember('C', '_property', 'Object', promotable: true);
+        var c = Var('c');
+        var x = Var('x');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(c.property('_property'), x.pattern(type: 'int'), [
+            checkPromoted(c.property('_property'), 'int'),
+          ]),
+        ]);
+      });
+
+      test('Promotable property, target changed', () {
+        h.addMember('C', '_property', 'Object', promotable: true);
+        var c = Var('c');
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(c, initializer: expr('C')),
+          switch_(c.property('_property'), [
+            x.pattern(type: 'int').when(expr('bool')).then([
+              checkPromoted(c.property('_property'), 'int'),
+            ]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            y.pattern(type: 'int').then([
+              checkNotPromoted(c.property('_property')),
+            ]),
+          ]),
+        ]);
+      });
+
+      test('Non-promotable property', () {
+        h.addMember('C', '_property', 'Object', promotable: false);
+        var c = Var('c');
+        var x = Var('x');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(c.property('_property'), x.pattern(type: 'int'), [
+            checkNotPromoted(c.property('_property')),
+          ]),
+        ]);
+      });
     });
 
     group('Wildcard pattern:', () {
@@ -10297,6 +10628,45 @@ main() {
             ]),
           ]);
         });
+      });
+
+      test('Promotable property', () {
+        h.addMember('C', '_property', 'Object', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(c.property('_property'), wildcard(type: 'int'), [
+            checkPromoted(c.property('_property'), 'int'),
+          ]),
+        ]);
+      });
+
+      test('Promotable property, target changed', () {
+        h.addMember('C', '_property', 'Object', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          switch_(c.property('_property'), [
+            wildcard(type: 'int').when(expr('bool')).then([
+              checkPromoted(c.property('_property'), 'int'),
+            ]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            wildcard(type: 'int').then([
+              checkNotPromoted(c.property('_property')),
+            ]),
+          ]),
+        ]);
+      });
+
+      test('Non-promotable property', () {
+        h.addMember('C', '_property', 'Object', promotable: false);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(c.property('_property'), wildcard(type: 'int'), [
+            checkNotPromoted(c.property('_property')),
+          ]),
+        ]);
       });
     });
 
@@ -10542,7 +10912,8 @@ extension on FlowModel<Type> {
       this.declare(h.promotionKeyStore.keyForVariable(variable), initialized);
 
   PromotionModel<Type> _infoFor(FlowAnalysisTestHarness h, Var variable) =>
-      infoFor(h.promotionKeyStore.keyForVariable(variable));
+      infoFor(h.promotionKeyStore.keyForVariable(variable),
+          ssaNode: new SsaNode(null));
 
   ExpressionInfo<Type> _tryMarkNonNullable(
           FlowAnalysisTestHarness h, Var variable) =>
