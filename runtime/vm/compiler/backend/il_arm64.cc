@@ -1123,14 +1123,30 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
                                         Token::Kind kind) {
   const VRegister left = locs->in(0).fpu_reg();
   const VRegister right = locs->in(1).fpu_reg();
-  __ fcmpd(left, right);
-  Condition true_condition = TokenKindToDoubleCondition(kind);
-  if (true_condition != NE) {
-    // Special case for NaN comparison. Result is always false unless
-    // relational operator is !=.
-    __ b(labels.false_label, VS);
+
+  switch (kind) {
+    case Token::kEQ:
+      __ fcmpd(left, right);
+      return EQ;
+    case Token::kNE:
+      __ fcmpd(left, right);
+      return NE;
+    case Token::kLT:
+      __ fcmpd(right, left);  // Flip to handle NaN.
+      return GT;
+    case Token::kGT:
+      __ fcmpd(left, right);
+      return GT;
+    case Token::kLTE:
+      __ fcmpd(right, left);  // Flip to handle NaN.
+      return GE;
+    case Token::kGTE:
+      __ fcmpd(left, right);
+      return GE;
+    default:
+      UNREACHABLE();
+      return VS;
   }
-  return true_condition;
 }
 
 Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,

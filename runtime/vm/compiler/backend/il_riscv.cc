@@ -1178,7 +1178,6 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
   const FRegister left = locs->in(0).fpu_reg();
   const FRegister right = locs->in(1).fpu_reg();
 
-  // TODO(riscv): Check if this does want we want for comparisons involving NaN.
   switch (kind) {
     case Token::kEQ:
       __ feqd(TMP, left, right);
