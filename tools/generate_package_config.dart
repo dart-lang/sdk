@@ -137,12 +137,19 @@ void writeIfDifferent(File file, String contents) {
 /// Generates package configurations for each package in [packageDirs].
 Iterable<Package> makePackageConfigs(List<String> packageDirs) sync* {
   for (var packageDir in packageDirs) {
+    var name = pubspecName(packageDir);
+    // TODO(https://github.com/dart-lang/webdev/issues/2201): Wait for webdev
+    // to roll in the fix for the pubspec and then remove this workaround.
+    if (posix(packageDir) ==
+        'third_party/pkg/webdev/fixtures/_webdevSoundSmoke') {
+      name = '_webdev_sound_smoke';
+    }
     var version = pubspecLanguageVersion(packageDir);
     var hasLibDirectory =
         Directory(join(repoRoot, packageDir, 'lib')).existsSync();
 
     yield Package(
-      name: basename(packageDir),
+      name: name,
       rootUri: packageDir,
       packageUri: hasLibDirectory ? 'lib/' : null,
       languageVersion: version,
@@ -201,11 +208,30 @@ Iterable<String> listSubdirectories(String parentPath) sync* {
 
 final versionRE = RegExp(r"(?:\^|>=)(\d+\.\d+)");
 
+/// Parses the package name in the pubspec for [packageDir]
+String pubspecName(String packageDir) {
+  var pubspecFile = File(join(repoRoot, packageDir, 'pubspec.yaml'));
+
+  if (!pubspecFile.existsSync()) {
+    print("Error: Missing pubspec for $packageDir.");
+    exit(1);
+  }
+
+  var contents = pubspecFile.readAsLinesSync();
+  if (!contents.any((line) => line.contains('name: '))) {
+    print("Error: Pubspec for $packageDir has no name.");
+    exit(1);
+  }
+
+  var name = contents.firstWhere((line) => line.contains('name: '));
+  return name.trim().substring('name:'.length).trim();
+}
+
 /// Infers the language version from the SDK constraint in the pubspec for
 /// [packageDir].
 ///
 /// The version is returned in the form `major.minor`.
-String? pubspecLanguageVersion(String packageDir) {
+String pubspecLanguageVersion(String packageDir) {
   var pubspecFile = File(join(repoRoot, packageDir, 'pubspec.yaml'));
 
   if (!pubspecFile.existsSync()) {
