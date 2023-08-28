@@ -272,21 +272,51 @@ class Target {
   const Target(this.kinds);
 }
 
-enum TargetKind {
-  classType,
-  enumType,
-  extension,
-  field,
-  function,
-  library,
-  getter,
-  method,
-  mixinType,
-  parameter,
-  setter,
-  topLevelVariable,
-  type,
-  typedefType,
+
+class TargetKind {
+  const TargetKind._(this.displayString, this.name);
+
+  int get index => values.indexOf(this);
+
+  final String displayString;
+  final String name;
+
+  static const classType = TargetKind._('classes', 'classType');
+  static const enumType = TargetKind._('enums', 'enumType');
+  static const extension = TargetKind._('extensions', 'extension');
+  static const field = TargetKind._('fields', 'field');
+  static const function = TargetKind._('top-level functions', 'function');
+  static const library = TargetKind._('libraries', 'library');
+  static const getter = TargetKind._('getters', 'getter');
+  static const method = TargetKind._('methods', 'method');
+  static const mixinType = TargetKind._('mixins', 'mixinType');
+  static const parameter = TargetKind._('parameters', 'parameter');
+  static const setter = TargetKind._('setters', 'setter');
+  static const topLevelVariable =
+      TargetKind._('top-level variables', 'topLevelVariable');
+  static const type =
+      TargetKind._('types (classes, enums, mixins, or typedefs)', 'type');
+  static const typedefType = TargetKind._('typedefs', 'typedefType');
+
+  static const values = [
+    classType,
+    enumType,
+    extension,
+    field,
+    function,
+    library,
+    getter,
+    method,
+    mixinType,
+    parameter,
+    setter,
+    topLevelVariable,
+    type,
+    typedefType,
+  ];
+
+  @override
+  String toString() => 'TargetKind.$name';
 }
 ''');
   }

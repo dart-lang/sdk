@@ -61,7 +61,11 @@ extension ElementAnnotationExtensions on ElementAnnotation {
         }
 
         return annotationKinds
-            .map((e) => e.getField('_name')?.toStringValue())
+            .map((e) {
+              // Support class-based and enum-based target kind implementations.
+              var field = e.getField('name') ?? e.getField('_name');
+              return field?.toStringValue();
+            })
             .map((name) => _targetKindsByName[name])
             .whereNotNull()
             .toSet();
