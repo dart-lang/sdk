@@ -25,6 +25,14 @@ extension type E(int it) {
     ]);
   }
 
+  test_instance_field_external() async {
+    await assertNoErrorsInCode('''
+extension type E(int it) {
+  external int foo;
+}
+''');
+  }
+
   test_instance_getter() async {
     await assertNoErrorsInCode('''
 extension type E(int it) {

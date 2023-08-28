@@ -257,9 +257,10 @@ class DuplicateDefinitionVerifier {
     if (declarationElement == null) return;
 
     final primaryConstructorName = element.constructors.first.name;
+    final representationGetter = element.representation.getter!;
     _getElementContext(declarationElement)
-        .constructorNames
-        .add(primaryConstructorName);
+      ..constructorNames.add(primaryConstructorName)
+      ..instanceGetters[representationGetter.name] = representationGetter;
 
     _checkClassMembers(element, node.members);
   }

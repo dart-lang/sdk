@@ -2870,7 +2870,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    if (node.isStatic) {
+    if (node.isStatic || node.externalKeyword != null) {
       return;
     }
 
