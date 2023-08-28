@@ -8,8 +8,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-// TODO(dantup): Survey isn't currently publicly exported.
-import 'package:unified_analytics/src/survey_handler.dart' show Survey;
 import 'package:unified_analytics/unified_analytics.dart';
 
 void main() {
