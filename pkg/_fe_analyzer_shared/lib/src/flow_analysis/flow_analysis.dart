@@ -18,6 +18,11 @@ class CascadePropertyTarget extends PropertyTarget<Never> {
 
   @override
   String toString() => 'CascadePropertyTarget()';
+
+  @override
+  SsaNode<Type> _getSsaNode<Type extends Object>(
+          _PropertyTargetHelper<Object, Type> helper) =>
+      helper._cascadeTargetStack.last.ssaNode;
 }
 
 /// Non-promotion reason describing the situation where a variable was not
@@ -127,6 +132,11 @@ class ExpressionPropertyTarget<Expression extends Object>
 
   @override
   String toString() => 'ExpressionPropertyTarget($expression)';
+
+  @override
+  SsaNode<Type>? _getSsaNode<Type extends Object>(
+          covariant _PropertyTargetHelper<Expression, Type> helper) =>
+      helper._getExpressionReference(expression)?.ssaNode;
 }
 
 /// Implementation of flow analysis to be shared between the analyzer and the
@@ -3431,6 +3441,10 @@ class PropertyNotPromoted<Type extends Object> extends NonPromotionReason {
 /// Target for a property access that might undergo promotion.
 sealed class PropertyTarget<Expression extends Object> {
   const PropertyTarget._();
+
+  /// Retrieves the SSA node of the value accessed by this property target.
+  SsaNode<Type>? _getSsaNode<Type extends Object>(
+      _PropertyTargetHelper<Object, Type> helper);
 }
 
 /// Immutable data structure modeling the reachability of the given point in the
@@ -3781,6 +3795,11 @@ class SuperPropertyTarget extends PropertyTarget<Never> {
 
   @override
   String toString() => 'SuperPropertyTarget()';
+
+  @override
+  SsaNode<Type> _getSsaNode<Type extends Object>(
+          _PropertyTargetHelper<Object, Type> helper) =>
+      helper._superSsaNode;
 }
 
 /// Non-promotion reason describing the situation where an expression was not
@@ -3807,6 +3826,11 @@ class ThisPropertyTarget extends PropertyTarget<Never> {
 
   @override
   String toString() => 'ThisPropertyTarget()';
+
+  @override
+  SsaNode<Type> _getSsaNode<Type extends Object>(
+          _PropertyTargetHelper<Object, Type> helper) =>
+      helper._thisSsaNode;
 }
 
 /// Specialization of [ExpressionInfo] for the case where the expression is a
@@ -3998,7 +4022,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         Expression extends Node, Variable extends Object, Type extends Object>
     implements
         FlowAnalysis<Node, Statement, Expression, Variable, Type>,
-        FlowModelHelper<Type> {
+        FlowModelHelper<Type>,
+        _PropertyTargetHelper<Expression, Type> {
   /// The [Operations], used to access types, check subtyping, and query
   /// variable types.
   @override
@@ -4057,18 +4082,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// [declare] so far.  This is used to detect unnecessary calls to [declare].
   final Set<Variable> _debugDeclaredVariables = {};
 
-  /// SSA node representing the implicit pseudo-variable `super`. Although
-  /// `super` and `this` represent the same object, flow analysis considers them
-  /// distinct so that if the class being compiled both inherits *and* overrides
-  /// a field `_f`, type promotions for `this._f` and `super._f` will be tracked
-  /// separately.
+  @override
   late final SsaNode<Type> _superSsaNode = new SsaNode<Type>(null);
 
-  /// SSA node representing the implicit variable `this`.
+  @override
   late final SsaNode<Type> _thisSsaNode = new SsaNode<Type>(null);
 
-  /// Stack of information about the targets of any cascade expressions that are
-  /// currently being visited.
+  @override
   final List<_Reference<Type>> _cascadeTargetStack = [];
 
   _FlowAnalysisImpl(this.operations, this._assignedVariables,
@@ -5374,9 +5394,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     }
   }
 
-  /// Gets the [Reference] associated with the [expression] (which should be the
-  /// last expression that was traversed).  If there is no [Reference]
-  /// associated with the [expression], then `null` is returned.
+  @override
   _Reference<Type>? _getExpressionReference(Expression? expression) {
     if (identical(expression, _expressionWithReference)) {
       _Reference<Type>? expressionReference = _expressionReference;
@@ -5538,21 +5556,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       Type staticType) {
     // Find the SSA node for the target of the property access, and figure out
     // whether the property in question is promotable.
-    SsaNode<Type> targetSsaNode;
+    SsaNode<Type>? targetSsaNode = target._getSsaNode(this);
+    if (targetSsaNode == null) return null;
     bool isPromotable = propertyMember != null &&
         operations.isPropertyPromotable(propertyMember);
-    switch (target) {
-      case SuperPropertyTarget():
-        targetSsaNode = _superSsaNode;
-      case ThisPropertyTarget():
-        targetSsaNode = _thisSsaNode;
-      case CascadePropertyTarget():
-        targetSsaNode = _cascadeTargetStack.last.ssaNode;
-      case ExpressionPropertyTarget(:var expression):
-        _Reference<Type>? targetReference = _getExpressionReference(expression);
-        if (targetReference == null) return null;
-        targetSsaNode = targetReference.ssaNode;
-    }
     _PropertySsaNode<Type> propertySsaNode = targetSsaNode.getProperty(
         propertyName, promotionKeyStore,
         isPromotable: isPromotable);
@@ -6714,6 +6721,30 @@ class _PropertySsaNode<Type extends Object> extends SsaNode<Type> {
   final _PropertySsaNode<Type>? previousSsaNode;
 
   _PropertySsaNode(this.promotionKey, {this.previousSsaNode}) : super(null);
+}
+
+/// Interface used by the classes derived from [PropertyTarget] to access the
+/// internals of [_FlowAnalysisImpl].
+abstract class _PropertyTargetHelper<Expression extends Object,
+    Type extends Object> {
+  /// Stack of information about the targets of any cascade expressions that are
+  /// currently being visited.
+  List<_Reference<Type>> get _cascadeTargetStack;
+
+  /// SSA node representing the implicit pseudo-variable `super`. Although
+  /// `super` and `this` represent the same object, flow analysis considers them
+  /// distinct so that if the class being compiled both inherits *and* overrides
+  /// a field `_f`, type promotions for `this._f` and `super._f` will be tracked
+  /// separately.
+  SsaNode<Type> get _superSsaNode;
+
+  /// SSA node representing the implicit variable `this`.
+  SsaNode<Type> get _thisSsaNode;
+
+  /// Gets the [Reference] associated with the [expression] (which should be the
+  /// last expression that was traversed).  If there is no [Reference]
+  /// associated with the [expression], then `null` is returned.
+  _Reference<Type>? _getExpressionReference(Expression? expression);
 }
 
 /// Specialization of [ExpressionInfo] for the case where the expression is a
