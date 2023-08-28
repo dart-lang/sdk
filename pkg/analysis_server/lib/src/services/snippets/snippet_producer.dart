@@ -122,7 +122,9 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
 mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
   ClassElement? get classBuildContext;
   ClassElement? get classKey;
-  String get widgetClassName => 'MyWidget';
+  /// Generate widget names using the currently selected file name for vscode.<br/>
+  /// `my_widget.dart`->`MyWidget`
+  String get widgetClassName => '\${1:\${TM_FILENAME_BASE/(_|^|\\.)(\\w)/\${2:/capitalize}/g}}';
 
   void writeBuildMethod(DartEditBuilder builder) {
     // Checked by isValid() before this will be called.

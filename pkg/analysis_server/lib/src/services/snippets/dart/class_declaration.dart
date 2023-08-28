@@ -25,7 +25,12 @@ class ClassDeclaration extends DartSnippetProducer {
       builder.addReplacement(request.replacementRange, (builder) {
         void writeIndented(String string) => builder.write('$indent$string');
         builder.write('class ');
-        builder.addSimpleLinkedEdit('className', 'ClassName');
+        /// Use the currently selected file name to generate the class name for vscode.<br/>
+        /// `my_red_color_car.dart`->`MyRedColorCar`
+        builder.addSimpleLinkedEdit(
+          'className',
+          '\${1:\${TM_FILENAME_BASE/(_|^|\\.)(\\w)/\${2:/capitalize}/g}}',
+        );
         builder.writeln(' {');
         writeIndented('  ');
         builder.selectHere();
