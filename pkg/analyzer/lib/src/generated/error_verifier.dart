@@ -718,6 +718,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         node: node,
         element: element,
       );
+      _checkForExtensionTypeWithAbstractMember(node);
 
       super.visitExtensionTypeDeclaration(node);
     } finally {
@@ -2870,7 +2871,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    if (node.isStatic) {
+    if (node.isStatic || node.externalKeyword != null) {
       return;
     }
 
@@ -2958,6 +2959,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
         node.name,
       );
+    }
+  }
+
+  void _checkForExtensionTypeWithAbstractMember(
+    ExtensionTypeDeclarationImpl node,
+  ) {
+    for (final member in node.members) {
+      if (member is MethodDeclarationImpl && !member.isStatic) {
+        if (member.isAbstract) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER,
+            member,
+            [member.name.lexeme, node.name.lexeme],
+          );
+        }
+      }
     }
   }
 
