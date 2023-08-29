@@ -393,7 +393,17 @@ void AsyncAwareStackUnwinder::InitializeAwaiterFrameFromFutureListener(
   }
   awaiter_frame_.closure =
       Closure::RawCast(Get_FutureListener_callback(listener));
-  if (state == k_FutureListener_stateCatchError) {
+
+  // If the Future has catchError callback attached through either
+  // `Future.onError` or `Future.then(..., onError: ...)` then we should
+  // treat this listener as a catch all exception handler. However we should
+  // ignore the case when these callbacks are forwarding errors into a
+  // suspended async function, because it will be represented by its own async
+  // frame.
+  if ((state & k_FutureListener_stateCatchError) != 0 &&
+      (awaiter_frame_.closure.IsNull() ||
+       !StackTraceUtils::GetSuspendState(awaiter_frame_.closure,
+                                         &suspend_state_))) {
     awaiter_frame_.has_catch_error = true;
   }
 }
