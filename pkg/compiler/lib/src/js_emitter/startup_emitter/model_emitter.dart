@@ -106,7 +106,7 @@ class ModelEmitter {
   final CompilerOptions _options;
   final DiagnosticReporter _reporter;
   final api.CompilerOutput _outputProvider;
-  final DumpInfoTask _dumpInfoTask;
+  final DumpInfoJsAstRegistry _dumpInfoRegistry;
   final ResourceInfoCollector _resourceInfoCollector = ResourceInfoCollector();
   final Namer _namer;
   final CompilerTask _task;
@@ -154,7 +154,7 @@ class ModelEmitter {
       this._options,
       this._reporter,
       this._outputProvider,
-      this._dumpInfoTask,
+      this._dumpInfoRegistry,
       this._namer,
       this._closedWorld,
       this._task,
@@ -241,7 +241,7 @@ class ModelEmitter {
 
     FragmentEmitter fragmentEmitter = FragmentEmitter(
         _options,
-        _dumpInfoTask,
+        _dumpInfoRegistry,
         _namer,
         _emitter,
         constantEmitter,
@@ -446,7 +446,7 @@ var ${startupMetricsGlobal} =
 
     CodeBuffer buffer = js.createCodeBuffer(program, _options,
         _sourceInformationStrategy as JavaScriptSourceInformationStrategy,
-        monitor: _dumpInfoTask,
+        monitor: _dumpInfoRegistry,
         annotationMonitor: _resourceInfoCollector
             .monitorFor(_options.outputUri?.pathSegments.last ?? 'out'));
     _task.measureSubtask('emit buffers', () {
@@ -588,7 +588,7 @@ var ${startupMetricsGlobal} =
     Hasher hasher = Hasher();
     CodeBuffer buffer = js.createCodeBuffer(program, _options,
         _sourceInformationStrategy as JavaScriptSourceInformationStrategy,
-        monitor: _dumpInfoTask,
+        monitor: _dumpInfoRegistry,
         listeners: [hasher],
         annotationMonitor: _resourceInfoCollector.monitorFor(outputFileName));
     _task.measureSubtask('emit buffers', () {

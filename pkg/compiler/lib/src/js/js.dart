@@ -12,7 +12,7 @@ import '../js_backend/deferred_holder_expression.dart';
 import '../js_backend/string_reference.dart';
 import '../js_backend/type_reference.dart';
 import '../options.dart';
-import '../dump_info.dart' show DumpInfoTask;
+import '../dump_info.dart' show DumpInfoJsAstRegistry;
 import '../io/code_output.dart' show CodeBuffer, CodeOutputListener;
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
@@ -39,7 +39,7 @@ String prettyPrint(Node node,
 
 CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
     JavaScriptSourceInformationStrategy sourceInformationStrategy,
-    {DumpInfoTask? monitor,
+    {DumpInfoJsAstRegistry? monitor,
     JavaScriptAnnotationMonitor annotationMonitor =
         const JavaScriptAnnotationMonitor(),
     bool allowVariableMinification = true,
@@ -71,7 +71,7 @@ class JavaScriptAnnotationMonitor {
 }
 
 class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
-  final DumpInfoTask? monitor;
+  final DumpInfoJsAstRegistry? monitor;
   final CodeBuffer outBuffer;
   final CodePositionListener codePositionListener;
   final JavaScriptAnnotationMonitor annotationMonitor;

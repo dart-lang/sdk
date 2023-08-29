@@ -360,7 +360,7 @@ class JsBackendStrategy {
     }
     WorldImpact worldImpact =
         _codegenImpactTransformer.transformCodegenImpact(result.impact);
-    _compiler.dumpInfoTask.registerImpact(member, worldImpact);
+    _compiler.dumpInfoRegistry.registerImpact(member, worldImpact);
     result.applyModularState(_namer, emitterTask.emitter);
     return worldImpact;
   }

@@ -2306,15 +2306,23 @@ abstract class TracedTypeInformation implements TypeInformation {
 }
 
 class AwaitTypeInformation extends TypeInformation {
-  final ir.Node _node;
+  final ir.AwaitExpression _node;
 
   AwaitTypeInformation(AbstractValueDomain abstractValueDomain,
       MemberTypeInformation? context, this._node)
       : super(abstractValueDomain.uncomputedType, context);
 
-  // TODO(22894): Compute a better type here.
   @override
-  AbstractValue computeType(InferrerEngine inferrer) => safeType(inferrer);
+  AbstractValue computeType(InferrerEngine inferrer) {
+    final elementMap = inferrer.closedWorld.elementMap;
+    final staticTypeProvider =
+        elementMap.getStaticTypeProvider(context!.member);
+    final staticType =
+        elementMap.getDartType(staticTypeProvider.getStaticType(_node));
+    return inferrer.abstractValueDomain
+        .createFromStaticType(staticType, nullable: true)
+        .abstractValue;
+  }
 
   String get debugName => '$_node';
 

@@ -496,6 +496,10 @@ Future<api.CompilationResult> compile(List<String> argv,
     _OneOption('${Flags.writeProgramSplit}=.+', passThrough),
     _OneOption('${Flags.readProgramSplit}=.+', passThrough),
     _OneOption('${Flags.dumpInfo}|${Flags.dumpInfo}=.+', setDumpInfo),
+    _OneOption(
+        '${Flags.readDumpInfoData}=.+', setDataUri(Flags.readDumpInfoData)),
+    _OneOption(
+        '${Flags.writeDumpInfoData}=.+', setDataUri(Flags.writeDumpInfoData)),
     _OneOption('--disallow-unsafe-eval', ignoreOption),
     _OneOption(Option.showPackageWarnings, passThrough),
     _OneOption(Option.enableLanguageExperiments, passThrough),

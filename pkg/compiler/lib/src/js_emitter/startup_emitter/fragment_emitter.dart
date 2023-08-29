@@ -577,7 +577,7 @@ var #typesOffset = hunkHelpers.updateTypes(#types);
 /// This class is stateless and can be reused for different fragments.
 class FragmentEmitter {
   final CompilerOptions _options;
-  final DumpInfoTask _dumpInfoTask;
+  final DumpInfoJsAstRegistry _dumpInfoRegistry;
   final Namer _namer;
   final Emitter _emitter;
   final ConstantEmitter _constantEmitter;
@@ -607,7 +607,7 @@ class FragmentEmitter {
 
   FragmentEmitter(
       this._options,
-      this._dumpInfoTask,
+      this._dumpInfoRegistry,
       this._namer,
       this._emitter,
       this._constantEmitter,
@@ -640,10 +640,10 @@ class FragmentEmitter {
 
   void registerEntityAst(Entity? entity, js.Node code,
       {LibraryEntity? library}) {
-    _dumpInfoTask.registerEntityAst(entity, code);
+    _dumpInfoRegistry.registerEntityAst(entity, code);
     // TODO(sigmund): stop recoding associations twice, dump-info already
     // has library to element dependencies to recover this data.
-    if (library != null) _dumpInfoTask.registerEntityAst(library, code);
+    if (library != null) _dumpInfoRegistry.registerEntityAst(library, code);
   }
 
   PreFragment emitPreFragment(DeferredFragment fragment, bool estimateSize) {
@@ -1573,7 +1573,7 @@ class FragmentEmitter {
         constant.name,
         _constantEmitter.generate(constant.value)
       ]);
-      _dumpInfoTask.registerConstantAst(constant.value, assignment);
+      _dumpInfoRegistry.registerConstantAst(constant.value, assignment);
       assignments.add(assignment);
       if (constant.value is ListConstantValue) hasList = true;
     }

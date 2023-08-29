@@ -29,8 +29,8 @@ class DictionaryTypeMask extends MapTypeMask {
     final allocationElement = source.readMemberOrNull();
     final keyType = TypeMask.readFromDataSource(source, domain);
     final valueType = TypeMask.readFromDataSource(source, domain);
-    final typeMap = source
-        .readStringMap(() => TypeMask.readFromDataSource(source, domain))!;
+    final typeMap =
+        source.readStringMap(() => TypeMask.readFromDataSource(source, domain));
     source.end(tag);
     return DictionaryTypeMask(
         forwardTo, null, allocationElement, keyType, valueType, typeMap);

@@ -84,9 +84,9 @@ class JLibraryEnv {
     source.begin(tag);
     ir.Library library = source.readLibraryNode();
     Map<String, ir.Member> memberMap =
-        source.readStringMap(source.readMemberNode)!;
+        source.readStringMap(source.readMemberNode);
     Map<String, ir.Member> setterMap =
-        source.readStringMap(source.readMemberNode)!;
+        source.readStringMap(source.readMemberNode);
     source.end(tag);
     return JLibraryEnv(library, memberMap, setterMap);
   }
@@ -258,7 +258,7 @@ class JClassEnvImpl implements JClassEnv {
     source.begin(tag);
     ir.Class cls = source.readClassNode();
     Map<String, ir.Member> constructorMap =
-        source.readStringMap(source.readMemberNode)!;
+        source.readStringMap(source.readMemberNode);
     Map<Name, ir.Member> memberMap = source.readNameMap(source.readMemberNode)!;
     List<ir.Member> members = source.readMemberNodes();
     bool isSuperMixinApplication = source.readBool();

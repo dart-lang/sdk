@@ -38,7 +38,9 @@ const codeId = ShardsDataId("code", 2);
 const codeId0 = ShardDataId(codeId, 0);
 const codeId1 = ShardDataId(codeId, 1);
 const jsId = DataId("js");
+const dumpInfoDataId = DataId("dump.data");
 const txtId = DataId("txt");
+const dumpInfoId = DataId("js.info.json");
 const fakeRoot = 'dev-dart-app:/';
 
 String getRootScheme(Module module) {
@@ -540,7 +542,7 @@ class Dart2jsCodegenStep extends IOModularStep {
 // given the results of the global analysis step and codegen shards.
 class Dart2jsEmissionStep extends IOModularStep {
   @override
-  List<DataId> get resultData => const [jsId];
+  List<DataId> get resultData => const [jsId, dumpInfoDataId];
 
   @override
   bool get needsSources => false;
@@ -577,6 +579,7 @@ class Dart2jsEmissionStep extends IOModularStep {
       '${Flags.readData}=${toUri(module, globalDataId)}',
       '${Flags.readCodegen}=${toUri(module, codeId)}',
       '${Flags.codegenShards}=${codeId.shards}',
+      '${Flags.writeDumpInfoData}=${toUri(module, dumpInfoDataId)}',
       '--out=${toUri(module, jsId)}',
     ];
     var result =
@@ -588,6 +591,63 @@ class Dart2jsEmissionStep extends IOModularStep {
   @override
   void notifyCached(Module module) {
     if (_options.verbose) print("\ncached step: dart2js backend on $module");
+  }
+}
+
+// Step that invokes the dart2js dump info task on the main module given the
+// results of the emitted JS and serialized dump info data.
+class Dart2jsDumpInfoStep extends IOModularStep {
+  @override
+  List<DataId> get resultData => const [dumpInfoId];
+
+  @override
+  bool get needsSources => false;
+
+  @override
+  List<DataId> get dependencyDataNeeded => const [];
+
+  @override
+  List<DataId> get moduleDataNeeded => const [
+        globalUpdatedDillId,
+        closedWorldId,
+        globalDataId,
+        codeId0,
+        codeId1,
+        dumpInfoDataId,
+      ];
+
+  @override
+  bool get onlyOnMain => true;
+
+  @override
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
+    if (_options.verbose) print("step: dart2js dump info on $module");
+    List<String> args = [
+      '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
+      _dart2jsScript,
+      if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      if (_options.useSdk) '--invoker=modular_test',
+      Flags.soundNullSafety,
+      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
+      '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
+      for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
+      '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
+      '${Flags.readData}=${toUri(module, globalDataId)}',
+      '${Flags.readCodegen}=${toUri(module, codeId)}',
+      '${Flags.codegenShards}=${codeId.shards}',
+      '${Flags.readDumpInfoData}=${toUri(module, dumpInfoDataId)}',
+      '--out=${toUri(module, jsId)}',
+    ];
+    var result =
+        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
+
+    _checkExitCode(result, this, module);
+  }
+
+  @override
+  void notifyCached(Module module) {
+    if (_options.verbose) print("\ncached step: dart2js dump info on $module");
   }
 }
 
