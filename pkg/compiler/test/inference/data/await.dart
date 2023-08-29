@@ -20,7 +20,7 @@ main() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: _method1a:[null]*/
-_method1a(/*[null|subclass=Object]*/ o) {}
+_method1a(/*[null|subclass=JSInt]*/ o) {}
 
 /*member: awaitOfFuture:[exact=_Future]*/
 awaitOfFuture() async {
@@ -29,7 +29,7 @@ awaitOfFuture() async {
 }
 
 /*member: _method1b:[null]*/
-_method1b(/*[null|subclass=JSInt]*/o) {}
+_method1b(/*[null|subclass=JSInt]*/ o) {}
 
 /*member: awaitOfFutureWithLocal:[exact=_Future]*/
 awaitOfFutureWithLocal() async {
@@ -43,7 +43,7 @@ awaitOfFutureWithLocal() async {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: _method2a:[null]*/
-_method2a(/*[null|subclass=Object]*/ o) {}
+_method2a(/*[null|subclass=JSInt]*/ o) {}
 
 /*member: awaitOfInt:[exact=_Future]*/
 awaitOfInt() async {
@@ -51,7 +51,7 @@ awaitOfInt() async {
 }
 
 /*member: _method2b:[null]*/
-_method2b(/*[null|subclass=JSInt]*/o) {}
+_method2b(/*[null|subclass=JSInt]*/ o) {}
 
 /*member: awaitOfIntWithLocal:[exact=_Future]*/
 awaitOfIntWithLocal() async {
