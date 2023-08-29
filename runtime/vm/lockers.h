@@ -296,6 +296,10 @@ class RwLock {
   RwLock() {}
   ~RwLock() {}
 
+  bool IsCurrentThreadWriter() {
+    return writer_id_ == OSThread::GetCurrentThreadId();
+  }
+
  private:
   friend class ReadRwLocker;
   friend class WriteRwLocker;
@@ -321,11 +325,14 @@ class RwLock {
       ml.Wait();
     }
     state_ = -1;
+    writer_id_ = OSThread::GetCurrentThreadId();
   }
+
   void LeaveWrite() {
     MonitorLocker ml(&monitor_);
     ASSERT(state_ == -1);
     state_ = 0;
+    writer_id_ = OSThread::kInvalidThreadId;
     ml.NotifyAll();
   }
 
@@ -334,6 +341,7 @@ class RwLock {
   // [state_] == 0 : The lock is free (no readers/writers).
   // [state_] == -1: The lock is held by a single writer.
   intptr_t state_ = 0;
+  ThreadId writer_id_ = OSThread::kInvalidThreadId;
 };
 
 class SafepointRwLock {

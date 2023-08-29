@@ -61,6 +61,9 @@ vars = {
   "benchmarks_internal_rev": "f048a4a853e3062056d39c3db100acdde42f16d6",
   "checkout_benchmarks_internal": False,
 
+  # Checkout the flute benchmark only when benchmarking.
+  "checkout_flute": False,
+
   # Checkout Android dependencies only on Mac and Linux.
   "download_android_deps":
     "host_os == mac or (host_os == linux and host_cpu == x64)",
@@ -139,11 +142,12 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "2956b1a705953f880a5dae9d3a0969df0fc45e99", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "e14837350492494bc693d69d29b9e21f50c224d0",
+  "dartdoc_rev": "5fda5eb2e004b6cf7c73fbcffbc246a71119be98",
   "ecosystem_rev": "f777da70c65d158fa3b9dbfe7483bdc70b67c709",
   "ffi_rev": "e2c01a960b84d1074b0a1849909ae2d269d004be",
   "file_rev": "5d9a6027756b5846e8f5380f983390f61f564a75",
   "fixnum_rev": "00fa1207768bd07d04c895cbe0f1fe99af14e727",
+  "flute_rev": "f42b09f77132210499ec8ed819a60c260af03db6",
   "glob_rev": "5b243935154daf53c54981b98f625bace90b2112",
   "html_rev": "4060496b0443451c38f8b789db2e44c0d7966171",
   "http_rev": "cad7d609b18512d74cc30ef8ad9faf02d2ea4451",
@@ -383,6 +387,10 @@ deps = {
       Var("dart_git") + "ffi.git" + "@" + Var("ffi_rev"),
   Var("dart_root") + "/third_party/pkg/fixnum":
       Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_rev"),
+  Var("dart_root") + "/third_party/pkg/flute": {
+    "url": Var("dart_git") + "flute.git" + "@" + Var("flute_rev"),
+    "condition": "checkout_flute",
+  },
   Var("dart_root") + "/third_party/pkg/file":
       Var("dart_git") + "external/github.com/google/file.dart"
       + "@" + Var("file_rev"),

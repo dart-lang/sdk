@@ -1265,11 +1265,11 @@ mixin TypeAnalyzer<
 
     // If the required type is `dynamic` or `Never`, then every getter is
     // treated as having the same type.
-    Type? overridePropertyGetType;
+    (Object?, Type)? overridePropertyGetType;
     if (operations.isDynamic(requiredType) ||
         operations.isError(requiredType) ||
         operations.isNever(requiredType)) {
-      overridePropertyGetType = requiredType;
+      overridePropertyGetType = (null, requiredType);
     }
 
     Node? irrefutableContext = context.irrefutableContext;
@@ -1287,21 +1287,28 @@ mixin TypeAnalyzer<
 
     // Stack: ()
     for (RecordPatternField<Node, Pattern> field in fields) {
-      Type propertyType = overridePropertyGetType ??
-          resolveObjectPatternPropertyGet(
-            objectPattern: node,
-            receiverType: requiredType,
-            field: field,
-          );
-      if (operations.isNever(propertyType)) {
+      var (Object? propertyMember, Type unpromotedPropertyType) =
+          overridePropertyGetType ??
+              resolveObjectPatternPropertyGet(
+                objectPattern: node,
+                receiverType: requiredType,
+                field: field,
+              );
+      // Note: an object pattern field must always have a property name, but in
+      // error recovery circumstances, one may be absent; when this happens, use
+      // the empty string as a the property name to prevent a crash.
+      String propertyName = field.name ?? '';
+      Type promotedPropertyType = flow.pushPropertySubpattern(
+              propertyName, propertyMember, unpromotedPropertyType) ??
+          unpromotedPropertyType;
+      if (operations.isNever(promotedPropertyType)) {
         flow.handleExit();
       }
-      flow.pushSubpattern(propertyType);
       dispatchPattern(
         context.withUnnecessaryWildcardKind(null),
         field.pattern,
       );
-      flow.popSubpattern();
+      flow.popPropertySubpattern();
     }
     // Stack: (n * Pattern) where n = fields.length
 
@@ -2273,7 +2280,7 @@ mixin TypeAnalyzer<
   /// Returns the type of the property in [receiverType] that corresponds to
   /// the name of the [field].  If the property cannot be resolved, the client
   /// should report an error, and return `dynamic` for recovery.
-  Type resolveObjectPatternPropertyGet({
+  (Object?, Type) resolveObjectPatternPropertyGet({
     required Pattern objectPattern,
     required Type receiverType,
     required RecordPatternField<Node, Pattern> field,

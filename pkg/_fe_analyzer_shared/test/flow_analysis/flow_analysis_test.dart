@@ -6946,6 +6946,71 @@ main() {
         });
       });
     });
+
+    group('And object pattern:', () {
+      test('Promotion via object promotion', () {
+        h.addMember('C', '_property', 'int?', promotable: true);
+        h.addDownwardInfer(name: 'C', context: 'C', result: 'C');
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('C')),
+          ifCase(
+              x,
+              objectPattern(
+                  requiredType: 'C',
+                  fields: [wildcard().nullCheck.recordField('_property')]),
+              [
+                checkPromoted(x.property('_property'), 'int'),
+              ],
+              [
+                checkNotPromoted(x.property('_property')),
+              ])
+        ]);
+      });
+
+      test('Scrutinee restored after object pattern', () {
+        h.addMember('C', '_property', 'int?', promotable: true);
+        h.addDownwardInfer(name: 'C', context: 'C?', result: 'C');
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('C?')),
+          ifCase(
+              x,
+              objectPattern(requiredType: 'C', fields: [
+                wildcard().nullCheck.recordField('_property')
+              ]).or(
+                  // After visiting the object pattern, the scrutinee should now
+                  // be restored to point to the `x`, so this null check should
+                  // promote `x` to `C`.
+                  wildcard().nullCheck),
+              [
+                checkPromoted(x, 'C'),
+              ],
+              [
+                checkNotPromoted(x),
+              ])
+        ]);
+      });
+
+      test('Subpattern matched value type accounts for previous promotion', () {
+        h.addMember('C', '_property', 'int?', promotable: true);
+        h.addDownwardInfer(name: 'C', context: 'C', result: 'C');
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, initializer: expr('C')),
+          x.property('_property').nonNullAssert,
+          checkPromoted(x.property('_property'), 'int'),
+          ifCase(
+              x,
+              objectPattern(requiredType: 'C', fields: [
+                y.pattern(expectInferredType: 'int').recordField('_property')
+              ]),
+              [])
+        ]);
+      });
+    });
   });
 
   group('Patterns:', () {

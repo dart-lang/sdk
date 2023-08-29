@@ -11077,7 +11077,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  DartType resolveObjectPatternPropertyGet({
+  (Member?, DartType) resolveObjectPatternPropertyGet({
     required Pattern objectPattern,
     required DartType receiverType,
     required shared.RecordPatternField<TreeNode, Pattern> field,
@@ -11086,7 +11086,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ObjectAccessTarget fieldAccessTarget = findInterfaceMember(receiverType,
         new Name(fieldName, libraryBuilder.library), field.pattern.fileOffset,
         isSetter: false, includeExtensionMethods: true);
-    return fieldAccessTarget.getGetterType(this);
+    return (fieldAccessTarget.member, fieldAccessTarget.getGetterType(this));
   }
 
   @override
