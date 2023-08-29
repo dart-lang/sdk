@@ -745,6 +745,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// declaration.
   void patternVariableDeclaration_end();
 
+  /// Call this method after visiting the subpattern of an object pattern, to
+  /// restore the state that was saved by [pushPropertySubpattern].
+  void popPropertySubpattern();
+
   /// Call this method after visiting a pattern's subpattern, to restore the
   /// state that was saved by [pushSubpattern].
   void popSubpattern();
@@ -762,8 +766,8 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// [propertyMember] should be whatever data structure the client uses to keep
   /// track of the field or property being accessed.  If not `null`,
   /// [Operations.isPropertyPromotable] will be consulted to find out whether
-  /// the property is promotable.  [staticType] should be the static type of the
-  /// value returned by the property get.
+  /// the property is promotable.  [unpromotedType] should be the static type of
+  /// the value returned by the property get.
   ///
   /// [isSuperAccess] indicates whether the property in question is being
   /// accessed through `super.`. If [target] is non-null, the caller should pass
@@ -775,7 +779,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// field before calling this method; if the property does not refer to a
   /// field, `null` will be returned.
   Type? promotedPropertyType(PropertyTarget<Expression> target,
-      String propertyName, Object? propertyMember, Type staticType);
+      String propertyName, Object? propertyMember, Type unpromotedType);
 
   /// Retrieves the type that the [variable] is promoted to, if the [variable]
   /// is currently promoted.  Otherwise returns `null`.
@@ -812,8 +816,9 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   /// Call this method just after visiting a property get expression.
   /// [wholeExpression] should be the whole property get, and [propertyName]
-  /// should be the identifier to the right hand side of the `.`.  [staticType]
-  /// should be the static type of the value returned by the property get.
+  /// should be the identifier to the right hand side of the `.`.
+  /// [unpromotedType] should be the static type of the value returned by the
+  /// property get.
   ///
   /// The [target] parameter determines how the property is being looked up. If
   /// it is [ExpressionPropertyTarget], a property of an expression was just
@@ -843,7 +848,20 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
       PropertyTarget<Expression> target,
       String propertyName,
       Object? propertyMember,
-      Type staticType);
+      Type unpromotedType);
+
+  /// Call this method just before analyzing a subpattern of an object pattern.
+  ///
+  /// [propertyName] is the name of the property being accessed by this
+  /// subpattern, [propertyMember] is the data structure the client uses to keep
+  /// track of the field or property being accessed (as would be passed to
+  /// [propertyGet]), and [unpromotedType] is the static type of the field or
+  /// property.
+  ///
+  /// If the property's type is currently promoted, the promoted type is
+  /// returned.  Otherwise `null` is returned.
+  Type? pushPropertySubpattern(
+      String propertyName, Object? propertyMember, Type unpromotedType);
 
   /// Call this method just before analyzing a subpattern of a pattern.
   ///
@@ -1692,18 +1710,23 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
+  void popPropertySubpattern() {
+    _wrap('popPropertySubpattern()', () => _wrapped.popPropertySubpattern());
+  }
+
+  @override
   void popSubpattern() {
     _wrap('popSubpattern()', () => _wrapped.popSubpattern());
   }
 
   @override
   Type? promotedPropertyType(PropertyTarget<Expression> target,
-      String propertyName, Object? propertyMember, Type staticType) {
+      String propertyName, Object? propertyMember, Type unpromotedType) {
     return _wrap(
         'promotedPropertyType($target, $propertyName, $propertyMember, '
-        '$staticType)',
+        '$unpromotedType)',
         () => _wrapped.promotedPropertyType(
-            target, propertyName, propertyMember, staticType),
+            target, propertyName, propertyMember, unpromotedType),
         isQuery: true);
   }
 
@@ -1740,12 +1763,24 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
       PropertyTarget<Expression> target,
       String propertyName,
       Object? propertyMember,
-      Type staticType) {
+      Type unpromotedType) {
     return _wrap(
         'propertyGet($wholeExpression, $target, $propertyName, '
-        '$propertyMember, $staticType)',
-        () => _wrapped.propertyGet(
-            wholeExpression, target, propertyName, propertyMember, staticType),
+        '$propertyMember, $unpromotedType)',
+        () => _wrapped.propertyGet(wholeExpression, target, propertyName,
+            propertyMember, unpromotedType),
+        isQuery: true,
+        isPure: false);
+  }
+
+  @override
+  Type? pushPropertySubpattern(
+      String propertyName, Object? propertyMember, Type unpromotedType) {
+    return _wrap(
+        'pushPropertySubpattern($propertyName, $propertyMember, '
+        '$unpromotedType)',
+        () => _wrapped.pushPropertySubpattern(
+            propertyName, propertyMember, unpromotedType),
         isQuery: true,
         isPure: false);
   }
@@ -2818,7 +2853,8 @@ abstract class Operations<Variable extends Object, Type extends Object>
     implements TypeOperations<Type>, VariableOperations<Variable, Type> {
   /// Determines whether the given property can be promoted.  [propertyMember]
   /// will correspond to a `propertyMember` value passed to
-  /// [FlowAnalysis.promotedPropertyType] or, [FlowAnalysis.propertyGet].
+  /// [FlowAnalysis.promotedPropertyType], [FlowAnalysis.propertyGet], or
+  /// [FlowAnalysis.pushPropertySubpattern].
   bool isPropertyPromotable(Object property);
 }
 
@@ -4902,6 +4938,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
+  void popPropertySubpattern() {
+    _PropertyPatternContext<Type> context =
+        _stack.removeLast() as _PropertyPatternContext<Type>;
+    _scrutineeReference = context._previousScrutinee;
+  }
+
+  @override
   void popSubpattern() {
     _FlowContext context = _stack.removeLast();
     assert(context is _PatternContext<Type>);
@@ -4909,9 +4952,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   Type? promotedPropertyType(PropertyTarget<Expression> target,
-      String propertyName, Object? propertyMember, Type staticType) {
-    return _handleProperty(
-        null, target, propertyName, propertyMember, staticType);
+      String propertyName, Object? propertyMember, Type unpromotedType) {
+    SsaNode<Type>? targetSsaNode = target._getSsaNode(this);
+    if (targetSsaNode == null) return null;
+    var (Type? type, _) = _handleProperty(
+        targetSsaNode, propertyName, propertyMember, unpromotedType);
+    return type;
   }
 
   @override
@@ -4983,9 +5029,47 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       PropertyTarget<Expression> target,
       String propertyName,
       Object? propertyMember,
-      Type staticType) {
-    return _handleProperty(
-        wholeExpression, target, propertyName, propertyMember, staticType);
+      Type unpromotedType) {
+    SsaNode<Type>? targetSsaNode = target._getSsaNode(this);
+    if (targetSsaNode == null) return null;
+    var (Type? promotedType, _PropertySsaNode<Type> propertySsaNode) =
+        _handleProperty(
+            targetSsaNode, propertyName, propertyMember, unpromotedType);
+    _PropertyReference<Type> propertyReference = new _PropertyReference<Type>(
+        propertyName: propertyName,
+        propertyMember: propertyMember,
+        promotionKey: propertySsaNode.promotionKey,
+        after: _current,
+        type: unpromotedType,
+        ssaNode: propertySsaNode);
+    if (wholeExpression != null) {
+      _storeExpressionInfo(wholeExpression, propertyReference);
+      _storeExpressionReference(wholeExpression, propertyReference);
+    }
+    return promotedType;
+  }
+
+  @override
+  Type? pushPropertySubpattern(
+      String propertyName, Object? propertyMember, Type unpromotedType) {
+    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
+    assert(_unmatched != null);
+    var (Type? promotedType, _PropertySsaNode<Type>? propertySsaNode) =
+        _handleProperty(context._matchedValueInfo.ssaNode, propertyName,
+            propertyMember, unpromotedType);
+    _PropertyReference<Type> propertyReference = new _PropertyReference<Type>(
+        propertyName: propertyName,
+        propertyMember: propertyMember,
+        promotionKey: propertySsaNode.promotionKey,
+        after: _current,
+        type: unpromotedType,
+        ssaNode: propertySsaNode);
+    _stack.add(new _PropertyPatternContext<Type>(
+        _makeTemporaryReference(
+            propertySsaNode, promotedType ?? unpromotedType),
+        _scrutineeReference));
+    _scrutineeReference = propertyReference;
+    return promotedType;
   }
 
   @override
@@ -5548,46 +5632,29 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     }
   }
 
-  Type? _handleProperty(
-      Expression? wholeExpression,
-      PropertyTarget<Expression> target,
-      String propertyName,
-      Object? propertyMember,
-      Type staticType) {
+  (Type?, _PropertySsaNode<Type>) _handleProperty(SsaNode<Type> targetSsaNode,
+      String propertyName, Object? propertyMember, Type unpromotedType) {
     // Find the SSA node for the target of the property access, and figure out
     // whether the property in question is promotable.
-    SsaNode<Type>? targetSsaNode = target._getSsaNode(this);
-    if (targetSsaNode == null) return null;
     bool isPromotable = propertyMember != null &&
         operations.isPropertyPromotable(propertyMember);
     _PropertySsaNode<Type> propertySsaNode = targetSsaNode.getProperty(
         propertyName, promotionKeyStore,
         isPromotable: isPromotable);
-    _PropertyReference<Type> propertyReference = new _PropertyReference<Type>(
-        propertyName: propertyName,
-        propertyMember: propertyMember,
-        promotionKey: propertySsaNode.promotionKey,
-        after: _current,
-        type: staticType,
-        ssaNode: propertySsaNode);
-    if (wholeExpression != null) {
-      _storeExpressionInfo(wholeExpression, propertyReference);
-      _storeExpressionReference(wholeExpression, propertyReference);
+    Type? promotedType;
+    if (isPromotable) {
+      PromotionModel<Type>? promotionInfo =
+          _current.promotionInfo[propertySsaNode.promotionKey];
+      if (promotionInfo != null) {
+        assert(promotionInfo.ssaNode == propertySsaNode);
+      }
+      promotedType = promotionInfo?.promotedTypes?.last;
+      if (promotedType != null &&
+          !operations.isSubtypeOf(promotedType, unpromotedType)) {
+        promotedType = null;
+      }
     }
-    if (!isPromotable) {
-      return null;
-    }
-    PromotionModel<Type>? promotionInfo =
-        _current.promotionInfo[propertyReference.promotionKey];
-    if (promotionInfo != null) {
-      assert(promotionInfo.ssaNode == propertySsaNode);
-    }
-    Type? promotedType = promotionInfo?.promotedTypes?.last;
-    if (promotedType == null ||
-        !operations.isSubtypeOf(promotedType, staticType)) {
-      return null;
-    }
-    return promotedType;
+    return (promotedType, propertySsaNode);
   }
 
   void _initialize(
@@ -6384,11 +6451,14 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void patternVariableDeclaration_end() {}
 
   @override
+  void popPropertySubpattern() {}
+
+  @override
   void popSubpattern() {}
 
   @override
   Type? promotedPropertyType(PropertyTarget<Expression> target,
-          String propertyName, Object? propertyMember, Type staticType) =>
+          String propertyName, Object? propertyMember, Type unpromotedType) =>
       null;
 
   @override
@@ -6411,7 +6481,12 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
           PropertyTarget<Expression> target,
           String propertyName,
           Object? propertyMember,
-          Type staticType) =>
+          Type unpromotedType) =>
+      null;
+
+  @override
+  Type? pushPropertySubpattern(
+          String propertyName, Object? propertyMember, Type unpromotedType) =>
       null;
 
   @override
@@ -6679,6 +6754,24 @@ class _PatternContext<Type extends Object> extends _FlowContext {
           type: matchedType,
           isThisOrSuper: false,
           ssaNode: new SsaNode<Type>(null));
+}
+
+/// [_FlowContext] representing a subpattern of an object pattern, which is
+/// being matched against a property of the object pattern's target.
+class _PropertyPatternContext<Type extends Object>
+    extends _PatternContext<Type> {
+  /// The value of [_FlowAnalysisImpl._scrutineeReference] that was in effect
+  /// prior to visiting the subpattern.
+  final _Reference<Type>? _previousScrutinee;
+
+  _PropertyPatternContext(super._matchedValueInfo, this._previousScrutinee);
+
+  @override
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['previousScrutinee'] = _previousScrutinee;
+
+  @override
+  String get _debugType => '_PropertyPatternContext';
 }
 
 /// Specialization of [ExpressionInfo] for the case where the expression is a

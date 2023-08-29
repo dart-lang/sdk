@@ -1614,7 +1614,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType resolveObjectPatternPropertyGet({
+  (ExecutableElement?, DartType) resolveObjectPatternPropertyGet({
     required covariant ObjectPatternImpl objectPattern,
     required DartType receiverType,
     required covariant SharedPatternField field,
@@ -1623,7 +1623,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var nameToken = fieldNode.name?.name;
     nameToken ??= field.pattern.variablePattern?.name;
     if (nameToken == null) {
-      return typeProvider.dynamicType;
+      return (null, typeProvider.dynamicType);
     }
 
     var result = typePropertyResolver.resolve(
@@ -1646,18 +1646,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (getter != null) {
       fieldNode.element = getter;
       if (getter is PropertyAccessorElement) {
-        return getter.returnType;
+        return (getter, getter.returnType);
       } else {
-        return getter.type;
+        return (getter, getter.type);
       }
     }
 
     var recordField = result.recordField;
     if (recordField != null) {
-      return recordField.type;
+      return (null, recordField.type);
     }
 
-    return typeProvider.dynamicType;
+    return (null, typeProvider.dynamicType);
   }
 
   @override

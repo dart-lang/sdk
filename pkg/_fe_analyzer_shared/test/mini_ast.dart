@@ -5750,12 +5750,13 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  Type resolveObjectPatternPropertyGet({
+  (_PropertyElement?, Type) resolveObjectPatternPropertyGet({
     required Pattern objectPattern,
     required Type receiverType,
     required shared.RecordPatternField<Node, Pattern> field,
   }) {
-    return _harness.getMember(receiverType, field.name!)?._type ?? dynamicType;
+    var propertyMember = _harness.getMember(receiverType, field.name!);
+    return (propertyMember, propertyMember?._type ?? dynamicType);
   }
 
   @override
