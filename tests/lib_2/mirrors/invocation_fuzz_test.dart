@@ -48,7 +48,7 @@ var denylist = [
   // Don't instantiate structs with bogus memory.
   'dart.ffi._AsTypedListFinalizerData',
 
-  // TODO(http://dartbug.com/53350): Re-enable after fix/investigation.
+  // Don't instantiate callables with random function pointers.
   'dart.ffi._NativeCallableIsolateLocal',
 ];
 
