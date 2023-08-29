@@ -176,14 +176,12 @@ _builder(
 _extra_builder(
     "vm-win-debug-arm64",
     category = "vm|jit|wad",
-    channels = ["try"],
     dimensions = [windows11, arm64, flutter_pool],
     goma = False,  # no such package: infra_internal/goma/client/windows-arm64
 )
 _extra_builder(
     "vm-win-release-arm64",
     category = "vm|jit|war",
-    channels = ["try"],
     dimensions = [windows11, arm64, flutter_pool],
     goma = False,  # no such package: infra_internal/goma/client/windows-arm64
 )
@@ -263,14 +261,12 @@ _extra_builder(
 _extra_builder(
     "vm-aot-win-debug-arm64",
     category = "vm|aot|wad",
-    channels = ["try"],
     dimensions = [windows11, arm64, flutter_pool],
     goma = False,  # no such package: infra_internal/goma/client/windows-arm64
 )
 _extra_builder(
     "vm-aot-win-release-arm64",
     category = "vm|aot|war",
-    channels = ["try"],
     dimensions = [windows11, arm64, flutter_pool],
     goma = False,  # no such package: infra_internal/goma/client/windows-arm64
 )

@@ -34,9 +34,7 @@ def sdk_builder_category():
             ["win", "w"],
             ["win-arm64", "wa"],
         ]:
-            if channel == "stable" and builder_type == "linux-riscv64":
-                continue
-            if channel in ["beta", "stable"] and builder_type == "win-arm64":
+            if channel == "stable" and builder_type in ["linux-riscv64", "win-arm64"]:
                 continue
             luci.console_view_entry(
                 builder = "dart-internal:ci/dart-sdk-%s-%s" %
