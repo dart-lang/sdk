@@ -535,6 +535,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       // Should not be a type parameter.
       if (type.element is TypeParameterElement) {
         _errorReporter.reportErrorForNode(errorCode, type);
+        return;
       }
       // Check type arguments.
       var typeArguments = type.typeArguments;
@@ -603,6 +604,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH) ||
           identical(dataErrorCode,
               CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH) ||
+          identical(dataErrorCode, CompileTimeErrorCode.CONST_TYPE_PARAMETER) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF) ||
           identical(
               dataErrorCode, CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH) ||
           identical(dataErrorCode, CompileTimeErrorCode.NON_BOOL_CONDITION) ||

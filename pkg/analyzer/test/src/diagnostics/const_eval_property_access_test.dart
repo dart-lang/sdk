@@ -16,6 +16,33 @@ main() {
 
 @reflectiveTest
 class ConstEvalPropertyAccessTest extends PubPackageResolutionTest {
+  test_constructorFieldInitializer_fromSeparateLibrary() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class A<T> {
+  final int f;
+  const A() : f = T.foo;
+}
+''');
+    await assertErrorsInCode(r'''
+import 'lib.dart';
+const a = const A();
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
+        29,
+        9,
+        contextMessages: [
+          ExpectedContextMessage(
+              convertPath('$testPackageLibPath/lib.dart'), 46, 5,
+              text:
+                  "The error is in the field initializer of 'A', and occurs here."),
+        ],
+      ),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 29,
+          9),
+    ]);
+  }
+
   test_length_invalidTarget() async {
     await assertErrorsInCode('''
 void main() {

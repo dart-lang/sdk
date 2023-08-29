@@ -132,6 +132,7 @@ import 'const_set_element_not_primitive_equality_test.dart'
 import 'const_spread_expected_list_or_set_test.dart'
     as const_spread_expected_list_or_set;
 import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
+import 'const_type_parameter_test.dart' as const_type_parameter;
 import 'const_with_non_const_test.dart' as const_with_non_const;
 import 'const_with_non_constant_argument_test.dart'
     as const_with_non_constant_argument;
@@ -986,6 +987,7 @@ main() {
     const_set_element_not_primitive_equality.main();
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();
+    const_type_parameter.main();
     const_with_non_const.main();
     const_with_non_constant_argument.main();
     const_with_non_type.main();

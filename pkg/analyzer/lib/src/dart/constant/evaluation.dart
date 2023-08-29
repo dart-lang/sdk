@@ -836,7 +836,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   @override
   Constant visitFunctionReference(FunctionReference node) {
-    var functionResult = _getConstant(node.function);
+    final functionResult = _getConstant(node.function);
     if (functionResult is! DartObjectImpl) {
       return functionResult;
     }
@@ -846,9 +846,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     // any type parameters contained therein are reported as non-constant in
     // [ConstantVerifier].
     if (node.typeArguments == null) {
-      var typeArgumentTypes = node.typeArgumentTypes;
+      final typeArgumentTypes = node.typeArgumentTypes;
       if (typeArgumentTypes != null) {
-        var instantiatedTypeArgumentTypes = typeArgumentTypes.map((type) {
+        final instantiatedTypeArgumentTypes = typeArgumentTypes.map((type) {
           if (type is TypeParameterType) {
             return _lexicalTypeEnvironment?[type.element] ?? type;
           } else {
@@ -866,26 +866,39 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
     }
 
-    var typeArgumentList = node.typeArguments;
+    final typeArgumentList = node.typeArguments;
     if (typeArgumentList == null) {
       return _instantiateFunctionType(node, functionResult);
     }
 
-    var typeArguments = <DartType>[];
+    final typeArguments = <DartType>[];
     for (var typeArgument in typeArgumentList.arguments) {
-      var object = _getConstant(typeArgument);
-      if (object is! DartObjectImpl) {
-        return object;
+      final typeArgumentConstant = _getConstant(typeArgument);
+      switch (typeArgumentConstant) {
+        case InvalidConstant(
+            errorCode: CompileTimeErrorCode.CONST_TYPE_PARAMETER
+          ):
+          // If there's a type parameter error in the evaluated constant, we
+          // convert the message to a more specific function reference error.
+          // TODO(kallentu): Don't report error here.
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+              typeArgument);
+          return InvalidConstant(typeArgument,
+              CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF);
+        case InvalidConstant():
+          return typeArgumentConstant;
+        case DartObjectImpl():
+          final typeArgumentType = typeArgumentConstant.toTypeValue();
+          if (typeArgumentType == null) {
+            return InvalidConstant(
+                typeArgument, CompileTimeErrorCode.INVALID_CONSTANT);
+          }
+          // TODO(srawlins): Test type alias types (`typedef i = int`) used as
+          // type arguments. Possibly change implementation based on
+          // canonicalization rules.
+          typeArguments.add(typeArgumentType);
       }
-      var typeArgumentType = object.toTypeValue();
-      if (typeArgumentType == null) {
-        return InvalidConstant(
-            typeArgument, CompileTimeErrorCode.INVALID_CONSTANT);
-      }
-      // TODO(srawlins): Test type alias types (`typedef i = int`) used as
-      // type arguments. Possibly change implementation based on
-      // canonicalization rules.
-      typeArguments.add(typeArgumentType);
     }
     return _dartObjectComputer.typeInstantiate(
         functionResult, typeArguments, node.function);
@@ -954,7 +967,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
     if (!result.isBoolNumStringOrNull) {
       // TODO(kallentu): Don't report error here.
-      _error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, node);
       return InvalidConstant(
           node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
     }
@@ -1070,11 +1084,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
     if ((!_isNonNullableByDefault || node.isTypeLiteralInConstantPattern) &&
         hasTypeParameterReference(type)) {
-      // TODO(kallentu): Don't report error here and report a more specific
-      // diagnostic
+      // TODO(kallentu): Don't report error here
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_CONSTANT, node);
-      return InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT);
+          CompileTimeErrorCode.CONST_TYPE_PARAMETER, node);
+      return InvalidConstant(node, CompileTimeErrorCode.CONST_TYPE_PARAMETER);
     } else if (node.isDeferred) {
       return _getDeferredLibraryError(node, node.name2) ??
           InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT);
@@ -1129,10 +1142,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
       // String.length
       if (prefixElement is! InterfaceElement) {
-        final stringLengthResult =
-            _evaluateStringLength(prefixResult, node.identifier, node);
-        if (stringLengthResult != null) {
-          return stringLengthResult;
+        final propertyAccessResult =
+            _evaluatePropertyAccess(prefixResult, node.identifier, node);
+        if (propertyAccessResult != null) {
+          return propertyAccessResult;
         }
       }
     }
@@ -1182,10 +1195,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         return prefixResult;
       }
 
-      final stringLengthResult =
-          _evaluateStringLength(prefixResult, node.propertyName, node);
-      if (stringLengthResult != null) {
-        return stringLengthResult;
+      final propertyAccessResult =
+          _evaluatePropertyAccess(prefixResult, node.propertyName, node);
+      if (propertyAccessResult != null) {
+        return propertyAccessResult;
       }
     }
     return _getConstantValue(
@@ -1380,7 +1393,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             return null;
         }
       case MapLiteralEntry():
-        return InvalidConstant(element, CompileTimeErrorCode.INVALID_CONSTANT);
+        return InvalidConstant(
+            element, CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP);
       case SpreadElement():
         var spread = _getConstant(element.expression);
         switch (spread) {
@@ -1405,7 +1419,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       Map<DartObjectImpl, DartObjectImpl> map, CollectionElement element) {
     switch (element) {
       case Expression():
-        return InvalidConstant(element, CompileTimeErrorCode.INVALID_CONSTANT);
+        return InvalidConstant(element, CompileTimeErrorCode.EXPRESSION_IN_MAP);
       case ForElement():
         // TODO(kallentu): Don't report error here.
         _errorReporter.reportErrorForNode(
@@ -1508,7 +1522,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             return null;
         }
       case MapLiteralEntry():
-        return InvalidConstant(element, CompileTimeErrorCode.INVALID_CONSTANT);
+        return InvalidConstant(
+            element, CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP);
       case SpreadElement():
         var spread = _getConstant(element.expression);
         switch (spread) {
@@ -1578,12 +1593,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     _errorReporter.reportErrorForNode(code, node);
   }
 
-  /// Attempt to evaluate a constant that reads the length of a `String`.
+  /// Attempt to evaluate a constant property access.
   ///
   /// Return a valid [DartObjectImpl] if the given [targetResult] represents a
   /// `String` and the [identifier] is `length`, an [InvalidConstant] if there's
   /// an error, and `null` otherwise.
-  Constant? _evaluateStringLength(DartObjectImpl targetResult,
+  Constant? _evaluatePropertyAccess(DartObjectImpl targetResult,
       SimpleIdentifier identifier, AstNode errorNode) {
     if (identifier.staticElement?.enclosingElement is ExtensionElement) {
       _errorReporter.reportErrorForNode(
@@ -1592,23 +1607,33 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           errorNode, CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD);
     }
 
-    if (identifier.name == 'length') {
-      final targetType = targetResult.type;
-      if (!(targetType is InterfaceType && targetType.isDartCoreString)) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
-            errorNode,
-            [identifier.name, targetType]);
-        return InvalidConstant(
-            errorNode, CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
-            arguments: [identifier.name, targetType]);
-      }
+    final targetType = targetResult.type;
+
+    // Evaluate a constant that reads the length of a `String`.
+    if (identifier.name == 'length' &&
+        targetType is InterfaceType &&
+        targetType.isDartCoreString) {
       return _dartObjectComputer.stringLength(errorNode, targetResult);
     }
 
-    // TODO(kallentu): Make a more specific error here if we aren't accessing
-    // the '.length' property.
-    return null;
+    final element = identifier.staticElement;
+    if (element != null && element is ExecutableElement && element.isStatic) {
+      return null;
+    }
+
+    // No other property access is allowed except for `.length` of a `String`.
+    // TODO(kallentu): Don't report error here.
+    _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, errorNode, [
+      identifier.name,
+      targetType.getDisplayString(withNullability: _isNonNullableByDefault)
+    ]);
+    return InvalidConstant(
+        errorNode, CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
+        arguments: [
+          identifier.name,
+          targetType.getDisplayString(withNullability: _isNonNullableByDefault)
+        ]);
   }
 
   /// Return a [Constant], evaluated by the [ConstantVisitor].
@@ -1650,8 +1675,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         (expression.tearOffTypeArgumentTypes?.any(hasTypeParameterReference) ??
             false)) {
       // TODO(kallentu): Don't report error here.
-      _error(expression, null);
-      return InvalidConstant.genericError(expression);
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_TYPE_PARAMETER, expression);
+      return InvalidConstant(
+          expression, CompileTimeErrorCode.CONST_TYPE_PARAMETER);
     }
 
     if (variableElement is VariableElementImpl) {
@@ -1748,7 +1775,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       // Constants may refer to type parameters only if the constructor-tearoffs
       // feature is enabled.
       if (_library.featureSet.isEnabled(Feature.constructor_tearoffs)) {
-        var typeArgument = _lexicalTypeEnvironment?[variableElement];
+        final typeArgument = _lexicalTypeEnvironment?[variableElement];
         if (typeArgument != null) {
           return DartObjectImpl(
             typeSystem,
@@ -1756,6 +1783,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             TypeState(typeArgument),
           );
         }
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONST_TYPE_PARAMETER, errorNode2);
+        return InvalidConstant(
+            errorNode2, CompileTimeErrorCode.CONST_TYPE_PARAMETER);
       }
     }
 

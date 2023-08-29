@@ -3034,6 +3034,10 @@ CompileTimeErrorCode:
       const Map<String, int> map1 = {};
       const Map<String, int> map2 = {...map1};
       ```
+  CONST_TYPE_PARAMETER:
+    problemMessage: "Type parameters can't be used in a constant expression."
+    correctionMessage: Try replacing the type parameter with a different type.
+    comment: No parameters.
   CONST_WITH_NON_CONST:
     problemMessage: "The constructor being called isn't a const constructor."
     correctionMessage: "Try removing 'const' from the constructor invocation."

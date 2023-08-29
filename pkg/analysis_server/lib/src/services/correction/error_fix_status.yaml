@@ -445,6 +445,8 @@ CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET:
   status: noFix
 CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP:
   status: noFix
+CompileTimeErrorCode.CONST_TYPE_PARAMETER:
+  status: needsEvaluation
 CompileTimeErrorCode.CONST_WITH_NON_CONST:
   status: hasFix
 CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:

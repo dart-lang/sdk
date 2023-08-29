@@ -49,33 +49,6 @@ class A {
     ]);
   }
 
-  test_constructorFieldInitializer_fromSeparateLibrary() async {
-    newFile('$testPackageLibPath/lib.dart', r'''
-class A<T> {
-  final int f;
-  const A() : f = T.foo;
-}
-''');
-    await assertErrorsInCode(r'''
-import 'lib.dart';
-const a = const A();
-''', [
-      error(
-        CompileTimeErrorCode.INVALID_CONSTANT,
-        29,
-        9,
-        contextMessages: [
-          ExpectedContextMessage(
-              convertPath('$testPackageLibPath/lib.dart'), 46, 5,
-              text:
-                  "The error is in the field initializer of 'A', and occurs here."),
-        ],
-      ),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 29,
-          9),
-    ]);
-  }
-
   test_in_initializer_field_as() async {
     await assertNoErrorsInCode('''
 class C<T> {

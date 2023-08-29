@@ -5,7 +5,6 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -16,51 +15,6 @@ main() {
 
 @reflectiveTest
 class NonConstantDefaultValueTest extends PubPackageResolutionTest {
-  test_appliedTypeParameter_defaultConstructorValue() async {
-    await assertErrorsInCode(r'''
-void f<T>(T t) => t;
-
-class C<T> {
-  final void Function(T) p;
-  const C({this.p = f});
-}
-''', [ExpectedError(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 83, 1)]);
-  }
-
-  test_appliedTypeParameter_defaultFunctionValue() async {
-    await assertErrorsInCode(r'''
-void f<T>(T t) => t;
-
-void bar<T>([void Function(T) p = f]) {}
-''', [ExpectedError(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 56, 1)]);
-  }
-
-  test_appliedTypeParameter_defaultMethodValue() async {
-    await assertErrorsInCode(r'''
-void f<T>(T t) => t;
-
-class C<T> {
-  void foo([void Function(T) p = f]) {}
-}
-''', [ExpectedError(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 68, 1)]);
-  }
-
-  test_appliedTypeParameter_nested() async {
-    await assertErrorsInCode(r'''
-void f<T>(T t) => t;
-
-void bar<T>([void Function(List<T>) p = f]) {}
-''', [ExpectedError(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 62, 1)]);
-  }
-
-  test_appliedTypeParameter_nestedFunction() async {
-    await assertErrorsInCode(r'''
-void f<T>(T t) => t;
-
-void bar<T>([void Function(T Function()) p = f]) {}
-''', [ExpectedError(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 67, 1)]);
-  }
-
   test_constructor_named() async {
     await assertErrorsInCode(r'''
 class A {
