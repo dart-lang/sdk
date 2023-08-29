@@ -493,6 +493,18 @@ class CompilerOptions implements DiagnosticOptions {
   /// elements, results of type inference, and data about generated code.
   bool dumpInfo = false;
 
+  /// Whether to read dump info requisite data and run dump info task. Loads all
+  /// data necessary for the dump info task without having to re-generate output
+  /// JS. Passing this flag alone will run the dump info task in JSON mode. Pass
+  /// `--dump-info=binary` as well to emit the binary version of the info dump.
+  Uri? dumpInfoReadUri;
+
+  /// Whether to write dump info requisite data after emitting JS. This contains
+  /// data captured from the JS printer and processed for the dump info task.
+  /// The file emitted to the URI can then be read in using [dumpInfoReadUri]
+  /// to run dump info as a standalone task (without re-emitting JS).
+  Uri? dumpInfoWriteUri;
+
   /// Whether to use the new dump-info binary format. This will be the default
   /// after a transitional period.
   bool useDumpInfoBinaryFormat = false;
@@ -883,6 +895,10 @@ class CompilerOptions implements DiagnosticOptions {
       ..disableRtiOptimization =
           _hasOption(options, Flags.disableRtiOptimization)
       ..dumpInfo = _hasOption(options, Flags.dumpInfo)
+      ..dumpInfoReadUri =
+          _extractUriOption(options, '${Flags.readDumpInfoData}=')
+      ..dumpInfoWriteUri =
+          _extractUriOption(options, '${Flags.writeDumpInfoData}=')
       ..useDumpInfoBinaryFormat =
           _hasOption(options, "${Flags.dumpInfo}=binary")
       ..dumpSsaPattern =

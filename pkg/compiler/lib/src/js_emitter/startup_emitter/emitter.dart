@@ -155,7 +155,7 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
       CompilerOptions options,
       this._reporter,
       api.CompilerOutput outputProvider,
-      DumpInfoTask dumpInfoTask,
+      DumpInfoJsAstRegistry dumpInfoRegistry,
       Namer namer,
       this._closedWorld,
       this._rtiRecipeEncoder,
@@ -168,7 +168,7 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
         options,
         _reporter,
         outputProvider,
-        dumpInfoTask,
+        dumpInfoRegistry,
         namer,
         _closedWorld,
         _task,
@@ -240,10 +240,13 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
   }
 
   @override
-  int generatedSize(OutputUnit unit) {
-    if (_emitter.omittedOutputUnits.contains(unit)) {
-      return 0;
-    }
-    return _emitter.emittedOutputBuffers[unit]!.length;
+  Map<OutputUnit, int> get generatedSizes {
+    final mappedSizes = <OutputUnit, int>{};
+    _emitter.emittedOutputBuffers.forEach((outputUnit, outputData) {
+      mappedSizes[outputUnit] = outputData.length;
+    });
+    _emitter.omittedOutputUnits
+        .forEach((outputUnit) => mappedSizes[outputUnit] = 0);
+    return mappedSizes;
   }
 }

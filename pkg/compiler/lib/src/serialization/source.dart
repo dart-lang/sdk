@@ -440,9 +440,9 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeStringMap].
-  Map<String, V>? readStringMap<V>(V f(), {bool emptyAsNull = false}) {
+  Map<String, V> readStringMap<V>(V f()) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
+    if (count == 0) return {};
     Map<String, V> map = {};
     for (int i = 0; i < count; i++) {
       String key = readString();

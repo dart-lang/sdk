@@ -26,7 +26,12 @@ import 'deferred_load/program_split_constraints/nodes.dart' as psc
     show ConstraintData;
 import 'deferred_load/program_split_constraints/parser.dart' as psc show Parser;
 import 'diagnostics/messages.dart' show Message;
-import 'dump_info.dart' show DumpInfoStateData, DumpInfoTask;
+import 'dump_info.dart'
+    show
+        DumpInfoJsAstRegistry,
+        DumpInfoProgramData,
+        DumpInfoStateData,
+        DumpInfoTask;
 import 'elements/entities.dart';
 import 'enqueue.dart' show Enqueuer;
 import 'environment.dart';
@@ -122,6 +127,7 @@ class Compiler {
   late final GenericTask enqueueTask;
   late final DeferredLoadTask deferredLoadTask;
   late final DumpInfoTask dumpInfoTask;
+  final DumpInfoJsAstRegistry dumpInfoRegistry;
   late final SerializationTask serializationTask;
 
   Progress progress = const Progress();
@@ -148,7 +154,8 @@ class Compiler {
       this.options)
       // NOTE: allocating measurer is done upfront to ensure the wallclock is
       // started before other computations.
-      : measurer = Measurer(enableTaskMeasurements: options.verbose) {
+      : measurer = Measurer(enableTaskMeasurements: options.verbose),
+        dumpInfoRegistry = DumpInfoJsAstRegistry(options) {
     options.deriveOptions();
     options.validate();
     environment = Environment(options.environment);
@@ -189,7 +196,7 @@ class Compiler {
       kernelFrontEndTask,
       globalInference = GlobalTypeInferenceTask(this),
       deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
-      dumpInfoTask = DumpInfoTask(this),
+      dumpInfoTask = DumpInfoTask(options, measurer, _outputProvider, reporter),
       selfTask,
       serializationTask = SerializationTask(
           options, reporter, provider, outputProvider, measurer),
@@ -703,8 +710,7 @@ class Compiler {
   // Only use deferred reads for linker phase where we are not creating an info
   // dump. Creating an info dump ends up hitting all the deferred entities
   // anyway.
-  bool get useDeferredSourceReads =>
-      stage == Dart2JSStage.jsEmitter && !options.dumpInfo;
+  bool get useDeferredSourceReads => stage == Dart2JSStage.jsEmitter;
 
   Future<void> runSequentialPhases() async {
     // Load kernel.
@@ -735,23 +741,41 @@ class Compiler {
         await produceCodegenResults(globalTypeInferenceResults, sourceLookup);
     if (shouldStopAfterCodegen) return;
 
-    // Link.
-    int programSize = runCodegenEnqueuer(codegenResults, sourceLookup);
-
-    // Dump Info.
-    if (options.dumpInfo) {
-      await runDumpInfo(codegenResults, programSize);
+    if (options.dumpInfoReadUri != null) {
+      final dumpInfoData =
+          await serializationTask.deserializeDumpInfoProgramData(
+              backendStrategy,
+              closedWorldAndIndices.data!,
+              globalTypeInferenceResults.indices);
+      await runDumpInfo(codegenResults, dumpInfoData);
+    } else {
+      // Link.
+      final programSize = runCodegenEnqueuer(codegenResults, sourceLookup);
+      if (options.dumpInfo || options.dumpInfoWriteUri != null) {
+        final dumpInfoData = DumpInfoProgramData.fromEmitterResults(
+            backendStrategy, dumpInfoRegistry, programSize);
+        dumpInfoRegistry.clear();
+        if (options.dumpInfo) {
+          await runDumpInfo(codegenResults, dumpInfoData);
+        } else {
+          serializationTask.serializeDumpInfoProgramData(
+              backendStrategy,
+              dumpInfoData,
+              closedWorldAndIndices.data!,
+              globalTypeInferenceResults.indices);
+        }
+      }
     }
   }
 
-  Future<void> runDumpInfo(
-      CodegenResults codegenResults, int programSize) async {
+  Future<void> runDumpInfo(CodegenResults codegenResults,
+      DumpInfoProgramData dumpInfoProgramData) async {
     GlobalTypeInferenceResults globalTypeInferenceResults =
         codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
 
     DumpInfoStateData dumpInfoState;
-    dumpInfoTask.reportSize(programSize);
+    dumpInfoTask.registerDumpInfoProgramData(dumpInfoProgramData);
     if (options.features.newDumpInfo.isEnabled) {
       untrimmedComponentForDumpInfo ??= (await produceKernel())!.component;
       dumpInfoState = await dumpInfoTask.dumpInfoNew(
