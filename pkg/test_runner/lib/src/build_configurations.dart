@@ -82,8 +82,8 @@ List<String> _selectBuildTargets(Configuration inner) {
     Compiler.dartk: ['runtime'],
     Compiler.dartkp: ['runtime', 'dart_precompiled_runtime'],
     Compiler.appJitk: ['runtime'],
-    Compiler.fasta: ['create_sdk', 'dartdevc_test', 'kernel_platform_files'],
-    Compiler.ddc: ['dartdevc_test'],
+    Compiler.fasta: ['create_sdk', 'ddc_stable_test', 'kernel_platform_files'],
+    Compiler.ddc: ['ddc_stable_test'],
     Compiler.dart2js: ['create_sdk'],
     Compiler.dart2analyzer: ['create_sdk', 'utils/dartanalyzer'],
     Compiler.specParser: <String>[],
@@ -112,12 +112,12 @@ List<String> _selectBuildTargets(Configuration inner) {
   if (compiler == Compiler.ddc) {
     if (inner.ddcOptions.contains('--canary')) {
       result
-        ..remove('dartdevc_test')
+        ..remove('ddc_stable_test')
         ..add(inner.useSdk ? 'ddc_canary_test' : 'ddc_canary_test_local');
     } else if (!inner.useSdk) {
       result
-        ..remove('dartdevc_test')
-        ..add('dartdevc_test_local');
+        ..remove('ddc_stable_test')
+        ..add('ddc_stable_test_local');
     }
   }
 
