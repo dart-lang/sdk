@@ -503,6 +503,29 @@ bool true
 ''');
   }
 
+  test_instanceCreation_generic_noTypeArguments_inferred_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A<T> {
+  final T t;
+  const A(this.t);
+}
+const Object a = const A(0);
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+const b = a;
+''');
+
+    final result = _topLevelVar('b');
+    assertDartObjectText(result, r'''
+A<int>
+  t: int 0
+  variable: self::@variable::b
+''');
+  }
+
   /// https://github.com/dart-lang/sdk/issues/53029
   /// Dependencies of map patterns should be considered.
   test_mapPattern_dependencies() async {
