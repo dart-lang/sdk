@@ -651,23 +651,32 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
   // The parent is either a library or a class (in which case the procedure is a
   // static method).
   NameIndex enclosing = EnclosingName(procedure);
-  Function& function = Function::Handle(Z);
+  Class& klass = Class::Handle(Z);
   if (IsLibrary(enclosing)) {
     Library& library = Library::Handle(
         Z, LookupLibraryByKernelLibrary(enclosing, /*required=*/false));
-    if (!library.IsNull()) {
-      function = library.LookupFunctionAllowPrivate(procedure_name);
+    if (library.IsNull()) {
+      if (required) {
+        LookupFailed(procedure);
+      }
+      return Function::null();
     }
+    klass = library.toplevel_class();
   } else {
     ASSERT(IsClass(enclosing));
-    Class& klass = Class::Handle(
-        Z, LookupClassByKernelClass(enclosing, /*required=*/false));
-    if (!klass.IsNull()) {
-      const auto& error = klass.EnsureIsFinalized(thread_);
-      ASSERT(error == Error::null());
-      function = klass.LookupFunctionAllowPrivate(procedure_name);
+    klass = LookupClassByKernelClass(enclosing, /*required=*/false);
+    if (klass.IsNull()) {
+      if (required) {
+        LookupFailed(procedure);
+      }
+      return Function::null();
     }
   }
+
+  const auto& error = klass.EnsureIsFinalized(thread_);
+  ASSERT(error == Error::null());
+  Function& function =
+      Function::Handle(Z, klass.LookupFunctionAllowPrivate(procedure_name));
   if (function.IsNull() && required) {
     LookupFailed(procedure);
   }
