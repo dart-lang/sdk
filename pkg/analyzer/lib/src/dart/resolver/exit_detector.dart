@@ -504,6 +504,22 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       _visitStatements(node.statements);
 
   @override
+  bool visitSwitchExpression(SwitchExpression node) {
+    for (var case_ in node.cases) {
+      if (!case_.accept(this)!) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  bool visitSwitchExpressionCase(SwitchExpressionCase node) {
+    return _nodeExits(node.guardedPattern.whenClause?.expression) ||
+        _nodeExits(node.expression);
+  }
+
+  @override
   bool visitSwitchPatternCase(SwitchPatternCase node) {
     return _visitStatements(node.statements);
   }
@@ -528,7 +544,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
           }
         }
         // For switch members with no statements, don't visit the children.
-        // Otherwise, if there children statements don't exit, mark this as a
+        // Otherwise, if the children statements don't exit, mark this as a
         // non-exiting case.
         if (switchMember.statements.isNotEmpty && !switchMember.accept(this)!) {
           hasNonExitingCase = true;
