@@ -13321,6 +13321,9 @@ CompileTimeErrorCode:
       const secondsPerHour = minutesPerHour * 60;
       const minutesPerHour = 60;
       ```
+  RECURSIVE_CONSTANT_CONSTRUCTOR:
+    problemMessage: "The constant constructor depends on itself."
+    comment: No parameters.
   RECURSIVE_CONSTRUCTOR_REDIRECT:
     problemMessage: "Constructors can't redirect to themselves either directly or indirectly."
     correctionMessage: Try changing one of the constructors in the loop to not redirect.

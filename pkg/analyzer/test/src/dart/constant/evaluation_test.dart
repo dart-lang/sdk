@@ -741,6 +741,44 @@ const x = kIsWeb ? a : b;
     _assertNull(result);
   }
 
+  test_visitConstructorDeclaration_cycle() async {
+    await assertErrorsInCode('''
+class A {
+  final A a;
+  const A() : a = const A();
+}
+
+''', [
+      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 31, 1),
+    ]);
+  }
+
+  test_visitConstructorDeclaration_cycle_subclass_issue46735() async {
+    await assertErrorsInCode('''
+void main() {
+  const EmptyInjector();
+}
+
+abstract class BaseInjector {
+  final BaseInjector parent;
+
+  const BaseInjector([BaseInjector? parent])
+      : parent = parent ?? const EmptyInjector();
+}
+
+abstract class Injector implements BaseInjector {
+  const Injector();
+}
+
+class EmptyInjector extends BaseInjector implements Injector {
+  const EmptyInjector();
+}
+''', [
+      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 110, 12),
+      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 344, 13),
+    ]);
+  }
+
   test_visitConstructorDeclaration_field_asExpression_nonConst() async {
     await assertErrorsInCode(r'''
 dynamic y = 2;
