@@ -609,9 +609,7 @@ class GroupDebugger {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  SafepointRwLock* code_breakpoints_lock() {
-    return code_breakpoints_lock_.get();
-  }
+  RwLock* code_breakpoints_lock() { return code_breakpoints_lock_.get(); }
 
   SafepointRwLock* breakpoint_locations_lock() {
     return breakpoint_locations_lock_.get();
@@ -644,7 +642,7 @@ class GroupDebugger {
  private:
   IsolateGroup* isolate_group_;
 
-  std::unique_ptr<SafepointRwLock> code_breakpoints_lock_;
+  std::unique_ptr<RwLock> code_breakpoints_lock_;
   CodeBreakpoint* code_breakpoints_;
 
   // Secondary list of all breakpoint_locations_(primary is in Debugger class).
