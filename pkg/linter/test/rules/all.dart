@@ -217,6 +217,7 @@ import 'use_key_in_widget_constructors_test.dart'
 import 'use_late_for_private_fields_and_variables_test.dart'
     as use_late_for_private_fields_and_variables;
 import 'use_named_constants_test.dart' as use_named_constants;
+import 'use_raw_strings_test.dart' as use_raw_strings;
 import 'use_rethrow_when_possible_test.dart' as use_rethrow_when_possible;
 import 'use_setters_to_change_properties_test.dart'
     as use_setters_to_change_properties;
@@ -383,6 +384,7 @@ void main() {
   use_key_in_widget_constructors.main();
   use_late_for_private_fields_and_variables.main();
   use_named_constants.main();
+  use_raw_strings.main();
   use_rethrow_when_possible.main();
   use_setters_to_change_properties.main();
   use_string_buffers.main();
