@@ -28,6 +28,8 @@ class MemberSorter {
     _PriorityItem(false, _MemberKind.UNIT_FUNCTION_TYPE, true),
     _PriorityItem(false, _MemberKind.UNIT_CLASS, false),
     _PriorityItem(false, _MemberKind.UNIT_CLASS, true),
+    _PriorityItem(false, _MemberKind.UNIT_EXTENSION_TYPE, false),
+    _PriorityItem(false, _MemberKind.UNIT_EXTENSION_TYPE, true),
     _PriorityItem(false, _MemberKind.UNIT_EXTENSION, false),
     _PriorityItem(false, _MemberKind.UNIT_EXTENSION, true),
     _PriorityItem(true, _MemberKind.CLASS_FIELD, false),
@@ -98,6 +100,8 @@ class MemberSorter {
       } else if (unitMember is EnumDeclaration) {
         _sortClassMembers(unitMember.members);
       } else if (unitMember is ExtensionDeclaration) {
+        _sortClassMembers(unitMember.members);
+      } else if (unitMember is ExtensionTypeDeclaration) {
         _sortClassMembers(unitMember.members);
       } else if (unitMember is MixinDeclaration) {
         _sortClassMembers(unitMember.members);
@@ -175,6 +179,9 @@ class MemberSorter {
         name = member.name.lexeme;
       } else if (member is EnumDeclaration) {
         kind = _MemberKind.UNIT_CLASS;
+        name = member.name.lexeme;
+      } else if (member is ExtensionTypeDeclaration) {
+        kind = _MemberKind.UNIT_EXTENSION_TYPE;
         name = member.name.lexeme;
       } else if (member is ExtensionDeclaration) {
         kind = _MemberKind.UNIT_EXTENSION;
@@ -296,6 +303,7 @@ class _MemberKind {
   static const UNIT_ACCESSOR = _MemberKind('UNIT_ACCESSOR');
   static const UNIT_CLASS = _MemberKind('UNIT_CLASS');
   static const UNIT_EXTENSION = _MemberKind('UNIT_EXTENSION');
+  static const UNIT_EXTENSION_TYPE = _MemberKind('UNIT_EXTENSION_TYPE');
   static const UNIT_FUNCTION = _MemberKind('UNIT_FUNCTION');
   static const UNIT_FUNCTION_MAIN = _MemberKind('UNIT_FUNCTION_MAIN');
   static const UNIT_FUNCTION_TYPE = _MemberKind('UNIT_FUNCTION_TYPE');
