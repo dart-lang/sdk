@@ -60,7 +60,6 @@ class JSTypeRep extends SharedJSTypeRep<DartType> {
     if (type == const DynamicType() || type == const VoidType()) {
       return JSType.jsUnknown;
     }
-    if (type is ExtensionType) typeFor(type.typeErasure);
     return JSType.jsObject;
   }
 
