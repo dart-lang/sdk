@@ -751,7 +751,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_RawStoreField) {
   pipeline.RunForcedOptimizedAfterSSAPasses();
 
   {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(USING_THREAD_SANITIZER)
     SetFlagScope<bool> sfs(&FLAG_disassemble_optimized, true);
 #endif
     pipeline.CompileGraphAndAttachFunction();
@@ -857,7 +857,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_RawLoadField) {
   pipeline.RunForcedOptimizedAfterSSAPasses();
 
   {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(USING_THREAD_SANITIZER)
     SetFlagScope<bool> sfs(&FLAG_disassemble_optimized, true);
 #endif
     pipeline.CompileGraphAndAttachFunction();
@@ -937,7 +937,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
   pipeline.RunForcedOptimizedAfterSSAPasses();
 
   {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(USING_THREAD_SANITIZER)
     SetFlagScope<bool> sfs(&FLAG_disassemble_optimized, true);
 #endif
     pipeline.CompileGraphAndAttachFunction();
