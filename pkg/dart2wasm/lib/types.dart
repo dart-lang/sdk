@@ -26,6 +26,14 @@ class TypeCategory {
   static const maxMasqueradeClassId = 63; // Leaves 2 unused bits for future use
 }
 
+/// Values for the `_kind` field in `_TopType`. Must match the definitions in
+/// `_TopType`.
+class TopTypeKind {
+  static const int objectKind = 0;
+  static const int dynamicKind = 1;
+  static const int voidKind = 2;
+}
+
 class InterfaceTypeEnvironment {
   final Map<TypeParameter, int> _typeOffsets = {};
 
@@ -341,24 +349,18 @@ class Types {
 
   Class classForType(DartType type) {
     if (type is DynamicType) {
-      return translator.dynamicTypeClass;
+      return translator.topTypeClass;
     } else if (type is VoidType) {
-      return translator.voidTypeClass;
+      return translator.topTypeClass;
     } else if (type is NeverType) {
-      // For runtime types with sound null safety, `Never?` is the same as
-      // `Null`.
-      if (type.nullability == Nullability.nullable) {
-        return translator.nullTypeClass;
-      } else {
-        return translator.neverTypeClass;
-      }
+      return translator.bottomTypeClass;
     } else if (type is NullType) {
-      return translator.nullTypeClass;
+      return translator.bottomTypeClass;
     } else if (type is FutureOrType) {
       return translator.futureOrTypeClass;
     } else if (type is InterfaceType) {
       if (type.classNode == coreTypes.objectClass) {
-        return translator.objectTypeClass;
+        return translator.topTypeClass;
       }
       if (type.classNode == coreTypes.functionClass) {
         return translator.abstractFunctionTypeClass;
@@ -387,6 +389,14 @@ class Types {
     return cls == coreTypes.objectClass ||
         cls == coreTypes.functionClass ||
         cls == coreTypes.recordClass;
+  }
+
+  int topTypeKind(DartType type) {
+    return type is VoidType
+        ? TopTypeKind.voidKind
+        : type is DynamicType
+            ? TopTypeKind.dynamicKind
+            : TopTypeKind.objectKind;
   }
 
   /// Allocates a `List<_Type>` from [types] and pushes it to the stack.
@@ -425,8 +435,12 @@ class Types {
   }
 
   /// Normalizes a Dart type. Many rules are already applied for us, but we
-  /// still have to manually normalize [FutureOr].
+  /// still have to manually turn `Never?` into `Null` and normalize `FutureOr`.
   DartType normalize(DartType type) {
+    if (type is NeverType && type.declaredNullability == Nullability.nullable) {
+      return const NullType();
+    }
+
     if (type is! FutureOrType) return type;
 
     final s = normalize(type.typeArgument);

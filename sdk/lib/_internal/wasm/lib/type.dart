@@ -7,6 +7,13 @@ part of 'core_patch.dart';
 // Representation of runtime types. Code in this file should avoid using `is` or
 // `as` entirely to avoid a dependency on any inline type checks.
 
+// Helper for type literals used for all singleton types. By using actual type
+// literals and letting those through the compiler, rather than calling the
+// constructors of the corresponding representation classes, we ensure that they
+// are properly canonicalized by the constant instantiator.
+@pragma("wasm:prefer-inline")
+_Type _literal<T>() => unsafeCast(T);
+
 // TODO(joshualitt): Once we have RTI fully working, we'd like to explore
 // implementing [isSubtype] using inheritance.
 // TODO(joshualitt): We can cache the result of [_FutureOrType.asFuture].
@@ -15,83 +22,75 @@ abstract class _Type implements Type {
 
   const _Type(this.isDeclaredNullable);
 
+  @pragma("wasm:prefer-inline")
   bool _testID(int value) => ClassID.getID(this) == value;
-  bool get isNever => _testID(ClassID.cidNeverType);
-  bool get isDynamic => _testID(ClassID.cidDynamicType);
-  bool get isVoid => _testID(ClassID.cidVoidType);
-  bool get isNull => _testID(ClassID.cidNullType);
+
+  bool get isBottom => _testID(ClassID.cidBottomType);
+  bool get isTop => _testID(ClassID.cidTopType);
   bool get isFutureOr => _testID(ClassID.cidFutureOrType);
   bool get isInterface => _testID(ClassID.cidInterfaceType);
   bool get isInterfaceTypeParameterType =>
       _testID(ClassID.cidInterfaceTypeParameterType);
   bool get isFunctionTypeParameterType =>
       _testID(ClassID.cidFunctionTypeParameterType);
-  bool get isObject => _testID(ClassID.cidObjectType);
   bool get isAbstractFunction => _testID(ClassID.cidAbstractFunctionType);
   bool get isFunction => _testID(ClassID.cidFunctionType);
   bool get isAbstractRecord => _testID(ClassID.cidAbstractRecordType);
   bool get isRecord => _testID(ClassID.cidRecordType);
 
+  @pragma("wasm:prefer-inline")
   T as<T>() => unsafeCast<T>(this);
 
+  @pragma("wasm:prefer-inline")
   _Type get asNullable => isDeclaredNullable ? this : _asNullable;
 
   _Type get _asNullable;
-
-  @override
-  bool operator ==(Object other) => ClassID.getID(this) == ClassID.getID(other);
-
-  @override
-  int get hashCode => mix64(ClassID.getID(this));
 }
 
 @pragma("wasm:entry-point")
-class _NeverType extends _Type {
-  @pragma("wasm:entry-point")
-  const _NeverType() : super(false);
-
-  /// Never? normalizes to Null.
-  @override
-  _Type get _asNullable => const _NullType();
+class _BottomType extends _Type {
+  // To ensure that the `Null` and `Never` types are singleton runtime type
+  // objects, we only allocate these objects via the constant instantiator.
+  external const _BottomType();
 
   @override
-  String toString() => 'Never';
+  _Type get _asNullable => _literal<Null>();
+
+  @override
+  String toString() => isDeclaredNullable ? 'Null' : 'Never';
 }
 
 @pragma("wasm:entry-point")
-class _DynamicType extends _Type {
-  @pragma("wasm:entry-point")
-  const _DynamicType() : super(true);
+class _TopType extends _Type {
+  final int _kind;
+
+  // Values for the `_kind` field. Must match the definitions in `TopTypeKind`.
+  static const int _objectKind = 0;
+  static const int _dynamicKind = 1;
+  static const int _voidKind = 2;
+
+  // To ensure that the `Object`, `Object?`, `dynamic` and `void` types are
+  // singleton runtime type objects, we only allocate these objects via the
+  // constant instantiator.
+  external const _TopType();
+
+  // Only called if Object
+  @override
+  _Type get _asNullable => _literal<Object?>();
 
   @override
-  _Type get _asNullable => this;
-
-  @override
-  String toString() => 'dynamic';
-}
-
-@pragma("wasm:entry-point")
-class _VoidType extends _Type {
-  @pragma("wasm:entry-point")
-  const _VoidType() : super(true);
-
-  @override
-  _Type get _asNullable => this;
-
-  @override
-  String toString() => 'void';
-}
-
-@pragma("wasm:entry-point")
-class _NullType extends _Type {
-  @pragma("wasm:entry-point")
-  const _NullType() : super(true);
-
-  @override
-  _Type get _asNullable => this;
-
-  @override
-  String toString() => 'Null';
+  String toString() {
+    switch (_kind) {
+      case _objectKind:
+        return isDeclaredNullable ? 'Object?' : 'Object';
+      case _dynamicKind:
+        return 'dynamic';
+      case _voidKind:
+        return 'void';
+      default:
+        throw 'Invalid top type kind';
+    }
+  }
 }
 
 /// Reference to a type parameter of an interface type.
@@ -129,7 +128,7 @@ class _FunctionTypeParameterType extends _Type {
 
   @override
   bool operator ==(Object o) {
-    if (!(super == o)) return false;
+    if (ClassID.getID(o) != ClassID.cidFunctionTypeParameterType) return false;
     _FunctionTypeParameterType other =
         unsafeCast<_FunctionTypeParameterType>(o);
     // References to different type parameters can have the same index and thus
@@ -141,7 +140,7 @@ class _FunctionTypeParameterType extends _Type {
 
   @override
   int get hashCode {
-    int hash = super.hashCode;
+    int hash = mix64(ClassID.cidFunctionTypeParameterType);
     hash = mix64(hash ^ (isDeclaredNullable ? 1 : 0));
     return mix64(hash ^ index.hashCode);
   }
@@ -166,7 +165,7 @@ class _FutureOrType extends _Type {
 
   @override
   bool operator ==(Object o) {
-    if (!(super == o)) return false;
+    if (ClassID.getID(o) != ClassID.cidFutureOrType) return false;
     _FutureOrType other = unsafeCast<_FutureOrType>(o);
     if (isDeclaredNullable != other.isDeclaredNullable) return false;
     return typeArgument == other.typeArgument;
@@ -174,7 +173,7 @@ class _FutureOrType extends _Type {
 
   @override
   int get hashCode {
-    int hash = super.hashCode;
+    int hash = mix64(ClassID.cidFutureOrType);
     hash = mix64(hash ^ (isDeclaredNullable ? 1 : 0));
     return mix64(hash ^ typeArgument.hashCode);
   }
@@ -191,6 +190,7 @@ class _FutureOrType extends _Type {
   }
 }
 
+@pragma("wasm:entry-point")
 class _InterfaceType extends _Type {
   final int classId;
   final List<_Type> typeArguments;
@@ -204,7 +204,7 @@ class _InterfaceType extends _Type {
 
   @override
   bool operator ==(Object o) {
-    if (!(super == o)) return false;
+    if (ClassID.getID(o) != ClassID.cidInterfaceType) return false;
     _InterfaceType other = unsafeCast<_InterfaceType>(o);
     if (classId != other.classId) return false;
     if (isDeclaredNullable != other.isDeclaredNullable) return false;
@@ -217,7 +217,7 @@ class _InterfaceType extends _Type {
 
   @override
   int get hashCode {
-    int hash = super.hashCode;
+    int hash = mix64(ClassID.cidInterfaceType);
     hash = mix64(hash ^ classId);
     hash = mix64(hash ^ (isDeclaredNullable ? 1 : 0));
     for (int i = 0; i < typeArguments.length; i++) {
@@ -253,7 +253,7 @@ class _NamedParameter {
 
   @override
   bool operator ==(Object o) {
-    if (ClassID.getID(this) != ClassID.getID(o)) return false;
+    if (ClassID.getID(o) != ClassID.cidNamedParameter) return false;
     _NamedParameter other = unsafeCast<_NamedParameter>(o);
     return this.name == other.name &&
         this.type == other.type &&
@@ -262,7 +262,7 @@ class _NamedParameter {
 
   @override
   int get hashCode {
-    int hash = mix64(ClassID.getID(this));
+    int hash = mix64(ClassID.cidNamedParameter);
     hash = mix64(hash ^ name.hashCode);
     hash = mix64(hash ^ type.hashCode);
     return mix64(hash ^ (isRequired ? 1 : 0));
@@ -279,51 +279,22 @@ class _NamedParameter {
   }
 }
 
-class _ObjectType extends _Type {
-  @pragma("wasm:entry-point")
-  const _ObjectType(super.isDeclaredNullable);
-
-  @override
-  _Type get _asNullable => const _ObjectType(true);
-
-  @override
-  bool operator ==(Object o) {
-    if (!(super == o)) return false;
-    _ObjectType other = unsafeCast<_ObjectType>(o);
-    return isDeclaredNullable == other.isDeclaredNullable;
-  }
-
-  @override
-  int get hashCode {
-    int hash = super.hashCode;
-    return mix64(hash ^ (isDeclaredNullable ? 1 : 0));
-  }
-
-  @override
-  String toString() {
-    StringBuffer s = StringBuffer();
-    s.write("Object");
-    if (isDeclaredNullable) s.write("?");
-    return s.toString();
-  }
-}
-
+@pragma("wasm:entry-point")
 class _AbstractFunctionType extends _Type {
-  @pragma("wasm:entry-point")
-  const _AbstractFunctionType(super.isDeclaredNullable);
+  // To ensure that the `Function` and `Function?` types are singleton runtime
+  // type objects, we only allocate these objects via the constant instantiator.
+  external const _AbstractFunctionType();
 
   @override
-  _Type get _asNullable => const _AbstractFunctionType(true);
+  _Type get _asNullable => _literal<Function?>();
 
   @override
   String toString() {
-    StringBuffer s = StringBuffer();
-    s.write("Function");
-    if (isDeclaredNullable) s.write("?");
-    return s.toString();
+    return isDeclaredNullable ? 'Function?' : 'Function';
   }
 }
 
+@pragma("wasm:entry-point")
 class _FunctionType extends _Type {
   // TODO(askesc): The [typeParameterOffset] is 0 except in the rare case where
   // the function type contains a nested generic function type that contains a
@@ -361,7 +332,7 @@ class _FunctionType extends _Type {
       true);
 
   bool operator ==(Object o) {
-    if (!(super == o)) return false;
+    if (ClassID.getID(o) != ClassID.cidFunctionType) return false;
     _FunctionType other = unsafeCast<_FunctionType>(o);
     if (isDeclaredNullable != other.isDeclaredNullable) return false;
     if (typeParameterBounds.length != other.typeParameterBounds.length) {
@@ -389,7 +360,7 @@ class _FunctionType extends _Type {
 
   @override
   int get hashCode {
-    int hash = super.hashCode;
+    int hash = mix64(ClassID.cidFunctionType);
     for (int i = 0; i < typeParameterBounds.length; i++) {
       hash = mix64(hash ^ typeParameterBounds[i].hashCode);
     }
@@ -414,9 +385,7 @@ class _FunctionType extends _Type {
         if (i > 0) s.write(", ");
         s.write("X${typeParameterOffset + i}");
         final bound = typeParameterBounds[i];
-        if (!(bound.isObject && bound.isDeclaredNullable ||
-            bound.isDynamic ||
-            bound.isVoid)) {
+        if (!(bound.isTop && bound.isDeclaredNullable)) {
           s.write(" extends ");
           s.write(bound);
         }
@@ -446,22 +415,22 @@ class _FunctionType extends _Type {
   }
 }
 
+@pragma("wasm:entry-point")
 class _AbstractRecordType extends _Type {
-  @pragma("wasm:entry-point")
-  const _AbstractRecordType(super.isDeclaredNullable);
+  // To ensure that the `Record` and `Record?` types are singleton runtime type
+  // objects, we only allocate these objects via the constant instantiator.
+  external const factory _AbstractRecordType();
 
   @override
-  _Type get _asNullable => const _AbstractRecordType(true);
+  _Type get _asNullable => _literal<Record?>();
 
   @override
   String toString() {
-    StringBuffer s = StringBuffer();
-    s.write("Record");
-    if (isDeclaredNullable) s.write("?");
-    return s.toString();
+    return isDeclaredNullable ? 'Record?' : 'Record';
   }
 }
 
+@pragma("wasm:entry-point")
 class _RecordType extends _Type {
   final List<String> names;
   final List<_Type> fieldTypes;
@@ -509,10 +478,9 @@ class _RecordType extends _Type {
   }
 
   @override
-  bool operator ==(Object other) {
-    if (other is! _RecordType) {
-      return false;
-    }
+  bool operator ==(Object o) {
+    if (ClassID.getID(o) != ClassID.cidRecordType) return false;
+    _RecordType other = unsafeCast<_RecordType>(o);
 
     if (!_sameShape(other)) {
       return false;
@@ -640,11 +608,7 @@ class _TypeUniverse {
   /// substituted.
   static _Type substituteTypeArgument(
       _Type type, List<_Type> substitutions, _FunctionType? rootFunction) {
-    if (type.isNever ||
-        type.isDynamic ||
-        type.isVoid ||
-        type.isNull ||
-        type.isObject) {
+    if (type.isBottom || type.isTop) {
       return type;
     } else if (type.isFutureOr) {
       return createNormalizedFutureOrType(
@@ -726,15 +690,13 @@ class _TypeUniverse {
 
   static _Type createNormalizedFutureOrType(
       bool isDeclaredNullable, _Type typeArgument) {
-    if (typeArgument.isObject ||
-        typeArgument.isDynamic ||
-        typeArgument.isVoid) {
+    if (typeArgument.isTop) {
       return isDeclaredNullable ? typeArgument.asNullable : typeArgument;
-    } else if (typeArgument.isNever) {
+    } else if (typeArgument.isBottom) {
       return _InterfaceType(
-          ClassID.cidFuture, isDeclaredNullable, const [_NeverType()]);
-    } else if (typeArgument.isNull) {
-      return _InterfaceType(ClassID.cidFuture, true, const [_NullType()]);
+          ClassID.cidFuture,
+          isDeclaredNullable || typeArgument.isDeclaredNullable,
+          [typeArgument]);
     }
 
     bool declaredNullability =
@@ -783,7 +745,7 @@ class _TypeUniverse {
     // arguments.
     if (substitutions.isNotEmpty && sTypeArguments.isEmpty) {
       sTypeArguments = List<_Type>.generate(
-          substitutions.length, (int index) => const _DynamicType(),
+          substitutions.length, (int index) => _literal<dynamic>(),
           growable: false);
     }
 
@@ -923,13 +885,13 @@ class _TypeUniverse {
     }
 
     // Left bottom:
-    if (s.isNull || s.isNever) return true;
+    if (s.isBottom) return true;
 
     // Right top:
-    if (t.isObject || t.isDynamic || t.isVoid) return true;
+    if (t.isTop) return true;
 
     // Right bottom:
-    if (t.isNull || t.isNever) return false;
+    if (t.isBottom) return false;
 
     // Left Type Variable Bound 1:
     if (s.isFunctionTypeParameterType) {
@@ -1175,11 +1137,11 @@ external _Type _getActualRuntimeType(Object object);
 
 @pragma("wasm:prefer-inline")
 _Type _getActualRuntimeTypeNullable(Object? object) =>
-    object == null ? const _NullType() : _getActualRuntimeType(object);
+    object == null ? _literal<Null>() : _getActualRuntimeType(object);
 
 @pragma("wasm:entry-point")
 external _Type _getMasqueradedRuntimeType(Object object);
 
 @pragma("wasm:prefer-inline")
 _Type _getMasqueradedRuntimeTypeNullable(Object? object) =>
-    object == null ? const _NullType() : _getMasqueradedRuntimeType(object);
+    object == null ? _literal<Null>() : _getMasqueradedRuntimeType(object);

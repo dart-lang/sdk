@@ -46,20 +46,14 @@ class ClassID {
   external static int get cidRecord;
 
   // Class IDs for RTI Types.
-  @pragma("wasm:class-id", "dart.core#_NeverType")
-  external static int get cidNeverType;
-  @pragma("wasm:class-id", "dart.core#_DynamicType")
-  external static int get cidDynamicType;
-  @pragma("wasm:class-id", "dart.core#_VoidType")
-  external static int get cidVoidType;
-  @pragma("wasm:class-id", "dart.core#_NullType")
-  external static int get cidNullType;
+  @pragma("wasm:class-id", "dart.core#_BottomType")
+  external static int get cidBottomType;
+  @pragma("wasm:class-id", "dart.core#_TopType")
+  external static int get cidTopType;
   @pragma("wasm:class-id", "dart.core#_FutureOrType")
   external static int get cidFutureOrType;
   @pragma("wasm:class-id", "dart.core#_InterfaceType")
   external static int get cidInterfaceType;
-  @pragma("wasm:class-id", "dart.core#_ObjectType")
-  external static int get cidObjectType;
   @pragma("wasm:class-id", "dart.core#_AbstractFunctionType")
   external static int get cidAbstractFunctionType;
   @pragma("wasm:class-id", "dart.core#_FunctionType")
@@ -72,6 +66,8 @@ class ClassID {
   external static int get cidAbstractRecordType;
   @pragma("wasm:class-id", "dart.core#_RecordType")
   external static int get cidRecordType;
+  @pragma("wasm:class-id", "dart.core#_NamedParameter")
+  external static int get cidNamedParameter;
 
   // Dummy, only used by VM-specific hash table code.
   static final int numPredefinedCids = 1;

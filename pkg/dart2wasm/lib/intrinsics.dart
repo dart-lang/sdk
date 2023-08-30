@@ -1119,13 +1119,12 @@ class Intrinsifier {
       b.unreachable();
 
       b.end(); // objectType
-      ClassInfo objectTypeInfo =
-          translator.classInfo[translator.objectTypeClass]!;
-      b.i32_const(objectTypeInfo.classId);
-      b.i32_const(initialIdentityHash);
-      // Runtime types are never nullable.
-      b.i32_const(0);
-      b.struct_new(objectTypeInfo.struct);
+      translator.constants.instantiateConstant(
+          function,
+          b,
+          TypeLiteralConstant(InterfaceType(translator.coreTypes.objectClass,
+              Nullability.nonNullable, const [])),
+          function.type.outputs.single);
       b.return_();
 
       b.end(); // functionType
