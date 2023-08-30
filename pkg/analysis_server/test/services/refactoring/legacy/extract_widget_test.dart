@@ -1270,6 +1270,69 @@ class Test extends StatelessWidget {
 ''');
   }
 
+  Future<void> test_widgetReference_multiple() async {
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatefulWidget {
+  const MyWidget({required this.a, required this.b, super.key});
+
+  final String a;
+  final String b;
+
+  @override
+  State<MyWidget> createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      Text(widget.a + widget.b),
+    ]);
+  }
+}
+''');
+    _createRefactoringForStringOffset('Text(');
+
+    await _assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatefulWidget {
+  const MyWidget({required this.a, required this.b, super.key});
+
+  final String a;
+  final String b;
+
+  @override
+  State<MyWidget> createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      Test(widget: widget),
+    ]);
+  }
+}
+
+class Test extends StatelessWidget {
+  const Test({
+    super.key,
+    required this.widget,
+  });
+
+  final MyWidget widget;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(widget.a + widget.b);
+  }
+}
+''');
+  }
+
   Future<void> _assertRefactoringChange(String expectedCode) async {
     var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;
