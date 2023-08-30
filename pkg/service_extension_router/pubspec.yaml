@@ -1,0 +1,12 @@
+name: service_extension_router
+description: A package that implements service extensions and stream managers.
+
+version: 0.0.1-dev
+repository: https://github.com/dart-lang/sdk/tree/main/pkg/service_extension_router
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dev_dependencies:
+  lints: any
+  test: any
