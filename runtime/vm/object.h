@@ -5112,18 +5112,14 @@ class Library : public Object {
   ObjectPtr LookupReExport(
       const String& name,
       ZoneGrowableArray<intptr_t>* visited = nullptr) const;
-  ObjectPtr LookupObjectAllowPrivate(const String& name) const;
   ObjectPtr LookupLocalOrReExportObject(const String& name) const;
-  ObjectPtr LookupImportedObject(const String& name) const;
+  LibraryPrefixPtr LookupLocalLibraryPrefix(const String& name) const;
+
+  // These lookups are local within the library.
   ClassPtr LookupClass(const String& name) const;
   ClassPtr LookupClassAllowPrivate(const String& name) const;
-  ClassPtr SlowLookupClassAllowMultiPartPrivate(const String& name) const;
-  ClassPtr LookupLocalClass(const String& name) const;
   FieldPtr LookupFieldAllowPrivate(const String& name) const;
-  FieldPtr LookupLocalField(const String& name) const;
   FunctionPtr LookupFunctionAllowPrivate(const String& name) const;
-  FunctionPtr LookupLocalFunction(const String& name) const;
-  LibraryPrefixPtr LookupLocalLibraryPrefix(const String& name) const;
 
   // Look up a Script based on a url. If 'useResolvedUri' is not provided or is
   // false, 'url' should have a 'dart:' scheme for Dart core libraries,
@@ -5133,17 +5129,6 @@ class Library : public Object {
   // for Dart core libraries and a 'file:' scheme otherwise.
   ScriptPtr LookupScript(const String& url, bool useResolvedUri = false) const;
   ArrayPtr LoadedScripts() const;
-
-  // Resolve name in the scope of this library. First check the cache
-  // of already resolved names for this library. Then look in the
-  // local dictionary for the unmangled name N, the getter name get:N
-  // and setter name set:N.
-  // If the local dictionary contains no entry for these names,
-  // look in the scopes of all libraries that are imported
-  // without a library prefix.
-  ObjectPtr ResolveName(const String& name) const;
-
-  void AddAnonymousClass(const Class& cls) const;
 
   void AddExport(const Namespace& ns) const;
 
@@ -5423,8 +5408,8 @@ class Library : public Object {
   void RehashDictionary(const Array& old_dict, intptr_t new_dict_size) const;
   static LibraryPtr NewLibraryHelper(const String& url, bool import_core_lib);
   ObjectPtr LookupEntry(const String& name, intptr_t* index) const;
-  ObjectPtr LookupLocalObjectAllowPrivate(const String& name) const;
   ObjectPtr LookupLocalObject(const String& name) const;
+  ObjectPtr LookupLocalObjectAllowPrivate(const String& name) const;
 
   void AllocatePrivateKey() const;
 

@@ -1526,7 +1526,7 @@ ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_FinalFieldForwarding) {
   const auto& lib = Library::Handle(LoadTestScript(script_chars));
 
   const auto& test_cls = Class::ZoneHandle(
-      lib.LookupLocalClass(String::Handle(Symbols::New(thread, "TestClass"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "TestClass"))));
   const auto& err = Error::Handle(test_cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());
 

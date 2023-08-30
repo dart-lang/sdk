@@ -517,7 +517,8 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
     // Check whether the root library defines a main function.
     const Library& lib =
         Library::Handle(zone, IG->object_store()->root_library());
-    Function& func = Function::Handle(zone, lib.LookupLocalFunction(func_name));
+    Function& func =
+        Function::Handle(zone, lib.LookupFunctionAllowPrivate(func_name));
     if (func.IsNull()) {
       // Check whether main is reexported from the root library.
       const Object& obj = Object::Handle(zone, lib.LookupReExport(func_name));
@@ -550,7 +551,7 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
   // Resolve the function.
   if (class_name() == nullptr) {
     const Function& func =
-        Function::Handle(zone, lib.LookupLocalFunction(func_name));
+        Function::Handle(zone, lib.LookupFunctionAllowPrivate(func_name));
     if (func.IsNull()) {
       const String& msg = String::Handle(
           zone, String::NewFormatted(
@@ -562,7 +563,7 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
   }
 
   const String& cls_name = String::Handle(zone, String::New(class_name()));
-  const Class& cls = Class::Handle(zone, lib.LookupLocalClass(cls_name));
+  const Class& cls = Class::Handle(zone, lib.LookupClass(cls_name));
   if (cls.IsNull()) {
     const String& msg = String::Handle(
         zone, String::NewFormatted(
@@ -821,7 +822,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     const auto& lib = Library::Handle(zone, Library::IsolateLibrary());
     const auto& entry_name = String::Handle(zone, String::New("_startIsolate"));
     const auto& entry_point =
-        Function::Handle(zone, lib.LookupLocalFunction(entry_name));
+        Function::Handle(zone, lib.LookupFunctionAllowPrivate(entry_name));
     ASSERT(entry_point.IsFunction() && !entry_point.IsNull());
     const auto& result =
         Object::Handle(zone, DartEntry::InvokeFunction(entry_point, args));

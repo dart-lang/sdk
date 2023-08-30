@@ -761,7 +761,7 @@ void Precompiler::AddRoots() {
   }
   if (!main.IsNull()) {
     AddApiUse(main);
-    if (lib.LookupLocalFunction(name) == Function::null()) {
+    if (lib.LookupFunctionAllowPrivate(name) == Function::null()) {
       retain_root_library_caches_ = true;
     }
     AddRetainReason(main, RetainReasons::kMainFunction);

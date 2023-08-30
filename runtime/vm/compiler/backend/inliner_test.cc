@@ -80,7 +80,7 @@ ISOLATE_UNIT_TEST_CASE(Inliner_PolyInliningRedefinition) {
       /*insert_before=*/kMoveGlob));
 
   const Class& cls = Class::Handle(
-      root_library.LookupLocalClass(String::Handle(Symbols::New(thread, "B"))));
+      root_library.LookupClass(String::Handle(Symbols::New(thread, "B"))));
 
   Definition* cid_B = flow_graph->GetConstant(Smi::Handle(Smi::New(cls.id())));
   Instruction* current = prelude;
