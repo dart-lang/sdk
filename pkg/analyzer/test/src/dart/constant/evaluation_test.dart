@@ -542,6 +542,22 @@ void f(Object? x) {
 ''');
   }
 
+  test_typeParameter() async {
+    await assertErrorsInCode('''
+class A<X> {
+  const A();
+  void m() {
+    const x = X;
+  }
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
+      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 53, 1),
+    ]);
+    final result = _localVar('x');
+    _assertNull(result);
+  }
+
   test_visitBinaryExpression_extensionMethod() async {
     await assertErrorsInCode('''
 extension on Object {
@@ -1102,7 +1118,8 @@ class C<T> {
   const C({this.p = f});
 }
 ''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 83, 1),
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          83, 1),
     ]);
   }
 
@@ -1223,8 +1240,7 @@ class C<U> {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
           61, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 61,
-          1),
+      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 61, 1),
     ]);
   }
 
@@ -1668,8 +1684,7 @@ void f<T>(Object? x) {
   if (x case const (T)) {}
 }
 ''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          43, 1),
+      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 43, 1),
     ]);
   }
 
@@ -1679,8 +1694,7 @@ void f<T>(Object? x) {
   if (x case const (List<T>)) {}
 }
 ''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          43, 7),
+      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 43, 7),
     ]);
   }
 
@@ -2263,23 +2277,6 @@ const c = {1, ...{2, 3}, 4};
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type, typeProvider.setType(typeProvider.intType));
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3, 4]);
-  }
-
-  test_typeParameter() async {
-    await assertErrorsInCode('''
-class A<X> {
-  const A();
-  void m() {
-    const x = X;
-  }
-}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 53,
-          1),
-    ]);
-    final result = _localVar('x');
-    _assertNull(result);
   }
 
   test_visitAsExpression_instanceOfSameClass() async {

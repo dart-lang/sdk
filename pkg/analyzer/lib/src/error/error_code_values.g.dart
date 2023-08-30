@@ -138,6 +138,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
   CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
   CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP,
+  CompileTimeErrorCode.CONST_TYPE_PARAMETER,
   CompileTimeErrorCode.CONST_WITH_NON_CONST,
   CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
   CompileTimeErrorCode.CONST_WITH_NON_TYPE,

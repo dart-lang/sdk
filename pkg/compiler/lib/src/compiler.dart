@@ -707,9 +707,9 @@ class Compiler {
 
   bool get shouldStopAfterCodegen => stage == Dart2JSStage.codegenSharded;
 
-  // Only use deferred reads for linker phase where we are not creating an info
-  // dump. Creating an info dump ends up hitting all the deferred entities
-  // anyway.
+  // Only use deferred reads for the linker phase as most deferred entities will
+  // not be needed. In other stages we use most of this data so it's not worth
+  // deferring.
   bool get useDeferredSourceReads => stage == Dart2JSStage.jsEmitter;
 
   Future<void> runSequentialPhases() async {

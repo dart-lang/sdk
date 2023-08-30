@@ -15,37 +15,37 @@ class Annotation {
 
 class Class<T, @Annotation(T) U> {}
 //                         ^
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+// [analyzer] COMPILE_TIME_ERROR.CONST_TYPE_PARAMETER
 // [cfe] Type variables can't be used as constants.
 
 void function<T, @Annotation(T) U>() {}
 //                           ^
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+// [analyzer] COMPILE_TIME_ERROR.CONST_TYPE_PARAMETER
 // [cfe] Type variables can't be used as constants.
 
 extension Extension<T, @Annotation(T) U> on Map<T, U> {}
 //                                 ^
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+// [analyzer] COMPILE_TIME_ERROR.CONST_TYPE_PARAMETER
 // [cfe] Type variables can't be used as constants.
 
 class C {
   void method<T, @Annotation(T) U>() {}
   //                         ^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+  // [analyzer] COMPILE_TIME_ERROR.CONST_TYPE_PARAMETER
   // [cfe] Type variables can't be used as constants.
 }
 
 mixin Mixin<T, @Annotation(T) U> {}
 //                         ^
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+// [analyzer] COMPILE_TIME_ERROR.CONST_TYPE_PARAMETER
 // [cfe] Type variables can't be used as constants.
 
 typedef void Typedef1<T, @Annotation(T) U>(T t, U u);
 //                                   ^
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+// [analyzer] COMPILE_TIME_ERROR.CONST_TYPE_PARAMETER
 // [cfe] Type variables can't be used as constants.
 
 typedef Typedef2<T, @Annotation(T) U> = void Function(T t, U u);
 //                              ^
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+// [analyzer] COMPILE_TIME_ERROR.CONST_TYPE_PARAMETER
 // [cfe] Type variables can't be used as constants.

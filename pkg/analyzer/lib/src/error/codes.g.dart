@@ -1028,6 +1028,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  static const CompileTimeErrorCode CONST_TYPE_PARAMETER = CompileTimeErrorCode(
+    'CONST_TYPE_PARAMETER',
+    "Type parameters can't be used in a constant expression.",
+    correctionMessage:
+        "Try replacing the type parameter with a different type.",
+  );
+
+  ///  No parameters.
   static const CompileTimeErrorCode CONST_WITH_NON_CONST = CompileTimeErrorCode(
     'CONST_WITH_NON_CONST',
     "The constructor being called isn't a const constructor.",

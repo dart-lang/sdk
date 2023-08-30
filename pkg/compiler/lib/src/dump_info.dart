@@ -38,7 +38,14 @@ import 'options.dart';
 import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import 'util/sink_adapter.dart';
 
+/// Collects data used for the dump info task.
 ///
+/// This registry collects data while JS is being emitted and stores it to be
+/// processed by and used in the dump info stage. Since it holds references to
+/// AST nodes it should be cleared with [DumpInfoJsAstRegistry.clear] as soon
+/// as the necessary data for it is extracted.
+///
+/// See [DumpInfoProgramData.fromEmitterResults] for how this data is processed.
 class DumpInfoJsAstRegistry {
   final bool _disabled;
   final CompilerOptions options;
