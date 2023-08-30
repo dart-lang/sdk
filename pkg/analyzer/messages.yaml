@@ -21545,6 +21545,9 @@ StaticWarningCode:
       }
       ```
 WarningCode:
+  DOC_IMPORT_CANNOT_BE_DEFERRED:
+    problemMessage: "Doc imports can't be deferred."
+    hasPublishedDocs: false
   ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
     problemMessage: "The argument type '{0}' can't be assigned to the parameter type '{1} Function(Object)' or '{1} Function(Object, StackTrace)'."
     hasPublishedDocs: true

@@ -6046,6 +6046,11 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const WarningCode DOC_IMPORT_CANNOT_BE_DEFERRED = WarningCode(
+    'DOC_IMPORT_CANNOT_BE_DEFERRED',
+    "Doc imports can't be deferred.",
+  );
+
   ///  Duplicate exports.
   ///
   ///  No parameters.

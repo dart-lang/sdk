@@ -5509,7 +5509,14 @@ class AstBuilder extends StackListener {
   @visibleForTesting
   CommentImpl parseDocComment(Token dartdoc) {
     // Build and return the comment.
-    return DocCommentBuilder(parser, dartdoc).build();
+    return DocCommentBuilder(
+      parser,
+      errorReporter.errorReporter,
+      uri,
+      _featureSet,
+      _lineInfo,
+      dartdoc,
+    ).build();
   }
 
   List<CollectionElementImpl> popCollectionElements(int count) {

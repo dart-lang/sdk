@@ -261,6 +261,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
           }
         });
       }
+      if (node.docImports.isNotEmpty) {
+        _sink.writelnWithIndent('docImports');
+        _sink.withIndent(() {
+          for (var docImport in node.docImports) {
+            _writeDocImport(docImport);
+          }
+        });
+      }
     });
   }
 
@@ -1685,6 +1693,14 @@ Expected parent: (${parent.runtimeType}) $parent
         }
       }
     }
+  }
+
+  void _writeDocImport(DocImport docImport) {
+    _sink.writelnWithIndent('DocImport');
+    _sink.withIndent(() {
+      _sink.writelnWithIndent('offset: ${docImport.offset}');
+      _writeNode('import', docImport.import);
+    });
   }
 
   void _writeElement(String name, Element? element) {

@@ -28,6 +28,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/annotation_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
+import 'package:analyzer/src/error/doc_import_verifier.dart';
 import 'package:analyzer/src/error/error_handler_verifier.dart';
 import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/error/null_safe_api_verifier.dart';
@@ -57,13 +58,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The type [Null].
   final InterfaceType _nullType;
 
-  /// The type system primitives
+  /// The type system primitives.
   final TypeSystemImpl _typeSystem;
 
   /// The inheritance manager to access interface type hierarchy.
   final InheritanceManager3 _inheritanceManager;
 
-  /// The current library
+  /// The current library.
   final LibraryElement _currentLibrary;
 
   final AnnotationVerifier _annotationVerifier;
@@ -77,6 +78,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   final MustCallSuperVerifier _mustCallSuperVerifier;
 
   final NullSafeApiVerifier _nullSafeApiVerifier;
+
+  late final DocImportVerifier _docImportVerifier =
+      DocImportVerifier(_errorReporter);
 
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
   final WorkspacePackage? _workspacePackage;
@@ -237,6 +241,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _deprecatedVerifier.popInDeprecated();
     }
+  }
+
+  @override
+  void visitComment(Comment node) {
+    for (var docImport in node.docImports) {
+      _docImportVerifier.docImport(docImport);
+    }
+    super.visitComment(node);
   }
 
   @override
