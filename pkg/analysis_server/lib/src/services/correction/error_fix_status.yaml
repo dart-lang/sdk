@@ -1363,6 +1363,8 @@ CompileTimeErrorCode.PRIVATE_SETTER:
   status: noFix
 CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL:
   status: noFix
+CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR:
+  status: noFix
 CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT:
   status: noFix
 CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT:

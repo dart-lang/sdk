@@ -503,6 +503,29 @@ bool true
 ''');
   }
 
+  test_instanceCreation_generic_noTypeArguments_inferred_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A<T> {
+  final T t;
+  const A(this.t);
+}
+const Object a = const A(0);
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+const b = a;
+''');
+
+    final result = _topLevelVar('b');
+    assertDartObjectText(result, r'''
+A<int>
+  t: int 0
+  variable: self::@variable::b
+''');
+  }
+
   /// https://github.com/dart-lang/sdk/issues/53029
   /// Dependencies of map patterns should be considered.
   test_mapPattern_dependencies() async {
@@ -739,6 +762,44 @@ const x = kIsWeb ? a : b;
     ]);
     final result = _topLevelVar('x');
     _assertNull(result);
+  }
+
+  test_visitConstructorDeclaration_cycle() async {
+    await assertErrorsInCode('''
+class A {
+  final A a;
+  const A() : a = const A();
+}
+
+''', [
+      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 31, 1),
+    ]);
+  }
+
+  test_visitConstructorDeclaration_cycle_subclass_issue46735() async {
+    await assertErrorsInCode('''
+void main() {
+  const EmptyInjector();
+}
+
+abstract class BaseInjector {
+  final BaseInjector parent;
+
+  const BaseInjector([BaseInjector? parent])
+      : parent = parent ?? const EmptyInjector();
+}
+
+abstract class Injector implements BaseInjector {
+  const Injector();
+}
+
+class EmptyInjector extends BaseInjector implements Injector {
+  const EmptyInjector();
+}
+''', [
+      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 110, 12),
+      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 344, 13),
+    ]);
   }
 
   test_visitConstructorDeclaration_field_asExpression_nonConst() async {

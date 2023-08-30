@@ -270,6 +270,21 @@ IsolateTest setBreakpointAtUriAndLine(String uri, int line) {
   };
 }
 
+Future<void> expectFrame(Frame frame,
+    {M.FrameKind kind = M.FrameKind.regular,
+    String? functionName,
+    int? line}) async {
+  expect(frame.kind, equals(kind));
+  if (functionName != null) {
+    expect(frame.function?.name, equals(functionName));
+  }
+  if (line != null) {
+    final script = await frame.location!.script.load() as Script;
+    expect(frame.location, isNotNull);
+    expect(script.tokenToLine(frame.location!.tokenPos), equals(line));
+  }
+}
+
 IsolateTest stoppedAtLine(int line) {
   return (Isolate isolate) async {
     print("Checking we are at line $line");

@@ -9,29 +9,7 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeInitFormalsTest);
-    defineReflectiveTests(TypeInitFormalsSuperTest);
   });
-}
-
-@reflectiveTest
-class TypeInitFormalsSuperTest extends LintRuleTest {
-  @override
-  String get lintRule => 'type_init_formals';
-
-  test_super() async {
-    await assertDiagnostics(r'''
-class A {
-  String? a;
-  A({this.a});
-}
-
-class B extends A {
-  B({String? super.a});
-}
-''', [
-      lint(66, 7),
-    ]);
-  }
 }
 
 @reflectiveTest
@@ -62,6 +40,52 @@ class Invalid {
       // No lint
       error(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD, 26,
           10),
+    ]);
+  }
+
+  test_requiredConstructorParam_tightening() async {
+    await assertNoDiagnostics(r'''
+class A {
+  String? s;
+  A({required String this.s});
+}
+''');
+  }
+
+  test_requiredConstructorParam_unnecessaryNullableType() async {
+    await assertDiagnostics(r'''
+class A {
+  String? s;
+  A({required String? this.s});
+}
+''', [
+      lint(37, 7),
+    ]);
+  }
+
+  test_requiredConstructorParam_unnecessaryType() async {
+    await assertDiagnostics(r'''
+class A {
+  String s = '';
+  A({required String this.s});
+}
+''', [
+      lint(41, 6),
+    ]);
+  }
+
+  test_super() async {
+    await assertDiagnostics(r'''
+class A {
+  String? a;
+  A({this.a});
+}
+
+class B extends A {
+  B({String? super.a});
+}
+''', [
+      lint(66, 7),
     ]);
   }
 }

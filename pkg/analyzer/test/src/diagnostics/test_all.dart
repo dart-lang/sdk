@@ -694,6 +694,8 @@ import 'record_literal_one_positional_no_trailing_comma_test.dart'
     as record_literal_one_positional_no_trailing_comma;
 import 'recursive_compile_time_constant_test.dart'
     as recursive_compile_time_constant;
+import 'recursive_constant_constructor_test.dart'
+    as recursive_constant_constructor;
 import 'recursive_constructor_redirect_test.dart'
     as recursive_constructor_redirect;
 import 'recursive_factory_redirect_test.dart' as recursive_factory_redirect;
@@ -1346,6 +1348,7 @@ main() {
     receiver_of_type_never.main();
     record_literal_one_positional_no_trailing_comma.main();
     recursive_compile_time_constant.main();
+    recursive_constant_constructor.main();
     recursive_constructor_redirect.main();
     recursive_factory_redirect.main();
     recursive_interface_inheritance_extends.main();

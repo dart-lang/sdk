@@ -30,8 +30,8 @@ String format(String content) {
 /// Returns a [ParseStringResult]. If successful, the result contains the sorted
 /// code. On failure, the result contains the unsorted original code, and the
 /// cause of the failure, a list of [AnalysisError]'s.
-ParseStringResult sortDirectives(String contents) {
-  var (unit, errors) = _parse(contents);
+ParseStringResult sortDirectives(String contents, {String? fileName}) {
+  var (unit, errors) = _parse(contents, fullName: fileName);
   var hasParseErrors = errors.any((error) =>
       error.errorCode is ScannerErrorCode ||
       error.errorCode is ParserErrorCode);
@@ -43,8 +43,9 @@ ParseStringResult sortDirectives(String contents) {
   return ParseStringResultImpl(sorter.code, unit, errors);
 }
 
-(CompilationUnit, List<AnalysisError>) _parse(String contents) {
-  var source = StringSource(contents, null);
+(CompilationUnit, List<AnalysisError>) _parse(String contents,
+    {String? fullName}) {
+  var source = StringSource(contents, fullName);
   var errorListener = RecordingErrorListener();
   var reader = CharSequenceReader(contents);
   var featureSet = FeatureSet.fromEnableFlags2(

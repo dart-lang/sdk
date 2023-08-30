@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide Pattern;
+import 'package:kernel/src/replacement_visitor.dart';
 
 Constructor? unnamedConstructor(Class c) =>
     c.constructors.firstWhereOrNull((c) => c.name.text == '');
@@ -290,6 +291,7 @@ class LabelContinueFinder extends RecursiveVisitor<void> {
 /// code if used in an assert.
 bool isKnownDartTypeImplementor(DartType t) {
   return t is DynamicType ||
+      t is ExtensionType ||
       t is FunctionType ||
       t is FutureOrType ||
       t is InterfaceType ||
@@ -365,4 +367,16 @@ class InterfaceTypeExtractor extends RecursiveVisitor<DartType> {
     type.accept(this);
     return _found;
   }
+}
+
+class ExtensionTypeEraser extends ReplacementVisitor {
+  const ExtensionTypeEraser();
+
+  /// Erases all `ExtensionType` nodes found in [type].
+  DartType erase(DartType type) =>
+      type.accept1(this, Variance.unrelated) ?? type;
+
+  @override
+  DartType? visitExtensionType(ExtensionType node, int variance) =>
+      node.typeErasure.accept1(this, Variance.unrelated) ?? node.typeErasure;
 }

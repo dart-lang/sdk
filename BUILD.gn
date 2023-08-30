@@ -27,7 +27,7 @@ group("most") {
     ":create_sdk",
     ":dart2js",
     ":dartanalyzer",
-    ":dartdevc",
+    ":ddc",
     ":runtime",
   ]
 }
@@ -135,13 +135,13 @@ group("dartanalyzer") {
   deps = [ "utils/dartanalyzer" ]
 }
 
+# TODO(nshahan): Delete after updating the Flutter engine build.
 group("dartdevc") {
-  deps = [ "utils/dartdevc" ]
+  deps = [ "utils/dartdevc:dartdevc_files_stamp" ]
 }
 
 group("ddc") {
-  # TODO(nshahan): Update to the dartdevc snapshot target when it gets moved.
-  deps = [ "utils/ddc:ddc_stable_test" ]
+  deps = [ "utils/ddc:dartdevc" ]
 }
 
 group("analysis_server") {

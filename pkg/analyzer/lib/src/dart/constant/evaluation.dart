@@ -447,8 +447,11 @@ class ConstantEvaluationEngine {
       (constant as VariableElementImpl).evaluationResult =
           EvaluationResultImpl(null, errorListener.errors);
     } else if (constant is ConstructorElement) {
-      // We don't report cycle errors on constructor declarations since there
-      // is nowhere to put the error information.
+      // We don't report cycle errors on constructor declarations here since
+      // there is nowhere to put the error information.
+      //
+      // Instead we will report an error at each constructor in
+      // [ConstantVerifier.visitConstructorDeclaration].
     } else {
       // Should not happen.  Formal parameter defaults and annotations should
       // never appear as part of a cycle because they can't be referred to.
@@ -3094,9 +3097,10 @@ class _InstanceCreationEvaluator {
 
     if (!(constructor.declaration as ConstructorElementImpl).isCycleFree) {
       // It's not safe to evaluate this constructor, so bail out.
-      // TODO(paulberry): ensure that a reasonable error message is produced
-      // in this case, as well as other cases involving constant expression
-      // cycles (e.g. "compile-time constant expression depends on itself").
+      //
+      // Instead of reporting an error at the call-sites, we will report an
+      // error at each constructor in
+      // [ConstantVerifier.visitConstructorDeclaration].
       return DartObjectImpl.validWithUnknownValue(
         library.typeSystem,
         constructor.returnType,

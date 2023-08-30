@@ -240,14 +240,6 @@ void main(List<String> args) async {
   var sdkJsPath =
       p.join(buildDir, 'gen', 'utils', 'ddc', compileModeDir, 'sdk', mod);
 
-  if (!canaryFeatures && !Directory(sdkJsPath).existsSync()) {
-    // Fall back on the old location of the build outputs.
-    // TODO(nshahan): Removed after golem has been updated for the new build
-    // targets b/242034355.
-    var suffix = soundNullSafety ? p.join('sound', mod) : p.join('kernel', mod);
-    sdkJsPath = p.join(buildDir, 'gen', 'utils', 'dartdevc', suffix);
-  }
-
   // Print an initial empty line to separate the invocation from the output.
   if (verbose) {
     print('');

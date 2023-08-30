@@ -19,6 +19,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
@@ -164,6 +165,18 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var constKeyword = node.constKeyword;
     if (constKeyword != null) {
+      // Check and report cycles.
+      // Factory cycles are reported in elsewhere in
+      // [ErrorVerifier._checkForRecursiveFactoryRedirect].
+      final element = node.declaredElement;
+      if (element is ConstructorElementImpl &&
+          !element.isCycleFree &&
+          !element.isFactory) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR,
+            node.returnType, []);
+      }
+
       _validateConstructorInitializers(node);
       if (node.factoryKeyword == null) {
         _validateFieldInitializers(

@@ -25,6 +25,7 @@ import 'avoid_renaming_method_parameters_test.dart'
     as avoid_renaming_method_parameters;
 import 'avoid_return_types_on_setters_test.dart'
     as avoid_return_types_on_setters;
+import 'avoid_returning_null_test.dart' as avoid_returning_null;
 import 'avoid_returning_this_test.dart' as avoid_returning_this;
 import 'avoid_setters_without_getters_test.dart'
     as avoid_setters_without_getters;
@@ -216,6 +217,7 @@ import 'use_key_in_widget_constructors_test.dart'
 import 'use_late_for_private_fields_and_variables_test.dart'
     as use_late_for_private_fields_and_variables;
 import 'use_named_constants_test.dart' as use_named_constants;
+import 'use_raw_strings_test.dart' as use_raw_strings;
 import 'use_rethrow_when_possible_test.dart' as use_rethrow_when_possible;
 import 'use_setters_to_change_properties_test.dart'
     as use_setters_to_change_properties;
@@ -242,6 +244,7 @@ void main() {
   avoid_relative_lib_imports.main();
   avoid_renaming_method_parameters.main();
   avoid_return_types_on_setters.main();
+  avoid_returning_null.main();
   avoid_returning_this.main();
   avoid_setters_without_getters.main();
   avoid_shadowing_type_parameters.main();
@@ -381,6 +384,7 @@ void main() {
   use_key_in_widget_constructors.main();
   use_late_for_private_fields_and_variables.main();
   use_named_constants.main();
+  use_raw_strings.main();
   use_rethrow_when_possible.main();
   use_setters_to_change_properties.main();
   use_string_buffers.main();

@@ -4307,6 +4307,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  static const CompileTimeErrorCode RECURSIVE_CONSTANT_CONSTRUCTOR =
+      CompileTimeErrorCode(
+    'RECURSIVE_CONSTANT_CONSTRUCTOR',
+    "The constant constructor depends on itself.",
+  );
+
+  ///  No parameters.
   ///
   ///  TODO(scheglov) review this later, there are no explicit "it is a
   ///  compile-time error" in specification. But it was added to the co19 and

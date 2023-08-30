@@ -17,6 +17,15 @@ class UnrelatedTypeEqualityChecksTest extends LintRuleTest {
   @override
   String get lintRule => 'unrelated_type_equality_checks';
 
+  test_assignment_ok() async {
+    await assertNoDiagnostics(r'''    
+void m(int? a1, num a2) {
+  var b1 = a1 == a2;
+  var b2 = a2 == a1;
+}
+''');
+  }
+
   test_recordAndInterfaceType_unrelated() async {
     await assertDiagnostics(r'''
 bool f((int, int) a, String b) => a == b;
