@@ -59,9 +59,6 @@ mixin KernelNodes {
 
   // dart:core runtime type classes
   late final Class typeClass = index.getClass("dart:core", "_Type");
-  late final Class dynamicTypeClass =
-      index.getClass("dart:core", "_DynamicType");
-  late final Class objectTypeClass = index.getClass("dart:core", "_ObjectType");
   late final Class abstractFunctionTypeClass =
       index.getClass("dart:core", "_AbstractFunctionType");
   late final Class functionTypeClass =
@@ -76,9 +73,8 @@ mixin KernelNodes {
       index.getClass("dart:core", "_InterfaceTypeParameterType");
   late final Class namedParameterClass =
       index.getClass("dart:core", "_NamedParameter");
-  late final Class neverTypeClass = index.getClass("dart:core", "_NeverType");
-  late final Class nullTypeClass = index.getClass("dart:core", "_NullType");
-  late final Class voidTypeClass = index.getClass("dart:core", "_VoidType");
+  late final Class bottomTypeClass = index.getClass("dart:core", "_BottomType");
+  late final Class topTypeClass = index.getClass("dart:core", "_TopType");
   late final Class stackTraceClass = index.getClass("dart:core", "StackTrace");
   late final Class typeUniverseClass =
       index.getClass("dart:core", "_TypeUniverse");

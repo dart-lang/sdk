@@ -265,6 +265,15 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   w.ModuleBuilder get m => constants.m;
 
   ConstantInfo? ensureConstant(Constant constant) {
+    // To properly canonicalize type literal constants, we normalize the
+    // type before canonicalization.
+    if (constant is TypeLiteralConstant) {
+      DartType type = types.normalize(constant.type);
+      if (!identical(type, constant.type)) {
+        constant = TypeLiteralConstant(type);
+      }
+    }
+
     ConstantInfo? info = constants.constantInfo[constant];
     if (info == null) {
       info = constant.accept(this);
@@ -797,9 +806,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
   @override
   ConstantInfo? visitTypeLiteralConstant(TypeLiteralConstant constant) {
-    DartType type = types.normalize(constant.type);
-
-    ClassInfo info = translator.classInfo[types.classForType(type)]!;
+    final DartType type = constant.type;
+    final ClassInfo info = translator.classInfo[types.classForType(type)]!;
     translator.functions.allocateClass(info.classId);
     if (type is InterfaceType && !types.isSpecializedClass(type.classNode)) {
       return _makeInterfaceType(constant, type, info);
@@ -856,11 +864,20 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
             function, b, fieldTypes, typeListExpectedType);
         b.struct_new(info.struct);
       });
+    } else if (type is VoidType ||
+        type is DynamicType ||
+        type is InterfaceType &&
+            type.classNode == translator.coreTypes.objectClass) {
+      return createConstant(constant, info.nonNullableType, (function, b) {
+        b.i32_const(info.classId);
+        b.i32_const(initialIdentityHash);
+        b.i32_const(types.encodedNullability(type));
+        b.i64_const(types.topTypeKind(type));
+        b.struct_new(info.struct);
+      });
     } else {
-      assert(type is VoidType ||
-          type is NeverType ||
+      assert(type is NeverType ||
           type is NullType ||
-          type is DynamicType ||
           type is InterfaceType && types.isSpecializedClass(type.classNode));
       return createConstant(constant, info.nonNullableType, (function, b) {
         b.i32_const(info.classId);
