@@ -10,7 +10,10 @@ import '../executor.dart';
 import '../api.dart';
 import 'response_impls.dart';
 
-abstract class TypeBuilderBase implements TypePhaseIntrospector {
+abstract class TypeBuilderBase implements TypePhaseIntrospector, Builder {
+  /// All the collected diagnostics for this builder.
+  final List<Diagnostic> _diagnostics = [];
+
   /// All the enum values to be added, indexed by the identifier for the
   /// augmented enum declaration.
   final Map<IdentifierImpl, List<DeclarationCode>> _enumValueAugmentations;
@@ -38,6 +41,7 @@ abstract class TypeBuilderBase implements TypePhaseIntrospector {
   /// Creates and returns a [MacroExecutionResult] out of the [_augmentations]
   /// created by this builder.
   MacroExecutionResult get result => new MacroExecutionResultImpl(
+        diagnostics: _diagnostics,
         enumValueAugmentations: _enumValueAugmentations,
         interfaceAugmentations: _interfaceAugmentations,
         libraryAugmentations: _libraryAugmentations,
@@ -57,6 +61,9 @@ abstract class TypeBuilderBase implements TypePhaseIntrospector {
         _libraryAugmentations = parentLibraryAugmentations ?? [],
         _mixinAugmentations = parentMixinAugmentations ?? {},
         _typeAugmentations = parentTypeAugmentations ?? {};
+
+  @override
+  void report(Diagnostic diagnostic) => _diagnostics.add(diagnostic);
 
   @override
   Future<Identifier> resolveIdentifier(Uri library, String identifier) =>

@@ -355,6 +355,9 @@ class _MacroInstanceIdentifier implements MacroInstanceIdentifier {
 
 class _MacroExecutionResult implements MacroExecutionResult {
   @override
+  List<Diagnostic> diagnostics = [];
+
+  @override
   Map<Identifier, Iterable<DeclarationCode>> enumValueAugmentations = const {};
 
   @override
