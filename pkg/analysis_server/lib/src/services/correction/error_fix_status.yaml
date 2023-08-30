@@ -3428,6 +3428,8 @@ WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
   status: hasFix
 WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED:
   status: needsFix
+WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
+  status: needsFix
 WarningCode.DUPLICATE_EXPORT:
   status: needsFix
   notes: |-

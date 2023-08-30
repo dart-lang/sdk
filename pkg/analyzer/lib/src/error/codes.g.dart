@@ -6049,6 +6049,13 @@ class WarningCode extends AnalyzerErrorCode {
   static const WarningCode DOC_IMPORT_CANNOT_BE_DEFERRED = WarningCode(
     'DOC_IMPORT_CANNOT_BE_DEFERRED',
     "Doc imports can't be deferred.",
+    correctionMessage: "Try removing the 'deferred' keyword.",
+  );
+
+  static const WarningCode DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS = WarningCode(
+    'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
+    "Doc imports can't have configurations.",
+    correctionMessage: "Try removing the configurations.",
   );
 
   ///  Duplicate exports.

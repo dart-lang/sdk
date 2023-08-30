@@ -20,6 +20,13 @@ class DocImportVerifier {
         deferredKeyword,
       );
     }
-    // TODO(srawlins): Report warnings for configurations.
+    var configurations = node.import.configurations;
+    if (configurations.isNotEmpty) {
+      _errorReporter.reportErrorForOffset(
+        WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS,
+        configurations.first.offset,
+        configurations.last.end,
+      );
+    }
   }
 }
