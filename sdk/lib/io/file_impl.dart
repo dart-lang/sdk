@@ -727,7 +727,8 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   _maybeConnectHandler() {
-    if (!_connectedResourceHandler) {
+    if (!const bool.fromEnvironment("dart.vm.product") &&
+        !_connectedResourceHandler) {
       // TODO(ricow): We probably need to set these in some initialization code.
       // We need to make sure that these are always available from the
       // observatory even if no files (or sockets for the socket ones) are
