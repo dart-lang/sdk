@@ -2,6 +2,52 @@
 
 ### Language
 
+Dart 3.2 adds the following features. To use them, set your package's [SDK
+constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
+
+[language version]: https://dart.dev/guides/language/evolution
+
+- **Private field promotion**: In most circumstances, the types of private final
+  fields can now be promoted by null checks and `is` tests. For example:
+
+  ```dart
+  class Example {
+    final int? _privateField;
+    Example1(this._privateField);
+
+    f() {
+      if (_privateField != null) {
+        // _privateField has now been promoted; you can use it without
+        // null checking it.
+        int i = _privateField; // OK
+      }
+    }
+  }
+
+  // Private field promotions also work from outside of the class:
+  f(Example1 x) {
+    if (x._privateField != null) {
+      int i = x._privateField; // OK
+    }
+  }
+  ```
+
+  To ensure soundness, a field is not eligible for field promotion in the
+  following circumstances:
+  - If it's not final (because a non-final field could be changed in between the
+    test and the usage, invalidating the promotion).
+  - If it's overridden elsewhere in the library by a concrete getter or a
+    non-final field (because an access to an overridden field might resolve at
+    runtime to the overriding getter or field).
+  - If it's not private (because a non-private field might be overridden
+    elsewhere in the program).
+  - If it has the same name as a concrete getter or a non-final field in some
+    other unrelated class in the library (because a class elsewhere in the
+    program might extend one of the classes and implement the other, creating an
+    override relationship between them).
+  - If it is implicitly overridden by an instance of `noSuchMethod` elsewhere in
+    the library.
+
 - **Breaking Change** [#53167][]: Use a more precise split point for refutable
   patterns. Previously, in an if-case statement, if flow analysis could prove
   that the scrutinee expression was guaranteed to throw an exception, it would
