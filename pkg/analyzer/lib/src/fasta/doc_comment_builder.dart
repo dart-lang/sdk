@@ -301,11 +301,8 @@ class DocCommentBuilder {
       }
     }
 
-    var infoString = index == length ? null : content.substring(index).trim();
-    if (infoString != null && infoString.isEmpty) {
-      infoString = null;
-    }
-
+    var infoString =
+        index == length ? null : _InfoString.parse(content.substring(index));
     var fencedCodeBlockLines = <MdCodeBlockLine>[
       MdCodeBlockLine(
         offset: characterSequence._offset,
@@ -323,13 +320,9 @@ class DocCommentBuilder {
 
       var fencedCodeBlockIndex =
           _fencedCodeBlockDelimiter(content, minimumTickCount: tickCount);
-
       if (fencedCodeBlockIndex > -1) {
         // End the fenced code block.
-        codeBlocks.add(
-          MdCodeBlock(infoString: infoString, lines: fencedCodeBlockLines),
-        );
-        return;
+        break;
       }
 
       lineInfo = characterSequence.next();
@@ -732,5 +725,23 @@ class _CharacterSequenceFromSingleLineComment implements _CharacterSequence {
       offset: _offset,
       content: _token.lexeme.substring(threeSlashesLength),
     );
+  }
+}
+
+/// A canonicalized store of fenced code block info strings.
+///
+/// Across many doc comments with many fenced code blocks, there are likely
+/// very few info strings (usually the name of a programming language, like
+/// 'dart' and 'html').
+class _InfoString {
+  static final Set<String> _infoStrings = {};
+
+  static String? parse(String text) {
+    text = text.trim();
+    if (text.isEmpty) {
+      return null;
+    }
+    _infoStrings.add(text);
+    return _infoStrings.lookup(text);
   }
 }
