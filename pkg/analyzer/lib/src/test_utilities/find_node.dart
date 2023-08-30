@@ -57,6 +57,8 @@ class FindNode {
 
   ExtendsClause get singleExtendsClause => _single();
 
+  ExtensionDeclaration get singleExtensionDeclaration => _single();
+
   ExtensionTypeDeclaration get singleExtensionTypeDeclaration => _single();
 
   FieldDeclaration get singleFieldDeclaration => _single();
