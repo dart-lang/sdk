@@ -965,16 +965,21 @@ class Intrinsifier {
         node.arguments.positional.single, receiverInfo.nonNullableType);
     w.Local receiverLocal =
         codeGen.function.addLocal(receiverInfo.nonNullableType);
-    b.local_tee(receiverLocal);
-    // We ignore the type argument and just update the classID of the
-    // receiver.
-    // TODO(joshualitt): If the amount of free space is significant, it
-    // might be worth doing a copy here.
+    b.local_set(receiverLocal);
+
     ClassInfo newInfo = translator.classInfo[newClass]!;
-    ClassInfo topInfo = translator.topInfo;
     b.i32_const(newInfo.classId);
-    b.struct_set(topInfo.struct, FieldIndex.classId);
+    b.i32_const(initialIdentityHash);
     b.local_get(receiverLocal);
+    b.struct_get(
+        receiverInfo.struct,
+        translator.typeParameterIndex[
+            translator.listBaseClass.typeParameters.single]!);
+    b.local_get(receiverLocal);
+    b.struct_get(receiverInfo.struct, FieldIndex.listLength);
+    b.local_get(receiverLocal);
+    b.struct_get(receiverInfo.struct, FieldIndex.listArray);
+    b.struct_new(newInfo.struct);
     return newInfo.nonNullableType;
   }
 
