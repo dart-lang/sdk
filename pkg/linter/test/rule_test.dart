@@ -26,7 +26,6 @@ import 'package:linter/src/utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import 'experiments_test.dart' as experiment_tests;
 import 'test_constants.dart';
 import 'util/annotation_matcher.dart';
 import 'util/test_utils.dart';
@@ -35,7 +34,6 @@ void main() {
   group('rule tests', () {
     setUp(setUpSharedTestEnvironment);
     defineRuleTests();
-    experiment_tests.main();
     defineRuleUnitTests();
   });
 }

@@ -13,7 +13,6 @@ import 'package:linter/src/utils.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-import '../test_data/rules/experiments/experiments.dart';
 import 'integration/avoid_web_libraries_in_flutter.dart'
     as avoid_web_libraries_in_flutter;
 import 'integration/close_sinks.dart' as close_sinks;
@@ -75,10 +74,7 @@ void coreTests() {
         registerLintRules();
 
         var registered = Analyzer.facade.registeredRules
-            .where((r) =>
-                !r.state.isDeprecated &&
-                !r.state.isRemoved &&
-                !experiments.contains(r))
+            .where((r) => !r.state.isDeprecated && !r.state.isRemoved)
             .map((r) => r.name);
 
         for (var l in configuredLints) {
