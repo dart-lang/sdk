@@ -67,7 +67,7 @@ You probably want to run these:
     dart format test/rules/all.dart
     git rm ${legacyTest.path}
     git add test
-    dart run test ${newTest.path}
+    dart ${newTest.path}
 ''');
   }
 
