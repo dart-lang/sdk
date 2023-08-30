@@ -31,6 +31,16 @@ class A<T> {
     ]);
   }
 
+  test_emptyFunctionExpressionReturningFutureOrVoid() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+    
+void emptyFunctionExpressionReturningFutureOrVoid(FutureOr<void> Function() f) {
+  f = () {};
+}
+''');
+  }
+
   test_extraPositionalArgument() async {
     await assertDiagnostics(r'''
 missing_parameter_for_argument() {
@@ -143,6 +153,21 @@ void f(FutureOr<void>? arg) {
 ''');
   }
 
+  /// https://github.com/dart-lang/linter/issues/3172
+  test_futureOrCallback() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+    
+void capture(FutureOr<void> Function() callback) {}
+
+void f() {
+  capture(() {
+    throw "oh no";
+  });
+}
+''');
+  }
+
   test_listPattern_local() async {
     await assertDiagnostics(r'''
 void f() {
@@ -163,6 +188,20 @@ void f(void p) {
 ''', [
       lint(20, 1),
     ]);
+  }
+
+  test_neverReturningCallbackThrows() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+
+Never fail() { throw ''; }
+
+void f() async {
+  await Future.value(5).then<void>((x) {
+    fail();
+  });
+}
+''');
   }
 
   test_recordPattern() async {
