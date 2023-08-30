@@ -57,4 +57,32 @@ void g(List<int>? list) {
 }
 ''');
   }
+
+  test_switchExpression_expressionStatement() async {
+    await assertNoDiagnostics(r'''    
+void f(Object? x) {
+  (switch (x) { _ => 0 });
+}
+''');
+  }
+
+  test_switchExpression_invocationArgument() async {
+    await assertDiagnostics(r'''    
+void f(Object? x) {
+  print((switch (x) { _ => 0 }));
+}
+''', [
+      lint(28, 23),
+    ]);
+  }
+
+  test_switchExpression_variableDeclaration() async {
+    await assertDiagnostics(r'''    
+void f(Object? x) {
+  final v = (switch (x) { _ => 0 });
+}
+''', [
+      lint(32, 23),
+    ]);
+  }
 }
