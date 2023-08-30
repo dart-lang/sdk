@@ -44,19 +44,19 @@ class B {}''';
     expect(code, '''
 class A {}
   
-class ClassName {
+class ${ClassDeclaration.className} {
   
 }
 
 class B {}''');
     expect(snippet.change.selection!.file, testFile.path);
-    expect(snippet.change.selection!.offset, 34);
+    expect(snippet.change.selection!.offset, 81);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
           {'file': testFile.path, 'offset': 20},
         ],
-        'length': 9,
+        'length': 56,
         'suggestions': []
       }
     ]);

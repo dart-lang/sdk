@@ -14,6 +14,10 @@ class FlutterStatefulWidgetWithAnimationController
     extends FlutterSnippetProducer with FlutterWidgetSnippetProducerMixin {
   static const prefix = 'stanim';
   static const label = 'Flutter Widget with AnimationController';
+  static String get widgetClassName =>
+      FlutterWidgetSnippetProducerMixin.widgetClassName;
+  static String get widgetClassNameRef =>
+    FlutterWidgetSnippetProducerMixin.widgetClassNameRef;
 
   late ClassElement? classStatefulWidget;
   late ClassElement? classState;
@@ -63,11 +67,11 @@ class FlutterStatefulWidgetWithAnimationController
 
         // Write the State class.
         builder.write('class _');
-        builder.addSimpleLinkedEdit('name', widgetClassName);
+        builder.addSimpleLinkedEdit('name', widgetClassNameRef);
         builder.write('State extends ');
         builder.writeReference(classState);
         builder.write('<');
-        builder.addSimpleLinkedEdit('name', widgetClassName);
+        builder.addSimpleLinkedEdit('name', widgetClassNameRef);
         builder.writeln('>');
         builder.write('    with ');
         builder.writeReference(classSingleTickerProviderStateMixin);

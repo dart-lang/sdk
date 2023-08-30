@@ -10,6 +10,9 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 class ClassDeclaration extends DartSnippetProducer {
   static const prefix = 'class';
   static const label = 'class';
+  /// Use the currently selected file name to generate the class name for vscode.<br/>
+  /// `class_name.dart`->`ClassName`
+  static const className = '\${1:\${TM_FILENAME_BASE/(_|^|\\.)(\\w)/\${2:/capitalize}/g}}';
 
   ClassDeclaration(super.request, {required super.elementImportCache});
 
@@ -25,12 +28,7 @@ class ClassDeclaration extends DartSnippetProducer {
       builder.addReplacement(request.replacementRange, (builder) {
         void writeIndented(String string) => builder.write('$indent$string');
         builder.write('class ');
-        /// Use the currently selected file name to generate the class name for vscode.<br/>
-        /// `my_red_color_car.dart`->`MyRedColorCar`
-        builder.addSimpleLinkedEdit(
-          'className',
-          '\${1:\${TM_FILENAME_BASE/(_|^|\\.)(\\w)/\${2:/capitalize}/g}}',
-        );
+        builder.addSimpleLinkedEdit('className', className);
         builder.writeln(' {');
         writeIndented('  ');
         builder.selectHere();

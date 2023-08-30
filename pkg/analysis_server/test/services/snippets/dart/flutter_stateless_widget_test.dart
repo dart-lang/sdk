@@ -26,6 +26,10 @@ class FlutterStatelessWidgetTest extends FlutterSnippetProducerTest {
   @override
   String get prefix => FlutterStatelessWidget.prefix;
 
+  String get widgetClassName => FlutterStatelessWidget.widgetClassName;
+
+  String get widgetClassNameRef => FlutterStatelessWidget.widgetClassNameRef;
+
   Future<void> test_noSuperParams() async {
     writeTestPackageConfig(flutter: true, languageVersion: '2.16');
 
@@ -35,15 +39,17 @@ class FlutterStatelessWidgetTest extends FlutterSnippetProducerTest {
     final expected = TestCode.parse('''
 import 'package:flutter/widgets.dart';
 
-class /*0*/MyWidget extends StatelessWidget {
-  const /*1*/MyWidget({Key? key}) : super(key: key);
+class /*0*/$widgetClassName extends StatelessWidget {
+  const /*1*/$widgetClassNameRef({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return /*[0*/const Placeholder()/*0]*/;
   }
-}''');
-    assertFlutterSnippetChange(snippet.change, 'MyWidget', expected);
+}''',
+    positionShorthand:false,
+    );
+    assertFlutterSnippetChange(snippet.change, widgetClassNameRef, expected);
   }
 
   Future<void> test_notValid_notFlutterProject() async {
@@ -61,14 +67,16 @@ class /*0*/MyWidget extends StatelessWidget {
     final expected = TestCode.parse('''
 import 'package:flutter/widgets.dart';
 
-class /*0*/MyWidget extends StatelessWidget {
-  const /*1*/MyWidget({super.key});
+class /*0*/$widgetClassName extends StatelessWidget {
+  const /*1*/$widgetClassNameRef({super.key});
 
   @override
   Widget build(BuildContext context) {
     return /*[0*/const Placeholder()/*0]*/;
   }
-}''');
-    assertFlutterSnippetChange(snippet.change, 'MyWidget', expected);
+}''',
+    positionShorthand:false,
+    );
+    assertFlutterSnippetChange(snippet.change, widgetClassNameRef, expected);
   }
 }

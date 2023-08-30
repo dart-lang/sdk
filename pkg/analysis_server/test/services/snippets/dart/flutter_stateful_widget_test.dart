@@ -27,6 +27,10 @@ class FlutterStatefulWidgetTest extends FlutterSnippetProducerTest {
   @override
   String get prefix => FlutterStatefulWidget.prefix;
 
+  String get widgetClassName => FlutterStatefulWidget.widgetClassName;
+
+  String get widgetClassNameRef => FlutterStatefulWidget.widgetClassNameRef;
+
   Future<void> test_noSuperParams() async {
     writeTestPackageConfig(flutter: true, languageVersion: '2.16');
 
@@ -41,14 +45,14 @@ class FlutterStatefulWidgetTest extends FlutterSnippetProducerTest {
     expect(code, '''
 import 'package:flutter/widgets.dart';
 
-class MyWidget extends StatefulWidget {
-  const MyWidget({Key? key}) : super(key: key);
+class $widgetClassName extends StatefulWidget {
+  const $widgetClassNameRef({Key? key}) : super(key: key);
 
   @override
-  State<MyWidget> createState() => _MyWidgetState();
+  State<$widgetClassNameRef> createState() => _${widgetClassNameRef}State();
 }
 
-class _MyWidgetState extends State<MyWidget> {
+class _${widgetClassNameRef}State extends State<$widgetClassNameRef> {
   @override
   Widget build(BuildContext context) {
     return const Placeholder();
@@ -71,19 +75,21 @@ class _MyWidgetState extends State<MyWidget> {
     final expected = TestCode.parse('''
 import 'package:flutter/widgets.dart';
 
-class /*0*/MyWidget extends StatefulWidget {
-  const /*1*/MyWidget({super.key});
+class /*0*/$widgetClassName extends StatefulWidget {
+  const /*1*/$widgetClassNameRef({super.key});
 
   @override
-  State</*2*/MyWidget> createState() => _/*3*/MyWidgetState();
+  State</*2*/$widgetClassNameRef> createState() => _/*3*/${widgetClassNameRef}State();
 }
 
-class _/*4*/MyWidgetState extends State</*5*/MyWidget> {
+class _$widgetClassNameRef\$1State extends State</*5*/$widgetClassNameRef> {
   @override
   Widget build(BuildContext context) {
     return /*[0*/const Placeholder()/*0]*/;
   }
-}''');
-    assertFlutterSnippetChange(snippet.change, 'MyWidget', expected);
+}''',
+    positionShorthand:false,
+    );
+    assertFlutterSnippetChange(snippet.change, widgetClassNameRef, expected);
   }
 }

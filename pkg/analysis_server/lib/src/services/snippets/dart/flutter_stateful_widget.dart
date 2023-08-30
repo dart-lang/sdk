@@ -13,6 +13,10 @@ class FlutterStatefulWidget extends FlutterSnippetProducer
     with FlutterWidgetSnippetProducerMixin {
   static const prefix = 'stful';
   static const label = 'Flutter Stateful Widget';
+  static String get widgetClassName =>
+      FlutterWidgetSnippetProducerMixin.widgetClassName;
+  static String get widgetClassNameRef =>
+      FlutterWidgetSnippetProducerMixin.widgetClassNameRef;
 
   late ClassElement? classStatefulWidget;
   late ClassElement? classState;
@@ -56,11 +60,11 @@ class FlutterStatefulWidget extends FlutterSnippetProducer
 
         // Write the State class.
         builder.write('class _');
-        builder.addSimpleLinkedEdit('name', widgetClassName);
+        builder.addSimpleLinkedEdit('name', widgetClassNameRef);
         builder.write('State extends ');
         builder.writeReference(classState);
         builder.write('<');
-        builder.addSimpleLinkedEdit('name', widgetClassName);
+        builder.addSimpleLinkedEdit('name', widgetClassNameRef);
         builder.writeln('> {');
         {
           writeBuildMethod(builder);

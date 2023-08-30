@@ -122,9 +122,12 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
 mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
   ClassElement? get classBuildContext;
   ClassElement? get classKey;
+
   /// Generate widget names using the currently selected file name for vscode.<br/>
   /// `my_widget.dart`->`MyWidget`
-  String get widgetClassName => '\${1:\${TM_FILENAME_BASE/(_|^|\\.)(\\w)/\${2:/capitalize}/g}}';
+  static String widgetClassName =  
+      '\${1:\${TM_FILENAME_BASE/(_|^|\\.)(\\w)/\${2:/capitalize}/g}}';
+  static String widgetClassNameRef = "\$1";
 
   void writeBuildMethod(DartEditBuilder builder) {
     // Checked by isValid() before this will be called.
@@ -161,9 +164,9 @@ mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
   void writeCreateStateMethod(DartEditBuilder builder) {
     builder.writeln('  @override');
     builder.write('  State<');
-    builder.addSimpleLinkedEdit('name', widgetClassName);
+    builder.addSimpleLinkedEdit('name', widgetClassNameRef);
     builder.write('> createState() => _');
-    builder.addSimpleLinkedEdit('name', widgetClassName);
+    builder.addSimpleLinkedEdit('name', widgetClassNameRef);
     builder.writeln('State();');
   }
 
@@ -184,7 +187,7 @@ mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
 
     builder.write('  ');
     builder.writeConstructorDeclaration(
-      widgetClassName,
+      widgetClassNameRef,
       classNameGroupName: 'name',
       isConst: true,
       parameterWriter: () {

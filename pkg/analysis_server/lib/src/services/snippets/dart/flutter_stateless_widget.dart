@@ -12,6 +12,10 @@ class FlutterStatelessWidget extends FlutterSnippetProducer
     with FlutterWidgetSnippetProducerMixin {
   static const prefix = 'stless';
   static const label = 'Flutter Stateless Widget';
+  static String get widgetClassName =>
+      FlutterWidgetSnippetProducerMixin.widgetClassName;
+  static String get widgetClassNameRef =>
+      FlutterWidgetSnippetProducerMixin.widgetClassNameRef;
 
   late ClassElement? classStatelessWidget;
   @override
