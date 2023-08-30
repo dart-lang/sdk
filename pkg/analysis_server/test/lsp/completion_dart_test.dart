@@ -25,6 +25,7 @@ import 'package:analysis_server/src/services/snippets/dart/test_definition.dart'
 import 'package:analysis_server/src/services/snippets/dart/test_group_definition.dart';
 import 'package:analysis_server/src/services/snippets/dart/try_catch_statement.dart';
 import 'package:analysis_server/src/services/snippets/dart/while_statement.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:collection/collection.dart';
@@ -33,12 +34,14 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
+import '../utils/test_code_extensions.dart';
 import 'completion.dart';
 import 'server_abstract.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionTest);
+    defineReflectiveTests(CompletionLabelDetailsTest);
     defineReflectiveTests(CompletionDocumentationResolutionTest);
     defineReflectiveTests(DartSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionTest);
@@ -223,6 +226,351 @@ void f() {
 
     final resolved = await resolveCompletion(completion);
     expectDocumentation(resolved, contains('Enum Member.'));
+  }
+}
+
+@reflectiveTest
+class CompletionLabelDetailsTest extends AbstractCompletionTest {
+  late String fileAPath;
+
+  Future<void> expectLabels(
+    String content, {
+    // Main label of the completion (eg 'myFunc')
+    required String? label,
+    // The detail part of the label (shown after label, usually truncated signature)
+    required String? labelDetail,
+    // Additional label description (usually the auto-import URI)
+    required String? labelDescription,
+    // Filter text (usually same as label, never with `()` or other suffixes)
+    required String? filterText,
+    // Main detail (shown in popout, usually full signature)
+    required String? detail,
+    // Sometimes resolved detail has a prefix added (eg. "Auto-import from").
+    String? resolvedDetailPrefix,
+  }) async {
+    final code = TestCode.parse(content);
+    await initialize();
+    await openFile(mainFileUri, code.code);
+
+    final completions =
+        await getCompletion(mainFileUri, code.position.position);
+    final completion = completions.singleWhereOrNull((c) => c.label == label);
+    if (completion == null) {
+      fail('Did not find completion "$label" in completion results:'
+          '\n    ${completions.map((c) => c.label).join('\n    ')}');
+    }
+
+    final labelDetails = completion.labelDetails;
+    if (labelDetails == null) {
+      fail('Completion "$label" does not have labelDetails');
+    }
+
+    expect(completion.detail, detail);
+    expect(completion.filterText, filterText);
+    expect(labelDetails.detail, labelDetail);
+    expect(labelDetails.description, labelDescription);
+
+    // Verify that resolution does not modify these results.
+    final resolved = await resolveCompletion(completion);
+    expect(resolved.label, completion.label);
+    expect(resolved.filterText, completion.filterText);
+    expect(
+      resolved.detail,
+      '${resolvedDetailPrefix ?? ''}${completion.detail}',
+    );
+    expect(resolved.labelDetails?.detail, completion.labelDetails?.detail);
+    expect(
+      resolved.labelDetails?.description,
+      completion.labelDetails?.description,
+    );
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    fileAPath = join(projectFolderPath, 'lib', 'a.dart');
+
+    // TODO(dantup): Consider enabling this by default for [CompletionTest] and
+    //  changing this class to test support without it (or, subclassing
+    //  CompletionTest and inferring the label when labelDetails are not
+    //  supported).
+    setCompletionItemLabelDetailsSupport();
+  }
+
+  Future<void> test_imported_function_returnType_args() async {
+    newFile(fileAPath, '''
+String a(String a, {String b}) {}
+''');
+    final content = '''
+import 'a.dart';
+void f() {
+  a^
+}
+''';
+
+    await expectLabels(content,
+        label: 'a',
+        labelDetail: '(…) → String',
+        labelDescription: null,
+        filterText: null,
+        detail: '(String a, {String b}) → String');
+  }
+
+  Future<void> test_imported_function_returnType_noArgs() async {
+    newFile(fileAPath, '''
+String a() {}
+''');
+    final content = '''
+import 'a.dart';
+String f() {
+  a^
+}
+''';
+
+    await expectLabels(content,
+        label: 'a',
+        labelDetail: '() → String',
+        labelDescription: null,
+        filterText: null,
+        detail: '() → String');
+  }
+
+  Future<void> test_imported_function_void_args() async {
+    newFile(fileAPath, '''
+void a(String a, {String b}) {}
+''');
+    final content = '''
+import 'a.dart';
+void f() {
+  a^
+}
+''';
+
+    await expectLabels(content,
+        label: 'a',
+        labelDetail: '(…) → void',
+        labelDescription: null,
+        filterText: null,
+        detail: '(String a, {String b}) → void');
+  }
+
+  Future<void> test_imported_function_void_noArgs() async {
+    newFile(fileAPath, '''
+void a() {}
+''');
+    final content = '''
+import 'a.dart';
+void f() {
+  a^
+}
+''';
+
+    await expectLabels(content,
+        label: 'a',
+        labelDetail: '() → void',
+        labelDescription: null,
+        filterText: null,
+        detail: '() → void');
+  }
+
+  Future<void> test_local_function_returnType_args() async {
+    final content = '''
+String f(String a, {String b}) {
+  f^
+}
+''';
+    await expectLabels(content,
+        label: 'f',
+        labelDetail: '(…) → String',
+        labelDescription: null,
+        filterText: null,
+        detail: '(String a, {String b}) → String');
+  }
+
+  Future<void> test_local_function_returnType_noArgs() async {
+    final content = '''
+String f() {
+  f^
+}
+''';
+
+    await expectLabels(content,
+        label: 'f',
+        labelDetail: '() → String',
+        labelDescription: null,
+        filterText: null,
+        detail: '() → String');
+  }
+
+  Future<void> test_local_function_void_args() async {
+    final content = '''
+void f(String a, {String b}) {
+  f^
+}
+''';
+
+    await expectLabels(content,
+        label: 'f',
+        labelDetail: '(…) → void',
+        labelDescription: null,
+        filterText: null,
+        detail: '(String a, {String b}) → void');
+  }
+
+  Future<void> test_local_function_void_noArgs() async {
+    final content = '''
+void f() {
+  f^
+}
+''';
+
+    await expectLabels(content,
+        label: 'f',
+        labelDetail: '() → void',
+        labelDescription: null,
+        filterText: null,
+        detail: '() → void');
+  }
+
+  Future<void> test_local_getter() async {
+    final content = '''
+String a => '';
+void f() {
+  a^
+}
+''';
+    await expectLabels(content,
+        label: 'a',
+        labelDetail: '() → String',
+        labelDescription: null,
+        filterText: null,
+        detail: '() → String');
+  }
+
+  Future<void> test_local_getterAndSetter() async {
+    final content = '''
+String a => '';
+set a(String value) {}
+void f() {
+  a^
+}
+''';
+    await expectLabels(content,
+        label: 'a',
+        labelDetail: '() → String',
+        labelDescription: null,
+        filterText: null,
+        detail: '() → String');
+  }
+
+  Future<void> test_local_override() async {
+    // TODO(dantup): Debug why using "a" instead of "aa" doesn't work.
+    final content = '''
+class Base {
+  String aa(String a) => '';
+}
+
+class Derived extends Base {
+  a^
+}
+''';
+    await expectLabels(content,
+        label: 'aa',
+        labelDetail: '(…) → String',
+        labelDescription: null,
+        filterText: null,
+        detail: '(String a) → String');
+  }
+
+  Future<void> test_local_setter() async {
+    final content = '''
+set a(String value) {}
+void f() {
+  a^
+}
+''';
+    await expectLabels(content,
+        label: 'a',
+        labelDetail: ' String',
+        labelDescription: null,
+        filterText: null,
+        detail: 'String');
+  }
+
+  Future<void> test_notImported_function_returnType_args() async {
+    newFile(fileAPath, '''
+String a(String a, {String b}) {}
+''');
+    final content = '''
+void f() {
+  a^
+}
+''';
+
+    await expectLabels(content,
+        label: 'a',
+        labelDetail: '(…) → String',
+        labelDescription: 'package:test/a.dart',
+        filterText: null,
+        detail: '(String a, {String b}) → String',
+        resolvedDetailPrefix: "Auto import from 'package:test/a.dart'\n\n");
+  }
+
+  Future<void> test_notImported_function_returnType_noArgs() async {
+    newFile(fileAPath, '''
+String a() {}
+''');
+    final content = '''
+String f() {
+  a^
+}
+''';
+
+    await expectLabels(content,
+        label: 'a',
+        labelDetail: '() → String',
+        labelDescription: 'package:test/a.dart',
+        filterText: null,
+        detail: '() → String',
+        resolvedDetailPrefix: "Auto import from 'package:test/a.dart'\n\n");
+  }
+
+  Future<void> test_notImported_function_void_args() async {
+    newFile(fileAPath, '''
+void a(String a, {String b}) {}
+''');
+    final content = '''
+void f() {
+  a^
+}
+''';
+
+    await expectLabels(content,
+        label: 'a',
+        labelDetail: '(…) → void',
+        labelDescription: 'package:test/a.dart',
+        filterText: null,
+        detail: '(String a, {String b}) → void',
+        resolvedDetailPrefix: "Auto import from 'package:test/a.dart'\n\n");
+  }
+
+  Future<void> test_notImported_function_void_noArgs() async {
+    newFile(fileAPath, '''
+void a() {}
+''');
+    final content = '''
+void f() {
+  a^
+}
+''';
+
+    await expectLabels(content,
+        label: 'a',
+        labelDetail: '() → void',
+        labelDescription: 'package:test/a.dart',
+        filterText: null,
+        detail: '() → void',
+        resolvedDetailPrefix: "Auto import from 'package:test/a.dart'\n\n");
   }
 }
 
