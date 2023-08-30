@@ -19,7 +19,7 @@ class UnnecessaryBreaksTest extends LintRuleTest {
 
   test_switch_pre30_ok() async {
     await assertNoDiagnostics(r'''
-// @dart=2.19    
+// @dart=2.19
 f() {
   switch (1) {
     case 1:

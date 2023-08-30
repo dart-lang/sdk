@@ -34,7 +34,7 @@ class A<T> {
   test_emptyFunctionExpressionReturningFutureOrVoid() async {
     await assertNoDiagnostics(r'''
 import 'dart:async';
-    
+
 void emptyFunctionExpressionReturningFutureOrVoid(FutureOr<void> Function() f) {
   f = () {};
 }
@@ -157,7 +157,7 @@ void f(FutureOr<void>? arg) {
   test_futureOrCallback() async {
     await assertNoDiagnostics(r'''
 import 'dart:async';
-    
+
 void capture(FutureOr<void> Function() callback) {}
 
 void f() {

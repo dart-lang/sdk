@@ -157,7 +157,7 @@ class Dir{
     deleteDir(path);
     createDir(path);
   }
-  
+
   Future<void> deleteDir(String path) async {}
   Future<void> createDir(String path) async {}
 }

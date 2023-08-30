@@ -993,7 +993,7 @@ void main() {
 
 mixin M {}
 
-class A implements M {} 
+class A implements M {}
 ''');
   }
 
@@ -1005,7 +1005,7 @@ void main() {
 
 mixin M {}
 
-class A with M {} 
+class A with M {}
 ''');
   }
 

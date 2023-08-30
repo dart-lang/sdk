@@ -40,7 +40,7 @@ class UnnecessaryParenthesisTest extends LintRuleTest {
 
   /// https://github.com/dart-lang/linter/issues/4041
   test_nullAware_cascadeAssignment() async {
-    await assertNoDiagnostics(r'''    
+    await assertNoDiagnostics(r'''
 class A {
   var b = false;
   void m() {}
@@ -59,7 +59,7 @@ void g(List<int>? list) {
   }
 
   test_switchExpression_expressionStatement() async {
-    await assertNoDiagnostics(r'''    
+    await assertNoDiagnostics(r'''
 void f(Object? x) {
   (switch (x) { _ => 0 });
 }
@@ -67,7 +67,7 @@ void f(Object? x) {
   }
 
   test_switchExpression_invocationArgument() async {
-    await assertDiagnostics(r'''    
+    await assertDiagnostics(r'''
 void f(Object? x) {
   print((switch (x) { _ => 0 }));
 }
@@ -77,7 +77,7 @@ void f(Object? x) {
   }
 
   test_switchExpression_variableDeclaration() async {
-    await assertDiagnostics(r'''    
+    await assertDiagnostics(r'''
 void f(Object? x) {
   final v = (switch (x) { _ => 0 });
 }

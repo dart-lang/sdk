@@ -20,7 +20,7 @@ class CastNullableToNonNullableTest extends LintRuleTest {
   test_castNullable() async {
     await assertDiagnostics(r'''
 String? s;
-var a = s as String; 
+var a = s as String;
 ''', [
       lint(19, 11),
     ]);
@@ -29,7 +29,7 @@ var a = s as String;
   test_castNullable_unresolvedType() async {
     await assertDiagnostics(r'''
 Undefined? s;
-var a = s! as String; 
+var a = s! as String;
 ''', [
       // No lint.
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 0, 9),

@@ -171,7 +171,7 @@ f() {
   test_destructured_recordPattern_forLoop_mutated() async {
     await assertNoDiagnostics(r'''
 f() {
-  for (var (a, b) in [(1, 2)]) { 
+  for (var (a, b) in [(1, 2)]) {
     ++a;
   }
 }
@@ -208,7 +208,7 @@ class C {
   test_ifPatternList() async {
     await assertDiagnostics(r'''
 f(Object o) {
-  if (o case [int x, final int y]) x; 
+  if (o case [int x, final int y]) x;
 }
 ''', [
       lint(28, 5),
@@ -218,7 +218,7 @@ f(Object o) {
   test_ifPatternList_final() async {
     await assertNoDiagnostics(r'''
 f(Object o) {
-  if (o case [final int x, final int y]) x; 
+  if (o case [final int x, final int y]) x;
 }
 ''');
   }

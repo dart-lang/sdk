@@ -62,7 +62,7 @@ abstract class A {
 }
 class B extends A {
   const B();
-}  
+}
 ''');
   }
 
@@ -152,9 +152,9 @@ class B extends A {
 
   test_no_lint_extends_notObject() async {
     await assertNoDiagnostics(r'''
-class O { 
+class O {
   const O();
-}    
+}
 class A extends O {
   static const A a = A._();
   static const A b = A._();
@@ -374,14 +374,14 @@ class A {
 
   test_withMixin() async {
     await assertDiagnostics(r'''
-mixin class M { }    
+mixin class M { }
 class A with M {
   static const A a = A._();
   static const A b = A._();
   const A._();
 }
 ''', [
-      lint(28, 1),
+      lint(24, 1),
     ]);
   }
 }

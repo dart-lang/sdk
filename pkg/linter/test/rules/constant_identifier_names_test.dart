@@ -80,7 +80,7 @@ f(A a) {
   }
   switch (a) {
     case A(:var a_b?):
-    case A(:var a_b!): 
+    case A(:var a_b!):
   }
 }
 ''');

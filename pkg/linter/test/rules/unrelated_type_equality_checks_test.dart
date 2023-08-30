@@ -18,7 +18,7 @@ class UnrelatedTypeEqualityChecksTest extends LintRuleTest {
   String get lintRule => 'unrelated_type_equality_checks';
 
   test_assignment_ok() async {
-    await assertNoDiagnostics(r'''    
+    await assertNoDiagnostics(r'''
 void m(int? a1, num a2) {
   var b1 = a1 == a2;
   var b2 = a2 == a1;
@@ -77,7 +77,7 @@ bool f((int, {int two}) a, (String one, {String two}) b) => a == b;
   }
 
   test_switchExpression() async {
-    await assertDiagnostics(r'''    
+    await assertDiagnostics(r'''
 const space = 32;
 
 String f(int char) {
@@ -105,7 +105,7 @@ String f(int i) {
   }
 
   test_switchExpression_notEq() async {
-    await assertDiagnostics(r'''    
+    await assertDiagnostics(r'''
 const space = 32;
 
 String f(int char) {

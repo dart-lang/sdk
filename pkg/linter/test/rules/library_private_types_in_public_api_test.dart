@@ -62,7 +62,7 @@ enum E {
   /// https://github.com/dart-lang/linter/issues/4470
   test_enum_constructorParams() async {
     await assertNoDiagnostics(r'''
-class _O {    
+class _O {
   const _O();
 }
 enum E {
@@ -228,7 +228,7 @@ class C {
   _O _x;
 
   C(this._x);
-  
+
   Object get x => _x;
 }
 ''', [

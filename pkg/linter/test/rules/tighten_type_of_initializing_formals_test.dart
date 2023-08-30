@@ -89,7 +89,7 @@ class A {
 class A {
   String? p;
   A(String this.p) : assert(p != null);
-  A.a(String this.p) : assert(null != p); 
+  A.a(String this.p) : assert(null != p);
 }
 ''', [
       // No lint

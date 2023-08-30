@@ -40,7 +40,7 @@ f() {
   test_nonNullableType_const() async {
     await assertNoDiagnostics(r'''
 const int i = 1;
-const dynamic j = 1; 
+const dynamic j = 1;
 ''');
   }
 

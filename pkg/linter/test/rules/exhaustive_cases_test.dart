@@ -86,7 +86,7 @@ class DeprecatedFields {
 }
 
 void dep(DeprecatedFields e) {
-  switch (e) { 
+  switch (e) {
     case DeprecatedFields.newFoo:
       break;
     case DeprecatedFields.bar:
@@ -95,14 +95,14 @@ void dep(DeprecatedFields e) {
       break;
   }
 
-  switch (e) { 
+  switch (e) {
     case DeprecatedFields.newFoo:
       break;
     case DeprecatedFields.baz:
       break;
   }
 
-  switch (e) { 
+  switch (e) {
     case DeprecatedFields.oldFoo:
       break;
     case DeprecatedFields.bar:
@@ -112,8 +112,8 @@ void dep(DeprecatedFields e) {
   }
 }
 ''', [
-      lint(450, 10),
-      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 602, 6),
+      lint(449, 10),
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 599, 6),
     ]);
   }
 
@@ -174,7 +174,7 @@ class E {
   static const e = E._(1);
   static const f = E._(2);
   static const g = E._(3);
-}    
+}
 ''');
 
     await assertDiagnostics(r'''
@@ -203,7 +203,7 @@ class TooFew {
 }
 
 void t(TooFew e) {
-  switch (e) { 
+  switch (e) {
     case TooFew.e:
   }
 }
@@ -215,7 +215,7 @@ class PublicCons {
 }
 
 void p(PublicCons e) {
-  switch (e) { 
+  switch (e) {
     case PublicCons.e:
   }
 }
@@ -237,7 +237,7 @@ class Subclass extends Subclassed {
 }
 
 void s(Subclassed e) {
-  switch (e) { 
+  switch (e) {
     case Subclassed.e:
   }
 }
