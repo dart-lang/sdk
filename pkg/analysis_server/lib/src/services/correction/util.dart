@@ -243,14 +243,13 @@ String getElementQualifiedName(Element element) {
 AstNode? getEnclosingClassOrUnitMember(AstNode input) {
   var member = input;
   for (var node in input.withParents) {
-    if (node is ClassDeclaration) {
-      return member;
-    }
-    if (node is CompilationUnit) {
-      return member;
-    }
-    if (node is EnumDeclaration) {
-      return member;
+    switch (node) {
+      case ClassDeclaration _:
+      case CompilationUnit _:
+      case EnumDeclaration _:
+      case ExtensionTypeDeclaration _:
+      case MixinDeclaration _:
+        return member;
     }
     member = node;
   }

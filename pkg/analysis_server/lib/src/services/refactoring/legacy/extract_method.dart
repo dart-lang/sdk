@@ -447,6 +447,10 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       interfaceElement = parent.declaredElement!;
     } else if (parent is EnumDeclaration) {
       interfaceElement = parent.declaredElement!;
+    } else if (parent is ExtensionTypeDeclaration) {
+      interfaceElement = parent.declaredElement!;
+    } else if (parent is MixinDeclaration) {
+      interfaceElement = parent.declaredElement!;
     }
     if (interfaceElement != null) {
       return validateCreateMethod(searchEngine,
