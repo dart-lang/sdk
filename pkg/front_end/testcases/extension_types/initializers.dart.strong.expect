@@ -1,0 +1,128 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/initializers.dart:16:27: Error: 'nonexisting' isn't an instance field of this class.
+//   Class4(this.field, this.nonexisting); // Error
+//                           ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/initializers.dart:20:35: Error: 'field' was already initialized by this constructor.
+//   Class5(this.field) : this.field = 42; // Error
+//                                   ^
+//
+// pkg/front_end/testcases/extension_types/initializers.dart:24:29: Error: 'nonexisting' isn't an instance field of this class.
+//   Class6(this.field) : this.nonexisting = 42; // Error
+//                             ^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type Class1(core::int field) {
+  constructor _ = self::Class1|_;
+  tearoff _ = self::Class1|_#_#tearOff;
+  constructor • = self::Class1|;
+  tearoff • = self::Class1|_#new#tearOff;
+}
+extension type Class2(core::int field) {
+  constructor _ = self::Class2|_;
+  tearoff _ = self::Class2|_#_#tearOff;
+  constructor • = self::Class2|;
+  tearoff • = self::Class2|_#new#tearOff;
+}
+extension type Class3(core::int field) {
+  constructor _ = self::Class3|_;
+  tearoff _ = self::Class3|_#_#tearOff;
+}
+extension type Class4(core::int field) {
+  constructor _ = self::Class4|_;
+  tearoff _ = self::Class4|_#_#tearOff;
+  constructor • = self::Class4|;
+  tearoff • = self::Class4|_#new#tearOff;
+}
+extension type Class5(core::int field) {
+  constructor _ = self::Class5|_;
+  tearoff _ = self::Class5|_#_#tearOff;
+  constructor • = self::Class5|;
+  tearoff • = self::Class5|_#new#tearOff;
+}
+extension type Class6(core::int field) {
+  constructor _ = self::Class6|_;
+  tearoff _ = self::Class6|_#_#tearOff;
+  constructor • = self::Class6|;
+  tearoff • = self::Class6|_#new#tearOff;
+}
+static inline-class-member method Class1|_(core::int field) → self::Class1 /* = core::int */ {
+  lowered final self::Class1 /* = core::int */ #this = field;
+  return #this;
+}
+static inline-class-member method Class1|_#_#tearOff(core::int field) → self::Class1 /* = core::int */
+  return self::Class1|_(field);
+static inline-class-member method Class1|(core::int field) → self::Class1 /* = core::int */ {
+  lowered final self::Class1 /* = core::int */ #this = field;
+  return #this;
+}
+static inline-class-member method Class1|_#new#tearOff(core::int field) → self::Class1 /* = core::int */
+  return self::Class1|(field);
+static inline-class-member method Class2|_(core::int field) → self::Class2 /* = core::int */ {
+  lowered final self::Class2 /* = core::int */ #this = field;
+  return #this;
+}
+static inline-class-member method Class2|_#_#tearOff(core::int field) → self::Class2 /* = core::int */
+  return self::Class2|_(field);
+static inline-class-member method Class2|(core::int field) → self::Class2 /* = core::int */ {
+  lowered final self::Class2 /* = core::int */ #this = field;
+  return #this;
+}
+static inline-class-member method Class2|_#new#tearOff(core::int field) → self::Class2 /* = core::int */
+  return self::Class2|(field);
+static inline-class-member method Class3|_(core::int field) → self::Class3 /* = core::int */ {
+  lowered final self::Class3 /* = core::int */ #this = field;
+  return #this;
+}
+static inline-class-member method Class3|_#_#tearOff(core::int field) → self::Class3 /* = core::int */
+  return self::Class3|_(field);
+static inline-class-member method Class4|_(core::int field) → self::Class4 /* = core::int */ {
+  lowered final self::Class4 /* = core::int */ #this = field;
+  return #this;
+}
+static inline-class-member method Class4|_#_#tearOff(core::int field) → self::Class4 /* = core::int */
+  return self::Class4|_(field);
+static inline-class-member method Class4|(core::int field, dynamic nonexisting) → self::Class4 /* = core::int */ {
+  lowered final self::Class4 /* = core::int */ #this = field;
+  final dynamic #t1 = invalid-expression "pkg/front_end/testcases/extension_types/initializers.dart:16:27: Error: 'nonexisting' isn't an instance field of this class.
+  Class4(this.field, this.nonexisting); // Error
+                          ^^^^^^^^^^^";
+  return #this;
+}
+static inline-class-member method Class4|_#new#tearOff(core::int field, dynamic nonexisting) → self::Class4 /* = core::int */
+  return self::Class4|(field, nonexisting);
+static inline-class-member method Class5|_(core::int field) → self::Class5 /* = core::int */ {
+  lowered final self::Class5 /* = core::int */ #this = field;
+  return #this;
+}
+static inline-class-member method Class5|_#_#tearOff(core::int field) → self::Class5 /* = core::int */
+  return self::Class5|_(field);
+static inline-class-member method Class5|(core::int field) → self::Class5 /* = core::int */ {
+  lowered final self::Class5 /* = core::int */ #this = field;
+  final dynamic #t2 = invalid-expression "pkg/front_end/testcases/extension_types/initializers.dart:20:35: Error: 'field' was already initialized by this constructor.
+  Class5(this.field) : this.field = 42; // Error
+                                  ^";
+  return #this;
+}
+static inline-class-member method Class5|_#new#tearOff(core::int field) → self::Class5 /* = core::int */
+  return self::Class5|(field);
+static inline-class-member method Class6|_(core::int field) → self::Class6 /* = core::int */ {
+  lowered final self::Class6 /* = core::int */ #this = field;
+  return #this;
+}
+static inline-class-member method Class6|_#_#tearOff(core::int field) → self::Class6 /* = core::int */
+  return self::Class6|_(field);
+static inline-class-member method Class6|(core::int field) → self::Class6 /* = core::int */ {
+  lowered final self::Class6 /* = core::int */ #this = field;
+  final dynamic #t3 = invalid-expression "pkg/front_end/testcases/extension_types/initializers.dart:24:29: Error: 'nonexisting' isn't an instance field of this class.
+  Class6(this.field) : this.nonexisting = 42; // Error
+                            ^^^^^^^^^^^";
+  return #this;
+}
+static inline-class-member method Class6|_#new#tearOff(core::int field) → self::Class6 /* = core::int */
+  return self::Class6|(field);
