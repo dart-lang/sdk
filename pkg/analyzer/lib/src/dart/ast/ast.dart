@@ -3226,6 +3226,11 @@ abstract final class Comment implements AstNode {
   @experimental
   List<DocImport> get docImports;
 
+  /// Whether this comment has a line beginning with '@nodoc', indicating its
+  /// contents are not intended for publishing.
+  @experimental
+  bool get hasNodoc;
+
   /// Return `true` if this is a block comment.
   bool get isBlock;
 
@@ -3277,6 +3282,9 @@ final class CommentImpl extends AstNodeImpl implements Comment {
   @override
   final List<DocImport> docImports;
 
+  @override
+  final bool hasNodoc;
+
   /// Initialize a newly created comment. The list of [tokens] must contain at
   /// least one token. The [_type] is the type of the comment. The list of
   /// [references] can be empty if the comment does not contain any embedded
@@ -3287,6 +3295,7 @@ final class CommentImpl extends AstNodeImpl implements Comment {
     required List<CommentReferenceImpl> references,
     required this.codeBlocks,
     required this.docImports,
+    required this.hasNodoc,
   }) : _type = type {
     _references._initialize(this, references);
   }

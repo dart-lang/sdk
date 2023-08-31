@@ -86,6 +86,7 @@ class DocCommentBuilder {
   final List<CommentReferenceImpl> references = [];
   final List<MdCodeBlock> codeBlocks = [];
   final List<DocImport> docImports = [];
+  bool hasNodoc = false;
   final Token startToken;
   final _CharacterSequence characterSequence;
 
@@ -117,6 +118,7 @@ class DocCommentBuilder {
       references: references,
       codeBlocks: codeBlocks,
       docImports: docImports,
+      hasNodoc: hasNodoc,
     );
   }
 
@@ -139,14 +141,16 @@ class DocCommentBuilder {
         continue;
       }
 
-      var fencedCodeBlockIndex = _fencedCodeBlockDelimiter(content);
-      if (fencedCodeBlockIndex > -1) {
-        _parseFencedCodeBlock(index: fencedCodeBlockIndex, content: content);
-      } else if (!_parseDocImport(
-          index: whitespaceEndIndex, content: content)) {
+      if (_parseFencedCodeBlock(content: content)) {
+        isPreviousLineEmpty = false;
+      } else if (_parseDocImport(index: whitespaceEndIndex, content: content)) {
+        isPreviousLineEmpty = false;
+      } else if (_parseNodoc(index: whitespaceEndIndex, content: content)) {
+        isPreviousLineEmpty = false;
+      } else {
         _parseDocCommentLine(offset, content);
+        isPreviousLineEmpty = content.isEmpty;
       }
-      isPreviousLineEmpty = content.isEmpty;
       lineInfo = characterSequence.next();
     }
   }
@@ -287,10 +291,13 @@ class DocCommentBuilder {
   ///
   /// When this method returns, [characterSequence] is postioned at the closing
   /// delimiter line (`.next()` must be called to move to the next line).
-  void _parseFencedCodeBlock({
-    required int index,
+  bool _parseFencedCodeBlock({
     required String content,
   }) {
+    var index = _fencedCodeBlockDelimiter(content);
+    if (index == -1) {
+      return false;
+    }
     var tickCount = 0;
     var length = content.length;
     while (content.codeUnitAt(index) == 0x60 /* '`' */) {
@@ -313,25 +320,22 @@ class DocCommentBuilder {
     var lineInfo = characterSequence.next();
     while (lineInfo != null) {
       var (:offset, :content) = lineInfo;
-
       fencedCodeBlockLines.add(
         MdCodeBlockLine(offset: offset, length: content.length),
       );
-
       var fencedCodeBlockIndex =
           _fencedCodeBlockDelimiter(content, minimumTickCount: tickCount);
       if (fencedCodeBlockIndex > -1) {
         // End the fenced code block.
         break;
       }
-
       lineInfo = characterSequence.next();
     }
 
-    // Non-terminating fenced code block.
     codeBlocks.add(
       MdCodeBlock(infoString: infoString, lines: fencedCodeBlockLines),
     );
+    return true;
   }
 
   ({int offset, String content})? _parseIndentedCodeBlock(String content) {
@@ -366,6 +370,21 @@ class DocCommentBuilder {
       MdCodeBlock(infoString: null, lines: codeBlockLines),
     );
     return lineInfo;
+  }
+
+  /// Tries to parse a `@nodoc` doc directive at the beginning of a line of a
+  /// doc comment, returning whether this was successful.
+  bool _parseNodoc({required int index, required String content}) {
+    const nodocLength = '@nodoc'.length;
+    if (!content.startsWith('@nodoc', index)) {
+      return false;
+    }
+    if (content.length == index + nodocLength ||
+        content.codeUnitAt(index + nodocLength) == 0x20 /* ' ' */) {
+      hasNodoc = true;
+      return true;
+    }
+    return false;
   }
 
   /// Parses the [source] text, found at [offset] in a single comment reference.
