@@ -156,8 +156,8 @@ void declareCompilerOptions(ArgParser args) {
   );
   args.addMultiOption(
     'keep-class-names-implementing',
-    help:
-        'Prevents obfuscation of the class names of any class implemented the given class.',
+    help: 'Prevents obfuscation of the class names of any class implementing '
+        'the given class.',
     defaultsTo: const <String>[],
   );
   args.addOption('invocation-modes',
