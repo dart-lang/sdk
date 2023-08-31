@@ -135,8 +135,7 @@ class _TypeSubstitutor extends ReplacementVisitor {
   }
 }
 
-/// Erases usage of `@JS` classes that are annotated with `@staticInterop` in
-/// favor of `JavaScriptObject`.
+/// Erases usage of `@JS` classes that are annotated with `@staticInterop`.
 class StaticInteropClassEraser extends Transformer {
   final CloneVisitorNotMembers _cloner = CloneVisitorNotMembers();
   late final _StaticInteropConstantReplacer _constantReplacer;
@@ -259,7 +258,7 @@ class StaticInteropClassEraser extends Transformer {
         //
         // In order to circumvent this, we introduce a new static method that
         // clones the factory body and has a return type of
-        // `JavaScriptObject`. Invocations of the factory are turned into
+        // the erased type. Invocations of the factory are turned into
         // invocations of the static method. The original factory is still kept
         // in order to make modular compilations work.
         _findOrCreateFactoryStub(node);
@@ -290,7 +289,7 @@ class StaticInteropClassEraser extends Transformer {
   @override
   TreeNode visitConstructorInvocation(ConstructorInvocation node) {
     if (hasStaticInteropAnnotation(node.target.enclosingClass)) {
-      // Add a cast so that the result gets typed as `JavaScriptObject`.
+      // Add a cast so that the result gets typed as the erased type.
       var newInvocation = super.visitConstructorInvocation(node) as Expression;
       return AsExpression(
           newInvocation,
@@ -321,10 +320,12 @@ class StaticInteropClassEraser extends Transformer {
         return StaticInvocation(stub, args, isConst: node.isConst)
           ..fileOffset = node.fileOffset;
       } else {
-        // Add a cast so that the result gets typed as `JavaScriptObject`.
+        // Add a cast so that the result gets typed as the erased type.
         var newInvocation = super.visitStaticInvocation(node) as Expression;
         return AsExpression(
-            newInvocation, node.target.function.returnType as InterfaceType)
+            newInvocation,
+            _eraseStaticInteropType(
+                node.target.function.returnType as InterfaceType))
           ..fileOffset = newInvocation.fileOffset;
       }
     }
