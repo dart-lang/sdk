@@ -403,6 +403,20 @@ void f(int a) {
     expect(element, isMethodElement);
   }
 
+  test_locate_RepresentationDeclaration() async {
+    await resolveTestCode('extension type A(int it) {}');
+    var node = findNode.singleRepresentationDeclaration;
+    var element = ElementLocator.locate(node);
+    expect(element, findElement.extensionType('A').representation);
+  }
+
+  test_locate_RepresentationDeclaration2() async {
+    await resolveTestCode('extension type A.named(int it) {}');
+    var node = findNode.singleRepresentationConstructorName;
+    var element = ElementLocator.locate(node);
+    expect(element, findElement.extensionType('A').constructors.first);
+  }
+
   test_locate_StringLiteral_exportUri() async {
     newFile("$testPackageLibPath/foo.dart", '');
     await resolveTestCode("export 'foo.dart';");

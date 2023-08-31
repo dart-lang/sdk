@@ -247,6 +247,18 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitRepresentationConstructorName(
+      RepresentationConstructorName node) {
+    final representation = node.parent as RepresentationDeclaration;
+    return representation.constructorElement;
+  }
+
+  @override
+  Element? visitRepresentationDeclaration(RepresentationDeclaration node) {
+    return node.fieldElement;
+  }
+
+  @override
   Element? visitStringLiteral(StringLiteral node) {
     final parent = node.parent;
     if (parent is ExportDirective) {

@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring_inte
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
+import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -136,8 +137,13 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     }
     // check if there are members with "newName" in the same ClassElement
     for (var newNameMember in getChildren(parentClass, newName)) {
-      var message = format("Class '{0}' already declares {1} with name '{2}'.",
-          parentClass.displayName, getElementKindName(newNameMember), newName);
+      var message = format(
+        "{0} '{1}' already declares {2} with name '{3}'.",
+        capitalize(parentClass.kind.displayName),
+        parentClass.displayName,
+        getElementKindName(newNameMember),
+        newName,
+      );
       result.addError(message, newLocation_fromElement(newNameMember));
     }
   }

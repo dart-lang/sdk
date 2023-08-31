@@ -1395,6 +1395,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       } else {
         name = '';
         nameOffset = extensionNode.name.offset;
+        nameEnd = extensionNode.name.end;
       }
 
       constructorElement = ConstructorElementImpl(name, nameOffset);
