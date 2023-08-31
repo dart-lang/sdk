@@ -123,6 +123,7 @@ class AnnotationVerifier {
     var parent = node.parent;
     if (parent is! ClassDeclaration &&
         parent is! ClassTypeAlias &&
+        parent is! ExtensionTypeDeclaration &&
         parent is! MixinDeclaration) {
       _errorReporter.reportErrorForNode(
           WarningCode.INVALID_IMMUTABLE_ANNOTATION, node, []);
