@@ -1370,6 +1370,21 @@ void f() {
     assertHasResult(SearchResultKind.REFERENCE, 'int b');
   }
 
+  Future<void> test_typeReference_extensionType() async {
+    addTestFile('''
+extension type A(int it) {}
+
+extension type B(int it) implements A {}
+
+void f(A a) {}
+''');
+    await findElementReferences(search: 'A(int it)', false);
+    expect(searchElement!.kind, ElementKind.EXTENSION_TYPE);
+    expect(results, hasLength(2));
+    assertHasResult(SearchResultKind.REFERENCE, 'A {}');
+    assertHasResult(SearchResultKind.REFERENCE, 'A a) {}');
+  }
+
   Future<void> test_typeReference_typeAlias_functionType() async {
     addTestFile('''
 typedef F = Function();

@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/parser_test_base.dart';
+import '../../../util/feature_sets.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class DefinedNamesTest extends ParserTestCase {
+class DefinedNamesTest {
   test_classMemberNames_class() {
     DefinedNames names = _computeDefinedNames('''
 class A {
@@ -36,12 +37,29 @@ class B {
         unorderedEquals(['a', 'b', 'd', 'e', 'f', 'g']));
   }
 
+  test_classMemberNames_extensionType() {
+    DefinedNames names = _computeDefinedNames('''
+extension type A.named(int it) {
+  int a, b;
+  A();
+  A.other();
+  void d() {}
+  int get e => 0;
+  set f(int _) {}
+}
+extension type B(int it) {
+  void g() {}
+}
+''');
+    expect(names.topLevelNames, unorderedEquals(['A', 'B']));
+    expect(names.classMemberNames,
+        unorderedEquals(['a', 'b', 'd', 'e', 'f', 'g']));
+  }
+
   test_classMemberNames_mixin() {
     DefinedNames names = _computeDefinedNames('''
 mixin A {
   int a, b;
-  A();
-  A.c();
   d() {}
   get e => null;
   set f(_) {}
@@ -59,7 +77,7 @@ mixin B {
     DefinedNames names = _computeDefinedNames('''
 class A {}
 class B = Object with A;
-typedef C {}
+typedef C();
 D() {}
 get E => null;
 set F(_) {}
@@ -71,8 +89,14 @@ mixin M {}
     expect(names.classMemberNames, isEmpty);
   }
 
-  DefinedNames _computeDefinedNames(String code) {
-    CompilationUnit unit = parseCompilationUnit2(code);
-    return computeDefinedNames(unit);
+  DefinedNames _computeDefinedNames(
+    String code, {
+    FeatureSet? featureSet,
+  }) {
+    final parseResult = parseString(
+      content: code,
+      featureSet: featureSet ?? FeatureSets.latestWithExperiments,
+    );
+    return computeDefinedNames(parseResult.unit);
   }
 }

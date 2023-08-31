@@ -87,6 +87,14 @@ extension MyExtension on int {}
     assertHasDeclaration(ElementKind.EXTENSION, 'MyExtension');
   }
 
+  Future<void> test_extensionTypeDeclaration() async {
+    addTestFile('''
+extension type MyExtensionType(int it) {}
+''');
+    await findTopLevelDeclarations('My*');
+    assertHasDeclaration(ElementKind.EXTENSION_TYPE, 'MyExtensionType');
+  }
+
   Future<void> test_invalidRegex() async {
     var result = await findTopLevelDeclarations('[A');
     expect(result, const TypeMatcher<RequestError>());
