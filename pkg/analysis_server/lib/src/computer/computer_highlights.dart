@@ -877,6 +877,11 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     );
 
     computer._addRegion_token(
+      node.constKeyword,
+      HighlightRegionType.BUILT_IN,
+    );
+
+    computer._addRegion_token(
       node.name,
       HighlightRegionType.EXTENSION_TYPE,
       semanticTokenModifiers: {SemanticTokenModifiers.declaration},

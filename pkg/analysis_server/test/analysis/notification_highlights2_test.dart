@@ -1101,20 +1101,21 @@ void f() {
 
   Future<void> test_extensionType() async {
     final testCode = TestCode.parse(r'''
-extension type A<T>.named(int it) implements num {}
+extension type const A<T>.named(int it) implements num {}
 ''');
     addTestFile(testCode.code);
     await prepareHighlights();
     assertHighlightText(testCode, -1, r'''
 0 + 9 |extension| BUILT_IN
 10 + 4 |type| BUILT_IN
-15 + 1 |A| EXTENSION_TYPE
-17 + 1 |T| TYPE_PARAMETER
-20 + 5 |named| CONSTRUCTOR
-26 + 3 |int| CLASS
-30 + 2 |it| INSTANCE_FIELD_DECLARATION
-34 + 10 |implements| BUILT_IN
-45 + 3 |num| CLASS
+15 + 5 |const| BUILT_IN
+21 + 1 |A| EXTENSION_TYPE
+23 + 1 |T| TYPE_PARAMETER
+26 + 5 |named| CONSTRUCTOR
+32 + 3 |int| CLASS
+36 + 2 |it| INSTANCE_FIELD_DECLARATION
+40 + 10 |implements| BUILT_IN
+51 + 3 |num| CLASS
 ''');
   }
 

@@ -833,6 +833,36 @@ extension E on C //2
     assertHasTarget('C //1');
   }
 
+  Future<void> test_extensionType() async {
+    addTestFile('''
+extension type A(int it) {
+  A.named() : this(0);
+  void foo() {
+    it; // foo()
+  }
+  static void bar() {}
+}
+void f(A a) {
+  A.it; // f()
+  A(0);
+  A.named();
+  a.foo();
+  A.bar();
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('int it');
+    assertHasRegionTarget('this(0)', 'A(int it', targetLength: 0);
+    assertHasRegionTarget('it; // foo()', 'it) {');
+    assertHasRegionTarget('A a)', 'A(int');
+    assertHasRegionTarget('it; // f()', 'it) {');
+    assertHasRegionTarget('A(0);', 'A(int', targetLength: 0);
+    assertHasRegionTarget('named();', 'named() :');
+    assertHasRegionTarget('foo();', 'foo() {');
+    assertHasRegionTarget('A.bar()', 'A(int');
+    assertHasRegionTarget('bar();', 'bar() {}');
+  }
+
   Future<void> test_functionReference_className_staticMethod() async {
     addTestFile('''
 class A {
