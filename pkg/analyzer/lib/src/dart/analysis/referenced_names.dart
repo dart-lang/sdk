@@ -96,6 +96,20 @@ class _LocalNameScope {
     return scope;
   }
 
+  factory _LocalNameScope.forExtensionType(
+      _LocalNameScope enclosing, ExtensionTypeDeclaration node) {
+    final scope = _LocalNameScope(enclosing);
+    scope.addTypeParameters(node.typeParameters);
+    for (final member in node.members) {
+      if (member is FieldDeclaration) {
+        scope.addVariableNames(member.fields);
+      } else if (member is MethodDeclaration) {
+        scope.add(member.name);
+      }
+    }
+    return scope;
+  }
+
   factory _LocalNameScope.forFunction(
       _LocalNameScope enclosing, FunctionDeclaration node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
@@ -228,6 +242,17 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
   void visitConstructorName(ConstructorName node) {
     if (node.parent is! ConstructorDeclaration) {
       super.visitConstructorName(node);
+    }
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    final outerScope = localScope;
+    try {
+      localScope = _LocalNameScope.forExtensionType(localScope, node);
+      super.visitExtensionTypeDeclaration(node);
+    } finally {
+      localScope = outerScope;
     }
   }
 

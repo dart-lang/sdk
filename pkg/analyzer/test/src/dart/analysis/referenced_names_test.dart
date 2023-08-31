@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/parser_test_base.dart';
+import '../../../util/feature_sets.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +20,7 @@ main() {
 }
 
 @reflectiveTest
-class ComputeReferencedNamesTest extends ParserTestCase {
+class ComputeReferencedNamesTest {
   test_class_constructor() {
     Set<String> names = _computeReferencedNames('''
 class U {
@@ -172,6 +175,17 @@ class U<T> {
 }
 ''');
     expect(names, unorderedEquals(['A']));
+  }
+
+  test_extensionType_typeParameters() {
+    Set<String> names = _computeReferencedNames('''
+extension type Z<T>(int it) {
+  A m(B b, T t, Z z) {
+    C c = 0;
+  }
+}
+''');
+    expect(names, unorderedEquals(['int', 'A', 'B', 'C']));
   }
 
   test_instantiatedNames_importPrefix() {
@@ -405,8 +419,15 @@ main() {
     expect(names, unorderedEquals(['A', 'B', 'C']));
   }
 
-  Set<String> _computeReferencedNames(String code) {
-    CompilationUnit unit = parseCompilationUnit2(code);
+  Set<String> _computeReferencedNames(
+    String code, {
+    FeatureSet? featureSet,
+  }) {
+    final parseResult = parseString(
+      content: code,
+      featureSet: featureSet ?? FeatureSets.latestWithExperiments,
+    );
+    final unit = parseResult.unit;
     return computeReferencedNames(unit);
   }
 }

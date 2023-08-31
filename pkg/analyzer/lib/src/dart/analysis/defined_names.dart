@@ -38,6 +38,9 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
         }
         member.members.forEach(appendClassMemberName);
       }
+      if (member is ExtensionTypeDeclaration) {
+        member.members.forEach(appendClassMemberName);
+      }
       if (member is MixinDeclaration) {
         member.members.forEach(appendClassMemberName);
       }

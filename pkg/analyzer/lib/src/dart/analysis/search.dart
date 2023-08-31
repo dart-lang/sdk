@@ -306,6 +306,7 @@ class Search {
         if (unitResult is UnitElementResult) {
           unitResult.element.classes.forEach(addElements);
           unitResult.element.enums.forEach(addElements);
+          unitResult.element.extensionTypes.forEach(addElements);
           unitResult.element.mixins.forEach(addElements);
         }
       }
@@ -462,6 +463,7 @@ class Search {
         unitElement.classes.forEach(addElement);
         unitElement.enums.forEach(addElement);
         unitElement.extensions.forEach(addElement);
+        unitElement.extensionTypes.forEach(addElement);
         unitElement.functions.forEach(addElement);
         unitElement.mixins.forEach(addElement);
         unitElement.topLevelVariables.forEach(addElement);
