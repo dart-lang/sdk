@@ -326,13 +326,13 @@ class B extends A {
   test_nonForwardingNamed() async {
     await assertDiagnostics(r'''
 class A {
-  A(int x, {int? foo}); 
+  A(int x, {int? foo});
 }
 class B extends A {
-  B(int x, {int? foo}) : super(x, foo: 0); 
+  B(int x, {int? foo}) : super(x, foo: 0);
 }
 ''', [
-      lint(59, 1),
+      lint(58, 1),
     ]);
   }
 

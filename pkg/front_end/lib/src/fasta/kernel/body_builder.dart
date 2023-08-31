@@ -336,6 +336,11 @@ class BodyBuilder extends StackListenerImpl
         typeInferrer.assignedVariables.declare(iterator.current.variable!);
       }
     }
+    if (thisVariable != null && context.isConstructor) {
+      // The this variable is not part of the [formalParameterScope] in
+      // constructors.
+      typeInferrer.assignedVariables.declare(thisVariable!);
+    }
   }
 
   BodyBuilder.forField(

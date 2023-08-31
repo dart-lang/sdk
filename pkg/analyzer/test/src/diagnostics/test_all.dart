@@ -167,6 +167,10 @@ import 'deprecated_implements_function_test.dart'
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'division_optimization_test.dart' as division_optimization;
+import 'doc_import_cannot_be_deferred_test.dart'
+    as doc_import_cannot_be_deferred;
+import 'doc_import_cannot_have_configurations_test.dart'
+    as doc_import_cannot_have_configurations;
 import 'duplicate_augmentation_import_test.dart'
     as duplicate_augmentation_import;
 import 'duplicate_constructor_default_test.dart'
@@ -1012,6 +1016,8 @@ main() {
     deprecated_member_use.main();
     deprecated_mixin_function.main();
     division_optimization.main();
+    doc_import_cannot_be_deferred.main();
+    doc_import_cannot_have_configurations.main();
     duplicate_augmentation_import.main();
     duplicate_constructor_default.main();
     duplicate_constructor_name.main();

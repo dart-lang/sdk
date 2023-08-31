@@ -32,14 +32,14 @@ void switchConstClass() {
 
   switch (v) {
     case const ConstClass(1):
-    case const ConstClass(2): 
-    case const ConstClass(3): 
+    case const ConstClass(2):
+    case const ConstClass(3):
     case const ConstClass(2):
     default:
   }
 }
 ''', [
-      error(WarningCode.UNREACHABLE_SWITCH_CASE, 239, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 237, 4),
     ]);
   }
 
@@ -55,16 +55,16 @@ void switchEnum() {
   E v = E.one;
 
   switch (v) {
-    case E.one:  
-    case E.two:  
-    case E.three: 
+    case E.one:
+    case E.two:
+    case E.three:
     case E.two:
     default:
   }
 }
 ''', [
       // No lint.
-      error(WarningCode.UNREACHABLE_SWITCH_CASE, 144, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 139, 4),
     ]);
   }
 
@@ -130,14 +130,14 @@ void switchConstClass() {
 
   switch (v) {
     case const ConstClass(1):
-    case const ConstClass(2): 
-    case const ConstClass(3): 
+    case const ConstClass(2):
+    case const ConstClass(3):
     case const ConstClass(2):
     default:
   }
 }
 ''', [
-      lint(244, 19),
+      lint(242, 19),
     ]);
   }
 
@@ -153,15 +153,15 @@ void switchEnum() {
   E v = E.one;
 
   switch (v) {
-    case E.one:  
-    case E.two:  
-    case E.three: 
+    case E.one:
+    case E.two:
+    case E.three:
     case E.two:
     default:
   }
 }
 ''', [
-      lint(149, 5),
+      lint(144, 5),
     ]);
   }
 

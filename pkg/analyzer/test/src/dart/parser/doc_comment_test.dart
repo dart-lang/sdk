@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -342,6 +343,259 @@ class A {}
 Comment
   tokens
     /// [this].
+''');
+  }
+
+  test_docImport() {
+    final parseResult = parseStringWithErrors(r'''
+/// @docImport 'dart:html';
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('docImport');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// @docImport 'dart:html';
+  docImports
+    DocImport
+      offset: 3
+      import: ImportDirective
+        importKeyword: import
+        uri: SimpleStringLiteral
+          literal: 'dart:html'
+        semicolon: ;
+''');
+  }
+
+  test_docImport_multiple() {
+    final parseResult = parseStringWithErrors(r'''
+/// One.
+/// @docImport 'dart:html';
+/// @docImport 'dart:io';
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('dart:html');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// One.
+    /// @docImport 'dart:html';
+    /// @docImport 'dart:io';
+  docImports
+    DocImport
+      offset: 12
+      import: ImportDirective
+        importKeyword: import
+        uri: SimpleStringLiteral
+          literal: 'dart:html'
+        semicolon: ;
+    DocImport
+      offset: 40
+      import: ImportDirective
+        importKeyword: import
+        uri: SimpleStringLiteral
+          literal: 'dart:io'
+        semicolon: ;
+''');
+  }
+
+  test_docImport_nonTerminated() {
+    final parseResult = parseStringWithErrors(r'''
+/// @docImport 'dart:html'
+class A {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_TOKEN, 15, 11),
+    ]);
+
+    final node = parseResult.findNode.comment('docImport');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// @docImport 'dart:html'
+  docImports
+    DocImport
+      offset: 3
+      import: ImportDirective
+        importKeyword: import
+        uri: SimpleStringLiteral
+          literal: 'dart:html'
+        semicolon: ; <synthetic>
+''');
+  }
+
+  test_docImport_parseError() {
+    final parseResult = parseStringWithErrors(r'''
+/// @docImport html
+class A {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_TOKEN, 8, 6),
+      error(ParserErrorCode.EXPECTED_STRING_LITERAL, 15, 4),
+      error(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 15, 4),
+      error(ParserErrorCode.EXPECTED_TOKEN, 15, 4),
+    ]);
+
+    final node = parseResult.findNode.comment('docImport');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// @docImport html
+  docImports
+    DocImport
+      offset: 3
+      import: ImportDirective
+        importKeyword: import
+        uri: SimpleStringLiteral
+          literal: "" <synthetic>
+        semicolon: ; <synthetic>
+''');
+  }
+
+  test_docImport_prefixed() {
+    final parseResult = parseStringWithErrors(r'''
+/// @docImport 'dart:html' as html;
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('docImport');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// @docImport 'dart:html' as html;
+  docImports
+    DocImport
+      offset: 3
+      import: ImportDirective
+        importKeyword: import
+        uri: SimpleStringLiteral
+          literal: 'dart:html'
+        asKeyword: as
+        prefix: SimpleIdentifier
+          token: html
+        semicolon: ;
+''');
+  }
+
+  test_docImport_show() {
+    final parseResult = parseStringWithErrors(r'''
+/// @docImport 'dart:html' show Element, HtmlElement;
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('docImport');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// @docImport 'dart:html' show Element, HtmlElement;
+  docImports
+    DocImport
+      offset: 3
+      import: ImportDirective
+        importKeyword: import
+        uri: SimpleStringLiteral
+          literal: 'dart:html'
+        combinators
+          ShowCombinator
+            keyword: show
+            shownNames
+              SimpleIdentifier
+                token: Element
+              SimpleIdentifier
+                token: HtmlElement
+        semicolon: ;
+''');
+  }
+
+  test_docImport_unterminatedString() {
+    final parseResult = parseStringWithErrors(r'''
+/// @docImport 'dart:html;
+class A {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_TOKEN, 15, 11),
+      error(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 17, 1),
+    ]);
+
+    final node = parseResult.findNode.comment('docImport');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// @docImport 'dart:html;
+  docImports
+    DocImport
+      offset: 3
+      import: ImportDirective
+        importKeyword: import
+        uri: SimpleStringLiteral
+          literal: 'dart:html;' <synthetic>
+        semicolon: ; <synthetic>
+''');
+  }
+
+  test_docImport_withOtherData() {
+    final parseResult = parseStringWithErrors(r'''
+/// ```dart
+/// x;
+/// ```
+/// @docImport 'dart:html';
+/// ```dart
+/// y;
+/// ```
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('docImport');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// ```dart
+    /// x;
+    /// ```
+    /// @docImport 'dart:html';
+    /// ```dart
+    /// y;
+    /// ```
+  codeBlocks
+    MdCodeBlock
+      infoString: dart
+      lines
+        MdCodeBlockLine
+          offset: 3
+          length: 8
+        MdCodeBlockLine
+          offset: 15
+          length: 3
+        MdCodeBlockLine
+          offset: 22
+          length: 4
+    MdCodeBlock
+      infoString: dart
+      lines
+        MdCodeBlockLine
+          offset: 58
+          length: 8
+        MdCodeBlockLine
+          offset: 70
+          length: 3
+        MdCodeBlockLine
+          offset: 77
+          length: 4
+  docImports
+    DocImport
+      offset: 30
+      import: ImportDirective
+        importKeyword: import
+        uri: SimpleStringLiteral
+          literal: 'dart:html'
+        semicolon: ;
 ''');
   }
 
@@ -767,7 +1021,6 @@ class A {}
     parseResult.assertNoErrors();
 
     final node = parseResult.findNode.comment('Text');
-    // TODO(srawlins): Parse an indented code block into its own node.
     assertParsedNodeText(node, r'''
 Comment
   references
@@ -791,7 +1044,6 @@ class A {}
     parseResult.assertNoErrors();
 
     final node = parseResult.findNode.comment('a[i]');
-    // TODO(srawlins): Parse an indented code block into its own node.
     assertParsedNodeText(node, r'''
 Comment
   tokens
@@ -818,7 +1070,6 @@ class A {}
     parseResult.assertNoErrors();
 
     final node = parseResult.findNode.comment('a[i]');
-    // TODO(srawlins): Parse an indented code block into its own node.
     assertParsedNodeText(node, r'''
 Comment
   references

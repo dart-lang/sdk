@@ -3163,7 +3163,7 @@ ErrorPtr Isolate::InvokePendingServiceExtensionCalls() {
   const Library& developer_lib = Library::Handle(Library::DeveloperLibrary());
   ASSERT(!developer_lib.IsNull());
   const Function& run_extension = Function::Handle(
-      developer_lib.LookupLocalFunction(Symbols::_runExtension()));
+      developer_lib.LookupFunctionAllowPrivate(Symbols::_runExtension()));
   ASSERT(!run_extension.IsNull());
 
   const Array& arguments =

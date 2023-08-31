@@ -22122,6 +22122,14 @@ WarningCode:
         C.c();
       }
       ```
+  DOC_IMPORT_CANNOT_BE_DEFERRED:
+    problemMessage: "Doc imports can't be deferred."
+    correctionMessage: Try removing the 'deferred' keyword.
+    hasPublishedDocs: false
+  DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
+    problemMessage: "Doc imports can't have configurations."
+    correctionMessage: Try removing the configurations.
+    hasPublishedDocs: false
   DUPLICATE_EXPORT:
     problemMessage: Duplicate export.
     correctionMessage: Try removing all but one export of the library.

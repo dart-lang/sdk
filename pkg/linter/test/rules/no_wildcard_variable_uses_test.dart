@@ -23,7 +23,7 @@ class C {
   C._();
   m() {
     print(C._);
-    print(C._());   
+    print(C._());
   }
 }
 ''');
@@ -33,7 +33,7 @@ class C {
     await assertNoDiagnostics(r'''
 f() {
   for (var _ in [1, 2, 3]) ;
-}  
+}
 ''');
   }
 
@@ -44,7 +44,7 @@ class C {
   m() {
     print(_);
   }
-} 
+}
 ''');
   }
 

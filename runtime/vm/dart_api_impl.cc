@@ -5922,8 +5922,9 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   if (FLAG_enable_mirrors) {
     // Notify mirrors that MirrorSystem.libraries needs to be recomputed.
     const Library& libmirrors = Library::Handle(Z, Library::MirrorsLibrary());
-    const Field& dirty_bit = Field::Handle(
-        Z, libmirrors.LookupLocalField(String::Handle(String::New("_dirty"))));
+    const Field& dirty_bit =
+        Field::Handle(Z, libmirrors.LookupFieldAllowPrivate(
+                             String::Handle(String::New("_dirty"))));
     ASSERT(!dirty_bit.IsNull() && dirty_bit.is_static());
     dirty_bit.SetStaticValue(Bool::True());
   }

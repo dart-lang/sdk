@@ -60,27 +60,6 @@ class Resolver : public AllStatic {
   static FunctionPtr ResolveFunction(Zone* zone,
                                      const Class& receiver_class,
                                      const String& function_name);
-
-  // Resolve specified dart static function. If library.IsNull, use
-  // either application library or core library if no application library
-  // exists. Passing negative num_arguments means that the function
-  // will be resolved by name only.
-  // Otherwise null is returned if the number or names of arguments are not
-  // valid for the resolved function.
-  static FunctionPtr ResolveStatic(const Library& library,
-                                   const String& cls_name,
-                                   const String& function_name,
-                                   intptr_t type_args_len,
-                                   intptr_t num_arguments,
-                                   const Array& argument_names);
-
-  // Resolve specified dart static function with specified arity. Only resolves
-  // public functions.
-  static FunctionPtr ResolveStatic(const Class& cls,
-                                   const String& function_name,
-                                   intptr_t type_args_len,
-                                   intptr_t num_arguments,
-                                   const Array& argument_names);
 };
 
 }  // namespace dart

@@ -69,6 +69,7 @@ void main() {
       var results = [
         for (var i = 0; i < 2; i++)
           MacroExecutionResultImpl(
+            diagnostics: [],
             enumValueAugmentations: {},
             interfaceAugmentations: {
               for (var j = 0; j < 3; j++)
@@ -181,6 +182,7 @@ void main() {
           uri: Uri.parse('package:bar/bar.dart'));
       var results = [
         MacroExecutionResultImpl(
+          diagnostics: [],
           enumValueAugmentations: {},
           interfaceAugmentations: {},
           mixinAugmentations: {},
@@ -236,6 +238,7 @@ void main() {
     test('can handle omitted type annotations', () {
       var results = [
         MacroExecutionResultImpl(
+            diagnostics: [],
             enumValueAugmentations: {},
             interfaceAugmentations: {},
             mixinAugmentations: {},
@@ -303,6 +306,7 @@ void main() {
           uri: Uri.parse('package:bar/bar.dart'));
       var results = [
         MacroExecutionResultImpl(
+          diagnostics: [],
           enumValueAugmentations: {},
           interfaceAugmentations: {},
           mixinAugmentations: {},
@@ -399,7 +403,7 @@ void main() {
               typeArguments: []));
 
       var results = [
-        MacroExecutionResultImpl(enumValueAugmentations: {
+        MacroExecutionResultImpl(diagnostics: [], enumValueAugmentations: {
           myEnum.identifier: [
             DeclarationCode.fromParts(['a(1),\n']),
           ],
@@ -461,6 +465,7 @@ void main() {
 
         var results = [
           MacroExecutionResultImpl(
+              diagnostics: [],
               enumValueAugmentations: {},
               typeAugmentations: {
                 clazz.identifier: [

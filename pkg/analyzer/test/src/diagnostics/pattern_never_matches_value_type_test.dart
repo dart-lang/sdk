@@ -107,6 +107,19 @@ void f(double x) {
 ''');
   }
 
+  test_interfaceType2_matchedFinal_enumSubtype() async {
+    await assertNoErrorsInCode('''
+void f(A x) {
+  if (x case E _) {}
+}
+
+final class A {}
+enum E implements A {
+  v
+}
+''');
+  }
+
   test_interfaceType2_matchedFinal_hasSubtypes_noneImplementsRequired() async {
     await assertErrorsInCode('''
 void f(A x) {
@@ -364,6 +377,19 @@ void f(Object? x) {
 ''');
   }
 
+  test_interfaceType2_matchedSealed_enumSubtype() async {
+    await assertNoErrorsInCode('''
+void f(A x) {
+  if (x case E _) {}
+}
+
+sealed class A {}
+enum E implements A {
+  v
+}
+''');
+  }
+
   test_interfaceType2_matchedSealed_hasNonFinalSubtype() async {
     await assertNoErrorsInCode('''
 void f(A x) {
@@ -374,6 +400,18 @@ sealed class A {}
 final class A2 extends A {}
 class A3 implements A {}
 class R {}
+''');
+  }
+
+  test_interfaceType2_matchedSealed_mixinSubtype() async {
+    // No warning, because `M` can be implemented outside.
+    await assertNoErrorsInCode('''
+void f(A x) {
+  if (x case M _) {}
+}
+
+sealed class A {}
+mixin M implements A {}
 ''');
   }
 

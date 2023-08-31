@@ -172,7 +172,7 @@ class Foo {
   test_main() async {
     await assertNoDiagnostics(r'''
 Future<void> f() async { }
-void main() async { 
+void main() async {
   await f();
 }
 ''');

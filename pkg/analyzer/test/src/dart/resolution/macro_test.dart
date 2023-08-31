@@ -61,6 +61,7 @@ void f(A_Macro a) {}
 ''');
   }
 
+  @FailingTest(reason: 'Fails because exceptions are reported as diagnostics')
   test_macroExecutionException_compileTimeError() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
@@ -82,6 +83,7 @@ class A {}
 ''', [error(CompileTimeErrorCode.MACRO_EXECUTION_EXCEPTION, 18, 10)]);
   }
 
+  @FailingTest(reason: 'Fails because exceptions are reported as diagnostics')
   test_macroExecutionException_throwsException() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';

@@ -32,47 +32,47 @@ extension type E(int i) { }
 
   test_field_instance() async {
     await assertDiagnostics(r'''
-/// Doc.    
+/// Doc.
 extension type E(int i) {
   int? f;
 }
 ''', [
       // No lint.
-      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD, 46, 1),
+      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD, 42, 1),
     ]);
   }
 
   test_field_static() async {
     await assertDiagnostics(r'''
-/// Doc.    
+/// Doc.
 extension type E(int i) {
   static int? f;
 }
 ''', [
-      lint(53, 1),
+      lint(49, 1),
     ]);
   }
 
   test_method() async {
     await assertDiagnostics(r'''
-/// Doc.    
+/// Doc.
 extension type E(int i) {
   void m() { }
 }
 ''', [
-      lint(46, 1),
+      lint(42, 1),
     ]);
   }
 
   test_method_private() async {
     await assertDiagnostics(r'''
-/// Doc.    
+/// Doc.
 extension type E(int i) {
   void _m() { }
 }
 ''', [
       // No lint
-      error(WarningCode.UNUSED_ELEMENT, 46, 2),
+      error(WarningCode.UNUSED_ELEMENT, 42, 2),
     ]);
   }
 }
@@ -213,7 +213,7 @@ enum E {
   a, b, c;
   int get i => 0;
   void m() {}
-  
+
   const E();
 }
 ''', [
@@ -306,7 +306,7 @@ int get z => 0;
     await assertDiagnostics(r'''
 int _h = 1;
 typedef _T = void Function();
-int get _z => 0; 
+int get _z => 0;
 ''', [
       // No lint
       error(WarningCode.UNUSED_ELEMENT, 4, 2),

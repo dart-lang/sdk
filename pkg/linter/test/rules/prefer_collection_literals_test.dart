@@ -36,7 +36,7 @@ void c() {
   test_linkedHashSetParameter_named_type_required() async {
     await assertNoDiagnostics(r'''
 import 'dart:collection';
-    
+
 class Foo {}
 
 void a({required LinkedHashSet<Foo> some}) {}
@@ -50,7 +50,7 @@ void c() {
   test_linkedHashSetParameter_named_type_unrequired() async {
     await assertDiagnostics(r'''
 import 'dart:collection';
-    
+
 class Foo {}
 
 void a({required Set<Foo> some}) {}
@@ -59,14 +59,14 @@ void c() {
   a(some: LinkedHashSet<Foo>());
 }
 ''', [
-      lint(103, 20),
+      lint(99, 20),
     ]);
   }
 
   test_linkedHashSetParameter_type_required() async {
     await assertNoDiagnostics(r'''
 import 'dart:collection';
-    
+
 class Foo {}
 
 void b(LinkedHashSet<Foo> some) {}
@@ -80,7 +80,7 @@ void c() {
   test_linkedHashSetParameter_type_unrequired() async {
     await assertDiagnostics(r'''
 import 'dart:collection';
-    
+
 class Foo {}
 
 void b(Set<Foo> some) {}
@@ -89,20 +89,20 @@ void c() {
   b(LinkedHashSet<Foo>());
 }
 ''', [
-      lint(86, 20),
+      lint(82, 20),
     ]);
   }
 
   test_undefinedFunction() async {
     await assertDiagnostics(r'''
 import 'dart:collection';
-    
+
 void f() {
   printUnresolved(LinkedHashSet<int>());
 }
 ''', [
       // No lints.
-      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 44, 15),
+      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 40, 15),
     ]);
   }
 }

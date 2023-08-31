@@ -80,7 +80,7 @@ void f(bool b) {
   /// https://github.com/dart-lang/linter/issues/4410
   test_switchPatternCase_justEmpties() async {
     await assertDiagnostics(r'''
-f() {    
+f() {
   switch(true) {
     case true :
       ;
@@ -89,17 +89,17 @@ f() {
     case false :
       print('');
     }
-}    
+}
 ''', [
-      lint(49, 1),
-      lint(57, 1),
+      lint(45, 1),
+      lint(53, 1),
     ]);
   }
 
   /// https://github.com/dart-lang/linter/issues/4410
   test_switchPatternCase_leading() async {
     await assertDiagnostics(r'''
-f() {    
+f() {
   switch(true) {
     case true :
       ;
@@ -107,16 +107,16 @@ f() {
     case false :
       print('');
     }
-}    
+}
 ''', [
-      lint(49, 1),
+      lint(45, 1),
     ]);
   }
 
   /// https://github.com/dart-lang/linter/issues/4410
   test_switchPatternCase_leading_trailing() async {
     await assertDiagnostics(r'''
-f() {    
+f() {
   switch(true) {
     case true :
       ;
@@ -124,30 +124,30 @@ f() {
     case false :
       print('');
     }
-}    
+}
 ''', [
-      lint(49, 1),
+      lint(45, 1),
     ]);
   }
 
   /// https://github.com/dart-lang/linter/issues/4410
   test_switchPatternCase_only() async {
     await assertNoDiagnostics(r'''
-f() {    
+f() {
   switch(true) {
     case true :
       ;
     case false :
       print('');
     }
-}    
+}
 ''');
   }
 
   /// https://github.com/dart-lang/linter/issues/4410
   test_switchPatternCase_trailing() async {
     await assertDiagnostics(r'''
-f() {    
+f() {
   switch(true) {
     case true :
       print('');
@@ -155,9 +155,9 @@ f() {
     case false :
       print('');
     }
-}    
+}
 ''', [
-      lint(66, 1),
+      lint(62, 1),
     ]);
   }
 }

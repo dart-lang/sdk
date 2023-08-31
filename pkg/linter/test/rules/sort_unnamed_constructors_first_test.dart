@@ -20,7 +20,7 @@ class SortUnnamedConstructorsFirstTest extends LintRuleTest {
   test_class_sorted() async {
     await assertNoDiagnostics(r'''
 class C {
-  C(); 
+  C();
   C.named();
   // ignore: unused_element
   C._();

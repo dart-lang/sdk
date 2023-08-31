@@ -36,7 +36,7 @@ class A {
   test_returnType() async {
     await assertNoDiagnostics(r'''
 dynamic f() {
-  return null; 
+  return null;
 }
 ''');
   }

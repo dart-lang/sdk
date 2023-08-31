@@ -123,7 +123,7 @@ void f() {
   switch (row) {
     case ['one' 'two', var name!]:
   }
-}  
+}
 ''', [
       lint(64, 11),
     ]);

@@ -18,7 +18,7 @@ class UnnecessaryOverridesTest extends LintRuleTest {
   String get lintRule => 'unnecessary_overrides';
 
   test_enum_field() async {
-    await assertDiagnostics(r'''    
+    await assertDiagnostics(r'''
 enum A {
   a,b,c;
   @override
@@ -30,7 +30,7 @@ enum A {
   }
 
   test_enum_method() async {
-    await assertDiagnostics(r'''    
+    await assertDiagnostics(r'''
 enum A {
   a,b,c;
   @override

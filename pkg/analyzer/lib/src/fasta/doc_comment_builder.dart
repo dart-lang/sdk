@@ -9,8 +9,12 @@ import 'package:_fe_analyzer_shared/src/parser/util.dart'
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show StringToken;
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
+import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/fasta/ast_builder.dart';
 
 /// Given that we have just found bracketed text within the given [comment],
 /// looks to see whether that text is (a) followed by a parenthesized link
@@ -75,13 +79,24 @@ int _findCommentReferenceEnd(String comment, int index, int end) {
 /// [Comment], which is ultimately built with [build].
 class DocCommentBuilder {
   final Parser parser;
+  final ErrorReporter? _errorReporter;
+  final Uri _uri;
+  final FeatureSet _featureSet;
+  final LineInfo _lineInfo;
   final List<CommentReferenceImpl> references = [];
   final List<MdCodeBlock> codeBlocks = [];
+  final List<DocImport> docImports = [];
   final Token startToken;
   final _CharacterSequence characterSequence;
 
-  DocCommentBuilder(this.parser, this.startToken)
-      : characterSequence = _CharacterSequence(startToken);
+  DocCommentBuilder(
+    this.parser,
+    this._errorReporter,
+    this._uri,
+    this._featureSet,
+    this._lineInfo,
+    this.startToken,
+  ) : characterSequence = _CharacterSequence(startToken);
 
   CommentImpl build() {
     parseDocComment();
@@ -101,6 +116,7 @@ class DocCommentBuilder {
       type: CommentType.DOCUMENTATION,
       references: references,
       codeBlocks: codeBlocks,
+      docImports: docImports,
     );
   }
 
@@ -126,7 +142,8 @@ class DocCommentBuilder {
       var fencedCodeBlockIndex = _fencedCodeBlockDelimiter(content);
       if (fencedCodeBlockIndex > -1) {
         _parseFencedCodeBlock(index: fencedCodeBlockIndex, content: content);
-      } else {
+      } else if (!_parseDocImport(
+          index: whitespaceEndIndex, content: content)) {
         _parseDocCommentLine(offset, content);
       }
       isPreviousLineEmpty = content.isEmpty;
@@ -201,6 +218,69 @@ class DocCommentBuilder {
     }
   }
 
+  /// Tries to parse a doc import at the beginning of a line of a doc comment,
+  /// returning whether this was successful.
+  ///
+  /// A doc import begins with `@docImport ` and then can contain any other
+  /// legal syntax that a regular Dart import can contain.
+  bool _parseDocImport({required int index, required String content}) {
+    const docImportLength = '@docImport '.length;
+    const importLength = 'import '.length;
+    if (!content.startsWith('@docImport ', index)) {
+      return false;
+    }
+
+    index = _readWhitespace(content, index + docImportLength);
+    var syntheticImport = 'import ${content.substring(index)}';
+
+    // TODO(srawlins): Handle multiple lines.
+    var sourceMap = [
+      (
+        offsetInDocImport: 0,
+        offsetInUnit: characterSequence._offset + (index - importLength),
+      )
+    ];
+
+    var scanner = DocImportStringScanner(
+      syntheticImport,
+      configuration: ScannerConfiguration(),
+      sourceMap: sourceMap,
+    );
+
+    var tokens = scanner.tokenize();
+    var result = ScannerResult(tokens, scanner.lineStarts, scanner.hasErrors);
+    // Fasta pretends there is an additional line at EOF.
+    result.lineStarts.removeLast();
+    // For compatibility, there is already a first entry in lineStarts.
+    result.lineStarts.removeAt(0);
+
+    var token = result.tokens;
+    var docImportListener = AstBuilder(
+      _errorReporter,
+      _uri,
+      true /* isFullAst */,
+      _featureSet,
+      _lineInfo,
+    );
+    var parser = Parser(docImportListener);
+    docImportListener.parser = parser;
+    parser.parseUnit(token);
+
+    if (docImportListener.directives.isEmpty) {
+      return false;
+    }
+    var directive = docImportListener.directives.first;
+
+    if (directive is ImportDirectiveImpl) {
+      docImports.add(
+        DocImport(offset: characterSequence._offset, import: directive),
+      );
+      return true;
+    }
+
+    return false;
+  }
+
   /// Parses a fenced code block, starting with [content].
   ///
   /// The backticks of the opening delimiter start at [index].
@@ -221,11 +301,8 @@ class DocCommentBuilder {
       }
     }
 
-    var infoString = index == length ? null : content.substring(index).trim();
-    if (infoString != null && infoString.isEmpty) {
-      infoString = null;
-    }
-
+    var infoString =
+        index == length ? null : _InfoString.parse(content.substring(index));
     var fencedCodeBlockLines = <MdCodeBlockLine>[
       MdCodeBlockLine(
         offset: characterSequence._offset,
@@ -243,13 +320,9 @@ class DocCommentBuilder {
 
       var fencedCodeBlockIndex =
           _fencedCodeBlockDelimiter(content, minimumTickCount: tickCount);
-
       if (fencedCodeBlockIndex > -1) {
         // End the fenced code block.
-        codeBlocks.add(
-          MdCodeBlock(infoString: infoString, lines: fencedCodeBlockLines),
-        );
-        return;
+        break;
       }
 
       lineInfo = characterSequence.next();
@@ -464,10 +537,9 @@ class DocCommentBuilder {
 
   /// Reads past any opening whitespace in [content], returning the index after
   /// the last whitespace character.
-  int _readWhitespace(String content) {
-    if (content.isEmpty) return 0;
-    var index = 0;
+  int _readWhitespace(String content, [int index = 0]) {
     var length = content.length;
+    if (index >= length) return index;
     while (isWhitespace(content.codeUnitAt(index))) {
       index++;
       if (index >= length) {
@@ -475,6 +547,63 @@ class DocCommentBuilder {
       }
     }
     return index;
+  }
+}
+
+class DocImportStringScanner extends StringScanner {
+  /// A list of offset pairs; each contains an offset in [source], and the
+  /// associated offset in the source text from which [source] is derived.
+  ///
+  /// Always contains a mapping from 0 to the offset of the `@docImport` text.
+  ///
+  /// Additionally contains a mapping for the start of each new line.
+  ///
+  /// For example, given the unit text:
+  ///
+  /// ```dart
+  /// int x = 0;
+  /// /// Text.
+  /// /// @docImport 'dart:math'
+  /// // ignore: some_linter_rule
+  /// ///     as math
+  /// ///     show max;
+  /// int y = 0;
+  /// ```
+  ///
+  /// The source map for scanning the doc import will contain the following
+  /// pairs:
+  ///
+  /// * (0, 29) (29 is the offset of the `I` in `@docImport`.)
+  /// * (19, 80) (The offsets of the first character in the line with `as`.)
+  /// * (31, 96) (The offsets of the first character in the line with `show`.)
+  final List<({int offsetInDocImport, int offsetInUnit})> _sourceMap;
+
+  DocImportStringScanner(
+    super.source, {
+    super.configuration,
+    required List<({int offsetInDocImport, int offsetInUnit})> sourceMap,
+  }) : _sourceMap = sourceMap;
+
+  @override
+
+  /// The position of the start of the next token _in the unit_, not in
+  /// [source].
+  ///
+  /// This is used for constructing [Token] objects, for a Token's offset.
+  int get tokenStart => _toOffsetInUnit(super.tokenStart);
+
+  /// Maps [offset] to the corresponding offset in the unit.
+  int _toOffsetInUnit(int offset) {
+    for (var index = _sourceMap.length - 1; index > 0; index--) {
+      var (:offsetInDocImport, :offsetInUnit) = _sourceMap[index];
+      if (offset >= offsetInDocImport) {
+        var delta = offset - offsetInDocImport;
+        return offsetInUnit + delta;
+      }
+    }
+    var (:offsetInDocImport, :offsetInUnit) = _sourceMap[0];
+    var delta = offset - offsetInDocImport;
+    return offsetInUnit + delta;
   }
 }
 
@@ -596,5 +725,23 @@ class _CharacterSequenceFromSingleLineComment implements _CharacterSequence {
       offset: _offset,
       content: _token.lexeme.substring(threeSlashesLength),
     );
+  }
+}
+
+/// A canonicalized store of fenced code block info strings.
+///
+/// Across many doc comments with many fenced code blocks, there are likely
+/// very few info strings (usually the name of a programming language, like
+/// 'dart' and 'html').
+class _InfoString {
+  static final Set<String> _infoStrings = {};
+
+  static String? parse(String text) {
+    text = text.trim();
+    if (text.isEmpty) {
+      return null;
+    }
+    _infoStrings.add(text);
+    return _infoStrings.lookup(text);
   }
 }

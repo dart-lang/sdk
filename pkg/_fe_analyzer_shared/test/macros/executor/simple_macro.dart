@@ -6,6 +6,28 @@ import 'dart:async';
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
+/// A macro for testing diagnostics reporting, including error handling.
+class DiagnosticMacro implements ClassTypesMacro {
+  @override
+  FutureOr<void> buildTypesForClass(
+      ClassDeclaration clazz, ClassTypeBuilder builder) {
+    builder.report(Diagnostic(
+        DiagnosticMessage('superclass',
+            target: clazz.superclass!.asDiagnosticTarget),
+        Severity.info,
+        contextMessages: [
+          DiagnosticMessage(
+            'interface',
+            target: clazz.interfaces.single.asDiagnosticTarget,
+          ),
+        ],
+        correctionMessage: 'correct me!'));
+
+    // Test general error handling also
+    throw 'I threw an error!';
+  }
+}
+
 /// A very simple macro that augments any declaration it is given, usually
 /// adding print statements and inlining values from the declaration object
 /// for comparison with expected values in tests.

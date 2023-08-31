@@ -271,15 +271,26 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     if (isSealed) {
       final result = <InterfaceType>[];
       for (final element in library.topLevelElements) {
-        if (element is ClassElement && element != this) {
-          final elementThis = element.thisType;
-          if (elementThis.asInstanceOf(this) != null) {
+        if (element is! InterfaceElement || identical(element, this)) {
+          continue;
+        }
+
+        final elementThis = element.thisType;
+        if (elementThis.asInstanceOf(this) == null) {
+          continue;
+        }
+
+        switch (element) {
+          case ClassElement _:
             if (element.isFinal || element.isSealed) {
               result.add(elementThis);
             } else {
               return null;
             }
-          }
+          case EnumElement _:
+            result.add(elementThis);
+          case MixinElement _:
+            return null;
         }
       }
       return result;
@@ -2426,7 +2437,7 @@ abstract class ElementImpl implements Element {
     while (element is! E) {
       var ancestor = element.enclosingElement;
       if (ancestor == null) return null;
-      element = ancestor ;
+      element = ancestor;
     }
     return element;
   }

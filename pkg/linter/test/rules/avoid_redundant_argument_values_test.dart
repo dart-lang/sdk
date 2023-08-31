@@ -73,7 +73,7 @@ void g() {
   f(
     test: !someDefine,
   );
-} 
+}
 ''');
   }
 
@@ -303,7 +303,7 @@ void f({required int? x}) { }
 
 void main() {
   f(x: null);
-} 
+}
 ''');
   }
 }

@@ -1,0 +1,102 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/issue53170.dart:5:38: Error: The implemented interface 'String' must be a supertype of the representation type 'num' of extension type 'S1'.
+// Try changing the interface type to a supertype of 'num' or the representation type to a subtype of 'String'.
+// extension type S1(num id) implements String /* Error */ {}
+//                                      ^
+//
+// pkg/front_end/testcases/extension_types/issue53170.dart:11:41: Error: The representation type 'String' of extension type 'V2' must be a subtype of the representation type 'num' of the implemented extension type 'V1'.
+// Try changing the representation type to a subtype of 'num'.
+// extension type V2(String id) implements V1 /* Error */ {}
+//                                         ^
+//
+// pkg/front_end/testcases/extension_types/issue53170.dart:17:41: Error: The representation type 'String' of extension type 'W2' must be a subtype of the representation type 'num' of the implemented extension type 'W1<num>'.
+// Try changing the representation type to a subtype of 'num'.
+// extension type W2(String id) implements W1<num> /* Error */ {}
+//                                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type S1(core::num id) implements core::String {
+  constructor • = self::S1|;
+  tearoff • = self::S1|_#new#tearOff;
+}
+extension type S2(core::int id) implements core::num {
+  constructor • = self::S2|;
+  tearoff • = self::S2|_#new#tearOff;
+}
+extension type V1(core::num id) {
+  constructor • = self::V1|;
+  tearoff • = self::V1|_#new#tearOff;
+}
+extension type V2(core::String id) implements self::V1 /* = core::num */ {
+  constructor • = self::V2|;
+  tearoff • = self::V2|_#new#tearOff;
+}
+extension type V3(core::int id) implements self::V1 /* = core::num */ {
+  constructor • = self::V3|;
+  tearoff • = self::V3|_#new#tearOff;
+}
+extension type W1<T extends core::Object? = dynamic>(T% id) {
+  constructor • = self::W1|;
+  tearoff • = self::W1|_#new#tearOff;
+}
+extension type W2(core::String id) implements self::W1<core::num> /* = core::num */ {
+  constructor • = self::W2|;
+  tearoff • = self::W2|_#new#tearOff;
+}
+extension type W3(core::int id) implements self::W1<core::num> /* = core::num */ {
+  constructor • = self::W3|;
+  tearoff • = self::W3|_#new#tearOff;
+}
+static inline-class-member method S1|(core::num id) → self::S1 /* = core::num */ {
+  lowered final self::S1 /* = core::num */ #this = id;
+  return #this;
+}
+static inline-class-member method S1|_#new#tearOff(core::num id) → self::S1 /* = core::num */
+  return self::S1|(id);
+static inline-class-member method S2|(core::int id) → self::S2 /* = core::int */ {
+  lowered final self::S2 /* = core::int */ #this = id;
+  return #this;
+}
+static inline-class-member method S2|_#new#tearOff(core::int id) → self::S2 /* = core::int */
+  return self::S2|(id);
+static inline-class-member method V1|(core::num id) → self::V1 /* = core::num */ {
+  lowered final self::V1 /* = core::num */ #this = id;
+  return #this;
+}
+static inline-class-member method V1|_#new#tearOff(core::num id) → self::V1 /* = core::num */
+  return self::V1|(id);
+static inline-class-member method V2|(core::String id) → self::V2 /* = core::String */ {
+  lowered final self::V2 /* = core::String */ #this = id;
+  return #this;
+}
+static inline-class-member method V2|_#new#tearOff(core::String id) → self::V2 /* = core::String */
+  return self::V2|(id);
+static inline-class-member method V3|(core::int id) → self::V3 /* = core::int */ {
+  lowered final self::V3 /* = core::int */ #this = id;
+  return #this;
+}
+static inline-class-member method V3|_#new#tearOff(core::int id) → self::V3 /* = core::int */
+  return self::V3|(id);
+static inline-class-member method W1|<T extends core::Object? = dynamic>(self::W1|::T% id) → self::W1<self::W1|::T%> /* = self::W1|::T% */ {
+  lowered final self::W1<self::W1|::T%> /* = self::W1|::T% */ #this = id;
+  return #this;
+}
+static inline-class-member method W1|_#new#tearOff<T extends core::Object? = dynamic>(self::W1|_#new#tearOff::T% id) → self::W1<self::W1|_#new#tearOff::T%> /* = self::W1|_#new#tearOff::T% */
+  return self::W1|<self::W1|_#new#tearOff::T%>(id);
+static inline-class-member method W2|(core::String id) → self::W2 /* = core::String */ {
+  lowered final self::W2 /* = core::String */ #this = id;
+  return #this;
+}
+static inline-class-member method W2|_#new#tearOff(core::String id) → self::W2 /* = core::String */
+  return self::W2|(id);
+static inline-class-member method W3|(core::int id) → self::W3 /* = core::int */ {
+  lowered final self::W3 /* = core::int */ #this = id;
+  return #this;
+}
+static inline-class-member method W3|_#new#tearOff(core::int id) → self::W3 /* = core::int */
+  return self::W3|(id);

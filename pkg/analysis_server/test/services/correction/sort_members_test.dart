@@ -869,6 +869,196 @@ extension E on int {
 ''');
   }
 
+  Future<void> test_extensionType_accessor() async {
+    await _parseTestUnit(r'''
+extension type A(int it) {
+  set c(x) {}
+  set a(x) {}
+  get a => null;
+  get b => null;
+  set b(x) {}
+  get c => null;
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension type A(int it) {
+  get a => null;
+  set a(x) {}
+  get b => null;
+  set b(x) {}
+  get c => null;
+  set c(x) {}
+}
+''');
+  }
+
+  Future<void> test_extensionType_accessor_static() async {
+    await _parseTestUnit(r'''
+extension type A(int it) {
+  get a => null;
+  set a(x) {}
+  static get b => null;
+  static set b(x) {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension type A(int it) {
+  static get b => null;
+  static set b(x) {}
+  get a => null;
+  set a(x) {}
+}
+''');
+  }
+
+  Future<void> test_extensionType_constructor() async {
+    await _parseTestUnit(r'''
+extension type A(int it) {
+  A.c() {   }
+  A.a() { }
+  A() {}
+  A.b();
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension type A(int it) {
+  A() {}
+  A.a() { }
+  A.b();
+  A.c() {   }
+}
+''');
+  }
+
+  Future<void> test_extensionType_external_constructorMethod() async {
+    await _parseTestUnit(r'''
+extension type Chart(int it) {
+  external Pie();
+  external Chart();
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension type Chart(int it) {
+  external Chart();
+  external Pie();
+}
+''');
+  }
+
+  Future<void> test_extensionType_field() async {
+    await _parseTestUnit(r'''
+extension type A(int it) {
+  String c;
+  int a;
+  void toString() => null;
+  double b;
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension type A(int it) {
+  String c;
+  int a;
+  double b;
+  void toString() => null;
+}
+''');
+  }
+
+  Future<void> test_extensionType_field_static() async {
+    await _parseTestUnit(r'''
+extension type A(int it) {
+  int b;
+  int a;
+  static int d;
+  static int c;
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension type A(int it) {
+  static int d;
+  static int c;
+  int b;
+  int a;
+}
+''');
+  }
+
+  Future<void> test_extensionType_method() async {
+    await _parseTestUnit(r'''
+extension type A(int it) {
+  c() {}
+  a() {}
+  b() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension type A(int it) {
+  a() {}
+  b() {}
+  c() {}
+}
+''');
+  }
+
+  Future<void> test_extensionType_method_emptyLine() async {
+    await _parseTestUnit(r'''
+extension type A(int it) {
+  b() {}
+
+  a() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension type A(int it) {
+  a() {}
+
+  b() {}
+}
+''');
+  }
+
+  Future<void> test_extensionType_method_ignoreCase() async {
+    await _parseTestUnit(r'''
+extension type A(int it) {
+  m_C() {}
+  m_a() {}
+  m_B() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension type A(int it) {
+  m_a() {}
+  m_B() {}
+  m_C() {}
+}
+''');
+  }
+
+  Future<void> test_extensionType_method_static() async {
+    await _parseTestUnit(r'''
+extension type A(int it) {
+  static a() {}
+  b() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension type A(int it) {
+  b() {}
+  static a() {}
+}
+''');
+  }
+
   Future<void> test_mixin_accessor() async {
     await _parseTestUnit(r'''
 mixin M {
@@ -1276,6 +1466,26 @@ extension on List {}
 extension on bool {}
 extension E1 on int {}
 extension E2 on String {}
+''');
+  }
+
+  Future<void> test_unit_extensionTypes() async {
+    await _parseTestUnit(r'''
+extension type E3(int it) {}
+extension type E2(int it) {}
+extension type _E2(int it) {}
+extension type _E1(int it) {}
+extension type E1(int it) {}
+class Z {}
+''');
+    // validate change
+    _assertSort(r'''
+class Z {}
+extension type E1(int it) {}
+extension type E2(int it) {}
+extension type E3(int it) {}
+extension type _E1(int it) {}
+extension type _E2(int it) {}
 ''');
   }
 

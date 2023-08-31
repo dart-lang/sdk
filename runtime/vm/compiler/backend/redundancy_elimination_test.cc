@@ -226,7 +226,7 @@ static void TestAliasingViaRedefinition(
       Library::Handle(LoadTestScript(script_chars, NoopNativeLookup));
 
   const Class& cls = Class::ZoneHandle(
-      lib.LookupLocalClass(String::Handle(Symbols::New(thread, "K"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "K"))));
   const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());
 
@@ -391,7 +391,7 @@ static void TestAliasingViaStore(
       Library::Handle(LoadTestScript(script_chars, NoopNativeLookup));
 
   const Class& cls = Class::ZoneHandle(
-      lib.LookupLocalClass(String::Handle(Symbols::New(thread, "K"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "K"))));
   const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());
 
@@ -563,7 +563,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
   FlowGraphBuilderHelper H;
 
   const auto& lib = Library::Handle(Library::TypedDataLibrary());
-  const Class& cls = Class::Handle(lib.LookupLocalClass(Symbols::Uint32List()));
+  const Class& cls = Class::Handle(lib.LookupClass(Symbols::Uint32List()));
   const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());
 
@@ -681,7 +681,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_TypedArrayViewAliasing) {
       Library::Handle(LoadTestScript(script_chars, NoopNativeLookup));
 
   const Class& view_cls = Class::ZoneHandle(
-      lib.LookupLocalClass(String::Handle(Symbols::New(thread, "View"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "View"))));
   const Error& err = Error::Handle(view_cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());
 
@@ -1501,7 +1501,7 @@ ISOLATE_UNIT_TEST_CASE(CSE_Redefinitions) {
       Library::Handle(LoadTestScript(script_chars, NoopNativeLookup));
 
   const Class& cls = Class::ZoneHandle(
-      lib.LookupLocalClass(String::Handle(Symbols::New(thread, "K"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "K"))));
   const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());
 

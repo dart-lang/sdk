@@ -3223,6 +3223,9 @@ abstract final class Comment implements AstNode {
   @experimental
   List<MdCodeBlock> get codeBlocks;
 
+  @experimental
+  List<DocImport> get docImports;
+
   /// Return `true` if this is a block comment.
   bool get isBlock;
 
@@ -3271,6 +3274,9 @@ final class CommentImpl extends AstNodeImpl implements Comment {
   @override
   final List<MdCodeBlock> codeBlocks;
 
+  @override
+  final List<DocImport> docImports;
+
   /// Initialize a newly created comment. The list of [tokens] must contain at
   /// least one token. The [_type] is the type of the comment. The list of
   /// [references] can be empty if the comment does not contain any embedded
@@ -3280,6 +3286,7 @@ final class CommentImpl extends AstNodeImpl implements Comment {
     required CommentType type,
     required List<CommentReferenceImpl> references,
     required this.codeBlocks,
+    required this.docImports,
   }) : _type = type {
     _references._initialize(this, references);
   }
@@ -5305,6 +5312,21 @@ sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   set element(Element? element) {
     _element = element;
   }
+}
+
+/// A documentation import, found in a doc comment.
+///
+/// Documentation imports are declared with `@docImport` at the start of a line
+/// of a documentation comment, followed by regular import elements (URI,
+/// optional prefix, optional combinators), ending with a semicolon.
+@experimental
+final class DocImport {
+  /// The offset of the starting text, '@docImport'.
+  int offset;
+
+  ImportDirective import;
+
+  DocImport({required this.offset, required this.import});
 }
 
 /// A do statement.

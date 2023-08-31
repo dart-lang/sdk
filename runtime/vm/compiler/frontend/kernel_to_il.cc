@@ -490,8 +490,9 @@ Fragment FlowGraphBuilder::ThrowLateInitializationError(
     TokenPosition position,
     const char* throw_method_name,
     const String& name) {
+  const auto& dart_internal = Library::Handle(Z, Library::InternalLibrary());
   const Class& klass =
-      Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::LateError()));
+      Class::ZoneHandle(Z, dart_internal.LookupClass(Symbols::LateError()));
   ASSERT(!klass.IsNull());
 
   const auto& error = klass.EnsureIsFinalized(thread_);

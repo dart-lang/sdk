@@ -46,7 +46,7 @@ void f(Object o) {
     await assertDiagnostics(r'''
 void f(Object o) {
   switch (o) {
-    case true ? 1 : 2: 
+    case true ? 1 : 2:
   }
 }
 ''', [
@@ -126,7 +126,7 @@ void f(Object o) {
     await assertDiagnostics(r'''
 void f(Object o) {
   switch (o) {
-    case ''.length: 
+    case ''.length:
   }
 }
 ''', [

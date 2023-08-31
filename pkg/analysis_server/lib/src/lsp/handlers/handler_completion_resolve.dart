@@ -167,6 +167,7 @@ class CompletionResolveHandler
           kind: item.kind,
           tags: item.tags,
           detail: detail,
+          labelDetails: item.labelDetails,
           documentation: documentation,
           deprecated: item.deprecated,
           preselect: item.preselect,

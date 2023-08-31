@@ -1354,6 +1354,177 @@ enum E with M {
     ]);
   }
 
+  Future<void> test_extensionType_implements_class() async {
+    addTestFile('''
+class A {}
+class B extends A {}
+extension type E(B it) implements A {}
+''');
+    var items = await _getTypeHierarchy('E(B it)');
+    expect(_toJson(items), [
+      {
+        'classElement': {
+          'kind': 'EXTENSION_TYPE',
+          'name': 'E',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [1],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'A',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 2,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      }
+    ]);
+  }
+
+  Future<void> test_extensionType_implements_class2() async {
+    addTestFile('''
+class A {}
+extension type E(A it) implements A {}
+''');
+    var items = await _getTypeHierarchy('A {}');
+    expect(_toJson(items), [
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'A',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': [2]
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'EXTENSION_TYPE',
+          'name': 'E',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 0,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      }
+    ]);
+  }
+
+  Future<void> test_extensionType_implements_extensionType() async {
+    addTestFile('''
+class A {}
+extension type E1(A it) {}
+extension type E2(A it) implements E1 {}
+''');
+    var items = await _getTypeHierarchy('E2(A it)');
+    expect(_toJson(items), [
+      {
+        'classElement': {
+          'kind': 'EXTENSION_TYPE',
+          'name': 'E2',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [1],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'EXTENSION_TYPE',
+          'name': 'E1',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [2],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      }
+    ]);
+  }
+
+  Future<void> test_extensionType_member_method() async {
+    addTestFile('''
+class A {
+  void test() {} // in A
+}
+extension type E(A it) implements A {
+  void test() {} // in E
+}
+''');
+    var items = await _getTypeHierarchy('test() {} // in E');
+    var itemE = items[0];
+    var itemA = items[itemE.interfaces.single];
+    expect(itemA.classElement.name, 'A');
+    expect(itemE.classElement.name, 'E');
+    expect(itemA.memberElement, isNull);
+    expect(itemE.memberElement, isNull);
+  }
+
+  Future<void> test_extensionType_member_method2() async {
+    addTestFile('''
+class A {
+  void test() {} // in A
+}
+extension type E(A it) implements A {
+  void test() {} // in E
+}
+''');
+    var items = await _getTypeHierarchy('test() {} // in A');
+    var itemA = items[0];
+    var itemE = items[itemA.subclasses.single];
+    expect(itemA.classElement.name, 'A');
+    expect(itemE.classElement.name, 'E');
+    expect(
+        itemA.memberElement!.location!.offset, findOffset('test() {} // in A'));
+    expect(itemE.memberElement, isNull);
+  }
+
   void _assertMember(TypeHierarchyItem item, String search) {
     expect(item.memberElement!.location!.offset, findOffset(search));
   }

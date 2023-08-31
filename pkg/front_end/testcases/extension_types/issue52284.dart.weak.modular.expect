@@ -1,0 +1,41 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/issue52284.dart:9:11: Error: The getter 'unresolved' isn't defined for the class 'Id'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
+//   print(c.unresolved); // Error
+//           ^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type Id(core::int id) {
+  constructor • = self::Id|;
+  tearoff • = self::Id|_#new#tearOff;
+}
+static inline-class-member method Id|(core::int id) → self::Id /* = core::int */ {
+  lowered final self::Id /* = core::int */ #this = id;
+  return #this;
+}
+static inline-class-member method Id|_#new#tearOff(core::int id) → self::Id /* = core::int */
+  return self::Id|(id);
+static method test() → dynamic {
+  self::Id /* = core::int */ c = self::Id|(2);
+  core::print(invalid-expression "pkg/front_end/testcases/extension_types/issue52284.dart:9:11: Error: The getter 'unresolved' isn't defined for the class 'Id'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
+  print(c.unresolved); // Error
+          ^^^^^^^^^^" in c{<unresolved>}.unresolved);
+}
+static method main() → dynamic {
+  self::Id /* = core::int */ c = self::Id|(2);
+  self::expect(#C1, c.{core::Object::runtimeType}{core::Type});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = TypeLiteralConstant(core::int*)
+}

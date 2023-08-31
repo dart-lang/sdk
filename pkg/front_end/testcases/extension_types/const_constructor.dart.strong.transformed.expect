@@ -1,0 +1,85 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/const_constructor.dart:16:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   const Class.named(42); // Error
+//         ^^^^^
+//
+// pkg/front_end/testcases/extension_types/const_constructor.dart:17:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   const Class.fact(87); // Error
+//         ^^^^^
+//
+// pkg/front_end/testcases/extension_types/const_constructor.dart:18:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   const Class.redirect2(87); // Error
+//         ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type Class(core::int i) {
+  constructor • = self::Class|;
+  tearoff • = self::Class|_#new#tearOff;
+  constructor named = self::Class|named;
+  tearoff named = self::Class|_#named#tearOff;
+  static redirecting-factory redirect = self::Class|redirect;
+  static tearoff redirect = self::Class|_#redirect#tearOff;
+  static factory fact = self::Class|fact;
+  static tearoff fact = self::Class|_#fact#tearOff;
+  static redirecting-factory redirect2 = self::Class|redirect2;
+  static tearoff redirect2 = self::Class|_#redirect2#tearOff;
+}
+static inline-class-member method Class|(core::int i) → self::Class /* = core::int */ {
+  lowered final self::Class /* = core::int */ #this = i;
+  return #this;
+}
+static inline-class-member method Class|_#new#tearOff(core::int i) → self::Class /* = core::int */
+  return self::Class|(i);
+static inline-class-member method Class|named(core::int i) → self::Class /* = core::int */ {
+  lowered final self::Class /* = core::int */ #this = i;
+  return #this;
+}
+static inline-class-member method Class|_#named#tearOff(core::int i) → self::Class /* = core::int */
+  return self::Class|named(i);
+static inline-class-member method Class|redirect(core::int i) → self::Class /* = core::int */ /* redirection-target: self::Class| */
+  return self::Class|(i);
+static inline-class-member method Class|_#redirect#tearOff(core::int i) → self::Class /* = core::int */
+  return self::Class|(i);
+static inline-class-member method Class|fact(core::int i) → self::Class /* = core::int */
+  return self::Class|(i);
+static inline-class-member method Class|_#fact#tearOff(core::int i) → self::Class /* = core::int */
+  return self::Class|fact(i);
+static inline-class-member method Class|redirect2(core::int i) → self::Class /* = core::int */ /* redirection-target: self::Class| */
+  return self::Class|(i);
+static inline-class-member method Class|_#redirect2#tearOff(core::int i) → self::Class /* = core::int */
+  return self::Class|(i);
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/extension_types/const_constructor.dart:16:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  const Class.named(42); // Error
+        ^^^^^";
+  invalid-expression "pkg/front_end/testcases/extension_types/const_constructor.dart:17:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  const Class.fact(87); // Error
+        ^^^^^";
+  invalid-expression "pkg/front_end/testcases/extension_types/const_constructor.dart:18:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  const Class.redirect2(87); // Error
+        ^^^^^";
+}
+static method main() → dynamic {
+  self::expect(42, #C1);
+  self::expect(87, #C2);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = 42
+  #C2 = 87
+}

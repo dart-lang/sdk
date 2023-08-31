@@ -92,6 +92,7 @@ atm
 atom
 atoms
 atop
+attaches
 attributes
 augment
 augmentation
@@ -325,6 +326,7 @@ cr
 creator
 creators
 criterion
+critical
 cross
 cruft
 cryptic
@@ -657,6 +659,7 @@ growth
 gt
 guarantee
 guarded
+guideline
 guides
 gypi
 gz
@@ -705,6 +708,7 @@ i'll
 i'm
 ic
 id
+ide
 ideal
 identifies
 identifying
@@ -1112,6 +1116,7 @@ pkg
 play
 player
 plugin
+plugins
 pm
 pn
 pointed
@@ -1402,6 +1407,7 @@ setable
 setable
 setables
 setaf
+severities
 sh
 sha
 shadowed
@@ -1428,6 +1434,8 @@ sides
 sigmund
 signaling
 significant
+silenceable
+silenced
 simplifier
 simplify
 singleton
@@ -1558,6 +1566,7 @@ superinterfaces
 supernode
 supers
 suppose
+surfaced
 surprising
 surrounded
 surrounds
@@ -1639,6 +1648,7 @@ toplevel
 topological
 tops
 tput
+traceable
 traced
 tracker
 traditional
@@ -1674,6 +1684,7 @@ unaffected
 unaligned
 unaltered
 unavailable
+unawaited
 unbound
 uncached
 uncategorized

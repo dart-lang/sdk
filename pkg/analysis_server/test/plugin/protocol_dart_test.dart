@@ -524,6 +524,10 @@ class ElementKindTest {
         ElementKind.COMPILATION_UNIT);
     expect(convertElementKind(engine.ElementKind.CONSTRUCTOR),
         ElementKind.CONSTRUCTOR);
+    expect(convertElementKind(engine.ElementKind.EXTENSION),
+        ElementKind.EXTENSION);
+    expect(convertElementKind(engine.ElementKind.EXTENSION_TYPE),
+        ElementKind.EXTENSION_TYPE);
     expect(convertElementKind(engine.ElementKind.FIELD), ElementKind.FIELD);
     expect(
         convertElementKind(engine.ElementKind.FUNCTION), ElementKind.FUNCTION);
@@ -555,6 +559,10 @@ class ElementKindTest {
     expect(ElementKind(ElementKind.COMPILATION_UNIT.name),
         ElementKind.COMPILATION_UNIT);
     expect(ElementKind(ElementKind.CONSTRUCTOR.name), ElementKind.CONSTRUCTOR);
+    expect(ElementKind(ElementKind.CONSTRUCTOR.name), ElementKind.CONSTRUCTOR);
+    expect(ElementKind(ElementKind.EXTENSION.name), ElementKind.EXTENSION);
+    expect(ElementKind(ElementKind.EXTENSION_TYPE.name),
+        ElementKind.EXTENSION_TYPE);
     expect(ElementKind(ElementKind.FIELD.name), ElementKind.FIELD);
     expect(ElementKind(ElementKind.FUNCTION.name), ElementKind.FUNCTION);
     expect(ElementKind(ElementKind.FUNCTION_TYPE_ALIAS.name),

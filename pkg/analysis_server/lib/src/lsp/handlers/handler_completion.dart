@@ -810,6 +810,8 @@ class CompletionRegistrations extends FeatureRegistration
           allCommitCharacters:
               previewCommitCharacters ? dartCompletionCommitCharacters : null,
           resolveProvider: true,
+          completionItem:
+              CompletionOptionsCompletionItem(labelDetailsSupport: true),
         ),
       ),
       (
@@ -847,6 +849,8 @@ class CompletionRegistrations extends FeatureRegistration
         allCommitCharacters:
             previewCommitCharacters ? dartCompletionCommitCharacters : null,
         resolveProvider: true,
+        completionItem:
+            CompletionOptionsCompletionItem(labelDetailsSupport: true),
       );
 
   @override

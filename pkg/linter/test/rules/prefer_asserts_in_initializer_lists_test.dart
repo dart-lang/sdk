@@ -65,7 +65,7 @@ class A {
   A.named(a) {
     assert(a != null);
   }
-} 
+}
 
 ''', [
       lint(29, 6),
@@ -79,7 +79,7 @@ class A {
     print('');
     assert(a != null);
   }
-} 
+}
 
 ''');
   }
@@ -88,7 +88,7 @@ class A {
     await assertNoDiagnostics(r'''
 class A {
   A.named(a) : assert(a != null);
-} 
+}
 
 ''');
   }

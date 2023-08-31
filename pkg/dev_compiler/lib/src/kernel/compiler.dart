@@ -172,11 +172,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Table of named and possibly hoisted types.
   late TypeTable _typeTable;
 
-  /// Table of instantiated generic class references.
-  ///
-  /// Provides a cache for the instantiated generic types local to a module.
-  late TypeTable _genericClassTable;
-
   /// The global extension type table.
   // TODO(jmesserly): rename to `_nativeTypes`
   final NativeTypeSet _extensionTypes;
@@ -372,7 +367,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _assertInteropMethod = sdk.getTopLevelMember(
             'dart:_runtime', 'assertInterop') as Procedure,
         _futureOrNormalizer = FutureOrNormalizer(_coreTypes),
-        _extensionTypeEraser = ExtensionTypeEraser(),
         _typeRecipeGenerator = TypeRecipeGenerator(_coreTypes, _hierarchy),
         _extensionIndex =
             ExtensionIndex(_coreTypes, _staticTypeContext.typeEnvironment);
@@ -395,8 +389,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _coreTypes.legacyRawType(_coreTypes.internalSymbolClass);
 
   final FutureOrNormalizer _futureOrNormalizer;
-
-  final ExtensionTypeEraser _extensionTypeEraser;
 
   /// Module can be emitted only once, and the compiler can be reused after
   /// only in incremental mode, for expression compilation only.
@@ -459,8 +451,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     _nullableInference.allowNotNullDeclarations = isBuildingSdk;
-    _typeTable = TypeTable('T', runtimeCall);
-    _genericClassTable = TypeTable('G', runtimeCall);
+    _typeTable = TypeTable(runtimeCall);
 
     // Collect all class/type Element -> Node mappings
     // in case we need to forward declare any classes.
@@ -624,10 +615,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Emit the hoisted type table cache variables
     items.addAll(_typeTable.dischargeBoundTypes());
     _ticker?.logMs('Emitted type table');
-
-    // Emit the hoisted instantiated generic class table cache variables
-    items.addAll(_genericClassTable.dischargeBoundTypes());
-    _ticker?.logMs('Emitted instantiated generic class table');
 
     var module = finishModule(items, _options.moduleName,
         header: generateCompilationHeader());
@@ -1070,13 +1057,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       body = js_ast.Statement.from([body, varianceStatement]);
     }
 
-    var typeConstructor = js.call('(#) => { #; #; #; return #; }', [
-      jsFormals,
-      _typeTable.dischargeFreeTypes(formals),
-      _genericClassTable.dischargeFreeTypes(formals),
-      body,
-      className
-    ]);
+    var typeConstructor = js.call('(#) => { #; #; return #; }',
+        [jsFormals, _typeTable.dischargeFreeTypes(formals), body, className]);
 
     var genericArgs = [
       typeConstructor,
@@ -1286,7 +1268,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         if (t is RecordType) {
           return t.positional.any(defer) || t.named.any((n) => defer(n.type));
         }
-        if (t is ExtensionType) return defer(t.typeErasure);
         return false;
       }
 
@@ -1650,10 +1631,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _classEmittingSignatures = c;
 
     var interfaces = c.implementedTypes.toList()..addAll(c.onClause);
-    if (interfaces.isNotEmpty &&
-        // New runtime types don't use this data structure to lookup interfaces
-        // a class implements.
-        !_options.newRuntimeTypes) {
+    if (interfaces.isNotEmpty) {
       body.add(js.statement('#[#] = () => [#];', [
         className,
         runtimeCall('implements'),
@@ -3282,7 +3260,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (type is TypedefType) {
       return type.typeArguments.every(_canEmitTypeAtTopLevel);
     }
-    if (type is ExtensionType) return _canEmitTypeAtTopLevel(type.typeErasure);
     return true;
   }
 
@@ -3327,8 +3304,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           // An environment with a single type parameter can be simplified to
           // just that parameter.
           env = _emitTypeParameter(environment.parameters.single);
-          // Skip a no-op evaluation and just return the parameter.
-          if (recipe == '0') return env;
         } else {
           var environmentTypes = environment.parameters;
           // Create a dummy interface type to "hold" type arguments.
@@ -3359,15 +3334,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
     }
 
-    var normalizedType =
-        _futureOrNormalizer.normalize(_extensionTypeEraser.erase(type));
+    // TODO(nshahan) Avoid calling _emitType when we actually want a
+    // reference to an rti that already exists in scope.
+    if (type is TypeParameterType && type.isPotentiallyNonNullable) {
+      return _emitTypeParameterType(type, emitNullability: false);
+    }
+    var normalizedType = _futureOrNormalizer.normalize(type);
     try {
       var result = _typeRecipeGenerator.recipeInEnvironment(
           normalizedType, _currentTypeEnvironment);
-      var typeRep =
-          evalInEnvironment(result.requiredEnvironment, result.recipe);
-      if (_cacheTypes) typeRep = _typeTable.nameType(normalizedType, typeRep);
-      return typeRep;
+      return evalInEnvironment(result.requiredEnvironment, result.recipe);
     } on UnsupportedError catch (e) {
       _typeCompilationError(normalizedType, e.message ?? 'Unknown Error');
     }
@@ -3520,10 +3496,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (args.any((a) => a != const DynamicType())) {
       jsArgs = args.map(_emitType);
     }
-    if (jsArgs != null) {
-      return _genericClassTable.nameType(
-          type, _emitGenericClassType(type, jsArgs));
-    }
+    if (jsArgs != null) return _emitGenericClassType(type, jsArgs);
     return _emitTopLevelNameNoExternalInterop(type.classNode);
   }
 
@@ -3594,12 +3567,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   bool get _emittingClassExtends =>
       _currentClass != null && identical(_currentClass, _classEmittingExtends);
 
-  bool get _cacheTypes => _options.newRuntimeTypes
-      ? !_emittingDeferredType && !_emittingClassExtends
-      : !_emittingDeferredType &&
-              !_emittingClassExtends &&
-              !_emittingClassSignatures ||
-          _currentFunction != null;
+  bool get _cacheTypes =>
+      !_emittingDeferredType &&
+          !_emittingClassExtends &&
+          !_emittingClassSignatures ||
+      _currentFunction != null;
 
   js_ast.Expression _emitGenericClassType(
       InterfaceType t, Iterable<js_ast.Expression> typeArgs) {
@@ -3881,7 +3853,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var body = js_ast.Block([
       ...extensionSymbols,
       ..._typeTable.dischargeBoundTypes(),
-      ..._genericClassTable.dischargeBoundTypes(),
       ...symbolContainer.emit(),
       ..._emitConstTable(),
       ..._uriContainer.emit(),
@@ -6880,21 +6851,23 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitMapImplType(InterfaceType type, {bool? identity}) {
     var typeArgs = type.typeArguments;
     if (typeArgs.isEmpty) {
-      return _emitClassRef(type);
+      return _emitInterfaceType(type, emitNullability: false);
     }
     identity ??= _typeRep.isPrimitive(typeArgs[0]);
     var c = identity ? _identityHashMapImplClass : _linkedHashMapImplClass;
-    return _emitClassRef(InterfaceType(c, Nullability.legacy, typeArgs));
+    return _emitInterfaceType(InterfaceType(c, Nullability.legacy, typeArgs),
+        emitNullability: false);
   }
 
   js_ast.Expression _emitSetImplType(InterfaceType type, {bool? identity}) {
     var typeArgs = type.typeArguments;
     if (typeArgs.isEmpty) {
-      return _emitClassRef(type);
+      return _emitInterfaceType(type, emitNullability: false);
     }
     identity ??= _typeRep.isPrimitive(typeArgs[0]);
     var c = identity ? _identityHashSetImplClass : _linkedHashSetImplClass;
-    return _emitClassRef(InterfaceType(c, Nullability.legacy, typeArgs));
+    return _emitInterfaceType(InterfaceType(c, Nullability.legacy, typeArgs),
+        emitNullability: false);
   }
 
   js_ast.Expression _emitObjectLiteral(Arguments node, Member ctor) {
@@ -7226,8 +7199,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (itemType == const DynamicType()) return list;
 
     // Call `new JSArray<E>.of(list)`
-    var arrayType = _emitClassRef(
-        InterfaceType(_jsArrayClass, Nullability.nonNullable, [itemType]));
+    var arrayType = _emitInterfaceType(
+        InterfaceType(_jsArrayClass, Nullability.legacy, [itemType]),
+        emitNullability: false);
     return js.call('#.of(#)', [arrayType, list]);
   }
 
@@ -7243,8 +7217,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitSetLiteral(SetLiteral node) {
     // TODO(markzipan): remove const check when we use front-end const eval
     if (!node.isConst) {
-      var setType = _emitClassRef(InterfaceType(
-          _linkedHashSetClass, Nullability.legacy, [node.typeArgument]));
+      var setType = _emitInterfaceType(
+          InterfaceType(
+              _linkedHashSetClass, Nullability.legacy, [node.typeArgument]),
+          emitNullability: false);
       if (node.expressions.isEmpty) {
         return js.call('#.new()', [setType]);
       }
@@ -7698,7 +7674,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var type = node
         .getType(_staticTypeContext)
         .withDeclaredNullability(Nullability.nonNullable);
-    var classRef = _emitClassRef(type as InterfaceType);
+    var classRef =
+        _emitInterfaceType(type as InterfaceType, emitNullability: false);
     var prototype = js.call('#.prototype', [classRef]);
     var properties = [
       if (_options.newRuntimeTypes && type.typeArguments.isNotEmpty)

@@ -179,6 +179,15 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
+    // `switch` at the beginning of a statement will be parsed as a
+    // switch statement, the parenthesis are required to parse as a switch
+    // expression instead.
+    if (node.expression is SwitchExpression) {
+      if (parent is ExpressionStatement) {
+        return;
+      }
+    }
+
     if (parent is Expression) {
       if (parent is BinaryExpression) return;
       if (parent is ConditionalExpression) return;

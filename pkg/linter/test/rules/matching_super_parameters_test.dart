@@ -21,18 +21,18 @@ class MatchingSuperParametersTest extends LintRuleTest {
     await assertNoDiagnostics(r'''
 class D extends C {
   final String w;
-  
+
   D(
     this.w,
     super.x,
     super.y,
-  ) : super.named(); 
+  ) : super.named();
 }
 
 class C {
   final int x;
   final int y;
-  
+
   C.named(this.x, this.y);
 }
 ''');
@@ -42,20 +42,20 @@ class C {
     await assertNoDiagnostics(r'''
 class D extends C {
   final String w;
-  
+
   D(
     this.w,
     super.x,
     super.y, {
     required super.z,
-  }) : super.named(); 
+  }) : super.named();
 }
 
 class C {
   final int x;
   final int y;
   final int z;
-  
+
   C.named(this.x, this.y, {required this.z});
 }
 ''');
@@ -65,19 +65,19 @@ class C {
     await assertNoDiagnostics(r'''
 class D extends C {
   final String w;
-  
+
   D(
     this.w,
     super.x,
     super.y,
-  ) : super.named(z: 1); 
+  ) : super.named(z: 1);
 }
 
 class C {
   final int x;
   final int y;
   final int z;
-  
+
   C.named(this.x, this.y, {required this.z});
 }
 ''');
@@ -87,23 +87,23 @@ class C {
     await assertDiagnostics(r'''
 class D extends C {
   final String w;
-  
+
   D(
     this.w,
     super.y,
     super.x,
-  ) : super.named(); 
+  ) : super.named();
 }
 
 class C {
   final int x;
   final int y;
-  
+
   C.named(this.x, this.y);
 }
 ''', [
-      lint(62, 7),
-      lint(75, 7),
+      lint(60, 7),
+      lint(73, 7),
     ]);
   }
 
@@ -111,18 +111,18 @@ class C {
     await assertNoDiagnostics(r'''
 class D extends C {
   final String w;
-  
+
   D(
     super.x,
     this.w,
     super.y,
-  ); 
+  );
 }
 
 class C {
   final int x;
   final int y;
-  
+
   C(this.x, this.y);
 }
 ''');
@@ -132,18 +132,18 @@ class C {
     await assertNoDiagnostics(r'''
 class D extends C {
   final String w;
-  
+
   D(
     this.w,
     super.x,
     super.y,
-  ); 
+  );
 }
 
 class C {
   final int x;
   final int y;
-  
+
   C(this.x, this.y);
 }
 ''');
@@ -153,23 +153,23 @@ class C {
     await assertDiagnostics(r'''
 class D extends C {
   final String w;
-  
+
   D(
     this.w,
     super.y,
     super.x,
-  ); 
+  );
 }
 
 class C {
   final int x;
   final int y;
-  
+
   C(this.x, this.y);
 }
 ''', [
-      lint(62, 7),
-      lint(75, 7),
+      lint(60, 7),
+      lint(73, 7),
     ]);
   }
 
@@ -177,21 +177,21 @@ class C {
     await assertDiagnostics(r'''
 class D extends C {
   final String w;
-  
+
   D(
     this.w,
     super.y,
-  ); 
+  );
 }
 
 class C {
   final int x;
   final int? y;
-  
+
   C(this.x, [this.y]);
 }
 ''', [
-      lint(62, 7),
+      lint(60, 7),
     ]);
   }
 
@@ -199,17 +199,17 @@ class C {
     await assertDiagnostics(r'''
 class D extends C {
   final String w;
-  
+
   D(
     this.w,
     super.y,
     super.x,
-  ); 
+  );
 }
 
 class C {
   final int x;
-  
+
   C(this.x);
 }
 ''', [
@@ -217,7 +217,7 @@ class C {
       error(
           CompileTimeErrorCode
               .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
-          81,
+          79,
           1),
     ]);
   }

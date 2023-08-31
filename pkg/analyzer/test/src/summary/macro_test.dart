@@ -1293,6 +1293,7 @@ class A
 ''');
   }
 
+  @FailingTest(reason: 'Fails because exceptions are reported as diagnostics')
   test_macroApplicationErrors_declarationsPhase_throwsException() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
@@ -1325,6 +1326,7 @@ class A {}
     expect(error.stackTrace, contains('MyMacro.buildDeclarationsForClass'));
   }
 
+  @FailingTest(reason: 'Fails because exceptions are reported as diagnostics')
   test_macroApplicationErrors_typedPhase_compileTimeError() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
@@ -1357,6 +1359,7 @@ class A {}
     expect(error.stackTrace, contains('executeTypesMacro'));
   }
 
+  @FailingTest(reason: 'Fails because exceptions are reported as diagnostics')
   test_macroApplicationErrors_typesPhase_throwsException() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';

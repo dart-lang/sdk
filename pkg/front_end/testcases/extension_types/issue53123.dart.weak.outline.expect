@@ -1,0 +1,24 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/issue53123.dart:7:6: Error: Inferred type argument 'V<dynamic>' doesn't conform to the bound 'V<T>' of the type variable 'T' on 'ExtensionType(V<V<dynamic>>)'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// test(V v) {
+//      ^
+// pkg/front_end/testcases/extension_types/issue53123.dart:5:18: Context: This is the type variable whose bound isn't conformed to.
+// extension type V<T extends V<T>>(T id) {}
+//                  ^
+//
+import self as self;
+
+extension type V<T extends self::V<T> /* = T */ = self::V<dynamic> /* = dynamic */>(T id) {
+  constructor • = self::V|;
+  tearoff • = self::V|_#new#tearOff;
+}
+static inline-class-member method V|<T extends self::V<self::V|::T> /* = self::V|::T */ = self::V<dynamic> /* = dynamic */>(self::V|::T id) → self::V<self::V|::T> /* = self::V|::T */
+  ;
+static inline-class-member method V|_#new#tearOff<T extends self::V<self::V|_#new#tearOff::T> /* = self::V|_#new#tearOff::T */ = self::V<dynamic> /* = dynamic */>(self::V|_#new#tearOff::T id) → self::V<self::V|_#new#tearOff::T> /* = self::V|_#new#tearOff::T */
+  return self::V|<self::V|_#new#tearOff::T>(id);
+static method test(self::V<self::V<dynamic> /* = dynamic */> /* = dynamic */ v) → dynamic
+  ;

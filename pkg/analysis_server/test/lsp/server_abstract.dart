@@ -435,6 +435,11 @@ mixin ClientCapabilitiesHelperMixin {
         withApplyEditSupport(workspaceCapabilities, supported);
   }
 
+  void setCompletionItemLabelDetailsSupport([bool supported = true]) {
+    textDocumentCapabilities = withCompletionItemLabelDetailsSupport(
+        textDocumentCapabilities, supported);
+  }
+
   void setCompletionItemSnippetSupport([bool supported = true]) {
     textDocumentCapabilities =
         withCompletionItemSnippetSupport(textDocumentCapabilities, supported);
@@ -611,6 +616,17 @@ mixin ClientCapabilitiesHelperMixin {
         'completionItemKind': {
           'valueSet': kinds.map((k) => k.toJson()).toList()
         }
+      }
+    });
+  }
+
+  TextDocumentClientCapabilities withCompletionItemLabelDetailsSupport(
+    TextDocumentClientCapabilities source, [
+    bool supported = true,
+  ]) {
+    return extendTextDocumentCapabilities(source, {
+      'completion': {
+        'completionItem': {'labelDetailsSupport': supported}
       }
     });
   }

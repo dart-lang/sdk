@@ -650,6 +650,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
           status.addError("Write to '$elementName' cannot be extracted.");
         } else {
           type = field.type;
+          element = element.declaration;
         }
       }
     }

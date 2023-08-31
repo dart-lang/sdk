@@ -35,8 +35,6 @@ Set<TypeParameter> freeTypeParameters(DartType t) {
     } else if (t is RecordType) {
       t.positional.forEach((p) => find(p));
       t.named.forEach((n) => find(n.type));
-    } else if (t is ExtensionType) {
-      find(t.typeErasure);
     }
   }
 
@@ -104,7 +102,6 @@ String _typeString(DartType type, {bool flat = false}) {
     }
     return 'Rec${nullability}Of$elements';
   }
-  if (type is ExtensionType) return _typeString(type.typeErasure);
   return 'invalid';
 }
 
@@ -123,13 +120,12 @@ class TypeTable {
   final _unboundTypeIds = HashMap<DartType, js_ast.Identifier>();
 
   /// Holds JS type generators keyed by their underlying DartType.
-  final ModuleItemContainer<DartType> typeContainer;
+  final typeContainer = ModuleItemContainer<DartType>.asObject('T',
+      keyToString: (DartType t) => escapeIdentifier(_typeString(t))!);
 
   final js_ast.Expression Function(String, [List<Object>]) _runtimeCall;
 
-  TypeTable(String name, this._runtimeCall)
-      : typeContainer = ModuleItemContainer<DartType>.asObject(name,
-            keyToString: (DartType t) => escapeIdentifier(_typeString(t))!);
+  TypeTable(this._runtimeCall);
 
   /// Returns true if [type] is already recorded in the table.
   bool _isNamed(DartType type) =>

@@ -13645,36 +13645,6 @@ static bool ShouldBePrivate(const String& name) {
            name.CharAt(1) == 'e' && name.CharAt(2) == 't' &&
            name.CharAt(3) == ':'));
 }
-
-ObjectPtr Library::ResolveName(const String& name) const {
-  Object& obj = Object::Handle();
-  if (FLAG_use_lib_cache && LookupResolvedNamesCache(name, &obj)) {
-    return obj.ptr();
-  }
-  EnsureTopLevelClassIsFinalized();
-  obj = LookupLocalObject(name);
-  if (!obj.IsNull()) {
-    // Names that are in this library's dictionary and are unmangled
-    // are not cached. This reduces the size of the cache.
-    return obj.ptr();
-  }
-  String& accessor_name = String::Handle(Field::LookupGetterSymbol(name));
-  if (!accessor_name.IsNull()) {
-    obj = LookupLocalObject(accessor_name);
-  }
-  if (obj.IsNull()) {
-    accessor_name = Field::LookupSetterSymbol(name);
-    if (!accessor_name.IsNull()) {
-      obj = LookupLocalObject(accessor_name);
-    }
-    if (obj.IsNull() && !ShouldBePrivate(name)) {
-      obj = LookupImportedObject(name);
-    }
-  }
-  AddToResolvedNamesCache(name, obj);
-  return obj.ptr();
-}
-
 class StringEqualsTraits {
  public:
   static const char* Name() { return "StringEqualsTraits"; }
@@ -14104,15 +14074,6 @@ ObjectPtr Library::LookupLocalOrReExportObject(const String& name) const {
 
 FieldPtr Library::LookupFieldAllowPrivate(const String& name) const {
   EnsureTopLevelClassIsFinalized();
-  Object& obj = Object::Handle(LookupObjectAllowPrivate(name));
-  if (obj.IsField()) {
-    return Field::Cast(obj).ptr();
-  }
-  return Field::null();
-}
-
-FieldPtr Library::LookupLocalField(const String& name) const {
-  EnsureTopLevelClassIsFinalized();
   Object& obj = Object::Handle(LookupLocalObjectAllowPrivate(name));
   if (obj.IsField()) {
     return Field::Cast(obj).ptr();
@@ -14121,15 +14082,6 @@ FieldPtr Library::LookupLocalField(const String& name) const {
 }
 
 FunctionPtr Library::LookupFunctionAllowPrivate(const String& name) const {
-  EnsureTopLevelClassIsFinalized();
-  Object& obj = Object::Handle(LookupObjectAllowPrivate(name));
-  if (obj.IsFunction()) {
-    return Function::Cast(obj).ptr();
-  }
-  return Function::null();
-}
-
-FunctionPtr Library::LookupLocalFunction(const String& name) const {
   EnsureTopLevelClassIsFinalized();
   Object& obj = Object::Handle(LookupLocalObjectAllowPrivate(name));
   if (obj.IsFunction()) {
@@ -14150,95 +14102,7 @@ ObjectPtr Library::LookupLocalObjectAllowPrivate(const String& name) const {
   return obj.ptr();
 }
 
-ObjectPtr Library::LookupObjectAllowPrivate(const String& name) const {
-  // First check if name is found in the local scope of the library.
-  Object& obj = Object::Handle(LookupLocalObjectAllowPrivate(name));
-  if (!obj.IsNull()) {
-    return obj.ptr();
-  }
-
-  // Do not look up private names in imported libraries.
-  if (ShouldBePrivate(name)) {
-    return Object::null();
-  }
-
-  // Now check if name is found in any imported libs.
-  return LookupImportedObject(name);
-}
-
-ObjectPtr Library::LookupImportedObject(const String& name) const {
-  Object& obj = Object::Handle();
-  Namespace& import = Namespace::Handle();
-  Library& import_lib = Library::Handle();
-  String& import_lib_url = String::Handle();
-  String& first_import_lib_url = String::Handle();
-  Object& found_obj = Object::Handle();
-  String& found_obj_name = String::Handle();
-  ASSERT(!ShouldBePrivate(name));
-  for (intptr_t i = 0; i < num_imports(); i++) {
-    import = ImportAt(i);
-    obj = import.Lookup(name);
-    if (!obj.IsNull()) {
-      import_lib = import.target();
-      import_lib_url = import_lib.url();
-      if (found_obj.ptr() != obj.ptr()) {
-        if (first_import_lib_url.IsNull() ||
-            first_import_lib_url.StartsWith(Symbols::DartScheme())) {
-          // This is the first object we found, or the
-          // previously found object is exported from a Dart
-          // system library. The newly found object hides the one
-          // from the Dart library.
-          first_import_lib_url = import_lib.url();
-          found_obj = obj.ptr();
-          found_obj_name = obj.DictionaryName();
-        } else if (import_lib_url.StartsWith(Symbols::DartScheme())) {
-          // The newly found object is exported from a Dart system
-          // library. It is hidden by the previously found object.
-          // We continue to search.
-        } else if (Field::IsSetterName(found_obj_name) &&
-                   !Field::IsSetterName(name)) {
-          // We are looking for an unmangled name or a getter, but
-          // the first object we found is a setter. Replace the first
-          // object with the one we just found.
-          first_import_lib_url = import_lib.url();
-          found_obj = obj.ptr();
-          found_obj_name = found_obj.DictionaryName();
-        } else {
-          // We found two different objects with the same name.
-          // Note that we need to compare the names again because
-          // looking up an unmangled name can return a getter or a
-          // setter. A getter name is the same as the unmangled name,
-          // but a setter name is different from an unmangled name or a
-          // getter name.
-          if (Field::IsGetterName(found_obj_name)) {
-            found_obj_name = Field::NameFromGetter(found_obj_name);
-          }
-          String& second_obj_name = String::Handle(obj.DictionaryName());
-          if (Field::IsGetterName(second_obj_name)) {
-            second_obj_name = Field::NameFromGetter(second_obj_name);
-          }
-          if (found_obj_name.Equals(second_obj_name)) {
-            return Object::null();
-          }
-        }
-      }
-    }
-  }
-  return found_obj.ptr();
-}
-
 ClassPtr Library::LookupClass(const String& name) const {
-  Object& obj = Object::Handle(LookupLocalObject(name));
-  if (obj.IsNull() && !ShouldBePrivate(name)) {
-    obj = LookupImportedObject(name);
-  }
-  if (obj.IsClass()) {
-    return Class::Cast(obj).ptr();
-  }
-  return Class::null();
-}
-
-ClassPtr Library::LookupLocalClass(const String& name) const {
   Object& obj = Object::Handle(LookupLocalObject(name));
   if (obj.IsClass()) {
     return Class::Cast(obj).ptr();
@@ -14247,41 +14111,9 @@ ClassPtr Library::LookupLocalClass(const String& name) const {
 }
 
 ClassPtr Library::LookupClassAllowPrivate(const String& name) const {
-  // See if the class is available in this library or in the top level
-  // scope of any imported library.
-  Zone* zone = Thread::Current()->zone();
-  const Class& cls = Class::Handle(zone, LookupClass(name));
-  if (!cls.IsNull()) {
-    return cls.ptr();
-  }
-
-  // Now try to lookup the class using its private name, but only in
-  // this library (not in imported libraries).
-  if (ShouldBePrivate(name)) {
-    String& private_name = String::Handle(zone, PrivateName(name));
-    const Object& obj = Object::Handle(LookupLocalObject(private_name));
-    if (obj.IsClass()) {
-      return Class::Cast(obj).ptr();
-    }
-  }
-  return Class::null();
-}
-
-// Mixin applications can have multiple private keys from different libraries.
-ClassPtr Library::SlowLookupClassAllowMultiPartPrivate(
-    const String& name) const {
-  Array& dict = Array::Handle(dictionary());
-  Object& entry = Object::Handle();
-  String& cls_name = String::Handle();
-  for (intptr_t i = 0; i < dict.Length(); i++) {
-    entry = dict.At(i);
-    if (entry.IsClass()) {
-      cls_name = Class::Cast(entry).Name();
-      // Warning: comparison is not symmetric.
-      if (String::EqualsIgnoringPrivateKey(cls_name, name)) {
-        return Class::Cast(entry).ptr();
-      }
-    }
+  Object& obj = Object::Handle(LookupLocalObjectAllowPrivate(name));
+  if (obj.IsClass()) {
+    return Class::Cast(obj).ptr();
   }
   return Class::null();
 }
@@ -15514,19 +15346,18 @@ FunctionPtr Library::GetFunction(const GrowableArray<Library*>& libs,
   for (intptr_t l = 0; l < libs.length(); l++) {
     const Library& lib = *libs[l];
     if (strcmp(class_name, "::") == 0) {
-      func_str = Symbols::New(thread, function_name);
-      func = lib.LookupFunctionAllowPrivate(func_str);
+      cls = lib.toplevel_class();
     } else {
       class_str = String::New(class_name);
       cls = lib.LookupClassAllowPrivate(class_str);
-      if (!cls.IsNull()) {
-        if (cls.EnsureIsFinalized(thread) == Error::null()) {
-          func_str = String::New(function_name);
-          if (function_name[0] == '.') {
-            func_str = String::Concat(class_str, func_str);
-          }
-          func = cls.LookupFunctionAllowPrivate(func_str);
+    }
+    if (!cls.IsNull()) {
+      if (cls.EnsureIsFinalized(thread) == Error::null()) {
+        func_str = String::New(function_name);
+        if (function_name[0] == '.') {
+          func_str = String::Concat(class_str, func_str);
         }
+        func = cls.LookupFunctionAllowPrivate(func_str);
       }
     }
     if (!func.IsNull()) {

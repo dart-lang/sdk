@@ -124,7 +124,7 @@ class C extends A {}
 interface class I {}
 sealed class S extends I {}
 sealed class S2 extends S {}
-class C extends S2 {} 
+class C extends S2 {}
 ''', [
       lint(84, 1),
     ]);

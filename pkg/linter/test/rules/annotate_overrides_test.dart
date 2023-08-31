@@ -139,8 +139,8 @@ enum A implements O {
 class O {
   int m() => 0;
 }
-    
-enum A implements O {    
+
+enum A implements O {
   a,b,c;
   @override
   int m() => 0;

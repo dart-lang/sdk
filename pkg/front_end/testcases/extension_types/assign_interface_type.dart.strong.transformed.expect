@@ -1,0 +1,586 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:33:7: Error: A value of type 'C' can't be assigned to a variable of type 'Object' because 'C' is nullable and 'Object' isn't.
+//  - 'Object' is from 'dart:core'.
+//   o = c; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:37:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'Object' because 'G<T1>' is nullable and 'Object' isn't.
+//  - 'Object' is from 'dart:core'.
+//   o = g1; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:40:7: Error: A value of type 'Object' can't be assigned to a variable of type 'A'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   a = o; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:43:7: Error: A value of type 'C' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   a = c; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:44:7: Error: A value of type 'D' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   a = d; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:47:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   a = g1; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:48:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   a = g2; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:50:7: Error: A value of type 'Object' can't be assigned to a variable of type 'B'.
+//  - 'Object' is from 'dart:core'.
+//  - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   b = o; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:51:7: Error: A value of type 'A' can't be assigned to a variable of type 'B'.
+//  - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   b = a; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:53:7: Error: A value of type 'C' can't be assigned to a variable of type 'B'.
+//  - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   b = c; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:54:7: Error: A value of type 'D' can't be assigned to a variable of type 'B'.
+//  - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   b = d; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:55:7: Error: A value of type 'E' can't be assigned to a variable of type 'B'.
+//  - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   b = e; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:57:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'B'.
+//  - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   b = g1; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:58:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'B'.
+//  - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   b = g2; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:60:7: Error: A value of type 'Object' can't be assigned to a variable of type 'C'.
+//  - 'Object' is from 'dart:core'.
+//   c = o; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:61:7: Error: A value of type 'A' can't be assigned to a variable of type 'C'.
+//  - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   c = a; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:62:7: Error: A value of type 'B' can't be assigned to a variable of type 'C'.
+//  - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   c = b; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:64:7: Error: A value of type 'D' can't be assigned to a variable of type 'C'.
+//   c = d; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:65:7: Error: A value of type 'E' can't be assigned to a variable of type 'C'.
+//   c = e; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:66:7: Error: A value of type 'F' can't be assigned to a variable of type 'C'.
+//   c = f; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:67:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'C'.
+//   c = g1; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:68:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'C'.
+//   c = g2; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:70:7: Error: A value of type 'Object' can't be assigned to a variable of type 'D'.
+//  - 'Object' is from 'dart:core'.
+//   d = o; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:71:7: Error: A value of type 'A' can't be assigned to a variable of type 'D'.
+//  - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   d = a; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:72:7: Error: A value of type 'B' can't be assigned to a variable of type 'D'.
+//  - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   d = b; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:73:7: Error: A value of type 'C' can't be assigned to a variable of type 'D'.
+//   d = c; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:75:7: Error: A value of type 'E' can't be assigned to a variable of type 'D'.
+//   d = e; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:76:7: Error: A value of type 'F' can't be assigned to a variable of type 'D'.
+//   d = f; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:77:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'D'.
+//   d = g1; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:78:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'D'.
+//   d = g2; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:80:7: Error: A value of type 'Object' can't be assigned to a variable of type 'E'.
+//  - 'Object' is from 'dart:core'.
+//   e = o; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:81:7: Error: A value of type 'A' can't be assigned to a variable of type 'E'.
+//  - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   e = a; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:82:7: Error: A value of type 'B' can't be assigned to a variable of type 'E'.
+//  - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   e = b; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:83:7: Error: A value of type 'C' can't be assigned to a variable of type 'E'.
+//   e = c; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:84:7: Error: A value of type 'D' can't be assigned to a variable of type 'E'.
+//   e = d; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:87:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'E'.
+//   e = g1; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:88:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'E'.
+//   e = g2; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:90:7: Error: A value of type 'Object' can't be assigned to a variable of type 'F'.
+//  - 'Object' is from 'dart:core'.
+//   f = o; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:91:7: Error: A value of type 'A' can't be assigned to a variable of type 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   f = a; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:92:7: Error: A value of type 'B' can't be assigned to a variable of type 'F'.
+//  - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   f = b; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:93:7: Error: A value of type 'C' can't be assigned to a variable of type 'F'.
+//   f = c; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:94:7: Error: A value of type 'D' can't be assigned to a variable of type 'F'.
+//   f = d; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:95:7: Error: A value of type 'E' can't be assigned to a variable of type 'F'.
+//   f = e; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:97:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'F'.
+//   f = g1; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:98:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'F'.
+//   f = g2; // Error
+//       ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:100:8: Error: A value of type 'Object' can't be assigned to a variable of type 'G<T1>'.
+//  - 'Object' is from 'dart:core'.
+//   g1 = o; // Error
+//        ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:101:8: Error: A value of type 'A' can't be assigned to a variable of type 'G<T1>'.
+//  - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   g1 = a; // Error
+//        ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:102:8: Error: A value of type 'B' can't be assigned to a variable of type 'G<T1>'.
+//  - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   g1 = b; // Error
+//        ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:103:8: Error: A value of type 'C' can't be assigned to a variable of type 'G<T1>'.
+//   g1 = c; // Error
+//        ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:104:8: Error: A value of type 'D' can't be assigned to a variable of type 'G<T1>'.
+//   g1 = d; // Error
+//        ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:105:8: Error: A value of type 'E' can't be assigned to a variable of type 'G<T1>'.
+//   g1 = e; // Error
+//        ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:106:8: Error: A value of type 'F' can't be assigned to a variable of type 'G<T1>'.
+//   g1 = f; // Error
+//        ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:108:8: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'G<T1>'.
+//   g1 = g2; // Error
+//        ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:110:8: Error: A value of type 'Object' can't be assigned to a variable of type 'G<T2>'.
+//  - 'Object' is from 'dart:core'.
+//   g2 = o; // Error
+//        ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:111:8: Error: A value of type 'A' can't be assigned to a variable of type 'G<T2>'.
+//  - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   g2 = a; // Error
+//        ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:112:8: Error: A value of type 'B' can't be assigned to a variable of type 'G<T2>'.
+//  - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+//   g2 = b; // Error
+//        ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:113:8: Error: A value of type 'C' can't be assigned to a variable of type 'G<T2>'.
+//   g2 = c; // Error
+//        ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:114:8: Error: A value of type 'D' can't be assigned to a variable of type 'G<T2>'.
+//   g2 = d; // Error
+//        ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:115:8: Error: A value of type 'E' can't be assigned to a variable of type 'G<T2>'.
+//   g2 = e; // Error
+//        ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:116:8: Error: A value of type 'F' can't be assigned to a variable of type 'G<T2>'.
+//   g2 = f; // Error
+//        ^
+//
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:117:8: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'G<T2>'.
+//   g2 = g1; // Error
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+}
+extension type C(core::Object? o) {
+  constructor • = self::C|;
+  tearoff • = self::C|_#new#tearOff;
+}
+extension type D(core::Object o) {
+  constructor • = self::D|;
+  tearoff • = self::D|_#new#tearOff;
+}
+extension type E(self::B it) implements self::A {
+  constructor • = self::E|;
+  tearoff • = self::E|_#new#tearOff;
+}
+extension type F(self::B it) implements self::E /* = self::B */, self::B {
+  constructor • = self::F|;
+  tearoff • = self::F|_#new#tearOff;
+}
+extension type G<T extends core::Object? = dynamic>(T% o) {
+  constructor • = self::G|;
+  tearoff • = self::G|_#new#tearOff;
+}
+static inline-class-member method C|(core::Object? o) → self::C /* = core::Object? */ {
+  lowered final self::C /* = core::Object? */ #this = o;
+  return #this;
+}
+static inline-class-member method C|_#new#tearOff(core::Object? o) → self::C /* = core::Object? */
+  return self::C|(o);
+static inline-class-member method D|(core::Object o) → self::D /* = core::Object */ {
+  lowered final self::D /* = core::Object */ #this = o;
+  return #this;
+}
+static inline-class-member method D|_#new#tearOff(core::Object o) → self::D /* = core::Object */
+  return self::D|(o);
+static inline-class-member method E|(self::B it) → self::E /* = self::B */ {
+  lowered final self::E /* = self::B */ #this = it;
+  return #this;
+}
+static inline-class-member method E|_#new#tearOff(self::B it) → self::E /* = self::B */
+  return self::E|(it);
+static inline-class-member method F|(self::B it) → self::F /* = self::B */ {
+  lowered final self::F /* = self::B */ #this = it;
+  return #this;
+}
+static inline-class-member method F|_#new#tearOff(self::B it) → self::F /* = self::B */
+  return self::F|(it);
+static inline-class-member method G|<T extends core::Object? = dynamic>(self::G|::T% o) → self::G<self::G|::T%> /* = self::G|::T% */ {
+  lowered final self::G<self::G|::T%> /* = self::G|::T% */ #this = o;
+  return #this;
+}
+static inline-class-member method G|_#new#tearOff<T extends core::Object? = dynamic>(self::G|_#new#tearOff::T% o) → self::G<self::G|_#new#tearOff::T%> /* = self::G|_#new#tearOff::T% */
+  return self::G|<self::G|_#new#tearOff::T%>(o);
+static method test<T1 extends core::Object? = dynamic, T2 extends self::A>(core::Object o, self::A a, self::B b, self::C /* = core::Object? */ c, self::D /* = core::Object */ d, self::E /* = self::B */ e, self::F /* = self::B */ f, self::G<self::test::T1%> /* = self::test::T1% */ g1, self::G<self::test::T2> /* = self::test::T2 */ g2) → dynamic {
+  o = o;
+  o = a;
+  o = b;
+  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:33:7: Error: A value of type 'C' can't be assigned to a variable of type 'Object' because 'C' is nullable and 'Object' isn't.
+ - 'Object' is from 'dart:core'.
+  o = c; // Error
+      ^" in let self::C /* = core::Object? */ #t1 = c in #t1 == null ?{core::Object} #t1 as{TypeError} core::Object : #t1{core::Object};
+  o = d;
+  o = e;
+  o = f;
+  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:37:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'Object' because 'G<T1>' is nullable and 'Object' isn't.
+ - 'Object' is from 'dart:core'.
+  o = g1; // Error
+      ^" in let self::G<self::test::T1%> /* = self::test::T1% */ #t2 = g1 in #t2 == null ?{core::Object} #t2 as{TypeError} core::Object : #t2{core::Object};
+  o = g2;
+  a = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:40:7: Error: A value of type 'Object' can't be assigned to a variable of type 'A'.
+ - 'Object' is from 'dart:core'.
+ - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  a = o; // Error
+      ^" in o as{TypeError} self::A;
+  a = a;
+  a = b;
+  a = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:43:7: Error: A value of type 'C' can't be assigned to a variable of type 'A'.
+ - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  a = c; // Error
+      ^" in c as{TypeError} self::A;
+  a = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:44:7: Error: A value of type 'D' can't be assigned to a variable of type 'A'.
+ - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  a = d; // Error
+      ^" in d as{TypeError} self::A;
+  a = e;
+  a = f;
+  a = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:47:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'A'.
+ - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  a = g1; // Error
+      ^" in g1 as{TypeError} self::A;
+  a = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:48:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'A'.
+ - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  a = g2; // Error
+      ^" in g2 as{TypeError} self::A;
+  b = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:50:7: Error: A value of type 'Object' can't be assigned to a variable of type 'B'.
+ - 'Object' is from 'dart:core'.
+ - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  b = o; // Error
+      ^" in o as{TypeError} self::B;
+  b = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:51:7: Error: A value of type 'A' can't be assigned to a variable of type 'B'.
+ - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+ - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  b = a; // Error
+      ^" in a as{TypeError} self::B;
+  b = b;
+  b = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:53:7: Error: A value of type 'C' can't be assigned to a variable of type 'B'.
+ - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  b = c; // Error
+      ^" in c as{TypeError} self::B;
+  b = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:54:7: Error: A value of type 'D' can't be assigned to a variable of type 'B'.
+ - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  b = d; // Error
+      ^" in d as{TypeError} self::B;
+  b = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:55:7: Error: A value of type 'E' can't be assigned to a variable of type 'B'.
+ - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  b = e; // Error
+      ^" in e as{TypeError} self::B;
+  b = f;
+  b = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:57:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'B'.
+ - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  b = g1; // Error
+      ^" in g1 as{TypeError} self::B;
+  b = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:58:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'B'.
+ - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  b = g2; // Error
+      ^" in g2 as{TypeError} self::B;
+  c = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:60:7: Error: A value of type 'Object' can't be assigned to a variable of type 'C'.
+ - 'Object' is from 'dart:core'.
+  c = o; // Error
+      ^" in o as{TypeError} self::C /* = core::Object? */;
+  c = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:61:7: Error: A value of type 'A' can't be assigned to a variable of type 'C'.
+ - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  c = a; // Error
+      ^" in a as{TypeError} self::C /* = core::Object? */;
+  c = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:62:7: Error: A value of type 'B' can't be assigned to a variable of type 'C'.
+ - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  c = b; // Error
+      ^" in b as{TypeError} self::C /* = core::Object? */;
+  c = c;
+  c = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:64:7: Error: A value of type 'D' can't be assigned to a variable of type 'C'.
+  c = d; // Error
+      ^" in d as{TypeError} self::C /* = core::Object? */;
+  c = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:65:7: Error: A value of type 'E' can't be assigned to a variable of type 'C'.
+  c = e; // Error
+      ^" in e as{TypeError} self::C /* = core::Object? */;
+  c = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:66:7: Error: A value of type 'F' can't be assigned to a variable of type 'C'.
+  c = f; // Error
+      ^" in f as{TypeError} self::C /* = core::Object? */;
+  c = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:67:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'C'.
+  c = g1; // Error
+      ^" in g1 as{TypeError} self::C /* = core::Object? */;
+  c = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:68:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'C'.
+  c = g2; // Error
+      ^" in g2 as{TypeError} self::C /* = core::Object? */;
+  d = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:70:7: Error: A value of type 'Object' can't be assigned to a variable of type 'D'.
+ - 'Object' is from 'dart:core'.
+  d = o; // Error
+      ^" in o as{TypeError} self::D /* = core::Object */;
+  d = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:71:7: Error: A value of type 'A' can't be assigned to a variable of type 'D'.
+ - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  d = a; // Error
+      ^" in a as{TypeError} self::D /* = core::Object */;
+  d = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:72:7: Error: A value of type 'B' can't be assigned to a variable of type 'D'.
+ - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  d = b; // Error
+      ^" in b as{TypeError} self::D /* = core::Object */;
+  d = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:73:7: Error: A value of type 'C' can't be assigned to a variable of type 'D'.
+  d = c; // Error
+      ^" in c as{TypeError} self::D /* = core::Object */;
+  d = d;
+  d = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:75:7: Error: A value of type 'E' can't be assigned to a variable of type 'D'.
+  d = e; // Error
+      ^" in e as{TypeError} self::D /* = core::Object */;
+  d = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:76:7: Error: A value of type 'F' can't be assigned to a variable of type 'D'.
+  d = f; // Error
+      ^" in f as{TypeError} self::D /* = core::Object */;
+  d = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:77:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'D'.
+  d = g1; // Error
+      ^" in g1 as{TypeError} self::D /* = core::Object */;
+  d = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:78:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'D'.
+  d = g2; // Error
+      ^" in g2 as{TypeError} self::D /* = core::Object */;
+  e = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:80:7: Error: A value of type 'Object' can't be assigned to a variable of type 'E'.
+ - 'Object' is from 'dart:core'.
+  e = o; // Error
+      ^" in o as{TypeError} self::E /* = self::B */;
+  e = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:81:7: Error: A value of type 'A' can't be assigned to a variable of type 'E'.
+ - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  e = a; // Error
+      ^" in a as{TypeError} self::E /* = self::B */;
+  e = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:82:7: Error: A value of type 'B' can't be assigned to a variable of type 'E'.
+ - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  e = b; // Error
+      ^" in b as{TypeError} self::E /* = self::B */;
+  e = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:83:7: Error: A value of type 'C' can't be assigned to a variable of type 'E'.
+  e = c; // Error
+      ^" in c as{TypeError} self::E /* = self::B */;
+  e = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:84:7: Error: A value of type 'D' can't be assigned to a variable of type 'E'.
+  e = d; // Error
+      ^" in d as{TypeError} self::E /* = self::B */;
+  e = e;
+  e = f;
+  e = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:87:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'E'.
+  e = g1; // Error
+      ^" in g1 as{TypeError} self::E /* = self::B */;
+  e = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:88:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'E'.
+  e = g2; // Error
+      ^" in g2 as{TypeError} self::E /* = self::B */;
+  f = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:90:7: Error: A value of type 'Object' can't be assigned to a variable of type 'F'.
+ - 'Object' is from 'dart:core'.
+  f = o; // Error
+      ^" in o as{TypeError} self::F /* = self::B */;
+  f = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:91:7: Error: A value of type 'A' can't be assigned to a variable of type 'F'.
+ - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  f = a; // Error
+      ^" in a as{TypeError} self::F /* = self::B */;
+  f = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:92:7: Error: A value of type 'B' can't be assigned to a variable of type 'F'.
+ - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  f = b; // Error
+      ^" in b as{TypeError} self::F /* = self::B */;
+  f = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:93:7: Error: A value of type 'C' can't be assigned to a variable of type 'F'.
+  f = c; // Error
+      ^" in c as{TypeError} self::F /* = self::B */;
+  f = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:94:7: Error: A value of type 'D' can't be assigned to a variable of type 'F'.
+  f = d; // Error
+      ^" in d as{TypeError} self::F /* = self::B */;
+  f = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:95:7: Error: A value of type 'E' can't be assigned to a variable of type 'F'.
+  f = e; // Error
+      ^" in e as{TypeError} self::F /* = self::B */;
+  f = f;
+  f = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:97:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'F'.
+  f = g1; // Error
+      ^" in g1 as{TypeError} self::F /* = self::B */;
+  f = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:98:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'F'.
+  f = g2; // Error
+      ^" in g2 as{TypeError} self::F /* = self::B */;
+  g1 = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:100:8: Error: A value of type 'Object' can't be assigned to a variable of type 'G<T1>'.
+ - 'Object' is from 'dart:core'.
+  g1 = o; // Error
+       ^" in o as{TypeError} Never;
+  g1 = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:101:8: Error: A value of type 'A' can't be assigned to a variable of type 'G<T1>'.
+ - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  g1 = a; // Error
+       ^" in a as{TypeError} Never;
+  g1 = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:102:8: Error: A value of type 'B' can't be assigned to a variable of type 'G<T1>'.
+ - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  g1 = b; // Error
+       ^" in b as{TypeError} Never;
+  g1 = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:103:8: Error: A value of type 'C' can't be assigned to a variable of type 'G<T1>'.
+  g1 = c; // Error
+       ^" in c as{TypeError} Never;
+  g1 = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:104:8: Error: A value of type 'D' can't be assigned to a variable of type 'G<T1>'.
+  g1 = d; // Error
+       ^" in d as{TypeError} Never;
+  g1 = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:105:8: Error: A value of type 'E' can't be assigned to a variable of type 'G<T1>'.
+  g1 = e; // Error
+       ^" in e as{TypeError} Never;
+  g1 = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:106:8: Error: A value of type 'F' can't be assigned to a variable of type 'G<T1>'.
+  g1 = f; // Error
+       ^" in f as{TypeError} Never;
+  g1 = g1;
+  g1 = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:108:8: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'G<T1>'.
+  g1 = g2; // Error
+       ^" in g2 as{TypeError} Never;
+  g2 = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:110:8: Error: A value of type 'Object' can't be assigned to a variable of type 'G<T2>'.
+ - 'Object' is from 'dart:core'.
+  g2 = o; // Error
+       ^" in o as{TypeError} Never;
+  g2 = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:111:8: Error: A value of type 'A' can't be assigned to a variable of type 'G<T2>'.
+ - 'A' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  g2 = a; // Error
+       ^" in a as{TypeError} Never;
+  g2 = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:112:8: Error: A value of type 'B' can't be assigned to a variable of type 'G<T2>'.
+ - 'B' is from 'pkg/front_end/testcases/extension_types/assign_interface_type.dart'.
+  g2 = b; // Error
+       ^" in b as{TypeError} Never;
+  g2 = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:113:8: Error: A value of type 'C' can't be assigned to a variable of type 'G<T2>'.
+  g2 = c; // Error
+       ^" in c as{TypeError} Never;
+  g2 = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:114:8: Error: A value of type 'D' can't be assigned to a variable of type 'G<T2>'.
+  g2 = d; // Error
+       ^" in d as{TypeError} Never;
+  g2 = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:115:8: Error: A value of type 'E' can't be assigned to a variable of type 'G<T2>'.
+  g2 = e; // Error
+       ^" in e as{TypeError} Never;
+  g2 = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:116:8: Error: A value of type 'F' can't be assigned to a variable of type 'G<T2>'.
+  g2 = f; // Error
+       ^" in f as{TypeError} Never;
+  g2 = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:117:8: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'G<T2>'.
+  g2 = g1; // Error
+       ^" in g1 as{TypeError} Never;
+  g2 = g2;
+}

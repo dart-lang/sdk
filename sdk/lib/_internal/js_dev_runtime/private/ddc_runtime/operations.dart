@@ -1225,6 +1225,19 @@ void ddcDeferredLoading(bool enable) {
   _ddcDeferredLoading = enable;
 }
 
+@notNull
+bool _ddcNewLoadLibraryTiming = false;
+
+/// Makes DDC return non-sync Futures from `loadLibrary` calls.
+///
+/// This makes DDC's `loadLibrary` semantics consistent with Dart2JS's.
+/// Remove this when we switch to the new semantics by default.
+///
+/// /// This is only supported in the DDC module system.
+void ddcNewLoadLibraryTiming(bool enable) {
+  _ddcNewLoadLibraryTiming = enable;
+}
+
 /// A map from libraries to a set of import prefixes that have been loaded.
 ///
 /// Used to validate deferred library conventions.
@@ -1243,7 +1256,7 @@ Future<void> loadLibrary(@notNull String libraryUri,
       JS('', '#.set(#, # = new Set())', deferredImports, libraryUri, result);
     }
     JS('', '#.add(#)', result, importPrefix);
-    return Future.value();
+    return _ddcNewLoadLibraryTiming ? Future(() {}) : Future.value();
   } else {
     int currentHotRestartIteration = hotRestartIteration;
     var loadId = '$libraryUri::$importPrefix';

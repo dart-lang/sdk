@@ -127,6 +127,20 @@ enum E {
     expect(element, isExportElement);
   }
 
+  test_locate_ExtensionDeclaration() async {
+    await resolveTestCode('extension A on int {}');
+    var node = findNode.singleExtensionDeclaration;
+    var element = ElementLocator.locate(node);
+    expect(element, findElement.extension_('A'));
+  }
+
+  test_locate_ExtensionTypeDeclaration() async {
+    await resolveTestCode('extension type A(int it) {}');
+    var node = findNode.singleExtensionTypeDeclaration;
+    var element = ElementLocator.locate(node);
+    expect(element, findElement.extensionType('A'));
+  }
+
   test_locate_FunctionDeclaration() async {
     await resolveTestCode('int f() => 3;');
     var node = findNode.functionDeclaration('f');
@@ -323,6 +337,13 @@ void main() {
     var node = findNode.methodInvocation('foo(0)');
     var element = ElementLocator.locate(node);
     expect(element, isFunctionElement);
+  }
+
+  test_locate_MixinDeclaration() async {
+    await resolveTestCode('mixin A {}');
+    var node = findNode.singleMixinDeclaration;
+    var element = ElementLocator.locate(node);
+    expect(element, findElement.mixin('A'));
   }
 
   test_locate_PartOfDirective_withName() async {

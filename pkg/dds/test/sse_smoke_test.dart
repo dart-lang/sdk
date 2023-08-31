@@ -29,10 +29,14 @@ void main() {
   late WebDriver webdriver;
 
   setUpAll(() async {
-    final chromedriverUri = Platform.script.resolveUri(
-        Uri.parse('../../../third_party/webdriver/chrome/chromedriver'));
+    var chromedriverPath = '../../../third_party/webdriver/chrome/chromedriver';
+    if (Platform.isWindows) {
+      chromedriverPath = '$chromedriverPath.exe';
+    }
+    final chromedriverUri =
+        Platform.script.resolveUri(Uri.parse(chromedriverPath));
     try {
-      chromeDriver = await Process.start(chromedriverUri.path, [
+      chromeDriver = await Process.start(chromedriverUri.toFilePath(), [
         '--port=4444',
         '--url-base=wd/hub',
       ]);
@@ -54,7 +58,7 @@ void main() {
       final cascade = shelf.Cascade()
           .add(handler.handler)
           .add(_faviconHandler)
-          .add(createStaticHandler(Platform.script.resolve('web').path,
+          .add(createStaticHandler(Platform.script.resolve('web').toFilePath(),
               listDirectories: true, defaultDocument: 'index.html'));
 
       server = await io.serve(cascade.handler, 'localhost', 0);

@@ -21,7 +21,7 @@ class PreferFinalInForEachTestLanguage300 extends LintRuleTest {
     await assertDiagnostics(r'''
 f() {
   for (var i in [1, 2, 3]) { }
-}  
+}
 ''', [
       lint(17, 1),
     ]);
@@ -29,7 +29,7 @@ f() {
 
   test_int_final_ok() async {
     await assertNoDiagnostics(r'''
-f() {    
+f() {
   for (final i in [1, 2, 3]) { }
 }
 ''');
@@ -37,7 +37,7 @@ f() {
 
   test_int_mutated_ok() async {
     await assertNoDiagnostics(r'''
-f() {    
+f() {
   for (var i in [1, 2, 3]) {
     i += 1;
   }
@@ -49,7 +49,7 @@ f() {
     await assertDiagnostics(r'''
 f() {
   for (var [i, j] in [[1, 2]]) { }
-} 
+}
 ''', [
       lint(17, 6),
     ]);
@@ -59,17 +59,17 @@ f() {
     await assertNoDiagnostics(r'''
 f() {
   for (final [i, j] in [[1, 2]]) { }
-} 
+}
 ''');
   }
 
   test_list_mutated() async {
     await assertNoDiagnostics(r'''
 f() {
-  for (var [i, j] in [[1, 2]]) { 
+  for (var [i, j] in [[1, 2]]) {
     i += 2;
   }
-}   
+}
 ''');
   }
 
@@ -113,10 +113,10 @@ f() {
   test_map_mutated() async {
     await assertNoDiagnostics(r'''
 f() {
-  for (var {'i' : j} in [{'i' : 1}]) { 
+  for (var {'i' : j} in [{'i' : 1}]) {
     j += 2;
   }
-}  
+}
 ''');
   }
 
@@ -129,7 +129,7 @@ class A {
 
 f() {
   for (var A(:a) in [A(1)]) { }
-} 
+}
 ''', [
       lint(52, 5),
     ]);
@@ -144,7 +144,7 @@ class A {
 
 f() {
   for (final A(:a) in [A(1)]) { }
-} 
+}
 ''');
   }
 
@@ -156,16 +156,16 @@ class A {
 }
 
 f() {
-  for (var A(:a) in [A(1)]) { 
+  for (var A(:a) in [A(1)]) {
     a += 2;
   }
-}   
+}
 ''');
   }
 
   test_outOfLoopDeclaration_ok() async {
     await assertNoDiagnostics(r'''
-f() {    
+f() {
   int j;
   for (j in [1, 2, 3]) { }
 }
@@ -176,7 +176,7 @@ f() {
     await assertDiagnostics(r'''
 f() {
   for (var (i, j) in [(1, 2)]) { }
-}  
+}
 ''', [
       lint(17, 6),
     ]);
@@ -186,7 +186,7 @@ f() {
     await assertNoDiagnostics(r'''
 f() {
   for (final (i, j) in [(1, 2)]) { }
-}  
+}
 ''');
   }
 
@@ -196,7 +196,7 @@ f() {
   for (var (int i, j) in [(1, 2)]) {
     i++;
   }
-}  
+}
 ''');
   }
 }
