@@ -1870,6 +1870,22 @@ Record(int, String, {bool c})
 ''');
   }
 
+  test_visitSetOrMapLiteral_double_zeros() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  final double x;
+  const C(this.x);
+}
+
+const cp0 = C(0.0);
+const cm0 = C(-0.0);
+
+main(){
+  print(const{cp0, cm0});
+}
+''');
+  }
+
   test_visitSetOrMapLiteral_map_forElement() async {
     await assertErrorsInCode(r'''
 const x = {1: null, for (final i in const []) i: null};

@@ -1020,7 +1020,7 @@ class DoubleState extends NumState {
 
   @override
   bool operator ==(Object other) =>
-      other is DoubleState && (value == other.value);
+      other is DoubleState && identical(value, other.value);
 
   @override
   NumState add(InstanceState rightOperand) {
@@ -1156,13 +1156,13 @@ class DoubleState extends NumState {
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value == rightValue);
+      return BoolState.from(identical(value, rightValue));
     } else if (rightOperand is IntState) {
       var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value == rightValue.toDouble());
+      return BoolState.from(identical(value, rightValue.toDouble()));
     }
     return BoolState.FALSE_STATE;
   }
