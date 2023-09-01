@@ -12,6 +12,7 @@ import 'abstract_refactoring.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractMethodTest_Enum);
+    defineReflectiveTests(ExtractMethodTest_Extension);
     defineReflectiveTests(ExtractMethodTest_ExtensionType);
     defineReflectiveTests(ExtractMethodTest_Mixin);
     defineReflectiveTests(ExtractMethodTest);
@@ -3324,6 +3325,57 @@ enum E {
     return _assertSuccessfulRefactoring('''
 enum E {
   v;
+  void foo() {
+// start
+    res();
+// end
+  }
+
+  void res() {
+    print(0);
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ExtractMethodTest_Extension extends _ExtractMethodTest {
+  Future<void> test_singleExpression_method() async {
+    await indexTestUnit('''
+extension E on int {
+  void foo() {
+    int a = 1 + 2;
+  }
+}
+''');
+    _createRefactoringForString('1 + 2');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+extension E on int {
+  void foo() {
+    int a = res();
+  }
+
+  int res() => 1 + 2;
+}
+''');
+  }
+
+  Future<void> test_statements_method() async {
+    await indexTestUnit('''
+extension E on int {
+  void foo() {
+// start
+    print(0);
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+extension E on int {
   void foo() {
 // start
     res();
