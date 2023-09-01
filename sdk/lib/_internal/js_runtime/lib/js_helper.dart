@@ -1599,14 +1599,11 @@ class TypeErrorDecoder {
 
 class NullError extends TypeError implements NoSuchMethodError {
   final String _message;
-  final String? _method;
 
-  NullError(this._message, match)
-      : _method = match == null ? null : JS('', '#.method', match);
+  NullError(this._message);
 
   String toString() {
-    if (_method == null) return 'NoSuchMethodError: $_message';
-    return "NoSuchMethodError: method not found: '$_method' on null";
+    return 'Null check operator used on a null value';
   }
 }
 
@@ -1727,8 +1724,7 @@ Object _unwrapNonDartException(Object ex) {
               ex, JsNoSuchMethodError('$message (Error $ieErrorCode)', null));
         case 445:
         case 5007:
-          return saveStackTrace(
-              ex, NullError('$message (Error $ieErrorCode)', null));
+          return saveStackTrace(ex, NullError('$message (Error $ieErrorCode)'));
       }
     }
   }
@@ -1762,7 +1758,7 @@ Object _unwrapNonDartException(Object ex) {
         (match = nullLiteralCall.matchTypeError(message)) != null ||
         (match = undefProperty.matchTypeError(message)) != null ||
         (match = undefLiteralProperty.matchTypeError(message)) != null) {
-      return saveStackTrace(ex, NullError(message, match));
+      return saveStackTrace(ex, NullError(message));
     }
 
     // If we cannot determine what kind of error this is, we fall back
