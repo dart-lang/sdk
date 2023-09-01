@@ -203,6 +203,8 @@ lsp.SymbolKind declarationKindToSymbolKind(
         return const [lsp.SymbolKind.EnumMember, lsp.SymbolKind.Enum];
       case server.DeclarationKind.EXTENSION:
         return const [lsp.SymbolKind.Class];
+      case server.DeclarationKind.EXTENSION_TYPE:
+        return const [lsp.SymbolKind.Class];
       case server.DeclarationKind.FIELD:
         return const [lsp.SymbolKind.Field];
       case server.DeclarationKind.FUNCTION:

@@ -389,6 +389,54 @@ testFile
 ''');
   }
 
+  test_declarations_extensionType() async {
+    await resolveTestCode('''
+extension type E(int it) {
+  int get g => 0;
+  void set s(_) {}
+  void m() {}
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      '',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+testFile
+  EXTENSION_TYPE E
+    offset: 15 1:16
+    codeOffset: 0 + 79
+  CONSTRUCTOR <unnamed>
+    offset: 15 1:16
+    codeOffset: 16 + 8
+    className: E
+    parameters: (int it)
+  FIELD it
+    offset: 21 1:22
+    codeOffset: 17 + 6
+    className: E
+  GETTER g
+    offset: 37 2:11
+    codeOffset: 29 + 15
+    className: E
+  SETTER s
+    offset: 56 3:12
+    codeOffset: 47 + 16
+    className: E
+    parameters: (dynamic _)
+  METHOD m
+    offset: 71 4:8
+    codeOffset: 66 + 11
+    className: E
+    parameters: ()
+''');
+  }
+
   test_declarations_fuzzyMatch() async {
     await resolveTestCode('''
 class A {}
