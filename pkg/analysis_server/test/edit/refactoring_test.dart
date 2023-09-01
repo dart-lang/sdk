@@ -2157,6 +2157,48 @@ extension E<NewName> on int {
 ''');
   }
 
+  Future<void> test_extensionType_field_representation() {
+    addTestFile('''
+extension type E(int test) {}
+
+void f(E e) {
+  e.test;
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test) {}', 'newName');
+    }, '''
+extension type E(int newName) {}
+
+void f(E e) {
+  e.newName;
+}
+''');
+  }
+
+  Future<void> test_extensionType_method() {
+    addTestFile('''
+extension type E(int it) {
+  void test() {}
+}
+
+void f(E e) {
+  e.test();
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test() {}', 'newName');
+    }, '''
+extension type E(int it) {
+  void newName() {}
+}
+
+void f(E e) {
+  e.newName();
+}
+''');
+  }
+
   Future<void> test_feedback() {
     addTestFile('''
 class Test {}
