@@ -23,19 +23,22 @@ class ExpressionEvaluationTestDriver {
   final Directory chromeDir;
   final wip.WipConnection connection;
   final wip.WipDebugger debugger;
+  final wip.WipRuntime runtime;
+  final ExecutionContext executionContext;
   late TestExpressionCompiler compiler;
   late Uri htmlBootstrapper;
   late Uri input;
   late Uri output;
   late Uri packagesFile;
-  late String preemptiveBp;
+  String? preemptiveBp;
   late SetupCompilerOptions setup;
   late String source;
   late Directory testDir;
   late String dartSdkPath;
 
   ExpressionEvaluationTestDriver._(
-      this.chrome, this.chromeDir, this.connection, this.debugger);
+      this.chrome, this.chromeDir, this.connection, this.debugger, this.runtime)
+      : executionContext = ExecutionContext(runtime);
 
   /// Initializes a Chrome browser instance, tab connection, and debugger.
   static Future<ExpressionEvaluationTestDriver> init() async {
@@ -79,19 +82,27 @@ class ExpressionEvaluationTestDriver {
     await connection.page.enable().timeout(Duration(seconds: 5),
         onTimeout: (() => throw Exception('Unable to enable WIP tab page')));
 
+    var runtime = connection.runtime;
+    await runtime.enable().timeout(Duration(seconds: 5),
+        onTimeout: (() => throw Exception('Unable to enable WIP runtime')));
+
     var debugger = connection.debugger;
     await debugger.enable().timeout(Duration(seconds: 5),
         onTimeout: (() => throw Exception('Unable to enable WIP debugger')));
+
     return ExpressionEvaluationTestDriver._(
-        chrome, chromeDir, connection, debugger);
+        chrome, chromeDir, connection, debugger, runtime);
   }
 
   /// Must be called when testing a new Dart program.
   ///
   /// Depends on SDK artifacts (such as the sound and unsound dart_sdk.js
   /// files) generated from the 'ddc_stable_test' and 'ddc_canary_test' targets.
-  Future<void> initSource(SetupCompilerOptions setup, String source,
-      {Map<String, bool> experiments = const {}}) async {
+  Future<void> initSource(
+    SetupCompilerOptions setup,
+    String source, {
+    Map<String, bool> experiments = const {},
+  }) async {
     // Perform setup sanity checks.
     var summaryPath = setup.options.sdkSummary!.toFilePath();
     if (!File(summaryPath).existsSync()) {
@@ -169,6 +180,7 @@ class ExpressionEvaluationTestDriver {
 <script src='$outputPath'></script>
 <script>
   'use strict';
+  let dartApplication = true;
   var sound = ${setup.soundNullSafety};
   var sdk = dart_library.import('dart_sdk');
 
@@ -216,6 +228,7 @@ class ExpressionEvaluationTestDriver {
     },
     waitSeconds: 15
   });
+  let dartApplication = true;
   var sound = ${setup.soundNullSafety};
 
   require(['dart_sdk', '$moduleName'],
@@ -272,7 +285,9 @@ class ExpressionEvaluationTestDriver {
 
   Future<void> cleanupTest() async {
     await setBreakpointsActive(debugger, false);
-    await debugger.removeBreakpoint(preemptiveBp);
+    if (preemptiveBp != null) {
+      await debugger.removeBreakpoint(preemptiveBp!);
+    }
     setup.diagnosticMessages.clear();
     setup.errors.clear();
   }
@@ -290,8 +305,8 @@ class ExpressionEvaluationTestDriver {
 
   Future<wip.WipScript> _loadScript() async {
     final scriptController = StreamController<wip.ScriptParsedEvent>();
-    final consoleSub =
-        debugger.connection.runtime.onConsoleAPICalled.listen(print);
+    final consoleSub = debugger.connection.runtime.onConsoleAPICalled
+        .listen((e) => printOnFailure('$e'));
 
     // Fail on exceptions in JS code.
     await debugger.setPauseOnExceptions(wip.PauseState.uncaught);
@@ -330,6 +345,7 @@ class ExpressionEvaluationTestDriver {
     }
   }
 
+  /// Load the script and run [onPause] when the app pauses on [breakpointId].
   Future<T> _onBreakpoint<T>(String breakpointId,
       {required Future<T> Function(wip.DebuggerPausedEvent) onPause}) async {
     // The next two pause events will correspond to:
@@ -386,6 +402,22 @@ class ExpressionEvaluationTestDriver {
     }
   }
 
+  /// Load the script and run the [body] while the app is running.
+  Future<T> _whileRunning<T>({required Future<T> Function() body}) async {
+    final consoleSub = debugger.connection.runtime.onConsoleAPICalled
+        .listen((e) => printOnFailure('$e'));
+
+    await _loadScript();
+    try {
+      // Continue running, ignoring the first pause event since it corresponds
+      // to the preemptive URI breakpoint made prior to page navigation.
+      await debugger.resume();
+      return await body();
+    } finally {
+      await consoleSub.cancel();
+    }
+  }
+
   Future<Map<String, String>> getScope(String breakpointId) async {
     return await _onBreakpoint(breakpointId, onPause: (event) async {
       // Retrieve the call frame and its scope variables.
@@ -397,17 +429,25 @@ class ExpressionEvaluationTestDriver {
   /// Evaluates a dart [expression] on a breakpoint.
   ///
   /// [breakpointId] is the ID of the breakpoint from the source.
-  Future<String> evaluateDartExpression({
+  Future<String> evaluateDartExpressionInFrame({
     required String breakpointId,
     required String expression,
   }) async {
     var dartLine = _findBreakpointLine(breakpointId);
     return await _onBreakpoint(breakpointId, onPause: (event) async {
-      var result = await _evaluateDartExpression(
+      var result = await _evaluateDartExpressionInFrame(
         event,
         expression,
         dartLine,
       );
+      return await stringifyRemoteObject(result);
+    });
+  }
+
+  /// Evaluates a dart [expression] while the app is running.
+  Future<String> evaluateDartExpression({required String expression}) async {
+    return await _whileRunning(body: () async {
+      var result = await _evaluateDartExpression(expression);
       return await stringifyRemoteObject(result);
     });
   }
@@ -456,7 +496,7 @@ class ExpressionEvaluationTestDriver {
   /// [expression] is a dart expression.
   /// [expectedResult] is the JSON for the returned remote object.
   /// [expectedError] is the error string if the error is expected.
-  Future<void> check(
+  Future<void> checkInFrame(
       {required String breakpointId,
       required String expression,
       dynamic expectedError,
@@ -466,11 +506,47 @@ class ExpressionEvaluationTestDriver {
 
     var dartLine = _findBreakpointLine(breakpointId);
     return await _onBreakpoint(breakpointId, onPause: (event) async {
-      var evalResult = await _evaluateDartExpression(
+      var evalResult = await _evaluateDartExpressionInFrame(
         event,
         expression,
         dartLine,
       );
+
+      var error = evalResult.json['error'];
+      if (error != null) {
+        expect(
+          expectedError,
+          isNotNull,
+          reason: 'Unexpected expression evaluation failure:\n$error',
+        );
+        expect(error, _matches(expectedError!));
+      } else {
+        expect(
+          expectedResult,
+          isNotNull,
+          reason:
+              'Unexpected expression evaluation success:\n${evalResult.json}',
+        );
+        var actual = await stringifyRemoteObject(evalResult);
+        expect(actual, _matches(expectedResult!));
+      }
+    });
+  }
+
+  /// Evaluates a dart [expression] without breakpoint and validates result.
+  ///
+  /// [expression] is a dart expression.
+  /// [expectedResult] is the JSON for the returned remote object.
+  /// [expectedError] is the error string if the error is expected.
+  Future<void> check(
+      {required String expression,
+      dynamic expectedError,
+      dynamic expectedResult}) async {
+    assert(expectedError == null || expectedResult == null,
+        'Cannot expect both an error and result.');
+
+    return await _whileRunning(body: () async {
+      var evalResult = await _evaluateDartExpression(expression);
 
       var error = evalResult.json['error'];
       if (error != null) {
@@ -521,41 +597,94 @@ class ExpressionEvaluationTestDriver {
     );
   }
 
-  Future<TestCompilationResult> _compileDartExpression(
+  Future<TestCompilationResult> _compileDartExpressionInFrame(
       wip.WipCallFrame frame, String expression, int dartLine) async {
     // Retrieve the call frame and its scope variables.
     var scope = await _collectScopeVariables(frame);
 
     // Perform an incremental compile.
     return await compiler.compileExpression(
-        input: input,
-        line: dartLine,
-        column: 1,
-        scope: scope,
-        expression: expression);
+      input: input,
+      line: dartLine,
+      column: 1,
+      scope: scope,
+      expression: expression,
+    );
   }
 
-  Future<wip.RemoteObject> _evaluateDartExpression(
+  Future<TestCompilationResult> _compileDartExpression(
+      String expression) async {
+    // Perform an incremental compile.
+    return await compiler.compileExpression(
+      input: input,
+      line: 1,
+      column: 1,
+      scope: {},
+      expression: expression,
+    );
+  }
+
+  Future<wip.RemoteObject> _evaluateDartExpressionInFrame(
     wip.DebuggerPausedEvent event,
     String expression,
     int dartLine, {
     bool returnByValue = false,
   }) async {
     var frame = event.getCallFrames().first;
-    var result = await _compileDartExpression(frame, expression, dartLine);
+    var result = await _compileDartExpressionInFrame(
+      frame,
+      expression,
+      dartLine,
+    );
 
     if (!result.isSuccess) {
-      setup.diagnosticMessages.clear();
-      setup.errors.clear();
-      return wip.RemoteObject({'error': result.result});
+      return _createCompilationError(result);
     }
 
     // Evaluate the compiled expression.
-    return await debugger.evaluateOnCallFrame(
-      frame.callFrameId,
-      result.result!,
-      returnByValue: returnByValue,
-    );
+    try {
+      return await debugger.evaluateOnCallFrame(
+        frame.callFrameId,
+        result.result!,
+        returnByValue: returnByValue,
+      );
+    } on wip.ExceptionDetails catch (e) {
+      return _createRuntimeError(e);
+    }
+  }
+
+  Future<wip.RemoteObject> _evaluateDartExpression(
+    String expression, {
+    bool returnByValue = false,
+  }) async {
+    var result = await _compileDartExpression(expression);
+    if (!result.isSuccess) {
+      return _createCompilationError(result);
+    }
+
+    // Find the execution context for the dart app.
+    final context = await executionContext.id;
+
+    // Evaluate the compiled expression.
+    try {
+      return await runtime.evaluate(
+        result.result!,
+        contextId: context,
+        returnByValue: returnByValue,
+      );
+    } on wip.ExceptionDetails catch (e) {
+      return _createRuntimeError(e);
+    }
+  }
+
+  wip.RemoteObject _createCompilationError(TestCompilationResult result) {
+    setup.diagnosticMessages.clear();
+    setup.errors.clear();
+    return wip.RemoteObject({'error': result.result});
+  }
+
+  wip.RemoteObject _createRuntimeError(wip.ExceptionDetails error) {
+    return wip.RemoteObject({'error': error.exception!.description});
   }
 
   /// Generate simple string representation of a RemoteObject that closely
@@ -661,6 +790,59 @@ class ExpressionEvaluationTestDriver {
     throw StateError(
         'Unable to extract WIP Location from ${script.url} for Dart line '
         '$dartLine.');
+  }
+}
+
+/// The execution context in which to do remote evaluations.
+///
+/// Copied and simplified from webdev/dwds/lib/src/debugging/execution_context.dart.
+class ExecutionContext {
+  static const _nextContextTimeoutDuration = Duration(milliseconds: 100);
+  final wip.WipRuntime _runtime;
+
+  /// Contexts that may contain a Dart application.
+  late StreamQueue<int> _contexts;
+
+  int? _id;
+
+  Future<int> get id async {
+    if (_id != null) return _id!;
+    while (await _contexts.hasNext.timeout(
+      _nextContextTimeoutDuration,
+      onTimeout: () => false,
+    )) {
+      final context = await _contexts.next;
+      printOnFailure('Trying context: $context');
+      try {
+        // Confirm the context belongs to a dart application.
+        final result = await _runtime.evaluate(
+          'dartApplication',
+          contextId: context,
+          returnByValue: true,
+        );
+        if (result.value != null) {
+          printOnFailure('Found dart app context: $context');
+          _id = context;
+          break;
+        }
+      } catch (_) {
+        printOnFailure('Failed context: $context, trying again...');
+      }
+    }
+
+    if (_id == null) {
+      throw StateError('No context with the running Dart application.');
+    }
+    return _id!;
+  }
+
+  ExecutionContext(this._runtime) {
+    final contextController = StreamController<int>();
+    _runtime.onExecutionContextsCleared.listen((_) => _id = null);
+    _runtime.onExecutionContextDestroyed.listen((_) => _id = null);
+    _runtime.onExecutionContextCreated
+        .listen((e) => contextController.add(e.id));
+    _contexts = StreamQueue(contextController.stream);
   }
 }
 

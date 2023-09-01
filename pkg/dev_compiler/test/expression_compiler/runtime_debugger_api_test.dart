@@ -417,7 +417,7 @@ void runSharedTests(
     });
 
     test('typeName (int type)', () async {
-      var typeName = await driver.evaluateDartExpression(
+      var typeName = await driver.evaluateDartExpressionInFrame(
         breakpointId: 'BP',
         expression: 'xType.toString()',
       );
@@ -425,7 +425,7 @@ void runSharedTests(
     });
 
     test('typeName (base type)', () async {
-      var typeName = await driver.evaluateDartExpression(
+      var typeName = await driver.evaluateDartExpressionInFrame(
         breakpointId: 'BP',
         expression: 'baseType.toString()',
       );
@@ -433,7 +433,7 @@ void runSharedTests(
     });
 
     test('getObjectMetadata (int type)', () async {
-      var typeName = await driver.evaluateDartExpression(
+      var typeName = await driver.evaluateDartExpressionInFrame(
         breakpointId: 'BP',
         expression: 'xType.toString()',
       );
@@ -452,7 +452,7 @@ void runSharedTests(
     });
 
     test('getObjectMetadata (base type)', () async {
-      var typeName = await driver.evaluateDartExpression(
+      var typeName = await driver.evaluateDartExpressionInFrame(
         breakpointId: 'BP',
         expression: 'baseType.toString()',
       );
@@ -471,7 +471,7 @@ void runSharedTests(
     });
 
     test('getObjectMetadata (type)', () async {
-      var typeName = await driver.evaluateDartExpression(
+      var typeName = await driver.evaluateDartExpressionInFrame(
         breakpointId: 'BP',
         expression: 'baseTypeType.toString()',
       );
@@ -490,7 +490,7 @@ void runSharedTests(
     });
 
     test('getObjectMetadata (Set type)', () async {
-      var typeName = await driver.evaluateDartExpression(
+      var typeName = await driver.evaluateDartExpressionInFrame(
         breakpointId: 'BP',
         expression: 'setType.toString()',
       );
@@ -509,7 +509,7 @@ void runSharedTests(
     });
 
     test('getObjectMetadata (List type)', () async {
-      var typeName = await driver.evaluateDartExpression(
+      var typeName = await driver.evaluateDartExpressionInFrame(
         breakpointId: 'BP',
         expression: 'listType.toString()',
       );
@@ -528,7 +528,7 @@ void runSharedTests(
     });
 
     test('getObjectMetadata (Map type)', () async {
-      var typeName = await driver.evaluateDartExpression(
+      var typeName = await driver.evaluateDartExpressionInFrame(
         breakpointId: 'BP',
         expression: 'mapType.toString()',
       );

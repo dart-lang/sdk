@@ -8,8 +8,11 @@ import '../shared_test_options.dart';
 import 'expression_compiler_e2e_suite.dart';
 
 void main(List<String> args) async {
+  final debug = false;
+
   var driver = await ExpressionEvaluationTestDriver.init();
   var setup = SetupCompilerOptions(args: args);
+  setup.options.verbose = debug;
 
   group('Asserts', () {
     const source = r'''
@@ -34,27 +37,26 @@ void main(List<String> args) async {
     if (setup.enableAsserts) {
       group('enabled |', () {
         test('dart.web.assertions_enabled is set', () async {
-          await driver.check(
+          await driver.checkInFrame(
               breakpointId: 'bp', expression: 'b', expectedResult: 'true');
         });
 
         test('assert errors in the source code', () async {
-          await driver.check(
+          await driver.checkInFrame(
               breakpointId: 'bp',
               expression: 'myAssert()',
-              expectedResult: allOf(
+              expectedError: allOf(
                 contains('Error: Assertion failed:'),
                 contains('test.dart:8:16'),
                 contains('false'),
                 contains('is not true'),
               ));
         });
-
         test('assert errors in evaluated expression', () async {
-          await driver.check(
+          await driver.checkInFrame(
               breakpointId: 'bp',
               expression: '() { assert(false); return 0; } ()',
-              expectedResult: allOf(
+              expectedError: allOf(
                 contains('Error: Assertion failed:'),
                 contains('<unknown source>:-1:-1'),
                 contains('BoolLiteral(false)'),
@@ -67,19 +69,19 @@ void main(List<String> args) async {
     if (!setup.enableAsserts) {
       group('disabled |', () {
         test('dart.web.assertions_enabled is not set', () async {
-          await driver.check(
+          await driver.checkInFrame(
               breakpointId: 'bp', expression: 'b', expectedResult: 'false');
         });
 
         test('no assert errors in the source code', () async {
-          await driver.check(
+          await driver.checkInFrame(
               breakpointId: 'bp',
               expression: 'myAssert()',
               expectedResult: '0');
         });
 
         test('no assert errors in evaluated expression', () async {
-          await driver.check(
+          await driver.checkInFrame(
               breakpointId: 'bp',
               expression: '() { assert(false); return 0; } ()',
               expectedResult: '0');
