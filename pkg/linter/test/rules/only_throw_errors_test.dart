@@ -91,6 +91,16 @@ void f() {
     ]);
   }
 
+  test_never() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  throw e();
+}
+
+Never e() => throw Exception();
+''');
+  }
+
   test_nullInPreNullSafe() async {
     await assertDiagnostics(r'''
 // @dart=2.9
@@ -120,15 +130,5 @@ void f() {
 ''', [
       lint(19, 7),
     ]);
-  }
-
-  test_never() async {
-    await assertNoDiagnostics(r'''
-void f() {
-  throw e();
-}
-
-Never e() => throw Exception();
-''');
   }
 }

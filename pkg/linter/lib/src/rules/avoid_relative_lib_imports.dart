@@ -47,15 +47,15 @@ class AvoidRelativeLibImports extends LintRule {
           "Try fixing the relative path or changing the import to a 'package:' "
           'import.');
 
-  @override
-  LintCode get lintCode => code;
-
   AvoidRelativeLibImports()
       : super(
             name: 'avoid_relative_lib_imports',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

@@ -17,18 +17,6 @@ class NoAdjacentStringsInListTest extends LintRuleTest {
   @override
   String get lintRule => 'no_adjacent_strings_in_list';
 
-  test_listLiteral() async {
-    await assertDiagnostics(r'''
-var list = [
-  'a'
-  'b',
-  'c',
-];
-''', [
-      lint(15, 9),
-    ]);
-  }
-
   test_adjacentStrings_three() async {
     await assertDiagnostics(r'''
 var list = [
@@ -38,38 +26,6 @@ var list = [
 ];
 ''', [
       lint(15, 15),
-    ]);
-  }
-
-  test_ifElement() async {
-    await assertDiagnostics(r'''
-var list = [
-  if (1 == 2) 'a'
-  'b'
-];
-''', [
-      lint(27, 9),
-    ]);
-  }
-
-  test_ifElementWithElse_inThen() async {
-    await assertNoDiagnostics(r'''
-var list = [
-  if (1 == 2) 'a'
-  'b'
-  else 'c'
-];
-''');
-  }
-
-  test_ifElementWithElse_inElse() async {
-    await assertDiagnostics(r'''
-var list = [
-  if (1 == 2) 'a'
-  else 'b' 'c'
-];
-''', [
-      lint(38, 7),
     ]);
   }
 
@@ -84,15 +40,47 @@ var list = [
     ]);
   }
 
-  test_setLiteral() async {
+  test_ifElement() async {
     await assertDiagnostics(r'''
-var set = {
+var list = [
+  if (1 == 2) 'a'
+  'b'
+];
+''', [
+      lint(27, 9),
+    ]);
+  }
+
+  test_ifElementWithElse_inElse() async {
+    await assertDiagnostics(r'''
+var list = [
+  if (1 == 2) 'a'
+  else 'b' 'c'
+];
+''', [
+      lint(38, 7),
+    ]);
+  }
+
+  test_ifElementWithElse_inThen() async {
+    await assertNoDiagnostics(r'''
+var list = [
+  if (1 == 2) 'a'
+  'b'
+  else 'c'
+];
+''');
+  }
+
+  test_listLiteral() async {
+    await assertDiagnostics(r'''
+var list = [
   'a'
   'b',
   'c',
-};
+];
 ''', [
-      lint(14, 9),
+      lint(15, 9),
     ]);
   }
 
@@ -104,6 +92,18 @@ var set = {
     'c',
   ];
 ''');
+  }
+
+  test_setLiteral() async {
+    await assertDiagnostics(r'''
+var set = {
+  'a'
+  'b',
+  'c',
+};
+''', [
+      lint(14, 9),
+    ]);
   }
 
   test_setLiteral_plusOperator() async {

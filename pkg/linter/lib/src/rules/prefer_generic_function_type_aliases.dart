@@ -33,9 +33,6 @@ typedef F = void Function();
 ''';
 
 class PreferGenericFunctionTypeAliases extends LintRule {
-  @override
-  bool get canUseParsedResult => true;
-
   static const LintCode code = LintCode('prefer_generic_function_type_aliases',
       "Use the generic function type syntax in 'typedef's.",
       correctionMessage: "Try using the generic function type syntax ('{0}').");
@@ -46,6 +43,9 @@ class PreferGenericFunctionTypeAliases extends LintRule {
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  bool get canUseParsedResult => true;
 
   @override
   LintCode get lintCode => code;

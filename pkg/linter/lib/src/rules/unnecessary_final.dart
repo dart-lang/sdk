@@ -85,6 +85,16 @@ class _Visitor extends SimpleAstVisitor<void> {
   LintCode getErrorCode(Object? type) =>
       type == null ? UnnecessaryFinal.withoutType : UnnecessaryFinal.withType;
 
+  (Token?, AstNode?) getParameterDetails(FormalParameter node) {
+    var parameter = node is DefaultFormalParameter ? node.parameter : node;
+    return switch (parameter) {
+      FieldFormalParameter() => (parameter.keyword, parameter.type),
+      SimpleFormalParameter() => (parameter.keyword, parameter.type),
+      SuperFormalParameter() => (parameter.keyword, parameter.type),
+      _ => (null, null),
+    };
+  }
+
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     var keyword = node.keyword;
@@ -137,15 +147,5 @@ class _Visitor extends SimpleAstVisitor<void> {
       var errorCode = getErrorCode(node.variables.type);
       rule.reportLintForToken(node.variables.keyword, errorCode: errorCode);
     }
-  }
-
-  (Token?, AstNode?) getParameterDetails(FormalParameter node) {
-    var parameter = node is DefaultFormalParameter ? node.parameter : node;
-    return switch (parameter) {
-      FieldFormalParameter() => (parameter.keyword, parameter.type),
-      SimpleFormalParameter() => (parameter.keyword, parameter.type),
-      SuperFormalParameter() => (parameter.keyword, parameter.type),
-      _ => (null, null),
-    };
   }
 }

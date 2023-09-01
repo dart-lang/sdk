@@ -17,6 +17,13 @@ class ProvideDeprecationMessageTest extends LintRuleTest {
   @override
   String get lintRule => 'provide_deprecation_message';
 
+  test_withMessage() async {
+    await assertNoDiagnostics(r'''
+@Deprecated("Text.")
+class C {}
+''');
+  }
+
   test_withoutMessage() async {
     await assertDiagnostics(r'''
 @deprecated
@@ -24,12 +31,5 @@ class C {}
 ''', [
       lint(0, 11),
     ]);
-  }
-
-  test_withMessage() async {
-    await assertNoDiagnostics(r'''
-@Deprecated("Text.")
-class C {}
-''');
   }
 }

@@ -38,7 +38,7 @@ class C {
 ''');
   }
 
-  test_explicitSuperInvocation_matchingWithOffset_withNamedSuper() async {
+  test_explicitSuperInvocation_matchingWithOffset_withNamedExplicit() async {
     await assertNoDiagnostics(r'''
 class D extends C {
   final String w;
@@ -46,9 +46,8 @@ class D extends C {
   D(
     this.w,
     super.x,
-    super.y, {
-    required super.z,
-  }) : super.named();
+    super.y,
+  ) : super.named(z: 1);
 }
 
 class C {
@@ -61,7 +60,7 @@ class C {
 ''');
   }
 
-  test_explicitSuperInvocation_matchingWithOffset_withNamedExplicit() async {
+  test_explicitSuperInvocation_matchingWithOffset_withNamedSuper() async {
     await assertNoDiagnostics(r'''
 class D extends C {
   final String w;
@@ -69,8 +68,9 @@ class D extends C {
   D(
     this.w,
     super.x,
-    super.y,
-  ) : super.named(z: 1);
+    super.y, {
+    required super.z,
+  }) : super.named();
 }
 
 class C {

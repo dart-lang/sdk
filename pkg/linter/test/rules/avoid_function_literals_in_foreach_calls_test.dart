@@ -56,16 +56,6 @@ void f(List<List<String>> people) {
     ]);
   }
 
-  test_functionExpression_targetHasMethodChain() async {
-    await assertNoDiagnostics(r'''
-void f(List<String> people) {
-  people
-      .map((person) => person.toUpperCase())
-      .forEach((person) => print('$person!'));
-}
-''');
-  }
-
   test_functionExpression_targetHasCascade() async {
     await assertNoDiagnostics(r'''
 void f(List<List<List<String>>> lists) {
@@ -86,6 +76,16 @@ void f(C obj) {
   final result = obj..items!.forEach((s) {
     print(s);
   });
+}
+''');
+  }
+
+  test_functionExpression_targetHasMethodChain() async {
+    await assertNoDiagnostics(r'''
+void f(List<String> people) {
+  people
+      .map((person) => person.toUpperCase())
+      .forEach((person) => print('$person!'));
 }
 ''');
   }

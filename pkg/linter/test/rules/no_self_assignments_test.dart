@@ -17,6 +17,32 @@ class NoSelfAssignmentsTest extends LintRuleTest {
   @override
   String get lintRule => 'no_self_assignments';
 
+  test_classMemberAssignment() async {
+    await assertDiagnostics(r'''
+class C {
+  static String foo = "foo";
+}
+
+void main() {
+  C.foo = C.foo;
+}
+''', [lint(58, 13)]);
+  }
+
+  test_classMemberAssignmentUnrelated() async {
+    await assertNoDiagnostics(r'''
+class C {
+  static String foo = "foo";
+}
+
+void main() {
+  String foo;
+  foo = C.foo; // OK
+  print(foo);
+}
+''');
+  }
+
   test_fieldAssignment() async {
     await assertDiagnostics(r'''
 class C {
@@ -27,6 +53,18 @@ class C {
   }
 }
 ''', [lint(41, 5)]);
+  }
+
+  test_fieldAssignmentDifferentTargets() async {
+    await assertNoDiagnostics(r'''
+class C {
+  String hello = 'ok';
+}
+
+void test(C one, C two) {
+  one.hello = two.hello;
+}
+''');
   }
 
   test_fieldAssignmentDifferentVar() async {
@@ -77,18 +115,6 @@ class C {
 ''');
   }
 
-  test_fieldAssignmentDifferentTargets() async {
-    await assertNoDiagnostics(r'''
-class C {
-  String hello = 'ok';
-}
-
-void test(C one, C two) {
-  one.hello = two.hello;
-}
-''');
-  }
-
   test_fieldInitialization() async {
     await assertNoDiagnostics(r'''
 class C {
@@ -115,31 +141,5 @@ class C {
   }
 }
 ''', [lint(102, 5)]);
-  }
-
-  test_classMemberAssignment() async {
-    await assertDiagnostics(r'''
-class C {
-  static String foo = "foo";
-}
-
-void main() {
-  C.foo = C.foo;
-}
-''', [lint(58, 13)]);
-  }
-
-  test_classMemberAssignmentUnrelated() async {
-    await assertNoDiagnostics(r'''
-class C {
-  static String foo = "foo";
-}
-
-void main() {
-  String foo;
-  foo = C.foo; // OK
-  print(foo);
-}
-''');
   }
 }

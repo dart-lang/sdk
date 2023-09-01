@@ -50,41 +50,6 @@ void onButtonTapped() async {
 ```
 ''';
 
-class UseBuildContextSynchronously extends LintRule {
-  static const LintCode code = LintCode('use_build_context_synchronously',
-      "Don't use 'BuildContext's across async gaps.",
-      correctionMessage:
-          "Try rewriting the code to not reference the 'BuildContext'.");
-
-  /// Flag to short-circuit `inTestDir` checking when running tests.
-  final bool inTestMode;
-
-  UseBuildContextSynchronously({this.inTestMode = false})
-      : super(
-          name: 'use_build_context_synchronously',
-          description: _desc,
-          details: _details,
-          group: Group.errors,
-          state: State.experimental(),
-        );
-
-  @override
-  LintCode get lintCode => code;
-
-  @override
-  void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
-    var unit = context.currentUnit.unit;
-    if (inTestMode || !context.inTestDir(unit)) {
-      var visitor = _Visitor(this);
-      registry.addMethodInvocation(this, visitor);
-      registry.addInstanceCreationExpression(this, visitor);
-      registry.addFunctionExpressionInvocation(this, visitor);
-      registry.addPrefixedIdentifier(this, visitor);
-    }
-  }
-}
-
 /// An enum whose values describe the state of asynchrony that a certain node
 /// has in the syntax tree, with respect to another node.
 ///
@@ -809,6 +774,41 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
       }
 
       return null;
+    }
+  }
+}
+
+class UseBuildContextSynchronously extends LintRule {
+  static const LintCode code = LintCode('use_build_context_synchronously',
+      "Don't use 'BuildContext's across async gaps.",
+      correctionMessage:
+          "Try rewriting the code to not reference the 'BuildContext'.");
+
+  /// Flag to short-circuit `inTestDir` checking when running tests.
+  final bool inTestMode;
+
+  UseBuildContextSynchronously({this.inTestMode = false})
+      : super(
+          name: 'use_build_context_synchronously',
+          description: _desc,
+          details: _details,
+          group: Group.errors,
+          state: State.experimental(),
+        );
+
+  @override
+  LintCode get lintCode => code;
+
+  @override
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {
+    var unit = context.currentUnit.unit;
+    if (inTestMode || !context.inTestDir(unit)) {
+      var visitor = _Visitor(this);
+      registry.addMethodInvocation(this, visitor);
+      registry.addInstanceCreationExpression(this, visitor);
+      registry.addFunctionExpressionInvocation(this, visitor);
+      registry.addPrefixedIdentifier(this, visitor);
     }
   }
 }

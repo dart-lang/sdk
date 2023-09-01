@@ -33,26 +33,18 @@ class A {
     ]);
   }
 
-  test_returnType() async {
-    await assertNoDiagnostics(r'''
-dynamic f() {
-  return null;
-}
-''');
-  }
-
-  test_requiredParameter() async {
-    await assertDiagnostics(r'''
-void f(dynamic p) {}
-''', [
-      lint(7, 9),
-    ]);
-  }
-
   test_implicitDynamic() async {
     await assertNoDiagnostics(r'''
 void f(p) {}
 ''');
+  }
+
+  test_optionalNamedParameter() async {
+    await assertDiagnostics(r'''
+void f({dynamic p}) {}
+''', [
+      lint(8, 9),
+    ]);
   }
 
   test_optionalParameter() async {
@@ -63,12 +55,20 @@ void f([dynamic p]) {}
     ]);
   }
 
-  test_optionalNamedParameter() async {
+  test_requiredParameter() async {
     await assertDiagnostics(r'''
-void f({dynamic p}) {}
+void f(dynamic p) {}
 ''', [
-      lint(8, 9),
+      lint(7, 9),
     ]);
+  }
+
+  test_returnType() async {
+    await assertNoDiagnostics(r'''
+dynamic f() {
+  return null;
+}
+''');
   }
 
   test_super() async {

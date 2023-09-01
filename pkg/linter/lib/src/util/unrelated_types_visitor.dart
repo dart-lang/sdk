@@ -11,143 +11,18 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
 
-/// Base class for visitor used in rules where we want to lint about invoking
-/// methods on generic classes where the type of the singular argument is
-/// unrelated to the singular type argument of the class. Extending this
-/// visitor is as simple as knowing the methods, classes and libraries that
-/// uniquely define the target, i.e. implement only [methods].
-abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
-  final LintRule rule;
-  final TypeSystem typeSystem;
-  final TypeProvider typeProvider;
+/// The kind of the expected argument.
+enum ExpectedArgumentKind {
+  /// An argument is expected to be assignable to a type argument on the
+  /// collection type.
+  assignableToCollectionTypeArgument,
 
-  UnrelatedTypesProcessors(this.rule, this.typeSystem, this.typeProvider);
+  /// An argument is expected to be assignable to the collection type.
+  assignableToCollection,
 
-  /// The method definitions which this [UnrelatedTypesProcessors] is concerned
-  /// with.
-  List<MethodDefinition> get methods;
-
-  List<MethodDefinition> get indexOperators => [];
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    var matchingMethods =
-        indexOperators.where((method) => '[]' == method.methodName);
-    if (matchingMethods.isEmpty) {
-      return;
-    }
-
-    var targetType = _getTargetType(node, node.realTarget);
-    if (targetType is! InterfaceType) {
-      return;
-    }
-
-    for (var methodDefinition in matchingMethods) {
-      var collectionType = methodDefinition.collectionTypeFor(targetType);
-      if (collectionType != null) {
-        _checkMethod(node.index, methodDefinition, collectionType);
-        return;
-      }
-    }
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (node.argumentList.arguments.length != 1) {
-      return;
-    }
-
-    var matchingMethods =
-        methods.where((method) => node.methodName.name == method.methodName);
-    if (matchingMethods.isEmpty) {
-      return;
-    }
-
-    // At this point, we know that [node] is an invocation of a method which
-    // has the same name as the method that this [UnrelatedTypesProcessors] is
-    // concerned with, and that the method call has a single argument.
-    //
-    // We've completed the "cheap" checks, and must now continue with the
-    // arduous task of determining whether the method target implements
-    // [definition].
-    var targetType = _getTargetType(node, node.realTarget);
-    if (targetType is! InterfaceType) {
-      return;
-    }
-
-    for (var methodDefinition in matchingMethods) {
-      var collectionType = methodDefinition.collectionTypeFor(targetType);
-      if (collectionType != null) {
-        _checkMethod(node.argumentList.arguments.first, methodDefinition,
-            collectionType);
-        return;
-      }
-    }
-  }
-
-  DartType? _getTargetType(Expression node, Expression? target) {
-    if (target != null) {
-      return target.staticType;
-    }
-
-    // Look for an implicit receiver, starting with [node]'s parent's parent.
-    for (AstNode? parent = node.parent?.parent;
-        parent != null;
-        parent = parent.parent) {
-      if (parent is ClassDeclaration) {
-        return parent.declaredElement?.thisType;
-      } else if (parent is MixinDeclaration) {
-        return parent.declaredElement?.thisType;
-      } else if (parent is EnumDeclaration) {
-        return parent.declaredElement?.thisType;
-      } else if (parent is ExtensionDeclaration) {
-        return parent.extendedType.type;
-      }
-    }
-    return null;
-  }
-
-  /// Checks a [MethodInvocation] or [IndexExpression] which has a singular
-  /// [argument] and matches [methodDefinition], with a target with a static
-  /// type of [collectionType].
-  void _checkMethod(Expression argument, MethodDefinition methodDefinition,
-      InterfaceType collectionType) {
-    // Finally, determine whether the type of the argument is related to the
-    // type of the method target.
-    var argumentType = argument.staticType;
-    if (argumentType == null) return;
-
-    switch (methodDefinition.expectedArgumentKind) {
-      case ExpectedArgumentKind.assignableToCollectionTypeArgument:
-        var typeArgument =
-            collectionType.typeArguments[methodDefinition.typeArgumentIndex];
-        if (typesAreUnrelated(typeSystem, argumentType, typeArgument)) {
-          rule.reportLint(argument, arguments: [
-            argumentType.getDisplayString(withNullability: true),
-            typeArgument.getDisplayString(withNullability: true),
-          ]);
-        }
-
-      case ExpectedArgumentKind.assignableToCollection:
-        if (!typeSystem.isAssignableTo(argumentType, collectionType)) {
-          rule.reportLint(argument, arguments: [
-            argumentType.getDisplayString(withNullability: true),
-            collectionType.getDisplayString(withNullability: true),
-          ]);
-        }
-
-      case ExpectedArgumentKind.assignableToIterableOfTypeArgument:
-        var iterableType =
-            collectionType.asInstanceOf(typeProvider.iterableElement);
-        if (iterableType != null &&
-            !typeSystem.isAssignableTo(argumentType, iterableType)) {
-          rule.reportLint(argument, arguments: [
-            argumentType.getDisplayString(withNullability: true),
-            iterableType.getDisplayString(withNullability: true),
-          ]);
-        }
-    }
-  }
+  /// An argument is expected to be assignable to `Iterable<E>` where `E` is the
+  /// (only) type argument on the collection type.
+  assignableToIterableOfTypeArgument,
 }
 
 /// A definition of a method and the expected characteristics of the first
@@ -211,16 +86,141 @@ class MethodDefinitionForName extends MethodDefinition {
   }
 }
 
-/// The kind of the expected argument.
-enum ExpectedArgumentKind {
-  /// An argument is expected to be assignable to a type argument on the
-  /// collection type.
-  assignableToCollectionTypeArgument,
+/// Base class for visitor used in rules where we want to lint about invoking
+/// methods on generic classes where the type of the singular argument is
+/// unrelated to the singular type argument of the class. Extending this
+/// visitor is as simple as knowing the methods, classes and libraries that
+/// uniquely define the target, i.e. implement only [methods].
+abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
+  final LintRule rule;
+  final TypeSystem typeSystem;
+  final TypeProvider typeProvider;
 
-  /// An argument is expected to be assignable to the collection type.
-  assignableToCollection,
+  UnrelatedTypesProcessors(this.rule, this.typeSystem, this.typeProvider);
 
-  /// An argument is expected to be assignable to `Iterable<E>` where `E` is the
-  /// (only) type argument on the collection type.
-  assignableToIterableOfTypeArgument,
+  List<MethodDefinition> get indexOperators => [];
+
+  /// The method definitions which this [UnrelatedTypesProcessors] is concerned
+  /// with.
+  List<MethodDefinition> get methods;
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    var matchingMethods =
+        indexOperators.where((method) => '[]' == method.methodName);
+    if (matchingMethods.isEmpty) {
+      return;
+    }
+
+    var targetType = _getTargetType(node, node.realTarget);
+    if (targetType is! InterfaceType) {
+      return;
+    }
+
+    for (var methodDefinition in matchingMethods) {
+      var collectionType = methodDefinition.collectionTypeFor(targetType);
+      if (collectionType != null) {
+        _checkMethod(node.index, methodDefinition, collectionType);
+        return;
+      }
+    }
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    if (node.argumentList.arguments.length != 1) {
+      return;
+    }
+
+    var matchingMethods =
+        methods.where((method) => node.methodName.name == method.methodName);
+    if (matchingMethods.isEmpty) {
+      return;
+    }
+
+    // At this point, we know that [node] is an invocation of a method which
+    // has the same name as the method that this [UnrelatedTypesProcessors] is
+    // concerned with, and that the method call has a single argument.
+    //
+    // We've completed the "cheap" checks, and must now continue with the
+    // arduous task of determining whether the method target implements
+    // [definition].
+    var targetType = _getTargetType(node, node.realTarget);
+    if (targetType is! InterfaceType) {
+      return;
+    }
+
+    for (var methodDefinition in matchingMethods) {
+      var collectionType = methodDefinition.collectionTypeFor(targetType);
+      if (collectionType != null) {
+        _checkMethod(node.argumentList.arguments.first, methodDefinition,
+            collectionType);
+        return;
+      }
+    }
+  }
+
+  /// Checks a [MethodInvocation] or [IndexExpression] which has a singular
+  /// [argument] and matches [methodDefinition], with a target with a static
+  /// type of [collectionType].
+  void _checkMethod(Expression argument, MethodDefinition methodDefinition,
+      InterfaceType collectionType) {
+    // Finally, determine whether the type of the argument is related to the
+    // type of the method target.
+    var argumentType = argument.staticType;
+    if (argumentType == null) return;
+
+    switch (methodDefinition.expectedArgumentKind) {
+      case ExpectedArgumentKind.assignableToCollectionTypeArgument:
+        var typeArgument =
+            collectionType.typeArguments[methodDefinition.typeArgumentIndex];
+        if (typesAreUnrelated(typeSystem, argumentType, typeArgument)) {
+          rule.reportLint(argument, arguments: [
+            argumentType.getDisplayString(withNullability: true),
+            typeArgument.getDisplayString(withNullability: true),
+          ]);
+        }
+
+      case ExpectedArgumentKind.assignableToCollection:
+        if (!typeSystem.isAssignableTo(argumentType, collectionType)) {
+          rule.reportLint(argument, arguments: [
+            argumentType.getDisplayString(withNullability: true),
+            collectionType.getDisplayString(withNullability: true),
+          ]);
+        }
+
+      case ExpectedArgumentKind.assignableToIterableOfTypeArgument:
+        var iterableType =
+            collectionType.asInstanceOf(typeProvider.iterableElement);
+        if (iterableType != null &&
+            !typeSystem.isAssignableTo(argumentType, iterableType)) {
+          rule.reportLint(argument, arguments: [
+            argumentType.getDisplayString(withNullability: true),
+            iterableType.getDisplayString(withNullability: true),
+          ]);
+        }
+    }
+  }
+
+  DartType? _getTargetType(Expression node, Expression? target) {
+    if (target != null) {
+      return target.staticType;
+    }
+
+    // Look for an implicit receiver, starting with [node]'s parent's parent.
+    for (AstNode? parent = node.parent?.parent;
+        parent != null;
+        parent = parent.parent) {
+      if (parent is ClassDeclaration) {
+        return parent.declaredElement?.thisType;
+      } else if (parent is MixinDeclaration) {
+        return parent.declaredElement?.thisType;
+      } else if (parent is EnumDeclaration) {
+        return parent.declaredElement?.thisType;
+      } else if (parent is ExtensionDeclaration) {
+        return parent.extendedType.type;
+      }
+    }
+    return null;
+  }
 }

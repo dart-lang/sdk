@@ -17,25 +17,32 @@ class LinesLongerThan80CharsTest extends LintRuleTest {
   @override
   String get lintRule => 'lines_longer_than_80_chars';
 
-  test_endOfLineComment_shorterThan80() async {
+  test_blockComment_noSpaceAfter80() async {
     await assertNoDiagnostics(
-      '//  5   10   15   20   25   30   35   40   45   50',
+      '/*  5   10   15   20   25   30   35   40   50   55   60 '
+      'http://url.com/abcde/abcde/abcde/abcde.dart */',
     );
   }
 
-  test_endOfLineComment_spaceAfter80() async {
+  test_blockComment_shorterThan80() async {
+    await assertNoDiagnostics(
+      '/*  5   10   15   20   25   30   35   40   45   50 */',
+    );
+  }
+
+  test_blockComment_spaceAfter80() async {
     await assertDiagnostics(
-      '//  5   10   15   20   25   30   35   40   50   55   60'
-      '   65   70   75   80   85   90   95  100',
+      '/*  5   10   15   20   25   30   35   40   50   55   60'
+      '   65   70   75   80   85   90   95  100 */',
       [
-        lint(80, 15),
+        lint(80, 18),
       ],
     );
   }
 
-  test_endOfLineComment_noSpaceAfter80() async {
+  test_docComment_noSpaceAfter80() async {
     await assertNoDiagnostics(
-      '//  5   10   15   20   25   30   35   40   50   55   60 '
+      '/// 5   10   15   20   25   30   35   40   50   55   60 '
       'http://url.com/abcde/abcde/abcde/abcde.dart',
     );
   }
@@ -56,33 +63,35 @@ class LinesLongerThan80CharsTest extends LintRuleTest {
     );
   }
 
-  test_docComment_noSpaceAfter80() async {
+  test_endOfLineComment_noSpaceAfter80() async {
     await assertNoDiagnostics(
-      '/// 5   10   15   20   25   30   35   40   50   55   60 '
+      '//  5   10   15   20   25   30   35   40   50   55   60 '
       'http://url.com/abcde/abcde/abcde/abcde.dart',
     );
   }
 
-  test_blockComment_shorterThan80() async {
+  test_endOfLineComment_shorterThan80() async {
     await assertNoDiagnostics(
-      '/*  5   10   15   20   25   30   35   40   45   50 */',
+      '//  5   10   15   20   25   30   35   40   45   50',
     );
   }
 
-  test_blockComment_spaceAfter80() async {
+  test_endOfLineComment_spaceAfter80() async {
     await assertDiagnostics(
-      '/*  5   10   15   20   25   30   35   40   50   55   60'
-      '   65   70   75   80   85   90   95  100 */',
+      '//  5   10   15   20   25   30   35   40   50   55   60'
+      '   65   70   75   80   85   90   95  100',
       [
-        lint(80, 18),
+        lint(80, 15),
       ],
     );
   }
 
-  test_blockComment_noSpaceAfter80() async {
+  test_multilineBlockComment_noSpaceAfter80() async {
     await assertNoDiagnostics(
-      '/*  5   10   15   20   25   30   35   40   50   55   60 '
-      'http://url.com/abcde/abcde/abcde/abcde.dart */',
+      '/*\n'
+      ' *  5   10   15   20   25   30   35   40   50   55   60 '
+      'http://url.com/abcde/abcde/abcde/abcde.dart\n'
+      ' */',
     );
   }
 
@@ -112,15 +121,6 @@ class LinesLongerThan80CharsTest extends LintRuleTest {
       [
         lint(83, 15),
       ],
-    );
-  }
-
-  test_multilineBlockComment_noSpaceAfter80() async {
-    await assertNoDiagnostics(
-      '/*\n'
-      ' *  5   10   15   20   25   30   35   40   50   55   60 '
-      'http://url.com/abcde/abcde/abcde/abcde.dart\n'
-      ' */',
     );
   }
 }

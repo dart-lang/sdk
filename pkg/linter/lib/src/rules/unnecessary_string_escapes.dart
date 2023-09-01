@@ -28,9 +28,6 @@ Remove unnecessary backslashes in strings.
 ''';
 
 class UnnecessaryStringEscapes extends LintRule {
-  @override
-  bool get canUseParsedResult => true;
-
   static const LintCode code = LintCode(
       'unnecessary_string_escapes', 'Unnecessary escape in string literal.',
       correctionMessage: "Remove the '\\' escape.");
@@ -41,6 +38,9 @@ class UnnecessaryStringEscapes extends LintRule {
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  bool get canUseParsedResult => true;
 
   @override
   LintCode get lintCode => code;

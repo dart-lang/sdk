@@ -23,52 +23,30 @@ class LegacyTestMover {
 
   LegacyTestMover(this.ruleName);
 
-  void move() {
-    var legacyTest = File('test_data/rules/$ruleName.dart');
-    if (!legacyTest.existsSync()) {
-      print('Did not find ${legacyTest.path}!!');
-      return;
-    }
+  String get newTestFileHeader {
+    var ruleNameCamelCase = ruleName.splitMapJoin(RegExp('(?:^|_)([a-z])'),
+        onMatch: (m) => m[1]!.toUpperCase());
+    return '''
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-    var newTest = File('test/rules/${ruleName}_test.dart');
-    var newTestExists = newTest.existsSync();
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-    var legacyLines = legacyTest.readAsLinesSync();
+import '../rule_test_support.dart';
 
-    var snippets = gatherSnippets(legacyLines);
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(${ruleNameCamelCase}Test);
+  });
+}
 
-    // [snippets] is now our complete list of snippets.
+@reflectiveTest
+class ${ruleNameCamelCase}Test extends LintRuleTest {
+  @override
+  String get lintRule => '$ruleName';
 
-    var buffer = StringBuffer();
-    if (newTestExists) {
-      var existingNewTestLines = newTest.readAsLinesSync();
-      var classCloseIndex = existingNewTestLines
-          .lastIndexWhere((element) => element.startsWith(RegExp('^}')));
-      existingNewTestLines.take(classCloseIndex).forEach(buffer.writeln);
-      buffer.writeln();
-    } else {
-      buffer.write(newTestFileHeader);
-    }
-    for (var testIndex = 0; testIndex < snippets.length; testIndex++) {
-      var snippet = snippets[testIndex];
-      buffer.writeln(testBody(testIndex.toString(), snippet));
-      buffer.writeln();
-    }
-    buffer.writeln('}');
-    newTest.writeAsStringSync(buffer.toString());
-
-    if (!newTestExists) {
-      updateAllTestFile();
-    }
-
-    print('''
-You probably want to run these:
-
-    dart format test/rules/all.dart
-    git rm ${legacyTest.path}
-    git add test
-    dart ${newTest.path}
-''');
+''';
   }
 
   List<String> gatherSnippets(List<String> legacyLines) {
@@ -139,30 +117,52 @@ You probably want to run these:
     return ranges;
   }
 
-  String get newTestFileHeader {
-    var ruleNameCamelCase = ruleName.splitMapJoin(RegExp('(?:^|_)([a-z])'),
-        onMatch: (m) => m[1]!.toUpperCase());
-    return '''
-// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+  void move() {
+    var legacyTest = File('test_data/rules/$ruleName.dart');
+    if (!legacyTest.existsSync()) {
+      print('Did not find ${legacyTest.path}!!');
+      return;
+    }
 
-import 'package:test_reflective_loader/test_reflective_loader.dart';
+    var newTest = File('test/rules/${ruleName}_test.dart');
+    var newTestExists = newTest.existsSync();
 
-import '../rule_test_support.dart';
+    var legacyLines = legacyTest.readAsLinesSync();
 
-main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(${ruleNameCamelCase}Test);
-  });
-}
+    var snippets = gatherSnippets(legacyLines);
 
-@reflectiveTest
-class ${ruleNameCamelCase}Test extends LintRuleTest {
-  @override
-  String get lintRule => '$ruleName';
+    // [snippets] is now our complete list of snippets.
 
-''';
+    var buffer = StringBuffer();
+    if (newTestExists) {
+      var existingNewTestLines = newTest.readAsLinesSync();
+      var classCloseIndex = existingNewTestLines
+          .lastIndexWhere((element) => element.startsWith(RegExp('^}')));
+      existingNewTestLines.take(classCloseIndex).forEach(buffer.writeln);
+      buffer.writeln();
+    } else {
+      buffer.write(newTestFileHeader);
+    }
+    for (var testIndex = 0; testIndex < snippets.length; testIndex++) {
+      var snippet = snippets[testIndex];
+      buffer.writeln(testBody(testIndex.toString(), snippet));
+      buffer.writeln();
+    }
+    buffer.writeln('}');
+    newTest.writeAsStringSync(buffer.toString());
+
+    if (!newTestExists) {
+      updateAllTestFile();
+    }
+
+    print('''
+You probably want to run these:
+
+    dart format test/rules/all.dart
+    git rm ${legacyTest.path}
+    git add test
+    dart ${newTest.path}
+''');
   }
 
   String testBody(String name, String code) => code.contains('LINT')

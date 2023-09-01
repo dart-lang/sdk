@@ -25,9 +25,6 @@ Iterable<T> where(bool Function(T) predicate) {}
 ''';
 
 class UseFunctionTypeSyntaxForParameters extends LintRule {
-  @override
-  bool get canUseParsedResult => true;
-
   static const LintCode code = LintCode(
       'use_function_type_syntax_for_parameters',
       "Use the generic function type syntax to declare the parameter '{0}'.",
@@ -39,6 +36,9 @@ class UseFunctionTypeSyntaxForParameters extends LintRule {
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  bool get canUseParsedResult => true;
 
   @override
   LintCode get lintCode => code;

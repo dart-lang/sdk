@@ -89,6 +89,16 @@ class _Visitor extends UnrelatedTypesProcessors {
   _Visitor(super.rule, super.typeSystem, super.typeProvider);
 
   @override
+  List<MethodDefinition> get indexOperators => [
+        // Argument to `Map<K, V>.[]` should be assignable to `K`.
+        MethodDefinitionForElement(
+          typeProvider.mapElement,
+          '[]',
+          ExpectedArgumentKind.assignableToCollectionTypeArgument,
+        ),
+      ];
+
+  @override
   List<MethodDefinition> get methods => [
         // Argument to `Iterable<E>.contains` should be assignable to `E`.
         MethodDefinitionForElement(
@@ -138,16 +148,6 @@ class _Visitor extends UnrelatedTypesProcessors {
         MethodDefinitionForElement(
           typeProvider.setElement,
           'remove',
-          ExpectedArgumentKind.assignableToCollectionTypeArgument,
-        ),
-      ];
-
-  @override
-  List<MethodDefinition> get indexOperators => [
-        // Argument to `Map<K, V>.[]` should be assignable to `K`.
-        MethodDefinitionForElement(
-          typeProvider.mapElement,
-          '[]',
           ExpectedArgumentKind.assignableToCollectionTypeArgument,
         ),
       ];

@@ -32,9 +32,6 @@ m(){
 ''';
 
 class UnnecessaryNew extends LintRule {
-  @override
-  bool get canUseParsedResult => true;
-
   static const LintCode code = LintCode(
       'unnecessary_new', "Unnecessary 'new' keyword.",
       correctionMessage: "Try removing the 'new' keyword.");
@@ -45,6 +42,9 @@ class UnnecessaryNew extends LintRule {
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  bool get canUseParsedResult => true;
 
   @override
   LintCode get lintCode => code;
