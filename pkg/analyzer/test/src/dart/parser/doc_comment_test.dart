@@ -1168,6 +1168,65 @@ Comment
 ''');
   }
 
+  test_nodoc_eol() {
+    final parseResult = parseStringWithErrors(r'''
+/// Text.
+///
+/// @nodoc
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('Text.');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    ///
+    /// @nodoc
+  hasNodoc: true
+''');
+  }
+
+  test_nodoc_more() {
+    final parseResult = parseStringWithErrors(r'''
+/// Text.
+///
+/// @nodocxx
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('Text.');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    ///
+    /// @nodocxx
+''');
+  }
+
+  test_nodoc_space() {
+    final parseResult = parseStringWithErrors(r'''
+/// Text.
+///
+/// @nodoc This is not super public.
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('Text.');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    ///
+    /// @nodoc This is not super public.
+  hasNodoc: true
+''');
+  }
+
   test_onlyWhitespace() {
     final parseResult = parseStringWithErrors('''
 ///${"  "}

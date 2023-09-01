@@ -20,6 +20,19 @@ class PreferConstLiteralsToCreateImmutablesTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_const_literals_to_create_immutables';
 
+  test_extensionType() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@immutable
+extension type E(List<int> i) { }
+
+var e = E([1]);
+''', [
+      lint(90, 3),
+    ]);
+  }
+
   test_missingRequiredArgument() async {
     await assertDiagnostics(r'''
 import 'package:meta/meta.dart';

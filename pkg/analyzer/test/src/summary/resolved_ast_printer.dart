@@ -269,6 +269,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
           }
         });
       }
+      if (node.hasNodoc) {
+        _sink.writelnWithIndent('hasNodoc: true');
+      }
     });
   }
 
