@@ -20,15 +20,6 @@ class UseStringInPartOfDirectivesTest extends LintRuleTest {
   @override
   String get lintRule => 'use_string_in_part_of_directives';
 
-  test_part_of_with_string() async {
-    newFile2('$testPackageRootPath/lib/lib.dart', '''
-part '$testFileName';
-''');
-    await assertNoDiagnostics(r'''
-part of 'lib.dart';
-''');
-  }
-
   test_part_of_with_library_name() async {
     newFile2('$testPackageRootPath/lib/lib.dart', '''
 library lib;
@@ -42,5 +33,14 @@ part of lib;
         lint(0, 12),
       ],
     );
+  }
+
+  test_part_of_with_string() async {
+    newFile2('$testPackageRootPath/lib/lib.dart', '''
+part '$testFileName';
+''');
+    await assertNoDiagnostics(r'''
+part of 'lib.dart';
+''');
   }
 }

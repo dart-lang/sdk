@@ -15,15 +15,32 @@ main() {
 @reflectiveTest
 class PreferRelativeImportsTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_relative_imports';
+  bool get addJsPackageDep => true;
 
   @override
-  bool get addJsPackageDep => true;
+  String get lintRule => 'prefer_relative_imports';
 
   test_externalPackage() async {
     await assertNoDiagnostics(r'''
 /// This provides [JS].
 import 'package:js/js.dart';
+''');
+  }
+
+  test_internalPackage() async {
+    var packageConfigBuilder = PackageConfigFileBuilder();
+    packageConfigBuilder.add(
+      name: 'internal_package',
+      rootPath: '$testPackageRootPath/vendor/internal_package',
+    );
+    writeTestPackageConfig(packageConfigBuilder);
+
+    newFile('$testPackageRootPath/vendor/internal_package/lib/lib.dart', r'''
+class C {}
+''');
+    await assertNoDiagnostics(r'''
+/// This provides [C].
+import 'package:internal_package/lib.dart';
 ''');
   }
 
@@ -59,23 +76,6 @@ class C {}
     await assertNoDiagnostics(r'''
 /// This provides [C].
 import 'lib.dart';
-''');
-  }
-
-  test_internalPackage() async {
-    var packageConfigBuilder = PackageConfigFileBuilder();
-    packageConfigBuilder.add(
-      name: 'internal_package',
-      rootPath: '$testPackageRootPath/vendor/internal_package',
-    );
-    writeTestPackageConfig(packageConfigBuilder);
-
-    newFile('$testPackageRootPath/vendor/internal_package/lib/lib.dart', r'''
-class C {}
-''');
-    await assertNoDiagnostics(r'''
-/// This provides [C].
-import 'package:internal_package/lib.dart';
 ''');
   }
 }

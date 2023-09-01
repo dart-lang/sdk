@@ -68,9 +68,9 @@ class LibraryAnnotations extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LibraryAnnotations rule;
 
-  _Visitor(this.rule);
-
   Directive? firstDirective;
+
+  _Visitor(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {

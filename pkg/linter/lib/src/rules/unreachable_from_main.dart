@@ -595,16 +595,6 @@ extension on Declaration {
 }
 
 extension on NamedType {
-  TypeAnnotation get topmostTypeAnnotation {
-    TypeAnnotation topTypeAnnotation = this;
-    var parent = this.parent;
-    while (parent is TypeAnnotation) {
-      topTypeAnnotation = parent;
-      parent = topTypeAnnotation.parent;
-    }
-    return topTypeAnnotation;
-  }
-
   bool get isInExternalVariableTypeOrFunctionReturnType {
     var topTypeAnnotation = topmostTypeAnnotation;
 
@@ -620,5 +610,15 @@ extension on NamedType {
         return externalKeyword != null;
     }
     return false;
+  }
+
+  TypeAnnotation get topmostTypeAnnotation {
+    TypeAnnotation topTypeAnnotation = this;
+    var parent = this.parent;
+    while (parent is TypeAnnotation) {
+      topTypeAnnotation = parent;
+      parent = topTypeAnnotation.parent;
+    }
+    return topTypeAnnotation;
   }
 }

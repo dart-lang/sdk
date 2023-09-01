@@ -17,6 +17,23 @@ class AlwaysUsePackageImportsTest extends LintRuleTest {
   @override
   String get lintRule => 'always_use_package_imports';
 
+  test_internalPackage() async {
+    var packageConfigBuilder = PackageConfigFileBuilder();
+    packageConfigBuilder.add(
+      name: 'internal_package',
+      rootPath: '$testPackageRootPath/vendor/internal_package',
+    );
+    writeTestPackageConfig(packageConfigBuilder);
+
+    newFile('$testPackageRootPath/vendor/internal_package/lib/lib.dart', r'''
+class C {}
+''');
+    await assertNoDiagnostics(r'''
+/// This provides [C].
+import 'package:internal_package/lib.dart';
+''');
+  }
+
   test_samePackage_packageSchema() async {
     newFile('$testPackageLibPath/lib.dart', r'''
 class C {}
@@ -50,22 +67,5 @@ import 'lib.dart';
 ''', [
       lint(30, 10),
     ]);
-  }
-
-  test_internalPackage() async {
-    var packageConfigBuilder = PackageConfigFileBuilder();
-    packageConfigBuilder.add(
-      name: 'internal_package',
-      rootPath: '$testPackageRootPath/vendor/internal_package',
-    );
-    writeTestPackageConfig(packageConfigBuilder);
-
-    newFile('$testPackageRootPath/vendor/internal_package/lib/lib.dart', r'''
-class C {}
-''');
-    await assertNoDiagnostics(r'''
-/// This provides [C].
-import 'package:internal_package/lib.dart';
-''');
   }
 }

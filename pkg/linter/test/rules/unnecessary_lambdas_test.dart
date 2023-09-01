@@ -17,6 +17,12 @@ class UnnecessaryLambdasTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_lambdas';
 
+  test_asyncLambda() async {
+    await assertNoDiagnostics(r'''
+var x = [].forEach((x) async => print(x));
+''');
+  }
+
   test_constructorCall_const() async {
     await assertNoDiagnostics(r'''
 class C {
@@ -55,13 +61,6 @@ var x = [() => C()];
     ]);
   }
 
-  test_functionCall_explicitTypeArg() async {
-    await assertNoDiagnostics(r'''
-void f<T>() {}
-var x = [() => f<int>()];
-''');
-  }
-
   test_constructorCall_noParameter_oneArg() async {
     await assertNoDiagnostics(r'''
 class C {
@@ -80,6 +79,19 @@ var x = [].map((x) => C(3));
 ''');
   }
 
+  test_emptyLambda() async {
+    await assertNoDiagnostics(r'''
+var f = () {};
+''');
+  }
+
+  test_functionCall_explicitTypeArg() async {
+    await assertNoDiagnostics(r'''
+void f<T>() {}
+var x = [() => f<int>()];
+''');
+  }
+
   test_functionCall_matchingArg() async {
     await assertDiagnostics(r'''
 var x = [].forEach((x) => print(x));
@@ -88,10 +100,15 @@ var x = [].forEach((x) => print(x));
     ]);
   }
 
-  test_asyncLambda() async {
-    await assertNoDiagnostics(r'''
-var x = [].forEach((x) async => print(x));
-''');
+  test_functionCall_singleStatement() async {
+    await assertDiagnostics(r'''
+final f = () {};
+final l = () {
+  f();
+};
+''', [
+      lint(27, 13),
+    ]);
   }
 
   test_functionTearoff() async {
@@ -145,6 +162,22 @@ void f(int Function(dynamic)? fn) {}
 ''');
   }
 
+  test_methodCallOnFinalLocal_closureParameterIsPartOfTarget() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  [].where((e) => (e + e).contains(e));
+}
+''');
+  }
+
+  test_methodCallOnFinalLocal_closureParameterIsTarget() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  [].where((e) => e.contains(e));
+}
+''');
+  }
+
   test_methodCallOnFinalLocal_matchingArg() async {
     await assertDiagnostics(r'''
 void f() {
@@ -162,28 +195,6 @@ void f() {
   late final List<int> l;
   if (1 == 2) l = [];
   [].where((e) => l.contains(e));
-}
-''');
-  }
-
-  test_methodCallOnFinalLocal_closureParameterIsTarget() async {
-    await assertNoDiagnostics(r'''
-void f() {
-  [].where((e) => e.contains(e));
-}
-''');
-  }
-
-  test_emptyLambda() async {
-    await assertNoDiagnostics(r'''
-var f = () {};
-''');
-  }
-
-  test_methodCallOnFinalLocal_closureParameterIsPartOfTarget() async {
-    await assertNoDiagnostics(r'''
-void f() {
-  [].where((e) => (e + e).contains(e));
 }
 ''');
   }
@@ -206,15 +217,6 @@ void f() {
 ''');
   }
 
-  test_nonFunctionCall() async {
-    await assertNoDiagnostics(r'''
-void f() {
-  final l = [];
-  [].where((e) => l.contains(e) || e is int);
-}
-''');
-  }
-
   test_multipleStatements() async {
     await assertNoDiagnostics(r'''
 void f() {
@@ -226,15 +228,13 @@ void f() {
 ''');
   }
 
-  test_functionCall_singleStatement() async {
-    await assertDiagnostics(r'''
-final f = () {};
-final l = () {
-  f();
-};
-''', [
-      lint(27, 13),
-    ]);
+  test_nonFunctionCall() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  final l = [];
+  [].where((e) => l.contains(e) || e is int);
+}
+''');
   }
 
   test_noParameter_targetIsFinalField() async {

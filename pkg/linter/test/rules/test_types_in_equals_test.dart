@@ -17,22 +17,6 @@ class TestTypesInEqualsTest extends LintRuleTest {
   @override
   String get lintRule => 'test_types_in_equals';
 
-  test_usesIs() async {
-    await assertNoDiagnostics(r'''
-class C {
-  int? x;
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-    return other is C && this.x == other.x;
-  }
-}
-''');
-  }
-
   test_doesNotUseIs() async {
     await assertDiagnostics(r'''
 class C {
@@ -47,5 +31,21 @@ class C {
 ''', [
       lint(83, 10),
     ]);
+  }
+
+  test_usesIs() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int? x;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is C && this.x == other.x;
+  }
+}
+''');
   }
 }

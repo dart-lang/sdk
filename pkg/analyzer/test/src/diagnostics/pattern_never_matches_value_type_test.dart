@@ -1040,6 +1040,34 @@ void f(String x) {
     ]);
   }
 
+  test_refutable_pattern_reportPattern_match() async {
+    await assertErrorsInCode('''
+void f((int,) x) {
+  switch (x) {
+    case (int f,):
+      break;
+  }
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1),
+    ]);
+  }
+
+  test_refutable_pattern_reportPattern_notMatch() async {
+    await assertErrorsInCode('''
+void f((int,) x) {
+  switch (x) {
+    case (int f1, int f2):
+      break;
+  }
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 43, 16),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 2),
+    ]);
+  }
+
   test_refutable_pattern_wildcard_match() async {
     await assertNoErrorsInCode('''
 void f(num x) {

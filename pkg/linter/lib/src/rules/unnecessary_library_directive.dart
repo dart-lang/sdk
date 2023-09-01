@@ -7,8 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _name = 'unnecessary_library_directive';
-
 const _desc =
     'Avoid library directives unless they have documentation comments or '
     'annotations.';
@@ -36,6 +34,8 @@ library;
 NOTE: Due to limitations with this lint, libraries with parts will not be
 flagged for unnecessary library directives.
 ''';
+
+const _name = 'unnecessary_library_directive';
 
 class UnnecessaryLibraryDirective extends LintRule {
   static const LintCode code = LintCode(

@@ -28,15 +28,15 @@ class AvoidEmptyElse extends LintRule {
       correctionMessage:
           'Try removing the empty statement or removing the else clause.');
 
-  @override
-  LintCode get lintCode => code;
-
   AvoidEmptyElse()
       : super(
             name: 'avoid_empty_else',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

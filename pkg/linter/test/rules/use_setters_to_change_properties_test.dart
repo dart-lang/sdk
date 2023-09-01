@@ -19,28 +19,12 @@ class UseSettersToChangePropertiesTest extends LintRuleTest {
   @override
   String get lintRule => 'use_setters_to_change_properties';
 
-  test_setterLike_expressionBody() async {
-    await assertDiagnostics(r'''
+  test_abstract() async {
+    await assertNoDiagnostics(r'''
 abstract class A {
-  int x = 0;
-  void setX(int x) => this.x = x;
+  void setX(int x);
 }
-''', [
-      lint(39, 4),
-    ]);
-  }
-
-  test_setterLike_blockBody() async {
-    await assertDiagnostics(r'''
-abstract class A {
-  int x = 0;
-  void setX(int x) {
-    this.x = x;
-  }
-}
-''', [
-      lint(39, 4),
-    ]);
+''');
   }
 
   test_combo() async {
@@ -50,6 +34,22 @@ abstract class A {
   void setX(int x) => this.x += x;
 }
 ''');
+  }
+
+  test_extension() async {
+    await assertDiagnostics(r'''
+class A {
+  int x = 0;
+}
+
+extension E on A {
+  void setX(int x) {
+    this.x = x;
+  }
+}
+''', [
+      lint(52, 4),
+    ]);
   }
 
   test_inheritedFromSuperclass() async {
@@ -64,14 +64,6 @@ class B extends A {
   void setX(int x) {
     this.x = x;
   }
-}
-''');
-  }
-
-  test_abstract() async {
-    await assertNoDiagnostics(r'''
-abstract class A {
-  void setX(int x);
 }
 ''');
   }
@@ -92,19 +84,27 @@ class B implements A {
 ''');
   }
 
-  test_extension() async {
+  test_setterLike_blockBody() async {
     await assertDiagnostics(r'''
-class A {
+abstract class A {
   int x = 0;
-}
-
-extension E on A {
   void setX(int x) {
     this.x = x;
   }
 }
 ''', [
-      lint(52, 4),
+      lint(39, 4),
+    ]);
+  }
+
+  test_setterLike_expressionBody() async {
+    await assertDiagnostics(r'''
+abstract class A {
+  int x = 0;
+  void setX(int x) => this.x = x;
+}
+''', [
+      lint(39, 4),
     ]);
   }
 }

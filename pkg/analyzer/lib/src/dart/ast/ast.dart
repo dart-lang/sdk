@@ -14926,6 +14926,8 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   @override
   final Token rightParenthesis;
 
+  bool hasDuplicateNamedField = false;
+
   RecordPatternImpl({
     required this.leftParenthesis,
     required List<PatternFieldImpl> fields,
@@ -14970,7 +14972,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeRecordPattern(
+    final result = resolverVisitor.analyzeRecordPattern(
       context,
       this,
       fields: resolverVisitor.buildSharedPatternFields(
@@ -14978,6 +14980,14 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
         mustBeNamed: false,
       ),
     );
+
+    if (!hasDuplicateNamedField) {
+      resolverVisitor.checkPatternNeverMatchesValueType(
+        context: context,
+        pattern: this,
+        requiredType: result.requiredType,
+      );
+    }
   }
 
   @override

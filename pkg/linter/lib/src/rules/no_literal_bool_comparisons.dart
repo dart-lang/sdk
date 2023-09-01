@@ -61,6 +61,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule, this.context);
 
+  bool isBool(DartType? type) =>
+      type != null &&
+      type.isDartCoreBool &&
+      context.typeSystem.isNonNullable(type);
+
   @override
   void visitBinaryExpression(BinaryExpression node) {
     if (node.operator.type == TokenType.EQ_EQ ||
@@ -74,9 +79,4 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
   }
-
-  bool isBool(DartType? type) =>
-      type != null &&
-      type.isDartCoreBool &&
-      context.typeSystem.isNonNullable(type);
 }

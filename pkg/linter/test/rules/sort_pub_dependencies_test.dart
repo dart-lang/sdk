@@ -20,19 +20,6 @@ class SortPubDependenciesTest extends LintRuleTest {
   @override
   String get lintRule => 'sort_pub_dependencies';
 
-  test_dependencies_sorted() async {
-    await assertNoPubspecDiagnostics(r'''
-name: fancy
-version: 1.1.1
-
-dependencies:
-  aaa: ^0.1.1
-  bbb: ^0.15.8
-  flutter:
-    sdk: flutter
-''');
-  }
-
   test_dependencies_duplicates() async {
     await assertNoPubspecDiagnostics(r'''
 name: fancy
@@ -40,6 +27,19 @@ version: 1.1.1
 
 dependencies:
   aaa: ^0.1.1
+  aaa: ^0.1.1
+  bbb: ^0.15.8
+  flutter:
+    sdk: flutter
+''');
+  }
+
+  test_dependencies_sorted() async {
+    await assertNoPubspecDiagnostics(r'''
+name: fancy
+version: 1.1.1
+
+dependencies:
   aaa: ^0.1.1
   bbb: ^0.15.8
   flutter:

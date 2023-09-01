@@ -94,6 +94,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    checkParams(node.parameters.parameters);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null &&
@@ -104,11 +109,6 @@ class _Visitor extends SimpleAstVisitor<void> {
         !_isOverridingMember(declaredElement)) {
       checkParams(node.parameters?.parameters);
     }
-  }
-
-  @override
-  void visitGenericFunctionType(GenericFunctionType node) {
-    checkParams(node.parameters.parameters);
   }
 
   bool _isOverridingMember(Element member) {

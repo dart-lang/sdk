@@ -247,6 +247,7 @@ AstNode? getEnclosingClassOrUnitMember(AstNode input) {
       case ClassDeclaration _:
       case CompilationUnit _:
       case EnumDeclaration _:
+      case ExtensionDeclaration _:
       case ExtensionTypeDeclaration _:
       case MixinDeclaration _:
         return member;

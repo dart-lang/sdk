@@ -51,6 +51,12 @@ var x = r'\"';
 ''');
   }
 
+  test_escapedDoubleQuotes_inThree_inThreeDoubleQuotes() async {
+    await assertNoDiagnostics(r'''
+var x = """text"\""text""";
+''');
+  }
+
   test_escapedDoubleQuotes_inThreeDoubleQuotes() async {
     await assertDiagnostics(r'''
 var x = """\"text""";
@@ -125,6 +131,12 @@ var x = '\'';
 ''');
   }
 
+  test_escapedSingleQuote_inThree_inThreeSingleQuotes() async {
+    await assertNoDiagnostics(r"""
+var x = '''text'\''text''';
+""");
+  }
+
   test_escapedSingleQuote_inThreeDoubleQuotes() async {
     await assertDiagnostics(r'''
 var x = """\'""";
@@ -139,42 +151,6 @@ var x = '''\'text''';
 """, [
       lint(11, 1),
     ]);
-  }
-
-  test_threeEscapedSingleQuote_inThreeSingleQuotes() async {
-    await assertNoDiagnostics(r"""
-var x = '''text\'\'\'text''';
-""");
-  }
-
-  test_moreThanThreeEscapedSingleQuote_inThreeSingleQuotes() async {
-    await assertNoDiagnostics(r"""
-var x = '''text\'\'\'\'\'\'text''';
-""");
-  }
-
-  test_escapedSingleQuote_inThree_inThreeSingleQuotes() async {
-    await assertNoDiagnostics(r"""
-var x = '''text'\''text''';
-""");
-  }
-
-  test_threeEscapedDoubleQuote_inThreeDoubleQuotes() async {
-    await assertNoDiagnostics(r'''
-var x = """text\"\"\"text""";
-''');
-  }
-
-  test_moreThanThreeEscapedDoubleQuotes_inThreeDoubleQuotes() async {
-    await assertNoDiagnostics(r'''
-var x = """text\"\"\"\"\"\"text""";
-''');
-  }
-
-  test_escapedDoubleQuotes_inThree_inThreeDoubleQuotes() async {
-    await assertNoDiagnostics(r'''
-var x = """text"\""text""";
-''');
   }
 
   test_escapedSingleQuote_inThreeSingleQuotes_atEnd() async {
@@ -193,6 +169,30 @@ var x = '\uFFFF';
     await assertNoDiagnostics(r'''
 var x = '\x00';
 ''');
+  }
+
+  test_moreThanThreeEscapedDoubleQuotes_inThreeDoubleQuotes() async {
+    await assertNoDiagnostics(r'''
+var x = """text\"\"\"\"\"\"text""";
+''');
+  }
+
+  test_moreThanThreeEscapedSingleQuote_inThreeSingleQuotes() async {
+    await assertNoDiagnostics(r"""
+var x = '''text\'\'\'\'\'\'text''';
+""");
+  }
+
+  test_threeEscapedDoubleQuote_inThreeDoubleQuotes() async {
+    await assertNoDiagnostics(r'''
+var x = """text\"\"\"text""";
+''');
+  }
+
+  test_threeEscapedSingleQuote_inThreeSingleQuotes() async {
+    await assertNoDiagnostics(r"""
+var x = '''text\'\'\'text''';
+""");
   }
 
   test_unterminatedStringLiteral() async {

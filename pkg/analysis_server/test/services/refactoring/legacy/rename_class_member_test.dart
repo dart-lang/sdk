@@ -1996,8 +1996,7 @@ void f(E e) {
 
   Future<void> test_createChange_MethodElement() async {
     await indexTestUnit('''
-enum E {
-  v;
+extension type E(int it) {
   void test() {}
   void foo() {
     test();
@@ -2018,8 +2017,7 @@ void f(E e) {
     refactoring.newName = 'newName';
     // validate change
     return assertSuccessfulRefactoring('''
-enum E {
-  v;
+extension type E(int it) {
   void newName() {}
   void foo() {
     newName();
