@@ -17,6 +17,87 @@ class UnnecessaryNullChecksTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_this';
 
+  test_closureInMethod() async {
+    await assertDiagnostics(r'''
+class A {
+  void m1(List<int> list) {
+    list.forEach((e) {
+      this.m2(e);
+    });
+  }
+  void m2(int x) {}
+}
+''', [
+      lint(67, 10),
+    ]);
+  }
+
+  test_constructorBody_assignment() async {
+    await assertDiagnostics(r'''
+class A {
+  num x = 0;
+  A.named(num a) {
+    this.x = a;
+  }
+}
+''', [
+      lint(46, 6),
+    ]);
+  }
+
+  test_constructorBody_methodCall() async {
+    await assertDiagnostics(r'''
+class A {
+  A.named() {
+    this.m();
+  }
+
+  void m() {}
+}
+''', [
+      lint(28, 8),
+    ]);
+  }
+
+  test_constructorBody_shadowedParameters() async {
+    await assertNoDiagnostics(r'''
+class A {
+  num x = 0;
+  A(num x) {
+    this.x = x;
+  }
+}
+''');
+  }
+
+  test_constructorInitializer() async {
+    await assertDiagnostics(r'''
+class A {
+  num x = 0;
+  A.c1(num x)
+      : this.x = x;
+}
+''', [
+      lint(45, 4),
+    ]);
+  }
+
+  test_extension_getter() async {
+    await assertNoDiagnostics(r'''
+extension E on int? {
+  int? get h => this?.hashCode;
+}
+''');
+  }
+
+  test_extension_method() async {
+    await assertNoDiagnostics(r'''
+extension E on int? {
+  String? f() => this?.toString();
+}
+''');
+  }
+
   test_extensionType_inConstructorInitializer() async {
     await assertDiagnostics(r'''
 extension type E(int i) {
@@ -34,6 +115,47 @@ extension type E(Object o) {
 }
 ''', [
       lint(44, 15),
+    ]);
+  }
+
+  test_initializingFormalParameter() async {
+    await assertNoDiagnostics(r'''
+class A {
+  num x = 0, y = 0;
+  A.bar(this.x, this.y);
+}
+''');
+  }
+
+  test_localFunctionPresent() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m1() {
+    if (true) {
+      // ignore: unused_element
+      void m2() {}
+      this.m2();
+    }
+  }
+  void m2() {}
+}
+''');
+  }
+
+  test_localFunctionPresent_outOfScope() async {
+    await assertDiagnostics(r'''
+class A {
+  void m1() {
+    if (true) {
+      // ignore: unused_element
+      void m2() {}
+    }
+    this.m2();
+  }
+  void m2() {}
+}
+''', [
+      lint(101, 9),
     ]);
   }
 
@@ -62,6 +184,49 @@ class C {
       case false:
         break;
     }
+  }
+}
+''');
+  }
+
+  test_subclass_noShadowing() async {
+    await assertDiagnostics(r'''
+class C {
+  int x = 0;
+}
+class D extends C {
+  void f(int a) {
+    this.x = a;
+  }
+}
+''', [
+      lint(67, 6),
+    ]);
+  }
+
+  test_subclass_shadowedTopLevelVariable() async {
+    await assertNoDiagnostics(r'''
+int x = 0;
+class C {
+  int x = 0;
+}
+class D extends C {
+  void m(int a) {
+    this.x = a;
+  }
+}
+''');
+  }
+
+  test_subclass_topLevelFunctionPresent() async {
+    await assertNoDiagnostics(r'''
+void m1() {}
+class C {
+  void m1() {}
+}
+class D extends C {
+  void m2() {
+    this.m1();
   }
 }
 ''');
