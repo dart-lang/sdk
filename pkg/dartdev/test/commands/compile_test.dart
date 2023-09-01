@@ -981,6 +981,29 @@ void main() {
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
+  test('Compile kernel with invalid output directory', () async {
+    final p = project(mainSrc: '''void main() {}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+
+    var result = await p.run(
+      [
+        'compile',
+        'kernel',
+        '--verbosity=warning',
+        '-o',
+        '/somewhere/nowhere/test.dill',
+        inFile,
+      ],
+    );
+    expect(
+      result.stderr,
+      predicate(
+        (dynamic o) => '$o'.contains('Unable to open file'),
+      ),
+    );
+    expect(result.exitCode, 255);
+  });
+
   test('Compile kernel with invalid trailing argument', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
