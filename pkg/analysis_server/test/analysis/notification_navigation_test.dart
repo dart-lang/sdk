@@ -852,11 +852,11 @@ void f(A a) {
 ''');
     await prepareNavigation();
     assertHasRegion('int it');
-    assertHasRegionTarget('this(0)', 'A(int it', targetLength: 0);
+    assertHasRegionTarget('this(0)', 'A(int it');
     assertHasRegionTarget('it; // foo()', 'it) {');
     assertHasRegionTarget('A a)', 'A(int');
     assertHasRegionTarget('it; // f()', 'it) {');
-    assertHasRegionTarget('A(0);', 'A(int', targetLength: 0);
+    assertHasRegionTarget('A(0);', 'A(int');
     assertHasRegionTarget('named();', 'named() :');
     assertHasRegionTarget('foo();', 'foo() {');
     assertHasRegionTarget('A.bar()', 'A(int');

@@ -322,7 +322,8 @@ class LoopInfo : public ZoneAllocated {
 class LoopHierarchy : public ZoneAllocated {
  public:
   LoopHierarchy(ZoneGrowableArray<BlockEntryInstr*>* headers,
-                const GrowableArray<BlockEntryInstr*>& preorder);
+                const GrowableArray<BlockEntryInstr*>& preorder,
+                bool print_traces);
 
   // Getters.
   const ZoneGrowableArray<BlockEntryInstr*>& headers() const {
@@ -343,6 +344,7 @@ class LoopHierarchy : public ZoneAllocated {
   ZoneGrowableArray<BlockEntryInstr*>* headers_;
   const GrowableArray<BlockEntryInstr*>& preorder_;
   LoopInfo* top_;
+  const bool print_traces_;
 
   DISALLOW_COPY_AND_ASSIGN(LoopHierarchy);
 };

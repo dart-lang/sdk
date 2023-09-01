@@ -242,7 +242,7 @@ final CombinatorBuilder dummyCombinator =
     new CombinatorBuilder(false, {}, -1, dummyUri);
 final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(dummyToken);
 final TypeBuilder dummyTypeBuilder =
-    new FixedTypeBuilder(dummyDartType, dummyUri, -1);
+    new FixedTypeBuilderImpl(dummyDartType, dummyUri, -1);
 final FormalParameterBuilder dummyFormalParameterBuilder =
     new FormalParameterBuilder(null, FormalParameterKind.requiredPositional, 0,
         const ImplicitTypeBuilder(), '', null, -1,

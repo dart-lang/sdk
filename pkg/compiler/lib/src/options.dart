@@ -38,6 +38,10 @@ enum Dart2JSStage {
   cfeFromDill('cfe', emitsKernel: true, emitsJs: false),
   modularAnalysisFromDill('modular-analysis',
       dataOutputName: 'modular.data', emitsKernel: true, emitsJs: false),
+  deferredLoadIds('deferred-load-ids',
+      dataOutputName: 'deferred_load_ids.data',
+      emitsKernel: false,
+      emitsJs: false),
   closedWorld('closed-world',
       dataOutputName: 'world.data', emitsKernel: true, emitsJs: false),
   globalInference('global-inference',
@@ -109,6 +113,9 @@ enum Dart2JSStage {
       return options._fromDill
           ? Dart2JSStage.modularAnalysisFromDill
           : Dart2JSStage.modularAnalysis;
+    }
+    if (options._deferredLoadIdMapUri != null) {
+      return Dart2JSStage.deferredLoadIds;
     }
     if (options._writeClosedWorldUri != null) {
       return Dart2JSStage.closedWorld;
@@ -425,6 +432,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// Location where to generate a map containing details of how deferred
   /// libraries are subdivided.
   Uri? deferredMapUri;
+
+  /// Location to generate a map containing mapping from user-defined deferred
+  /// import to Dart2js runtime load ID name.
+  Uri? _deferredLoadIdMapUri;
 
   /// Location where to generate an internal format representing the deferred
   /// graph.
@@ -787,6 +798,7 @@ class CompilerOptions implements DiagnosticOptions {
       case Dart2JSStage.codegenAndJsEmitter:
       case Dart2JSStage.modularAnalysis:
       case Dart2JSStage.modularAnalysisFromDill:
+      case Dart2JSStage.deferredLoadIds:
         return null;
       case Dart2JSStage.closedWorld:
         return _readClosedWorldUri;
@@ -815,6 +827,8 @@ class CompilerOptions implements DiagnosticOptions {
       case Dart2JSStage.jsEmitter:
       case Dart2JSStage.codegenAndJsEmitter:
         return null;
+      case Dart2JSStage.deferredLoadIds:
+        return _deferredLoadIdMapUri;
       case Dart2JSStage.cfe:
       case Dart2JSStage.cfeFromDill:
       case Dart2JSStage.modularAnalysis:
@@ -876,6 +890,8 @@ class CompilerOptions implements DiagnosticOptions {
           _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)!
       ..compileForServer = _hasOption(options, Flags.serverMode)
       ..deferredMapUri = _extractUriOption(options, '--deferred-map=')
+      .._deferredLoadIdMapUri =
+          _extractUriOption(options, '${Flags.deferredLoadIdMapUri}=')
       ..deferredGraphUri =
           _extractUriOption(options, '${Flags.dumpDeferredGraph}=')
       ..fatalWarnings = _hasOption(options, Flags.fatalWarnings)
@@ -993,6 +1009,7 @@ class CompilerOptions implements DiagnosticOptions {
     bool expectKernelOut = false;
     bool expectModularIn = false;
     bool expectModularOut = false;
+    bool expectDeferredLoadIdsOut = false;
     bool expectClosedWorldIn = false;
     bool expectClosedWorldOut = false;
     bool expectGlobalIn = false;
@@ -1025,6 +1042,10 @@ class CompilerOptions implements DiagnosticOptions {
       case Dart2JSStage.modularAnalysisFromDill:
         expectKernelOut = true;
         expectModularOut = true;
+        break;
+      case Dart2JSStage.deferredLoadIds:
+        expectKernelIn = true;
+        expectDeferredLoadIdsOut = true;
         break;
       case Dart2JSStage.closedWorld:
         expectClosedWorldOut = true;
@@ -1079,6 +1100,10 @@ class CompilerOptions implements DiagnosticOptions {
     if (modularAnalysisInputs != null && !expectModularIn) {
       return 'Cannot read modular analysis inputs in '
           'stage ${stage.name}.';
+    }
+
+    if (_deferredLoadIdMapUri != null && !expectDeferredLoadIdsOut) {
+      return 'Cannot write deferred load ID map during ${stage.name} stage.';
     }
 
     // Check closed world flags.

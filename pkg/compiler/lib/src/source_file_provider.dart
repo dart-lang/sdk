@@ -345,6 +345,9 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
       case api.OutputType.jsPart:
         uri = out!.resolve('$name.$extension');
         break;
+      case api.OutputType.deferredLoadIds:
+        assert(name.isNotEmpty);
+        return (out ?? Uri.base).resolve(name);
       case api.OutputType.dumpInfo:
       case api.OutputType.dumpUnusedLibraries:
       case api.OutputType.deferredMap:

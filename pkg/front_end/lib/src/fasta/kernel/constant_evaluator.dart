@@ -6263,7 +6263,9 @@ class IsInstantiatedVisitor implements DartTypeVisitor<bool> {
   bool visitFunctionType(FunctionType node) {
     final List<TypeParameter> parameters = node.typeParameters;
     _availableVariables.addAll(parameters);
-    final bool result = node.returnType.accept(this) &&
+    final bool result = node.typeParameters
+            .every((p) => p.bound.accept(this) && p.defaultType.accept(this)) &&
+        node.returnType.accept(this) &&
         node.positionalParameters.every((p) => p.accept(this)) &&
         node.namedParameters.every((p) => p.type.accept(this));
     _availableVariables.removeAll(parameters);

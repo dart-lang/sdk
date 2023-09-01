@@ -106,31 +106,31 @@ class KernelTarget extends TargetImplementation {
 
   // 'dynamic' is always nullable.
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
-  final NamedTypeBuilder dynamicType = new NamedTypeBuilder(
+  final NamedTypeBuilder dynamicType = new NamedTypeBuilderImpl(
       "dynamic", const NullabilityBuilder.inherent(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
-  final NamedTypeBuilder objectType = new NamedTypeBuilder(
+  final NamedTypeBuilder objectType = new NamedTypeBuilderImpl(
       "Object", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   // Null is always nullable.
   // TODO(johnniwinther): This could (maybe) use a FixedTypeBuilder when we
   //  have NullType?
-  final NamedTypeBuilder nullType = new NamedTypeBuilder(
+  final NamedTypeBuilder nullType = new NamedTypeBuilderImpl(
       "Null", const NullabilityBuilder.inherent(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
-  final NamedTypeBuilder bottomType = new NamedTypeBuilder(
+  final NamedTypeBuilder bottomType = new NamedTypeBuilderImpl(
       "Never", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
-  final NamedTypeBuilder enumType = new NamedTypeBuilder(
+  final NamedTypeBuilder enumType = new NamedTypeBuilderImpl(
       "Enum", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
-  final NamedTypeBuilder underscoreEnumType = new NamedTypeBuilder(
+  final NamedTypeBuilder underscoreEnumType = new NamedTypeBuilderImpl(
       "_Enum", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 

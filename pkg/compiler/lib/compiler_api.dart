@@ -142,6 +142,9 @@ enum OutputType {
   /// Deferred map output.
   deferredMap,
 
+  /// Deferred load ids map output.
+  deferredLoadIds,
+
   /// Unused libraries output.
   dumpUnusedLibraries,
 

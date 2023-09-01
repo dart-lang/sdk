@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/builder/function_type_builder.dart';
 import 'package:front_end/src/fasta/builder/record_type_builder.dart';
 import 'package:front_end/src/fasta/kernel/body_builder_context.dart';
 import 'package:kernel/ast.dart';
@@ -20,7 +19,6 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
-import '../builder/named_type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -275,111 +273,119 @@ class SourceExtensionTypeDeclarationBuilder
         // We allow creating new type variables during unaliasing. This type
         // variables are short-lived and therefore don't need to be bound.
         unboundTypeVariables: []);
-    if (unaliased is NamedTypeBuilder) {
-      TypeDeclarationBuilder? declaration = unaliased.declaration;
-      if (declaration is ExtensionTypeDeclarationBuilder) {
-        if (!seenExtensionTypeDeclarations.add(declaration)) {
-          List<LocatedMessage> context = [];
-          for (ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder
-              in seenExtensionTypeDeclarations) {
-            if (extensionTypeDeclarationBuilder != this) {
-              context.add(messageExtensionTypeDeclarationCause.withLocation(
-                  extensionTypeDeclarationBuilder.fileUri,
-                  extensionTypeDeclarationBuilder.charOffset,
-                  extensionTypeDeclarationBuilder.name.length));
+    switch (unaliased) {
+      case NamedTypeBuilder(
+          :TypeDeclarationBuilder? declaration,
+          :List<TypeBuilder>? arguments
+        ):
+        if (declaration is ExtensionTypeDeclarationBuilder) {
+          if (!seenExtensionTypeDeclarations.add(declaration)) {
+            List<LocatedMessage> context = [];
+            for (ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder
+                in seenExtensionTypeDeclarations) {
+              if (extensionTypeDeclarationBuilder != this) {
+                context.add(messageExtensionTypeDeclarationCause.withLocation(
+                    extensionTypeDeclarationBuilder.fileUri,
+                    extensionTypeDeclarationBuilder.charOffset,
+                    extensionTypeDeclarationBuilder.name.length));
+              }
+            }
+            for (TypeAliasBuilder typeAliasBuilder in usedTypeAliasBuilders) {
+              context.add(messageTypedefCause.withLocation(
+                  typeAliasBuilder.fileUri,
+                  typeAliasBuilder.charOffset,
+                  typeAliasBuilder.name.length));
+            }
+            libraryBuilder.addProblem(
+                messageCyclicRepresentationDependency,
+                representationFieldBuilder!.type.charOffset!,
+                noLength,
+                representationFieldBuilder!.type.fileUri,
+                context: context);
+            return true;
+          } else {
+            TypeBuilder? representationTypeBuilder =
+                declaration.declaredRepresentationTypeBuilder;
+            if (representationTypeBuilder != null) {
+              if (_checkRepresentationDependency(
+                  representationTypeBuilder,
+                  seenExtensionTypeDeclarations.toSet(),
+                  usedTypeAliasBuilders.toSet())) {
+                return true;
+              }
             }
           }
-          for (TypeAliasBuilder typeAliasBuilder in usedTypeAliasBuilders) {
-            context.add(messageTypedefCause.withLocation(
-                typeAliasBuilder.fileUri,
-                typeAliasBuilder.charOffset,
-                typeAliasBuilder.name.length));
-          }
-          libraryBuilder.addProblem(
-              messageCyclicRepresentationDependency,
-              representationFieldBuilder!.type.charOffset!,
-              noLength,
-              representationFieldBuilder!.type.fileUri,
-              context: context);
-          return true;
-        } else {
-          TypeBuilder? representationTypeBuilder =
-              declaration.declaredRepresentationTypeBuilder;
-          if (representationTypeBuilder != null) {
+        }
+        if (arguments != null) {
+          for (TypeBuilder typeArgument in arguments) {
             if (_checkRepresentationDependency(
-                representationTypeBuilder,
+                typeArgument,
                 seenExtensionTypeDeclarations.toSet(),
                 usedTypeAliasBuilders.toSet())) {
               return true;
             }
           }
         }
-      }
-      List<TypeBuilder>? typeArguments = unaliased.arguments;
-      if (typeArguments != null) {
-        for (TypeBuilder typeArgument in typeArguments) {
-          if (_checkRepresentationDependency(
-              typeArgument,
-              seenExtensionTypeDeclarations.toSet(),
-              usedTypeAliasBuilders.toSet())) {
-            return true;
+      case FunctionTypeBuilder(
+          :List<TypeVariableBuilder>? typeVariables,
+          :List<ParameterBuilder>? formals,
+          :TypeBuilder returnType
+        ):
+        if (_checkRepresentationDependency(
+            returnType,
+            seenExtensionTypeDeclarations.toSet(),
+            usedTypeAliasBuilders.toSet())) {
+          return true;
+        }
+        if (formals != null) {
+          for (ParameterBuilder formal in formals) {
+            if (_checkRepresentationDependency(
+                formal.type,
+                seenExtensionTypeDeclarations.toSet(),
+                usedTypeAliasBuilders.toSet())) {
+              return true;
+            }
           }
         }
-      }
-    } else if (unaliased is FunctionTypeBuilder) {
-      if (_checkRepresentationDependency(
-          unaliased.returnType,
-          seenExtensionTypeDeclarations.toSet(),
-          usedTypeAliasBuilders.toSet())) {
-        return true;
-      }
-      List<ParameterBuilder>? formals = unaliased.formals;
-      if (formals != null) {
-        for (ParameterBuilder formal in formals) {
-          if (_checkRepresentationDependency(
-              formal.type,
-              seenExtensionTypeDeclarations.toSet(),
-              usedTypeAliasBuilders.toSet())) {
-            return true;
+        if (typeVariables != null) {
+          for (TypeVariableBuilder typeVariable in typeVariables) {
+            TypeBuilder? bound = typeVariable.bound;
+            if (_checkRepresentationDependency(
+                bound,
+                seenExtensionTypeDeclarations.toSet(),
+                usedTypeAliasBuilders.toSet())) {
+              return true;
+            }
           }
         }
-      }
-      List<TypeVariableBuilder>? typeVariables = unaliased.typeVariables;
-      if (typeVariables != null) {
-        for (TypeVariableBuilder typeVariable in typeVariables) {
-          TypeBuilder? bound = typeVariable.bound;
-          if (_checkRepresentationDependency(
-              bound,
-              seenExtensionTypeDeclarations.toSet(),
-              usedTypeAliasBuilders.toSet())) {
-            return true;
+      case RecordTypeBuilder(
+          :List<RecordTypeFieldBuilder>? positionalFields,
+          :List<RecordTypeFieldBuilder>? namedFields
+        ):
+        if (positionalFields != null) {
+          for (RecordTypeFieldBuilder field in positionalFields) {
+            if (_checkRepresentationDependency(
+                field.type,
+                seenExtensionTypeDeclarations.toSet(),
+                usedTypeAliasBuilders.toSet())) {
+              return true;
+            }
           }
         }
-      }
-    } else if (unaliased is RecordTypeBuilder) {
-      List<RecordTypeFieldBuilder>? positionalFields =
-          unaliased.positionalFields;
-      if (positionalFields != null) {
-        for (RecordTypeFieldBuilder field in positionalFields) {
-          if (_checkRepresentationDependency(
-              field.type,
-              seenExtensionTypeDeclarations.toSet(),
-              usedTypeAliasBuilders.toSet())) {
-            return true;
+        if (namedFields != null) {
+          for (RecordTypeFieldBuilder field in namedFields) {
+            if (_checkRepresentationDependency(
+                field.type,
+                seenExtensionTypeDeclarations.toSet(),
+                usedTypeAliasBuilders.toSet())) {
+              return true;
+            }
           }
         }
-      }
-      List<RecordTypeFieldBuilder>? namedFields = unaliased.namedFields;
-      if (namedFields != null) {
-        for (RecordTypeFieldBuilder field in namedFields) {
-          if (_checkRepresentationDependency(
-              field.type,
-              seenExtensionTypeDeclarations.toSet(),
-              usedTypeAliasBuilders.toSet())) {
-            return true;
-          }
-        }
-      }
+      case OmittedTypeBuilder():
+      case FixedTypeBuilder():
+      case InvalidTypeBuilder():
+      case null:
     }
     return false;
   }

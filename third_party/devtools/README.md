@@ -4,8 +4,9 @@ packages from the same revision, used to host and launch DevTools from a Dart pr
 
 To build DevTools and update the CIPD resources, do the following:
 
-- Run ./update.sh <revision> to build DevTools at a given revision and upload it
-  to CIPD. The uploaded CIPD entry will be tagged with `revision:<revision>`
+- Commits on devtools master are automatically built and packaged in CIPD.
+  If a cherry-pick must be rolled into DEPS, then follow
+  go/dart-engprod/devtools.md to manually trigger a secure devtools cipd build.
 - Update DEPS to point to the newly updated DevTools by providing "revision:<revision>"
   as the version entry for "third_party/devtools"
 

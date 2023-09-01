@@ -742,8 +742,10 @@ class AliasedSet : public ZoneAllocated {
   AliasedSet(Zone* zone,
              PointerSet<Place>* places_map,
              ZoneGrowableArray<Place*>* places,
-             PhiPlaceMoves* phi_moves)
+             PhiPlaceMoves* phi_moves,
+             bool print_traces)
       : zone_(zone),
+        print_traces_(print_traces),
         places_map_(places_map),
         places_(*places),
         phi_moves_(phi_moves),
@@ -752,7 +754,7 @@ class AliasedSet : public ZoneAllocated {
         typed_data_access_sizes_(),
         representatives_(),
         killed_(),
-        aliased_by_effects_(new (zone) BitVector(zone, places->length())) {
+        aliased_by_effects_(new(zone) BitVector(zone, places->length())) {
     InsertAlias(Place::CreateAnyInstanceAnyIndexAlias(
         zone_, kAnyInstanceAnyIndexAlias));
     for (intptr_t i = 0; i < places_.length(); i++) {
@@ -879,7 +881,7 @@ class AliasedSet : public ZoneAllocated {
       ComputeKillSet(alias);
     }
 
-    if (FLAG_trace_load_optimization) {
+    if (FLAG_trace_load_optimization && print_traces_) {
       THR_Print("Aliases KILL sets:\n");
       for (intptr_t i = 0; i < aliases_.length(); ++i) {
         const Place* alias = aliases_[i];
@@ -1235,6 +1237,8 @@ class AliasedSet : public ZoneAllocated {
 
   Zone* zone_;
 
+  const bool print_traces_;
+
   PointerSet<Place>* places_map_;
 
   const ZoneGrowableArray<Place*>& places_;
@@ -1301,7 +1305,8 @@ static bool IsPhiDependentPlace(Place* place) {
 // for each block which establish correspondence between phi dependent place
 // and phi input's place that is flowing in.
 static PhiPlaceMoves* ComputePhiMoves(PointerSet<Place>* map,
-                                      ZoneGrowableArray<Place*>* places) {
+                                      ZoneGrowableArray<Place*>* places,
+                                      bool print_traces) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   PhiPlaceMoves* phi_moves = new (zone) PhiPlaceMoves();
@@ -1313,7 +1318,7 @@ static PhiPlaceMoves* ComputePhiMoves(PointerSet<Place>* map,
       PhiInstr* phi = place->instance()->AsPhi();
       BlockEntryInstr* block = phi->GetBlock();
 
-      if (FLAG_trace_optimization) {
+      if (FLAG_trace_optimization && print_traces) {
         THR_Print("phi dependent place %s\n", place->ToCString());
       }
 
@@ -1326,7 +1331,7 @@ static PhiPlaceMoves* ComputePhiMoves(PointerSet<Place>* map,
           result = Place::Wrap(zone, input_place, places->length());
           map->Insert(result);
           places->Add(result);
-          if (FLAG_trace_optimization) {
+          if (FLAG_trace_optimization && print_traces) {
             THR_Print("  adding place %s as %" Pd "\n", result->ToCString(),
                       result->id());
           }
@@ -1383,7 +1388,7 @@ static AliasedSet* NumberPlaces(FlowGraph* graph,
         map->Insert(result);
         places->Add(result);
 
-        if (FLAG_trace_optimization) {
+        if (FLAG_trace_optimization && graph->should_print()) {
           THR_Print("numbering %s as %" Pd "\n", result->ToCString(),
                     result->id());
         }
@@ -1400,10 +1405,12 @@ static AliasedSet* NumberPlaces(FlowGraph* graph,
     return nullptr;
   }
 
-  PhiPlaceMoves* phi_moves = ComputePhiMoves(map, places);
+  PhiPlaceMoves* phi_moves =
+      ComputePhiMoves(map, places, graph->should_print());
 
   // Build aliasing sets mapping aliases to loads.
-  return new (zone) AliasedSet(zone, map, places, phi_moves);
+  return new (zone)
+      AliasedSet(zone, map, places, phi_moves, graph->should_print());
 }
 
 // Load instructions handled by load elimination.
@@ -1427,7 +1434,7 @@ LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
 void LICM::Hoist(ForwardInstructionIterator* it,
                  BlockEntryInstr* pre_header,
                  Instruction* current) {
-  if (FLAG_trace_optimization) {
+  if (FLAG_trace_optimization && flow_graph_->should_print()) {
     THR_Print("Hoisting instruction %s:%" Pd " from B%" Pd " to B%" Pd "\n",
               current->DebugName(), current->GetDeoptId(),
               current->GetBlock()->block_id(), pre_header->block_id());
@@ -2114,7 +2121,7 @@ class LoadOptimizer : public ValueObject {
                 ASSERT((out_values != nullptr) &&
                        ((*out_values)[place_id] != nullptr));
                 if ((*out_values)[place_id] == GetStoredValue(instr)) {
-                  if (FLAG_trace_optimization) {
+                  if (FLAG_trace_optimization && graph_->should_print()) {
                     THR_Print("Removing redundant store to place %" Pd
                               " in block B%" Pd "\n",
                               GetPlaceId(instr), block->block_id());
@@ -2265,7 +2272,7 @@ class LoadOptimizer : public ValueObject {
           Definition* replacement = (*out_values)[place_id];
           if (CanForwardLoadTo(defn, replacement)) {
             graph_->EnsureSSATempIndex(defn, replacement);
-            if (FLAG_trace_optimization) {
+            if (FLAG_trace_optimization && graph_->should_print()) {
               THR_Print("Replacing load v%" Pd " with v%" Pd "\n",
                         defn->ssa_temp_index(), replacement->ssa_temp_index());
             }
@@ -2470,7 +2477,7 @@ class LoadOptimizer : public ValueObject {
         }
       }
 
-      if (FLAG_trace_load_optimization) {
+      if (FLAG_trace_load_optimization && graph_->should_print()) {
         THR_Print("B%" Pd "\n", block->block_id());
         THR_Print("  IN: ");
         aliased_set_->PrintSet(in_[preorder_number]);
@@ -2531,7 +2538,7 @@ class LoadOptimizer : public ValueObject {
         loop_gen->RemoveAll(kill_[preorder_number]);
       }
 
-      if (FLAG_trace_optimization) {
+      if (FLAG_trace_optimization && graph_->should_print()) {
         for (BitVector::Iterator it(loop_gen); !it.Done(); it.Advance()) {
           THR_Print("place %s is loop invariant for B%" Pd "\n",
                     aliased_set_->places()[it.Current()]->ToCString(),
@@ -2604,7 +2611,8 @@ class LoadOptimizer : public ValueObject {
     graph_->AllocateSSAIndex(phi);
     phis_.Add(phi);  // Postpone phi insertion until after load forwarding.
 
-    if (FLAG_support_il_printer && FLAG_trace_load_optimization) {
+    if (FLAG_support_il_printer && FLAG_trace_load_optimization &&
+        graph_->should_print()) {
       THR_Print("created pending phi %s for %s at B%" Pd "\n", phi->ToCString(),
                 aliased_set_->places()[place_id]->ToCString(),
                 block->block_id());
@@ -2641,7 +2649,7 @@ class LoadOptimizer : public ValueObject {
         if ((load != replacement) && CanForwardLoadTo(load, replacement)) {
           graph_->EnsureSSATempIndex(load, replacement);
 
-          if (FLAG_trace_optimization) {
+          if (FLAG_trace_optimization && graph_->should_print()) {
             THR_Print("Replacing load v%" Pd " with v%" Pd "\n",
                       load->ssa_temp_index(), replacement->ssa_temp_index());
           }
@@ -2827,7 +2835,8 @@ class LoadOptimizer : public ValueObject {
         ASSERT(Dominates(b, a));
       }
 
-      if (FLAG_support_il_printer && FLAG_trace_load_optimization) {
+      if (FLAG_support_il_printer && FLAG_trace_load_optimization &&
+          graph_->should_print()) {
         THR_Print("Replacing %s with congruent %s\n", a->ToCString(),
                   b->ToCString());
       }
@@ -3024,7 +3033,7 @@ class StoreOptimizer : public LivenessAnalysis {
  private:
   void Optimize() {
     Analyze();
-    if (FLAG_trace_load_optimization) {
+    if (FLAG_trace_load_optimization && graph_->should_print()) {
       Dump();
     }
     EliminateDeadStores();
@@ -3109,7 +3118,7 @@ class StoreOptimizer : public LivenessAnalysis {
           if (kill->Contains(GetPlaceId(instr))) {
             if (!live_in->Contains(GetPlaceId(instr)) &&
                 CanEliminateStore(instr)) {
-              if (FLAG_trace_optimization) {
+              if (FLAG_trace_optimization && graph_->should_print()) {
                 THR_Print("Removing dead store to place %" Pd " in block B%" Pd
                           "\n",
                           GetPlaceId(instr), block->block_id());
@@ -3191,7 +3200,7 @@ class StoreOptimizer : public LivenessAnalysis {
       }
       exposed_stores_[postorder_number] = exposed_stores;
     }
-    if (FLAG_trace_load_optimization) {
+    if (FLAG_trace_load_optimization && graph_->should_print()) {
       Dump();
       THR_Print("---\n");
     }
@@ -3225,7 +3234,7 @@ class StoreOptimizer : public LivenessAnalysis {
         // in live-out.
         if (!live_out->Contains(GetPlaceId(instr)) &&
             CanEliminateStore(instr)) {
-          if (FLAG_trace_optimization) {
+          if (FLAG_trace_optimization && graph_->should_print()) {
             THR_Print("Removing dead store to place %" Pd " block B%" Pd "\n",
                       GetPlaceId(instr), block->block_id());
           }
@@ -3276,8 +3285,6 @@ static bool IsSupportedAllocation(Instruction* instr) {
           IsValidLengthForAllocationSinking(instr->AsArrayAllocation()));
 }
 
-enum SafeUseCheck { kOptimisticCheck, kStrictCheck };
-
 // Check if the use is safe for allocation sinking. Allocation sinking
 // candidates can only be used as inputs to store and allocation instructions:
 //
@@ -3300,7 +3307,7 @@ enum SafeUseCheck { kOptimisticCheck, kStrictCheck };
 // Fix-point algorithm in CollectCandidates first collects a set of allocations
 // optimistically and then checks each collected candidate strictly and unmarks
 // invalid candidates transitively until only strictly valid ones remain.
-static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
+bool AllocationSinking::IsSafeUse(Value* use, SafeUseCheck check_type) {
   ASSERT(IsSupportedAllocation(use->definition()));
 
   if (use->instruction()->IsMaterializeObject()) {
@@ -3361,12 +3368,13 @@ static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
 // Right now we are attempting to sink allocation only into
 // deoptimization exit. So candidate should only be used in StoreField
 // instructions that write into fields of the allocated object.
-static bool IsAllocationSinkingCandidate(Definition* alloc,
-                                         SafeUseCheck check_type) {
+bool AllocationSinking::IsAllocationSinkingCandidate(Definition* alloc,
+                                                     SafeUseCheck check_type) {
   for (Value* use = alloc->input_use_list(); use != nullptr;
        use = use->next_use()) {
     if (!IsSafeUse(use, check_type)) {
-      if (FLAG_support_il_printer && FLAG_trace_optimization) {
+      if (FLAG_support_il_printer && FLAG_trace_optimization &&
+          flow_graph_->should_print()) {
         THR_Print("use of %s at %s is unsafe for allocation sinking\n",
                   alloc->ToCString(), use->instruction()->ToCString());
       }
@@ -3409,7 +3417,7 @@ static Definition* LoadSource(Definition* instr) {
 void AllocationSinking::EliminateAllocation(Definition* alloc) {
   ASSERT(IsAllocationSinkingCandidate(alloc, kStrictCheck));
 
-  if (FLAG_trace_optimization) {
+  if (FLAG_trace_optimization && flow_graph_->should_print()) {
     THR_Print("removing allocation from the graph: v%" Pd "\n",
               alloc->ssa_temp_index());
   }
@@ -3500,7 +3508,7 @@ void AllocationSinking::CollectCandidates() {
   for (intptr_t i = 0; i < candidates_.length(); i++) {
     Definition* alloc = candidates_[i];
     if (alloc->Identity().IsAllocationSinkingCandidate()) {
-      if (FLAG_trace_optimization) {
+      if (FLAG_trace_optimization && flow_graph_->should_print()) {
         THR_Print("discovered allocation sinking candidate: v%" Pd "\n",
                   alloc->ssa_temp_index());
       }
@@ -3590,7 +3598,7 @@ void AllocationSinking::DiscoverFailedCandidates() {
   for (intptr_t i = 0; i < candidates_.length(); i++) {
     Definition* alloc = candidates_[i];
     if (!alloc->Identity().IsAllocationSinkingCandidate()) {
-      if (FLAG_trace_optimization) {
+      if (FLAG_trace_optimization && flow_graph_->should_print()) {
         THR_Print("allocation v%" Pd " can't be eliminated\n",
                   alloc->ssa_temp_index());
       }
@@ -4392,7 +4400,7 @@ void DeadCodeElimination::RemoveDeadAndRedundantPhisFromTheGraph(
             phi->ReplaceUsesWith(flow_graph->constant_null());
             phi->UnuseAllInputs();
             (*join->phis_)[i] = nullptr;
-            if (FLAG_trace_optimization) {
+            if (FLAG_trace_optimization && flow_graph->should_print()) {
               THR_Print("Removing dead phi v%" Pd "\n", phi->ssa_temp_index());
             }
           } else {

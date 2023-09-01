@@ -383,7 +383,7 @@ class Compiler {
 
     checkQueue(resolutionEnqueuer);
 
-    JClosedWorld closedWorld =
+    JClosedWorld? closedWorld =
         closeResolution(mainFunction!, resolutionEnqueuer.worldBuilder);
     return closedWorld;
   }
@@ -614,9 +614,9 @@ class Compiler {
       final closedWorld =
           computeClosedWorld(component, moduleData, rootLibraryUri, libraries);
       closedWorldAndIndices = DataAndIndices<JClosedWorld>(closedWorld, null);
-      if (stage == Dart2JSStage.closedWorld) {
+      if (stage == Dart2JSStage.closedWorld && closedWorld != null) {
         serializationTask.serializeComponent(
-            closedWorld!.elementMap.programEnv.mainComponent,
+            closedWorld.elementMap.programEnv.mainComponent,
             includeSourceBytes: false);
         serializationTask.serializeClosedWorld(closedWorld);
       }
@@ -639,6 +639,7 @@ class Compiler {
       closedWorldAndIndices == null ||
       closedWorldAndIndices.data == null ||
       stage == Dart2JSStage.closedWorld ||
+      stage == Dart2JSStage.deferredLoadIds ||
       stopAfterClosedWorldForTesting;
 
   Future<DataAndIndices<GlobalTypeInferenceResults>>
@@ -792,12 +793,13 @@ class Compiler {
   }
 
   /// Perform the steps needed to fully end the resolution phase.
-  JClosedWorld closeResolution(FunctionEntity mainFunction,
+  JClosedWorld? closeResolution(FunctionEntity mainFunction,
       ResolutionWorldBuilder resolutionWorldBuilder) {
     resolutionStatus = RESOLUTION_STATUS_DONE_RESOLVING;
 
     KClosedWorld kClosedWorld = resolutionWorldBuilder.closeWorld(reporter);
     OutputUnitData result = deferredLoadTask.run(mainFunction, kClosedWorld);
+    if (options.stage == Dart2JSStage.deferredLoadIds) return null;
 
     // Impact data is no longer needed.
     if (!retainDataForTesting) {

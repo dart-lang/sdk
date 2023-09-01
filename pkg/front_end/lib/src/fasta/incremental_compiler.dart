@@ -96,9 +96,7 @@ import 'builder/member_builder.dart' show MemberBuilder;
 
 import 'builder/name_iterator.dart' show NameIterator;
 
-import 'builder/named_type_builder.dart' show NamedTypeBuilder;
-
-import 'builder/type_builder.dart' show TypeBuilder;
+import 'builder/type_builder.dart' show NamedTypeBuilder, TypeBuilder;
 
 import 'builder/type_declaration_builder.dart' show TypeDeclarationBuilder;
 

@@ -54,6 +54,9 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     if (element is ExtensionElement) {
       return 'Rename Extension';
     }
+    if (element is ExtensionTypeElement) {
+      return 'Rename Extension Type';
+    }
     if (element is FunctionElement) {
       return 'Rename Top-Level Function';
     }
@@ -93,17 +96,20 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   RefactoringStatus checkNewName() {
     var result = super.checkNewName();
-    if (element is TopLevelVariableElement) {
-      result.addStatus(validateVariableName(newName));
+    if (element is ExtensionTypeElement) {
+      result.addStatus(validateExtensionTypeName(newName));
     }
     if (element is FunctionElement) {
       result.addStatus(validateFunctionName(newName));
     }
-    if (element is TypeAliasElement) {
-      result.addStatus(validateTypeAliasName(newName));
-    }
     if (element is InterfaceElement) {
       result.addStatus(validateClassName(newName));
+    }
+    if (element is TopLevelVariableElement) {
+      result.addStatus(validateVariableName(newName));
+    }
+    if (element is TypeAliasElement) {
+      result.addStatus(validateTypeAliasName(newName));
     }
     return result;
   }

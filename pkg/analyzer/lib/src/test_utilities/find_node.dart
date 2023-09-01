@@ -140,6 +140,11 @@ class FindNode {
   RedirectingConstructorInvocation get singleRedirectingConstructorInvocation =>
       _single();
 
+  RepresentationConstructorName get singleRepresentationConstructorName =>
+      _single();
+
+  RepresentationDeclaration get singleRepresentationDeclaration => _single();
+
   RethrowExpression get singleRethrowExpression => _single();
 
   SetOrMapLiteral get singleSetOrMapLiteral => _single();

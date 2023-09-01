@@ -2,23 +2,50 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/instantiate_to_bound/non_simple_class_parametrized_typedef_cycle2.dart:11:9: Error: Generic type 'Fisk' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through 'Hest'.
-// Try providing type arguments to 'Hest' here or to some other raw types in the bounds along the reference chain.
-// typedef Fisk = void Function<TypeY extends Hest>();
-//         ^^^^
-// pkg/front_end/testcases/instantiate_to_bound/non_simple_class_parametrized_typedef_cycle2.dart:11:30: Context: Bound of this variable references raw type 'Hest'.
-// typedef Fisk = void Function<TypeY extends Hest>();
-//                              ^^^^^
-// pkg/front_end/testcases/instantiate_to_bound/non_simple_class_parametrized_typedef_cycle2.dart:9:12: Context: Bound of this variable references raw type 'Fisk'.
-// class Hest<TypeX extends Fisk> {}
-//            ^^^^^
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_class_parametrized_typedef_cycle2.dart:9:7: Error: Generic type 'Class1' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through 'Typedef1'.
+// Try providing type arguments to 'Typedef1' here or to some other raw types in the bounds along the reference chain.
+// class Class1<X1 extends Typedef1> {}
+//       ^^^^^^
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_class_parametrized_typedef_cycle2.dart:9:14: Context: Bound of this variable references raw type 'Typedef1'.
+// class Class1<X1 extends Typedef1> {}
+//              ^^
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_class_parametrized_typedef_cycle2.dart:11:34: Context: Bound of this variable references raw type 'Class1'.
+// typedef Typedef1 = void Function<Y1 extends Class1>();
+//                                  ^^
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_class_parametrized_typedef_cycle2.dart:13:7: Error: Generic type 'Class2' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through 'Typedef2'.
+// Try providing type arguments to 'Typedef2' here or to some other raw types in the bounds along the reference chain.
+// class Class2<X2 extends Typedef2> {}
+//       ^^^^^^
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_class_parametrized_typedef_cycle2.dart:13:14: Context: Bound of this variable references raw type 'Typedef2'.
+// class Class2<X2 extends Typedef2> {}
+//              ^^
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_class_parametrized_typedef_cycle2.dart:15:34: Context: Bound of this variable references raw type 'Class2'.
+// typedef Typedef2 = void Function<Y2 extends (Class2, int)>();
+//                                  ^^
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_class_parametrized_typedef_cycle2.dart:19:9: Error: The typedef 'Typedef3' has a reference to itself.
+// typedef Typedef3 = (void Function<Y3 extends Class3>(), int);
+//         ^
 //
 import self as self;
 import "dart:core" as core;
 
-typedef Fisk = <TypeY extends core::Object? = dynamic>() → void;
-class Hest<TypeX extends <TypeY extends core::Object? = dynamic>() → void> extends core::Object {
-  synthetic constructor •() → self::Hest<self::Hest::TypeX>
+typedef Typedef1 = <Y1 extends self::Class1<dynamic> = dynamic>() → void;
+typedef Typedef2 = <Y2 extends (self::Class2<dynamic>, core::int) = dynamic>() → void;
+typedef Typedef3 = invalid-type;
+class Class1<X1 extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class1<self::Class1::X1%>
+    : super core::Object::•()
+    ;
+}
+class Class2<X2 extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class2<self::Class2::X2%>
+    : super core::Object::•()
+    ;
+}
+class Class3<X3 extends invalid-type> extends core::Object {
+  synthetic constructor •() → self::Class3<self::Class3::X3%>
     : super core::Object::•()
     ;
 }
