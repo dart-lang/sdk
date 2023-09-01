@@ -47049,6 +47049,38 @@ library
 ''');
   }
 
+  test_documentation() async {
+    var library = await buildLibrary(r'''
+/// Docs
+extension type A(int it) {
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @24
+        documentationComment: /// Docs
+        representation: self::@extensionType::A::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @30
+            type: int
+        constructors
+          @24
+            parameters
+              requiredPositional final this.it @30
+                type: int
+                field: self::@extensionType::A::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
   test_field_const_typed() async {
     var library = await buildLibrary(r'''
 extension type A(int it) {
