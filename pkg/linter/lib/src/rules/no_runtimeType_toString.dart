@@ -33,11 +33,11 @@ class A {
 This lint has some exceptions where performance is not a problem or where real
 type information is more important than performance:
 
-* in assertion
-* in throw expressions
-* in catch clauses
-* in mixin declaration
-* in abstract class
+* in an assertion
+* in a throw expression
+* in a catch clause
+* in a mixin declaration
+* in an abstract class declaration
 
 ''';
 
@@ -71,23 +71,19 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
-    if (_canSkip(node)) {
-      return;
-    }
-    if (_isRuntimeTypeAccess(node.expression)) {
-      rule.reportLint(node.expression);
-    }
+    if (!_isRuntimeTypeAccess(node.expression)) return;
+    if (_canSkip(node)) return;
+
+    rule.reportLint(node.expression);
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (_canSkip(node)) {
-      return;
-    }
-    if (node.methodName.name == 'toString' &&
-        _isRuntimeTypeAccess(node.realTarget)) {
-      rule.reportLint(node.methodName);
-    }
+    if (node.methodName.name != 'toString') return;
+    if (!_isRuntimeTypeAccess(node.realTarget)) return;
+    if (_canSkip(node)) return;
+
+    rule.reportLint(node.methodName);
   }
 
   bool _canSkip(AstNode node) =>
