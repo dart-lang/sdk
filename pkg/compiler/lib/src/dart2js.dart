@@ -493,6 +493,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     _OneOption(Flags.disableRtiOptimization, passThrough),
     _OneOption(Flags.terse, passThrough),
     _OneOption('--deferred-map=.+', passThrough),
+    _OneOption('${Flags.deferredLoadIdMapUri}=.+',
+        setDataUri(Flags.deferredLoadIdMapUri)),
     _OneOption('${Flags.writeProgramSplit}=.+', passThrough),
     _OneOption('${Flags.readProgramSplit}=.+', passThrough),
     _OneOption('${Flags.dumpInfo}|${Flags.dumpInfo}=.+', setDumpInfo),
@@ -774,6 +776,13 @@ Future<api.CompilationResult> compile(List<String> argv,
         inputSize = inputProvider.bytesRead;
         summary = 'Dart file $input ';
         break;
+      case Dart2JSStage.deferredLoadIds:
+        final sourceCharCount =
+            _formatCharacterCount(inputProvider.sourceBytesFromDill);
+        inputName = 'input bytes ($sourceCharCount characters source)';
+        inputSize = inputProvider.bytesRead;
+        summary = 'Dart file $input ';
+        break;
       case Dart2JSStage.globalInference:
         inputName = 'bytes data';
         inputSize = inputProvider.bytesRead;
@@ -860,6 +869,16 @@ Future<api.CompilationResult> compile(List<String> argv,
             compilerOptions.dataOutputUriForStage(compilerOptions.stage),
             Platform.isWindows);
         summary += 'serialized to dill and data: ${output} and ${dataOutput}.';
+        break;
+      case Dart2JSStage.deferredLoadIds:
+        processName = 'Serialized';
+        outputName = 'character map';
+        outputSize = outputProvider.totalCharactersWritten;
+        String dataOutput = fe.relativizeUri(
+            Uri.base,
+            compilerOptions.dataOutputUriForStage(compilerOptions.stage),
+            Platform.isWindows);
+        summary += 'mapped to: ${dataOutput}.';
         break;
       case Dart2JSStage.globalInference:
         processName = 'Serialized';

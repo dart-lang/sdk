@@ -268,6 +268,8 @@
 // contains a bigger delta.)
 library deferred_load;
 
+import 'dart:convert';
+
 import '../../compiler_api.dart' as api show OutputType;
 import '../common.dart';
 import '../common/elements.dart' show KElementEnvironment;
@@ -280,6 +282,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/kernel_world.dart' show KClosedWorld;
+import '../options.dart';
 import '../util/util.dart' show makeUnique;
 import 'algorithm_state.dart';
 import 'entity_data.dart';
@@ -428,6 +431,9 @@ class DeferredLoadTask extends CompilerTask {
     return '';
   }
 
+  bool get generateDeferredLoadIdMap =>
+      compiler.options.stage == Dart2JSStage.deferredLoadIds;
+
   /// Performs the deferred loading algorithm.
   ///
   /// See the top-level library comment for details.
@@ -484,26 +490,33 @@ class DeferredLoadTask extends CompilerTask {
     if (deferredGraphUri != null) {
       _dumpDeferredGraph(deferredGraphUri);
     }
+    bool updateMaps = true;
+    if (generateDeferredLoadIdMap) {
+      _writeDeferredLoadIdMap();
+      updateMaps = false;
+    }
     Map<ClassEntity, OutputUnit> classMap = {};
     Map<ClassEntity, OutputUnit> classTypeMap = {};
     Map<MemberEntity, OutputUnit> memberMap = {};
     Map<Local, OutputUnit> localFunctionMap = {};
     Map<ConstantValue, OutputUnit> constantMap = {};
-    algorithmState?.entityToSet.forEach((d, s) {
-      if (d is ClassEntityData) {
-        classMap[d.entity] = s.unit!;
-      } else if (d is ClassTypeEntityData) {
-        classTypeMap[d.entity] = s.unit!;
-      } else if (d is MemberEntityData) {
-        memberMap[d.entity] = s.unit!;
-      } else if (d is LocalFunctionEntityData) {
-        localFunctionMap[d.entity] = s.unit!;
-      } else if (d is ConstantEntityData) {
-        constantMap[d.entity] = s.unit!;
-      } else {
-        throw 'Unrecognized EntityData $d';
-      }
-    });
+    if (updateMaps) {
+      algorithmState?.entityToSet.forEach((d, s) {
+        if (d is ClassEntityData) {
+          classMap[d.entity] = s.unit!;
+        } else if (d is ClassTypeEntityData) {
+          classTypeMap[d.entity] = s.unit!;
+        } else if (d is MemberEntityData) {
+          memberMap[d.entity] = s.unit!;
+        } else if (d is LocalFunctionEntityData) {
+          localFunctionMap[d.entity] = s.unit!;
+        } else if (d is ConstantEntityData) {
+          constantMap[d.entity] = s.unit!;
+        } else {
+          throw 'Unrecognized EntityData $d';
+        }
+      });
+    }
     algorithmState = null;
     importSets = null;
     return OutputUnitData(
@@ -641,5 +654,28 @@ class DeferredLoadTask extends CompilerTask {
       sb.write('\n ${text[outputUnit]}');
     }
     return sb.toString();
+  }
+
+  void _writeDeferredLoadIdMap() {
+    Map<String, dynamic> topLevel = {};
+    // Json does not support comments, so we embed the explanation in the
+    // data.
+    topLevel['_comment'] =
+        'This mapping shows the runtime deferred load id for each deferred '
+        'import in the program. The mappings are grouped by URI containing the '
+        'import.';
+    final mapping = <String, Map<String, String>>{};
+    topLevel['mapping'] = mapping;
+    importDeferName.forEach((import, deferredName) {
+      (mapping['${import.uri}'] ??= {})[import.name!] = deferredName;
+    });
+    compiler.outputProvider.createOutputSink(
+        compiler.options
+            .dataOutputUriForStage(Dart2JSStage.deferredLoadIds)
+            .path,
+        '',
+        api.OutputType.deferredLoadIds)
+      ..add(const JsonEncoder.withIndent("  ").convert(topLevel))
+      ..close();
   }
 }
