@@ -556,12 +556,14 @@ Rti substitute(Object? rti, Object? typeArguments) =>
 /// Returns a single binding [Rti] in the order of the provided [rtis].
 Rti bindingRtiFromList(JSArray rtis) {
   Rti binding = _rtiEval(
-      rtis[0],
+      _Utils.asRti(rtis[0]),
       '@'
       '${Recipe.startTypeArgumentsString}'
       '0'
       '${Recipe.endTypeArgumentsString}');
-  for (int i = 1; i < rtis.length; i++) binding = _rtiBind(binding, rtis[i]);
+  for (int i = 1; i < rtis.length; i++) {
+    binding = _rtiBind(binding, _Utils.asRti(rtis[i]));
+  }
   return binding;
 }
 
