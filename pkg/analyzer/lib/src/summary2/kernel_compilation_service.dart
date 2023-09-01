@@ -36,6 +36,7 @@ class KernelCompilationService {
       return instance;
     }
 
+    final executablePath = io.Platform.resolvedExecutable;
     final sdkPaths = _computeSdkPaths();
 
     final socketCompleter = Completer<io.Socket>();
@@ -47,23 +48,10 @@ class KernelCompilationService {
     final host = serverSocket.address.address;
     final addressStr = '$host:${serverSocket.port}';
 
-    final io.Process process;
-    if (io.File(sdkPaths.frontEndAotSnapshot).existsSync()) {
-      final aotRuntimePath = package_path.join(
-          package_path.dirname(io.Platform.resolvedExecutable),
-          'dartaotruntime');
-      process = await io.Process.start(aotRuntimePath, [
-        sdkPaths.frontEndAotSnapshot,
-        '--binary-protocol-address=$addressStr',
-      ]);
-    } else {
-      // AOT snapshots cannot be generated on IA32, so we need this fallback
-      // branch until support for IA32 is dropped (https://dartbug.com/49969).
-      process = await io.Process.start(io.Platform.resolvedExecutable, [
-        sdkPaths.frontEndSnapshot,
-        '--binary-protocol-address=$addressStr',
-      ]);
-    }
+    final process = await io.Process.start(executablePath, [
+      sdkPaths.frontEndSnapshot,
+      '--binary-protocol-address=$addressStr',
+    ]);
 
     // When the process exits, we should not try to continue using it.
     // ignore: unawaited_futures
@@ -162,13 +150,9 @@ class KernelCompilationService {
     final runFiles = io.Platform.environment['RUNFILES'];
     if (runFiles != null) {
       final frontServerPath = io.Platform.environment['FRONTEND_SERVER_PATH']!;
-      final frontendServerAotSnapshotPath =
-          io.Platform.environment['FRONTEND_SERVER_AOT_SNAPSHOT_PATH']!;
       final platformDillPath = io.Platform.environment['PLATFORM_DILL_PATH']!;
       return _SdkPaths(
         frontEndSnapshot: package_path.join(runFiles, frontServerPath),
-        frontEndAotSnapshot:
-            package_path.join(runFiles, frontendServerAotSnapshotPath),
         platformDill: package_path.join(runFiles, platformDillPath),
       );
     }
@@ -180,8 +164,6 @@ class KernelCompilationService {
     return _SdkPaths(
       frontEndSnapshot: package_path.join(
           binPath, 'snapshots', 'frontend_server.dart.snapshot'),
-      frontEndAotSnapshot: package_path.join(
-          binPath, 'snapshots', 'frontend_server_aot.dart.snapshot'),
       platformDill: package_path.join(
           sdkPath, 'lib', '_internal', 'vm_platform_strong.dill'),
     );
@@ -240,12 +222,10 @@ class _Lock {
 
 class _SdkPaths {
   final String frontEndSnapshot;
-  final String frontEndAotSnapshot;
   final String platformDill;
 
   _SdkPaths({
     required this.frontEndSnapshot,
-    required this.frontEndAotSnapshot,
     required this.platformDill,
   });
 }
