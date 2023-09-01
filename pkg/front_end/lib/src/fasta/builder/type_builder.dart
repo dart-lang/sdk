@@ -8,11 +8,15 @@ import 'package:kernel/ast.dart' show DartType, Supertype;
 import 'package:kernel/class_hierarchy.dart';
 
 import '../kernel/type_algorithms.dart';
+import '../messages.dart';
+import '../scope.dart';
 import '../source/source_library_builder.dart';
+import 'formal_parameter_builder.dart';
+import 'invalid_type_declaration_builder.dart';
 import 'library_builder.dart';
-import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'omitted_type_builder.dart';
+import 'record_type_builder.dart';
 import 'type_alias_builder.dart';
 import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
@@ -275,7 +279,7 @@ enum TypeUse {
   macroTypeArgument,
 }
 
-abstract class TypeBuilder {
+sealed class TypeBuilder {
   const TypeBuilder();
 
   TypeDeclarationBuilder? get declaration => null;
@@ -429,60 +433,51 @@ abstract class TypeBuilder {
       this;
 }
 
-abstract class InferableType {
-  /// Triggers inference of this type.
-  ///
-  /// If an [Inferable] has been register, this is called to infer the type of
-  /// this builder. Otherwise the type is inferred to be `dynamic`.
-  DartType inferType(ClassHierarchyBase hierarchy);
+abstract class OmittedTypeBuilder extends TypeBuilder {
+  const OmittedTypeBuilder();
+
+  bool get hasType;
+
+  DartType get type;
 }
 
-class InferableTypeUse implements InferableType {
-  final SourceLibraryBuilder sourceLibraryBuilder;
-  final TypeBuilder typeBuilder;
-  final TypeUse typeUse;
-
-  InferableTypeUse(this.sourceLibraryBuilder, this.typeBuilder, this.typeUse);
-
+abstract class FunctionTypeBuilder extends TypeBuilder {
   @override
-  DartType inferType(ClassHierarchyBase hierarchy) {
-    return typeBuilder.build(sourceLibraryBuilder, typeUse,
-        hierarchy: hierarchy);
-  }
+  int get charOffset;
+  TypeBuilder get returnType;
+  List<ParameterBuilder>? get formals;
+  List<TypeVariableBuilder>? get typeVariables;
 }
 
-mixin InferableTypeBuilderMixin implements TypeBuilder {
-  bool get hasType => _type != null;
+abstract class InvalidTypeBuilder extends TypeBuilder {}
 
-  DartType? _type;
-
-  DartType get type => _type!;
-
-  List<InferredTypeListener>? _listeners;
-
+abstract class NamedTypeBuilder extends TypeBuilder {
   @override
-  void registerInferredTypeListener(InferredTypeListener onType) {
-    if (isExplicit) return;
-    if (hasType) {
-      onType.onInferredType(type);
-    } else {
-      (_listeners ??= []).add(onType);
-    }
-  }
+  Object get name;
 
-  DartType registerType(DartType type) {
-    // TODO(johnniwinther): Avoid multiple registration from enums and
-    //  duplicated fields.
-    if (_type == null) {
-      _type = type;
-      List<InferredTypeListener>? listeners = _listeners;
-      if (listeners != null) {
-        _listeners = null;
-        for (InferredTypeListener listener in listeners) {
-          listener.onInferredType(type);
-        }
-      }
-    }
-    return _type!;
-  }
+  int get nameOffset;
+
+  int get nameLength;
+
+  void resolveIn(
+      Scope scope, int charOffset, Uri fileUri, LibraryBuilder library);
+  void bind(LibraryBuilder libraryBuilder, TypeDeclarationBuilder declaration);
+  List<TypeBuilder>? get arguments;
+  NamedTypeBuilder withArguments(List<TypeBuilder> arguments);
+  InvalidTypeDeclarationBuilder buildInvalidTypeDeclarationBuilder(
+      LocatedMessage message,
+      {List<LocatedMessage>? context});
+}
+
+abstract class RecordTypeBuilder extends TypeBuilder {
+  List<RecordTypeFieldBuilder>? get positionalFields;
+  List<RecordTypeFieldBuilder>? get namedFields;
+  @override
+  int get charOffset;
+  @override
+  Uri get fileUri;
+}
+
+abstract class FixedTypeBuilder extends TypeBuilder {
+  const FixedTypeBuilder();
 }

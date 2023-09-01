@@ -13,15 +13,18 @@ import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
 import '../kernel/implicit_field_type.dart';
 import '../source/source_library_builder.dart';
 import 'formal_parameter_builder.dart';
+import 'inferable_type_builder.dart';
 import 'library_builder.dart';
-import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
 
-abstract class FunctionTypeBuilder extends TypeBuilder {
+abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
+  @override
   final TypeBuilder returnType;
+  @override
   final List<TypeVariableBuilder>? typeVariables;
+  @override
   final List<ParameterBuilder>? formals;
   @override
   final NullabilityBuilder nullabilityBuilder;
@@ -30,7 +33,7 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
   @override
   final int charOffset;
 
-  factory FunctionTypeBuilder(
+  factory FunctionTypeBuilderImpl(
       TypeBuilder returnType,
       List<TypeVariableBuilder>? typeVariables,
       List<ParameterBuilder>? formals,
@@ -64,7 +67,7 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
             nullabilityBuilder, fileUri, charOffset);
   }
 
-  FunctionTypeBuilder._(this.returnType, this.typeVariables, this.formals,
+  FunctionTypeBuilderImpl._(this.returnType, this.typeVariables, this.formals,
       this.nullabilityBuilder, this.fileUri, this.charOffset);
 
   @override
@@ -190,7 +193,7 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
         return formal.clone(newTypes, contextLibrary, contextDeclaration);
       }, growable: false);
     }
-    return new FunctionTypeBuilder(
+    return new FunctionTypeBuilderImpl(
         returnType.clone(newTypes, contextLibrary, contextDeclaration),
         clonedTypeVariables,
         clonedFormals,
@@ -202,7 +205,7 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
   @override
   FunctionTypeBuilder withNullabilityBuilder(
       NullabilityBuilder nullabilityBuilder) {
-    return new FunctionTypeBuilder(returnType, typeVariables, formals,
+    return new FunctionTypeBuilderImpl(returnType, typeVariables, formals,
         nullabilityBuilder, fileUri, charOffset);
   }
 }
@@ -211,7 +214,7 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
 ///
 /// This is the normal function type whose return type or parameter types are
 /// either explicit or omitted.
-class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilder {
+class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilderImpl {
   _ExplicitFunctionTypeBuilder(
       TypeBuilder returnType,
       List<TypeVariableBuilder>? typeVariables,
@@ -239,7 +242,7 @@ class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilder {
 /// This occurs through macros where return type or parameter types can be
 /// defined in terms of inferred types, making this type indirectly depend
 /// on type inference.
-class _InferredFunctionTypeBuilder extends FunctionTypeBuilder
+class _InferredFunctionTypeBuilder extends FunctionTypeBuilderImpl
     with InferableTypeBuilderMixin {
   _InferredFunctionTypeBuilder(
       TypeBuilder returnType,

@@ -29,7 +29,6 @@ import '../../api_prototype/lowering_predicates.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
-import '../builder/function_type_builder.dart';
 import '../builder/invalid_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -1474,7 +1473,7 @@ class OutlineBuilder extends StackListenerImpl {
     Object? onType = pop();
     if (onType is ParserRecovery) {
       ParserRecovery parserRecovery = onType;
-      onType = new FixedTypeBuilder(
+      onType = new FixedTypeBuilderImpl(
           const InvalidType(), uri, parserRecovery.charOffset);
     }
     List<TypeVariableBuilder>? typeVariables =
@@ -1942,7 +1941,7 @@ class OutlineBuilder extends StackListenerImpl {
       substitution = {};
       for (int i = 0; i < synthesizedTypeVariables.length; i++) {
         substitution[enclosingDeclarationScopeBuilder.typeVariables![i]] =
-            new NamedTypeBuilder.fromTypeDeclarationBuilder(
+            new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
                 synthesizedTypeVariables[i], const NullabilityBuilder.omitted(),
                 instanceTypeVariableAccess:
                     declarationContext.instanceTypeVariableAccessState);
@@ -2139,7 +2138,7 @@ class OutlineBuilder extends StackListenerImpl {
                     ? new List<TypeBuilder>.generate(
                         declaration.typeVariables!.length,
                         (int index) =>
-                            new NamedTypeBuilder.fromTypeDeclarationBuilder(
+                            new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
                                 typeVariables![index],
                                 const NullabilityBuilder.omitted(),
                                 instanceTypeVariableAccess:
@@ -2907,7 +2906,7 @@ class OutlineBuilder extends StackListenerImpl {
         const FixedNullableList<RecordTypeFieldBuilder>().popNonNullable(stack,
             hasNamedFields ? count - 1 : count, dummyRecordTypeFieldBuilder);
 
-    push(new RecordTypeBuilder(
+    push(new RecordTypeBuilderImpl(
       positionalFields,
       namedFields,
       questionMark != null
@@ -2942,7 +2941,7 @@ class OutlineBuilder extends StackListenerImpl {
     push(new RecordTypeFieldBuilder(
         metadata,
         type is ParserRecovery
-            ? new InvalidTypeBuilder(uri, type.charOffset)
+            ? new InvalidTypeBuilderImpl(uri, type.charOffset)
             : type as TypeBuilder,
         name is String ? name : null,
         name is String ? nameOffset : -1));
@@ -3062,7 +3061,7 @@ class OutlineBuilder extends StackListenerImpl {
           // elsewhere.
           addProblem(
               messageTypedefNullableType, equals.charOffset, equals.length);
-          aliasedType = new NamedTypeBuilder.fromTypeDeclarationBuilder(
+          aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
               new InvalidTypeDeclarationBuilder(
                   "${name}",
                   messageTypedefNullableType.withLocation(
@@ -3083,7 +3082,7 @@ class OutlineBuilder extends StackListenerImpl {
           aliasedType = type;
         } else {
           addProblem(messageTypedefNotType, equals.charOffset, equals.length);
-          aliasedType = new NamedTypeBuilder.fromTypeDeclarationBuilder(
+          aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
               new InvalidTypeDeclarationBuilder(
                   "${name}",
                   messageTypedefNotType.withLocation(
@@ -3098,7 +3097,7 @@ class OutlineBuilder extends StackListenerImpl {
         if (type is TypeBuilder) {
           addProblem(
               messageTypedefNotFunction, equals.charOffset, equals.length);
-          aliasedType = new NamedTypeBuilder.fromTypeDeclarationBuilder(
+          aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
               new InvalidTypeDeclarationBuilder(
                   "${name}",
                   messageTypedefNotFunction.withLocation(
@@ -3108,7 +3107,7 @@ class OutlineBuilder extends StackListenerImpl {
                   InstanceTypeVariableAccessState.Allowed);
         } else {
           addProblem(messageTypedefNotType, equals.charOffset, equals.length);
-          aliasedType = new NamedTypeBuilder.fromTypeDeclarationBuilder(
+          aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
               new InvalidTypeDeclarationBuilder(
                   "${name}",
                   messageTypedefNotType.withLocation(
@@ -3406,7 +3405,7 @@ class OutlineBuilder extends StackListenerImpl {
                 : templateCycleInTypeVariables.withArguments(
                     builder.name, via.join("', '"));
             addProblem(message, builder.charOffset, builder.name.length);
-            builder.bound = new NamedTypeBuilder(
+            builder.bound = new NamedTypeBuilderImpl(
                 builder.name, const NullabilityBuilder.omitted(),
                 fileUri: uri,
                 charOffset: builder.charOffset,

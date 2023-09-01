@@ -260,7 +260,9 @@ abstract class Generator {
     Message message = templateNotAType.withArguments(token.lexeme);
     _helper.libraryBuilder
         .addProblem(message, fileOffset, lengthForToken(token), _uri);
-    return new NamedTypeBuilder.forInvalidType(token.lexeme, nullabilityBuilder,
+    return new NamedTypeBuilderImpl.forInvalidType(
+        token.lexeme,
+        nullabilityBuilder,
         message.withLocation(_uri, fileOffset, lengthForToken(token)));
   }
 
@@ -2966,7 +2968,7 @@ class DeferredAccessGenerator extends Generator {
     }
     _helper.libraryBuilder.addProblem(
         message.messageObject, message.charOffset, message.length, message.uri);
-    return new NamedTypeBuilder.forInvalidType(
+    return new NamedTypeBuilderImpl.forInvalidType(
         name, nullabilityBuilder, message);
   }
 
@@ -3073,7 +3075,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       return new DependentTypeBuilder(
           (declaration as OmittedTypeDeclarationBuilder).omittedTypeBuilder);
     }
-    return new NamedTypeBuilder(targetName, nullabilityBuilder,
+    return new NamedTypeBuilderImpl(targetName, nullabilityBuilder,
         arguments: arguments,
         fileUri: _uri,
         charOffset: fileOffset,
@@ -3172,7 +3174,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       } else {
         if (declarationBuilder is DeclarationBuilder) {
           if (aliasedTypeArguments != null) {
-            new NamedTypeBuilder(
+            new NamedTypeBuilderImpl(
                 aliasBuilder.name, const NullabilityBuilder.omitted(),
                 arguments: aliasedTypeArguments,
                 fileUri: _uri,
@@ -3192,7 +3194,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             aliasedTypeArguments = <TypeBuilder>[];
             for (TypeVariableBuilder typeVariable
                 in aliasBuilder.typeVariables!) {
-              aliasedTypeArguments.add(new NamedTypeBuilder(
+              aliasedTypeArguments.add(new NamedTypeBuilderImpl(
                   typeVariable.name, const NullabilityBuilder.omitted(),
                   fileUri: _uri,
                   charOffset: fileOffset,
@@ -4211,7 +4213,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
         offsetForToken(prefixGenerator.token),
         lengthOfSpan(prefixGenerator.token, token),
         _uri);
-    return new NamedTypeBuilder.forInvalidType(
+    return new NamedTypeBuilderImpl.forInvalidType(
         _plainNameForRead,
         nullabilityBuilder,
         message.withLocation(_uri, offsetForToken(prefixGenerator.token),
@@ -4319,14 +4321,14 @@ class ParserErrorGenerator extends Generator {
       {required bool allowPotentiallyConstantType,
       required bool performTypeCanonicalization}) {
     _helper.libraryBuilder.addProblem(message, fileOffset, noLength, _uri);
-    return new NamedTypeBuilder.forInvalidType(token.lexeme, nullabilityBuilder,
-        message.withLocation(_uri, fileOffset, noLength));
+    return new NamedTypeBuilderImpl.forInvalidType(token.lexeme,
+        nullabilityBuilder, message.withLocation(_uri, fileOffset, noLength));
   }
 
   TypeBuilder buildTypeWithResolvedArgumentsDoNotAddProblem(
       NullabilityBuilder nullabilityBuilder) {
-    return new NamedTypeBuilder.forInvalidType(token.lexeme, nullabilityBuilder,
-        message.withLocation(_uri, fileOffset, noLength));
+    return new NamedTypeBuilderImpl.forInvalidType(token.lexeme,
+        nullabilityBuilder, message.withLocation(_uri, fileOffset, noLength));
   }
 
   @override

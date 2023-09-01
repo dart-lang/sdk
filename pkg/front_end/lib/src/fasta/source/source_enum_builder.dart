@@ -151,7 +151,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
-    NamedTypeBuilder intType = new NamedTypeBuilder(
+    NamedTypeBuilder intType = new NamedTypeBuilderImpl(
         "int", const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess:
             // If "int" resolves to an instance type variable then that we would
@@ -164,13 +164,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
             // enhanced enums feature where enums can actually declare type
             // variables.
             InstanceTypeVariableAccessState.Unexpected);
-    NamedTypeBuilder stringType = new NamedTypeBuilder(
+    NamedTypeBuilder stringType = new NamedTypeBuilderImpl(
         "String", const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
-    NamedTypeBuilder objectType = new NamedTypeBuilder(
+    NamedTypeBuilder objectType = new NamedTypeBuilderImpl(
         "Object", const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
-    supertypeBuilder ??= new NamedTypeBuilder(
+    supertypeBuilder ??= new NamedTypeBuilderImpl(
         "_Enum", const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     Class cls = new Class(
@@ -183,12 +183,12 @@ class SourceEnumBuilder extends SourceClassBuilder {
     Map<String, MemberBuilder> setters = <String, MemberBuilder>{};
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
     List<SourceFieldBuilder> elementBuilders = <SourceFieldBuilder>[];
-    NamedTypeBuilder selfType = new NamedTypeBuilder(
+    NamedTypeBuilder selfType = new NamedTypeBuilderImpl(
         name, const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected,
         fileUri: fileUri,
         charOffset: charOffset);
-    NamedTypeBuilder listType = new NamedTypeBuilder(
+    NamedTypeBuilder listType = new NamedTypeBuilderImpl(
         "List", const NullabilityBuilder.omitted(),
         arguments: <TypeBuilder>[selfType],
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);

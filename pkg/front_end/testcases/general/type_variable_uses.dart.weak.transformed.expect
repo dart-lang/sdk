@@ -7,60 +7,128 @@ library;
 //            ^
 //
 // pkg/front_end/testcases/general/type_variable_uses.dart:8:11: Error: Type variables can't be used in static members.
-//     print(T);
+//     print(T); // Error
 //           ^
 //
 // pkg/front_end/testcases/general/type_variable_uses.dart:9:5: Error: Type variables can't be used in static members.
-//     T t;
+//     T t; // Error
 //     ^
 //
 // pkg/front_end/testcases/general/type_variable_uses.dart:10:7: Error: Type variables can't be used in static members.
-//     C<T> l;
+//     C<T> l; // Error
 //       ^
 //
 // pkg/front_end/testcases/general/type_variable_uses.dart:11:9: Error: Type variables can't be used in static members.
-//     C<C<T>> ll;
+//     C<C<T>> ll; // Error
 //         ^
 //
-// pkg/front_end/testcases/general/type_variable_uses.dart:12:13: Error: Type variables can't be used in static members.
-//     const C<T>();
+// pkg/front_end/testcases/general/type_variable_uses.dart:12:7: Error: Type variables can't be used in static members.
+//     <(T, int)>[]; // Error
+//       ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:13:8: Error: Type variables can't be used in static members.
+//     <({T a, int b})>[]; // Error
+//        ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:14:30: Error: Type variables can't be used in static members.
+//     <void Function<S extends T>()>[]; // Error
+//                              ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:15:13: Error: Type variables can't be used in static members.
+//     const C<T>(); // Error
 //             ^
 //
-// pkg/front_end/testcases/general/type_variable_uses.dart:13:12: Error: Type variables can't be used in static members.
-//     const <T>[];
+// pkg/front_end/testcases/general/type_variable_uses.dart:16:12: Error: Type variables can't be used in static members.
+//     const <T>[]; // Error
 //            ^
 //
-// pkg/front_end/testcases/general/type_variable_uses.dart:14:14: Error: Type variables can't be used in static members.
-//     const <C<T>>[];
+// pkg/front_end/testcases/general/type_variable_uses.dart:17:14: Error: Type variables can't be used in static members.
+//     const <C<T>>[]; // Error
 //              ^
 //
-// pkg/front_end/testcases/general/type_variable_uses.dart:15:20: Error: Type variables can't be used in static members.
-//     const <Object>[T];
+// pkg/front_end/testcases/general/type_variable_uses.dart:18:20: Error: Type variables can't be used in static members.
+//     const <Object>[T]; // Error
 //                    ^
 //
-// pkg/front_end/testcases/general/type_variable_uses.dart:16:28: Error: Type variables can't be used in static members.
-//     const <Object>[const C<T>()];
+// pkg/front_end/testcases/general/type_variable_uses.dart:19:28: Error: Type variables can't be used in static members.
+//     const <Object>[const C<T>()]; // Error
 //                            ^
 //
-// pkg/front_end/testcases/general/type_variable_uses.dart:25:13: Error: Type variables can't be used as constants.
-//     const C<T>();
+// pkg/front_end/testcases/general/type_variable_uses.dart:20:13: Error: Type variables can't be used in static members.
+//     const <(T, int)>[]; // Error
 //             ^
 //
-// pkg/front_end/testcases/general/type_variable_uses.dart:26:12: Error: Type variables can't be used as constants.
-//     const <T>[];
-//            ^
-//
-// pkg/front_end/testcases/general/type_variable_uses.dart:27:14: Error: Type variables can't be used as constants.
-//     const <C<T>>[];
+// pkg/front_end/testcases/general/type_variable_uses.dart:21:14: Error: Type variables can't be used in static members.
+//     const <({T a, int b})>[]; // Error
 //              ^
 //
-// pkg/front_end/testcases/general/type_variable_uses.dart:28:20: Error: Type variables can't be used as constants.
-//     const <Object>[T];
+// pkg/front_end/testcases/general/type_variable_uses.dart:22:36: Error: Type variables can't be used in static members.
+//     const <void Function<S extends T>()>[]; // Error
+//                                    ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:23:14: Error: Type variables can't be used in static members.
+//     const C<(T, int)>(); // Error
+//              ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:24:15: Error: Type variables can't be used in static members.
+//     const C<({T a, int b})>(); // Error
+//               ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:25:37: Error: Type variables can't be used in static members.
+//     const C<void Function<S extends T>()>(); // Error
+//                                     ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:37:13: Error: Type variables can't be used as constants.
+//     const C<T>(); // Error
+//             ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:38:12: Error: Type variables can't be used as constants.
+//     const <T>[]; // Error
+//            ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:39:14: Error: Type variables can't be used as constants.
+//     const <C<T>>[]; // Error
+//              ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:40:20: Error: Type variables can't be used as constants.
+//     const <Object>[T]; // Error
 //                    ^
 //
-// pkg/front_end/testcases/general/type_variable_uses.dart:29:28: Error: Type variables can't be used as constants.
-//     const <Object>[const C<T>()];
+// pkg/front_end/testcases/general/type_variable_uses.dart:41:28: Error: Type variables can't be used as constants.
+//     const <Object>[const C<T>()]; // Error
 //                            ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:42:13: Error: Type variables can't be used as constants.
+//     const <(T, int)>[]; // Error
+//             ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:43:14: Error: Type variables can't be used as constants.
+//     const <({T a, int b})>[]; // Error
+//              ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:44:36: Error: Type variables can't be used as constants.
+//     const <void Function<S extends T>()>[]; // Error
+//                                    ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:45:14: Error: Type variables can't be used as constants.
+//     const C<(T, int)>(); // Error
+//              ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:46:15: Error: Type variables can't be used as constants.
+//     const C<({T a, int b})>(); // Error
+//               ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:47:37: Error: Type variables can't be used as constants.
+//     const C<void Function<S extends T>()>(); // Error
+//                                     ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:44:5: Error: Type variables can't be used as constants.
+//     const <void Function<S extends T>()>[]; // Error
+//     ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:47:11: Error: Type variables can't be used as constants.
+//     const C<void Function<S extends T>()>(); // Error
+//           ^
 //
 import self as self;
 import "dart:core" as core;
@@ -74,11 +142,20 @@ class C<T extends core::Object? = dynamic> extends core::Object /*hasConstConstr
     invalid-type t;
     self::C<invalid-type> l;
     self::C<self::C<invalid-type>> ll;
+    core::_GrowableList::•<(invalid-type, core::int)>(0);
+    core::_GrowableList::•<({required a: invalid-type, required b: core::int})>(0);
+    core::_GrowableList::•<<S extends invalid-type>() → void>(0);
     #C2;
     #C3;
     #C4;
     #C5;
     #C6;
+    #C7;
+    #C8;
+    #C9;
+    #C10;
+    #C11;
+    #C12;
     throw "";
   }
   method instanceMethod() → self::C<self::C::T%> {
@@ -86,11 +163,20 @@ class C<T extends core::Object? = dynamic> extends core::Object /*hasConstConstr
     self::C::T% t;
     self::C<self::C::T%> l;
     self::C<self::C<self::C::T%>> ll;
+    core::_GrowableList::•<(self::C::T%, core::int)>(0);
+    core::_GrowableList::•<({required a: self::C::T%, required b: core::int})>(0);
+    core::_GrowableList::•<<S extends self::C::T%>() → void>(0);
     #C2;
     #C3;
     #C4;
     #C5;
     #C6;
+    #C7;
+    #C8;
+    invalid-expression "Type variables can't be used as constants.";
+    #C10;
+    #C11;
+    invalid-expression "Type variables can't be used as constants.";
     throw "";
   }
 }
@@ -103,6 +189,12 @@ constants  {
   #C4 = <self::C<invalid-type>*>[]
   #C5 = <core::Object*>[#C1]
   #C6 = <core::Object*>[#C2]
+  #C7 = <(invalid-type, core::int*)*>[]
+  #C8 = <({required a: invalid-type, required b: core::int*})*>[]
+  #C9 = <<S extends invalid-type>() →* void>[]
+  #C10 = self::C<(invalid-type, core::int*)*> {}
+  #C11 = self::C<({required a: invalid-type, required b: core::int*})*> {}
+  #C12 = self::C<<S extends invalid-type>() →* void> {}
 }
 
 

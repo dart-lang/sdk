@@ -977,7 +977,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
     if (message != null) {
-      return new NamedTypeBuilder(
+      return new NamedTypeBuilderImpl(
           supertype.name as String, const NullabilityBuilder.omitted(),
           fileUri: fileUri,
           charOffset: charOffset,

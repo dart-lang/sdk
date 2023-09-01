@@ -1,5 +1,10 @@
-// @dart = 2.13
-class A<X extends G<num>> {}
+class A<X1 extends G<num>> {}
+
+class B<X2 extends H<num>> {}
+
+class C<X3 extends I<num>> {}
 
 main() {}
-typedef G<X> = void Function<Y extends X>();
+typedef G<X1> = void Function<Y1 extends X1>();
+typedef H<X2> = (void Function<Y2 extends X2>(), int);
+typedef I<X3> = ({void Function<Y3 extends X3>() a, int b});

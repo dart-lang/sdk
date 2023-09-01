@@ -373,7 +373,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
           List<TypeBuilder> freshTypeArguments = [
             if (typeVariables != null)
               for (TypeVariableBuilder typeVariable in typeVariables!)
-                new NamedTypeBuilder.fromTypeDeclarationBuilder(
+                new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
                     typeVariable, libraryBuilder.nonNullableBuilder,
                     arguments: const [],
                     fileUri: fileUri,

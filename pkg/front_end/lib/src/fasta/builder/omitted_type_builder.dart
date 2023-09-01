@@ -7,14 +7,14 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../kernel/implicit_field_type.dart';
 import '../source/source_library_builder.dart';
+import 'inferable_type_builder.dart';
 import 'library_builder.dart';
-import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_declaration_builder.dart';
 
-abstract class OmittedTypeBuilder extends TypeBuilder {
-  const OmittedTypeBuilder();
+abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
+  const OmittedTypeBuilderImpl();
 
   @override
   Supertype? buildMixedInType(LibraryBuilder library) {
@@ -55,8 +55,10 @@ abstract class OmittedTypeBuilder extends TypeBuilder {
     return this;
   }
 
+  @override
   bool get hasType;
 
+  @override
   DartType get type;
 }
 
@@ -67,7 +69,7 @@ abstract class OmittedTypeBuilder extends TypeBuilder {
 /// field types and initializing formal types, use [InferableTypeBuilder]
 /// instead. This should be created through
 /// [SourceLibraryBuilder.addInferableType] to ensure the type is inferred.
-class ImplicitTypeBuilder extends OmittedTypeBuilder {
+class ImplicitTypeBuilder extends OmittedTypeBuilderImpl {
   const ImplicitTypeBuilder();
 
   @override
@@ -102,7 +104,7 @@ class ImplicitTypeBuilder extends OmittedTypeBuilder {
 ///
 /// [InferableTypeBuilder] should be created through
 /// [SourceLibraryBuilder.addInferableType] to ensure the type is inferred.
-class InferableTypeBuilder extends OmittedTypeBuilder
+class InferableTypeBuilder extends OmittedTypeBuilderImpl
     with InferableTypeBuilderMixin
     implements InferableType {
   @override
@@ -184,7 +186,7 @@ class InferableTypeBuilder extends OmittedTypeBuilder
 ///
 /// This is used in macro generated code to create type annotations from
 /// inferred types in the original code.
-class DependentTypeBuilder extends OmittedTypeBuilder
+class DependentTypeBuilder extends OmittedTypeBuilderImpl
     with InferableTypeBuilderMixin
     implements InferredTypeListener {
   final OmittedTypeBuilder typeBuilder;

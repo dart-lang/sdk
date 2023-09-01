@@ -19,14 +19,16 @@ import '../fasta_codes.dart'
 import '../kernel/implicit_field_type.dart';
 import '../source/source_library_builder.dart';
 import '../util/helpers.dart';
+import 'inferable_type_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
-import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 
-abstract class RecordTypeBuilder extends TypeBuilder {
+abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
+  @override
   final List<RecordTypeFieldBuilder>? positionalFields;
+  @override
   final List<RecordTypeFieldBuilder>? namedFields;
   @override
   final NullabilityBuilder nullabilityBuilder;
@@ -35,7 +37,7 @@ abstract class RecordTypeBuilder extends TypeBuilder {
   @override
   final int charOffset;
 
-  factory RecordTypeBuilder(
+  factory RecordTypeBuilderImpl(
       List<RecordTypeFieldBuilder>? positional,
       List<RecordTypeFieldBuilder>? named,
       NullabilityBuilder nullabilityBuilder,
@@ -65,7 +67,7 @@ abstract class RecordTypeBuilder extends TypeBuilder {
             positional, named, nullabilityBuilder, fileUri, charOffset);
   }
 
-  RecordTypeBuilder._(this.positionalFields, this.namedFields,
+  RecordTypeBuilderImpl._(this.positionalFields, this.namedFields,
       this.nullabilityBuilder, this.fileUri, this.charOffset);
 
   @override
@@ -292,14 +294,14 @@ abstract class RecordTypeBuilder extends TypeBuilder {
         return entry.clone(newTypes, contextLibrary, contextDeclaration);
       }, growable: false);
     }
-    return new RecordTypeBuilder(
+    return new RecordTypeBuilderImpl(
         clonedPositional, clonedNamed, nullabilityBuilder, fileUri, charOffset);
   }
 
   @override
   RecordTypeBuilder withNullabilityBuilder(
       NullabilityBuilder nullabilityBuilder) {
-    return new RecordTypeBuilder(
+    return new RecordTypeBuilderImpl(
         positionalFields, namedFields, nullabilityBuilder, fileUri, charOffset);
   }
 }
@@ -308,7 +310,7 @@ abstract class RecordTypeBuilder extends TypeBuilder {
 ///
 /// This is the normal record type whose field types are either explicit or
 /// omitted.
-class _ExplicitRecordTypeBuilder extends RecordTypeBuilder {
+class _ExplicitRecordTypeBuilder extends RecordTypeBuilderImpl {
   _ExplicitRecordTypeBuilder(
       List<RecordTypeFieldBuilder>? positionalFields,
       List<RecordTypeFieldBuilder>? namedFields,
@@ -334,7 +336,7 @@ class _ExplicitRecordTypeBuilder extends RecordTypeBuilder {
 ///
 /// This occurs through macros where field types can be defined in terms of
 /// inferred types, making this type indirectly depend on type inference.
-class _InferredRecordTypeBuilder extends RecordTypeBuilder
+class _InferredRecordTypeBuilder extends RecordTypeBuilderImpl
     with InferableTypeBuilderMixin {
   _InferredRecordTypeBuilder(
       List<RecordTypeFieldBuilder>? positionalFields,
