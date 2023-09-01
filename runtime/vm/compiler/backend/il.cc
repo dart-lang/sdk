@@ -3499,7 +3499,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
 
       comp->RemoveFromGraph();
       SetComparison(comp);
-      if (FLAG_trace_optimization) {
+      if (FLAG_trace_optimization && flow_graph->should_print()) {
         THR_Print("Merging comparison v%" Pd "\n", comp->ssa_temp_index());
       }
       // Clear the comparison's temp index and ssa temp index since the
@@ -3520,7 +3520,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       bit_and = comparison()->right()->definition()->AsBinarySmiOp();
     }
     if (bit_and != nullptr) {
-      if (FLAG_trace_optimization) {
+      if (FLAG_trace_optimization && flow_graph->should_print()) {
         THR_Print("Merging test smi v%" Pd "\n", bit_and->ssa_temp_index());
       }
       TestSmiInstr* test = new TestSmiInstr(

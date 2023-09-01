@@ -145,12 +145,12 @@ void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
     current_defn->ReplaceUsesWith(replacement_defn);
     EnsureSSATempIndex(current_defn, replacement_defn);
 
-    if (FLAG_trace_optimization) {
+    if (FLAG_trace_optimization && should_print()) {
       THR_Print("Replacing v%" Pd " with v%" Pd "\n",
                 current_defn->ssa_temp_index(),
                 replacement_defn->ssa_temp_index());
     }
-  } else if (FLAG_trace_optimization) {
+  } else if (FLAG_trace_optimization && should_print()) {
     if (current_defn == nullptr) {
       THR_Print("Removing %s\n", current->DebugName());
     } else {
@@ -415,7 +415,7 @@ void FlowGraph::MergeBlocks() {
       merged->Add(successor->postorder_number());
       last_merged_block = successor;
       changed = true;
-      if (FLAG_trace_optimization) {
+      if (FLAG_trace_optimization && should_print()) {
         THR_Print("Merged blocks B%" Pd " and B%" Pd "\n", block->block_id(),
                   successor->block_id());
       }
@@ -1854,7 +1854,7 @@ LoopHierarchy* FlowGraph::ComputeLoops() const {
 
   // Build the loop hierarchy and link every entry block to
   // the closest enveloping loop in loop hierarchy.
-  return new (zone()) LoopHierarchy(loop_headers, preorder_);
+  return new (zone()) LoopHierarchy(loop_headers, preorder_, should_print());
 }
 
 intptr_t FlowGraph::InstructionCount() const {
