@@ -305,7 +305,8 @@ void f(() x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 10),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -338,7 +339,8 @@ void f(() x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 9),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -369,7 +371,8 @@ void f(({int b}) x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 53, 1),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 46, 9),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -400,7 +403,8 @@ void f(({int a, int b}) x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 53, 9),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -432,7 +436,8 @@ void f(() x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 8),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -461,7 +466,8 @@ void f((int, String) x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 55, 1),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 50, 8),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -561,7 +567,8 @@ void f(({int foo}) x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 48, 12),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -625,6 +632,7 @@ void f(({int foo}) x) {
   }
 }
 ''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 48, 5),
       error(CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME, 49, 3),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
