@@ -4,12 +4,10 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/parser_test_base.dart';
 import '../../../util/feature_sets.dart';
 
 main() {
@@ -433,7 +431,7 @@ main() {
 }
 
 @reflectiveTest
-class ComputeSubtypedNamesTest extends ParserTestCase {
+class ComputeSubtypedNamesTest {
   void test_classDeclaration() {
     Set<String> names = _computeSubtypedNames('''
 import 'lib.dart';
@@ -450,6 +448,14 @@ import 'lib.dart';
 class X = A with B implements C, D, E;
 ''');
     expect(names, unorderedEquals(['A', 'B', 'C', 'D', 'E']));
+  }
+
+  void test_extensionTypeDeclaration() {
+    Set<String> names = _computeSubtypedNames('''
+extension type E1(X it) implements A {}
+extension type E2(X it) implements B {}
+''');
+    expect(names, unorderedEquals(['A', 'B']));
   }
 
   void test_mixinDeclaration() {
@@ -477,7 +483,11 @@ class X extends A<B> {}
   }
 
   Set<String> _computeSubtypedNames(String code) {
-    CompilationUnit unit = parseCompilationUnit2(code);
+    final parseResult = parseString(
+      content: code,
+      featureSet: FeatureSets.latestWithExperiments,
+    );
+    final unit = parseResult.unit;
     return computeSubtypedNames(unit);
   }
 }
