@@ -19,7 +19,7 @@ class JSArray<E> extends JavaScriptObject
    * Constructor for adding type parameters to an existing JavaScript
    * Array. Used for creating literal lists.
    */
-  factory JSArray.of(list) {
+  factory JSArray.of(@notNull Object list) {
     // TODO(sra): Move this to core.List for better readability.
     //
     // TODO(jmesserly): this uses special compiler magic to close over the
@@ -32,7 +32,7 @@ class JSArray<E> extends JavaScriptObject
   }
 
   // TODO(jmesserly): consider a fixed array subclass instead.
-  factory JSArray.fixed(list) {
+  factory JSArray.fixed(@notNull Object list) {
     jsObjectSetPrototypeOf(list, JS('', 'JSArray.prototype'));
     JS('', r'#.fixed$length = Array', list);
     if (JS_GET_FLAG('NEW_RUNTIME_TYPES'))
@@ -41,7 +41,7 @@ class JSArray<E> extends JavaScriptObject
     return JS('-dynamic', '#', list);
   }
 
-  factory JSArray.unmodifiable(list) {
+  factory JSArray.unmodifiable(@notNull Object list) {
     jsObjectSetPrototypeOf(list, JS('', 'JSArray.prototype'));
     JS('', r'#.fixed$length = Array', list);
     JS('', r'#.immutable$list = Array', list);
@@ -534,7 +534,7 @@ class JSArray<E> extends JavaScriptObject
   String toString() => ListBase.listToString(this);
 
   List<E> toList({@nullCheck bool growable = true}) {
-    var list = JS('', '#.slice()', this);
+    var list = JS<Object>('', '#.slice()', this);
     if (!growable) markFixedList(list);
     return JSArray<E>.of(list);
   }

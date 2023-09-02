@@ -87,84 +87,84 @@ void runSharedTests(
     });
 
     test('simple record', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'r.toString()',
           expectedResult: '(true, 3)');
     });
 
     test('simple record type', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'r.runtimeType.toString()',
           expectedResult: '(bool, int)');
     });
 
     test('simple record field one', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'r.\$1.toString()',
           expectedResult: 'true');
     });
 
     test('simple record field two', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'r.\$2.toString()',
           expectedResult: '3');
     });
 
     test('complex record', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'cr.toString()',
           expectedResult: '(true, {a: 1, b: 2})');
     });
 
     test('complex record type', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'cr.runtimeType.toString()',
           expectedResult: '(bool, IdentityMap<String, int>)');
     });
 
     test('complex record field one', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'cr.\$1.toString()',
           expectedResult: 'true');
     });
 
     test('complex record field two', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'cr.\$2.toString()',
           expectedResult: '{a: 1, b: 2}');
     });
 
     test('nested record', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'nr.toString()',
           expectedResult: '(true, (false, 3))');
     });
 
     test('nested record type', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'nr.runtimeType.toString()',
           expectedResult: '(bool, (bool, int))');
     });
 
     test('nested record field one', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'nr.\$1.toString()',
           expectedResult: 'true');
     });
 
     test('nested record field two', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'nr.\$2.toString()',
           expectedResult: '(false, 3)');
@@ -206,40 +206,40 @@ void runSharedTests(
     });
 
     test('first case match', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp1', expression: 'a.toString()', expectedResult: '1');
     });
 
     test('second case match', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp2',
           expression: 'a.toString()',
           expectedResult: '10');
     });
 
     test('default case match', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp3',
           expression: 'obj.toString()',
           expectedResult: '0');
     });
 
     test('first case match result', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp4',
           expression: 'one.toString()',
           expectedResult: '1');
     });
 
     test('second case match result', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp4',
           expression: 'ten.toString()',
           expectedResult: '10');
     });
 
     test('default match result', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp4',
           expression: 'zero.toString()',
           expectedResult: '0');

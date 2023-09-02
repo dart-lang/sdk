@@ -909,6 +909,102 @@ enum E with M {
     assertNoInterfaceMembers();
   }
 
+  Future<void> test_extensionType_class_getterByGetter() async {
+    addTestFile('''
+class A {
+  int get foo => 0; // A
+}
+
+extension type B(A it) implements A {
+  int get foo => 0; // B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo => 0; // B');
+    assertNoSuperMember();
+    assertHasInterfaceMember('foo => 0; // A');
+  }
+
+  Future<void> test_extensionType_class_methodByMethod() async {
+    addTestFile('''
+class A {
+  void foo() {} // A
+}
+
+extension type B(A it) implements A {
+  void foo() {} // B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo() {} // B');
+    assertNoSuperMember();
+    assertHasInterfaceMember('foo() {} // A');
+  }
+
+  Future<void> test_extensionType_class_setterBySetter() async {
+    addTestFile('''
+class A {
+  set foo(int _) {} // A
+}
+
+extension type B(A it) implements A {
+  set foo(int _) {} // B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo(int _) {} // B');
+    assertNoSuperMember();
+    assertHasInterfaceMember('foo(int _) {} // A');
+  }
+
+  Future<void> test_extensionType_extensionType_getterByGetter() async {
+    addTestFile('''
+extension type A(int it) {
+  int get foo => 0; // A
+}
+
+extension type B(int it) implements A {
+  int get foo => 0; // B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo => 0; // B');
+    assertNoSuperMember();
+    assertHasInterfaceMember('foo => 0; // A');
+  }
+
+  Future<void> test_extensionType_extensionType_methodByMethod() async {
+    addTestFile('''
+extension type A(int it) {
+  void foo() {} // A
+}
+
+extension type B(int it) implements A {
+  void foo() {} // B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo() {} // B');
+    assertNoSuperMember();
+    assertHasInterfaceMember('foo() {} // A');
+  }
+
+  Future<void> test_extensionType_extensionType_setterBySetter() async {
+    addTestFile('''
+extension type A(int it) {
+  set foo(int _) {} // A
+}
+
+extension type B(int it) implements A {
+  set foo(int _) {} // B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('foo(int _) {} // B');
+    assertNoSuperMember();
+    assertHasInterfaceMember('foo(int _) {} // A');
+  }
+
   Future<void> test_mixin_interface_method_direct_single() async {
     addTestFile('''
 class A {

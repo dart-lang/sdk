@@ -556,12 +556,14 @@ Rti substitute(Object? rti, Object? typeArguments) =>
 /// Returns a single binding [Rti] in the order of the provided [rtis].
 Rti bindingRtiFromList(JSArray rtis) {
   Rti binding = _rtiEval(
-      rtis[0],
+      _Utils.asRti(rtis[0]),
       '@'
       '${Recipe.startTypeArgumentsString}'
       '0'
       '${Recipe.endTypeArgumentsString}');
-  for (int i = 1; i < rtis.length; i++) binding = _rtiBind(binding, rtis[i]);
+  for (int i = 1; i < rtis.length; i++) {
+    binding = _rtiBind(binding, _Utils.asRti(rtis[i]));
+  }
   return binding;
 }
 
@@ -1118,8 +1120,9 @@ bool _installSpecializedIsTest(Object? object) {
   }
 
   Rti unstarred = Rti._unstar(testRti);
+  int unstarredKind = Rti._getKind(unstarred);
 
-  if (Rti._getKind(unstarred) == Rti.kindFutureOr) {
+  if (unstarredKind == Rti.kindFutureOr) {
     return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isFutureOr));
   }
 
@@ -1128,7 +1131,7 @@ bool _installSpecializedIsTest(Object? object) {
     return _finishIsFn(testRti, object, isFn);
   }
 
-  if (Rti._getKind(unstarred) == Rti.kindInterface) {
+  if (unstarredKind == Rti.kindInterface) {
     String name = Rti._getInterfaceName(unstarred);
     var arguments = Rti._getInterfaceTypeArguments(unstarred);
     // This recognizes interface types instantiated with Top, which includes the
@@ -1150,7 +1153,7 @@ bool _installSpecializedIsTest(Object? object) {
           testRti, object, RAW_DART_FUNCTION_REF(_isTestViaProperty));
     }
     // fall through to general implementation.
-  } else if (Rti._getKind(unstarred) == Rti.kindRecord) {
+  } else if (unstarredKind == Rti.kindRecord) {
     isFn = _recordSpecializedIsTest(unstarred);
     return _finishIsFn(testRti, object, isFn);
   }

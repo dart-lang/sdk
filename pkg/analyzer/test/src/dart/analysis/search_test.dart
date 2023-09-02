@@ -389,6 +389,54 @@ testFile
 ''');
   }
 
+  test_declarations_extensionType() async {
+    await resolveTestCode('''
+extension type E(int it) {
+  int get g => 0;
+  void set s(_) {}
+  void m() {}
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      '',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+testFile
+  EXTENSION_TYPE E
+    offset: 15 1:16
+    codeOffset: 0 + 79
+  CONSTRUCTOR <unnamed>
+    offset: 15 1:16
+    codeOffset: 16 + 8
+    className: E
+    parameters: (int it)
+  FIELD it
+    offset: 21 1:22
+    codeOffset: 17 + 6
+    className: E
+  GETTER g
+    offset: 37 2:11
+    codeOffset: 29 + 15
+    className: E
+  SETTER s
+    offset: 56 3:12
+    codeOffset: 47 + 16
+    className: E
+    parameters: (dynamic _)
+  METHOD m
+    offset: 71 4:8
+    codeOffset: 66 + 11
+    className: E
+    parameters: ()
+''');
+  }
+
   test_declarations_fuzzyMatch() async {
     await resolveTestCode('''
 class A {}
@@ -2879,6 +2927,59 @@ class B {}
     expect(resultE2.libraryUri, testUriStr);
     expect(resultE2.id, '$testUriStr;$testUriStr;E2');
     expect(resultE2.members, ['methodE2']);
+  }
+
+  test_subtypes_extensionType() async {
+    await resolveTestCode('''
+class A {}
+
+extension type E1(A it) implements A {
+  void methodE1() {}
+}
+
+extension type E2(A it) implements A {
+  void methodE2() {}
+}
+''');
+
+    final subtypes = await driver.search.subtypes(
+      SearchedFiles(),
+      type: findElement.class_('A'),
+    );
+    expect(subtypes, hasLength(2));
+
+    final resultE1 = subtypes.singleWhere((r) => r.name == 'E1');
+    final resultE2 = subtypes.singleWhere((r) => r.name == 'E2');
+
+    expect(resultE1.libraryUri, testUriStr);
+    expect(resultE1.id, '$testUriStr;$testUriStr;E1');
+    expect(resultE1.members, ['methodE1']);
+
+    expect(resultE2.libraryUri, testUriStr);
+    expect(resultE2.id, '$testUriStr;$testUriStr;E2');
+    expect(resultE2.members, ['methodE2']);
+  }
+
+  test_subtypes_extensionType2() async {
+    await resolveTestCode('''
+extension type A(int it) {}
+
+extension type B(int it) implements A {
+  void methodB() {}
+}
+''');
+
+    final subtypes = await driver.search.subtypes(
+      SearchedFiles(),
+      type: findElement.extensionType('A'),
+    );
+    expect(subtypes, hasLength(1));
+
+    final B = subtypes.singleWhere((r) => r.name == 'B');
+
+    expect(B.libraryUri, testUriStr);
+    expect(B.id, '$testUriStr;$testUriStr;B');
+    expect(B.members, ['methodB']);
   }
 
   test_subtypes_mixin_superclassConstraints() async {

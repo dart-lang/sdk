@@ -21,6 +21,7 @@ class C {
   int field;
   int _field;
   int _unusedField = 4;
+  final list = <String>[];
 
   C(this.field, this._field) {
     int y = 1;
@@ -58,6 +59,13 @@ main() {
   var c = C(5, 6);
   // Breakpoint: globalFunctionBP
   c.methodFieldAccess(10);
+}
+
+class B {
+  int field;
+  int _field;
+
+  B(this.field, this._field) {}
 }
 ''';
 
@@ -118,19 +126,19 @@ void runNullSafeSharedTests(
     });
 
     test('call extension methods of existing JS object', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'dartCounter.value',
           expectedResult: '2');
 
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'jsCounter.value',
           expectedResult: '2');
     });
 
     test('call extension methods of a new JS object', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression:
               '(createDartExport<Counter>(dartCounter) as JSCounter).value',
@@ -185,19 +193,19 @@ void runNullSafeSharedTests(
     });
 
     test('call extension getters on existing JS object', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'dartCounter.value',
           expectedResult: '2');
 
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'jsCounter.value',
           expectedResult: '2');
     });
 
     test('call extension getters on a new JS object', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression:
               'JSCounter(createDartExport<Counter>(dartCounter) as JSObject)'
@@ -227,14 +235,14 @@ void runNullSafeSharedTests(
     });
 
     test('error', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'e.toString()',
           expectedResult: 'meow!');
     });
 
     test('stack trace', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: 's.toString()', expectedResult: '');
     });
 
@@ -264,17 +272,39 @@ void runNullSafeSharedTests(
     });
 
     test('in original source compilation', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'soundNullSafety',
           expectedResult: setup.soundNullSafety.toString());
     });
 
     test('in expression compilation', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: '!(<Null>[] is List<int>)',
           expectedResult: setup.soundNullSafety.toString());
+    });
+  });
+
+  group('Expression compiler tests in a library', () {
+    var source = simpleClassSource;
+
+    setUpAll(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('generic instantiation', () async {
+      await driver.check(
+          expression: '[B(1,1).toString(), B(2,2).toString()]',
+          expectedResult: allOf(
+              contains('Array(2)'),
+              contains('0: Instance of \'B\''),
+              contains('1: Instance of \'B\''),
+              contains('length: 2')));
     });
   });
 
@@ -290,67 +320,83 @@ void runNullSafeSharedTests(
     });
 
     test('tear off default constructor', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: 'C.new.runtimeType.toString()',
           expectedResult: '(int, int) => C');
     });
 
     test('call default constructor tear off', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: '(C.new)(0, 0)',
-          expectedResult: 'test.C.new {Symbol(_unusedField): 4, '
-              'Symbol(C.field): 0, Symbol(_field): 0}');
+          expectedResult: allOf(
+              contains('test.C.new'),
+              contains('Symbol(_unusedField): 4'),
+              contains('Symbol(C.list): Array(0)'),
+              contains('Symbol(C.field): 0'),
+              contains('Symbol(_field): 0')));
     });
 
     test('tear off named constructor', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: 'C.named.runtimeType.toString()',
           expectedResult: '(int) => C');
     });
 
     test('call named constructor tear off', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: '(C.named)(0)',
-          expectedResult: 'test.C.named {Symbol(_unusedField): 4, '
-              'Symbol(C.field): 0, Symbol(_field): 42}');
+          expectedResult: allOf(
+              contains('test.C.named'),
+              contains('Symbol(_unusedField): 4'),
+              contains('Symbol(C.list): Array(0)'),
+              contains('Symbol(C.field): 0'),
+              contains('Symbol(_field): 42')));
     });
 
     test('tear off redirecting constructor', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: 'C.redirecting.runtimeType.toString()',
           expectedResult: '(int) => C');
     });
 
     test('call redirecting constructor tear off', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: '(C.redirecting)(0)',
-          expectedResult: 'test.C.redirecting { Symbol(_unusedField): 4, '
-              'Symbol(C.field): 0, Symbol(_field): 99}');
+          expectedResult: allOf(
+              contains('test.C.redirecting'),
+              contains('Symbol(_unusedField): 4'),
+              contains('Symbol(C.list): Array(0)'),
+              contains('Symbol(C.field): 0'),
+              contains('Symbol(_field): 99')));
     });
 
     test('tear off factory constructor', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: 'C.factory.runtimeType.toString()',
           expectedResult: '() => C');
     });
 
     test('call factory constructor tear off', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: '(C.factory)()',
-          expectedResult: 'test.C.new { Symbol(_unusedField): 4, '
-              'Symbol(C.field): 42, Symbol(_field): 0}');
+          expectedResult: allOf(
+              contains('test.C.new'),
+              contains('Symbol(_unusedField): 4'),
+              contains('Symbol(C.list): Array(0)'),
+              contains('Symbol(C.field): 42'),
+              contains('Symbol(_field): 0')));
     });
 
     test('map access', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: '''
             (Map<String, String> params) {
@@ -373,63 +419,79 @@ void runNullSafeSharedTests(
     });
 
     test('tear off default constructor', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'C.new.runtimeType.toString()',
           expectedResult: '(int, int) => C');
     });
 
     test('call default constructor tear off', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: '(C.new)(0, 0)',
-          expectedResult: 'test.C.new {Symbol(_unusedField): 4, '
-              'Symbol(C.field): 0, Symbol(_field): 0}');
+          expectedResult: allOf(
+              contains('test.C.new'),
+              contains('Symbol(_unusedField): 4'),
+              contains('Symbol(C.list): Array(0)'),
+              contains('Symbol(C.field): 0'),
+              contains('Symbol(_field): 0')));
     });
 
     test('tear off named constructor', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'C.named.runtimeType.toString()',
           expectedResult: '(int) => C');
     });
 
     test('call named constructor tear off', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: '(C.named)(0)',
-          expectedResult: 'test.C.named {Symbol(_unusedField): 4, '
-              'Symbol(C.field): 0, Symbol(_field): 42}');
+          expectedResult: allOf(
+              contains('test.C.named'),
+              contains('Symbol(_unusedField): 4'),
+              contains('Symbol(C.list): Array(0)'),
+              contains('Symbol(C.field): 0'),
+              contains('Symbol(_field): 42')));
     });
 
     test('tear off redirecting constructor', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'C.redirecting.runtimeType.toString()',
           expectedResult: '(int) => C');
     });
 
     test('call redirecting constructor tear off', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: '(C.redirecting)(0)',
-          expectedResult: 'test.C.redirecting { Symbol(_unusedField): 4, '
-              'Symbol(C.field): 0, Symbol(_field): 99}');
+          expectedResult: allOf(
+              contains('test.C.redirecting'),
+              contains('Symbol(_unusedField): 4'),
+              contains('Symbol(C.list): Array(0)'),
+              contains('Symbol(C.field): 0'),
+              contains('Symbol(_field): 99')));
     });
 
     test('tear off factory constructor', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'C.factory.runtimeType.toString()',
           expectedResult: '() => C');
     });
 
     test('call factory constructor tear off', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: '(C.factory)()',
-          expectedResult: 'test.C.new { Symbol(_unusedField): 4, '
-              'Symbol(C.field): 42, Symbol(_field): 0}');
+          expectedResult: allOf(
+              contains('test.C.new'),
+              contains('Symbol(_unusedField): 4'),
+              contains('Symbol(C.list): Array(0)'),
+              contains('Symbol(C.field): 42'),
+              contains('Symbol(_field): 0')));
     });
   });
 
@@ -445,63 +507,79 @@ void runNullSafeSharedTests(
     });
 
     test('tear off default constructor', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'C.new.runtimeType.toString()',
           expectedResult: '(int, int) => C');
     });
 
     test('call default constructor tear off', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: '(C.new)(0, 0)',
-          expectedResult: 'test.C.new {Symbol(_unusedField): 4, '
-              'Symbol(C.field): 0, Symbol(_field): 0}');
+          expectedResult: allOf(
+              contains('test.C.new'),
+              contains('Symbol(_unusedField): 4'),
+              contains('Symbol(C.list): Array(0)'),
+              contains('Symbol(C.field): 0'),
+              contains('Symbol(_field): 0')));
     });
 
     test('tear off named constructor', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'C.named.runtimeType.toString()',
           expectedResult: '(int) => C');
     });
 
     test('call named constructor tear off', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: '(C.named)(0)',
-          expectedResult: 'test.C.named {Symbol(_unusedField): 4, '
-              'Symbol(C.field): 0, Symbol(_field): 42}');
+          expectedResult: allOf(
+              contains('test.C.named'),
+              contains('Symbol(_unusedField): 4'),
+              contains('Symbol(C.list): Array(0)'),
+              contains('Symbol(C.field): 0'),
+              contains('Symbol(_field): 42')));
     });
 
     test('tear off redirecting constructor', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'C.redirecting.runtimeType.toString()',
           expectedResult: '(int) => C');
     });
 
     test('call redirecting constructor tear off', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: '(C.redirecting)(0)',
-          expectedResult: 'test.C.redirecting { Symbol(_unusedField): 4, '
-              'Symbol(C.field): 0, Symbol(_field): 99}');
+          expectedResult: allOf(
+              contains('test.C.redirecting'),
+              contains('Symbol(_unusedField): 4'),
+              contains('Symbol(C.list): Array(0)'),
+              contains('Symbol(C.field): 0'),
+              contains('Symbol(_field): 99')));
     });
 
     test('tear off factory constructor', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'C.factory.runtimeType.toString()',
           expectedResult: '() => C');
     });
 
     test('call factory constructor tear off', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: '(C.factory)()',
-          expectedResult: 'test.C.new { Symbol(_unusedField): 4, '
-              'Symbol(C.field): 42, Symbol(_field): 0}');
+          expectedResult: allOf(
+              contains('test.C.new'),
+              contains('Symbol(_unusedField): 4'),
+              contains('Symbol(C.list): Array(0)'),
+              contains('Symbol(C.field): 42'),
+              contains('Symbol(_field): 0')));
     });
   });
 
@@ -527,23 +605,23 @@ void runNullSafeSharedTests(
     });
 
     test('evaluate to the correct string', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'E.id2.toString()',
           expectedResult: 'E.id2');
     });
     test('evaluate to the correct index', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: 'E.id3.index', expectedResult: '2');
     });
     test('compare properly against themselves', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'e == E.id2 && E.id2 == E.id2',
           expectedResult: 'true');
     });
     test('compare properly against other enums', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'e != E2.id2 && E.id2 != E2.id2',
           expectedResult: 'true');
@@ -576,7 +654,7 @@ void runNullSafeSharedTests(
       // parameter was causing a compiler crash due to the lack of a source
       // location and the use of the wrong null literal value. This verifies
       // the expression compiler can safely compile this pattern.
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: '((){bool fn(bool b) {return b;} return fn(true);})()',
           expectedResult: 'true');
@@ -607,7 +685,7 @@ void runNullSafeSharedTests(
       // a let statement that includes a synthetic variable declaration.
       // That variable has no name and was causing a crash in the expression
       // compiler https://github.com/dart-lang/sdk/issues/49373.
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: 'true', expectedResult: 'true');
     });
   });
@@ -641,14 +719,14 @@ void runAgnosticSharedTestsShard1(
     });
 
     test('in original source compilation', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'soundNullSafety',
           expectedResult: setup.soundNullSafety.toString());
     });
 
     test('in expression compilation', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: '!(<Null>[] is List<int>)',
           expectedResult: setup.soundNullSafety.toString());
@@ -667,47 +745,47 @@ void runAgnosticSharedTestsShard1(
     });
 
     test('local in scope', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'innerScopeBP',
           expression: 'inScope',
           expectedResult: '1');
     });
 
     test('local in inner scope', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'innerScopeBP',
           expression: 'innerInScope',
           expectedResult: '48');
     });
 
     test('global in scope', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'innerScopeBP',
           expression: 'global',
           expectedResult: '42');
     });
 
     test('static field in scope', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'innerScopeBP',
           expression: 'staticField',
           expectedResult: '1');
     });
 
     test('field in scope', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'innerScopeBP',
           expression: 'field',
           expectedResult: '5');
     });
 
     test('parameter in scope', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'innerScopeBP', expression: 'x', expectedResult: '10');
     });
 
     test('local not in scope', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'innerScopeBP',
           expression: 'notInScope',
           expectedError: "Error: The getter 'notInScope' isn't defined for the"
@@ -715,7 +793,7 @@ void runAgnosticSharedTestsShard1(
     });
 
     test('local not in inner scope', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'innerScopeBP',
           expression: 'innerNotInScope',
           expectedError:
@@ -742,12 +820,12 @@ void runAgnosticSharedTestsShard1(
     });
 
     test('extension symbol used only in expression compilation', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: 'list.first', expectedResult: '0');
     });
 
     test('extension symbol used in original compilation', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: '() { list.add(1); return list.last; }()',
           expectedResult: '1');
@@ -775,14 +853,14 @@ void runAgnosticSharedTestsShard1(
     });
 
     test('compilation error', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'typo',
           expectedError: "Error: Undefined name 'typo'");
     });
 
     test('local (trimmed scope)', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: 'ret', expectedResult: '1234');
     });
 
@@ -790,7 +868,7 @@ void runAgnosticSharedTestsShard1(
       // Note: this currently fails due to
       // - incremental compiler not mapping 'this' from user input to '#this'
       // - incremental compiler not allowing #this as a parameter name
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'this',
           expectedError: "Error: Expected identifier, but got 'this'");
@@ -824,30 +902,30 @@ void runAgnosticSharedTestsShard1(
     });
 
     test('compilation error', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'typo',
           expectedError: "Undefined name 'typo'");
     });
 
     test('local', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: 'x', expectedResult: '1');
     });
 
     test('formal', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: 'y', expectedResult: '2');
     });
 
     test('named formal', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: 'z', expectedResult: '3');
     });
 
     test('function', () async {
-      await driver
-          .check(breakpointId: 'bp', expression: 'main', expectedResult: '''
+      await driver.checkInFrame(
+          breakpointId: 'bp', expression: 'main', expectedResult: '''
               function main() {
                 return test.foo(1, {y: 2});
               }''');
@@ -866,61 +944,63 @@ void runAgnosticSharedTestsShard1(
     });
 
     test('compilation error', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: 'typo',
           expectedError: "The getter 'typo' isn't defined for the class 'C'");
     });
 
     test('local', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP', expression: 'x', expectedResult: '10');
     });
 
     test('this', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: 'this',
-          expectedResult:
-              'test.C.new {Symbol(_unusedField): 4, Symbol(C.field): 5,'
-              ' Symbol(_field): 6}');
+          expectedResult: allOf(
+              contains('test.C.new'),
+              contains('Symbol(_unusedField): 4'),
+              contains('Symbol(C.field): 5'),
+              contains('Symbol(_field): 6')));
     });
 
     test('expression using locals', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP', expression: 'x + 1', expectedResult: '11');
     });
 
     test('expression using static fields', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: 'x + staticField',
           expectedResult: '11');
     });
 
     test('expression using private static fields', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: 'x + _staticField',
           expectedResult: '12');
     });
 
     test('expression using fields', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: 'x + field',
           expectedResult: '15');
     });
 
     test('expression using private fields', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: 'x + _field',
           expectedResult: '16');
     });
 
     test('expression using globals', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: 'x + global',
           expectedResult: '52');
@@ -928,35 +1008,35 @@ void runAgnosticSharedTestsShard1(
 
     test('expression using fields not referred to in the original code',
         () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: '_unusedField + _unusedStaticField',
           expectedResult: '7');
     });
 
     test('private field modification', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: '_field = 2',
           expectedResult: '2');
     });
 
     test('field modification', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: 'field = 3',
           expectedResult: '3');
     });
 
     test('private static field modification', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: '_staticField = 4',
           expectedResult: '4');
     });
 
     test('static field modification', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: 'staticField = 5',
           expectedResult: '5');
@@ -975,123 +1055,127 @@ void runAgnosticSharedTestsShard1(
     });
 
     test('compilation error', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'typo',
           expectedError: "Undefined name 'typo'.");
     });
 
     test('local with primitive type', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'x',
           expectedResult: '15');
     });
 
     test('local object', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'c',
-          expectedResult:
-              'test.C.new {Symbol(_unusedField): 4, Symbol(C.field): 5, '
-              'Symbol(_field): 6}');
+          expectedResult: allOf(
+              contains('test.C.new'),
+              contains('Symbol(_unusedField): 4'),
+              contains('Symbol(C.field): 5'),
+              contains('Symbol(_field): 6')));
     });
 
     test('create new object', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'C(3, 4)',
-          expectedResult:
-              'test.C.new {Symbol(_unusedField): 4, Symbol(C.field): 3, '
-              'Symbol(_field): 4}');
+          expectedResult: allOf(
+              contains('test.C.new'),
+              contains('Symbol(_unusedField): 4'),
+              contains('Symbol(C.field): 3'),
+              contains('Symbol(_field): 4')));
     });
 
     test('access field of new object', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'C(3, 4)._field',
           expectedResult: '4');
     });
 
     test('access static field', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'C.staticField',
           expectedResult: '1');
     });
 
     test('expression using private static fields', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'C._staticField',
           expectedResult: '2');
     });
 
     test('access field', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'c.field',
           expectedResult: '5');
     });
 
     test('access private field', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'c._field',
           expectedResult: '6');
     });
 
     test('method call', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'c.methodFieldAccess(2)',
           expectedResult: '10');
     });
 
     test('async method call', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'c.asyncMethod(2).runtimeType.toString()',
           expectedResult: '_Future<int>');
     });
 
     test('extension method call', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: '"1234".parseInt()',
           expectedResult: '1235');
     });
 
     test('private field modification', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'c._field = 10',
           expectedResult: '10');
     });
 
     test('field modification', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'c._field = 11',
           expectedResult: '11');
     });
 
     test('private static field modification', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'C._staticField = 2',
           expectedResult: '2');
     });
 
     test('static field modification', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'C.staticField = 20',
           expectedResult: '20');
     });
 
     test('call global function from core library', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'globalFunctionBP',
           expression: 'identical(1, 1)',
           expectedResult: 'true');
@@ -1121,112 +1205,114 @@ void runAgnosticSharedTestsShard2(
     });
 
     test('compilation error', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'typo',
           expectedError: "The getter 'typo' isn't defined for the class 'C'");
     });
 
     test('local', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP', expression: 'y', expectedResult: '1');
     });
 
     test('this', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'this',
-          expectedResult:
-              'test.C.new {Symbol(_unusedField): 4, Symbol(C.field): 5,'
-              ' Symbol(_field): 6}');
+          expectedResult: allOf(
+              contains('test.C.new'),
+              contains('Symbol(_unusedField): 4'),
+              contains('Symbol(C.field): 5'),
+              contains('Symbol(_field): 6')));
     });
 
     test('expression using locals', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'y + 1',
           expectedResult: '2');
     });
 
     test('expression using static fields', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'y + staticField',
           expectedResult: '2');
     });
 
     test('expression using private static fields', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'y + _staticField',
           expectedResult: '3');
     });
 
     test('expression using fields', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'y + field',
           expectedResult: '6');
     });
 
     test('expression using private fields', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'y + _field',
           expectedResult: '7');
     });
 
     test('expression using globals', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'y + global',
           expectedResult: '43');
     });
 
     test('method call', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'methodFieldAccess(2)',
           expectedResult: '10');
     });
 
     test('async method call', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'asyncMethod(2).runtimeType.toString()',
           expectedResult: '_Future<int>');
     });
 
     test('extension method call', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: '"1234".parseInt()',
           expectedResult: '1235');
     });
 
     test('private field modification', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: '_field = 2',
           expectedResult: '2');
     });
 
     test('field modification', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'field = 2',
           expectedResult: '2');
     });
 
     test('private static field modification', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: '_staticField = 2',
           expectedResult: '2');
     });
 
     test('static field modification', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'staticField = 2',
           expectedResult: '2');
@@ -1269,33 +1355,34 @@ void runAgnosticSharedTestsShard2(
     });
 
     test('compilation error', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'typo',
           expectedError: "The getter 'typo' isn't defined for the class 'C'");
     });
 
     test('local', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: 'x', expectedResult: '1');
     });
 
     test('this', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'this',
-          expectedResult: 'test.C.new {Symbol(C.field): 5, Symbol(_field): 7}');
+          expectedResult: allOf(contains('test.C.new'),
+              contains('Symbol(C.field): 5'), contains('Symbol(_field): 7')));
     });
 
     test('awaited method call', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp1',
           expression: 'c.asyncMethod(1).runtimeType.toString()',
           expectedResult: '_Future<int>');
     }, skip: "'await' is not yet supported in expression evaluation.");
 
     test('awaited method call', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp1',
           expression: 'await c.asyncMethod(1)',
           expectedResult: '58');
@@ -1332,19 +1419,19 @@ void runAgnosticSharedTestsShard2(
     });
 
     test('compilation error', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'typo',
           expectedError: "Undefined name 'typo'.");
     });
 
     test('expression using captured variables', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: r"'$y+$z'", expectedResult: '3+0');
     });
 
     test('expression using uncaptured variables', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: r"'$x+$y+$z'",
           expectedResult: '15+3+0');
@@ -1400,38 +1487,38 @@ void runAgnosticSharedTestsShard2(
     });
 
     test('call function not using type', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: 'bar(p)', expectedResult: '1');
     });
 
     test('call function using type', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: "baz('\$p')", expectedResult: '1');
     });
 
     test('evaluate new const expression', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'const MyClass(1)',
           expectedResult: 'MyClass {Symbol(MyClass._t): 1}');
     });
 
     test('evaluate optimized const expression', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: 't', expectedResult: '1');
     },
         skip: 'Cannot compile constants optimized away by the frontend. '
             'Issue: https://github.com/dart-lang/sdk/issues/41999');
 
     test('evaluate factory constructor call', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: "Key('t')",
           expectedResult: 'test.ValueKey.new {Symbol(ValueKey.value): t}');
     });
 
     test('evaluate const factory constructor call', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: "const Key('t')",
           expectedResult: 'ValueKey {Symbol(ValueKey.value): t}');
@@ -1460,12 +1547,12 @@ void runAgnosticSharedTestsShard2(
     });
 
     test('expression using local', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: 'x', expectedResult: '15');
     });
 
     test('expression using loop variable', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: 'i', expectedResult: '0');
     });
   });
@@ -1501,43 +1588,43 @@ void runAgnosticSharedTestsShard2(
     });
 
     test('(then) expression using local', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'thenBP', expression: 'y', expectedResult: '3');
     });
 
     test('(then) expression using local out of scope', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'thenBP',
           expression: 'z',
           expectedError: "Error: Undefined name 'z'");
     });
 
     test('(else) expression using local', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'elseBP', expression: 'z', expectedResult: '4');
     });
 
     test('(else) expression using local out of scope', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'elseBP',
           expression: 'y',
           expectedError: "Error: Undefined name 'y'");
     });
 
     test('(post) expression using local', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'postBP', expression: 'x', expectedResult: '1');
     });
 
     test('(post) expression using local out of scope', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'postBP',
           expression: 'z',
           expectedError: "Error: Undefined name 'z'");
     });
 
     test('(post) expression using local out of scope', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'postBP',
           expression: 'y',
           expectedError: "Error: Undefined name 'y'");
@@ -1568,7 +1655,7 @@ void runAgnosticSharedTestsShard2(
     });
 
     test('expression loop variable', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: 'e', expectedResult: '1');
     });
   });
@@ -1595,19 +1682,19 @@ void runAgnosticSharedTestsShard2(
     });
 
     test('evaluate formals', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: "'\${a} \$b'",
           expectedResult: '0 hi');
     });
 
     test('evaluate class type parameters', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: "'\$T1'", expectedResult: 'int');
     });
 
     test('evaluate method type parameters', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: "'\$T2'", expectedResult: 'String');
     });
   });
@@ -1641,27 +1728,27 @@ void runAgnosticSharedTestsShard2(
 
     test('evaluation that non-destructively appends to the type container',
         () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'a is String',
           expectedResult: 'false');
     });
 
     test('evaluation that reuses the type container', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp', expression: 'a is int', expectedResult: 'false');
     });
 
     test('evaluation that non-destructively appends to the constant container',
         () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'const B() == const B()',
           expectedResult: 'true');
     });
 
     test('evaluation that properly canonicalizes constants', () async {
-      await driver.check(
+      await driver.checkInFrame(
           breakpointId: 'bp',
           expression: 'a == const A()',
           expectedResult: 'true');

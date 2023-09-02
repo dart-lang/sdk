@@ -379,13 +379,9 @@ class ExpressionCompiler {
 
       var args = localJsScope.join(',\n    ');
       jsExpression = jsExpression.split('\n').join('\n  ');
-      var callExpression = '\ntry {'
-          '\n  ($jsExpression('
+      var callExpression = '\n  ($jsExpression('
           '\n    $args'
-          '\n  ))'
-          '\n} catch (error) {'
-          '\n  error.name + ": " + error.message;'
-          '\n}';
+          '\n  ))';
 
       _log('Compiled expression \n$expression to $callExpression');
       return callExpression;

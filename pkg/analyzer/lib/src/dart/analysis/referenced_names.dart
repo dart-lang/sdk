@@ -40,6 +40,8 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
     } else if (declaration is EnumDeclaration) {
       addSubtypedNames(declaration.withClause?.mixinTypes);
       addSubtypedNames(declaration.implementsClause?.interfaces);
+    } else if (declaration is ExtensionTypeDeclaration) {
+      addSubtypedNames(declaration.implementsClause?.interfaces);
     } else if (declaration is MixinDeclaration) {
       addSubtypedNames(declaration.onClause?.superclassConstraints);
       addSubtypedNames(declaration.implementsClause?.interfaces);

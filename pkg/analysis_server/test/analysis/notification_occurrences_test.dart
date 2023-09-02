@@ -30,6 +30,7 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
   Future<void> assertOccurrences(
     String content, {
     required ElementKind? kind,
+    String? elementName,
   }) async {
     final code = TestCode.parse(content);
     addTestFile(code.code);
@@ -41,7 +42,7 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
     findRegion(sourceRange.offset, sourceRange.length, true);
 
     expect(testOccurrences.element.kind, kind);
-    expect(testOccurrences.element.name, range.text);
+    expect(testOccurrences.element.name, elementName ?? range.text);
     expect(testOccurrences.offsets,
         containsAll(code.ranges.map((r) => r.sourceRange.offset)));
   }
@@ -199,6 +200,92 @@ void f(E e) {
   e./*[1*/foo/*1]*/ = 0;
 }
       ''',
+    );
+  }
+
+  Future<void> test_extensionType() async {
+    await assertOccurrences(
+      kind: ElementKind.EXTENSION_TYPE,
+      '''
+extension type /*[0*/E/*0]*/(int it) {}
+
+void f(/*[1*/E/*1]*/ e) {}
+''',
+    );
+  }
+
+  Future<void> test_extensionType_constructor_primary() async {
+    await assertOccurrences(
+      kind: ElementKind.CONSTRUCTOR,
+      elementName: 'E.named',
+      '''
+extension type E./*[0*/named/*0]*/(int it) {}
+
+void f() {
+  E./*[1*/named/*1]*/(0);
+}
+''',
+    );
+  }
+
+  Future<void> test_extensionType_constructor_secondary() async {
+    await assertOccurrences(
+      kind: ElementKind.CONSTRUCTOR,
+      elementName: 'E.named',
+      '''
+extension type E(int it) {
+  E./*[0*/named/*0]*/() : this(0);
+}
+
+void f() {
+  E./*[1*/named/*1]*/();
+}
+''',
+    );
+  }
+
+  Future<void> test_extensionType_getter() async {
+    await assertOccurrences(
+      kind: ElementKind.FIELD,
+      '''
+extension type E(int it) {
+  int get /*[0*/foo/*0]*/ => 0;
+}
+
+void f(E e) {
+  e./*[1*/foo/*1]*/;
+}
+''',
+    );
+  }
+
+  Future<void> test_extensionType_method() async {
+    await assertOccurrences(
+      kind: ElementKind.METHOD,
+      '''
+extension type E(int it) {
+  void /*[0*/foo/*0]*/() {}
+}
+
+void f(E e) {
+  e./*[1*/foo/*1]*/();
+}
+''',
+    );
+  }
+
+  Future<void> test_extensionType_setter() async {
+    await assertOccurrences(
+      kind: ElementKind.FIELD,
+      '''
+extension type E(int it) {
+  set /*[0*/foo/*0]*/(int _) {}
+}
+
+void f(E e) {
+  e./*[1*/foo/*1]*/ = 0;
+}
+''',
     );
   }
 
