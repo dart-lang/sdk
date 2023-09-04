@@ -3271,7 +3271,8 @@
           "arguments": [
             "--mode=release",
             "--arch=x64",
-            "create_sdk"
+            "create_sdk",
+            "ddc_stable_unsound_sdk"
           ]
         },
         {
