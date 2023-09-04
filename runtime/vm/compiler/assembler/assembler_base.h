@@ -629,6 +629,23 @@ class AssemblerBase : public StackResource {
 
   virtual void SmiTag(Register r) = 0;
 
+  // If Smis are compressed and the Smi value in dst is non-negative, ensures
+  // the upper bits are cleared. If Smis are not compressed, is a no-op.
+  //
+  // Since this operation only affects the unused upper bits when Smis are
+  // compressed, it can be used on registers not allocated as writable.
+  //
+  // The behavior on the upper bits of signed compressed Smis is undefined.
+#if defined(DART_COMPRESSED_POINTERS)
+  virtual void ExtendNonNegativeSmi(Register dst) {
+    // Default to sign extension and allow architecture-specific assemblers
+    // where an alternative like zero-extension is preferred to override this.
+    ExtendValue(dst, dst, kObjectBytes);
+  }
+#else
+  void ExtendNonNegativeSmi(Register dst) {}
+#endif
+
   // Extends a value of size sz in src to a value of size kWordBytes in dst.
   // That is, bits in the source register that are not part of the sz-sized
   // value are ignored, and if sz is signed, then the value is sign extended.

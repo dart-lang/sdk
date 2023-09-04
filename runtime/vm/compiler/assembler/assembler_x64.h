@@ -1024,6 +1024,14 @@ class Assembler : public AssemblerBase {
                                Register scratch,
                                bool can_be_null = false) override;
 
+#if defined(DART_COMPRESSED_POINTERS)
+  void ExtendNonNegativeSmi(Register dst) override {
+    // Zero-extends and is a smaller instruction to output than sign
+    // extension (movsxd).
+    orl(dst, dst);
+  }
+#endif
+
   // CheckClassIs fused with optimistic SmiUntag.
   // Value in the register object is untagged optimistically.
   void SmiUntagOrCheckClass(Register object, intptr_t class_id, Label* smi);

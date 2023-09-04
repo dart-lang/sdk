@@ -505,6 +505,7 @@ Location LocationRegisterOrSmiConstant(
     Value* value,
     intptr_t min_value = compiler::target::kSmiMin,
     intptr_t max_value = compiler::target::kSmiMax);
+Location LocationWritableRegisterOrConstant(Value* value);
 Location LocationWritableRegisterOrSmiConstant(
     Value* value,
     intptr_t min_value = compiler::target::kSmiMin,

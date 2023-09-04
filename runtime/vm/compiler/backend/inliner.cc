@@ -970,7 +970,8 @@ static void ReplaceParameterStubs(Zone* zone,
   for (intptr_t i = 0; i < defns->length(); ++i) {
     ConstantInstr* constant = (*defns)[i]->AsConstant();
     if (constant != nullptr && constant->HasUses()) {
-      constant->ReplaceUsesWith(caller_graph->GetConstant(constant->value()));
+      constant->ReplaceUsesWith(caller_graph->GetConstant(
+          constant->value(), constant->representation()));
     }
   }
 
@@ -978,7 +979,8 @@ static void ReplaceParameterStubs(Zone* zone,
   for (intptr_t i = 0; i < defns->length(); ++i) {
     ConstantInstr* constant = (*defns)[i]->AsConstant();
     if (constant != nullptr && constant->HasUses()) {
-      constant->ReplaceUsesWith(caller_graph->GetConstant(constant->value()));
+      constant->ReplaceUsesWith(caller_graph->GetConstant(
+          constant->value(), constant->representation()));
     }
 
     SpecialParameterInstr* param = (*defns)[i]->AsSpecialParameter();
@@ -4508,11 +4510,24 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
 
       // Insert explicit unboxing instructions with truncation to avoid relying
       // on [SelectRepresentations] which doesn't mark them as truncating.
+      arg_target_offset_in_bytes = UnboxInstr::Create(
+          kUnboxedIntPtr, new (Z) Value(arg_target_offset_in_bytes),
+          call->deopt_id(), Instruction::kNotSpeculative);
+      arg_target_offset_in_bytes->AsUnboxInteger()->mark_truncating();
+      flow_graph->AppendTo(*entry, arg_target_offset_in_bytes, env,
+                           FlowGraph::kValue);
+      arg_source_offset_in_bytes = UnboxInstr::Create(
+          kUnboxedIntPtr, new (Z) Value(arg_source_offset_in_bytes),
+          call->deopt_id(), Instruction::kNotSpeculative);
+      arg_source_offset_in_bytes->AsUnboxInteger()->mark_truncating();
+      flow_graph->AppendTo(arg_target_offset_in_bytes,
+                           arg_source_offset_in_bytes, env, FlowGraph::kValue);
       arg_length_in_bytes =
           UnboxInstr::Create(kUnboxedIntPtr, new (Z) Value(arg_length_in_bytes),
                              call->deopt_id(), Instruction::kNotSpeculative);
       arg_length_in_bytes->AsUnboxInteger()->mark_truncating();
-      flow_graph->AppendTo(*entry, arg_length_in_bytes, env, FlowGraph::kValue);
+      flow_graph->AppendTo(arg_source_offset_in_bytes, arg_length_in_bytes, env,
+                           FlowGraph::kValue);
 
       *last = new (Z)
           MemoryCopyInstr(new (Z) Value(arg_source), new (Z) Value(arg_target),
@@ -4520,7 +4535,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
                           new (Z) Value(arg_target_offset_in_bytes),
                           new (Z) Value(arg_length_in_bytes),
                           /*src_cid=*/kTypedDataUint8ArrayCid,
-                          /*dest_cid=*/kTypedDataUint8ArrayCid, true);
+                          /*dest_cid=*/kTypedDataUint8ArrayCid,
+                          /*unboxed_inputs=*/true, /*can_overlap=*/true);
       flow_graph->AppendTo(arg_length_in_bytes, *last, env, FlowGraph::kEffect);
 
       *result = flow_graph->constant_null();

@@ -9102,6 +9102,11 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kRecord_numFields:
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kDouble_hashCode:
+    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy1:
+    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy2:
+    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy4:
+    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy8:
+    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy16:
     // Prevent the GC from running so that the operation is atomic from
     // a GC point of view. Always double check implementation in
     // kernel_to_il.cc that no GC can happen in between the relevant IL

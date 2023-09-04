@@ -66,90 +66,93 @@ DEFINE_NATIVE_ENTRY(TypedDataView_typedData, 0, 1) {
   return TypedDataView::Cast(instance).typed_data();
 }
 
-static BoolPtr CopyData(const TypedDataBase& dst_array,
-                        const TypedDataBase& src_array,
-                        const Smi& dst_start,
-                        const Smi& src_start,
-                        const Smi& length,
-                        bool clamped) {
-  const intptr_t dst_offset_in_bytes = dst_start.Value();
-  const intptr_t src_offset_in_bytes = src_start.Value();
-  const intptr_t length_in_bytes = length.Value();
-  ASSERT(Utils::RangeCheck(src_offset_in_bytes, length_in_bytes,
-                           src_array.LengthInBytes()));
-  ASSERT(Utils::RangeCheck(dst_offset_in_bytes, length_in_bytes,
-                           dst_array.LengthInBytes()));
-  if (length_in_bytes > 0) {
-    NoSafepointScope no_safepoint;
-    if (clamped) {
-      uint8_t* dst_data =
-          reinterpret_cast<uint8_t*>(dst_array.DataAddr(dst_offset_in_bytes));
-      int8_t* src_data =
-          reinterpret_cast<int8_t*>(src_array.DataAddr(src_offset_in_bytes));
-      for (intptr_t ix = 0; ix < length_in_bytes; ix++) {
-        int8_t v = *src_data;
-        if (v < 0) v = 0;
-        *dst_data = v;
-        src_data++;
-        dst_data++;
-      }
-    } else {
-      memmove(dst_array.DataAddr(dst_offset_in_bytes),
-              src_array.DataAddr(src_offset_in_bytes), length_in_bytes);
-    }
-  }
-  return Bool::True().ptr();
-}
-
 static bool IsClamped(intptr_t cid) {
-  switch (cid) {
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataUint8ClampedArrayViewCid:
-    case kUnmodifiableTypedDataUint8ClampedArrayViewCid:
-      return true;
-    default:
-      return false;
-  }
+  COMPILE_ASSERT((kTypedDataUint8ClampedArrayCid + 1 ==
+                  kTypedDataUint8ClampedArrayViewCid) &&
+                 (kTypedDataUint8ClampedArrayCid + 2 ==
+                  kExternalTypedDataUint8ClampedArrayCid) &&
+                 (kTypedDataUint8ClampedArrayCid + 3 ==
+                  kUnmodifiableTypedDataUint8ClampedArrayViewCid));
+  return cid >= kTypedDataUint8ClampedArrayCid &&
+         cid <= kUnmodifiableTypedDataUint8ClampedArrayViewCid;
 }
 
 static bool IsUint8(intptr_t cid) {
-  switch (cid) {
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataUint8ClampedArrayViewCid:
-    case kUnmodifiableTypedDataUint8ClampedArrayViewCid:
-    case kTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kTypedDataUint8ArrayViewCid:
-    case kUnmodifiableTypedDataUint8ArrayViewCid:
-      return true;
-    default:
-      return false;
-  }
+  COMPILE_ASSERT(
+      (kTypedDataUint8ArrayCid + 1 == kTypedDataUint8ArrayViewCid) &&
+      (kTypedDataUint8ArrayCid + 2 == kExternalTypedDataUint8ArrayCid) &&
+      (kTypedDataUint8ArrayCid + 3 ==
+       kUnmodifiableTypedDataUint8ArrayViewCid) &&
+      (kTypedDataUint8ArrayCid + 4 == kTypedDataUint8ClampedArrayCid));
+  return cid >= kTypedDataUint8ArrayCid &&
+         cid <= kUnmodifiableTypedDataUint8ClampedArrayViewCid;
 }
 
-DEFINE_NATIVE_ENTRY(TypedDataBase_setRange, 0, 7) {
+DEFINE_NATIVE_ENTRY(TypedDataBase_setRange, 0, 5) {
   const TypedDataBase& dst =
       TypedDataBase::CheckedHandle(zone, arguments->NativeArgAt(0));
-  const Smi& dst_start = Smi::CheckedHandle(zone, arguments->NativeArgAt(1));
-  const Smi& length = Smi::CheckedHandle(zone, arguments->NativeArgAt(2));
+  const Smi& dst_start_smi =
+      Smi::CheckedHandle(zone, arguments->NativeArgAt(1));
+  const Smi& dst_end_smi = Smi::CheckedHandle(zone, arguments->NativeArgAt(2));
   const TypedDataBase& src =
       TypedDataBase::CheckedHandle(zone, arguments->NativeArgAt(3));
-  const Smi& src_start = Smi::CheckedHandle(zone, arguments->NativeArgAt(4));
-  const Smi& to_cid_smi = Smi::CheckedHandle(zone, arguments->NativeArgAt(5));
-  const Smi& from_cid_smi = Smi::CheckedHandle(zone, arguments->NativeArgAt(6));
+  const Smi& src_start_smi =
+      Smi::CheckedHandle(zone, arguments->NativeArgAt(4));
 
-  if (length.Value() < 0) {
-    const String& error = String::Handle(String::NewFormatted(
-        "length (%" Pd ") must be non-negative", length.Value()));
-    Exceptions::ThrowArgumentError(error);
+  const intptr_t element_size_in_bytes = dst.ElementSizeInBytes();
+  ASSERT_EQUAL(src.ElementSizeInBytes(), element_size_in_bytes);
+
+  const intptr_t dst_start_in_bytes =
+      dst_start_smi.Value() * element_size_in_bytes;
+  const intptr_t dst_end_in_bytes = dst_end_smi.Value() * element_size_in_bytes;
+  const intptr_t src_start_in_bytes =
+      src_start_smi.Value() * element_size_in_bytes;
+
+  const intptr_t length_in_bytes = dst_end_in_bytes - dst_start_in_bytes;
+
+  if (!IsClamped(dst.ptr()->GetClassId()) || IsUint8(src.ptr()->GetClassId())) {
+    // We've already performed range checking in _boundsCheckAndMemcpyN prior
+    // to the call to _nativeSetRange, so just perform the memmove.
+    //
+    // TODO(dartbug.com/42072): We do this when the copy length gets large
+    // enough that a native call to invoke memmove is faster than the generated
+    // code from MemoryCopy. Replace the static call to _nativeSetRange with
+    // a CCall() to a memmove leaf runtime entry and remove the possibility of
+    // calling _nativeSetRange except in the clamping case.
+    NoSafepointScope no_safepoint;
+    memmove(dst.DataAddr(dst_start_in_bytes), src.DataAddr(src_start_in_bytes),
+            length_in_bytes);
+    return Object::null();
   }
-  const intptr_t to_cid = to_cid_smi.Value();
-  const intptr_t from_cid = from_cid_smi.Value();
 
-  const bool needs_clamping = IsClamped(to_cid) && !IsUint8(from_cid);
-  return CopyData(dst, src, dst_start, src_start, length, needs_clamping);
+  // This is called on the fast path prior to bounds checking, so perform
+  // the bounds check even if the length is 0.
+  const intptr_t dst_length_in_bytes = dst.LengthInBytes();
+  RangeCheck(dst_start_in_bytes, length_in_bytes, dst_length_in_bytes,
+             element_size_in_bytes);
+
+  const intptr_t src_length_in_bytes = src.LengthInBytes();
+  RangeCheck(src_start_in_bytes, length_in_bytes, src_length_in_bytes,
+             element_size_in_bytes);
+
+  ASSERT_EQUAL(element_size_in_bytes, 1);
+
+  if (length_in_bytes > 0) {
+    NoSafepointScope no_safepoint;
+    uint8_t* dst_data =
+        reinterpret_cast<uint8_t*>(dst.DataAddr(dst_start_in_bytes));
+    int8_t* src_data =
+        reinterpret_cast<int8_t*>(src.DataAddr(src_start_in_bytes));
+    for (intptr_t ix = 0; ix < length_in_bytes; ix++) {
+      int8_t v = *src_data;
+      if (v < 0) v = 0;
+      *dst_data = v;
+      src_data++;
+      dst_data++;
+    }
+  }
+
+  return Object::null();
 }
 
 // Native methods for typed data allocation are recognized and implemented
