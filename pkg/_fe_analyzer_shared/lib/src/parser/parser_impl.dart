@@ -2291,9 +2291,7 @@ class Parser {
 
   Token skipBlock(Token token) {
     // The scanner ensures that `{` always has a closing `}`.
-    return ensureBlock(
-            token, /* template = */ null, /* missingBlockName = */ null)
-        .endGroup!;
+    return ensureBlock(token, /* missingBlockKind = */ null).endGroup!;
   }
 
   /// ```
@@ -2373,9 +2371,7 @@ class Parser {
         assert(token.isEof || optional('}', token));
       }
     } else {
-      // TODO(danrubel): merge this error message with missing class/mixin body
-      leftBrace = ensureBlock(
-          token, codes.templateExpectedEnumBody, /* missingBlockName = */ null);
+      leftBrace = ensureBlock(token, BlockKind.enumDeclaration);
       listener.handleEnumHeader(enumKeyword, leftBrace);
       listener.handleEnumElements(token, elementCount);
       token = leftBrace.endGroup!;
@@ -2658,7 +2654,7 @@ class Parser {
     if (!optional('{', token.next!)) {
       // Recovery
       token = parseClassHeaderRecovery(start, begin, classKeyword);
-      ensureBlock(token, /* template = */ null, 'class declaration');
+      ensureBlock(token, BlockKind.classDeclaration);
     }
     token = parseClassOrMixinOrExtensionBody(
         token, DeclarationKind.Class, className);
@@ -2888,7 +2884,7 @@ class Parser {
     if (!optional('{', token.next!)) {
       // Recovery
       token = parseMixinHeaderRecovery(token, mixinKeyword, headerStart);
-      ensureBlock(token, /* template = */ null, 'mixin declaration');
+      ensureBlock(token, BlockKind.mixinDeclaration);
     }
     token = parseClassOrMixinOrExtensionBody(
         token, DeclarationKind.Mixin, name.lexeme);
@@ -3095,7 +3091,7 @@ class Parser {
           break;
         }
       }
-      ensureBlock(token, /* template = */ null, 'extension declaration');
+      ensureBlock(token, BlockKind.extensionDeclaration);
     }
     token = parseClassOrMixinOrExtensionBody(
         token, DeclarationKind.Extension, name?.lexeme);
@@ -3159,10 +3155,12 @@ class Parser {
     Token start = token;
     token = parseClassOrMixinOrEnumImplementsOpt(token);
     if (!optional('{', token.next!)) {
+      // TODO(johnniwinther): Reuse logic from [parseClassHeaderRecovery] to
+      // handle `extends`, `with` and out-of-order/duplicate clauses.
       token = parseExtensionTypeHeaderRecovery(start, extensionKeyword);
 
       // Recovery
-      ensureBlock(token, /* template = */ null, 'extension type declaration');
+      ensureBlock(token, BlockKind.extensionTypeDeclaration);
     }
     token = parseClassOrMixinOrExtensionBody(
         token, DeclarationKind.ExtensionType, name.lexeme);
@@ -4102,24 +4100,19 @@ class Parser {
   /// opening and a closing curly brace, and return the newly inserted opening
   /// curly brace. If  [template] and [missingBlockName] are `null`, then use
   /// a default error message instead.
-  Token ensureBlock(
-      Token token,
-      codes.Template<codes.Message Function(Token token)>? template,
-      String? missingBlockName) {
+  Token ensureBlock(Token token, BlockKind? missingBlockKind) {
     Token next = token.next!;
     if (optional('{', next)) return next;
+    codes.Template<codes.Message Function(Token token)>? template =
+        missingBlockKind?.template;
     if (template == null) {
-      if (missingBlockName == null) {
+      codes.Message? message = missingBlockKind?.message;
+      if (message == null) {
         // TODO(danrubel): rename ExpectedButGot to ExpectedBefore
         reportRecoverableError(
             next, codes.templateExpectedButGot.withArguments('{'));
       } else {
-        // TODO(danrubel): rename ExpectedClassOrMixinBody
-        //  to ExpectedDeclarationOrClauseBody
-        reportRecoverableError(
-            token,
-            codes.templateExpectedClassOrMixinBody
-                .withArguments(missingBlockName));
+        reportRecoverableError(token, message);
       }
     } else {
       reportRecoverableError(next, template.withArguments(next));
@@ -4275,8 +4268,7 @@ class Parser {
 
   Token skipClassOrMixinOrExtensionBody(Token token) {
     // The scanner ensures that `{` always has a closing `}`.
-    return ensureBlock(
-        token, /* template = */ null, /* missingBlockName = */ null);
+    return ensureBlock(token, /* missingBlockKind = */ null);
   }
 
   /// ```
@@ -5365,8 +5357,7 @@ class Parser {
         begin = next = token.next!;
         // Fall through to parse the block.
       } else {
-        token = ensureBlock(token, codes.templateExpectedFunctionBody,
-            /* missingBlockName = */ null);
+        token = ensureBlock(token, BlockKind.functionBody);
         listener.handleInvalidFunctionBody(token);
         return token.endGroup!;
       }
@@ -8466,8 +8457,7 @@ class Parser {
   /// ;
   /// ```
   Token parseBlock(Token token, BlockKind blockKind) {
-    Token begin = token =
-        ensureBlock(token, /* template = */ null, blockKind.missingBlockName);
+    Token begin = token = ensureBlock(token, blockKind);
     listener.beginBlock(begin, blockKind);
     int statementCount = 0;
     Token startToken = token.next!;
@@ -8819,8 +8809,7 @@ class Parser {
   /// ;
   /// ```
   Token parseSwitchBlock(Token token) {
-    Token beginSwitch =
-        token = ensureBlock(token, /* template = */ null, 'switch statement');
+    Token beginSwitch = token = ensureBlock(token, BlockKind.switchStatement);
     listener.beginSwitchBlock(beginSwitch);
     int caseCount = 0;
     Token? defaultKeyword = null;
@@ -10204,8 +10193,7 @@ class Parser {
     mayParseFunctionExpressions = true;
     listener.beginSwitchExpression(switchKeyword);
     token = ensureParenthesizedCondition(switchKeyword, allowCase: false);
-    Token beginSwitch =
-        token = ensureBlock(token, /* template = */ null, 'switch expression');
+    Token beginSwitch = token = ensureBlock(token, BlockKind.switchExpression);
     listener.beginSwitchExpressionBlock(beginSwitch);
     Token next = token.next!;
     int caseCount = 0;

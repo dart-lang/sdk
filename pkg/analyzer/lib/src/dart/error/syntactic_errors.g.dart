@@ -26,7 +26,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.EXTERNAL_ENUM,
   ParserErrorCode.PREFIX_AFTER_COMBINATOR,
   ParserErrorCode.TYPEDEF_IN_CLASS,
-  ParserErrorCode.EXPECTED_BODY,
+  ParserErrorCode.EXPECTED_CLASS_BODY,
   ParserErrorCode.INVALID_AWAIT_IN_FOR,
   ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
   ParserErrorCode.WITH_BEFORE_EXTENDS,
@@ -184,6 +184,14 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS,
   ParserErrorCode.EXTENSION_TYPE_EXTENDS,
   ParserErrorCode.EXTENSION_TYPE_WITH,
+  ParserErrorCode.EXPECTED_MIXIN_BODY,
+  ParserErrorCode.EXPECTED_EXTENSION_TYPE_BODY,
+  ParserErrorCode.EXPECTED_TRY_STATEMENT_BODY,
+  ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY,
+  ParserErrorCode.EXPECTED_FINALLY_CLAUSE_BODY,
+  ParserErrorCode.EXPECTED_SWITCH_EXPRESSION_BODY,
+  ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY,
+  ParserErrorCode.EXPECTED_EXTENSION_BODY,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -539,16 +547,24 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try putting parentheses around one of the comparisons.",
   );
 
-  static const ParserErrorCode EXPECTED_BODY = ParserErrorCode(
-    'EXPECTED_BODY',
-    "A {0} must have a body, even if it is empty.",
-    correctionMessage: "Try adding an empty body.",
-  );
-
   static const ParserErrorCode EXPECTED_CASE_OR_DEFAULT = ParserErrorCode(
     'EXPECTED_CASE_OR_DEFAULT',
     "Expected 'case' or 'default'.",
     correctionMessage: "Try placing this code inside a case clause.",
+  );
+
+  static const ParserErrorCode EXPECTED_CATCH_CLAUSE_BODY = ParserErrorCode(
+    'EXPECTED_BODY',
+    "A catch clause must have a body, even if it is empty.",
+    correctionMessage: "Try adding an empty body.",
+    uniqueName: 'EXPECTED_CATCH_CLAUSE_BODY',
+  );
+
+  static const ParserErrorCode EXPECTED_CLASS_BODY = ParserErrorCode(
+    'EXPECTED_BODY',
+    "A class declaration must have a body, even if it is empty.",
+    correctionMessage: "Try adding an empty body.",
+    uniqueName: 'EXPECTED_CLASS_BODY',
   );
 
   static const ParserErrorCode EXPECTED_CLASS_MEMBER = ParserErrorCode(
@@ -569,6 +585,27 @@ class ParserErrorCode extends ErrorCode {
         "This appears to be incomplete code. Try removing it or completing it.",
   );
 
+  static const ParserErrorCode EXPECTED_EXTENSION_BODY = ParserErrorCode(
+    'EXPECTED_BODY',
+    "An extension declaration must have a body, even if it is empty.",
+    correctionMessage: "Try adding an empty body.",
+    uniqueName: 'EXPECTED_EXTENSION_BODY',
+  );
+
+  static const ParserErrorCode EXPECTED_EXTENSION_TYPE_BODY = ParserErrorCode(
+    'EXPECTED_BODY',
+    "An extension type declaration must have a body, even if it is empty.",
+    correctionMessage: "Try adding an empty body.",
+    uniqueName: 'EXPECTED_EXTENSION_TYPE_BODY',
+  );
+
+  static const ParserErrorCode EXPECTED_FINALLY_CLAUSE_BODY = ParserErrorCode(
+    'EXPECTED_BODY',
+    "A finally clause must have a body, even if it is empty.",
+    correctionMessage: "Try adding an empty body.",
+    uniqueName: 'EXPECTED_FINALLY_CLAUSE_BODY',
+  );
+
   static const ParserErrorCode EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD =
       ParserErrorCode(
     'EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD',
@@ -587,6 +624,13 @@ class ParserErrorCode extends ErrorCode {
     "Expected a list or map literal.",
     correctionMessage:
         "Try inserting a list or map literal, or remove the type arguments.",
+  );
+
+  static const ParserErrorCode EXPECTED_MIXIN_BODY = ParserErrorCode(
+    'EXPECTED_BODY',
+    "A mixin declaration must have a body, even if it is empty.",
+    correctionMessage: "Try adding an empty body.",
+    uniqueName: 'EXPECTED_MIXIN_BODY',
   );
 
   static const ParserErrorCode EXPECTED_NAMED_TYPE_EXTENDS = ParserErrorCode(
@@ -638,11 +682,33 @@ class ParserErrorCode extends ErrorCode {
     "Expected a string literal.",
   );
 
+  static const ParserErrorCode EXPECTED_SWITCH_EXPRESSION_BODY =
+      ParserErrorCode(
+    'EXPECTED_BODY',
+    "A switch expression must have a body, even if it is empty.",
+    correctionMessage: "Try adding an empty body.",
+    uniqueName: 'EXPECTED_SWITCH_EXPRESSION_BODY',
+  );
+
+  static const ParserErrorCode EXPECTED_SWITCH_STATEMENT_BODY = ParserErrorCode(
+    'EXPECTED_BODY',
+    "A switch statement must have a body, even if it is empty.",
+    correctionMessage: "Try adding an empty body.",
+    uniqueName: 'EXPECTED_SWITCH_STATEMENT_BODY',
+  );
+
   ///  Parameters:
   ///  0: the token that was expected but not found
   static const ParserErrorCode EXPECTED_TOKEN = ParserErrorCode(
     'EXPECTED_TOKEN',
     "Expected to find '{0}'.",
+  );
+
+  static const ParserErrorCode EXPECTED_TRY_STATEMENT_BODY = ParserErrorCode(
+    'EXPECTED_BODY',
+    "A try statement must have a body, even if it is empty.",
+    correctionMessage: "Try adding an empty body.",
+    uniqueName: 'EXPECTED_TRY_STATEMENT_BODY',
   );
 
   static const ParserErrorCode EXPECTED_TYPE_NAME = ParserErrorCode(

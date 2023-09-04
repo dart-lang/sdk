@@ -31,7 +31,7 @@ beginCompilationUnit(class)
       handleClassNoWithClause()
       handleImplements(null, 0)
       handleRecoverDeclarationHeader(DeclarationHeaderKind.Class)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A class declaration must have a body, even if it is empty., Try adding an empty body., {string: class declaration}], , )
+      handleRecoverableError(ExpectedClassBody, , )
       // WARNING: Reporting at eof for .
       beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })

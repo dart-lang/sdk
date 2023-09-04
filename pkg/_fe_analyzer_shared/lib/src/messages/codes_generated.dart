@@ -3517,6 +3517,28 @@ Message _withArgumentsExpectedButGot(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedCatchClauseBody = messageExpectedCatchClauseBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedCatchClauseBody = const MessageCode(
+    "ExpectedCatchClauseBody",
+    index: 169,
+    problemMessage:
+        r"""A catch clause must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedClassBody = messageExpectedClassBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedClassBody = const MessageCode(
+    "ExpectedClassBody",
+    index: 8,
+    problemMessage:
+        r"""A class declaration must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedClassMember =
     const Template<Message Function(Token token)>(
         problemMessageTemplate:
@@ -3534,29 +3556,6 @@ Message _withArgumentsExpectedClassMember(Token token) {
   return new Message(codeExpectedClassMember,
       problemMessage: """Expected a class member, but got '${lexeme}'.""",
       arguments: {'lexeme': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)>
-    templateExpectedClassOrMixinBody =
-    const Template<Message Function(String string)>(
-        problemMessageTemplate:
-            r"""A #string must have a body, even if it is empty.""",
-        correctionMessageTemplate: r"""Try adding an empty body.""",
-        withArguments: _withArgumentsExpectedClassOrMixinBody);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeExpectedClassOrMixinBody =
-    const Code<Message Function(String string)>("ExpectedClassOrMixinBody",
-        index: 8);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedClassOrMixinBody(String string) {
-  if (string.isEmpty) throw 'No string provided';
-  return new Message(codeExpectedClassOrMixinBody,
-      problemMessage: """A ${string} must have a body, even if it is empty.""",
-      correctionMessage: """Try adding an empty body.""",
-      arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3611,6 +3610,41 @@ Message _withArgumentsExpectedEnumBody(Token token) {
           """An enum definition must have a body with at least one constant name.""",
       arguments: {'lexeme': token});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedExtensionBody = messageExpectedExtensionBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedExtensionBody = const MessageCode(
+    "ExpectedExtensionBody",
+    index: 173,
+    problemMessage:
+        r"""An extension declaration must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedExtensionTypeBody =
+    messageExpectedExtensionTypeBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedExtensionTypeBody = const MessageCode(
+    "ExpectedExtensionTypeBody",
+    index: 167,
+    problemMessage:
+        r"""An extension type declaration must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedFinallyClauseBody =
+    messageExpectedFinallyClauseBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedFinallyClauseBody = const MessageCode(
+    "ExpectedFinallyClauseBody",
+    index: 170,
+    problemMessage:
+        r"""A finally clause must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedFunctionBody =
@@ -3710,6 +3744,17 @@ Message _withArgumentsExpectedInstead(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedMixinBody = messageExpectedMixinBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedMixinBody = const MessageCode(
+    "ExpectedMixinBody",
+    index: 166,
+    problemMessage:
+        r"""A mixin declaration must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpectedNamedArgument = messageExpectedNamedArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3764,6 +3809,30 @@ Message _withArgumentsExpectedString(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedSwitchExpressionBody =
+    messageExpectedSwitchExpressionBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedSwitchExpressionBody = const MessageCode(
+    "ExpectedSwitchExpressionBody",
+    index: 171,
+    problemMessage:
+        r"""A switch expression must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedSwitchStatementBody =
+    messageExpectedSwitchStatementBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedSwitchStatementBody = const MessageCode(
+    "ExpectedSwitchStatementBody",
+    index: 172,
+    problemMessage:
+        r"""A switch statement must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateExpectedToken =
     const Template<Message Function(String string)>(
         problemMessageTemplate: r"""Expected to find '#string'.""",
@@ -3781,6 +3850,17 @@ Message _withArgumentsExpectedToken(String string) {
       problemMessage: """Expected to find '${string}'.""",
       arguments: {'string': string});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedTryStatementBody = messageExpectedTryStatementBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedTryStatementBody = const MessageCode(
+    "ExpectedTryStatementBody",
+    index: 168,
+    problemMessage:
+        r"""A try statement must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedType =

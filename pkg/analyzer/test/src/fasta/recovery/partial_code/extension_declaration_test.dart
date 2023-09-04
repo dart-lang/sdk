@@ -21,7 +21,7 @@ class ExtensionDeclarationTest extends PartialCodeTest {
               [
                 ParserErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.EXPECTED_BODY,
+                ParserErrorCode.EXPECTED_EXTENSION_BODY,
               ],
               'extension on _s_ {}',
               failing: [
@@ -38,7 +38,7 @@ class ExtensionDeclarationTest extends PartialCodeTest {
               [
                 ParserErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.EXPECTED_BODY,
+                ParserErrorCode.EXPECTED_EXTENSION_BODY,
               ],
               'extension E on _s_ {}',
               failing: ['getter', 'functionNonVoid', 'functionVoid', 'mixin']),
@@ -47,7 +47,7 @@ class ExtensionDeclarationTest extends PartialCodeTest {
               'extension E on',
               [
                 ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.EXPECTED_BODY,
+                ParserErrorCode.EXPECTED_EXTENSION_BODY,
               ],
               'extension E on _s_ {}',
               failing: ['getter', 'functionNonVoid', 'functionVoid', 'mixin']),
@@ -55,7 +55,7 @@ class ExtensionDeclarationTest extends PartialCodeTest {
               'extendedType',
               'extension E on String',
               [
-                ParserErrorCode.EXPECTED_BODY,
+                ParserErrorCode.EXPECTED_EXTENSION_BODY,
               ],
               'extension E on String {}'),
           // Most of the failing tests are because the following text could be
