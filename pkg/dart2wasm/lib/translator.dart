@@ -904,10 +904,10 @@ class Translator with KernelNodes {
   bool shouldInline(Reference target) {
     if (!options.inlining) return false;
     Member member = target.asMember;
-    if (member.function?.asyncMarker == AsyncMarker.SyncStar) return false;
     if (membersContainingInnerFunctions.contains(member)) return false;
     if (membersBeingGenerated.contains(member)) return false;
     if (member is Field) return true;
+    if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
     if (getPragma<Constant>(member, "wasm:prefer-inline") != null) return true;
     Statement? body = member.function!.body;
     return body != null &&

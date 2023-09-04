@@ -1625,8 +1625,7 @@ class Intrinsifier {
 
       // Both contexts are objects, compare for equality with `identical`. This
       // handles identical `this` values in instance tear-offs.
-      b.call(translator.functions
-          .getFunction(translator.coreTypes.identicalProcedure.reference));
+      codeGen.call(translator.coreTypes.identicalProcedure.reference);
       b.return_();
       b.end(); // contextCheckFail
 
@@ -1688,7 +1687,7 @@ class Intrinsifier {
       );
       b.local_get(posArgsNullableLocal);
       b.ref_as_non_null();
-      b.call(translator.functions.getFunction(translator.listOf.reference));
+      codeGen.call(translator.listOf.reference);
       b.end();
       b.local_set(posArgsLocal);
 
@@ -1696,8 +1695,7 @@ class Intrinsifier {
       // checkers and the dynamic call entry.
       final namedArgsListLocal = function.addLocal(listArgumentType);
       b.local_get(namedArgsLocal);
-      b.call(translator.functions
-          .getFunction(translator.namedParameterMapToList.reference));
+      codeGen.call(translator.namedParameterMapToList.reference);
       b.ref_cast(listArgumentType); // ref Object -> ref _ListBase
       b.local_set(namedArgsListLocal);
 
