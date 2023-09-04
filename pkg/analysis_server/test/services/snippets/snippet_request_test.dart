@@ -300,6 +300,15 @@ foo() {
 ''', SnippetContext.inBlock);
   }
 
+  Future<void> test_initializingFormal() async {
+    await testRequest(r'''
+class A {
+  int a;
+  A(this.[!f^!]);
+}
+''', SnippetContext.inQualifiedMemberAccess);
+  }
+
   Future<void> test_method_atEnd() async {
     await testRequest(r'''
 class A {
