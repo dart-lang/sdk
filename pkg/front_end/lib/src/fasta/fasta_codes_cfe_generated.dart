@@ -20,6 +20,7 @@ const Template<
             isNonNullableByDefault)> templateAmbiguousExtensionMethod = const Template<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
+    "AmbiguousExtensionMethod",
     problemMessageTemplate:
         r"""The method '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
     correctionMessageTemplate:
@@ -57,6 +58,7 @@ const Template<
     templateAmbiguousExtensionOperator = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "AmbiguousExtensionOperator",
         problemMessageTemplate:
             r"""The operator '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
         correctionMessageTemplate:
@@ -96,6 +98,7 @@ const Template<
     templateAmbiguousExtensionProperty = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "AmbiguousExtensionProperty",
         problemMessageTemplate:
             r"""The property '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
         correctionMessageTemplate:
@@ -134,7 +137,7 @@ const Template<
             bool isNonNullableByDefault)> templateAmbiguousSupertypes =
     const Template<
             Message Function(String name, DartType _type, DartType _type2,
-                bool isNonNullableByDefault)>(
+                bool isNonNullableByDefault)>("AmbiguousSupertypes",
         problemMessageTemplate:
             r"""'#name' can't implement both '#type' and '#type2'""",
         withArguments: _withArgumentsAmbiguousSupertypes);
@@ -172,6 +175,7 @@ const Template<
     templateArgumentTypeNotAssignable = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "ArgumentTypeNotAssignable",
         problemMessageTemplate:
             r"""The argument type '#type' can't be assigned to the parameter type '#type2'.""",
         withArguments: _withArgumentsArgumentTypeNotAssignable);
@@ -208,6 +212,7 @@ const Template<
     templateArgumentTypeNotAssignableNullability = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "ArgumentTypeNotAssignableNullability",
         problemMessageTemplate:
             r"""The argument type '#type' can't be assigned to the parameter type '#type2' because '#type' is nullable and '#type2' isn't.""",
         withArguments: _withArgumentsArgumentTypeNotAssignableNullability);
@@ -241,6 +246,7 @@ Message _withArgumentsArgumentTypeNotAssignableNullability(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateArgumentTypeNotAssignableNullabilityNull = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "ArgumentTypeNotAssignableNullabilityNull",
         problemMessageTemplate:
             r"""The value 'null' can't be assigned to the parameter type '#type' because '#type' is not nullable.""",
         withArguments: _withArgumentsArgumentTypeNotAssignableNullabilityNull);
@@ -272,6 +278,7 @@ const Template<
     templateArgumentTypeNotAssignableNullabilityNullType = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "ArgumentTypeNotAssignableNullabilityNullType",
         problemMessageTemplate:
             r"""The argument type '#type' can't be assigned to the parameter type '#type2' because '#type2' is not nullable.""",
         withArguments:
@@ -309,6 +316,7 @@ const Template<
     templateArgumentTypeNotAssignablePartNullability = const Template<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 DartType _type4, bool isNonNullableByDefault)>(
+        "ArgumentTypeNotAssignablePartNullability",
         problemMessageTemplate:
             r"""The argument type '#type' can't be assigned to the parameter type '#type2' because '#type3' is nullable and '#type4' isn't.""",
         withArguments: _withArgumentsArgumentTypeNotAssignablePartNullability);
@@ -356,6 +364,7 @@ const Template<
         Message Function(Constant _constant, bool isNonNullableByDefault)>
     templateConstEvalCaseImplementsEqual = const Template<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
+        "ConstEvalCaseImplementsEqual",
         problemMessageTemplate:
             r"""Case expression '#constant' does not have a primitive operator '=='.""",
         withArguments: _withArgumentsConstEvalCaseImplementsEqual);
@@ -385,6 +394,7 @@ const Template<
         Message Function(Constant _constant, bool isNonNullableByDefault)>
     templateConstEvalDuplicateElement = const Template<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
+        "ConstEvalDuplicateElement",
         problemMessageTemplate:
             r"""The element '#constant' conflicts with another existing element in the set.""",
         withArguments: _withArgumentsConstEvalDuplicateElement);
@@ -414,6 +424,7 @@ const Template<
         Message Function(Constant _constant, bool isNonNullableByDefault)>
     templateConstEvalDuplicateKey = const Template<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
+        "ConstEvalDuplicateKey",
         problemMessageTemplate:
             r"""The key '#constant' conflicts with another existing key in the map.""",
         withArguments: _withArgumentsConstEvalDuplicateKey);
@@ -443,6 +454,7 @@ const Template<
         Message Function(Constant _constant, bool isNonNullableByDefault)>
     templateConstEvalElementImplementsEqual = const Template<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
+        "ConstEvalElementImplementsEqual",
         problemMessageTemplate:
             r"""The element '#constant' does not have a primitive operator '=='.""",
         withArguments: _withArgumentsConstEvalElementImplementsEqual);
@@ -472,6 +484,7 @@ const Template<
         Message Function(Constant _constant, bool isNonNullableByDefault)>
     templateConstEvalElementNotPrimitiveEquality = const Template<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
+        "ConstEvalElementNotPrimitiveEquality",
         problemMessageTemplate:
             r"""The element '#constant' does not have a primitive equality.""",
         withArguments: _withArgumentsConstEvalElementNotPrimitiveEquality);
@@ -503,6 +516,7 @@ const Template<
     templateConstEvalEqualsOperandNotPrimitiveEquality = const Template<
             Message Function(Constant _constant, DartType _type,
                 bool isNonNullableByDefault)>(
+        "ConstEvalEqualsOperandNotPrimitiveEquality",
         problemMessageTemplate:
             r"""Binary operator '==' requires receiver constant '#constant' of a type with primitive equality or type 'double', but was of type '#type'.""",
         withArguments:
@@ -537,6 +551,7 @@ Message _withArgumentsConstEvalEqualsOperandNotPrimitiveEquality(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateConstEvalFreeTypeParameter = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "ConstEvalFreeTypeParameter",
         problemMessageTemplate:
             r"""The type '#type' is not a constant because it depends on a type parameter, only instantiated types are allowed.""",
         withArguments: _withArgumentsConstEvalFreeTypeParameter);
@@ -568,6 +583,7 @@ const Template<
     templateConstEvalInvalidBinaryOperandType = const Template<
             Message Function(String stringOKEmpty, Constant _constant,
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "ConstEvalInvalidBinaryOperandType",
         problemMessageTemplate:
             r"""Binary operator '#stringOKEmpty' on '#constant' requires operand of type '#type', but was of type '#type2'.""",
         withArguments: _withArgumentsConstEvalInvalidBinaryOperandType);
@@ -616,6 +632,7 @@ const Template<
     templateConstEvalInvalidEqualsOperandType = const Template<
             Message Function(Constant _constant, DartType _type,
                 bool isNonNullableByDefault)>(
+        "ConstEvalInvalidEqualsOperandType",
         problemMessageTemplate:
             r"""Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'.""",
         withArguments: _withArgumentsConstEvalInvalidEqualsOperandType);
@@ -654,7 +671,7 @@ const Template<
                 String stringOKEmpty,
                 Constant _constant,
                 bool
-                    isNonNullableByDefault)>(
+                    isNonNullableByDefault)>("ConstEvalInvalidMethodInvocation",
         problemMessageTemplate:
             r"""The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression.""",
         withArguments: _withArgumentsConstEvalInvalidMethodInvocation);
@@ -688,11 +705,8 @@ const Template<
         Message Function(String stringOKEmpty, Constant _constant,
             bool isNonNullableByDefault)> templateConstEvalInvalidPropertyGet =
     const Template<
-            Message Function(
-                String stringOKEmpty,
-                Constant _constant,
-                bool
-                    isNonNullableByDefault)>(
+            Message Function(String stringOKEmpty, Constant _constant,
+                bool isNonNullableByDefault)>("ConstEvalInvalidPropertyGet",
         problemMessageTemplate:
             r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
         withArguments: _withArgumentsConstEvalInvalidPropertyGet);
@@ -725,11 +739,8 @@ const Template<
         Message Function(String stringOKEmpty, Constant _constant,
             bool isNonNullableByDefault)>
     templateConstEvalInvalidRecordIndexGet = const Template<
-            Message Function(
-                String stringOKEmpty,
-                Constant _constant,
-                bool
-                    isNonNullableByDefault)>(
+            Message Function(String stringOKEmpty, Constant _constant,
+                bool isNonNullableByDefault)>("ConstEvalInvalidRecordIndexGet",
         problemMessageTemplate:
             r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
         withArguments: _withArgumentsConstEvalInvalidRecordIndexGet);
@@ -762,11 +773,8 @@ const Template<
         Message Function(String stringOKEmpty, Constant _constant,
             bool isNonNullableByDefault)>
     templateConstEvalInvalidRecordNameGet = const Template<
-            Message Function(
-                String stringOKEmpty,
-                Constant _constant,
-                bool
-                    isNonNullableByDefault)>(
+            Message Function(String stringOKEmpty, Constant _constant,
+                bool isNonNullableByDefault)>("ConstEvalInvalidRecordNameGet",
         problemMessageTemplate:
             r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
         withArguments: _withArgumentsConstEvalInvalidRecordNameGet);
@@ -799,6 +807,7 @@ const Template<
         Message Function(Constant _constant, bool isNonNullableByDefault)>
     templateConstEvalInvalidStringInterpolationOperand = const Template<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
+        "ConstEvalInvalidStringInterpolationOperand",
         problemMessageTemplate:
             r"""The constant value '#constant' can't be used as part of a string interpolation in a constant expression.
 Only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.""",
@@ -831,6 +840,7 @@ const Template<
         Message Function(Constant _constant, bool isNonNullableByDefault)>
     templateConstEvalInvalidSymbolName = const Template<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
+        "ConstEvalInvalidSymbolName",
         problemMessageTemplate:
             r"""The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '#constant'.""",
         withArguments: _withArgumentsConstEvalInvalidSymbolName);
@@ -865,6 +875,7 @@ const Template<
             isNonNullableByDefault)> templateConstEvalInvalidType = const Template<
         Message Function(Constant _constant, DartType _type, DartType _type2,
             bool isNonNullableByDefault)>(
+    "ConstEvalInvalidType",
     problemMessageTemplate:
         r"""Expected constant '#constant' to be of type '#type', but was of type '#type2'.""",
     withArguments: _withArgumentsConstEvalInvalidType);
@@ -900,6 +911,7 @@ const Template<
         Message Function(Constant _constant, bool isNonNullableByDefault)>
     templateConstEvalKeyImplementsEqual = const Template<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
+        "ConstEvalKeyImplementsEqual",
         problemMessageTemplate:
             r"""The key '#constant' does not have a primitive operator '=='.""",
         withArguments: _withArgumentsConstEvalKeyImplementsEqual);
@@ -931,6 +943,7 @@ const Template<
         Message Function(Constant _constant, bool isNonNullableByDefault)>
     templateConstEvalKeyNotPrimitiveEquality = const Template<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
+        "ConstEvalKeyNotPrimitiveEquality",
         problemMessageTemplate:
             r"""The key '#constant' does not have a primitive equality.""",
         withArguments: _withArgumentsConstEvalKeyNotPrimitiveEquality);
@@ -960,6 +973,7 @@ const Template<
         Message Function(Constant _constant, bool isNonNullableByDefault)>
     templateConstEvalUnhandledException = const Template<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
+        "ConstEvalUnhandledException",
         problemMessageTemplate: r"""Unhandled exception: #constant""",
         withArguments: _withArgumentsConstEvalUnhandledException);
 
@@ -991,6 +1005,7 @@ const Template<
             isNonNullableByDefault)> templateDeferredTypeAnnotation = const Template<
         Message Function(
             DartType _type, String name, bool isNonNullableByDefault)>(
+    "DeferredTypeAnnotation",
     problemMessageTemplate:
         r"""The type '#type' is deferred loaded via prefix '#name' and can't be used as a type annotation.""",
     correctionMessageTemplate:
@@ -1030,6 +1045,7 @@ const Template<
     templateFfiDartTypeMismatch = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "FfiDartTypeMismatch",
         problemMessageTemplate:
             r"""Expected '#type' to be a subtype of '#type2'.""",
         withArguments: _withArgumentsFfiDartTypeMismatch);
@@ -1062,6 +1078,7 @@ Message _withArgumentsFfiDartTypeMismatch(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateFfiExpectedExceptionalReturn = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "FfiExpectedExceptionalReturn",
         problemMessageTemplate:
             r"""Expected an exceptional return value for a native callback returning '#type'.""",
         withArguments: _withArgumentsFfiExpectedExceptionalReturn);
@@ -1090,6 +1107,7 @@ Message _withArgumentsFfiExpectedExceptionalReturn(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateFfiExpectedNoExceptionalReturn = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "FfiExpectedNoExceptionalReturn",
         problemMessageTemplate:
             r"""Exceptional return value cannot be provided for a native callback returning '#type'.""",
         withArguments: _withArgumentsFfiExpectedNoExceptionalReturn);
@@ -1118,6 +1136,7 @@ Message _withArgumentsFfiExpectedNoExceptionalReturn(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateFfiNativeCallableListenerReturnVoid = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "FfiNativeCallableListenerReturnVoid",
         problemMessageTemplate:
             r"""The return type of the function passed to NativeCallable.listener must be void rather than '#type'.""",
         withArguments: _withArgumentsFfiNativeCallableListenerReturnVoid);
@@ -1149,6 +1168,7 @@ const Template<
         bool
             isNonNullableByDefault)> templateFfiTypeInvalid = const Template<
         Message Function(DartType _type, bool isNonNullableByDefault)>(
+    "FfiTypeInvalid",
     problemMessageTemplate:
         r"""Expected type '#type' to be a valid and instantiated subtype of 'NativeType'.""",
     withArguments: _withArgumentsFfiTypeInvalid);
@@ -1182,7 +1202,7 @@ const Template<
         bool
             isNonNullableByDefault)> templateFfiTypeMismatch = const Template<
         Message Function(DartType _type, DartType _type2, DartType _type3,
-            bool isNonNullableByDefault)>(
+            bool isNonNullableByDefault)>("FfiTypeMismatch",
     problemMessageTemplate:
         r"""Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'.""",
     withArguments: _withArgumentsFfiTypeMismatch);
@@ -1220,6 +1240,7 @@ const Template<
     templateFieldNonNullableNotInitializedByConstructorError = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "FieldNonNullableNotInitializedByConstructorError",
         problemMessageTemplate:
             r"""This constructor should initialize field '#name' because its type '#type' doesn't allow null.""",
         withArguments:
@@ -1257,6 +1278,7 @@ const Template<
     templateFieldNonNullableWithoutInitializerError = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "FieldNonNullableWithoutInitializerError",
         problemMessageTemplate:
             r"""Field '#name' should be initialized because its type '#type' doesn't allow null.""",
         withArguments: _withArgumentsFieldNonNullableWithoutInitializerError);
@@ -1293,6 +1315,7 @@ const Template<
     templateForInLoopElementTypeNotAssignable = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "ForInLoopElementTypeNotAssignable",
         problemMessageTemplate:
             r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
         correctionMessageTemplate:
@@ -1332,6 +1355,7 @@ const Template<
     templateForInLoopElementTypeNotAssignableNullability = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "ForInLoopElementTypeNotAssignableNullability",
         problemMessageTemplate:
             r"""A value of type '#type' can't be assigned to a variable of type '#type2' because '#type' is nullable and '#type2' isn't.""",
         correctionMessageTemplate:
@@ -1372,6 +1396,7 @@ const Template<
     templateForInLoopElementTypeNotAssignablePartNullability = const Template<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 DartType _type4, bool isNonNullableByDefault)>(
+        "ForInLoopElementTypeNotAssignablePartNullability",
         problemMessageTemplate:
             r"""A value of type '#type' can't be assigned to a variable of type '#type2' because '#type3' is nullable and '#type4' isn't.""",
         correctionMessageTemplate:
@@ -1425,6 +1450,7 @@ const Template<
     templateForInLoopTypeNotIterable = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "ForInLoopTypeNotIterable",
         problemMessageTemplate:
             r"""The type '#type' used in the 'for' loop must implement '#type2'.""",
         withArguments: _withArgumentsForInLoopTypeNotIterable);
@@ -1461,6 +1487,7 @@ const Template<
     templateForInLoopTypeNotIterableNullability = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "ForInLoopTypeNotIterableNullability",
         problemMessageTemplate:
             r"""The type '#type' used in the 'for' loop must implement '#type2' because '#type' is nullable and '#type2' isn't.""",
         withArguments: _withArgumentsForInLoopTypeNotIterableNullability);
@@ -1497,6 +1524,7 @@ const Template<
     templateForInLoopTypeNotIterablePartNullability = const Template<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 DartType _type4, bool isNonNullableByDefault)>(
+        "ForInLoopTypeNotIterablePartNullability",
         problemMessageTemplate:
             r"""The type '#type' used in the 'for' loop must implement '#type2' because '#type3' is nullable and '#type4' isn't.""",
         withArguments: _withArgumentsForInLoopTypeNotIterablePartNullability);
@@ -1546,6 +1574,7 @@ const Template<
     templateGenericFunctionTypeAsTypeArgumentThroughTypedef = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "GenericFunctionTypeAsTypeArgumentThroughTypedef",
         problemMessageTemplate:
             r"""Generic function type '#type' used as a type argument through typedef '#type2'.""",
         correctionMessageTemplate:
@@ -1583,6 +1612,7 @@ Message _withArgumentsGenericFunctionTypeAsTypeArgumentThroughTypedef(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateGenericFunctionTypeInferredAsActualTypeArgument = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "GenericFunctionTypeInferredAsActualTypeArgument",
         problemMessageTemplate:
             r"""Generic function type '#type' inferred as a type argument.""",
         correctionMessageTemplate:
@@ -1616,6 +1646,7 @@ Message _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateImplicitCallOfNonMethod = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "ImplicitCallOfNonMethod",
         problemMessageTemplate:
             r"""Cannot invoke an instance of '#type' because it declares 'call' to be something other than a method.""",
         correctionMessageTemplate:
@@ -1650,6 +1681,7 @@ const Template<
         bool
             isNonNullableByDefault)> templateImplicitReturnNull = const Template<
         Message Function(DartType _type, bool isNonNullableByDefault)>(
+    "ImplicitReturnNull",
     problemMessageTemplate:
         r"""A non-null value must be returned since the return type '#type' doesn't allow null.""",
     withArguments: _withArgumentsImplicitReturnNull);
@@ -1681,6 +1713,7 @@ const Template<
     templateIncompatibleRedirecteeFunctionType = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "IncompatibleRedirecteeFunctionType",
         problemMessageTemplate:
             r"""The constructor function type '#type' isn't a subtype of '#type2'.""",
         withArguments: _withArgumentsIncompatibleRedirecteeFunctionType);
@@ -1720,7 +1753,7 @@ const Template<
         bool
             isNonNullableByDefault)> templateIncorrectTypeArgument = const Template<
         Message Function(DartType _type, DartType _type2, String name,
-            String name2, bool isNonNullableByDefault)>(
+            String name2, bool isNonNullableByDefault)>("IncorrectTypeArgument",
     problemMessageTemplate:
         r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'.""",
     correctionMessageTemplate:
@@ -1770,8 +1803,12 @@ const Template<
         Message Function(DartType _type, DartType _type2, String name,
             String name2, bool isNonNullableByDefault)>
     templateIncorrectTypeArgumentInferred = const Template<
-            Message Function(DartType _type, DartType _type2, String name,
-                String name2, bool isNonNullableByDefault)>(
+            Message Function(
+                DartType _type,
+                DartType _type2,
+                String name,
+                String name2,
+                bool isNonNullableByDefault)>("IncorrectTypeArgumentInferred",
         problemMessageTemplate:
             r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'.""",
         correctionMessageTemplate:
@@ -1823,6 +1860,7 @@ const Template<
     templateIncorrectTypeArgumentInstantiation = const Template<
             Message Function(DartType _type, DartType _type2, String name,
                 DartType _type3, bool isNonNullableByDefault)>(
+        "IncorrectTypeArgumentInstantiation",
         problemMessageTemplate:
             r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'.""",
         correctionMessageTemplate:
@@ -1875,6 +1913,7 @@ const Template<
     templateIncorrectTypeArgumentInstantiationInferred = const Template<
             Message Function(DartType _type, DartType _type2, String name,
                 DartType _type3, bool isNonNullableByDefault)>(
+        "IncorrectTypeArgumentInstantiationInferred",
         problemMessageTemplate:
             r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'.""",
         correctionMessageTemplate:
@@ -1926,8 +1965,13 @@ const Template<
         Message Function(DartType _type, DartType _type2, String name,
             DartType _type3, String name2, bool isNonNullableByDefault)>
     templateIncorrectTypeArgumentQualified = const Template<
-            Message Function(DartType _type, DartType _type2, String name,
-                DartType _type3, String name2, bool isNonNullableByDefault)>(
+            Message Function(
+                DartType _type,
+                DartType _type2,
+                String name,
+                DartType _type3,
+                String name2,
+                bool isNonNullableByDefault)>("IncorrectTypeArgumentQualified",
         problemMessageTemplate:
             r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'.""",
         correctionMessageTemplate:
@@ -1988,6 +2032,7 @@ const Template<
     templateIncorrectTypeArgumentQualifiedInferred = const Template<
             Message Function(DartType _type, DartType _type2, String name,
                 DartType _type3, String name2, bool isNonNullableByDefault)>(
+        "IncorrectTypeArgumentQualifiedInferred",
         problemMessageTemplate:
             r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'.""",
         correctionMessageTemplate:
@@ -2045,6 +2090,7 @@ const Template<
     const Template<
             Message Function(int count, int count2, DartType _type,
                 bool isNonNullableByDefault)>(
+        "IndexOutOfBoundInRecordIndexGet",
         problemMessageTemplate:
             r"""Index #count is out of range 0..#count2 of positional fields of records #type.""",
         withArguments: _withArgumentsIndexOutOfBoundInRecordIndexGet);
@@ -2086,7 +2132,7 @@ const Template<
                 DartType _type,
                 DartType _type2,
                 bool
-                    isNonNullableByDefault)>(
+                    isNonNullableByDefault)>("InitializingFormalTypeMismatch",
         problemMessageTemplate:
             r"""The type of parameter '#name', '#type' is not a subtype of the corresponding field's type, '#type2'.""",
         correctionMessageTemplate:
@@ -2124,6 +2170,7 @@ Message _withArgumentsInitializingFormalTypeMismatch(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateInstantiationNonGenericFunctionType = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "InstantiationNonGenericFunctionType",
         problemMessageTemplate:
             r"""The static type of the explicit instantiation operand must be a generic function type but is '#type'.""",
         correctionMessageTemplate:
@@ -2155,6 +2202,7 @@ Message _withArgumentsInstantiationNonGenericFunctionType(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateInstantiationNullableGenericFunctionType = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "InstantiationNullableGenericFunctionType",
         problemMessageTemplate:
             r"""The static type of the explicit instantiation operand must be a non-null generic function type but is '#type'.""",
         correctionMessageTemplate:
@@ -2189,6 +2237,7 @@ const Template<
     templateInternalProblemUnsupportedNullability = const Template<
             Message Function(
                 String string, DartType _type, bool isNonNullableByDefault)>(
+        "InternalProblemUnsupportedNullability",
         problemMessageTemplate:
             r"""Unsupported nullability value '#string' on type '#type'.""",
         withArguments: _withArgumentsInternalProblemUnsupportedNullability);
@@ -2224,6 +2273,7 @@ const Template<
     templateInvalidAssignmentError = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "InvalidAssignmentError",
         problemMessageTemplate:
             r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
         withArguments: _withArgumentsInvalidAssignmentError);
@@ -2260,6 +2310,7 @@ const Template<
     templateInvalidAssignmentErrorNullability = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "InvalidAssignmentErrorNullability",
         problemMessageTemplate:
             r"""A value of type '#type' can't be assigned to a variable of type '#type2' because '#type' is nullable and '#type2' isn't.""",
         withArguments: _withArgumentsInvalidAssignmentErrorNullability);
@@ -2293,6 +2344,7 @@ Message _withArgumentsInvalidAssignmentErrorNullability(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateInvalidAssignmentErrorNullabilityNull = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "InvalidAssignmentErrorNullabilityNull",
         problemMessageTemplate:
             r"""The value 'null' can't be assigned to a variable of type '#type' because '#type' is not nullable.""",
         withArguments: _withArgumentsInvalidAssignmentErrorNullabilityNull);
@@ -2324,6 +2376,7 @@ const Template<
     templateInvalidAssignmentErrorNullabilityNullType = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "InvalidAssignmentErrorNullabilityNullType",
         problemMessageTemplate:
             r"""A value of type '#type' can't be assigned to a variable of type '#type2' because '#type2' is not nullable.""",
         withArguments: _withArgumentsInvalidAssignmentErrorNullabilityNullType);
@@ -2360,6 +2413,7 @@ const Template<
     templateInvalidAssignmentErrorPartNullability = const Template<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 DartType _type4, bool isNonNullableByDefault)>(
+        "InvalidAssignmentErrorPartNullability",
         problemMessageTemplate:
             r"""A value of type '#type' can't be assigned to a variable of type '#type2' because '#type3' is nullable and '#type4' isn't.""",
         withArguments: _withArgumentsInvalidAssignmentErrorPartNullability);
@@ -2411,6 +2465,7 @@ const Template<
             isNonNullableByDefault)> templateInvalidCastFunctionExpr = const Template<
         Message Function(DartType _type, DartType _type2,
             bool isNonNullableByDefault)>(
+    "InvalidCastFunctionExpr",
     problemMessageTemplate:
         r"""The function expression type '#type' isn't of expected type '#type2'.""",
     correctionMessageTemplate:
@@ -2452,6 +2507,7 @@ const Template<
             isNonNullableByDefault)> templateInvalidCastLiteralList = const Template<
         Message Function(DartType _type, DartType _type2,
             bool isNonNullableByDefault)>(
+    "InvalidCastLiteralList",
     problemMessageTemplate:
         r"""The list literal type '#type' isn't of expected type '#type2'.""",
     correctionMessageTemplate:
@@ -2491,8 +2547,9 @@ const Template<
         DartType _type2,
         bool
             isNonNullableByDefault)> templateInvalidCastLiteralMap = const Template<
-        Message Function(DartType _type, DartType _type2,
-            bool isNonNullableByDefault)>(
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+    "InvalidCastLiteralMap",
     problemMessageTemplate:
         r"""The map literal type '#type' isn't of expected type '#type2'.""",
     correctionMessageTemplate:
@@ -2532,8 +2589,9 @@ const Template<
         DartType _type2,
         bool
             isNonNullableByDefault)> templateInvalidCastLiteralSet = const Template<
-        Message Function(DartType _type, DartType _type2,
-            bool isNonNullableByDefault)>(
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+    "InvalidCastLiteralSet",
     problemMessageTemplate:
         r"""The set literal type '#type' isn't of expected type '#type2'.""",
     correctionMessageTemplate:
@@ -2575,6 +2633,7 @@ const Template<
             isNonNullableByDefault)> templateInvalidCastLocalFunction = const Template<
         Message Function(DartType _type, DartType _type2,
             bool isNonNullableByDefault)>(
+    "InvalidCastLocalFunction",
     problemMessageTemplate:
         r"""The local function has type '#type' that isn't of expected type '#type2'.""",
     correctionMessageTemplate:
@@ -2614,8 +2673,9 @@ const Template<
         DartType _type2,
         bool
             isNonNullableByDefault)> templateInvalidCastNewExpr = const Template<
-        Message Function(DartType _type, DartType _type2,
-            bool isNonNullableByDefault)>(
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+    "InvalidCastNewExpr",
     problemMessageTemplate:
         r"""The constructor returns type '#type' that isn't of expected type '#type2'.""",
     correctionMessageTemplate:
@@ -2657,6 +2717,7 @@ const Template<
             isNonNullableByDefault)> templateInvalidCastStaticMethod = const Template<
         Message Function(DartType _type, DartType _type2,
             bool isNonNullableByDefault)>(
+    "InvalidCastStaticMethod",
     problemMessageTemplate:
         r"""The static method has type '#type' that isn't of expected type '#type2'.""",
     correctionMessageTemplate:
@@ -2696,6 +2757,7 @@ const Template<
     templateInvalidCastTopLevelFunction = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "InvalidCastTopLevelFunction",
         problemMessageTemplate:
             r"""The top level function has type '#type' that isn't of expected type '#type2'.""",
         correctionMessageTemplate:
@@ -2735,6 +2797,7 @@ const Template<
     templateInvalidExtensionTypeSuperExtensionType = const Template<
             Message Function(DartType _type, String name, DartType _type2,
                 DartType _type3, bool isNonNullableByDefault)>(
+        "InvalidExtensionTypeSuperExtensionType",
         problemMessageTemplate:
             r"""The representation type '#type' of extension type '#name' must be a subtype of the representation type '#type2' of the implemented extension type '#type3'.""",
         correctionMessageTemplate:
@@ -2795,6 +2858,7 @@ const Template<
                 String name,
                 bool
                     isNonNullableByDefault)>(
+        "InvalidExtensionTypeSuperInterface",
         problemMessageTemplate:
             r"""The implemented interface '#type' must be a supertype of the representation type '#type2' of extension type '#name'.""",
         correctionMessageTemplate:
@@ -2834,8 +2898,12 @@ const Template<
         Message Function(DartType _type, String name, DartType _type2,
             String name2, bool isNonNullableByDefault)>
     templateInvalidGetterSetterType = const Template<
-            Message Function(DartType _type, String name, DartType _type2,
-                String name2, bool isNonNullableByDefault)>(
+            Message Function(
+                DartType _type,
+                String name,
+                DartType _type2,
+                String name2,
+                bool isNonNullableByDefault)>("InvalidGetterSetterType",
         problemMessageTemplate:
             r"""The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
         withArguments: _withArgumentsInvalidGetterSetterType);
@@ -2880,6 +2948,7 @@ const Template<
     templateInvalidGetterSetterTypeBothInheritedField = const Template<
             Message Function(DartType _type, String name, DartType _type2,
                 String name2, bool isNonNullableByDefault)>(
+        "InvalidGetterSetterTypeBothInheritedField",
         problemMessageTemplate:
             r"""The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
         withArguments: _withArgumentsInvalidGetterSetterTypeBothInheritedField);
@@ -2925,6 +2994,7 @@ const Template<
     templateInvalidGetterSetterTypeBothInheritedFieldLegacy = const Template<
             Message Function(DartType _type, String name, DartType _type2,
                 String name2, bool isNonNullableByDefault)>(
+        "InvalidGetterSetterTypeBothInheritedFieldLegacy",
         problemMessageTemplate:
             r"""The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'.""",
         withArguments:
@@ -2975,6 +3045,7 @@ const Template<
     templateInvalidGetterSetterTypeBothInheritedGetter = const Template<
             Message Function(DartType _type, String name, DartType _type2,
                 String name2, bool isNonNullableByDefault)>(
+        "InvalidGetterSetterTypeBothInheritedGetter",
         problemMessageTemplate:
             r"""The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
         withArguments:
@@ -3021,6 +3092,7 @@ const Template<
     templateInvalidGetterSetterTypeBothInheritedGetterLegacy = const Template<
             Message Function(DartType _type, String name, DartType _type2,
                 String name2, bool isNonNullableByDefault)>(
+        "InvalidGetterSetterTypeBothInheritedGetterLegacy",
         problemMessageTemplate:
             r"""The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'.""",
         withArguments:
@@ -3071,6 +3143,7 @@ const Template<
     templateInvalidGetterSetterTypeFieldInherited = const Template<
             Message Function(DartType _type, String name, DartType _type2,
                 String name2, bool isNonNullableByDefault)>(
+        "InvalidGetterSetterTypeFieldInherited",
         problemMessageTemplate:
             r"""The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
         withArguments: _withArgumentsInvalidGetterSetterTypeFieldInherited);
@@ -3116,6 +3189,7 @@ const Template<
     templateInvalidGetterSetterTypeFieldInheritedLegacy = const Template<
             Message Function(DartType _type, String name, DartType _type2,
                 String name2, bool isNonNullableByDefault)>(
+        "InvalidGetterSetterTypeFieldInheritedLegacy",
         problemMessageTemplate:
             r"""The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the setter '#name2'.""",
         withArguments:
@@ -3166,6 +3240,7 @@ const Template<
     templateInvalidGetterSetterTypeGetterInherited = const Template<
             Message Function(DartType _type, String name, DartType _type2,
                 String name2, bool isNonNullableByDefault)>(
+        "InvalidGetterSetterTypeGetterInherited",
         problemMessageTemplate:
             r"""The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
         withArguments: _withArgumentsInvalidGetterSetterTypeGetterInherited);
@@ -3211,6 +3286,7 @@ const Template<
     templateInvalidGetterSetterTypeGetterInheritedLegacy = const Template<
             Message Function(DartType _type, String name, DartType _type2,
                 String name2, bool isNonNullableByDefault)>(
+        "InvalidGetterSetterTypeGetterInheritedLegacy",
         problemMessageTemplate:
             r"""The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the setter '#name2'.""",
         withArguments:
@@ -3259,8 +3335,12 @@ const Template<
         Message Function(DartType _type, String name, DartType _type2,
             String name2, bool isNonNullableByDefault)>
     templateInvalidGetterSetterTypeLegacy = const Template<
-            Message Function(DartType _type, String name, DartType _type2,
-                String name2, bool isNonNullableByDefault)>(
+            Message Function(
+                DartType _type,
+                String name,
+                DartType _type2,
+                String name2,
+                bool isNonNullableByDefault)>("InvalidGetterSetterTypeLegacy",
         problemMessageTemplate:
             r"""The type '#type' of the getter '#name' is not assignable to the type '#type2' of the setter '#name2'.""",
         withArguments: _withArgumentsInvalidGetterSetterTypeLegacy);
@@ -3306,6 +3386,7 @@ const Template<
     templateInvalidGetterSetterTypeSetterInheritedField = const Template<
             Message Function(DartType _type, String name, DartType _type2,
                 String name2, bool isNonNullableByDefault)>(
+        "InvalidGetterSetterTypeSetterInheritedField",
         problemMessageTemplate:
             r"""The type '#type' of the field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
         withArguments:
@@ -3356,6 +3437,7 @@ const Template<
     templateInvalidGetterSetterTypeSetterInheritedFieldLegacy = const Template<
             Message Function(DartType _type, String name, DartType _type2,
                 String name2, bool isNonNullableByDefault)>(
+        "InvalidGetterSetterTypeSetterInheritedFieldLegacy",
         problemMessageTemplate:
             r"""The type '#type' of the field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'.""",
         withArguments:
@@ -3406,6 +3488,7 @@ const Template<
     templateInvalidGetterSetterTypeSetterInheritedGetter = const Template<
             Message Function(DartType _type, String name, DartType _type2,
                 String name2, bool isNonNullableByDefault)>(
+        "InvalidGetterSetterTypeSetterInheritedGetter",
         problemMessageTemplate:
             r"""The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
         withArguments:
@@ -3456,6 +3539,7 @@ const Template<
     templateInvalidGetterSetterTypeSetterInheritedGetterLegacy = const Template<
             Message Function(DartType _type, String name, DartType _type2,
                 String name2, bool isNonNullableByDefault)>(
+        "InvalidGetterSetterTypeSetterInheritedGetterLegacy",
         problemMessageTemplate:
             r"""The type '#type' of the getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'.""",
         withArguments:
@@ -3508,6 +3592,7 @@ const Template<
             isNonNullableByDefault)> templateInvalidReturn = const Template<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+    "InvalidReturn",
     problemMessageTemplate:
         r"""A value of type '#type' can't be returned from a function with return type '#type2'.""",
     withArguments: _withArgumentsInvalidReturn);
@@ -3546,6 +3631,7 @@ const Template<
             isNonNullableByDefault)> templateInvalidReturnAsync = const Template<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+    "InvalidReturnAsync",
     problemMessageTemplate:
         r"""A value of type '#type' can't be returned from an async function with return type '#type2'.""",
     withArguments: _withArgumentsInvalidReturnAsync);
@@ -3582,6 +3668,7 @@ const Template<
     templateInvalidReturnAsyncNullability = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "InvalidReturnAsyncNullability",
         problemMessageTemplate:
             r"""A value of type '#type' can't be returned from an async function with return type '#type2' because '#type' is nullable and '#type2' isn't.""",
         withArguments: _withArgumentsInvalidReturnAsyncNullability);
@@ -3615,6 +3702,7 @@ Message _withArgumentsInvalidReturnAsyncNullability(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateInvalidReturnAsyncNullabilityNull = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "InvalidReturnAsyncNullabilityNull",
         problemMessageTemplate:
             r"""The value 'null' can't be returned from an async function with return type '#type' because '#type' is not nullable.""",
         withArguments: _withArgumentsInvalidReturnAsyncNullabilityNull);
@@ -3646,6 +3734,7 @@ const Template<
     templateInvalidReturnAsyncNullabilityNullType = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "InvalidReturnAsyncNullabilityNullType",
         problemMessageTemplate:
             r"""A value of type '#type' can't be returned from an async function with return type '#type2' because '#type2' is not nullable.""",
         withArguments: _withArgumentsInvalidReturnAsyncNullabilityNullType);
@@ -3682,6 +3771,7 @@ const Template<
     templateInvalidReturnAsyncPartNullability = const Template<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 DartType _type4, bool isNonNullableByDefault)>(
+        "InvalidReturnAsyncPartNullability",
         problemMessageTemplate:
             r"""A value of type '#type' can't be returned from an async function with return type '#type2' because '#type3' is nullable and '#type4' isn't.""",
         withArguments: _withArgumentsInvalidReturnAsyncPartNullability);
@@ -3731,6 +3821,7 @@ const Template<
     templateInvalidReturnNullability = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "InvalidReturnNullability",
         problemMessageTemplate:
             r"""A value of type '#type' can't be returned from a function with return type '#type2' because '#type' is nullable and '#type2' isn't.""",
         withArguments: _withArgumentsInvalidReturnNullability);
@@ -3764,6 +3855,7 @@ Message _withArgumentsInvalidReturnNullability(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateInvalidReturnNullabilityNull = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "InvalidReturnNullabilityNull",
         problemMessageTemplate:
             r"""The value 'null' can't be returned from a function with return type '#type' because '#type' is not nullable.""",
         withArguments: _withArgumentsInvalidReturnNullabilityNull);
@@ -3795,6 +3887,7 @@ const Template<
     templateInvalidReturnNullabilityNullType = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "InvalidReturnNullabilityNullType",
         problemMessageTemplate:
             r"""A value of type '#type' can't be returned from a function with return type '#type2' because '#type2' is not nullable.""",
         withArguments: _withArgumentsInvalidReturnNullabilityNullType);
@@ -3829,8 +3922,12 @@ const Template<
         Message Function(DartType _type, DartType _type2, DartType _type3,
             DartType _type4, bool isNonNullableByDefault)>
     templateInvalidReturnPartNullability = const Template<
-            Message Function(DartType _type, DartType _type2, DartType _type3,
-                DartType _type4, bool isNonNullableByDefault)>(
+            Message Function(
+                DartType _type,
+                DartType _type2,
+                DartType _type3,
+                DartType _type4,
+                bool isNonNullableByDefault)>("InvalidReturnPartNullability",
         problemMessageTemplate:
             r"""A value of type '#type' can't be returned from a function with return type '#type2' because '#type3' is nullable and '#type4' isn't.""",
         withArguments: _withArgumentsInvalidReturnPartNullability);
@@ -3877,6 +3974,7 @@ Message _withArgumentsInvalidReturnPartNullability(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateJsInteropExportInvalidInteropTypeArgument = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "JsInteropExportInvalidInteropTypeArgument",
         problemMessageTemplate:
             r"""Type argument '#type' needs to be a non-JS interop type.""",
         correctionMessageTemplate:
@@ -3909,6 +4007,7 @@ Message _withArgumentsJsInteropExportInvalidInteropTypeArgument(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateJsInteropExportInvalidTypeArgument = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "JsInteropExportInvalidTypeArgument",
         problemMessageTemplate:
             r"""Type argument '#type' needs to be an interface type.""",
         correctionMessageTemplate:
@@ -3944,6 +4043,7 @@ const Template<
     templateJsInteropExtensionTypeNotInterop = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "JsInteropExtensionTypeNotInterop",
         problemMessageTemplate:
             r"""Extension type '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'.""",
         correctionMessageTemplate:
@@ -3980,6 +4080,7 @@ Message _withArgumentsJsInteropExtensionTypeNotInterop(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateJsInteropFunctionToJSRequiresStaticType = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "JsInteropFunctionToJSRequiresStaticType",
         problemMessageTemplate:
             r"""`Function.toJS` requires a statically known function type, but Type '#type' is not a function type, e.g., `void Function()`.""",
         correctionMessageTemplate:
@@ -4011,6 +4112,7 @@ Message _withArgumentsJsInteropFunctionToJSRequiresStaticType(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateJsInteropStaticInteropMockNotStaticInteropType = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "JsInteropStaticInteropMockNotStaticInteropType",
         problemMessageTemplate:
             r"""Type argument '#type' needs to be a `@staticInterop` type.""",
         correctionMessageTemplate: r"""Use a `@staticInterop` class instead.""",
@@ -4042,6 +4144,7 @@ Message _withArgumentsJsInteropStaticInteropMockNotStaticInteropType(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateJsInteropStaticInteropMockTypeParametersNotAllowed = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "JsInteropStaticInteropMockTypeParametersNotAllowed",
         problemMessageTemplate:
             r"""Type argument '#type' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.""",
         correctionMessageTemplate:
@@ -4074,6 +4177,7 @@ Message _withArgumentsJsInteropStaticInteropMockTypeParametersNotAllowed(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateJsInteropStrictModeViolation = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "JsInteropStrictModeViolation",
         problemMessageTemplate:
             r"""JS interop requires JS types when strict mode is enabled, but Type '#type' is not a type or subtype of a type from `dart:js_interop`.""",
         correctionMessageTemplate: r"""Use a JS type instead.""",
@@ -4107,6 +4211,7 @@ const Template<
     templateMainWrongParameterType = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "MainWrongParameterType",
         problemMessageTemplate:
             r"""The type '#type' of the first parameter of the 'main' method is not a supertype of '#type2'.""",
         withArguments: _withArgumentsMainWrongParameterType);
@@ -4143,6 +4248,7 @@ const Template<
     templateMainWrongParameterTypeExported = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "MainWrongParameterTypeExported",
         problemMessageTemplate:
             r"""The type '#type' of the first parameter of the exported 'main' method is not a supertype of '#type2'.""",
         withArguments: _withArgumentsMainWrongParameterTypeExported);
@@ -4179,6 +4285,7 @@ const Template<
     templateMixinApplicationIncompatibleSupertype = const Template<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 bool isNonNullableByDefault)>(
+        "MixinApplicationIncompatibleSupertype",
         problemMessageTemplate:
             r"""'#type' doesn't implement '#type2' so it can't be used with '#type3'.""",
         withArguments: _withArgumentsMixinApplicationIncompatibleSupertype);
@@ -4216,7 +4323,7 @@ const Template<
             bool isNonNullableByDefault)>
     templateMixinInferenceNoMatchingClass = const Template<
             Message Function(String name, String name2, DartType _type,
-                bool isNonNullableByDefault)>(
+                bool isNonNullableByDefault)>("MixinInferenceNoMatchingClass",
         problemMessageTemplate:
             r"""Type parameters couldn't be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'.""",
         withArguments: _withArgumentsMixinInferenceNoMatchingClass);
@@ -4254,6 +4361,7 @@ const Template<
     templateNameNotFoundInRecordNameGet = const Template<
             Message Function(
                 String string, DartType _type, bool isNonNullableByDefault)>(
+        "NameNotFoundInRecordNameGet",
         problemMessageTemplate:
             r"""Field name #string isn't found in records of type #type.""",
         withArguments: _withArgumentsNameNotFoundInRecordNameGet);
@@ -4288,7 +4396,7 @@ const Template<
             bool isNonNullableByDefault)>
     templateNonExhaustiveSwitchExpression = const Template<
             Message Function(DartType _type, String string, String string2,
-                bool isNonNullableByDefault)>(
+                bool isNonNullableByDefault)>("NonExhaustiveSwitchExpression",
         problemMessageTemplate:
             r"""The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'.""",
         correctionMessageTemplate:
@@ -4326,7 +4434,7 @@ const Template<
             bool isNonNullableByDefault)> templateNonExhaustiveSwitchStatement =
     const Template<
             Message Function(DartType _type, String string, String string2,
-                bool isNonNullableByDefault)>(
+                bool isNonNullableByDefault)>("NonExhaustiveSwitchStatement",
         problemMessageTemplate:
             r"""The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'.""",
         correctionMessageTemplate:
@@ -4362,6 +4470,7 @@ Message _withArgumentsNonExhaustiveSwitchStatement(DartType _type,
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateNonNullAwareSpreadIsNull = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "NonNullAwareSpreadIsNull",
         problemMessageTemplate:
             r"""Can't spread a value with static type '#type'.""",
         withArguments: _withArgumentsNonNullAwareSpreadIsNull);
@@ -4392,6 +4501,7 @@ const Template<
     templateNonNullableInNullAware = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "NonNullableInNullAware",
         problemMessageTemplate:
             r"""Operand of null-aware operation '#name' has type '#type' which excludes null.""",
         withArguments: _withArgumentsNonNullableInNullAware);
@@ -4425,6 +4535,7 @@ Message _withArgumentsNonNullableInNullAware(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateNullableExpressionCallError = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "NullableExpressionCallError",
         problemMessageTemplate:
             r"""Can't use an expression of type '#type' as a function because it's potentially null.""",
         correctionMessageTemplate: r"""Try calling using ?.call instead.""",
@@ -4458,6 +4569,7 @@ const Template<
     templateNullableMethodCallError = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "NullableMethodCallError",
         problemMessageTemplate:
             r"""Method '#name' cannot be called on '#type' because it is potentially null.""",
         correctionMessageTemplate: r"""Try calling using ?. instead.""",
@@ -4494,6 +4606,7 @@ const Template<
     templateNullableOperatorCallError = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "NullableOperatorCallError",
         problemMessageTemplate:
             r"""Operator '#name' cannot be called on '#type' because it is potentially null.""",
         withArguments: _withArgumentsNullableOperatorCallError);
@@ -4530,6 +4643,7 @@ const Template<
     templateNullablePropertyAccessError = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "NullablePropertyAccessError",
         problemMessageTemplate:
             r"""Property '#name' cannot be accessed on '#type' because it is potentially null.""",
         correctionMessageTemplate: r"""Try accessing using ?. instead.""",
@@ -4568,6 +4682,7 @@ const Template<
     templateOptionalNonNullableWithoutInitializerError = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "OptionalNonNullableWithoutInitializerError",
         problemMessageTemplate:
             r"""The parameter '#name' can't have a value of 'null' because of its type '#type', but the implicit default value is 'null'.""",
         correctionMessageTemplate:
@@ -4608,6 +4723,7 @@ const Template<
     templateOptionalSuperParameterWithoutInitializer = const Template<
             Message Function(
                 DartType _type, String name, bool isNonNullableByDefault)>(
+        "OptionalSuperParameterWithoutInitializer",
         problemMessageTemplate:
             r"""Type '#type' of the optional super-initializer parameter '#name' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.""",
         withArguments: _withArgumentsOptionalSuperParameterWithoutInitializer);
@@ -4642,8 +4758,13 @@ const Template<
         Message Function(String name, String name2, DartType _type,
             DartType _type2, String name3, bool isNonNullableByDefault)>
     templateOverrideTypeMismatchParameter = const Template<
-            Message Function(String name, String name2, DartType _type,
-                DartType _type2, String name3, bool isNonNullableByDefault)>(
+            Message Function(
+                String name,
+                String name2,
+                DartType _type,
+                DartType _type2,
+                String name3,
+                bool isNonNullableByDefault)>("OverrideTypeMismatchParameter",
         problemMessageTemplate:
             r"""The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type, '#type2', in the overridden method, '#name3'.""",
         correctionMessageTemplate:
@@ -4702,8 +4823,12 @@ const Template<
         Message Function(String name, DartType _type, DartType _type2,
             String name2, bool isNonNullableByDefault)>
     templateOverrideTypeMismatchReturnType = const Template<
-            Message Function(String name, DartType _type, DartType _type2,
-                String name2, bool isNonNullableByDefault)>(
+            Message Function(
+                String name,
+                DartType _type,
+                DartType _type2,
+                String name2,
+                bool isNonNullableByDefault)>("OverrideTypeMismatchReturnType",
         problemMessageTemplate:
             r"""The return type of the method '#name' is '#type', which does not match the return type, '#type2', of the overridden method, '#name2'.""",
         correctionMessageTemplate: r"""Change to a subtype of '#type2'.""",
@@ -4756,8 +4881,12 @@ const Template<
         Message Function(String name, DartType _type, DartType _type2,
             String name2, bool isNonNullableByDefault)>
     templateOverrideTypeMismatchSetter = const Template<
-            Message Function(String name, DartType _type, DartType _type2,
-                String name2, bool isNonNullableByDefault)>(
+            Message Function(
+                String name,
+                DartType _type,
+                DartType _type2,
+                String name2,
+                bool isNonNullableByDefault)>("OverrideTypeMismatchSetter",
         problemMessageTemplate:
             r"""The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'.""",
         withArguments: _withArgumentsOverrideTypeMismatchSetter);
@@ -4806,6 +4935,7 @@ const Template<
     templateOverrideTypeVariablesBoundMismatch = const Template<
             Message Function(DartType _type, String name, String name2,
                 DartType _type2, String name3, bool isNonNullableByDefault)>(
+        "OverrideTypeVariablesBoundMismatch",
         problemMessageTemplate:
             r"""Declared bound '#type' of type variable '#name' of '#name2' doesn't match the bound '#type2' on overridden method '#name3'.""",
         withArguments: _withArgumentsOverrideTypeVariablesBoundMismatch);
@@ -4859,6 +4989,7 @@ const Template<
     templatePatternTypeMismatchInIrrefutableContext = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "PatternTypeMismatchInIrrefutableContext",
         problemMessageTemplate:
             r"""The matched value of type '#type' isn't assignable to the required type '#type2'.""",
         correctionMessageTemplate:
@@ -4900,6 +5031,7 @@ const Template<
     templateRedirectingFactoryIncompatibleTypeArgument = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "RedirectingFactoryIncompatibleTypeArgument",
         problemMessageTemplate:
             r"""The type '#type' doesn't extend '#type2'.""",
         correctionMessageTemplate:
@@ -4939,6 +5071,7 @@ const Template<
     templateSpreadElementTypeMismatch = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "SpreadElementTypeMismatch",
         problemMessageTemplate:
             r"""Can't assign spread elements of type '#type' to collection elements of type '#type2'.""",
         withArguments: _withArgumentsSpreadElementTypeMismatch);
@@ -4975,6 +5108,7 @@ const Template<
     templateSpreadElementTypeMismatchNullability = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "SpreadElementTypeMismatchNullability",
         problemMessageTemplate:
             r"""Can't assign spread elements of type '#type' to collection elements of type '#type2' because '#type' is nullable and '#type2' isn't.""",
         withArguments: _withArgumentsSpreadElementTypeMismatchNullability);
@@ -5011,6 +5145,7 @@ const Template<
     templateSpreadElementTypeMismatchPartNullability = const Template<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 DartType _type4, bool isNonNullableByDefault)>(
+        "SpreadElementTypeMismatchPartNullability",
         problemMessageTemplate:
             r"""Can't assign spread elements of type '#type' to collection elements of type '#type2' because '#type3' is nullable and '#type4' isn't.""",
         withArguments: _withArgumentsSpreadElementTypeMismatchPartNullability);
@@ -5060,6 +5195,7 @@ const Template<
     templateSpreadMapEntryElementKeyTypeMismatch = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "SpreadMapEntryElementKeyTypeMismatch",
         problemMessageTemplate:
             r"""Can't assign spread entry keys of type '#type' to map entry keys of type '#type2'.""",
         withArguments: _withArgumentsSpreadMapEntryElementKeyTypeMismatch);
@@ -5096,6 +5232,7 @@ const Template<
     templateSpreadMapEntryElementKeyTypeMismatchNullability = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "SpreadMapEntryElementKeyTypeMismatchNullability",
         problemMessageTemplate:
             r"""Can't assign spread entry keys of type '#type' to map entry keys of type '#type2' because '#type' is nullable and '#type2' isn't.""",
         withArguments:
@@ -5134,6 +5271,7 @@ const Template<
     const Template<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 DartType _type4, bool isNonNullableByDefault)>(
+        "SpreadMapEntryElementKeyTypeMismatchPartNullability",
         problemMessageTemplate:
             r"""Can't assign spread entry keys of type '#type' to map entry keys of type '#type2' because '#type3' is nullable and '#type4' isn't.""",
         withArguments:
@@ -5181,9 +5319,11 @@ Message _withArgumentsSpreadMapEntryElementKeyTypeMismatchPartNullability(
 const Template<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>
-    templateSpreadMapEntryElementValueTypeMismatch = const Template<
-            Message Function(
-                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+    templateSpreadMapEntryElementValueTypeMismatch =
+    const Template<
+            Message Function(DartType _type, DartType _type2,
+                bool isNonNullableByDefault)>(
+        "SpreadMapEntryElementValueTypeMismatch",
         problemMessageTemplate:
             r"""Can't assign spread entry values of type '#type' to map entry values of type '#type2'.""",
         withArguments: _withArgumentsSpreadMapEntryElementValueTypeMismatch);
@@ -5220,6 +5360,7 @@ const Template<
     templateSpreadMapEntryElementValueTypeMismatchNullability = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "SpreadMapEntryElementValueTypeMismatchNullability",
         problemMessageTemplate:
             r"""Can't assign spread entry values of type '#type' to map entry values of type '#type2' because '#type' is nullable and '#type2' isn't.""",
         withArguments:
@@ -5258,6 +5399,7 @@ const Template<
     const Template<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 DartType _type4, bool isNonNullableByDefault)>(
+        "SpreadMapEntryElementValueTypeMismatchPartNullability",
         problemMessageTemplate:
             r"""Can't assign spread entry values of type '#type' to map entry values of type '#type2' because '#type3' is nullable and '#type4' isn't.""",
         withArguments:
@@ -5305,6 +5447,7 @@ Message _withArgumentsSpreadMapEntryElementValueTypeMismatchPartNullability(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateSpreadMapEntryTypeMismatch = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "SpreadMapEntryTypeMismatch",
         problemMessageTemplate:
             r"""Unexpected type '#type' of a map spread entry.  Expected 'dynamic' or a Map.""",
         withArguments: _withArgumentsSpreadMapEntryTypeMismatch);
@@ -5336,6 +5479,7 @@ const Template<
         bool
             isNonNullableByDefault)> templateSpreadTypeMismatch = const Template<
         Message Function(DartType _type, bool isNonNullableByDefault)>(
+    "SpreadTypeMismatch",
     problemMessageTemplate:
         r"""Unexpected type '#type' of a spread.  Expected 'dynamic' or an Iterable.""",
     withArguments: _withArgumentsSpreadTypeMismatch);
@@ -5369,6 +5513,7 @@ const Template<
             isNonNullableByDefault)> templateSuperBoundedHint = const Template<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+    "SuperBoundedHint",
     problemMessageTemplate:
         r"""If you want '#type' to be a super-bounded type, note that the inverted type '#type2' must then satisfy its bounds, which it does not.""",
     withArguments: _withArgumentsSuperBoundedHint);
@@ -5405,6 +5550,7 @@ const Template<
     templateSuperExtensionTypeIsIllegalAliased = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "SuperExtensionTypeIsIllegalAliased",
         problemMessageTemplate:
             r"""The type '#name' which is an alias of '#type' can't be implemented by an extension type.""",
         withArguments: _withArgumentsSuperExtensionTypeIsIllegalAliased);
@@ -5441,6 +5587,7 @@ const Template<
     templateSuperExtensionTypeIsNullableAliased = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "SuperExtensionTypeIsNullableAliased",
         problemMessageTemplate:
             r"""The type '#name' which is an alias of '#type' can't be implemented by an extension type because it is nullable.""",
         withArguments: _withArgumentsSuperExtensionTypeIsNullableAliased);
@@ -5477,6 +5624,7 @@ const Template<
     templateSupertypeIsIllegalAliased = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "SupertypeIsIllegalAliased",
         problemMessageTemplate:
             r"""The type '#name' which is an alias of '#type' can't be used as supertype.""",
         withArguments: _withArgumentsSupertypeIsIllegalAliased);
@@ -5513,6 +5661,7 @@ const Template<
     templateSupertypeIsNullableAliased = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "SupertypeIsNullableAliased",
         problemMessageTemplate:
             r"""The type '#name' which is an alias of '#type' can't be used as supertype because it is nullable.""",
         withArguments: _withArgumentsSupertypeIsNullableAliased);
@@ -5549,6 +5698,7 @@ const Template<
     templateSwitchExpressionNotAssignable = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "SwitchExpressionNotAssignable",
         problemMessageTemplate:
             r"""Type '#type' of the switch expression isn't assignable to the type '#type2' of this case expression.""",
         withArguments: _withArgumentsSwitchExpressionNotAssignable);
@@ -5585,6 +5735,7 @@ const Template<
     templateSwitchExpressionNotSubtype = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "SwitchExpressionNotSubtype",
         problemMessageTemplate:
             r"""Type '#type' of the case expression is not a subtype of type '#type2' of this switch expression.""",
         withArguments: _withArgumentsSwitchExpressionNotSubtype);
@@ -5618,6 +5769,7 @@ Message _withArgumentsSwitchExpressionNotSubtype(
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateThrowingNotAssignableToObjectError = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "ThrowingNotAssignableToObjectError",
         problemMessageTemplate:
             r"""Can't throw a value of '#type' since it is neither dynamic nor non-nullable.""",
         withArguments: _withArgumentsThrowingNotAssignableToObjectError);
@@ -5649,6 +5801,7 @@ const Template<
     templateUndefinedExtensionGetter = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "UndefinedExtensionGetter",
         problemMessageTemplate:
             r"""The getter '#name' isn't defined for the extension '#type'.""",
         correctionMessageTemplate:
@@ -5686,6 +5839,7 @@ const Template<
     templateUndefinedExtensionMethod = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "UndefinedExtensionMethod",
         problemMessageTemplate:
             r"""The method '#name' isn't defined for the extension '#type'.""",
         correctionMessageTemplate:
@@ -5723,6 +5877,7 @@ const Template<
     templateUndefinedExtensionOperator = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "UndefinedExtensionOperator",
         problemMessageTemplate:
             r"""The operator '#name' isn't defined for the extension '#type'.""",
         correctionMessageTemplate:
@@ -5762,6 +5917,7 @@ const Template<
     templateUndefinedExtensionSetter = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
+        "UndefinedExtensionSetter",
         problemMessageTemplate:
             r"""The setter '#name' isn't defined for the extension '#type'.""",
         correctionMessageTemplate:
@@ -5801,6 +5957,7 @@ const Template<
             isNonNullableByDefault)> templateUndefinedGetter = const Template<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
+    "UndefinedGetter",
     problemMessageTemplate:
         r"""The getter '#name' isn't defined for the class '#type'.""",
     correctionMessageTemplate:
@@ -5843,6 +6000,7 @@ const Template<
             isNonNullableByDefault)> templateUndefinedMethod = const Template<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
+    "UndefinedMethod",
     problemMessageTemplate:
         r"""The method '#name' isn't defined for the class '#type'.""",
     correctionMessageTemplate:
@@ -5885,6 +6043,7 @@ const Template<
             isNonNullableByDefault)> templateUndefinedOperator = const Template<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
+    "UndefinedOperator",
     problemMessageTemplate:
         r"""The operator '#name' isn't defined for the class '#type'.""",
     correctionMessageTemplate:
@@ -5927,6 +6086,7 @@ const Template<
             isNonNullableByDefault)> templateUndefinedSetter = const Template<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
+    "UndefinedSetter",
     problemMessageTemplate:
         r"""The setter '#name' isn't defined for the class '#type'.""",
     correctionMessageTemplate:

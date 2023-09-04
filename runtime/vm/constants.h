@@ -19,6 +19,11 @@
 #error Unknown architecture.
 #endif
 
+#include "platform/assert.h"
+#include "platform/utils.h"
+
+#include "vm/pointer_tagging.h"
+
 namespace dart {
 
 // An architecture independent ABI for the InstantiateType stub.
@@ -86,6 +91,17 @@ constexpr bool IsAbiPreservedRegister(Register reg) {
   return (kAbiPreservedCpuRegs & (1 << reg)) != 0;
 }
 #endif
+
+static inline ScaleFactor ToScaleFactor(intptr_t index_scale,
+                                        bool index_unboxed) {
+  RELEASE_ASSERT(index_scale >= 0);
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) -
+                         (index_unboxed ? 0 : kSmiTagShift);
+  // index_scale < kSmiTagShift for boxed indexes must be handled by the caller,
+  // and ScaleFactor is currently only defined up to TIMES_16 == 4.
+  RELEASE_ASSERT(shift >= 0 && shift <= 4);
+  return static_cast<ScaleFactor>(shift);
+}
 
 }  // namespace dart
 

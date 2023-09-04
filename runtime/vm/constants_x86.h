@@ -67,6 +67,7 @@ static inline Condition InvertCondition(Condition c) {
   F(leave, 0xC9)                                                               \
   F(hlt, 0xF4)                                                                 \
   F(cld, 0xFC)                                                                 \
+  F(std, 0xFD)                                                                 \
   F(int3, 0xCC)                                                                \
   F(pushad, 0x60)                                                              \
   F(popad, 0x61)                                                               \

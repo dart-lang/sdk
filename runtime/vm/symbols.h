@@ -384,6 +384,7 @@ class ObjectPointerVisitor;
   V(_Type, "_Type")                                                            \
   V(_TypeParameter, "_TypeParameter")                                          \
   V(_TypeVariableMirror, "_TypeVariableMirror")                                \
+  V(_TypedListBase, "_TypedListBase")                                          \
   V(_Uint16ArrayFactory, "Uint16List.")                                        \
   V(_Uint16ArrayView, "_Uint16ArrayView")                                      \
   V(_Uint16List, "_Uint16List")                                                \
@@ -422,6 +423,7 @@ class ObjectPointerVisitor;
   V(_await, "_await")                                                          \
   V(_awaitWithTypeCheck, "_awaitWithTypeCheck")                                \
   V(_backtrackingStack, "_backtrackingStack")                                  \
+  V(_checkSetRangeArguments, "_checkSetRangeArguments")                        \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
@@ -447,6 +449,7 @@ class ObjectPointerVisitor;
   V(_mapGet, "_mapGet")                                                        \
   V(_mapKeys, "_mapKeys")                                                      \
   V(_name, "_name")                                                            \
+  V(_nativeSetRange, "_nativeSetRange")                                        \
   V(_objectEquals, "_objectEquals")                                            \
   V(_objectHashCode, "_objectHashCode")                                        \
   V(_objectNoSuchMethod, "_objectNoSuchMethod")                                \
@@ -490,7 +493,9 @@ class ObjectPointerVisitor;
   V(current_position, ":current_position")                                     \
   V(dynamic_assert_assignable_stc_check,                                       \
     ":dynamic_assert_assignable_stc_check")                                    \
+  V(end, "end")                                                                \
   V(executable, "executable")                                                  \
+  V(from, "from")                                                              \
   V(get, "get")                                                                \
   V(index_temp, ":index_temp")                                                 \
   V(isPaused, "isPaused")                                                      \
@@ -506,8 +511,10 @@ class ObjectPointerVisitor;
   V(relative, "relative")                                                      \
   V(result, "result")                                                          \
   V(set, "set")                                                                \
+  V(skip_count, "skipCount")                                                   \
   V(stack, ":stack")                                                           \
   V(stack_pointer, ":stack_pointer")                                           \
+  V(start, "start")                                                            \
   V(start_index_param, ":start_index_param")                                   \
   V(state, "state")                                                            \
   V(string_param, ":string_param")                                             \

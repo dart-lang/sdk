@@ -102,19 +102,83 @@ abstract final class _TypedListBase {
     throw new UnsupportedError("Cannot remove from a fixed-length list");
   }
 
+  @pragma("vm:prefer-inline")
+  void setRange(int start, int end, Iterable from, [int skipCount = 0]) =>
+      (from is _TypedListBase &&
+              (from as _TypedListBase).elementSizeInBytes == elementSizeInBytes)
+          ? _fastSetRange(start, end, from as _TypedListBase, skipCount)
+          : _slowSetRange(start, end, from, skipCount);
+
   // Method(s) implementing Object interface.
   String toString() => ListBase.listToString(this as List);
 
   // Internal utility methods.
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount);
+  void _slowSetRange(int start, int end, Iterable from, int skipCount);
 
-  // Returns true if operation succeeds.
-  // 'fromCid' and 'toCid' may be cid-s of the views and therefore may not
-  // match the cids of 'this' and 'from'.
-  // Uses toCid and fromCid to decide if clamping is necessary.
-  // Element size of toCid and fromCid must match (test at caller).
+  @pragma("vm:prefer-inline")
+  bool get _containsUnsignedBytes => false;
+
+  // Performs a copy of the elements starting at [skipCount] in [from] to
+  // [this] starting at [start] (inclusive) and ending at [end] (exclusive).
+  //
+  // Primarily called by Dart code to handle clamping.
+  //
+  // Element sizes of [this] and [from] must match (test at caller).
   @pragma("vm:external-name", "TypedDataBase_setRange")
-  external bool _setRange(int startInBytes, int lengthInBytes,
-      _TypedListBase from, int startFromInBytes, int toCid, int fromCid);
+  @pragma("vm:entry-point")
+  external void _nativeSetRange(
+      int start, int end, _TypedListBase from, int skipOffset);
+
+  // Performs a copy of the elements starting at [skipCount] in [from] to
+  // [this] starting at [start] (inclusive) and ending at [end] (exclusive).
+  //
+  // The element sizes of [this] and [from] must be 1 (test at caller).
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  external void _checkBoundsAndMemcpy1(
+      int start, int end, _TypedListBase from, int skipCount);
+
+  // Performs a copy of the elements starting at [skipCount] in [from] to
+  // [this] starting at [start] (inclusive) and ending at [end] (exclusive).
+  //
+  // The element sizes of [this] and [from] must be 2 (test at caller).
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  external void _checkBoundsAndMemcpy2(
+      int start, int end, _TypedListBase from, int skipCount);
+
+  // Performs a copy of the elements starting at [skipCount] in [from] to
+  // [this] starting at [start] (inclusive) and ending at [end] (exclusive).
+  //
+  // The element sizes of [this] and [from] must be 4 (test at caller).
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  external void _checkBoundsAndMemcpy4(
+      int start, int end, _TypedListBase from, int skipCount);
+
+  // Performs a copy of the elements starting at [skipCount] in [from] to
+  // [this] starting at [start] (inclusive) and ending at [end] (exclusive).
+  //
+  // The element sizes of [this] and [from] must be 8 (test at caller).
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  external void _checkBoundsAndMemcpy8(
+      int start, int end, _TypedListBase from, int skipCount);
+
+  // Performs a copy of the elements starting at [skipCount] in [from] to
+  // [this] starting at [start] (inclusive) and ending at [end] (exclusive).
+  //
+  // The element sizes of [this] and [from] must be 16 (test at caller).
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  external void _checkBoundsAndMemcpy16(
+      int start, int end, _TypedListBase from, int skipCount);
 }
 
 mixin _IntListMixin implements List<int> {
@@ -397,41 +461,15 @@ mixin _TypedIntListMixin<SpawnedType extends List<int>> on _IntListMixin
     implements List<int> {
   SpawnedType _createList(int length);
 
-  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
-    // Check ranges.
-    if (0 > start || start > end || end > length) {
-      RangeError.checkValidRange(start, end, length); // Always throws.
-      assert(false);
-    }
-    if (skipCount < 0) {
-      throw RangeError.range(skipCount, 0, null, "skipCount");
-    }
-
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
+  void _slowSetRange(int start, int end, Iterable from, int skipCount) {
+    final count = _checkSetRangeArguments(this, start, end, from, skipCount);
 
     if (count == 0) return;
 
     if (from is _TypedListBase) {
       // Note: _TypedListBase is not related to Iterable<int> so there is
       // no promotion here.
-      final fromAsTypedList = from as _TypedListBase;
-      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
-        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
-          Lists.copy(from as List<int>, skipCount, this, start, count);
-          return;
-        } else if (this.buffer._data._setRange(
-            start * elementSizeInBytes + this.offsetInBytes,
-            count * elementSizeInBytes,
-            fromAsTypedList.buffer._data,
-            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
-            ClassID.getID(this),
-            ClassID.getID(from))) {
-          return;
-        }
-      } else if (fromAsTypedList.buffer == this.buffer) {
+      if ((from as _TypedListBase).buffer == this.buffer) {
         // Different element sizes, but same buffer means that we need
         // an intermediate structure.
         // TODO(srdjan): Optimize to skip copying if the range does not overlap.
@@ -754,42 +792,15 @@ mixin _TypedDoubleListMixin<SpawnedType extends List<double>>
     on _DoubleListMixin implements List<double> {
   SpawnedType _createList(int length);
 
-  void setRange(int start, int end, Iterable<double> from,
-      [int skipCount = 0]) {
-    // Check ranges.
-    if (0 > start || start > end || end > length) {
-      RangeError.checkValidRange(start, end, length); // Always throws.
-      assert(false);
-    }
-    if (skipCount < 0) {
-      throw RangeError.range(skipCount, 0, null, "skipCount");
-    }
-
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
+  void _slowSetRange(int start, int end, Iterable from, int skipCount) {
+    final count = _checkSetRangeArguments(this, start, end, from, skipCount);
 
     if (count == 0) return;
 
     if (from is _TypedListBase) {
       // Note: _TypedListBase is not related to Iterable<double> so there is
       // no promotion here.
-      final fromAsTypedList = from as _TypedListBase;
-      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
-        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
-          Lists.copy(from as List<double>, skipCount, this, start, count);
-          return;
-        } else if (this.buffer._data._setRange(
-            start * elementSizeInBytes + this.offsetInBytes,
-            count * elementSizeInBytes,
-            fromAsTypedList.buffer._data,
-            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
-            ClassID.getID(this),
-            ClassID.getID(from))) {
-          return;
-        }
-      } else if (fromAsTypedList.buffer == this.buffer) {
+      if ((from as _TypedListBase).buffer == this.buffer) {
         // Different element sizes, but same buffer means that we need
         // an intermediate structure.
         // TODO(srdjan): Optimize to skip copying if the range does not overlap.
@@ -895,42 +906,15 @@ mixin _Float32x4ListMixin implements List<Float32x4> {
     }
   }
 
-  void setRange(int start, int end, Iterable<Float32x4> from,
-      [int skipCount = 0]) {
-    // Check ranges.
-    if (0 > start || start > end || end > length) {
-      RangeError.checkValidRange(start, end, length); // Always throws.
-      assert(false);
-    }
-    if (skipCount < 0) {
-      throw RangeError.range(skipCount, 0, null, "skipCount");
-    }
-
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
+  void _slowSetRange(int start, int end, Iterable from, int skipCount) {
+    final count = _checkSetRangeArguments(this, start, end, from, skipCount);
 
     if (count == 0) return;
 
     if (from is _TypedListBase) {
       // Note: _TypedListBase is not related to Iterable<Float32x4> so there is
       // no promotion here.
-      final fromAsTypedList = from as _TypedListBase;
-      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
-        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
-          Lists.copy(from as List<Float32x4>, skipCount, this, start, count);
-          return;
-        } else if (this.buffer._data._setRange(
-            start * elementSizeInBytes + this.offsetInBytes,
-            count * elementSizeInBytes,
-            fromAsTypedList.buffer._data,
-            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
-            ClassID.getID(this),
-            ClassID.getID(from))) {
-          return;
-        }
-      } else if (fromAsTypedList.buffer == this.buffer) {
+      if ((from as _TypedListBase).buffer == this.buffer) {
         // Different element sizes, but same buffer means that we need
         // an intermediate structure.
         // TODO(srdjan): Optimize to skip copying if the range does not overlap.
@@ -1253,42 +1237,15 @@ mixin _Int32x4ListMixin implements List<Int32x4> {
     }
   }
 
-  void setRange(int start, int end, Iterable<Int32x4> from,
-      [int skipCount = 0]) {
-    // Check ranges.
-    if (0 > start || start > end || end > length) {
-      RangeError.checkValidRange(start, end, length); // Always throws.
-      assert(false);
-    }
-    if (skipCount < 0) {
-      throw RangeError.range(skipCount, 0, null, "skipCount");
-    }
-
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
+  void _slowSetRange(int start, int end, Iterable from, int skipCount) {
+    final count = _checkSetRangeArguments(this, start, end, from, skipCount);
 
     if (count == 0) return;
 
     if (from is _TypedListBase) {
       // Note: _TypedListBase is not related to Iterable<Int32x4> so there is
       // no promotion here.
-      final fromAsTypedList = from as _TypedListBase;
-      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
-        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
-          Lists.copy(from as List<Int32x4>, skipCount, this, start, count);
-          return;
-        } else if (this.buffer._data._setRange(
-            start * elementSizeInBytes + this.offsetInBytes,
-            count * elementSizeInBytes,
-            fromAsTypedList.buffer._data,
-            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
-            ClassID.getID(this),
-            ClassID.getID(from))) {
-          return;
-        }
-      } else if (fromAsTypedList.buffer == this.buffer) {
+      if ((from as _TypedListBase).buffer == this.buffer) {
         // Different element sizes, but same buffer means that we need
         // an intermediate structure.
         // TODO(srdjan): Optimize to skip copying if the range does not overlap.
@@ -1610,42 +1567,15 @@ mixin _Float64x2ListMixin implements List<Float64x2> {
     }
   }
 
-  void setRange(int start, int end, Iterable<Float64x2> from,
-      [int skipCount = 0]) {
-    // Check ranges.
-    if (0 > start || start > end || end > length) {
-      RangeError.checkValidRange(start, end, length); // Always throws.
-      assert(false);
-    }
-    if (skipCount < 0) {
-      throw RangeError.range(skipCount, 0, null, "skipCount");
-    }
-
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
+  void _slowSetRange(int start, int end, Iterable from, int skipCount) {
+    final count = _checkSetRangeArguments(this, start, end, from, skipCount);
 
     if (count == 0) return;
 
     if (from is _TypedListBase) {
       // Note: _TypedListBase is not related to Iterable<Float64x2> so there is
       // no promotion here.
-      final fromAsTypedList = from as _TypedListBase;
-      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
-        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
-          Lists.copy(from as List<Float64x2>, skipCount, this, start, count);
-          return;
-        } else if (this.buffer._data._setRange(
-            start * elementSizeInBytes + this.offsetInBytes,
-            count * elementSizeInBytes,
-            fromAsTypedList.buffer._data,
-            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
-            ClassID.getID(this),
-            ClassID.getID(from))) {
-          return;
-        }
-      } else if (fromAsTypedList.buffer == this.buffer) {
+      if ((from as _TypedListBase).buffer == this.buffer) {
         // Different element sizes, but same buffer means that we need
         // an intermediate structure.
         // TODO(srdjan): Optimize to skip copying if the range does not overlap.
@@ -2235,6 +2165,10 @@ final class _Int8List extends _TypedList
   Int8List _createList(int length) {
     return new Int8List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy1(start, end, from, skipCount);
 }
 
 @patch
@@ -2290,6 +2224,13 @@ final class _Uint8List extends _TypedList
   Uint8List _createList(int length) {
     return new Uint8List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  bool get _containsUnsignedBytes => true;
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy1(start, end, from, skipCount);
 }
 
 @patch
@@ -2345,6 +2286,15 @@ final class _Uint8ClampedList extends _TypedList
   Uint8ClampedList _createList(int length) {
     return new Uint8ClampedList(length);
   }
+
+  @pragma("vm:prefer-inline")
+  bool get _containsUnsignedBytes => true;
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      from._containsUnsignedBytes
+          ? _checkBoundsAndMemcpy1(start, end, from, skipCount)
+          : _nativeSetRange(start, end, from, skipCount);
 }
 
 @patch
@@ -2391,8 +2341,8 @@ final class _Int16List extends _TypedList
     _setIndexedInt16(index, _toInt16(value));
   }
 
-  void setRange(int start, int end, Iterable<int> iterable,
-      [int skipCount = 0]) {
+  @pragma("vm:prefer-inline")
+  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -2412,6 +2362,10 @@ final class _Int16List extends _TypedList
   Int16List _createList(int length) {
     return new Int16List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy2(start, end, from, skipCount);
 
   int _getIndexedInt16(int index) {
     return _getInt16(index * Int16List.bytesPerElement);
@@ -2466,8 +2420,8 @@ final class _Uint16List extends _TypedList
     _setIndexedUint16(index, _toUint16(value));
   }
 
-  void setRange(int start, int end, Iterable<int> iterable,
-      [int skipCount = 0]) {
+  @pragma("vm:prefer-inline")
+  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -2487,6 +2441,10 @@ final class _Uint16List extends _TypedList
   Uint16List _createList(int length) {
     return new Uint16List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy2(start, end, from, skipCount);
 
   int _getIndexedUint16(int index) {
     return _getUint16(index * Uint16List.bytesPerElement);
@@ -2550,6 +2508,10 @@ final class _Int32List extends _TypedList
     return new Int32List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy4(start, end, from, skipCount);
+
   int _getIndexedInt32(int index) {
     return _getInt32(index * Int32List.bytesPerElement);
   }
@@ -2611,6 +2573,10 @@ final class _Uint32List extends _TypedList
   Uint32List _createList(int length) {
     return new Uint32List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy4(start, end, from, skipCount);
 
   int _getIndexedUint32(int index) {
     return _getUint32(index * Uint32List.bytesPerElement);
@@ -2674,6 +2640,10 @@ final class _Int64List extends _TypedList
     return new Int64List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy8(start, end, from, skipCount);
+
   int _getIndexedInt64(int index) {
     return _getInt64(index * Int64List.bytesPerElement);
   }
@@ -2735,6 +2705,10 @@ final class _Uint64List extends _TypedList
   Uint64List _createList(int length) {
     return new Uint64List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy8(start, end, from, skipCount);
 
   int _getIndexedUint64(int index) {
     return _getUint64(index * Uint64List.bytesPerElement);
@@ -2799,6 +2773,10 @@ final class _Float32List extends _TypedList
     return new Float32List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy4(start, end, from, skipCount);
+
   double _getIndexedFloat32(int index) {
     return _getFloat32(index * Float32List.bytesPerElement);
   }
@@ -2862,6 +2840,10 @@ final class _Float64List extends _TypedList
     return new Float64List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy8(start, end, from, skipCount);
+
   double _getIndexedFloat64(int index) {
     return _getFloat64(index * Float64List.bytesPerElement);
   }
@@ -2923,6 +2905,10 @@ final class _Float32x4List extends _TypedList
   Float32x4List _createList(int length) {
     return new Float32x4List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy16(start, end, from, skipCount);
 
   Float32x4 _getIndexedFloat32x4(int index) {
     return _getFloat32x4(index * Float32x4List.bytesPerElement);
@@ -2986,6 +2972,10 @@ final class _Int32x4List extends _TypedList
     return new Int32x4List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy16(start, end, from, skipCount);
+
   Int32x4 _getIndexedInt32x4(int index) {
     return _getInt32x4(index * Int32x4List.bytesPerElement);
   }
@@ -3048,6 +3038,10 @@ final class _Float64x2List extends _TypedList
     return new Float64x2List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy16(start, end, from, skipCount);
+
   Float64x2 _getIndexedFloat64x2(int index) {
     return _getFloat64x2(index * Float64x2List.bytesPerElement);
   }
@@ -3091,6 +3085,10 @@ final class _ExternalInt8Array extends _TypedList
   Int8List _createList(int length) {
     return new Int8List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy1(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -3130,6 +3128,13 @@ final class _ExternalUint8Array extends _TypedList
   Uint8List _createList(int length) {
     return new Uint8List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  bool get _containsUnsignedBytes => true;
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy1(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -3169,6 +3174,15 @@ final class _ExternalUint8ClampedArray extends _TypedList
   Uint8ClampedList _createList(int length) {
     return new Uint8ClampedList(length);
   }
+
+  @pragma("vm:prefer-inline")
+  bool get _containsUnsignedBytes => true;
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      from._containsUnsignedBytes
+          ? _checkBoundsAndMemcpy1(start, end, from, skipCount)
+          : _nativeSetRange(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -3205,6 +3219,10 @@ final class _ExternalInt16Array extends _TypedList
   Int16List _createList(int length) {
     return new Int16List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy2(start, end, from, skipCount);
 
   int _getIndexedInt16(int index) {
     return _getInt16(index * Int16List.bytesPerElement);
@@ -3250,6 +3268,10 @@ final class _ExternalUint16Array extends _TypedList
     return new Uint16List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy2(start, end, from, skipCount);
+
   int _getIndexedUint16(int index) {
     return _getUint16(index * Uint16List.bytesPerElement);
   }
@@ -3293,6 +3315,10 @@ final class _ExternalInt32Array extends _TypedList
   Int32List _createList(int length) {
     return new Int32List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy4(start, end, from, skipCount);
 
   int _getIndexedInt32(int index) {
     return _getInt32(index * Int32List.bytesPerElement);
@@ -3338,6 +3364,10 @@ final class _ExternalUint32Array extends _TypedList
     return new Uint32List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy4(start, end, from, skipCount);
+
   int _getIndexedUint32(int index) {
     return _getUint32(index * Uint32List.bytesPerElement);
   }
@@ -3381,6 +3411,10 @@ final class _ExternalInt64Array extends _TypedList
   Int64List _createList(int length) {
     return new Int64List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy8(start, end, from, skipCount);
 
   int _getIndexedInt64(int index) {
     return _getInt64(index * Int64List.bytesPerElement);
@@ -3426,6 +3460,10 @@ final class _ExternalUint64Array extends _TypedList
     return new Uint64List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy8(start, end, from, skipCount);
+
   int _getIndexedUint64(int index) {
     return _getUint64(index * Uint64List.bytesPerElement);
   }
@@ -3469,6 +3507,10 @@ final class _ExternalFloat32Array extends _TypedList
   Float32List _createList(int length) {
     return new Float32List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy4(start, end, from, skipCount);
 
   double _getIndexedFloat32(int index) {
     return _getFloat32(index * Float32List.bytesPerElement);
@@ -3514,6 +3556,10 @@ final class _ExternalFloat64Array extends _TypedList
     return new Float64List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy8(start, end, from, skipCount);
+
   double _getIndexedFloat64(int index) {
     return _getFloat64(index * Float64List.bytesPerElement);
   }
@@ -3557,6 +3603,10 @@ final class _ExternalFloat32x4Array extends _TypedList
   Float32x4List _createList(int length) {
     return new Float32x4List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy16(start, end, from, skipCount);
 
   Float32x4 _getIndexedFloat32x4(int index) {
     return _getFloat32x4(index * Float32x4List.bytesPerElement);
@@ -3602,6 +3652,10 @@ final class _ExternalInt32x4Array extends _TypedList
     return new Int32x4List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy16(start, end, from, skipCount);
+
   Int32x4 _getIndexedInt32x4(int index) {
     return _getInt32x4(index * Int32x4List.bytesPerElement);
   }
@@ -3645,6 +3699,10 @@ final class _ExternalFloat64x2Array extends _TypedList
   Float64x2List _createList(int length) {
     return new Float64x2List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy16(start, end, from, skipCount);
 
   Float64x2 _getIndexedFloat64x2(int index) {
     return _getFloat64x2(index * Float64x2List.bytesPerElement);
@@ -4247,6 +4305,10 @@ final class _Int8ArrayView extends _TypedListView
   Int8List _createList(int length) {
     return new Int8List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy1(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -4291,6 +4353,13 @@ final class _Uint8ArrayView extends _TypedListView
   Uint8List _createList(int length) {
     return new Uint8List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  bool get _containsUnsignedBytes => true;
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy1(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -4335,6 +4404,15 @@ final class _Uint8ClampedArrayView extends _TypedListView
   Uint8ClampedList _createList(int length) {
     return new Uint8ClampedList(length);
   }
+
+  @pragma("vm:prefer-inline")
+  bool get _containsUnsignedBytes => true;
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      from._containsUnsignedBytes
+          ? _checkBoundsAndMemcpy1(start, end, from, skipCount)
+          : _nativeSetRange(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -4370,8 +4448,8 @@ final class _Int16ArrayView extends _TypedListView
         offsetInBytes + (index * Int16List.bytesPerElement), _toInt16(value));
   }
 
-  void setRange(int start, int end, Iterable<int> iterable,
-      [int skipCount = 0]) {
+  @pragma("vm:prefer-inline")
+  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -4392,6 +4470,10 @@ final class _Int16ArrayView extends _TypedListView
   Int16List _createList(int length) {
     return new Int16List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy2(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -4427,8 +4509,8 @@ final class _Uint16ArrayView extends _TypedListView
         offsetInBytes + (index * Uint16List.bytesPerElement), _toUint16(value));
   }
 
-  void setRange(int start, int end, Iterable<int> iterable,
-      [int skipCount = 0]) {
+  @pragma("vm:prefer-inline")
+  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -4450,6 +4532,10 @@ final class _Uint16ArrayView extends _TypedListView
   Uint16List _createList(int length) {
     return new Uint16List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy2(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -4494,6 +4580,10 @@ final class _Int32ArrayView extends _TypedListView
   Int32List _createList(int length) {
     return new Int32List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy4(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -4538,6 +4628,10 @@ final class _Uint32ArrayView extends _TypedListView
   Uint32List _createList(int length) {
     return new Uint32List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy4(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -4582,6 +4676,10 @@ final class _Int64ArrayView extends _TypedListView
   Int64List _createList(int length) {
     return new Int64List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy8(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -4626,6 +4724,10 @@ final class _Uint64ArrayView extends _TypedListView
   Uint64List _createList(int length) {
     return new Uint64List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy8(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -4670,6 +4772,10 @@ final class _Float32ArrayView extends _TypedListView
   Float32List _createList(int length) {
     return new Float32List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy4(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -4714,6 +4820,10 @@ final class _Float64ArrayView extends _TypedListView
   Float64List _createList(int length) {
     return new Float64List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy8(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -4756,6 +4866,10 @@ final class _Float32x4ArrayView extends _TypedListView
   Float32x4List _createList(int length) {
     return new Float32x4List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy16(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -4798,6 +4912,10 @@ final class _Int32x4ArrayView extends _TypedListView
   Int32x4List _createList(int length) {
     return new Int32x4List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy16(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -4840,6 +4958,10 @@ final class _Float64x2ArrayView extends _TypedListView
   Float64x2List _createList(int length) {
     return new Float64x2List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(int start, int end, _TypedListBase from, int skipCount) =>
+      _checkBoundsAndMemcpy16(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -5228,6 +5350,28 @@ void _offsetAlignmentCheck(int offset, int alignment) {
     throw new RangeError('Offset ($offset) must be a multiple of '
         'BYTES_PER_ELEMENT ($alignment)');
   }
+}
+
+// Checks the arguments provided to a setRange call. Returns the number
+// of elements to copy.
+@pragma("vm:entry-point")
+int _checkSetRangeArguments(
+    Iterable to, int start, int end, Iterable from, int skipCount) {
+  // Check ranges.
+  if (0 > start || start > end || end > to.length) {
+    RangeError.checkValidRange(start, end, to.length); // Always throws.
+    assert(false);
+  }
+  if (skipCount < 0) {
+    throw RangeError.range(skipCount, 0, null, "skipCount");
+  }
+
+  final count = end - start;
+  if ((from.length - skipCount) < count) {
+    throw IterableElementError.tooFew();
+  }
+
+  return count;
 }
 
 @patch

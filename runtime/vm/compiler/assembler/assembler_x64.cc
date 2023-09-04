@@ -2683,46 +2683,6 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
   }
 }
 
-static ScaleFactor ToScaleFactor(intptr_t index_scale, bool index_unboxed) {
-  if (index_unboxed) {
-    switch (index_scale) {
-      case 1:
-        return TIMES_1;
-      case 2:
-        return TIMES_2;
-      case 4:
-        return TIMES_4;
-      case 8:
-        return TIMES_8;
-      case 16:
-        return TIMES_16;
-      default:
-        UNREACHABLE();
-        return TIMES_1;
-    }
-  } else {
-    // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
-    // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
-    // index is expected to be untagged before accessing.
-    ASSERT(kSmiTagShift == 1);
-    switch (index_scale) {
-      case 1:
-        return TIMES_1;
-      case 2:
-        return TIMES_1;
-      case 4:
-        return TIMES_2;
-      case 8:
-        return TIMES_4;
-      case 16:
-        return TIMES_8;
-      default:
-        UNREACHABLE();
-        return TIMES_1;
-    }
-  }
-}
-
 Address Assembler::ElementAddressForRegIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,

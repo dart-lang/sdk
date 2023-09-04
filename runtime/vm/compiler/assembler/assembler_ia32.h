@@ -572,6 +572,9 @@ class Assembler : public AssemblerBase {
   void lock();
   void cmpxchgl(const Address& address, Register reg);
 
+  void cld();
+  void std();
+
   void cpuid();
 
   /*

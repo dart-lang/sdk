@@ -114,6 +114,16 @@ namespace dart {
   V(Float32x4List, ., TypedData_Float32x4Array_factory, 0x0a6eefa8)            \
   V(Int32x4List, ., TypedData_Int32x4Array_factory, 0x5a09288e)                \
   V(Float64x2List, ., TypedData_Float64x2Array_factory, 0xecbc738a)            \
+  V(_TypedListBase, _checkBoundsAndMemcpy1,                                    \
+    TypedData_checkBoundsAndMemcpy1, 0xf9d326bd)                               \
+  V(_TypedListBase, _checkBoundsAndMemcpy2,                                    \
+    TypedData_checkBoundsAndMemcpy2, 0xf0756646)                               \
+  V(_TypedListBase, _checkBoundsAndMemcpy4,                                    \
+    TypedData_checkBoundsAndMemcpy4, 0xe8cfd800)                               \
+  V(_TypedListBase, _checkBoundsAndMemcpy8,                                    \
+    TypedData_checkBoundsAndMemcpy8, 0xe945188e)                               \
+  V(_TypedListBase, _checkBoundsAndMemcpy16,                                   \
+    TypedData_checkBoundsAndMemcpy16, 0xebd06cb3)                              \
   V(::, _toClampedUint8, ConvertIntToClampedUint8, 0xd0e522d0)                 \
   V(::, copyRangeFromUint8ListToOneByteString,                                 \
     CopyRangeFromUint8ListToOneByteString, 0xcc42cce1)                         \

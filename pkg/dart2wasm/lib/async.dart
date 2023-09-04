@@ -633,12 +633,10 @@ class AsyncCodeGenerator extends CodeGenerator {
       completerType = const DynamicType();
     }
     types.makeType(this, completerType);
-    b.call(translator.functions
-        .getFunction(translator.makeAsyncCompleter.reference));
+    call(translator.makeAsyncCompleter.reference);
 
     // Allocate `_AsyncSuspendState`
-    b.call(translator.functions
-        .getFunction(translator.newAsyncSuspendState.reference));
+    call(translator.newAsyncSuspendState.reference);
     b.local_set(asyncStateLocal);
 
     // (2) Call inner function.
@@ -656,15 +654,15 @@ class AsyncCodeGenerator extends CodeGenerator {
     // (3) Return the completer's future.
 
     b.local_get(asyncStateLocal);
-    final completerFutureGetter = translator.functions
-        .getFunction(translator.completerFuture.getterReference);
+    final completerFutureGetterType = translator.functions
+        .getFunctionType(translator.completerFuture.getterReference);
     b.struct_get(
         asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
     translator.convertType(
         function,
         asyncSuspendStateInfo.struct.fields[5].type.unpacked,
-        completerFutureGetter.type.inputs[0]);
-    b.call(completerFutureGetter);
+        completerFutureGetterType.inputs[0]);
+    call(translator.completerFuture.getterReference);
     b.end();
   }
 
@@ -779,8 +777,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     // Non-null Dart field represented as nullable Wasm field.
     b.ref_as_non_null();
     b.ref_null(translator.topInfo.struct);
-    b.call(translator.functions
-        .getFunction(translator.completerComplete.reference));
+    call(translator.completerComplete.reference);
     b.return_();
     b.end(); // masterLoop
 
@@ -798,8 +795,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     b.ref_as_non_null();
     b.local_get(exceptionLocal);
     b.local_get(stackTraceLocal);
-    b.call(translator.functions
-        .getFunction(translator.completerCompleteError.reference));
+    call(translator.completerCompleteError.reference);
     b.return_();
 
     b.end(); // end try
@@ -1195,8 +1191,7 @@ class AsyncCodeGenerator extends CodeGenerator {
       b.local_get(suspendStateLocal);
       b.struct_get(asyncSuspendStateInfo.struct,
           FieldIndex.asyncSuspendStateCurrentReturnValue);
-      b.call(translator.functions
-          .getFunction(translator.completerComplete.reference));
+      call(translator.completerComplete.reference);
       b.return_();
       b.end();
 
@@ -1262,8 +1257,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     }
 
     if (firstFinalizer == null) {
-      b.call(translator.functions
-          .getFunction(translator.completerComplete.reference));
+      call(translator.completerComplete.reference);
       b.return_();
     } else {
       final returnValueLocal = addLocal(translator.topInfo.nullableType);
@@ -1382,7 +1376,7 @@ class AsyncCodeGenerator extends CodeGenerator {
 
     b.local_get(suspendStateLocal);
     wrap(node.operand, translator.topInfo.nullableType);
-    b.call(translator.functions.getFunction(translator.awaitHelper.reference));
+    call(translator.awaitHelper.reference);
     b.return_();
 
     // Generate resume label
