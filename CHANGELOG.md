@@ -157,6 +157,14 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 
 [#53106]: https://github.com/dart-lang/sdk/issues/53106
 
+#### Pub
+
+- New option `dart pub upgrade --tighten` which will update dependencies' lower
+  bounds in pubspec.yaml to match the current version.
+- The commands `dart pub get`/`add`/`upgrade` will now show if a dependency
+  changed between direct, dev and transitive dependency.
+- The command `dart pub upgrade` no longer shows unchanged dependencies.
+
 ## 3.1.0
 
 ### Libraries
