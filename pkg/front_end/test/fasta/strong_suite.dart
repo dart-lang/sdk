@@ -11,6 +11,7 @@ Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
   environment[COMPILATION_MODE] = CompileMode.full.name;
   environment['soundNullSafety'] = "true";
+  environment["semiFuzz"] = "true";
   return FastaContext.create(suite, environment);
 }
 

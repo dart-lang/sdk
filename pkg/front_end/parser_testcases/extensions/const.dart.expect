@@ -8,7 +8,7 @@ parser/extensions/const:1:11: Expected a type, but got 'const'.
 extension const Extension on int {}
           ^^^^^
 
-parser/extensions/const:1:11: A extension declaration must have a body, even if it is empty.
+parser/extensions/const:1:11: An extension declaration must have a body, even if it is empty.
 extension const Extension on int {}
           ^^^^^
 
@@ -35,7 +35,7 @@ beginCompilationUnit(extension)
       handleIdentifier(, typeReference)
       handleNoTypeArguments(const)
       handleType(, null)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A extension declaration must have a body, even if it is empty., Try adding an empty body., {string: extension declaration}], const, const)
+      handleRecoverableError(ExpectedExtensionBody, const, const)
       beginClassOrMixinOrExtensionBody(DeclarationKind.Extension, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.Extension, 0, {, })
     endExtensionDeclaration(extension, on, })

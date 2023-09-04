@@ -724,7 +724,7 @@ class Foo {
 
   void test_expectedBody_class() {
     parseCompilationUnit("class A class B {}",
-        errors: [expectedError(ParserErrorCode.EXPECTED_BODY, 6, 1)]);
+        errors: [expectedError(ParserErrorCode.EXPECTED_CLASS_BODY, 6, 1)]);
   }
 
   void test_expectedCaseOrDefault() {
@@ -2676,7 +2676,8 @@ m() {
     var statement = parseStatement('switch (a) return;', expectedEndOffset: 11)
         as SwitchStatement;
     expect(statement, isNotNull);
-    listener.assertErrors([expectedError(ParserErrorCode.EXPECTED_BODY, 9, 1)]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY, 9, 1)]);
   }
 
   void test_topLevel_getter() {

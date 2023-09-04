@@ -99,6 +99,39 @@ final foo = Foo("^test");
     );
   }
 
+  Future<void> test_extensionType() async {
+    final content = TestCode.parse('''
+extension type E<T>(int it) {
+  void void foo() {
+    (1 ^+ 2) * 3;
+  }
+}
+''');
+
+    final regions = await _computeSelectionRanges(content);
+    _expectRegions(
+      regions,
+      content,
+      [
+        '1 + 2',
+        '(1 + 2)',
+        '(1 + 2) * 3',
+        '(1 + 2) * 3;',
+        '{\n'
+            '    (1 + 2) * 3;\n'
+            '  }',
+        'void foo() {\n'
+            '    (1 + 2) * 3;\n'
+            '  }',
+        'extension type E<T>(int it) {\n'
+            '  void void foo() {\n'
+            '    (1 + 2) * 3;\n'
+            '  }\n'
+            '}',
+      ],
+    );
+  }
+
   Future<void> test_field_recordType() async {
     final content = TestCode.parse('''
 class C<T> {

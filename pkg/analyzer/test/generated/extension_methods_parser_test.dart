@@ -116,7 +116,7 @@ class C {}
     var unit = parseCompilationUnit('extension E', errors: [
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
       expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 11, 0),
-      expectedError(ParserErrorCode.EXPECTED_BODY, 11, 0),
+      expectedError(ParserErrorCode.EXPECTED_EXTENSION_BODY, 11, 0),
     ]);
     expect(unit.declarations, hasLength(1));
     var extension = unit.declarations[0] as ExtensionDeclaration;

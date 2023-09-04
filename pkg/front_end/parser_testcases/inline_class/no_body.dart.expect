@@ -16,7 +16,7 @@ parser/inline_class/no_body:2:8: Unexpected token ';'.
 mixin M;
        ^
 
-parser/inline_class/no_body:3:16: A extension declaration must have a body, even if it is empty.
+parser/inline_class/no_body:3:16: An extension declaration must have a body, even if it is empty.
 extension E on int;
                ^^^
 
@@ -24,7 +24,7 @@ parser/inline_class/no_body:3:19: Unexpected token ';'.
 extension E on int;
                   ^
 
-parser/inline_class/no_body:4:25: A extension type declaration must have a body, even if it is empty.
+parser/inline_class/no_body:4:25: An extension type declaration must have a body, even if it is empty.
 extension type ET1(int i);
                         ^
 
@@ -32,7 +32,7 @@ parser/inline_class/no_body:4:26: Unexpected token ';'.
 extension type ET1(int i);
                          ^
 
-parser/inline_class/no_body:5:38: A extension type declaration must have a body, even if it is empty.
+parser/inline_class/no_body:5:38: An extension type declaration must have a body, even if it is empty.
 extension type ET2(int i) implements Foo;
                                      ^^^
 
@@ -40,7 +40,7 @@ parser/inline_class/no_body:5:41: Unexpected token ';'.
 extension type ET2(int i) implements Foo;
                                         ^
 
-parser/inline_class/no_body:6:43: A extension type declaration must have a body, even if it is empty.
+parser/inline_class/no_body:6:43: An extension type declaration must have a body, even if it is empty.
 extension type ET3(int i) implements Foo, Bar;
                                           ^^^
 
@@ -65,7 +65,7 @@ beginCompilationUnit(class)
       handleClassNoWithClause()
       handleImplements(null, 0)
       handleRecoverDeclarationHeader(DeclarationHeaderKind.Class)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A class declaration must have a body, even if it is empty., Try adding an empty body., {string: class declaration}], C, C)
+      handleRecoverableError(ExpectedClassBody, C, C)
       beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
     endClassDeclaration(class, })
@@ -88,7 +88,7 @@ beginCompilationUnit(class)
       handleMixinOn(null, 0)
       handleImplements(null, 0)
       handleRecoverMixinHeader()
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A mixin declaration must have a body, even if it is empty., Try adding an empty body., {string: mixin declaration}], M, M)
+      handleRecoverableError(ExpectedMixinBody, M, M)
       beginClassOrMixinOrExtensionBody(DeclarationKind.Mixin, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.Mixin, 0, {, })
     endMixinDeclaration(mixin, })
@@ -107,7 +107,7 @@ beginCompilationUnit(class)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(;)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A extension declaration must have a body, even if it is empty., Try adding an empty body., {string: extension declaration}], int, int)
+      handleRecoverableError(ExpectedExtensionBody, int, int)
       beginClassOrMixinOrExtensionBody(DeclarationKind.Extension, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.Extension, 0, {, })
     endExtensionDeclaration(extension, on, })
@@ -142,7 +142,7 @@ beginCompilationUnit(class)
       handleClassNoWithClause()
       handleImplements(null, 0)
       handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A extension type declaration must have a body, even if it is empty., Try adding an empty body., {string: extension type declaration}], ), ))
+      handleRecoverableError(ExpectedExtensionTypeBody, ), ))
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
     endExtensionTypeDeclaration(extension, type, })
@@ -180,7 +180,7 @@ beginCompilationUnit(class)
       handleClassNoWithClause()
       handleImplements(null, 0)
       handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A extension type declaration must have a body, even if it is empty., Try adding an empty body., {string: extension type declaration}], Foo, Foo)
+      handleRecoverableError(ExpectedExtensionTypeBody, Foo, Foo)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
     endExtensionTypeDeclaration(extension, type, })
@@ -221,7 +221,7 @@ beginCompilationUnit(class)
       handleClassNoWithClause()
       handleImplements(null, 0)
       handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
-      handleRecoverableError(Message[ExpectedClassOrMixinBody, A extension type declaration must have a body, even if it is empty., Try adding an empty body., {string: extension type declaration}], Bar, Bar)
+      handleRecoverableError(ExpectedExtensionTypeBody, Bar, Bar)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
     endExtensionTypeDeclaration(extension, type, })

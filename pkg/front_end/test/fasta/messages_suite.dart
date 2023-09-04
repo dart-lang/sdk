@@ -258,6 +258,12 @@ class MessageTestSuite extends ChainContext {
                 : new List<String>.from(value);
             break;
 
+          case "sharedName":
+            if (value is! String) {
+              throw new ArgumentError('sharedName should be a string: $value.');
+            }
+            break;
+
           case "exampleAllowMoreCodes":
             exampleAllowMoreCodes = value;
             break;

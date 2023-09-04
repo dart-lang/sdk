@@ -1137,13 +1137,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token ensureBlock(
-      Token token,
-      codes.Template<codes.Message Function(Token token)>? template,
-      String? missingBlockName) {
-    doPrint('ensureBlock(' '$token, ' '$template, ' '$missingBlockName)');
+  Token ensureBlock(Token token, BlockKind? missingBlockKind) {
+    doPrint('ensureBlock(' '$token, ' '$missingBlockKind)');
     indent++;
-    var result = super.ensureBlock(token, template, missingBlockName);
+    var result = super.ensureBlock(token, missingBlockKind);
     indent--;
     return result;
   }

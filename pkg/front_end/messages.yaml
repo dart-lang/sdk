@@ -8,7 +8,8 @@
 #
 # to regenerate messages after having edited this file.
 #
-# If entries with 'analyzerCode' and 'index' have been changed, run
+# If entries with 'analyzerCode', 'sharedName', or 'index' have been changed,
+# run
 #
 #     dart run pkg/analyzer/tool/messages/generate.dart
 #
@@ -61,6 +62,9 @@
 # (e.g. ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND)
 # which will be used when generating code in Analyzer for translating
 # fasta error codes to Analyzer error codes.
+# If `sharedName` is defined, the generated analyzer code will use this as the
+# user-facing analyzer code instead of `analyzerCode`. Multiple messages can share
+# the `sharedName`.
 #
 # Errors with an `index` can also optionally contain user-facing documentation
 # for the problem (documentation), which will be extracted to
@@ -792,11 +796,95 @@ ExtendsVoid:
 ImplementsVoid:
   problemMessage: "The type 'void' can't be used in an 'implements' clause."
 
-ExpectedClassOrMixinBody:
+ExpectedClassBody:
   index: 8
-  problemMessage: "A #string must have a body, even if it is empty."
+  problemMessage: "A class declaration must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
-  analyzerCode: ParserErrorCode.EXPECTED_BODY
+  analyzerCode: ParserErrorCode.EXPECTED_CLASS_BODY
+  sharedName: EXPECTED_BODY
+  script: |
+    class Class
+
+ExpectedMixinBody:
+  index: 166
+  problemMessage: "A mixin declaration must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_MIXIN_BODY
+  sharedName: EXPECTED_BODY
+  script: |
+    mixin Mixin
+
+ExpectedExtensionBody:
+  index: 173
+  problemMessage: "An extension declaration must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_EXTENSION_BODY
+  sharedName: EXPECTED_BODY
+  script: |
+    extension Extension on int
+
+ExpectedExtensionTypeBody:
+  index: 167
+  problemMessage: "An extension type declaration must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_EXTENSION_TYPE_BODY
+  sharedName: EXPECTED_BODY
+  experiments: inline-class
+  script: |
+    extension type ExtensionType(int i)
+
+ExpectedTryStatementBody:
+  index: 168
+  problemMessage: "A try statement must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_TRY_STATEMENT_BODY
+  sharedName: EXPECTED_BODY
+  script: |
+    method() {
+      try finally {}
+    }
+
+ExpectedCatchClauseBody:
+  index: 169
+  problemMessage: "A catch clause must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY
+  sharedName: EXPECTED_BODY
+  script: |
+    method() {
+      try {} catch (_);
+    }
+
+ExpectedFinallyClauseBody:
+  index: 170
+  problemMessage: "A finally clause must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_FINALLY_CLAUSE_BODY
+  sharedName: EXPECTED_BODY
+  script: |
+    method() {
+      try {} finally;
+    }
+
+ExpectedSwitchExpressionBody:
+  index: 171
+  problemMessage: "A switch expression must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_SWITCH_EXPRESSION_BODY
+  sharedName: EXPECTED_BODY
+  script: |
+    method(Never n) => switch (n);
+
+ExpectedSwitchStatementBody:
+  index: 172
+  problemMessage: "A switch statement must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY
+  sharedName: EXPECTED_BODY
+  script: |
+    method(Never n) {
+      switch (n);
+    }
 
 ExpectedDeclaration:
   problemMessage: "Expected a declaration, but got '#lexeme'."

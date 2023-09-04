@@ -42,7 +42,7 @@ parseUnit(UnmatchedToken(())
           listener: handleAsyncModifier(null, null)
           inPlainSync()
         parseFunctionBody(), false, false)
-          ensureBlock(), Instance of 'Template<(Token) => Message>', null)
+          ensureBlock(), BlockKind(function body))
             reportRecoverableError(, Message[ExpectedFunctionBody, Expected a function body, but got ''., null, {lexeme: }])
               listener: handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got ''., null, {lexeme: }], , )
               listener: // WARNING: Reporting at eof for .
