@@ -914,7 +914,7 @@ class Translator with KernelNodes {
         NodeCounter().countNodes(body) <= options.inliningLimit;
   }
 
-  T? getPragma<T>(Annotatable node, String name, [T? defaultvalue]) {
+  T? getPragma<T>(Annotatable node, String name, [T? defaultValue]) {
     for (Expression annotation in node.annotations) {
       if (annotation is ConstantExpression) {
         Constant constant = annotation.constant;
@@ -928,7 +928,10 @@ class Translator with KernelNodes {
               if (value is PrimitiveConstant<T>) {
                 return value.value;
               }
-              return value as T? ?? defaultvalue;
+              if (value is NullConstant) {
+                return defaultValue;
+              }
+              return value as T? ?? defaultValue;
             }
           }
         }

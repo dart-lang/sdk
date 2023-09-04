@@ -47,7 +47,8 @@ class FunctionCollector {
   Reference popWorkList() => _worklist.removeLast();
 
   void _importOrExport(Member member) {
-    String? importName = translator.getPragma(member, "wasm:import");
+    String? importName =
+        translator.getPragma(member, "wasm:import", member.name.text);
     if (importName != null) {
       int dot = importName.indexOf('.');
       if (dot != -1) {
