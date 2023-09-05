@@ -12,10 +12,10 @@ import 'dart:js_interop';
 import 'package:expect/minitest.dart';
 
 @JS()
-external dynamic eval(String code);
+external void eval(String code);
 
 @JS()
-external Object get obj;
+external JSAny get obj;
 
 void main() {
   eval('''
