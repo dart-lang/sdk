@@ -89,6 +89,9 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
     }
     extension StringExtensions on String {}
     extension on String {}
+    extension type A(int i) {
+      static const int foo = 0;
+    }
     ''';
     newFile(mainFilePath, content);
     await initialize();
@@ -98,7 +101,7 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
       (docsymbols) => throw 'Expected SymbolInformations, got DocumentSymbols',
       (symbolInfos) => symbolInfos,
     );
-    expect(symbols, hasLength(7));
+    expect(symbols, hasLength(9));
 
     final topLevel = symbols[0];
     expect(topLevel.name, equals('topLevel'));
@@ -132,6 +135,15 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
     final unnamedExtension = symbols[6];
     expect(unnamedExtension.name, equals('<unnamed extension>'));
     expect(unnamedExtension.containerName, isNull);
+
+    final extensionTypeA = symbols[7];
+    expect(extensionTypeA.name, equals('A'));
+    expect(extensionTypeA.containerName, isNull);
+
+    final foo = symbols[8];
+    expect(foo.name, equals('foo'));
+    expect(foo.containerName, equals('A'));
+    expect(foo.kind, equals(SymbolKind.Field));
   }
 
   Future<void> test_hierarchical() async {

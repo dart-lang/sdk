@@ -331,6 +331,8 @@ lsp.SymbolKind elementKindToSymbolKind(
         return const [lsp.SymbolKind.EnumMember, lsp.SymbolKind.Enum];
       case server.ElementKind.EXTENSION:
         return const [lsp.SymbolKind.Namespace];
+      case server.ElementKind.EXTENSION_TYPE:
+        return const [lsp.SymbolKind.Namespace];
       case server.ElementKind.FIELD:
         return const [lsp.SymbolKind.Field];
       case server.ElementKind.FILE:

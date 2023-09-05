@@ -40,6 +40,9 @@ class DartUnitOutlineComputer {
       } else if (unitMember is ExtensionDeclaration) {
         unitContents.add(_newExtensionOutline(
             unitMember, _outlinesForMembers(unitMember.members)));
+      } else if (unitMember is ExtensionTypeDeclaration) {
+        unitContents.add(_newExtensionTypeOutline(
+            unitMember, _outlinesForMembers(unitMember.members)));
       } else if (unitMember is TopLevelVariableDeclaration) {
         var fieldDeclaration = unitMember;
         var fields = fieldDeclaration.variables;
@@ -191,6 +194,21 @@ class DartUnitOutlineComputer {
         location: nameToken != null
             ? _getLocationToken(nameToken)
             : _getLocationNode(node.extendedType),
+        typeParameters: _getTypeParametersStr(node.typeParameters));
+    return _nodeOutline(node, element, extensionContents);
+  }
+
+  Outline _newExtensionTypeOutline(
+      ExtensionTypeDeclaration node, List<Outline> extensionContents) {
+    var nameToken = node.name;
+    var name = nameToken.lexeme;
+    var element = Element(
+        ElementKind.EXTENSION_TYPE,
+        name,
+        Element.makeFlags(
+            isPrivate: Identifier.isPrivateName(name),
+            isDeprecated: _isDeprecated(node)),
+        location: _getLocationToken(nameToken),
         typeParameters: _getTypeParametersStr(node.typeParameters));
     return _nodeOutline(node, element, extensionContents);
   }

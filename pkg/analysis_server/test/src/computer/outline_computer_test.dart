@@ -726,6 +726,32 @@ extension on String {
     }
   }
 
+  Future<void> test_extensionType() async {
+    var unitOutline = await _computeOutline('''
+extension type A(int it) {
+  int get foo => 0;
+}
+''');
+    var topOutlines = unitOutline.children!;
+    expect(topOutlines, hasLength(1));
+    // MyExt
+    {
+      var outline = topOutlines[0];
+      var element = outline.element;
+      expect(element.kind, ElementKind.EXTENSION_TYPE);
+      expect(element.name, 'A');
+      {
+        var location = element.location!;
+        expect(location.offset, testCode.indexOf('A'));
+        expect(location.length, 'A'.length);
+      }
+      expect(element.parameters, null);
+      expect(element.returnType, null);
+      var outlines_A = outline.children;
+      expect(outlines_A, hasLength(1));
+    }
+  }
+
   Future<void> test_genericTypeAlias_functionType() async {
     var unitOutline = await _computeOutline('''
 typedef F = void Function();
