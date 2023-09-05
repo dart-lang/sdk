@@ -320,6 +320,39 @@ enum E<X> with A<X> {
 ''');
   }
 
+  test_extensionType_contravariant() async {
+    await assertErrorsInCode(r'''
+extension type A<T>(int it) {}
+extension type B<T>(int it) implements A<void Function(T)> {}
+''', [
+      error(
+        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+        48,
+        1,
+      ),
+    ]);
+  }
+
+  test_extensionType_covariant() async {
+    await assertNoErrorsInCode(r'''
+extension type A<T>(int it) {}
+extension type B<T>(int it) implements A<T Function()> {}
+''');
+  }
+
+  test_extensionType_invariant() async {
+    await assertErrorsInCode(r'''
+extension type A<T>(int it) {}
+extension type B<T>(int it) implements A<T Function(T)> {}
+''', [
+      error(
+        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+        48,
+        1,
+      ),
+    ]);
+  }
+
   test_mixin_implements_function_parameterType() async {
     await assertErrorsInCode(r'''
 typedef F<X> = void Function(X);

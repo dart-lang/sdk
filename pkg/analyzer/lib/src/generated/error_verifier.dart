@@ -719,6 +719,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         element: element,
       );
       _checkForExtensionTypeWithAbstractMember(node);
+      _checkForWrongTypeParameterVarianceInSuperinterfaces();
 
       super.visitExtensionTypeDeclaration(node);
     } finally {
