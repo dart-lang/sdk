@@ -1,13 +1,15 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(DART_HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA) ||          \
+    defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS)
 
 #include "platform/memory_sanitizer.h"
 #include "vm/native_symbol.h"
 
+#include <cxxabi.h>  // NOLINT
 #include <dlfcn.h>   // NOLINT
 
 namespace dart {
@@ -124,7 +126,26 @@ char* NativeSymbolResolver::LookupSymbolName(uword pc, uword* start) {
     }
   }
 
+#if !defined(DART_HOST_OS_FUCHSIA)
+  // Fallback for libc, etc.
+  if (info.dli_sname == nullptr) {
+    return nullptr;
+  }
+  if (start != nullptr) {
+    *start = reinterpret_cast<uword>(info.dli_saddr);
+  }
+  int status = 0;
+  size_t len = 0;
+  char* demangled = abi::__cxa_demangle(info.dli_sname, nullptr, &len, &status);
+  MSAN_UNPOISON(demangled, len);
+  if (status == 0) {
+    return demangled;
+  }
+  return strdup(info.dli_sname);
+#else
+  // Never works on Fuchsia; avoid linking in cxa_demangle.
   return nullptr;
+#endif
 }
 
 void NativeSymbolResolver::FreeSymbolName(char* name) {
@@ -149,7 +170,8 @@ bool NativeSymbolResolver::LookupSharedObject(uword pc,
 }
 
 void NativeSymbolResolver::AddSymbols(const char* dso_name,
-                                      void* buffer, size_t size) {
+                                      void* buffer,
+                                      size_t size) {
   NativeSymbols* symbols = new NativeSymbols(dso_name, buffer, size);
   symbols->set_next(symbols_);
   symbols_ = symbols;
@@ -157,4 +179,5 @@ void NativeSymbolResolver::AddSymbols(const char* dso_name,
 
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_FUCHSIA)
+#endif  // defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA) ||   \
+        // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS)

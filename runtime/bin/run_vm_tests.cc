@@ -7,6 +7,7 @@
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/eventhandler.h"
+#include "bin/exe_utils.h"
 #include "bin/file.h"
 #include "bin/loader.h"
 #include "bin/platform.h"
@@ -293,6 +294,11 @@ void ShiftArgs(int* argc, const char** argv) {
 }
 
 static int Main(int argc, const char** argv) {
+#if !defined(DART_HOST_OS_WINDOWS)
+  // Very early so any crashes during startup can also be symbolized.
+  bin::EXEUtils::LoadDartProfilerSymbols(argv[0]);
+#endif
+
   // Flags being passed to the Dart VM.
   int dart_argc = 0;
   const char** dart_argv = nullptr;

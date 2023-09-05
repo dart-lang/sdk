@@ -20,6 +20,12 @@ class EXEUtils {
   // Returns the path to the directory the current executable resides in.
   static Utils::CStringUniquePtr GetDirectoryPrefixFromExeName();
 
+#if !defined(DART_HOST_OS_WINDOWS)
+  // Loads a compact symbolization table from "$exepath.sym" that is used by the
+  // VM's profiler and crash stack trace dumper to symbolize C frames.
+  static void LoadDartProfilerSymbols(const char* exepath);
+#endif
+
  private:
   DISALLOW_COPY_AND_ASSIGN(EXEUtils);
 };

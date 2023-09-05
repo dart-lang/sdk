@@ -54,3 +54,7 @@ VM_UNIT_TEST_CASE(Fail1) {
 VM_UNIT_TEST_CASE(Fail2) {
   FAIL("This test fails with two arguments: %d, %d", -100, 42);
 }
+
+VM_UNIT_TEST_CASE_WITH_EXPECTATION(Fatal, "Crash") {
+  FATAL("This test fails and produces a backtrace");
+}
