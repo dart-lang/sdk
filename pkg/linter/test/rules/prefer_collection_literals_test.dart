@@ -17,7 +17,36 @@ class PreferCollectionLiteralsTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_collection_literals';
 
-  @failingTest
+  test_assignment() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+
+void f(LinkedHashSet<int> s) {
+  s = LinkedHashSet();
+}
+''');
+  }
+
+  test_assignment_withCascade() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+
+void f(LinkedHashSet<int> s) {
+  s = LinkedHashSet()..addAll([1, 2, 3]);
+}
+''');
+  }
+
+  test_assignment_withParentheses() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+
+void f(LinkedHashSet<int> s) {
+  s = ((LinkedHashSet()));
+}
+''');
+  }
+
   test_closure_returns_linkedHashSet() async {
     await assertDiagnostics(r'''
 import 'dart:collection';
@@ -29,6 +58,34 @@ void c() {
 }
 ''', [
       lint(82, 20),
+    ]);
+  }
+
+  test_functionExpression_functionDeclaration() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+
+LinkedHashMap<int, int> f() => LinkedHashMap();
+''');
+  }
+
+  test_functionExpression_methodDeclaration() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+
+class C {
+  LinkedHashMap<int, int> f() => LinkedHashMap();
+}
+''');
+  }
+
+  test_functionExpression_omittedReturnType() async {
+    await assertDiagnostics(r'''
+import 'dart:collection';
+
+f() => LinkedHashMap();
+''', [
+      lint(34, 15),
     ]);
   }
 
@@ -91,6 +148,80 @@ void c() {
 ''', [
       lint(82, 20),
     ]);
+  }
+
+  test_returnStatement_async() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+
+Future<LinkedHashSet<int>> f() async {
+  return LinkedHashSet();
+}
+''');
+  }
+
+  test_returnStatement_asyncStar() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+
+Stream<LinkedHashSet<int>> f() async* {
+  yield LinkedHashSet();
+}
+''');
+  }
+
+  test_returnStatement_functionDeclaration() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+
+LinkedHashSet<int> f() {
+  return LinkedHashSet();
+}
+''');
+  }
+
+  test_returnStatement_functionExpression() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+
+void f() {
+  g(() {
+    return LinkedHashSet();
+  });
+}
+
+void g(LinkedHashSet<int> Function()) {}
+''');
+  }
+
+  test_returnStatement_methodDeclaration() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+
+class C {
+  LinkedHashSet<int> f() {
+    return LinkedHashSet();
+  }
+}
+''');
+  }
+
+  test_returnStatement_syncStar() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+
+Iterable<LinkedHashSet<int>> f() sync* {
+  yield LinkedHashSet();
+}
+''');
+  }
+
+  test_typedefConstruction() async {
+    await assertNoDiagnostics(r'''
+typedef MyMap = Map<int, int>;
+
+var x = MyMap();
+''');
   }
 
   test_undefinedFunction() async {
