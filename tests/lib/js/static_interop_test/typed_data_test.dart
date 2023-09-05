@@ -11,7 +11,7 @@ library typed_data_test;
 import 'dart:js_interop';
 
 @JS()
-external dynamic eval(String code);
+external void eval(String code);
 
 // dart:js_interop top-levels do return-type checks so if the call to these
 // getters succeed, it's enough to know they can be interoperable.

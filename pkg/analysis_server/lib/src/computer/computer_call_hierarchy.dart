@@ -26,6 +26,7 @@ Element? _getContainer(Element element) {
     ElementKind.CONSTRUCTOR,
     ElementKind.ENUM,
     ElementKind.EXTENSION,
+    ElementKind.EXTENSION_TYPE,
     ElementKind.FUNCTION,
     ElementKind.GETTER,
     ElementKind.METHOD,

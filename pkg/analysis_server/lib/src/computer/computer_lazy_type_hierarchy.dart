@@ -175,6 +175,7 @@ class DartLazyTypeHierarchyComputer {
   bool _isValidTargetDeclaration(AstNode? declaration) =>
       declaration is ClassDeclaration ||
       declaration is MixinDeclaration ||
+      declaration is ExtensionTypeDeclaration ||
       declaration is EnumDeclaration;
 
   /// Navigate to [target] from [anchor], preserving type arguments supplied

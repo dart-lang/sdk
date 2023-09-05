@@ -5669,6 +5669,10 @@ JsInteropStaticInteropExternalMemberWithInvalidTypeParameters:
   problemMessage: "External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types."
   correctionMessage: "Try adding a valid bound to the type parameters used in this member."
 
+JsInteropStaticInteropExternalTypeViolation:
+  problemMessage: "Type '#type' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types."
+  correctionMessage: "Use one of the valid types instead."
+
 JsInteropStaticInteropGenerativeConstructor:
   problemMessage: "`@staticInterop` classes should not contain any generative constructors."
   correctionMessage: "Use factory constructors instead."
@@ -5725,10 +5729,6 @@ JsInteropStaticInteropWithInvalidJsTypesSupertype:
 JsInteropStaticInteropWithNonStaticSupertype:
   problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
   correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
-
-JsInteropStrictModeViolation:
-  problemMessage: "JS interop requires JS types when strict mode is enabled, but Type '#type' is not a type or subtype of a type from `dart:js_interop`."
-  correctionMessage: "Use a JS type instead."
 
 JsInteropStrictModeForbiddenLibrary:
   problemMessage: "Library '#name' is forbidden when strict mode is enabled."

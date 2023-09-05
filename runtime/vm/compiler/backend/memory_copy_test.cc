@@ -420,8 +420,8 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
 #define MEMORY_MOVE_TEST_BOXED(src_start, dest_start, length, elem_size)       \
   ISOLATE_UNIT_TEST_CASE(                                                      \
       IRTest_MemoryMove_##src_start##_##dest_start##_##length##_##elem_size) { \
-    RunMemoryCopyInstrTest(src_start, dest_start, length, elem_size, true,     \
-                           false);                                             \
+    RunMemoryCopyInstrTest(src_start, dest_start, length, elem_size, false,    \
+                           true);                                              \
   }
 
 #define MEMORY_MOVE_TEST_UNBOXED(src_start, dest_start, length, el_si)         \
