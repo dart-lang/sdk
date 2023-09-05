@@ -2,6 +2,8 @@
 
 * Introduce `@redeclare` to annotate extension type members that redeclare
   members from a superinterface.
+* Migrate the `TargetKind` enum to a class to ease the addition of new
+  kinds.  
 
 ## 1.9.1
 
