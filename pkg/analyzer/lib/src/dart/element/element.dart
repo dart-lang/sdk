@@ -1135,6 +1135,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     return _returnType = result;
   }
 
+  @override
   ConstructorElement? get superConstructor {
     linkedData?.read(this);
     return _superConstructor;

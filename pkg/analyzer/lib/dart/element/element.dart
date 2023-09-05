@@ -428,6 +428,11 @@ abstract class ConstructorElement
 
   @override
   InterfaceType get returnType;
+
+  /// The constructor of the superclass that this constructor invokes, or
+  /// `null` if this constructor redirects to another constructor, or if the
+  /// library containing this constructor has not yet been resolved.
+  ConstructorElement? get superConstructor;
 }
 
 /// [ImportElementPrefix] that is used together with `deferred`.
