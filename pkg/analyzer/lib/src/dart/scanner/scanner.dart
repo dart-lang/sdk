@@ -52,18 +52,6 @@ class Scanner {
 
   late final Token firstToken;
 
-  /// A flag indicating whether the scanner should recognize the `>>>` operator
-  /// and the `>>>=` operator.
-  ///
-  /// Use [configureFeatures] rather than this field.
-  bool enableGtGtGt = false;
-
-  /// A flag indicating whether the scanner should recognize the `late` and
-  /// `required` keywords.
-  ///
-  /// Use [configureFeatures] rather than this field.
-  bool enableNonNullable = false;
-
   Version? _overrideVersion;
 
   late FeatureSet _featureSet;
@@ -107,18 +95,12 @@ class Scanner {
   }
 
   /// Configures the scanner appropriately for the given [featureSet].
-  ///
-  /// TODO(paulberry): stop exposing `enableGtGtGt` and `enableNonNullable` so
-  /// that callers are forced to use this API.  Note that this would be a
-  /// breaking change.
   void configureFeatures({
     required FeatureSet featureSetForOverriding,
     required FeatureSet featureSet,
   }) {
     _featureSetForOverriding = featureSetForOverriding;
     _featureSet = featureSet;
-    enableGtGtGt = featureSet.isEnabled(Feature.triple_shift);
-    enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
   }
 
   void reportError(
