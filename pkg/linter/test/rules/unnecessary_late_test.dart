@@ -32,18 +32,14 @@ class C {
 late String a = '',
     b = '';
 ''', [
-      lint(12, 1),
-      lint(24, 1),
+      lint(0, 4),
     ]);
   }
 
   test_multipleVariables_oneHasInitializer_oneHasNoInitializer() async {
-    await assertDiagnostics(r'''
-late String a,
-    b = '';
-''', [
-      lint(19, 1),
-    ]);
+    await assertNoDiagnostics(r'''
+late String a, b = '';
+''');
   }
 
   test_static_initializer() async {
@@ -52,7 +48,7 @@ class C {
   static late String a = '';
 }
 ''', [
-      lint(31, 1),
+      lint(19, 4),
     ]);
   }
 
@@ -76,7 +72,7 @@ class C {
     await assertDiagnostics(r'''
 late String a = '';
 ''', [
-      lint(12, 1),
+      lint(0, 4),
     ]);
   }
 

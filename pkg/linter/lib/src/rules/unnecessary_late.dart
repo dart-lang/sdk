@@ -83,14 +83,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _visitVariableDeclarations(VariableDeclarationList node) {
-    if (node.lateKeyword == null) {
+    if (node.lateKeyword == null) return;
+    if (node.variables.any((v) => v.initializer == null)) {
       return;
     }
 
-    for (var variable in node.variables) {
-      if (variable.initializer != null) {
-        rule.reportLintForToken(variable.name);
-      }
-    }
+    rule.reportLintForToken(node.lateKeyword);
   }
 }
