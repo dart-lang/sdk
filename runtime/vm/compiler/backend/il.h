@@ -526,6 +526,7 @@ struct InstrAttrs {
   M(MaterializeObject, _)                                                      \
   M(TestSmi, kNoGC)                                                            \
   M(TestCids, kNoGC)                                                           \
+  M(TestRange, kNoGC)                                                          \
   M(ExtractNthOutput, kNoGC)                                                   \
   M(MakePair, kNoGC)                                                           \
   M(BinaryUint32Op, kNoGC)                                                     \
@@ -5043,6 +5044,7 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
     return GetDeoptId() != DeoptId::kNone;
   }
 
+  Value* value() const { return inputs_[0]; }
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     return kTagged;
   }
@@ -5060,6 +5062,50 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TestCidsInstr);
+};
+
+class TestRangeInstr : public TemplateComparison<1, NoThrow, Pure> {
+ public:
+  TestRangeInstr(const InstructionSource& source,
+                 Value* value,
+                 uword lower,
+                 uword upper,
+                 Representation value_representation);
+
+  DECLARE_COMPARISON_INSTRUCTION(TestRange);
+
+  uword lower() const { return lower_; }
+  uword upper() const { return upper_; }
+
+  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
+
+  virtual CompileType ComputeType() const;
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  Value* value() const { return inputs_[0]; }
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    return value_representation_;
+  }
+
+  virtual bool AttributesEqual(const Instruction& other) const;
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+#define FIELD_LIST(F)                                                          \
+  F(const uword, lower_)                                                       \
+  F(const uword, upper_)                                                       \
+  F(const Representation, value_representation_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TestRangeInstr,
+                                          TemplateComparison,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(TestRangeInstr);
 };
 
 class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
@@ -5097,6 +5143,7 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
     if (is_null_aware()) return kTagged;
     if (operation_cid() == kDoubleCid) return kUnboxedDouble;
     if (operation_cid() == kMintCid) return kUnboxedInt64;
+    if (operation_cid() == kIntegerCid) return kUnboxedUword;
     return kTagged;
   }
 
@@ -7447,7 +7494,7 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
                             Representation representation = kTagged,
                             bool input_can_be_smi = true)
       : representation_(representation), input_can_be_smi_(input_can_be_smi) {
-    ASSERT(representation == kTagged || representation == kUntagged);
+    ASSERT(representation == kTagged || representation == kUnboxedUword);
     SetInputAt(0, object);
   }
 

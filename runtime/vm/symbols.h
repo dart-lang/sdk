@@ -424,7 +424,6 @@ class ObjectPointerVisitor;
   V(_awaitWithTypeCheck, "_awaitWithTypeCheck")                                \
   V(_backtrackingStack, "_backtrackingStack")                                  \
   V(_checkSetRangeArguments, "_checkSetRangeArguments")                        \
-  V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
   V(future, "future")                                                          \

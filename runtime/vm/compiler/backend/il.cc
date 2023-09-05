@@ -3588,14 +3588,12 @@ Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* LoadClassIdInstr::Canonicalize(FlowGraph* flow_graph) {
-  // TODO(dartbug.com/40188): Allow this to canonicalize into an untagged
-  // constant and make a subsequent DispatchTableCallInstr canonicalize into a
-  // StaticCall.
-  if (representation() == kUntagged) return this;
+  if (!HasUses()) return nullptr;
+
   const intptr_t cid = object()->Type()->ToCid();
   if (cid != kDynamicCid) {
     const auto& smi = Smi::ZoneHandle(flow_graph->zone(), Smi::New(cid));
-    return flow_graph->GetConstant(smi);
+    return flow_graph->GetConstant(smi, representation());
   }
   return this;
 }
@@ -3633,7 +3631,7 @@ TestCidsInstr::TestCidsInstr(const InstructionSource& source,
 }
 
 Definition* TestCidsInstr::Canonicalize(FlowGraph* flow_graph) {
-  CompileType* in_type = left()->Type();
+  CompileType* in_type = value()->Type();
   intptr_t cid = in_type->ToCid();
   if (cid == kDynamicCid) return this;
 
@@ -3656,6 +3654,33 @@ Definition* TestCidsInstr::Canonicalize(FlowGraph* flow_graph) {
 
   // TODO(sra): Handle nullable input, possibly canonicalizing to a compare
   // against `null`.
+  return this;
+}
+
+TestRangeInstr::TestRangeInstr(const InstructionSource& source,
+                               Value* value,
+                               uword lower,
+                               uword upper,
+                               Representation value_representation)
+    : TemplateComparison(source, Token::kIS, DeoptId::kNone),
+      lower_(lower),
+      upper_(upper),
+      value_representation_(value_representation) {
+  ASSERT(lower < upper);
+  ASSERT(value_representation == kTagged ||
+         value_representation == kUnboxedUword);
+  SetInputAt(0, value);
+  set_operation_cid(kObjectCid);
+}
+
+Definition* TestRangeInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (value()->BindsToSmiConstant()) {
+    uword val = Smi::Cast(value()->BoundConstant()).Value();
+    bool in_range = lower_ <= val && val <= upper_;
+    ASSERT((kind() == Token::kIS) || (kind() == Token::kISNOT));
+    return flow_graph->GetConstant(
+        Bool::Get(in_range == (kind() == Token::kIS)));
+  }
   return this;
 }
 
@@ -4875,6 +4900,48 @@ void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+LocationSummary* TestRangeInstr::MakeLocationSummary(Zone* zone,
+                                                     bool opt) const {
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
+    defined(TARGET_ARCH_ARM)
+  const bool needs_temp = true;
+#else
+  const bool needs_temp = false;
+#endif
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = needs_temp ? 1 : 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  if (needs_temp) {
+    locs->set_temp(0, Location::RequiresRegister());
+  }
+  locs->set_out(0, Location::RequiresRegister());
+  return locs;
+}
+
+Condition TestRangeInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                             BranchLabels labels) {
+  intptr_t lower = lower_;
+  intptr_t upper = upper_;
+  if (value_representation_ == kTagged) {
+    lower = Smi::RawValue(lower);
+    upper = Smi::RawValue(upper);
+  }
+
+  Register in = locs()->in(0).reg();
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
+    defined(TARGET_ARCH_ARM)
+  Register temp = locs()->temp(0).reg();
+#else
+  Register temp = TMP;
+#endif
+  __ AddImmediate(temp, in, -lower);
+  __ CompareImmediate(temp, upper - lower);
+  ASSERT((kind() == Token::kIS) || (kind() == Token::kISNOT));
+  return kind() == Token::kIS ? UNSIGNED_LESS_EQUAL : UNSIGNED_GREATER;
+}
+
 LocationSummary* InstanceCallInstr::MakeLocationSummary(Zone* zone,
                                                         bool optimizing) const {
   return MakeCallSummary(zone, this);
@@ -5098,7 +5165,7 @@ const BinaryFeedback& InstanceCallInstr::BinaryFeedback() {
 Representation DispatchTableCallInstr::RequiredInputRepresentation(
     intptr_t idx) const {
   if (idx == (InputCount() - 1)) {
-    return kUntagged;
+    return kUnboxedUword;  // Receiver's CID.
   }
 
   // The first input is the array of types
@@ -6212,6 +6279,12 @@ ComparisonInstr* TestCidsInstr::CopyWithNewOperands(Value* new_left,
                            deopt_id());
 }
 
+ComparisonInstr* TestRangeInstr::CopyWithNewOperands(Value* new_left,
+                                                     Value* new_right) {
+  return new TestRangeInstr(source(), new_left, lower_, upper_,
+                            value_representation_);
+}
+
 bool TestCidsInstr::AttributesEqual(const Instruction& other) const {
   auto const other_instr = other.AsTestCids();
   if (!ComparisonInstr::AttributesEqual(other)) {
@@ -6226,6 +6299,15 @@ bool TestCidsInstr::AttributesEqual(const Instruction& other) const {
     }
   }
   return true;
+}
+
+bool TestRangeInstr::AttributesEqual(const Instruction& other) const {
+  auto const other_instr = other.AsTestRange();
+  if (!ComparisonInstr::AttributesEqual(other)) {
+    return false;
+  }
+  return lower_ == other_instr->lower_ && upper_ == other_instr->upper_ &&
+         value_representation_ == other_instr->value_representation_;
 }
 
 bool IfThenElseInstr::Supports(ComparisonInstr* comparison,

@@ -1077,52 +1077,25 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
   }
 
   Definition* left = call->ArgumentAt(0);
+  LoadClassIdInstr* load_cid =
+      new (Z) LoadClassIdInstr(new (Z) Value(left), kUnboxedUword);
+  InsertBefore(call, load_cid, nullptr, FlowGraph::kValue);
 
-  // left.instanceof(type) =>
-  //     _classRangeCheck(left.cid, lower_limit, upper_limit)
-  LoadClassIdInstr* left_cid = new (Z) LoadClassIdInstr(new (Z) Value(left));
-  InsertBefore(call, left_cid, nullptr, FlowGraph::kValue);
-  ConstantInstr* lower_cid =
-      flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(lower_limit)));
-
+  ComparisonInstr* check_range;
   if (lower_limit == upper_limit) {
-    StrictCompareInstr* check_cid = new (Z)
-        StrictCompareInstr(call->source(), Token::kEQ_STRICT,
-                           new (Z) Value(left_cid), new (Z) Value(lower_cid),
-                           /* number_check = */ false, DeoptId::kNone);
-    ReplaceCall(call, check_cid);
-    return true;
+    ConstantInstr* cid_constant = flow_graph()->GetConstant(
+        Smi::Handle(Z, Smi::New(lower_limit)), kUnboxedUword);
+    check_range = new (Z) EqualityCompareInstr(
+        call->source(), Token::kEQ, new Value(load_cid),
+        new Value(cid_constant), kIntegerCid, DeoptId::kNone, false,
+        Instruction::kNotSpeculative);
+  } else {
+    check_range =
+        new (Z) TestRangeInstr(call->source(), new (Z) Value(load_cid),
+                               lower_limit, upper_limit, kUnboxedUword);
   }
+  ReplaceCall(call, check_range);
 
-  ConstantInstr* upper_cid =
-      flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(upper_limit)));
-
-  InputsArray args(Z, 3);
-  args.Add(new (Z) Value(left_cid));
-  args.Add(new (Z) Value(lower_cid));
-  args.Add(new (Z) Value(upper_cid));
-
-  const Library& dart_internal = Library::Handle(Z, Library::InternalLibrary());
-  const String& target_name = Symbols::_classRangeCheck();
-  const Function& target = Function::ZoneHandle(
-      Z, dart_internal.LookupFunctionAllowPrivate(target_name));
-  ASSERT(!target.IsNull());
-  ASSERT(target.IsRecognized());
-  ASSERT(FlowGraphInliner::FunctionHasPreferInlinePragma(target));
-
-  const intptr_t kTypeArgsLen = 0;
-  StaticCallInstr* new_call = new (Z) StaticCallInstr(
-      call->source(), target, kTypeArgsLen,
-      Object::null_array(),  // argument_names
-      std::move(args), call->deopt_id(), call->CallCount(), ICData::kOptimized);
-  Environment* copy =
-      call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
-  for (intptr_t i = 0; i < new_call->InputCount(); ++i) {
-    copy->PushValue(new (Z) Value(new_call->ArgumentAt(i)));
-  }
-  call->RemoveEnvironment();
-  ReplaceCall(call, new_call);
-  copy->DeepCopyTo(Z, new_call);
   return true;
 }
 
@@ -1189,8 +1162,8 @@ void AotCallSpecializer::TryReplaceWithDispatchTableCall(
 
   const bool receiver_can_be_smi =
       call->CanReceiverBeSmiBasedOnInterfaceTarget(zone());
-  auto load_cid = new (Z) LoadClassIdInstr(receiver->CopyWithType(Z), kUntagged,
-                                           receiver_can_be_smi);
+  auto load_cid = new (Z) LoadClassIdInstr(receiver->CopyWithType(Z),
+                                           kUnboxedUword, receiver_can_be_smi);
   InsertBefore(call, load_cid, call->env(), FlowGraph::kValue);
 
   auto dispatch_table_call = DispatchTableCallInstr::FromCall(

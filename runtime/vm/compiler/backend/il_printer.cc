@@ -803,6 +803,12 @@ void TestCidsInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   }
 }
 
+void TestRangeInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  left()->PrintTo(f);
+  f->Printf(" %s [%" Pd "-%" Pd "]", kind() == Token::kIS ? "in" : "not in",
+            lower_, upper_);
+}
+
 void EqualityCompareInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   left()->PrintTo(f);
   f->Printf(" %s ", Token::Str(kind()));
