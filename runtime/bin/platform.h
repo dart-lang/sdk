@@ -99,6 +99,7 @@ class Platform {
   static void SetProcessName(const char* name);
 
   DART_NORETURN static void Exit(int exit_code);
+  DART_NORETURN static void _Exit(int exit_code);
 
   static void SetCoreDumpResourceLimit(int value);
 
