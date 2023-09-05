@@ -1,4 +1,4 @@
-## 3.1.1
+## 3.1.1 - 2023-09-07
 
 This is a patch release that:
 
