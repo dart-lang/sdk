@@ -10,43 +10,13 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show StringToken;
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
-
-/// Given that we have just found bracketed text within the given [comment],
-/// looks to see whether that text is (a) followed by a parenthesized link
-/// address, (b) followed by a colon, or (c) followed by optional whitespace
-/// and another square bracket.
-///
-/// [rightIndex] is the index of the right bracket. Return `true` if the
-/// bracketed text is followed by a link address.
-///
-/// This method uses the syntax described by the
-/// <a href="http://daringfireball.net/projects/markdown/syntax">markdown</a>
-/// project.
-bool isLinkText(String comment, int rightIndex) {
-  var length = comment.length;
-  var index = rightIndex + 1;
-  if (index >= length) {
-    return false;
-  }
-  var ch = comment.codeUnitAt(index);
-  if (ch == 0x28 || ch == 0x3A) {
-    return true;
-  }
-  while (isWhitespace(ch)) {
-    index = index + 1;
-    if (index >= length) {
-      return false;
-    }
-    ch = comment.codeUnitAt(index);
-  }
-  return ch == 0x5B;
-}
 
 /// Given a comment reference without a closing `]`, search for a possible
 /// place where `]` should be.
@@ -76,35 +46,66 @@ int _findCommentReferenceEnd(String comment, int index, int end) {
   return index;
 }
 
+/// Given that we have just found bracketed text within the given [comment],
+/// looks to see whether that text is (a) followed by a parenthesized link
+/// address, (b) followed by a colon, or (c) followed by optional whitespace
+/// and another square bracket.
+///
+/// [rightIndex] is the index of the right bracket. Return `true` if the
+/// bracketed text is followed by a link address.
+///
+/// This method uses the syntax described by the
+/// <a href="http://daringfireball.net/projects/markdown/syntax">markdown</a>
+/// project.
+bool _isLinkText(String comment, int rightIndex) {
+  var length = comment.length;
+  var index = rightIndex + 1;
+  if (index >= length) {
+    return false;
+  }
+  var ch = comment.codeUnitAt(index);
+  if (ch == 0x28 || ch == 0x3A) {
+    return true;
+  }
+  while (isWhitespace(ch)) {
+    index = index + 1;
+    if (index >= length) {
+      return false;
+    }
+    ch = comment.codeUnitAt(index);
+  }
+  return ch == 0x5B;
+}
+
 /// A class which temporarily stores data for a [CommentType.DOCUMENTATION]-type
 /// [Comment], which is ultimately built with [build].
 class DocCommentBuilder {
-  final Parser parser;
+  final Parser _parser;
   final ErrorReporter? _errorReporter;
   final Uri _uri;
   final FeatureSet _featureSet;
   final LineInfo _lineInfo;
-  final List<CommentReferenceImpl> references = [];
-  final List<MdCodeBlock> codeBlocks = [];
-  final List<DocImport> docImports = [];
-  final List<DocDirective> docDirectives = [];
-  bool hasNodoc = false;
-  final Token startToken;
-  final _CharacterSequence characterSequence;
+  final List<CommentReferenceImpl> _references = [];
+  final List<MdCodeBlock> _codeBlocks = [];
+  final List<DocImport> _docImports = [];
+  final List<DocDirective> _docDirectives = [];
+  bool _hasNodoc = false;
+  final Token _startToken;
+  final _CharacterSequence _characterSequence;
 
   DocCommentBuilder(
-    this.parser,
+    this._parser,
     this._errorReporter,
     this._uri,
     this._featureSet,
     this._lineInfo,
-    this.startToken,
-  ) : characterSequence = _CharacterSequence(startToken);
+    this._startToken,
+  ) : _characterSequence = _CharacterSequence(_startToken);
 
   CommentImpl build() {
-    parseDocComment();
-    var tokens = [startToken];
-    Token? token = startToken;
+    _parseDocComment();
+    var tokens = [_startToken];
+    Token? token = _startToken;
     if (token.lexeme.startsWith('///')) {
       token = token.next;
       while (token != null) {
@@ -117,22 +118,44 @@ class DocCommentBuilder {
     return CommentImpl(
       tokens: tokens,
       type: CommentType.DOCUMENTATION,
-      references: references,
-      codeBlocks: codeBlocks,
-      docImports: docImports,
-      docDirectives: docDirectives,
-      hasNodoc: hasNodoc,
+      references: _references,
+      codeBlocks: _codeBlocks,
+      docImports: _docImports,
+      docDirectives: _docDirectives,
+      hasNodoc: _hasNodoc,
     );
   }
+
+  /// Determines if [content] can represent a fenced codeblock delimiter
+  /// (opening or closing) (starts with optional whitespace, then at least three
+  /// backticks).
+  ///
+  /// Returns the index of the three backticks.
+  int _fencedCodeBlockDelimiter(String content, {int minimumTickCount = 3}) {
+    if (content.isEmpty) return -1;
+    var index = _readWhitespace(content);
+
+    var length = content.length;
+    if (index + 3 > length) {
+      return -1;
+    }
+    if (content.substring(index, index + 3) == '`' * minimumTickCount) {
+      return index;
+    } else {
+      return -1;
+    }
+  }
+
+  bool _isRightCurlyBrace(int character) => character == 0x7D /* '}' */;
 
   /// Parses a documentation comment.
   ///
   /// All parsed data is added to the fields on this builder.
-  void parseDocComment() {
+  void _parseDocComment() {
     // Track whether the previous line is empty, in order to correctly parse an
     // indented code block.
     var isPreviousLineEmpty = true;
-    var lineInfo = characterSequence.next();
+    var lineInfo = _characterSequence.next();
     while (lineInfo != null) {
       var (:offset, :content) = lineInfo;
       var whitespaceEndIndex = _readWhitespace(content);
@@ -159,31 +182,9 @@ class DocCommentBuilder {
         _parseDocCommentLine(offset, content);
         isPreviousLineEmpty = content.isEmpty;
       }
-      lineInfo = characterSequence.next();
+      lineInfo = _characterSequence.next();
     }
   }
-
-  /// Determines if [content] can represent a fenced codeblock delimiter
-  /// (opening or closing) (starts with optional whitespace, then at least three
-  /// backticks).
-  ///
-  /// Returns the index of the three backticks.
-  int _fencedCodeBlockDelimiter(String content, {int minimumTickCount = 3}) {
-    if (content.isEmpty) return -1;
-    var index = _readWhitespace(content);
-
-    var length = content.length;
-    if (index + 3 > length) {
-      return -1;
-    }
-    if (content.substring(index, index + 3) == '`' * minimumTickCount) {
-      return index;
-    } else {
-      return -1;
-    }
-  }
-
-  bool _isRightCurlyBrace(int character) => character == 0x7D /* '}' */;
 
   /// Parses the comment references in [content] which starts at [offset].
   void _parseDocCommentLine(int offset, String content) {
@@ -207,7 +208,7 @@ class DocCommentBuilder {
             index = _findCommentReferenceEnd(content, referenceStart, end);
           }
           if (ch != 0x27 /* `'` */ && ch != 0x22 /* `"` */) {
-            if (isLinkText(content, index)) {
+            if (_isLinkText(content, index)) {
               // TODO(brianwilkerson) Handle the case where there's a library
               // URI in the link text.
             } else {
@@ -216,7 +217,7 @@ class DocCommentBuilder {
                 offset + referenceStart,
               );
               if (reference != null) {
-                references.add(reference);
+                _references.add(reference);
               }
             }
           }
@@ -236,7 +237,7 @@ class DocCommentBuilder {
     const openingLength = '{@'.length;
     if (!content.startsWith('{@', index)) return false;
 
-    var startOffset = characterSequence._offset + index;
+    var startOffset = _characterSequence._offset + index;
     index += openingLength;
 
     var length = content.length;
@@ -257,8 +258,8 @@ class DocCommentBuilder {
     if (name == 'youtube') {
       _parseYouTubeDirective(
         offset: startOffset,
-        nameOffset: characterSequence._offset + nameIndex,
-        nameEnd: characterSequence._offset + nameEnd,
+        nameOffset: _characterSequence._offset + nameIndex,
+        nameEnd: _characterSequence._offset + nameEnd,
         index: index,
         content: content,
       );
@@ -290,7 +291,7 @@ class DocCommentBuilder {
     var sourceMap = [
       (
         offsetInDocImport: 0,
-        offsetInUnit: characterSequence._offset + (index - importLength),
+        offsetInUnit: _characterSequence._offset + (index - importLength),
       )
     ];
 
@@ -325,8 +326,8 @@ class DocCommentBuilder {
     var directive = docImportListener.directives.first;
 
     if (directive is ImportDirectiveImpl) {
-      docImports.add(
-        DocImport(offset: characterSequence._offset, import: directive),
+      _docImports.add(
+        DocImport(offset: _characterSequence._offset, import: directive),
       );
       return true;
     }
@@ -361,12 +362,12 @@ class DocCommentBuilder {
         index == length ? null : _InfoString.parse(content.substring(index));
     var fencedCodeBlockLines = <MdCodeBlockLine>[
       MdCodeBlockLine(
-        offset: characterSequence._offset,
+        offset: _characterSequence._offset,
         length: content.length,
       ),
     ];
 
-    var lineInfo = characterSequence.next();
+    var lineInfo = _characterSequence.next();
     while (lineInfo != null) {
       var (:offset, :content) = lineInfo;
       fencedCodeBlockLines.add(
@@ -378,10 +379,10 @@ class DocCommentBuilder {
         // End the fenced code block.
         break;
       }
-      lineInfo = characterSequence.next();
+      lineInfo = _characterSequence.next();
     }
 
-    codeBlocks.add(
+    _codeBlocks.add(
       MdCodeBlock(infoString: infoString, lines: fencedCodeBlockLines),
     );
     return true;
@@ -390,12 +391,12 @@ class DocCommentBuilder {
   ({int offset, String content})? _parseIndentedCodeBlock(String content) {
     var codeBlockLines = <MdCodeBlockLine>[
       MdCodeBlockLine(
-        offset: characterSequence._offset,
+        offset: _characterSequence._offset,
         length: content.length,
       ),
     ];
 
-    var lineInfo = characterSequence.next();
+    var lineInfo = _characterSequence.next();
     while (lineInfo != null) {
       var (:offset, :content) = lineInfo;
       var whitespaceEndIndex = _readWhitespace(content);
@@ -405,17 +406,17 @@ class DocCommentBuilder {
         );
       } else {
         // End the code block.
-        codeBlocks.add(
+        _codeBlocks.add(
           MdCodeBlock(infoString: null, lines: codeBlockLines),
         );
         return lineInfo;
       }
 
-      lineInfo = characterSequence.next();
+      lineInfo = _characterSequence.next();
     }
 
     // The indented code block ends the comment.
-    codeBlocks.add(
+    _codeBlocks.add(
       MdCodeBlock(infoString: null, lines: codeBlockLines),
     );
     return lineInfo;
@@ -430,7 +431,7 @@ class DocCommentBuilder {
     }
     if (content.length == index + nodocLength ||
         content.codeUnitAt(index + nodocLength) == 0x20 /* ' ' */) {
-      hasNodoc = true;
+      _hasNodoc = true;
       return true;
     }
     return false;
@@ -467,7 +468,7 @@ class DocCommentBuilder {
         // Treat `new` after `.` is as an identifier so that it can represent an
         // unnamed constructor. This support is separate from the
         // constructor-tearoffs feature.
-        parser.rewriter.replaceTokenFollowing(
+        _parser.rewriter.replaceTokenFollowing(
             secondPeriod,
             StringToken(TokenType.IDENTIFIER, identifier.lexeme,
                 identifier.charOffset));
@@ -476,8 +477,8 @@ class DocCommentBuilder {
     }
     if (token.isEof) {
       // Recovery: Insert a synthetic identifier for code completion
-      token = parser.rewriter.insertSyntheticIdentifier(
-          secondPeriod ?? newKeyword ?? parser.syntheticPreviousToken(token));
+      token = _parser.rewriter.insertSyntheticIdentifier(
+          secondPeriod ?? newKeyword ?? _parser.syntheticPreviousToken(token));
       if (begin == token.next!) {
         begin = token;
       }
@@ -612,7 +613,7 @@ class DocCommentBuilder {
     required String content,
     required int index,
   }) {
-    var contentOffset = characterSequence._offset;
+    var contentOffset = _characterSequence._offset;
     var length = content.length;
 
     int? end;
@@ -667,7 +668,7 @@ class DocCommentBuilder {
       index++;
       end = offset + index;
     }
-    docDirectives.add(YouTubeDocDirective(
+    _docDirectives.add(YouTubeDocDirective(
       offset: offset,
       end: end!,
       nameOffset: nameOffset,

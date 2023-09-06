@@ -6066,19 +6066,19 @@ class WarningCode extends AnalyzerErrorCode {
 
   static const WarningCode DOC_YOUTUBE_DIRECTIVE_MISSING_HEIGHT = WarningCode(
     'DOC_YOUTUBE_DIRECTIVE_MISSING_HEIGHT',
-    "YouTube doc directive is missing a height argument.",
+    "YouTube directive is missing a height argument.",
     correctionMessage: "Try adding a height argument after the width.",
   );
 
   static const WarningCode DOC_YOUTUBE_DIRECTIVE_MISSING_URL = WarningCode(
     'DOC_YOUTUBE_DIRECTIVE_MISSING_URL',
-    "YouTube doc directive is missing a URL argument.",
+    "YouTube directive is missing a URL argument.",
     correctionMessage: "Try adding a URL after the width and height.",
   );
 
   static const WarningCode DOC_YOUTUBE_DIRECTIVE_MISSING_WIDTH = WarningCode(
     'DOC_YOUTUBE_DIRECTIVE_MISSING_WIDTH',
-    "YouTube doc directive is missing a width argument.",
+    "YouTube directive is missing a width argument.",
     correctionMessage: "Try adding a width argument after '@youtube'.",
   );
 
