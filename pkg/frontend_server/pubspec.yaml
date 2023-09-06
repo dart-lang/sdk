@@ -12,6 +12,7 @@ dependencies:
   args: any
   build_integration: any
   compiler: any
+  dart2wasm: any
   dev_compiler: any
   front_end: any
   kernel: any
