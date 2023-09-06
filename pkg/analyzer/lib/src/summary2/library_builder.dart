@@ -1100,7 +1100,9 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement> {
       }
 
       var isPotentiallyPromotable = addField(classInfo, field.name,
-          isFinal: field.isFinal, isAbstract: field.isAbstract);
+          isFinal: field.isFinal,
+          isAbstract: field.isAbstract,
+          isExternal: field.isExternal);
       if (isPotentiallyPromotable) {
         _potentiallyPromotableFields.add(field);
       }

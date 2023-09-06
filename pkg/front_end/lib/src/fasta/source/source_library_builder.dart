@@ -1630,8 +1630,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         if (member.isStatic) continue;
         if (member is SourceFieldBuilder) {
           if (member.isSynthesized) continue;
+          // Note: external fields have already been de-sugared into getters, so
+          // we can just pass `false` for `isExternal`.
           fieldPromotability.addField(classInfo, member.name,
-              isFinal: member.isFinal, isAbstract: member.isAbstract);
+              isFinal: member.isFinal,
+              isAbstract: member.isAbstract,
+              isExternal: false);
         } else if (member is SourceProcedureBuilder && member.isGetter) {
           if (member.isSynthetic) continue;
           fieldPromotability.addGetter(classInfo, member.name,
