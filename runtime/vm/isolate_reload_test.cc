@@ -6193,7 +6193,6 @@ TEST_CASE(IsolateReload_EnumInMainLibraryModified) {
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
-  Dart_SetFileModifiedCallback(nullptr);
 
   // Modification of an imported library propagates to the importing library.
   EXPECT_STREQ("foo", SimpleInvokeStr(lib, "main"));
