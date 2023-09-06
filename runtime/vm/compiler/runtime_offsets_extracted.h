@@ -670,7 +670,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x1c;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0x58;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x50;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x1c;
@@ -1390,7 +1390,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x60;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x30;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0xa8;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x98;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x38;
@@ -2099,7 +2099,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x1c;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0x58;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x50;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x1c;
@@ -2821,7 +2821,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x60;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x30;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0xa8;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x98;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x38;
@@ -3537,7 +3537,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x38;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x20;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0x70;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x68;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x20;
@@ -4255,7 +4255,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x38;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x20;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0x70;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x68;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x20;
@@ -4966,7 +4966,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x1c;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0x58;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x50;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x1c;
@@ -5687,7 +5687,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x60;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x30;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0xa8;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x98;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x38;
@@ -6389,7 +6389,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x1c;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0x58;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x50;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x1c;
@@ -7101,7 +7101,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x60;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x30;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0xa8;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x98;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x38;
@@ -7802,7 +7802,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x1c;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0x58;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x50;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x1c;
@@ -8516,7 +8516,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x60;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x30;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0xa8;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x98;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x38;
@@ -9224,7 +9224,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x38;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x20;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0x70;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x68;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x20;
@@ -9934,7 +9934,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x38;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x20;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0x70;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x68;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x20;
@@ -10637,7 +10637,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x1c;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0x58;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x50;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x1c;
@@ -11350,7 +11350,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x60;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x30;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0xa8;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x98;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x38;
@@ -12125,7 +12125,7 @@ static constexpr dart::compiler::target::word
     AOT_KernelProgramInfo_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     0x1c;
-static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x50;
+static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x48;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     0x14;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
@@ -12916,7 +12916,7 @@ static constexpr dart::compiler::target::word
     AOT_KernelProgramInfo_InstanceSize = 0x60;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     0x30;
-static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x98;
+static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x88;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     0x28;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
@@ -13716,7 +13716,7 @@ static constexpr dart::compiler::target::word
     AOT_KernelProgramInfo_InstanceSize = 0x60;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     0x30;
-static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x98;
+static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x88;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     0x28;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
@@ -14510,7 +14510,7 @@ static constexpr dart::compiler::target::word
     AOT_KernelProgramInfo_InstanceSize = 0x38;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     0x20;
-static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x60;
+static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x58;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
@@ -15306,7 +15306,7 @@ static constexpr dart::compiler::target::word
     AOT_KernelProgramInfo_InstanceSize = 0x38;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     0x20;
-static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x60;
+static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x58;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
@@ -16099,7 +16099,7 @@ static constexpr dart::compiler::target::word
     AOT_KernelProgramInfo_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     0x1c;
-static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x50;
+static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x48;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     0x14;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
@@ -16891,7 +16891,7 @@ static constexpr dart::compiler::target::word
     AOT_KernelProgramInfo_InstanceSize = 0x60;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     0x30;
-static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x98;
+static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x88;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     0x28;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
@@ -17674,7 +17674,7 @@ static constexpr dart::compiler::target::word
     AOT_KernelProgramInfo_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     0x1c;
-static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x50;
+static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x48;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     0x14;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
@@ -18456,7 +18456,7 @@ static constexpr dart::compiler::target::word
     AOT_KernelProgramInfo_InstanceSize = 0x60;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     0x30;
-static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x98;
+static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x88;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     0x28;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
@@ -19247,7 +19247,7 @@ static constexpr dart::compiler::target::word
     AOT_KernelProgramInfo_InstanceSize = 0x60;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     0x30;
-static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x98;
+static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x88;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     0x28;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
@@ -20032,7 +20032,7 @@ static constexpr dart::compiler::target::word
     AOT_KernelProgramInfo_InstanceSize = 0x38;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     0x20;
-static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x60;
+static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x58;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
@@ -20819,7 +20819,7 @@ static constexpr dart::compiler::target::word
     AOT_KernelProgramInfo_InstanceSize = 0x38;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     0x20;
-static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x60;
+static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x58;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
@@ -21603,7 +21603,7 @@ static constexpr dart::compiler::target::word
     AOT_KernelProgramInfo_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     0x1c;
-static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x50;
+static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x48;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     0x14;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
@@ -22386,7 +22386,7 @@ static constexpr dart::compiler::target::word
     AOT_KernelProgramInfo_InstanceSize = 0x60;
 static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
     0x30;
-static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x98;
+static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 0x88;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     0x28;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =

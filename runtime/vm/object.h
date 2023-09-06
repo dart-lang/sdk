@@ -5389,21 +5389,6 @@ class Library : public Object {
   ArrayPtr dictionary() const { return untag()->dictionary(); }
   void InitClassDictionary() const;
 
-  ArrayPtr resolved_names() const { return untag()->resolved_names(); }
-  bool LookupResolvedNamesCache(const String& name, Object* obj) const;
-  void AddToResolvedNamesCache(const String& name, const Object& obj) const;
-  void InitResolvedNamesCache() const;
-  void ClearResolvedNamesCache() const;
-  void InvalidateResolvedName(const String& name) const;
-  void InvalidateResolvedNamesCache() const;
-
-  ArrayPtr exported_names() const { return untag()->exported_names(); }
-  bool LookupExportedNamesCache(const String& name, Object* obj) const;
-  void AddToExportedNamesCache(const String& name, const Object& obj) const;
-  void InitExportedNamesCache() const;
-  void ClearExportedNamesCache() const;
-  static void InvalidateExportedNamesCaches();
-
   void InitImportList() const;
   void RehashDictionary(const Array& old_dict, intptr_t new_dict_size) const;
   static LibraryPtr NewLibraryHelper(const String& url, bool import_core_lib);
