@@ -1,3 +1,14 @@
+## 3.1.2
+
+This is a patch release that:
+
+- Fixes a bug in dart2js which crashed the compiler when a typed record pattern
+  was used outside the scope of a function body, such as in a field initializer.
+  For example `final x = { for (var (int a,) in someList) a: a };`
+  (issue [#53358])
+
+[#53358]: https://github.com/dart-lang/sdk/issues/53358
+
 ## 3.1.1 - 2023-09-07
 
 This is a patch release that:
@@ -8504,4 +8515,4 @@ documentation on the [Dart API site](http://api.dart.dev).
     compression.
 
 - `dart:isolate`: `Isolate.spawnUri` added the optional `packageRoot` argument,
-  which controls how it resolves `package:` URIs.
+which controls how it resolves `package:` URIs.

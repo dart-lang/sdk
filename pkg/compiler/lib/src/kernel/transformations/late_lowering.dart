@@ -187,11 +187,11 @@ class LateLowering {
     _backingInstanceFields.clear();
   }
 
-  void enterFunction() {
+  void enterScope() {
     _variableCells.add(null);
   }
 
-  void exitFunction() {
+  void exitScope() {
     _variableCells.removeLast();
   }
 

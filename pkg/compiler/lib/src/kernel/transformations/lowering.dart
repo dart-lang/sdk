@@ -59,10 +59,10 @@ class _Lowering extends Transformer {
 
   @override
   TreeNode visitFunctionNode(FunctionNode node) {
-    _lateLowering.enterFunction();
+    _lateLowering.enterScope();
     _asyncLowering?.enterFunction(node);
     node.transformChildren(this);
-    _lateLowering.exitFunction();
+    _lateLowering.exitScope();
     _asyncLowering?.transformFunctionNodeAndExit(node);
     return node;
   }
@@ -88,8 +88,30 @@ class _Lowering extends Transformer {
   @override
   TreeNode visitField(Field node) {
     _currentMember = node;
+    // Field initializers can contain late variable reads via record
+    // destructuring. The following patten can result in the CFE using a late
+    // local outside the scope of a function:
+    // Object? foo = { for (final (String x,) in records) x: x };
+    _lateLowering.enterScope();
     node.transformChildren(this);
+    _lateLowering.exitScope();
     return _lateLowering.transformField(node, _currentMember!);
+  }
+
+  @override
+  TreeNode visitConstructor(Constructor node) {
+    // Constructor initializers can contain late variable reads via record
+    // destructuring. Any of these patterns can result in the CFE using a
+    // late local outside the scope of a function:
+    // Foo() : super({ for (final (String x,) in records) x: x });
+    // Foo() : foo = { for (final (String x,) in records) x: x };
+    //
+    // We share the scope between the various initializers since variables
+    // cannot leak between them.
+    _lateLowering.enterScope();
+    super.visitConstructor(node);
+    _lateLowering.exitScope();
+    return node;
   }
 
   @override
