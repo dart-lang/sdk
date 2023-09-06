@@ -25,3 +25,6 @@ The features are listed roughly in dependency order.
 - [ ] Resolution
 - [ ] Constant evaluation
 - [ ] Index and search
+- [ ] Warnings (annotation-based, unused\*, strict-mode-based, a few others)
+- [ ] ExitDetector
+- [ ] NodeLintRegistry
