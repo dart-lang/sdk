@@ -4327,11 +4327,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   bool _reifyGenericFunction(Member? m) =>
       m == null ||
-      // JS interop members should not pass type arguments.
-      !isJsMember(m) &&
-          !(m.enclosingLibrary.importUri.isScheme('dart') &&
-              m.annotations.any((a) =>
-                  isBuiltinAnnotation(a, '_js_helper', 'NoReifyGeneric')));
+      !m.enclosingLibrary.importUri.isScheme('dart') ||
+      !m.annotations
+          .any((a) => isBuiltinAnnotation(a, '_js_helper', 'NoReifyGeneric'));
 
   js_ast.Statement _nullParameterCheck(js_ast.Expression param) {
     var call = runtimeCall('argumentError((#))', [param]);
