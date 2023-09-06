@@ -379,10 +379,11 @@ class _HttpHeaders implements HttpHeaders {
         throw HttpException("Content-Length must contain only digits");
       }
     } else if (value is String) {
-      if (!_digitsValidator.hasMatch(value)) {
+      final trimmedValue = value.trim();
+      if (!_digitsValidator.hasMatch(trimmedValue)) {
         throw HttpException("Content-Length must contain only digits");
       }
-      value = int.parse(value);
+      value = int.parse(trimmedValue);
     } else {
       throw HttpException("Unexpected type for header named $name");
     }
