@@ -1,0 +1,9 @@
+import 'issue41597_lib.dart';
+bool x;
+bool x;
+class C {
+  C.c0() : super();
+  C.c1() : super()!;
+}
+errors() {}
+main() {}

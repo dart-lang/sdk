@@ -1,0 +1,4 @@
+class C {
+  operator unary- ()=> 0;
+}
+main() {}

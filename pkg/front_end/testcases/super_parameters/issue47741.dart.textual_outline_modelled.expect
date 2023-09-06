@@ -1,0 +1,8 @@
+class A {
+  A(int foo<T>(int a));
+}
+class B extends A {
+  B.sub1(double super.bar1<T1>(int a1),);
+  B.sub2(double super.bar2<T2>(int a2),);
+}
+main() {}

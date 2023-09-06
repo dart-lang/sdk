@@ -1,0 +1,5 @@
+class A {}
+---- unknown chunk starts ----
+extension type E on A {}
+---- unknown chunk ends ----
+main() {}

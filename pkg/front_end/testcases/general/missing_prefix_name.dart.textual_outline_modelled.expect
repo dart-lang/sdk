@@ -1,0 +1,2 @@
+import "missing_prefix_name.dart" as;
+main() {}

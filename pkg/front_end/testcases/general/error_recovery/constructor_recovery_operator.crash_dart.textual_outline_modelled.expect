@@ -1,0 +1,16 @@
+class Foo {
+  Foo(){}
+  Foo() {}
+  operator/ (): super() {}
+  ---- unknown chunk starts ----
+.
+---- unknown chunk ends ----
+  foo(){}
+  foo() {}
+  operator/ (): super() {}
+  operator/ (): super() {}
+  ---- unknown chunk starts ----
+.
+---- unknown chunk ends ----
+  operator/ (): super() {}
+}

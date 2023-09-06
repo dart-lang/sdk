@@ -138,9 +138,7 @@ class SuiteFolderOptions {
       Map<String, String> environment) {
     Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{
       // Force enable features in development.
-      ExperimentalFlag.records: true,
-      ExperimentalFlag.patterns: true,
-      ExperimentalFlag.sealedClass: true,
+      ExperimentalFlag.inlineClass: true,
     };
 
     void addForcedExperimentalFlag(String name, ExperimentalFlag flag) {

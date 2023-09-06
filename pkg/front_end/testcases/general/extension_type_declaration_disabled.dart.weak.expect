@@ -2,15 +2,21 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/extension_type_declaration_disabled.dart:7:11: Error: This requires the experimental 'inline-class' language feature to be enabled.
-// Try passing the '--enable-experiment=inline-class' command line option.
+// pkg/front_end/testcases/general/extension_type_declaration_disabled.dart:7:11: Error: The 'inline-class' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 3.2 or higher.
 // extension type ExtensionType1(int it) {}
 //           ^^^^
+// pkg/front_end/testcases/general/extension_type_declaration_disabled.dart:5:1: Context: This is the annotation that opts out this library from the 'inline-class' language feature.
+// // @dart=2.18
+// ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/extension_type_declaration_disabled.dart:8:11: Error: This requires the experimental 'inline-class' language feature to be enabled.
-// Try passing the '--enable-experiment=inline-class' command line option.
+// pkg/front_end/testcases/general/extension_type_declaration_disabled.dart:8:11: Error: The 'inline-class' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 3.2 or higher.
 // extension type ExtensionType2<T>._(int it) implements int, ExtensionType1 {}
 //           ^^^^
+// pkg/front_end/testcases/general/extension_type_declaration_disabled.dart:5:1: Context: This is the annotation that opts out this library from the 'inline-class' language feature.
+// // @dart=2.18
+// ^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

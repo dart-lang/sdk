@@ -1,0 +1,33 @@
+abstract class A {
+  A(this.initializedField1) : this.initializedField2 = 0;
+  abstract external covariant num externalCovariantInstanceField2;
+  abstract external final int externalFinalInstanceField2;
+  abstract external int externalInstanceField2;
+  abstract int fieldWithInitializer = 0;
+  abstract int initializedField1;
+  abstract int initializedField2;
+  abstract late int lateInstanceField;
+  abstract static final int finalStaticField;
+  abstract static int staticField;
+  external abstract covariant num externalCovariantInstanceField1;
+  external abstract final int externalFinalInstanceField1;
+  external abstract int externalInstanceField1;
+  external abstract late int externalLateInstanceField;
+}
+abstract const int constField = 0;
+abstract final int finalTopLevelField = 0;
+abstract int topLevelField;
+extension Extension on A {
+  abstract final int finalExtensionInstanceField;
+  abstract int extensionInstanceField;
+  abstract static final int finalExtensionStaticField = 0;
+  abstract static int extensionStaticField = 0;
+}
+main() {}
+mixin B {
+  abstract static final int finalStaticField;
+  abstract static int staticField;
+  external abstract covariant num externalCovariantInstanceField;
+  external abstract final int externalFinalInstanceField;
+  external abstract int externalInstanceField;
+}

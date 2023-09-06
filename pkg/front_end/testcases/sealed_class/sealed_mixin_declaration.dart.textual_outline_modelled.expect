@@ -1,0 +1,5 @@
+sealed mixin class A {}
+---- unknown chunk starts ----
+sealed
+---- unknown chunk ends ----
+mixin B {}

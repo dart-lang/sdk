@@ -1,0 +1,5 @@
+class Operators7 {
+  Toperator>(a) => true;
+  operator <<(){}
+}
+main() {}
