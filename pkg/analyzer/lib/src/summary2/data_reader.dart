@@ -195,7 +195,6 @@ class _StringTable {
   int _byteOffset;
 
   late final Uint32List _offsets;
-  late final Uint32List _lengths;
   late final List<String?> _strings;
 
   /// The structure of the table:
@@ -211,14 +210,13 @@ class _StringTable {
     var offset = startOffset - _readUInt30();
     var length = _readUInt30();
 
-    _offsets = Uint32List(length);
-    _lengths = Uint32List(length);
+    _offsets = Uint32List(length + 1);
     for (var i = 0; i < length; i++) {
       var stringLength = _readUInt30();
       _offsets[i] = offset;
-      _lengths[i] = stringLength;
       offset += stringLength;
     }
+    _offsets[length] = offset;
 
     _strings = List.filled(length, null, growable: false);
   }
@@ -227,7 +225,10 @@ class _StringTable {
     var result = _strings[index];
 
     if (result == null) {
-      result = _readStringEntry(_offsets[index], _lengths[index]);
+      int start = _offsets[index];
+      int end = _offsets[index + 1];
+      int length = end - start;
+      result = _readStringEntry(_offsets[index], length);
       result = considerCanonicalizeString(result);
       _strings[index] = result;
     }
