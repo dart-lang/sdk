@@ -34,6 +34,7 @@ extension IterableExtensions<T> on Iterable<T> {
   ///
   /// The elements are `(0, this.first)` through
   /// `(this.length - 1, this.last)`, in index/iteration order.
+  @pragma('vm:prefer-inline')
   Iterable<(int, T)> get indexed => IndexedIterable<T>(this, 0);
 
   /// The first element of this iterator, or `null` if the iterable is empty.

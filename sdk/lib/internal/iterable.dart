@@ -934,8 +934,9 @@ class IndexedIterable<T> extends Iterable<(int, T)> {
   /// efficiently.
   final int _start;
 
+  @pragma('vm:prefer-inline')
   factory IndexedIterable(Iterable<T> source, int start) {
-    if (source is EfficientLengthIterable<T>) {
+    if (source is EfficientLengthIterable) {
       return EfficientLengthIndexedIterable(source, start);
     }
     return IndexedIterable._(source, start);
@@ -971,6 +972,7 @@ class IndexedIterable<T> extends Iterable<(int, T)> {
   Iterable<(int, T)> skip(int count) => IndexedIterable<T>.nonEfficientLength(
       _source.skip(_checkCount(count)), count + _start);
 
+  @pragma('vm:prefer-inline')
   Iterator<(int, T)> get iterator =>
       IndexedIterator<T>(_source.iterator, _start);
 }
