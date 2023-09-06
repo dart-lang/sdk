@@ -271,14 +271,14 @@ void matchIL$testNarrowingThroughThisCallWithPositionalParam(
     'B2' <<
         match.block('Target', [
           'this_cid' << match.LoadClassId('this'),
-          match.Branch(match.StrictCompare('this_cid', match.any, kind: '==='),
+          match.Branch(match.EqualityCompare('this_cid', match.any, kind: '=='),
               ifTrue: 'B3'),
         ]),
     'B3' <<
         match.block('Target', [
-          match.Redefinition('this'),
           // This redefinition was inserted by inlining.
           'h_' << match.Redefinition('h'),
+          match.Redefinition('this'),
           'v0' << match.LoadField('h_', slot: 'data'),
           'v1' << match.LoadField('v0', slot: 'str'),
           'v2' << match.LoadField('v1', slot: 'String.length'),
@@ -302,7 +302,7 @@ void matchIL$testNarrowingThroughThisCallWithPositionalParam(
         ]),
     'B2' <<
         match.block('Target', [
-          match.Branch(match.StrictCompare('this_cid', match.any, kind: '==='),
+          match.Branch(match.EqualityCompare('this_cid', match.any, kind: '=='),
               ifTrue: 'B3'),
         ]),
     'B3' <<
@@ -340,7 +340,7 @@ void matchIL$testNarrowingThroughIsCheckOnSubclass(
     'B2' <<
         match.block('Target', [
           'b_cid' << match.LoadClassId('b'),
-          match.Branch(match.StrictCompare('b_cid', match.any, kind: '==='),
+          match.Branch(match.EqualityCompare('b_cid', match.any, kind: '=='),
               ifTrue: 'B3'),
         ]),
     'B3' <<
@@ -369,7 +369,7 @@ void matchIL$testNarrowingThroughIsCheckOnSubclass(
         ]),
     'B2' <<
         match.block('Target', [
-          match.Branch(match.StrictCompare('b_cid', match.any, kind: '==='),
+          match.Branch(match.EqualityCompare('b_cid', match.any, kind: '=='),
               ifTrue: 'B3'),
         ]),
     'B3' <<
