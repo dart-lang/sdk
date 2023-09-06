@@ -6046,6 +6046,12 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const WarningCode DOC_DIRECTIVE_MISSING_CLOSING_BRACE = WarningCode(
+    'DOC_DIRECTIVE_MISSING_CLOSING_BRACE',
+    "Doc directive is missing a closing curly brace ('}').",
+    correctionMessage: "Try closing the directive with a curly brace.",
+  );
+
   static const WarningCode DOC_IMPORT_CANNOT_BE_DEFERRED = WarningCode(
     'DOC_IMPORT_CANNOT_BE_DEFERRED',
     "Doc imports can't be deferred.",
@@ -6056,6 +6062,24 @@ class WarningCode extends AnalyzerErrorCode {
     'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
     "Doc imports can't have configurations.",
     correctionMessage: "Try removing the configurations.",
+  );
+
+  static const WarningCode DOC_YOUTUBE_DIRECTIVE_MISSING_HEIGHT = WarningCode(
+    'DOC_YOUTUBE_DIRECTIVE_MISSING_HEIGHT',
+    "YouTube doc directive is missing a height argument.",
+    correctionMessage: "Try adding a height argument after the width.",
+  );
+
+  static const WarningCode DOC_YOUTUBE_DIRECTIVE_MISSING_URL = WarningCode(
+    'DOC_YOUTUBE_DIRECTIVE_MISSING_URL',
+    "YouTube doc directive is missing a URL argument.",
+    correctionMessage: "Try adding a URL after the width and height.",
+  );
+
+  static const WarningCode DOC_YOUTUBE_DIRECTIVE_MISSING_WIDTH = WarningCode(
+    'DOC_YOUTUBE_DIRECTIVE_MISSING_WIDTH',
+    "YouTube doc directive is missing a width argument.",
+    correctionMessage: "Try adding a width argument after '@youtube'.",
   );
 
   ///  Duplicate exports.

@@ -28,7 +28,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/annotation_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
-import 'package:analyzer/src/error/doc_import_verifier.dart';
+import 'package:analyzer/src/error/doc_comment_verifier.dart';
 import 'package:analyzer/src/error/error_handler_verifier.dart';
 import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/error/null_safe_api_verifier.dart';
@@ -79,8 +79,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   final NullSafeApiVerifier _nullSafeApiVerifier;
 
-  late final DocImportVerifier _docImportVerifier =
-      DocImportVerifier(_errorReporter);
+  late final DocCommentVerifier _docCommentVerifier =
+      DocCommentVerifier(_errorReporter);
 
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
   final WorkspacePackage? _workspacePackage;
@@ -246,7 +246,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitComment(Comment node) {
     for (var docImport in node.docImports) {
-      _docImportVerifier.docImport(docImport);
+      _docCommentVerifier.docImport(docImport);
+    }
+    for (var docDirective in node.docDirectives) {
+      _docCommentVerifier.docDirective(docDirective);
     }
     super.visitComment(node);
   }

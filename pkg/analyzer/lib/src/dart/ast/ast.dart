@@ -3224,6 +3224,9 @@ abstract final class Comment implements AstNode {
   List<MdCodeBlock> get codeBlocks;
 
   @experimental
+  List<DocDirective> get docDirectives;
+
+  @experimental
   List<DocImport> get docImports;
 
   /// Whether this comment has a line beginning with '@nodoc', indicating its
@@ -3283,6 +3286,9 @@ final class CommentImpl extends AstNodeImpl implements Comment {
   final List<DocImport> docImports;
 
   @override
+  final List<DocDirective> docDirectives;
+
+  @override
   final bool hasNodoc;
 
   /// Initialize a newly created comment. The list of [tokens] must contain at
@@ -3295,6 +3301,7 @@ final class CommentImpl extends AstNodeImpl implements Comment {
     required List<CommentReferenceImpl> references,
     required this.codeBlocks,
     required this.docImports,
+    required this.docDirectives,
     required this.hasNodoc,
   }) : _type = type {
     _references._initialize(this, references);
@@ -5321,6 +5328,27 @@ sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   set element(Element? element) {
     _element = element;
   }
+}
+
+/// A documentation directive, found in a doc comment.
+///
+/// Documentation directives are declared with `{@` at the start of a line of a
+/// documentation comment, followed the name of a doc directive, arguments, and
+/// finally a right curly brace (`}`).
+@experimental
+sealed class DocDirective {
+  /// The offset of the starting text, '@docImport'.
+  final int offset;
+  final int end;
+  final int nameOffset;
+  final int nameEnd;
+
+  DocDirective({
+    required this.offset,
+    required this.end,
+    required this.nameOffset,
+    required this.nameEnd,
+  });
 }
 
 /// A documentation import, found in a doc comment.
@@ -19462,6 +19490,35 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
   }
+}
+
+/// A [DocDirective] declaring an embedded YouTube video.
+///
+/// This directive has three required arguments: the width, the height, and the
+/// URL. For example:
+///
+/// `{@youtube 600 400 https://www.youtube.com/watch?v=abc123}`
+@experimental
+final class YouTubeDocDirective extends DocDirective {
+  final int? widthOffset;
+  final int? widthEnd;
+  final int? heightOffset;
+  final int? heightEnd;
+  final int? urlOffset;
+  final int? urlEnd;
+
+  YouTubeDocDirective({
+    required super.offset,
+    required super.end,
+    required super.nameOffset,
+    required super.nameEnd,
+    required this.widthOffset,
+    required this.widthEnd,
+    required this.heightOffset,
+    required this.heightEnd,
+    required this.urlOffset,
+    required this.urlEnd,
+  });
 }
 
 /// An indication of the resolved kind of a [SetOrMapLiteral].

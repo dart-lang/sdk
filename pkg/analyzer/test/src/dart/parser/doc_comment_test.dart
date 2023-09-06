@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -1282,6 +1283,122 @@ Comment
   tokens
     /// [a link split across multiple
     /// lines][c] [b].
+''');
+  }
+
+  test_youTubeDirective() {
+    final parseResult = parseStringWithErrors(r'''
+int x = 0;
+
+/// Text.
+/// {@youtube 600 400 http://google.com}
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('youtube');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@youtube 600 400 http://google.com}
+  docDirectives
+    YouTubeDocDirective
+      offset: [26, 63]
+      name: [28, 35]
+      width: [36, 39]
+      height: [40, 43]
+      url: [44, 61]
+''');
+  }
+
+  test_youTubeDirective_missingEndBrace() {
+    final parseResult = parseStringWithErrors(r'''
+/// {@youtube 600 400 http://google.com
+class A {}
+''');
+    parseResult.assertErrors([
+      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE, 35, 1),
+    ]);
+
+    final node = parseResult.findNode.comment('youtube');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// {@youtube 600 400 http://google.com
+  docDirectives
+    YouTubeDocDirective
+      offset: [4, 40]
+      name: [6, 13]
+      width: [14, 17]
+      height: [18, 21]
+      url: [22, 39]
+''');
+  }
+
+  test_youTubeDirective_missingUrl() {
+    final parseResult = parseStringWithErrors(r'''
+/// {@youtube 600 400}
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('youtube');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// {@youtube 600 400}
+  docDirectives
+    YouTubeDocDirective
+      offset: [4, 23]
+      name: [6, 13]
+      width: [14, 17]
+      height: [18, 21]
+      url: [null, null]
+''');
+  }
+
+  test_youTubeDirective_missingUrlAndHeight() {
+    final parseResult = parseStringWithErrors(r'''
+/// {@youtube 600}
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('youtube');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// {@youtube 600}
+  docDirectives
+    YouTubeDocDirective
+      offset: [4, 19]
+      name: [6, 13]
+      width: [14, 17]
+      height: [null, null]
+      url: [null, null]
+''');
+  }
+
+  test_youTubeDirective_missingUrlAndHeightAndWidth() {
+    final parseResult = parseStringWithErrors(r'''
+/// {@youtube }
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('youtube');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// {@youtube }
+  docDirectives
+    YouTubeDocDirective
+      offset: [4, 16]
+      name: [6, 13]
+      width: [null, null]
+      height: [null, null]
+      url: [null, null]
 ''');
   }
 }

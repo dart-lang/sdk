@@ -171,6 +171,12 @@ import 'doc_import_cannot_be_deferred_test.dart'
     as doc_import_cannot_be_deferred;
 import 'doc_import_cannot_have_configurations_test.dart'
     as doc_import_cannot_have_configurations;
+import 'doc_youtube_directive_missing_height_test.dart'
+    as doc_youtube_directive_missing_height;
+import 'doc_youtube_directive_missing_url_test.dart'
+    as doc_youtube_directive_missing_url;
+import 'doc_youtube_directive_missing_width_test.dart'
+    as doc_youtube_directive_missing_width;
 import 'duplicate_augmentation_import_test.dart'
     as duplicate_augmentation_import;
 import 'duplicate_constructor_default_test.dart'
@@ -1018,6 +1024,9 @@ main() {
     division_optimization.main();
     doc_import_cannot_be_deferred.main();
     doc_import_cannot_have_configurations.main();
+    doc_youtube_directive_missing_height.main();
+    doc_youtube_directive_missing_url.main();
+    doc_youtube_directive_missing_width.main();
     duplicate_augmentation_import.main();
     duplicate_constructor_default.main();
     duplicate_constructor_name.main();
