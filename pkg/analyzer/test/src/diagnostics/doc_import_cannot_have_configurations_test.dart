@@ -20,7 +20,7 @@ class DocImportCannotHaveConfigurationsTest extends PubPackageResolutionTest {
 /// @docImport 'dart:math' if (dart.library.html) 'dart:html';
 class C {}
 ''', [
-      error(WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS, 27, 61),
+      error(WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS, 27, 34),
     ]);
   }
 

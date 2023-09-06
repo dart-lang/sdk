@@ -1820,7 +1820,7 @@ Fragment FlowGraphBuilder::BuildTypedDataMemMove(const Function& function,
   call_native += LoadLocal(arg_from);
   call_native += LoadLocal(arg_from_start);
   call_native += StaticCall(TokenPosition::kNoSource, native_set_range, 5,
-                            ICData::kStatic);
+                            ICData::kNoRebind);
   call_native += Drop();
   call_native += Goto(done);
 

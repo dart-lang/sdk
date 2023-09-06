@@ -3458,10 +3458,18 @@ WarningCode.DEPRECATED_MIXIN_FUNCTION:
     The fix is to remove `Function` from where it's referenced.
 WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
   status: hasFix
+WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE:
+  status: needsEvaluation
 WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED:
   status: needsFix
 WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
   status: needsFix
+WarningCode.DOC_YOUTUBE_DIRECTIVE_MISSING_HEIGHT:
+  status: needsEvaluation
+WarningCode.DOC_YOUTUBE_DIRECTIVE_MISSING_URL:
+  status: needsEvaluation
+WarningCode.DOC_YOUTUBE_DIRECTIVE_MISSING_WIDTH:
+  status: needsEvaluation
 WarningCode.DUPLICATE_EXPORT:
   status: needsFix
   notes: |-

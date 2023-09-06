@@ -269,6 +269,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
           }
         });
       }
+      if (node.docDirectives.isNotEmpty) {
+        _sink.writelnWithIndent('docDirectives');
+        _sink.withIndent(() {
+          for (var docDirective in node.docDirectives) {
+            _writeDocDirective(docDirective);
+          }
+        });
+      }
       if (node.hasNodoc) {
         _sink.writelnWithIndent('hasNodoc: true');
       }
@@ -1695,6 +1703,25 @@ Expected parent: (${parent.runtimeType}) $parent
           });
         }
       }
+    }
+  }
+
+  void _writeDocDirective(DocDirective docDirective) {
+    switch (docDirective) {
+      case YouTubeDocDirective():
+        _sink.writelnWithIndent('YouTubeDocDirective');
+        _sink.withIndent(() {
+          _sink.writelnWithIndent(
+              'offset: [${docDirective.offset}, ${docDirective.end}]');
+          _sink.writelnWithIndent(
+              'name: [${docDirective.nameOffset}, ${docDirective.nameEnd}]');
+          _sink.writelnWithIndent(
+              'width: [${docDirective.widthOffset}, ${docDirective.widthEnd}]');
+          _sink.writelnWithIndent(
+              'height: [${docDirective.heightOffset}, ${docDirective.heightEnd}]');
+          _sink.writelnWithIndent(
+              'url: [${docDirective.urlOffset}, ${docDirective.urlEnd}]');
+        });
     }
   }
 

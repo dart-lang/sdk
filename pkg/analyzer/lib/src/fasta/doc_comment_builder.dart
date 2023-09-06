@@ -14,6 +14,7 @@ import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 
 /// Given that we have just found bracketed text within the given [comment],
@@ -86,6 +87,7 @@ class DocCommentBuilder {
   final List<CommentReferenceImpl> references = [];
   final List<MdCodeBlock> codeBlocks = [];
   final List<DocImport> docImports = [];
+  final List<DocDirective> docDirectives = [];
   bool hasNodoc = false;
   final Token startToken;
   final _CharacterSequence characterSequence;
@@ -118,6 +120,7 @@ class DocCommentBuilder {
       references: references,
       codeBlocks: codeBlocks,
       docImports: docImports,
+      docDirectives: docDirectives,
       hasNodoc: hasNodoc,
     );
   }
@@ -142,6 +145,11 @@ class DocCommentBuilder {
       }
 
       if (_parseFencedCodeBlock(content: content)) {
+        isPreviousLineEmpty = false;
+      } else if (_parseDocDirective(
+        index: whitespaceEndIndex,
+        content: content,
+      )) {
         isPreviousLineEmpty = false;
       } else if (_parseDocImport(index: whitespaceEndIndex, content: content)) {
         isPreviousLineEmpty = false;
@@ -174,6 +182,8 @@ class DocCommentBuilder {
       return -1;
     }
   }
+
+  bool _isRightCurlyBrace(int character) => character == 0x7D /* '}' */;
 
   /// Parses the comment references in [content] which starts at [offset].
   void _parseDocCommentLine(int offset, String content) {
@@ -220,6 +230,45 @@ class DocCommentBuilder {
       }
       ++index;
     }
+  }
+
+  bool _parseDocDirective({required int index, required String content}) {
+    const openingLength = '{@'.length;
+    if (!content.startsWith('{@', index)) return false;
+
+    var startOffset = characterSequence._offset + index;
+    index += openingLength;
+
+    var length = content.length;
+    if (index >= length) return false;
+    var nameIndex = index;
+    do {
+      var character = content.codeUnitAt(index);
+      if (isWhitespace(character) || _isRightCurlyBrace(character)) {
+        break;
+      }
+      index++;
+    } while (index < length);
+
+    var nameEnd = index;
+    index = _readWhitespace(content, index);
+
+    var name = content.substring(nameIndex, nameEnd);
+    if (name == 'youtube') {
+      _parseYouTubeDirective(
+        offset: startOffset,
+        nameOffset: characterSequence._offset + nameIndex,
+        nameEnd: characterSequence._offset + nameEnd,
+        index: index,
+        content: content,
+      );
+      return true;
+    }
+    // TODO(srawlins): Handle other doc directives: animation, api?,
+    // canonicalFor?, category, example, image, macro, samples?, subCategory.
+    // TODO(srawlins): Handle block doc directives: inject-html, template.
+    // TODO(srawlins): Handle unknown (misspelled?) directive.
+    return false;
   }
 
   /// Tries to parse a doc import at the beginning of a line of a doc comment,
@@ -552,6 +601,101 @@ class DocCommentBuilder {
         expression: identifier,
       );
     }
+  }
+
+  /// Parses a YouTube doc directive, returning whether one was successfully
+  /// parsed.
+  void _parseYouTubeDirective({
+    required int offset,
+    required int nameOffset,
+    required int nameEnd,
+    required String content,
+    required int index,
+  }) {
+    var contentOffset = characterSequence._offset;
+    var length = content.length;
+
+    int? end;
+    if (index == length) {
+      end = offset + index;
+    }
+
+    (int?, int?) parseArgument() {
+      int? argumentOffset;
+      int? argumentEnd;
+      if (end == null) {
+        if (_isRightCurlyBrace(content.codeUnitAt(index))) {
+          index++;
+          end = offset + index;
+        } else {
+          argumentOffset = contentOffset + index;
+          index = _readDirectiveArgument(content, index);
+          argumentEnd = contentOffset + index;
+          index = _readWhitespace(content, index);
+        }
+      }
+      if (end == null && index == length) {
+        // We've hit EOL without closing brace.
+        end = offset + index;
+        _errorReporter?.reportErrorForOffset(
+          WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
+          index - 1,
+          1,
+        );
+      }
+      return (argumentOffset, argumentEnd);
+    }
+
+    var (widthOffset, widthEnd) = parseArgument();
+    var (heightOffset, heightEnd) = parseArgument();
+    var (urlOffset, urlEnd) = parseArgument();
+    if (end == null) {
+      // Read until the closing delimiter, `}` is found.
+      if (index >= length) {
+        // Reached EOL without finding a `}`.
+        end = offset + length;
+      }
+      while (!_isRightCurlyBrace(content.codeUnitAt(index))) {
+        index++;
+        if (index >= length) {
+          // Reached EOL without finding a `}`.
+          // TODO(srawlins): Minimal recovery and error-reporting for extra
+          // arguments.
+          return;
+        }
+      }
+      index++;
+      end = offset + index;
+    }
+    docDirectives.add(YouTubeDocDirective(
+      offset: offset,
+      end: end!,
+      nameOffset: nameOffset,
+      nameEnd: nameEnd,
+      widthOffset: widthOffset,
+      widthEnd: widthEnd,
+      heightOffset: heightOffset,
+      heightEnd: heightEnd,
+      urlOffset: urlOffset,
+      urlEnd: urlEnd,
+    ));
+  }
+
+  /// Reads past any directive argument text in [content], returning the index
+  /// after the last character.
+  ///
+  /// A directive argument is a sequence of non-whitespace,
+  /// non-right-curly-brace characters.
+  int _readDirectiveArgument(String content, int index) {
+    var length = content.length;
+    //if (index >= length) return index;
+    while (index < length) {
+      var character = content.codeUnitAt(index);
+      if (isWhitespace(character)) return index;
+      if (_isRightCurlyBrace(character)) return index;
+      index++;
+    }
+    return index;
   }
 
   /// Reads past any opening whitespace in [content], returning the index after

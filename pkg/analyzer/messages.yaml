@@ -22130,6 +22130,21 @@ WarningCode:
     problemMessage: "Doc imports can't have configurations."
     correctionMessage: Try removing the configurations.
     hasPublishedDocs: false
+  DOC_DIRECTIVE_MISSING_CLOSING_BRACE:
+    problemMessage: "Doc directive is missing a closing curly brace ('}')."
+    correctionMessage: "Try closing the directive with a curly brace."
+    hasPublishedDocs: false
+  DOC_YOUTUBE_DIRECTIVE_MISSING_HEIGHT:
+    problemMessage: YouTube doc directive is missing a height argument.
+    correctionMessage: Try adding a height argument after the width.
+  DOC_YOUTUBE_DIRECTIVE_MISSING_URL:
+    problemMessage: YouTube doc directive is missing a URL argument.
+    correctionMessage: Try adding a URL after the width and height.
+    hasPublishedDocs: false
+  DOC_YOUTUBE_DIRECTIVE_MISSING_WIDTH:
+    problemMessage: YouTube doc directive is missing a width argument.
+    correctionMessage: "Try adding a width argument after '@youtube'."
+    hasPublishedDocs: false
   DUPLICATE_EXPORT:
     problemMessage: Duplicate export.
     correctionMessage: Try removing all but one export of the library.
