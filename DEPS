@@ -160,6 +160,7 @@ vars = {
   "logging_rev": "bcaad0f781a889d6e5cf8fc564fd0722c446b96e",
   "markdown_rev": "6cfd6f17651a8ba31b5a268f1139bb2c039dd4d4",
   "matcher_rev": "80910d6698576ba486ace6e5fdf0e27324f138db",
+  "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "37ef637c35896e289fdd37c0ea4680df4ab9f543",
   "mockito_rev": "412c0beb51a12ed4a8833db7f542558ab92c0c65",
   "native_rev": "a2dfedc35960711eb24cb04dcb906793d2222295",
@@ -419,6 +420,12 @@ deps = {
       Var("dart_git") + "markdown.git" + "@" + Var("markdown_rev"),
   Var("dart_root") + "/third_party/pkg/matcher":
       Var("dart_git") + "matcher.git" + "@" + Var("matcher_rev"),
+  Var("dart_root") + "/third_party/pkg/material_color_utilities": {
+    "url": Var("dart_git") +
+           "external/github.com/material-foundation/material-color-utilities.git" +
+           "@" + Var("material_color_utilities_rev"),
+    "condition": "checkout_flute",
+  },
   Var("dart_root") + "/third_party/pkg/mime":
       Var("dart_git") + "mime.git" + "@" + Var("mime_rev"),
   Var("dart_root") + "/third_party/pkg/mockito":
