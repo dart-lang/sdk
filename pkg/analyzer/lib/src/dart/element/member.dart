@@ -71,7 +71,32 @@ class ConstructorMember extends ExecutableMember
 
   @override
   ConstructorElement? get redirectedConstructor {
-    var element = this.declaration.redirectedConstructor;
+    var element = declaration.redirectedConstructor;
+    return _from2(element);
+  }
+
+  @override
+  InterfaceType get returnType => type.returnType as InterfaceType;
+
+  @override
+  Source get source => _declaration.source!;
+
+  @override
+  ConstructorElement? get superConstructor {
+    var element = declaration.superConstructor;
+    return _from2(element);
+  }
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) =>
+      visitor.visitConstructorElement(this);
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeConstructorElement(this);
+  }
+
+  ConstructorMember? _from2(ConstructorElement? element) {
     if (element == null) {
       return null;
     }
@@ -93,21 +118,6 @@ class ConstructorMember extends ExecutableMember
     }
 
     return ConstructorMember(_typeProvider, declaration, substitution, false);
-  }
-
-  @override
-  InterfaceType get returnType => type.returnType as InterfaceType;
-
-  @override
-  Source get source => _declaration.source!;
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitConstructorElement(this);
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeConstructorElement(this);
   }
 
   /// If the given [constructor]'s type is different when any type parameters

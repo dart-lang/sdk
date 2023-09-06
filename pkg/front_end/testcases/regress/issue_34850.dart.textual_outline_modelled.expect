@@ -1,0 +1,8 @@
+---- unknown chunk starts ----
+<
+---- unknown chunk ends ----
+Future<List<>> f3() async {}
+f2() async => null;
+foo< int >f1() {}
+foo Future<List<int>> (){}
+main() async {}

@@ -691,6 +691,18 @@ void ConstantPropagator::VisitTestCids(TestCidsInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitTestRange(TestRangeInstr* instr) {
+  const Object& input = instr->value()->definition()->constant_value();
+  if (IsNonConstant(input)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(input) && input.IsSmi()) {
+    uword value = Smi::Cast(input).Value();
+    bool in_range = (instr->lower() <= value) && (value <= instr->upper());
+    ASSERT((instr->kind() == Token::kIS) || (instr->kind() == Token::kISNOT));
+    SetValue(instr, Bool::Get(in_range == (instr->kind() == Token::kIS)));
+  }
+}
+
 void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
   Definition* left_defn = instr->left()->definition();
   Definition* right_defn = instr->right()->definition();

@@ -1,0 +1,36 @@
+// @dart = 2.16
+part "duplicated_declarations_part.dart";
+import 'duplicated_declarations_lib.dart' as Typedef;
+import 'duplicated_declarations_lib.dart' as Typedef;
+typedef Typedef = Object Function();
+typedef Typedef = void Function();
+import 'duplicated_declarations_lib.dart' as Typedef;
+class C {
+  C(a);
+  C(a, b);
+  m() {}
+  m() {}
+  static f() => s;
+  static s() {}
+  static s() {}
+  var field = "1st";
+  var field = "2nd";
+}
+class C {
+  C._();
+}
+class Sub extends C {
+  Sub() : super(null);
+  m() => super.m();
+}
+enum AnotherEnum { a, b, c, _name, index, toString, values, }
+enum Enum { Enum, a, a, b, }
+enum Enum { a, b, c, }
+foo() {}
+main() {}
+main() {}
+typedef Object OldTypedef();
+typedef void OldTypedef();
+useAnotherEnum() {}
+var field = "1st";
+var field = "2nd";

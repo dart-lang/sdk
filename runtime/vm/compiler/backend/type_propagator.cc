@@ -1377,6 +1377,10 @@ CompileType TestCidsInstr::ComputeType() const {
   return CompileType::Bool();
 }
 
+CompileType TestRangeInstr::ComputeType() const {
+  return CompileType::Bool();
+}
+
 CompileType EqualityCompareInstr::ComputeType() const {
   // Used for numeric comparisons only.
   return CompileType::Bool();

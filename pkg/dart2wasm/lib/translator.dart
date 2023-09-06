@@ -852,7 +852,7 @@ class Translator with KernelNodes {
     if (member.isInstanceMember) {
       return dispatchTable.selectorForTarget(target).signature;
     } else {
-      return functions.getFunction(target).type;
+      return functions.getFunctionType(target);
     }
   }
 

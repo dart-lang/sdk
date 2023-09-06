@@ -41,6 +41,37 @@ class B extends A {
     ]);
   }
 
+  test_class_redirectConst_superConst() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  factory A() = A._;
+  const A._();
+}
+
+class B extends A {
+  const B.foo() : this.bar();
+  const B.bar() : super._();
+}
+''');
+  }
+
+  test_class_redirectConst_superNotConst() async {
+    await assertErrorsInCode(r'''
+class A {
+  factory A() = A._;
+  A._();
+}
+
+class B extends A {
+  const B.foo() : this.bar();
+  const B.bar() : super._();
+}
+''', [
+      error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, 111, 9),
+    ]);
+  }
+
   test_enum() async {
     await assertNoErrorsInCode(r'''
 enum E {

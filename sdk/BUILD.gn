@@ -261,6 +261,8 @@ copy_trees("copy_trees") {
   sources = copy_tree_specs
 }
 
+_has_dot_sym = !is_win && rebase_path(".") == rebase_path("//sdk")
+
 # Copies the Dart VM binary into bin/
 if (target_os != current_os && target_os == "fuchsia") {
   # In the Fuchsia build, this has to use a symlink for two reasons.
@@ -298,6 +300,9 @@ if (target_os != current_os && target_os == "fuchsia") {
     if (is_win && dart_lib_export_symbols) {
       sources += [ "$dart_out/dart.lib" ]
     }
+    if (_has_dot_sym) {
+      sources += [ "$dart_out/dart.sym" ]
+    }
     outputs = [ "$root_out_dir/$dart_sdk_output/bin/{{source_file_part}}" ]
   }
 }
@@ -315,8 +320,15 @@ copy("copy_dartaotruntime") {
   ]
 }
 
-copy("copy_gen_snapshot") {
+group("copy_gen_snapshot") {
   visibility = [ ":group_dart2native" ]
+  public_deps = [ ":copy_gen_snapshot_exe" ]
+  if (_has_dot_sym) {
+    public_deps += [ ":copy_gen_snapshot_sym" ]
+  }
+}
+
+copy("copy_gen_snapshot_exe") {
   deps = [ "../runtime/bin:gen_snapshot_product" ]
   src_dir =
       get_label_info("../runtime/bin:gen_snapshot_product", "root_out_dir")
@@ -324,6 +336,14 @@ copy("copy_gen_snapshot") {
   outputs = [
     "$root_out_dir/$dart_sdk_output/bin/utils/gen_snapshot${executable_suffix}",
   ]
+}
+
+if (_has_dot_sym) {
+  copy("copy_gen_snapshot_sym") {
+    deps = [ "../runtime/bin:gen_snapshot_product" ]
+    sources = [ "$root_out_dir/gen_snapshot_product.sym" ]
+    outputs = [ "$root_out_dir/$dart_sdk_output/bin/utils/gen_snapshot${executable_suffix}.sym" ]
+  }
 }
 
 copy("copy_vm_platform_strong_product") {

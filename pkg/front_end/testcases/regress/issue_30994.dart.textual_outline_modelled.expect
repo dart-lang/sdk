@@ -1,0 +1,9 @@
+library lib;
+part '$foo';
+part '$foo/bar';
+part '$for/bar';
+part '${true}';
+part 'the${1}thing';
+part 'part_$foo${'a'}.dart';
+part 'part_${'a'}_$foo.dart';
+main() {}

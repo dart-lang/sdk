@@ -67,6 +67,7 @@ js/static_interop_test/external_static_member_lowerings_test: SkipByDesign # Iss
 js/static_interop_test/external_static_member_lowerings_trusttypes_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/external_static_member_lowerings_with_namespaces_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/trust_types_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/type_parameter_lowering_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 
 [ $simulator ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.

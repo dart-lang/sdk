@@ -31,6 +31,13 @@ main() {
     check(f.isPossiblyPromotable).isFalse();
   });
 
+  test('external private final field is not promotable', () {
+    var f = Field('_f', isFinal: true, isExternal: true);
+    var c = Class(fields: [f]);
+    check(_TestFieldPromotability().run([c])).unorderedEquals({'_f'});
+    check(f.isPossiblyPromotable).isFalse();
+  });
+
   group('concrete getter renders a private field non-promotable:', () {
     test('in a concrete class', () {
       var c = Class(fields: [Field('_f', isFinal: true)]);
@@ -154,9 +161,11 @@ class Field {
   final String name;
   final bool isFinal;
   final bool isAbstract;
+  final bool isExternal;
   late final bool isPossiblyPromotable;
 
-  Field(this.name, {this.isFinal = false, this.isAbstract = false});
+  Field(this.name,
+      {this.isFinal = false, this.isAbstract = false, this.isExternal = false});
 }
 
 class Getter {
@@ -184,7 +193,9 @@ class _TestFieldPromotability extends FieldPromotability<Class> {
       var classInfo = addClass(class_, isAbstract: class_.isAbstract);
       for (var field in class_.fields) {
         field.isPossiblyPromotable = addField(classInfo, field.name,
-            isFinal: field.isFinal, isAbstract: field.isAbstract);
+            isFinal: field.isFinal,
+            isAbstract: field.isAbstract,
+            isExternal: field.isExternal);
       }
       for (var getter in class_.getters) {
         addGetter(classInfo, getter.name, isAbstract: getter.isAbstract);

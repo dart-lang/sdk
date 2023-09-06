@@ -35,6 +35,8 @@ class MappedMemory {
   intptr_t size() const { return size_; }
   uword start() const { return reinterpret_cast<uword>(address()); }
 
+  void Leak() { should_unmap_ = false; }
+
  private:
   void Unmap();
 

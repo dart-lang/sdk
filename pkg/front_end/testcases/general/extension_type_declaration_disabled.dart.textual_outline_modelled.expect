@@ -1,0 +1,4 @@
+// @dart = 2.18
+---- unknown chunk starts ----
+extension type ExtensionType1(int it) {} extension type ExtensionType2<T>._(int it) implements int, ExtensionType1 {}
+---- unknown chunk ends ----

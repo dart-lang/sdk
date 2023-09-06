@@ -1,0 +1,12 @@
+class A {}
+class B {}
+class Bar extend A, B {
+  Bar() {}
+}
+class Baz on A, B {
+  Baz() {}
+}
+class Foo extends A, B {
+  Foo() {}
+}
+main() {}

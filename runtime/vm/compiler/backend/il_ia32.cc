@@ -632,7 +632,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
-  if (operation_cid() == kSmiCid) {
+  if (operation_cid() == kSmiCid || operation_cid() == kIntegerCid) {
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -732,6 +732,33 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     true_condition = FlipCondition(true_condition);
   } else if (right.IsConstant()) {
     __ CompareObject(left.reg(), right.constant());
+  } else if (right.IsStackSlot()) {
+    __ cmpl(left.reg(), LocationToStackSlotAddress(right));
+  } else {
+    __ cmpl(left.reg(), right.reg());
+  }
+  return true_condition;
+}
+
+static Condition EmitWordComparisonOp(FlowGraphCompiler* compiler,
+                                      const LocationSummary& locs,
+                                      Token::Kind kind,
+                                      BranchLabels labels) {
+  Location left = locs.in(0);
+  Location right = locs.in(1);
+  ASSERT(!left.IsConstant() || !right.IsConstant());
+
+  Condition true_condition = TokenKindToIntCondition(kind);
+
+  if (left.IsConstant()) {
+    __ CompareImmediate(
+        right.reg(),
+        static_cast<uword>(Integer::Cast(left.constant()).AsInt64Value()));
+    true_condition = FlipCondition(true_condition);
+  } else if (right.IsConstant()) {
+    __ CompareImmediate(
+        left.reg(),
+        static_cast<uword>(Integer::Cast(right.constant()).AsInt64Value()));
   } else if (right.IsStackSlot()) {
     __ cmpl(left.reg(), LocationToStackSlotAddress(right));
   } else {
@@ -851,6 +878,8 @@ Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     return EmitSmiComparisonOp(compiler, *locs(), kind(), labels);
   } else if (operation_cid() == kMintCid) {
     return EmitUnboxedMintEqualityOp(compiler, *locs(), kind(), labels);
+  } else if (operation_cid() == kIntegerCid) {
+    return EmitWordComparisonOp(compiler, *locs(), kind(), labels);
   } else {
     ASSERT(operation_cid() == kDoubleCid);
     return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);

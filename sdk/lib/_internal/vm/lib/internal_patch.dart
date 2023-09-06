@@ -105,14 +105,6 @@ class VMLibraryHooks {
 @pragma('vm:prefer-inline')
 external bool get has63BitSmis;
 
-@pragma("vm:recognized", "other")
-@pragma("vm:entry-point", "call")
-@pragma("vm:exact-result-type", bool)
-@pragma("vm:prefer-inline")
-bool _classRangeCheck(int cid, int lowerLimit, int upperLimit) {
-  return cid >= lowerLimit && cid <= upperLimit;
-}
-
 // Utility class now only used by the VM.
 class Lists {
   @pragma("vm:prefer-inline")

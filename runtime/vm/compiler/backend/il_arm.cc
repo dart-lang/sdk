@@ -1061,7 +1061,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
-  if (operation_cid() == kSmiCid) {
+  if (operation_cid() == kSmiCid || operation_cid() == kIntegerCid) {
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -1154,6 +1154,30 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     true_condition = FlipCondition(true_condition);
   } else if (right.IsConstant()) {
     __ CompareObject(left.reg(), right.constant());
+  } else {
+    __ cmp(left.reg(), compiler::Operand(right.reg()));
+  }
+  return true_condition;
+}
+
+static Condition EmitWordComparisonOp(FlowGraphCompiler* compiler,
+                                      LocationSummary* locs,
+                                      Token::Kind kind) {
+  Location left = locs->in(0);
+  Location right = locs->in(1);
+  ASSERT(!left.IsConstant() || !right.IsConstant());
+
+  Condition true_condition = TokenKindToIntCondition(kind);
+
+  if (left.IsConstant()) {
+    __ CompareImmediate(
+        right.reg(),
+        static_cast<uword>(Integer::Cast(left.constant()).AsInt64Value()));
+    true_condition = FlipCondition(true_condition);
+  } else if (right.IsConstant()) {
+    __ CompareImmediate(
+        left.reg(),
+        static_cast<uword>(Integer::Cast(right.constant()).AsInt64Value()));
   } else {
     __ cmp(left.reg(), compiler::Operand(right.reg()));
   }
@@ -1359,6 +1383,8 @@ Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   }
   if (operation_cid() == kSmiCid) {
     return EmitSmiComparisonOp(compiler, locs(), kind());
+  } else if (operation_cid() == kIntegerCid) {
+    return EmitWordComparisonOp(compiler, locs(), kind());
   } else if (operation_cid() == kMintCid) {
     return EmitUnboxedMintEqualityOp(compiler, locs(), kind());
   } else {

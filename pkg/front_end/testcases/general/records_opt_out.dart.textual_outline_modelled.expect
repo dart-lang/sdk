@@ -1,0 +1,7 @@
+// @dart = 2.18
+(int, String) method1(int a, String b) => (a, b);
+({int a, String b}) method4(int a, String b) => (a: a, b: b);
+String method3([(int, String) record = const (0, '')]) => record.$2;
+String method6([({int a, String b}) record = const (a: 0, b: '')]) => record.b;
+int method2([(int, String) record = const (0, '')]) => record.$1;
+int method5([({int a, String b}) record = const (a: 0, b: '')]) => record.a;

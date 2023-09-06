@@ -1,0 +1,10 @@
+// @dart = 2.13
+abstract class Bar implements List<List<List<String>>> {}
+class Foo {
+  Foo operator >>>(_) => this;
+}
+extension on Symbol {
+  String call(_) => "Called";
+  String operator >(_) => "Greater Than used";
+}
+main() {}

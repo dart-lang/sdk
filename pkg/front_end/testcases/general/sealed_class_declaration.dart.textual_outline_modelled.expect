@@ -1,0 +1,4 @@
+// @dart = 2.18
+mixin M {}
+sealed class A {}
+sealed class B = Object with M;

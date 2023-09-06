@@ -129,13 +129,16 @@ abstract class FieldPromotability<Class extends Object> {
   /// instance field with the given [name].
   ///
   /// [isFinal] indicates whether the field is a final field. [isAbstract]
-  /// indicates whether the field is abstract.
+  /// indicates whether the field is abstract. [isExternal] indicates whether
+  /// the field is external.
   ///
   /// A return value of `true` indicates that this field *might* wind up being
   /// promotable; a return value of `false` indicates that it *definitely* isn't
   /// promotable.
   bool addField(ClassInfo<Class> classInfo, String name,
-      {required bool isFinal, required bool isAbstract}) {
+      {required bool isFinal,
+      required bool isAbstract,
+      required bool isExternal}) {
     // Public fields are never promotable, so we may safely ignore fields with
     // public names.
     if (!name.startsWith('_')) {
@@ -149,14 +152,16 @@ abstract class FieldPromotability<Class extends Object> {
       classInfo._implementedNode._directNames.add(name);
     }
 
-    if (!isFinal) {
-      // The field isn't final, so it isn't promotable, nor is any other field
-      // in the library with the same name.
+    if (isExternal || !isFinal) {
+      // The field isn't promotable, nor is any other field in the library with
+      // the same name.
       _unpromotableFieldNames.add(name);
+      return false;
     }
 
-    // If the field is final, it might wind up being promotable.
-    return isFinal;
+    // The field is final and not external, so it might wind up being
+    // promotable.
+    return true;
   }
 
   /// Records that the [Class] described by [classInfo] contains a non-synthetic

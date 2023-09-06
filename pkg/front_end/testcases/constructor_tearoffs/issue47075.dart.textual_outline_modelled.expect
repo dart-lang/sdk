@@ -1,0 +1,5 @@
+class C {
+  int new = 42;
+}
+main() {}
+test() {}

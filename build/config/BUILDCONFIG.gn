@@ -264,11 +264,10 @@ if (is_win) {
   ]
 }
 if (is_posix) {
-  _native_compiler_configs += [ "//build/config/gcc:relative_paths" ]
-  if (is_product) {
-    _native_compiler_configs +=
-        [ "//build/config/gcc:symbol_visibility_hidden" ]
-  }
+  _native_compiler_configs += [
+    "//build/config/gcc:relative_paths",
+    "//build/config/gcc:symbol_visibility_hidden",
+  ]
 }
 if (is_fuchsia) {
   _native_compiler_configs += [

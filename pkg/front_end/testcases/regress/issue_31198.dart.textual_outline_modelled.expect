@@ -1,0 +1,8 @@
+abstract class A {}
+bad() {}
+class B extends A {
+  B(): super().foo() {}
+  B.named1(): super().super() {}
+  B.named2(): super().() {}
+}
+main() {}

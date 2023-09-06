@@ -1,0 +1,125 @@
+class Class {
+  final int? duplicateInstanceFieldAndSetter1 = null;
+  final int? duplicateInstanceFieldAndSetter2 = null;
+  final int? duplicateInstanceFieldAndStaticSetter1 = null;
+  final int? duplicateInstanceFieldAndStaticSetter2 = null;
+  int? duplicateInstanceFieldAndSetter1;
+  int? duplicateInstanceFieldAndSetter2;
+  int? duplicateInstanceFieldAndStaticSetter1;
+  int? duplicateInstanceFieldAndStaticSetter2;
+  int? instanceFieldAndDuplicateSetter;
+  int? instanceFieldAndSetter;
+  int? instanceFieldAndStaticDuplicateSetter;
+  int? instanceFieldAndStaticSetter;
+  late final int? instanceLateFinalFieldAndDuplicateSetter;
+  late final int? instanceLateFinalFieldAndSetter;
+  static final int? duplicateStaticFieldAndInstanceSetter1 = null;
+  static final int? duplicateStaticFieldAndInstanceSetter2 = null;
+  static final int? duplicateStaticFieldAndSetter1 = null;
+  static final int? duplicateStaticFieldAndSetter2 = null;
+  static int? duplicateStaticFieldAndInstanceSetter1;
+  static int? duplicateStaticFieldAndInstanceSetter2;
+  static int? duplicateStaticFieldAndSetter1;
+  static int? duplicateStaticFieldAndSetter2;
+  static int? staticFieldAndDuplicateSetter;
+  static int? staticFieldAndInstanceDuplicateSetter;
+  static int? staticFieldAndInstanceSetter;
+  static int? staticFieldAndSetter;
+  static late final int? staticLateFinalFieldAndDuplicateSetter;
+  static late final int? staticLateFinalFieldAndSetter;
+  static void set duplicateInstanceFieldAndStaticSetter1(int? value) {}
+  static void set duplicateInstanceFieldAndStaticSetter2(int? value) {}
+  static void set duplicateStaticFieldAndSetter1(int? value) {}
+  static void set duplicateStaticFieldAndSetter2(int? value) {}
+  static void set instanceFieldAndStaticDuplicateSetter(int? value) {}
+  static void set instanceFieldAndStaticDuplicateSetter(int? value) {}
+  static void set instanceFieldAndStaticSetter(int? value) {}
+  static void set staticFieldAndDuplicateSetter(int? value) {}
+  static void set staticFieldAndDuplicateSetter(int? value) {}
+  static void set staticFieldAndSetter(int? value) {}
+  static void set staticLateFinalFieldAndDuplicateSetter(int? value) {}
+  static void set staticLateFinalFieldAndDuplicateSetter(int? value) {}
+  static void set staticLateFinalFieldAndSetter(int? value) {}
+  void set duplicateInstanceFieldAndSetter1(int? value) {}
+  void set duplicateInstanceFieldAndSetter2(int? value) {}
+  void set duplicateStaticFieldAndInstanceSetter1(int? value) {}
+  void set duplicateStaticFieldAndInstanceSetter2(int? value) {}
+  void set instanceFieldAndDuplicateSetter(int? value) {}
+  void set instanceFieldAndDuplicateSetter(int? value) {}
+  void set instanceFieldAndSetter(int? value) {}
+  void set instanceLateFinalFieldAndDuplicateSetter(int? value) {}
+  void set instanceLateFinalFieldAndDuplicateSetter(int? value) {}
+  void set instanceLateFinalFieldAndSetter(int? value) {}
+  void set staticFieldAndInstanceDuplicateSetter(int? value) {}
+  void set staticFieldAndInstanceDuplicateSetter(int? value) {}
+  void set staticFieldAndInstanceSetter(int? value) {}
+}
+extension Extension on int? {
+  final int? duplicateExtensionInstanceFieldAndSetter1 = null;
+  final int? duplicateExtensionInstanceFieldAndSetter2 = null;
+  final int? duplicateExtensionInstanceFieldAndStaticSetter1 = null;
+  final int? duplicateExtensionInstanceFieldAndStaticSetter2 = null;
+  int? duplicateExtensionInstanceFieldAndSetter1;
+  int? duplicateExtensionInstanceFieldAndSetter2;
+  int? duplicateExtensionInstanceFieldAndStaticSetter1;
+  int? duplicateExtensionInstanceFieldAndStaticSetter2;
+  int? extensionInstanceFieldAndDuplicateSetter;
+  int? extensionInstanceFieldAndSetter;
+  int? extensionInstanceFieldAndStaticDuplicateSetter;
+  int? extensionInstanceFieldAndStaticSetter;
+  static final int? duplicateExtensionStaticFieldAndInstanceSetter1 = null;
+  static final int? duplicateExtensionStaticFieldAndInstanceSetter2 = null;
+  static final int? duplicateExtensionStaticFieldAndSetter1 = null;
+  static final int? duplicateExtensionStaticFieldAndSetter2 = null;
+  static int? duplicateExtensionStaticFieldAndInstanceSetter1;
+  static int? duplicateExtensionStaticFieldAndInstanceSetter2;
+  static int? duplicateExtensionStaticFieldAndSetter1;
+  static int? duplicateExtensionStaticFieldAndSetter2;
+  static int? extensionStaticFieldAndDuplicateSetter;
+  static int? extensionStaticFieldAndInstanceDuplicateSetter;
+  static int? extensionStaticFieldAndInstanceSetter;
+  static int? extensionStaticFieldAndSetter;
+  static late final int? extensionStaticLateFinalFieldAndDuplicateSetter;
+  static late final int? extensionStaticLateFinalFieldAndSetter;
+  static void set duplicateExtensionInstanceFieldAndStaticSetter1(int? value) {}
+  static void set duplicateExtensionInstanceFieldAndStaticSetter2(int? value) {}
+  static void set duplicateExtensionStaticFieldAndSetter1(int? value) {}
+  static void set duplicateExtensionStaticFieldAndSetter2(int? value) {}
+  static void set extensionInstanceFieldAndStaticDuplicateSetter(int? value) {}
+  static void set extensionInstanceFieldAndStaticDuplicateSetter(int? value) {}
+  static void set extensionInstanceFieldAndStaticSetter(int? value) {}
+  static void set extensionStaticFieldAndDuplicateSetter(int? value) {}
+  static void set extensionStaticFieldAndDuplicateSetter(int? value) {}
+  static void set extensionStaticFieldAndSetter(int? value) {}
+  static void set extensionStaticLateFinalFieldAndDuplicateSetter(int? value) {}
+  static void set extensionStaticLateFinalFieldAndDuplicateSetter(int? value) {}
+  static void set extensionStaticLateFinalFieldAndSetter(int? value) {}
+  void set duplicateExtensionInstanceFieldAndSetter1(int? value) {}
+  void set duplicateExtensionInstanceFieldAndSetter2(int? value) {}
+  void set duplicateExtensionStaticFieldAndInstanceSetter1(int? value) {}
+  void set duplicateExtensionStaticFieldAndInstanceSetter2(int? value) {}
+  void set extensionInstanceFieldAndDuplicateSetter(int? value) {}
+  void set extensionInstanceFieldAndDuplicateSetter(int? value) {}
+  void set extensionInstanceFieldAndSetter(int? value) {}
+  void set extensionStaticFieldAndInstanceDuplicateSetter(int? value) {}
+  void set extensionStaticFieldAndInstanceDuplicateSetter(int? value) {}
+  void set extensionStaticFieldAndInstanceSetter(int? value) {}
+}
+final int? duplicateTopLevelFieldAndSetter1 = null;
+final int? duplicateTopLevelFieldAndSetter2 = null;
+int? duplicateTopLevelFieldAndSetter1;
+int? duplicateTopLevelFieldAndSetter2;
+int? topLevelFieldAndDuplicateSetter;
+int? topLevelFieldAndSetter;
+late final int? topLevelLateFinalFieldAndDuplicateSetter;
+late final int? topLevelLateFinalFieldAndSetter;
+main() {}
+test() {}
+void set duplicateTopLevelFieldAndSetter1(int? value) {}
+void set duplicateTopLevelFieldAndSetter2(int? value) {}
+void set topLevelFieldAndDuplicateSetter(int? value) {}
+void set topLevelFieldAndDuplicateSetter(int? value) {}
+void set topLevelFieldAndSetter(int? value) {}
+void set topLevelLateFinalFieldAndDuplicateSetter(int? value) {}
+void set topLevelLateFinalFieldAndDuplicateSetter(int? value) {}
+void set topLevelLateFinalFieldAndSetter(int? value) {}

@@ -204,11 +204,18 @@ template("build_gen_snapshot") {
       ]
     }
 
-    if (!is_win) {
-      # Adds all symbols to the dynamic symbol table, not just used ones.
-      # This is needed to make native extensions work. It is also needed to get
-      # symbols in VM-generated backtraces and profiles.
-      ldflags = [ "-rdynamic" ]
+    if (is_mac) {
+      ldflags = [
+        "-Wl,-exported_symbol",
+        "-Wl,_Dart_*",
+      ]
+    } else if (!is_win) {
+      if (!is_clang) {
+        # TODO(rmacnak): Remove once bots are updated to a newer gcc.
+        ldflags = [ "-rdynamic" ]
+      } else {
+        ldflags = [ "-Wl,--export-dynamic-symbol=Dart_*" ]
+      }
     }
 
     if (is_win) {
@@ -793,11 +800,18 @@ template("dart_executable") {
 
     if (is_win) {
       ldflags = [ "/EXPORT:Dart_True" ]
+    } else if (is_mac) {
+      ldflags = [
+        "-Wl,-exported_symbol",
+        "-Wl,_Dart_*",
+      ]
     } else {
-      # Adds all symbols to the dynamic symbol table, not just used ones.
-      # This is needed to make native extensions work. It is also needed to get
-      # symbols in VM-generated backtraces and profiles.
-      ldflags = [ "-rdynamic" ]
+      if (!is_clang) {
+        # TODO(rmacnak): Remove once bots are updated to a newer gcc.
+        ldflags = [ "-rdynamic" ]
+      } else {
+        ldflags = [ "-Wl,--export-dynamic-symbol=Dart_*" ]
+      }
     }
 
     ldflags += extra_ldflags
@@ -1018,11 +1032,18 @@ executable("run_vm_tests") {
             ] + builtin_impl_tests + vm_tests + compiler_tests + heap_tests +
             io_impl_tests
 
-  if (!is_win) {
-    # Adds all symbols to the dynamic symbol table, not just used ones.
-    # This is needed to make native extensions work. It is also needed to get
-    # symbols in VM-generated backtraces and profiles.
-    ldflags = [ "-rdynamic" ]
+  if (is_mac) {
+    ldflags = [
+      "-Wl,-exported_symbol",
+      "-Wl,_Dart_*",
+    ]
+  } else if (!is_win) {
+    if (!is_clang) {
+      # TODO(rmacnak): Remove once bots are updated to a newer gcc.
+      ldflags = [ "-rdynamic" ]
+    } else {
+      ldflags = [ "-Wl,--export-dynamic-symbol=Dart_*" ]
+    }
   }
 
   if (is_win) {

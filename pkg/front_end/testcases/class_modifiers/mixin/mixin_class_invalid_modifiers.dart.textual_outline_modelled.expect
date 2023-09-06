@@ -1,0 +1,3 @@
+final mixin class A {}
+interface mixin class B {}
+sealed mixin class C {}

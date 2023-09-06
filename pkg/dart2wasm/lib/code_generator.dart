@@ -1504,8 +1504,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       SuperMethodInvocation node, w.ValueType expectedType) {
     Reference target =
         _lookupSuperTarget(node.interfaceTarget, setter: false).reference;
-    w.BaseFunction targetFunction = translator.functions.getFunction(target);
-    w.ValueType receiverType = targetFunction.type.inputs.first;
+    w.FunctionType targetFunctionType =
+        translator.functions.getFunctionType(target);
+    w.ValueType receiverType = targetFunctionType.inputs.first;
     visitThis(receiverType);
     _visitArguments(node.arguments, target, 1);
     return translator.outputOrVoid(call(target));
@@ -1559,9 +1560,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     Member? singleTarget = translator.singleTarget(node);
     if (singleTarget != null) {
-      w.BaseFunction targetFunction =
-          translator.functions.getFunction(singleTarget.reference);
-      wrap(node.receiver, targetFunction.type.inputs.first);
+      w.FunctionType targetFunctionType =
+          translator.functions.getFunctionType(singleTarget.reference);
+      wrap(node.receiver, targetFunctionType.inputs.first);
       _visitArguments(node.arguments, node.interfaceTargetReference, 1);
       return translator.outputOrVoid(call(singleTarget.reference));
     }
@@ -1966,9 +1967,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         return voidMarker;
       }
     } else {
-      w.BaseFunction targetFunction =
-          translator.functions.getFunction(target.reference);
-      w.ValueType paramType = targetFunction.type.inputs.single;
+      w.FunctionType targetFunctionType =
+          translator.functions.getFunctionType(target.reference);
+      w.ValueType paramType = targetFunctionType.inputs.single;
       wrap(node.value, paramType);
       w.Local? temp;
       if (preserved) {
@@ -2134,9 +2135,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     } else {
       // Instance call of getter
       assert(target is Procedure && target.isGetter);
-      w.BaseFunction targetFunction =
-          translator.functions.getFunction(target.reference);
-      wrap(receiver, targetFunction.type.inputs.single);
+      w.FunctionType targetFunctionType =
+          translator.functions.getFunctionType(target.reference);
+      wrap(receiver, targetFunctionType.inputs.single);
       return translator.outputOrVoid(call(target.reference));
     }
   }
@@ -2234,10 +2235,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       }
       b.struct_set(info.struct, fieldIndex);
     } else {
-      w.BaseFunction targetFunction =
-          translator.functions.getFunction(target.reference);
-      w.ValueType paramType = targetFunction.type.inputs.last;
-      wrap(receiver, targetFunction.type.inputs.first);
+      w.FunctionType targetFunctionType =
+          translator.functions.getFunctionType(target.reference);
+      w.ValueType paramType = targetFunctionType.inputs.last;
+      wrap(receiver, targetFunctionType.inputs.first);
       wrap(value, paramType);
       if (preserved) {
         temp = addLocal(paramType);
@@ -2898,9 +2899,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.struct_set(info.struct, fieldIndex);
     } else {
       final setterProcedure = member_ as Procedure;
-      final setterProcedureWasm =
-          translator.functions.getFunction(setterProcedure.reference);
-      final setterWasmInputs = setterProcedureWasm.type.inputs;
+      final setterProcedureWasmType =
+          translator.functions.getFunctionType(setterProcedure.reference);
+      final setterWasmInputs = setterProcedureWasmType.inputs;
       assert(setterWasmInputs.length == 2);
       b.local_get(receiverLocal);
       translator.convertType(function, receiverLocal.type, setterWasmInputs[0]);
@@ -3046,9 +3047,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
 
     // Argument types are as expected, call the member function
-    final w.BaseFunction memberWasmFunction =
-        translator.functions.getFunction(member.reference);
-    final List<w.ValueType> memberWasmInputs = memberWasmFunction.type.inputs;
+    final w.FunctionType memberWasmFunctionType =
+        translator.functions.getFunctionType(member.reference);
+    final List<w.ValueType> memberWasmInputs = memberWasmFunctionType.inputs;
 
     b.local_get(receiverLocal);
     translator.convertType(function, receiverLocal.type, memberWasmInputs[0]);
@@ -3085,7 +3086,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     translator.convertType(
         function,
-        translator.outputOrVoid(memberWasmFunction.type.outputs),
+        translator.outputOrVoid(memberWasmFunctionType.outputs),
         translator.topInfo.nullableType);
 
     b.return_();

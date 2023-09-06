@@ -1,0 +1,19 @@
+// @dart = 2.14
+import 'new_as_selector.dart' as prefix1;
+import 'new_as_selector.dart' deferred as prefix2 hide E;
+C c = C();
+class C extends Super {
+  C() : super.new();
+  C.named() : this.new();
+  int new = 42;
+  method() {}
+}
+class Super {}
+extension E on int {
+  call<T>() {}
+  external int new;
+}
+int new = 87;
+main() {}
+method(dynamic d) => d.new;
+test() {}

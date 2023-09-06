@@ -2245,13 +2245,15 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
   Definition* receiver = call_->Receiver()->definition();
   // There are at least two variants including non-inlined ones, so we have
   // at least one branch on the class id.
+  // Redefinition and CheckClassId assume kTagged.
+  Representation cid_representation =
+      call_->complete() ? kUnboxedUword : kTagged;
   LoadClassIdInstr* load_cid =
-      new (Z) LoadClassIdInstr(new (Z) Value(receiver));
+      new (Z) LoadClassIdInstr(new (Z) Value(receiver), cid_representation);
   owner_->caller_graph()->AllocateSSAIndex(load_cid);
   cursor = AppendInstruction(cursor, load_cid);
   for (intptr_t i = 0; i < inlined_variants_.length(); ++i) {
     const CidRange& variant = inlined_variants_[i];
-    bool test_is_range = !variant.IsSingleCid();
     bool is_last_test = (i == inlined_variants_.length() - 1);
     // 1. Guard the body with a class id check.  We don't need any check if
     // it's the last test and global analysis has told us that the call is
@@ -2311,49 +2313,22 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     } else {
       // For all variants except the last, use a branch on the loaded class
       // id.
-      //
-      // TODO(ajcbik): see if this can use the NewDiamond() utility.
-      //
-      const Smi& cid = Smi::ZoneHandle(Smi::New(variant.cid_start));
-      ConstantInstr* cid_constant = owner_->caller_graph()->GetConstant(cid);
-      BranchInstr* branch;
-      BranchInstr* upper_limit_branch = nullptr;
       BlockEntryInstr* cid_test_entry_block = current_block;
-      if (test_is_range) {
-        // Double branch for testing a range of Cids.
-        // TODO(ajcbik): Make a special instruction that uses subtraction
-        // and unsigned comparison to do this with a single branch.
-        const Smi& cid_end = Smi::ZoneHandle(Smi::New(variant.cid_end));
-        ConstantInstr* cid_constant_end =
-            owner_->caller_graph()->GetConstant(cid_end);
-        RelationalOpInstr* compare_top = new RelationalOpInstr(
-            call_->source(), Token::kLTE, new Value(load_cid),
-            new Value(cid_constant_end), kSmiCid, call_->deopt_id());
-        BranchInstr* branch_top = upper_limit_branch =
-            new BranchInstr(compare_top, DeoptId::kNone);
-        branch_top->InheritDeoptTarget(zone(), call_);
-        cursor = AppendInstruction(cursor, branch_top);
-        current_block->set_last_instruction(branch_top);
-
-        TargetEntryInstr* below_target =
-            new TargetEntryInstr(AllocateBlockId(), try_idx, DeoptId::kNone);
-        below_target->InheritDeoptTarget(zone(), call_);
-        current_block->AddDominatedBlock(below_target);
-        ASSERT(cursor != nullptr);  // read before overwrite
-        cursor = current_block = below_target;
-        *branch_top->true_successor_address() = below_target;
-
-        RelationalOpInstr* compare_bottom = new RelationalOpInstr(
-            call_->source(), Token::kGTE, new Value(load_cid),
-            new Value(cid_constant), kSmiCid, call_->deopt_id());
-        branch = new BranchInstr(compare_bottom, DeoptId::kNone);
+      ComparisonInstr* compare;
+      if (variant.cid_start == variant.cid_end) {
+        ConstantInstr* cid_constant = owner_->caller_graph()->GetConstant(
+            Smi::ZoneHandle(Smi::New(variant.cid_end)), cid_representation);
+        compare = new EqualityCompareInstr(
+            call_->source(), Token::kEQ, new Value(load_cid),
+            new Value(cid_constant),
+            cid_representation == kTagged ? kSmiCid : kIntegerCid,
+            DeoptId::kNone, false, Instruction::kNotSpeculative);
       } else {
-        StrictCompareInstr* compare =
-            new StrictCompareInstr(call_->source(), Token::kEQ_STRICT,
-                                   new Value(load_cid), new Value(cid_constant),
-                                   /* number_check = */ false, DeoptId::kNone);
-        branch = new BranchInstr(compare, DeoptId::kNone);
+        compare = new TestRangeInstr(call_->source(), new Value(load_cid),
+                                     variant.cid_start, variant.cid_end,
+                                     cid_representation);
       }
+      BranchInstr* branch = new BranchInstr(compare, DeoptId::kNone);
 
       branch->InheritDeoptTarget(zone(), call_);
       AppendInstruction(cursor, branch);
@@ -2415,31 +2390,6 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       cid_test_entry_block->AddDominatedBlock(false_target);
 
       cursor = current_block = false_target;
-
-      if (test_is_range) {
-        // If we tested against a range of Cids there are two different tests
-        // that can go to the no-cid-match target.
-        JoinEntryInstr* join =
-            new JoinEntryInstr(AllocateBlockId(), try_idx, DeoptId::kNone);
-        TargetEntryInstr* false_target2 =
-            new TargetEntryInstr(AllocateBlockId(), try_idx, DeoptId::kNone);
-        *upper_limit_branch->false_successor_address() = false_target2;
-        cid_test_entry_block->AddDominatedBlock(false_target2);
-        cid_test_entry_block->AddDominatedBlock(join);
-        GotoInstr* goto_1 = new GotoInstr(join, DeoptId::kNone);
-        GotoInstr* goto_2 = new GotoInstr(join, DeoptId::kNone);
-        false_target->LinkTo(goto_1);
-        false_target2->LinkTo(goto_2);
-        false_target->set_last_instruction(goto_1);
-        false_target2->set_last_instruction(goto_2);
-
-        join->InheritDeoptTarget(zone(), call_);
-        false_target2->InheritDeoptTarget(zone(), call_);
-        goto_1->InheritDeoptTarget(zone(), call_);
-        goto_2->InheritDeoptTarget(zone(), call_);
-
-        cursor = current_block = join;
-      }
     }
   }
 
