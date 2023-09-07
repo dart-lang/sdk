@@ -40,8 +40,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   List<TypeVariableBuilder>? get typeVariables {
     if (_typeVariables == null && typedef.typeParameters.isNotEmpty) {
-      _typeVariables =
-          computeTypeVariableBuilders(libraryBuilder, typedef.typeParameters);
+      _typeVariables = computeTypeVariableBuilders(typedef.typeParameters);
     }
     return _typeVariables;
   }

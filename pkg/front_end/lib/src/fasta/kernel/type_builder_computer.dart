@@ -16,7 +16,6 @@ import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/future_or_type_declaration_builder.dart';
-import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/null_type_declaration_builder.dart';
@@ -55,6 +54,8 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
           -1);
 
   TypeBuilderComputer(this.loader);
+
+  final Map<TypeParameter, TypeVariableBuilder> functionTypeParameters = {};
 
   @override
   TypeBuilder defaultDartType(DartType node) {
@@ -176,17 +177,8 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   @override
   TypeBuilder visitTypeParameterType(TypeParameterType node) {
     TypeParameter parameter = node.parameter;
-    TreeNode? kernelClassOrTypeDef = parameter.parent;
-    Library? kernelLibrary;
-    if (kernelClassOrTypeDef is Class) {
-      kernelLibrary = kernelClassOrTypeDef.enclosingLibrary;
-    } else if (kernelClassOrTypeDef is Typedef) {
-      kernelLibrary = kernelClassOrTypeDef.enclosingLibrary;
-    }
-    LibraryBuilder library =
-        loader.lookupLibraryBuilder(kernelLibrary!.importUri)!;
     return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        new TypeVariableBuilder.fromKernel(parameter, library),
+        new TypeVariableBuilder.fromKernel(parameter),
         new NullabilityBuilder.fromNullability(node.nullability),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed,
         type: node);

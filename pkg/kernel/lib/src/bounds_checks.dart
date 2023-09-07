@@ -927,6 +927,7 @@ bool hasGenericFunctionTypeAsTypeArgument(DartType type) {
       const _HasGenericFunctionTypeAsTypeArgumentVisitor(), false);
 }
 
+// TODO(johnniwinther): Handle record type and extension type in this visitor.
 class _HasGenericFunctionTypeAsTypeArgumentVisitor
     extends DartTypeVisitor1<bool, bool> {
   const _HasGenericFunctionTypeAsTypeArgumentVisitor();

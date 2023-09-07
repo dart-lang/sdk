@@ -77,15 +77,13 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
               ..variance = variableVariance,
         super(metadata, 0, name, compilationUnit, charOffset);
 
-  TypeVariableBuilder.fromKernel(
-      TypeParameter parameter, LibraryBuilder compilationUnit)
+  TypeVariableBuilder.fromKernel(TypeParameter parameter)
       : actualParameter = parameter,
         // TODO(johnniwinther): Do we need to support synthesized type
         //  parameters from kernel?
         kind = TypeVariableKind.fromKernel,
-        fileUri = compilationUnit.fileUri,
-        super(null, 0, parameter.name ?? '', compilationUnit,
-            parameter.fileOffset);
+        fileUri = null,
+        super(null, 0, parameter.name ?? '', null, parameter.fileOffset);
 
   @override
   bool get isTypeVariable => true;

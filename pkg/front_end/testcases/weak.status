@@ -58,7 +58,6 @@ general/script_tag_in_part_file: SemiFuzzFailure # `#!/usr/bin/env dart` goes aw
 macros/scope_access: SemiFuzzCrash
 
 const_functions/const_functions_list: SemiFuzzCrash
-generic_metadata/typedef_generic_types_in_arguments_and_bounds: SemiFuzzCrash
 
 dart2js/late_fields_with_annotation: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49415
 dart2js/mixin_super/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49339

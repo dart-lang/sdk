@@ -84,8 +84,8 @@ class DillClassBuilder extends ClassBuilderImpl {
   List<TypeVariableBuilder>? get typeVariables {
     List<TypeVariableBuilder>? typeVariables = _typeVariables;
     if (typeVariables == null && cls.typeParameters.isNotEmpty) {
-      typeVariables = _typeVariables =
-          computeTypeVariableBuilders(libraryBuilder, cls.typeParameters);
+      typeVariables =
+          _typeVariables = computeTypeVariableBuilders(cls.typeParameters);
     }
     return typeVariables;
   }
@@ -253,9 +253,9 @@ TypeBuilder? computeTypeBuilder(
 }
 
 List<TypeVariableBuilder>? computeTypeVariableBuilders(
-    LibraryBuilder library, List<TypeParameter>? typeParameters) {
+    List<TypeParameter>? typeParameters) {
   if (typeParameters == null || typeParameters.length == 0) return null;
   return new List.generate(typeParameters.length,
-      (int i) => new TypeVariableBuilder.fromKernel(typeParameters[i], library),
+      (int i) => new TypeVariableBuilder.fromKernel(typeParameters[i]),
       growable: false);
 }
