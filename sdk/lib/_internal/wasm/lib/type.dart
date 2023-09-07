@@ -14,6 +14,20 @@ part of 'core_patch.dart';
 @pragma("wasm:prefer-inline")
 _Type _literal<T>() => unsafeCast(T);
 
+extension _IndexWasmArrayOfTypes on WasmObjectArray<_Type> {
+  @pragma("wasm:prefer-inline")
+  _Type operator [](int index) => read(index);
+
+  @pragma("wasm:prefer-inline")
+  void operator []=(int index, _Type value) => write(index, value);
+
+  @pragma("wasm:prefer-inline")
+  bool get isEmpty => length == 0;
+
+  @pragma("wasm:prefer-inline")
+  bool get isNotEmpty => length != 0;
+}
+
 // TODO(joshualitt): Once we have RTI fully working, we'd like to explore
 // implementing [isSubtype] using inheritance.
 // TODO(joshualitt): We can cache the result of [_FutureOrType.asFuture].
@@ -156,8 +170,8 @@ class _FutureOrType extends _Type {
   @pragma("wasm:entry-point")
   const _FutureOrType(super.isDeclaredNullable, this.typeArgument);
 
-  _InterfaceType get asFuture =>
-      _InterfaceType(ClassID.cidFuture, isDeclaredNullable, [typeArgument]);
+  _InterfaceType get asFuture => _InterfaceType(ClassID.cidFuture,
+      isDeclaredNullable, WasmObjectArray<_Type>.literal([typeArgument]));
 
   @override
   _Type get _asNullable =>
@@ -193,11 +207,11 @@ class _FutureOrType extends _Type {
 @pragma("wasm:entry-point")
 class _InterfaceType extends _Type {
   final int classId;
-  final List<_Type> typeArguments;
+  final WasmObjectArray<_Type> typeArguments;
 
   @pragma("wasm:entry-point")
   const _InterfaceType(this.classId, super.isDeclaredNullable,
-      [this.typeArguments = const []]);
+      [this.typeArguments = const WasmObjectArray<_Type>.literal([])]);
 
   @override
   _Type get _asNullable => _InterfaceType(classId, true, typeArguments);
@@ -617,13 +631,14 @@ class _TypeUniverse {
               substitutions, rootFunction));
     } else if (type.isInterface) {
       _InterfaceType interfaceType = type.as<_InterfaceType>();
-      return _InterfaceType(
-          interfaceType.classId,
-          interfaceType.isDeclaredNullable,
-          interfaceType.typeArguments
-              .map((type) =>
-                  substituteTypeArgument(type, substitutions, rootFunction))
-              .toList());
+      WasmObjectArray<_Type> typeArguments = WasmObjectArray<_Type>(
+          interfaceType.typeArguments.length, _literal<dynamic>());
+      for (int i = 0; i < typeArguments.length; i++) {
+        typeArguments[i] = substituteTypeArgument(
+            interfaceType.typeArguments[i], substitutions, rootFunction);
+      }
+      return _InterfaceType(interfaceType.classId,
+          interfaceType.isDeclaredNullable, typeArguments);
     } else if (type.isInterfaceTypeParameterType) {
       assert(rootFunction == null);
       return substituteInterfaceTypeParameter(
@@ -680,14 +695,6 @@ class _TypeUniverse {
     }
   }
 
-  static List<_Type> substituteTypeArguments(
-          List<_Type> types, List<_Type> substitutions) =>
-      List<_Type>.generate(
-          types.length,
-          (int index) =>
-              substituteTypeArgument(types[index], substitutions, null),
-          growable: false);
-
   static _Type createNormalizedFutureOrType(
       bool isDeclaredNullable, _Type typeArgument) {
     if (typeArgument.isTop) {
@@ -696,7 +703,7 @@ class _TypeUniverse {
       return _InterfaceType(
           ClassID.cidFuture,
           isDeclaredNullable || typeArgument.isDeclaredNullable,
-          [typeArgument]);
+          WasmObjectArray<_Type>.literal([typeArgument]));
     }
 
     bool declaredNullability =
@@ -704,8 +711,8 @@ class _TypeUniverse {
     return _FutureOrType(declaredNullability, typeArgument);
   }
 
-  bool areTypeArgumentsSubtypes(List<_Type> sArgs, _Environment? sEnv,
-      List<_Type> tArgs, _Environment? tEnv) {
+  bool areTypeArgumentsSubtypes(WasmObjectArray<_Type> sArgs,
+      _Environment? sEnv, WasmObjectArray<_Type> tArgs, _Environment? tEnv) {
     assert(sArgs.length == tArgs.length);
     for (int i = 0; i < sArgs.length; i++) {
       if (!isSubtype(sArgs[i], sEnv, tArgs[i], tEnv)) {
@@ -735,7 +742,7 @@ class _TypeUniverse {
     assert(sSuperIndexOfT < typeRulesSubstitutions[sId].length);
 
     // Return early if we don't have to check type arguments.
-    List<_Type> sTypeArguments = s.typeArguments;
+    WasmObjectArray<_Type> sTypeArguments = s.typeArguments;
     List<_Type> substitutions = typeRulesSubstitutions[sId][sSuperIndexOfT];
     if (substitutions.isEmpty && sTypeArguments.isEmpty) {
       return true;
@@ -743,18 +750,23 @@ class _TypeUniverse {
 
     // If we have empty type arguments then create a list of dynamic type
     // arguments.
-    if (substitutions.isNotEmpty && sTypeArguments.isEmpty) {
-      sTypeArguments = List<_Type>.generate(
-          substitutions.length, (int index) => _literal<dynamic>(),
-          growable: false);
-    }
+    // TODO(askesc): Use Wasm arrays more widely to avoid creating a
+    // temporary list here.
+    List<_Type> typeArgumentsForSubstitution =
+        substitutions.isNotEmpty && sTypeArguments.isEmpty
+            ? List.filled(substitutions.length, _literal<dynamic>())
+            : List.generate(sTypeArguments.length, (i) => sTypeArguments[i]);
 
     // Finally substitute arguments. We must do this upfront so we can normalize
     // the type.
     // TODO(joshualitt): This process is expensive so we should cache the
     // result.
-    List<_Type> substituted =
-        substituteTypeArguments(substitutions, sTypeArguments);
+    WasmObjectArray<_Type> substituted =
+        WasmObjectArray<_Type>(substitutions.length, _literal<dynamic>());
+    for (int i = 0; i < substitutions.length; i++) {
+      substituted[i] = substituteTypeArgument(
+          substitutions[i], typeArgumentsForSubstitution, null);
+    }
     return areTypeArgumentsSubtypes(substituted, sEnv, t.typeArguments, tEnv);
   }
 

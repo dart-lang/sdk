@@ -57,8 +57,16 @@ class Types {
       translator.classInfo[translator.typeClass]!;
 
   /// Wasm value type of `List<_Type>`
-  late final w.ValueType typeListExpectedType = classAndFieldToType(
-      translator.interfaceTypeClass, FieldIndex.interfaceTypeTypeArguments);
+  late final w.ValueType typeListExpectedType =
+      translator.classInfo[translator.listBaseClass]!.nonNullableType;
+
+  /// Wasm array type of `WasmObjectArray<_Type>`
+  late final w.ArrayType typeArrayArrayType =
+      translator.arrayTypeForDartType(typeType);
+
+  /// Wasm value type of `WasmObjectArray<_Type>`
+  late final w.ValueType typeArrayExpectedType =
+      w.RefType.def(typeArrayArrayType, nullable: false);
 
   /// Wasm value type of `List<_NamedParameter>`
   late final w.ValueType namedParametersExpectedType = classAndFieldToType(
@@ -411,12 +419,26 @@ class Types {
     }
   }
 
+  /// Allocates a `WasmObjectArray<_Type>` from [types] and pushes it to the
+  /// stack.
+  void _makeTypeArray(CodeGenerator codeGen, Iterable<DartType> types) {
+    if (types.every(_isTypeConstant)) {
+      translator.constants.instantiateConstant(codeGen.function, codeGen.b,
+          translator.constants.makeTypeArray(types), typeArrayExpectedType);
+    } else {
+      for (DartType type in types) {
+        makeType(codeGen, type);
+      }
+      codeGen.b.array_new_fixed(typeArrayArrayType, types.length);
+    }
+  }
+
   void _makeInterfaceType(CodeGenerator codeGen, InterfaceType type) {
     final b = codeGen.b;
     ClassInfo typeInfo = translator.classInfo[type.classNode]!;
     b.i32_const(encodedNullability(type));
     b.i64_const(typeInfo.classId);
-    _makeTypeList(codeGen, type.typeArguments);
+    _makeTypeArray(codeGen, type.typeArguments);
   }
 
   void _makeRecordType(CodeGenerator codeGen, RecordType type) {

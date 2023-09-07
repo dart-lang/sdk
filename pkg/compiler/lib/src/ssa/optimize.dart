@@ -1706,9 +1706,8 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
           _metrics.countSettersElided.add();
           return value;
         } else {
-          HFieldSet result =
-              HFieldSet(_abstractValueDomain, member, receiver, value)
-                ..sourceInformation = node.sourceInformation;
+          HFieldSet result = HFieldSet(member, receiver, value)
+            ..sourceInformation = node.sourceInformation;
           _log?.registerFieldSet(node, result);
           _metrics.countSettersInlined.add();
           return result;

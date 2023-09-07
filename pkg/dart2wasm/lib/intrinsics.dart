@@ -842,7 +842,26 @@ class Intrinsifier {
             translator.arrayTypeForDartType(node.arguments.types.single);
         codeGen.wrap(length, w.NumType.i64);
         b.i32_wrap_i64();
-        b.array_new_default(arrayType);
+        if (node.arguments.positional.length < 2) {
+          // WasmIntArray or WasmFloatArray
+          b.array_new_default(arrayType);
+        } else {
+          // WasmObjectArray
+          Expression initialValue = node.arguments.positional[1];
+          if (initialValue is NullLiteral ||
+              initialValue is ConstantExpression &&
+                  initialValue.constant is NullConstant) {
+            // Initialize to `null`
+            b.array_new_default(arrayType);
+          } else {
+            // Initialize to the provided value
+            w.Local lengthTemp = codeGen.addLocal(w.NumType.i32);
+            b.local_set(lengthTemp);
+            codeGen.wrap(initialValue, arrayType.elementType.type.unpacked);
+            b.local_get(lengthTemp);
+            b.array_new(arrayType);
+          }
+        }
         return w.RefType.def(arrayType, nullable: false);
       }
 
@@ -987,6 +1006,29 @@ class Intrinsifier {
   /// an inlined intrinsic.
   w.ValueType? generateConstructorIntrinsic(ConstructorInvocation node) {
     String name = node.name.text;
+
+    // WasmObjectArray.literal
+    if (node.target.enclosingClass == translator.wasmObjectArrayClass &&
+        name == "literal") {
+      w.ArrayType arrayType =
+          translator.arrayTypeForDartType(node.arguments.types.single);
+      w.ValueType elementType = arrayType.elementType.type.unpacked;
+      Expression value = node.arguments.positional[0];
+      List<Expression> elements = value is ListLiteral
+          ? value.expressions
+          : value is ConstantExpression && value.constant is ListConstant
+              ? (value.constant as ListConstant)
+                  .entries
+                  .map(ConstantExpression.new)
+                  .toList()
+              : throw "WasmObjectArray.literal argument is not a list literal"
+                  " at ${value.location}";
+      for (Expression element in elements) {
+        codeGen.wrap(element, elementType);
+      }
+      b.array_new_fixed(arrayType, elements.length);
+      return w.RefType.def(arrayType, nullable: false);
+    }
 
     // _Compound.#fromTypedDataBase
     if (name == "#fromTypedDataBase") {
@@ -1162,7 +1204,7 @@ class Intrinsifier {
       // Set class ID of interface type.
       b.local_get(resultClassId);
       b.i64_extend_i32_u();
-      // Call _typeArguments to get the list of type arguments.
+      // Call _typeArguments to get the array of type arguments.
       b.local_get(object);
       codeGen.call(translator.objectGetTypeArguments.reference);
       b.struct_new(info.struct);
@@ -1306,18 +1348,27 @@ class Intrinsifier {
     }
 
     // _typeArguments
-    if (member.name.text == "_typeArguments") {
+    if (name == "_typeArguments" &&
+        member.enclosingClass != translator.coreTypes.objectClass) {
       Class cls = member.enclosingClass!;
       ClassInfo classInfo = translator.classInfo[cls]!;
+      w.ArrayType arrayType =
+          (function.type.outputs.single as w.RefType).heapType as w.ArrayType;
       w.Local object = paramLocals[0];
-      codeGen.makeList(translator.types.typeType, cls.typeParameters.length,
-          (w.ValueType elementType, int i) {
+      w.Local preciseObject = codeGen.addLocal(classInfo.nonNullableType);
+      b.local_get(object);
+      b.ref_cast(classInfo.nonNullableType);
+      b.local_set(preciseObject);
+      for (int i = 0; i < cls.typeParameters.length; i++) {
         TypeParameter typeParameter = cls.typeParameters[i];
         int typeParameterIndex = translator.typeParameterIndex[typeParameter]!;
-        b.local_get(object);
-        b.ref_cast(classInfo.nonNullableType);
+        b.local_get(preciseObject);
         b.struct_get(classInfo.struct, typeParameterIndex);
-      });
+        // TODO(jessicalally): Remove this null check when type argument fields
+        // are made non-nullable.
+        b.ref_as_non_null();
+      }
+      b.array_new_fixed(arrayType, cls.typeParameters.length);
       return true;
     }
 
