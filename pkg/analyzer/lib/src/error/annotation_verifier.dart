@@ -227,6 +227,7 @@ class AnnotationVerifier {
     if ((parent is MethodDeclaration && parent.isStatic) ||
         (parent is FieldDeclaration && parent.isStatic) ||
         parent.parent is ExtensionDeclaration ||
+        parent.parent is ExtensionTypeDeclaration ||
         parent.parent is EnumDeclaration) {
       _errorReporter.reportErrorForNode(
         WarningCode.INVALID_ANNOTATION_TARGET,
@@ -247,6 +248,7 @@ class AnnotationVerifier {
       }
     } else if (parent is MethodDeclaration) {
       if (parent.parent is ExtensionDeclaration ||
+          parent.parent is ExtensionTypeDeclaration ||
           parent.isStatic ||
           parent.isAbstract) {
         _errorReporter.reportErrorForNode(
