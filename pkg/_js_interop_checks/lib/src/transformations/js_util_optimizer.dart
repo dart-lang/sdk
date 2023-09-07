@@ -466,8 +466,7 @@ class JsUtilOptimizer extends Transformer {
       invocation = _lowerCallMethod(node, shouldTrustType: false);
     } else if (target == _callConstructorTarget) {
       invocation = _lowerCallConstructor(node);
-    } else if (target.isExternal &&
-        !JsInteropChecks.isAllowedCustomStaticInteropImplementation(target)) {
+    } else if (target.isExternal && !JsInteropChecks.isPatchedMember(target)) {
       final builder = _externalInvocationBuilders.putIfAbsent(
           target, () => _getExternalInvocationBuilder(target));
       if (builder != null) invocation = builder(node.arguments, node);
