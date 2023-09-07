@@ -2105,7 +2105,7 @@ class Q {
           'K+else',
           'L+return'
         ],
-        failingTests: '3CK');
+        failingTests: '3K');
 
     // operators in function
     buildTests('test015', '''f(a,b,c) => a + b * c !1;''', <String>['1+=='],

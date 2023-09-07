@@ -96,6 +96,8 @@ suggestions
     kind: keyword
   extension
     kind: keyword
+  external
+    kind: keyword
   final
     kind: keyword
   interface
@@ -188,6 +190,8 @@ suggestions
   dynamic
     kind: keyword
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword

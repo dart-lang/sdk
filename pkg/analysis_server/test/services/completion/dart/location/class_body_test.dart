@@ -257,7 +257,7 @@ suggestions
           if (context.isClass) Keyword.FACTORY,
           Keyword.FINAL,
           Keyword.GET,
-          Keyword.LATE,
+          if (!context.isExtension) Keyword.LATE,
           Keyword.OPERATOR,
           Keyword.SET,
           Keyword.STATIC,
@@ -270,7 +270,7 @@ suggestions
   Object
     kind: class
 ${keywords.asKeywordSuggestions}
-''');
+''', where: context.where);
       },
     );
   }
@@ -291,7 +291,7 @@ suggestions
   Object
     kind: class
 ${keywords.asKeywordSuggestions}
-''');
+''', where: context.where);
       },
     );
   }
@@ -308,12 +308,13 @@ replacement
 suggestions
   Object
     kind: class
-''');
+''', where: context.where);
         } else {
           _printKeywordsOrClass();
 
           final keywords = {
             Keyword.DYNAMIC,
+            Keyword.EXTERNAL,
             Keyword.VOID,
           };
 
@@ -324,7 +325,7 @@ suggestions
   Object
     kind: class
 ${keywords.asKeywordSuggestions}
-''');
+''', where: context.where);
         }
       },
     );
@@ -346,7 +347,7 @@ suggestions
   Object
     kind: class
 ${keywords.asKeywordSuggestions}
-''');
+''', where: context.where);
       },
     );
   }
@@ -371,7 +372,7 @@ suggestions
   FutureOr
     kind: class
 ${keywords.asKeywordSuggestions}
-''');
+''', where: context.where);
         } else {
           // TODO(scheglov) This is wrong.
           final keywords = {
@@ -382,6 +383,8 @@ ${keywords.asKeywordSuggestions}
             Keyword.EXTERNAL,
             Keyword.FINAL,
             Keyword.LATE,
+            Keyword.VAR,
+            Keyword.VOID,
           };
 
           assertResponse('''
@@ -391,7 +394,7 @@ suggestions
   FutureOr
     kind: class
 ${keywords.asKeywordSuggestions}
-''');
+''', where: context.where);
         }
       },
     );
@@ -413,7 +416,7 @@ suggestions
   Object
     kind: class
 ${keywords.asKeywordSuggestions}
-''');
+''', where: context.where);
       },
     );
   }
@@ -436,7 +439,7 @@ suggestions
   Object
     kind: class
 ${keywords.asKeywordSuggestions}
-''');
+''', where: context.where);
       },
     );
   }
@@ -458,6 +461,7 @@ ${keywords.asKeywordSuggestions}
           Keyword.EXTERNAL,
           Keyword.FINAL,
           Keyword.LATE,
+          Keyword.VAR,
         };
 
         assertResponse('''
@@ -465,7 +469,7 @@ suggestions
   Object
     kind: class
 ${keywords.asKeywordSuggestions}
-''');
+''', where: context.where);
       },
     );
   }
@@ -491,17 +495,18 @@ suggestions
   String
     kind: class
 ${keywords.asKeywordSuggestions}
-''');
+''', where: context.where);
         } else {
           final keywords = {
-            // TODO(scheglov) Not quite right, without static.
+            if (context.isClass || context.isMixin) Keyword.ABSTRACT,
             Keyword.CONST,
             if (context.isClass || context.isMixin) Keyword.COVARIANT,
             Keyword.DYNAMIC,
+            Keyword.EXTERNAL,
             if (context.isClass) Keyword.FACTORY,
             Keyword.FINAL,
             Keyword.GET,
-            Keyword.LATE,
+            if (!context.isExtension) Keyword.LATE,
             Keyword.OPERATOR,
             Keyword.SET,
             Keyword.STATIC,
@@ -516,7 +521,7 @@ suggestions
   String
     kind: class
 ${keywords.asKeywordSuggestions}
-''');
+''', where: context.where);
         }
       },
     );
@@ -543,7 +548,7 @@ enum E {
   $line
 }
 ''');
-      validator(_Context());
+      validator(_Context(isEnum: true));
     }
     // extension
     {
@@ -552,7 +557,7 @@ extension on Object {
   $line
 }
 ''');
-      validator(_Context());
+      validator(_Context(isExtension: true));
     }
     // mixin
     {
@@ -1175,12 +1180,24 @@ suggestions
 
 class _Context {
   final bool isClass;
+  final bool isEnum;
+  final bool isExtension;
   final bool isMixin;
 
   _Context({
     this.isClass = false,
+    this.isEnum = false,
+    this.isExtension = false,
     this.isMixin = false,
   });
+
+  String get where => isClass
+      ? ' in class'
+      : isEnum
+          ? ' in enum'
+          : isExtension
+              ? ' in extension'
+              : ' in mixin';
 }
 
 extension on Iterable<Keyword> {

@@ -47,9 +47,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// occurring.
   ///
   /// This is normally the covering node, but if the covering node begins with
-  /// an identifier (or keyword) and the [offset] is covered by the identifier,
-  /// then we look for the highest node that also begins with the same token and
-  /// use the parent of that node.
+  /// an identifier (or keyword) and the [offset] is covered by the identifier
+  /// or keyword, then we look for the highest node that also begins with the
+  /// same token, but that isn't part of a list of nodes, and use the parent of
+  /// that node.
   ///
   /// This allows us more context for completing what the user might be trying
   /// to write and also reduces the complexity of the visitor and reduces the
@@ -64,12 +65,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     var child = coveringNode;
     var parent = child.parent;
-    while (parent != null && parent.beginToken == beginToken) {
+    while (parent != null &&
+        parent.beginToken == beginToken &&
+        !(child is! SimpleIdentifier && parent.isChildInList(child))) {
       child = parent;
       parent = child.parent;
     }
     // The [child] is now the highest node that starts with the [beginToken].
-    if (parent != null) {
+    if (parent != null &&
+        !(child is! SimpleIdentifier && parent.isChildInList(child))) {
       return parent;
     }
     return child;
@@ -99,6 +103,20 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else if (node.type.coversOffset(offset)) {
       collector.completionLocation = 'AsExpression_type';
       keywordHelper.addKeyword(Keyword.DYNAMIC);
+    }
+  }
+
+  @override
+  void visitAssertInitializer(AssertInitializer node) {
+    collector.completionLocation = 'ConstructorDeclaration_initializer';
+    keywordHelper.addConstructorInitializerKeywords(
+        node.parent as ConstructorDeclaration);
+  }
+
+  @override
+  void visitAssertStatement(AssertStatement node) {
+    if (offset <= node.assertKeyword.end) {
+      keywordHelper.addKeyword(Keyword.ASSERT);
     }
   }
 
@@ -161,6 +179,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitBreakStatement(BreakStatement node) {
+    if (offset <= node.breakKeyword.end) {
+      keywordHelper.addKeyword(Keyword.BREAK);
+    }
+  }
+
+  @override
   void visitCascadeExpression(CascadeExpression node) {
     collector.completionLocation = 'CascadeExpression_cascadeSection';
     _forExpression(node);
@@ -170,6 +195,24 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitCaseClause(CaseClause node) {
     collector.completionLocation = 'CaseClause_pattern';
     _forPattern();
+  }
+
+  @override
+  void visitCatchClause(CatchClause node) {
+    var onKeyword = node.onKeyword;
+    var catchKeyword = node.catchKeyword;
+    if (onKeyword != null) {
+      if (offset <= onKeyword.end) {
+        keywordHelper.addKeyword(Keyword.ON);
+      } else if (catchKeyword != null && offset < catchKeyword.offset) {
+        _forTypeAnnotation();
+      }
+    }
+    if (catchKeyword != null &&
+        offset >= catchKeyword.offset &&
+        offset <= catchKeyword.end) {
+      keywordHelper.addKeyword(Keyword.CATCH);
+    }
   }
 
   @override
@@ -234,8 +277,22 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    collector.completionLocation = 'ConstructorDeclaration_initializer';
+    keywordHelper.addConstructorInitializerKeywords(
+        node.parent as ConstructorDeclaration);
+  }
+
+  @override
   void visitConstructorReference(ConstructorReference node) {
     _forExpression(node);
+  }
+
+  @override
+  void visitContinueStatement(ContinueStatement node) {
+    if (offset <= node.continueKeyword.end) {
+      keywordHelper.addKeyword(Keyword.CONTINUE);
+    }
   }
 
   @override
@@ -246,7 +303,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     if (node.keyword != null) {
       var type = node.type;
-      if (!type.isSimpleIdentifier && name.coversOffset(offset)) {
+      if (!type.isSingleIdentifier && name.coversOffset(offset)) {
         // Don't suggest a name for the variable.
         return;
       }
@@ -265,6 +322,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (defaultValue is Expression && defaultValue.coversOffset(offset)) {
       collector.completionLocation = 'DefaultFormalParameter_defaultValue';
       _forExpression(defaultValue);
+    }
+  }
+
+  @override
+  void visitDoStatement(DoStatement node) {
+    if (offset <= node.doKeyword.end) {
+      _forStatement(node);
     }
   }
 
@@ -339,6 +403,20 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitExpressionStatement(ExpressionStatement node) {
+    collector.completionLocation = 'ExpressionStatement_expression';
+    if (_forIncompletePreceedingStatement(node)) {
+      if (node.isSingleIdentifier) {
+        var preceedingStatement = node.preceedingStatement;
+        if (preceedingStatement is TryStatement) {
+          return;
+        }
+      }
+    }
+    _forStatement(node);
+  }
+
+  @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     if (offset < node.extensionKeyword.offset) {
       // There are no modifiers for extensions.
@@ -376,6 +454,26 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    _forIncompletePreceedingClassMember(node);
+    var fields = node.fields;
+    var type = fields.type;
+    if (type == null) {
+      var firstField = fields.variables.firstOrNull;
+      if (firstField != null && offset <= firstField.name.end) {
+        keywordHelper.addFieldDeclarationKeywords(node);
+      }
+    } else {
+      if (offset <= type.end) {
+        keywordHelper.addFieldDeclarationKeywords(node);
+        keywordHelper.addKeyword(Keyword.DYNAMIC);
+        keywordHelper.addKeyword(Keyword.VAR);
+        keywordHelper.addKeyword(Keyword.VOID);
+      }
+    }
+  }
+
+  @override
   void visitForElement(ForElement node) {
     var literal = node.thisOrAncestorOfType<TypedLiteral>();
     if (literal is ListLiteral) {
@@ -392,6 +490,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (parent is FunctionExpression) {
         visitFunctionExpression(parent);
       }
+    }
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    if (offset <= node.forKeyword.end) {
+      _forStatement(node);
     }
   }
 
@@ -488,7 +593,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return;
     }
     var expression = node.expression;
-    if (offset > expression.end && offset <= node.rightParenthesis.offset) {
+    if (offset <= node.ifKeyword.end) {
+      _forStatement(node);
+    } else if (offset > expression.end &&
+        offset <= node.rightParenthesis.offset) {
       var caseClause = node.caseClause;
       if (caseClause == null) {
         keywordHelper.addKeyword(Keyword.CASE);
@@ -662,6 +770,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    keywordHelper.addKeyword(Keyword.DYNAMIC);
+    keywordHelper.addKeyword(Keyword.VOID);
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node) {
     _forExpression(node);
   }
@@ -696,8 +810,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitPatternField(PatternField node) {
-    collector.completionLocation = 'PatternField_pattern';
     var name = node.name;
+    if (name != null && offset <= name.colon.offset) {
+      // TODO(brianwilkerson) Suggest the properties of the object or fields of
+      //  the record.
+      return;
+    }
     if (name == null) {
       var parent = node.parent;
       if (parent is ObjectPattern) {
@@ -709,8 +827,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         //  names of any named fields.
       }
     } else if (name.name == null) {
+      collector.completionLocation = 'PatternField_pattern';
       _forVariablePattern();
     } else {
+      collector.completionLocation = 'PatternField_pattern';
       _forPattern();
     }
   }
@@ -752,6 +872,20 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitRecordPattern(RecordPattern node) {
+    _forExpression(node);
+    keywordHelper.addKeyword(Keyword.DYNAMIC);
+  }
+
+  @override
+  void visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    collector.completionLocation = 'ConstructorDeclaration_initializer';
+    keywordHelper.addConstructorInitializerKeywords(
+        node.parent as ConstructorDeclaration);
+  }
+
+  @override
   void visitRestPatternElement(RestPatternElement node) {
     collector.completionLocation = 'RestPatternElement_pattern';
     _forPattern();
@@ -760,7 +894,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitReturnStatement(ReturnStatement node) {
     collector.completionLocation = 'ReturnStatement_expression';
-    _forExpression(node.expression ?? node);
+    if (offset <= node.returnKeyword.end) {
+      _forStatement(node);
+    } else {
+      _forExpression(node.expression ?? node);
+    }
   }
 
   @override
@@ -789,8 +927,29 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    collector.completionLocation = 'ConstructorDeclaration_initializer';
+    keywordHelper.addConstructorInitializerKeywords(
+        node.parent as ConstructorDeclaration);
+  }
+
+  @override
   void visitSwitchCase(SwitchCase node) {
     _forStatement(node);
+  }
+
+  @override
+  void visitSwitchDefault(SwitchDefault node) {
+    if (offset <= node.keyword.offset) {
+      keywordHelper.addKeyword(Keyword.CASE);
+      keywordHelper.addKeywordFromText(Keyword.DEFAULT, ':');
+    } else if (offset <= node.keyword.end) {
+      if (node.colon.isSynthetic) {
+        keywordHelper.addKeywordFromText(Keyword.DEFAULT, ':');
+      } else {
+        keywordHelper.addKeyword(Keyword.DEFAULT);
+      }
+    }
   }
 
   @override
@@ -803,7 +962,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitSwitchPatternCase(SwitchPatternCase node) {
-    if (offset <= node.colon.offset) {
+    if (offset <= node.keyword.end) {
+      keywordHelper.addKeyword(Keyword.CASE);
+    } else if (offset <= node.colon.offset) {
       var previous = node.colon.previous!;
       var previousKeyword = previous.keyword;
       if (previousKeyword == null) {
@@ -832,7 +993,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    if (offset >= node.leftParenthesis.end &&
+    if (offset <= node.switchKeyword.end) {
+      _forStatement(node);
+    } else if (offset >= node.leftParenthesis.end &&
         offset <= node.rightParenthesis.offset) {
       _forExpression(node);
     } else if (offset >= node.leftBracket.end &&
@@ -870,6 +1033,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    if (_forIncompletePreceedingUnitMember(node)) {
+      return;
+    } else if (node.isSingleIdentifier) {
+      // The parser recovers from a simple identifier by assuming that it's a
+      // variable declaration. But a simple identifier could be the start of
+      // any kind of member, so defer to the compilation unit.
+      node.parent?.accept(this);
+      return;
+    }
+
     var variableDeclarationList = node.variables;
     var variables = variableDeclarationList.variables;
     if (variables.isEmpty || offset > variables.first.beginToken.end) {
@@ -892,7 +1065,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitTryStatement(TryStatement node) {
-    if (offset >= node.body.end) {
+    if (offset <= node.tryKeyword.end) {
+      _forStatement(node);
+    } else if (offset >= node.body.end) {
       var finallyKeyword = node.finallyKeyword;
       if (finallyKeyword == null) {
         var catchClauses = node.catchClauses;
@@ -922,6 +1097,92 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
+    // The parser often recovers from incomplete code by creating a variable
+    // declaration. Start by checking to see whether the variable declaration is
+    // likely only there for recovery.
+    var parent = node.parent;
+    if (parent is! VariableDeclarationList) {
+      return;
+    }
+    var grandparent = parent.parent;
+    if (grandparent is FieldDeclaration) {
+      // The order of these conditions is critical. We need to check for an
+      // incomplete preceeding member even when the grandparent isn't a single
+      // identifier, but want to return only if both conditions are true.
+      if (_forIncompletePreceedingClassMember(grandparent) &&
+          grandparent.isSingleIdentifier) {
+        return;
+      }
+    } else if (grandparent is ForPartsWithDeclarations) {
+      if (node.equals == null &&
+          parent.variables.length == 1 &&
+          parent.type is RecordTypeAnnotation) {
+        keywordHelper.addKeyword(Keyword.IN);
+      }
+    } else if (grandparent is TopLevelVariableDeclaration) {
+      // The order of these conditions is critical. We need to check for an
+      // incomplete preceeding member even when the grandparent isn't a single
+      // identifier, but want to return only if both conditions are true.
+      if (_forIncompletePreceedingUnitMember(grandparent) &&
+          grandparent.isSingleIdentifier) {
+        return;
+      }
+    }
+
+    if (offset <= node.name.end) {
+      var container = grandparent?.parent;
+      var keyword = parent.keyword;
+      if (parent.type == null) {
+        if (keyword == null) {
+          keywordHelper.addKeyword(Keyword.CONST);
+          keywordHelper.addKeyword(Keyword.FINAL);
+          keywordHelper.addKeyword(Keyword.VAR);
+        }
+        if (keyword == null || keyword.keyword != Keyword.VAR) {
+          _forTypeAnnotation();
+        }
+      }
+      if (grandparent is FieldDeclaration) {
+        if (grandparent.externalKeyword == null) {
+          keywordHelper.addKeyword(Keyword.EXTERNAL);
+        }
+        if (grandparent.staticKeyword == null) {
+          keywordHelper.addKeyword(Keyword.STATIC);
+          if (container is ClassDeclaration || container is MixinDeclaration) {
+            if (grandparent.abstractKeyword == null) {
+              keywordHelper.addKeyword(Keyword.ABSTRACT);
+            }
+            if (grandparent.covariantKeyword == null) {
+              keywordHelper.addKeyword(Keyword.COVARIANT);
+            }
+          }
+          if (parent.lateKeyword == null &&
+              container is! ExtensionDeclaration) {
+            keywordHelper.addKeyword(Keyword.LATE);
+          }
+        }
+        if (node.name == grandparent.beginToken) {
+          // The parser often recovers from incomplete code by assuming that
+          // the user is typing a field declaration, but it's quite possible
+          // that the user is trying to type a different kind of declaration.
+          keywordHelper.addKeyword(Keyword.CONST);
+          if (container is ClassDeclaration) {
+            keywordHelper.addKeyword(Keyword.FACTORY);
+          }
+          keywordHelper.addKeyword(Keyword.GET);
+          keywordHelper.addKeyword(Keyword.OPERATOR);
+          keywordHelper.addKeyword(Keyword.SET);
+        }
+      } else if (grandparent is TopLevelVariableDeclaration) {
+        if (grandparent.externalKeyword == null) {
+          keywordHelper.addKeyword(Keyword.EXTERNAL);
+        }
+        if (parent.lateKeyword == null && container is! ExtensionDeclaration) {
+          keywordHelper.addKeyword(Keyword.LATE);
+        }
+      }
+      return;
+    }
     var equals = node.equals;
     if (equals != null && offset >= equals.end) {
       collector.completionLocation = 'VariableDeclaration_initializer';
@@ -947,10 +1208,25 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    _forIncompletePreceedingStatement(node);
+    if (offset <= node.beginToken.end) {
+      _forStatement(node);
+    }
+  }
+
+  @override
   void visitWhenClause(WhenClause node) {
     var whenKeyword = node.whenKeyword;
     if (!whenKeyword.isSynthetic && offset > whenKeyword.end) {
       _forExpression(node);
+    }
+  }
+
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    if (offset <= node.whileKeyword.end) {
+      _forStatement(node);
     }
   }
 
@@ -1009,7 +1285,107 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// Add the suggestions that are appropriate when the selection is at the
   /// beginning of an extension member.
   void _forExtensionMember() {
-    keywordHelper.addExtensionMemberKeywords();
+    keywordHelper.addExtensionMemberKeywords(isStatic: false);
+  }
+
+  /// Return `true` if the preceeding member is incomplete.
+  ///
+  /// If the completion offset is within the first token of the given [member],
+  /// then check to see whether the preceeding member is incomplete. If it is,
+  /// then the user might be attempting to complete the preceeding member rather
+  /// than attempting to prepend something to the given [member], so add the
+  /// suggestions appropriate for that situation.
+  bool _forIncompletePreceedingClassMember(ClassMember member) {
+    if (offset <= member.beginToken.end) {
+      var preceedingMember = member.preceedingMember;
+      if (preceedingMember == null) {
+        return false;
+      }
+      // Ideally we'd visit the preceeding member in order to avoid
+      // duplicating code, but the offset will be past where the parser
+      // inserted sythetic tokens, preventing that from working.
+      switch (preceedingMember) {
+        // TODO(brianwilkerson) Add support for other kinds of declarations.
+        case MethodDeclaration declaration:
+          if (declaration.body.isFullySynthetic) {
+            keywordHelper.addFunctionBodyModifiers(declaration.body);
+            return true;
+          }
+        case _:
+      }
+    }
+    return false;
+  }
+
+  /// If the completion offset is within the first token of the given
+  /// [statement], then check to see whether the preceeding statement is
+  /// incomplete. If it is, then the user might be attempting to complete the
+  /// preceeding statement rather than attempting to prepend something to the
+  /// given [statement], so add the suggestions appropriate for that situation.
+  bool _forIncompletePreceedingStatement(Statement statement) {
+    if (offset <= statement.beginToken.end) {
+      var preceedingStatement = statement.preceedingStatement;
+      if (preceedingStatement == null) {
+        return false;
+      }
+      // Ideally we'd visit the preceeding member in order to avoid
+      // duplicating code, but the offset will be past where the parser
+      // inserted sythetic tokens, preventing that from working.
+      switch (preceedingStatement) {
+        // TODO(brianwilkerson) Add support for other kinds of declarations.
+        case IfStatement declaration:
+          if (declaration.elseKeyword == null) {
+            keywordHelper.addKeyword(Keyword.ELSE);
+            return true;
+          }
+        case TryStatement declaration:
+          if (declaration.finallyBlock == null) {
+            visitTryStatement(declaration);
+            return true;
+          }
+        case _:
+      }
+    }
+    return false;
+  }
+
+  /// Return `true` if the preceeding member is incomplete.
+  ///
+  /// If the completion offset is within the first token of the given [member],
+  /// then check to see whether the preceeding member is incomplete. If it is,
+  /// then the user might be attempting to complete the preceeding member rather
+  /// than attempting to prepend something to the given [member], so add the
+  /// suggestions appropriate for that situation.
+  bool _forIncompletePreceedingUnitMember(AstNode member) {
+    if (offset <= member.beginToken.end) {
+      var parent = member.parent;
+      if (parent is! CompilationUnit) {
+        return false;
+      }
+      var members = parent.sortedDirectivesAndDeclarations;
+      var index = members.indexOf(member);
+      if (index <= 0) {
+        return false;
+      }
+      var preceedingMember = members[index - 1];
+      // Ideally we'd visit the preceeding member in order to avoid duplicating
+      // code, but in some cases the offset will be past where the parser
+      // inserted sythetic tokens, preventing that from working.
+      switch (preceedingMember) {
+        // TODO(brianwilkerson) Add support for other kinds of declarations.
+        case ClassDeclaration declaration:
+          if (declaration.hasNoBody) {
+            keywordHelper.addClassDeclarationKeywords(declaration);
+            return true;
+          }
+        case ImportDirective directive:
+          if (directive.semicolon.isSynthetic) {
+            visitImportDirective(directive);
+            return true;
+          }
+      }
+    }
+    return false;
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
@@ -1032,10 +1408,19 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
+  /// beginning of a type annotation.
+  void _forTypeAnnotation() {
+    keywordHelper.addKeyword(Keyword.DYNAMIC);
+    keywordHelper.addKeyword(Keyword.VOID);
+    // TODO(brianwilkerson) Suggest the types available in the current scope.
+    // _addTypesInScope();
+  }
+
+  /// Add the suggestions that are appropriate when the selection is at the
   /// beginning of a variable pattern.
   void _forVariablePattern() {
     keywordHelper.addVariablePatternKeywords();
-    // TODO(brianwilkerson) Suggest the types available in the currentscope.
+    // TODO(brianwilkerson) Suggest the types available in the current scope.
     // _addTypesInScope();
   }
 
@@ -1045,6 +1430,164 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset <= node.offset) {
       node.parent?.accept(this);
     }
+  }
+}
+
+extension on AstNode {
+  /// Return `true` if all of the tokens in this node are synthetic.
+  bool get isFullySynthetic {
+    var current = beginToken;
+    var stop = endToken.next!;
+    while (current != stop) {
+      if (!current.isSynthetic) {
+        return false;
+      }
+      current = current.next!;
+    }
+    return true;
+  }
+
+  /// Return `true` if the [child] is an element in a list of children of this
+  /// node.
+  bool isChildInList(AstNode child) {
+    return switch (this) {
+      AdjacentStrings(:var strings) => strings.contains(child),
+      ArgumentList(:var arguments) => arguments.contains(child),
+      AugmentationImportDirective(:var metadata) => metadata.contains(child),
+      Block(:var statements) => statements.contains(child),
+      CascadeExpression(:var cascadeSections) =>
+        cascadeSections.contains(child),
+      ClassDeclaration(:var members, :var metadata) =>
+        members.contains(child) || metadata.contains(child),
+      ClassTypeAlias(:var metadata) => metadata.contains(child),
+      Comment(:var references) => references.contains(child),
+      CompilationUnit(:var directives, :var declarations) =>
+        directives.contains(child) || declarations.contains(child),
+      ConstructorDeclaration(:var initializers, :var metadata) =>
+        initializers.contains(child) || metadata.contains(child),
+      DeclaredIdentifier(:var metadata) => metadata.contains(child),
+      DottedName(:var components) => components.contains(child),
+      EnumConstantDeclaration(:var metadata) => metadata.contains(child),
+      EnumDeclaration(:var constants, :var members, :var metadata) =>
+        constants.contains(child) ||
+            members.contains(child) ||
+            metadata.contains(child),
+      ExportDirective(:var combinators, :var configurations, :var metadata) =>
+        combinators.contains(child) ||
+            configurations.contains(child) ||
+            metadata.contains(child),
+      ExtensionDeclaration(:var members, :var metadata) =>
+        members.contains(child) || metadata.contains(child),
+      ExtensionTypeDeclaration(:var members, :var metadata) =>
+        members.contains(child) || metadata.contains(child),
+      FieldDeclaration(:var metadata) => metadata.contains(child),
+      ForEachPartsWithPattern(:var metadata) => metadata.contains(child),
+      FormalParameter(:var metadata) => metadata.contains(child),
+      FormalParameterList(:var parameters) => parameters.contains(child),
+      ForParts(:var updaters) => updaters.contains(child),
+      FunctionDeclaration(:var metadata) => metadata.contains(child),
+      FunctionTypeAlias(:var metadata) => metadata.contains(child),
+      GenericTypeAlias(:var metadata) => metadata.contains(child),
+      HideCombinator(:var hiddenNames) => hiddenNames.contains(child),
+      ImplementsClause(:var interfaces) => interfaces.contains(child),
+      ImportDirective(:var combinators, :var configurations, :var metadata) =>
+        combinators.contains(child) ||
+            configurations.contains(child) ||
+            metadata.contains(child),
+      LabeledStatement(:var labels) => labels.contains(child),
+      LibraryAugmentationDirective(:var metadata) => metadata.contains(child),
+      LibraryDirective(:var metadata) => metadata.contains(child),
+      LibraryIdentifier(:var components) => components.contains(child),
+      ListLiteral(:var elements) => elements.contains(child),
+      ListPattern(:var elements) => elements.contains(child),
+      MapPattern(:var elements) => elements.contains(child),
+      MethodDeclaration(:var metadata) => metadata.contains(child),
+      MixinDeclaration(:var members, :var metadata) =>
+        members.contains(child) || metadata.contains(child),
+      ObjectPattern(:var fields) => fields.contains(child),
+      OnClause(:var superclassConstraints) =>
+        superclassConstraints.contains(child),
+      PartDirective(:var metadata) => metadata.contains(child),
+      PartOfDirective(:var metadata) => metadata.contains(child),
+      PatternVariableDeclaration(:var metadata) => metadata.contains(child),
+      RecordLiteral(:var fields) => fields.contains(child),
+      RecordPattern(:var fields) => fields.contains(child),
+      RecordTypeAnnotation(:var positionalFields) =>
+        positionalFields.contains(child),
+      RecordTypeAnnotationField(:var metadata) => metadata.contains(child),
+      RecordTypeAnnotationNamedFields(:var fields) => fields.contains(child),
+      RepresentationDeclaration(:var fieldMetadata) =>
+        fieldMetadata.contains(child),
+      SetOrMapLiteral(:var elements) => elements.contains(child),
+      ShowCombinator(:var shownNames) => shownNames.contains(child),
+      SwitchExpression(:var cases) => cases.contains(child),
+      SwitchMember(:var labels, :var statements) =>
+        labels.contains(child) || statements.contains(child),
+      SwitchStatement(:var members) => members.contains(child),
+      TopLevelVariableDeclaration(:var metadata) => metadata.contains(child),
+      TryStatement(:var catchClauses) => catchClauses.contains(child),
+      TypeArgumentList(:var arguments) => arguments.contains(child),
+      TypeParameter(:var metadata) => metadata.contains(child),
+      TypeParameterList(:var typeParameters) => typeParameters.contains(child),
+      VariableDeclaration(:var metadata) => metadata.contains(child),
+      VariableDeclarationList(:var metadata, :var variables) =>
+        metadata.contains(child) || variables.contains(child),
+      WithClause(:var mixinTypes) => mixinTypes.contains(child),
+      AstNode() => false,
+    };
+  }
+}
+
+extension on ClassDeclaration {
+  /// Return `true` if this class declaration doesn't have a body.
+  bool get hasNoBody {
+    return leftBracket.isSynthetic && rightBracket.isSynthetic;
+  }
+}
+
+extension on ClassMember {
+  /// Return the member before `this`, or `null` if this is the first member in
+  /// the body.
+  ClassMember? get preceedingMember {
+    final parent = this.parent;
+    var members = switch (parent) {
+      ClassDeclaration() => parent.members,
+      EnumDeclaration() => parent.members,
+      ExtensionDeclaration() => parent.members,
+      ExtensionTypeDeclaration() => parent.members,
+      MixinDeclaration() => parent.members,
+      _ => null
+    };
+    if (members == null) {
+      return null;
+    }
+    var index = members.indexOf(this);
+    if (index <= 0) {
+      return null;
+    }
+    return members[index - 1];
+  }
+}
+
+extension on ExpressionStatement {
+  /// Return `true` if this statement consists of a single identifier.
+  bool get isSingleIdentifier {
+    var first = beginToken;
+    var last = endToken;
+    return first.isKeywordOrIdentifier &&
+        last.isSynthetic &&
+        first.next == last;
+  }
+}
+
+extension on FieldDeclaration {
+  /// Return `true` if this field declaration consists of a single identifier.
+  bool get isSingleIdentifier {
+    var first = beginToken;
+    var last = endToken;
+    return first.isKeywordOrIdentifier &&
+        last.isSynthetic &&
+        first.next == last;
   }
 }
 
@@ -1067,6 +1610,23 @@ extension on GuardedPattern {
   }
 }
 
+extension on Statement {
+  /// Return the statement before `this`, or `null` if this is the first statement in
+  /// the block.
+  Statement? get preceedingStatement {
+    final parent = this.parent;
+    if (parent is! Block) {
+      return null;
+    }
+    var statements = parent.statements;
+    var index = statements.indexOf(this);
+    if (index <= 0) {
+      return null;
+    }
+    return statements[index - 1];
+  }
+}
+
 extension on SyntacticEntity? {
   /// Return `true` if the receiver covers the [offset].
   bool coversOffset(int offset) {
@@ -1075,8 +1635,21 @@ extension on SyntacticEntity? {
   }
 }
 
+extension on TopLevelVariableDeclaration {
+  /// Return `true` if this top level variable declaration consists of a single
+  /// identifier.
+  bool get isSingleIdentifier {
+    var first = beginToken;
+    var last = endToken;
+    return first.isKeywordOrIdentifier &&
+        last.isSynthetic &&
+        first.next == last;
+  }
+}
+
 extension on TypeAnnotation? {
-  bool get isSimpleIdentifier {
+  /// Return `true` if this type annotation consists of a single identifier.
+  bool get isSingleIdentifier {
     var self = this;
     return self is NamedType &&
         self.question == null &&
