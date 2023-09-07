@@ -298,6 +298,18 @@ extension ListToJSArray on List<JSAny?> {
   @patch
   @pragma('dart2js:prefer-inline')
   JSArray get toJS => this as JSArray;
+
+  // TODO(srujzs): Should we do a check to make sure this List is a JSArray
+  // under the hood and then potentially proxy? This applies for user lists. For
+  // now, don't do the check to avoid the cost of the check in the general case,
+  // and user lists will likely crash. Note that on dart2js, we do an
+  // `Array.isArray` check instead of `instanceof Array` when we cast to a
+  // `List`, which is what `JSArray` is. This won't work for proxy objects as
+  // they're not actually Arrays, so the cast will fail unless we change that
+  // check.
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSArray get toJSProxyOrRef => this as JSArray;
 }
 
 /// [JSNumber] -> [double] or [int].

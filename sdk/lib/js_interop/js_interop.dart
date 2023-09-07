@@ -316,11 +316,27 @@ extension Float64ListToJSFloat64Array on Float64List {
 
 /// [JSArray] <-> [List]
 extension JSArrayToList on JSArray {
+  /// Returns a list wrapper of the JS array.
   external List<JSAny?> get toDart;
 }
 
 extension ListToJSArray on List<JSAny?> {
+  /// Compiler-specific conversion from list to JS array.
+  ///
+  /// This is either a pass-by-reference, unwrap, or copy depending on the
+  /// implementation of the given list, and users shouldn't rely on
+  /// modifications to the list to affect the array or vice versa.
   external JSArray get toJS;
+
+  /// Either passes by reference, unwraps, or creates a heavyweight proxy that
+  /// wraps the list.
+  ///
+  /// Only use this member if you want modifications to the list to also affect
+  /// the JS array and vice versa. In practice, dart2js and DDC will pass lists
+  /// by reference and dart2wasm will add a proxy or unwrap for most lists.
+  ///
+  /// **WARNING**: Do not rely on this to be performant.
+  external JSArray get toJSProxyOrRef;
 }
 
 /// [JSNumber] -> [double] or [int].
