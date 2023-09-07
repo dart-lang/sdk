@@ -836,7 +836,6 @@ extension E on C //2
   Future<void> test_extensionType() async {
     addTestFile('''
 extension type A(int it) {
-  A.named() : this(0);
   void foo() {
     it; // foo()
   }
@@ -845,22 +844,80 @@ extension type A(int it) {
 void f(A a) {
   A.it; // f()
   A(0);
-  A.named();
   a.foo();
   A.bar();
 }
 ''');
     await prepareNavigation();
     assertHasRegion('int it');
-    assertHasRegionTarget('this(0)', 'A(int it');
     assertHasRegionTarget('it; // foo()', 'it) {');
     assertHasRegionTarget('A a)', 'A(int');
     assertHasRegionTarget('it; // f()', 'it) {');
     assertHasRegionTarget('A(0);', 'A(int');
-    assertHasRegionTarget('named();', 'named() :');
     assertHasRegionTarget('foo();', 'foo() {');
     assertHasRegionTarget('A.bar()', 'A(int');
     assertHasRegionTarget('bar();', 'bar() {}');
+  }
+
+  Future<void> test_extensionType_primaryConstructor_named() async {
+    addTestFile('''
+extension type A.named(int it) {
+  A.other() : this.named(0);
+}
+
+void f() {
+  A.named(1);
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('A.named(int', 'A.named(int');
+    assertHasRegionTarget('named(int', 'named(int');
+    assertHasRegion('int it');
+    assertHasRegionTarget('it) {', 'it) {');
+    assertHasRegionTarget('this.named(0)', 'named(int');
+    assertHasRegionTarget('named(0)', 'named(int');
+    assertHasRegionTarget('A.named(1)', 'A.named(int');
+    assertHasRegionTarget('named(1)', 'named(int');
+  }
+
+  Future<void> test_extensionType_primaryConstructor_unnamed() async {
+    addTestFile('''
+extension type A(int it) {
+  A.other() : this(0);
+}
+
+void f() {
+  A(1);
+  A.new(2);
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('A(int', 'A(int');
+    assertHasRegion('int it');
+    assertHasRegionTarget('it) {', 'it) {');
+    assertHasRegionTarget('this(0)', 'A(int');
+    assertHasRegionTarget('A(1)', 'A(int');
+    assertHasRegionTarget('new(2)', 'A(int');
+  }
+
+  Future<void> test_extensionType_secondaryConstructor_named() async {
+    addTestFile('''
+extension type A(int it) {
+  A.named() : this(0);
+  A.other() : this.named(1);
+}
+
+void f() {
+  A.named(2);
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('A.named() :', 'A(int');
+    assertHasRegionTarget('named() :', 'named() :');
+    assertHasRegionTarget('this.named(1)', 'named() :');
+    assertHasRegionTarget('named(1)', 'named() :');
+    assertHasRegionTarget('A.named(2)', 'A(int');
+    assertHasRegionTarget('named(2)', 'named() :');
   }
 
   Future<void> test_functionReference_className_staticMethod() async {

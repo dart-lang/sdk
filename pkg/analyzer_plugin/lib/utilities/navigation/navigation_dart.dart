@@ -432,6 +432,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    computer._addRegionForToken(node.name, node.declaredElement);
+    super.visitExtensionTypeDeclaration(node);
+  }
+
+  @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     final element = node.declaredElement;
     if (element is FieldFormalParameterElementImpl) {
@@ -557,6 +563,15 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegionForNode(node.constructorName, element);
     // process arguments
     node.argumentList.accept(this);
+  }
+
+  @override
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    if (node.constructorName?.name case final constructorName?) {
+      computer._addRegionForToken(constructorName, node.constructorElement);
+    }
+    computer._addRegionForToken(node.fieldName, node.fieldElement);
+    super.visitRepresentationDeclaration(node);
   }
 
   @override
