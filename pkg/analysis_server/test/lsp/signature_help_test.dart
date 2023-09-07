@@ -24,7 +24,7 @@ mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
   Future<void> testSignature(
     String fileContent,
     String expectedLabel,
-    String expectedDoc,
+    String? expectedDoc,
     List<ParameterInformation> expectedParams, {
     MarkupKind? expectedFormat = MarkupKind.Markdown,
     SignatureHelpContext? context,
@@ -41,16 +41,19 @@ mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
     expect(sig.label, equals(expectedLabel));
     expect(sig.parameters, equals(expectedParams));
 
-    // Test the format matches the tests expectation.
-    // For clients that don't support MarkupContent it'll be a plain string,
-    // but otherwise it'll be a MarkupContent of type PlainText or Markdown.
-    final doc = sig.documentation!;
-    if (expectedFormat == null) {
-      // Plain string.
-      expect(doc.valueEquals(expectedDoc), isTrue);
-    } else {
-      final expected = MarkupContent(kind: expectedFormat, value: expectedDoc);
-      expect(doc.valueEquals(expected), isTrue);
+    if (expectedDoc != null) {
+      // Test the format matches the tests expectation.
+      // For clients that don't support MarkupContent it'll be a plain string,
+      // but otherwise it'll be a MarkupContent of type PlainText or Markdown.
+      final doc = sig.documentation!;
+      if (expectedFormat == null) {
+        // Plain string.
+        expect(doc.valueEquals(expectedDoc), isTrue);
+      } else {
+        final expected =
+            MarkupContent(kind: expectedFormat, value: expectedDoc);
+        expect(doc.valueEquals(expected), isTrue);
+      }
     }
   }
 }
@@ -190,6 +193,35 @@ void f() {
       positionFromMarker(content),
     );
     expect(res, isNull);
+  }
+
+  Future<void> test_extensionType() async {
+    final content = '''
+class A {
+  void f(int a) {}
+}
+
+extension type E(A a) {
+  void f(int e) {}
+}
+
+void f() {
+  final e = E(A());
+  e.f(^);
+}
+''';
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    await testSignature(
+      content,
+      'f(int e)',
+      null,
+      [
+        ParameterInformation(label: 'int e'),
+      ],
+    );
   }
 
   Future<void> test_formats_markdown() async {
