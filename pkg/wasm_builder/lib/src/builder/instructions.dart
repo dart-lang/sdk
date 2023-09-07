@@ -144,9 +144,13 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// List of instructions.
   final List<ir.Instruction> _instructions = [];
 
+  /// Stored stack traces leading to the instructions for watch points.
+  final Map<ir.Instruction, StackTrace>? _stackTraces;
+
   /// Create a new instruction sequence.
   InstructionsBuilder(this.module, List<ir.ValueType> outputs,
-      {this.isGlobalInitializer = false}) {
+      {this.isGlobalInitializer = false})
+      : _stackTraces = module.watchPoints != null ? {} : null {
     _labelStack.add(Expression(const [], outputs));
   }
 
@@ -161,9 +165,14 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
   @override
   ir.Instructions forceBuild() =>
-      ir.Instructions(locals, _instructions, _traceLines);
+      ir.Instructions(locals, _instructions, _stackTraces, _traceLines);
 
-  void _add(ir.Instruction i) => _instructions.add(i);
+  void _add(ir.Instruction i) {
+    _instructions.add(i);
+    if (module.watchPoints != null) {
+      _stackTraces![i] = StackTrace.current;
+    }
+  }
 
   ir.Local addLocal(ir.ValueType type, {required bool isParameter}) {
     final local = ir.Local(locals.length, type);
