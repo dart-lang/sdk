@@ -1737,8 +1737,8 @@ class BodyBuilder extends StackListenerImpl
     List<TypeVariableBuilder>? typeParameterBuilders;
     for (TypeParameter typeParameter in parameters.typeParameters) {
       typeParameterBuilders ??= <TypeVariableBuilder>[];
-      typeParameterBuilders.add(
-          new TypeVariableBuilder.fromKernel(typeParameter, libraryBuilder));
+      typeParameterBuilders
+          .add(new TypeVariableBuilder.fromKernel(typeParameter));
     }
     enterFunctionTypeScope(typeParameterBuilders);
 

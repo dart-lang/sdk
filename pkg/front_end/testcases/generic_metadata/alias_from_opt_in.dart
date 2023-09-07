@@ -23,11 +23,31 @@ test(
   List<T4> t4b, // Error,
   void Function(T4) t4c, // Error
   void Function(List<T4>) t4d, // Error
+  T5 t5a, // Error,
+  List<T5> t5b, // Error,
+  void Function(T5) t5c, // Error
+  void Function(List<T5>) t5d, // Error
+  T6 t6a, // Error,
+  List<T6> t6b, // Error,
+  void Function(T6) t6c, // Error
+  void Function(List<T6>) t6d, // Error
+  T7 t7a, // Error,
+  List<T7> t7b, // Error,
+  void Function(T7) t7c, // Error
+  void Function(List<T7>) t7d, // Error
+  T8 t8a, // Error,
+  List<T8> t8b, // Error,
+  void Function(T8) t8c, // Error
+  void Function(List<T8>) t8d, // Error
 ) {
   new T4(); // Error
   <T4>[]; // Error
   <void Function(T4)>[]; // Error
   <void Function(List<T4>)>[]; // Error
+  new T7(0); // Error
+  <T7>[]; // Error
+  <void Function(T7)>[]; // Error
+  <void Function(List<T7>)>[]; // Error
 }
 
 main() {}

@@ -32,6 +32,16 @@ library;
 //   void Function(List<T4>) t4d, // Error
 //                      ^
 //
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:39:3: Error: A generic function type can't be used as a type argument.
+// Try using a non-generic function type.
+//   List<T8> t8b, // Error,
+//   ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:41:17: Error: A generic function type can't be used as a type argument.
+// Try using a non-generic function type.
+//   void Function(List<T8>) t8d, // Error
+//                 ^
+//
 // pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:18:3: Error: Generic function type 'List<void Function<T>(T)>' used as a type argument through typedef 'T3'.
 //  - 'List' is from 'dart:core'.
 // Try providing a non-generic function type explicitly.
@@ -56,22 +66,27 @@ library;
 //   void Function(List<T3>) t3d, // Error
 //                      ^
 //
-// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:27:7: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:47:10: Error: The argument type 'int' can't be assigned to the parameter type 'List<dynamic>'.
+//  - 'List' is from 'dart:core'.
+//   new T7(0); // Error
+//          ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:43:7: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
 // Try providing a non-generic function type explicitly.
 //   new T4(); // Error
 //       ^
 //
-// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:28:4: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:44:4: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
 // Try providing a non-generic function type explicitly.
 //   <T4>[]; // Error
 //    ^
 //
-// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:29:18: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:45:18: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
 // Try providing a non-generic function type explicitly.
 //   <void Function(T4)>[]; // Error
 //                  ^
 //
-// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:30:23: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:46:23: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
 // Try providing a non-generic function type explicitly.
 //   <void Function(List<T4>)>[]; // Error
 //                       ^
@@ -82,11 +97,18 @@ import "alias_from_opt_in_lib.dart" as ali;
 
 import "org-dartlang-testcase:///alias_from_opt_in_lib.dart";
 
-static method test(<T extends core::Object? = dynamic>(T%) → void t1a, core::List<<T extends core::Object? = dynamic>(T%) → void> t1b, (<T extends core::Object? = dynamic>(T%) → void) → void t1c, (core::List<<T extends core::Object? = dynamic>(T%) → void>) → void t1d, (<T extends core::Object? = dynamic>(T%) → void) → void t2a, core::List<(<T extends core::Object? = dynamic>(T%) → void) → void> t2b, ((<T extends core::Object? = dynamic>(T%) → void) → void) → void t2c, (core::List<(<T extends core::Object? = dynamic>(T%) → void) → void>) → void t2d, core::List<<T extends core::Object? = dynamic>(T%) → void> t3a, core::List<core::List<<T extends core::Object? = dynamic>(T%) → void>> t3b, (core::List<<T extends core::Object? = dynamic>(T%) → void>) → void t3c, (core::List<core::List<<T extends core::Object? = dynamic>(T%) → void>>) → void t3d, ali::Class<<T extends core::Object? = dynamic>(T%) → void> t4a, core::List<ali::Class<<T extends core::Object? = dynamic>(T%) → void>> t4b, (ali::Class<<T extends core::Object? = dynamic>(T%) → void>) → void t4c, (core::List<ali::Class<<T extends core::Object? = dynamic>(T%) → void>>) → void t4d) → dynamic {
+static method test(<T extends core::Object? = dynamic>(T%) → void t1a, core::List<<T extends core::Object? = dynamic>(T%) → void> t1b, (<T extends core::Object? = dynamic>(T%) → void) → void t1c, (core::List<<T extends core::Object? = dynamic>(T%) → void>) → void t1d, (<T extends core::Object? = dynamic>(T%) → void) → void t2a, core::List<(<T extends core::Object? = dynamic>(T%) → void) → void> t2b, ((<T extends core::Object? = dynamic>(T%) → void) → void) → void t2c, (core::List<(<T extends core::Object? = dynamic>(T%) → void) → void>) → void t2d, core::List<<T extends core::Object? = dynamic>(T%) → void> t3a, core::List<core::List<<T extends core::Object? = dynamic>(T%) → void>> t3b, (core::List<<T extends core::Object? = dynamic>(T%) → void>) → void t3c, (core::List<core::List<<T extends core::Object? = dynamic>(T%) → void>>) → void t3d, ali::Class<<T extends core::Object? = dynamic>(T%) → void> t4a, core::List<ali::Class<<T extends core::Object? = dynamic>(T%) → void>> t4b, (ali::Class<<T extends core::Object? = dynamic>(T%) → void>) → void t4c, (core::List<ali::Class<<T extends core::Object? = dynamic>(T%) → void>>) → void t4d, (<T extends core::Object? = dynamic>(T%) → void, core::int) t5a, core::List<(<T extends core::Object? = dynamic>(T%) → void, core::int)> t5b, ((<T extends core::Object? = dynamic>(T%) → void, core::int)) → void t5c, (core::List<(<T extends core::Object? = dynamic>(T%) → void, core::int)>) → void t5d, ({required a: <T extends core::Object? = dynamic>(T%) → void, required b: core::int}) t6a, core::List<({required a: <T extends core::Object? = dynamic>(T%) → void, required b: core::int})> t6b, (({required a: <T extends core::Object? = dynamic>(T%) → void, required b: core::int})) → void t6c, (core::List<({required a: <T extends core::Object? = dynamic>(T%) → void, required b: core::int})>) → void t6d, ali::ExtensionType<<T extends core::Object? = dynamic>(T%) → void> /* = core::List<<T extends core::Object? = dynamic>(T%) → void> */ t7a, core::List<ali::ExtensionType<<T extends core::Object? = dynamic>(T%) → void> /* = core::List<<T extends core::Object? = dynamic>(T%) → void> */> t7b, (ali::ExtensionType<<T extends core::Object? = dynamic>(T%) → void> /* = core::List<<T extends core::Object? = dynamic>(T%) → void> */) → void t7c, (core::List<ali::ExtensionType<<T extends core::Object? = dynamic>(T%) → void> /* = core::List<<T extends core::Object? = dynamic>(T%) → void> */>) → void t7d, <S extends <T extends core::Object? = dynamic>(T%) → void = dynamic>(S) → void t8a, core::List<<S extends <T extends core::Object? = dynamic>(T%) → void = dynamic>(S) → void> t8b, (<S extends <T extends core::Object? = dynamic>(T%) → void = dynamic>(S) → void) → void t8c, (core::List<<S extends <T extends core::Object? = dynamic>(T%) → void = dynamic>(S) → void>) → void t8d) → dynamic {
   new ali::Class::•<<T extends core::Object? = dynamic>(T%) → void>();
   <ali::Class<<T extends core::Object? = dynamic>(T%) → void>>[];
   <(ali::Class<<T extends core::Object? = dynamic>(T%) → void>) → void>[];
   <(core::List<ali::Class<<T extends core::Object? = dynamic>(T%) → void>>) → void>[];
+  ali::ExtensionType|<dynamic>(invalid-expression "pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:47:10: Error: The argument type 'int' can't be assigned to the parameter type 'List<dynamic>'.
+ - 'List' is from 'dart:core'.
+  new T7(0); // Error
+         ^" in 0 as{TypeError} core::List<dynamic>);
+  <ali::ExtensionType<<T extends core::Object? = dynamic>(T%) → void> /* = core::List<<T extends core::Object? = dynamic>(T%) → void> */>[];
+  <(ali::ExtensionType<<T extends core::Object? = dynamic>(T%) → void> /* = core::List<<T extends core::Object? = dynamic>(T%) → void> */) → void>[];
+  <(core::List<ali::ExtensionType<<T extends core::Object? = dynamic>(T%) → void> /* = core::List<<T extends core::Object? = dynamic>(T%) → void> */>) → void>[];
 }
 static method main() → dynamic {}
 
@@ -98,13 +120,28 @@ typedef T1 = <T extends core::Object? = dynamic>(T%) → void;
 typedef T2 = (<T extends core::Object? = dynamic>(T%) → void) → void;
 typedef T3 = core::List<<T extends core::Object? = dynamic>(T%) → void>;
 typedef T4<X extends <T extends core::Object? = dynamic>(T%) → void> = ali::Class<X>;
+typedef T5 = (<T extends core::Object? = dynamic>(T%) → void, core::int);
+typedef T6 = ({required a: <T extends core::Object? = dynamic>(T%) → void, required b: core::int});
+typedef T7 = ali::ExtensionType<<T extends core::Object? = dynamic>(T%) → void> /* = core::List<<T extends core::Object? = dynamic>(T%) → void> */;
+typedef T8 = <S extends <T extends core::Object? = dynamic>(T%) → void = dynamic>(S) → void;
 class Class<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → ali::Class<ali::Class::T%>
     : super core::Object::•()
     ;
 }
-static method test(<T extends core::Object? = dynamic>(T%) → void t1, <T extends core::Object? = dynamic>(T%) → void t2, core::List<<T extends core::Object? = dynamic>(T%) → void> t3) → dynamic {
+extension type ExtensionType<T extends core::Object? = dynamic>(core::List<T%> it) {
+  constructor • = ali::ExtensionType|;
+  tearoff • = ali::ExtensionType|_#new#tearOff;
+}
+static inline-class-member method ExtensionType|<T extends core::Object? = dynamic>(core::List<ali::ExtensionType|::T%> it) → ali::ExtensionType<ali::ExtensionType|::T%> /* = core::List<ali::ExtensionType|::T%> */ {
+  lowered final ali::ExtensionType<ali::ExtensionType|::T%> /* = core::List<ali::ExtensionType|::T%> */ #this = it;
+  return #this;
+}
+static inline-class-member method ExtensionType|_#new#tearOff<T extends core::Object? = dynamic>(core::List<ali::ExtensionType|_#new#tearOff::T%> it) → ali::ExtensionType<ali::ExtensionType|_#new#tearOff::T%> /* = core::List<ali::ExtensionType|_#new#tearOff::T%> */
+  return ali::ExtensionType|<ali::ExtensionType|_#new#tearOff::T%>(it);
+static method test(<T extends core::Object? = dynamic>(T%) → void t1, <T extends core::Object? = dynamic>(T%) → void t2, core::List<<T extends core::Object? = dynamic>(T%) → void> t3, (<T extends core::Object? = dynamic>(T%) → void, core::int) t5, ({required a: <T extends core::Object? = dynamic>(T%) → void, required b: core::int}) t6, <S extends <T extends core::Object? = dynamic>(T%) → void = dynamic>(S) → void t8) → dynamic {
   new ali::Class::•<<T extends core::Object? = dynamic>(T%) → void>();
+  ali::ExtensionType|<dynamic>(<dynamic>[]);
 }
 static method _#T4#new#tearOff<X extends <T extends core::Object? = dynamic>(T%) → void>() → ali::Class<ali::_#T4#new#tearOff::X>
   return new ali::Class::•<ali::_#T4#new#tearOff::X>();

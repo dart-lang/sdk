@@ -141,8 +141,8 @@ class DillExtensionTypeDeclarationBuilder
     List<TypeVariableBuilder>? typeVariables = _typeParameters;
     if (typeVariables == null &&
         _extensionTypeDeclaration.typeParameters.isNotEmpty) {
-      typeVariables = _typeParameters = computeTypeVariableBuilders(
-          libraryBuilder, _extensionTypeDeclaration.typeParameters);
+      typeVariables = _typeParameters =
+          computeTypeVariableBuilders(_extensionTypeDeclaration.typeParameters);
     }
     return typeVariables;
   }

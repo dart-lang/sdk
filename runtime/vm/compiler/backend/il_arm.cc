@@ -243,33 +243,88 @@ void MemoryCopyInstr::PrepareLengthRegForLoop(FlowGraphCompiler* compiler,
   __ BranchIfZero(length_reg, done);
 }
 
+static compiler::OperandSize OperandSizeFor(intptr_t bytes) {
+  ASSERT(Utils::IsPowerOfTwo(bytes));
+  switch (bytes) {
+    case 1:
+      return compiler::kUnsignedByte;
+    case 2:
+      return compiler::kUnsignedTwoBytes;
+    case 4:
+      return compiler::kUnsignedFourBytes;
+    case 8:
+      return compiler::kEightBytes;
+    default:
+      UNREACHABLE();
+      return compiler::kEightBytes;
+  }
+}
+
+static void CopyUpToWordMultiple(FlowGraphCompiler* compiler,
+                                 Register dest_reg,
+                                 Register src_reg,
+                                 Register length_reg,
+                                 intptr_t element_size,
+                                 bool unboxed_inputs,
+                                 bool reversed,
+                                 compiler::Label* done) {
+  ASSERT(Utils::IsPowerOfTwo(element_size));
+  if (element_size >= compiler::target::kWordSize) return;
+
+  const intptr_t base_shift = (unboxed_inputs ? 0 : kSmiTagShift) -
+                              Utils::ShiftForPowerOfTwo(element_size);
+  auto const mode =
+      reversed ? compiler::Address::NegPreIndex : compiler::Address::PostIndex;
+  intptr_t tested_bits = 0;
+
+  __ Comment("Copying until region is a multiple of word size");
+
+  for (intptr_t bit = compiler::target::kWordSizeLog2 - 1; bit >= 0; bit--) {
+    const intptr_t bytes = 1 << bit;
+    if (element_size > bytes) continue;
+    auto const sz = OperandSizeFor(bytes);
+    const intptr_t tested_bit = bit + base_shift;
+    tested_bits |= (1 << tested_bit);
+    __ tst(length_reg, compiler::Operand(1 << tested_bit));
+    __ LoadFromOffset(TMP, compiler::Address(src_reg, bytes, mode), sz,
+                      NOT_ZERO);
+    __ StoreToOffset(TMP, compiler::Address(dest_reg, bytes, mode), sz,
+                     NOT_ZERO);
+  }
+
+  __ bics(length_reg, length_reg, compiler::Operand(tested_bits));
+  __ b(done, ZERO);
+}
+
 void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
                                    Register dest_reg,
                                    Register src_reg,
                                    Register length_reg,
                                    compiler::Label* done,
                                    compiler::Label* copy_forwards) {
-  const intptr_t loop_subtract = unboxed_inputs() ? 1 : Smi::RawValue(1);
-  auto load_mode = compiler::Address::PostIndex;
-  auto load_multiple_mode = BlockAddressMode::IA_W;
-  if (copy_forwards != nullptr) {
-    // When reversed, start the src and dest registers with the end addresses
-    // and apply the negated offset prior to indexing.
-    load_mode = compiler::Address::NegPreIndex;
-    load_multiple_mode = BlockAddressMode::DB_W;
+  const bool reversed = copy_forwards != nullptr;
+  if (reversed) {
     // Verify that the overlap actually exists by checking to see if
     // dest_start < src_end.
     const intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
                            (unboxed_inputs() ? 0 : kSmiTagShift);
     if (shift < 0) {
-      __ add(TMP, src_reg, compiler::Operand(length_reg, ASR, -shift));
+      __ add(src_reg, src_reg, compiler::Operand(length_reg, ASR, -shift));
     } else {
-      __ add(TMP, src_reg, compiler::Operand(length_reg, LSL, shift));
+      __ add(src_reg, src_reg, compiler::Operand(length_reg, LSL, shift));
     }
-    __ CompareRegisters(dest_reg, TMP);
-    __ BranchIf(UNSIGNED_GREATER_EQUAL, copy_forwards);
-    // There is overlap, so mov TMP to src_reg and adjust dest_reg now.
-    __ MoveRegister(src_reg, TMP);
+    __ CompareRegisters(dest_reg, src_reg);
+    // If dest_reg >= src_reg, then set src_reg back to the start of the source
+    // region before branching to the forwards-copying loop.
+    if (shift < 0) {
+      __ sub(src_reg, src_reg, compiler::Operand(length_reg, ASR, -shift),
+             UNSIGNED_GREATER_EQUAL);
+    } else {
+      __ sub(src_reg, src_reg, compiler::Operand(length_reg, LSL, shift),
+             UNSIGNED_GREATER_EQUAL);
+    }
+    __ b(copy_forwards, UNSIGNED_GREATER_EQUAL);
+    // There is overlap, so adjust dest_reg now.
     if (shift < 0) {
       __ add(dest_reg, dest_reg, compiler::Operand(length_reg, ASR, -shift));
     } else {
@@ -279,29 +334,34 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
   // We can use TMP for all instructions below because element_size_ is
   // guaranteed to fit in the offset portion of the instruction in the
   // non-LDM/STM cases.
-  compiler::Address src_address =
-      compiler::Address(src_reg, element_size_, load_mode);
-  compiler::Address dest_address =
-      compiler::Address(dest_reg, element_size_, load_mode);
+  CopyUpToWordMultiple(compiler, dest_reg, src_reg, length_reg, element_size_,
+                       unboxed_inputs_, reversed, done);
+  // When reversed, the src and dest registers have been adjusted to start at
+  // the end addresses, so apply the negated offset prior to indexing.
+  const auto load_mode =
+      reversed ? compiler::Address::NegPreIndex : compiler::Address::PostIndex;
+  const auto load_multiple_mode =
+      reversed ? BlockAddressMode::DB_W : BlockAddressMode::IA_W;
+  // The size of the uncopied region is a multiple of the word size, so now we
+  // copy the rest by word (unless the element size is larger).
+  const intptr_t loop_subtract =
+      Utils::Maximum<intptr_t>(1, compiler::target::kWordSize / element_size_)
+      << (unboxed_inputs_ ? 0 : kSmiTagShift);
   // Used only for LDM/STM below.
   RegList temp_regs = (1 << TMP);
   for (intptr_t i = 0; i < locs()->temp_count(); i++) {
     temp_regs |= 1 << locs()->temp(i).reg();
   }
+  __ Comment("Copying by multiples of word size");
   compiler::Label loop;
   __ Bind(&loop);
   switch (element_size_) {
+    // Fall through for the sizes smaller than compiler::target::kWordSize.
     case 1:
-      __ ldrb(TMP, src_address);
-      __ strb(TMP, dest_address);
-      break;
     case 2:
-      __ ldrh(TMP, src_address);
-      __ strh(TMP, dest_address);
-      break;
     case 4:
-      __ ldr(TMP, src_address);
-      __ str(TMP, dest_address);
+      __ ldr(TMP, compiler::Address(src_reg, 4, load_mode));
+      __ str(TMP, compiler::Address(dest_reg, 4, load_mode));
       break;
     case 8:
       COMPILE_ASSERT(8 == kMaxMemoryCopyElementSize);

@@ -6775,6 +6775,7 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // the loop case.
     __ BranchIf(UNSIGNED_LESS_EQUAL, &copy_forwards,
                 compiler::Assembler::kNearJump);
+    __ Comment("Copying backwards");
     if (constant_length) {
       EmitUnrolledCopy(compiler, dest_reg, src_reg, num_elements,
                        /*reversed=*/true);
@@ -6783,6 +6784,7 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                    &copy_forwards);
     }
     __ Jump(&done, compiler::Assembler::kNearJump);
+    __ Comment("Copying forwards");
   }
   __ Bind(&copy_forwards);
   if (constant_length) {
