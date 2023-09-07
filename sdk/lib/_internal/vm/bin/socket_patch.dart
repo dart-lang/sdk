@@ -627,8 +627,10 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       // Only report an error if no address lookups were sucessful.
       var anySuccess = false;
 
-      void lookupAddresses(InternetAddressType type, Completer<void> done) {
-        lookup(host, type: type).then((addresses) {
+      void lookupAddresses(
+          InternetAddressType type, Completer<void> done) async {
+        try {
+          final addresses = await lookup(host, type: type);
           anySuccess = true;
           if (done.isCompleted) {
             // By the time lookup is done, [connectNext] might have
@@ -637,14 +639,14 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
           }
           controller.add(addresses);
           done.complete();
-        }, onError: (e, st) {
+        } catch (e, st) {
           if (done.isCompleted) {
             // By the time lookup is done, [connectNext] might have
             // been able to connect to one of the resolved addresses.
             return;
           }
           done.completeError(e, st);
-        });
+        }
       }
 
       const concurrentLookupDelay = Duration(milliseconds: 10);

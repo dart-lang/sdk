@@ -63,8 +63,6 @@ namespace dart {
   F(Library, imports_)                                                         \
   F(Library, exports_)                                                         \
   F(Library, dependencies_)                                                    \
-  F(Library, resolved_names_)                                                  \
-  F(Library, exported_names_)                                                  \
   F(Library, loaded_scripts_)                                                  \
   F(Namespace, target_)                                                        \
   F(Namespace, show_names_)                                                    \

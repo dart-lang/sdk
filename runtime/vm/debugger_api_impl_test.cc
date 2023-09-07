@@ -59,8 +59,7 @@ namespace dart {
     return Api::NewError("%s requires debugger support.", CURRENT_FUNC);       \
   }
 
-DART_EXPORT Dart_Handle Dart_StackTraceLength(Dart_StackTrace trace,
-                                              intptr_t* length) {
+Dart_Handle Dart_StackTraceLength(Dart_StackTrace trace, intptr_t* length) {
   DARTSCOPE(Thread::Current());
   CHECK_NOT_NULL(length);
   CHECK_AND_CAST(DebuggerStackTrace, stack_trace, trace);
@@ -68,9 +67,9 @@ DART_EXPORT Dart_Handle Dart_StackTraceLength(Dart_StackTrace trace,
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle Dart_GetActivationFrame(Dart_StackTrace trace,
-                                                int frame_index,
-                                                Dart_ActivationFrame* frame) {
+Dart_Handle Dart_GetActivationFrame(Dart_StackTrace trace,
+                                    int frame_index,
+                                    Dart_ActivationFrame* frame) {
   DARTSCOPE(Thread::Current());
   CHECK_NOT_NULL(frame);
   CHECK_AND_CAST(DebuggerStackTrace, stack_trace, trace);
@@ -83,7 +82,7 @@ DART_EXPORT Dart_Handle Dart_GetActivationFrame(Dart_StackTrace trace,
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace) {
+Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace) {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   CHECK_DEBUGGER(I);
@@ -92,8 +91,8 @@ DART_EXPORT Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace) {
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle Dart_GetStackTraceFromError(Dart_Handle handle,
-                                                    Dart_StackTrace* trace) {
+Dart_Handle Dart_GetStackTraceFromError(Dart_Handle handle,
+                                        Dart_StackTrace* trace) {
   DARTSCOPE(Thread::Current());
   CHECK_DEBUGGER(T->isolate());
   CHECK_NOT_NULL(trace);
@@ -116,12 +115,11 @@ DART_EXPORT Dart_Handle Dart_GetStackTraceFromError(Dart_Handle handle,
   }
 }
 
-DART_EXPORT Dart_Handle
-Dart_ActivationFrameInfo(Dart_ActivationFrame activation_frame,
-                         Dart_Handle* function_name,
-                         Dart_Handle* script_url,
-                         intptr_t* line_number,
-                         intptr_t* column_number) {
+Dart_Handle Dart_ActivationFrameInfo(Dart_ActivationFrame activation_frame,
+                                     Dart_Handle* function_name,
+                                     Dart_Handle* script_url,
+                                     intptr_t* line_number,
+                                     intptr_t* column_number) {
   DARTSCOPE(Thread::Current());
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
   if (function_name != nullptr) {
@@ -139,8 +137,8 @@ Dart_ActivationFrameInfo(Dart_ActivationFrame activation_frame,
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url_in,
-                                           intptr_t line_number) {
+Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url_in,
+                               intptr_t line_number) {
   Breakpoint* bpt;
   {
     DARTSCOPE(Thread::Current());
@@ -159,8 +157,8 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url_in,
   return Dart_NewInteger(bpt->id());
 }
 
-DART_EXPORT Dart_Handle Dart_EvaluateStaticExpr(Dart_Handle lib_handle,
-                                                Dart_Handle expr_in) {
+Dart_Handle Dart_EvaluateStaticExpr(Dart_Handle lib_handle,
+                                    Dart_Handle expr_in) {
   DARTSCOPE(Thread::Current());
   CHECK_DEBUGGER(T->isolate());
 
@@ -211,8 +209,7 @@ DART_EXPORT Dart_Handle Dart_EvaluateStaticExpr(Dart_Handle lib_handle,
   }
 }
 
-DART_EXPORT Dart_Handle Dart_LibraryId(Dart_Handle library,
-                                       intptr_t* library_id) {
+Dart_Handle Dart_LibraryId(Dart_Handle library, intptr_t* library_id) {
   DARTSCOPE(Thread::Current());
   const Library& lib = Api::UnwrapLibraryHandle(Z, library);
   if (lib.IsNull()) {
@@ -225,8 +222,8 @@ DART_EXPORT Dart_Handle Dart_LibraryId(Dart_Handle library,
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id,
-                                                  bool* is_debuggable) {
+Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id,
+                                      bool* is_debuggable) {
   DARTSCOPE(Thread::Current());
   CHECK_NOT_NULL(is_debuggable);
   const Library& lib = Library::Handle(Library::GetLibrary(library_id));
@@ -238,8 +235,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id,
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id,
-                                                  bool is_debuggable) {
+Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id, bool is_debuggable) {
   DARTSCOPE(Thread::Current());
   const Library& lib = Library::Handle(Z, Library::GetLibrary(library_id));
   if (lib.IsNull()) {

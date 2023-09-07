@@ -1705,10 +1705,6 @@ class UntaggedLibrary : public UntaggedObject {
     UNREACHABLE();
     return nullptr;
   }
-  // Cache of resolved names in library scope.
-  COMPRESSED_POINTER_FIELD(ArrayPtr, resolved_names);
-  // Cache of exported names by library.
-  COMPRESSED_POINTER_FIELD(ArrayPtr, exported_names);
   // Array of scripts loaded in this library.
   COMPRESSED_POINTER_FIELD(ArrayPtr, loaded_scripts);
   VISIT_TO(loaded_scripts);
