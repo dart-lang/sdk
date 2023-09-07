@@ -34,19 +34,19 @@ class Serializer {
     }
   }
 
-  void _debugTrace(Object data) {
+  void debugTrace(Object data) {
     _traces[_index] ??= data;
   }
 
   void writeByte(int byte) {
-    if (traceEnabled) _debugTrace(StackTrace.current);
+    if (traceEnabled) debugTrace(StackTrace.current);
     assert(byte == byte & 0xFF);
     _ensure(1);
     _data[_index++] = byte;
   }
 
   void writeBytes(List<int> bytes) {
-    if (traceEnabled) _debugTrace(StackTrace.current);
+    if (traceEnabled) debugTrace(StackTrace.current);
     _ensure(bytes.length);
     _data.setRange(_index, _index += bytes.length, bytes);
   }
@@ -102,7 +102,7 @@ class Serializer {
   }
 
   void writeData(Serializer chunk, [List<int>? watchPoints]) {
-    if (traceEnabled) _debugTrace(chunk);
+    if (traceEnabled) debugTrace(chunk);
     if (watchPoints != null) {
       for (int watchPoint in watchPoints) {
         if (_index <= watchPoint && watchPoint < _index + chunk.data.length) {

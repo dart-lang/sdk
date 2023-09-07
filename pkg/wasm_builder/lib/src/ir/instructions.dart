@@ -14,17 +14,21 @@ class Instructions implements Serializable {
   /// A sequence of Wasm instructions.
   final List<Instruction> instructions;
 
+  final Map<Instruction, StackTrace>? _stackTraces;
+
   final List<String> _traceLines;
 
   /// A string trace.
   late final trace = _traceLines.join();
 
   /// Create a new instruction sequence.
-  Instructions(this.locals, this.instructions, this._traceLines);
+  Instructions(
+      this.locals, this.instructions, this._stackTraces, this._traceLines);
 
   @override
   void serialize(Serializer s) {
     for (final i in instructions) {
+      if (_stackTraces != null) s.debugTrace(_stackTraces![i]!);
       i.serialize(s);
     }
   }
