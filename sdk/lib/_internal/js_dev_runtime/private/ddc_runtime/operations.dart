@@ -1068,7 +1068,7 @@ String _toString(obj) {
 @notNull
 String Function() toStringTearoff(obj) {
   if (obj == null ||
-      JS<bool>('', '#[#] !== void 0', obj, extensionSymbol('toString'))) {
+      JS<bool>('!', '#[#] !== void 0', obj, extensionSymbol('toString'))) {
     // The bind helper can handle finding the toString method for null or Dart
     // Objects.
     return bind(obj, extensionSymbol('toString'), null);
@@ -1143,7 +1143,7 @@ noSuchMethod(obj, Invocation invocation) {
 @notNull
 dynamic Function(Invocation) noSuchMethodTearoff(obj) {
   if (obj == null ||
-      JS<bool>('', '#[#] !== void 0', obj, extensionSymbol('noSuchMethod'))) {
+      JS<bool>('!', '#[#] !== void 0', obj, extensionSymbol('noSuchMethod'))) {
     // The bind helper can handle finding the toString method for null or Dart
     // Objects.
     return bind(obj, extensionSymbol('noSuchMethod'), null);
@@ -1252,7 +1252,7 @@ Future<void> loadLibrary(@notNull String libraryUri,
     @notNull String importPrefix, @notNull String targetModule) {
   if (!_ddcDeferredLoading) {
     var result = JS('', '#.get(#)', deferredImports, libraryUri);
-    if (JS<bool>('', '# === void 0', result)) {
+    if (JS<bool>('!', '# === void 0', result)) {
       JS('', '#.set(#, # = new Set())', deferredImports, libraryUri, result);
     }
     JS('', '#.add(#)', result, importPrefix);
@@ -1263,7 +1263,7 @@ Future<void> loadLibrary(@notNull String libraryUri,
     if (targetModule.isEmpty) {
       throw ArgumentError('Empty module passed for deferred load: $loadId.');
     }
-    if (JS('', r'#.deferred_loader.isLoaded(#)', global_, loadId)) {
+    if (JS<bool>('!', r'#.deferred_loader.isLoaded(#)', global_, loadId)) {
       return Future.value();
     }
     var completer = Completer();
@@ -1293,14 +1293,14 @@ void checkDeferredIsLoaded(
     @notNull String libraryUri, @notNull String importPrefix) {
   if (!_ddcDeferredLoading) {
     var loaded = JS('', '#.get(#)', deferredImports, libraryUri);
-    if (JS<bool>('', '# === void 0', loaded) ||
-        JS<bool>('', '!#.has(#)', loaded, importPrefix)) {
+    if (JS<bool>('!', '# === void 0', loaded) ||
+        JS<bool>('!', '!#.has(#)', loaded, importPrefix)) {
       throwDeferredIsLoadedError(libraryUri, importPrefix);
     }
   } else {
     var loadId = '$libraryUri::$importPrefix';
     var loaded =
-        JS<bool>('', r'#.deferred_loader.loadIds.has(#)', global_, loadId);
+        JS<bool>('!', r'#.deferred_loader.loadIds.has(#)', global_, loadId);
     if (!loaded) throwDeferredIsLoadedError(libraryUri, importPrefix);
   }
 }

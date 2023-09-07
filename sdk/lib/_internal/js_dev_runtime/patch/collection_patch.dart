@@ -214,7 +214,7 @@ base class _HashSet<E> extends _InternalSet<E>
   bool add(E key) {
     var map = _map;
     if (key == null) {
-      if (JS('', '#.has(null)', map)) return false;
+      if (JS<bool>('!', '#.has(null)', map)) return false;
       // Convert undefined to null, if needed.
       JS('', '# = null', key);
     } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
@@ -233,7 +233,7 @@ base class _HashSet<E> extends _InternalSet<E>
         }
         JS('', '#.push(#)', buckets, key);
       }
-    } else if (JS('', '#.has(#)', map, key)) {
+    } else if (JS<bool>('!', '#.has(#)', map, key)) {
       return false;
     }
     JS('', '#.add(#)', map, key);
