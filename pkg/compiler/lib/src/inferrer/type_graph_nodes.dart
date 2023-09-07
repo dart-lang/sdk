@@ -299,7 +299,7 @@ abstract class TypeInformation {
   }
 }
 
-abstract class ApplyableTypeInformation implements TypeInformation {
+mixin ApplyableTypeInformation implements TypeInformation {
   bool get mightBePassedToFunctionApply =>
       _flags.hasFlag(_Flag.mightBePassedToFunctionApply);
   set mightBePassedToFunctionApply(bool value) =>
@@ -2276,7 +2276,7 @@ class ClosureTypeInformation extends TypeInformation
 }
 
 /// Mixin for [TypeInformation] nodes that can bail out during tracing.
-abstract class TracedTypeInformation implements TypeInformation {
+mixin TracedTypeInformation implements TypeInformation {
   /// Set to false once analysis has succeeded.
   bool get bailedOut => !_flags.hasFlag(_Flag.notBailedOut);
   set bailedOut(bool value) =>

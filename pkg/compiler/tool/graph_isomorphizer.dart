@@ -212,7 +212,7 @@ class GraphIsomorphizer {
           (mixerClassNames[bitPosition] ??= []).add(className);
           (mixerTypeNames[bitPosition] ??= []).add(typeName);
           out.write('class $className { const $className(); }\n');
-          out.write('class $mixinName {}\n');
+          out.write('mixin $mixinName {}\n');
           out.write('class $typeName {}\n');
           out.write('const $className i$className = const $className();\n');
           out.write('closure$className(foo) => ($className unused) ');

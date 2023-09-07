@@ -100,7 +100,7 @@ class VariableScopeImpl implements VariableScope {
   }
 }
 
-abstract class VariableCollectorMixin {
+mixin VariableCollectorMixin {
   VariableScopeImpl? currentVariableScope;
   VariableScopeModelImpl variableScopeModel = VariableScopeModelImpl();
 

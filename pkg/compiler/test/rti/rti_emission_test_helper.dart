@@ -46,7 +46,7 @@ class Tags {
   static const String functionType = 'functionType';
 }
 
-abstract class ComputeValueMixin {
+mixin ComputeValueMixin {
   Compiler get compiler;
   late final ProgramLookup lookup = ProgramLookup(backendStrategy);
 

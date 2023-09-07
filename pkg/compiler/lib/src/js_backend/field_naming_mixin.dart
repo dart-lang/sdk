@@ -4,7 +4,7 @@
 
 part of js_backend.namer;
 
-abstract class _MinifiedFieldNamer implements Namer {
+mixin _MinifiedFieldNamer implements Namer {
   _FieldNamingRegistry get fieldRegistry;
 
   // Returns a minimal name for the field that is globally unique along
