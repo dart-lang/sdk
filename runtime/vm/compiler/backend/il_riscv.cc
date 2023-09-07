@@ -192,109 +192,191 @@ void MemoryCopyInstr::PrepareLengthRegForLoop(FlowGraphCompiler* compiler,
   __ BranchIfZero(length_reg, done);
 }
 
+static compiler::OperandSize OperandSizeFor(intptr_t bytes) {
+  ASSERT(Utils::IsPowerOfTwo(bytes));
+  switch (bytes) {
+    case 1:
+      return compiler::kByte;
+    case 2:
+      return compiler::kTwoBytes;
+    case 4:
+      return compiler::kFourBytes;
+    case 8:
+      return compiler::kEightBytes;
+    default:
+      UNREACHABLE();
+      return compiler::kEightBytes;
+  }
+}
+
+// Copies [count] bytes from the memory region pointed to by [dest_reg] to the
+// memory region pointed to by [src_reg]. If [reversed] is true, then [dest_reg]
+// and [src_reg] are assumed to point at the end of the respective region.
+static void CopyBytes(FlowGraphCompiler* compiler,
+                      Register dest_reg,
+                      Register src_reg,
+                      intptr_t count,
+                      bool reversed) {
+  COMPILE_ASSERT(XLEN <= 128);
+  ASSERT(Utils::IsPowerOfTwo(count));
+
+#if XLEN >= 128
+  // Handled specially because there is no kSixteenBytes OperandSize.
+  if (count == 16) {
+    const intptr_t offset = (reversed ? -1 : 1) * count;
+    const intptr_t initial = reversed ? offset : 0;
+    __ lq(TMP, compiler::Address(src_reg, initial));
+    __ addi(src_reg, src_reg, offset);
+    __ sq(TMP, compiler::Address(dest_reg, initial));
+    __ addi(dest_reg, dest_reg, offset);
+    return;
+  }
+#endif
+
+#if XLEN <= 32
+  if (count == 4 * (XLEN / 8)) {
+    auto const sz = OperandSizeFor(XLEN / 8);
+    const intptr_t offset = (reversed ? -1 : 1) * (XLEN / 8);
+    const intptr_t initial = reversed ? offset : 0;
+    __ LoadFromOffset(TMP, compiler::Address(src_reg, initial), sz);
+    __ LoadFromOffset(TMP2, compiler::Address(src_reg, initial + offset), sz);
+    __ StoreToOffset(TMP, compiler::Address(dest_reg, initial), sz);
+    __ StoreToOffset(TMP2, compiler::Address(dest_reg, initial + offset), sz);
+    __ LoadFromOffset(TMP, compiler::Address(src_reg, initial + 2 * offset),
+                      sz);
+    __ LoadFromOffset(TMP2, compiler::Address(src_reg, initial + 3 * offset),
+                      sz);
+    __ addi(src_reg, src_reg, 4 * offset);
+    __ StoreToOffset(TMP, compiler::Address(dest_reg, initial + 2 * offset),
+                     sz);
+    __ StoreToOffset(TMP2, compiler::Address(dest_reg, initial + 3 * offset),
+                     sz);
+    __ addi(dest_reg, dest_reg, 4 * offset);
+    return;
+  }
+#endif
+
+#if XLEN <= 64
+  if (count == 2 * (XLEN / 8)) {
+    auto const sz = OperandSizeFor(XLEN / 8);
+    const intptr_t offset = (reversed ? -1 : 1) * (XLEN / 8);
+    const intptr_t initial = reversed ? offset : 0;
+    __ LoadFromOffset(TMP, compiler::Address(src_reg, initial), sz);
+    __ LoadFromOffset(TMP2, compiler::Address(src_reg, initial + offset), sz);
+    __ addi(src_reg, src_reg, 2 * offset);
+    __ StoreToOffset(TMP, compiler::Address(dest_reg, initial), sz);
+    __ StoreToOffset(TMP2, compiler::Address(dest_reg, initial + offset), sz);
+    __ addi(dest_reg, dest_reg, 2 * offset);
+    return;
+  }
+#endif
+
+  ASSERT(count <= (XLEN / 8));
+  auto const sz = OperandSizeFor(count);
+  const intptr_t offset = (reversed ? -1 : 1) * count;
+  const intptr_t initial = reversed ? offset : 0;
+  __ LoadFromOffset(TMP, compiler::Address(src_reg, initial), sz);
+  __ addi(src_reg, src_reg, offset);
+  __ StoreToOffset(TMP, compiler::Address(dest_reg, initial), sz);
+  __ addi(dest_reg, dest_reg, offset);
+}
+
+static void CopyUpToWordMultiple(FlowGraphCompiler* compiler,
+                                 Register dest_reg,
+                                 Register src_reg,
+                                 Register length_reg,
+                                 intptr_t element_size,
+                                 bool unboxed_inputs,
+                                 bool reversed,
+                                 compiler::Label* done) {
+  ASSERT(Utils::IsPowerOfTwo(element_size));
+  if (element_size >= compiler::target::kWordSize) return;
+
+  const intptr_t base_shift = (unboxed_inputs ? 0 : kSmiTagShift) -
+                              Utils::ShiftForPowerOfTwo(element_size);
+  intptr_t tested_bits = 0;
+
+  __ Comment("Copying until region is a multiple of word size");
+
+  COMPILE_ASSERT(XLEN <= 128);
+
+  for (intptr_t bit = compiler::target::kWordSizeLog2 - 1; bit >= 0; bit--) {
+    const intptr_t bytes = 1 << bit;
+    if (element_size > bytes) continue;
+    const intptr_t tested_bit = bit + base_shift;
+    tested_bits |= 1 << tested_bit;
+    compiler::Label skip_copy;
+    __ andi(TMP, length_reg, 1 << tested_bit);
+    __ beqz(TMP, &skip_copy);
+    CopyBytes(compiler, dest_reg, src_reg, bytes, reversed);
+    __ Bind(&skip_copy);
+  }
+
+  ASSERT(tested_bits != 0);
+  __ andi(length_reg, length_reg, ~tested_bits);
+  __ beqz(length_reg, done);
+}
+
 void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
                                    Register dest_reg,
                                    Register src_reg,
                                    Register length_reg,
                                    compiler::Label* done,
                                    compiler::Label* copy_forwards) {
-  const intptr_t loop_subtract = unboxed_inputs() ? 1 : Smi::RawValue(1);
-  // The size of an (sub)element in an individual load/store pair.
-  intptr_t mov_size = Utils::Minimum<intptr_t>(element_size_, XLEN / 8);
-
-  if (copy_forwards != nullptr) {
-    // Verify that the overlap actually exists by checking to see if
-    // the first element in dest <= the last element in src.
+  const bool reversed = copy_forwards != nullptr;
+  if (reversed) {
+    // Verify that the overlap actually exists by checking to see if the start
+    // of the destination region is after the end of the source region.
     const intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
                            (unboxed_inputs() ? 0 : kSmiTagShift);
     if (shift == 0) {
-      __ subi(TMP, length_reg, mov_size);
+      __ add(TMP, src_reg, length_reg);
     } else if (shift < 0) {
       __ srai(TMP, length_reg, -shift);
-      __ subi(TMP, TMP, mov_size);
+      __ add(TMP, src_reg, TMP);
     } else {
       __ slli(TMP, length_reg, shift);
-      __ subi(TMP, TMP, mov_size);
+      __ add(TMP, src_reg, TMP);
     }
-    __ add(TMP, src_reg, TMP);
     __ CompareRegisters(dest_reg, TMP);
-    __ BranchIf(UNSIGNED_GREATER, copy_forwards,
-                compiler::Assembler::kNearJump);
-    // There is overlap, so adjust dest_reg and src_reg appropriately.
+    __ BranchIf(UNSIGNED_GREATER_EQUAL, copy_forwards);
+    // Adjust dest_reg and src_reg to point at the end (i.e. one past the
+    // last element) of their respective region.
     __ add(dest_reg, dest_reg, TMP);
     __ sub(dest_reg, dest_reg, src_reg);
     __ MoveRegister(src_reg, TMP);
-    // Negate the increment to the next (sub)element. This way, the
-    // (sub)elements will be copied in reverse order (highest to lowest).
-    mov_size = -mov_size;
   }
+  CopyUpToWordMultiple(compiler, dest_reg, src_reg, length_reg, element_size_,
+                       unboxed_inputs_, reversed, done);
+  // The size of the uncopied region is a multiple of the word size, so now we
+  // copy the rest by word.
+  const intptr_t loop_subtract =
+      Utils::Maximum<intptr_t>(1, (XLEN / 8) / element_size_)
+      << (unboxed_inputs_ ? 0 : kSmiTagShift);
+  __ Comment("Copying by multiples of word size");
   compiler::Label loop;
   __ Bind(&loop);
   switch (element_size_) {
     case 1:
-      __ lb(TMP, compiler::Address(src_reg));
-      __ addi(src_reg, src_reg, mov_size);
-      __ sb(TMP, compiler::Address(dest_reg));
-      __ addi(dest_reg, dest_reg, mov_size);
-      break;
     case 2:
-      __ lh(TMP, compiler::Address(src_reg));
-      __ addi(src_reg, src_reg, mov_size);
-      __ sh(TMP, compiler::Address(dest_reg));
-      __ addi(dest_reg, dest_reg, mov_size);
-      break;
     case 4:
-      __ lw(TMP, compiler::Address(src_reg));
-      __ addi(src_reg, src_reg, mov_size);
-      __ sw(TMP, compiler::Address(dest_reg));
-      __ addi(dest_reg, dest_reg, mov_size);
+#if XLEN <= 32
+      CopyBytes(compiler, dest_reg, src_reg, 4, reversed);
       break;
+#endif
     case 8:
-#if XLEN >= 64
-      __ ld(TMP, compiler::Address(src_reg));
-      __ addi(src_reg, src_reg, mov_size);
-      __ sd(TMP, compiler::Address(dest_reg));
-      __ addi(dest_reg, dest_reg, mov_size);
-#else
-      __ lw(TMP, compiler::Address(src_reg));
-      __ lw(TMP2, compiler::Address(src_reg, mov_size));
-      __ addi(src_reg, src_reg, 2 * mov_size);
-      __ sw(TMP, compiler::Address(dest_reg));
-      __ sw(TMP2, compiler::Address(dest_reg, mov_size));
-      __ addi(dest_reg, dest_reg, 2 * mov_size);
-#endif
+#if XLEN <= 64
+      CopyBytes(compiler, dest_reg, src_reg, 8, reversed);
       break;
-    case 16:
-#if XLEN >= 128
-      __ lq(TMP, compiler::Address(src_reg));
-      __ addi(src_reg, src_reg, mov_size);
-      __ sq(TMP, compiler::Address(dest_reg));
-      __ addi(dest_reg, dest_reg, mov_size);
-#elif XLEN == 64
-      __ ld(TMP, compiler::Address(src_reg));
-      __ ld(TMP2, compiler::Address(src_reg, mov_size));
-      __ addi(src_reg, src_reg, 2 * mov_size);
-      __ sd(TMP, compiler::Address(dest_reg));
-      __ sd(TMP2, compiler::Address(dest_reg, mov_size));
-      __ addi(dest_reg, dest_reg, 2 * mov_size);
-#else
-      __ lw(TMP, compiler::Address(src_reg));
-      __ lw(TMP2, compiler::Address(src_reg, mov_size));
-      __ sw(TMP, compiler::Address(dest_reg));
-      __ sw(TMP2, compiler::Address(dest_reg, mov_size));
-      __ lw(TMP, compiler::Address(src_reg, 2 * mov_size));
-      __ lw(TMP2, compiler::Address(src_reg, 3 * mov_size));
-      __ addi(src_reg, src_reg, 4 * mov_size);
-      __ sw(TMP, compiler::Address(dest_reg, 2 * mov_size));
-      __ sw(TMP2, compiler::Address(dest_reg, 3 * mov_size));
-      __ addi(dest_reg, dest_reg, 4 * mov_size);
 #endif
+    case 16:
+      COMPILE_ASSERT(XLEN <= 128);
+      CopyBytes(compiler, dest_reg, src_reg, 16, reversed);
       break;
     default:
       UNREACHABLE();
       break;
   }
-
   __ subi(length_reg, length_reg, loop_subtract);
   __ bnez(length_reg, &loop);
 }

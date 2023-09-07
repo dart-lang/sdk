@@ -2821,16 +2821,29 @@ Address Assembler::PrepareLargeLoadOffset(const Address& address,
   if (address.kind() != Address::Immediate) {
     return address;
   }
-  Register base = address.base();
   int32_t offset = address.offset();
   int32_t offset_mask = 0;
-  if (!Address::CanHoldLoadOffset(size, offset, &offset_mask)) {
-    ASSERT(base != IP);
-    AddImmediate(IP, base, offset & ~offset_mask, cond);
-    base = IP;
-    offset = offset & offset_mask;
+  if (Address::CanHoldLoadOffset(size, offset, &offset_mask)) {
+    return address;
   }
-  return Address(base, offset);
+  auto mode = address.mode();
+  // If the retrieved offset is negative, then the U bit was flipped during
+  // encoding, so re-flip it.
+  if (offset < 0) {
+    mode = static_cast<Address::Mode>(mode ^ U);
+  }
+  // If writing back post-indexing, we can't separate the instruction into
+  // two parts and the offset must fit.
+  ASSERT((mode | U) != Address::PostIndex);
+  // If we're writing back pre-indexing, we must add directly to the base,
+  // otherwise we use TMP.
+  Register base = address.base();
+  ASSERT(base != TMP || address.has_writeback());
+  Register temp = address.has_writeback() ? base : TMP;
+  AddImmediate(temp, base, offset & ~offset_mask, cond);
+  base = temp;
+  offset = offset & offset_mask;
+  return Address(base, offset, mode);
 }
 
 Address Assembler::PrepareLargeStoreOffset(const Address& address,
@@ -2840,16 +2853,29 @@ Address Assembler::PrepareLargeStoreOffset(const Address& address,
   if (address.kind() != Address::Immediate) {
     return address;
   }
-  Register base = address.base();
   int32_t offset = address.offset();
   int32_t offset_mask = 0;
-  if (!Address::CanHoldStoreOffset(size, offset, &offset_mask)) {
-    ASSERT(base != IP);
-    AddImmediate(IP, base, offset & ~offset_mask, cond);
-    base = IP;
-    offset = offset & offset_mask;
+  if (Address::CanHoldStoreOffset(size, offset, &offset_mask)) {
+    return address;
   }
-  return Address(base, offset);
+  auto mode = address.mode();
+  // If the retrieved offset is negative, then the U bit was flipped during
+  // encoding, so re-flip it.
+  if (offset < 0) {
+    mode = static_cast<Address::Mode>(mode ^ U);
+  }
+  // If writing back post-indexing, we can't separate the instruction into
+  // two parts and the offset must fit.
+  ASSERT((mode | U) != Address::PostIndex);
+  // If we're writing back pre-indexing, we must add directly to the base,
+  // otherwise we use TMP.
+  Register base = address.base();
+  ASSERT(base != TMP || address.has_writeback());
+  Register temp = address.has_writeback() ? base : TMP;
+  AddImmediate(temp, base, offset & ~offset_mask, cond);
+  base = temp;
+  offset = offset & offset_mask;
+  return Address(base, offset, mode);
 }
 
 void Assembler::LoadFromOffset(Register reg,

@@ -257,6 +257,9 @@ class Address : public ValueObject {
     kind_ = Immediate;
     base_ = rn;
     offset_ = offset;
+    // If the offset can't be encoded in fewer bits, then it'll conflict with
+    // the encoding of the mode and we won't be able to retrieve it later.
+    ASSERT(Utils::MagnitudeIsUint(kOpcodeShift, offset));
     if (offset < 0) {
       encoding_ = (am ^ (1 << kUShift)) | -offset;  // Flip U to adjust sign.
     } else {
@@ -310,7 +313,7 @@ class Address : public ValueObject {
                : kNoRegister;
   }
 
-  Mode mode() const { return static_cast<Mode>(encoding() & kModeMask); }
+  Mode mode() const { return static_cast<Mode>(encoding_ & kModeMask); }
 
   bool has_writeback() const {
     return (mode() == PreIndex) || (mode() == PostIndex) ||
