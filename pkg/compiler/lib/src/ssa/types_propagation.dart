@@ -95,13 +95,14 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       });
     }
 
-    HInstruction? instruction = block.first;
-    while (instruction != null) {
+    HInstruction instruction = block.first!;
+    while (instruction.next != null) {
       if (updateType(instruction)) {
         addDependentInstructionsToWorkList(instruction);
       }
-      instruction = instruction.next;
+      instruction = instruction.next!;
     }
+    assert(instruction is HControlFlow);
   }
 
   void processWorklist() {
@@ -123,6 +124,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   }
 
   void addToWorkList(HInstruction instruction) {
+    if (instruction is HControlFlow) return;
     final int id = instruction.id;
 
     if (!workmap.containsKey(id)) {
@@ -200,6 +202,21 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   @override
   AbstractValue visitInstruction(HInstruction instruction) {
     return instruction.instructionType;
+  }
+
+  @override
+  AbstractValue visitFieldSet(HFieldSet instruction) {
+    return instruction.value.instructionType;
+  }
+
+  @override
+  AbstractValue visitIndexAssign(HIndexAssign instruction) {
+    return instruction.value.instructionType;
+  }
+
+  @override
+  AbstractValue visitStaticStore(HStaticStore instruction) {
+    return instruction.value.instructionType;
   }
 
   @override

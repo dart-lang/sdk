@@ -4,7 +4,6 @@
 
 import '../common.dart';
 import '../elements/jumps.dart';
-import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 
 import 'builder.dart';
@@ -93,19 +92,14 @@ class TargetJumpHandler implements JumpHandler {
     builder.jumpTargets[target] = this;
   }
 
-  AbstractValueDomain get _abstractValueDomain =>
-      builder.closedWorld.abstractValueDomain;
-
   @override
   void generateBreak(SourceInformation? sourceInformation,
       [LabelDefinition? label]) {
     HInstruction breakInstruction;
     if (label == null) {
-      breakInstruction =
-          HBreak(_abstractValueDomain, target, sourceInformation);
+      breakInstruction = HBreak(target, sourceInformation);
     } else {
-      breakInstruction =
-          HBreak.toLabel(_abstractValueDomain, label, sourceInformation);
+      breakInstruction = HBreak.toLabel(label, sourceInformation);
     }
     LocalsHandler locals = LocalsHandler.from(builder.localsHandler);
     builder.close(breakInstruction as HJump);
@@ -117,11 +111,9 @@ class TargetJumpHandler implements JumpHandler {
       [LabelDefinition? label]) {
     HInstruction continueInstruction;
     if (label == null) {
-      continueInstruction =
-          HContinue(_abstractValueDomain, target, sourceInformation);
+      continueInstruction = HContinue(target, sourceInformation);
     } else {
-      continueInstruction =
-          HContinue.toLabel(_abstractValueDomain, label, sourceInformation);
+      continueInstruction = HContinue.toLabel(label, sourceInformation);
       // Switch case continue statements must be handled by the
       // [SwitchCaseJumpHandler].
       assert(!label.target.isSwitchCase);
@@ -199,9 +191,8 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
       // for a switch statement with continue statements. See
       // [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
 
-      HInstruction breakInstruction = HBreak(
-          _abstractValueDomain, target, sourceInformation,
-          breakSwitchContinueLoop: true);
+      HInstruction breakInstruction =
+          HBreak(target, sourceInformation, breakSwitchContinueLoop: true);
       LocalsHandler locals = LocalsHandler.from(builder.localsHandler);
       builder.close(breakInstruction as HJump);
       jumps.add(_JumpHandlerEntry(breakInstruction, locals));
@@ -227,8 +218,7 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
       builder.localsHandler.updateLocal(target, value);
 
       assert(label.target.labels.contains(label));
-      HInstruction continueInstruction =
-          HContinue(_abstractValueDomain, target, sourceInformation);
+      HInstruction continueInstruction = HContinue(target, sourceInformation);
       LocalsHandler locals = LocalsHandler.from(builder.localsHandler);
       builder.close(continueInstruction as HJump);
       jumps.add(_JumpHandlerEntry(continueInstruction, locals));

@@ -232,8 +232,7 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
       checkedIndex =
           insertBoundsCheck(instruction, receiver, index, closedWorld, log);
     }
-    HIndexAssign converted = HIndexAssign(
-        closedWorld.abstractValueDomain, receiver, checkedIndex, value);
+    HIndexAssign converted = HIndexAssign(receiver, checkedIndex, value);
     log?.registerIndexAssign(instruction, converted);
     return converted;
   }

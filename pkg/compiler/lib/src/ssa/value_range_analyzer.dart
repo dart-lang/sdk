@@ -763,9 +763,10 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
   void visitBasicBlock(HBasicBlock block) {
     void visit(HInstruction instruction) {
       Range range = instruction.accept(this);
-      if (instruction
-          .isInteger(closedWorld.abstractValueDomain)
-          .isDefinitelyTrue) {
+      if (instruction is! HControlFlow &&
+          instruction
+              .isInteger(closedWorld.abstractValueDomain)
+              .isDefinitelyTrue) {
         ranges[instruction] = range;
       }
     }
@@ -789,6 +790,11 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
     } else {
       return info.newUnboundRange();
     }
+  }
+
+  @override
+  Range visitControlFlow(HControlFlow instruction) {
+    return info.newUnboundRange();
   }
 
   @override

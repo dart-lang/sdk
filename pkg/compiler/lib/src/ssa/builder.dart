@@ -305,7 +305,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   void goto(HBasicBlock from, HBasicBlock to) {
-    from.close(HGoto(_abstractValueDomain));
+    from.close(HGoto());
     from.addSuccessor(to);
   }
 
@@ -316,7 +316,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // but cannot receive constants before it has been closed. By closing it
     // here, we can use constants in the code that sets up the function.
     open(graph.entry);
-    close(HGoto(_abstractValueDomain)).addSuccessor(block);
+    close(HGoto()).addSuccessor(block);
     open(block);
   }
 
@@ -369,7 +369,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// specify special successors if we are already in a try/catch/finally block.
   void _handleInTryStatement() {
     if (!_inTryStatement) return;
-    HBasicBlock block = close(HExitTry(_abstractValueDomain));
+    HBasicBlock block = close(HExitTry());
     HBasicBlock newBlock = graph.addNewBlock();
     block.addSuccessor(newBlock);
     open(newBlock);
@@ -635,7 +635,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     value.sourceInformation ??= _sourceInformationBuilder.buildSet(node);
     value = _potentiallyAssertNotNull(field, node, value, type);
     if (!_fieldAnalysis.getFieldData(field).isElided) {
-      add(HFieldSet(_abstractValueDomain, field, thisInstruction, value));
+      add(HFieldSet(field, thisInstruction, value));
     }
     _closeFunction();
   }
@@ -656,8 +656,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       stack.add(graph.addConstantNull(closedWorld));
     }
     HInstruction value = pop();
-    _closeAndGotoExit(HReturn(_abstractValueDomain, value,
-        _sourceInformationBuilder.buildReturn(node)));
+    _closeAndGotoExit(
+        HReturn(value, _sourceInformationBuilder.buildReturn(node)));
     _closeFunction();
   }
 
@@ -830,8 +830,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         ..sourceInformation = sourceInformation;
       add(newObject);
       for (int i = 0; i < fields.length; i++) {
-        add(HFieldSet(_abstractValueDomain, fields[i], newObject,
-            constructorArguments[i]));
+        final value = constructorArguments[i];
+        add(HFieldSet(fields[i], newObject, value));
       }
     } else {
       // Create the runtime type information, if needed.
@@ -927,8 +927,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     if (_inliningStack.isEmpty) {
-      _closeAndGotoExit(
-          HReturn(_abstractValueDomain, newObject, sourceInformation));
+      _closeAndGotoExit(HReturn(newObject, sourceInformation));
       _closeFunction();
     } else {
       localsHandler.updateLocal(_returnLocal!, newObject,
@@ -1230,8 +1229,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _elementMap.getFunctionType(originalClosureNode);
     HInstruction rti =
         _typeBuilder.analyzeTypeArgumentNewRti(functionType, sourceElement);
-    close(HReturn(_abstractValueDomain, rti,
-            _sourceInformationBuilder.buildReturn(originalClosureNode)))
+    close(HReturn(
+            rti, _sourceInformationBuilder.buildReturn(originalClosureNode)))
         .addSuccessor(graph.exit);
     _closeFunction();
   }
@@ -1313,7 +1312,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     HInstruction value = pop();
-    _closeAndGotoExit(HReturn(_abstractValueDomain, value, sourceInformation));
+    _closeAndGotoExit(HReturn(value, sourceInformation));
     _closeFunction();
   }
 
@@ -1429,7 +1428,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _abstractValueDomain.dynamicType, // TODO: better type.
         sourceInformation));
 
-    _closeAndGotoExit(HReturn(_abstractValueDomain, pop(), sourceInformation));
+    _closeAndGotoExit(HReturn(pop(), sourceInformation));
 
     _closeFunction();
   }
@@ -1496,7 +1495,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _typeInferenceMap.getReturnTypeOf(method), typeArguments,
         sourceInformation: sourceInformation);
 
-    _closeAndGotoExit(HReturn(_abstractValueDomain, pop(), sourceInformation));
+    _closeAndGotoExit(HReturn(pop(), sourceInformation));
 
     _closeFunction();
   }
@@ -1693,8 +1692,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       HInstruction value =
           HIdentity(instance, parameter, _abstractValueDomain.boolType);
       add(value);
-      _closeAndGotoExit(HReturn(_abstractValueDomain, value,
-          _sourceInformationBuilder.buildReturn(functionNode)));
+      _closeAndGotoExit(
+          HReturn(value, _sourceInformationBuilder.buildReturn(functionNode)));
       _closeFunction();
       return true;
     }
@@ -1778,7 +1777,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       }
     }
     if (targetElement.isSetter) {
-      _closeAndGotoExit(HGoto(_abstractValueDomain));
+      _closeAndGotoExit(HGoto());
     } else {
       _emitReturn(value, _sourceInformationBuilder.buildReturn(functionNode));
     }
@@ -1870,7 +1869,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
             },
             visitThen: () {
               _closeAndGotoExit(HReturn(
-                  _abstractValueDomain,
                   graph.addConstantBool(false, closedWorld),
                   _sourceInformationBuilder.buildReturn(functionNode)));
             },
@@ -1886,8 +1884,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   void _closeFunction() {
-    if (!isAborted()) _closeAndGotoExit(HGoto(_abstractValueDomain));
-    graph.finalize(_abstractValueDomain);
+    if (!isAborted()) _closeAndGotoExit(HGoto());
+    graph.finalize();
   }
 
   @override
@@ -1987,7 +1985,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       _handleInTryStatement();
       final sourceInformation =
           _sourceInformationBuilder.buildThrow(node.expression);
-      _closeAndGotoExit(HThrow(_abstractValueDomain, pop(), sourceInformation));
+      _closeAndGotoExit(HThrow(pop(), sourceInformation));
     } else {
       expression.accept(this);
       pop();
@@ -2500,7 +2498,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HBasicBlock bodyExitBlock;
     bool isAbortingBody = false;
     if (current != null) {
-      bodyExitBlock = close(HGoto(_abstractValueDomain));
+      bodyExitBlock = close(HGoto());
     } else {
       isAbortingBody = true;
       bodyExitBlock = lastOpenedBlock;
@@ -2544,13 +2542,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       node.condition.accept(this);
       assert(!isAborted());
       HInstruction conditionInstruction = popBoolified();
-      HBasicBlock conditionEndBlock = close(HLoopBranch(_abstractValueDomain,
-          conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
+      HBasicBlock conditionEndBlock =
+          close(HLoopBranch(conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
 
       HBasicBlock avoidCriticalEdge = addNewBlock();
       conditionEndBlock.addSuccessor(avoidCriticalEdge);
       open(avoidCriticalEdge);
-      close(HGoto(_abstractValueDomain));
+      close(HGoto());
       avoidCriticalEdge.addSuccessor(loopEntryBlock); // The back-edge.
 
       conditionExpression = SubExpression(conditionBlock, conditionEndBlock);
@@ -2558,7 +2556,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       // Avoid a critical edge from the condition to the loop-exit body.
       HBasicBlock conditionExitBlock = addNewBlock();
       open(conditionExitBlock);
-      close(HGoto(_abstractValueDomain));
+      close(HGoto());
       conditionEndBlock.addSuccessor(conditionExitBlock);
 
       _loopHandler.endLoop(
@@ -2598,8 +2596,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         loopEntryBlock.setBlockFlow(info, current);
         jumpHandler.forEachBreak((HBreak breakInstruction, _) {
           HBasicBlock block = breakInstruction.block!;
-          block.addAtExit(
-              HBreak.toLabel(_abstractValueDomain, label, sourceInformation));
+          block.addAtExit(HBreak.toLabel(label, sourceInformation));
           block.remove(breakInstruction);
         });
       }
@@ -3167,7 +3164,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       return;
     }
 
-    HSwitch switchInstruction = HSwitch(_abstractValueDomain, [expression]);
+    HSwitch switchInstruction = HSwitch([expression]);
     HBasicBlock expressionEnd = close(switchInstruction);
     LocalsHandler savedLocals = localsHandler;
 
@@ -3227,7 +3224,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
               'Continue cannot target a switch.'));
     });
     if (!isAborted()) {
-      current!.close(HGoto(_abstractValueDomain));
+      current!.close(HGoto());
       lastOpenedBlock.addSuccessor(joinBlock);
       caseHandlers.add(localsHandler);
     }
@@ -3237,7 +3234,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       HBasicBlock defaultCase = addNewBlock();
       expressionEnd.addSuccessor(defaultCase);
       open(defaultCase);
-      close(HGoto(_abstractValueDomain));
+      close(HGoto());
       defaultCase.addSuccessor(joinBlock);
       caseHandlers.add(savedLocals);
       statements
@@ -3774,7 +3771,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       final target = _elementMap.getMember(staticTarget) as FieldEntity;
       if (!_fieldAnalysis.getFieldData(target).isElided) {
         add(HStaticStore(
-            _abstractValueDomain,
             target,
             _typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
                 target, value, _getDartTypeIfValid(staticTarget.setterType))));
@@ -6036,7 +6032,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     if (_isReachable) {
       final sourceInformation = _sourceInformationBuilder.buildThrow(node);
       _handleInTryStatement();
-      push(HThrowExpression(_abstractValueDomain, pop(), sourceInformation));
+      push(HThrowExpression(
+          pop(), _abstractValueDomain.emptyType, sourceInformation));
       _isReachable = false;
     }
   }
@@ -6054,7 +6051,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   @override
   void visitYieldStatement(ir.YieldStatement node) {
     node.expression.accept(this);
-    add(HYield(_abstractValueDomain, pop(), node.isYieldStar,
+    add(HYield(pop(), node.isYieldStar, _abstractValueDomain.emptyType,
         _sourceInformationBuilder.buildYield(node)));
   }
 
@@ -6077,8 +6074,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
     _handleInTryStatement();
     final sourceInformation = _sourceInformationBuilder.buildThrow(node);
-    _closeAndGotoExit(HThrow(_abstractValueDomain, exception, sourceInformation,
-        isRethrow: true));
+    _closeAndGotoExit(HThrow(exception, sourceInformation, isRethrow: true));
     // ir.Rethrow is an expression so we need to push a value - a constant with
     // no type.
     stack.add(graph.addConstantUnreachable(closedWorld));
@@ -6695,8 +6691,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   void _emitReturn(HInstruction? value, SourceInformation? sourceInformation) {
     if (_inliningStack.isEmpty) {
-      _closeAndGotoExit(
-          HReturn(_abstractValueDomain, value, sourceInformation));
+      _closeAndGotoExit(HReturn(value, sourceInformation));
     } else {
       value ??= graph.addConstantNull(closedWorld);
       localsHandler.updateLocal(_returnLocal!, value);
@@ -6887,7 +6882,7 @@ class TryCatchFinallyBuilder {
   LocalsHandler? originalSavedLocals;
 
   TryCatchFinallyBuilder(this.kernelBuilder, this.trySourceInformation) {
-    tryInstruction = HTry(kernelBuilder._abstractValueDomain);
+    tryInstruction = HTry();
     originalSavedLocals = LocalsHandler.from(kernelBuilder.localsHandler);
     enterBlock = kernelBuilder.openNewBlock();
     kernelBuilder.close(tryInstruction);
@@ -6958,8 +6953,7 @@ class TryCatchFinallyBuilder {
     kernelBuilder.open(startFinallyBlock!);
     buildFinalizer();
     if (!kernelBuilder.isAborted()) {
-      endFinallyBlock =
-          kernelBuilder.close(HGoto(kernelBuilder._abstractValueDomain));
+      endFinallyBlock = kernelBuilder.close(HGoto());
     }
     tryInstruction.finallyBlock = startFinallyBlock;
     finallyGraph = SubGraph(startFinallyBlock!, kernelBuilder.lastOpenedBlock);
@@ -6970,8 +6964,7 @@ class TryCatchFinallyBuilder {
     // because it will have multiple successors: the join block, and
     // the catch or finally block.
     if (!kernelBuilder.isAborted()) {
-      endTryBlock =
-          kernelBuilder.close(HExitTry(kernelBuilder._abstractValueDomain));
+      endTryBlock = kernelBuilder.close(HExitTry());
     }
     bodyGraph = SubGraph(startTryBlock, kernelBuilder.lastOpenedBlock);
   }
@@ -7047,11 +7040,8 @@ class TryCatchFinallyBuilder {
 
     void visitElse() {
       if (catchesIndex >= tryCatch.catches.length) {
-        kernelBuilder._closeAndGotoExit(HThrow(
-            kernelBuilder._abstractValueDomain,
-            exception!,
-            exception!.sourceInformation,
-            isRethrow: true));
+        kernelBuilder._closeAndGotoExit(
+            HThrow(exception!, exception!.sourceInformation, isRethrow: true));
       } else {
         ir.Catch nextCatch = tryCatch.catches[catchesIndex];
         kernelBuilder._handleIf(
@@ -7075,8 +7065,7 @@ class TryCatchFinallyBuilder {
         sourceInformation:
             kernelBuilder._sourceInformationBuilder.buildCatch(firstBlock));
     if (!kernelBuilder.isAborted()) {
-      endCatchBlock =
-          kernelBuilder.close(HGoto(kernelBuilder._abstractValueDomain));
+      endCatchBlock = kernelBuilder.close(HGoto());
     }
 
     kernelBuilder._rethrowableException = oldRethrowableException;

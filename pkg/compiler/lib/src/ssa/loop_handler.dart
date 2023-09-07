@@ -6,7 +6,6 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart' show CapturedLoopScope;
 import '../elements/jumps.dart';
-import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 
 import 'builder.dart';
@@ -19,9 +18,6 @@ abstract class LoopHandler {
   final KernelSsaGraphBuilder builder;
 
   LoopHandler(this.builder);
-
-  AbstractValueDomain get _abstractValueDomain =>
-      builder.closedWorld.abstractValueDomain;
 
   /// Builds a graph for the given [loop] node.
   ///
@@ -61,7 +57,7 @@ abstract class LoopHandler {
 
     HInstruction conditionInstruction = condition();
     HBasicBlock conditionEndBlock =
-        builder.close(HLoopBranch(_abstractValueDomain, conditionInstruction));
+        builder.close(HLoopBranch(conditionInstruction));
     SubExpression conditionExpression =
         SubExpression(conditionBlock, conditionEndBlock);
 
@@ -80,7 +76,7 @@ abstract class LoopHandler {
 
     SubGraph bodyGraph = SubGraph(beginBodyBlock, builder.lastOpenedBlock);
     final bodyBlock = builder.current;
-    if (bodyBlock != null) builder.close(HGoto(_abstractValueDomain));
+    if (bodyBlock != null) builder.close(HGoto());
 
     SubExpression updateGraph;
 
@@ -128,7 +124,7 @@ abstract class LoopHandler {
 
       update();
 
-      HBasicBlock updateEndBlock = builder.close(HGoto(_abstractValueDomain));
+      HBasicBlock updateEndBlock = builder.close(HGoto());
       // The back-edge completing the cycle.
       updateEndBlock.addSuccessor(conditionBlock);
       updateGraph = SubExpression(updateBlock, updateEndBlock);
@@ -136,7 +132,7 @@ abstract class LoopHandler {
       // Avoid a critical edge from the condition to the loop-exit body.
       HBasicBlock conditionExitBlock = builder.addNewBlock();
       builder.open(conditionExitBlock);
-      builder.close(HGoto(_abstractValueDomain));
+      builder.close(HGoto());
       conditionEndBlock.addSuccessor(conditionExitBlock);
 
       endLoop(conditionBlock, conditionExitBlock, jumpHandler, savedLocals);
@@ -167,7 +163,7 @@ abstract class LoopHandler {
       // label to the if.
       HBasicBlock elseBlock = builder.addNewBlock();
       builder.open(elseBlock);
-      builder.close(HGoto(_abstractValueDomain));
+      builder.close(HGoto());
       // Pass the elseBlock as the branchBlock, because that's the block we go
       // to just before leaving the 'loop'.
       endLoop(conditionBlock, elseBlock, jumpHandler, savedLocals);
@@ -179,7 +175,7 @@ abstract class LoopHandler {
       // Remove the [HLoopBranch] instruction and replace it with
       // [HIf].
       HInstruction condition = conditionEndBlock.last!.inputs[0];
-      conditionEndBlock.addAtExit(HIf(_abstractValueDomain, condition));
+      conditionEndBlock.addAtExit(HIf(condition));
       conditionEndBlock.addSuccessor(elseBlock);
       conditionEndBlock.remove(conditionEndBlock.last!);
       HIfBlockInformation info = HIfBlockInformation(
@@ -204,8 +200,7 @@ abstract class LoopHandler {
 
         jumpHandler.forEachBreak((HBreak breakInstruction, _) {
           final block = breakInstruction.block!;
-          block.addAtExit(
-              HBreak.toLabel(_abstractValueDomain, label, sourceInformation));
+          block.addAtExit(HBreak.toLabel(label, sourceInformation));
           block.remove(breakInstruction);
         });
       }
@@ -219,7 +214,7 @@ abstract class LoopHandler {
   /// Also notifies the locals handler that we're entering a loop.
   JumpHandler beginLoopHeader(ir.TreeNode node, JumpTarget? jumpTarget) {
     assert(!builder.isAborted());
-    HBasicBlock previousBlock = builder.close(HGoto(_abstractValueDomain));
+    HBasicBlock previousBlock = builder.close(HGoto());
 
     JumpHandler jumpHandler =
         createJumpHandler(node, jumpTarget, isLoopJump: true);
