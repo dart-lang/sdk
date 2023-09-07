@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
     show DependencyWalker, Node;
@@ -1923,7 +1924,14 @@ class _File {
   void _readFileDeclarationsFromBytes(List<int> bytes) {
     var idlFile = idl.AvailableFile.fromBuffer(bytes);
 
-    lineStarts = idlFile.lineStarts.toList();
+    lineStarts = idlFile.lineStarts;
+    if (lineStarts.last > 65535) {
+      Uint32List list = lineStarts = Uint32List(lineStarts.length);
+      list.setRange(0, lineStarts.length, lineStarts);
+    } else {
+      Uint16List list = lineStarts = Uint16List(lineStarts.length);
+      list.setRange(0, lineStarts.length, lineStarts);
+    }
     lineInfo = LineInfo(lineStarts);
 
     isLibrary = idlFile.isLibrary;
