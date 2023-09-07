@@ -482,6 +482,11 @@ mixin ClientCapabilitiesHelperMixin {
     }
   }
 
+  void setSignatureHelpContentFormat(List<MarkupKind>? formats) {
+    textDocumentCapabilities =
+        withSignatureHelpContentFormat(textDocumentCapabilities, formats);
+  }
+
   void setSnippetTextEditSupport([bool supported = true]) {
     experimentalCapabilities['snippetTextEdit'] = supported;
   }
@@ -826,12 +831,12 @@ mixin ClientCapabilitiesHelperMixin {
 
   TextDocumentClientCapabilities withSignatureHelpContentFormat(
     TextDocumentClientCapabilities source,
-    List<MarkupKind> formats,
+    List<MarkupKind>? formats,
   ) {
     return extendTextDocumentCapabilities(source, {
       'signatureHelp': {
         'signatureInformation': {
-          'documentationFormat': formats.map((k) => k.toJson()).toList()
+          'documentationFormat': formats?.map((k) => k.toJson()).toList()
         }
       }
     });
