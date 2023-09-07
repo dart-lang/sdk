@@ -6011,6 +6011,15 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the element
+  static const WarningCode DEPRECATED_EXPORT_USE = WarningCode(
+    'DEPRECATED_EXPORT_USE',
+    "The ability to import '{0}' indirectly is deprecated.",
+    correctionMessage: "Try importing '{0}' directly.",
+    hasPublishedDocs: true,
+  );
+
   ///  No parameters.
   static const WarningCode DEPRECATED_EXTENDS_FUNCTION = WarningCode(
     'DEPRECATED_SUBTYPE_OF_FUNCTION',
