@@ -31,6 +31,9 @@ abstract class _WasmFloat extends _WasmBase {
 /// The Wasm `anyref` type.
 @pragma("wasm:entry-point")
 class WasmAnyRef extends _WasmBase {
+  /// Dummy constructor to silence error about missing superclass constructor.
+  const WasmAnyRef._();
+
   /// Upcast Dart object to `anyref`.
   external factory WasmAnyRef.fromObject(Object o);
 
@@ -84,6 +87,9 @@ class WasmFuncRef extends _WasmBase {
 /// The Wasm `eqref` type.
 @pragma("wasm:entry-point")
 class WasmEqRef extends WasmAnyRef {
+  /// Dummy constructor to silence error about missing superclass constructor.
+  const WasmEqRef._() : super._();
+
   /// Upcast Dart object to `eqref`.
   external factory WasmEqRef.fromObject(Object o);
 }
@@ -98,8 +104,8 @@ class WasmStructRef extends WasmEqRef {
 /// The Wasm `arrayref` type.
 @pragma("wasm:entry-point")
 class WasmArrayRef extends WasmEqRef {
-  /// Dummy factory to silence error about missing superclass constructor.
-  external factory WasmArrayRef._dummy();
+  /// Dummy constructor to silence error about missing superclass constructor.
+  const WasmArrayRef._() : super._();
 
   /// Length of array.
   external int get length;
@@ -200,7 +206,13 @@ class WasmFloatArray<T extends _WasmFloat> extends WasmArrayRef {
 /// A Wasm array with reference element type, containing Dart objects.
 @pragma("wasm:entry-point")
 class WasmObjectArray<T extends Object?> extends WasmArrayRef {
-  external factory WasmObjectArray(int length);
+  /// Dummy value field to contain the value for constant instances.
+  @pragma("wasm:entry-point")
+  final List<T> _value;
+
+  external factory WasmObjectArray(int length, T initialValue);
+
+  const WasmObjectArray.literal(this._value) : super._();
 
   external T read(int index);
   external void write(int index, T value);

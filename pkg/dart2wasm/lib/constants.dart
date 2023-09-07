@@ -399,6 +399,10 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   @override
   ConstantInfo? visitInstanceConstant(InstanceConstant constant) {
     Class cls = constant.classNode;
+    if (cls == translator.wasmObjectArrayClass) {
+      return _makeWasmArrayLiteral(constant);
+    }
+
     ClassInfo info = translator.classInfo[cls]!;
     translator.functions.allocateClass(info.classId);
     w.RefType type = info.nonNullableType;
@@ -443,6 +447,27 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
             function, b, subConstant, info.struct.fields[i].type.unpacked);
       }
       b.struct_new(info.struct);
+    });
+  }
+
+  ConstantInfo? _makeWasmArrayLiteral(InstanceConstant constant) {
+    w.ArrayType arrayType =
+        translator.arrayTypeForDartType(constant.typeArguments.single);
+    w.ValueType elementType = arrayType.elementType.type.unpacked;
+
+    List<Constant> elements =
+        (constant.fieldValues.values.single as ListConstant).entries;
+    bool lazy = false;
+    for (Constant element in elements) {
+      lazy |= ensureConstant(element)?.isLazy ?? false;
+    }
+
+    return createConstant(constant, w.RefType.def(arrayType, nullable: false),
+        lazy: lazy, (function, b) {
+      for (Constant element in elements) {
+        constants.instantiateConstant(function, b, element, elementType);
+      }
+      b.array_new_fixed(arrayType, elements.length);
     });
   }
 

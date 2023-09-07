@@ -94,7 +94,7 @@ class _GrowableList<E> extends _ModifiableList<E> {
 
     final WasmObjectArray<Object?> data;
     if (length == _capacity) {
-      data = WasmObjectArray<Object?>(_nextCapacity(_capacity));
+      data = WasmObjectArray<Object?>(_nextCapacity(_capacity), null);
       if (index != 0) {
         // Copy elements before the insertion point.
         data.copy(0, _data, 0, index - 1);
@@ -251,7 +251,7 @@ class _GrowableList<E> extends _ModifiableList<E> {
 
   // Shared array used as backing for new empty growable lists.
   static final WasmObjectArray<Object?> _emptyData =
-      WasmObjectArray<Object?>(0);
+      WasmObjectArray<Object?>(0, null);
 
   static WasmObjectArray<Object?> _allocateData(int capacity) {
     if (capacity < 0) {
@@ -261,14 +261,14 @@ class _GrowableList<E> extends _ModifiableList<E> {
       // Use shared empty list as backing.
       return _emptyData;
     }
-    return WasmObjectArray<Object?>(capacity);
+    return WasmObjectArray<Object?>(capacity, null);
   }
 
   // Grow from 0 to 3, and then double + 1.
   int _nextCapacity(int old_capacity) => (old_capacity * 2) | 3;
 
   void _grow(int new_capacity) {
-    var newData = WasmObjectArray<Object?>(new_capacity);
+    var newData = WasmObjectArray<Object?>(new_capacity, null);
     newData.copy(0, _data, 0, length);
     _data = newData;
   }

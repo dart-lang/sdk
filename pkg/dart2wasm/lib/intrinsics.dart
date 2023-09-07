@@ -842,7 +842,26 @@ class Intrinsifier {
             translator.arrayTypeForDartType(node.arguments.types.single);
         codeGen.wrap(length, w.NumType.i64);
         b.i32_wrap_i64();
-        b.array_new_default(arrayType);
+        if (node.arguments.positional.length < 2) {
+          // WasmIntArray or WasmFloatArray
+          b.array_new_default(arrayType);
+        } else {
+          // WasmObjectArray
+          Expression initialValue = node.arguments.positional[1];
+          if (initialValue is NullLiteral ||
+              initialValue is ConstantExpression &&
+                  initialValue.constant is NullConstant) {
+            // Initialize to `null`
+            b.array_new_default(arrayType);
+          } else {
+            // Initialize to the provided value
+            w.Local lengthTemp = codeGen.addLocal(w.NumType.i32);
+            b.local_set(lengthTemp);
+            codeGen.wrap(initialValue, arrayType.elementType.type.unpacked);
+            b.local_get(lengthTemp);
+            b.array_new(arrayType);
+          }
+        }
         return w.RefType.def(arrayType, nullable: false);
       }
 
@@ -987,6 +1006,29 @@ class Intrinsifier {
   /// an inlined intrinsic.
   w.ValueType? generateConstructorIntrinsic(ConstructorInvocation node) {
     String name = node.name.text;
+
+    // WasmObjectArray.literal
+    if (node.target.enclosingClass == translator.wasmObjectArrayClass &&
+        name == "literal") {
+      w.ArrayType arrayType =
+          translator.arrayTypeForDartType(node.arguments.types.single);
+      w.ValueType elementType = arrayType.elementType.type.unpacked;
+      Expression value = node.arguments.positional[0];
+      List<Expression> elements = value is ListLiteral
+          ? value.expressions
+          : value is ConstantExpression && value.constant is ListConstant
+              ? (value.constant as ListConstant)
+                  .entries
+                  .map(ConstantExpression.new)
+                  .toList()
+              : throw "WasmObjectArray.literal argument is not a list literal"
+                  " at ${value.location}";
+      for (Expression element in elements) {
+        codeGen.wrap(element, elementType);
+      }
+      b.array_new_fixed(arrayType, elements.length);
+      return w.RefType.def(arrayType, nullable: false);
+    }
 
     // _Compound.#fromTypedDataBase
     if (name == "#fromTypedDataBase") {
