@@ -9,7 +9,6 @@ import 'class_member_parser_test.dart' as class_member_parser;
 import 'collection_literal_parser_test.dart' as collection_literal_parser;
 import 'complex_parser_test.dart' as complex_parser;
 // ignore: deprecated_member_use_from_same_package
-import 'constant_test.dart' as constant_test;
 import 'element_resolver_test.dart' as element_resolver_test;
 import 'error_parser_test.dart' as error_parser;
 import 'error_suppression_test.dart' as error_suppression;
@@ -51,7 +50,6 @@ main() {
     class_member_parser.main();
     collection_literal_parser.main();
     complex_parser.main();
-    constant_test.main();
     element_resolver_test.main();
     error_parser.main();
     error_suppression.main();

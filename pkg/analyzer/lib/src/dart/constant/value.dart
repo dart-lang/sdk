@@ -904,7 +904,7 @@ class DartObjectImpl implements DartObject, Constant {
   Map<DartObjectImpl, DartObjectImpl>? toMapValue() {
     final state = this.state;
     if (state is MapState) {
-      return state._entries;
+      return state.entries;
     }
     return null;
   }
@@ -913,7 +913,7 @@ class DartObjectImpl implements DartObject, Constant {
   Set<DartObjectImpl>? toSetValue() {
     final state = this.state;
     if (state is SetState) {
-      return state._elements;
+      return state.elements;
     }
     return null;
   }
@@ -2491,16 +2491,16 @@ class ListState extends InstanceState {
 /// The state of an object representing a map.
 class MapState extends InstanceState {
   /// The entries in the map.
-  final Map<DartObjectImpl, DartObjectImpl> _entries;
+  final Map<DartObjectImpl, DartObjectImpl> entries;
 
   /// Initialize a newly created state to represent a map with the given
   /// [entries].
-  MapState(this._entries);
+  MapState(this.entries);
 
   @override
   int get hashCode {
     int value = 0;
-    for (DartObjectImpl key in _entries.keys.toSet()) {
+    for (DartObjectImpl key in entries.keys.toSet()) {
       value = (value << 3) ^ key.hashCode;
     }
     return value;
@@ -2512,15 +2512,15 @@ class MapState extends InstanceState {
   @override
   bool operator ==(Object other) {
     if (other is MapState) {
-      Map<DartObjectImpl, DartObjectImpl> otherElements = other._entries;
-      int count = _entries.length;
+      Map<DartObjectImpl, DartObjectImpl> otherElements = other.entries;
+      int count = entries.length;
       if (otherElements.length != count) {
         return false;
       } else if (count == 0) {
         return true;
       }
-      for (DartObjectImpl key in _entries.keys) {
-        var value = _entries[key];
+      for (DartObjectImpl key in entries.keys) {
+        var value = entries[key];
         var otherValue = otherElements[key];
         if (value != otherValue) {
           return false;
@@ -2552,7 +2552,7 @@ class MapState extends InstanceState {
     StringBuffer buffer = StringBuffer();
     buffer.write('{');
     bool first = true;
-    _entries.forEach((DartObjectImpl key, DartObjectImpl value) {
+    entries.forEach((DartObjectImpl key, DartObjectImpl value) {
       if (first) {
         first = false;
       } else {
@@ -2763,16 +2763,16 @@ class RecordState extends InstanceState {
 /// The state of an object representing a set.
 class SetState extends InstanceState {
   /// The elements of the set.
-  final Set<DartObjectImpl> _elements;
+  final Set<DartObjectImpl> elements;
 
   /// Initialize a newly created state to represent a set with the given
   /// [elements].
-  SetState(this._elements);
+  SetState(this.elements);
 
   @override
   int get hashCode {
     int value = 0;
-    for (DartObjectImpl element in _elements) {
+    for (DartObjectImpl element in elements) {
       value = (value << 3) ^ element.hashCode;
     }
     return value;
@@ -2784,16 +2784,16 @@ class SetState extends InstanceState {
   @override
   bool operator ==(Object other) {
     if (other is SetState) {
-      List<DartObjectImpl> elements = _elements.toList();
-      List<DartObjectImpl> otherElements = other._elements.toList();
-      int count = elements.length;
+      List<DartObjectImpl> currentElements = elements.toList();
+      List<DartObjectImpl> otherElements = other.elements.toList();
+      int count = currentElements.length;
       if (otherElements.length != count) {
         return false;
       } else if (count == 0) {
         return true;
       }
       for (int i = 0; i < count; i++) {
-        if (elements[i] != otherElements[i]) {
+        if (currentElements[i] != otherElements[i]) {
           return false;
         }
       }
@@ -2823,7 +2823,7 @@ class SetState extends InstanceState {
     StringBuffer buffer = StringBuffer();
     buffer.write('{');
     bool first = true;
-    for (var element in _elements) {
+    for (var element in elements) {
       if (first) {
         first = false;
       } else {
