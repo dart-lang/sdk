@@ -80,6 +80,10 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
 ''');
     }
   }
@@ -147,6 +151,10 @@ suggestions
   final
     kind: keyword
   late
+    kind: keyword
+  var
+    kind: keyword
+  void
     kind: keyword
 ''');
     }
@@ -239,6 +247,10 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
 ''');
     }
   }
@@ -275,6 +287,10 @@ suggestions
   final
     kind: keyword
   late
+    kind: keyword
+  var
+    kind: keyword
+  void
     kind: keyword
 ''');
     }

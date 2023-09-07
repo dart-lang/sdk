@@ -161,7 +161,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_afterThen_beforeComma_partial() async {
+  Future<void> test_afterThen_beforeComma_partial_list() async {
     await computeSuggestions('''
 void f(int i) {
   [if (true) 1 e^, i];
@@ -390,7 +390,7 @@ suggestions
 }
 
 mixin IfElementInSetTestCases on AbstractCompletionDriverTest {
-  Future<void> test_afterThen_beforeComma_partial() async {
+  Future<void> test_afterThen_beforeComma_partial_set() async {
     await computeSuggestions('''
 void f(int i) {
   <int>{if (true) 1 e^, i};

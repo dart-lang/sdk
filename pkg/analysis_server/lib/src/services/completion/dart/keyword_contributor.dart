@@ -394,12 +394,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitRecordPattern(RecordPattern node) {
-    _addExpressionKeywords(node);
-    _addSuggestions([Keyword.DYNAMIC]);
-  }
-
-  @override
   void visitRelationalPattern(RelationalPattern node) {
     var operator = node.operator;
     if (request.offset >= operator.end) {

@@ -17,6 +17,16 @@ class AvoidTypesAsParameterNamesTest extends LintRuleTest {
   @override
   String get lintRule => 'avoid_types_as_parameter_names';
 
+  test_extensionType() async {
+    await assertDiagnostics(r'''
+extension type E(int i) { }
+
+void f(E) { }
+''', [
+      lint(36, 1),
+    ]);
+  }
+
   test_super() async {
     await assertDiagnostics(r'''
 class A {

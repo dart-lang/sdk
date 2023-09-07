@@ -232,7 +232,7 @@ class KeywordHelper {
       }
       if (node is Expression) {
         return !node.inConstantContext;
-      } else if (node is IfStatement) {
+      } else if (node is ExpressionStatement || node is IfStatement) {
         return true;
       } else if (node is PatternVariableDeclaration) {
         return true;
@@ -295,18 +295,52 @@ class KeywordHelper {
 
   /// Add the keywords that are appropriate when the selection is at the
   /// beginning of a member in an extension.
-  void addExtensionMemberKeywords() {
+  void addExtensionMemberKeywords({required bool isStatic}) {
     addKeyword(Keyword.CONST);
     addKeyword(Keyword.DYNAMIC);
     addKeyword(Keyword.FINAL);
     addKeyword(Keyword.GET);
-    addKeyword(Keyword.OPERATOR);
+    if (!isStatic) addKeyword(Keyword.OPERATOR);
     addKeyword(Keyword.SET);
-    addKeyword(Keyword.STATIC);
+    if (!isStatic) addKeyword(Keyword.STATIC);
     addKeyword(Keyword.VAR);
     addKeyword(Keyword.VOID);
-    if (featureSet.isEnabled(Feature.non_nullable)) {
+  }
+
+  /// Add the keywords that are appropriate when the selection is at the
+  /// beginning of field declaration.
+  void addFieldDeclarationKeywords(FieldDeclaration node) {
+    if (node.abstractKeyword == null) {
+      addKeyword(Keyword.ABSTRACT);
+    }
+    if (node.covariantKeyword == null) {
+      addKeyword(Keyword.COVARIANT);
+    }
+    if (node.externalKeyword == null) {
+      addKeyword(Keyword.EXTERNAL);
+    }
+    if (node.fields.lateKeyword == null &&
+        featureSet.isEnabled(Feature.non_nullable)) {
       addKeyword(Keyword.LATE);
+    }
+    if (node.fields.type == null) {
+      addKeyword(Keyword.DYNAMIC);
+    }
+    if (!node.isStatic) {
+      addKeyword(Keyword.STATIC);
+    }
+    var fields = node.fields;
+    if (fields.type == null) {
+      addKeyword(Keyword.VAR);
+    }
+    var firstField = fields.variables.firstOrNull;
+    if (firstField != null) {
+      if (!firstField.isConst) {
+        addKeyword(Keyword.CONST);
+      }
+      if (!firstField.isFinal) {
+        addKeyword(Keyword.FINAL);
+      }
     }
   }
 

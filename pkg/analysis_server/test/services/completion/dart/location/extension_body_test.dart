@@ -42,8 +42,6 @@ suggestions
     kind: keyword
   get
     kind: keyword
-  late
-    kind: keyword
   operator
     kind: keyword
   set
@@ -70,8 +68,6 @@ suggestions
   final
     kind: keyword
   get
-    kind: keyword
-  late
     kind: keyword
   operator
     kind: keyword
@@ -100,8 +96,6 @@ suggestions
     kind: keyword
   get
     kind: keyword
-  late
-    kind: keyword
   operator
     kind: keyword
   set
@@ -128,8 +122,6 @@ suggestions
   final
     kind: keyword
   get
-    kind: keyword
-  late
     kind: keyword
   operator
     kind: keyword

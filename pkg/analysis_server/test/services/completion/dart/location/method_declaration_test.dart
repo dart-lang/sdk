@@ -68,31 +68,7 @@ suggestions
     kind: keyword
   async*
     kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
-    kind: keyword
-  get
-    kind: keyword
-  late
-    kind: keyword
-  operator
-    kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
   sync*
-    kind: keyword
-  var
-    kind: keyword
-  void
     kind: keyword
 ''');
     }
@@ -446,6 +422,8 @@ class A { foo() a^ Foo foo;}
 replacement
   left: 1
 suggestions
+  abstract
+    kind: keyword
   async
     kind: keyword
   async*
@@ -487,6 +465,8 @@ suggestions
   }
     kind: override
     selection: 90 38
+  abstract
+    kind: keyword
   async
     kind: keyword
   async*
@@ -497,17 +477,11 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
-  factory
+  external
     kind: keyword
   final
     kind: keyword
-  get
-    kind: keyword
   late
-    kind: keyword
-  operator
-    kind: keyword
-  set
     kind: keyword
   static
     kind: keyword

@@ -205,6 +205,8 @@ suggestions
     kind: keyword
   implements
     kind: keyword
+  with
+    kind: keyword
 ''');
     }
   }
@@ -229,6 +231,8 @@ suggestions
   extends
     kind: keyword
   implements
+    kind: keyword
+  with
     kind: keyword
 ''');
     }

@@ -308,6 +308,8 @@ suggestions
     selection: 8
   extension
     kind: keyword
+  external
+    kind: keyword
   final
     kind: keyword
   import '';
@@ -370,6 +372,8 @@ suggestions
     selection: 8
   extension
     kind: keyword
+  external
+    kind: keyword
   final
     kind: keyword
   import '';
@@ -424,6 +428,8 @@ suggestions
     kind: keyword
     selection: 8
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword
@@ -527,6 +533,8 @@ suggestions
   dynamic
     kind: keyword
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword
@@ -635,6 +643,8 @@ suggestions
     kind: keyword
     selection: 8
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword
@@ -781,6 +791,8 @@ suggestions
     selection: 8
   extension
     kind: keyword
+  external
+    kind: keyword
   final
     kind: keyword
   import '';
@@ -903,6 +915,8 @@ suggestions
     kind: keyword
     selection: 8
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword
@@ -1198,6 +1212,8 @@ suggestions
     selection: 8
   extension
     kind: keyword
+  external
+    kind: keyword
   final
     kind: keyword
   import '';
@@ -1262,6 +1278,8 @@ suggestions
     kind: keyword
     selection: 8
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword
@@ -1431,6 +1449,8 @@ suggestions
     kind: keyword
     selection: 8
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword
