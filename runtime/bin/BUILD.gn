@@ -35,6 +35,25 @@ config("libdart_builtin_config") {
   }
 }
 
+config("export_api_symbols") {
+  if (is_win) {
+    ldflags = [ "/EXPORT:Dart_True" ]
+  } else if (is_asan || is_lsan || is_msan || is_tsan || is_ubsan) {
+    # Export everything so the sanitizers can intercept whatever they want.
+    ldflags = [ "-rdynamic" ]
+  } else if (is_mac) {
+    ldflags = [
+      "-Wl,-exported_symbol",
+      "-Wl,_Dart_*",
+    ]
+  } else if (!is_clang) {
+    # TODO(rmacnak): Remove once bots are updated to a newer gcc.
+    ldflags = [ "-rdynamic" ]
+  } else {
+    ldflags = [ "-Wl,--export-dynamic-symbol=Dart_*" ]
+  }
+}
+
 template("build_libdart_builtin") {
   extra_configs = []
   if (defined(invoker.extra_configs)) {
@@ -204,19 +223,7 @@ template("build_gen_snapshot") {
       ]
     }
 
-    if (is_mac) {
-      ldflags = [
-        "-Wl,-exported_symbol",
-        "-Wl,_Dart_*",
-      ]
-    } else if (!is_win) {
-      if (!is_clang) {
-        # TODO(rmacnak): Remove once bots are updated to a newer gcc.
-        ldflags = [ "-rdynamic" ]
-      } else {
-        ldflags = [ "-Wl,--export-dynamic-symbol=Dart_*" ]
-      }
-    }
+    configs += [ ":export_api_symbols" ]
 
     if (is_win) {
       libs = [
@@ -798,23 +805,9 @@ template("dart_executable") {
                 "vmservice_impl.h",
               ] + extra_sources
 
-    if (is_win) {
-      ldflags = [ "/EXPORT:Dart_True" ]
-    } else if (is_mac) {
-      ldflags = [
-        "-Wl,-exported_symbol",
-        "-Wl,_Dart_*",
-      ]
-    } else {
-      if (!is_clang) {
-        # TODO(rmacnak): Remove once bots are updated to a newer gcc.
-        ldflags = [ "-rdynamic" ]
-      } else {
-        ldflags = [ "-Wl,--export-dynamic-symbol=Dart_*" ]
-      }
-    }
+    configs += [ ":export_api_symbols" ]
 
-    ldflags += extra_ldflags
+    ldflags = extra_ldflags
 
     if (is_win) {
       libs = [
@@ -1032,19 +1025,7 @@ executable("run_vm_tests") {
             ] + builtin_impl_tests + vm_tests + compiler_tests + heap_tests +
             io_impl_tests
 
-  if (is_mac) {
-    ldflags = [
-      "-Wl,-exported_symbol",
-      "-Wl,_Dart_*",
-    ]
-  } else if (!is_win) {
-    if (!is_clang) {
-      # TODO(rmacnak): Remove once bots are updated to a newer gcc.
-      ldflags = [ "-rdynamic" ]
-    } else {
-      ldflags = [ "-Wl,--export-dynamic-symbol=Dart_*" ]
-    }
-  }
+  configs += [ ":export_api_symbols" ]
 
   if (is_win) {
     libs = [
