@@ -1204,7 +1204,7 @@ class Intrinsifier {
       // Set class ID of interface type.
       b.local_get(resultClassId);
       b.i64_extend_i32_u();
-      // Call _typeArguments to get the list of type arguments.
+      // Call _typeArguments to get the array of type arguments.
       b.local_get(object);
       codeGen.call(translator.objectGetTypeArguments.reference);
       b.struct_new(info.struct);
@@ -1348,18 +1348,27 @@ class Intrinsifier {
     }
 
     // _typeArguments
-    if (member.name.text == "_typeArguments") {
+    if (name == "_typeArguments" &&
+        member.enclosingClass != translator.coreTypes.objectClass) {
       Class cls = member.enclosingClass!;
       ClassInfo classInfo = translator.classInfo[cls]!;
+      w.ArrayType arrayType =
+          (function.type.outputs.single as w.RefType).heapType as w.ArrayType;
       w.Local object = paramLocals[0];
-      codeGen.makeList(translator.types.typeType, cls.typeParameters.length,
-          (w.ValueType elementType, int i) {
+      w.Local preciseObject = codeGen.addLocal(classInfo.nonNullableType);
+      b.local_get(object);
+      b.ref_cast(classInfo.nonNullableType);
+      b.local_set(preciseObject);
+      for (int i = 0; i < cls.typeParameters.length; i++) {
         TypeParameter typeParameter = cls.typeParameters[i];
         int typeParameterIndex = translator.typeParameterIndex[typeParameter]!;
-        b.local_get(object);
-        b.ref_cast(classInfo.nonNullableType);
+        b.local_get(preciseObject);
         b.struct_get(classInfo.struct, typeParameterIndex);
-      });
+        // TODO(jessicalally): Remove this null check when type argument fields
+        // are made non-nullable.
+        b.ref_as_non_null();
+      }
+      b.array_new_fixed(arrayType, cls.typeParameters.length);
       return true;
     }
 

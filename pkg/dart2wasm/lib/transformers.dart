@@ -33,6 +33,7 @@ class _WasmTransformer extends Transformer {
   final Library _coreLibrary;
   final InterfaceType _nonNullableTypeType;
   final Class _wasmBaseClass;
+  final Class _wasmObjectArrayClass;
   final List<_AsyncStarFrame> _asyncStarFrames = [];
   bool _enclosingIsAsyncStar = false;
   late final controllerNullableObjectType = InterfaceType(
@@ -58,6 +59,8 @@ class _WasmTransformer extends Transformer {
             .getClass('dart:core', '_Type')
             .getThisType(coreTypes, Nullability.nonNullable),
         _wasmBaseClass = coreTypes.index.getClass('dart:_wasm', '_WasmBase'),
+        _wasmObjectArrayClass =
+            coreTypes.index.getClass('dart:_wasm', 'WasmObjectArray'),
         _coreLibrary = coreTypes.index.getLibrary('dart:core'),
         _listFactorySpecializer = ListFactorySpecializer(coreTypes);
 
@@ -122,7 +125,7 @@ class _WasmTransformer extends Transformer {
           ProcedureKind.Getter,
           FunctionNode(
             null,
-            returnType: InterfaceType(coreTypes.listClass,
+            returnType: InterfaceType(_wasmObjectArrayClass,
                 Nullability.nonNullable, [_nonNullableTypeType]),
           ),
           isExternal: true,
