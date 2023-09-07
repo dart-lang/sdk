@@ -1234,19 +1234,16 @@ final a = Stri^
   }
 
   Future<void> test_completionKinds_imports() async {
+    // Tell the server we support some specific CompletionItemKinds.
+    setCompletionItemKinds([
+      CompletionItemKind.File,
+      CompletionItemKind.Folder,
+      CompletionItemKind.Module,
+    ]);
+
     final content = "import '^';";
 
-    // Tell the server we support some specific CompletionItemKinds.
-    await initialize(
-      textDocumentCapabilities: withCompletionItemKinds(
-        emptyTextDocumentClientCapabilities,
-        [
-          CompletionItemKind.File,
-          CompletionItemKind.Folder,
-          CompletionItemKind.Module,
-        ],
-      ),
-    );
+    await initialize();
     final code = TestCode.parse(content);
     await openFile(mainFileUri, code.code);
     final res = await getCompletion(mainFileUri, code.position.position);
@@ -1260,6 +1257,9 @@ final a = Stri^
   }
 
   Future<void> test_completionKinds_supportedSubset() async {
+    // Tell the server we only support the Field CompletionItemKind.
+    setCompletionItemKinds([CompletionItemKind.Field]);
+
     final content = '''
     class MyClass {
       String abcdefghij;
@@ -1271,11 +1271,7 @@ final a = Stri^
     }
 ''';
 
-    // Tell the server we only support the Field CompletionItemKind.
-    await initialize(
-      textDocumentCapabilities: withCompletionItemKinds(
-          emptyTextDocumentClientCapabilities, [CompletionItemKind.Field]),
-    );
+    await initialize();
     final code = TestCode.parse(content);
     await openFile(mainFileUri, code.code);
     final res = await getCompletion(mainFileUri, code.position.position);
@@ -1835,6 +1831,8 @@ import 'dart:^';
   }
 
   Future<void> test_insertReplaceRanges() async {
+    setCompletionItemInsertReplaceSupport();
+
     final content = '''
     class MyClass {
       String abcdefghij;
@@ -1846,10 +1844,7 @@ import 'dart:^';
     }
 ''';
 
-    await initialize(
-      textDocumentCapabilities: withCompletionItemInsertReplaceSupport(
-          emptyTextDocumentClientCapabilities),
-    );
+    await initialize();
     final code = TestCode.parse(content);
     await openFile(mainFileUri, code.code);
     final res = await getCompletion(mainFileUri, code.position.position);
@@ -1872,6 +1867,7 @@ import 'dart:^';
   }
 
   Future<void> test_insertTextMode_multiline() async {
+    setCompletionItemInsertTextModeSupport();
     final content = '''
     import 'package:flutter/material.dart';
 
@@ -1884,9 +1880,7 @@ import 'dart:^';
     }
 ''';
 
-    await initialize(
-        textDocumentCapabilities: withCompletionItemInsertTextModeSupport(
-            emptyTextDocumentClientCapabilities));
+    await initialize();
     final code = TestCode.parse(content);
     await openFile(mainFileUri, code.code);
     final res = await getCompletion(mainFileUri, code.position.position);
@@ -1900,15 +1894,15 @@ import 'dart:^';
   }
 
   Future<void> test_insertTextMode_singleLine() async {
+    setCompletionItemInsertTextModeSupport();
+
     final content = '''
     void foo() {
       ^
     }
 ''';
 
-    await initialize(
-        textDocumentCapabilities: withCompletionItemInsertTextModeSupport(
-            emptyTextDocumentClientCapabilities));
+    await initialize();
     final code = TestCode.parse(content);
     await openFile(mainFileUri, code.code);
     final res = await getCompletion(mainFileUri, code.position.position);
@@ -1959,6 +1953,7 @@ import 'dart:^';
   }
 
   Future<void> test_isDeprecated_supportedFlag() async {
+    setCompletionItemDeprecatedFlagSupport();
     final content = '''
     class MyClass {
       @deprecated
@@ -1971,9 +1966,7 @@ import 'dart:^';
     }
 ''';
 
-    await initialize(
-        textDocumentCapabilities: withCompletionItemDeprecatedFlagSupport(
-            emptyTextDocumentClientCapabilities));
+    await initialize();
     final code = TestCode.parse(content);
     await openFile(mainFileUri, code.code);
     final res = await getCompletion(mainFileUri, code.position.position);
@@ -2079,6 +2072,9 @@ void f() {
   }
 
   Future<void> test_itemDefaults_editRange() async {
+    setCompletionItemInsertReplaceSupport();
+    setCompletionListDefaults(['editRange']);
+
     final content = '''
 void myFunction() {
   [!myFunctio^!]
@@ -2086,14 +2082,7 @@ void myFunction() {
 ''';
     final code = TestCode.parse(content);
 
-    await initialize(
-      textDocumentCapabilities: withCompletionItemInsertReplaceSupport(
-        withCompletionListDefaults(
-          emptyTextDocumentClientCapabilities,
-          ['editRange'],
-        ),
-      ),
-    );
+    await initialize();
     await openFile(mainFileUri, code.code);
     final list = await getCompletionList(mainFileUri, code.position.position);
     final item =
@@ -2111,6 +2100,9 @@ void myFunction() {
   }
 
   Future<void> test_itemDefaults_editRange_includesNonDefaultItem() async {
+    setCompletionItemInsertReplaceSupport();
+    setCompletionListDefaults(['editRange']);
+
     // In this code, we will get two completions with different edit ranges:
     //
     //   - 'b: ' will have a zero-width range because names don't replace args
@@ -2128,14 +2120,7 @@ void f(String a, {String? b}) {
 ''';
     final code = TestCode.parse(content);
 
-    await initialize(
-      textDocumentCapabilities: withCompletionItemInsertReplaceSupport(
-        withCompletionListDefaults(
-          emptyTextDocumentClientCapabilities,
-          ['editRange'],
-        ),
-      ),
-    );
+    await initialize();
     await openFile(mainFileUri, code.code);
     final list = await getCompletionList(mainFileUri, code.position.position);
     final itemA = list.items.singleWhere((c) => c.label == 'a');
@@ -2167,6 +2152,9 @@ void f(String a, {String? b}) {
   }
 
   Future<void> test_itemDefaults_textMode() async {
+    setCompletionItemInsertTextModeSupport();
+    setCompletionListDefaults(['insertTextMode']);
+
     // We only normally set InsertTextMode on multiline completions (where it
     // matters), so ensure there's a multiline completion in the results for
     // testing.
@@ -2183,14 +2171,7 @@ class _MyWidgetState extends State<MyWidget> {
 ''';
     final code = TestCode.parse(content);
 
-    await initialize(
-      textDocumentCapabilities: withCompletionItemInsertTextModeSupport(
-        withCompletionListDefaults(
-          emptyTextDocumentClientCapabilities,
-          ['insertTextMode'],
-        ),
-      ),
-    );
+    await initialize();
     await openFile(mainFileUri, code.code);
     final list = await getCompletionList(mainFileUri, code.position.position);
     final item = list.items.singleWhere((c) => c.label.startsWith('setState'));
@@ -3172,6 +3153,8 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_insertReplaceRanges() async {
+    setCompletionItemInsertReplaceSupport();
+
     newFile(
       join(projectFolderPath, 'other_file.dart'),
       '''
@@ -3187,10 +3170,7 @@ void f() {
 ''';
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-      textDocumentCapabilities: withCompletionItemInsertReplaceSupport(
-          emptyTextDocumentClientCapabilities),
-    );
+    await initialize();
     final code = TestCode.parse(content);
     await openFile(mainFileUri, code.code);
     await initialAnalysis;

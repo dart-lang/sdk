@@ -31,16 +31,16 @@ class ConfigurationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_configurationDidChange_notSupported() async {
+    // Initialize with some other dynamic capabilities just to force
+    // a dynamic registration request to come through. Otherwise we'd have
+    // to test that the request never came, which means waiting around for
+    // some period and making the test slower.
+    setTextSyncDynamicRegistration();
+
     final registrations = <Registration>[];
     await monitorDynamicRegistrations(
       registrations,
-      () => initialize(
-          // Initialize with some other dynamic capabilities just to force
-          // a dynamic registration request to come through. Otherwise we'd have
-          // to test that the request never came, which means waiting around for
-          // some period and making the test slower.
-          textDocumentCapabilities: withTextSyncDynamicRegistration(
-              emptyTextDocumentClientCapabilities)),
+      () => initialize(),
     );
 
     final registration =

@@ -48,18 +48,15 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_enumMember_supported() async {
+    setDocumentSymbolKinds([SymbolKind.Enum, SymbolKind.EnumMember]);
+
     const content = '''
     enum Theme {
       light,
     }
     ''';
     newFile(mainFilePath, content);
-    await initialize(
-      textDocumentCapabilities: withDocumentSymbolKinds(
-        emptyTextDocumentClientCapabilities,
-        [SymbolKind.Enum, SymbolKind.EnumMember],
-      ),
-    );
+    await initialize();
 
     final result = await getDocumentSymbols(mainFileUri);
     final symbols = result.map(

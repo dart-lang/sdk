@@ -33,14 +33,11 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
         (expectedContent != null && expectedContentIfInserting != null));
 
     if (!initialized) {
-      var textDocCapabilities =
-          withCompletionItemSnippetSupport(emptyTextDocumentClientCapabilities);
-
+      setCompletionItemSnippetSupport();
       if (verifyInsertReplaceRanges) {
-        textDocCapabilities =
-            withCompletionItemInsertReplaceSupport(textDocCapabilities);
+        setCompletionItemInsertReplaceSupport();
       }
-      await initialize(textDocumentCapabilities: textDocCapabilities);
+      await initialize();
     }
 
     if (openCloseFile) {
