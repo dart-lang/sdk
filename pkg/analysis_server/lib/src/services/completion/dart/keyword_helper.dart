@@ -290,6 +290,9 @@ class KeywordHelper {
   void addExtensionDeclarationKeywords(ExtensionDeclaration node) {
     if (node.onKeyword.isSynthetic) {
       addKeyword(Keyword.ON);
+      if (node.name == null && featureSet.isEnabled(Feature.inline_class)) {
+        addPseudoKeyword('type');
+      }
     }
   }
 
@@ -459,6 +462,11 @@ class KeywordHelper {
   void addPatternKeywords() {
     addConstantExpressionKeywords(inConstantContext: false);
     addVariablePatternKeywords();
+  }
+
+  /// Add a keyword suggestion to suggest the [keyword].
+  void addPseudoKeyword(String keyword) {
+    collector.addSuggestion(KeywordSuggestion.fromPseudoKeyword(keyword));
   }
 
   /// Add the keywords that are appropriate when the selection is at the

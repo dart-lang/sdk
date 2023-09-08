@@ -8,72 +8,57 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExtensionDeclarationTest1);
-    defineReflectiveTests(ExtensionDeclarationTest2);
+    defineReflectiveTests(ExtensionTypeDeclarationTest1);
+    defineReflectiveTests(ExtensionTypeDeclarationTest2);
   });
 }
 
 @reflectiveTest
-class ExtensionDeclarationTest1 extends AbstractCompletionDriverTest
-    with ExtensionDeclarationTestCases {
+class ExtensionTypeDeclarationTest1 extends AbstractCompletionDriverTest
+    with ExtensionTypeDeclarationTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
 }
 
 @reflectiveTest
-class ExtensionDeclarationTest2 extends AbstractCompletionDriverTest
-    with ExtensionDeclarationTestCases {
+class ExtensionTypeDeclarationTest2 extends AbstractCompletionDriverTest
+    with ExtensionTypeDeclarationTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
-mixin ExtensionDeclarationTestCases on AbstractCompletionDriverTest {
-  Future<void> test_afterExtension_beforeEof() async {
+mixin ExtensionTypeDeclarationTestCases on AbstractCompletionDriverTest {
+  Future<void> test_afterRepresentationField_beforeEof() async {
     await computeSuggestions('''
-extension ^
+extension type E(int i) ^
 ''');
     assertResponse(r'''
 suggestions
-  on
-    kind: keyword
-  type
+  implements
     kind: keyword
 ''');
   }
 
-  Future<void> test_afterName_beforeEof() async {
+  Future<void> test_afterRepresentationField_beforeEof_partial() async {
     await computeSuggestions('''
-extension E ^
+extension type E(int i) i^
 ''');
     assertResponse(r'''
+replacement
+  left: 1
 suggestions
-  on
+  implements
     kind: keyword
 ''');
   }
 
-  Future<void> test_afterName_beforeEof_partial() async {
+  @FailingTest(reason: 'The AstBuilder drops the incomplete extension type')
+  Future<void> test_afterType_beforeEof() async {
     await computeSuggestions('''
-extension o^
+extension type ^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
-replacement
-  left: 1
+    assertResponse(r'''
 suggestions
-  on
-    kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  on
-    kind: keyword
-  type
-    kind: keyword
-''');
-    }
   }
 }

@@ -94,6 +94,12 @@ final class KeywordSuggestion extends CandidateSuggestion {
     );
   }
 
+  /// Initialize a newly created candidate suggestion to suggest the [keyword].
+  factory KeywordSuggestion.fromPseudoKeyword(String keyword) {
+    return KeywordSuggestion._(
+        completion: keyword, selectionOffset: keyword.length);
+  }
+
   /// Initialize a newly created candidate suggestion to suggest a keyword.
   KeywordSuggestion._(
       {required this.completion, required this.selectionOffset});
