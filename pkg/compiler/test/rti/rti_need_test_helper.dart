@@ -51,7 +51,7 @@ class Tags {
   static const String instantiationsNeedTypeArguments = 'needsInst';
 }
 
-abstract class ComputeValueMixin {
+mixin ComputeValueMixin {
   Compiler get compiler;
 
   KernelFrontendStrategy get frontendStrategy => compiler.frontendStrategy;
@@ -277,7 +277,7 @@ class RtiNeedDataComputer extends DataComputer<String> {
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
-abstract class IrMixin implements ComputeValueMixin {
+mixin IrMixin implements ComputeValueMixin {
   @override
   MemberEntity? getFrontendMember(MemberEntity backendMember) {
     ElementEnvironment elementEnvironment =

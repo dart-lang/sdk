@@ -16,7 +16,7 @@ String? TRACE_FILTER_PATTERN_FOR_TEST;
 
 /// Dumps the intermediate representation after each phase in a format
 /// readable by IR Hydra.
-class Tracer extends TracerUtil {
+class Tracer with TracerUtil {
   final JClosedWorld closedWorld;
   bool traceActive = false;
   @override
@@ -67,7 +67,7 @@ class Tracer extends TracerUtil {
   }
 }
 
-abstract class TracerUtil {
+mixin TracerUtil {
   api.OutputSink? get output;
   final Indentation _ind = Indentation();
 

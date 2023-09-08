@@ -46,15 +46,6 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the name of the element
-  static const HintCode DEPRECATED_EXPORT_USE = HintCode(
-    'DEPRECATED_EXPORT_USE',
-    "The ability to import '{0}' indirectly is deprecated.",
-    correctionMessage: "Try importing '{0}' directly.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
   ///  0: the name of the member
   static const HintCode DEPRECATED_MEMBER_USE = HintCode(
     'DEPRECATED_MEMBER_USE',

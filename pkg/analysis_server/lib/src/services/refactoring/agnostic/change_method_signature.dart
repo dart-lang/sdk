@@ -6,9 +6,9 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/write_invocation_arguments.dart'
-    show ArgumentsTrailingComma;
-import 'package:analysis_server/src/services/refactoring/framework/write_invocation_arguments.dart'
     as framework;
+import 'package:analysis_server/src/services/refactoring/framework/write_invocation_arguments.dart'
+    show ArgumentsTrailingComma;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/utilities/selection.dart';

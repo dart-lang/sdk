@@ -10,8 +10,8 @@ import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:collection/collection.dart';
-import 'package:test/test.dart' hide expect;
 import 'package:test/test.dart' as test show expect;
+import 'package:test/test.dart' hide expect;
 
 import 'change_verifier.dart';
 

@@ -76,6 +76,8 @@ ErrorOr<Pair<A, List<B>>> c(
   /// Ensures we use the same registration ID when unregistering even if the
   /// server has regenerated registrations multiple times.
   Future<void> test_dynamicRegistration_correctIdAfterMultipleChanges() async {
+    setDocumentFormattingDynamicRegistration();
+
     final registrations = <Registration>[];
     // Provide empty config and collect dynamic registrations during
     // initialization.
@@ -83,8 +85,6 @@ ErrorOr<Pair<A, List<B>>> c(
       () => monitorDynamicRegistrations(
         registrations,
         () => initialize(
-            textDocumentCapabilities: withDocumentFormattingDynamicRegistration(
-                emptyTextDocumentClientCapabilities),
             workspaceCapabilities:
                 withDidChangeConfigurationDynamicRegistration(
                     withConfigurationSupport(
@@ -119,6 +119,8 @@ ErrorOr<Pair<A, List<B>>> c(
   }
 
   Future<void> test_dynamicRegistration_forConfiguration() async {
+    setDocumentFormattingDynamicRegistration();
+
     final registrations = <Registration>[];
     // Provide empty config and collect dynamic registrations during
     // initialization.
@@ -126,8 +128,6 @@ ErrorOr<Pair<A, List<B>>> c(
       () => monitorDynamicRegistrations(
         registrations,
         () => initialize(
-            textDocumentCapabilities: withDocumentFormattingDynamicRegistration(
-                emptyTextDocumentClientCapabilities),
             workspaceCapabilities:
                 withDidChangeConfigurationDynamicRegistration(
                     withConfigurationSupport(

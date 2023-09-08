@@ -6,9 +6,9 @@ import 'package:_fe_analyzer_shared/src/parser/async_modifier.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart'
     show ErrorToken;
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerConfiguration, ScannerResult, scanString;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';

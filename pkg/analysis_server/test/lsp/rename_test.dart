@@ -864,9 +864,9 @@ final a = new MyNewClass();
     int renameRequestFileVersion = 222,
     bool supportsWindowShowMessageRequest = true,
   }) async {
+    setDocumentChangesSupport();
+
     await initialize(
-      workspaceCapabilities:
-          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
       experimentalCapabilities: supportsWindowShowMessageRequest
           ? const {
               'supportsWindowShowMessageRequest': true,

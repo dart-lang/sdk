@@ -169,27 +169,22 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
 
   @override
   Future<void> setUp(String dartSdkPath, List<String> roots) async {
+    // Use some reasonable default client capabilities that will activate
+    // features that will exercise more code that benchmarks should measure
+    // (such as applyEdit to allow suggestion sets results to be merged in).
+    setDocumentChangesSupport();
+    setApplyEditSupport();
+    setWorkDoneProgressSupport();
+    setCompletionItemSnippetSupport();
+    setCompletionItemKinds(
+        LspClientCapabilities.defaultSupportedCompletionKinds.toList());
+
     _test.dartSdkPath = dartSdkPath;
     _test.instrumentationService = InstrumentationLogAdapter(_logger);
     await _test.setUp();
     _test.projectFolderPath = roots.single;
     _test.projectFolderUri = Uri.file(_test.projectFolderPath);
-    // Use some reasonable default client capabilities that will activate
-    // features that will exercise more code that benchmarks should measure
-    // (such as applyEdit to allow suggestion sets results to be merged in).
-    await _test.initialize(
-      textDocumentCapabilities: withCompletionItemSnippetSupport(
-        withCompletionItemKinds(
-          emptyTextDocumentClientCapabilities,
-          LspClientCapabilities.defaultSupportedCompletionKinds.toList(),
-        ),
-      ),
-      workspaceCapabilities: withDocumentChangesSupport(
-        withApplyEditSupport(emptyWorkspaceClientCapabilities),
-      ),
-      windowCapabilities:
-          withWorkDoneProgressSupport(emptyWindowClientCapabilities),
-    );
+    await _test.initialize();
   }
 
   @override

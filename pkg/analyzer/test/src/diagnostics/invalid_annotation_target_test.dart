@@ -157,6 +157,19 @@ extension E on String {
     ]);
   }
 
+  test_extensionType_instance_method() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+extension type E(int i) {
+  @mustBeOverridden
+  void m() { }
+}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 62, 17),
+    ]);
+  }
+
   test_mixin_instance_method() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -318,6 +331,19 @@ extension E on String {
 }
 ''', [
       error(WarningCode.INVALID_ANNOTATION_TARGET, 60, 14),
+    ]);
+  }
+
+  test_extensionType_instance_method() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+extension type E(int i) {
+  @mustCallSuper
+  void m() { }
+}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 62, 14),
     ]);
   }
 

@@ -167,6 +167,19 @@ extension E on Object {
     ]);
   }
 
+  test_extensionType_instance_method() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+extension type E(int i) {
+  @nonVirtual
+  void m() { }
+}
+''', [
+      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 62, 11),
+    ]);
+  }
+
   test_import() async {
     await assertErrorsInCode(r'''
 @nonVirtual

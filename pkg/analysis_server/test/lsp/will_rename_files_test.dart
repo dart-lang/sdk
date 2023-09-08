@@ -22,14 +22,10 @@ class WillRenameFilesTest extends AbstractLspAnalysisServerTest {
       registration.method == Method.workspace_willRenameFiles.toJson();
 
   Future<void> test_registration_defaultsEnabled() async {
+    setAllSupportedWorkspaceDynamicRegistrations();
+
     final registrations = <Registration>[];
-    await monitorDynamicRegistrations(
-      registrations,
-      () => initialize(
-        workspaceCapabilities: withAllSupportedWorkspaceDynamicRegistrations(
-            emptyWorkspaceClientCapabilities),
-      ),
-    );
+    await monitorDynamicRegistrations(registrations, initialize);
 
     expect(
       registrations.where(isWillRenameFilesRegistration),
@@ -38,17 +34,15 @@ class WillRenameFilesTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_registration_disabled() async {
+    setAllSupportedTextDocumentDynamicRegistrations();
+    setAllSupportedWorkspaceDynamicRegistrations();
+    setConfigurationSupport();
+
     final registrations = <Registration>[];
     await provideConfig(
       () => monitorDynamicRegistrations(
         registrations,
-        () => initialize(
-          textDocumentCapabilities:
-              withAllSupportedTextDocumentDynamicRegistrations(
-                  emptyTextDocumentClientCapabilities),
-          workspaceCapabilities: withAllSupportedWorkspaceDynamicRegistrations(
-              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
-        ),
+        initialize,
       ),
       {'updateImportsOnRename': false},
     );
@@ -60,15 +54,12 @@ class WillRenameFilesTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_registration_disabledThenEnabled() async {
+    setAllSupportedTextDocumentDynamicRegistrations();
+    setAllSupportedWorkspaceDynamicRegistrations();
+    setConfigurationSupport();
     // Start disabled.
     await provideConfig(
-      () => initialize(
-        textDocumentCapabilities:
-            withAllSupportedTextDocumentDynamicRegistrations(
-                emptyTextDocumentClientCapabilities),
-        workspaceCapabilities: withAllSupportedWorkspaceDynamicRegistrations(
-            withConfigurationSupport(emptyWorkspaceClientCapabilities)),
-      ),
+      initialize,
       {'updateImportsOnRename': false},
     );
 

@@ -33,9 +33,9 @@ class C extends B {
 }
 
 // Test class with mixins.
-class Mix1 {}
+mixin Mix1 {}
 
-class Mix2 {}
+mixin Mix2 {}
 
 class D with Mix1, Mix2 {
   D();

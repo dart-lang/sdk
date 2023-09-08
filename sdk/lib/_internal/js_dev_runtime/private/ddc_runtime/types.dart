@@ -1230,9 +1230,9 @@ void checkTypeBound(
 }
 
 @notNull
-String typeName(type) {
+String typeName(Object? type) {
   if (JS<bool>('!', '# === void 0', type)) return 'undefined type';
-  if (JS<bool>('!', '# === null', type)) return 'null type';
+  if (type == null) return 'null type';
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
     return rti.rtiToString(type);
   } else {

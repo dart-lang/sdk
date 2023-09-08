@@ -304,20 +304,19 @@ class ExportCreator extends Transformer {
         var getter = getSet.getter;
         var setter = getSet.setter;
         if (getter != null) {
+          final resultType = _staticInteropMockValidator.typeParameterResolver
+              .resolve(getter.getterType);
           block.add(setProperty(
               VariableGet(getSetMap),
               'get',
               StaticInvocation(
                   _functionToJS,
                   Arguments([
-                    FunctionExpression(FunctionNode(ReturnStatement(InstanceGet(
-                        InstanceAccessKind.Instance,
-                        VariableGet(dartInstance),
-                        getter.name,
-                        interfaceTarget: getter,
-                        resultType: _staticInteropMockValidator
-                            .typeParameterResolver
-                            .resolve(getter.getterType)))))
+                    FunctionExpression(FunctionNode(
+                        ReturnStatement(InstanceGet(InstanceAccessKind.Instance,
+                            VariableGet(dartInstance), getter.name,
+                            interfaceTarget: getter, resultType: resultType)),
+                        returnType: resultType))
                   ]))));
         }
         if (setter != null) {
@@ -340,7 +339,8 @@ class ExportCreator extends Transformer {
                             setter.name,
                             VariableGet(setterParameter),
                             interfaceTarget: setter)),
-                        positionalParameters: [setterParameter]))
+                        positionalParameters: [setterParameter],
+                        returnType: const VoidType()))
                   ]))));
         }
         // Call `Object.defineProperty` to define the export name with the

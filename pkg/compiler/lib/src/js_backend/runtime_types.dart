@@ -112,8 +112,7 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
   }
 }
 
-abstract class RuntimeTypesSubstitutionsMixin
-    implements RuntimeTypesSubstitutions {
+mixin RuntimeTypesSubstitutionsMixin implements RuntimeTypesSubstitutions {
   JClosedWorld get _closedWorld;
 
   JElementEnvironment get _elementEnvironment =>
@@ -441,7 +440,7 @@ abstract class RuntimeTypesSubstitutionsMixin
   }
 }
 
-class TrivialRuntimeTypesSubstitutions extends RuntimeTypesSubstitutionsMixin {
+class TrivialRuntimeTypesSubstitutions with RuntimeTypesSubstitutionsMixin {
   @override
   final JClosedWorld _closedWorld;
 

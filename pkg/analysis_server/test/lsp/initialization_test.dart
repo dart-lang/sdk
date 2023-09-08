@@ -38,14 +38,14 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> assertDynamicRegistration(
       String name, Set<Method> expectedResult) async {
+    setTextDocumentDynamicRegistration(name);
+
     // Check that when the server calls client/registerCapability it only includes
     // the items we advertised dynamic registration support for.
     final registrations = <Registration>[];
     await monitorDynamicRegistrations(
       registrations,
       () => initialize(
-          textDocumentCapabilities: withGivenTextDocumentDynamicRegistrations(
-              emptyTextDocumentClientCapabilities, name),
           workspaceCapabilities: withGivenWorkspaceDynamicRegistrations(
               emptyWorkspaceClientCapabilities, name)),
     );
@@ -93,17 +93,14 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_completionRegistrations_triggerCharacters() async {
+    // Support dynamic registration for everything we support.
+    setAllSupportedTextDocumentDynamicRegistrations();
+    setAllSupportedWorkspaceDynamicRegistrations();
+
     final registrations = <Registration>[];
     final initResponse = await monitorDynamicRegistrations(
       registrations,
-      () => initialize(
-        // Support dynamic registration for everything we support.
-        textDocumentCapabilities:
-            withAllSupportedTextDocumentDynamicRegistrations(
-                emptyTextDocumentClientCapabilities),
-        workspaceCapabilities: withAllSupportedWorkspaceDynamicRegistrations(
-            emptyWorkspaceClientCapabilities),
-      ),
+      () => initialize(),
     );
 
     final initResult =
@@ -134,6 +131,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_completionRegistrations_withDartPlugin() async {
     if (!AnalysisServer.supportsPlugins) return;
+
     // This tests for a bug that occurred with an analysis server plugin
     // that works on Dart files. When computing completion registrations we
     // usually have separate registrations for Dart + non-Dart to account for
@@ -144,18 +142,13 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // requests for Dart completions, which resulted in duplicate items
     // appearing in the editor.
 
+    setAllSupportedTextDocumentDynamicRegistrations();
+
     // Track all current registrations.
     final registrations = <Registration>[];
 
     // Perform normal registration (without plugins) to get the initial set.
-    await monitorDynamicRegistrations(
-      registrations,
-      () => initialize(
-        textDocumentCapabilities:
-            withAllSupportedTextDocumentDynamicRegistrations(
-                emptyTextDocumentClientCapabilities),
-      ),
-    );
+    await monitorDynamicRegistrations(registrations, initialize);
 
     // Expect only a single registration that includes Dart files.
     expect(
@@ -180,6 +173,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_dynamicRegistration_areNotInterleaved() async {
     if (!AnalysisServer.supportsPlugins) return;
+
     // Some of the issues in https://github.com/dart-lang/sdk/issues/47851
     // (duplicate hovers/code actions/etc.) were caused by duplicate
     // registrations. This happened when we tried to rebuild registrations
@@ -201,14 +195,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // that is, no unregistration ever contains the ID of something that is not
     // currently registered.
 
+    setAllSupportedTextDocumentDynamicRegistrations();
+
     final registrations = <Registration>[];
-    await monitorDynamicRegistrations(
-      registrations,
-      () => initialize(
-          textDocumentCapabilities:
-              withAllSupportedTextDocumentDynamicRegistrations(
-                  emptyTextDocumentClientCapabilities)),
-    );
+    await monitorDynamicRegistrations(registrations, initialize);
 
     final knownRegistrationsIds =
         registrations.map((registration) => registration.id).toSet();
@@ -359,20 +349,19 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
           'typeHierarchy', {Method.textDocument_prepareTypeHierarchy});
 
   Future<void> test_dynamicRegistration_containsAppropriateSettings() async {
+    // Support file operations.
+    setFileOperationDynamicRegistration();
+    // Support dynamic registration for both text sync + hovers.
+    setTextSyncDynamicRegistration();
+    setHoverDynamicRegistration();
+
     // Basic check that the server responds with the capabilities we'd expect,
     // for ex including analysis_options.yaml in text synchronization but not
     // for hovers.
     final registrations = <Registration>[];
     final initResponse = await monitorDynamicRegistrations(
       registrations,
-      () => initialize(
-        // Support dynamic registration for both text sync + hovers.
-        textDocumentCapabilities: withTextSyncDynamicRegistration(
-            withHoverDynamicRegistration(emptyTextDocumentClientCapabilities)),
-        // And also file operations.
-        workspaceCapabilities: withFileOperationDynamicRegistration(
-            emptyWorkspaceClientCapabilities),
-      ),
+      initialize,
     );
 
     // Because we support dynamic registration for synchronization, we won't send
@@ -470,19 +459,16 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_dynamicRegistration_suppressesStaticRegistration() async {
+    // Support dynamic registration for everything we support.
+    setAllSupportedTextDocumentDynamicRegistrations();
+    setAllSupportedWorkspaceDynamicRegistrations();
+
     // If the client sends dynamicRegistration settings then there
     // should not be static registrations for the same capabilities.
     final registrations = <Registration>[];
     final initResponse = await monitorDynamicRegistrations(
       registrations,
-      () => initialize(
-        // Support dynamic registration for everything we support.
-        textDocumentCapabilities:
-            withAllSupportedTextDocumentDynamicRegistrations(
-                emptyTextDocumentClientCapabilities),
-        workspaceCapabilities: withAllSupportedWorkspaceDynamicRegistrations(
-            emptyWorkspaceClientCapabilities),
-      ),
+      initialize,
     );
 
     final initResult =
@@ -533,14 +519,14 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_dynamicRegistration_unregistersOutdatedAfterChange() async {
     if (!AnalysisServer.supportsPlugins) return;
+
     // Initialize by supporting dynamic registrations everywhere
+    setAllSupportedTextDocumentDynamicRegistrations();
+
     final registrations = <Registration>[];
     await monitorDynamicRegistrations(
       registrations,
-      () => initialize(
-          textDocumentCapabilities:
-              withAllSupportedTextDocumentDynamicRegistrations(
-                  emptyTextDocumentClientCapabilities)),
+      initialize,
     );
 
     final unregisterRequest =
@@ -945,6 +931,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_fullyInitializes() async {
+    // Enable some dynamic registrations, else registerCapability will not
+    // be called.
+    setAllSupportedTextDocumentDynamicRegistrations();
+
     // Ensure when we use onlyAnalyzeProjectsWithOpenFiles that we still
     // fully initialize (eg. capabilities are registered).
     projectFolderPath = convertPath('/home/empty');
@@ -954,11 +944,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       () => initialize(
         rootUri: projectFolderUri,
         initializationOptions: {'onlyAnalyzeProjectsWithOpenFiles': true},
-        // Enable some dynamic registrations, else registerCapability will not
-        // be called.
-        textDocumentCapabilities:
-            withAllSupportedTextDocumentDynamicRegistrations(
-                emptyTextDocumentClientCapabilities),
       ),
     );
   }

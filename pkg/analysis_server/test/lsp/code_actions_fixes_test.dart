@@ -617,16 +617,18 @@ var a = [Test, Test, Te[!!]st];
   }
 
   Future<void> test_noDuplicates_withDocumentChangesSupport() async {
+    setApplyEditSupport();
+    setDocumentChangesSupport();
+
     final code = TestCode.parse('''
 var a = [Test, Test, Te[!!]st];
 ''');
 
     newFile(mainFilePath, code.code);
     await initialize(
-        textDocumentCapabilities: withCodeActionKinds(
-            emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
-        workspaceCapabilities: withApplyEditSupport(
-            withDocumentChangesSupport(emptyWorkspaceClientCapabilities)));
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
 
     final codeActions =
         await getCodeActions(mainFileUri, range: code.range.range);

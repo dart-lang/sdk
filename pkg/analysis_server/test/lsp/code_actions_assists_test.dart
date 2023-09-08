@@ -408,6 +408,8 @@ build() {
   }
 
   Future<void> test_sort() async {
+    setDocumentChangesSupport();
+
     const content = '''
 import 'package:flutter/widgets.dart';
 
@@ -418,8 +420,6 @@ build() => Contai^ner(child: Container());
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
-      workspaceCapabilities:
-          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
     );
 
     final codeActions = await getCodeActions(mainFileUri,

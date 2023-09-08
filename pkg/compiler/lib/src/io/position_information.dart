@@ -400,7 +400,7 @@ class NodeSourceInformation extends js.BaseVisitor<SourceInformation?> {
 }
 
 /// Mixin that add support for computing [SourceInformation] for a [js.Node].
-abstract class NodeToSourceInformationMixin {
+mixin NodeToSourceInformationMixin {
   SourceInformationReader get reader;
 
   SourceInformation? computeSourceInformation(js.Node node) {
