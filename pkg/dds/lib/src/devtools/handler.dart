@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:devtools_shared/devtools_deeplink.dart';
 import 'package:devtools_shared/devtools_extensions_io.dart';
 import 'package:devtools_shared/devtools_server.dart';
 import 'package:mime/mime.dart';
@@ -131,7 +132,11 @@ FutureOr<Handler> defaultHandler({
     if (!ServerApi.canHandle(request)) {
       return Response.notFound('$method is not a valid API');
     }
-    return ServerApi.handle(request, ExtensionsManager(buildDir: buildDir));
+    return ServerApi.handle(
+      request,
+      extensionsManager: ExtensionsManager(buildDir: buildDir),
+      deeplinkManager: DeeplinkManager(),
+    );
   }
 
   return (Request request) {
