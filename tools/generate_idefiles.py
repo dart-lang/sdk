@@ -52,7 +52,8 @@ def GenerateCompileCommands(options):
     out_folder = utils.GetBuildRoot(HOST_OS,
                                     mode="debug",
                                     arch=options.arch,
-                                    target_os=options.os)
+                                    target_os=options.os,
+                                    sanitizer=options.sanitizer)
 
     if not os.path.isdir(out_folder):
         return 1
@@ -138,6 +139,12 @@ def main(argv):
                         "--os",
                         help="Target operating system for runtime sources.",
                         default=HOST_OS)
+
+    parser.add_argument('--sanitizer',
+                        type=str,
+                        help='Build variants (comma-separated).',
+                        metavar='[none,asan,lsan,msan,tsan,ubsan]',
+                        default='none')
 
     options = parser.parse_args(argv[1:])
 
