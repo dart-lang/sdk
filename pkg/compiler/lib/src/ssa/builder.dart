@@ -398,6 +398,9 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         return options.enableVariance;
       case 'LEGACY':
         return options.useLegacySubtyping;
+      case 'EXTRA_NULL_SAFETY_CHECKS':
+        // TODO(fishythefish): Handle this flag as needed.
+        return false;
       case 'PRINT_LEGACY_STARS':
         return options.printLegacyStars;
       default:

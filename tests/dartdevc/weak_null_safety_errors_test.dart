@@ -8,10 +8,42 @@
 
 import 'package:expect/expect.dart';
 
+/// Code that runs without error when running with unsound null safety but
+/// should throw in sound mode or when running DDC with
+/// `--weak-null-safety-errors`.
+
+void fn(StringBuffer arg) {}
+void testArg<T>(T t) => t is T;
+void testReturn<T>(T Function() f) => throw 'do not call';
+
+const c = C<Duration>();
+
+class C<T> {
+  covariantCheck(List<T> t) {}
+  const C();
+}
+
 void main() {
   Expect.throwsTypeError(() => null as int);
   dynamic dynamicNull = null;
   Expect.throwsTypeError(() => fn(dynamicNull));
-}
 
-void fn(StringBuffer arg) {}
+  var l = [Duration(days: 1), null];
+  Expect.throwsTypeError(() => l as List<Duration>);
+
+  Expect.throwsTypeError(() => (testReturn<Duration?>) as Duration Function());
+
+  // Constants get legacy types introduced in their type arguments.
+  C<Duration?> c2 = c;
+  Expect.throwsTypeError(() => c2.covariantCheck([Duration(days: 1), null]));
+
+  // Tearoff instantiations are "potentially constant" and are treated as a
+  // constant by the CFE.
+  // When compiling for unsound null safety the resulting type signature
+  // attached to the tearoff is `void Function(Duration*)` which is a valid
+  // subtype of `void Function(Duration?)`. In sound null safety the signature
+  // is `void Function(Duration)` which should fail in the cast.
+  Expect.throwsTypeError(() => (testArg<Duration>) as void Function(Duration?));
+  Expect.throwsTypeError(
+      () => (testReturn<Duration>) as void Function(Duration? Function()));
+}

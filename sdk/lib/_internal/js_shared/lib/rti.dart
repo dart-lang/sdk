@@ -150,8 +150,26 @@ class Rti {
     return future;
   }
 
-  Object? _precomputed2;
-  Object? _precomputed3;
+  // TODO(fishythefish): Replace with a single cache that stores one of three
+  // possible values.
+  Object? _isSubtypeCache;
+  Object? _unsoundIsSubtypeCache;
+
+  static Object _getIsSubtypeCache(Rti rti) {
+    if (JS_GET_FLAG('LEGACY')) {
+      // Read/write unsound cache field.
+      var probe = rti._unsoundIsSubtypeCache;
+      if (probe != null) return probe;
+      Object cache = JS('', 'new Map()');
+      rti._unsoundIsSubtypeCache = cache;
+      return cache;
+    }
+    var probe = rti._isSubtypeCache;
+    if (probe != null) return probe;
+    Object cache = JS('', 'new Map()');
+    rti._isSubtypeCache = cache;
+    return cache;
+  }
 
   /// If kind == kindFunction, stores an object used for checking function
   /// parameters in dynamic calls after the first use.
@@ -388,6 +406,17 @@ class Rti {
     var s = _getCanonicalRecipe(rti);
     return JS('String', '#.replace(/\\*/g, "")', s);
   }
+}
+
+// TODO(nshahan): Make private and change the argument type to rti once this
+// method is no longer called from outside the library.
+Rti getLegacyErasedRti(Object? rti) {
+  // When preserving the legacy stars in the runtime type no legacy erasure
+  // happens so the cached version cannot be used.
+  assert(!JS_GET_FLAG('PRINT_LEGACY_STARS'));
+  var originalType = _Utils.asRti(rti);
+  return Rti._getCachedRuntimeType(originalType)?._rti ??
+      _createAndCacheRuntimeType(originalType)._rti;
 }
 
 @pragma('dart2js:types:trust')
@@ -3148,7 +3177,23 @@ class Variance {
 
 // Future entry point from compiled code.
 bool isSubtype(Object? universe, Rti s, Rti t) {
-  return _isSubtype(universe, s, null, t, null);
+  var sType = s;
+  // Erase any legacy types that may appear in the Object rti since those mask
+  // potential sound mode errors.
+  if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
+    if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
+      var sLegacyErasedRecipe = Rti.getLegacyErasedRecipe(s);
+      sType = findType(sLegacyErasedRecipe);
+    } else {
+      sType = getLegacyErasedRti(s);
+    }
+  }
+  var sCache = Rti._getIsSubtypeCache(sType);
+  var probe = _Utils.mapGet(sCache, t);
+  if (probe != null) return _Utils.asBool(probe);
+  var result = _isSubtype(universe, sType, null, t, null);
+  _Utils.mapSet(sCache, t, result);
+  return result;
 }
 
 /// Based on
