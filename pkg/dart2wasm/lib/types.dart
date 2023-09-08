@@ -334,7 +334,7 @@ class Types {
   }
 
   bool isFunctionTypeParameter(TypeParameterType type) =>
-      type.parameter.parent == null;
+      type.parameter.declaration == null;
 
   bool _isTypeConstant(DartType type) {
     return type is DynamicType ||

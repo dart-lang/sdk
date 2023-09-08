@@ -103,7 +103,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     if (typeParameter != null) {
       return _convertNullability(typeParameter, node);
     }
-    if (node.parameter.parent is ir.Typedef) {
+    if (node.parameter.declaration is ir.Typedef) {
       // Typedefs are only used in type literals so we never need their type
       // variables.
       return _dartTypes.dynamicType();

@@ -3057,7 +3057,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.ValueType resultType;
 
     // `this` will not be initialized yet for constructor initializer lists
-    if (parameter.parent is FunctionNode || reference.isInitializerReference) {
+    if (parameter.declaration is GenericFunction ||
+        reference.isInitializerReference) {
       // Type argument to function
       w.Local? local = typeLocals[parameter];
       if (local != null) {
@@ -3071,7 +3072,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       }
     } else {
       // Type argument of class
-      Class cls = parameter.parent as Class;
+      Class cls = parameter.declaration as Class;
       ClassInfo info = translator.classInfo[cls]!;
       int fieldIndex = translator.typeParameterIndex[parameter]!;
       visitThis(info.nonNullableType);

@@ -416,10 +416,10 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
         TypeVariableTypeWithContext(
             ir.TypeParameterType.withDefaultNullabilityForLibrary(
                 typeParameter, library),
-            // If this typeParameter is part of a typedef then its parent is
-            // null because it has no context. Just pass in null for the
-            // context in that case.
-            typeParameter.parent?.parent);
+            // If this typeParameter is part of a function type then its
+            // declaration is null because it has no context. Just pass in null
+            // for the context in that case.
+            typeParameter.declaration);
 
     ir.TreeNode? context = _executableContext;
     if (_isInsideClosure && context is ir.Procedure && context.isFactory) {

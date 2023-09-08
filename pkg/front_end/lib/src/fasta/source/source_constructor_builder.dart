@@ -404,7 +404,12 @@ class DeclaredSourceConstructorBuilder
       super.classBuilder as SourceClassBuilder;
 
   @override
-  Member get readTarget => _constructorTearOff ?? _constructor;
+  Member get readTarget =>
+      _constructorTearOff ??
+      // The case is need to ensure that the upper bound is [Member] and not
+      // [GenericFunction].
+      // ignore: unnecessary_cast
+      _constructor as Member;
 
   @override
   Member? get writeTarget => null;

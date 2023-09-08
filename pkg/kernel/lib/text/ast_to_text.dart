@@ -11,7 +11,7 @@ import '../ast.dart';
 import '../import_table.dart';
 import '../src/text_util.dart';
 
-abstract class Namer<T> {
+abstract mixin class Namer<T> {
   int index = 0;
   final Map<T, String> map = <T, String>{};
 
@@ -143,18 +143,24 @@ String debugTypeParameterName(TypeParameter node) {
 }
 
 String debugQualifiedTypeParameterName(TypeParameter node) {
-  TreeNode? parent = node.parent;
-  if (parent is Class) {
-    return debugQualifiedClassName(parent) +
-        '::' +
-        debugTypeParameterName(node);
+  GenericDeclaration? declaration = node.declaration;
+  switch (declaration) {
+    case Class():
+      return debugQualifiedClassName(declaration) +
+          '::' +
+          debugTypeParameterName(node);
+    case Procedure():
+      return debugQualifiedMemberName(declaration) +
+          '::' +
+          debugTypeParameterName(node);
+    case Typedef():
+    case Extension():
+    case ExtensionTypeDeclaration():
+    // TODO(johnniwinther): Support these cases directly?
+    case LocalFunction():
+    case null:
+      return debugTypeParameterName(node);
   }
-  if (parent is Member) {
-    return debugQualifiedMemberName(parent) +
-        '::' +
-        debugTypeParameterName(node);
-  }
-  return debugTypeParameterName(node);
 }
 
 String debugVariableDeclarationName(VariableDeclaration node) {
@@ -396,15 +402,21 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   String getTypeParameterReference(TypeParameter node) {
     String name = getTypeParameterName(node);
-    TreeNode? parent = node.parent;
-    if (parent is FunctionNode && parent.parent is Member) {
-      String member = getMemberReference(parent.parent as Member);
-      return '$member::$name';
-    } else if (parent is Class) {
-      String className = getClassReference(parent);
-      return '$className::$name';
-    } else {
-      return name; // Bound inside a function type.
+    GenericDeclaration? declaration = node.declaration;
+    switch (declaration) {
+      case Class():
+        String className = getClassReference(declaration);
+        return '$className::$name';
+      case Procedure():
+        String member = getMemberReference(declaration);
+        return '$member::$name';
+      case Typedef():
+      case Extension():
+      case ExtensionTypeDeclaration():
+      case LocalFunction():
+      // TODO(johnniwinther): Support these cases correctly.
+      case null:
+        return name; // Bound inside a function type.
     }
   }
 

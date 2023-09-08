@@ -159,7 +159,7 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
     Map<TypeParameter, DartType> typeSubstitution = <TypeParameter, DartType>{};
     for (TypeParameter typeParam in realClass.typeParameters) {
       TypeParameter newNode = new TypeParameter(typeParam.name)
-        ..parent = fakeClass;
+        ..declaration = fakeClass;
       typeParams[typeParam] = newNode;
       typeSubstitution[typeParam] =
           new TypeParameterType.forAlphaRenaming(typeParam, newNode);

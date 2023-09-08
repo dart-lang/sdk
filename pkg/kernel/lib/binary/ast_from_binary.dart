@@ -3936,7 +3936,7 @@ class BinaryBuilder {
   }
 
   List<TypeParameter> readAndPushTypeParameterList(
-      [List<TypeParameter>? list, TreeNode? parent]) {
+      [List<TypeParameter>? list, GenericDeclaration? declaration]) {
     int length = readUInt30();
     if (length == 0) {
       if (list != null) return list;
@@ -3947,12 +3947,12 @@ class BinaryBuilder {
       }
     }
     if (list == null) {
-      list = new List<TypeParameter>.generate(
-          length, (_) => new TypeParameter(null, null)..parent = parent,
+      list = new List<TypeParameter>.generate(length,
+          (_) => new TypeParameter(null, null)..declaration = declaration,
           growable: useGrowableLists);
     } else if (list.length != length) {
       for (int i = 0; i < length; ++i) {
-        list.add(new TypeParameter(null, null)..parent = parent);
+        list.add(new TypeParameter(null, null)..declaration = declaration);
       }
     }
     typeParameterStack.addAll(list);

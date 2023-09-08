@@ -2657,8 +2657,8 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
         return result;
       }
     }
-    if (type.parameter.parent is! Class) return unknownType;
-    final interfaceClass = type.parameter.parent as Class;
+    final interfaceClass = type.parameter.declaration;
+    if (interfaceClass is! Class) return unknownType;
     // Undetermined nullability is equivalent to nonNullable when
     // instantiating type parameter, so convert it right away.
     Nullability nullability = type.nullability;

@@ -463,7 +463,7 @@ class _ClassBottomSubstitution extends Substitution {
 
   @override
   DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
-    if (parameter.parent == class_) {
+    if (parameter.declaration == class_) {
       return upperBound ? const NeverType.nonNullable() : const DynamicType();
     }
     return null;
@@ -1044,7 +1044,8 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   @override
   bool visitTypeParameterType(TypeParameterType node) {
-    return node.parameter.parent == null && !variables.contains(node.parameter);
+    return node.parameter.declaration == null &&
+        !variables.contains(node.parameter);
   }
 
   @override

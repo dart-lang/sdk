@@ -1592,20 +1592,13 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   TypeVariableEntity getTypeVariableInternal(ir.TypeParameter node) {
     TypeVariableEntity? typeVariable = typeVariableMap[node];
     if (typeVariable == null) {
-      final parent = node.parent;
-      if (parent is ir.FunctionNode) {
-        final member = parent.parent;
-        int index = parent.typeParameters.indexOf(node);
-        if (member is ir.Constructor) {
-          ir.Class cls = member.enclosingClass;
+      final declaration = node.declaration;
+      if (declaration is ir.Procedure) {
+        int index = declaration.typeParameters.indexOf(node);
+        if (declaration.kind == ir.ProcedureKind.Factory) {
+          ir.Class cls = declaration.enclosingClass!;
           typeVariableMap[node] =
               typeVariable = getTypeVariableInternal(cls.typeParameters[index]);
-        } else if (member is ir.Procedure) {
-          if (member.kind == ir.ProcedureKind.Factory) {
-            ir.Class cls = member.enclosingClass!;
-            typeVariableMap[node] = typeVariable =
-                getTypeVariableInternal(cls.typeParameters[index]);
-          }
         }
       }
     }
@@ -1613,7 +1606,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       throw failedAt(
           CURRENT_ELEMENT_SPANNABLE,
           "No type variable entity for $node on "
-          "${node.parent is ir.FunctionNode ? node.parent!.parent : node.parent}");
+          "${node.declaration}");
     }
     return typeVariable;
   }

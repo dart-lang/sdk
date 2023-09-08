@@ -846,7 +846,8 @@ class Combinator extends TreeNode {
 }
 
 /// Declaration of a type alias.
-class Typedef extends NamedNode implements FileUriNode, Annotatable {
+class Typedef extends NamedNode
+    implements FileUriNode, Annotatable, GenericDeclaration {
   /// The URI of the source file that contains the declaration of this typedef.
   @override
   Uri fileUri;
@@ -855,7 +856,10 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
   List<Expression> annotations = const <Expression>[];
 
   String name;
+
+  @override
   final List<TypeParameter> typeParameters;
+
   // TODO(johnniwinther): Make this non-nullable.
   DartType? type;
 
@@ -974,13 +978,26 @@ class DirtifyingList<E> extends ListBase<E> {
   }
 }
 
+/// Declaration that can introduce [TypeParameter]s.
+sealed class GenericDeclaration implements TreeNode {
+  /// The type parameters introduced by this declaration.
+  List<TypeParameter> get typeParameters;
+}
+
+/// Functions that can introduce [TypeParameter]s.
+sealed class GenericFunction implements GenericDeclaration {
+  /// The [FunctionNode] that holds the introduced [typeParameters].
+  FunctionNode get function;
+}
+
 /// Declaration of a regular class or a mixin application.
 ///
 /// Mixin applications may not contain fields or procedures, as they implicitly
 /// use those from its mixed-in type.  However, the IR does not enforce this
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
-class Class extends NamedNode implements Annotatable, FileUriNode {
+class Class extends NamedNode
+    implements Annotatable, FileUriNode, GenericDeclaration {
   /// Start offset of the class in the source file it comes from.
   ///
   /// Note that this includes annotations if any.
@@ -1168,6 +1185,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   @override
   Uri fileUri;
 
+  @override
   final List<TypeParameter> typeParameters;
 
   /// The immediate super type, or `null` if this is the root class.
@@ -1517,7 +1535,8 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 ///
 /// The members are converted into top-level procedures and only accessible
 /// by reference in the [Extension] node.
-class Extension extends NamedNode implements Annotatable, FileUriNode {
+class Extension extends NamedNode
+    implements Annotatable, FileUriNode, GenericDeclaration {
   /// Name of the extension.
   ///
   /// If unnamed, the extension will be given a synthesized name by the
@@ -1529,6 +1548,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   Uri fileUri;
 
   /// Type parameters declared on the extension.
+  @override
   final List<TypeParameter> typeParameters;
 
   /// The type in the 'on clause' of the extension declaration.
@@ -1731,7 +1751,7 @@ class ExtensionMemberDescriptor {
 /// The members are converted into top-level procedures and only accessible
 /// by reference in the [ExtensionTypeDeclaration] node.
 class ExtensionTypeDeclaration extends NamedNode
-    implements Annotatable, FileUriNode {
+    implements Annotatable, FileUriNode, GenericDeclaration {
   /// Name of the extension type declaration.
   String name;
 
@@ -1740,6 +1760,7 @@ class ExtensionTypeDeclaration extends NamedNode
   Uri fileUri;
 
   /// Type parameters declared on the extension.
+  @override
   final List<TypeParameter> typeParameters;
 
   /// The type in the underlying representation of the extension type
@@ -2801,7 +2822,7 @@ enum ProcedureStubKind {
 /// For index-getters/setters, this is `[]` and `[]=`.
 /// For operators, this is the token for the operator, e.g. `+` or `==`,
 /// except for the unary minus operator, whose name is `unary-`.
-class Procedure extends Member {
+class Procedure extends Member implements GenericFunction {
   /// Start offset of the function in the source file it comes from.
   ///
   /// Note that this includes annotations if any.
@@ -2908,6 +2929,9 @@ class Procedure extends Member {
         "Member signature origin cannot be a member signature "
         "$memberSignatureOrigin for $this.");
   }
+
+  @override
+  List<TypeParameter> get typeParameters => function.typeParameters;
 
   // The function node's body might be lazily loaded, meaning that this value
   // might not be set correctly yet. Make sure the body is loaded before
@@ -8402,7 +8426,8 @@ class AwaitExpression extends Expression {
 }
 
 /// Common super-interface for [FunctionExpression] and [FunctionDeclaration].
-abstract class LocalFunction implements TreeNode {
+abstract class LocalFunction implements GenericFunction {
+  @override
   FunctionNode get function;
 }
 
@@ -8416,6 +8441,9 @@ class FunctionExpression extends Expression implements LocalFunction {
   FunctionExpression(this.function) {
     function.parent = this;
   }
+
+  @override
+  List<TypeParameter> get typeParameters => function.typeParameters;
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
@@ -10598,6 +10626,9 @@ class FunctionDeclaration extends Statement implements LocalFunction {
   }
 
   @override
+  List<TypeParameter> get typeParameters => function.typeParameters;
+
+  @override
   R accept<R>(StatementVisitor<R> v) => v.visitFunctionDeclaration(this);
 
   @override
@@ -12237,7 +12268,7 @@ class TypeParameterType extends DartType {
     } else if (other is TypeParameterType) {
       if (nullability != other.nullability) return false;
       if (parameter != other.parameter) {
-        if (parameter.parent == null) {
+        if (parameter.isFunctionTypeTypeParameter) {
           // Function type parameters are also equal by assumption.
           if (assumptions == null) {
             return false;
@@ -12632,6 +12663,46 @@ class TypeParameter extends TreeNode implements Annotatable {
   // Must match serialized bit positions.
   static const int FlagCovariantByClass = 1 << 0;
 
+  @Deprecated("Used TypeParameter.declaration instead.")
+  @override
+  TreeNode? get parent;
+
+  @Deprecated("Used TypeParameter.declaration instead.")
+  @override
+  void set parent(TreeNode? value);
+
+  GenericDeclaration? get declaration {
+    // TODO(johnniwinther): Store the declaration directly when [parent] is
+    // removed.
+    TreeNode? parent = super.parent;
+    if (parent is GenericDeclaration) {
+      return parent;
+    } else if (parent is FunctionNode) {
+      return parent.parent as GenericDeclaration;
+    }
+    assert(
+        parent == null,
+        "Unexpected type parameter parent node "
+        "${parent} (${parent.runtimeType}).");
+    return null;
+  }
+
+  void set declaration(GenericDeclaration? value) {
+    switch (value) {
+      case Typedef():
+      case Class():
+      case Extension():
+      case ExtensionTypeDeclaration():
+        super.parent = value;
+      case Procedure():
+        super.parent = value.function;
+      case LocalFunction():
+        super.parent = value.function;
+      case null:
+        super.parent = null;
+    }
+  }
+
   /// If this [TypeParameter] is a type parameter of a generic method, indicates
   /// whether the method implementation needs to contain a runtime type check to
   /// deal with generic covariance.
@@ -12693,7 +12764,7 @@ class TypeParameter extends TreeNode implements Annotatable {
     printer.writeTypeParameterName(this);
   }
 
-  bool get isFunctionTypeTypeParameter => parent == null;
+  bool get isFunctionTypeTypeParameter => declaration == null;
 }
 
 class Supertype extends Node {

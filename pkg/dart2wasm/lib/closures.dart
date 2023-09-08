@@ -1131,7 +1131,7 @@ class CaptureFinder extends RecursiveVisitor {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    if (node.parent is FunctionNode) {
+    if (node.declaration is GenericFunction) {
       if (depth > 0) {
         variableDepth[node] = depth;
       }
@@ -1196,10 +1196,10 @@ class CaptureFinder extends RecursiveVisitor {
   void visitTypeParameterType(TypeParameterType node) {
     if (member is Constructor) {
       _visitVariableUse(node.parameter);
-    } else if (node.parameter.parent != null &&
-        node.parameter.parent == member.enclosingClass) {
+    } else if (node.parameter.declaration != null &&
+        node.parameter.declaration == member.enclosingClass) {
       _visitThis();
-    } else if (node.parameter.parent is FunctionNode) {
+    } else if (node.parameter.declaration is GenericFunction) {
       _visitVariableUse(node.parameter);
     }
     super.visitTypeParameterType(node);
