@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/src/find_type_visitor.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 
 /// Returns `true` if type contains a promoted type variable.
@@ -11,42 +12,8 @@ bool hasPromotedTypeVariable(DartType type) {
 }
 
 /// Visitor that returns `true` if a type contains a promoted type variable.
-class _HasPromotedTypeVariableVisitor extends DartTypeVisitor<bool> {
+class _HasPromotedTypeVariableVisitor extends FindTypeVisitor {
   const _HasPromotedTypeVariableVisitor();
-
-  @override
-  bool defaultDartType(DartType node) => false;
-
-  @override
-  bool visitFunctionType(FunctionType node) {
-    if (node.returnType.accept(this)) return true;
-    for (DartType parameterType in node.positionalParameters) {
-      if (parameterType.accept(this)) return true;
-    }
-    for (NamedType namedParameterType in node.namedParameters) {
-      if (namedParameterType.type.accept(this)) return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitInterfaceType(InterfaceType node) {
-    for (DartType typeArgument in node.typeArguments) {
-      if (typeArgument.accept(this)) return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitTypedefType(TypedefType node) {
-    for (DartType typeArgument in node.typeArguments) {
-      if (typeArgument.accept(this)) return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitTypeParameterType(TypeParameterType node) => false;
 
   @override
   bool visitIntersectionType(IntersectionType node) => true;

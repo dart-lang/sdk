@@ -4,6 +4,8 @@
 
 import 'package:kernel/ast.dart';
 
+import 'package:kernel/src/find_type_visitor.dart';
+
 import 'package:kernel/type_algebra.dart' show containsTypeVariable;
 
 import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
@@ -1334,86 +1336,11 @@ bool hasAnyTypeVariables(DartType type) {
 /// Don't use this directly, use [hasAnyTypeVariables] instead. But don't use
 /// that either.
 // TODO(ahe): Remove this class.
-class TypeVariableSearch implements DartTypeVisitor<bool> {
+class TypeVariableSearch extends FindTypeVisitor {
   const TypeVariableSearch();
 
   @override
-  bool defaultDartType(DartType node) => throw "unsupported";
-
-  bool anyTypeVariables(List<DartType> types) {
-    for (DartType type in types) {
-      if (type.accept(this)) return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitInvalidType(InvalidType node) => false;
-
-  @override
-  bool visitDynamicType(DynamicType node) => false;
-
-  @override
-  bool visitVoidType(VoidType node) => false;
-
-  @override
-  bool visitNeverType(NeverType node) => false;
-
-  @override
-  bool visitNullType(NullType node) => false;
-
-  @override
-  bool visitInterfaceType(InterfaceType node) {
-    return anyTypeVariables(node.typeArguments);
-  }
-
-  @override
-  bool visitExtensionType(ExtensionType node) {
-    return anyTypeVariables(node.typeArguments);
-  }
-
-  @override
-  bool visitFutureOrType(FutureOrType node) {
-    return node.typeArgument.accept(this);
-  }
-
-  @override
-  bool visitFunctionType(FunctionType node) {
-    if (anyTypeVariables(node.positionalParameters)) return true;
-    for (TypeParameter variable in node.typeParameters) {
-      if (variable.bound.accept(this)) return true;
-    }
-    for (NamedType type in node.namedParameters) {
-      if (type.type.accept(this)) return true;
-    }
-    return false;
-  }
-
-  @override
   bool visitTypeParameterType(TypeParameterType node) => true;
-
-  @override
-  bool visitIntersectionType(IntersectionType node) {
-    // The left-hand side of an [IntersectionType] is always a
-    // [TypeParameterType].
-    // ignore: unnecessary_type_check
-    assert(node.left is TypeParameterType);
-    return true;
-  }
-
-  @override
-  bool visitTypedefType(TypedefType node) {
-    return anyTypeVariables(node.typeArguments);
-  }
-
-  @override
-  bool visitRecordType(RecordType node) {
-    if (anyTypeVariables(node.positional)) return true;
-    for (NamedType namedType in node.named) {
-      if (namedType.type.accept(this)) return true;
-    }
-    return false;
-  }
 }
 
 /// A representation of a found non-simplicity issue in bounds

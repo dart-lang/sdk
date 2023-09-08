@@ -901,42 +901,108 @@ abstract class TreeVisitor1<R, A>
 abstract class DartTypeVisitor<R> {
   const DartTypeVisitor();
 
+  // TODO(johnniwinther): Remove this.
   R defaultDartType(DartType node);
 
+  R visitInvalidType(InvalidType node);
+  R visitDynamicType(DynamicType node);
+  R visitVoidType(VoidType node);
+  R visitInterfaceType(InterfaceType node);
+  R visitFutureOrType(FutureOrType node);
+  R visitFunctionType(FunctionType node);
+  R visitTypeParameterType(TypeParameterType node);
+  R visitTypedefType(TypedefType node);
+  R visitNeverType(NeverType node);
+  R visitNullType(NullType node);
+  R visitExtensionType(ExtensionType node);
+  R visitIntersectionType(IntersectionType node);
+  R visitRecordType(RecordType node);
+}
+
+mixin DartTypeVisitorDefaultMixin<R> implements DartTypeVisitor<R> {
+  @override
+  R defaultDartType(DartType node);
+
+  @override
   R visitInvalidType(InvalidType node) => defaultDartType(node);
+  @override
   R visitDynamicType(DynamicType node) => defaultDartType(node);
+  @override
   R visitVoidType(VoidType node) => defaultDartType(node);
+  @override
   R visitInterfaceType(InterfaceType node) => defaultDartType(node);
+  @override
   R visitFutureOrType(FutureOrType node) => defaultDartType(node);
+  @override
   R visitFunctionType(FunctionType node) => defaultDartType(node);
+  @override
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
+  @override
   R visitTypedefType(TypedefType node) => defaultDartType(node);
+  @override
   R visitNeverType(NeverType node) => defaultDartType(node);
+  @override
   R visitNullType(NullType node) => defaultDartType(node);
+  @override
   R visitExtensionType(ExtensionType node) => defaultDartType(node);
+  @override
   R visitIntersectionType(IntersectionType node) => defaultDartType(node);
+  @override
   R visitRecordType(RecordType node) => defaultDartType(node);
 }
 
 abstract class DartTypeVisitor1<R, A> {
   const DartTypeVisitor1();
 
+  // TODO(johnniwinther): Remove this.
   R defaultDartType(DartType node, A arg);
 
+  R visitInvalidType(InvalidType node, A arg);
+  R visitDynamicType(DynamicType node, A arg);
+  R visitVoidType(VoidType node, A arg);
+  R visitInterfaceType(InterfaceType node, A arg);
+  R visitFutureOrType(FutureOrType node, A arg);
+  R visitFunctionType(FunctionType node, A arg);
+  R visitTypeParameterType(TypeParameterType node, A arg);
+  R visitTypedefType(TypedefType node, A arg);
+  R visitNeverType(NeverType node, A arg);
+  R visitNullType(NullType node, A arg);
+  R visitExtensionType(ExtensionType node, A arg);
+  R visitIntersectionType(IntersectionType node, A arg);
+  R visitRecordType(RecordType node, A arg);
+}
+
+mixin DartTypeVisitor1DefaultMixin<R, A> implements DartTypeVisitor1<R, A> {
+  @override
+  R defaultDartType(DartType node, A arg);
+
+  @override
   R visitInvalidType(InvalidType node, A arg) => defaultDartType(node, arg);
+  @override
   R visitDynamicType(DynamicType node, A arg) => defaultDartType(node, arg);
+  @override
   R visitVoidType(VoidType node, A arg) => defaultDartType(node, arg);
+  @override
   R visitInterfaceType(InterfaceType node, A arg) => defaultDartType(node, arg);
+  @override
   R visitFutureOrType(FutureOrType node, A arg) => defaultDartType(node, arg);
+  @override
   R visitFunctionType(FunctionType node, A arg) => defaultDartType(node, arg);
+  @override
   R visitTypeParameterType(TypeParameterType node, A arg) =>
       defaultDartType(node, arg);
+  @override
   R visitTypedefType(TypedefType node, A arg) => defaultDartType(node, arg);
+  @override
   R visitNeverType(NeverType node, A arg) => defaultDartType(node, arg);
+  @override
   R visitNullType(NullType node, A arg) => defaultDartType(node, arg);
+  @override
   R visitExtensionType(ExtensionType node, A arg) => defaultDartType(node, arg);
+  @override
   R visitIntersectionType(IntersectionType node, A arg) =>
       defaultDartType(node, arg);
+  @override
   R visitRecordType(RecordType node, A arg) => defaultDartType(node, arg);
 }
 
