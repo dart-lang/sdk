@@ -238,6 +238,7 @@ class _NonVirtual {
 @Target({
   TargetKind.classType,
   TargetKind.extension,
+  TargetKind.extensionType,
   TargetKind.function,
   TargetKind.method,
   TargetKind.mixinType,
@@ -284,6 +285,7 @@ class TargetKind {
   static const classType = TargetKind._('classes', 'classType');
   static const enumType = TargetKind._('enums', 'enumType');
   static const extension = TargetKind._('extensions', 'extension');
+  static const extensionType = TargetKind._('extension types', 'extensionType');
   static const field = TargetKind._('fields', 'field');
   static const function = TargetKind._('top-level functions', 'function');
   static const library = TargetKind._('libraries', 'library');
@@ -302,6 +304,7 @@ class TargetKind {
     classType,
     enumType,
     extension,
+    extensionType,
     field,
     function,
     library,

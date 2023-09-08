@@ -15,7 +15,36 @@ main() {
 @reflectiveTest
 class AlwaysSpecifyTypesTest extends LintRuleTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   String get lintRule => 'always_specify_types';
+
+  test_extensionType_optionalTypeArgs() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@optionalTypeArgs
+extension type E<T>(int i) { }
+
+void f() {
+  E e = E(1);
+}
+''');
+  }
+
+  test_extensionType_typeArgs() async {
+    await assertDiagnostics(r'''
+extension type E<T>(int i) { }
+
+void f() {
+  E e = E(1);
+}
+''', [
+      lint(45, 1),
+      lint(51, 1),
+    ]);
+  }
 
   test_listPattern_destructured() async {
     await assertDiagnostics(r'''

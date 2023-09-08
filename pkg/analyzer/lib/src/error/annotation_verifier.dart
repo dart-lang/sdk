@@ -554,6 +554,8 @@ class AnnotationVerifier {
     } else if (target is EnumDeclaration) {
       return kinds.contains(TargetKind.enumType) ||
           kinds.contains(TargetKind.type);
+    } else if (target is ExtensionTypeDeclaration) {
+      return kinds.contains(TargetKind.extensionType);
     } else if (target is ExtensionDeclaration) {
       return kinds.contains(TargetKind.extension);
     } else if (target is FieldDeclaration) {
