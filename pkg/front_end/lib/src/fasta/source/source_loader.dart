@@ -1316,6 +1316,7 @@ severity: $severity
         builder,
         dietListener.memberScope,
         thisVariable: extensionThis);
+    builder.procedure.function = parameters..parent = builder.procedure;
     for (VariableDeclaration variable in parameters.positionalParameters) {
       listener.typeInferrer.assignedVariables.declare(variable);
     }

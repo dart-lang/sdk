@@ -7,7 +7,7 @@
 /*library: nnbd=false*/
 library test;
 
-T id<T>(T /*T**/ t) => t;
+T id<T>(T /*normal|limited.id.T**/ /*verbose.test::id.T**/ t) => t;
 
 class Class1<T> {
   const Class1();

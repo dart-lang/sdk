@@ -9007,8 +9007,9 @@ class BodyBuilder extends StackListenerImpl
           TypeVariableBuilder typeParameterBuilder =
               declaration as TypeVariableBuilder;
           TypeParameter typeParameter = typeParameterBuilder.parameter;
-          if (typeParameter.parent is Class ||
-              typeParameter.parent is Extension) {
+          if (typeParameter.declaration is Class ||
+              typeParameter.declaration is Extension ||
+              typeParameter.declaration is ExtensionTypeDeclaration) {
             if (constantContext != ConstantContext.none &&
                 (!inConstructorInitializer || !allowPotentiallyConstantType)) {
               LocatedMessage message =

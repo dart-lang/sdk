@@ -1033,9 +1033,9 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor {
 
   @override
   visitTypeParameterType(TypeParameterType node) {
-    final parent = node.parameter.parent;
-    if (parent is Class) {
-      shaker.addClassUsedInType(parent);
+    final declaration = node.parameter.declaration;
+    if (declaration is Class) {
+      shaker.addClassUsedInType(declaration);
     }
     node.visitChildren(this);
   }

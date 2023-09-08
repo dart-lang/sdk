@@ -223,7 +223,7 @@ class TypeTable {
     // readability to little or no benefit.  It would be good to do this
     // when we know that we can hoist it to an outer scope, but for
     // now we just disable it.
-    if (freeVariables.any((i) => i.parent is FunctionNode)) {
+    if (freeVariables.any((i) => i.declaration is GenericFunction)) {
       return true;
     }
 

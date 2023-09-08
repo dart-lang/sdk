@@ -747,7 +747,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitFunctionType(FunctionType node) {
     if (node.typeParameters.isNotEmpty) {
       for (TypeParameter typeParameter in node.typeParameters) {
-        if (typeParameter.parent != null) {
+        if (typeParameter.declaration != null) {
           problem(
               localContext,
               "Type parameters of function types shouldn't have parents: "
@@ -1188,20 +1188,18 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitTypeParameterType(TypeParameterType node) {
     TypeParameter parameter = node.parameter;
+    GenericDeclaration? declaration = parameter.declaration;
     if (!typeParametersInScope.contains(parameter)) {
-      TreeNode? owner = parameter.parent is FunctionNode
-          ? parameter.parent!.parent
-          : parameter.parent;
       problem(
           currentParent,
           "Type parameter '$parameter' referenced out of"
-          " scope, owner is: '${owner}'.");
+          " scope, declaration is: '${declaration}'.");
     }
-    if (parameter.parent is Class && !classTypeParametersAreInScope) {
+    if (declaration is Class && !classTypeParametersAreInScope) {
       problem(
           currentParent,
           "Type parameter '$parameter' referenced from"
-          " static context, parent is: '${parameter.parent}'.");
+          " static context, declaration is: '${parameter.declaration}'.");
     }
   }
 

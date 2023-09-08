@@ -267,24 +267,37 @@ String memberNameToString(Member node) {
 
 String qualifiedTypeParameterNameToString(TypeParameter node,
     {bool includeLibraryName = false}) {
-  TreeNode? parent = node.parent;
-  if (parent is Class) {
-    return qualifiedClassNameToString(parent,
-            includeLibraryName: includeLibraryName) +
-        '.' +
-        typeParameterNameToString(node);
-  } else if (parent is Extension) {
-    return qualifiedExtensionNameToString(parent,
-            includeLibraryName: includeLibraryName) +
-        '.' +
-        typeParameterNameToString(node);
-  } else if (parent is Member) {
-    return qualifiedMemberNameToString(parent,
-            includeLibraryName: includeLibraryName) +
-        '.' +
-        typeParameterNameToString(node);
+  GenericDeclaration? declaration = node.declaration;
+  switch (declaration) {
+    case Class():
+      return qualifiedClassNameToString(declaration,
+              includeLibraryName: includeLibraryName) +
+          '.' +
+          typeParameterNameToString(node);
+    case Extension():
+      return qualifiedExtensionNameToString(declaration,
+              includeLibraryName: includeLibraryName) +
+          '.' +
+          typeParameterNameToString(node);
+    case ExtensionTypeDeclaration():
+      return qualifiedExtensionTypeDeclarationNameToString(declaration,
+              includeLibraryName: includeLibraryName) +
+          '.' +
+          typeParameterNameToString(node);
+    case Typedef():
+      return qualifiedTypedefNameToString(declaration,
+              includeLibraryName: includeLibraryName) +
+          '.' +
+          typeParameterNameToString(node);
+    case Procedure():
+      return qualifiedMemberNameToString(declaration,
+              includeLibraryName: includeLibraryName) +
+          '.' +
+          typeParameterNameToString(node);
+    case LocalFunction():
+    case null:
+      return typeParameterNameToString(node);
   }
-  return typeParameterNameToString(node);
 }
 
 String typeParameterNameToString(TypeParameter node) {

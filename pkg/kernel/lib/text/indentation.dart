@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Indentation utility class. Should be used as a mixin in most cases.
-class Indentation {
+mixin class Indentation {
   /// The current indentation string.
   String get indentation {
     // Lazily add new indentation strings as required.
@@ -50,7 +50,7 @@ class Indentation {
   }
 }
 
-abstract class Tagging<N> implements Indentation {
+abstract mixin class Tagging<N> implements Indentation {
   StringBuffer sb = new StringBuffer();
   List<String> tagStack = [];
 

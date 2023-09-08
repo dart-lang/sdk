@@ -144,7 +144,7 @@ void main() {
     },
     (Node? node, Node? parent) =>
         "${errorPrefix}Type parameter '$node' referenced out of scope,"
-        " owner is: '$parent'.",
+        " declaration is: '$parent'.",
   );
   negative2Test(
     'Class type parameter from another class',
@@ -156,7 +156,7 @@ void main() {
     },
     (Node? node, Node? parent) =>
         "${errorPrefix}Type parameter '$node' referenced out of scope,"
-        " owner is: '$parent'.",
+        " declaration is: '$parent'.",
   );
   negative2Test(
     'Class type parameter in static method',
@@ -175,7 +175,7 @@ void main() {
     },
     (Node? node, Node? parent) =>
         "${errorPrefix}Type parameter '$node' referenced from static context,"
-        " parent is: '$parent'.",
+        " declaration is: '$parent'.",
   );
   negative2Test(
     'Class type parameter in static field',
@@ -191,7 +191,7 @@ void main() {
     },
     (Node? node, Node? parent) =>
         "${errorPrefix}Type parameter '$node' referenced from static context,"
-        " parent is: '$parent'.",
+        " declaration is: '$parent'.",
   );
   negative2Test(
     'Method type parameter out of scope',
@@ -221,7 +221,7 @@ void main() {
     },
     (Node? node, Node? parent) =>
         "${errorPrefix}Type parameter '$node' referenced out of scope,"
-        " owner is: '${(parent as TreeNode).parent}'.",
+        " declaration is: '${(parent as TreeNode).parent}'.",
   );
   negative1Test(
     'Interface type arity too low',
@@ -745,7 +745,7 @@ void main() {
       return foo;
     },
     (Node? foo) => "${errorPrefix}"
-        "Unset bound on type parameter TypeParameter(T)",
+        "Unset bound on type parameter TypeParameter(Foo.T)",
   );
   negative1Test(
     'Unset default type typedef Foo<T> = dynamic',
@@ -759,7 +759,7 @@ void main() {
       return foo;
     },
     (Node? foo) => "${errorPrefix}"
-        "Unset default type on type parameter TypeParameter(T)",
+        "Unset default type on type parameter TypeParameter(Foo.T)",
   );
   negative1Test(
     'Non-static top-level field',
