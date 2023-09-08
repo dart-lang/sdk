@@ -256,6 +256,10 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
       throw UnimplementedError('Unknown DartType: $node');
 
   @override
+  String visitInvalidType(DartType node) =>
+      throw UnimplementedError('Unknown DartType: $node');
+
+  @override
   String visitDynamicType(DynamicType node) => Recipe.pushDynamicString;
 
   @override

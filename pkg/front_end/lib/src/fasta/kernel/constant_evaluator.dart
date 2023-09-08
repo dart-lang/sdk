@@ -24,6 +24,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/const_canonical_type.dart';
+import 'package:kernel/src/find_type_visitor.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/norm.dart';
 import 'package:kernel/src/printer.dart'
@@ -6215,87 +6216,24 @@ class SimpleErrorReporter implements ErrorReporter {
 }
 
 bool isInstantiated(DartType type) {
-  return type.accept(new IsInstantiatedVisitor());
+  return !type.accept(new HasUninstantiatedVisitor());
 }
 
-class IsInstantiatedVisitor implements DartTypeVisitor<bool> {
+class HasUninstantiatedVisitor extends FindTypeVisitor {
   final _availableVariables = new Set<TypeParameter>();
-
-  bool isInstantiated(DartType type) {
-    return type.accept(this);
-  }
-
-  @override
-  bool defaultDartType(DartType node) {
-    // Probably unreachable.
-    throw 'A visitor method seems to be unimplemented!';
-  }
-
-  @override
-  bool visitInvalidType(InvalidType node) => true;
-
-  @override
-  bool visitDynamicType(DynamicType node) => true;
-
-  @override
-  bool visitVoidType(VoidType node) => true;
-
-  @override
-  bool visitNullType(NullType node) => true;
 
   @override
   bool visitTypeParameterType(TypeParameterType node) {
-    return _availableVariables.contains(node.parameter);
-  }
-
-  @override
-  bool visitInterfaceType(InterfaceType node) {
-    return node.typeArguments
-        .every((DartType typeArgument) => typeArgument.accept(this));
-  }
-
-  @override
-  bool visitFutureOrType(FutureOrType node) {
-    return node.typeArgument.accept(this);
+    return !_availableVariables.contains(node.parameter);
   }
 
   @override
   bool visitFunctionType(FunctionType node) {
     final List<TypeParameter> parameters = node.typeParameters;
     _availableVariables.addAll(parameters);
-    final bool result = node.typeParameters
-            .every((p) => p.bound.accept(this) && p.defaultType.accept(this)) &&
-        node.returnType.accept(this) &&
-        node.positionalParameters.every((p) => p.accept(this)) &&
-        node.namedParameters.every((p) => p.type.accept(this));
+    bool result = super.visitFunctionType(node);
     _availableVariables.removeAll(parameters);
     return result;
-  }
-
-  @override
-  bool visitTypedefType(TypedefType node) {
-    // Probably unreachable.
-    return node.unalias.accept(this);
-  }
-
-  @override
-  bool visitNeverType(NeverType node) => true;
-
-  @override
-  bool visitRecordType(RecordType node) {
-    return node.positional.every((p) => p.accept(this)) &&
-        node.named.every((p) => p.type.accept(this));
-  }
-
-  @override
-  bool visitExtensionType(ExtensionType node) {
-    return node.typeArguments
-        .every((DartType typeArgument) => typeArgument.accept(this));
-  }
-
-  @override
-  bool visitIntersectionType(IntersectionType node) {
-    return node.left.accept(this) && node.right.accept(this);
   }
 }
 

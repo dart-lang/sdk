@@ -2,17 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/src/replacement_visitor.dart';
-
 import '../ast.dart';
-
 import '../type_algebra.dart' show Substitution, substitute;
-
 import '../type_environment.dart' show SubtypeCheckMode, TypeEnvironment;
-
 import '../util/graph.dart' show Graph, computeStrongComponents;
-
 import 'legacy_erasure.dart';
+import 'replacement_visitor.dart';
 
 class TypeVariableGraph extends Graph<int> {
   @override
@@ -927,7 +922,6 @@ bool hasGenericFunctionTypeAsTypeArgument(DartType type) {
       const _HasGenericFunctionTypeAsTypeArgumentVisitor(), false);
 }
 
-// TODO(johnniwinther): Handle record type and extension type in this visitor.
 class _HasGenericFunctionTypeAsTypeArgumentVisitor
     extends DartTypeVisitor1<bool, bool> {
   const _HasGenericFunctionTypeAsTypeArgumentVisitor();
@@ -940,14 +934,17 @@ class _HasGenericFunctionTypeAsTypeArgumentVisitor
     if (isTypeArgument && node.typeParameters.isNotEmpty) {
       return true;
     }
-    // TODO(johnniwinther): Should deeply nested generic function types be
-    //  disallowed?
     if (node.returnType.accept1(this, false)) return true;
     for (DartType parameterType in node.positionalParameters) {
       if (parameterType.accept1(this, false)) return true;
     }
     for (NamedType namedParameterType in node.namedParameters) {
       if (namedParameterType.type.accept1(this, false)) return true;
+    }
+    for (TypeParameter typeParameter in node.typeParameters) {
+      if (typeParameter.bound.accept1(this, false)) {
+        return true;
+      }
     }
     return false;
   }
@@ -967,4 +964,52 @@ class _HasGenericFunctionTypeAsTypeArgumentVisitor
     }
     return false;
   }
+
+  @override
+  bool visitExtensionType(ExtensionType node, bool isTypeArgument) {
+    for (DartType typeArgument in node.typeArguments) {
+      if (typeArgument.accept1(this, true)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitDynamicType(DynamicType node, bool isTypeArgument) => false;
+
+  @override
+  bool visitFutureOrType(FutureOrType node, bool isTypeArgument) {
+    return node.typeArgument.accept1(this, false);
+  }
+
+  @override
+  bool visitIntersectionType(IntersectionType node, bool isTypeArgument) {
+    return node.left.accept1(this, false) || node.right.accept1(this, false);
+  }
+
+  @override
+  bool visitInvalidType(InvalidType node, bool isTypeArgument) => false;
+
+  @override
+  bool visitNeverType(NeverType node, bool isTypeArgument) => false;
+
+  @override
+  bool visitNullType(NullType node, bool isTypeArgument) => false;
+
+  @override
+  bool visitRecordType(RecordType node, bool isTypeArgument) {
+    for (DartType parameterType in node.positional) {
+      if (parameterType.accept1(this, false)) return true;
+    }
+    for (NamedType namedParameterType in node.named) {
+      if (namedParameterType.type.accept1(this, false)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitTypeParameterType(TypeParameterType node, bool isTypeArgument) =>
+      false;
+
+  @override
+  bool visitVoidType(VoidType node, bool isTypeArgument) => false;
 }

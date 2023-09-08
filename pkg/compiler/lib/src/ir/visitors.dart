@@ -218,6 +218,11 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   DartType defaultDartType(ir.DartType node) {
     throw UnsupportedError('Unsupported type $node (${node.runtimeType})');
   }
+
+  @override
+  DartType visitTypedefType(ir.TypedefType node) {
+    throw UnsupportedError('Unsupported type $node (${node.runtimeType})');
+  }
 }
 
 class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {

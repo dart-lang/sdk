@@ -2505,6 +2505,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 }
 
 class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
+    with DartTypeVisitorDefaultMixin<TypeExpr>
     implements RuntimeTypeTranslator {
   final CoreTypes coreTypes;
   final Summary? summary;

@@ -739,6 +739,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType contextType, Template<Message Function(String)> template) {
     Expression errorNode = new AsExpression(
         expression,
+        // TODO(johnniwinther): Fix this.
         // TODO(ahe): The outline phase doesn't correctly remove invalid
         // uses of type variables, for example, on static members. Once
         // that has been fixed, we should always be able to use
@@ -763,6 +764,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       {List<LocatedMessage>? context}) {
     Expression errorNode = new AsExpression(
         expression,
+        // TODO(johnniwinther): Fix this.
         // TODO(ahe): The outline phase doesn't correctly remove invalid
         // uses of type variables, for example, on static members. Once
         // that has been fixed, we should always be able to use

@@ -6,6 +6,7 @@ library kernel.type_algebra;
 
 import 'ast.dart';
 import 'core_types.dart';
+import 'src/find_type_visitor.dart';
 import 'src/replacement_visitor.dart';
 
 /// Returns all free type variables in [type].
@@ -889,7 +890,7 @@ class _DeepTypeSubstitutor extends _InnerTypeSubstitutor {
   }
 }
 
-class _OccurrenceVisitor implements DartTypeVisitor<bool> {
+class _OccurrenceVisitor extends FindTypeVisitor {
   final Set<TypeParameter> variables;
 
   /// Helper function invoked on unknown implementers of [DartType].
@@ -903,7 +904,7 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
 
   _OccurrenceVisitor(this.variables, {this.unhandledTypeHandler});
 
-  bool visit(DartType node) => node.accept(this);
+  bool visit(DartType type) => type.accept(this);
 
   bool visitNamedType(NamedType node) {
     return visit(node.type);
@@ -919,37 +920,6 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitNeverType(NeverType node) => false;
-  @override
-  bool visitNullType(NullType node) => false;
-  @override
-  bool visitInvalidType(InvalidType node) => false;
-  @override
-  bool visitDynamicType(DynamicType node) => false;
-  @override
-  bool visitVoidType(VoidType node) => false;
-
-  @override
-  bool visitInterfaceType(InterfaceType node) {
-    return node.typeArguments.any(visit);
-  }
-
-  @override
-  bool visitExtensionType(ExtensionType node) {
-    return node.typeArguments.any(visit);
-  }
-
-  @override
-  bool visitFutureOrType(FutureOrType node) {
-    return visit(node.typeArgument);
-  }
-
-  @override
-  bool visitTypedefType(TypedefType node) {
-    return node.typeArguments.any(visit);
-  }
-
-  @override
   bool visitFunctionType(FunctionType node) {
     return node.typeParameters.any(handleTypeParameter) ||
         node.positionalParameters.any(visit) ||
@@ -958,18 +928,8 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitRecordType(RecordType node) {
-    return node.positional.any(visit) || node.named.any(visitNamedType);
-  }
-
-  @override
   bool visitTypeParameterType(TypeParameterType node) {
     return variables.contains(node.parameter);
-  }
-
-  @override
-  bool visitIntersectionType(IntersectionType node) {
-    return visit(node.left) || visit(node.right);
   }
 
   bool handleTypeParameter(TypeParameter node) {
@@ -979,7 +939,7 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   }
 }
 
-class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
+class _FreeFunctionTypeVariableVisitor extends FindTypeVisitor {
   final Set<TypeParameter> variables = new Set<TypeParameter>();
 
   _FreeFunctionTypeVariableVisitor();
@@ -987,59 +947,11 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
   bool visit(DartType node) => node.accept(this);
 
   @override
-  bool defaultDartType(DartType node) {
-    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}).");
-  }
-
-  bool visitNamedType(NamedType node) {
-    return visit(node.type);
-  }
-
-  @override
-  bool visitNeverType(NeverType node) => false;
-  @override
-  bool visitNullType(NullType node) => false;
-  @override
-  bool visitInvalidType(InvalidType node) => false;
-  @override
-  bool visitDynamicType(DynamicType node) => false;
-  @override
-  bool visitVoidType(VoidType node) => false;
-
-  @override
-  bool visitInterfaceType(InterfaceType node) {
-    return node.typeArguments.any(visit);
-  }
-
-  @override
-  bool visitExtensionType(ExtensionType node) {
-    return node.typeArguments.any(visit);
-  }
-
-  @override
-  bool visitFutureOrType(FutureOrType node) {
-    return visit(node.typeArgument);
-  }
-
-  @override
-  bool visitTypedefType(TypedefType node) {
-    return node.typeArguments.any(visit);
-  }
-
-  @override
   bool visitFunctionType(FunctionType node) {
     variables.addAll(node.typeParameters);
-    bool result = node.typeParameters.any(handleTypeParameter) ||
-        node.positionalParameters.any(visit) ||
-        node.namedParameters.any(visitNamedType) ||
-        visit(node.returnType);
+    bool result = super.visitFunctionType(node);
     variables.removeAll(node.typeParameters);
     return result;
-  }
-
-  @override
-  bool visitRecordType(RecordType node) {
-    return node.positional.any(visit) || node.named.any(visitNamedType);
   }
 
   @override
@@ -1047,97 +959,27 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
     return node.parameter.declaration == null &&
         !variables.contains(node.parameter);
   }
-
-  @override
-  bool visitIntersectionType(IntersectionType node) {
-    return visit(node.left) || visit(node.right);
-  }
-
-  bool handleTypeParameter(TypeParameter node) {
-    assert(variables.contains(node));
-    if (node.bound.accept(this)) return true;
-    return node.defaultType.accept(this);
-  }
 }
 
-class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
+class _FreeTypeVariableVisitor extends FindTypeVisitor {
   final Set<TypeParameter> boundVariables;
 
   _FreeTypeVariableVisitor({Set<TypeParameter>? boundVariables})
       : this.boundVariables = boundVariables ?? <TypeParameter>{};
 
-  bool visit(DartType node) => node.accept(this);
-
-  @override
-  bool defaultDartType(DartType node) {
-    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
-  }
-
-  bool visitNamedType(NamedType node) {
-    return visit(node.type);
-  }
-
-  @override
-  bool visitNeverType(NeverType node) => false;
-  @override
-  bool visitNullType(NullType node) => false;
-  @override
-  bool visitInvalidType(InvalidType node) => false;
-  @override
-  bool visitDynamicType(DynamicType node) => false;
-  @override
-  bool visitVoidType(VoidType node) => false;
-
-  @override
-  bool visitInterfaceType(InterfaceType node) {
-    return node.typeArguments.any(visit);
-  }
-
-  @override
-  bool visitExtensionType(ExtensionType node) {
-    return node.typeArguments.any(visit);
-  }
-
-  @override
-  bool visitFutureOrType(FutureOrType node) {
-    return visit(node.typeArgument);
-  }
-
-  @override
-  bool visitTypedefType(TypedefType node) {
-    return node.typeArguments.any(visit);
-  }
+  bool visit(DartType type) => type.accept(this);
 
   @override
   bool visitFunctionType(FunctionType node) {
     boundVariables.addAll(node.typeParameters);
-    bool result = node.typeParameters.any(handleTypeParameter) ||
-        node.positionalParameters.any(visit) ||
-        node.namedParameters.any(visitNamedType) ||
-        visit(node.returnType);
+    bool result = super.visitFunctionType(node);
     boundVariables.removeAll(node.typeParameters);
     return result;
   }
 
   @override
-  bool visitRecordType(RecordType node) {
-    return node.positional.any(visit) || node.named.any(visitNamedType);
-  }
-
-  @override
   bool visitTypeParameterType(TypeParameterType node) {
     return !boundVariables.contains(node.parameter);
-  }
-
-  @override
-  bool visitIntersectionType(IntersectionType node) {
-    return visit(node.left) && visit(node.right);
-  }
-
-  bool handleTypeParameter(TypeParameter node) {
-    assert(boundVariables.contains(node));
-    if (node.bound.accept(this)) return true;
-    return node.defaultType.accept(this);
   }
 }
 

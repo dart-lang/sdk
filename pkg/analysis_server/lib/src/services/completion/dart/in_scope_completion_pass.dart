@@ -247,6 +247,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitCompilationUnit(CompilationUnit node) {
+    var followingMember = node.memberAfter(offset);
+    if (_forIncompletePreceedingUnitMember(node, followingMember)) {
+      // The preceeding member is incomplete, so assume that the user is
+      // completing it rather than starting a new member.
+      return;
+    }
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     // TODO(brianwilkerson) Consider adding a location for the condition.
     if (offset >= node.question.end && offset <= node.colon.offset) {
@@ -428,10 +438,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     var name = node.name;
     if (name != null && offset <= name.end) {
-      // TODO(brianwilkerson) We probably need to suggest `on`.
-      // TODO(brianwilkerson) We probably need to suggest `type` when extension
-      //  types are supported.
-      // Don't suggest a name for the extension.
+      keywordHelper.addKeyword(Keyword.ON);
+      if (featureSet.isEnabled(Feature.inline_class)) {
+        keywordHelper.addPseudoKeyword('type');
+      }
+      // TODO(brianwilkerson) Suggest a name for the extension.
       return;
     }
     if (offset <= node.leftBracket.offset) {
@@ -451,6 +462,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitExtensionOverride(ExtensionOverride node) {
     _forExpression(node);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    if (offset >= node.representation.end &&
+        (offset <= node.leftBracket.offset || node.leftBracket.isSynthetic)) {
+      keywordHelper.addKeyword(Keyword.IMPLEMENTS);
+    }
   }
 
   @override
@@ -1033,7 +1052,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    if (_forIncompletePreceedingUnitMember(node)) {
+    var unit = node.parent;
+    if (unit is CompilationUnit &&
+        _forIncompletePreceedingUnitMember(unit, node)) {
       return;
     } else if (node.isSingleIdentifier) {
       // The parser recovers from a simple identifier by assuming that it's a
@@ -1123,7 +1144,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       // The order of these conditions is critical. We need to check for an
       // incomplete preceeding member even when the grandparent isn't a single
       // identifier, but want to return only if both conditions are true.
-      if (_forIncompletePreceedingUnitMember(grandparent) &&
+      var unit = grandparent.parent;
+      if (unit is CompilationUnit &&
+          _forIncompletePreceedingUnitMember(unit, grandparent) &&
           grandparent.isSingleIdentifier) {
         return;
       }
@@ -1356,14 +1379,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// then the user might be attempting to complete the preceeding member rather
   /// than attempting to prepend something to the given [member], so add the
   /// suggestions appropriate for that situation.
-  bool _forIncompletePreceedingUnitMember(AstNode member) {
-    if (offset <= member.beginToken.end) {
-      var parent = member.parent;
-      if (parent is! CompilationUnit) {
-        return false;
-      }
+  bool _forIncompletePreceedingUnitMember(
+      CompilationUnit parent, AstNode? member) {
+    if (member == null || offset <= member.beginToken.end) {
       var members = parent.sortedDirectivesAndDeclarations;
-      var index = members.indexOf(member);
+      var index = member == null ? members.length : members.indexOf(member);
       if (index <= 0) {
         return false;
       }
@@ -1376,6 +1396,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         case ClassDeclaration declaration:
           if (declaration.hasNoBody) {
             keywordHelper.addClassDeclarationKeywords(declaration);
+            return true;
+          }
+        case ExtensionTypeDeclaration declaration:
+          if (declaration.hasNoBody) {
+            visitExtensionTypeDeclaration(declaration);
             return true;
           }
         case ImportDirective directive:
@@ -1569,6 +1594,20 @@ extension on ClassMember {
   }
 }
 
+extension on CompilationUnit {
+  /// Return the member that is immediately after the given [offset] or `null`
+  /// if the offset isn't before a member.
+  AstNode? memberAfter(int offset) {
+    var members = sortedDirectivesAndDeclarations;
+    for (var member in members) {
+      if (offset < member.offset) {
+        return member;
+      }
+    }
+    return null;
+  }
+}
+
 extension on ExpressionStatement {
   /// Return `true` if this statement consists of a single identifier.
   bool get isSingleIdentifier {
@@ -1577,6 +1616,13 @@ extension on ExpressionStatement {
     return first.isKeywordOrIdentifier &&
         last.isSynthetic &&
         first.next == last;
+  }
+}
+
+extension on ExtensionTypeDeclaration {
+  /// Return `true` if this class declaration doesn't have a body.
+  bool get hasNoBody {
+    return leftBracket.isSynthetic && rightBracket.isSynthetic;
   }
 }
 
