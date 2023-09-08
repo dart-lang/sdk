@@ -587,6 +587,7 @@ void ScopeBuilder::VisitInitializer() {
     case kInvalidInitializer:
       return;
     case kFieldInitializer:
+      helper_.ReadPosition();                // read position.
       helper_.SkipCanonicalNameReference();  // read field_reference.
       VisitExpression();                     // read value.
       return;
@@ -824,7 +825,7 @@ void ScopeBuilder::VisitExpression() {
       return;
     }
     case kStringConcatenation: {
-      helper_.ReadPosition();                           // read position.
+      helper_.ReadPosition();  // read position.
       VisitListOfExpressions();
       return;
     }
@@ -832,8 +833,8 @@ void ScopeBuilder::VisitExpression() {
       needs_expr_temp_ = true;
       helper_.ReadPosition();  // read position.
       helper_.ReadFlags();     // read flags.
-      VisitExpression();  // read operand.
-      VisitDartType();    // read type.
+      VisitExpression();       // read operand.
+      VisitDartType();         // read type.
       return;
     case kAsExpression:
       helper_.ReadPosition();  // read position.
@@ -855,8 +856,8 @@ void ScopeBuilder::VisitExpression() {
       VisitExpression();       // read expression.
       return;
     case kListLiteral: {
-      helper_.ReadPosition();                           // read position.
-      VisitDartType();                                  // read type.
+      helper_.ReadPosition();  // read position.
+      VisitDartType();         // read type.
       VisitListOfExpressions();
       return;
     }
@@ -1114,7 +1115,7 @@ void ScopeBuilder::VisitStatement() {
         VisitExpression();  // read rest of condition.
       }
       VisitListOfExpressions();  // read updates.
-      VisitStatement();  // read body.
+      VisitStatement();          // read body.
 
       ExitScope(position, helper_.reader_.max_position());
       --depth_.loop_;
@@ -1226,9 +1227,9 @@ void ScopeBuilder::VisitStatement() {
       return;
     }
     case kYieldStatement: {
-      helper_.ReadPosition();           // read position.
-      helper_.ReadByte();               // read flags.
-      VisitExpression();                // read expression.
+      helper_.ReadPosition();  // read position.
+      helper_.ReadByte();      // read flags.
+      VisitExpression();       // read expression.
       return;
     }
     case kVariableDeclaration:

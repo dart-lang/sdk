@@ -196,6 +196,7 @@ void KernelFingerprintHelper::CalculateInitializerFingerprint() {
     case kInvalidInitializer:
       return;
     case kFieldInitializer:
+      ReadPosition();  // read position.
       BuildHash(H.DartFieldName(ReadCanonicalNameReference()).Hash());
       CalculateExpressionFingerprint();  // read value.
       return;

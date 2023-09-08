@@ -1449,6 +1449,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitFieldInitializer(FieldInitializer node) {
     writeByte(Tag.FieldInitializer);
     writeByte(node.isSynthetic ? 1 : 0);
+    writeOffset(node.fileOffset);
     writeNonNullReference(node.fieldReference);
     writeNode(node.value);
   }

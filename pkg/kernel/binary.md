@@ -474,6 +474,7 @@ type InvalidInitializer extends Initializer {
 type FieldInitializer extends Initializer {
   Byte tag = 8;
   Byte isSynthetic;
+  FileOffset fileOffset;
   FieldReference field;
   Expression value;
 }

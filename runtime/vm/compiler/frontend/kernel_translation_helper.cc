@@ -2311,8 +2311,8 @@ void KernelReaderHelper::SkipDartType() {
       SkipListOfDartTypes();  // read list of types.
       return;
     case kTypeParameterType:
-      ReadNullability();       // read nullability.
-      ReadUInt();              // read index for parameter.
+      ReadNullability();  // read nullability.
+      ReadUInt();         // read index for parameter.
       return;
     case kIntersectionType:
       SkipDartType();  // read left.
@@ -2436,6 +2436,7 @@ void KernelReaderHelper::SkipInitializer() {
     case kInvalidInitializer:
       return;
     case kFieldInitializer:
+      ReadPosition();                // read position.
       SkipCanonicalNameReference();  // read field_reference.
       SkipExpression();              // read value.
       return;
@@ -2952,8 +2953,8 @@ void KernelReaderHelper::SkipName() {
 void KernelReaderHelper::SkipArguments() {
   ReadUInt();  // read argument count.
 
-  SkipListOfDartTypes();    // read list of types.
-  SkipListOfExpressions();  // read positional.
+  SkipListOfDartTypes();         // read list of types.
+  SkipListOfExpressions();       // read positional.
   SkipListOfNamedExpressions();  // read named.
 }
 
