@@ -5,8 +5,9 @@
 Defines the dart2wasm builders.
 """
 
+load("//lib/cron.star", "cron")
 load("//lib/dart.star", "dart")
-load("//lib/defaults.star", "chrome", "emscripten")
+load("//lib/defaults.star", "chrome", "emscripten", "no_android")
 load("//lib/paths.star", "paths")
 
 dart.poller(
@@ -19,7 +20,7 @@ dart.ci_sandbox_builder(
     "dart2wasm-linux-d8",
     category = "d2w|d",
     channels = ["try"],
-    properties = emscripten,
+    properties = [emscripten, no_android],
     location_filters = paths.to_location_filters(paths.dart2wasm),
     triggered_by = ["dart2wasm-gitiles-trigger-%s"],
 )
@@ -28,7 +29,14 @@ dart.ci_sandbox_builder(
     "dart2wasm-linux-chrome",
     category = "d2w|c",
     channels = ["try"],
-    properties = [chrome, emscripten],
+    properties = [chrome, emscripten, no_android],
     location_filters = paths.to_location_filters(paths.dart2wasm),
     triggered_by = ["dart2wasm-gitiles-trigger-%s"],
+)
+
+cron.nightly_builder(
+    "dart2wasm-linux-jscm-chrome",
+    category = "d2w|cm",
+    channels = ["try"],
+    properties = [chrome, emscripten, no_android],
 )
