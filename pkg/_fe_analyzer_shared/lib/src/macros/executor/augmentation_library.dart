@@ -135,14 +135,14 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
     };
     for (Identifier type in mergedAugmentedTypes) {
       final TypeDeclaration typeDeclaration = resolveDeclaration(type);
-      String declarationKind = typeDeclaration is ClassDeclaration
-          ? 'class'
-          : typeDeclaration is EnumDeclaration
-              ? 'enum'
-              : typeDeclaration is MixinDeclaration
-                  ? 'mixin'
-                  : throw new UnsupportedError(
-                      'Unsupported augmentation type $typeDeclaration');
+      String declarationKind = switch (typeDeclaration) {
+        ClassDeclaration() => 'class',
+        EnumDeclaration() => 'enum',
+        ExtensionDeclaration() => 'extension',
+        MixinDeclaration() => 'mixin',
+        _ => throw new UnsupportedError(
+            'Unsupported augmentation type $typeDeclaration'),
+      };
       final List<String> keywords = [
         if (typeDeclaration is ClassDeclaration) ...[
           if (typeDeclaration.hasAbstract) 'abstract',
@@ -181,6 +181,7 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
           ' '
         ]));
       }
+
       writeDirectiveStringPart('{\n');
       if (typeDeclaration is EnumDeclaration) {
         for (DeclarationCode entryAugmentation

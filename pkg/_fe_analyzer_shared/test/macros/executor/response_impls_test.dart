@@ -99,6 +99,14 @@ final Map<DeclarationKind, Map<Phase, MacroInstanceIdentifierImpl>>
     Phase.definitions: MacroInstanceIdentifierImpl(
         FakeEnumValueDefinitionMacro(), RemoteInstance.uniqueId),
   },
+  DeclarationKind.extension: {
+    Phase.types: MacroInstanceIdentifierImpl(
+        FakeExtensionTypesMacro(), RemoteInstance.uniqueId),
+    Phase.declarations: MacroInstanceIdentifierImpl(
+        FakeExtensionDeclarationsMacro(), RemoteInstance.uniqueId),
+    Phase.definitions: MacroInstanceIdentifierImpl(
+        FakeExtensionDefinitionMacro(), RemoteInstance.uniqueId),
+  },
   DeclarationKind.field: {
     Phase.types: MacroInstanceIdentifierImpl(
         FakeFieldTypesMacro(), RemoteInstance.uniqueId),
@@ -114,6 +122,14 @@ final Map<DeclarationKind, Map<Phase, MacroInstanceIdentifierImpl>>
         FakeFunctionDeclarationsMacro(), RemoteInstance.uniqueId),
     Phase.definitions: MacroInstanceIdentifierImpl(
         FakeFunctionDefinitionMacro(), RemoteInstance.uniqueId),
+  },
+  DeclarationKind.library: {
+    Phase.types: MacroInstanceIdentifierImpl(
+        FakeLibraryTypesMacro(), RemoteInstance.uniqueId),
+    Phase.declarations: MacroInstanceIdentifierImpl(
+        FakeLibraryDeclarationsMacro(), RemoteInstance.uniqueId),
+    Phase.definitions: MacroInstanceIdentifierImpl(
+        FakeLibraryDefinitionMacro(), RemoteInstance.uniqueId),
   },
   DeclarationKind.method: {
     Phase.types: MacroInstanceIdentifierImpl(
@@ -206,3 +222,19 @@ class FakeEnumValueDeclarationsMacro extends Fake
 
 class FakeEnumValueDefinitionMacro extends Fake
     implements EnumValueDefinitionMacro {}
+
+class FakeExtensionTypesMacro extends Fake implements ExtensionTypesMacro {}
+
+class FakeExtensionDeclarationsMacro extends Fake
+    implements ExtensionDeclarationsMacro {}
+
+class FakeExtensionDefinitionMacro extends Fake
+    implements ExtensionDefinitionMacro {}
+
+class FakeLibraryTypesMacro extends Fake implements LibraryTypesMacro {}
+
+class FakeLibraryDeclarationsMacro extends Fake
+    implements LibraryDeclarationsMacro {}
+
+class FakeLibraryDefinitionMacro extends Fake
+    implements LibraryDefinitionMacro {}

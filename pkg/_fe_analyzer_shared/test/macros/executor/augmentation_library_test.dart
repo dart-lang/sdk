@@ -443,6 +443,83 @@ void main() {
       '''));
     });
 
+    test('can augment extensions', () async {
+      final myExtension = ExtensionDeclarationImpl(
+        id: RemoteInstance.uniqueId,
+        identifier: TestIdentifier(
+            id: RemoteInstance.uniqueId,
+            name: 'MyExtension',
+            kind: IdentifierKind.topLevelMember,
+            uri: Uri.parse('a.dart'),
+            staticScope: null),
+        library: Fixtures.library,
+        metadata: [],
+        typeParameters: [],
+        onType: Fixtures.myClassType,
+      );
+      final myGetter = MethodDeclarationImpl(
+          id: RemoteInstance.uniqueId,
+          identifier: TestIdentifier(
+              id: RemoteInstance.uniqueId,
+              name: 'x',
+              kind: IdentifierKind.instanceMember,
+              uri: Uri.parse('a.dart'),
+              staticScope: null),
+          library: Fixtures.library,
+          metadata: [],
+          definingType: myExtension.identifier,
+          hasExternal: false,
+          isStatic: false,
+          returnType: NamedTypeAnnotationImpl(
+              id: RemoteInstance.uniqueId,
+              isNullable: false,
+              identifier: intIdentifier,
+              typeArguments: []),
+          hasAbstract: false,
+          hasBody: true,
+          isGetter: true,
+          isOperator: false,
+          isSetter: false,
+          namedParameters: [],
+          positionalParameters: [],
+          typeParameters: []);
+
+      var results = [
+        MacroExecutionResultImpl(
+            diagnostics: [],
+            enumValueAugmentations: {},
+            typeAugmentations: {
+              myExtension.identifier: [
+                DeclarationCode.fromParts([
+                  intIdentifier,
+                  ' get ',
+                  myGetter.identifier.name,
+                  ' => 1;\n'
+                ]),
+              ],
+            },
+            interfaceAugmentations: {},
+            mixinAugmentations: {},
+            newTypeNames: [],
+            libraryAugmentations: []),
+      ];
+      var library = _TestExecutor().buildAugmentationLibrary(
+          results,
+          (Identifier i) => i == myExtension.identifier
+              ? myExtension
+              : throw UnimplementedError(),
+          (Identifier i) => (i as TestIdentifier).resolved,
+          (OmittedTypeAnnotation i) =>
+              (i as TestOmittedTypeAnnotation).inferredType);
+      expect(library, equalsIgnoringWhitespace('''
+        import 'dart:core' as prefix0;
+
+        augment extension MyExtension {
+          prefix0.int get x => 1;
+        }
+      '''));
+    });
+
     test('copies keywords for classes', () async {
       for (final hasKeywords in [true, false]) {
         final clazz = ClassDeclarationImpl(
