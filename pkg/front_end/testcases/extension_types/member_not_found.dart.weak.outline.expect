@@ -4,9 +4,9 @@ import "dart:core" as core;
 
 extension type A(core::int value) {
   constructor _ = self::A|_;
-  tearoff _ = self::A|_#_#tearOff;
+  constructor tearoff _ = self::A|_#_#tearOff;
   constructor name1 = self::A|name1;
-  tearoff name1 = self::A|_#name1#tearOff;
+  constructor tearoff name1 = self::A|_#name1#tearOff;
 }
 static inline-class-member method A|_(core::int value) → self::A /* = core::int */
   ;

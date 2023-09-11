@@ -79,9 +79,11 @@ mixin SourceDeclarationBuilderMixin
         }
       } else if (declaration is SourceMemberBuilder) {
         SourceMemberBuilder memberBuilder = declaration;
-        memberBuilder
-            .buildOutlineNodes((Member member, BuiltMemberKind memberKind) {
-          _buildMember(memberBuilder, member, memberKind,
+        memberBuilder.buildOutlineNodes((
+            {required Member member,
+            Member? tearOff,
+            required BuiltMemberKind kind}) {
+          _buildMember(memberBuilder, member, tearOff, kind,
               addMembersToLibrary: addMembersToLibrary);
         });
       } else {
@@ -105,9 +107,11 @@ mixin SourceDeclarationBuilderMixin
             includeAugmentations: true));
     while (iterator.moveNext()) {
       SourceMemberBuilder declaration = iterator.current;
-      count +=
-          declaration.buildBodyNodes((Member member, BuiltMemberKind kind) {
-        _buildMember(declaration, member, kind,
+      count += declaration.buildBodyNodes((
+          {required Member member,
+          Member? tearOff,
+          required BuiltMemberKind kind}) {
+        _buildMember(declaration, member, tearOff, kind,
             addMembersToLibrary: addMembersToLibrary);
       });
     }
@@ -166,29 +170,39 @@ mixin SourceDeclarationBuilderMixin
   }
 
   void _buildMember(SourceMemberBuilder memberBuilder, Member member,
-      BuiltMemberKind memberKind,
+      Member? tearOff, BuiltMemberKind memberKind,
       {required bool addMembersToLibrary}) {
     if (addMembersToLibrary &&
         !memberBuilder.isPatch &&
         !memberBuilder.isDuplicate &&
         !memberBuilder.isConflictingSetter) {
-      Reference memberReference;
-      if (member is Field) {
-        libraryBuilder.library.addField(member);
-        memberReference = member.fieldReference;
-      } else if (member is Procedure) {
-        libraryBuilder.library.addProcedure(member);
-        memberReference = member.reference;
-      } else {
-        unhandled("${member.runtimeType}", "buildBuilders", member.fileOffset,
-            member.fileUri);
+      Reference addMember(Member member) {
+        if (member is Field) {
+          libraryBuilder.library.addField(member);
+          return member.fieldReference;
+        } else if (member is Procedure) {
+          libraryBuilder.library.addProcedure(member);
+          return member.reference;
+        } else {
+          unhandled("${member.runtimeType}", "buildBuilders", member.fileOffset,
+              member.fileUri);
+        }
+      }
+
+      Reference memberReference = addMember(member);
+      Reference? tearOffReference;
+      if (tearOff != null) {
+        tearOffReference = addMember(tearOff);
       }
       addMemberDescriptorInternal(
-          memberBuilder, member, memberKind, memberReference);
+          memberBuilder, memberKind, memberReference, tearOffReference);
     }
   }
 
   /// Adds a descriptor for [member] to this declaration.
-  void addMemberDescriptorInternal(SourceMemberBuilder memberBuilder,
-      Member member, BuiltMemberKind memberKind, Reference memberReference);
+  void addMemberDescriptorInternal(
+      SourceMemberBuilder memberBuilder,
+      BuiltMemberKind memberKind,
+      Reference memberReference,
+      Reference? tearOffReference);
 }

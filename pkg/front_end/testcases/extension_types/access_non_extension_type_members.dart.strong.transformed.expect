@@ -22,11 +22,11 @@ class B extends self::A {
 }
 extension type E(self::B it) implements self::B {
   constructor • = self::E|;
-  tearoff • = self::E|_#new#tearOff;
+  constructor tearoff • = self::E|_#new#tearOff;
 }
 extension type F(self::B it) implements self::E /* = self::B */ {
   constructor • = self::F|;
-  tearoff • = self::F|_#new#tearOff;
+  constructor tearoff • = self::F|_#new#tearOff;
 }
 static inline-class-member method E|(self::B it) → self::E /* = self::B */ {
   lowered final self::E /* = self::B */ #this = it;

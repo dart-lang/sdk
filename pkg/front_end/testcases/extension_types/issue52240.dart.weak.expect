@@ -4,11 +4,11 @@ import "dart:core" as core;
 
 extension type X(core::int obj) {
   constructor _ = self::X|_;
-  tearoff _ = self::X|_#_#tearOff;
+  constructor tearoff _ = self::X|_#_#tearOff;
   constructor • = self::X|;
-  tearoff • = self::X|_#new#tearOff;
+  constructor tearoff • = self::X|_#new#tearOff;
   constructor named = self::X|named;
-  tearoff named = self::X|_#named#tearOff;
+  constructor tearoff named = self::X|_#named#tearOff;
 }
 static inline-class-member method X|_(core::int obj) → self::X /* = core::int */ {
   lowered final self::X /* = core::int */ #this = obj;

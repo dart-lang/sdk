@@ -4,83 +4,83 @@ import "dart:core" as core;
 
 extension type A(core::int it) {
   constructor • = self::A|;
-  tearoff • = self::A|_#new#tearOff;
+  constructor tearoff • = self::A|_#new#tearOff;
 }
 extension type Ba(self::A /* = core::int */ it) {
   constructor • = self::Ba|;
-  tearoff • = self::Ba|_#new#tearOff;
+  constructor tearoff • = self::Ba|_#new#tearOff;
 }
 extension type Bb(self::A? /* = core::int? */ it) {
   constructor • = self::Bb|;
-  tearoff • = self::Bb|_#new#tearOff;
+  constructor tearoff • = self::Bb|_#new#tearOff;
 }
 extension type C<T extends core::Object? = dynamic>(T% it) {
   constructor • = self::C|;
-  tearoff • = self::C|_#new#tearOff;
+  constructor tearoff • = self::C|_#new#tearOff;
 }
 extension type Da<T extends core::Object? = dynamic>(self::C<T%> /* = T% */ it) {
   constructor • = self::Da|;
-  tearoff • = self::Da|_#new#tearOff;
+  constructor tearoff • = self::Da|_#new#tearOff;
 }
 extension type Db<T extends core::Object? = dynamic>(self::C<T?> /* = T? */ it) {
   constructor • = self::Db|;
-  tearoff • = self::Db|_#new#tearOff;
+  constructor tearoff • = self::Db|_#new#tearOff;
 }
 extension type Dc<T extends core::Object? = dynamic>(self::C<T%>? /* = T? */ it) {
   constructor • = self::Dc|;
-  tearoff • = self::Dc|_#new#tearOff;
+  constructor tearoff • = self::Dc|_#new#tearOff;
 }
 extension type E(core::int? it) {
   constructor • = self::E|;
-  tearoff • = self::E|_#new#tearOff;
+  constructor tearoff • = self::E|_#new#tearOff;
 }
 extension type Fa(self::E /* = core::int? */ it) {
   constructor • = self::Fa|;
-  tearoff • = self::Fa|_#new#tearOff;
+  constructor tearoff • = self::Fa|_#new#tearOff;
 }
 extension type Fb(self::E? /* = core::int? */ it) {
   constructor • = self::Fb|;
-  tearoff • = self::Fb|_#new#tearOff;
+  constructor tearoff • = self::Fb|_#new#tearOff;
 }
 extension type G<T extends core::Object? = dynamic>(T? it) {
   constructor • = self::G|;
-  tearoff • = self::G|_#new#tearOff;
+  constructor tearoff • = self::G|_#new#tearOff;
 }
 extension type Ha<T extends core::Object? = dynamic>(self::G<T%> /* = T? */ it) {
   constructor • = self::Ha|;
-  tearoff • = self::Ha|_#new#tearOff;
+  constructor tearoff • = self::Ha|_#new#tearOff;
 }
 extension type Hb<T extends core::Object? = dynamic>(self::G<T?> /* = T? */ it) {
   constructor • = self::Hb|;
-  tearoff • = self::Hb|_#new#tearOff;
+  constructor tearoff • = self::Hb|_#new#tearOff;
 }
 extension type Hc<T extends core::Object? = dynamic>(self::G<T%>? /* = T? */ it) {
   constructor • = self::Hc|;
-  tearoff • = self::Hc|_#new#tearOff;
+  constructor tearoff • = self::Hc|_#new#tearOff;
 }
 extension type I<T extends core::Object>(T it) {
   constructor • = self::I|;
-  tearoff • = self::I|_#new#tearOff;
+  constructor tearoff • = self::I|_#new#tearOff;
 }
 extension type Ja<T extends core::Object>(self::I<T> /* = T */ it) {
   constructor • = self::Ja|;
-  tearoff • = self::Ja|_#new#tearOff;
+  constructor tearoff • = self::Ja|_#new#tearOff;
 }
 extension type Jc<T extends core::Object>(self::I<T>? /* = T? */ it) {
   constructor • = self::Jc|;
-  tearoff • = self::Jc|_#new#tearOff;
+  constructor tearoff • = self::Jc|_#new#tearOff;
 }
 extension type K<T extends core::Object>(T? it) {
   constructor • = self::K|;
-  tearoff • = self::K|_#new#tearOff;
+  constructor tearoff • = self::K|_#new#tearOff;
 }
 extension type La<T extends core::Object>(self::K<T> /* = T? */ it) {
   constructor • = self::La|;
-  tearoff • = self::La|_#new#tearOff;
+  constructor tearoff • = self::La|_#new#tearOff;
 }
 extension type Lc<T extends core::Object>(self::K<T>? /* = T? */ it) {
   constructor • = self::Lc|;
-  tearoff • = self::Lc|_#new#tearOff;
+  constructor tearoff • = self::Lc|_#new#tearOff;
 }
 static inline-class-member method A|(core::int it) → self::A /* = core::int */
   ;

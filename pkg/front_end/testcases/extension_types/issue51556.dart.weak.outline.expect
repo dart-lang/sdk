@@ -13,23 +13,23 @@ extension DoubleToJSNumber on core::double {
 }
 extension type JSAny(core::Object value) {
   constructor • = self::JSAny|;
-  tearoff • = self::JSAny|_#new#tearOff;
+  constructor tearoff • = self::JSAny|_#new#tearOff;
 }
 extension type JSObject(core::Object value) implements self::JSAny /* = core::Object */ {
   constructor • = self::JSObject|;
-  tearoff • = self::JSObject|_#new#tearOff;
+  constructor tearoff • = self::JSObject|_#new#tearOff;
 }
 extension type JSArray(core::List<self::JSAny? /* = core::Object? */> value) implements self::JSObject /* = core::Object */ {
   constructor • = self::JSArray|;
-  tearoff • = self::JSArray|_#new#tearOff;
+  constructor tearoff • = self::JSArray|_#new#tearOff;
 }
 extension type JSExportedDartObject(core::Object value) implements self::JSObject /* = core::Object */ {
   constructor • = self::JSExportedDartObject|;
-  tearoff • = self::JSExportedDartObject|_#new#tearOff;
+  constructor tearoff • = self::JSExportedDartObject|_#new#tearOff;
 }
 extension type JSNumber(core::double value) implements self::JSAny /* = core::Object */ {
   constructor • = self::JSNumber|;
-  tearoff • = self::JSNumber|_#new#tearOff;
+  constructor tearoff • = self::JSNumber|_#new#tearOff;
 }
 static inline-class-member method JSAny|(core::Object value) → self::JSAny /* = core::Object */
   ;

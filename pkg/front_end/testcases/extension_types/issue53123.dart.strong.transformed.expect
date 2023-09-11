@@ -23,7 +23,7 @@ import "dart:core" as core;
 
 extension type V<T extends self::V<T> /* = T */ = self::V<dynamic> /* = dynamic */>(T id) {
   constructor • = self::V|;
-  tearoff • = self::V|_#new#tearOff;
+  constructor tearoff • = self::V|_#new#tearOff;
 }
 static inline-class-member method V|<T extends self::V<self::V|::T> /* = self::V|::T */ = self::V<dynamic> /* = dynamic */>(self::V|::T id) → self::V<self::V|::T> /* = self::V|::T */ {
   lowered final self::V<self::V|::T> /* = self::V|::T */ #this = id;

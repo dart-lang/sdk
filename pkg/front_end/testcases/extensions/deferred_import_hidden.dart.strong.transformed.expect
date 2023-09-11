@@ -30,7 +30,7 @@ extension Extension on core::int {
   static method staticMethod = def::Extension|staticMethod;
   get property = def::Extension|get#property;
   method method = def::Extension|method;
-  tearoff method = def::Extension|get#method;
+  method tearoff method = def::Extension|get#method;
   static set staticProperty = set def::Extension|staticProperty;
   set property = def::Extension|set#property;
 }

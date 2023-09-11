@@ -575,7 +575,7 @@ extension Extension<T extends core::Object? = dynamic> on T% {
   field field1 = self::Extension|field1;
   static method staticMethod = self::Extension|staticMethod;
   method instanceMethod = self::Extension|instanceMethod;
-  tearoff instanceMethod = self::Extension|get#instanceMethod;
+  method tearoff instanceMethod = self::Extension|get#instanceMethod;
 }
 @invalid-expression "pkg/front_end/testcases/general/type_variable_in_static_context.dart:109:4: Error: Couldn't find constructor 'T'.
   @T()

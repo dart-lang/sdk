@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 108;
+  UInt32 formatVersion = 109;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -352,13 +352,14 @@ type Extension extends Node {
   List<ExtensionMemberDescriptor> members;
 }
 
-enum ExtensionMemberKind { Field = 0, Method = 1, Getter = 2, Setter = 3, Operator = 4, TearOff = 5, }
+enum ExtensionMemberKind { Field = 0, Method = 1, Getter = 2, Setter = 3, Operator = 4, }
 
 type ExtensionMemberDescriptor {
   Name name;
   ExtensionMemberKind kind;
   Byte flags (isStatic);
   MemberReference member;
+  MemberReference tearOff;
 }
 
 type ExtensionTypeDeclaration extends Node {
@@ -372,17 +373,18 @@ type ExtensionTypeDeclaration extends Node {
   List<TypeParameter> typeParameters;
   DartType declaredRepresentationType;
   StringReference representationName;
-  List<ExtensionType> implements;
+  List<DartType> implements;
   List<ExtensionTypeMemberKind> members;
 }
 
-enum ExtensionTypeMemberKind { Constructor = 0, Factory = 1, Field = 2, Method = 3, Getter = 4, Setter = 5, Operator = 6, TearOff = 7, }
+enum ExtensionTypeMemberKind { Constructor = 0, Factory = 1, Field = 2, Method = 3, Getter = 4, Setter = 5, Operator = 6, }
 
 type ExtensionTypeMemberDescriptor {
   Name name;
   ExtensionTypeMemberKind kind;
   Byte flags (isStatic);
   MemberReference member;
+  MemberReference tearOff;
 }
 
 abstract type Member extends Node {}

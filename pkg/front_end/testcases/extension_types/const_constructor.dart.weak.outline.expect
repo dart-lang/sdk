@@ -4,15 +4,15 @@ import "dart:core" as core;
 
 extension type Class(core::int i) {
   constructor • = self::Class|;
-  tearoff • = self::Class|_#new#tearOff;
+  constructor tearoff • = self::Class|_#new#tearOff;
   constructor named = self::Class|named;
-  tearoff named = self::Class|_#named#tearOff;
+  constructor tearoff named = self::Class|_#named#tearOff;
   static redirecting-factory redirect = self::Class|redirect;
-  static tearoff redirect = self::Class|_#redirect#tearOff;
+  static redirecting-factory tearoff redirect = self::Class|_#redirect#tearOff;
   static factory fact = self::Class|fact;
-  static tearoff fact = self::Class|_#fact#tearOff;
+  static factory tearoff fact = self::Class|_#fact#tearOff;
   static redirecting-factory redirect2 = self::Class|redirect2;
-  static tearoff redirect2 = self::Class|_#redirect2#tearOff;
+  static redirecting-factory tearoff redirect2 = self::Class|_#redirect2#tearOff;
 }
 static inline-class-member method Class|(core::int i) → self::Class /* = core::int */
   ;

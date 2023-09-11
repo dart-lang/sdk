@@ -983,13 +983,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           case ExtensionTypeMemberKind.Method:
             if (!isSetter) {
               targetMember = descriptor.member.asMember;
-              targetTearoff ??= targetMember;
+              targetTearoff = descriptor.tearOff?.asMember;
               targetKind = ProcedureKind.Method;
-            }
-            break;
-          case ExtensionTypeMemberKind.TearOff:
-            if (!isSetter) {
-              targetTearoff = descriptor.member.asMember;
             }
             break;
           case ExtensionTypeMemberKind.Getter:

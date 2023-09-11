@@ -163,7 +163,7 @@ class Class2 extends core::Object {
 extension /* unnamed */ _extension#0 on self::Class {
   get extensionGetter = self::_extension#0|get#extensionGetter;
   method extensionMethod = self::_extension#0|extensionMethod;
-  tearoff extensionMethod = self::_extension#0|get#extensionMethod;
+  method tearoff extensionMethod = self::_extension#0|get#extensionMethod;
   operator <= = self::_extension#0|<=;
   operator >= = self::_extension#0|>=;
   get ambiguousField = self::_extension#0|get#ambiguousField;

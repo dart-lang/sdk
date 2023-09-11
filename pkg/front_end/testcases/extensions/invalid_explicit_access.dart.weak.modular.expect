@@ -136,11 +136,11 @@ class GenericClass<T extends core::Object? = dynamic> extends core::Object {
 }
 extension Extension on self::Class {
   method method = self::Extension|method;
-  tearoff method = self::Extension|get#method;
+  method tearoff method = self::Extension|get#method;
 }
 extension GenericExtension<T extends core::Object? = dynamic> on self::GenericClass<T%> {
   method method = self::GenericExtension|method;
-  tearoff method = self::GenericExtension|get#method;
+  method tearoff method = self::GenericExtension|get#method;
 }
 static extension-member method Extension|method(lowered final self::Class #this, dynamic a) → dynamic {}
 static extension-member method Extension|get#method(lowered final self::Class #this) → (dynamic) → dynamic

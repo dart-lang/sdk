@@ -36,7 +36,6 @@ abstract class DillExtensionTypeMemberBuilder extends DillMemberBuilder {
         return ProcedureKind.Operator;
       case ExtensionTypeMemberKind.Setter:
         return ProcedureKind.Setter;
-      case ExtensionTypeMemberKind.TearOff:
       case ExtensionTypeMemberKind.Field:
       case ExtensionTypeMemberKind.Constructor:
       case ExtensionTypeMemberKind.Factory:

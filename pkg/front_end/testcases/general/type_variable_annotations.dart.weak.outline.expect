@@ -16,7 +16,7 @@ class Class<@self::A::•() T extends core::Object? = dynamic> extends core::Obj
 }
 extension Extension<@self::A::•() T extends core::Object? = dynamic> on T% {
   method method = self::Extension|method;
-  tearoff method = self::Extension|get#method;
+  method tearoff method = self::Extension|get#method;
 }
 static method method<@self::A::•() T extends core::Object? = dynamic>() → void
   ;

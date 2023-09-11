@@ -49,7 +49,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
 }
 extension E on core::int {
   method m = iss::E|m;
-  tearoff m = iss::E|get#m;
+  method tearoff m = iss::E|get#m;
 }
 static extension-member method E|m(lowered final core::int #this) → core::String
   return "m";

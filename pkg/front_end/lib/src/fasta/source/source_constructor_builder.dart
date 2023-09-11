@@ -476,12 +476,12 @@ class DeclaredSourceConstructorBuilder
   }
 
   @override
-  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(BuildNodesCallback f) {
     _build();
-    f(_constructor, BuiltMemberKind.Constructor);
-    if (_constructorTearOff != null) {
-      f(_constructorTearOff!, BuiltMemberKind.Method);
-    }
+    f(
+        member: _constructor,
+        tearOff: _constructorTearOff,
+        kind: BuiltMemberKind.Constructor);
   }
 
   bool _hasBeenBuilt = false;
@@ -847,7 +847,7 @@ class DeclaredSourceConstructorBuilder
   }
 
   @override
-  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+  int buildBodyNodes(BuildNodesCallback f) {
     if (!isPatch) return 0;
     _finishPatch();
     return 1;
@@ -1161,7 +1161,7 @@ class SourceExtensionTypeConstructorBuilder
   void _inferSuperInitializingFormals(ClassHierarchyBase hierarchy) {}
 
   @override
-  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+  int buildBodyNodes(BuildNodesCallback f) {
     if (!isExternal) {
       VariableDeclaration thisVariable = this.thisVariable!;
       List<Statement> statements = [thisVariable];
@@ -1182,12 +1182,12 @@ class SourceExtensionTypeConstructorBuilder
   }
 
   @override
-  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(BuildNodesCallback f) {
     _build();
-    f(_constructor, BuiltMemberKind.ExtensionTypeConstructor);
-    if (_constructorTearOff != null) {
-      f(_constructorTearOff!, BuiltMemberKind.ExtensionTypeTearOff);
-    }
+    f(
+        member: _constructor,
+        tearOff: _constructorTearOff,
+        kind: BuiltMemberKind.ExtensionTypeConstructor);
   }
 
   bool _hasBeenBuilt = false;

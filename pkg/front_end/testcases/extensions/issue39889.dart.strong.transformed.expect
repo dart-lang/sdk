@@ -9,7 +9,7 @@ class C extends core::Object {
 }
 extension E on self::C {
   method f = self::E|f;
-  tearoff f = self::E|get#f;
+  method tearoff f = self::E|get#f;
 }
 static extension-member method E|f(lowered final self::C #this, core::String b) → void {}
 static extension-member method E|get#f(lowered final self::C #this) → (core::String) → void

@@ -8,7 +8,7 @@ library from "org-dartlang-test:///main.dart" as main {
   }
   extension A2 on main::A1 {
     method method1 = main::A2|method1;
-    tearoff method1 = main::A2|get#method1;
+    method tearoff method1 = main::A2|get#method1;
     get getter1 = main::A2|get#getter1;
     static method method2 = main::A2|method2;
     static get getter2 = get main::A2|getter2;

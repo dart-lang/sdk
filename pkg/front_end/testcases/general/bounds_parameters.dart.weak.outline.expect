@@ -178,7 +178,7 @@ class Class1 extends core::Object {
 }
 extension Extension1 on core::int {
   method method3 = self::Extension1|method3;
-  tearoff method3 = self::Extension1|get#method3;
+  method tearoff method3 = self::Extension1|get#method3;
 }
 static method method1(self::Class<dynamic> t1, dynamic t2, self::Class<dynamic> t3, self::Class<dynamic> t4, self::ConcreteClass t5, self::Class<self::ConcreteClass> t6, core::Object t7, core::int t8, {required self::G<self::Class<dynamic>> s1, required self::G<dynamic> s2, required self::G<self::Class<dynamic>> s3, required self::G<self::Class<dynamic>> s4, required self::G<self::ConcreteClass> s5, required self::G<self::Class<self::ConcreteClass>> s6, required self::G<core::Object> s7, required self::G<core::int> s8}) → void
   ;

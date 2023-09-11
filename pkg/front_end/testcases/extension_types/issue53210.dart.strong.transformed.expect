@@ -4,23 +4,23 @@ import "dart:core" as core;
 
 extension type ET1(core::int id) {
   constructor c0 = self::ET1|c0;
-  tearoff c0 = self::ET1|_#c0#tearOff;
+  constructor tearoff c0 = self::ET1|_#c0#tearOff;
   constructor c1 = self::ET1|c1;
-  tearoff c1 = self::ET1|_#c1#tearOff;
+  constructor tearoff c1 = self::ET1|_#c1#tearOff;
   constructor c2 = self::ET1|c2;
-  tearoff c2 = self::ET1|_#c2#tearOff;
+  constructor tearoff c2 = self::ET1|_#c2#tearOff;
   constructor c3 = self::ET1|c3;
-  tearoff c3 = self::ET1|_#c3#tearOff;
+  constructor tearoff c3 = self::ET1|_#c3#tearOff;
   constructor c4 = self::ET1|c4;
-  tearoff c4 = self::ET1|_#c4#tearOff;
+  constructor tearoff c4 = self::ET1|_#c4#tearOff;
   constructor c5 = self::ET1|c5;
-  tearoff c5 = self::ET1|_#c5#tearOff;
+  constructor tearoff c5 = self::ET1|_#c5#tearOff;
   constructor c6 = self::ET1|c6;
-  tearoff c6 = self::ET1|_#c6#tearOff;
+  constructor tearoff c6 = self::ET1|_#c6#tearOff;
   static redirecting-factory f1 = self::ET1|f1;
-  static tearoff f1 = self::ET1|_#f1#tearOff;
+  static redirecting-factory tearoff f1 = self::ET1|_#f1#tearOff;
   static factory f2 = self::ET1|f2;
-  static tearoff f2 = self::ET1|_#f2#tearOff;
+  static factory tearoff f2 = self::ET1|_#f2#tearOff;
 }
 static inline-class-member method ET1|c0(core::int id) → self::ET1 /* = core::int */ {
   lowered final self::ET1 /* = core::int */ #this = id;

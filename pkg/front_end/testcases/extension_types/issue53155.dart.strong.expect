@@ -12,7 +12,7 @@ class C<T extends self::V<core::num, core::Object> /* = core::num */> extends co
 }
 extension type V<X1 extends core::num, X2 extends core::Object>(X1 id) {
   constructor • = self::V|;
-  tearoff • = self::V|_#new#tearOff;
+  constructor tearoff • = self::V|_#new#tearOff;
 }
 static inline-class-member method V|<X1 extends core::num, X2 extends core::Object>(self::V|::X1 id) → self::V<self::V|::X1, self::V|::X2> /* = self::V|::X1 */ {
   lowered final self::V<self::V|::X1, self::V|::X2> /* = self::V|::X1 */ #this = id;

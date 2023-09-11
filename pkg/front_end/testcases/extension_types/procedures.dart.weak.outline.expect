@@ -4,29 +4,29 @@ import "dart:core" as core;
 
 extension type Class(core::int it) {
   method instanceMethod = self::Class|instanceMethod;
-  tearoff instanceMethod = self::Class|get#instanceMethod;
+  method tearoff instanceMethod = self::Class|get#instanceMethod;
   get instanceGetter = self::Class|get#instanceGetter;
   method instanceMethod2 = self::Class|instanceMethod2;
-  tearoff instanceMethod2 = self::Class|get#instanceMethod2;
+  method tearoff instanceMethod2 = self::Class|get#instanceMethod2;
   method genericInstanceMethod = self::Class|genericInstanceMethod;
-  tearoff genericInstanceMethod = self::Class|get#genericInstanceMethod;
+  method tearoff genericInstanceMethod = self::Class|get#genericInstanceMethod;
   static method staticMethod = self::Class|staticMethod;
   static method genericStaticMethod = self::Class|genericStaticMethod;
   constructor _ = self::Class|_;
-  tearoff _ = self::Class|_#_#tearOff;
+  constructor tearoff _ = self::Class|_#_#tearOff;
 }
 extension type GenericClass<T extends core::Object? = dynamic>(T% it) {
   method instanceMethod = self::GenericClass|instanceMethod;
-  tearoff instanceMethod = self::GenericClass|get#instanceMethod;
+  method tearoff instanceMethod = self::GenericClass|get#instanceMethod;
   get instanceGetter = self::GenericClass|get#instanceGetter;
   method instanceMethod2 = self::GenericClass|instanceMethod2;
-  tearoff instanceMethod2 = self::GenericClass|get#instanceMethod2;
+  method tearoff instanceMethod2 = self::GenericClass|get#instanceMethod2;
   method genericInstanceMethod = self::GenericClass|genericInstanceMethod;
-  tearoff genericInstanceMethod = self::GenericClass|get#genericInstanceMethod;
+  method tearoff genericInstanceMethod = self::GenericClass|get#genericInstanceMethod;
   static method staticMethod = self::GenericClass|staticMethod;
   static method genericStaticMethod = self::GenericClass|genericStaticMethod;
   constructor _ = self::GenericClass|_;
-  tearoff _ = self::GenericClass|_#_#tearOff;
+  constructor tearoff _ = self::GenericClass|_#_#tearOff;
 }
 static inline-class-member method Class|_(core::int it) → self::Class /* = core::int */
   ;

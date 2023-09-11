@@ -20,19 +20,19 @@ class A<T extends core::Object? = dynamic> extends core::Object {
 }
 extension type B<T extends core::Object? = dynamic>(self::A<T%> it) implements self::A<T%> {
   constructor • = self::B|;
-  tearoff • = self::B|_#new#tearOff;
+  constructor tearoff • = self::B|_#new#tearOff;
 }
 extension type C<T extends core::Object? = dynamic>(self::A<T%> it) {
   constructor • = self::C|;
-  tearoff • = self::C|_#new#tearOff;
+  constructor tearoff • = self::C|_#new#tearOff;
 }
 extension type D(self::A<Never> it) implements self::A<core::int>, self::B<core::String> /* = self::A<core::String> */ {
   constructor • = self::D|;
-  tearoff • = self::D|_#new#tearOff;
+  constructor tearoff • = self::D|_#new#tearOff;
 }
 extension type E(self::A<Never> it) {
   constructor • = self::E|;
-  tearoff • = self::E|_#new#tearOff;
+  constructor tearoff • = self::E|_#new#tearOff;
 }
 static inline-class-member method B|<T extends core::Object? = dynamic>(self::A<self::B|::T%> it) → self::B<self::B|::T%> /* = self::A<self::B|::T%> */ {
   lowered final self::B<self::B|::T%> /* = self::A<self::B|::T%> */ #this = it;

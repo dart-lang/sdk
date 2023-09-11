@@ -62,15 +62,15 @@ library from "org-dartlang-test:///foo.dart" as foo {
   }
   extension FooExtension on dart.core::Object? {
     method foo = foo::FooExtension|foo;
-    tearoff foo = foo::FooExtension|get#foo;
+    method tearoff foo = foo::FooExtension|get#foo;
     method bar = foo::FooExtension|bar;
-    tearoff bar = foo::FooExtension|get#bar;
+    method tearoff bar = foo::FooExtension|get#bar;
     method baz = foo::FooExtension|baz;
-    tearoff baz = foo::FooExtension|get#baz;
+    method tearoff baz = foo::FooExtension|get#baz;
     method boz = foo::FooExtension|boz;
-    tearoff boz = foo::FooExtension|get#boz;
+    method tearoff boz = foo::FooExtension|get#boz;
     method constFoo = foo::FooExtension|constFoo;
-    tearoff constFoo = foo::FooExtension|get#constFoo;
+    method tearoff constFoo = foo::FooExtension|get#constFoo;
     get getterFoo = foo::FooExtension|get#getterFoo;
     operator unary- = foo::FooExtension|unary-;
     static method staticFoo = foo::FooExtension|staticFoo;

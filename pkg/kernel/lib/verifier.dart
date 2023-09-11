@@ -380,13 +380,25 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       Map<Reference, ExtensionMemberDescriptor> map = _extensionsMembers = {};
       for (Extension extension in library.extensions) {
         for (ExtensionMemberDescriptor descriptor in extension.members) {
-          map[descriptor.member] = descriptor;
-          Member member = descriptor.member.asMember;
+          Reference memberReference = descriptor.member;
+          map[memberReference] = descriptor;
+          Member member = memberReference.asMember;
           if (!member.isExtensionMember) {
             problem(
                 member,
                 "Member $member (${descriptor}) from $extension is not marked "
                 "as an extension member.");
+          }
+          Reference? tearOffReference = descriptor.tearOff;
+          if (tearOffReference != null) {
+            map[tearOffReference] = descriptor;
+            Member tearOff = tearOffReference.asMember;
+            if (!tearOff.isExtensionMember) {
+              problem(
+                  tearOff,
+                  "Tear-off $tearOff (${descriptor}) from $extension is not "
+                  "marked as an extension member.");
+            }
           }
         }
       }
@@ -403,13 +415,26 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           in library.extensionTypeDeclarations) {
         for (ExtensionTypeMemberDescriptor descriptor
             in extensionTypeDeclaration.members) {
-          map[descriptor.member] = descriptor;
-          Member member = descriptor.member.asMember;
+          Reference memberReference = descriptor.member;
+          map[memberReference] = descriptor;
+          Member member = memberReference.asMember;
           if (!member.isExtensionTypeMember) {
             problem(
                 member,
                 "Member $member (${descriptor}) from $extensionTypeDeclaration "
                 "is not marked as an extension type member.");
+          }
+          Reference? tearOffReference = descriptor.tearOff;
+          if (tearOffReference != null) {
+            map[tearOffReference] = descriptor;
+            Member tearOff = tearOffReference.asMember;
+            if (!tearOff.isExtensionTypeMember) {
+              problem(
+                  tearOff,
+                  "Tear-off $tearOff (${descriptor}) from "
+                  "$extensionTypeDeclaration is not marked as an extension "
+                  "type member.");
+            }
           }
         }
       }

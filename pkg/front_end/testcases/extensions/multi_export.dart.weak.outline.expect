@@ -69,7 +69,7 @@ class Class extends core::Object {
 }
 extension Extension<T extends mul::Class> on T {
   method method = mul::Extension|method;
-  tearoff method = mul::Extension|get#method;
+  method tearoff method = mul::Extension|get#method;
 }
 static extension-member method Extension|method<T extends mul::Class>(lowered final mul::Extension|method::T #this) → dynamic
   ;

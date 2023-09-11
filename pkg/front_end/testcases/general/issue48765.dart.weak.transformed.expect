@@ -27,12 +27,12 @@ class _Bc extends core::Object implements self::_B { // from org-dartlang-testca
 extension /* unnamed */ _extension#0 on self::_A { // from org-dartlang-testcase:///issue48765_part1.dart
   static field field = self::_extension#0|field;
   method method = self::_extension#0|method;
-  tearoff method = self::_extension#0|get#method;
+  method tearoff method = self::_extension#0|get#method;
 }
 extension /* unnamed */ _extension#1 on self::_B { // from org-dartlang-testcase:///issue48765_part2.dart
   static field field = self::_extension#1|field;
   method method = self::_extension#1|method;
-  tearoff method = self::_extension#1|get#method;
+  method tearoff method = self::_extension#1|get#method;
 }
 static field core::int _extension#0|field = 0 /* from org-dartlang-testcase:///issue48765_part1.dart */;
 static field core::int _extension#1|field = 0 /* from org-dartlang-testcase:///issue48765_part2.dart */;

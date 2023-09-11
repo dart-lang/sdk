@@ -21,15 +21,15 @@ import "dart:core" as core;
 
 extension type Missing(invalid-type #) {
   constructor • = self::Missing|;
-  tearoff • = self::Missing|_#new#tearOff;
+  constructor tearoff • = self::Missing|_#new#tearOff;
 }
 extension type Multiple(core::bool instanceField1) {
   constructor • = self::Multiple|;
-  tearoff • = self::Multiple|_#new#tearOff;
+  constructor tearoff • = self::Multiple|_#new#tearOff;
 }
 extension type Duplicate(core::bool instanceField) {
   constructor • = self::Duplicate|;
-  tearoff • = self::Duplicate|_#new#tearOff;
+  constructor tearoff • = self::Duplicate|_#new#tearOff;
 }
 static inline-class-member method Missing|() → self::Missing /* = invalid-type */
   ;

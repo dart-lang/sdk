@@ -229,9 +229,14 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
       } else if (declaration is SourceMemberBuilder) {
         SourceMemberBuilder memberBuilder = declaration;
-        memberBuilder
-            .buildOutlineNodes((Member member, BuiltMemberKind memberKind) {
-          _addMemberToClass(declaration, member, memberKind);
+        memberBuilder.buildOutlineNodes((
+            {required Member member,
+            Member? tearOff,
+            required BuiltMemberKind kind}) {
+          _addMemberToClass(declaration, member);
+          if (tearOff != null) {
+            _addMemberToClass(declaration, tearOff);
+          }
         });
       } else {
         unhandled("${declaration.runtimeType}", "buildBuilders",
@@ -1120,8 +1125,14 @@ class SourceClassBuilder extends ClassBuilderImpl
         return;
       }
       if (builder is SourceMemberBuilder) {
-        count += builder.buildBodyNodes((Member member, BuiltMemberKind kind) {
-          _addMemberToClass(builder, member, kind);
+        count += builder.buildBodyNodes((
+            {required Member member,
+            Member? tearOff,
+            required BuiltMemberKind kind}) {
+          _addMemberToClass(builder, member);
+          if (tearOff != null) {
+            _addMemberToClass(builder, tearOff);
+          }
         });
       }
     }
@@ -1137,8 +1148,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     return count;
   }
 
-  void _addMemberToClass(SourceMemberBuilder memberBuilder, Member member,
-      BuiltMemberKind memberKind) {
+  void _addMemberToClass(SourceMemberBuilder memberBuilder, Member member) {
     member.parent = cls;
     if (!memberBuilder.isPatch &&
         !memberBuilder.isDuplicate &&

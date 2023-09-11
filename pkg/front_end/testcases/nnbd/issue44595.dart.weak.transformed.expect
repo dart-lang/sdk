@@ -7,7 +7,7 @@ import "dart:async";
 typedef Exactly<invariant T extends core::Object? = dynamic> = (T%) → T%;
 extension /* unnamed */ _extension#0<T extends core::Object? = dynamic> on T% {
   method checkStaticType = self::_extension#0|checkStaticType;
-  tearoff checkStaticType = self::_extension#0|get#checkStaticType;
+  method tearoff checkStaticType = self::_extension#0|get#checkStaticType;
 }
 static method id<T extends core::Object? = dynamic>(self::id::T% value) → self::id::T%
   return value;

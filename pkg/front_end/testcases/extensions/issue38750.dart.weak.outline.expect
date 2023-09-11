@@ -27,7 +27,7 @@ class C extends core::Object {
 }
 extension ext on self2::C {
   method _bar = self2::ext|_bar;
-  tearoff _bar = self2::ext|get#_bar;
+  method tearoff _bar = self2::ext|get#_bar;
 }
 static extension-member method ext|_bar(lowered final self2::C #this) → dynamic
   ;

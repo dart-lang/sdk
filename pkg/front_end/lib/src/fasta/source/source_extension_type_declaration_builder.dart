@@ -448,8 +448,11 @@ class SourceExtensionTypeDeclarationBuilder
   }
 
   @override
-  void addMemberDescriptorInternal(SourceMemberBuilder memberBuilder,
-      Member member, BuiltMemberKind memberKind, Reference memberReference) {
+  void addMemberDescriptorInternal(
+      SourceMemberBuilder memberBuilder,
+      BuiltMemberKind memberKind,
+      Reference memberReference,
+      Reference? tearOffReference) {
     String name = memberBuilder.name;
     ExtensionTypeMemberKind kind;
     switch (memberKind) {
@@ -462,8 +465,7 @@ class SourceExtensionTypeDeclarationBuilder
       case BuiltMemberKind.ExtensionGetter:
       case BuiltMemberKind.ExtensionSetter:
       case BuiltMemberKind.ExtensionOperator:
-      case BuiltMemberKind.ExtensionTearOff:
-        unhandled("${member.runtimeType}:${memberKind}", "buildMembers",
+        unhandled("${memberBuilder.runtimeType}:${memberKind}", "buildMembers",
             memberBuilder.charOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
       case BuiltMemberKind.LateIsSetField:
@@ -492,13 +494,11 @@ class SourceExtensionTypeDeclarationBuilder
       case BuiltMemberKind.ExtensionTypeOperator:
         kind = ExtensionTypeMemberKind.Operator;
         break;
-      case BuiltMemberKind.ExtensionTypeTearOff:
-        kind = ExtensionTypeMemberKind.TearOff;
-        break;
     }
     extensionTypeDeclaration.members.add(new ExtensionTypeMemberDescriptor(
         name: new Name(name, libraryBuilder.library),
         member: memberReference,
+        tearOff: tearOffReference,
         isStatic: memberBuilder.isStatic,
         kind: kind));
   }

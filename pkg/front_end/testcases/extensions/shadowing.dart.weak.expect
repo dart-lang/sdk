@@ -16,7 +16,7 @@ import "dart:core" as core;
 extension /* unnamed */ _extension#0 on core::int {
   get getter = self::_extension#0|get#getter;
   method method = self::_extension#0|method;
-  tearoff method = self::_extension#0|get#method;
+  method tearoff method = self::_extension#0|get#method;
   set setter = self::_extension#0|set#setter;
 }
 static field core::int getter = 42;

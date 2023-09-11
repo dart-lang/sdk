@@ -43,7 +43,7 @@ import "dart:core" as core;
 extension Extension on core::String {
   get noSuchMethod = self::Extension|get#noSuchMethod;
   method runtimeType = self::Extension|runtimeType;
-  tearoff runtimeType = self::Extension|get#runtimeType;
+  method tearoff runtimeType = self::Extension|get#runtimeType;
   operator == = self::Extension|==;
   static method toString = self::Extension|toString;
   set hashCode = self::Extension|set#hashCode;

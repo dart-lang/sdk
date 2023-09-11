@@ -15,23 +15,23 @@ import "dart:core" as core;
 
 extension type A<T extends core::Object? = dynamic>(core::int it) {
   constructor • = self::A|;
-  tearoff • = self::A|_#new#tearOff;
+  constructor tearoff • = self::A|_#new#tearOff;
 }
 extension type B<T extends core::Object? = dynamic>(core::int it) implements self::A<T%> /* = core::int */ {
   constructor • = self::B|;
-  tearoff • = self::B|_#new#tearOff;
+  constructor tearoff • = self::B|_#new#tearOff;
 }
 extension type C<T extends core::Object? = dynamic>(core::int it) implements self::A<T%> /* = core::int */ {
   constructor • = self::C|;
-  tearoff • = self::C|_#new#tearOff;
+  constructor tearoff • = self::C|_#new#tearOff;
 }
 extension type D(core::int it) implements self::A<core::int> /* = core::int */, self::B<core::String> /* = core::int */ {
   constructor • = self::D|;
-  tearoff • = self::D|_#new#tearOff;
+  constructor tearoff • = self::D|_#new#tearOff;
 }
 extension type E(core::int it) implements self::B<core::int> /* = core::int */, self::C<core::String> /* = core::int */ {
   constructor • = self::E|;
-  tearoff • = self::E|_#new#tearOff;
+  constructor tearoff • = self::E|_#new#tearOff;
 }
 static inline-class-member method A|<T extends core::Object? = dynamic>(core::int it) → self::A<self::A|::T%> /* = core::int */ {
   lowered final self::A<self::A|::T%> /* = core::int */ #this = it;

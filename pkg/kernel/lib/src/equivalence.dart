@@ -1735,6 +1735,9 @@ class EquivalenceStrategy {
     if (!checkExtensionMemberDescriptor_member(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkExtensionMemberDescriptor_tearOff(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     return result;
   }
 
@@ -1795,6 +1798,9 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkExtensionTypeMemberDescriptor_member(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkExtensionTypeMemberDescriptor_tearOff(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     return result;
@@ -5918,6 +5924,11 @@ class EquivalenceStrategy {
     return visitor.checkReferences(node.member, other.member, 'member');
   }
 
+  bool checkExtensionMemberDescriptor_tearOff(EquivalenceVisitor visitor,
+      ExtensionMemberDescriptor node, ExtensionMemberDescriptor other) {
+    return visitor.checkReferences(node.tearOff, other.tearOff, 'tearOff');
+  }
+
   bool checkExtension_members(
       EquivalenceVisitor visitor, Extension node, Extension other) {
     return visitor.checkLists(node.members, other.members, (a, b, _) {
@@ -5999,6 +6010,11 @@ class EquivalenceStrategy {
   bool checkExtensionTypeMemberDescriptor_member(EquivalenceVisitor visitor,
       ExtensionTypeMemberDescriptor node, ExtensionTypeMemberDescriptor other) {
     return visitor.checkReferences(node.member, other.member, 'member');
+  }
+
+  bool checkExtensionTypeMemberDescriptor_tearOff(EquivalenceVisitor visitor,
+      ExtensionTypeMemberDescriptor node, ExtensionTypeMemberDescriptor other) {
+    return visitor.checkReferences(node.tearOff, other.tearOff, 'tearOff');
   }
 
   bool checkExtensionTypeDeclaration_members(EquivalenceVisitor visitor,

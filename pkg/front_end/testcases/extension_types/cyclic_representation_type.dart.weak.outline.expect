@@ -213,123 +213,123 @@ typedef Alias23<T extends self::E23 /* = invalid-type */> = core::List<T>;
 typedef Alias24<T extends self::E24<T> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */> = core::List<T>;
 extension type E1(invalid-type it) {
   constructor • = self::E1|;
-  tearoff • = self::E1|_#new#tearOff;
+  constructor tearoff • = self::E1|_#new#tearOff;
 }
 extension type E2a(invalid-type it) {
   constructor • = self::E2a|;
-  tearoff • = self::E2a|_#new#tearOff;
+  constructor tearoff • = self::E2a|_#new#tearOff;
 }
 extension type E2b(invalid-type it) {
   constructor • = self::E2b|;
-  tearoff • = self::E2b|_#new#tearOff;
+  constructor tearoff • = self::E2b|_#new#tearOff;
 }
 extension type E3a(invalid-type it) {
   constructor • = self::E3a|;
-  tearoff • = self::E3a|_#new#tearOff;
+  constructor tearoff • = self::E3a|_#new#tearOff;
 }
 extension type E3b(invalid-type it) {
   constructor • = self::E3b|;
-  tearoff • = self::E3b|_#new#tearOff;
+  constructor tearoff • = self::E3b|_#new#tearOff;
 }
 extension type E3c(invalid-type it) {
   constructor • = self::E3c|;
-  tearoff • = self::E3c|_#new#tearOff;
+  constructor tearoff • = self::E3c|_#new#tearOff;
 }
 extension type E4(invalid-type it) {
   constructor • = self::E4|;
-  tearoff • = self::E4|_#new#tearOff;
+  constructor tearoff • = self::E4|_#new#tearOff;
 }
 extension type E5(invalid-type it) {
   constructor • = self::E5|;
-  tearoff • = self::E5|_#new#tearOff;
+  constructor tearoff • = self::E5|_#new#tearOff;
 }
 extension type E6(invalid-type it) {
   constructor • = self::E6|;
-  tearoff • = self::E6|_#new#tearOff;
+  constructor tearoff • = self::E6|_#new#tearOff;
 }
 extension type E7(invalid-type it) {
   constructor • = self::E7|;
-  tearoff • = self::E7|_#new#tearOff;
+  constructor tearoff • = self::E7|_#new#tearOff;
 }
 extension type E8<T extends core::Object? = dynamic>(invalid-type it) {
   constructor • = self::E8|;
-  tearoff • = self::E8|_#new#tearOff;
+  constructor tearoff • = self::E8|_#new#tearOff;
 }
 extension type E9(invalid-type it) {
   constructor • = self::E9|;
-  tearoff • = self::E9|_#new#tearOff;
+  constructor tearoff • = self::E9|_#new#tearOff;
 }
 extension type E10<T extends core::Object? = dynamic>(invalid-type it) {
   constructor • = self::E10|;
-  tearoff • = self::E10|_#new#tearOff;
+  constructor tearoff • = self::E10|_#new#tearOff;
 }
 extension type E11(invalid-type it) {
   constructor • = self::E11|;
-  tearoff • = self::E11|_#new#tearOff;
+  constructor tearoff • = self::E11|_#new#tearOff;
 }
 extension type E12(invalid-type it) {
   constructor • = self::E12|;
-  tearoff • = self::E12|_#new#tearOff;
+  constructor tearoff • = self::E12|_#new#tearOff;
 }
 extension type E13(invalid-type it) {
   constructor • = self::E13|;
-  tearoff • = self::E13|_#new#tearOff;
+  constructor tearoff • = self::E13|_#new#tearOff;
 }
 extension type E14(core::int it) {
   constructor • = self::E14|;
-  tearoff • = self::E14|_#new#tearOff;
+  constructor tearoff • = self::E14|_#new#tearOff;
 }
 extension type E15a(invalid-type it) {
   constructor • = self::E15a|;
-  tearoff • = self::E15a|_#new#tearOff;
+  constructor tearoff • = self::E15a|_#new#tearOff;
 }
 extension type E15b(invalid-type it) {
   constructor • = self::E15b|;
-  tearoff • = self::E15b|_#new#tearOff;
+  constructor tearoff • = self::E15b|_#new#tearOff;
 }
 extension type E16a(invalid-type it) {
   constructor • = self::E16a|;
-  tearoff • = self::E16a|_#new#tearOff;
+  constructor tearoff • = self::E16a|_#new#tearOff;
 }
 extension type E16b(invalid-type it) {
   constructor • = self::E16b|;
-  tearoff • = self::E16b|_#new#tearOff;
+  constructor tearoff • = self::E16b|_#new#tearOff;
 }
 extension type E17(invalid-type it) {
   constructor • = self::E17|;
-  tearoff • = self::E17|_#new#tearOff;
+  constructor tearoff • = self::E17|_#new#tearOff;
 }
 extension type E18(invalid-type it) {
   constructor • = self::E18|;
-  tearoff • = self::E18|_#new#tearOff;
+  constructor tearoff • = self::E18|_#new#tearOff;
 }
 extension type E19a((self::E19b /* = core::int */, self::E19b /* = core::int */) it) {
   constructor • = self::E19a|;
-  tearoff • = self::E19a|_#new#tearOff;
+  constructor tearoff • = self::E19a|_#new#tearOff;
 }
 extension type E19b(core::int it) {
   constructor • = self::E19b|;
-  tearoff • = self::E19b|_#new#tearOff;
+  constructor tearoff • = self::E19b|_#new#tearOff;
 }
 extension type E20(invalid-type it) {
   constructor • = self::E20|;
-  tearoff • = self::E20|_#new#tearOff;
+  constructor tearoff • = self::E20|_#new#tearOff;
 }
 extension type E21(invalid-type it) {
   constructor • = self::E21|;
-  tearoff • = self::E21|_#new#tearOff;
+  constructor tearoff • = self::E21|_#new#tearOff;
 }
 extension type E22(invalid-type it) {
   constructor • = self::E22|;
-  tearoff • = self::E22|_#new#tearOff;
+  constructor tearoff • = self::E22|_#new#tearOff;
 }
 extension type E23(invalid-type it) {
   constructor • = self::E23|;
-  tearoff • = self::E23|_#new#tearOff;
+  constructor tearoff • = self::E23|_#new#tearOff;
 }
 extension type E24<T extends core::Object? = dynamic>(invalid-type it) {
   constructor • = self::E24|;
-  tearoff • = self::E24|_#new#tearOff;
+  constructor tearoff • = self::E24|_#new#tearOff;
 }
 static inline-class-member method E1|(self::E1 /* = invalid-type */ it) → self::E1 /* = invalid-type */
   ;

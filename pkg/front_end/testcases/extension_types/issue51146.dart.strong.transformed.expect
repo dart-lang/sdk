@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 extension type I<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(X% value) {
   constructor • = self::I|;
-  tearoff • = self::I|_#new#tearOff;
+  constructor tearoff • = self::I|_#new#tearOff;
 }
 static inline-class-member method I|<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::I|::X% value) → self::I<self::I|::X%, self::I|::Y%> /* = self::I|::X% */ {
   lowered final self::I<self::I|::X%, self::I|::Y%> /* = self::I|::X% */ #this = value;

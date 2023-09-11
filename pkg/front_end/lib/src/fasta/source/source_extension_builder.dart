@@ -109,8 +109,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
-  void addMemberDescriptorInternal(SourceMemberBuilder memberBuilder,
-      Member member, BuiltMemberKind memberKind, Reference memberReference) {
+  void addMemberDescriptorInternal(
+      SourceMemberBuilder memberBuilder,
+      BuiltMemberKind memberKind,
+      Reference memberReference,
+      Reference? tearOffReference) {
     String name = memberBuilder.name;
     ExtensionMemberKind kind;
     switch (memberKind) {
@@ -124,10 +127,9 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       case BuiltMemberKind.ExtensionTypeGetter:
       case BuiltMemberKind.ExtensionTypeSetter:
       case BuiltMemberKind.ExtensionTypeOperator:
-      case BuiltMemberKind.ExtensionTypeTearOff:
       case BuiltMemberKind.ExtensionTypeFactory:
       case BuiltMemberKind.ExtensionTypeRedirectingFactory:
-        unhandled("${member.runtimeType}:${memberKind}", "buildMembers",
+        unhandled("${memberBuilder.runtimeType}:${memberKind}", "buildMembers",
             memberBuilder.charOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
       case BuiltMemberKind.LateIsSetField:
@@ -147,13 +149,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       case BuiltMemberKind.ExtensionOperator:
         kind = ExtensionMemberKind.Operator;
         break;
-      case BuiltMemberKind.ExtensionTearOff:
-        kind = ExtensionMemberKind.TearOff;
-        break;
     }
     extension.members.add(new ExtensionMemberDescriptor(
         name: new Name(name, libraryBuilder.library),
         member: memberReference,
+        tearOff: tearOffReference,
         isStatic: memberBuilder.isStatic,
         kind: kind));
   }

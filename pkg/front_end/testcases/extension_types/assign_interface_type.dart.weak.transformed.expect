@@ -296,23 +296,23 @@ class B extends self::A {
 }
 extension type C(core::Object? o) {
   constructor • = self::C|;
-  tearoff • = self::C|_#new#tearOff;
+  constructor tearoff • = self::C|_#new#tearOff;
 }
 extension type D(core::Object o) {
   constructor • = self::D|;
-  tearoff • = self::D|_#new#tearOff;
+  constructor tearoff • = self::D|_#new#tearOff;
 }
 extension type E(self::B it) implements self::A {
   constructor • = self::E|;
-  tearoff • = self::E|_#new#tearOff;
+  constructor tearoff • = self::E|_#new#tearOff;
 }
 extension type F(self::B it) implements self::E /* = self::B */, self::B {
   constructor • = self::F|;
-  tearoff • = self::F|_#new#tearOff;
+  constructor tearoff • = self::F|_#new#tearOff;
 }
 extension type G<T extends core::Object? = dynamic>(T% o) {
   constructor • = self::G|;
-  tearoff • = self::G|_#new#tearOff;
+  constructor tearoff • = self::G|_#new#tearOff;
 }
 static inline-class-member method C|(core::Object? o) → self::C /* = core::Object? */ {
   lowered final self::C /* = core::Object? */ #this = o;

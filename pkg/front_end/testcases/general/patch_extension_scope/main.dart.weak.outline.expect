@@ -46,39 +46,39 @@ class Class extends core::Object {
 }
 extension NamedInjectedExtension1 on test::Class { // from org-dartlang-testcase:///patch_lib1.dart
   method namedInjectedExtensionMethod1 = test::NamedInjectedExtension1|namedInjectedExtensionMethod1;
-  tearoff namedInjectedExtensionMethod1 = test::NamedInjectedExtension1|get#namedInjectedExtensionMethod1;
+  method tearoff namedInjectedExtensionMethod1 = test::NamedInjectedExtension1|get#namedInjectedExtensionMethod1;
   method _namedInjectedExtensionPrivateMethod1 = test::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1;
-  tearoff _namedInjectedExtensionPrivateMethod1 = test::NamedInjectedExtension1|get#_namedInjectedExtensionPrivateMethod1;
+  method tearoff _namedInjectedExtensionPrivateMethod1 = test::NamedInjectedExtension1|get#_namedInjectedExtensionPrivateMethod1;
 }
 extension /* unnamed */ _extension#1 on test::Class { // from org-dartlang-testcase:///patch_lib1.dart
   method unnamedInjectedExtensionMethod1 = test::_extension#1|unnamedInjectedExtensionMethod1;
-  tearoff unnamedInjectedExtensionMethod1 = test::_extension#1|get#unnamedInjectedExtensionMethod1;
+  method tearoff unnamedInjectedExtensionMethod1 = test::_extension#1|get#unnamedInjectedExtensionMethod1;
   method _unnamedInjectedExtensionPrivateMethod1 = test::_extension#1|_unnamedInjectedExtensionPrivateMethod1;
-  tearoff _unnamedInjectedExtensionPrivateMethod1 = test::_extension#1|get#_unnamedInjectedExtensionPrivateMethod1;
+  method tearoff _unnamedInjectedExtensionPrivateMethod1 = test::_extension#1|get#_unnamedInjectedExtensionPrivateMethod1;
 }
 extension NamedInjectedExtension2 on test::Class { // from org-dartlang-testcase:///patch_lib2.dart
   method namedInjectedExtensionMethod2 = test::NamedInjectedExtension2|namedInjectedExtensionMethod2;
-  tearoff namedInjectedExtensionMethod2 = test::NamedInjectedExtension2|get#namedInjectedExtensionMethod2;
+  method tearoff namedInjectedExtensionMethod2 = test::NamedInjectedExtension2|get#namedInjectedExtensionMethod2;
   method _namedInjectedExtensionPrivateMethod2 = test::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2;
-  tearoff _namedInjectedExtensionPrivateMethod2 = test::NamedInjectedExtension2|get#_namedInjectedExtensionPrivateMethod2;
+  method tearoff _namedInjectedExtensionPrivateMethod2 = test::NamedInjectedExtension2|get#_namedInjectedExtensionPrivateMethod2;
 }
 extension /* unnamed */ _extension#3 on test::Class { // from org-dartlang-testcase:///patch_lib2.dart
   method unnamedInjectedExtensionMethod2 = test::_extension#3|unnamedInjectedExtensionMethod2;
-  tearoff unnamedInjectedExtensionMethod2 = test::_extension#3|get#unnamedInjectedExtensionMethod2;
+  method tearoff unnamedInjectedExtensionMethod2 = test::_extension#3|get#unnamedInjectedExtensionMethod2;
   method _unnamedInjectedExtensionPrivateMethod2 = test::_extension#3|_unnamedInjectedExtensionPrivateMethod2;
-  tearoff _unnamedInjectedExtensionPrivateMethod2 = test::_extension#3|get#_unnamedInjectedExtensionPrivateMethod2;
+  method tearoff _unnamedInjectedExtensionPrivateMethod2 = test::_extension#3|get#_unnamedInjectedExtensionPrivateMethod2;
 }
 extension Extension on test::Class {
   method namedExtensionMethod = test::Extension|namedExtensionMethod;
-  tearoff namedExtensionMethod = test::Extension|get#namedExtensionMethod;
+  method tearoff namedExtensionMethod = test::Extension|get#namedExtensionMethod;
   method _namedExtensionPrivateMethod = test::Extension|_namedExtensionPrivateMethod;
-  tearoff _namedExtensionPrivateMethod = test::Extension|get#_namedExtensionPrivateMethod;
+  method tearoff _namedExtensionPrivateMethod = test::Extension|get#_namedExtensionPrivateMethod;
 }
 extension /* unnamed */ _extension#5 on test::Class {
   method unnamedExtensionMethod = test::_extension#5|unnamedExtensionMethod;
-  tearoff unnamedExtensionMethod = test::_extension#5|get#unnamedExtensionMethod;
+  method tearoff unnamedExtensionMethod = test::_extension#5|get#unnamedExtensionMethod;
   method _unnamedExtensionPrivateMethod = test::_extension#5|_unnamedExtensionPrivateMethod;
-  tearoff _unnamedExtensionPrivateMethod = test::_extension#5|get#_unnamedExtensionPrivateMethod;
+  method tearoff _unnamedExtensionPrivateMethod = test::_extension#5|get#_unnamedExtensionPrivateMethod;
 }
 static method _method(test::Class c) → void
   ;

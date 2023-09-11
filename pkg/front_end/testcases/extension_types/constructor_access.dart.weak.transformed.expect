@@ -4,13 +4,13 @@ import "dart:core" as core;
 
 extension type Class(core::int it) {
   constructor • = self::Class|;
-  tearoff • = self::Class|_#new#tearOff;
+  constructor tearoff • = self::Class|_#new#tearOff;
   constructor named = self::Class|named;
-  tearoff named = self::Class|_#named#tearOff;
+  constructor tearoff named = self::Class|_#named#tearOff;
 }
 extension type GenericClass<T extends core::Object? = dynamic>(T% it) {
   constructor • = self::GenericClass|;
-  tearoff • = self::GenericClass|_#new#tearOff;
+  constructor tearoff • = self::GenericClass|_#new#tearOff;
 }
 static inline-class-member method Class|(core::int it) → self::Class /* = core::int */ {
   lowered final self::Class /* = core::int */ #this = it;

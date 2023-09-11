@@ -4,37 +4,37 @@ import "dart:core" as core;
 
 extension type Class1(core::int field) {
   constructor _ = self::Class1|_;
-  tearoff _ = self::Class1|_#_#tearOff;
+  constructor tearoff _ = self::Class1|_#_#tearOff;
   constructor • = self::Class1|;
-  tearoff • = self::Class1|_#new#tearOff;
+  constructor tearoff • = self::Class1|_#new#tearOff;
 }
 extension type Class2(core::int field) {
   constructor _ = self::Class2|_;
-  tearoff _ = self::Class2|_#_#tearOff;
+  constructor tearoff _ = self::Class2|_#_#tearOff;
   constructor • = self::Class2|;
-  tearoff • = self::Class2|_#new#tearOff;
+  constructor tearoff • = self::Class2|_#new#tearOff;
 }
 extension type Class3(core::int field) {
   constructor _ = self::Class3|_;
-  tearoff _ = self::Class3|_#_#tearOff;
+  constructor tearoff _ = self::Class3|_#_#tearOff;
 }
 extension type Class4(core::int field) {
   constructor _ = self::Class4|_;
-  tearoff _ = self::Class4|_#_#tearOff;
+  constructor tearoff _ = self::Class4|_#_#tearOff;
   constructor • = self::Class4|;
-  tearoff • = self::Class4|_#new#tearOff;
+  constructor tearoff • = self::Class4|_#new#tearOff;
 }
 extension type Class5(core::int field) {
   constructor _ = self::Class5|_;
-  tearoff _ = self::Class5|_#_#tearOff;
+  constructor tearoff _ = self::Class5|_#_#tearOff;
   constructor • = self::Class5|;
-  tearoff • = self::Class5|_#new#tearOff;
+  constructor tearoff • = self::Class5|_#new#tearOff;
 }
 extension type Class6(core::int field) {
   constructor _ = self::Class6|_;
-  tearoff _ = self::Class6|_#_#tearOff;
+  constructor tearoff _ = self::Class6|_#_#tearOff;
   constructor • = self::Class6|;
-  tearoff • = self::Class6|_#new#tearOff;
+  constructor tearoff • = self::Class6|_#new#tearOff;
 }
 static inline-class-member method Class1|_(core::int field) → self::Class1 /* = core::int */
   ;

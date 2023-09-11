@@ -21,7 +21,7 @@ class Class extends core::Object {
 extension Extension on self::Class* {
   get property = self::Extension|get#property;
   method method = self::Extension|method;
-  tearoff method = self::Extension|get#method;
+  method tearoff method = self::Extension|get#method;
   set property = self::Extension|set#property;
 }
 static extension-member method Extension|get#property(lowered final self::Class* #this) → core::int*

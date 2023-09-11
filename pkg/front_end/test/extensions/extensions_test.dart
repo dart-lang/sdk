@@ -220,8 +220,9 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
           Tags.extensionTypeParameters, typeParameterToText(typeParameter));
     }
     for (ExtensionMemberDescriptor descriptor in extension.members) {
-      features.addElement(
-          Tags.extensionMembers, extensionMethodDescriptorToText(descriptor));
+      for (String text in extensionMethodDescriptorToText(descriptor)) {
+        features.addElement(Tags.extensionMembers, text);
+      }
     }
     return features;
   }

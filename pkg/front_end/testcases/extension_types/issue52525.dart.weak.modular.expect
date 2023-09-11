@@ -4,9 +4,9 @@ import "dart:core" as core;
 
 extension type IC1(core::int id) {
   constructor • = self::IC1|;
-  tearoff • = self::IC1|_#new#tearOff;
+  constructor tearoff • = self::IC1|_#new#tearOff;
   static redirecting-factory f = self::IC1|f;
-  static tearoff f = self::IC1|_#f#tearOff;
+  static redirecting-factory tearoff f = self::IC1|_#f#tearOff;
 }
 static inline-class-member method IC1|(core::int id) → self::IC1 /* = core::int */ {
   lowered final self::IC1 /* = core::int */ #this = id;

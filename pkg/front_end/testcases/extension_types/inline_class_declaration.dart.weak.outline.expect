@@ -6,11 +6,11 @@ abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
 }
 extension type Class1(core::int it) {
   constructor • = self::Class1|;
-  tearoff • = self::Class1|_#new#tearOff;
+  constructor tearoff • = self::Class1|_#new#tearOff;
 }
 extension type Class3<T extends core::Object? = dynamic>(core::List<T%> it) {
   constructor • = self::Class3|;
-  tearoff • = self::Class3|_#new#tearOff;
+  constructor tearoff • = self::Class3|_#new#tearOff;
 }
 static inline-class-member method Class1|(core::int it) → self::Class1 /* = core::int */
   ;

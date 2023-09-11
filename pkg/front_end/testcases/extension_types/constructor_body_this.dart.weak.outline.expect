@@ -4,13 +4,13 @@ import "dart:core" as core;
 
 extension type V1(core::int id) {
   constructor n0 = self::V1|n0;
-  tearoff n0 = self::V1|_#n0#tearOff;
+  constructor tearoff n0 = self::V1|_#n0#tearOff;
   constructor • = self::V1|;
-  tearoff • = self::V1|_#new#tearOff;
+  constructor tearoff • = self::V1|_#new#tearOff;
   constructor n1 = self::V1|n1;
-  tearoff n1 = self::V1|_#n1#tearOff;
+  constructor tearoff n1 = self::V1|_#n1#tearOff;
   constructor n2 = self::V1|n2;
-  tearoff n2 = self::V1|_#n2#tearOff;
+  constructor tearoff n2 = self::V1|_#n2#tearOff;
 }
 static inline-class-member method V1|n0(core::int id) → self::V1 /* = core::int */
   ;

@@ -336,9 +336,9 @@ class Class<T extends self::A> extends core::Object {
 }
 extension Extension<T extends self::B> on self::Class<T> {
   method method = self::Extension|method;
-  tearoff method = self::Extension|get#method;
+  method tearoff method = self::Extension|get#method;
   method genericMethod = self::Extension|genericMethod;
-  tearoff genericMethod = self::Extension|get#genericMethod;
+  method tearoff genericMethod = self::Extension|get#genericMethod;
 }
 static final field self::A a;
 static final field self::Class<self::A> classA;

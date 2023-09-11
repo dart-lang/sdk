@@ -2583,6 +2583,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       assert(descriptor.member.canonicalName != null,
           "No canonical name for ${descriptor}.");
       writeNonNullCanonicalNameReference(descriptor.member);
+      writeNullAllowedCanonicalNameReference(descriptor.tearOff);
     }
   }
 
@@ -2617,6 +2618,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       assert(descriptor.member.canonicalName != null,
           "No canonical name for ${descriptor}.");
       writeNonNullCanonicalNameReference(descriptor.member);
+      assert(
+          descriptor.tearOff == null ||
+              descriptor.tearOff?.canonicalName != null,
+          "No canonical name for ${descriptor} tear-off.");
+      writeNullAllowedCanonicalNameReference(descriptor.tearOff);
     }
   }
 
