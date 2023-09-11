@@ -375,6 +375,17 @@ class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
       unitElement: unitElement,
     );
     element.type = reader.readRequiredType();
+
+    final augmentationTarget = reader.readElement();
+    if (augmentationTarget is FieldElementImpl) {
+      augmentationTarget.augmentation = element;
+      augmentationTarget.getter?.variable = element;
+      augmentationTarget.setter?.variable = element;
+      element.augmentationTarget = augmentationTarget;
+      element.getter = augmentationTarget.getter;
+      element.setter = augmentationTarget.setter;
+    }
+
     if (element is ConstFieldElementImpl) {
       var initializer = reader._readOptionalExpression();
       if (initializer != null) {
@@ -1041,7 +1052,10 @@ class LibraryReader {
 
     FieldElementFlags.read(_reader, element);
     element.typeInferenceError = _readTopLevelInferenceError();
-    element.createImplicitAccessors(classReference, name);
+
+    if (!element.isAugmentation) {
+      element.createImplicitAccessors(classReference, name);
+    }
 
     return element;
   }
@@ -1360,17 +1374,26 @@ class LibraryReader {
     );
   }
 
-  /// Read resolution information for property accessor augmentations,
-  /// during which we update `getter` and `setter` of augmented variables.
+  /// This method is invoked when all units of the library are read, the
+  /// defining unit, and all its augmentations. So, we have all elements
+  /// created (excluding class members, that are delayed).
+  ///
+  /// We can read now augmentation back and forth pointers, for accessors and
+  /// properties.
   void _readPropertyAccessorAugmentations(int offset) {
     final reader = ResolutionReader(
       _elementFactory,
       _referenceReader,
       _reader.fork(_baseResolutionOffset + offset),
     );
-    final elements = reader.readElementList<PropertyAccessorElementImpl>();
-    for (final element in elements) {
-      element.variable;
+    final accessors = reader.readElementList<PropertyAccessorElementImpl>();
+    for (final element in accessors) {
+      element.linkedData?.read(element);
+    }
+
+    final properties = reader.readElementList<PropertyInducingElementImpl>();
+    for (final element in properties) {
+      element.linkedData?.read(element);
     }
   }
 
@@ -1741,19 +1764,16 @@ class PropertyAccessorElementLinkedData
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
 
-    // If augmentation...
-    if (reader.readBool()) {
-      element.augmentationTarget =
-          reader.readElement() as PropertyAccessorElementImpl?;
-      final variable = reader.readElement() as PropertyInducingElementImpl;
-      element.variable = variable;
+    final augmentationTarget = reader.readElement();
+    if (augmentationTarget is PropertyAccessorElementImpl) {
+      augmentationTarget.augmentation = element;
       if (element.isGetter) {
-        variable.getter?.augmentation = element;
-        variable.getter = element;
+        augmentationTarget.variable.getter = element;
       } else {
-        variable.setter?.augmentation = element;
-        variable.setter = element;
+        augmentationTarget.variable.setter = element;
       }
+      element.augmentationTarget = augmentationTarget;
+      element.variable = augmentationTarget.variable;
     }
 
     applyConstantOffsets?.perform();

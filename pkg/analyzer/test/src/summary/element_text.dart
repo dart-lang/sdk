@@ -162,6 +162,11 @@ class _ElementWriter {
         if (augmentation != null) {
           _elementPrinter.writeNamedElement('augmentation', augmentation);
         }
+      case PropertyInducingElementImpl e:
+        final augmentation = e.augmentation;
+        if (augmentation != null) {
+          _elementPrinter.writeNamedElement('augmentation', augmentation);
+        }
     }
   }
 
@@ -193,6 +198,13 @@ class _ElementWriter {
           );
         }
       case PropertyAccessorElementImpl e:
+        if (e.isAugmentation) {
+          _elementPrinter.writeNamedElement(
+            'augmentationTarget',
+            e.augmentationTarget,
+          );
+        }
+      case PropertyInducingElementImpl e:
         if (e.isAugmentation) {
           _elementPrinter.writeNamedElement(
             'augmentationTarget',
@@ -948,6 +960,7 @@ class _ElementWriter {
     }
 
     _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isAugmentation, 'augment ');
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e is FieldElementImpl && e.isAbstract, 'abstract ');

@@ -36,17 +36,20 @@ class AugmentedClassDeclarationBuilder
   AugmentedClassDeclarationBuilder({
     required this.declaration,
   }) {
+    addFields(declaration.fields);
     addAccessors(declaration.accessors);
     addMethods(declaration.methods);
   }
 
   void augment(ClassElementImpl element) {
+    addFields(element.fields);
     addAccessors(element.accessors);
     addMethods(element.methods);
   }
 }
 
 abstract class AugmentedInstanceDeclarationBuilder {
+  final Map<String, FieldElementImpl> fields = {};
   final Map<String, PropertyAccessorElementImpl> accessors = {};
   final Map<String, MethodElementImpl> methods = {};
 
@@ -72,6 +75,24 @@ abstract class AugmentedInstanceDeclarationBuilder {
     }
   }
 
+  void addFields(List<FieldElementImpl> elements) {
+    for (final element in elements) {
+      final name = element.name;
+      if (element.isAugmentation) {
+        final existing = fields[name];
+        if (existing != null) {
+          existing.augmentation = element;
+          existing.getter?.variable = element;
+          existing.setter?.variable = element;
+          element.augmentationTarget = existing;
+          element.getter = existing.getter;
+          element.setter = existing.setter;
+        }
+      }
+      fields[name] = element;
+    }
+  }
+
   void addMethods(List<MethodElementImpl> elements) {
     for (final element in elements) {
       final name = element.name;
@@ -94,11 +115,13 @@ class AugmentedMixinDeclarationBuilder
   AugmentedMixinDeclarationBuilder({
     required this.declaration,
   }) {
+    addFields(declaration.fields);
     addAccessors(declaration.accessors);
     addMethods(declaration.methods);
   }
 
   void augment(MixinElementImpl element) {
+    addFields(element.fields);
     addAccessors(element.accessors);
     addMethods(element.methods);
   }
