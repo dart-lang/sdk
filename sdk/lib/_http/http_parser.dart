@@ -680,7 +680,13 @@ class _HttpParser extends Stream<_HttpIncoming> {
 
         case _State.HEADER_VALUE_FOLD_OR_END:
           if (byte == _CharCode.SP || byte == _CharCode.HT) {
-            _state = _State.HEADER_VALUE_START;
+            // This is an obs-fold as defined in RFC 7230 and we should
+            // "...replace each received obs-fold with one or more SP octets
+            // prior to interpreting the field value or forwarding the
+            // message downstream."
+            // See https://www.rfc-editor.org/rfc/rfc7230#section-3.2.4
+            _addWithValidation(_headerValue, _CharCode.SP);
+            _state = _State.HEADER_VALUE_START; // Strips leading whitespace.
           } else {
             String headerField = String.fromCharCodes(_headerField);
             // The field value does not include any leading or trailing whitespace.

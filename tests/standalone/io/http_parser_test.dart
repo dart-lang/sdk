@@ -425,19 +425,42 @@ Empty-Header-2:\t  \t \r
     headers["empty-header-2"] = "";
     _testParseRequestLean(request, "POST", "/test", expectedHeaders: headers);
 
+    // Test folded headers.
     request = """
 POST /test HTTP/1.1\r
-Header-A: \t  AA\r
- A  \t \r
-X-Header-B:           b\r
-  b\r
-\t    b  \t \r
+Header-A: h\r
+ ell\r
+ o\r
+X-Header-B: w\r
+ o\r
+ r\r
+ l\r
+ d\r
 \r
 """;
 
     headers = new Map();
-    headers["header-a"] = "AAA";
-    headers["x-header-b"] = "bbb";
+    headers["header-a"] = "h ell o";
+    headers["x-header-b"] = "w o r l d";
+    _testParseRequestLean(request, "POST", "/test", expectedHeaders: headers);
+
+    // Test folded headers with leading and trailing whitespace.
+    request = """
+POST /test HTTP/1.1\r
+Header-A: \t  h \t \r
+  \t ell \t  \t \r
+\to  \t \r
+X-Header-B:w\r
+\t\to\t\t\r
+\t\tr\t\t\r
+\tl \r
+\td \t\r
+\r
+""";
+
+    headers = new Map();
+    headers["header-a"] = "h \t  ell \t  \t  o";
+    headers["x-header-b"] = "w o\t\t r\t\t l  d";
     _testParseRequestLean(request, "POST", "/test", expectedHeaders: headers);
 
     // _testParseRequestLean encodes the request as ISO-8859-1. Test that the

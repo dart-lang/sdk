@@ -88,7 +88,12 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   `HttpClientResponse.headers` and `HttpRequest.headers` no longer include
   trailing whitespace in their values.
 
+- **Breaking change** [#53227][]: Folded headers values returned by
+  `HttpClientResponse.headers` and `HttpRequest.headers` now have a space
+  inserted at the fold point.
+
 [#53005]: https://dartbug.com/53005
+[#53227]: https://dartbug.com/53227
 
 #### `dart:isolate`
 
