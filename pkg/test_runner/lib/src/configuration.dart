@@ -155,6 +155,9 @@ class TestConfiguration {
   /// Extra dart2js options passed to the testing script.
   List<String> get dart2jsOptions => configuration.dart2jsOptions;
 
+  /// Extra dart2wasm options passed to the testing script.
+  List<String> get dart2wasmOptions => configuration.dart2wasmOptions;
+
   /// Extra ddc options passed to the testing script.
   List<String> get ddcOptions => configuration.ddcOptions;
 
