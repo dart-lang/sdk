@@ -1028,6 +1028,18 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([]));
   }
 
+  Future<void> test_survey_enabledByPreviewFlag() async {
+    await initialize(
+      initializationOptions: {'previewSurveys': true},
+    );
+    expect(server.surveyManager, isNotNull);
+  }
+
+  Future<void> test_survey_notEnabledByPreviewFlag() async {
+    await initialize();
+    expect(server.surveyManager, isNull);
+  }
+
   Future<void> test_uninitialized_dropsNotifications() async {
     final notification =
         makeNotification(Method.fromJson('randomNotification'), null);

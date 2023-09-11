@@ -405,6 +405,7 @@ class LspAnalysisServer extends AnalysisServer {
     performance = performanceAfterStartup!;
 
     _checkAnalytics();
+    _checkSurveys();
   }
 
   /// Handles a response from the client by invoking the completer that the
@@ -952,6 +953,13 @@ class LspAnalysisServer extends AnalysisServer {
     unifiedAnalytics.clientShowedMessage();
   }
 
+  /// Enables surveys, if options allow.
+  void _checkSurveys() {
+    if (initializationOptions?.previewSurveys ?? false) {
+      enableSurveys();
+    }
+  }
+
   /// Computes analysis roots for a set of open files.
   ///
   /// This is used when there are no workspace folders open directly.
@@ -1105,6 +1113,7 @@ class LspInitializationOptions {
   final bool flutterOutline;
   final int? completionBudgetMilliseconds;
   final bool allowOpenUri;
+  final bool previewSurveys;
 
   factory LspInitializationOptions(Object? options) =>
       LspInitializationOptions._(
@@ -1126,7 +1135,8 @@ class LspInitializationOptions {
         flutterOutline = options['flutterOutline'] == true,
         completionBudgetMilliseconds =
             options['completionBudgetMilliseconds'] as int?,
-        allowOpenUri = options['allowOpenUri'] == true;
+        allowOpenUri = options['allowOpenUri'] == true,
+        previewSurveys = options['previewSurveys'] == true;
 }
 
 class LspServerContextManagerCallbacks
