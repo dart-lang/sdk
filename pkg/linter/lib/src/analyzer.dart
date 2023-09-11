@@ -34,7 +34,6 @@ export 'package:analyzer/src/lint/linter.dart'
         LintRule,
         LinterContext,
         LinterOptions,
-        Maturity,
         NodeLintRegistry,
         NodeLintRule,
         State;
