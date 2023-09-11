@@ -873,6 +873,44 @@ void f(A a) {}
     assertNoErrorsNotification(a_path);
   }
 
+  Future<void> test_fileSystem_deleteFile_withOverlay_dart() async {
+    var a_path = convertPath('$testPackageLibPath/a.dart');
+
+    _createFilesWithErrors([a_path]);
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
+
+    // Initial file has errors.
+    assertHasErrors(a_path);
+
+    // Overlay still has errors.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        a_path: AddContentOverlay('error'),
+      }).toRequest('0'),
+    );
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+    assertHasErrors(a_path);
+
+    // After deleting files, still has errors.
+    deleteFile(a_path);
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+    assertHasErrors(a_path);
+
+    // After removing overlay, errors are gone.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        a_path: RemoveContentOverlay(),
+      }).toRequest('1'),
+    );
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+    assertNoErrors(a_path);
+  }
+
   Future<void> test_setPriorityFiles() async {
     var a = getFile('$workspaceRootPath/foo/lib/a.dart');
     var b = getFile('$workspaceRootPath/foo/lib/b.dart');

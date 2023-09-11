@@ -168,6 +168,42 @@ class Bar {
         equals(content));
   }
 
+  /// Checks that deleting a file does not clear diagnostics while there's an
+  /// overlay, and that removing the overlay later clears the diagnostics.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/53475
+  Future<void> test_documentOpen_fileDeleted_documentClosed() async {
+    const content = 'error';
+    newFile(mainFilePath, content);
+
+    // Track the latest diagnostics as the client would.
+    Map<String, List<Diagnostic>> latestDiagnostics = {};
+    trackDiagnostics(latestDiagnostics);
+
+    // Expect diagnostics after initial analysis because file has invalid
+    // content.
+    await initialize();
+    await pumpEventQueue(times: 5000);
+    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+
+    // Expect diagnostics after opening the file with the same contents.
+    await openFile(mainFileUri, content);
+    await pumpEventQueue(times: 5000);
+    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+
+    // Expect diagnostics after deleting the file because the overlay is still
+    // active.
+    deleteFile(mainFilePath);
+    await pumpEventQueue(times: 5000);
+    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+
+    // Expect diagnostics to be removed after we cloes the file (which removes
+    // the overlay).
+    await closeFile(mainFileUri);
+    await pumpEventQueue(times: 5000);
+    expect(latestDiagnostics[mainFilePath], isEmpty);
+  }
+
   Future<void> test_documentOpen_notifiesPlugins() async {
     if (!AnalysisServer.supportsPlugins) return;
     await _initializeAndOpen();

@@ -845,7 +845,9 @@ abstract class CommonServerContextManagerCallbacks
   @override
   @mustCallSuper
   void applyFileRemoved(String file) {
-    if (filesToFlush.remove(file)) {
+    // If the removed file doesn't have an overlay, we need to flush any
+    // previous diagnostics.
+    if (!resourceProvider.hasOverlay(file) && filesToFlush.remove(file)) {
       flushResults([file]);
     }
   }
