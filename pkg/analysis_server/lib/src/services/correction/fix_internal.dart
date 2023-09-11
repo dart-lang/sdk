@@ -989,6 +989,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
       DataDriven.new,
     ],
+    WarningCode.DEPRECATED_EXPORT_USE: [
+      DataDriven.new,
+    ],
     HintCode.DEPRECATED_MEMBER_USE: [
       DataDriven.new,
     ],
