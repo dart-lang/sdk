@@ -77,6 +77,7 @@ ErrorOr<Pair<A, List<B>>> c(
   /// server has regenerated registrations multiple times.
   Future<void> test_dynamicRegistration_correctIdAfterMultipleChanges() async {
     setDocumentFormattingDynamicRegistration();
+    setDidChangeConfigurationDynamicRegistration();
 
     final registrations = <Registration>[];
     // Provide empty config and collect dynamic registrations during
@@ -84,11 +85,7 @@ ErrorOr<Pair<A, List<B>>> c(
     await provideConfig(
       () => monitorDynamicRegistrations(
         registrations,
-        () => initialize(
-            workspaceCapabilities:
-                withDidChangeConfigurationDynamicRegistration(
-                    withConfigurationSupport(
-                        emptyWorkspaceClientCapabilities))),
+        initialize,
       ),
       {},
     );
@@ -120,6 +117,7 @@ ErrorOr<Pair<A, List<B>>> c(
 
   Future<void> test_dynamicRegistration_forConfiguration() async {
     setDocumentFormattingDynamicRegistration();
+    setDidChangeConfigurationDynamicRegistration();
 
     final registrations = <Registration>[];
     // Provide empty config and collect dynamic registrations during
@@ -127,11 +125,7 @@ ErrorOr<Pair<A, List<B>>> c(
     await provideConfig(
       () => monitorDynamicRegistrations(
         registrations,
-        () => initialize(
-            workspaceCapabilities:
-                withDidChangeConfigurationDynamicRegistration(
-                    withConfigurationSupport(
-                        emptyWorkspaceClientCapabilities))),
+        initialize,
       ),
       {},
     );
@@ -340,9 +334,7 @@ int b;
 
     // Initialize with config support, supplying an empty config when requested.
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities: withDidChangeConfigurationDynamicRegistration(
-              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
+      initialize,
       {}, // empty config
     );
     await openFile(mainFileUri, contents);
@@ -372,8 +364,6 @@ void f() {
         // Use empty roots so the test file is not inside any known
         // WorkspaceFolder.
         allowEmptyRootUri: true,
-        workspaceCapabilities: withDidChangeConfigurationDynamicRegistration(
-            withConfigurationSupport(emptyWorkspaceClientCapabilities)),
       ),
       // Global config (this should be used).
       {'lineLength': 10},
@@ -398,9 +388,7 @@ void f() {
 ''';
 
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities: withDidChangeConfigurationDynamicRegistration(
-              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
+      initialize,
       // Global config.
       {'lineLength': 200},
       folderConfig: {
@@ -428,9 +416,7 @@ void f() {
 ''';
 
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities: withDidChangeConfigurationDynamicRegistration(
-              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
+      initialize,
       // Global config (this should be used).
       {'lineLength': 10},
       folderConfig: {

@@ -36,7 +36,6 @@ class WillRenameFilesTest extends AbstractLspAnalysisServerTest {
   Future<void> test_registration_disabled() async {
     setAllSupportedTextDocumentDynamicRegistrations();
     setAllSupportedWorkspaceDynamicRegistrations();
-    setConfigurationSupport();
 
     final registrations = <Registration>[];
     await provideConfig(
@@ -56,7 +55,6 @@ class WillRenameFilesTest extends AbstractLspAnalysisServerTest {
   Future<void> test_registration_disabledThenEnabled() async {
     setAllSupportedTextDocumentDynamicRegistrations();
     setAllSupportedWorkspaceDynamicRegistrations();
-    setConfigurationSupport();
     // Start disabled.
     await provideConfig(
       initialize,

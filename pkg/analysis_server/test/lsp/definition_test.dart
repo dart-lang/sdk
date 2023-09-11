@@ -317,6 +317,8 @@ foo(int m) {
   }
 
   Future<void> test_locationLink_field() async {
+    setLocationLinkSupport();
+
     final mainContents = '''
     import 'referenced.dart';
 
@@ -340,9 +342,7 @@ foo(int m) {
     final referencedFileUri =
         toUri(join(projectFolderPath, 'lib', 'referenced.dart'));
 
-    await initialize(
-        textDocumentCapabilities:
-            withLocationLinkSupport(emptyTextDocumentClientCapabilities));
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(mainContents));
     await openFile(referencedFileUri, withoutMarkers(referencedContents));
     final res = await getDefinitionAsLocationLinks(
@@ -360,6 +360,8 @@ foo(int m) {
   }
 
   Future<void> test_locationLink_function() async {
+    setLocationLinkSupport();
+
     final mainContents = '''
     import 'referenced.dart';
 
@@ -383,9 +385,7 @@ foo(int m) {
     final referencedFileUri =
         toUri(join(projectFolderPath, 'lib', 'referenced.dart'));
 
-    await initialize(
-        textDocumentCapabilities:
-            withLocationLinkSupport(emptyTextDocumentClientCapabilities));
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(mainContents));
     await openFile(referencedFileUri, withoutMarkers(referencedContents));
     final res = await getDefinitionAsLocationLinks(
@@ -411,6 +411,8 @@ foo(int m) {
   }
 
   Future<void> test_part() async {
+    setLocationLinkSupport();
+
     final mainContents = '''
     import 'lib.dart';
 
@@ -440,9 +442,7 @@ foo(int m) {
     final libFileUri = toUri(join(projectFolderPath, 'lib', 'lib.dart'));
     final partFileUri = toUri(join(projectFolderPath, 'lib', 'part.dart'));
 
-    await initialize(
-        textDocumentCapabilities:
-            withLocationLinkSupport(emptyTextDocumentClientCapabilities));
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(mainContents));
     await openFile(libFileUri, withoutMarkers(libContents));
     await openFile(partFileUri, withoutMarkers(partContents));

@@ -288,6 +288,9 @@ import '[!newfile.dart!]';
   }
 
   Future<void> test_filtersCorrectly() async {
+    setSupportedCodeActionKinds(
+        [CodeActionKind.QuickFix, CodeActionKind.Refactor]);
+
     final code = TestCode.parse('''
 import 'dart:async';
 [!import!] 'dart:convert';
@@ -295,12 +298,7 @@ import 'dart:async';
 Future foo;
 ''');
     newFile(mainFilePath, code.code);
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-        emptyTextDocumentClientCapabilities,
-        [CodeActionKind.QuickFix, CodeActionKind.Refactor],
-      ),
-    );
+    await initialize();
 
     ofKind(CodeActionKind kind) => getCodeActions(
           mainFileUri,
@@ -619,16 +617,14 @@ var a = [Test, Test, Te[!!]st];
   Future<void> test_noDuplicates_withDocumentChangesSupport() async {
     setApplyEditSupport();
     setDocumentChangesSupport();
+    setSupportedCodeActionKinds([CodeActionKind.QuickFix]);
 
     final code = TestCode.parse('''
 var a = [Test, Test, Te[!!]st];
 ''');
 
     newFile(mainFilePath, code.code);
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
-    );
+    await initialize();
 
     final codeActions =
         await getCodeActions(mainFileUri, range: code.range.range);

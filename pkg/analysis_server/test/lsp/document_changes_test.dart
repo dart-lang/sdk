@@ -225,6 +225,8 @@ class Foo {}
   }
 
   Future<void> test_documentOpen_setsPriorityFileIfEarly() async {
+    setConfigurationSupport();
+
     // When initializing with config support, the server will call back to the client
     // which can delay analysis roots being configured. This can result in files
     // being opened before analysis roots are set which has previously caused the
@@ -237,9 +239,7 @@ class Foo {}
     final completer = Completer<void>();
 
     // Send the initialize request but do not await it.
-    final initResponse = initialize(
-        workspaceCapabilities: withDidChangeConfigurationDynamicRegistration(
-            withConfigurationSupport(emptyWorkspaceClientCapabilities)));
+    final initResponse = initialize();
 
     // When asked for config, delay the response until we have sent the openFile notification.
     final config = provideConfig(
