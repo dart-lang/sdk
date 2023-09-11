@@ -22,10 +22,6 @@ typedef Typedef<T> = T Function();
 
 @JS()
 @staticInterop
-class JSList<T> {}
-
-@JS()
-@staticInterop
 class Uninstantiated<W, X extends Instantiated> {
   external factory Uninstantiated(W w);
   //               ^
@@ -70,11 +66,12 @@ extension UninstantiatedExtension<T, U extends JSAny, V extends Instantiated>
   external void consumeV(V v);
 
   // Test type parameters in a nested type context.
-  JSList<Typedef<T>> get getNestedTDart => throw UnimplementedError();
-  // No error as JSList is an interop type.
-  external JSList<Typedef<T>> get getNestedT;
-  external JSList<Typedef<U>> get getNestedU;
-  external JSList<Typedef<V>> get getNestedV;
+  Set<Typedef<T>> get getNestedTDart => throw UnimplementedError();
+  external Set<Typedef<T>> get getNestedT;
+  //                           ^
+  // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
+  external Set<Typedef<U>> get getNestedU;
+  external Set<Typedef<V>> get getNestedV;
 
   // Test type parameters that are declared by the member.
   W returnWDart<W>() => throw UnimplementedError();
@@ -112,15 +109,15 @@ extension PkgJsExtension<T> on PkgJs<T> {
 @JS()
 @staticInterop
 class Instantiated {
-  external factory Instantiated(JSList<JSNumber> list);
+  external factory Instantiated(List<JSNumber> list);
 }
 
 extension InstantiatedExtension on Instantiated {
-  external JSList<int> fieldList;
-  external JSList<int> get getList;
-  external set setList(JSList<int> list);
-  external JSList<int> returnList();
-  external void consumeList(JSList<int> list);
+  external List<Instantiated> fieldList;
+  external List<Instantiated> get getList;
+  external set setList(List<Instantiated> list);
+  external List<Instantiated> returnList();
+  external void consumeList(List<Instantiated> list);
 }
 
 void main() {}

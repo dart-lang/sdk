@@ -624,8 +624,6 @@ JsInteropObjectLiteralConstructorPositionalParameters/analyzerCode: Fail # Web c
 JsInteropObjectLiteralConstructorPositionalParameters/example: Fail # Web compiler specific
 JsInteropStaticInteropExternalMemberWithInvalidTypeParameters/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropExternalMemberWithInvalidTypeParameters/example: Fail # Web compiler specific
-JsInteropStaticInteropExternalTypeViolation/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropExternalTypeViolation/example: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/example: Fail # Web compiler specific
 JsInteropStaticInteropMockMissingGetterOrSetter/analyzerCode: Fail # Web compiler specific
@@ -656,6 +654,8 @@ JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler s
 JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 JsInteropFunctionToJSRequiresStaticType/analyzerCode: Fail # Web compiler specific
 JsInteropFunctionToJSRequiresStaticType/example: Fail # Web compiler specific
+JsInteropStrictModeViolation/analyzerCode: Fail # Web compiler specific
+JsInteropStrictModeViolation/example: Fail # Web compiler specific
 JsInteropStrictModeForbiddenLibrary/analyzerCode: Fail # Web compiler specific
 JsInteropStrictModeForbiddenLibrary/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail

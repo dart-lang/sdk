@@ -10,7 +10,7 @@ library native_error_test;
 import 'dart:js_interop';
 
 @JS()
-external void eval(String code);
+external dynamic eval(String code);
 
 // dart:js_interop top-levels do return-type checks so if the call to these
 // getters succeed, it's enough to know they can be interoperable.
