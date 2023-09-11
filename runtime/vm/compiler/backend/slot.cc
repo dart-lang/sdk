@@ -111,7 +111,8 @@ Slot* SlotCache::CreateNativeSlot(Slot::Kind kind) {
   case Slot::Kind::k##ClassName##_##FieldName:                                 \
     return new (zone_)                                                         \
         Slot(Slot::Kind::k##ClassName##_##FieldName,                           \
-             Slot::IsImmutableBit::encode(FIELD_##mutability),                 \
+             Slot::IsImmutableBit::encode(FIELD_##mutability) |                \
+                 Slot::IsUnboxedBit::encode(true),                             \
              compiler::target::ClassName::FieldName##_offset(),                \
              #ClassName "." #FieldName,                                        \
              CompileType::FromUnboxedRepresentation(kUnboxed##representation), \

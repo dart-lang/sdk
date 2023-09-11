@@ -665,6 +665,104 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
   }
 }
 
+// This test ensures that a LoadNativeField of the PointerBase data field for
+// a newly allocated TypedData object does not have tagged null forwarded to it,
+// as that's wrong for two reasons: it's an unboxed field, and it is initialized
+// during the allocation stub.
+ISOLATE_UNIT_TEST_CASE(LoadOptimizer_LoadDataFieldOfNewTypedData) {
+  using compiler::BlockBuilder;
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
+  FlowGraphBuilderHelper H;
+
+  auto zone = H.flow_graph()->zone();
+
+  // We are going to build the following graph:
+  //
+  //   B0[graph_entry] {
+  //     vc42 <- Constant(42)
+  //   }
+  //
+  //   B1[function_entry] {
+  //   }
+  //   array <- AllocateTypedData(kTypedDataUint8ArrayCid, vc42)
+  //   view <- AllocateObject(kTypedDataUint8ArrayViewCid)
+  //   v1 <- LoadNativeField(array, Slot::PointerBase_data())
+  //   StoreNativeField(Slot::PointerBase_data(), view, v1, kNoStoreBarrier,
+  //                    kInitalizing)
+  //   return view
+  // }
+
+  const auto& lib = Library::Handle(zone, Library::TypedDataLibrary());
+  EXPECT(!lib.IsNull());
+  const Class& view_cls = Class::ZoneHandle(
+      zone, lib.LookupClassAllowPrivate(Symbols::_Uint8ArrayView()));
+  EXPECT(!view_cls.IsNull());
+  const Error& err = Error::Handle(zone, view_cls.EnsureIsFinalized(thread));
+  EXPECT(err.IsNull());
+
+  auto vc42 = H.flow_graph()->GetConstant(Integer::Handle(Integer::New(42)));
+  auto b1 = H.flow_graph()->graph_entry()->normal_entry();
+
+  AllocateTypedDataInstr* array;
+  AllocateObjectInstr* view;
+  LoadFieldInstr* v1;
+  StoreFieldInstr* store;
+  ReturnInstr* ret;
+
+  {
+    BlockBuilder builder(H.flow_graph(), b1);
+
+    //   array <- AllocateTypedData(kTypedDataUint8ArrayCid, vc42)
+    array = builder.AddDefinition(
+        new AllocateTypedDataInstr(InstructionSource(), kTypedDataUint8ArrayCid,
+                                   new (zone) Value(vc42), DeoptId::kNone));
+
+    //   view <- AllocateObject(kTypedDataUint8ArrayViewCid, vta)
+    view = builder.AddDefinition(
+        new AllocateObjectInstr(InstructionSource(), view_cls, DeoptId::kNone));
+
+    //   v1 <- LoadNativeField(array, Slot::PointerBase_data())
+    v1 = builder.AddDefinition(new LoadFieldInstr(new (zone) Value(array),
+                                                  Slot::PointerBase_data(),
+                                                  InstructionSource()));
+
+    //   StoreNativeField(Slot::PointerBase_data(), view, v1, kNoStoreBarrier,
+    //                    kInitalizing)
+    store = builder.AddInstruction(new StoreFieldInstr(
+        Slot::PointerBase_data(), new (zone) Value(view), new (zone) Value(v1),
+        kNoStoreBarrier, InstructionSource(),
+        StoreFieldInstr::Kind::kInitializing));
+
+    //   return view
+    ret = builder.AddInstruction(new ReturnInstr(
+        InstructionSource(), new Value(view), S.GetNextDeoptId()));
+  }
+  H.FinishGraph();
+
+  DominatorBasedCSE::Optimize(H.flow_graph());
+  {
+    Instruction* alloc_array = nullptr;
+    Instruction* alloc_view = nullptr;
+    Instruction* lf = nullptr;
+    Instruction* sf = nullptr;
+    Instruction* r = nullptr;
+    ILMatcher cursor(H.flow_graph(), b1, true);
+    RELEASE_ASSERT(cursor.TryMatch({
+        kMatchAndMoveFunctionEntry,
+        {kMatchAndMoveAllocateTypedData, &alloc_array},
+        {kMatchAndMoveAllocateObject, &alloc_view},
+        {kMatchAndMoveLoadField, &lf},
+        {kMatchAndMoveStoreField, &sf},
+        {kMatchReturn, &r},
+    }));
+    EXPECT(array == alloc_array);
+    EXPECT(view == alloc_view);
+    EXPECT(v1 == lf);
+    EXPECT(store == sf);
+    EXPECT(ret == r);
+  }
+}
+
 // This test verifies that we correctly alias load/stores into typed array
 // which use different element sizes. This is a regression test for
 // a fix in 836c04f.

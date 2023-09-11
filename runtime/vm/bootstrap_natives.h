@@ -173,7 +173,7 @@ namespace dart {
   V(TypedData_Int32x4Array_new, 2)                                             \
   V(TypedData_Float64x2Array_new, 2)                                           \
   V(TypedDataBase_length, 1)                                                   \
-  V(TypedDataBase_setRange, 5)                                                 \
+  V(TypedDataBase_setClampedRange, 5)                                          \
   V(TypedData_GetInt8, 2)                                                      \
   V(TypedData_SetInt8, 3)                                                      \
   V(TypedData_GetUint8, 2)                                                     \

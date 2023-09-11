@@ -147,10 +147,12 @@ abstract final class _TypedListBase {
   //
   // Primarily called by Dart code to handle clamping.
   //
-  // Element sizes of [this] and [from] must match (test at caller).
-  @pragma("vm:external-name", "TypedDataBase_setRange")
+  // Element sizes of [this] and [from] must match. [this] must be a clamped
+  // typed data object, and the values in [from] must require possible clamping
+  // (tests at caller).
+  @pragma("vm:external-name", "TypedDataBase_setClampedRange")
   @pragma("vm:entry-point")
-  external void _nativeSetRange(
+  external void _setClampedRange(
       int start, int count, _TypedListBase from, int skipOffset);
 
   // Performs a copy of the [count] elements starting at [skipCount] in [from]
@@ -2350,7 +2352,7 @@ final class _Uint8ClampedList extends _TypedList
           int start, int count, _TypedListBase from, int skipCount) =>
       from._containsUnsignedBytes
           ? _memMove1(start, count, from, skipCount)
-          : _nativeSetRange(start, count, from, skipCount);
+          : _setClampedRange(start, count, from, skipCount);
 }
 
 @patch
@@ -3252,7 +3254,7 @@ final class _ExternalUint8ClampedArray extends _TypedList
           int start, int count, _TypedListBase from, int skipCount) =>
       from._containsUnsignedBytes
           ? _memMove1(start, count, from, skipCount)
-          : _nativeSetRange(start, count, from, skipCount);
+          : _setClampedRange(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -4496,7 +4498,7 @@ final class _Uint8ClampedArrayView extends _TypedListView
           int start, int count, _TypedListBase from, int skipCount) =>
       from._containsUnsignedBytes
           ? _memMove1(start, count, from, skipCount)
-          : _nativeSetRange(start, count, from, skipCount);
+          : _setClampedRange(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
