@@ -292,17 +292,18 @@ static void CopyUpToWordMultiple(FlowGraphCompiler* compiler,
   ASSERT(Utils::IsPowerOfTwo(element_size));
   if (element_size >= compiler::target::kWordSize) return;
 
-  const intptr_t base_shift = (unboxed_inputs ? 0 : kSmiTagShift) -
-                              Utils::ShiftForPowerOfTwo(element_size);
+  const intptr_t element_shift = Utils::ShiftForPowerOfTwo(element_size);
+  const intptr_t base_shift =
+      (unboxed_inputs ? 0 : kSmiTagShift) - element_shift;
   intptr_t tested_bits = 0;
 
   __ Comment("Copying until region is a multiple of word size");
 
   COMPILE_ASSERT(XLEN <= 128);
 
-  for (intptr_t bit = compiler::target::kWordSizeLog2 - 1; bit >= 0; bit--) {
+  for (intptr_t bit = compiler::target::kWordSizeLog2 - 1; bit >= element_shift;
+       bit--) {
     const intptr_t bytes = 1 << bit;
-    if (element_size > bytes) continue;
     const intptr_t tested_bit = bit + base_shift;
     tested_bits |= 1 << tested_bit;
     compiler::Label skip_copy;
