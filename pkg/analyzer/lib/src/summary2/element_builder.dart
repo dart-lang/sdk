@@ -648,9 +648,17 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _buildSyntheticVariable(name: name, accessorElement: element);
     } else {
       var element = FunctionElementImpl(name, nameOffset);
+      element.isAugmentation = node.augmentKeyword != null;
       element.isStatic = true;
       reference = _enclosingContext.addFunction(name, element);
       executableElement = element;
+
+      _libraryBuilder.updateAugmentationTarget(name, element, (target) {
+        if (element.isAugmentation) {
+          target.augmentation = element;
+          element.augmentationTarget = target;
+        }
+      });
     }
 
     executableElement.hasImplicitReturnType = node.returnType == null;

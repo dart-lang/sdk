@@ -3146,13 +3146,8 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 
 /// A concrete implementation of a [FunctionElement].
 class FunctionElementImpl extends ExecutableElementImpl
+    with _HasAugmentation<FunctionElementImpl>
     implements FunctionElement, FunctionTypedElementImpl {
-  @override
-  FunctionElementImpl? augmentation;
-
-  @override
-  FunctionElementImpl? augmentationTarget;
-
   /// Initialize a newly created function element to have the given [name] and
   /// [offset].
   FunctionElementImpl(super.name, super.offset);

@@ -389,6 +389,9 @@ class BundleWriter {
       _resolutionSink.writeType(element.returnType);
       _writeList(element.parameters, _writeParameterElement);
     });
+
+    _resolutionSink.writeElement(element.augmentation);
+    _resolutionSink.writeElement(element.augmentationTarget);
   }
 
   void _writeImportElement(LibraryImportElementImpl element) {
