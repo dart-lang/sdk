@@ -8,21 +8,21 @@ extension /* unnamed */ _extension#0 on core::Object {
 }
 extension type InlineClass(core::int it) {
   method test = self::InlineClass|test;
-  tearoff test = self::InlineClass|get#test;
+  method tearoff test = self::InlineClass|get#test;
   operator + = self::InlineClass|+;
   operator unary- = self::InlineClass|unary-;
   operator [] = self::InlineClass|[];
   operator []= = self::InlineClass|[]=;
   get getter = self::InlineClass|get#getter;
   method method = self::InlineClass|method;
-  tearoff method = self::InlineClass|get#method;
+  method tearoff method = self::InlineClass|get#method;
   method genericMethod = self::InlineClass|genericMethod;
-  tearoff genericMethod = self::InlineClass|get#genericMethod;
+  method tearoff genericMethod = self::InlineClass|get#genericMethod;
   method call = self::InlineClass|call;
-  tearoff call = self::InlineClass|get#call;
+  method tearoff call = self::InlineClass|get#call;
   set setter = self::InlineClass|set#setter;
   constructor • = self::InlineClass|;
-  tearoff • = self::InlineClass|_#new#tearOff;
+  constructor tearoff • = self::InlineClass|_#new#tearOff;
 }
 static extension-member method _extension#0|get#setter(lowered final core::Object #this) → core::int
   ;

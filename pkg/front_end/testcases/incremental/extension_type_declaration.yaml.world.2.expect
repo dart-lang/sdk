@@ -3,17 +3,17 @@ library from "org-dartlang-test:///main.dart" as main {
 
   extension type ExtensionType(dart.core::int i) {
     method method = main::ExtensionType|method;
-    tearoff method = main::ExtensionType|get#method;
+    method tearoff method = main::ExtensionType|get#method;
     get getter = main::ExtensionType|get#getter;
     static method staticMethod = main::ExtensionType|staticMethod;
     static field staticField = main::ExtensionType|staticField;
     set setter = main::ExtensionType|set#setter;
     constructor • = main::ExtensionType|;
-    tearoff • = main::ExtensionType|_#new#tearOff;
+    constructor tearoff • = main::ExtensionType|_#new#tearOff;
     static factory f = main::ExtensionType|f;
-    static tearoff f = main::ExtensionType|_#f#tearOff;
+    static factory tearoff f = main::ExtensionType|_#f#tearOff;
     static redirecting-factory r = main::ExtensionType|r;
-    static tearoff r = main::ExtensionType|_#r#tearOff;
+    static redirecting-factory tearoff r = main::ExtensionType|_#r#tearOff;
   }
   static field dart.core::int ExtensionType|staticField = 42;
   static inline-class-member method ExtensionType|(dart.core::int i) → main::ExtensionType /* = dart.core::int */ {

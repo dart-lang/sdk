@@ -5,11 +5,11 @@ import "dart:core" as core;
 @#C2
 extension type A(core::int i) {
   method m = self::A|m;
-  tearoff m = self::A|get#m;
+  method tearoff m = self::A|get#m;
   constructor • = self::A|;
-  tearoff • = self::A|_#new#tearOff;
+  constructor tearoff • = self::A|_#new#tearOff;
   constructor constructor = self::A|constructor;
-  tearoff constructor = self::A|_#constructor#tearOff;
+  constructor tearoff constructor = self::A|_#constructor#tearOff;
 }
 static inline-class-member method A|(@#C2 core::int i) → self::A /* = core::int */ {
   lowered final self::A /* = core::int */ #this = i;

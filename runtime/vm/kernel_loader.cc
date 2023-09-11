@@ -975,6 +975,7 @@ void KernelLoader::FinishTopLevelClassLoading(
       helper_.ReadByte();                    // read kind.
       helper_.ReadByte();                    // read flags.
       helper_.SkipCanonicalNameReference();  // skip member reference
+      helper_.SkipCanonicalNameReference();  // skip tear-off reference
     }
   }
 
@@ -998,6 +999,7 @@ void KernelLoader::FinishTopLevelClassLoading(
       helper_.ReadByte();                    // read kind.
       helper_.ReadByte();                    // read flags.
       helper_.SkipCanonicalNameReference();  // skip member reference
+      helper_.SkipCanonicalNameReference();  // skip tear-off reference
     }
   }
 

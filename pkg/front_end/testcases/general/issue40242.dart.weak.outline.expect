@@ -8,7 +8,7 @@ class C extends core::Object {
 }
 extension E on self::C {
   method errors = self::E|errors;
-  tearoff errors = self::E|get#errors;
+  method tearoff errors = self::E|get#errors;
 }
 static extension-member method E|errors(lowered final self::C #this) → dynamic
   ;

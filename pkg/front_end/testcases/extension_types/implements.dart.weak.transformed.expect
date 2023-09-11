@@ -202,33 +202,33 @@ import "dart:core" as core;
 
 extension type A(core::int it) {
   method methodA = self::A|methodA;
-  tearoff methodA = self::A|get#methodA;
+  method tearoff methodA = self::A|get#methodA;
   constructor • = self::A|;
-  tearoff • = self::A|_#new#tearOff;
+  constructor tearoff • = self::A|_#new#tearOff;
 }
 extension type B<T extends core::Object? = dynamic>(T% it) {
   method methodB = self::B|methodB;
-  tearoff methodB = self::B|get#methodB;
+  method tearoff methodB = self::B|get#methodB;
   constructor • = self::B|;
-  tearoff • = self::B|_#new#tearOff;
+  constructor tearoff • = self::B|_#new#tearOff;
 }
 extension type C1(core::int it) implements self::A /* = core::int */ {
   method methodC1 = self::C1|methodC1;
-  tearoff methodC1 = self::C1|get#methodC1;
+  method tearoff methodC1 = self::C1|get#methodC1;
   constructor • = self::C1|;
-  tearoff • = self::C1|_#new#tearOff;
+  constructor tearoff • = self::C1|_#new#tearOff;
 }
 extension type C2(core::int it) implements self::A /* = core::int */, self::B<core::int> /* = core::int */ {
   method methodC2 = self::C2|methodC2;
-  tearoff methodC2 = self::C2|get#methodC2;
+  method tearoff methodC2 = self::C2|get#methodC2;
   constructor • = self::C2|;
-  tearoff • = self::C2|_#new#tearOff;
+  constructor tearoff • = self::C2|_#new#tearOff;
 }
 extension type D1(core::int it) implements self::C1 /* = core::int */ {
   method methodD1 = self::D1|methodD1;
-  tearoff methodD1 = self::D1|get#methodD1;
+  method tearoff methodD1 = self::D1|get#methodD1;
   constructor • = self::D1|;
-  tearoff • = self::D1|_#new#tearOff;
+  constructor tearoff • = self::D1|_#new#tearOff;
 }
 static inline-class-member method A|(core::int it) → self::A /* = core::int */ {
   lowered final self::A /* = core::int */ #this = it;

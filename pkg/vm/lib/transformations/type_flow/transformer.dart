@@ -861,8 +861,9 @@ class TreeShaker {
       if (m.isExtensionMember) {
         // The AST should have exactly one [Extension] for [m].
         final extension = m.enclosingLibrary.extensions.firstWhere((extension) {
-          return extension.members
-              .any((descriptor) => descriptor.member.asMember == m);
+          return extension.members.any((descriptor) =>
+              descriptor.member.asMember == m ||
+              descriptor.tearOff?.asMember == m);
         });
 
         // Ensure we retain the [Extension] itself (though members might be
@@ -877,8 +878,9 @@ class TreeShaker {
         final extensionTypeDeclaration = m
             .enclosingLibrary.extensionTypeDeclarations
             .firstWhere((extensionTypeDeclaration) {
-          return extensionTypeDeclaration.members
-              .any((descriptor) => descriptor.member.asMember == m);
+          return extensionTypeDeclaration.members.any((descriptor) =>
+              descriptor.member.asMember == m ||
+              descriptor.tearOff?.asMember == m);
         });
 
         // Ensure we retain the [ExtensionTypeDeclaration] itself (though
@@ -1979,14 +1981,31 @@ class _TreeShakerPass2 extends RemovingTransformer {
     if (shaker.isExtensionUsed(node)) {
       int writeIndex = 0;
       for (int i = 0; i < node.members.length; ++i) {
-        final ExtensionMemberDescriptor descriptor = node.members[i];
+        ExtensionMemberDescriptor descriptor = node.members[i];
 
         // To avoid depending on the order in which members and extensions are
         // visited during the transformation, we handle both cases: either the
         // member was already removed or it will be removed later.
         final Reference memberReference = descriptor.member;
-        final bool isBound = memberReference.node != null;
-        if (isBound && shaker.isMemberUsed(memberReference.asMember)) {
+        final bool memberIsBound = memberReference.node != null;
+        final bool isMemberUsed =
+            memberIsBound && shaker.isMemberUsed(memberReference.asMember);
+        final Reference? tearOffReference = descriptor.tearOff;
+        final bool tearOffIsBound = tearOffReference?.node != null;
+        final bool isTearOffUsed =
+            tearOffIsBound && shaker.isMemberUsed(tearOffReference!.asMember);
+        if (isMemberUsed || isTearOffUsed) {
+          assert(!isTearOffUsed || isMemberUsed,
+              "Tear-off used without the member of $descriptor");
+          if (!isTearOffUsed) {
+            // Clear the tear-off reference since it is not used.
+            descriptor = ExtensionMemberDescriptor(
+                name: descriptor.name,
+                kind: descriptor.kind,
+                isStatic: descriptor.isStatic,
+                member: descriptor.member,
+                tearOff: null);
+          }
           node.members[writeIndex++] = descriptor;
         }
       }
@@ -2005,15 +2024,32 @@ class _TreeShakerPass2 extends RemovingTransformer {
     if (shaker.isExtensionTypeDeclarationUsed(node)) {
       int writeIndex = 0;
       for (int i = 0; i < node.members.length; ++i) {
-        final ExtensionTypeMemberDescriptor descriptor = node.members[i];
+        ExtensionTypeMemberDescriptor descriptor = node.members[i];
 
         // To avoid depending on the order in which members and extension type
         // declarations are visited during the transformation, we handle both
         // cases: either the member was already removed or it will be removed
         // later.
         final Reference memberReference = descriptor.member;
-        final bool isBound = memberReference.node != null;
-        if (isBound && shaker.isMemberUsed(memberReference.asMember)) {
+        final bool memberIsBound = memberReference.node != null;
+        final bool isMemberUsed =
+            memberIsBound && shaker.isMemberUsed(memberReference.asMember);
+        final Reference? tearOffReference = descriptor.tearOff;
+        final bool tearOffIsBound = tearOffReference?.node != null;
+        final bool isTearOffUsed =
+            tearOffIsBound && shaker.isMemberUsed(tearOffReference!.asMember);
+        if (isMemberUsed || isTearOffUsed) {
+          assert(!isTearOffUsed || isMemberUsed,
+              "Tear-off used without the member of $descriptor");
+          if (!isTearOffUsed) {
+            // Clear the tear-off reference since it is not used.
+            descriptor = ExtensionTypeMemberDescriptor(
+                name: descriptor.name,
+                kind: descriptor.kind,
+                isStatic: descriptor.isStatic,
+                member: descriptor.member,
+                tearOff: null);
+          }
           node.members[writeIndex++] = descriptor;
         }
       }

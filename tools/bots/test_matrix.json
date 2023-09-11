@@ -544,6 +544,15 @@
         "timeout": 240
       }
     },
+    "dart2wasm-(linux|mac|win)-jscm-(d8|chrome)": {
+      "options": {
+        "dart2wasm-options": [
+          "--js-compatibility"
+        ],
+        "host-checked": true,
+        "timeout": 240
+      }
+    },
     "vm-aot-android-(debug|product|release)-arm_x64": {
       "options": {
         "builder-tag": "crossword",
@@ -2678,6 +2687,37 @@
           "name": "dart2wasm tests",
           "arguments": [
             "-ndart2wasm-linux-${runtime}",
+            "co19",
+            "corelib",
+            "language",
+            "lib",
+            "web"
+          ],
+          "shards": 8,
+          "fileset": "dart2wasm_hostasserts"
+        }
+      ]
+    },
+    {
+      "builders": [
+        "dart2wasm-linux-jscm-chrome"
+      ],
+      "meta": {
+        "description": "dart2wasm JS compatibility tests"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart2wasm"
+          ]
+        },
+        {
+          "name": "dart2wasm tests",
+          "arguments": [
+            "-ndart2wasm-linux-jscm-${runtime}",
             "co19",
             "corelib",
             "language",

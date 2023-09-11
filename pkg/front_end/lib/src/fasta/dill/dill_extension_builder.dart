@@ -33,8 +33,6 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
                 parent: parent.scope,
                 debugName: "extension ${extension.name}",
                 isModifiable: false)) {
-    Map<Name, ExtensionMemberDescriptor> _methods = {};
-    Map<Name, Procedure> _tearOffs = {};
     for (ExtensionMemberDescriptor descriptor in extension.members) {
       Name name = descriptor.name;
       switch (descriptor.kind) {
@@ -47,11 +45,15 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
                     procedure, descriptor, this),
                 setter: false);
           } else {
-            _methods[name] = descriptor;
+            Procedure procedure = descriptor.member.asProcedure;
+            Procedure? tearOff = descriptor.tearOff?.asProcedure;
+            assert(tearOff != null, "No tear found for ${descriptor}");
+            scope.addLocalMember(
+                name.text,
+                new DillExtensionInstanceMethodBuilder(
+                    procedure, descriptor, this, tearOff!),
+                setter: false);
           }
-          break;
-        case ExtensionMemberKind.TearOff:
-          _tearOffs[name] = descriptor.member.asProcedure;
           break;
         case ExtensionMemberKind.Getter:
           Procedure procedure = descriptor.member.asProcedure;
@@ -79,16 +81,6 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
           break;
       }
     }
-    _methods.forEach((Name name, ExtensionMemberDescriptor descriptor) {
-      Procedure procedure = descriptor.member.asProcedure;
-      assert(_tearOffs.containsKey(name),
-          "No tear found for ${descriptor} in ${_tearOffs}");
-      scope.addLocalMember(
-          name.text,
-          new DillExtensionInstanceMethodBuilder(
-              procedure, descriptor, this, _tearOffs[name]!),
-          setter: false);
-    });
   }
 
   @override

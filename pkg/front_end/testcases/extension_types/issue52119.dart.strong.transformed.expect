@@ -19,23 +19,23 @@ import "dart:core" as core;
 
 extension type Foo(core::int i) {
   constructor _ = self::Foo|_;
-  tearoff _ = self::Foo|_#_#tearOff;
+  constructor tearoff _ = self::Foo|_#_#tearOff;
   constructor • = self::Foo|;
-  tearoff • = self::Foo|_#new#tearOff;
+  constructor tearoff • = self::Foo|_#new#tearOff;
   constructor redirectNamed1 = self::Foo|redirectNamed1;
-  tearoff redirectNamed1 = self::Foo|_#redirectNamed1#tearOff;
+  constructor tearoff redirectNamed1 = self::Foo|_#redirectNamed1#tearOff;
   constructor redirectNamed2 = self::Foo|redirectNamed2;
-  tearoff redirectNamed2 = self::Foo|_#redirectNamed2#tearOff;
+  constructor tearoff redirectNamed2 = self::Foo|_#redirectNamed2#tearOff;
   constructor named = self::Foo|named;
-  tearoff named = self::Foo|_#named#tearOff;
+  constructor tearoff named = self::Foo|_#named#tearOff;
   constructor erroneous = self::Foo|erroneous;
-  tearoff erroneous = self::Foo|_#erroneous#tearOff;
+  constructor tearoff erroneous = self::Foo|_#erroneous#tearOff;
 }
 extension type Bar<T extends core::Object? = dynamic>(dynamic i) {
   constructor _ = self::Bar|_;
-  tearoff _ = self::Bar|_#_#tearOff;
+  constructor tearoff _ = self::Bar|_#_#tearOff;
   constructor • = self::Bar|;
-  tearoff • = self::Bar|_#new#tearOff;
+  constructor tearoff • = self::Bar|_#new#tearOff;
 }
 static inline-class-member method Foo|_(core::int i) → self::Foo /* = core::int */ {
   lowered final self::Foo /* = core::int */ #this = i;

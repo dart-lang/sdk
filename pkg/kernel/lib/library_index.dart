@@ -273,32 +273,42 @@ class _MemberTable {
     _members![getDisambiguatedName(member)] = member;
   }
 
-  String getDisambiguatedExtensionName(
-      ExtensionMemberDescriptor extensionMember) {
-    if (extensionMember.kind == ExtensionMemberKind.TearOff) {
+  String _getDisambiguatedExtensionName(
+      ExtensionMemberDescriptor extensionMember,
+      {required bool forTearOff}) {
+    if (forTearOff) {
       return LibraryIndex.tearoffPrefix + extensionMember.name.text;
     }
-    if (extensionMember.kind == ExtensionMemberKind.Getter) {
-      return LibraryIndex.getterPrefix + extensionMember.name.text;
+    switch (extensionMember.kind) {
+      case ExtensionMemberKind.Getter:
+        return LibraryIndex.getterPrefix + extensionMember.name.text;
+      case ExtensionMemberKind.Setter:
+        return LibraryIndex.setterPrefix + extensionMember.name.text;
+      case ExtensionMemberKind.Field:
+      case ExtensionMemberKind.Method:
+      case ExtensionMemberKind.Operator:
+        return extensionMember.name.text;
     }
-    if (extensionMember.kind == ExtensionMemberKind.Setter) {
-      return LibraryIndex.setterPrefix + extensionMember.name.text;
-    }
-    return extensionMember.name.text;
   }
 
   void _addExtensionMember(ExtensionMemberDescriptor extensionMember) {
-    final NamedNode? replacement = extensionMember.member.node;
-    if (replacement is! Member) return;
-    Member member = replacement;
-    if (member.name.isPrivate && member.name.library != library) {
-      // Members whose name is private to other libraries cannot currently
-      // be found with the LibraryIndex class.
-      return;
+    void addReference(Reference? reference, {required bool forTearOff}) {
+      final NamedNode? replacement = reference?.node;
+      if (replacement is! Member) return;
+      Member member = replacement;
+      if (member.name.isPrivate && member.name.library != library) {
+        // Members whose name is private to other libraries cannot currently
+        // be found with the LibraryIndex class.
+        return;
+      }
+
+      final String name = _getDisambiguatedExtensionName(extensionMember,
+          forTearOff: forTearOff);
+      _members![name] = replacement;
     }
 
-    final String name = getDisambiguatedExtensionName(extensionMember);
-    _members![name] = replacement;
+    addReference(extensionMember.member, forTearOff: false);
+    addReference(extensionMember.tearOff, forTearOff: true);
   }
 
   String get containerName {
@@ -315,7 +325,7 @@ class _MemberTable {
     Member? member = members[name];
     if (member == null) {
       String message = "A member with disambiguated name '$name' was not found "
-          "in $containerName";
+          "in $containerName: ${members.keys}";
       String getter = LibraryIndex.getterPrefix + name;
       String setter = LibraryIndex.setterPrefix + name;
       if (members[getter] != null || members[setter] != null) {

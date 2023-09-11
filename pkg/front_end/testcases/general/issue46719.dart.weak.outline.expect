@@ -16,7 +16,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
 }
 extension FunctionApplier on core::Function {
   method applyAndPrint = self::FunctionApplier|applyAndPrint;
-  tearoff applyAndPrint = self::FunctionApplier|get#applyAndPrint;
+  method tearoff applyAndPrint = self::FunctionApplier|get#applyAndPrint;
 }
 static method m<X extends core::Object? = dynamic>(self::m::X% x) → core::List<self::m::X%>
   ;

@@ -22,7 +22,7 @@ import "dart:core" as core;
 
 extension type ExtensionType(core::int i) {
   constructor • = mai::ExtensionType|;
-  tearoff • = mai::ExtensionType|_#new#tearOff;
+  constructor tearoff • = mai::ExtensionType|_#new#tearOff;
 }
 static inline-class-member method ExtensionType|(core::int i) → mai::ExtensionType /* = core::int */ {
   lowered final mai::ExtensionType /* = core::int */ #this = i;

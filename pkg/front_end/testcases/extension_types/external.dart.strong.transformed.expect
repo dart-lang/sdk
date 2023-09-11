@@ -19,9 +19,9 @@ extension type B(self::A a) {
   get field = self::B|get#field;
   set field = self::B|set#field;
   method method = self::B|method;
-  tearoff method = self::B|get#method;
+  method tearoff method = self::B|get#method;
   method genericMethod = self::B|genericMethod;
-  tearoff genericMethod = self::B|get#genericMethod;
+  method tearoff genericMethod = self::B|get#genericMethod;
   get getter = self::B|get#getter;
   static get staticField = get self::B|staticField;
   static set staticField = set self::B|staticField;
@@ -31,11 +31,11 @@ extension type B(self::A a) {
   set setter = self::B|set#setter;
   static set staticSetter = set self::B|staticSetter;
   constructor _ = self::B|_;
-  tearoff _ = self::B|_#_#tearOff;
+  constructor tearoff _ = self::B|_#_#tearOff;
   constructor • = self::B|;
-  tearoff • = self::B|_#new#tearOff;
+  constructor tearoff • = self::B|_#new#tearOff;
   constructor named = self::B|named;
-  tearoff named = self::B|_#named#tearOff;
+  constructor tearoff named = self::B|_#named#tearOff;
 }
 static inline-class-member method B|_(self::A a) → self::B /* = self::A */ {
   lowered final self::B /* = self::A */ #this = a;

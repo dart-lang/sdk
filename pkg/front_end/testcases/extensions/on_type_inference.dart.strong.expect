@@ -11,15 +11,15 @@ import "dart:core" as core;
 
 extension BestCom<T extends core::num*> on core::Iterable<T*>* {
   method best = self::BestCom|best;
-  tearoff best = self::BestCom|get#best;
+  method tearoff best = self::BestCom|get#best;
 }
 extension BestList<T extends core::Object* = dynamic> on core::List<T*>* {
   method best = self::BestList|best;
-  tearoff best = self::BestList|get#best;
+  method tearoff best = self::BestList|get#best;
 }
 extension BestSpec on core::List<core::num*>* {
   method best = self::BestSpec|best;
-  tearoff best = self::BestSpec|get#best;
+  method tearoff best = self::BestSpec|get#best;
 }
 static extension-member method BestCom|best<T extends core::num*>(lowered final core::Iterable<self::BestCom|best::T*>* #this) → self::BestCom|best::T*
   return null;

@@ -15,11 +15,11 @@ class C<T extends core::Object> extends core::Object {
 }
 extension CheckType<T extends core::Object? = dynamic> on T% {
   method expect = self::CheckType|expect;
-  tearoff expect = self::CheckType|get#expect;
+  method tearoff expect = self::CheckType|get#expect;
 }
 extension CheckTypeArgumentOfFoo<T extends core::Object? = dynamic> on self::Foo<T%> {
   method expect = self::CheckTypeArgumentOfFoo|expect;
-  tearoff expect = self::CheckTypeArgumentOfFoo|get#expect;
+  method tearoff expect = self::CheckTypeArgumentOfFoo|get#expect;
 }
 static extension-member method CheckType|expect<T extends core::Object? = dynamic, S extends (self::CheckType|expect::T%) → self::CheckType|expect::T% = (dynamic) → dynamic>(lowered final self::CheckType|expect::T% #this) → void
   ;

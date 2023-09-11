@@ -4,7 +4,7 @@ import "dart:_internal" as _in;
 
 extension Extension on Never {
   method extensionMethod = self::Extension|extensionMethod;
-  tearoff extensionMethod = self::Extension|get#extensionMethod;
+  method tearoff extensionMethod = self::Extension|get#extensionMethod;
 }
 static extension-member method Extension|extensionMethod(lowered final Never #this) → dynamic {}
 static extension-member method Extension|get#extensionMethod(lowered final Never #this) → () → dynamic

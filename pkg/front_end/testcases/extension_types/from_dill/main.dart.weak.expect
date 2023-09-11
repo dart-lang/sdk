@@ -51,7 +51,7 @@ import "dart:core" as core;
 extension type ExtensionType(core::int it) {
   static field staticField = mai2::ExtensionType|staticField;
   method instanceMethod = mai2::ExtensionType|instanceMethod;
-  tearoff instanceMethod = mai2::ExtensionType|get#instanceMethod;
+  method tearoff instanceMethod = mai2::ExtensionType|get#instanceMethod;
   operator + = mai2::ExtensionType|+;
   get instanceGetter = mai2::ExtensionType|get#instanceGetter;
   static method staticMethod = mai2::ExtensionType|staticMethod;
@@ -59,15 +59,15 @@ extension type ExtensionType(core::int it) {
   set instanceSetter = mai2::ExtensionType|set#instanceSetter;
   static set staticSetter = set mai2::ExtensionType|staticSetter;
   constructor • = mai2::ExtensionType|;
-  tearoff • = mai2::ExtensionType|_#new#tearOff;
+  constructor tearoff • = mai2::ExtensionType|_#new#tearOff;
   constructor named = mai2::ExtensionType|named;
-  tearoff named = mai2::ExtensionType|_#named#tearOff;
+  constructor tearoff named = mai2::ExtensionType|_#named#tearOff;
   constructor redirectingGenerative = mai2::ExtensionType|redirectingGenerative;
-  tearoff redirectingGenerative = mai2::ExtensionType|_#redirectingGenerative#tearOff;
+  constructor tearoff redirectingGenerative = mai2::ExtensionType|_#redirectingGenerative#tearOff;
   static factory fact = mai2::ExtensionType|fact;
-  static tearoff fact = mai2::ExtensionType|_#fact#tearOff;
+  static factory tearoff fact = mai2::ExtensionType|_#fact#tearOff;
   static redirecting-factory redirectingFactory = mai2::ExtensionType|redirectingFactory;
-  static tearoff redirectingFactory = mai2::ExtensionType|_#redirectingFactory#tearOff;
+  static redirecting-factory tearoff redirectingFactory = mai2::ExtensionType|_#redirectingFactory#tearOff;
 }
 static field core::int ExtensionType|staticField = 123;
 static inline-class-member method ExtensionType|(core::int it) → mai2::ExtensionType /* = core::int */ {

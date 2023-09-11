@@ -193,7 +193,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
 }
 extension type ExtensionType<T extends core::Object? = dynamic>(core::List<T%> it) {
   constructor • = ali::ExtensionType|;
-  tearoff • = ali::ExtensionType|_#new#tearOff;
+  constructor tearoff • = ali::ExtensionType|_#new#tearOff;
 }
 static inline-class-member method ExtensionType|<T extends core::Object? = dynamic>(core::List<ali::ExtensionType|::T%> it) → ali::ExtensionType<ali::ExtensionType|::T%> /* = core::List<ali::ExtensionType|::T%> */
   ;

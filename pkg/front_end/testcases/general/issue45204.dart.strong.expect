@@ -123,13 +123,13 @@ import "dart:core" as core;
 
 extension S on core::int {
   method test = self::S|test;
-  tearoff test = self::S|get#test;
+  method tearoff test = self::S|get#test;
 }
 extension S2<X extends core::Object? = dynamic> on core::int {
   method test2 = self::S2|test2;
-  tearoff test2 = self::S2|get#test2;
+  method tearoff test2 = self::S2|get#test2;
   method test3 = self::S2|test3;
-  tearoff test3 = self::S2|get#test3;
+  method tearoff test3 = self::S2|get#test3;
 }
 static extension-member method S|test(lowered final core::int #this, core::int x) → void {}
 static extension-member method S|get#test(lowered final core::int #this) → (core::int) → void

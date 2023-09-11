@@ -18,15 +18,15 @@ class Class2 extends core::Object {
 }
 extension Extension1 on self::Class1 {
   method method = self::Extension1|method;
-  tearoff method = self::Extension1|get#method;
+  method tearoff method = self::Extension1|get#method;
   method genericMethod = self::Extension1|genericMethod;
-  tearoff genericMethod = self::Extension1|get#genericMethod;
+  method tearoff genericMethod = self::Extension1|get#genericMethod;
 }
 extension Extension2 on self::Class2 {
   method method = self::Extension2|method;
-  tearoff method = self::Extension2|get#method;
+  method tearoff method = self::Extension2|get#method;
   method genericMethod = self::Extension2|genericMethod;
-  tearoff genericMethod = self::Extension2|get#genericMethod;
+  method tearoff genericMethod = self::Extension2|get#genericMethod;
 }
 static extension-member method Extension1|method(lowered final self::Class1 #this) → core::int
   ;

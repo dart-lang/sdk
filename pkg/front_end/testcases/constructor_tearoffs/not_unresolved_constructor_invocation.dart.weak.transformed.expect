@@ -22,7 +22,7 @@ class resolved_prefix extends core::Object {
 }
 extension Extension on core::Function {
   method unresolvedConstructor = self::Extension|unresolvedConstructor;
-  tearoff unresolvedConstructor = self::Extension|get#unresolvedConstructor;
+  method tearoff unresolvedConstructor = self::Extension|get#unresolvedConstructor;
 }
 static method UnresolvedClass<T extends core::Object? = dynamic>() → dynamic {}
 static extension-member method Extension|unresolvedConstructor(lowered final core::Function #this) → dynamic {}

@@ -109,33 +109,33 @@ import "dart:core" as core;
 
 extension _PrivateExtension on core::String {
   method publicMethod1 = pri::_PrivateExtension|publicMethod1;
-  tearoff publicMethod1 = pri::_PrivateExtension|get#publicMethod1;
+  method tearoff publicMethod1 = pri::_PrivateExtension|get#publicMethod1;
   method _privateMethod1 = pri::_PrivateExtension|_privateMethod1;
-  tearoff _privateMethod1 = pri::_PrivateExtension|get#_privateMethod1;
+  method tearoff _privateMethod1 = pri::_PrivateExtension|get#_privateMethod1;
   static method publicStaticMethod1 = pri::_PrivateExtension|publicStaticMethod1;
   static method _privateStaticMethod1 = pri::_PrivateExtension|_privateStaticMethod1;
   method test1 = pri::_PrivateExtension|test1;
-  tearoff test1 = pri::_PrivateExtension|get#test1;
+  method tearoff test1 = pri::_PrivateExtension|get#test1;
 }
 extension PublicExtension on core::String {
   method publicMethod2 = pri::PublicExtension|publicMethod2;
-  tearoff publicMethod2 = pri::PublicExtension|get#publicMethod2;
+  method tearoff publicMethod2 = pri::PublicExtension|get#publicMethod2;
   method _privateMethod2 = pri::PublicExtension|_privateMethod2;
-  tearoff _privateMethod2 = pri::PublicExtension|get#_privateMethod2;
+  method tearoff _privateMethod2 = pri::PublicExtension|get#_privateMethod2;
   static method publicStaticMethod2 = pri::PublicExtension|publicStaticMethod2;
   static method _privateStaticMethod2 = pri::PublicExtension|_privateStaticMethod2;
   method test2 = pri::PublicExtension|test2;
-  tearoff test2 = pri::PublicExtension|get#test2;
+  method tearoff test2 = pri::PublicExtension|get#test2;
 }
 extension /* unnamed */ _extension#2 on core::String {
   method publicMethod3 = pri::_extension#2|publicMethod3;
-  tearoff publicMethod3 = pri::_extension#2|get#publicMethod3;
+  method tearoff publicMethod3 = pri::_extension#2|get#publicMethod3;
   method _privateMethod3 = pri::_extension#2|_privateMethod3;
-  tearoff _privateMethod3 = pri::_extension#2|get#_privateMethod3;
+  method tearoff _privateMethod3 = pri::_extension#2|get#_privateMethod3;
   static method publicStaticMethod3 = pri::_extension#2|publicStaticMethod3;
   static method _privateStaticMethod3 = pri::_extension#2|_privateStaticMethod3;
   method test3 = pri::_extension#2|test3;
-  tearoff test3 = pri::_extension#2|get#test3;
+  method tearoff test3 = pri::_extension#2|get#test3;
 }
 static extension-member method _PrivateExtension|publicMethod1(lowered final core::String #this) → core::int
   return 42;

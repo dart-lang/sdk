@@ -5,31 +5,31 @@ import "dart:core" as core;
 typedef Exactly<invariant T extends core::Object? = dynamic> = (T%) → T%;
 extension StaticType<T extends core::Object? = dynamic> on T% {
   method expectStaticType = self::StaticType|expectStaticType;
-  tearoff expectStaticType = self::StaticType|get#expectStaticType;
+  method tearoff expectStaticType = self::StaticType|get#expectStaticType;
 }
 extension type ET1(core::int id) {
   constructor • = self::ET1|;
-  tearoff • = self::ET1|_#new#tearOff;
+  constructor tearoff • = self::ET1|_#new#tearOff;
 }
 extension type ET2<T extends core::Object? = dynamic>(T% id) {
   constructor • = self::ET2|;
-  tearoff • = self::ET2|_#new#tearOff;
+  constructor tearoff • = self::ET2|_#new#tearOff;
 }
 extension type ET3(core::int id) {
   constructor • = self::ET3|;
-  tearoff • = self::ET3|_#new#tearOff;
+  constructor tearoff • = self::ET3|_#new#tearOff;
 }
 extension type ET4<T extends core::Object? = dynamic>(T% id) {
   constructor • = self::ET4|;
-  tearoff • = self::ET4|_#new#tearOff;
+  constructor tearoff • = self::ET4|_#new#tearOff;
 }
 extension type ET5(core::int id) {
   constructor n = self::ET5|n;
-  tearoff n = self::ET5|_#n#tearOff;
+  constructor tearoff n = self::ET5|_#n#tearOff;
 }
 extension type ET6<T extends core::Object? = dynamic>(T% id) {
   constructor n = self::ET6|n;
-  tearoff n = self::ET6|_#n#tearOff;
+  constructor tearoff n = self::ET6|_#n#tearOff;
 }
 static inline-class-member method ET1|(core::int id) → self::ET1 /* = core::int */ {
   lowered final self::ET1 /* = core::int */ #this = id;

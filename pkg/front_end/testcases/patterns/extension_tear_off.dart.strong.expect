@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 extension _ on core::int {
   method method = self::_|method;
-  tearoff method = self::_|get#method;
+  method tearoff method = self::_|get#method;
 }
 static extension-member method _|method(lowered final core::int #this, core::int i) → core::int
   return #this.{core::num::+}(i){(core::num) → core::int};

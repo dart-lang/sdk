@@ -1337,40 +1337,47 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     endLine(endLineString);
     ++indentation;
     node.members.forEach((ExtensionMemberDescriptor descriptor) {
-      writeIndentation();
-      writeModifier(descriptor.isStatic, 'static');
-      switch (descriptor.kind) {
-        case ExtensionMemberKind.Method:
-          writeWord('method');
-          break;
-        case ExtensionMemberKind.Getter:
-          writeWord('get');
-          break;
-        case ExtensionMemberKind.Setter:
-          writeWord('set');
-          break;
-        case ExtensionMemberKind.Operator:
-          writeWord('operator');
-          break;
-        case ExtensionMemberKind.Field:
-          writeWord('field');
-          break;
-        case ExtensionMemberKind.TearOff:
-          writeWord('tearoff');
-          break;
-      }
-      writeName(descriptor.name);
-      writeSpaced('=');
-      Member member = descriptor.member.asMember;
-      if (member is Procedure) {
-        if (member.isGetter) {
-          writeWord('get');
-        } else if (member.isSetter) {
-          writeWord('set');
+      void writeReference(Reference reference, {required bool isTearOff}) {
+        writeIndentation();
+        writeModifier(descriptor.isStatic, 'static');
+        switch (descriptor.kind) {
+          case ExtensionMemberKind.Method:
+            writeWord('method');
+            break;
+          case ExtensionMemberKind.Getter:
+            writeWord('get');
+            break;
+          case ExtensionMemberKind.Setter:
+            writeWord('set');
+            break;
+          case ExtensionMemberKind.Operator:
+            writeWord('operator');
+            break;
+          case ExtensionMemberKind.Field:
+            writeWord('field');
+            break;
         }
+        if (isTearOff) {
+          writeWord('tearoff');
+        }
+        writeName(descriptor.name);
+        writeSpaced('=');
+        Member member = reference.asMember;
+        if (member is Procedure) {
+          if (member.isGetter) {
+            writeWord('get');
+          } else if (member.isSetter) {
+            writeWord('set');
+          }
+        }
+        writeMemberReferenceFromReference(reference);
+        endLine(';');
       }
-      writeMemberReferenceFromReference(descriptor.member);
-      endLine(';');
+
+      writeReference(descriptor.member, isTearOff: false);
+      if (descriptor.tearOff != null) {
+        writeReference(descriptor.tearOff!, isTearOff: true);
+      }
     });
     --indentation;
     writeIndentation();
@@ -1400,49 +1407,56 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     endLine(endLineString);
     ++indentation;
     node.members.forEach((ExtensionTypeMemberDescriptor descriptor) {
-      writeIndentation();
-      writeModifier(descriptor.isStatic, 'static');
-      switch (descriptor.kind) {
-        case ExtensionTypeMemberKind.Constructor:
-          writeWord('constructor');
-          break;
-        case ExtensionTypeMemberKind.Factory:
-          writeWord('factory');
-          break;
-        case ExtensionTypeMemberKind.RedirectingFactory:
-          writeWord('redirecting-factory');
-          break;
-        case ExtensionTypeMemberKind.Method:
-          writeWord('method');
-          break;
-        case ExtensionTypeMemberKind.Getter:
-          writeWord('get');
-          break;
-        case ExtensionTypeMemberKind.Setter:
-          writeWord('set');
-          break;
-        case ExtensionTypeMemberKind.Operator:
-          writeWord('operator');
-          break;
-        case ExtensionTypeMemberKind.Field:
-          writeWord('field');
-          break;
-        case ExtensionTypeMemberKind.TearOff:
-          writeWord('tearoff');
-          break;
-      }
-      writeName(descriptor.name);
-      writeSpaced('=');
-      Member member = descriptor.member.asMember;
-      if (member is Procedure) {
-        if (member.isGetter) {
-          writeWord('get');
-        } else if (member.isSetter) {
-          writeWord('set');
+      void writeReference(Reference reference, {required bool isTearOff}) {
+        writeIndentation();
+        writeModifier(descriptor.isStatic, 'static');
+        switch (descriptor.kind) {
+          case ExtensionTypeMemberKind.Constructor:
+            writeWord('constructor');
+            break;
+          case ExtensionTypeMemberKind.Factory:
+            writeWord('factory');
+            break;
+          case ExtensionTypeMemberKind.RedirectingFactory:
+            writeWord('redirecting-factory');
+            break;
+          case ExtensionTypeMemberKind.Method:
+            writeWord('method');
+            break;
+          case ExtensionTypeMemberKind.Getter:
+            writeWord('get');
+            break;
+          case ExtensionTypeMemberKind.Setter:
+            writeWord('set');
+            break;
+          case ExtensionTypeMemberKind.Operator:
+            writeWord('operator');
+            break;
+          case ExtensionTypeMemberKind.Field:
+            writeWord('field');
+            break;
         }
+        if (isTearOff) {
+          writeWord('tearoff');
+        }
+        writeName(descriptor.name);
+        writeSpaced('=');
+        Member member = reference.asMember;
+        if (member is Procedure) {
+          if (member.isGetter) {
+            writeWord('get');
+          } else if (member.isSetter) {
+            writeWord('set');
+          }
+        }
+        writeMemberReferenceFromReference(reference);
+        endLine(';');
       }
-      writeMemberReferenceFromReference(descriptor.member);
-      endLine(';');
+
+      writeReference(descriptor.member, isTearOff: false);
+      if (descriptor.tearOff != null) {
+        writeReference(descriptor.tearOff!, isTearOff: true);
+      }
     });
     --indentation;
     writeIndentation();

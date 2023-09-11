@@ -10,11 +10,11 @@ class Class extends core::Object {
 }
 extension ClassExtension on self::Class {
   method method = self::ClassExtension|method;
-  tearoff method = self::ClassExtension|get#method;
+  method tearoff method = self::ClassExtension|get#method;
 }
 extension Extension on dynamic {
   method method = self::Extension|method;
-  tearoff method = self::Extension|get#method;
+  method tearoff method = self::Extension|get#method;
 }
 static extension-member method ClassExtension|method(lowered final self::Class #this) → core::int
   ;

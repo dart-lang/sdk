@@ -11,17 +11,17 @@ class A extends core::Object {
 }
 extension B on self::A? {
   method foo = self::B|foo;
-  tearoff foo = self::B|get#foo;
+  method tearoff foo = self::B|get#foo;
   method bar = self::B|bar;
-  tearoff bar = self::B|get#bar;
+  method tearoff bar = self::B|get#bar;
 }
 extension C on self::A {
   method bar = self::C|bar;
-  tearoff bar = self::C|get#bar;
+  method tearoff bar = self::C|get#bar;
 }
 extension D on () →? core::int {
   method call = self::D|call;
-  tearoff call = self::D|get#call;
+  method tearoff call = self::D|get#call;
 }
 static extension-member method B|foo(lowered final self::A? #this) → dynamic
   return 42;

@@ -3616,9 +3616,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         library.addExtensionTypeDeclaration(extensionTypeDeclaration);
       }
     } else if (declaration is SourceMemberBuilder) {
-      declaration
-          .buildOutlineNodes((Member member, BuiltMemberKind memberKind) {
-        _addMemberToLibrary(declaration, member, memberKind);
+      declaration.buildOutlineNodes((
+          {required Member member,
+          Member? tearOff,
+          required BuiltMemberKind kind}) {
+        _addMemberToLibrary(declaration, member);
+        if (tearOff != null) {
+          _addMemberToLibrary(declaration, tearOff);
+        }
       });
     } else if (declaration is SourceTypeAliasBuilder) {
       Typedef typedef = declaration.build();
@@ -3637,8 +3642,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void _addMemberToLibrary(SourceMemberBuilder declaration, Member member,
-      BuiltMemberKind memberKind) {
+  void _addMemberToLibrary(SourceMemberBuilder declaration, Member member) {
     if (member is Field) {
       member.isStatic = true;
       if (!declaration.isPatch && !declaration.isDuplicate) {
@@ -3662,8 +3666,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         library.addProcedure(member);
       }
     } else {
-      unhandled("${member.runtimeType}:${memberKind}", "_buildMember",
-          declaration.charOffset, declaration.fileUri);
+      unhandled("${member.runtimeType}", "_buildMember", declaration.charOffset,
+          declaration.fileUri);
     }
   }
 
@@ -4468,9 +4472,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (iterator.moveNext()) {
       Builder builder = iterator.current;
       if (builder is SourceMemberBuilder) {
-        count +=
-            builder.buildBodyNodes((Member member, BuiltMemberKind memberKind) {
-          _addMemberToLibrary(builder, member, memberKind);
+        count += builder.buildBodyNodes((
+            {required Member member,
+            Member? tearOff,
+            required BuiltMemberKind kind}) {
+          _addMemberToLibrary(builder, member);
+          if (tearOff != null) {
+            _addMemberToLibrary(builder, tearOff);
+          }
         });
       } else if (builder is SourceClassBuilder) {
         count += builder.buildBodyNodes();

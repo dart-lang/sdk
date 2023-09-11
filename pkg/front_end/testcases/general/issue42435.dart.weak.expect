@@ -172,9 +172,9 @@ class B extends core::Object {
 }
 extension E on core::int {
   method baz2 = self::E|baz2;
-  tearoff baz2 = self::E|get#baz2;
+  method tearoff baz2 = self::E|get#baz2;
   method baz3 = self::E|baz3;
-  tearoff baz3 = self::E|get#baz3;
+  method tearoff baz3 = self::E|get#baz3;
   get baz4 = self::E|get#baz4;
   static field baz6 = self::E|baz6;
   set baz5 = self::E|set#baz5;

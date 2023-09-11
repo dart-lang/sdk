@@ -13,7 +13,7 @@ class Class extends core::Object {
 }
 extension Extension on self::Class {
   method extensionInstanceMethod = self::Extension|extensionInstanceMethod;
-  tearoff extensionInstanceMethod = self::Extension|get#extensionInstanceMethod;
+  method tearoff extensionInstanceMethod = self::Extension|get#extensionInstanceMethod;
   static method extensionStaticMethod = self::Extension|extensionStaticMethod;
 }
 @#C3

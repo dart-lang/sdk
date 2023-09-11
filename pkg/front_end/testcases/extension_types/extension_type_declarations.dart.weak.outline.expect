@@ -4,20 +4,20 @@ import "dart:core" as core;
 
 extension type ExtensionType1(core::int it) {
   constructor • = self::ExtensionType1|;
-  tearoff • = self::ExtensionType1|_#new#tearOff;
+  constructor tearoff • = self::ExtensionType1|_#new#tearOff;
 }
 extension type ExtensionType2(core::int it) implements self::ExtensionType1 /* = core::int */, core::int {
   constructor • = self::ExtensionType2|;
-  tearoff • = self::ExtensionType2|_#new#tearOff;
+  constructor tearoff • = self::ExtensionType2|_#new#tearOff;
 }
 extension type ExtensionType3<T extends core::num>(T it) {
   constructor • = self::ExtensionType3|;
-  tearoff • = self::ExtensionType3|_#new#tearOff;
+  constructor tearoff • = self::ExtensionType3|_#new#tearOff;
 }
 extension type ExtensionType4(core::int it) {
   get getter = self::ExtensionType4|get#getter;
   method method = self::ExtensionType4|method;
-  tearoff method = self::ExtensionType4|get#method;
+  method tearoff method = self::ExtensionType4|get#method;
   operator [] = self::ExtensionType4|[];
   operator []= = self::ExtensionType4|[]=;
   static field staticField = self::ExtensionType4|staticField;
@@ -26,27 +26,27 @@ extension type ExtensionType4(core::int it) {
   set setter = self::ExtensionType4|set#setter;
   static set staticSetter = set self::ExtensionType4|staticSetter;
   constructor • = self::ExtensionType4|;
-  tearoff • = self::ExtensionType4|_#new#tearOff;
+  constructor tearoff • = self::ExtensionType4|_#new#tearOff;
   constructor constructor = self::ExtensionType4|constructor;
-  tearoff constructor = self::ExtensionType4|_#constructor#tearOff;
+  constructor tearoff constructor = self::ExtensionType4|_#constructor#tearOff;
   constructor redirect = self::ExtensionType4|redirect;
-  tearoff redirect = self::ExtensionType4|_#redirect#tearOff;
+  constructor tearoff redirect = self::ExtensionType4|_#redirect#tearOff;
   static factory fact = self::ExtensionType4|fact;
-  static tearoff fact = self::ExtensionType4|_#fact#tearOff;
+  static factory tearoff fact = self::ExtensionType4|_#fact#tearOff;
   static redirecting-factory redirectingFactory = self::ExtensionType4|redirectingFactory;
-  static tearoff redirectingFactory = self::ExtensionType4|_#redirectingFactory#tearOff;
+  static redirecting-factory tearoff redirectingFactory = self::ExtensionType4|_#redirectingFactory#tearOff;
 }
 extension type ExtensionType5(core::int it) {
   constructor • = self::ExtensionType5|;
-  tearoff • = self::ExtensionType5|_#new#tearOff;
+  constructor tearoff • = self::ExtensionType5|_#new#tearOff;
 }
 extension type ExtensionType6(core::int it) {
   constructor id = self::ExtensionType6|id;
-  tearoff id = self::ExtensionType6|_#id#tearOff;
+  constructor tearoff id = self::ExtensionType6|_#id#tearOff;
 }
 extension type ExtensionType7<T extends core::num>(core::int it) {
   constructor id = self::ExtensionType7|id;
-  tearoff id = self::ExtensionType7|_#id#tearOff;
+  constructor tearoff id = self::ExtensionType7|_#id#tearOff;
 }
 static field core::int ExtensionType4|staticField;
 static inline-class-member method ExtensionType1|(core::int it) → self::ExtensionType1 /* = core::int */

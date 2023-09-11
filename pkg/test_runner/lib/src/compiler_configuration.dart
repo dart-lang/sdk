@@ -584,6 +584,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       List<String> arguments, Map<String, String> environmentOverrides) {
     var compilerArguments = [
       ...arguments,
+      ..._configuration.dart2wasmOptions,
     ];
 
     var inputFile = arguments.last;

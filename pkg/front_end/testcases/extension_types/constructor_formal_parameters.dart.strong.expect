@@ -4,19 +4,19 @@ import "dart:core" as core;
 
 extension type I(core::int it) {
   method m = self::I|m;
-  tearoff m = self::I|get#m;
+  method tearoff m = self::I|get#m;
   constructor _ = self::I|_;
-  tearoff _ = self::I|_#_#tearOff;
+  constructor tearoff _ = self::I|_#_#tearOff;
   constructor • = self::I|;
-  tearoff • = self::I|_#new#tearOff;
+  constructor tearoff • = self::I|_#new#tearOff;
 }
 extension type I2(core::int it) {
   method m = self::I2|m;
-  tearoff m = self::I2|get#m;
+  method tearoff m = self::I2|get#m;
   constructor _ = self::I2|_;
-  tearoff _ = self::I2|_#_#tearOff;
+  constructor tearoff _ = self::I2|_#_#tearOff;
   constructor • = self::I2|;
-  tearoff • = self::I2|_#new#tearOff;
+  constructor tearoff • = self::I2|_#new#tearOff;
 }
 static inline-class-member method I|_(core::int it) → self::I /* = core::int */ {
   lowered final self::I /* = core::int */ #this = it;

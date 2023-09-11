@@ -52,9 +52,9 @@ class Class<@#C1 T extends core::Object? = dynamic> extends core::Object {
 extension Extension<@#C1 T extends core::Object? = dynamic> on self::Class<T%> {
   static field field = self::Extension|field;
   method method1 = self::Extension|method1;
-  tearoff method1 = self::Extension|get#method1;
+  method tearoff method1 = self::Extension|get#method1;
   method method2 = self::Extension|method2;
-  tearoff method2 = self::Extension|get#method2;
+  method tearoff method2 = self::Extension|get#method2;
 }
 @#C1
 static field <T extends core::Object? = dynamic>(dynamic, [dynamic]) → Null field = <@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, [@#C1 dynamic o2 = #C2]) → Null {

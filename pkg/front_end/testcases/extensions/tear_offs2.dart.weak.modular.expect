@@ -9,12 +9,12 @@ class Class extends core::Object {
 }
 extension Extension on self::Class {
   method id = self::Extension|id;
-  tearoff id = self::Extension|get#id;
+  method tearoff id = self::Extension|get#id;
   get getter = self::Extension|get#getter;
   method method = self::Extension|method;
-  tearoff method = self::Extension|get#method;
+  method tearoff method = self::Extension|get#method;
   method errors = self::Extension|errors;
-  tearoff errors = self::Extension|get#errors;
+  method tearoff errors = self::Extension|get#errors;
 }
 static extension-member method Extension|id<T extends core::Object? = dynamic>(lowered final self::Class #this, self::Extension|id::T% t) → self::Extension|id::T%
   return t;

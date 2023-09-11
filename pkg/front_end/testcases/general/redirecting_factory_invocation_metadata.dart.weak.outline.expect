@@ -40,9 +40,9 @@ class Class<@self::Const::internal() T extends core::Object? = dynamic> extends 
 extension Extension<@self::Const::internal() T extends core::Object? = dynamic> on self::Class<T%> {
   static field field = self::Extension|field;
   method method1 = self::Extension|method1;
-  tearoff method1 = self::Extension|get#method1;
+  method tearoff method1 = self::Extension|get#method1;
   method method2 = self::Extension|method2;
-  tearoff method2 = self::Extension|get#method2;
+  method tearoff method2 = self::Extension|get#method2;
 }
 @self::Const::internal()
 static field <T extends core::Object? = dynamic>(dynamic, [dynamic]) → Null field;

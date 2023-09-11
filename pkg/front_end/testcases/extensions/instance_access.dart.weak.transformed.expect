@@ -20,17 +20,17 @@ class Class2 extends core::Object {
 }
 extension Extension1 on self::Class1 {
   method method = self::Extension1|method;
-  tearoff method = self::Extension1|get#method;
+  method tearoff method = self::Extension1|get#method;
   method genericMethod = self::Extension1|genericMethod;
-  tearoff genericMethod = self::Extension1|get#genericMethod;
+  method tearoff genericMethod = self::Extension1|get#genericMethod;
   get property = self::Extension1|get#property;
   set property = self::Extension1|set#property;
 }
 extension Extension2 on self::Class2 {
   method method = self::Extension2|method;
-  tearoff method = self::Extension2|get#method;
+  method tearoff method = self::Extension2|get#method;
   method genericMethod = self::Extension2|genericMethod;
-  tearoff genericMethod = self::Extension2|get#genericMethod;
+  method tearoff genericMethod = self::Extension2|get#genericMethod;
   get property = self::Extension2|get#property;
   set property = self::Extension2|set#property;
 }

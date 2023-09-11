@@ -4,35 +4,35 @@ import "dart:core" as core;
 
 extension type Class1(core::int it) {
   constructor • = self::Class1|;
-  tearoff • = self::Class1|_#new#tearOff;
+  constructor tearoff • = self::Class1|_#new#tearOff;
   constructor named1 = self::Class1|named1;
-  tearoff named1 = self::Class1|_#named1#tearOff;
+  constructor tearoff named1 = self::Class1|_#named1#tearOff;
   constructor named2 = self::Class1|named2;
-  tearoff named2 = self::Class1|_#named2#tearOff;
+  constructor tearoff named2 = self::Class1|_#named2#tearOff;
   constructor named3 = self::Class1|named3;
-  tearoff named3 = self::Class1|_#named3#tearOff;
+  constructor tearoff named3 = self::Class1|_#named3#tearOff;
   constructor named4 = self::Class1|named4;
-  tearoff named4 = self::Class1|_#named4#tearOff;
+  constructor tearoff named4 = self::Class1|_#named4#tearOff;
   constructor named5 = self::Class1|named5;
-  tearoff named5 = self::Class1|_#named5#tearOff;
+  constructor tearoff named5 = self::Class1|_#named5#tearOff;
   constructor named6 = self::Class1|named6;
-  tearoff named6 = self::Class1|_#named6#tearOff;
+  constructor tearoff named6 = self::Class1|_#named6#tearOff;
 }
 extension type Class2<T extends core::Object? = dynamic>(T% it) {
   constructor • = self::Class2|;
-  tearoff • = self::Class2|_#new#tearOff;
+  constructor tearoff • = self::Class2|_#new#tearOff;
   constructor named1 = self::Class2|named1;
-  tearoff named1 = self::Class2|_#named1#tearOff;
+  constructor tearoff named1 = self::Class2|_#named1#tearOff;
   constructor named2 = self::Class2|named2;
-  tearoff named2 = self::Class2|_#named2#tearOff;
+  constructor tearoff named2 = self::Class2|_#named2#tearOff;
   constructor named3 = self::Class2|named3;
-  tearoff named3 = self::Class2|_#named3#tearOff;
+  constructor tearoff named3 = self::Class2|_#named3#tearOff;
   constructor named4 = self::Class2|named4;
-  tearoff named4 = self::Class2|_#named4#tearOff;
+  constructor tearoff named4 = self::Class2|_#named4#tearOff;
   constructor named5 = self::Class2|named5;
-  tearoff named5 = self::Class2|_#named5#tearOff;
+  constructor tearoff named5 = self::Class2|_#named5#tearOff;
   constructor named6 = self::Class2|named6;
-  tearoff named6 = self::Class2|_#named6#tearOff;
+  constructor tearoff named6 = self::Class2|_#named6#tearOff;
 }
 static inline-class-member method Class1|(core::int it) → self::Class1 /* = core::int */
   ;

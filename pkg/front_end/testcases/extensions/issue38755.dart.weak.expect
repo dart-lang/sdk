@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 extension A<T extends core::Object? = dynamic> on core::List<T%> {
   method myMap = self::A|myMap;
-  tearoff myMap = self::A|get#myMap;
+  method tearoff myMap = self::A|get#myMap;
 }
 static final field core::List<core::String> list = self::A|myMap<core::String, core::String>(<core::String>["a", "b", "c"], (core::String it) → core::String => it);
 static extension-member method A|myMap<T extends core::Object? = dynamic, R extends core::Object? = dynamic>(lowered final core::List<self::A|myMap::T%> #this, (self::A|myMap::T%) → self::A|myMap::R% block) → core::List<self::A|myMap::R%> {

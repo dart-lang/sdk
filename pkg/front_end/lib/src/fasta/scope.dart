@@ -1009,12 +1009,12 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
-  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(BuildNodesCallback f) {
     assert(false, "Unexpected call to $runtimeType.buildOutlineNodes.");
   }
 
   @override
-  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+  int buildBodyNodes(BuildNodesCallback f) {
     assert(false, "Unexpected call to $runtimeType.buildBodyNodes.");
     return 0;
   }

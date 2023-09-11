@@ -42,15 +42,6 @@ class DillExtensionTypeDeclarationBuilder
                 isModifiable: false),
             new ConstructorScope(
                 _extensionTypeDeclaration.name, <String, MemberBuilder>{})) {
-    Map<Name, Procedure> _tearOffs = {};
-    for (ExtensionTypeMemberDescriptor descriptor
-        in _extensionTypeDeclaration.members) {
-      Name name = descriptor.name;
-      if (descriptor.kind == ExtensionTypeMemberKind.TearOff) {
-        _tearOffs[name] = descriptor.member.asProcedure;
-      }
-    }
-
     for (ExtensionTypeMemberDescriptor descriptor
         in _extensionTypeDeclaration.members) {
       Name name = descriptor.name;
@@ -65,17 +56,14 @@ class DillExtensionTypeDeclarationBuilder
                 setter: false);
           } else {
             Procedure procedure = descriptor.member.asProcedure;
-            assert(_tearOffs.containsKey(name),
-                "No tear found for ${descriptor} in ${_tearOffs}");
+            Procedure? tearOff = descriptor.tearOff?.asProcedure;
+            assert(tearOff != null, "No tear found for ${descriptor}");
             scope.addLocalMember(
                 name.text,
                 new DillExtensionTypeInstanceMethodBuilder(
-                    procedure, descriptor, this, _tearOffs[name]!),
+                    procedure, descriptor, this, tearOff!),
                 setter: false);
           }
-          break;
-        case ExtensionTypeMemberKind.TearOff:
-          assert(_tearOffs[name] == descriptor.member.asProcedure);
           break;
         case ExtensionTypeMemberKind.Getter:
           Procedure procedure = descriptor.member.asProcedure;
@@ -103,18 +91,20 @@ class DillExtensionTypeDeclarationBuilder
           break;
         case ExtensionTypeMemberKind.Constructor:
           Procedure procedure = descriptor.member.asProcedure;
+          Procedure? tearOff = descriptor.tearOff?.asProcedure;
           constructorScope.addLocalMember(
               name.text,
               new DillExtensionTypeConstructorBuilder(
-                  procedure, _tearOffs[name], descriptor, this));
+                  procedure, tearOff, descriptor, this));
           break;
         case ExtensionTypeMemberKind.Factory:
         case ExtensionTypeMemberKind.RedirectingFactory:
           Procedure procedure = descriptor.member.asProcedure;
+          Procedure? tearOff = descriptor.tearOff?.asProcedure;
           constructorScope.addLocalMember(
               name.text,
               new DillExtensionTypeFactoryBuilder(
-                  procedure, _tearOffs[name], descriptor, this));
+                  procedure, tearOff, descriptor, this));
           break;
       }
     }

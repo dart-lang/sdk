@@ -108,7 +108,7 @@ extension ext<T extends core::Object? = dynamic> on self::C<T%> {
   field property = self::ext|property;
   field property2 = self::ext|property2;
   method method = self::ext|method;
-  tearoff method = self::ext|get#method;
+  method tearoff method = self::ext|get#method;
   set property = self::ext|set#property;
   static set property2 = set self::ext|property2;
 }

@@ -1683,7 +1683,6 @@ enum ExtensionMemberKind {
   Getter,
   Setter,
   Operator,
-  TearOff,
 }
 
 /// Information about an member declaration in an extension.
@@ -1724,11 +1723,16 @@ class ExtensionMemberDescriptor {
   /// Reference to the top-level member created for the extension method.
   final Reference member;
 
+  /// Reference to the top-level member created for the extension member tear
+  /// off, if any.
+  final Reference? tearOff;
+
   ExtensionMemberDescriptor(
       {required this.name,
       required this.kind,
       bool isStatic = false,
-      required this.member}) {
+      required this.member,
+      required this.tearOff}) {
     this.isStatic = isStatic;
   }
 
@@ -1888,7 +1892,6 @@ enum ExtensionTypeMemberKind {
   Getter,
   Setter,
   Operator,
-  TearOff,
   RedirectingFactory,
 }
 
@@ -1931,11 +1934,16 @@ class ExtensionTypeMemberDescriptor {
   /// declaration member.
   final Reference member;
 
+  /// Reference to the top-level member created for the extension type
+  /// declaration member tear off, if any.
+  final Reference? tearOff;
+
   ExtensionTypeMemberDescriptor(
       {required this.name,
       required this.kind,
       bool isStatic = false,
-      required this.member}) {
+      required this.member,
+      required this.tearOff}) {
     this.isStatic = isStatic;
   }
 
@@ -1950,7 +1958,8 @@ class ExtensionTypeMemberDescriptor {
   @override
   String toString() {
     return 'ExtensionTypeMemberDescriptor($name,$kind,'
-        '${member.toStringInternal()},isStatic=${isStatic})';
+        '${member.toStringInternal()},isStatic=${isStatic},'
+        '${tearOff?.toStringInternal()})';
   }
 }
 
@@ -14910,7 +14919,8 @@ final ExtensionMemberDescriptor dummyExtensionMemberDescriptor =
     new ExtensionMemberDescriptor(
         name: dummyName,
         kind: ExtensionMemberKind.Getter,
-        member: dummyReference);
+        member: dummyReference,
+        tearOff: null);
 
 /// Non-nullable [ExtensionTypeDeclaration] dummy value.
 ///
@@ -14929,7 +14939,8 @@ final ExtensionTypeMemberDescriptor dummyExtensionTypeMemberDescriptor =
     new ExtensionTypeMemberDescriptor(
         name: dummyName,
         kind: ExtensionTypeMemberKind.Getter,
-        member: dummyReference);
+        member: dummyReference,
+        tearOff: null);
 
 /// Non-nullable [ExtensionType] dummy value.
 ///

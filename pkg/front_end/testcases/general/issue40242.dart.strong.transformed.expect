@@ -28,7 +28,7 @@ class C extends core::Object {
 }
 extension E on self::C {
   method errors = self::E|errors;
-  tearoff errors = self::E|get#errors;
+  method tearoff errors = self::E|get#errors;
 }
 static extension-member method E|errors(lowered final self::C #this) → dynamic {
   invalid-expression "pkg/front_end/testcases/general/issue40242.dart:9:5: Error: Can't assign to 'this'.

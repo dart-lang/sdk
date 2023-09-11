@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 extension type Id(core::int id) {
   constructor • = self::Id|;
-  tearoff • = self::Id|_#new#tearOff;
+  constructor tearoff • = self::Id|_#new#tearOff;
 }
 static inline-class-member method Id|(core::int id) → self::Id /* = core::int */
   ;

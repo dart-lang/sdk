@@ -3,7 +3,7 @@ library from "org-dartlang-test:///main.dart" as main {
 
   extension NumberParsing on dart.core::String {
     method parseInt = main::NumberParsing|parseInt;
-    tearoff parseInt = main::NumberParsing|get#parseInt;
+    method tearoff parseInt = main::NumberParsing|get#parseInt;
   }
   static extension-member method NumberParsing|parseInt(lowered final dart.core::String #this) → dart.core::int {
     return dart.core::int::parse(#this);

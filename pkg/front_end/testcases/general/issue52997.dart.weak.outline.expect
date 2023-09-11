@@ -5,7 +5,7 @@ import "dart:core" as core;
 typedef E<invariant T extends core::Object? = dynamic> = (T%) → T%;
 extension Ext<T extends core::Object? = dynamic> on T% {
   method st = self::Ext|st;
-  tearoff st = self::Ext|get#st;
+  method tearoff st = self::Ext|get#st;
 }
 static method main() → void
   ;

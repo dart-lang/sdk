@@ -13,7 +13,7 @@ extension /* unnamed */ _extension#0 on dynamic {
 }
 extension /* unnamed */ _extension#1 on self::Class? {
   method call = self::_extension#1|call;
-  tearoff call = self::_extension#1|get#call;
+  method tearoff call = self::_extension#1|get#call;
 }
 static extension-member method _extension#0|set#call(lowered final dynamic #this, dynamic _) → void
   ;

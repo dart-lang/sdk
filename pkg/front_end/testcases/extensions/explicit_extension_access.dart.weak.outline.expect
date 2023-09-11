@@ -11,17 +11,17 @@ class Class extends core::Object {
 extension Extension1 on self::Class {
   get field = self::Extension1|get#field;
   method method = self::Extension1|method;
-  tearoff method = self::Extension1|get#method;
+  method tearoff method = self::Extension1|get#method;
   method genericMethod = self::Extension1|genericMethod;
-  tearoff genericMethod = self::Extension1|get#genericMethod;
+  method tearoff genericMethod = self::Extension1|get#genericMethod;
   set field = self::Extension1|set#field;
 }
 extension Extension2 on self::Class {
   get field = self::Extension2|get#field;
   method method = self::Extension2|method;
-  tearoff method = self::Extension2|get#method;
+  method tearoff method = self::Extension2|get#method;
   method genericMethod = self::Extension2|genericMethod;
-  tearoff genericMethod = self::Extension2|get#genericMethod;
+  method tearoff genericMethod = self::Extension2|get#genericMethod;
   set field = self::Extension2|set#field;
 }
 static extension-member method Extension1|get#field(lowered final self::Class #this) → core::int

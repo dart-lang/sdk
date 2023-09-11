@@ -20,7 +20,7 @@ import "dart:core" as core;
 
 extension /* unnamed */ _extension#0 on core::List<core::String> {
   method foo = self::_extension#0|foo;
-  tearoff foo = self::_extension#0|get#foo;
+  method tearoff foo = self::_extension#0|get#foo;
 }
 static method test(core::List<core::String> args) → void {
   invalid-expression "pkg/front_end/testcases/extensions/issue44003.dart:6:8: Error: The method 'foo' isn't defined for the class 'List<String>'.

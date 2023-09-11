@@ -25,9 +25,9 @@ class GenericClass<T extends core::Object? = dynamic> extends core::Object {
 extension GenericExtension<T extends core::Object? = dynamic> on self::GenericClass<T%> {
   get property = self::GenericExtension|get#property;
   method method = self::GenericExtension|method;
-  tearoff method = self::GenericExtension|get#method;
+  method tearoff method = self::GenericExtension|get#method;
   method genericMethod1 = self::GenericExtension|genericMethod1;
-  tearoff genericMethod1 = self::GenericExtension|get#genericMethod1;
+  method tearoff genericMethod1 = self::GenericExtension|get#genericMethod1;
 }
 static extension-member method GenericExtension|get#property<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#property::T%> #this) → self::GenericExtension|get#property::T?
   return null;

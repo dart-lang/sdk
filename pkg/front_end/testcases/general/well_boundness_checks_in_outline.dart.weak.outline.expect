@@ -94,11 +94,11 @@ class B extends core::Object {
 extension E<X extends self::A<core::num*>*> on self::A<core::int*>* {
   static field fieldOfE = self::E|fieldOfE;
   method fooOfE = self::E|fooOfE;
-  tearoff fooOfE = self::E|get#fooOfE;
+  method tearoff fooOfE = self::E|get#fooOfE;
   method barOfE = self::E|barOfE;
-  tearoff barOfE = self::E|get#barOfE;
+  method tearoff barOfE = self::E|get#barOfE;
   method bazOfE = self::E|bazOfE;
-  tearoff bazOfE = self::E|get#bazOfE;
+  method tearoff bazOfE = self::E|get#bazOfE;
 }
 static field self::A<core::num*>* E|fieldOfE;
 static extension-member method E|fooOfE<X extends self::A<core::num*>*>(lowered final self::A<core::int*>* #this) → self::A<core::num*>*

@@ -139,6 +139,7 @@ class IndexedLibrary extends IndexedContainer {
         } else {
           member.reference.canonicalName?.unbind();
         }
+        descriptor.tearOff?.canonicalName?.unbind();
       }
     }
   }

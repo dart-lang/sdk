@@ -24,7 +24,7 @@ import "dart:core" as core;
 extension type ExtensionType(core::int it) {
   static field staticField = self2::ExtensionType|staticField;
   method instanceMethod = self2::ExtensionType|instanceMethod;
-  tearoff instanceMethod = self2::ExtensionType|get#instanceMethod;
+  method tearoff instanceMethod = self2::ExtensionType|get#instanceMethod;
   operator + = self2::ExtensionType|+;
   get instanceGetter = self2::ExtensionType|get#instanceGetter;
   static method staticMethod = self2::ExtensionType|staticMethod;
@@ -32,15 +32,15 @@ extension type ExtensionType(core::int it) {
   set instanceSetter = self2::ExtensionType|set#instanceSetter;
   static set staticSetter = set self2::ExtensionType|staticSetter;
   constructor • = self2::ExtensionType|;
-  tearoff • = self2::ExtensionType|_#new#tearOff;
+  constructor tearoff • = self2::ExtensionType|_#new#tearOff;
   constructor named = self2::ExtensionType|named;
-  tearoff named = self2::ExtensionType|_#named#tearOff;
+  constructor tearoff named = self2::ExtensionType|_#named#tearOff;
   constructor redirectingGenerative = self2::ExtensionType|redirectingGenerative;
-  tearoff redirectingGenerative = self2::ExtensionType|_#redirectingGenerative#tearOff;
+  constructor tearoff redirectingGenerative = self2::ExtensionType|_#redirectingGenerative#tearOff;
   static factory fact = self2::ExtensionType|fact;
-  static tearoff fact = self2::ExtensionType|_#fact#tearOff;
+  static factory tearoff fact = self2::ExtensionType|_#fact#tearOff;
   static redirecting-factory redirectingFactory = self2::ExtensionType|redirectingFactory;
-  static tearoff redirectingFactory = self2::ExtensionType|_#redirectingFactory#tearOff;
+  static redirecting-factory tearoff redirectingFactory = self2::ExtensionType|_#redirectingFactory#tearOff;
 }
 static field core::int ExtensionType|staticField;
 static inline-class-member method ExtensionType|(core::int it) → self2::ExtensionType /* = core::int */

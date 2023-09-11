@@ -730,6 +730,20 @@ class WidgetCreatorTracker {
           ),
         );
       }
+      final Procedure? tearOff = member.tearOff?.asProcedure;
+      if (tearOff != null && _hasWidgetFactoryAnnotation(tearOff)) {
+        _maybeAddNamedParameter(
+          tearOff.function,
+          new VariableDeclaration(
+            _creationLocationParameterName,
+            type: new InterfaceType(
+              _locationClass,
+              extension.enclosingLibrary.nullable,
+            ),
+            initializer: new NullLiteral(),
+          ),
+        );
+      }
     }
   }
 }

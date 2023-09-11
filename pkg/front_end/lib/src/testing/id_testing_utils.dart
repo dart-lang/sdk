@@ -805,40 +805,49 @@ String errorsToText(List<FormattedMessage> errors, {bool useCodes = false}) {
 }
 
 /// Returns a textual representation of [descriptor] to be used in testing.
-String extensionMethodDescriptorToText(ExtensionMemberDescriptor descriptor) {
-  StringBuffer sb = new StringBuffer();
-  if (descriptor.isStatic) {
-    sb.write('static ');
+List<String> extensionMethodDescriptorToText(
+    ExtensionMemberDescriptor descriptor) {
+  String descriptorToText(Reference reference, {required bool forTearOff}) {
+    StringBuffer sb = new StringBuffer();
+    if (descriptor.isStatic) {
+      sb.write('static ');
+    }
+    switch (descriptor.kind) {
+      case ExtensionMemberKind.Method:
+        if (forTearOff) {
+          sb.write('tearoff ');
+        }
+        break;
+      case ExtensionMemberKind.Getter:
+        sb.write('getter ');
+        break;
+      case ExtensionMemberKind.Setter:
+        sb.write('setter ');
+        break;
+      case ExtensionMemberKind.Operator:
+        sb.write('operator ');
+        break;
+      case ExtensionMemberKind.Field:
+        sb.write('field ');
+        break;
+    }
+    sb.write(descriptor.name.text);
+    sb.write('=');
+    Member member = reference.asMember;
+    String name = member.name.text;
+    if (member is Procedure && member.isSetter) {
+      sb.write('$name=');
+    } else {
+      sb.write(name);
+    }
+    return sb.toString();
   }
-  switch (descriptor.kind) {
-    case ExtensionMemberKind.Method:
-      break;
-    case ExtensionMemberKind.Getter:
-      sb.write('getter ');
-      break;
-    case ExtensionMemberKind.Setter:
-      sb.write('setter ');
-      break;
-    case ExtensionMemberKind.Operator:
-      sb.write('operator ');
-      break;
-    case ExtensionMemberKind.Field:
-      sb.write('field ');
-      break;
-    case ExtensionMemberKind.TearOff:
-      sb.write('tearoff ');
-      break;
-  }
-  sb.write(descriptor.name.text);
-  sb.write('=');
-  Member member = descriptor.member.asMember;
-  String name = member.name.text;
-  if (member is Procedure && member.isSetter) {
-    sb.write('$name=');
-  } else {
-    sb.write(name);
-  }
-  return sb.toString();
+
+  return [
+    descriptorToText(descriptor.member, forTearOff: false),
+    if (descriptor.tearOff != null)
+      descriptorToText(descriptor.tearOff!, forTearOff: true),
+  ];
 }
 
 /// Returns a textual representation of [nullability] to be used in testing.

@@ -4,21 +4,21 @@ import "dart:core" as core;
 
 extension type I(core::int i) {
   constructor _ = self::I|_;
-  tearoff _ = self::I|_#_#tearOff;
+  constructor tearoff _ = self::I|_#_#tearOff;
   static factory • = self::I|;
-  static tearoff • = self::I|_#new#tearOff;
+  static factory tearoff • = self::I|_#new#tearOff;
 }
 extension type J(core::int i) {
   constructor _ = self::J|_;
-  tearoff _ = self::J|_#_#tearOff;
+  constructor tearoff _ = self::J|_#_#tearOff;
   static factory • = self::J|;
-  static tearoff • = self::J|_#new#tearOff;
+  static factory tearoff • = self::J|_#new#tearOff;
 }
 extension type K<T extends core::Object? = dynamic>(T% i) {
   constructor _ = self::K|_;
-  tearoff _ = self::K|_#_#tearOff;
+  constructor tearoff _ = self::K|_#_#tearOff;
   static factory • = self::K|;
-  static tearoff • = self::K|_#new#tearOff;
+  static factory tearoff • = self::K|_#new#tearOff;
 }
 static inline-class-member method I|_(core::int i) → self::I /* = core::int */ {
   lowered final self::I /* = core::int */ #this = i;

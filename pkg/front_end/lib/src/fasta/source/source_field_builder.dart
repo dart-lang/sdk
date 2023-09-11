@@ -385,7 +385,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   Iterable<Member> get exportedMembers => _fieldEncoding.exportedMembers;
 
   @override
-  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(BuildNodesCallback f) {
     _build();
     _fieldEncoding.registerMembers(libraryBuilder, this, f);
   }
@@ -545,7 +545,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+  int buildBodyNodes(BuildNodesCallback f) {
     return 0;
   }
 }
@@ -596,10 +596,8 @@ abstract class FieldEncoding {
       SourceLibraryBuilder libraryBuilder, SourceFieldBuilder fieldBuilder);
 
   /// Calls [f] for each member needed for this field encoding.
-  void registerMembers(
-      SourceLibraryBuilder library,
-      SourceFieldBuilder fieldBuilder,
-      void Function(Member, BuiltMemberKind) f);
+  void registerMembers(SourceLibraryBuilder library,
+      SourceFieldBuilder fieldBuilder, BuildNodesCallback f);
 
   /// Returns a list of the field, getters and methods created by this field
   /// encoding.
@@ -701,18 +699,17 @@ class RegularFieldEncoding implements FieldEncoding {
   }
 
   @override
-  void registerMembers(
-      SourceLibraryBuilder library,
-      SourceFieldBuilder fieldBuilder,
-      void Function(Member, BuiltMemberKind) f) {
+  void registerMembers(SourceLibraryBuilder library,
+      SourceFieldBuilder fieldBuilder, BuildNodesCallback f) {
     if (fieldBuilder.isExtensionTypeMember && !fieldBuilder.isStatic) {
       return;
     }
     f(
-        _field,
-        fieldBuilder.isExtensionMember || fieldBuilder.isExtensionTypeMember
-            ? BuiltMemberKind.ExtensionField
-            : BuiltMemberKind.Field);
+        member: _field,
+        kind:
+            fieldBuilder.isExtensionMember || fieldBuilder.isExtensionTypeMember
+                ? BuiltMemberKind.ExtensionField
+                : BuiltMemberKind.Field);
   }
 
   @override
@@ -1128,22 +1125,21 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   }
 
   @override
-  void registerMembers(
-      SourceLibraryBuilder library,
-      SourceFieldBuilder fieldBuilder,
-      void Function(Member, BuiltMemberKind) f) {
+  void registerMembers(SourceLibraryBuilder library,
+      SourceFieldBuilder fieldBuilder, BuildNodesCallback f) {
     f(
-        _field,
-        fieldBuilder.isExtensionMember || fieldBuilder.isExtensionTypeMember
-            ? BuiltMemberKind.ExtensionField
-            : BuiltMemberKind.Field);
+        member: _field,
+        kind:
+            fieldBuilder.isExtensionMember || fieldBuilder.isExtensionTypeMember
+                ? BuiltMemberKind.ExtensionField
+                : BuiltMemberKind.Field);
     if (_lateIsSetField != null) {
       _forceIncludeIsSetField = true;
-      f(_lateIsSetField!, BuiltMemberKind.LateIsSetField);
+      f(member: _lateIsSetField!, kind: BuiltMemberKind.LateIsSetField);
     }
-    f(_lateGetter, BuiltMemberKind.LateGetter);
+    f(member: _lateGetter, kind: BuiltMemberKind.LateGetter);
     if (_lateSetter != null) {
-      f(_lateSetter!, BuiltMemberKind.LateSetter);
+      f(member: _lateSetter!, kind: BuiltMemberKind.LateSetter);
     }
   }
 
@@ -1791,10 +1787,8 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   }
 
   @override
-  void registerMembers(
-      SourceLibraryBuilder library,
-      SourceFieldBuilder fieldBuilder,
-      void Function(Member, BuiltMemberKind) f) {
+  void registerMembers(SourceLibraryBuilder library,
+      SourceFieldBuilder fieldBuilder, BuildNodesCallback f) {
     BuiltMemberKind getterMemberKind;
     if (fieldBuilder.isExtensionMember) {
       getterMemberKind = BuiltMemberKind.ExtensionGetter;
@@ -1803,7 +1797,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
     } else {
       getterMemberKind = BuiltMemberKind.Method;
     }
-    f(_getter, getterMemberKind);
+    f(member: _getter, kind: getterMemberKind);
     if (_setter != null) {
       BuiltMemberKind setterMemberKind;
       if (fieldBuilder.isExtensionMember) {
@@ -1813,7 +1807,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       } else {
         setterMemberKind = BuiltMemberKind.Method;
       }
-      f(_setter!, setterMemberKind);
+      f(member: _setter!, kind: setterMemberKind);
     }
   }
 

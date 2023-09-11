@@ -178,9 +178,9 @@ class B1 extends core::Object {
 }
 extension E1<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic> on self::B1* {
   method bar3 = self::E1|bar3;
-  tearoff bar3 = self::E1|get#bar3;
+  method tearoff bar3 = self::E1|get#bar3;
   method bar4 = self::E1|bar4;
-  tearoff bar4 = self::E1|get#bar4;
+  method tearoff bar4 = self::E1|get#bar4;
   get baz2 = self::E1|get#baz2;
   static field quux3 = self::E1|quux3;
   set qux2 = self::E1|set#qux2;

@@ -229,10 +229,10 @@ extension Extension on self::Class {
   operator [] = self::Extension|[];
   operator []= = self::Extension|[]=;
   method call = self::Extension|call;
-  tearoff call = self::Extension|get#call;
+  method tearoff call = self::Extension|get#call;
   get extensionProperty = self::Extension|get#extensionProperty;
   method extensionMethod = self::Extension|extensionMethod;
-  tearoff extensionMethod = self::Extension|get#extensionMethod;
+  method tearoff extensionMethod = self::Extension|get#extensionMethod;
   get extensionFunctionGetter = self::Extension|get#extensionFunctionGetter;
   get extensionFunctionTypeGetter = self::Extension|get#extensionFunctionTypeGetter;
   set extensionProperty = self::Extension|set#extensionProperty;

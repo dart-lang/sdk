@@ -252,95 +252,95 @@ class BarBoz extends core::Object {
 }
 extension type ET1(core::int i) {
   constructor • = self::ET1|;
-  tearoff • = self::ET1|_#new#tearOff;
+  constructor tearoff • = self::ET1|_#new#tearOff;
 }
 extension type ET2(core::int i) {
   constructor • = self::ET2|;
-  tearoff • = self::ET2|_#new#tearOff;
+  constructor tearoff • = self::ET2|_#new#tearOff;
 }
 extension type ET3(core::int i) {
   constructor • = self::ET3|;
-  tearoff • = self::ET3|_#new#tearOff;
+  constructor tearoff • = self::ET3|_#new#tearOff;
 }
 extension type ET4(core::int i) {
   constructor • = self::ET4|;
-  tearoff • = self::ET4|_#new#tearOff;
+  constructor tearoff • = self::ET4|_#new#tearOff;
 }
 extension type ET5(core::int i) {
   constructor • = self::ET5|;
-  tearoff • = self::ET5|_#new#tearOff;
+  constructor tearoff • = self::ET5|_#new#tearOff;
 }
 extension type ET6(self::Bar i) {
   constructor • = self::ET6|;
-  tearoff • = self::ET6|_#new#tearOff;
+  constructor tearoff • = self::ET6|_#new#tearOff;
 }
 extension type ET7(self::Bar i) {
   constructor • = self::ET7|;
-  tearoff • = self::ET7|_#new#tearOff;
+  constructor tearoff • = self::ET7|_#new#tearOff;
 }
 extension type ET8(self::Baz i) {
   constructor • = self::ET8|;
-  tearoff • = self::ET8|_#new#tearOff;
+  constructor tearoff • = self::ET8|_#new#tearOff;
 }
 extension type ET9(self::Baz i) {
   constructor • = self::ET9|;
-  tearoff • = self::ET9|_#new#tearOff;
+  constructor tearoff • = self::ET9|_#new#tearOff;
 }
 extension type ET10(self::Boz i) {
   constructor • = self::ET10|;
-  tearoff • = self::ET10|_#new#tearOff;
+  constructor tearoff • = self::ET10|_#new#tearOff;
 }
 extension type ET11(self::Bar i) implements self::Bar {
   constructor • = self::ET11|;
-  tearoff • = self::ET11|_#new#tearOff;
+  constructor tearoff • = self::ET11|_#new#tearOff;
 }
 extension type ET12(self::Bar i) implements self::Bar {
   constructor • = self::ET12|;
-  tearoff • = self::ET12|_#new#tearOff;
+  constructor tearoff • = self::ET12|_#new#tearOff;
 }
 extension type ET13(self::Bar i) implements self::Bar {
   constructor • = self::ET13|;
-  tearoff • = self::ET13|_#new#tearOff;
+  constructor tearoff • = self::ET13|_#new#tearOff;
 }
 extension type ET14(self::Bar i) implements self::Bar {
   constructor • = self::ET14|;
-  tearoff • = self::ET14|_#new#tearOff;
+  constructor tearoff • = self::ET14|_#new#tearOff;
 }
 extension type ET15(self::Bar i) implements self::Bar {
   constructor • = self::ET15|;
-  tearoff • = self::ET15|_#new#tearOff;
+  constructor tearoff • = self::ET15|_#new#tearOff;
 }
 extension type ET16(self::Bar i) implements self::Bar {
   constructor • = self::ET16|;
-  tearoff • = self::ET16|_#new#tearOff;
+  constructor tearoff • = self::ET16|_#new#tearOff;
 }
 extension type ET17(self::Bar i) implements self::Bar {
   constructor • = self::ET17|;
-  tearoff • = self::ET17|_#new#tearOff;
+  constructor tearoff • = self::ET17|_#new#tearOff;
 }
 extension type ET18(self::BarBaz i) implements self::Bar {
   constructor • = self::ET18|;
-  tearoff • = self::ET18|_#new#tearOff;
+  constructor tearoff • = self::ET18|_#new#tearOff;
 }
 extension type ET19(self::BarBaz i) implements self::Bar {
   constructor • = self::ET19|;
-  tearoff • = self::ET19|_#new#tearOff;
+  constructor tearoff • = self::ET19|_#new#tearOff;
 }
 extension type ET20(self::BarBaz i) implements self::Bar {
   constructor • = self::ET20|;
-  tearoff • = self::ET20|_#new#tearOff;
+  constructor tearoff • = self::ET20|_#new#tearOff;
 }
 extension type ET21(self::Boz i) implements self::Bar {
   constructor • = self::ET21|;
-  tearoff • = self::ET21|_#new#tearOff;
+  constructor tearoff • = self::ET21|_#new#tearOff;
 }
 extension type ET22(core::int i) {
   constructor • = self::ET22|;
-  tearoff • = self::ET22|_#new#tearOff;
+  constructor tearoff • = self::ET22|_#new#tearOff;
 }
 extension type ET23(core::int i) {
   constructor • = self::ET23|;
-  tearoff • = self::ET23|_#new#tearOff;
+  constructor tearoff • = self::ET23|_#new#tearOff;
 }
 static inline-class-member method ET1|(core::int i) → self::ET1 /* = core::int */
   ;

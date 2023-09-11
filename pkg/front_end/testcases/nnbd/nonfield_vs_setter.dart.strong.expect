@@ -153,10 +153,10 @@ class Class extends core::Object {
 }
 extension Extension on core::int? {
   method extensionInstanceMethodAndSetter = self::Extension|extensionInstanceMethodAndSetter;
-  tearoff extensionInstanceMethodAndSetter = self::Extension|get#extensionInstanceMethodAndSetter;
+  method tearoff extensionInstanceMethodAndSetter = self::Extension|get#extensionInstanceMethodAndSetter;
   static method extensionStaticMethodAndSetter = self::Extension|extensionStaticMethodAndSetter;
   method extensionInstanceMethodAndStaticSetter = self::Extension|extensionInstanceMethodAndStaticSetter;
-  tearoff extensionInstanceMethodAndStaticSetter = self::Extension|get#extensionInstanceMethodAndStaticSetter;
+  method tearoff extensionInstanceMethodAndStaticSetter = self::Extension|get#extensionInstanceMethodAndStaticSetter;
   static method extensionStaticMethodAndInstanceSetter = self::Extension|extensionStaticMethodAndInstanceSetter;
   set extensionInstanceMethodAndSetter = self::Extension|set#extensionInstanceMethodAndSetter;
   static set extensionStaticMethodAndSetter = set self::Extension|extensionStaticMethodAndSetter;

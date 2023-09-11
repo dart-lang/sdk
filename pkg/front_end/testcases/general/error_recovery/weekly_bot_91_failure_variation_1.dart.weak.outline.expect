@@ -6,7 +6,7 @@ import "org-dartlang-testcase:///weekly_bot_91_failure_variation_1_lib.dart";
 
 extension /* unnamed */ _extension#0 on core::int {
   method _foo = self::_extension#0|_foo;
-  tearoff _foo = self::_extension#0|get#_foo;
+  method tearoff _foo = self::_extension#0|get#_foo;
 }
 static extension-member method _extension#0|_foo<T extends core::Object? = dynamic>(lowered final core::int #this, (self::_extension#0|_foo::T%) → void x, {required self::_extension#0|_foo::T% a}) → void
   ;

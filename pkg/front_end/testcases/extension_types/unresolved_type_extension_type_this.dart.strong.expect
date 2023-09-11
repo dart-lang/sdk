@@ -14,7 +14,7 @@ import self as self;
 
 extension type Extension(invalid-type it) {
   constructor • = self::Extension|;
-  tearoff • = self::Extension|_#new#tearOff;
+  constructor tearoff • = self::Extension|_#new#tearOff;
 }
 static inline-class-member method Extension|(invalid-type it) → self::Extension /* = invalid-type */ {
   lowered final self::Extension /* = invalid-type */ #this = it;

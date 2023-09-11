@@ -157,20 +157,14 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   Iterable<Member> get exportedMembers => [_procedure];
 
   @override
-  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(BuildNodesCallback f) {
     _build();
     f(
-        _procedureInternal,
-        isExtensionTypeMember
+        member: _procedureInternal,
+        tearOff: _factoryTearOff,
+        kind: isExtensionTypeMember
             ? BuiltMemberKind.ExtensionTypeFactory
             : BuiltMemberKind.Factory);
-    if (_factoryTearOff != null) {
-      f(
-          _factoryTearOff!,
-          isExtensionTypeMember
-              ? BuiltMemberKind.ExtensionTypeTearOff
-              : BuiltMemberKind.Method);
-    }
   }
 
   void _build() {
@@ -270,7 +264,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   }
 
   @override
-  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+  int buildBodyNodes(BuildNodesCallback f) {
     if (!isPatch) return 0;
     _finishPatch();
     return 1;
@@ -422,20 +416,14 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   }
 
   @override
-  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(BuildNodesCallback f) {
     _build();
     f(
-        _procedureInternal,
-        isExtensionTypeMember
+        member: _procedureInternal,
+        tearOff: _factoryTearOff,
+        kind: isExtensionTypeMember
             ? BuiltMemberKind.ExtensionTypeRedirectingFactory
             : BuiltMemberKind.RedirectingFactory);
-    if (_factoryTearOff != null) {
-      f(
-          _factoryTearOff!,
-          isExtensionTypeMember
-              ? BuiltMemberKind.ExtensionTypeTearOff
-              : BuiltMemberKind.Method);
-    }
   }
 
   @override
