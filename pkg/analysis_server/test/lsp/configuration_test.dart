@@ -19,10 +19,9 @@ class ConfigurationTest extends AbstractLspAnalysisServerTest {
   /// When we tell the server config has changed, we expect it to immediately
   /// ask for the updated config.
   Future<void> test_configChange() async {
+    setDidChangeConfigurationDynamicRegistration();
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities: withDidChangeConfigurationDynamicRegistration(
-              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
+      initialize,
       {'dart.foo': false},
     );
 
@@ -49,10 +48,10 @@ class ConfigurationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_configurationDidChange_refreshesRoots() async {
+    setDidChangeConfigurationDynamicRegistration();
+
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities: withDidChangeConfigurationDynamicRegistration(
-              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
+      initialize,
       {}, // Empty config
     );
 
@@ -72,12 +71,12 @@ class ConfigurationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_configurationDidChange_supported() async {
+    setDidChangeConfigurationDynamicRegistration();
+
     final registrations = <Registration>[];
     await monitorDynamicRegistrations(
       registrations,
-      () => initialize(
-          workspaceCapabilities: withDidChangeConfigurationDynamicRegistration(
-              emptyWorkspaceClientCapabilities)),
+      initialize,
     );
 
     final registration =
@@ -98,13 +97,13 @@ class ConfigurationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_configurationRequest_supported() async {
+    setConfigurationSupport();
+
     final configRequest = requestsFromServer
         .firstWhere((n) => n.method == Method.workspace_configuration);
     expect(configRequest, completes);
 
-    await initialize(
-        workspaceCapabilities:
-            withConfigurationSupport(emptyWorkspaceClientCapabilities));
+    await initialize();
     await pumpEventQueue();
   }
 }

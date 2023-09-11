@@ -1978,6 +1978,8 @@ import 'dart:^';
   }
 
   Future<void> test_isDeprecated_supportedTag() async {
+    setCompletionItemTagSupport([CompletionItemTag.Deprecated]);
+
     final content = '''
     class MyClass {
       @deprecated
@@ -1990,10 +1992,7 @@ import 'dart:^';
     }
 ''';
 
-    await initialize(
-        textDocumentCapabilities: withCompletionItemTagSupport(
-            emptyTextDocumentClientCapabilities,
-            [CompletionItemTag.Deprecated]));
+    await initialize();
     final code = TestCode.parse(content);
     await openFile(mainFileUri, code.code);
     final res = await getCompletion(mainFileUri, code.position.position);
@@ -2489,9 +2488,7 @@ void f() { }
 ''';
 
     setCompletionItemSnippetSupport();
-    await initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities));
+    await initialize();
     final code = TestCode.parse(content);
     await openFile(mainFileUri, code.code);
     final res = await getCompletion(mainFileUri, code.position.position);

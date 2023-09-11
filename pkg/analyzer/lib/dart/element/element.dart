@@ -1302,6 +1302,14 @@ abstract class ExtensionTypeElement implements InterfaceElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class FieldElement
     implements ClassMemberElement, PropertyInducingElement {
+  @experimental
+  @override
+  FieldElement? get augmentation;
+
+  @experimental
+  @override
+  FieldElement? get augmentationTarget;
+
   @override
   FieldElement get declaration;
 
@@ -2286,6 +2294,23 @@ abstract class PropertyAccessorElement implements ExecutableElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyInducingElement implements VariableElement {
+  /// The immediate augmentation of this element, or `null` if there are no
+  /// augmentations.
+  ///
+  /// [PropertyInducingElement.augmentationTarget] points back at this element.
+  @experimental
+  PropertyInducingElement? get augmentation;
+
+  /// The element that is augmented by this augmentation.
+  ///
+  /// The chain of augmentations normally ends with a [PropertyInducingElement]
+  /// that is not an augmentation, but might end with `null` immediately or
+  /// after a few intermediate [PropertyInducingElement]s in case of invalid
+  /// code when an augmentation is declared without the corresponding
+  /// declaration.
+  @experimental
+  PropertyInducingElement? get augmentationTarget;
+
   @override
   String get displayName;
 
@@ -2297,6 +2322,11 @@ abstract class PropertyInducingElement implements VariableElement {
 
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
+
+  /// Whether the element is an augmentation.
+  ///
+  /// If `true`, declaration has the explicit `augment` modifier.
+  bool get isAugmentation;
 
   @override
   LibraryElement get library;
@@ -2350,6 +2380,14 @@ abstract class SuperFormalParameterElement implements ParameterElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TopLevelVariableElement implements PropertyInducingElement {
+  @experimental
+  @override
+  TopLevelVariableElement? get augmentation;
+
+  @experimental
+  @override
+  TopLevelVariableElement? get augmentationTarget;
+
   @override
   TopLevelVariableElement get declaration;
 

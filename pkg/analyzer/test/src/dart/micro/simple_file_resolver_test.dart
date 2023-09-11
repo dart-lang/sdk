@@ -916,7 +916,7 @@ main() {
   a;
 }
 ''', [
-      error(rule.lintCode, 11, 9),
+      error(rule.lintCode, 11, 3),
     ]);
   }
 

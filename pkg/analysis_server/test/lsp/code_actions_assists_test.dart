@@ -169,11 +169,10 @@ Future f;
   }
 
   Future<void> test_nonDartFile() async {
+    setSupportedCodeActionKinds([CodeActionKind.Refactor]);
+
     newFile(pubspecFilePath, simplePubspecContent);
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
-    );
+    await initialize();
 
     final codeActions =
         await getCodeActions(pubspecFileUri, range: startOfDocRange);
@@ -217,6 +216,8 @@ bar
   }
 
   Future<void> test_plugin_sortsWithServer() async {
+    setSupportedCodeActionKinds([CodeActionKind.Refactor]);
+
     if (!AnalysisServer.supportsPlugins) return;
     // Produces a server assist of "Convert to single quoted string" (with a
     // priority of 30).
@@ -233,10 +234,7 @@ bar
     );
 
     newFile(mainFilePath, code.code);
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
-    );
+    await initialize();
 
     final codeActions =
         await getCodeActions(mainFileUri, range: code.range.range);
@@ -409,6 +407,7 @@ build() {
 
   Future<void> test_sort() async {
     setDocumentChangesSupport();
+    setSupportedCodeActionKinds([CodeActionKind.Refactor]);
 
     const content = '''
 import 'package:flutter/widgets.dart';
@@ -417,10 +416,7 @@ build() => Contai^ner(child: Container());
 ''';
 
     newFile(mainFilePath, withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
-    );
+    await initialize();
 
     final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));

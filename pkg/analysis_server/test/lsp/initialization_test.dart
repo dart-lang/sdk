@@ -39,15 +39,14 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> assertDynamicRegistration(
       String name, Set<Method> expectedResult) async {
     setTextDocumentDynamicRegistration(name);
+    setWorkspaceDynamicRegistration(name);
 
     // Check that when the server calls client/registerCapability it only includes
     // the items we advertised dynamic registration support for.
     final registrations = <Registration>[];
     await monitorDynamicRegistrations(
       registrations,
-      () => initialize(
-          workspaceCapabilities: withGivenWorkspaceDynamicRegistrations(
-              emptyWorkspaceClientCapabilities, name)),
+      initialize,
     );
 
     final registeredMethods =
@@ -555,12 +554,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_dynamicRegistration_updatesWithPlugins() async {
     if (!AnalysisServer.supportsPlugins) return;
-    await initialize(
-      textDocumentCapabilities:
-          extendTextDocumentCapabilities(emptyTextDocumentClientCapabilities, {
-        'foldingRange': {'dynamicRegistration': true},
-      }),
-    );
+    setTextDocumentDynamicRegistration('foldingRange');
+    await initialize();
 
     // The server will send an unregister request followed by another register
     // request to change document filter on folding. We need to respond to the
@@ -734,9 +729,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final excludedFolderPath = join(projectFolderPath, 'excluded');
 
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities:
-              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      initialize,
       // Exclude the folder with a relative path.
       {
         'analysisExcludedFolders': [excludedFolderPath]
@@ -750,9 +743,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final excludedFolderPath = join(projectFolderPath, 'excluded');
 
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities:
-              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      initialize,
       // Include a single string instead of an array since it's an easy mistake
       // to make without editor validation of settings.
       {'analysisExcludedFolders': 'excluded'},
@@ -765,9 +756,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final excludedFolderPath = join(projectFolderPath, 'excluded');
 
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities:
-              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      initialize,
       // Exclude the folder with a relative path.
       {
         'analysisExcludedFolders': ['excluded']
@@ -1037,6 +1026,18 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Closing the file should remove it.
     await closeFile(nestedFileUri);
     expect(server.contextManager.includedPaths, equals([]));
+  }
+
+  Future<void> test_survey_enabledByPreviewFlag() async {
+    await initialize(
+      initializationOptions: {'previewSurveys': true},
+    );
+    expect(server.surveyManager, isNotNull);
+  }
+
+  Future<void> test_survey_notEnabledByPreviewFlag() async {
+    await initialize();
+    expect(server.surveyManager, isNull);
   }
 
   Future<void> test_uninitialized_dropsNotifications() async {

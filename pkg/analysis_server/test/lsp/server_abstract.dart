@@ -521,7 +521,22 @@ mixin ClientCapabilitiesHelperMixin {
 
   void setCompletionItemSnippetSupport([bool supported = true]) {
     textDocumentCapabilities =
-        withCompletionItemSnippetSupport(textDocumentCapabilities, supported);
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'completion': {
+        'completionItem': {'snippetSupport': supported}
+      }
+    });
+  }
+
+  void setCompletionItemTagSupport(List<CompletionItemTag> tags) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'completion': {
+        'completionItem': {
+          'tagSupport': {'valueSet': tags.map((k) => k.toJson()).toList()}
+        }
+      }
+    });
   }
 
   void setCompletionListDefaults(List<String> defaults) {
@@ -536,12 +551,32 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   void setConfigurationSupport() {
-    workspaceCapabilities = withConfigurationSupport(workspaceCapabilities);
+    workspaceCapabilities = extendWorkspaceCapabilities(
+        workspaceCapabilities, {'configuration': true});
+  }
+
+  void setDiagnosticCodeDescriptionSupport() {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'publishDiagnostics': {
+        'codeDescriptionSupport': true,
+      }
+    });
+  }
+
+  void setDiagnosticTagSupport(List<DiagnosticTag> tags) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'publishDiagnostics': {
+        'tagSupport': {'valueSet': tags.map((k) => k.toJson()).toList()}
+      }
+    });
   }
 
   void setDidChangeConfigurationDynamicRegistration() {
-    workspaceCapabilities =
-        withDidChangeConfigurationDynamicRegistration(workspaceCapabilities);
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
+      'didChangeConfiguration': {'dynamicRegistration': true}
+    });
   }
 
   void setDocumentChangesSupport([bool supported = true]) {
@@ -568,7 +603,7 @@ mixin ClientCapabilitiesHelperMixin {
   void setFileCreateSupport([bool supported = true]) {
     if (supported) {
       setDocumentChangesSupport();
-      workspaceCapabilities = withResourceOperationKinds(
+      workspaceCapabilities = _withResourceOperationKinds(
           workspaceCapabilities, [ResourceOperationKind.Create]);
     } else {
       workspaceCapabilities.workspaceEdit?.resourceOperations
@@ -586,7 +621,7 @@ mixin ClientCapabilitiesHelperMixin {
   void setFileRenameSupport([bool supported = true]) {
     if (supported) {
       setDocumentChangesSupport();
-      workspaceCapabilities = withResourceOperationKinds(
+      workspaceCapabilities = _withResourceOperationKinds(
           workspaceCapabilities, [ResourceOperationKind.Rename]);
     } else {
       workspaceCapabilities.workspaceEdit?.resourceOperations
@@ -594,13 +629,49 @@ mixin ClientCapabilitiesHelperMixin {
     }
   }
 
+  void setHierarchicalDocumentSymbolSupport() {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'documentSymbol': {'hierarchicalDocumentSymbolSupport': true}
+    });
+  }
+
+  void setHoverContentFormat(List<MarkupKind> formats) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'hover': {'contentFormat': formats.map((k) => k.toJson()).toList()}
+    });
+  }
+
   void setHoverDynamicRegistration() {
     setTextDocumentDynamicRegistration('hover');
   }
 
+  void setLineFoldingOnly() {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'foldingRange': {'lineFoldingOnly': true},
+    });
+  }
+
+  void setLocationLinkSupport([bool supported = true]) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'definition': {'linkSupport': supported},
+      'typeDefinition': {'linkSupport': supported},
+      'implementation': {'linkSupport': supported}
+    });
+  }
+
   void setSignatureHelpContentFormat(List<MarkupKind>? formats) {
     textDocumentCapabilities =
-        withSignatureHelpContentFormat(textDocumentCapabilities, formats);
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'signatureHelp': {
+        'signatureInformation': {
+          'documentationFormat': formats?.map((k) => k.toJson()).toList()
+        }
+      }
+    });
   }
 
   void setSnippetTextEditSupport([bool supported = true]) {
@@ -609,7 +680,17 @@ mixin ClientCapabilitiesHelperMixin {
 
   void setSupportedCodeActionKinds(List<CodeActionKind>? kinds) {
     textDocumentCapabilities =
-        withCodeActionKinds(textDocumentCapabilities, kinds);
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'codeAction': {
+        'codeActionLiteralSupport': kinds != null
+            ? {
+                'codeActionKind': {
+                  'valueSet': kinds.map((k) => k.toJson()).toList()
+                }
+              }
+            : null,
+      }
+    });
   }
 
   void setSupportedCommandParameterKinds(Set<String>? kinds) {
@@ -640,7 +721,8 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   void setWorkDoneProgressSupport() {
-    windowCapabilities = withWorkDoneProgressSupport(windowCapabilities);
+    windowCapabilities = extendWindowCapabilities(
+        windowCapabilities, {'workDoneProgress': true});
   }
 
   void setWorkspaceDynamicRegistration(
@@ -651,136 +733,7 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  TextDocumentClientCapabilities withCodeActionKinds(
-    TextDocumentClientCapabilities source,
-    List<CodeActionKind>? kinds,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'codeAction': {
-        'codeActionLiteralSupport': kinds != null
-            ? {
-                'codeActionKind': {
-                  'valueSet': kinds.map((k) => k.toJson()).toList()
-                }
-              }
-            : null,
-      }
-    });
-  }
-
-  TextDocumentClientCapabilities withCompletionItemSnippetSupport(
-    TextDocumentClientCapabilities source, [
-    bool supported = true,
-  ]) {
-    return extendTextDocumentCapabilities(source, {
-      'completion': {
-        'completionItem': {'snippetSupport': supported}
-      }
-    });
-  }
-
-  TextDocumentClientCapabilities withCompletionItemTagSupport(
-    TextDocumentClientCapabilities source,
-    List<CompletionItemTag> tags,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'completion': {
-        'completionItem': {
-          'tagSupport': {'valueSet': tags.map((k) => k.toJson()).toList()}
-        }
-      }
-    });
-  }
-
-  WorkspaceClientCapabilities withConfigurationSupport(
-    WorkspaceClientCapabilities source,
-  ) {
-    return extendWorkspaceCapabilities(source, {'configuration': true});
-  }
-
-  TextDocumentClientCapabilities withDiagnosticCodeDescriptionSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'publishDiagnostics': {
-        'codeDescriptionSupport': true,
-      }
-    });
-  }
-
-  TextDocumentClientCapabilities withDiagnosticTagSupport(
-    TextDocumentClientCapabilities source,
-    List<DiagnosticTag> tags,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'publishDiagnostics': {
-        'tagSupport': {'valueSet': tags.map((k) => k.toJson()).toList()}
-      }
-    });
-  }
-
-  WorkspaceClientCapabilities withDidChangeConfigurationDynamicRegistration(
-    WorkspaceClientCapabilities source,
-  ) {
-    return extendWorkspaceCapabilities(source, {
-      'didChangeConfiguration': {'dynamicRegistration': true}
-    });
-  }
-
-  WorkspaceClientCapabilities withDocumentChangesSupport(
-    WorkspaceClientCapabilities source, [
-    bool supported = true,
-  ]) {
-    return extendWorkspaceCapabilities(source, {
-      'workspaceEdit': {'documentChanges': supported}
-    });
-  }
-
-  WorkspaceClientCapabilities withGivenWorkspaceDynamicRegistrations(
-    WorkspaceClientCapabilities source,
-    String name,
-  ) {
-    return extendWorkspaceCapabilities(source, {
-      name: {'dynamicRegistration': true},
-    });
-  }
-
-  TextDocumentClientCapabilities withHierarchicalDocumentSymbolSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'documentSymbol': {'hierarchicalDocumentSymbolSupport': true}
-    });
-  }
-
-  TextDocumentClientCapabilities withHoverContentFormat(
-    TextDocumentClientCapabilities source,
-    List<MarkupKind> formats,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'hover': {'contentFormat': formats.map((k) => k.toJson()).toList()}
-    });
-  }
-
-  TextDocumentClientCapabilities withLineFoldingOnly(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'foldingRange': {'lineFoldingOnly': true},
-    });
-  }
-
-  TextDocumentClientCapabilities withLocationLinkSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'definition': {'linkSupport': true},
-      'typeDefinition': {'linkSupport': true},
-      'implementation': {'linkSupport': true}
-    });
-  }
-
-  WorkspaceClientCapabilities withResourceOperationKinds(
+  WorkspaceClientCapabilities _withResourceOperationKinds(
     WorkspaceClientCapabilities source,
     List<ResourceOperationKind> kinds,
   ) {
@@ -791,24 +744,6 @@ mixin ClientCapabilitiesHelperMixin {
         'resourceOperations': kinds.map((k) => k.toJson()).toList(),
       }
     });
-  }
-
-  TextDocumentClientCapabilities withSignatureHelpContentFormat(
-    TextDocumentClientCapabilities source,
-    List<MarkupKind>? formats,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'signatureHelp': {
-        'signatureInformation': {
-          'documentationFormat': formats?.map((k) => k.toJson()).toList()
-        }
-      }
-    });
-  }
-
-  WindowClientCapabilities withWorkDoneProgressSupport(
-      WindowClientCapabilities source) {
-    return extendWindowCapabilities(source, {'workDoneProgress': true});
   }
 }
 
@@ -1126,12 +1061,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
     String? rootPath,
     Uri? rootUri,
     List<Uri>? workspaceFolders,
-    // TODO(dantup): Remove these capabilities fields in favour of methods like
-    //  [setApplyEditSupport] which allows extracting initialization in tests
-    //  without needing to pass capabilities these all the way through.
-    TextDocumentClientCapabilities? textDocumentCapabilities,
-    WorkspaceClientCapabilities? workspaceCapabilities,
-    WindowClientCapabilities? windowCapabilities,
     Map<String, Object?>? experimentalCapabilities,
     Map<String, Object?>? initializationOptions,
     bool throwOnFailure = true,
@@ -1148,9 +1077,9 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
     }
 
     final clientCapabilities = ClientCapabilities(
-      workspace: workspaceCapabilities ?? this.workspaceCapabilities,
-      textDocument: textDocumentCapabilities ?? this.textDocumentCapabilities,
-      window: windowCapabilities ?? this.windowCapabilities,
+      workspace: workspaceCapabilities,
+      textDocument: textDocumentCapabilities,
+      window: windowCapabilities,
       experimental: experimentalCapabilities ?? this.experimentalCapabilities,
     );
     _clientCapabilities = clientCapabilities;

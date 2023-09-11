@@ -118,8 +118,6 @@ final a = A(^);
     required bool includesSummary,
     required bool includesFull,
   }) async {
-    setConfigurationSupport();
-
     final code = TestCode.parse(content);
     final initialAnalysis = waitForAnalysisComplete();
     await provideConfig(

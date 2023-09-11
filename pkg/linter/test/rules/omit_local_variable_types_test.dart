@@ -17,12 +17,48 @@ class OmitLocalVariableTypesTest extends LintRuleTest {
   @override
   String get lintRule => 'omit_local_variable_types';
 
+  test_forEach() async {
+    await assertDiagnostics(r'''
+f() {
+  for (int i in [1, 2, 3]) { }
+}
+''', [
+      lint(13, 3),
+    ]);
+  }
+
+  test_forEach_ok() async {
+    await assertNoDiagnostics(r'''
+f() {
+  for (var i in [1, 2, 3]) { }
+}
+''');
+  }
+
   /// Types are considered an important part of the pattern so we
   /// intentionally do not lint on declared variable patterns.
   test_listPattern_destructured() async {
     await assertNoDiagnostics(r'''
 f() {
   var [int a] = <int>[1];
+}
+''');
+  }
+
+  test_local_multiple() async {
+    await assertDiagnostics(r'''
+f() {
+  String a = 'a', b = 'b';
+}
+''', [
+      lint(8, 6),
+    ]);
+  }
+
+  test_local_multiple_ok() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var a = 'a', b = 'b';
 }
 ''');
   }
@@ -119,7 +155,7 @@ String f() {
   return h;
 }
 ''', [
-      lint(42, 26),
+      lint(42, 6),
     ]);
   }
 }

@@ -252,6 +252,9 @@ void f() {
   }
 
   Future<void> test_filtersCorrectly() async {
+    // Support everything (empty prefix matches all)
+    setSupportedCodeActionKinds([CodeActionKind.Empty]);
+
     const content = '''
 void f() {
   print('Test!');
@@ -260,12 +263,7 @@ void f() {
 ''';
     final code = TestCode.parse(content);
     newFile(mainFilePath, code.code);
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-        emptyTextDocumentClientCapabilities,
-        [CodeActionKind.Empty], // Support everything (empty prefix matches all)
-      ),
-    );
+    await initialize();
 
     ofKind(CodeActionKind kind) => getCodeActions(
           mainFileUri,

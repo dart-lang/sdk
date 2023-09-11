@@ -74,11 +74,6 @@ import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:watcher/watcher.dart';
 
-/// Temporary flag to control whether surveys are enabled.
-///
-/// _surveyManager can be made 'late final' when this is removed.
-const _enableSurveys = false;
-
 /// The function for sending `openUri` request to the client.
 typedef OpenUriNotificationSender = Future<void> Function(Uri uri);
 
@@ -100,7 +95,10 @@ abstract class AnalysisServer {
 
   /// The object for managing showing surveys to users and recording their
   /// responses.
-  SurveyManager? _surveyManager;
+  ///
+  /// `null` if surveys are not enabled.
+  @visibleForTesting
+  SurveyManager? surveyManager;
 
   /// The builder for attachments that should be included into crash reports.
   final CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder;
@@ -305,11 +303,6 @@ abstract class AnalysisServer {
           UserPromptPreferences(resourceProvider, instrumentationService);
       _dartFixPrompt = DartFixPromptManager(this, promptPreferences);
     }
-
-    if (_enableSurveys) {
-      _surveyManager = SurveyManager(
-          this, instrumentationService, analyticsManager.analytics);
-    }
   }
 
   /// A [Future] that completes when any in-progress analysis context rebuild
@@ -426,6 +419,14 @@ abstract class AnalysisServer {
     }
 
     return MemoryCachingByteStore(NullByteStore(), memoryCacheSize);
+  }
+
+  void enableSurveys() {
+    // TODO(dantup): This is currently gated on an LSP flag and should just
+    //  be inlined into the constructor once we're happy for it to show up
+    //  without a flag and for both protocols.
+    surveyManager =
+        SurveyManager(this, instrumentationService, analyticsManager.analytics);
   }
 
   /// Return an analysis driver to which the file with the given [path] is
@@ -789,7 +790,7 @@ abstract class AnalysisServer {
     analyticsManager.createdAnalysisContexts(contextManager.analysisContexts);
 
     pubPackageService.shutdown();
-    _surveyManager?.shutdown();
+    surveyManager?.shutdown();
     await analyticsManager.shutdown();
   }
 
@@ -844,7 +845,9 @@ abstract class CommonServerContextManagerCallbacks
   @override
   @mustCallSuper
   void applyFileRemoved(String file) {
-    if (filesToFlush.remove(file)) {
+    // If the removed file doesn't have an overlay, we need to flush any
+    // previous diagnostics.
+    if (!resourceProvider.hasOverlay(file) && filesToFlush.remove(file)) {
       flushResults([file]);
     }
   }

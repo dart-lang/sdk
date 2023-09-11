@@ -536,6 +536,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       element.hasInitializer = variable.initializer != null;
       element.isAbstract = node.abstractKeyword != null;
+      element.isAugmentation = node.augmentKeyword != null;
       element.isConst = node.fields.isConst;
       element.isCovariant = node.covariantKeyword != null;
       element.isExternal = node.externalKeyword != null;
@@ -1653,9 +1654,15 @@ class _EnclosingContext {
 
   void addNonSyntheticField(FieldElementImpl element) {
     var name = element.name;
-    element.createImplicitAccessors(reference, name);
-
     addField(name, element);
+
+    // Augmenting a variable with a variable only alters its initializer.
+    // So, don't create getter and setter.
+    if (element.isAugmentation) {
+      return;
+    }
+
+    element.createImplicitAccessors(reference, name);
 
     var getter = element.getter;
     if (getter is PropertyAccessorElementImpl) {

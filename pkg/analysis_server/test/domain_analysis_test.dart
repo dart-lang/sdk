@@ -755,6 +755,61 @@ analyzer:
     _assertAnalyzedFiles(hasErrors: [], notAnalyzed: [path]);
   }
 
+  /// Tests that deleting and re-creating a file while an overlay is active
+  /// keeps the diagnotics when the overlay is then removed, then removes them
+  /// when the file is deleted.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/53475
+  Future<void> test_fileSystem_deleteFile_createFile_withOverlay_dart() async {
+    var a_path = convertPath('$testPackageLibPath/a.dart');
+
+    _createFilesWithErrors([a_path]);
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
+
+    // Initial file has errors.
+    assertHasErrors(a_path);
+
+    // Overlay still has errors.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        a_path: AddContentOverlay('error'),
+      }).toRequest('0'),
+    );
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+    assertHasErrors(a_path);
+
+    // After deleting the file, still has errors.
+    deleteFile(a_path);
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+    assertHasErrors(a_path);
+
+    // After re-creating the file, still has errors.
+    _createFilesWithErrors([a_path]);
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+    assertHasErrors(a_path);
+
+    // After removing the overlay, still has errors.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        a_path: RemoveContentOverlay(),
+      }).toRequest('1'),
+    );
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+    assertHasErrors(a_path);
+
+    // After deleting the file again, errors are now gone.
+    deleteFile(a_path);
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+    assertNoErrorsNotification(a_path);
+  }
+
   Future<void> test_fileSystem_deleteFile_dart() async {
     var a_path = '$testPackageLibPath/a.dart';
 
@@ -871,6 +926,48 @@ void f(A a) {}
 
     // errors are not reported for packages
     assertNoErrorsNotification(a_path);
+  }
+
+  /// Tests that deleting a file does not clear diagnostics if there's still
+  /// an active overlay for the file.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/53475
+  Future<void> test_fileSystem_deleteFile_withOverlay_dart() async {
+    var a_path = convertPath('$testPackageLibPath/a.dart');
+
+    _createFilesWithErrors([a_path]);
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
+
+    // Initial file has errors.
+    assertHasErrors(a_path);
+
+    // Overlay still has errors.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        a_path: AddContentOverlay('error'),
+      }).toRequest('0'),
+    );
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+    assertHasErrors(a_path);
+
+    // After deleting the file, still has errors.
+    deleteFile(a_path);
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+    assertHasErrors(a_path);
+
+    // After removing the overlay, errors are gone.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        a_path: RemoveContentOverlay(),
+      }).toRequest('1'),
+    );
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+    assertNoErrors(a_path);
   }
 
   Future<void> test_setPriorityFiles() async {

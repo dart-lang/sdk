@@ -144,6 +144,8 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_hierarchical() async {
+    setHierarchicalDocumentSymbolSupport();
+
     const content = '''
     String topLevel = '';
     class MyClass {
@@ -153,9 +155,7 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
     }
     ''';
     newFile(mainFilePath, content);
-    await initialize(
-        textDocumentCapabilities: withHierarchicalDocumentSymbolSupport(
-            emptyTextDocumentClientCapabilities));
+    await initialize();
 
     final result = await getDocumentSymbols(mainFileUri);
     final symbols = result.map(

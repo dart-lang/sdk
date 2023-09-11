@@ -356,6 +356,16 @@ class FieldMember extends VariableMember implements FieldElement {
   );
 
   @override
+  FieldElement? get augmentation {
+    return declaration.augmentationTarget;
+  }
+
+  @override
+  FieldElement? get augmentationTarget {
+    return declaration.augmentationTarget;
+  }
+
+  @override
   FieldElement get declaration => super.declaration as FieldElement;
 
   @override
@@ -379,6 +389,9 @@ class FieldMember extends VariableMember implements FieldElement {
 
   @override
   bool get isAbstract => declaration.isAbstract;
+
+  @override
+  bool get isAugmentation => declaration.isAugmentation;
 
   @override
   bool get isCovariant => declaration.isCovariant;
@@ -1182,6 +1195,16 @@ class TopLevelVariableMember extends VariableMember
   );
 
   @override
+  TopLevelVariableElement? get augmentation {
+    return declaration.augmentationTarget;
+  }
+
+  @override
+  TopLevelVariableElement? get augmentationTarget {
+    return declaration.augmentationTarget;
+  }
+
+  @override
   TopLevelVariableElement get declaration =>
       _declaration as TopLevelVariableElement;
 
@@ -1200,6 +1223,9 @@ class TopLevelVariableMember extends VariableMember
 
   @override
   bool get hasInitializer => declaration.hasInitializer;
+
+  @override
+  bool get isAugmentation => declaration.isAugmentation;
 
   @override
   bool get isExternal => declaration.isExternal;
