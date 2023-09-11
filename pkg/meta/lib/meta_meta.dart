@@ -39,6 +39,9 @@ class TargetKind {
   /// Indicates that an annotation is valid on any extension declaration.
   static const extension = TargetKind._('extensions', 'extension');
 
+  /// Indicates that an annotation is valid on any extension type declaration.
+  static const extensionType = TargetKind._('extension types', 'extensionType');
+
   /// Indicates that an annotation is valid on any field declaration, both
   /// instance and static fields, whether it's in a class, mixin or extension.
   static const field = TargetKind._('fields', 'field');
@@ -91,6 +94,7 @@ class TargetKind {
     classType,
     enumType,
     extension,
+    extensionType,
     field,
     function,
     library,

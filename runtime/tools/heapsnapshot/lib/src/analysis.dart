@@ -240,10 +240,9 @@ class Analysis {
 
   /// Calculates the set of objects transitively reachable by [roots].
   IntSet transitiveGraph(IntSet roots, [TraverseFilter? tfilter = null]) {
-    final reachable = IntSet();
-    final worklist = <int>[];
-
     final objects = graph.objects;
+    final reachable = SpecializedIntSet(objects.length);
+    final worklist = <int>[];
 
     reachable.addAll(roots);
     worklist.addAll(roots);

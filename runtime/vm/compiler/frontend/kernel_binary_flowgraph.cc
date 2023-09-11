@@ -236,6 +236,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
         has_field_initializers = true;
         ReadTag();
         ReadBool();
+        ReadPosition();
         const NameIndex field_name = ReadCanonicalNameReference();
         const Field& field =
             Field::Handle(Z, H.LookupFieldByKernelField(field_name));
@@ -342,6 +343,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           UNIMPLEMENTED();
           return Fragment();
         case kFieldInitializer: {
+          ReadPosition();  // read position.
           ReadCanonicalNameReference();
           instructions += BuildFieldInitializer(
               Field::ZoneHandle(Z, initializer_fields[i]->ptr()),
@@ -2185,7 +2187,7 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceGet(TokenPosition* p) {
   const InferredTypeMetadata result_type =
       inferred_type_metadata_helper_.GetInferredType(offset);
 
-  Fragment instructions = BuildExpression();  // read receiver.
+  Fragment instructions = BuildExpression();           // read receiver.
   const String& getter_name = ReadNameAsGetterName();  // read name.
   SkipDartType();                                      // read result_type.
   const NameIndex itarget_name =
@@ -2228,7 +2230,7 @@ Fragment StreamingFlowGraphBuilder::BuildDynamicGet(TokenPosition* p) {
   const InferredTypeMetadata result_type =
       inferred_type_metadata_helper_.GetInferredType(offset);
 
-  Fragment instructions = BuildExpression();  // read receiver.
+  Fragment instructions = BuildExpression();           // read receiver.
   const String& getter_name = ReadNameAsGetterName();  // read name.
   const auto& mangled_name = String::ZoneHandle(
       Z, Function::CreateDynamicInvocationForwarderName(getter_name));
@@ -2271,7 +2273,7 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceTearOff(TokenPosition* p) {
   const InferredTypeMetadata result_type =
       inferred_type_metadata_helper_.GetInferredType(offset);
 
-  Fragment instructions = BuildExpression();  // read receiver.
+  Fragment instructions = BuildExpression();           // read receiver.
   const String& getter_name = ReadNameAsGetterName();  // read name.
   SkipDartType();                                      // read result_type.
   const NameIndex itarget_name =

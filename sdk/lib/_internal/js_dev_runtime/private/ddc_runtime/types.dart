@@ -25,6 +25,17 @@ _throwInvalidFlagError(String message) =>
 @notNull
 bool legacyTypeChecks = !compileTimeFlag("soundNullSafety");
 
+/// Signals if the next type check should be considered to to be sound when
+/// running without sound null safety.
+///
+/// The provides a way for this library to communicate that intent to the
+/// dart:rti library.
+///
+/// This flag gets inlined by the compiler in the place of
+/// `JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')`.
+@notNull
+bool extraNullSafetyChecks = false;
+
 @notNull
 bool _weakNullSafetyWarnings = false;
 

@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
@@ -271,6 +272,13 @@ class RefactoringManager {
       if (resolvedUnit != null) {
         var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
         var element = server.getElementOfNode(node);
+        if (node is RepresentationDeclaration) {
+          final extensionType = node.parent;
+          if (extensionType is ExtensionTypeDeclaration &&
+              extensionType.name.end == offset) {
+            element = extensionType.declaredElement;
+          }
+        }
         if (node != null && element != null) {
           final renameElement =
               RenameRefactoring.getElementToRename(node, element);

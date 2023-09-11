@@ -518,6 +518,7 @@ class _NonVirtual {
 @Target({
   TargetKind.classType,
   TargetKind.extension,
+  TargetKind.extensionType,
   TargetKind.function,
   TargetKind.method,
   TargetKind.mixinType,

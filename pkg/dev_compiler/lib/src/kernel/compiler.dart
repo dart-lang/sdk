@@ -6323,6 +6323,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                   // checks. This allows DDC to produce optional warnings or
                   // errors when tests pass but would fail in sound null safety.
                   : runtimeCall('legacyTypeChecks');
+            case 'EXTRA_NULL_SAFETY_CHECKS':
+              return _options.soundNullSafety
+                  ? js.boolean(false)
+                  // When running the new runtime type system with weak null
+                  // safety this flag gets toggled when performing `is` and `as`
+                  // checks. This allows DDC to produce optional warnings or
+                  // errors when tests pass but would fail in sound null safety.
+                  : runtimeCall('extraNullSafetyChecks');
             case 'MINIFIED':
               return js.boolean(false);
             case 'NEW_RUNTIME_TYPES':

@@ -1940,10 +1940,12 @@ class BinaryBuilder {
   }
 
   Initializer _readFieldInitializer(bool isSynthetic) {
+    int offset = readOffset();
     Reference reference = readNonNullMemberReference();
     Expression value = readExpression();
     return new FieldInitializer.byReference(reference, value)
-      ..isSynthetic = isSynthetic;
+      ..isSynthetic = isSynthetic
+      ..fileOffset = offset;
   }
 
   Initializer _readSuperInitializer(bool isSynthetic) {

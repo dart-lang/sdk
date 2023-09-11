@@ -56,27 +56,24 @@ import 'dart:_js_shared_embedded_names';
 import 'dart:_rti' as rti
     show
         bindingRtiFromList,
-        createRuntimeType,
         constructorRtiCachePropertyName,
+        createRuntimeType,
         findType,
         getFunctionParametersForDynamicChecks,
         getGenericFunctionBounds,
+        getLegacyErasedRti,
+        getRecordTypeElementTypes,
+        getRecordTypeShapeKey,
         instanceType,
         instantiatedGenericFunctionType,
         interfaceTypeRecipePropertyName,
         isGenericFunctionType,
+        isNullable,
+        isRecordType,
         isSubtype,
         Rti,
-        _Type,
-        substitute,
         rtiToString,
-        isFunctionType,
-        isObjectType,
-        isRecordInterfaceType,
-        isRecordType,
-        getRecordTypeElementTypes,
-        getRecordTypeShapeKey,
-        getLibraryUri;
+        substitute;
 
 export 'dart:_debugger' show getDynamicStats, clearDynamicStats, trackCall;
 
