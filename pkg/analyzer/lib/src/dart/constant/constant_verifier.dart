@@ -606,6 +606,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH) ||
           identical(dataErrorCode, CompileTimeErrorCode.CONST_TYPE_PARAMETER) ||
           identical(
+              dataErrorCode, CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP) ||
+          identical(dataErrorCode,
+              CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET) ||
+          identical(
               dataErrorCode,
               CompileTimeErrorCode
                   .CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF) ||
