@@ -3540,6 +3540,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
 
 Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses()) return nullptr;
+
   bool negated = false;
   Definition* replacement = CanonicalizeStrictCompare(this, &negated,
                                                       /* is_branch = */ false);
@@ -3548,6 +3549,11 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
     replacement->AsComparison()->NegateComparison();
   }
   return replacement;
+}
+
+static bool IsSingleUseUnboxOrConstant(Value* use) {
+  return (use->definition()->IsUnbox() && use->IsSingleUse()) ||
+         use->definition()->IsConstant();
 }
 
 Definition* EqualityCompareInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -3573,6 +3579,19 @@ Definition* EqualityCompareInstr::Canonicalize(FlowGraph* flow_graph) {
           flow_graph->unmatched_representations_allowed()) {
         set_null_aware(false);
       }
+    }
+  } else {
+    if ((operation_cid() == kMintCid) && IsSingleUseUnboxOrConstant(left()) &&
+        IsSingleUseUnboxOrConstant(right()) &&
+        (left()->Type()->IsNullableSmi() || right()->Type()->IsNullableSmi()) &&
+        flow_graph->unmatched_representations_allowed()) {
+      auto replacement = new StrictCompareInstr(
+          source(),
+          (kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
+          left()->CopyWithType(), right()->CopyWithType(),
+          /*needs_number_check=*/false, DeoptId::kNone);
+      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
+      return replacement;
     }
   }
   return this;
