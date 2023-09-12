@@ -119,7 +119,7 @@ class IgnoreValidator {
     //  ignores in the Flutter code base have been cleaned up.
     // for (var unignorableName in unignorable) {
     //   var name = unignorableName.name;
-    //   _errorReporter.reportErrorForOffset(HintCode.UNIGNORABLE_IGNORE,
+    //   _errorReporter.reportErrorForOffset(WarningCode.UNIGNORABLE_IGNORE,
     //       unignorableName.offset, name.length, [name]);
     //   list.remove(unignorableName);
     // }

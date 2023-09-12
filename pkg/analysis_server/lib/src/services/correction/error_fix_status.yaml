@@ -1822,10 +1822,6 @@ HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
 HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
   status: noFix
   notes: Deprecated
-HintCode.UNIGNORABLE_IGNORE:
-  status: needsFix
-  notes: |-
-    Remove the ignore comment (or one code in the comment).
 HintCode.UNNECESSARY_CAST:
   status: hasFix
 HintCode.UNNECESSARY_IMPORT:
@@ -3727,6 +3723,10 @@ WarningCode.UNDEFINED_REFERENCED_PARAMETER:
     Can try to find the correct parameter name.
 WarningCode.UNDEFINED_SHOWN_NAME:
   status: hasFix
+WarningCode.UNIGNORABLE_IGNORE:
+  status: needsFix
+  notes: |-
+    Remove the ignore comment (or one code in the comment).
 WarningCode.UNNECESSARY_CAST_PATTERN:
   status: needsFix
   notes: |-
