@@ -40,10 +40,8 @@ void matchIL$main_testForIn(FlowGraph graph) {
       'v2' << match.Parameter(index: 0),
       'v3' << match.LoadField('v2', slot: 'Closure.context'),
       'v4' << match.LoadField('v3', slot: 'list'),
-      'v48' << match.LoadField('v4', slot: ':type_arguments'),
       'v92' << match.LoadField('v4', slot: 'GrowableObjectArray.length'),
       'v112' << match.UnboxInt64('v92'),
-      'v107' << match.LoadField('v4', slot: 'GrowableObjectArray.data'),
       match.Goto('B14'),
     ]),
     'B14' <<
@@ -60,22 +58,7 @@ void matchIL$main_testForIn(FlowGraph graph) {
     'B3' <<
         match.block('Target', [
           match.GenericCheckBound(),
-          'v153' << match.LoadIndexed('v107', match.any),
           'v37' << match.BinaryInt64Op('v124', match.any),
-          match.Branch(match.StrictCompare('v153', match.any),
-              ifTrue: 'B8', ifFalse: 'B9'),
-        ]),
-    'B8' <<
-        match.block('Target', [
-          match.AssertAssignable(),
-          match.Goto('B10'),
-        ]),
-    'B9' <<
-        match.block('Target', [
-          match.Goto('B10'),
-        ]),
-    'B10' <<
-        match.block('Join', [
           match.Goto('B14'),
         ]),
   ]);
