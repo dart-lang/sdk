@@ -19931,12 +19931,6 @@ HintCode:
       If you can't migrate the imported library, then the importing library
       needs to have a language version that is before 2.12, when null safety was
       enabled by default.
-  UNIGNORABLE_IGNORE:
-    problemMessage: "The diagnostic '{0}' can't be ignored."
-    correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
-    comment: |-
-      Parameters:
-      0: the name of the non-diagnostic being ignored
   UNNECESSARY_CAST:
     problemMessage: Unnecessary cast.
     correctionMessage: Try removing the cast.
@@ -25179,6 +25173,12 @@ WarningCode:
 
       var x = min(0, 1);
       ```
+  UNIGNORABLE_IGNORE:
+    problemMessage: "The diagnostic '{0}' can't be ignored."
+    correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
+    comment: |-
+      Parameters:
+      0: the name of the non-diagnostic being ignored
   UNNECESSARY_CAST:
     aliasFor: HintCode.UNNECESSARY_CAST
     comment: This is the new replacement for [HintCode.UNNECESSARY_CAST].

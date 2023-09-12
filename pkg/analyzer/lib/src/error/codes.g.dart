@@ -7092,6 +7092,16 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the non-diagnostic being ignored
+  static const WarningCode UNIGNORABLE_IGNORE = WarningCode(
+    'UNIGNORABLE_IGNORE',
+    "The diagnostic '{0}' can't be ignored.",
+    correctionMessage:
+        "Try removing the name from the list, or removing the whole comment if "
+        "this is the only name in the list.",
+  );
+
   ///  This is the new replacement for [HintCode.UNNECESSARY_CAST].
   static const HintCode UNNECESSARY_CAST = HintCode.UNNECESSARY_CAST;
 
