@@ -1013,6 +1013,9 @@ struct InferredTypeMetadata {
     kFlagReceiverNotInt = 1 << 4,
   };
 
+  // Mask of flags which participate in CompileType computation.
+  static constexpr intptr_t kCompileTypeFlagsMask = kFlagNullable | kFlagInt;
+
   InferredTypeMetadata(intptr_t cid_,
                        uint8_t flags_,
                        const Object& constant_value_ = Object::null_object())
@@ -1023,7 +1026,8 @@ struct InferredTypeMetadata {
   const Object& constant_value;
 
   bool IsTrivial() const {
-    return (cid == kDynamicCid) && (flags == kFlagNullable);
+    return (cid == kDynamicCid) &&
+           ((flags & kCompileTypeFlagsMask) == kFlagNullable);
   }
   bool IsNullable() const { return (flags & kFlagNullable) != 0; }
   bool IsInt() const {
@@ -1033,6 +1037,8 @@ struct InferredTypeMetadata {
   bool IsConstant() const { return (flags & kFlagConstant) != 0; }
   bool ReceiverNotInt() const { return (flags & kFlagReceiverNotInt) != 0; }
 
+  // Note: when updating this function to use some previously unused flags
+  // make sure to update |kCompileTypeFlagsMask| above.
   CompileType ToCompileType(Zone* zone,
                             const AbstractType* static_type = nullptr,
                             bool can_be_sentinel = false) const {

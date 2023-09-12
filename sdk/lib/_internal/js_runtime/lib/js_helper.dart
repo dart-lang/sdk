@@ -53,6 +53,7 @@ import 'dart:_internal'
     show
         checkNotNullable,
         EfficientLengthIterable,
+        HideEfficientLengthIterable,
         MappedIterable,
         IterableElementError,
         SubListIterable;

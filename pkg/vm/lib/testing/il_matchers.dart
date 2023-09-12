@@ -5,6 +5,7 @@
 /// A library to facilitate programmatic matching against flow graphs
 /// collected during IL tests. See runtime/docs/infra/il_tests.md for more
 /// info.
+import 'dart:io';
 
 typedef Renamer = String Function(String);
 
@@ -474,3 +475,11 @@ final dynamic match = Matchers();
 /// tests, which are compiled in AOT mode. So instead we let compare_il driver
 /// set this field.
 late String Function(Symbol) getName;
+
+final bool is32BitConfiguration = (() {
+  final configuration = Platform.environment['DART_CONFIGURATION'];
+  if (configuration == null) {
+    throw 'Expected DART_CONFIGURATION to be defined';
+  }
+  return configuration.endsWith('ARM') || configuration.endsWith('ARM_X64');
+})();

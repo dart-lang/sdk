@@ -13,6 +13,7 @@ import 'dart:_interceptors';
 import 'dart:_internal'
     show
         EfficientLengthIterable,
+        HideEfficientLengthIterable,
         MappedIterable,
         IterableElementError,
         SubListIterable,

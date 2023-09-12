@@ -1999,7 +1999,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
   switch (class_id_) {
     case kArrayCid:
     case kImmutableArrayCid:
-      if (result_type_ != nullptr) {
+      if (result_type_ != nullptr &&
+          !CompileType::Dynamic().IsEqualTo(result_type_)) {
         // The original call knew something.
         return *result_type_;
       }

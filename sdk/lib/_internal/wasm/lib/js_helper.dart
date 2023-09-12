@@ -125,7 +125,8 @@ class JSArrayIteratorAdapter<T> implements Iterator<T> {
 
 /// [JSArrayIterableAdapter] lazily adapts a [JSArray] to Dart's [Iterable]
 /// interface.
-class JSArrayIterableAdapter<T> extends EfficientLengthIterable<T> {
+class JSArrayIterableAdapter<T> extends EfficientLengthIterable<T>
+    implements HideEfficientLengthIterable<T> {
   final JSArray array;
 
   JSArrayIterableAdapter(this.array);

@@ -443,7 +443,8 @@ base class _CustomHashMap<K, V> extends _HashMap<K, V> {
   }
 }
 
-class _HashMapKeyIterable<E> extends EfficientLengthIterable<E> {
+class _HashMapKeyIterable<E> extends EfficientLengthIterable<E>
+    implements HideEfficientLengthIterable<E> {
   final _HashMap _map;
   _HashMapKeyIterable(this._map);
 
