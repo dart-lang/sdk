@@ -19,13 +19,23 @@ abstract class EfficientLengthIterable<T> extends Iterable<T> {
   int get length;
 }
 
+/// An interface which hides [EfficientLengthIterable] from upper bounds.
+///
+/// Every type which implements [EfficientLengthIterable] also implements
+/// this interface, and they have the same *depth*, so it's impossible
+/// for the upper-bound algorithm to get [EfficientLengthIterable]
+/// as the result.
+abstract interface class HideEfficientLengthIterable<T>
+    implements Iterable<T> {}
+
 /**
  * An [Iterable] for classes that have efficient [length] and [elementAt].
  *
  * All other methods are implemented in terms of [length] and [elementAt],
  * including [iterator].
  */
-abstract class ListIterable<E> extends EfficientLengthIterable<E> {
+abstract class ListIterable<E> extends EfficientLengthIterable<E>
+    implements HideEfficientLengthIterable<E> {
   int get length;
   E elementAt(int i);
 
@@ -376,7 +386,7 @@ class MappedIterable<S, T> extends Iterable<T> {
 }
 
 class EfficientLengthMappedIterable<S, T> extends MappedIterable<S, T>
-    implements EfficientLengthIterable<T> {
+    implements EfficientLengthIterable<T>, HideEfficientLengthIterable<T> {
   EfficientLengthMappedIterable(Iterable<S> iterable, T function(S value))
       : super._(iterable, function);
 }
@@ -511,7 +521,7 @@ class TakeIterable<E> extends Iterable<E> {
 }
 
 class EfficientLengthTakeIterable<E> extends TakeIterable<E>
-    implements EfficientLengthIterable<E> {
+    implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E> {
   EfficientLengthTakeIterable(Iterable<E> iterable, int takeCount)
       : super._(iterable, takeCount);
 
@@ -605,7 +615,7 @@ class SkipIterable<E> extends Iterable<E> {
 }
 
 class EfficientLengthSkipIterable<E> extends SkipIterable<E>
-    implements EfficientLengthIterable<E> {
+    implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E> {
   factory EfficientLengthSkipIterable(Iterable<E> iterable, int count) {
     return EfficientLengthSkipIterable<E>._(iterable, _checkCount(count));
   }
@@ -682,7 +692,8 @@ class SkipWhileIterator<E> implements Iterator<E> {
 /**
  * The always empty [Iterable].
  */
-class EmptyIterable<E> extends EfficientLengthIterable<E> {
+class EmptyIterable<E> extends EfficientLengthIterable<E>
+    implements HideEfficientLengthIterable<E> {
   const EmptyIterable();
 
   Iterator<E> get iterator => const EmptyIterator<Never>();
@@ -816,7 +827,7 @@ class FollowedByIterable<E> extends Iterable<E> {
 }
 
 class EfficientLengthFollowedByIterable<E> extends FollowedByIterable<E>
-    implements EfficientLengthIterable<E> {
+    implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E> {
   EfficientLengthFollowedByIterable(
       EfficientLengthIterable<E> first, EfficientLengthIterable<E> second)
       : super(first, second);
@@ -978,7 +989,9 @@ class IndexedIterable<T> extends Iterable<(int, T)> {
 }
 
 class EfficientLengthIndexedIterable<T> extends IndexedIterable<T>
-    implements EfficientLengthIterable<(int, T)> {
+    implements
+        EfficientLengthIterable<(int, T)>,
+        HideEfficientLengthIterable<(int, T)> {
   EfficientLengthIndexedIterable(super._source, super._start) : super._();
 
   (int, T) get last {
