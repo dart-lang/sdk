@@ -384,6 +384,10 @@ void ConstantPropagator::VisitPhi(PhiInstr* instr) {
 }
 
 void ConstantPropagator::VisitRedefinition(RedefinitionInstr* instr) {
+  if (instr->inserted_by_constant_propagation()) {
+    return;
+  }
+
   const Object& value = instr->value()->definition()->constant_value();
   if (IsConstant(value)) {
     SetValue(instr, value);
@@ -1519,7 +1523,78 @@ void ConstantPropagator::VisitUnaryUint32Op(UnaryUint32OpInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+// Insert redefinition for |original| definition which conveys information
+// that |original| is equal to |constant_value| in the dominated code.
+static RedefinitionInstr* InsertRedefinition(FlowGraph* graph,
+                                             BlockEntryInstr* dom,
+                                             Definition* original,
+                                             const Object& constant_value) {
+  auto redef = new RedefinitionInstr(new Value(original),
+                                     /*inserted_by_constant_propagation=*/true);
+
+  graph->InsertAfter(dom, redef, nullptr, FlowGraph::kValue);
+  graph->RenameDominatedUses(original, redef, redef);
+
+  if (redef->input_use_list() == nullptr) {
+    // There are no dominated uses, so the newly added Redefinition is useless.
+    redef->RemoveFromGraph();
+    return nullptr;
+  }
+
+  redef->constant_value() = constant_value.ptr();
+  return redef;
+}
+
+// Find all Branch(v eq constant) (eq being one of ==, !=, === or !==) in the
+// graph and redefine |v| in the true successor to record information about
+// it being equal to the constant.
+//
+// We don't actually _replace_ |v| with |constant| in the dominated code
+// because it might complicate subsequent optimizations (e.g. lead to
+// redundant phis).
+void ConstantPropagator::InsertRedefinitionsAfterEqualityComparisons() {
+  for (auto block : graph_->reverse_postorder()) {
+    if (auto branch = block->last_instruction()->AsBranch()) {
+      auto comparison = branch->comparison();
+      if (comparison->IsStrictCompare() ||
+          (comparison->IsEqualityCompare() &&
+           comparison->operation_cid() != kDoubleCid)) {
+        Value* value;
+        ConstantInstr* constant_defn;
+        if (comparison->IsComparisonWithConstant(&value, &constant_defn) &&
+            !value->BindsToConstant()) {
+          const Object& constant_value = constant_defn->value();
+
+          // Found comparison with constant. Introduce Redefinition().
+          ASSERT(comparison->kind() == Token::kNE_STRICT ||
+                 comparison->kind() == Token::kNE ||
+                 comparison->kind() == Token::kEQ_STRICT ||
+                 comparison->kind() == Token::kEQ);
+          const bool negated = (comparison->kind() == Token::kNE_STRICT ||
+                                comparison->kind() == Token::kNE);
+          const auto true_successor =
+              negated ? branch->false_successor() : branch->true_successor();
+          InsertRedefinition(graph_, true_successor, value->definition(),
+                             constant_value);
+
+          // When comparing two boolean values we can also apply renaming
+          // to the false successor because we know that only true and false
+          // are possible values.
+          if (constant_value.IsBool() && value->Type()->IsBool()) {
+            const auto false_successor =
+                negated ? branch->true_successor() : branch->false_successor();
+            InsertRedefinition(graph_, false_successor, value->definition(),
+                               Bool::Get(!Bool::Cast(constant_value).value()));
+          }
+        }
+      }
+    }
+  }
+}
+
 void ConstantPropagator::Analyze() {
+  InsertRedefinitionsAfterEqualityComparisons();
+
   GraphEntryInstr* entry = graph_->graph_entry();
   reachable_->Add(entry->preorder_number());
   block_worklist_.Add(entry);
@@ -1759,10 +1834,21 @@ void ConstantPropagator::Transform() {
 }
 
 bool ConstantPropagator::TransformDefinition(Definition* defn) {
+  if (defn == nullptr) {
+    return false;
+  }
+
+  if (auto redef = defn->AsRedefinition()) {
+    if (redef->inserted_by_constant_propagation()) {
+      redef->ReplaceUsesWith(redef->value()->definition());
+      return true;
+    }
+  }
+
   // Replace constant-valued instructions without observable side
   // effects.  Do this for smis and old objects only to avoid having to
   // copy other objects into the heap's old generation.
-  if ((defn != nullptr) && IsConstant(defn->constant_value()) &&
+  if (IsConstant(defn->constant_value()) &&
       (defn->constant_value().IsSmi() || defn->constant_value().IsOld()) &&
       !defn->IsConstant() && !defn->IsStoreIndexed() && !defn->IsStoreField() &&
       !defn->IsStoreStaticField()) {

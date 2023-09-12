@@ -158,6 +158,7 @@ class Value : public ZoneAllocated {
 
   // Return true if the value represents a constant.
   bool BindsToConstant() const;
+  bool BindsToConstant(ConstantInstr** constant_defn) const;
 
   // Return true if the value represents the constant null.
   bool BindsToConstantNull() const;
@@ -665,10 +666,18 @@ using serializable_type_t =
 #define DECLARE_ATTRIBUTES(...)                                                \
   auto GetAttributes() const { return std::make_tuple(__VA_ARGS__); }          \
   static auto GetAttributeNames() { return std::make_tuple(#__VA_ARGS__); }
+#define DECLARE_ATTRIBUTES_NAMED(names, values)                                \
+  auto GetAttributes() const {                                                 \
+    return std::make_tuple values;                                             \
+  }                                                                            \
+  static auto GetAttributeNames() {                                            \
+    return std::make_tuple names;                                              \
+  }
 #else
 #define PRINT_TO_SUPPORT
 #define PRINT_OPERANDS_TO_SUPPORT
 #define DECLARE_ATTRIBUTES(...)
+#define DECLARE_ATTRIBUTES_NAMED(names, values)
 #endif  // defined(INCLUDE_IL_PRINTER)
 
 // Together with CidRange, this represents a mapping from a range of class-ids
@@ -3681,6 +3690,21 @@ class ComparisonInstr : public Definition {
            (operation_cid() == other_comparison->operation_cid());
   }
 
+  // Detects comparison with a constant and returns constant and the other
+  // operand.
+  bool IsComparisonWithConstant(Value** other_operand,
+                                ConstantInstr** constant_operand) {
+    if (right()->BindsToConstant(constant_operand)) {
+      *other_operand = left();
+      return true;
+    } else if (left()->BindsToConstant(constant_operand)) {
+      *other_operand = right();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   DECLARE_ABSTRACT_INSTRUCTION(Comparison)
 
 #define FIELD_LIST(F)                                                          \
@@ -3875,7 +3899,10 @@ class DeoptimizeInstr : public TemplateInstruction<0, NoThrow, Pure> {
 
 class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  explicit RedefinitionInstr(Value* value) : constrained_type_(nullptr) {
+  explicit RedefinitionInstr(Value* value,
+                             bool inserted_by_constant_propagation = false)
+      : constrained_type_(nullptr),
+        inserted_by_constant_propagation_(inserted_by_constant_propagation) {
     SetInputAt(0, value);
   }
 
@@ -3891,6 +3918,10 @@ class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
   void set_constrained_type(CompileType* type) { constrained_type_ = type; }
   CompileType* constrained_type() const { return constrained_type_; }
 
+  bool inserted_by_constant_propagation() const {
+    return inserted_by_constant_propagation_;
+  }
+
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -3898,7 +3929,9 @@ class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(CompileType*, constrained_type_)
+#define FIELD_LIST(F)                                                          \
+  F(CompileType*, constrained_type_)                                           \
+  F(bool, inserted_by_constant_propagation_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(RedefinitionInstr,
                                           TemplateDefinition,
@@ -4027,6 +4060,7 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
                           intptr_t pair_index = 0);
 
   PRINT_OPERANDS_TO_SUPPORT
+  DECLARE_ATTRIBUTES_NAMED(("value"), (&value()))
 
 #define FIELD_LIST(F)                                                          \
   F(const Object&, value_)                                                     \
