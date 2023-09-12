@@ -9145,6 +9145,7 @@ library
     extensionTypes
       B @26
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -9674,6 +9675,7 @@ library
     extensionTypes
       B @26
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -11107,6 +11109,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -24405,6 +24408,7 @@ library
     extensionTypes
       B @26
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -24758,6 +24762,7 @@ library
     extensionTypes
       B @26
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -38372,6 +38377,7 @@ library
     extensionTypes
       B @26
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -38507,6 +38513,7 @@ library
     extensionTypes
       B @26
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47292,6 +47299,7 @@ library
     extensionTypes
       A @21
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47324,6 +47332,7 @@ library
         codeOffset: 0
         codeLength: 33
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::named
         typeErasure: int
         interfaces
           Object
@@ -47363,6 +47372,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: num
         interfaces
           Object
@@ -47401,6 +47411,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: num
         interfaces
           Object
@@ -47439,6 +47450,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: num
         interfaces
           Object
@@ -47488,6 +47500,7 @@ library
         codeOffset: 0
         codeLength: 27
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47526,6 +47539,7 @@ library
       A @24
         documentationComment: /// Docs
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47558,6 +47572,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47593,6 +47608,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47628,6 +47644,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47663,6 +47680,7 @@ library
     extensionTypes
       A @32
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47703,6 +47721,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47741,6 +47760,7 @@ library
     extensionTypes
       X @64
         representation: self::@extensionType::X::@field::it
+        primaryConstructor: self::@extensionType::X::@constructor::new
         typeErasure: C
         interfaces
           A
@@ -47767,6 +47787,7 @@ library
     extensionTypes
       hasImplementsSelfReference A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47778,6 +47799,7 @@ library
             returnType: int
       hasImplementsSelfReference B @56
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47802,6 +47824,7 @@ library
     extensionTypes
       hasImplementsSelfReference A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47827,6 +47850,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: num
         interfaces
           Object
@@ -47838,6 +47862,7 @@ library
             returnType: num
       B @43
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
         interfaces
           A
@@ -47862,6 +47887,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           num
@@ -47886,6 +47912,7 @@ library
     extensionTypes
       X @15
         representation: self::@extensionType::X::@field::it
+        primaryConstructor: self::@extensionType::X::@constructor::new
         typeErasure: int?
         interfaces
           Object?
@@ -47911,6 +47938,7 @@ library
     extensionTypes
       X @33
         representation: self::@extensionType::X::@field::it
+        primaryConstructor: self::@extensionType::X::@constructor::new
         typeErasure: int
         interfaces
           num
@@ -47953,6 +47981,7 @@ library
               staticType: null
             element: package:test/a.dart::@getter::foo
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47985,6 +48014,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -48017,6 +48047,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -48053,6 +48084,7 @@ library
         codeOffset: 0
         codeLength: 21
         representation: self::@extensionType::A::@field::<empty>
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: InvalidType
         interfaces
           Object?
@@ -48093,6 +48125,7 @@ library
             bound: A<dynamic>
             defaultType: dynamic
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -48119,6 +48152,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -48152,6 +48186,7 @@ library
     extensionTypes
       hasRepresentationSelfReference A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: InvalidType
         interfaces
           Object?
@@ -48163,6 +48198,7 @@ library
             returnType: InvalidType
       hasRepresentationSelfReference B @42
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: InvalidType
         interfaces
           Object?
@@ -48189,6 +48225,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: InvalidType
         interfaces
           Object?
@@ -48200,6 +48237,7 @@ library
             returnType: B
       hasRepresentationSelfReference B @42
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: InvalidType
         interfaces
           Object?
@@ -48224,6 +48262,7 @@ library
     extensionTypes
       hasRepresentationSelfReference A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: InvalidType
         interfaces
           Object?
@@ -48250,6 +48289,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -48261,6 +48301,7 @@ library
             returnType: int
       B @44
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int Function(int)
         interfaces
           Object
@@ -48290,6 +48331,7 @@ library
           covariant T @17
             defaultType: dynamic
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: T
         interfaces
           Object?
@@ -48301,6 +48343,7 @@ library
             returnType: T
       B @45
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: double
         interfaces
           Object
@@ -48327,6 +48370,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -48338,6 +48382,7 @@ library
             returnType: int
       B @44
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: List<int>
         interfaces
           Object
@@ -48362,6 +48407,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -48391,6 +48437,7 @@ library
           covariant U @32
             defaultType: dynamic
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: Map<T, U>
         interfaces
           Object

@@ -640,6 +640,8 @@ class _ElementWriter {
 
       if (e is ExtensionTypeElementImpl) {
         _elementPrinter.writeNamedElement('representation', e.representation);
+        _elementPrinter.writeNamedElement(
+            'primaryConstructor', e.primaryConstructor);
         _elementPrinter.writeNamedType('typeErasure', e.typeErasure);
       }
 

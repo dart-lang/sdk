@@ -1288,6 +1288,9 @@ abstract class ExtensionTypeElement implements InterfaceElement {
   @override
   AugmentedExtensionTypeElement? get augmented;
 
+  /// The primary constructor of this extension.
+  ConstructorElement get primaryConstructor;
+
   /// The representation of this extension.
   FieldElement get representation;
 

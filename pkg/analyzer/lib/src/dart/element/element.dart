@@ -3024,6 +3024,9 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   }
 
   @override
+  ConstructorElement get primaryConstructor => constructors.first;
+
+  @override
   FieldElementImpl get representation => fields.first;
 
   @override
