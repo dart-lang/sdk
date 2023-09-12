@@ -6,11 +6,10 @@ import 'package:kernel/ast.dart';
 
 import '../../base/common.dart';
 import '../builder/builder.dart';
-import '../builder/extension_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../fasta_codes.dart'
     show
         messagePatchDeclarationMismatch,

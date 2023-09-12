@@ -8,8 +8,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
 import '../builder/builder_mixins.dart';
-import '../builder/class_builder.dart';
-import '../builder/declaration_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/procedure_builder.dart';
@@ -26,8 +25,7 @@ import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 import 'source_procedure_builder.dart';
 
-mixin SourceDeclarationBuilderMixin
-    implements DeclarationBuilder, DeclarationBuilderMixin {
+mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
   @override
   SourceLibraryBuilder get libraryBuilder;
 

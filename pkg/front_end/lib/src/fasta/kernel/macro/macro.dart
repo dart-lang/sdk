@@ -19,14 +19,12 @@ import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
 import '../../../base/common.dart';
 import '../../builder/builder.dart';
-import '../../builder/class_builder.dart';
+import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/library_builder.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/nullability_builder.dart';
-import '../../builder/type_alias_builder.dart';
 import '../../builder/type_builder.dart';
-import '../../builder/type_declaration_builder.dart';
 import '../../fasta_codes.dart';
 import '../../identifiers.dart';
 import '../../source/source_class_builder.dart';
@@ -427,8 +425,17 @@ class MacroApplications {
     } else if (identifier is TypeDeclarationBuilderIdentifier) {
       final TypeDeclarationBuilder typeDeclarationBuilder =
           identifier.typeDeclarationBuilder;
-      if (typeDeclarationBuilder is ClassBuilder) {
-        return getClassDeclaration(typeDeclarationBuilder);
+      switch (typeDeclarationBuilder) {
+        case ClassBuilder():
+          return getClassDeclaration(typeDeclarationBuilder);
+        case TypeAliasBuilder():
+        case TypeVariableBuilder():
+        case ExtensionBuilder():
+        case ExtensionTypeDeclarationBuilder():
+        case InvalidTypeDeclarationBuilder():
+        case BuiltinTypeDeclarationBuilder():
+        // TODO(johnniwinther): How should we handle this case?
+        case OmittedTypeDeclarationBuilder():
       }
       throw new UnimplementedError(
           'Resolving declarations is only supported for classes');

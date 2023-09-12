@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../builder/extension_type_declaration_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_variable_builder.dart';
 import 'package:kernel/ast.dart';
 
 import '../scope.dart';

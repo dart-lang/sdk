@@ -6,7 +6,7 @@ library fasta.class_hierarchy_builder;
 
 import 'package:kernel/ast.dart';
 
-import '../../builder/class_builder.dart';
+import '../../builder/declaration_builders.dart';
 import '../../messages.dart'
     show
         LocatedMessage,

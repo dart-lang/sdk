@@ -24,7 +24,7 @@ import '../source/source_library_builder.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'builder.dart';
 import 'constructor_builder.dart';
-import 'declaration_builder.dart';
+import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';

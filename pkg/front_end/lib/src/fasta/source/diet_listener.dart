@@ -22,9 +22,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
-import '../builder/declaration_builder.dart';
-import '../builder/extension_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/modifier_builder.dart';

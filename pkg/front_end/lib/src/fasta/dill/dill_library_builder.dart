@@ -9,17 +9,13 @@ import 'dart:convert' show jsonDecode;
 import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
-import '../builder/extension_builder.dart';
-import '../builder/extension_type_declaration_builder.dart';
-import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/modifier_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/never_type_declaration_builder.dart';
-import '../builder/type_alias_builder.dart';
 import '../fasta_codes.dart'
     show Message, noLength, templateDuplicatedDeclaration, templateUnspecified;
 import '../kernel/constructor_tearoff_lowering.dart';

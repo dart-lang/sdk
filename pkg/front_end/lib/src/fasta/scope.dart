@@ -9,13 +9,11 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import 'builder/builder.dart';
-import 'builder/class_builder.dart';
-import 'builder/extension_builder.dart';
+import 'builder/declaration_builders.dart';
 import 'builder/library_builder.dart';
 import 'builder/member_builder.dart';
 import 'builder/metadata_builder.dart';
 import 'builder/name_iterator.dart';
-import 'builder/type_variable_builder.dart';
 import 'fasta_codes.dart';
 import 'kernel/body_builder.dart' show JumpTarget;
 import 'kernel/body_builder_context.dart';

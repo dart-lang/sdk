@@ -28,7 +28,7 @@ import '../../base/instrumentation.dart'
 import '../../base/nnbd_mode.dart';
 import '../../testing/id_extractor.dart';
 import '../../testing/id_testing_utils.dart';
-import '../builder/extension_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../fasta_codes.dart';
 import '../kernel/constructor_tearoff_lowering.dart';

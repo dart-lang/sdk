@@ -17,12 +17,12 @@ import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 
 import 'package:kernel/ast.dart' as type;
 
+import '../builder/declaration_builders.dart' as type;
 import '../builder/formal_parameter_builder.dart' as type;
 import '../builder/metadata_builder.dart' as type;
 import '../builder/mixin_application_builder.dart' as type;
 import '../builder/type_builder.dart' as type;
 import '../builder/record_type_builder.dart' as type;
-import '../builder/type_variable_builder.dart' as type;
 
 import '../identifiers.dart' as type;
 

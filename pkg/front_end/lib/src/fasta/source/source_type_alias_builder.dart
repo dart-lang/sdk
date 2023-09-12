@@ -8,15 +8,12 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
-import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_declaration_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../fasta_codes.dart'
     show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
 import '../kernel/body_builder_context.dart';
@@ -247,60 +244,72 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       SourceLibraryBuilder libraryBuilder, void Function(Procedure) f) {
     TypeDeclarationBuilder? declaration = unaliasDeclaration(null);
     DartType? targetType = typedef.type;
-    if (declaration is ClassBuilder &&
-        targetType is InterfaceType &&
-        typedef.typeParameters.isNotEmpty &&
-        !isProperRenameForClass(libraryBuilder.loader.typeEnvironment, typedef,
-            libraryBuilder.library)) {
-      tearOffs = {};
-      _tearOffDependencies = {};
-      NameIterator<MemberBuilder> iterator =
-          declaration.fullConstructorNameIterator();
-      while (iterator.moveNext()) {
-        String constructorName = iterator.name;
-        MemberBuilder builder = iterator.current;
-        Member? target = builder.invokeTarget;
-        if (target != null) {
-          if (target is Procedure && target.isRedirectingFactory) {
-            target = builder.readTarget!;
-          }
-          Class targetClass = target.enclosingClass!;
-          if (target is Constructor && targetClass.isAbstract) {
-            continue;
-          }
-          Name targetName =
-              new Name(constructorName, declaration.libraryBuilder.library);
-          Reference? tearOffReference;
-          if (libraryBuilder.referencesFromIndexed != null) {
-            Name tearOffName = new Name(
-                typedefTearOffName(name, constructorName),
-                libraryBuilder.referencesFromIndexed!.library);
-            tearOffReference = libraryBuilder.referencesFromIndexed!
-                .lookupGetterReference(tearOffName);
-          }
+    switch (declaration) {
+      case ClassBuilder():
+        if (targetType is InterfaceType &&
+            typedef.typeParameters.isNotEmpty &&
+            !isProperRenameForClass(libraryBuilder.loader.typeEnvironment,
+                typedef, libraryBuilder.library)) {
+          tearOffs = {};
+          _tearOffDependencies = {};
+          NameIterator<MemberBuilder> iterator =
+              declaration.fullConstructorNameIterator();
+          while (iterator.moveNext()) {
+            String constructorName = iterator.name;
+            MemberBuilder builder = iterator.current;
+            Member? target = builder.invokeTarget;
+            if (target != null) {
+              if (target is Procedure && target.isRedirectingFactory) {
+                target = builder.readTarget!;
+              }
+              Class targetClass = target.enclosingClass!;
+              if (target is Constructor && targetClass.isAbstract) {
+                continue;
+              }
+              Name targetName =
+                  new Name(constructorName, declaration.libraryBuilder.library);
+              Reference? tearOffReference;
+              if (libraryBuilder.referencesFromIndexed != null) {
+                Name tearOffName = new Name(
+                    typedefTearOffName(name, constructorName),
+                    libraryBuilder.referencesFromIndexed!.library);
+                tearOffReference = libraryBuilder.referencesFromIndexed!
+                    .lookupGetterReference(tearOffName);
+              }
 
-          Procedure tearOff = tearOffs![targetName] =
-              createTypedefTearOffProcedure(
-                  name,
-                  constructorName,
-                  libraryBuilder,
-                  target.fileUri,
-                  target.fileOffset,
-                  tearOffReference);
-          _tearOffDependencies![tearOff] = target;
+              Procedure tearOff = tearOffs![targetName] =
+                  createTypedefTearOffProcedure(
+                      name,
+                      constructorName,
+                      libraryBuilder,
+                      target.fileUri,
+                      target.fileOffset,
+                      tearOffReference);
+              _tearOffDependencies![tearOff] = target;
 
-          buildTypedefTearOffProcedure(
-              tearOff: tearOff,
-              declarationConstructor: target,
-              // TODO(johnniwinther): Handle patched constructors.
-              implementationConstructor: target,
-              enclosingClass: declaration.cls,
-              typeParameters: typedef.typeParameters,
-              typeArguments: targetType.typeArguments,
-              libraryBuilder: libraryBuilder);
-          f(tearOff);
+              buildTypedefTearOffProcedure(
+                  tearOff: tearOff,
+                  declarationConstructor: target,
+                  // TODO(johnniwinther): Handle patched constructors.
+                  implementationConstructor: target,
+                  enclosingClass: declaration.cls,
+                  typeParameters: typedef.typeParameters,
+                  typeArguments: targetType.typeArguments,
+                  libraryBuilder: libraryBuilder);
+              f(tearOff);
+            }
+          }
         }
-      }
+      case ExtensionTypeDeclarationBuilder():
+      // TODO(johnniwinther): Handle this case.
+      case TypeAliasBuilder():
+      case TypeVariableBuilder():
+      case ExtensionBuilder():
+      case InvalidTypeDeclarationBuilder():
+      case BuiltinTypeDeclarationBuilder():
+      // TODO(johnniwinther): How should we handle this case?
+      case OmittedTypeDeclarationBuilder():
+      case null:
     }
   }
 }

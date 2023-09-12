@@ -11,10 +11,9 @@ import '../identifiers.dart' show QualifiedName, flattenName;
 import '../scope.dart';
 
 import 'builder.dart';
-import 'declaration_builder.dart';
+import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'prefix_builder.dart';
-import 'type_alias_builder.dart';
 import 'type_builder.dart';
 
 class ConstructorReferenceBuilder {

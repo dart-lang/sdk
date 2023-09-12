@@ -32,18 +32,14 @@ import 'package:kernel/type_environment.dart'
 import '../../api_prototype/experimental_flags.dart';
 import '../../base/nnbd_mode.dart';
 import '../builder/builder.dart';
-import '../builder/builtin_type_declaration_builder.dart';
-import '../builder/class_builder.dart';
 import '../builder/constructor_reference_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
-import '../builder/extension_builder.dart';
-import '../builder/extension_type_declaration_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/inferable_type_builder.dart';
-import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -56,10 +52,7 @@ import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/record_type_builder.dart';
-import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_declaration_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import '../combinator.dart' show CombinatorBuilder;
 import '../configuration.dart' show Configuration;
@@ -1452,48 +1445,53 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String name = iterator.name;
       Builder builder = iterator.current;
       if (builder.parent?.origin != origin) {
-        if (builder is DynamicTypeDeclarationBuilder) {
-          assert(name == 'dynamic',
-              "Unexpected export name for 'dynamic': '$name'");
-          (unserializableExports ??= {})[name] = exportDynamicSentinel;
-        } else if (builder is NeverTypeDeclarationBuilder) {
-          assert(
-              name == 'Never', "Unexpected export name for 'Never': '$name'");
-          (unserializableExports ??= {})[name] = exportNeverSentinel;
-        } else {
-          if (builder is InvalidTypeDeclarationBuilder) {
-            (unserializableExports ??= {})[name] =
-                builder.message.problemMessage;
-          } else {
-            if (builder is ClassBuilder) {
+        if (builder is TypeDeclarationBuilder) {
+          switch (builder) {
+            case ClassBuilder():
               library.additionalExports.add(builder.cls.reference);
-            } else if (builder is ExtensionTypeDeclarationBuilder) {
+            case TypeAliasBuilder():
+              library.additionalExports.add(builder.typedef.reference);
+            case ExtensionBuilder():
+              library.additionalExports.add(builder.extension.reference);
+            case ExtensionTypeDeclarationBuilder():
               library.additionalExports
                   .add(builder.extensionTypeDeclaration.reference);
-            } else if (builder is TypeAliasBuilder) {
-              library.additionalExports.add(builder.typedef.reference);
-            } else if (builder is ExtensionBuilder) {
-              library.additionalExports.add(builder.extension.reference);
-            } else if (builder is MemberBuilder) {
-              for (Member exportedMember in builder.exportedMembers) {
-                if (exportedMember is Field) {
-                  // For fields add both getter and setter references
-                  // so replacing a field with a getter/setter pair still
-                  // exports correctly.
-                  library.additionalExports.add(exportedMember.getterReference);
-                  if (exportedMember.hasSetter) {
-                    library.additionalExports
-                        .add(exportedMember.setterReference!);
-                  }
-                } else {
-                  library.additionalExports.add(exportedMember.reference);
-                }
+            case InvalidTypeDeclarationBuilder():
+              (unserializableExports ??= {})[name] =
+                  builder.message.problemMessage;
+            case BuiltinTypeDeclarationBuilder():
+              if (builder is DynamicTypeDeclarationBuilder) {
+                assert(name == 'dynamic',
+                    "Unexpected export name for 'dynamic': '$name'");
+                (unserializableExports ??= {})[name] = exportDynamicSentinel;
+              } else if (builder is NeverTypeDeclarationBuilder) {
+                assert(name == 'Never',
+                    "Unexpected export name for 'Never': '$name'");
+                (unserializableExports ??= {})[name] = exportNeverSentinel;
               }
-            } else {
+            // TODO(johnniwinther): How should we handle this case?
+            case OmittedTypeDeclarationBuilder():
+            case TypeVariableBuilder():
               unhandled(
                   'member', 'exportScope', builder.charOffset, builder.fileUri);
+          }
+        } else if (builder is MemberBuilder) {
+          for (Member exportedMember in builder.exportedMembers) {
+            if (exportedMember is Field) {
+              // For fields add both getter and setter references
+              // so replacing a field with a getter/setter pair still
+              // exports correctly.
+              library.additionalExports.add(exportedMember.getterReference);
+              if (exportedMember.hasSetter) {
+                library.additionalExports.add(exportedMember.setterReference!);
+              }
+            } else {
+              library.additionalExports.add(exportedMember.reference);
             }
           }
+        } else {
+          unhandled(
+              'member', 'exportScope', builder.charOffset, builder.fileUri);
         }
       }
     }
@@ -2072,12 +2070,24 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       } else {
         typeVariablesByName[tv.name] = tv;
-        if (owner is ClassBuilder) {
-          // Only classes and type variables can't have the same name. See
-          // [#29555](https://github.com/dart-lang/sdk/issues/29555).
-          if (tv.name == owner.name) {
-            addProblem(messageTypeVariableSameNameAsEnclosing, tv.charOffset,
-                tv.name.length, fileUri);
+        if (owner is TypeDeclarationBuilder) {
+          switch (owner) {
+            case ClassBuilder():
+              // Only classes and type variables can't have the same name. See
+              // [#29555](https://github.com/dart-lang/sdk/issues/29555).
+              if (tv.name == owner.name) {
+                addProblem(messageTypeVariableSameNameAsEnclosing,
+                    tv.charOffset, tv.name.length, fileUri);
+              }
+            case ExtensionBuilder():
+            case ExtensionTypeDeclarationBuilder():
+            // TODO(johnniwinther): Should an error be reported here?
+            case TypeAliasBuilder():
+            case TypeVariableBuilder():
+            case InvalidTypeDeclarationBuilder():
+            case BuiltinTypeDeclarationBuilder():
+            // TODO(johnniwinther): How should we handle this case?
+            case OmittedTypeDeclarationBuilder():
           }
         }
       }

@@ -9,17 +9,16 @@ import '../messages.dart';
 import '../problems.dart';
 import '../scope.dart';
 import 'builder.dart';
-import 'declaration_builder.dart';
+import 'declaration_builders.dart';
 import 'field_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
-import 'type_variable_builder.dart';
 
 /// Shared implementation between extension and extension type declaration
 /// builders.
-mixin DeclarationBuilderMixin implements DeclarationBuilder {
+mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   /// Type parameters declared.
   ///
   /// This is `null` if the declaration is not generic.

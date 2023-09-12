@@ -2,19 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.type_declaration_builder;
+part of 'declaration_builders.dart';
 
-import 'package:kernel/ast.dart' show DartType, Nullability;
-import 'package:kernel/class_hierarchy.dart';
-
-import 'builder.dart';
-import 'library_builder.dart';
-import 'metadata_builder.dart';
-import 'modifier_builder.dart';
-import 'nullability_builder.dart';
-import 'type_builder.dart';
-
-abstract class TypeDeclarationBuilder implements ModifierBuilder {
+abstract class ITypeDeclarationBuilder implements ModifierBuilder {
   @override
   String get name;
 
@@ -64,7 +54,7 @@ abstract class TypeDeclarationBuilder implements ModifierBuilder {
 }
 
 abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
-    implements TypeDeclarationBuilder {
+    implements ITypeDeclarationBuilder {
   @override
   final List<MetadataBuilder>? metadata;
 
@@ -79,7 +69,7 @@ abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
       : super(parent, charOffset);
 
   @override
-  TypeDeclarationBuilder get origin => this;
+  TypeDeclarationBuilder get origin => this as TypeDeclarationBuilder;
 
   @override
   bool get isNamedMixinApplication => false;

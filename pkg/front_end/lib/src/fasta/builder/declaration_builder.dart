@@ -2,19 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
+part of 'declaration_builders.dart';
 
-import '../messages.dart';
-import '../scope.dart';
-import 'builder.dart';
-import 'library_builder.dart';
-import 'member_builder.dart';
-import 'metadata_builder.dart';
-import 'type_builder.dart';
-import 'type_declaration_builder.dart';
-
-abstract class DeclarationBuilder implements TypeDeclarationBuilder {
+abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   Scope get scope;
 
   LibraryBuilder get libraryBuilder;
@@ -54,7 +44,7 @@ abstract class DeclarationBuilder implements TypeDeclarationBuilder {
 }
 
 abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
-    implements DeclarationBuilder {
+    implements IDeclarationBuilder {
   @override
   final Scope scope;
 
@@ -82,7 +72,7 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
   }
 
   @override
-  DeclarationBuilder get origin => this;
+  DeclarationBuilder get origin => this as DeclarationBuilder;
 
   @override
   MemberBuilder? findConstructorOrFactory(

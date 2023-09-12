@@ -25,7 +25,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 
-import '../builder/type_alias_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../names.dart';
 import '../problems.dart' show unsupported;
 import '../source/source_constructor_builder.dart';

@@ -4,12 +4,10 @@
 
 import 'package:kernel/ast.dart';
 
-import '../fasta/builder/class_builder.dart';
+import '../fasta/builder/declaration_builders.dart';
 import '../fasta/builder/library_builder.dart';
 import '../fasta/builder/member_builder.dart';
 import '../fasta/builder/type_builder.dart';
-import '../fasta/builder/type_variable_builder.dart';
-import '../fasta/builder/extension_builder.dart';
 import '../fasta/messages.dart';
 import '../fasta/source/source_library_builder.dart';
 import '../fasta/source/source_loader.dart';

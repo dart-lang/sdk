@@ -2,31 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.type_variable_builder;
-
-import 'package:kernel/ast.dart'
-    show DartType, Nullability, TypeParameter, TypeParameterType;
-import 'package:kernel/class_hierarchy.dart';
-
-import '../fasta_codes.dart'
-    show
-        templateInternalProblemUnfinishedTypeVariable,
-        templateTypeArgumentsOnTypeVariable;
-import '../kernel/body_builder_context.dart';
-import '../scope.dart';
-import '../source/source_library_builder.dart';
-import '../uris.dart';
-import '../util/helpers.dart';
-import 'builder.dart';
-import 'class_builder.dart';
-import 'formal_parameter_builder.dart';
-import 'library_builder.dart';
-import 'metadata_builder.dart';
-import 'nullability_builder.dart';
-import 'record_type_builder.dart';
-import 'type_alias_builder.dart';
-import 'type_builder.dart';
-import 'type_declaration_builder.dart';
+part of 'declaration_builders.dart';
 
 enum TypeVariableKind {
   /// A type variable declared on a function, method, local function or
@@ -47,7 +23,8 @@ enum TypeVariableKind {
   fromKernel,
 }
 
-class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
+class TypeVariableBuilder extends TypeDeclarationBuilderImpl
+    implements TypeDeclarationBuilder {
   /// Sentinel value used to indicate that the variable has no name. This is
   /// used for error recovery.
   static const String noNameSentinel = 'no name sentinel';
@@ -290,13 +267,22 @@ void _sortTypeVariablesTopologicallyFromRoot(TypeBuilder root,
 
   switch (root) {
     case NamedTypeBuilder(:TypeDeclarationBuilder? declaration):
-      if (declaration is ClassBuilder) {
-        foundTypeVariables = declaration.typeVariables;
-      } else if (declaration is TypeAliasBuilder) {
-        foundTypeVariables = declaration.typeVariables;
-        internalDependents = <TypeBuilder>[declaration.type];
-      } else if (declaration is TypeVariableBuilder) {
-        foundTypeVariables = <TypeVariableBuilder>[declaration];
+      switch (declaration) {
+        case ClassBuilder():
+          foundTypeVariables = declaration.typeVariables;
+        case TypeAliasBuilder():
+          foundTypeVariables = declaration.typeVariables;
+          internalDependents = <TypeBuilder>[declaration.type];
+        case TypeVariableBuilder():
+          foundTypeVariables = <TypeVariableBuilder>[declaration];
+        case ExtensionTypeDeclarationBuilder():
+        // TODO(johnniwinther):: Handle this case.
+        case ExtensionBuilder():
+        case BuiltinTypeDeclarationBuilder():
+        case InvalidTypeDeclarationBuilder():
+        // TODO(johnniwinther): How should we handle this case?
+        case OmittedTypeDeclarationBuilder():
+        case null:
       }
     case FunctionTypeBuilder(
         :List<TypeVariableBuilder>? typeVariables,

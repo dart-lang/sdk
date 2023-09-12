@@ -12,11 +12,9 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 
 import '../../../testing/id_testing_utils.dart' show typeToText;
 import '../../builder/builder.dart';
-import '../../builder/class_builder.dart';
-import '../../builder/extension_type_declaration_builder.dart';
+import '../../builder/declaration_builders.dart';
 import '../../builder/library_builder.dart';
 import '../../builder/named_type_builder.dart';
-import '../../builder/type_alias_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../fasta_codes.dart';
 import '../../source/source_library_builder.dart';

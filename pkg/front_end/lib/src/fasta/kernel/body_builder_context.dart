@@ -8,9 +8,8 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/transformations/flags.dart';
 
 import '../builder/builder.dart';
-import '../builder/declaration_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
-import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/type_builder.dart';
