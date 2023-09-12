@@ -146,32 +146,8 @@ class _ElementWriter {
   }
 
   void _writeAugmentation(ElementImpl e) {
-    switch (e) {
-      case ClassElementImpl e:
-        final augmentation = e.augmentation;
-        if (augmentation != null) {
-          _elementPrinter.writeNamedElement('augmentation', augmentation);
-        }
-      case FunctionElementImpl e:
-        final augmentation = e.augmentation;
-        if (augmentation != null) {
-          _elementPrinter.writeNamedElement('augmentation', augmentation);
-        }
-      case MixinElementImpl e:
-        final augmentation = e.augmentation;
-        if (augmentation != null) {
-          _elementPrinter.writeNamedElement('augmentation', augmentation);
-        }
-      case PropertyAccessorElementImpl e:
-        final augmentation = e.augmentation;
-        if (augmentation != null) {
-          _elementPrinter.writeNamedElement('augmentation', augmentation);
-        }
-      case PropertyInducingElementImpl e:
-        final augmentation = e.augmentation;
-        if (augmentation != null) {
-          _elementPrinter.writeNamedElement('augmentation', augmentation);
-        }
+    if (e case AugmentableElement(:final augmentation?)) {
+      _elementPrinter.writeNamedElement('augmentation', augmentation);
     }
   }
 
@@ -194,35 +170,11 @@ class _ElementWriter {
   }
 
   void _writeAugmentationTarget(ElementImpl e) {
-    switch (e) {
-      case FunctionElementImpl e:
-        if (e.isAugmentation) {
-          _elementPrinter.writeNamedElement(
-            'augmentationTarget',
-            e.augmentationTarget,
-          );
-        }
-      case InterfaceElementImpl e:
-        if (e.isAugmentation) {
-          _elementPrinter.writeNamedElement(
-            'augmentationTarget',
-            e.augmentationTarget,
-          );
-        }
-      case PropertyAccessorElementImpl e:
-        if (e.isAugmentation) {
-          _elementPrinter.writeNamedElement(
-            'augmentationTarget',
-            e.augmentationTarget,
-          );
-        }
-      case PropertyInducingElementImpl e:
-        if (e.isAugmentation) {
-          _elementPrinter.writeNamedElement(
-            'augmentationTarget',
-            e.augmentationTarget,
-          );
-        }
+    if (e is AugmentableElement && e.isAugmentation) {
+      _elementPrinter.writeNamedElement(
+        'augmentationTarget',
+        e.augmentationTarget,
+      );
     }
   }
 
