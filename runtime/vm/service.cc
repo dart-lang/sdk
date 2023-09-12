@@ -2895,7 +2895,8 @@ static const MethodParameter* const build_expression_evaluation_scope_params[] =
         nullptr,
 };
 
-static void CollectStringifiedType(Zone* zone,
+static void CollectStringifiedType(Thread* thread,
+                                   Zone* zone,
                                    const AbstractType& type,
                                    const GrowableObjectArray& output) {
   Instance& instance = Instance::Handle(zone);
@@ -2938,13 +2939,25 @@ static void CollectStringifiedType(Zone* zone,
   instance ^= Smi::New((intptr_t)type.nullability());
   output.Add(instance);
 
-  const TypeArguments& srcArguments =
+  const TypeArguments& type_arguments =
       TypeArguments::Handle(Type::Cast(type).arguments());
-  instance ^= Smi::New(srcArguments.Length());
-  output.Add(instance);
-  for (int i = 0; i < srcArguments.Length(); i++) {
-    const AbstractType& src_type = AbstractType::Handle(srcArguments.TypeAt(i));
-    CollectStringifiedType(zone, src_type, output);
+  if (!type_arguments.IsNull()) {
+    instance ^= Smi::New(type_arguments.Length());
+    output.Add(instance);
+    AbstractType& src_type = AbstractType::Handle();
+    for (intptr_t i = 0; i < type_arguments.Length(); i++) {
+      src_type = type_arguments.TypeAt(i);
+      CollectStringifiedType(thread, zone, src_type, output);
+    }
+  } else {
+    const intptr_t num_type_parameters = cls.NumTypeParameters(thread);
+    instance ^= Smi::New(num_type_parameters);
+    output.Add(instance);
+    const AbstractType& dynamic_type =
+        AbstractType::Handle(Type::DynamicType());
+    for (intptr_t i = 0; i < num_type_parameters; i++) {
+      CollectStringifiedType(thread, zone, dynamic_type, output);
+    }
   }
 }
 
@@ -3088,7 +3101,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
       } else if (obj.IsInstance()) {
         instance ^= param_values.At(i);
         type = instance.GetType(Heap::kNew);
-        CollectStringifiedType(zone, type, param_types);
+        CollectStringifiedType(thread, zone, type, param_types);
       }
     }
     for (intptr_t i = 0; i < param_types.Length(); i++) {
@@ -3112,7 +3125,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     AbstractType& type = AbstractType::Handle();
     for (intptr_t i = 0; i < type_params_bounds.Length(); i++) {
       type ^= type_params_bounds.At(i);
-      CollectStringifiedType(zone, type, type_params_bounds_strings);
+      CollectStringifiedType(thread, zone, type, type_params_bounds_strings);
     }
     Instance& instance = Instance::Handle();
     for (intptr_t i = 0; i < type_params_bounds_strings.Length(); i++) {
@@ -3127,7 +3140,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     AbstractType& type = AbstractType::Handle();
     for (intptr_t i = 0; i < type_params_defaults.Length(); i++) {
       type ^= type_params_defaults.At(i);
-      CollectStringifiedType(zone, type, type_params_defaults_strings);
+      CollectStringifiedType(thread, zone, type, type_params_defaults_strings);
     }
     Instance& instance = Instance::Handle();
     for (intptr_t i = 0; i < type_params_defaults_strings.Length(); i++) {

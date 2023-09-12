@@ -42,11 +42,8 @@ import '../../base/common.dart';
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../../base/nnbd_mode.dart';
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
-import '../builder/extension_builder.dart';
-import '../builder/extension_type_declaration_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/inferable_type_builder.dart';
-import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
@@ -54,10 +51,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
-import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_declaration_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../builder_graph.dart';
 import '../denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
@@ -1271,21 +1265,34 @@ severity: $severity
 
     Builder parent = libraryBuilder;
     if (enclosingClassOrExtension != null) {
-      Builder? cls = dietListener.memberScope
+      Builder? builder = dietListener.memberScope
           .lookup(enclosingClassOrExtension, -1, libraryBuilder.fileUri);
-      if (cls is ClassBuilder) {
-        parent = cls;
-        dietListener
-          ..currentDeclaration = cls
-          ..memberScope = cls.scope.copyWithParent(
-              dietListener.memberScope.withTypeVariables(cls.typeVariables),
-              "debugExpression in class $enclosingClassOrExtension");
-      } else if (cls is ExtensionBuilder) {
-        parent = cls;
-        dietListener
-          ..currentDeclaration = cls
-          ..memberScope = cls.scope.copyWithParent(dietListener.memberScope,
-              "debugExpression in extension $enclosingClassOrExtension");
+      if (builder is TypeDeclarationBuilder) {
+        switch (builder) {
+          case ClassBuilder():
+            parent = builder;
+            dietListener
+              ..currentDeclaration = builder
+              ..memberScope = builder.scope.copyWithParent(
+                  dietListener.memberScope
+                      .withTypeVariables(builder.typeVariables),
+                  "debugExpression in class $enclosingClassOrExtension");
+          case ExtensionBuilder():
+            parent = builder;
+            dietListener
+              ..currentDeclaration = builder
+              ..memberScope = builder.scope.copyWithParent(
+                  dietListener.memberScope,
+                  "debugExpression in extension $enclosingClassOrExtension");
+          case ExtensionTypeDeclarationBuilder():
+          // TODO(johnniwinther): Handle this case.
+          case TypeAliasBuilder():
+          case TypeVariableBuilder():
+          case InvalidTypeDeclarationBuilder():
+          case BuiltinTypeDeclarationBuilder():
+          // TODO(johnniwinther): How should we handle this case?
+          case OmittedTypeDeclarationBuilder():
+        }
       }
     }
     SourceProcedureBuilder builder = new SourceProcedureBuilder(

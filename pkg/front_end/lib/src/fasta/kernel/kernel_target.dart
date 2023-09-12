@@ -23,22 +23,15 @@ import '../../api_prototype/file_system.dart' show FileSystem;
 import '../../base/nnbd_mode.dart';
 import '../../base/processed_options.dart' show ProcessedOptions;
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
-import '../builder/dynamic_type_declaration_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/field_builder.dart';
-import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
-import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/procedure_builder.dart';
-import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_declaration_builder.dart';
-import '../builder/type_variable_builder.dart';
-import '../builder/void_type_declaration_builder.dart';
 import '../compiler_context.dart' show CompilerContext;
 import '../crash.dart' show withCrashReporting;
 import '../dill/dill_target.dart' show DillTarget;
@@ -923,67 +916,69 @@ class KernelTarget extends TargetImplementation {
           new Name(constructorTearOffName(""), indexedClass.library));
     }
 
-    if (supertype is ClassBuilder) {
-      ClassBuilder superclassBuilder = supertype;
-      bool isConstructorAdded = false;
-      Map<TypeParameter, DartType>? substitutionMap;
+    switch (supertype) {
+      case ClassBuilder():
+        ClassBuilder superclassBuilder = supertype;
+        bool isConstructorAdded = false;
+        Map<TypeParameter, DartType>? substitutionMap;
 
-      NameIterator<MemberBuilder> iterator =
-          superclassBuilder.fullConstructorNameIterator();
-      while (iterator.moveNext()) {
-        String name = iterator.name;
-        MemberBuilder memberBuilder = iterator.current;
-        if (memberBuilder.member is Constructor) {
-          substitutionMap ??= builder.getSubstitutionMap(superclassBuilder.cls);
-          Reference? constructorReference;
-          Reference? tearOffReference;
-          if (indexedClass != null) {
-            constructorReference = indexedClass
-                // We use the name of the member builder here since it refers to
-                // the library of the original declaration when private. For
-                // instance:
-                //
-                //     // lib1:
-                //     class Super { Super._() }
-                //     class Subclass extends Class {
-                //       Subclass() : super._();
-                //     }
-                //     // lib2:
-                //     class Mixin {}
-                //     class Class = Super with Mixin;
-                //
-                // Here `super._()` in `Subclass` targets the forwarding stub
-                // added to `Class` whose name is `_` private to `lib1`.
-                .lookupConstructorReference(memberBuilder.member.name);
-            tearOffReference = indexedClass.lookupGetterReference(
-                new Name(constructorTearOffName(name), indexedClass.library));
+        NameIterator<MemberBuilder> iterator =
+            superclassBuilder.fullConstructorNameIterator();
+        while (iterator.moveNext()) {
+          String name = iterator.name;
+          MemberBuilder memberBuilder = iterator.current;
+          if (memberBuilder.member is Constructor) {
+            substitutionMap ??=
+                builder.getSubstitutionMap(superclassBuilder.cls);
+            Reference? constructorReference;
+            Reference? tearOffReference;
+            if (indexedClass != null) {
+              constructorReference = indexedClass
+                  // We use the name of the member builder here since it refers
+                  // to the library of the original declaration when private.
+                  // For instance:
+                  //
+                  //     // lib1:
+                  //     class Super { Super._() }
+                  //     class Subclass extends Class {
+                  //       Subclass() : super._();
+                  //     }
+                  //     // lib2:
+                  //     class Mixin {}
+                  //     class Class = Super with Mixin;
+                  //
+                  // Here `super._()` in `Subclass` targets the forwarding stub
+                  // added to `Class` whose name is `_` private to `lib1`.
+                  .lookupConstructorReference(memberBuilder.member.name);
+              tearOffReference = indexedClass.lookupGetterReference(
+                  new Name(constructorTearOffName(name), indexedClass.library));
+            }
+            builder.addSyntheticConstructor(_makeMixinApplicationConstructor(
+                builder,
+                builder.cls.mixin,
+                memberBuilder as MemberBuilderImpl,
+                substitutionMap,
+                constructorReference,
+                tearOffReference));
+            isConstructorAdded = true;
           }
-          builder.addSyntheticConstructor(_makeMixinApplicationConstructor(
-              builder,
-              builder.cls.mixin,
-              memberBuilder as MemberBuilderImpl,
-              substitutionMap,
-              constructorReference,
-              tearOffReference));
-          isConstructorAdded = true;
         }
-      }
 
-      if (!isConstructorAdded) {
+        if (!isConstructorAdded) {
+          builder.addSyntheticConstructor(_makeDefaultConstructor(
+              builder, constructorReference, tearOffReference));
+        }
+      case TypeAliasBuilder():
+      case TypeVariableBuilder():
+      case ExtensionBuilder():
+      case ExtensionTypeDeclarationBuilder():
+      case InvalidTypeDeclarationBuilder():
+      case BuiltinTypeDeclarationBuilder():
+      // TODO(johnniwinther): How should we handle this case?
+      case OmittedTypeDeclarationBuilder():
+      case null:
         builder.addSyntheticConstructor(_makeDefaultConstructor(
             builder, constructorReference, tearOffReference));
-      }
-    } else if (supertype is InvalidTypeDeclarationBuilder ||
-        supertype is TypeVariableBuilder ||
-        supertype is DynamicTypeDeclarationBuilder ||
-        supertype is VoidTypeDeclarationBuilder ||
-        supertype is NeverTypeDeclarationBuilder ||
-        supertype is TypeAliasBuilder) {
-      builder.addSyntheticConstructor(_makeDefaultConstructor(
-          builder, constructorReference, tearOffReference));
-    } else {
-      unhandled("${supertype.runtimeType}", "installForwardingConstructors",
-          builder.charOffset, builder.fileUri);
     }
   }
 

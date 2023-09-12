@@ -12,12 +12,12 @@ import 'package:kernel/src/unaliasing.dart';
 import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
 import '../kernel/implicit_field_type.dart';
 import '../source/source_library_builder.dart';
+import 'declaration_builders.dart';
 import 'formal_parameter_builder.dart';
 import 'inferable_type_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
-import 'type_variable_builder.dart';
 
 abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   @override

@@ -9,9 +9,8 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 
 import 'package:kernel/ast.dart';
 
-import '../builder/class_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
-import '../builder/extension_type_declaration_builder.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
@@ -22,7 +21,6 @@ import '../builder/null_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 
 import '../kernel/utils.dart';

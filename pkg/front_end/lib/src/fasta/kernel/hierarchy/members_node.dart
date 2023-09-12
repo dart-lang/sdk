@@ -11,14 +11,12 @@ import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/src/norm.dart';
 
 import '../../../base/common.dart';
-import '../../builder/class_builder.dart';
+import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/library_builder.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/omitted_type_builder.dart';
-import '../../builder/type_alias_builder.dart';
 import '../../builder/type_builder.dart';
-import '../../builder/type_declaration_builder.dart';
 import '../../messages.dart'
     show
         LocatedMessage,

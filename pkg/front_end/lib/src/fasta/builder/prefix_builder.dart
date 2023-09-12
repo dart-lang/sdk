@@ -14,7 +14,7 @@ import '../scope.dart';
 import '../source/source_library_builder.dart';
 
 import 'builder.dart';
-import 'extension_builder.dart';
+import 'declaration_builders.dart';
 
 class PrefixBuilder extends BuilderImpl {
   final String name;

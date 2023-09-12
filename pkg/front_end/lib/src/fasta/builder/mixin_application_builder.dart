@@ -4,8 +4,8 @@
 
 library fasta.mixin_application_builder;
 
+import 'declaration_builders.dart';
 import 'type_builder.dart';
-import 'type_variable_builder.dart';
 
 class MixinApplicationBuilder {
   final List<TypeBuilder> mixins;

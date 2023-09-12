@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef ProgressToken = self::Either2<core::int, core::String>;
+class Either2<T1 extends core::Object? = dynamic, T2 extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field core::int _which;
+  final field self::Either2::T1? _t1;
+  final field self::Either2::T2? _t2;
+  const constructor t1(self::Either2::T1% _t1) → self::Either2<self::Either2::T1%, self::Either2::T2%>
+    : self::Either2::_t1 = _t1, self::Either2::_t2 = null, self::Either2::_which = 1, super core::Object::•()
+    ;
+  const constructor t2(self::Either2::T2% _t2) → self::Either2<self::Either2::T1%, self::Either2::T2%>
+    : self::Either2::_t2 = _t2, self::Either2::_t1 = null, self::Either2::_which = 2, super core::Object::•()
+    ;
+}
+static final field self::Either2<core::int, core::String> analyzingProgressToken = new self::Either2::t2<core::int, core::String>("ANALYZING");

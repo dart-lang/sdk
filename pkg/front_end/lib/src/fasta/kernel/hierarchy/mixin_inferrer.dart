@@ -9,7 +9,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/standard_bounds.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../../builder/class_builder.dart';
+import '../../builder/declaration_builders.dart';
 import '../../messages.dart' show Message;
 import '../../type_inference/standard_bounds.dart'
     show TypeSchemaStandardBounds;

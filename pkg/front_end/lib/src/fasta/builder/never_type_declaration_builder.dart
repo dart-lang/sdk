@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart' show DartType, Nullability;
 import 'package:kernel/class_hierarchy.dart';
 
 import '../uris.dart';
-import 'builtin_type_declaration_builder.dart';
+import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';

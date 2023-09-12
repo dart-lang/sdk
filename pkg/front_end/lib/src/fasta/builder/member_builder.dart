@@ -9,10 +9,7 @@ import 'package:kernel/ast.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../modifier.dart';
 import 'builder.dart';
-import 'class_builder.dart';
-import 'declaration_builder.dart';
-import 'extension_builder.dart';
-import 'extension_type_declaration_builder.dart';
+import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'modifier_builder.dart';
 

@@ -10,7 +10,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../../base/common.dart';
 import '../builder/builder.dart';
-import '../builder/declaration_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';

@@ -2,19 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.builtin_type_builder;
+part of 'declaration_builders.dart';
 
-import 'package:kernel/ast.dart' show DartType, Nullability;
-import 'package:kernel/class_hierarchy.dart';
-
-import 'library_builder.dart';
-import 'nullability_builder.dart';
-import 'type_builder.dart';
-
-import 'type_declaration_builder.dart';
-
-abstract class BuiltinTypeDeclarationBuilder
-    extends TypeDeclarationBuilderImpl {
+abstract class BuiltinTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
+    implements TypeDeclarationBuilder {
   final DartType type;
 
   @override

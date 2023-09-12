@@ -7,7 +7,7 @@ library fasta.class_hierarchy_builder;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchyMembers;
 
-import '../../builder/class_builder.dart';
+import '../../builder/declaration_builders.dart';
 import '../../builder/type_builder.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_field_builder.dart';

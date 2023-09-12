@@ -16,13 +16,13 @@ import 'package:kernel/clone.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/text/ast_to_text.dart';
 
+import '../builder/declaration_builders.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../combinator.dart';
 import '../configuration.dart';
 import '../identifiers.dart';

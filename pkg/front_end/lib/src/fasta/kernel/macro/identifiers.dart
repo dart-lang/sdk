@@ -8,14 +8,12 @@ import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart
     as macro;
 import 'package:kernel/ast.dart';
 
-import '../../builder/class_builder.dart';
+import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/library_builder.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/nullability_builder.dart';
-import '../../builder/type_alias_builder.dart';
 import '../../builder/type_builder.dart';
-import '../../builder/type_declaration_builder.dart';
 import '../../uris.dart';
 import 'macro.dart';
 
@@ -37,13 +35,26 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
       TypeDeclarationBuilder? typeDeclarationBuilder) {
     if (typeDeclarationBuilder != null) {
       Uri? uri;
-      if (typeDeclarationBuilder is ClassBuilder) {
-        uri = typeDeclarationBuilder.libraryBuilder.importUri;
-      } else if (typeDeclarationBuilder is TypeAliasBuilder) {
-        uri = typeDeclarationBuilder.libraryBuilder.importUri;
-      } else if (name == 'dynamic') {
-        uri = dartCore;
+      switch (typeDeclarationBuilder) {
+        case ClassBuilder():
+          uri = typeDeclarationBuilder.libraryBuilder.importUri;
+        case TypeAliasBuilder():
+          uri = typeDeclarationBuilder.libraryBuilder.importUri;
+        case TypeVariableBuilder():
+        // TODO(johnniwinther): Handle this case.
+        case ExtensionBuilder():
+        // TODO(johnniwinther): Handle this case.
+        case ExtensionTypeDeclarationBuilder():
+        // TODO(johnniwinther): Handle this case.
+        case InvalidTypeDeclarationBuilder():
+        case BuiltinTypeDeclarationBuilder():
+          if (name == 'dynamic') {
+            uri = dartCore;
+          }
+        // TODO(johnniwinther): How should we handle this case?
+        case OmittedTypeDeclarationBuilder():
       }
+
       return new macro.ResolvedIdentifier(
           kind: macro.IdentifierKind.topLevelMember,
           name: name,
@@ -57,15 +68,24 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
   Future<macro.TypeDeclaration> _resolveTypeDeclaration(
       MacroApplications macroApplications,
       TypeDeclarationBuilder? typeDeclarationBuilder) {
-    if (typeDeclarationBuilder is ClassBuilder) {
-      return new Future.value(
-          macroApplications.getClassDeclaration(typeDeclarationBuilder));
-    } else if (typeDeclarationBuilder is TypeAliasBuilder) {
-      return new Future.value(
-          macroApplications.getTypeAliasDeclaration(typeDeclarationBuilder));
-    } else {
-      return new Future.error(
-          new ArgumentError('Unable to resolve identifier $this'));
+    switch (typeDeclarationBuilder) {
+      case ClassBuilder():
+        return new Future.value(
+            macroApplications.getClassDeclaration(typeDeclarationBuilder));
+      case TypeAliasBuilder():
+        return new Future.value(
+            macroApplications.getTypeAliasDeclaration(typeDeclarationBuilder));
+      case TypeVariableBuilder():
+      case ExtensionBuilder():
+      case ExtensionTypeDeclarationBuilder():
+      case InvalidTypeDeclarationBuilder():
+      case BuiltinTypeDeclarationBuilder():
+      // TODO(johnniwinther): How should we handle this case?
+      case OmittedTypeDeclarationBuilder():
+      case null:
+        // TODO(johnniwinther): Handle these cases.
+        return new Future.error(
+            new ArgumentError('Unable to resolve identifier $this'));
     }
   }
 }

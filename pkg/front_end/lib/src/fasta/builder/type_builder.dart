@@ -11,15 +11,12 @@ import '../kernel/type_algorithms.dart';
 import '../messages.dart';
 import '../scope.dart';
 import '../source/source_library_builder.dart';
+import 'declaration_builders.dart';
 import 'formal_parameter_builder.dart';
-import 'invalid_type_declaration_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'omitted_type_builder.dart';
 import 'record_type_builder.dart';
-import 'type_alias_builder.dart';
-import 'type_declaration_builder.dart';
-import 'type_variable_builder.dart';
 
 enum TypeUse {
   /// A type used as the type of a parameter.

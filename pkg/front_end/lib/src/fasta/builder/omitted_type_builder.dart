@@ -11,7 +11,6 @@ import 'inferable_type_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
-import 'type_declaration_builder.dart';
 
 abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
   const OmittedTypeBuilderImpl();
@@ -248,50 +247,4 @@ abstract class Inferable {
   /// Triggers the inference of the types of one or more
   /// [InferableTypeBuilder]s.
   void inferTypes(ClassHierarchyBase hierarchy);
-}
-
-/// [TypeDeclaration] wrapper for an [OmittedTypeBuilder].
-///
-/// This is used in macro generated code to create type annotations from
-/// inferred types in the original code.
-class OmittedTypeDeclarationBuilder extends TypeDeclarationBuilderImpl {
-  OmittedTypeBuilder omittedTypeBuilder;
-
-  OmittedTypeDeclarationBuilder(
-      String name, this.omittedTypeBuilder, SourceLibraryBuilder parent)
-      : super(null, 0, name, parent, TreeNode.noOffset);
-
-  @override
-  DartType buildAliasedType(
-      LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      ClassHierarchyBase? hierarchy,
-      {required bool hasExplicitTypeArguments}) {
-    // TODO(johnniwinther): This should probably be an error case.
-    throw new UnimplementedError('${runtimeType}.buildAliasedType');
-  }
-
-  @override
-  DartType buildAliasedTypeWithBuiltArguments(
-      LibraryBuilder library,
-      Nullability nullability,
-      List<DartType> arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      {required bool hasExplicitTypeArguments}) {
-    // TODO(johnniwinther): This should probably be an error case.
-    throw new UnimplementedError(
-        '${runtimeType}.buildAliasedTypeWithBuiltArguments');
-  }
-
-  @override
-  String get debugName => 'OmittedTypeDeclarationBuilder';
-
-  @override
-  Uri? get fileUri => parent!.fileUri;
 }

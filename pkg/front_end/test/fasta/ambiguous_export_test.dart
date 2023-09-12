@@ -6,7 +6,7 @@ import 'package:async_helper/async_helper.dart' show asyncTest;
 
 import 'package:expect/expect.dart' show Expect;
 
-import 'package:front_end/src/fasta/builder/invalid_type_declaration_builder.dart';
+import 'package:front_end/src/fasta/builder/declaration_builders.dart';
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 

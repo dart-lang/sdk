@@ -84,9 +84,8 @@ import '../kernel_generator_impl.dart' show precompileMacros;
 
 import 'builder/builder.dart' show Builder;
 
-import 'builder/class_builder.dart' show ClassBuilder;
-
-import 'builder/extension_builder.dart' show ExtensionBuilder;
+import 'builder/declaration_builders.dart'
+    show ClassBuilder, ExtensionBuilder, TypeDeclarationBuilder;
 
 import 'builder/field_builder.dart' show FieldBuilder;
 
@@ -97,8 +96,6 @@ import 'builder/member_builder.dart' show MemberBuilder;
 import 'builder/name_iterator.dart' show NameIterator;
 
 import 'builder/type_builder.dart' show NamedTypeBuilder, TypeBuilder;
-
-import 'builder/type_declaration_builder.dart' show TypeDeclarationBuilder;
 
 import 'builder_graph.dart' show BuilderGraph;
 

@@ -5,10 +5,8 @@
 import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
 import '../builder/constructor_reference_builder.dart';
-import '../builder/declaration_builder.dart';
-import '../builder/extension_type_declaration_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/function_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
@@ -27,7 +25,7 @@ import 'source_library_builder.dart';
 // TODO(johnniwinther): Should this be renamed now that inline classes are
 //  renamed to extension type declarations?
 abstract class ClassDeclaration
-    implements DeclarationBuilder, ClassMemberAccess {
+    implements IDeclarationBuilder, ClassMemberAccess {
   @override
   SourceLibraryBuilder get libraryBuilder;
 

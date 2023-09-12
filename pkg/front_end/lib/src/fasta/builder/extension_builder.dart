@@ -2,15 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart';
-import '../scope.dart';
-import 'builder.dart';
-import 'builder_mixins.dart';
-import 'declaration_builder.dart';
-import 'library_builder.dart';
-import 'metadata_builder.dart';
-import 'type_builder.dart';
-import 'type_variable_builder.dart';
+part of 'declaration_builders.dart';
 
 abstract class ExtensionBuilder implements DeclarationBuilder {
   /// Type parameters declared on the extension.
