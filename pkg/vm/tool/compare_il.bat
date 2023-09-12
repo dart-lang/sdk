@@ -14,4 +14,4 @@ set SDK_DIR=%SCRIPTPATH%/../../../
 
 set DART=%SDK_DIR%/tools/sdks/dart-sdk/bin/dart.exe
 
-"%DART%" %DART_VM_OPTIONS% --enable-experiment=records,patterns "%SDK_DIR%/pkg/vm/bin/compare_il.dart" %*
+"%DART%" %DART_VM_OPTIONS% "%SDK_DIR%/pkg/vm/bin/compare_il.dart" %*
