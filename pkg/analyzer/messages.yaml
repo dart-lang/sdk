@@ -22124,21 +22124,48 @@ WarningCode:
     problemMessage: "Doc imports can't have configurations."
     correctionMessage: Try removing the configurations.
     hasPublishedDocs: false
+  DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS:
+    problemMessage: "Doc directive has '{0}' arguments, but only '{1}' are expected."
+    correctionMessage: Try removing the extra arguments.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the actual number of arguments
+      1: the expected number of arguments
   DOC_DIRECTIVE_MISSING_CLOSING_BRACE:
     problemMessage: "Doc directive is missing a closing curly brace ('}')."
     correctionMessage: "Try closing the directive with a curly brace."
     hasPublishedDocs: false
-  DOC_YOUTUBE_DIRECTIVE_MISSING_HEIGHT:
-    problemMessage: YouTube directive is missing a height argument.
-    correctionMessage: Try adding a height argument after the width.
-  DOC_YOUTUBE_DIRECTIVE_MISSING_URL:
-    problemMessage: YouTube directive is missing a URL argument.
-    correctionMessage: Try adding a URL after the width and height.
+  DOC_DIRECTIVE_MISSING_ONE_ARGUMENT:
+    sharedName: DOC_DIRECTIVE_MISSING_ARGUMENT
+    problemMessage: "The '{0}' directive is missing a '{1}' argument."
+    correctionMessage: "Try adding a '{1}' argument before the closing '}'."
     hasPublishedDocs: false
-  DOC_YOUTUBE_DIRECTIVE_MISSING_WIDTH:
-    problemMessage: YouTube directive is missing a width argument.
-    correctionMessage: "Try adding a width argument after '@youtube'."
+    comment: |-
+      Parameters:
+      0: the name of the doc directive
+      1: the name of the missing argument
+  DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS:
+    sharedName: DOC_DIRECTIVE_MISSING_ARGUMENT
+    problemMessage: "The '{0}' directive is missing a '{1}', a '{2}', and a '{3}' argument."
+    correctionMessage: "Try adding the missing arguments before the closing '}'."
     hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the doc directive
+      1: the name of the first missing argument
+      2: the name of the second missing argument
+      3: the name of the third missing argument
+  DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS:
+    sharedName: DOC_DIRECTIVE_MISSING_ARGUMENT
+    problemMessage: "The '{0}' directive is missing a '{1}' and a '{2}' argument."
+    correctionMessage: "Try adding the missing arguments before the closing '}'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the doc directive
+      1: the name of the first missing argument
+      2: the name of the second missing argument
   DUPLICATE_EXPORT:
     problemMessage: Duplicate export.
     correctionMessage: Try removing all but one export of the library.

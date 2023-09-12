@@ -46,6 +46,8 @@ int _findCommentReferenceEnd(String comment, int index, int end) {
   return index;
 }
 
+bool _isEqualSign(int character) => character == 0x3D /* '=' */;
+
 /// Given that we have just found bracketed text within the given [comment],
 /// looks to see whether that text is (a) followed by a parenthesized link
 /// address, (b) followed by a colon, or (c) followed by optional whitespace
@@ -75,6 +77,22 @@ bool _isLinkText(String comment, int rightIndex) {
     ch = comment.codeUnitAt(index);
   }
   return ch == 0x5B;
+}
+
+bool _isRightCurlyBrace(int character) => character == 0x7D /* '}' */;
+
+/// Reads past any opening whitespace in [content], returning the index after
+/// the last whitespace character.
+int _readWhitespace(String content, [int index = 0]) {
+  var length = content.length;
+  if (index >= length) return index;
+  while (isWhitespace(content.codeUnitAt(index))) {
+    index++;
+    if (index >= length) {
+      return index;
+    }
+  }
+  return index;
 }
 
 /// A class which temporarily stores data for a [CommentType.DOCUMENTATION]-type
@@ -145,8 +163,6 @@ class DocCommentBuilder {
       return -1;
     }
   }
-
-  bool _isRightCurlyBrace(int character) => character == 0x7D /* '}' */;
 
   /// Parses a documentation comment.
   ///
@@ -255,17 +271,26 @@ class DocCommentBuilder {
     index = _readWhitespace(content, index);
 
     var name = content.substring(nameIndex, nameEnd);
-    if (name == 'youtube') {
-      _parseYouTubeDirective(
-        offset: startOffset,
-        nameOffset: _characterSequence._offset + nameIndex,
-        nameEnd: _characterSequence._offset + nameEnd,
-        index: index,
-        content: content,
-      );
+
+    var parser = _DirectiveParser._(
+      offset: startOffset,
+      contentOffset: _characterSequence._offset,
+      nameOffset: _characterSequence._offset + nameIndex,
+      nameEnd: _characterSequence._offset + nameEnd,
+      content: content,
+      index: index,
+      errorReporter: _errorReporter,
+    );
+
+    if (name == 'animation') {
+      _docDirectives.add(parser.animationDirective());
       return true;
     }
-    // TODO(srawlins): Handle other doc directives: animation, api?,
+    if (name == 'youtube') {
+      _docDirectives.add(parser.youTubeDirective());
+      return true;
+    }
+    // TODO(srawlins): Handle other doc directives: api?,
     // canonicalFor?, category, example, image, macro, samples?, subCategory.
     // TODO(srawlins): Handle block doc directives: inject-html, template.
     // TODO(srawlins): Handle unknown (misspelled?) directive.
@@ -603,115 +628,6 @@ class DocCommentBuilder {
       );
     }
   }
-
-  /// Parses a YouTube doc directive, returning whether one was successfully
-  /// parsed.
-  void _parseYouTubeDirective({
-    required int offset,
-    required int nameOffset,
-    required int nameEnd,
-    required String content,
-    required int index,
-  }) {
-    var contentOffset = _characterSequence._offset;
-    var length = content.length;
-
-    int? end;
-    if (index == length) {
-      end = offset + index;
-    }
-
-    (int?, int?) parseArgument() {
-      int? argumentOffset;
-      int? argumentEnd;
-      if (end == null) {
-        if (_isRightCurlyBrace(content.codeUnitAt(index))) {
-          index++;
-          end = offset + index;
-        } else {
-          argumentOffset = contentOffset + index;
-          index = _readDirectiveArgument(content, index);
-          argumentEnd = contentOffset + index;
-          index = _readWhitespace(content, index);
-        }
-      }
-      if (end == null && index == length) {
-        // We've hit EOL without closing brace.
-        end = offset + index;
-        _errorReporter?.reportErrorForOffset(
-          WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
-          index - 1,
-          1,
-        );
-      }
-      return (argumentOffset, argumentEnd);
-    }
-
-    var (widthOffset, widthEnd) = parseArgument();
-    var (heightOffset, heightEnd) = parseArgument();
-    var (urlOffset, urlEnd) = parseArgument();
-    if (end == null) {
-      // Read until the closing delimiter, `}` is found.
-      if (index >= length) {
-        // Reached EOL without finding a `}`.
-        end = offset + length;
-      }
-      while (!_isRightCurlyBrace(content.codeUnitAt(index))) {
-        index++;
-        if (index >= length) {
-          // Reached EOL without finding a `}`.
-          // TODO(srawlins): Minimal recovery and error-reporting for extra
-          // arguments.
-          return;
-        }
-      }
-      index++;
-      end = offset + index;
-    }
-    _docDirectives.add(YouTubeDocDirective(
-      offset: offset,
-      end: end!,
-      nameOffset: nameOffset,
-      nameEnd: nameEnd,
-      widthOffset: widthOffset,
-      widthEnd: widthEnd,
-      heightOffset: heightOffset,
-      heightEnd: heightEnd,
-      urlOffset: urlOffset,
-      urlEnd: urlEnd,
-    ));
-  }
-
-  /// Reads past any directive argument text in [content], returning the index
-  /// after the last character.
-  ///
-  /// A directive argument is a sequence of non-whitespace,
-  /// non-right-curly-brace characters.
-  int _readDirectiveArgument(String content, int index) {
-    var length = content.length;
-    //if (index >= length) return index;
-    while (index < length) {
-      var character = content.codeUnitAt(index);
-      if (isWhitespace(character)) return index;
-      if (_isRightCurlyBrace(character)) return index;
-      index++;
-    }
-    return index;
-  }
-
-  /// Reads past any opening whitespace in [content], returning the index after
-  /// the last whitespace character.
-  int _readWhitespace(String content, [int index = 0]) {
-    var length = content.length;
-    if (index >= length) return index;
-    while (isWhitespace(content.codeUnitAt(index))) {
-      index++;
-      if (index >= length) {
-        return index;
-      }
-    }
-    return index;
-  }
 }
 
 class DocImportStringScanner extends StringScanner {
@@ -889,6 +805,229 @@ class _CharacterSequenceFromSingleLineComment implements _CharacterSequence {
       offset: _offset,
       content: _token.lexeme.substring(threeSlashesLength),
     );
+  }
+}
+
+final class _DirectiveParser {
+  /// The offset in the compilation unit at which [content] is found.
+  final int _offset;
+
+  /// The offset of the opening `{@` of this directive.
+  final int _contentOffset;
+
+  /// The offset in the compilation unit at which this directive's name is
+  /// found.
+  final int nameOffset;
+
+  /// The offset in the compilation unit immediately after the end of this
+  /// directive's name.
+  final int nameEnd;
+
+  /// The content of the doc comment.
+  final String content;
+
+  /// The length of [content].
+  final int _length;
+
+  final ErrorReporter? _errorReporter;
+
+  /// The current position in [content].
+  int index;
+
+  /// The index immediately after the end of this directve.
+  ///
+  /// This is the index immediately following the `}` if there is one, or
+  /// the index after the end of the last character in [content], if not.
+  int? _end;
+
+  _DirectiveParser._({
+    required int offset,
+    required int contentOffset,
+    required this.nameOffset,
+    required this.nameEnd,
+    required this.content,
+    required this.index,
+    required ErrorReporter? errorReporter,
+  })  : _contentOffset = contentOffset,
+        _offset = offset,
+        _length = content.length,
+        _errorReporter = errorReporter;
+
+  /// Parses an animation doc directive.
+  DocDirective animationDirective() {
+    if (index == _length) {
+      _end = _offset + index;
+    }
+    var (positionalArguments, namedArguments) = _parseArguments();
+    _readClosingCurlyBrace();
+    return DocDirective(
+      offset: _offset,
+      end: _end!,
+      nameOffset: nameOffset,
+      nameEnd: nameEnd,
+      name: DocDirectiveName.animation,
+      positionalArguments: positionalArguments,
+      namedArguments: namedArguments,
+    );
+  }
+
+  /// Parses a YouTube doc directive.
+  DocDirective youTubeDirective() {
+    if (index == _length) {
+      _end = _offset + index;
+    }
+    var (positionalArguments, namedArguments) = _parseArguments();
+    _readClosingCurlyBrace();
+    return DocDirective(
+      offset: _offset,
+      end: _end!,
+      nameOffset: nameOffset,
+      nameEnd: nameEnd,
+      name: DocDirectiveName.youtube,
+      positionalArguments: positionalArguments,
+      namedArguments: namedArguments,
+    );
+  }
+
+  /// Parses and returns a positional or named doc directive argument.
+  DocDirectiveArgument _parseArgument() {
+    // An equal sign is parsed as a delimiter between a named argument's name
+    // and value only if the name consists only of alphanumeric characters.
+    // If other characters have been read, then the equal sign is treated just
+    // as another character in the argument, allowing for unquoted arguments
+    // like YouTube URLs.
+    // TODO(srawlins): This rule is rather arbitrary; it would probably be
+    // better to require positional-arguments-with-equal-signs to be surrounded
+    // with quotes or something similar.
+    var onlyLettersOrDigits = true;
+    var argumentStart = index;
+    while (index < _length) {
+      var character = content.codeUnitAt(index);
+      if (isWhitespace(character)) break;
+      if (_isRightCurlyBrace(character)) break;
+      if (_isEqualSign(character) && onlyLettersOrDigits) {
+        // This is a valid named argument name/value delimiter.
+        var argumentName = content.substring(argumentStart, index);
+        index++;
+        if (index == _length) {
+          // Equal sign is followed by EOL.
+          return DocDirectiveNamedArgument(
+            offset: _contentOffset + argumentStart,
+            end: _contentOffset + index,
+            name: argumentName,
+            // Recover an unterminated named argument as having an empty
+            // argument value.
+            value: '',
+          );
+        }
+        var argumentValueStart = index;
+        while (index < _length) {
+          var character = content.codeUnitAt(index);
+          if (isWhitespace(character)) break;
+          if (_isRightCurlyBrace(character)) break;
+          index++;
+        }
+        return DocDirectiveNamedArgument(
+          offset: _contentOffset + argumentStart,
+          end: _contentOffset + index,
+          name: argumentName,
+          value: content.substring(argumentValueStart, index),
+        );
+      }
+      if (!isLetterOrDigit(character)) {
+        onlyLettersOrDigits = false;
+      }
+      index++;
+    }
+    var argumentValue = content.substring(argumentStart, index);
+    return DocDirectivePositionalArgument(
+      offset: _contentOffset + argumentStart,
+      end: _contentOffset + index,
+      value: argumentValue,
+    );
+  }
+
+  /// Parses both positional and named doc directive arguments until either a
+  /// closing curly brace or EOL are reached.
+  ///
+  /// Returns a record containing the list of positional arguments and a list of
+  /// named arguments.
+  ///
+  /// Reports a warning if EOL is reached before a closing curly brace is found.
+  (List<DocDirectivePositionalArgument>, List<DocDirectiveNamedArgument>)
+      _parseArguments() {
+    if (_end != null) return (const [], const []);
+    var positionalArguments = <DocDirectivePositionalArgument>[];
+    var namedArguments = <DocDirectiveNamedArgument>[];
+    while (index < _length) {
+      if (_isRightCurlyBrace(content.codeUnitAt(index))) {
+        index++;
+        _end = _offset + index;
+        return (positionalArguments, namedArguments);
+      }
+      var argument = _parseArgument();
+      // Remove when https://github.com/dart-lang/linter/issues/4361 is closed.
+      // ignore: unnecessary_parenthesis
+      (switch (argument) {
+        DocDirectivePositionalArgument() => positionalArguments.add(argument),
+        DocDirectiveNamedArgument() => namedArguments.add(argument),
+      });
+      index = _readWhitespace(content, index);
+    }
+
+    // We've hit EOL without closing brace.
+    _end = _offset + index;
+    _errorReporter?.reportErrorForOffset(
+      WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
+      _offset + index - 1,
+      1,
+    );
+    return (positionalArguments, namedArguments);
+  }
+
+  /// Reads the closing curly brace (`}`) expected at the end of a doc
+  /// directive.
+  ///
+  /// Reports any extra, unexpected arguments that are found.
+  ///
+  /// Reports a warning if EOL is reached before a closing curly brace is found.
+  void _readClosingCurlyBrace() {
+    if (_end != null) {
+      return;
+    }
+    if (index >= _length) {
+      // No extra arguments or closing brace.
+      _end = _offset + _length;
+      return;
+    }
+    if (_isRightCurlyBrace(content.codeUnitAt(index))) {
+      index++;
+      _end = _offset + index;
+      return;
+    }
+
+    var extraArgumentsOffset = _offset + index;
+
+    while (!_isRightCurlyBrace(content.codeUnitAt(index))) {
+      index++;
+      if (index == _length) {
+        // Found extra arguments and no closing brace.
+        _errorReporter?.reportErrorForOffset(
+          WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
+          _offset + index - 1,
+          1,
+        );
+        break;
+      }
+    }
+
+    var errorLength = _offset + index - extraArgumentsOffset;
+    _errorReporter?.reportErrorForOffset(
+      WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
+      extraArgumentsOffset,
+      errorLength,
+    );
+    _end = _offset + index;
   }
 }
 

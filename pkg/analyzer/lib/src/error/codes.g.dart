@@ -6055,10 +6055,54 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the actual number of arguments
+  ///  1: the expected number of arguments
+  static const WarningCode DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS = WarningCode(
+    'DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS',
+    "Doc directive has '{0}' arguments, but only '{1}' are expected.",
+    correctionMessage: "Try removing the extra arguments.",
+  );
+
   static const WarningCode DOC_DIRECTIVE_MISSING_CLOSING_BRACE = WarningCode(
     'DOC_DIRECTIVE_MISSING_CLOSING_BRACE',
     "Doc directive is missing a closing curly brace ('}').",
     correctionMessage: "Try closing the directive with a curly brace.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the doc directive
+  ///  1: the name of the missing argument
+  static const WarningCode DOC_DIRECTIVE_MISSING_ONE_ARGUMENT = WarningCode(
+    'DOC_DIRECTIVE_MISSING_ARGUMENT',
+    "The '{0}' directive is missing a '{1}' argument.",
+    correctionMessage: "Try adding a '{1}' argument before the closing '}'.",
+    uniqueName: 'DOC_DIRECTIVE_MISSING_ONE_ARGUMENT',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the doc directive
+  ///  1: the name of the first missing argument
+  ///  2: the name of the second missing argument
+  ///  3: the name of the third missing argument
+  static const WarningCode DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS = WarningCode(
+    'DOC_DIRECTIVE_MISSING_ARGUMENT',
+    "The '{0}' directive is missing a '{1}', a '{2}', and a '{3}' argument.",
+    correctionMessage:
+        "Try adding the missing arguments before the closing '}'.",
+    uniqueName: 'DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the doc directive
+  ///  1: the name of the first missing argument
+  ///  2: the name of the second missing argument
+  static const WarningCode DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS = WarningCode(
+    'DOC_DIRECTIVE_MISSING_ARGUMENT',
+    "The '{0}' directive is missing a '{1}' and a '{2}' argument.",
+    correctionMessage:
+        "Try adding the missing arguments before the closing '}'.",
+    uniqueName: 'DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS',
   );
 
   static const WarningCode DOC_IMPORT_CANNOT_BE_DEFERRED = WarningCode(
@@ -6071,24 +6115,6 @@ class WarningCode extends AnalyzerErrorCode {
     'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
     "Doc imports can't have configurations.",
     correctionMessage: "Try removing the configurations.",
-  );
-
-  static const WarningCode DOC_YOUTUBE_DIRECTIVE_MISSING_HEIGHT = WarningCode(
-    'DOC_YOUTUBE_DIRECTIVE_MISSING_HEIGHT',
-    "YouTube directive is missing a height argument.",
-    correctionMessage: "Try adding a height argument after the width.",
-  );
-
-  static const WarningCode DOC_YOUTUBE_DIRECTIVE_MISSING_URL = WarningCode(
-    'DOC_YOUTUBE_DIRECTIVE_MISSING_URL',
-    "YouTube directive is missing a URL argument.",
-    correctionMessage: "Try adding a URL after the width and height.",
-  );
-
-  static const WarningCode DOC_YOUTUBE_DIRECTIVE_MISSING_WIDTH = WarningCode(
-    'DOC_YOUTUBE_DIRECTIVE_MISSING_WIDTH',
-    "YouTube directive is missing a width argument.",
-    correctionMessage: "Try adding a width argument after '@youtube'.",
   );
 
   ///  Duplicate exports.

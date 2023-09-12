@@ -13,44 +13,105 @@ class DocCommentVerifier {
   DocCommentVerifier(this._errorReporter);
 
   void docDirective(DocDirective docDirective) {
-    switch (docDirective) {
-      case YouTubeDocDirective():
-        var widthOffset = docDirective.widthOffset;
-        var widthEnd = docDirective.widthEnd;
-        if (widthOffset == null || widthEnd == null) {
+    var positionalArgumentCount = docDirective.positionalArguments.length;
+    switch (docDirective.name) {
+      case DocDirectiveName.animation:
+        if (positionalArgumentCount == 0) {
           _errorReporter.reportErrorForOffset(
-            WarningCode.DOC_YOUTUBE_DIRECTIVE_MISSING_WIDTH,
+            WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS,
             docDirective.offset,
             docDirective.end - docDirective.offset,
+            ['animation', 'width', 'height', 'url'],
           );
           return;
         } else {
           // TODO: Validate width.
         }
 
-        var heightOffset = docDirective.heightOffset;
-        var heightEnd = docDirective.heightEnd;
-        if (heightOffset == null || heightEnd == null) {
+        if (positionalArgumentCount == 1) {
           _errorReporter.reportErrorForOffset(
-            WarningCode.DOC_YOUTUBE_DIRECTIVE_MISSING_HEIGHT,
+            WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS,
             docDirective.offset,
             docDirective.end - docDirective.offset,
+            ['animation', 'width', 'height'],
           );
           return;
         } else {
           // TODO(srawlins): Validate height.
         }
 
-        var urlOffset = docDirective.urlOffset;
-        var urlEnd = docDirective.urlEnd;
-        if (urlOffset == null || urlEnd == null) {
+        if (positionalArgumentCount == 2) {
           _errorReporter.reportErrorForOffset(
-            WarningCode.DOC_YOUTUBE_DIRECTIVE_MISSING_URL,
+            WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT,
             docDirective.offset,
             docDirective.end - docDirective.offset,
+            ['animation', 'url'],
           );
         } else {
           // TODO(srawlins): Validate URL.
+        }
+
+        if (positionalArgumentCount > 3) {
+          var errorOffset = docDirective.positionalArguments[3].offset;
+          var errorLength =
+              docDirective.positionalArguments.last.end - errorOffset;
+          _errorReporter.reportErrorForOffset(
+            WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
+            errorOffset,
+            errorLength,
+            [positionalArgumentCount, 3],
+          );
+        }
+
+      // TODO(srawlins): Validate `@animation` named arguments (and report
+      // unknown).
+
+      case DocDirectiveName.youtube:
+        if (positionalArgumentCount == 0) {
+          _errorReporter.reportErrorForOffset(
+            WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS,
+            docDirective.offset,
+            docDirective.end - docDirective.offset,
+            ['youtube', 'width', 'height', 'url'],
+          );
+          return;
+        } else {
+          // TODO: Validate width.
+        }
+
+        if (positionalArgumentCount == 1) {
+          _errorReporter.reportErrorForOffset(
+            WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS,
+            docDirective.offset,
+            docDirective.end - docDirective.offset,
+            ['youtube', 'width', 'height'],
+          );
+          return;
+        } else {
+          // TODO(srawlins): Validate height.
+        }
+
+        if (positionalArgumentCount == 2) {
+          _errorReporter.reportErrorForOffset(
+            WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT,
+            docDirective.offset,
+            docDirective.end - docDirective.offset,
+            ['youtube', 'url'],
+          );
+        } else {
+          // TODO(srawlins): Validate URL.
+        }
+
+        if (positionalArgumentCount > 3) {
+          var errorOffset = docDirective.positionalArguments[3].offset;
+          var errorLength =
+              docDirective.positionalArguments.last.end - errorOffset;
+          _errorReporter.reportErrorForOffset(
+            WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
+            errorOffset,
+            errorLength,
+            [positionalArgumentCount, 3],
+          );
         }
     }
   }
