@@ -536,7 +536,7 @@ class AsyncCodeGenerator extends CodeGenerator {
   @override
   void generate() {
     closures = Closures(translator, member);
-    setupParametersAndContexts(member.reference);
+    setupParametersAndContexts(member);
     generateTypeChecks(member.function!.typeParameters, member.function!,
         translator.paramInfoFor(reference));
     _generateBodies(member.function!);

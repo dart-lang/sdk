@@ -36,8 +36,6 @@ extension GetterSetterReference on Reference {
 // Use Expandos to avoid keeping the procedure alive.
 final Expando<Reference> _tearOffReference = Expando();
 final Expando<Reference> _typeCheckerReference = Expando();
-final Expando<Reference> _initializerReference = Expando();
-final Expando<Reference> _constructorBodyReference = Expando();
 
 extension CustomReference on Member {
   Reference get tearOffReference =>
@@ -45,23 +43,12 @@ extension CustomReference on Member {
 
   Reference get typeCheckerReference =>
       _typeCheckerReference[this] ??= Reference()..node = this;
-
-  Reference get initializerReference =>
-      _initializerReference[this] ??= Reference()..node = this;
-
-  Reference get constructorBodyReference =>
-      _constructorBodyReference[this] ??= Reference()..node = this;
 }
 
 extension IsCustomReference on Reference {
   bool get isTearOffReference => _tearOffReference[asMember] == this;
 
   bool get isTypeCheckerReference => _typeCheckerReference[asMember] == this;
-
-  bool get isInitializerReference => _initializerReference[asMember] == this;
-
-  bool get isConstructorBodyReference =>
-      _constructorBodyReference[asMember] == this;
 }
 
 extension ReferenceAs on Member {
