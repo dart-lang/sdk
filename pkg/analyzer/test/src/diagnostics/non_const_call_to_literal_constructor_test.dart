@@ -42,6 +42,15 @@ const a = A();
 ''');
   }
 
+  test_constContextCreation_extensionType() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+@literal
+extension type const E(int i) { }
+const e = E(1);
+''');
+  }
+
   test_constCreation() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -50,6 +59,15 @@ class A {
   const A();
 }
 const a = const A();
+''');
+  }
+
+  test_constCreation_extensionType() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+@literal
+extension type const E(int i) { }
+const e = const E(1);
 ''');
   }
 
@@ -100,6 +118,30 @@ class A {
 var a = new A();
 ''', [
       error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW, 77, 7),
+    ]);
+  }
+
+  test_usingNew_extensionType() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+extension type const E(int i) { 
+  @literal
+  const E.zero(): this(0);
+}
+E e = E.zero();
+''', [
+      error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 112, 8),
+    ]);
+  }
+
+  test_usingNew_extensionType_primaryConstructor() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+@literal
+extension type const E(int i) { }
+E e = E(1);
+''', [
+      error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 82, 4),
     ]);
   }
 }
