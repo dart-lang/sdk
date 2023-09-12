@@ -80,7 +80,7 @@ vars = {
   # https://fuchsia.googlesource.com/integration/+/HEAD/toolchain
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
   "clang_version": "git_revision:6d667d4b261e81f325756fdfd5bb43b3b3d2451d",
-  "gn_version": "git_revision:e3978de3e8dafb50a2b11efa784e08699a43faf8",
+  "gn_version": "git_revision:991530ce394efb58fcd848195469022fa17ae126",
 
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/gn
   "fuchsia_sdk_version": "version:12.20230407.0.1",
