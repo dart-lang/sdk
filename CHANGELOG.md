@@ -1,4 +1,4 @@
-## 3.1.2
+## 3.1.2 - 2023-09-13
 
 This is a patch release that:
 
@@ -15,8 +15,8 @@ This is a patch release that:
   Future error so that we don't see an unhandled exception
   pause in the debugger (issue [#53334])
 
-[#53358]: https://github.com/dart-lang/sdk/issues/53358
-[#53334]: https://github.com/dart-lang/sdk/issues/53334
+[#53358]: https://github.com/dart-lang/sdk/issues/53449
+[#53334]: https://github.com/dart-lang/sdk/issues/53450
 
 ## 3.1.1 - 2023-09-07
 
