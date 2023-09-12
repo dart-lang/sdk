@@ -176,8 +176,10 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     }
 
     if (configuration.system == System.fuchsia) {
-      await FuchsiaEmulator.publishPackage(configuration.buildDirectory,
-          configuration.mode.name, configuration.architecture.name);
+      await FuchsiaEmulator.instance().publishPackage(
+          configuration.buildDirectory,
+          configuration.mode.name,
+          configuration.architecture.name);
     }
   }
 
@@ -202,7 +204,11 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     for (var configuration in configurations) {
       configuration.stopServers();
     }
-    FuchsiaEmulator.stop();
+    if (configurations.any((configuration) {
+      return configuration.system == System.fuchsia;
+    })) {
+      FuchsiaEmulator.instance().stop();
+    }
 
     DebugLogger.close();
     if (!firstConf.keepGeneratedFiles) {
