@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
 import '../util/flutter_utils.dart';
@@ -278,12 +279,6 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
       // After one loop, an `await` in the condition can affect the body.
       return node.condition.accept(this)?.asynchronousOrNull;
     } else if (node.condition == reference) {
-      // TODO(srawlins): The repetition gets tricky. In this code:
-      // `do print('hi') while (await f(context));`, the `await` is not unsafe
-      // for `f(context)` when just looking at the condition without looking at
-      // the context of the do-statement. However, as the code can loop, the
-      // `await` _is_ unsafe. It can unwrap to
-      // `print('hi'); await f(context); print('hi'); await f(context);`.
       return node.body.accept(this)?.asynchronousOrNull;
     } else {
       return node.condition.accept(this)?.asynchronousOrNull ??
@@ -793,7 +788,7 @@ class UseBuildContextSynchronously extends LintRule {
           description: _desc,
           details: _details,
           group: Group.errors,
-          state: State.experimental(),
+          state: State.stable(since: Version(3, 2, 0)),
         );
 
   @override

@@ -468,7 +468,7 @@
     "name": "use_build_context_synchronously",
     "description": "Do not use BuildContexts across async gaps.",
     "group": "errors",
-    "state": "experimental",
+    "state": "stable",
     "incompatible": [],
     "sets": [
       "flutter"
