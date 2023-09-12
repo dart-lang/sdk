@@ -8,7 +8,7 @@ import 'dart:js_interop' hide JS;
 import 'dart:js_util' as js_util;
 
 @patch
-extension JSObjectUtilExtension on JSObject {
+extension JSObjectUnsafeUtilExtension on JSObject {
   @patch
   @pragma('dart2js:prefer-inline')
   JSBoolean hasProperty(JSAny property) =>
@@ -16,12 +16,12 @@ extension JSObjectUtilExtension on JSObject {
 
   @patch
   @pragma('dart2js:prefer-inline')
-  JSAny? operator [](JSAny property) =>
+  T getProperty<T extends JSAny?>(JSAny property) =>
       JS<dynamic>('Object|Null', '#[#]', this, property);
 
   @patch
   @pragma('dart2js:prefer-inline')
-  void operator []=(JSAny property, JSAny? value) =>
+  void setProperty(JSAny property, JSAny? value) =>
       JS<void>('', '#[#] = #', this, property, value);
 
   // TODO(joshualitt): Specialize at callsites.
@@ -57,7 +57,7 @@ extension JSObjectUtilExtension on JSObject {
 }
 
 @patch
-extension JSFunctionUtilExtension on JSFunction {
+extension JSFunctionUnsafeUtilExtension on JSFunction {
   // TODO(joshualitt): Specialize `callAsConstructor`.
   @patch
   @pragma('dart2js:prefer-inline')

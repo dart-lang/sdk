@@ -25,18 +25,22 @@ library dart.js_interop_unsafe;
 
 import 'dart:js_interop';
 
-extension JSObjectUtilExtension on JSObject {
+extension JSObjectUnsafeUtilExtension on JSObject {
   /// Whether or not this [JSObject] has a given property.
   external JSBoolean hasProperty(JSAny property);
 
-  /// Equivalent to invoking operator `[]` in JS.
-  external JSAny? operator [](JSAny property);
+  /// Shorthand helper to get String properties.
+  JSAny? operator [](String property) => getProperty(property.toJS);
 
-  /// Gets a given property from this [JSObject].
-  T getProperty<T extends JSAny?>(JSAny property) => this[property] as T;
+  /// Gets a given [property] from this [JSObject].
+  external T getProperty<T extends JSAny?>(JSAny property);
 
-  /// Equivalent to invoking `[]=` in JS.
-  external void operator []=(JSAny property, JSAny? value);
+  /// Shorthand helper to set String properties.
+  void operator []=(String property, JSAny? value) =>
+      setProperty(property.toJS, value);
+
+  /// Sets a given [property] with [value] on this [JSObject].
+  external void setProperty(JSAny property, JSAny? value);
 
   /// Calls a method on this [JSObject] with up to four arguments and returns
   /// the result.
@@ -57,7 +61,7 @@ extension JSObjectUtilExtension on JSObject {
   external JSBoolean delete(JSAny property);
 }
 
-extension JSFunctionUtilExtension on JSFunction {
+extension JSFunctionUnsafeUtilExtension on JSFunction {
   /// Calls this [JSFunction] as a constructor with up to four arguments and
   /// returns the constructed [JSObject].
   external JSObject _callAsConstructor(

@@ -39,7 +39,7 @@ class ExportCreator extends Transformer {
       this._typeEnvironment, this._diagnosticReporter, this._exportChecker)
       : _callMethodVarArgs = _typeEnvironment.coreTypes.index
             .getTopLevelProcedure('dart:js_interop_unsafe',
-                'JSObjectUtilExtension|callMethodVarArgs'),
+                'JSObjectUnsafeUtilExtension|callMethodVarArgs'),
         _createDartExport = _typeEnvironment.coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'createDartExport'),
         _createStaticInteropMock = _typeEnvironment.coreTypes.index
@@ -47,7 +47,7 @@ class ExportCreator extends Transformer {
         _functionToJS = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
             'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
         _getProperty = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
-            'dart:js_interop_unsafe', 'JSObjectUtilExtension|[]'),
+            'dart:js_interop_unsafe', 'JSObjectUnsafeUtilExtension|[]'),
         _globalContext = _typeEnvironment.coreTypes.index
             .getTopLevelProcedure('dart:js_interop', 'get:globalContext'),
         _jsAny = _typeEnvironment.coreTypes.index
@@ -55,7 +55,7 @@ class ExportCreator extends Transformer {
         _jsObject = _typeEnvironment.coreTypes.index
             .getClass('dart:_js_types', 'JSObject'),
         _setProperty = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
-            'dart:js_interop_unsafe', 'JSObjectUtilExtension|[]='),
+            'dart:js_interop_unsafe', 'JSObjectUnsafeUtilExtension|[]='),
         _stringToJS = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
             'dart:js_interop', 'StringToJSString|get#toJS'),
         _staticInteropMockValidator = StaticInteropMockValidator(
@@ -201,7 +201,7 @@ class ExportCreator extends Transformer {
 
     // Get the global 'Object' property.
     Expression getObjectProperty() => asJSObject(StaticInvocation(_getProperty,
-        Arguments([StaticGet(_globalContext), toJSString('Object')])))
+        Arguments([StaticGet(_globalContext), StringLiteral('Object')])))
       ..fileOffset = node.fileOffset;
 
     // Get a fresh object literal, using the proto to create it if one was
@@ -240,9 +240,9 @@ class ExportCreator extends Transformer {
       var exports = exportMap[exportName]!;
       ExpressionStatement setProperty(
           VariableGet jsObject, String propertyName, StaticInvocation jsValue) {
-        // `jsObject[propertyName.toJS] = jsValue`
+        // `jsObject[propertyName] = jsValue`
         return ExpressionStatement(StaticInvocation(_setProperty,
-            Arguments([jsObject, toJSString(propertyName), jsValue])))
+            Arguments([jsObject, StringLiteral(propertyName), jsValue])))
           ..fileOffset = node.fileOffset
           ..parent = node.parent;
       }
@@ -251,7 +251,7 @@ class ExportCreator extends Transformer {
       // With methods, there's only one export per export name.
       if (firstExport is Procedure &&
           firstExport.kind == ProcedureKind.Method) {
-        // `jsExport[jsName.toJS] = dartMock.tearoffMethod.toJS`
+        // `jsExport[jsName] = dartMock.tearoffMethod.toJS`
         block.add(setProperty(
             VariableGet(jsExporter),
             exportName,
@@ -276,7 +276,7 @@ class ExportCreator extends Transformer {
         // The AST code looks like:
         //
         // ```
-        // getSetMap['get'.toJS] = () {
+        // getSetMap['get'] = () {
         //   return dartInstance.getter;
         // }.toJS;
         // ```
@@ -284,7 +284,7 @@ class ExportCreator extends Transformer {
         // in the case of a getter and:
         //
         // ```
-        // getSetMap['set'.toJS] = (val) {
+        // getSetMap['set'] = (val) {
         //  dartInstance.setter = val;
         // }.toJS;
         // ```
