@@ -415,6 +415,8 @@ class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
     _readTypeParameters(reader, element.typeParameters);
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
+    element.augmentation = reader.readElement() as FunctionElementImpl?;
+    element.augmentationTarget = reader.readElement() as FunctionElementImpl?;
     applyConstantOffsets?.perform();
   }
 }

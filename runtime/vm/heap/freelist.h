@@ -30,6 +30,7 @@ class FreeListElement {
 
   intptr_t HeapSize() { return HeapSize(tags_); }
   intptr_t HeapSize(uword tags) {
+    ASSERT(UntaggedObject::ClassIdTag::decode(tags) == kFreeListElement);
     intptr_t size = UntaggedObject::SizeTag::decode(tags);
     if (size != 0) return size;
     return *SizeAddress();

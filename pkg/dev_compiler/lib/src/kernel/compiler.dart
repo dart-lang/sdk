@@ -3366,7 +3366,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           normalizedType, _currentTypeEnvironment);
       var typeRep =
           evalInEnvironment(result.requiredEnvironment, result.recipe);
-      if (_cacheTypes) typeRep = _typeTable.nameType(normalizedType, typeRep);
+      if (_cacheTypes &&
+          // Avoid adding a the use of a single type parameter to the type
+          // table. These can be referenced directly because the are already
+          // represented as a local variable in the scope.
+          !(normalizedType is TypeParameterType &&
+              normalizedType.isPotentiallyNonNullable)) {
+        typeRep = _typeTable.nameType(normalizedType, typeRep);
+      }
       return typeRep;
     } on UnsupportedError catch (e) {
       _typeCompilationError(normalizedType, e.message ?? 'Unknown Error');

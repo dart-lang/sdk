@@ -24,6 +24,8 @@ main() {
     defineReflectiveTests(ClassAugmentationElementsFromBytesTest);
     defineReflectiveTests(ExtensionTypeKeepLinkingTest);
     defineReflectiveTests(ExtensionTypeFromBytesTest);
+    defineReflectiveTests(FunctionAugmentationKeepLinkingTest);
+    defineReflectiveTests(FunctionAugmentationFromBytesTest);
     defineReflectiveTests(MixinAugmentationElementsKeepLinkingTest);
     defineReflectiveTests(MixinAugmentationElementsFromBytesTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
@@ -48404,6 +48406,117 @@ library
         accessors
           synthetic get it @-1
             returnType: Map<T, U>
+''');
+  }
+}
+
+@reflectiveTest
+class FunctionAugmentationFromBytesTest extends ElementsBaseTest
+    with FunctionAugmentationMixin {
+  @override
+  bool get keepLinkingLibraries => false;
+}
+
+@reflectiveTest
+class FunctionAugmentationKeepLinkingTest extends ElementsBaseTest
+    with FunctionAugmentationMixin {
+  @override
+  bool get keepLinkingLibraries => true;
+}
+
+mixin FunctionAugmentationMixin on ElementsBaseTest {
+  test_augmentationTarget() async {
+    newFile('$testPackageLibPath/a1.dart', r'''
+library augment 'test.dart';
+import augment 'a11.dart';
+import augment 'a12.dart';
+augment void f() {}
+''');
+
+    newFile('$testPackageLibPath/a11.dart', r'''
+library augment 'a1.dart';
+augment void f() {}
+''');
+
+    newFile('$testPackageLibPath/a12.dart', r'''
+library augment 'a1.dart';
+augment void f() {}
+''');
+
+    newFile('$testPackageLibPath/a2.dart', r'''
+library augment 'test.dart';
+import augment 'a21.dart';
+import augment 'a22.dart';
+augment void f() {}
+''');
+
+    newFile('$testPackageLibPath/a21.dart', r'''
+library augment 'a2.dart';
+augment void f() {}
+''');
+
+    newFile('$testPackageLibPath/a22.dart', r'''
+library augment 'a2.dart';
+augment void f() {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a1.dart';
+import augment 'a2.dart';
+void f() {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @57
+        returnType: void
+        augmentation: self::@augmentation::package:test/a1.dart::@function::f
+  augmentationImports
+    package:test/a1.dart
+      definingUnit
+        functions
+          augment f @96
+            returnType: void
+            augmentationTarget: self::@function::f
+            augmentation: self::@augmentation::package:test/a11.dart::@function::f
+      augmentationImports
+        package:test/a11.dart
+          definingUnit
+            functions
+              augment f @40
+                returnType: void
+                augmentationTarget: self::@augmentation::package:test/a1.dart::@function::f
+                augmentation: self::@augmentation::package:test/a12.dart::@function::f
+        package:test/a12.dart
+          definingUnit
+            functions
+              augment f @40
+                returnType: void
+                augmentationTarget: self::@augmentation::package:test/a11.dart::@function::f
+                augmentation: self::@augmentation::package:test/a2.dart::@function::f
+    package:test/a2.dart
+      definingUnit
+        functions
+          augment f @96
+            returnType: void
+            augmentationTarget: self::@augmentation::package:test/a12.dart::@function::f
+            augmentation: self::@augmentation::package:test/a21.dart::@function::f
+      augmentationImports
+        package:test/a21.dart
+          definingUnit
+            functions
+              augment f @40
+                returnType: void
+                augmentationTarget: self::@augmentation::package:test/a2.dart::@function::f
+                augmentation: self::@augmentation::package:test/a22.dart::@function::f
+        package:test/a22.dart
+          definingUnit
+            functions
+              augment f @40
+                returnType: void
+                augmentationTarget: self::@augmentation::package:test/a21.dart::@function::f
 ''');
   }
 }

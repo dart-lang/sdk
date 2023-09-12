@@ -88,7 +88,7 @@ static bool IsUint8(intptr_t cid) {
          cid <= kUnmodifiableTypedDataUint8ClampedArrayViewCid;
 }
 
-DEFINE_NATIVE_ENTRY(TypedDataBase_setRange, 0, 5) {
+DEFINE_NATIVE_ENTRY(TypedDataBase_setClampedRange, 0, 5) {
   // This is called after bounds checking, so the numeric inputs are
   // guaranteed to be Smis, and the length is guaranteed to be non-zero.
   const TypedDataBase& dst =
@@ -128,19 +128,9 @@ DEFINE_NATIVE_ENTRY(TypedDataBase_setRange, 0, 5) {
   ASSERT(length_in_bytes <= src_length_in_bytes - src_start_in_bytes);
 #endif
 
-  if (!IsClamped(dst.ptr()->GetClassId()) || IsUint8(src.ptr()->GetClassId())) {
-    // TODO(dartbug.com/42072): We do this when the copy length gets large
-    // enough that a native call to invoke memmove is faster than the generated
-    // code from MemoryCopy. Replace the static call to _nativeSetRange with
-    // a CCall() to a memmove leaf runtime entry and remove the possibility of
-    // calling _nativeSetRange except in the clamping case.
-    NoSafepointScope no_safepoint;
-    memmove(dst.DataAddr(dst_start_in_bytes), src.DataAddr(src_start_in_bytes),
-            length_in_bytes);
-    return Object::null();
-  }
-
   ASSERT_EQUAL(element_size_in_bytes, 1);
+  ASSERT(IsClamped(dst.ptr()->GetClassId()));
+  ASSERT(!IsUint8(src.ptr()->GetClassId()));
 
   NoSafepointScope no_safepoint;
   uint8_t* dst_data =

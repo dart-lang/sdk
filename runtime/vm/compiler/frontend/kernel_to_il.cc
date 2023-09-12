@@ -1763,28 +1763,27 @@ Fragment FlowGraphBuilder::BuildTypedDataMemMove(const Function& function,
   LocalVariable* arg_from_start = parsed_function_->RawParameterVariable(4);
 
   Fragment body;
-  // If we're copying at least this many elements, calling _nativeSetRange,
-  // which calls memmove via a native call, is faster than using the code
-  // currently emitted by the MemoryCopy instruction.
+  // If we're copying at least this many elements, calling memmove via CCall
+  // is faster than using the code currently emitted by MemoryCopy.
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
-  // On X86, the breakpoint for using a native call instead of generating a
-  // loop via MemoryCopy() is around the same as the largest benchmark
-  // (1048576 elements) on the machines we use.
-  const intptr_t kCopyLengthForNativeCall = 1024 * 1024;
+  // On X86, the breakpoint for using CCall instead of generating a loop via
+  // MemoryCopy() is around the same as the largest benchmark (1048576 elements)
+  // on the machines we use.
+  const intptr_t kCopyLengthForCCall = 1024 * 1024;
 #else
   // On other architectures, when the element size is less than a word,
   // we copy in word-sized chunks when possible to get back some speed without
   // increasing the number of emitted instructions for MemoryCopy too much, but
   // memmove is even more aggressive, copying in 64-byte chunks when possible.
-  // Thus, the breakpoint for a native call being faster is much lower for our
-  // benchmarks than for X86.
-  const intptr_t kCopyLengthForNativeCall = 1024;
+  // Thus, the breakpoint for a call to memmove being faster is much lower for
+  // our benchmarks than for X86.
+  const intptr_t kCopyLengthForCCall = 1024;
 #endif
 
   JoinEntryInstr* done = BuildJoinEntry();
   TargetEntryInstr *is_small_enough, *is_too_large;
   body += LoadLocal(arg_count);
-  body += IntConstant(kCopyLengthForNativeCall);
+  body += IntConstant(kCopyLengthForCCall);
   body += SmiRelationalOp(Token::kLT);
   body += BranchIfTrue(&is_small_enough, &is_too_large);
 
@@ -1798,30 +1797,38 @@ Fragment FlowGraphBuilder::BuildTypedDataMemMove(const Function& function,
                                 /*unboxed_inputs=*/false, /*can_overlap=*/true);
   use_instruction += Goto(done);
 
-  // TODO(dartbug.com/42072): Instead of doing a static call to a native
-  // method, make a leaf runtime entry for memmove and use CCall.
-  const Library& lib = Library::Handle(Z, Library::TypedDataLibrary());
-  ASSERT(!lib.IsNull());
-  const Class& typed_list_base =
-      Class::Handle(Z, lib.LookupClassAllowPrivate(Symbols::_TypedListBase()));
-  ASSERT(!typed_list_base.IsNull());
-  const auto& error = typed_list_base.EnsureIsFinalized(H.thread());
-  ASSERT(error == Error::null());
-  const Function& native_set_range = Function::ZoneHandle(
-      Z,
-      typed_list_base.LookupFunctionAllowPrivate(Symbols::_nativeSetRange()));
-  ASSERT(!native_set_range.IsNull());
-
-  Fragment call_native(is_too_large);
-  call_native += LoadLocal(arg_to);
-  call_native += LoadLocal(arg_to_start);
-  call_native += LoadLocal(arg_count);
-  call_native += LoadLocal(arg_from);
-  call_native += LoadLocal(arg_from_start);
-  call_native += StaticCall(TokenPosition::kNoSource, native_set_range, 5,
-                            ICData::kNoRebind);
-  call_native += Drop();
-  call_native += Goto(done);
+  const intptr_t element_size = Instance::ElementSizeFor(cid);
+  Fragment call_memmove(is_too_large);
+  call_memmove += LoadLocal(arg_to);
+  call_memmove += LoadUntagged(compiler::target::PointerBase::data_offset());
+  call_memmove += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
+  call_memmove += LoadLocal(arg_to_start);
+  call_memmove += IntConstant(element_size);
+  call_memmove += SmiBinaryOp(Token::kMUL, /*is_truncating=*/true);
+  call_memmove += UnboxTruncate(kUnboxedIntPtr);
+  call_memmove +=
+      BinaryIntegerOp(Token::kADD, kUnboxedIntPtr, /*is_truncating=*/true);
+  call_memmove += LoadLocal(arg_from);
+  call_memmove += LoadUntagged(compiler::target::PointerBase::data_offset());
+  call_memmove += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
+  call_memmove += LoadLocal(arg_from_start);
+  call_memmove += IntConstant(element_size);
+  call_memmove += SmiBinaryOp(Token::kMUL, /*is_truncating=*/true);
+  call_memmove += UnboxTruncate(kUnboxedIntPtr);
+  call_memmove +=
+      BinaryIntegerOp(Token::kADD, kUnboxedIntPtr, /*is_truncating=*/true);
+  call_memmove += LoadLocal(arg_count);
+  call_memmove += IntConstant(element_size);
+  call_memmove += SmiBinaryOp(Token::kMUL, /*is_truncating=*/true);
+  call_memmove += UnboxTruncate(kUnboxedIntPtr);
+  call_memmove += LoadThread();
+  call_memmove += LoadUntagged(
+      compiler::target::Thread::OffsetFromThread(&kMemoryMoveRuntimeEntry));
+  call_memmove +=
+      ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);  // function address.
+  call_memmove += CCall(3);
+  call_memmove += Drop();
+  call_memmove += Goto(done);
 
   body.current = done;
   body += NullConstant();

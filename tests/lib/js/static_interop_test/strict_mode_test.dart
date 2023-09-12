@@ -8,49 +8,74 @@
 library strict_mode_test;
 
 import 'dart:js_interop';
-import 'dart:js';
-import 'dart:js_util';
+/**/ import 'dart:js';
+//   ^
+// [web] Library 'dart:js' is forbidden when strict mode is enabled.
+
+/**/ import 'dart:js_util';
+//   ^
+// [web] Library 'dart:js_util' is forbidden when strict mode is enabled.
 
 @JS()
 @staticInterop
 class JSClass {
   external factory JSClass(List<int> baz);
   //               ^
-  // [web] Type 'List<int>' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  // [web] JS interop requires JS types when strict mode is enabled, but Type 'List<int>' is not a type or subtype of a type from `dart:js_interop`.
 
   external factory JSClass.other(Object blu);
   //               ^
-  // [web] Type 'Object' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  // [web] JS interop requires JS types when strict mode is enabled, but Type 'Object' is not a type or subtype of a type from `dart:js_interop`.
 
-  external static dynamic foo();
-  //                      ^
-  // [web] Type 'dynamic' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
-
-  external static Function get fooGet;
-  //                           ^
-  // [web] Type 'Function' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
-
-  external static set fooSet(void Function() bar);
+  external static int foo();
   //                  ^
-  // [web] Type 'void Function()' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  // [web] JS interop requires JS types when strict mode is enabled, but Type 'int' is not a type or subtype of a type from `dart:js_interop`.
+
+  external static JSClass foo1(String bar);
+  //                      ^
+  // [web] JS interop requires JS types when strict mode is enabled, but Type 'String' is not a type or subtype of a type from `dart:js_interop`.
+
+  external static Function foo2();
+  //                       ^
+  // [web] JS interop requires JS types when strict mode is enabled, but Type 'Function' is not a type or subtype of a type from `dart:js_interop`.
+
+  external static JSClass foo3(void Function() bar);
+  //                      ^
+  // [web] JS interop requires JS types when strict mode is enabled, but Type 'void Function()' is not a type or subtype of a type from `dart:js_interop`.
+
+  external static double get fooGet;
+  //                         ^
+  // [web] JS interop requires JS types when strict mode is enabled, but Type 'double' is not a type or subtype of a type from `dart:js_interop`.
+
+  external static set fooSet(String bar);
+  //                  ^
+  // [web] JS interop requires JS types when strict mode is enabled, but Type 'String' is not a type or subtype of a type from `dart:js_interop`.
 }
 
 extension JSClassExtension on JSClass {
   external dynamic extFoo();
   //               ^
-  // [web] Type 'dynamic' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  // [web] JS interop requires JS types when strict mode is enabled, but Type 'dynamic' is not a type or subtype of a type from `dart:js_interop`.
 
   external JSClass extFoo2(List<Object?> bar);
   //               ^
-  // [web] Type 'List<Object?>' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  // [web] JS interop requires JS types when strict mode is enabled, but Type 'List<Object?>' is not a type or subtype of a type from `dart:js_interop`.
 
-  external Function get extFooGet;
-  //                    ^
-  // [web] Type 'Function' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  external Function extFoo3(JSClass bar);
+  //                ^
+  // [web] JS interop requires JS types when strict mode is enabled, but Type 'Function' is not a type or subtype of a type from `dart:js_interop`.
 
-  external set extFooSet(void Function() bar);
+  external JSClass extFoo4(void Function() bar);
+  //               ^
+  // [web] JS interop requires JS types when strict mode is enabled, but Type 'void Function()' is not a type or subtype of a type from `dart:js_interop`.
+
+  external double get extFooGet;
+  //                  ^
+  // [web] JS interop requires JS types when strict mode is enabled, but Type 'double' is not a type or subtype of a type from `dart:js_interop`.
+
+  external set extFooSet(String bar);
   //           ^
-  // [web] Type 'void Function()' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  // [web] JS interop requires JS types when strict mode is enabled, but Type 'String' is not a type or subtype of a type from `dart:js_interop`.
 }
 
 @JS()
@@ -67,16 +92,12 @@ external void useStaticInteropExtensionType(ExtensionType foo);
 
 void main() {
   jsFunctionTest(((double foo) => 4.0.toJS).toJS);
+  //                                        ^
+  // [web] JS interop requires JS types when strict mode is enabled, but Type 'double' is not a type or subtype of a type from `dart:js_interop`.
 
   jsFunctionTest(((JSNumber foo) => 4.0).toJS);
-
-  jsFunctionTest(((List foo) => 4.0).toJS);
-  //                                 ^
-  // [web] Type 'List<dynamic>' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
-
-  jsFunctionTest(((JSNumber foo) => () {}).toJS);
-  //                                       ^
-  // [web] Type 'Null Function()' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.
+  //                                     ^
+  // [web] JS interop requires JS types when strict mode is enabled, but Type 'double' is not a type or subtype of a type from `dart:js_interop`.
 
   jsFunctionTest(((((JSNumber foo) => 4.0) as dynamic) as Function).toJS);
   //                                                                ^

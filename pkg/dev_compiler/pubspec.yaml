@@ -3,7 +3,7 @@ name: dev_compiler
 publish_to: none
 
 environment:
-  sdk: '>=2.15.0 <3.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:

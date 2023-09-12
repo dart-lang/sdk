@@ -10,7 +10,7 @@ import 'dart:js_interop';
 import 'package:expect/minitest.dart';
 
 @JS()
-external void eval(String code);
+external dynamic eval(String code);
 
 @JS()
 @staticInterop

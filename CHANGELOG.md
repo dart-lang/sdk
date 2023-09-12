@@ -88,7 +88,12 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   `HttpClientResponse.headers` and `HttpRequest.headers` no longer include
   trailing whitespace in their values.
 
+- **Breaking change** [#53227][]: Folded headers values returned by
+  `HttpClientResponse.headers` and `HttpRequest.headers` now have a space
+  inserted at the fold point.
+
 [#53005]: https://dartbug.com/53005
+[#53227]: https://dartbug.com/53227
 
 #### `dart:isolate`
 
@@ -96,7 +101,7 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 
 #### `dart:js_interop`
 
-- **Breaking Change on JSNumber.toDart and Object.toJS**:
+- **JSNumber.toDart and Object.toJS**:
   `JSNumber.toDart` is removed in favor of `toDartDouble` and `toDartInt` to
   make the type explicit. `Object.toJS` is also removed in favor of
   `Object.toJSBox`. Previously, this function would allow Dart objects to flow
@@ -128,11 +133,6 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   number of cases, like when using older browser versions. `dart:js_interop`'s
   `globalJSObject` is also renamed to `globalContext` and returns the global
   context used in the lowerings.
-- **Breaking Change on Types of `dart:js_interop` External APIs**:
-  External JS interop APIs when using `dart:js_interop` are restricted to a set
-  of allowed types. Namely, this include the primitive types like `String`, JS
-  types from `dart:js_interop`, and other static interop types (either through
-  `@staticInterop` or extension types).
 
 ### Tools
 

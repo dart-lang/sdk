@@ -188,14 +188,16 @@ class FieldElementFlags {
 class FunctionElementFlags {
   static const int _hasImplicitReturnType = 1 << 0;
   static const int _isAsynchronous = 1 << 1;
-  static const int _isExternal = 1 << 2;
-  static const int _isGenerator = 1 << 3;
-  static const int _isStatic = 1 << 4;
+  static const int _isAugmentation = 1 << 2;
+  static const int _isExternal = 1 << 3;
+  static const int _isGenerator = 1 << 4;
+  static const int _isStatic = 1 << 5;
 
   static void read(SummaryDataReader reader, FunctionElementImpl element) {
     var byte = reader.readByte();
     element.hasImplicitReturnType = (byte & _hasImplicitReturnType) != 0;
     element.isAsynchronous = (byte & _isAsynchronous) != 0;
+    element.isAugmentation = (byte & _isAugmentation) != 0;
     element.isExternal = (byte & _isExternal) != 0;
     element.isGenerator = (byte & _isGenerator) != 0;
     element.isStatic = (byte & _isStatic) != 0;
@@ -205,6 +207,7 @@ class FunctionElementFlags {
     var result = 0;
     result |= element.hasImplicitReturnType ? _hasImplicitReturnType : 0;
     result |= element.isAsynchronous ? _isAsynchronous : 0;
+    result |= element.isAugmentation ? _isAugmentation : 0;
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isGenerator ? _isGenerator : 0;
     result |= element.isStatic ? _isStatic : 0;

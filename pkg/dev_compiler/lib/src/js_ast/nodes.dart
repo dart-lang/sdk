@@ -1943,7 +1943,7 @@ class Method extends Node implements Property {
 }
 
 /// Tag class for all interpolated positions.
-abstract class InterpolatedNode implements Node {
+mixin InterpolatedNode implements Node {
   dynamic get nameOrPosition;
 
   bool get isNamed => nameOrPosition is String;
