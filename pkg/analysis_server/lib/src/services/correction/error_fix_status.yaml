@@ -3439,13 +3439,9 @@ WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH:
 WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE:
   status: hasFix
 WarningCode.DEPRECATED_EXPORT_USE:
-  status: needsFix
+  status: hasFix
   notes: |-
-    Low priority, because this is likely not encountered often.
-
-    The fix is to look for a non-deprecated way to import the name and to add a
-    new import for it. It might be possible to remove the old import if all of
-    the names being imported through it are available through the new import.
+    A data driven fix using `replacedBy`.
 WarningCode.DEPRECATED_EXTENDS_FUNCTION:
   status: needsFix
   notes: |-

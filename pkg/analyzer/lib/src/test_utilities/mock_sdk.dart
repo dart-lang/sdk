@@ -1218,12 +1218,6 @@ abstract class Directory implements FileSystemEntity {
   factory Directory(String path) {
     throw 0;
   }
-
-  Future<bool> exists() async => true;
-  bool existsSync() => true;
-
-  Future<FileStat> stat() async => throw 0;
-  FileStat statSync() => throw 0;
 }
 
 abstract class File implements FileSystemEntity {
@@ -1233,12 +1227,6 @@ abstract class File implements FileSystemEntity {
 
   Future<DateTime> lastModified();
   DateTime lastModifiedSync();
-
-  Future<bool> exists();
-  bool existsSync();
-
-  Future<FileStat> stat();
-  FileStat statSync();
 }
 
 abstract class FileSystemEntity {
@@ -1257,6 +1245,12 @@ abstract class FileSystemEntity {
   static FileSystemEntityType typeSync(String path,
           {bool followLinks = true}) =>
       throw 0;
+
+  Future<bool> exists();
+  bool existsSync();
+
+  Future<FileStat> stat();
+  FileStat statSync();
 }
 
 class ProcessStartMode {

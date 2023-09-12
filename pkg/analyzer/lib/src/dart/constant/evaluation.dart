@@ -1264,6 +1264,17 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       for (CollectionElement element in node.elements) {
         var result = _addElementsToMap(map, element);
         if (result is InvalidConstant) {
+          if (result.errorCode ==
+                  CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP &&
+              node.isMap) {
+            // Only report the error if we know this is a non-ambiguous map.
+            // TODO(kallentu): Don't report error here and avoid reporting this
+            // error in this case.
+            _errorReporter.reportErrorForOffset(
+                CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP,
+                result.entity.offset,
+                result.entity.length);
+          }
           return result;
         }
       }
@@ -1404,8 +1415,16 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           case InvalidConstant():
             return spread;
           case DartObjectImpl():
-            var listValue = spread.toListValue();
+            // Special case for ...?
+            if (spread.isNull && element.isNullAware) {
+              return null;
+            }
+            var listValue = spread.toListValue() ?? spread.toSetValue();
             if (listValue == null) {
+              // TODO(kallentu): Don't report error here.
+              _errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
+                  element.expression);
               return InvalidConstant(element.expression,
                   CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET);
             }
@@ -1471,6 +1490,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           case InvalidConstant():
             return spread;
           case DartObjectImpl():
+            // Special case for ...?
+            if (spread.isNull && element.isNullAware) {
+              return null;
+            }
             var mapValue = spread.toMapValue();
             if (mapValue == null) {
               return InvalidConstant(element.expression,
@@ -1533,8 +1556,16 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           case InvalidConstant():
             return spread;
           case DartObjectImpl():
-            var setValue = spread.toSetValue();
+            // Special case for ...?
+            if (spread.isNull && element.isNullAware) {
+              return null;
+            }
+            var setValue = spread.toSetValue() ?? spread.toListValue();
             if (setValue == null) {
+              // TODO(kallentu): Don't report error here.
+              _errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
+                  element.expression);
               return InvalidConstant(element.expression,
                   CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET);
             }

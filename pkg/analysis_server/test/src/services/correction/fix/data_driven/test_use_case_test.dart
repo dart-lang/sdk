@@ -15,7 +15,6 @@ void main() {
 
 @reflectiveTest
 class TestUseCaseTest extends DataDrivenFixProcessorTest {
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/23067')
   Future<void> test_expect_export_deprecated() async {
     newFile('$workspaceRootPath/p/lib/lib.dart', '''
 library p;

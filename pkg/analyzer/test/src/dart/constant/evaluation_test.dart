@@ -2050,6 +2050,43 @@ const x = <int>[...a];
     _assertNull(result);
   }
 
+  test_visitListLiteral_spreadElement_null() async {
+    await assertNoErrorsInCode('''
+const a = null;
+const List<String> x = [
+  'anotherString',
+  ...?a,
+];
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+List
+  elementType: String
+  elements
+    String anotherString
+  variable: self::@variable::x
+''');
+  }
+
+  test_visitListLiteral_spreadElement_set() async {
+    await assertNoErrorsInCode('''
+const a = {'string'};
+const List<String> x = [
+  'anotherString',
+  ...a,
+];
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+List
+  elementType: String
+  elements
+    String anotherString
+    String string
+  variable: self::@variable::x
+''');
+  }
+
   test_visitMethodInvocation_notIdentical() async {
     await assertErrorsInCode(r'''
 int f() {
@@ -2373,6 +2410,34 @@ Record(int, String, {bool c})
 ''');
   }
 
+  test_visitSetOrMapLiteral_ambiguous() async {
+    await assertErrorsInCode(r'''
+const l = [];
+const ambiguous = {...l, 1: 2};
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 32, 12),
+    ]);
+  }
+
+  test_visitSetOrMapLiteral_ambiguous_either() async {
+    await assertErrorsInCode(r'''
+const int? i = 1;
+const res  = {...?i};
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 31, 7),
+    ]);
+  }
+
+  test_visitSetOrMapLiteral_ambiguous_inList() async {
+    await assertErrorsInCode(r'''
+const l = [];
+const ambiguous = {...l, 1: 2};
+const anotherList = [...ambiguous];
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 32, 12),
+    ]);
+  }
+
   test_visitSetOrMapLiteral_map_complexKey() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2454,6 +2519,57 @@ Map
 ''');
   }
 
+  test_visitSetOrMapLiteral_map_spread() async {
+    await assertNoErrorsInCode('''
+const x = {'string': 1};
+const Map<String, int> alwaysInclude = {
+  'anotherString': 0,
+  ...x,
+};
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+Map
+  entries
+    entry
+      key: String string
+      value: int 1
+  variable: self::@variable::x
+''');
+  }
+
+  test_visitSetOrMapLiteral_map_spread_notMap() async {
+    await assertErrorsInCode('''
+const x = ['string'];
+const Map<String, int> alwaysInclude = {
+  'anotherString': 0,
+  ...x,
+};
+''', [
+      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 90, 1),
+      error(CompileTimeErrorCode.NOT_MAP_SPREAD, 90, 1),
+    ]);
+  }
+
+  test_visitSetOrMapLiteral_map_spread_null() async {
+    await assertNoErrorsInCode('''
+const a = null;
+const Map<String, int> x = {
+  'anotherString': 0,
+  ...?a,
+};
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+Map
+  entries
+    entry
+      key: String anotherString
+      value: int 0
+  variable: self::@variable::x
+''');
+  }
+
   test_visitSetOrMapLiteral_set_double_zeros() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -2502,6 +2618,41 @@ const c = const {if (nonBool) 3};
     ]);
     final result = _topLevelVar('c');
     _assertNull(result);
+  }
+
+  test_visitSetOrMapLiteral_set_spread_list() async {
+    await assertNoErrorsInCode('''
+const a = ['string'];
+const Set<String> x = {
+  'anotherString',
+  ...a,
+};
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+Set
+  elements
+    String anotherString
+    String string
+  variable: self::@variable::x
+''');
+  }
+
+  test_visitSetOrMapLiteral_set_spread_null() async {
+    await assertNoErrorsInCode('''
+const a = null;
+const Set<String> x = {
+  'anotherString',
+  ...?a,
+};
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+Set
+  elements
+    String anotherString
+  variable: self::@variable::x
+''');
   }
 
   test_visitSimpleIdentifier_className() async {

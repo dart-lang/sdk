@@ -130,6 +130,7 @@ import 'prefer_final_parameters_test.dart' as prefer_final_parameters;
 import 'prefer_for_elements_to_map_fromIterable_test.dart'
 // ignore: library_prefixes
     as prefer_for_elements_to_map_fromIterable;
+import 'prefer_foreach_test.dart' as prefer_foreach;
 import 'prefer_function_declarations_over_variables_test.dart'
     as prefer_function_declarations_over_variables;
 import 'prefer_generic_function_type_aliases_test.dart'
@@ -327,6 +328,7 @@ void main() {
   prefer_final_locals.main();
   prefer_final_parameters.main();
   prefer_for_elements_to_map_fromIterable.main();
+  prefer_foreach.main();
   prefer_function_declarations_over_variables.main();
   prefer_generic_function_type_aliases.main();
   prefer_if_elements_to_conditional_expressions.main();

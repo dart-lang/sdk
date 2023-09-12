@@ -82,6 +82,17 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 - Added `getIsolateId` method to `Service`.
 - Added `getObjectId` method to `Service`.
 
+#### `dart:ffi`
+
+- Added the `NativeCallable.isolateLocal` constructor. This creates
+  `NativeCallable`s with the same functionality as `Pointer.fromFunction`,
+  except that `NativeCallable` accepts closures.
+- Added the `NativeCallable.keepIsolateAlive` method, which determines whether
+  the `NativeCallable` keeps the isolate that created it alive.
+- All `NativeCallable` constructors can now accept closures. Previously
+  `NativeCallable`s had the same restrictions as `Pointer.fromFunction`, and
+  could only create callbacks for static functions.
+
 #### `dart:io`
 
 - **Breaking change** [#53005][]: The headers returned by
@@ -190,6 +201,14 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
    current directory ([#39796][]).
 
 [#39796]: https://github.com/dart-lang/sdk/issues/39796
+
+#### `dart:ffi`
+
+- Added the `NativeCallable` class, which can be used to create callbacks that
+  allow native code to call into Dart code from any thread. See
+  `NativeCallable.listener`. In future releases, `NativeCallable` will be
+  updated with more functionality, and will become the recommended way of
+  creating native callbacks for all use cases, replacing `Pointer.fromFunction`.
 
 #### `dart:io`
 
