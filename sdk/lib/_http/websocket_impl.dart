@@ -988,6 +988,9 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   String? _outCloseReason;
   Timer? _closeTimer;
   _WebSocketPerMessageDeflate? _deflate;
+  
+  static bool _overrideUserAgent = false;
+  static String? _userAgent;
 
   static Future<WebSocket> connect(
       String url, Iterable<String>? protocols, Map<String, dynamic>? headers,
@@ -1267,10 +1270,6 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     return _sink.close();
   }
   
-  static bool _overrideUserAgent = false;
-
-  static String? _userAgent;
-
   static String? get userAgent => _userAgent;
 
   static set userAgent(String? userAgent) {
