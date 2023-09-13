@@ -2298,8 +2298,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
   }
 }
 
+// TODO(fishythefish): Remove default mixin.
 class TypeInformationConstantVisitor
-    extends ir.ComputeOnceConstantVisitor<TypeInformation> {
+    extends ir.ComputeOnceConstantVisitor<TypeInformation>
+    with ir.OnceConstantVisitorDefaultMixin<TypeInformation> {
   final KernelTypeGraphBuilder builder;
   final ir.ConstantExpression expression;
 

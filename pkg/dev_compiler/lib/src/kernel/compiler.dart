@@ -50,7 +50,9 @@ import 'type_recipe_generator.dart';
 import 'type_table.dart';
 
 class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
-    with SharedCompiler<Library, Class, InterfaceType, FunctionNode>
+    with
+        SharedCompiler<Library, Class, InterfaceType, FunctionNode>,
+        OnceConstantVisitorDefaultMixin<js_ast.Expression>
     implements
         StatementVisitor<js_ast.Statement>,
         ExpressionVisitor<js_ast.Expression>,

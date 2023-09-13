@@ -2673,7 +2673,8 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
   }
 }
 
-class ConstantAllocationCollector extends ConstantVisitor<Type> {
+class ConstantAllocationCollector extends ConstantVisitor<Type>
+    with ConstantVisitorDefaultMixin<Type> {
   final SummaryCollector summaryCollector;
 
   final Map<Constant, Type> constants = <Constant, Type>{};

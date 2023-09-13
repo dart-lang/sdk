@@ -21,17 +21,17 @@ extension type InlineClass(core::int it) {
   method call = self::InlineClass|call;
   method tearoff call = self::InlineClass|get#call;
   set setter = self::InlineClass|set#setter;
-  constructor • = self::InlineClass|;
-  constructor tearoff • = self::InlineClass|_#new#tearOff;
+  constructor • = self::InlineClass|constructor#;
+  constructor tearoff • = self::InlineClass|constructor#_#new#tearOff;
 }
 static extension-member method _extension#0|get#setter(lowered final core::Object #this) → core::int
   ;
 static extension-member method _extension#0|set#getter(lowered final core::Object #this, core::int value) → void
   ;
-static inline-class-member method InlineClass|(core::int it) → self::InlineClass /* = core::int */
+static inline-class-member method InlineClass|constructor#(core::int it) → self::InlineClass /* = core::int */
   ;
-static inline-class-member method InlineClass|_#new#tearOff(core::int it) → self::InlineClass /* = core::int */
-  return self::InlineClass|(it);
+static inline-class-member method InlineClass|constructor#_#new#tearOff(core::int it) → self::InlineClass /* = core::int */
+  return self::InlineClass|constructor#(it);
 static inline-class-member method InlineClass|test(lowered final self::InlineClass /* = core::int */ #this) → dynamic
   ;
 static inline-class-member method InlineClass|get#test(lowered final self::InlineClass /* = core::int */ #this) → () → dynamic

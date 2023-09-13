@@ -919,6 +919,8 @@ abstract class DartTypeVisitor<R> {
   R visitRecordType(RecordType node);
 }
 
+/// Helper mixin for [DartTypeVisitor] that implements visit methods by
+/// delegating to the [defaultDartType] method.
 mixin DartTypeVisitorDefaultMixin<R> implements DartTypeVisitor<R> {
   @override
   R defaultDartType(DartType node);
@@ -972,6 +974,8 @@ abstract class DartTypeVisitor1<R, A> {
   R visitRecordType(RecordType node, A arg);
 }
 
+/// Helper mixin for [DartTypeVisitor1] that implements visit methods by
+/// delegating to the [defaultDartType] method.
 mixin DartTypeVisitor1DefaultMixin<R, A> implements DartTypeVisitor1<R, A> {
   @override
   R defaultDartType(DartType node, A arg);
@@ -1017,75 +1021,157 @@ mixin DartTypeVisitor1DefaultMixin<R, A> implements DartTypeVisitor1<R, A> {
 abstract class ConstantVisitor<R> {
   const ConstantVisitor();
 
+  R visitNullConstant(NullConstant node);
+  R visitBoolConstant(BoolConstant node);
+  R visitIntConstant(IntConstant node);
+  R visitDoubleConstant(DoubleConstant node);
+  R visitStringConstant(StringConstant node);
+  R visitSymbolConstant(SymbolConstant node);
+  R visitMapConstant(MapConstant node);
+  R visitListConstant(ListConstant node);
+  R visitSetConstant(SetConstant node);
+  R visitRecordConstant(RecordConstant node);
+  R visitInstanceConstant(InstanceConstant node);
+  R visitInstantiationConstant(InstantiationConstant node);
+  R visitTypedefTearOffConstant(TypedefTearOffConstant node);
+  R visitStaticTearOffConstant(StaticTearOffConstant node);
+  R visitConstructorTearOffConstant(ConstructorTearOffConstant node);
+  R visitRedirectingFactoryTearOffConstant(
+      RedirectingFactoryTearOffConstant node);
+  R visitTypeLiteralConstant(TypeLiteralConstant node);
+  R visitUnevaluatedConstant(UnevaluatedConstant node);
+}
+
+/// Helper mixin for [ConstantVisitor] that implements visit methods by
+/// delegating to the [defaultConstant] method.
+mixin ConstantVisitorDefaultMixin<R> implements ConstantVisitor<R> {
   R defaultConstant(Constant node);
 
+  @override
   R visitNullConstant(NullConstant node) => defaultConstant(node);
+  @override
   R visitBoolConstant(BoolConstant node) => defaultConstant(node);
+  @override
   R visitIntConstant(IntConstant node) => defaultConstant(node);
+  @override
   R visitDoubleConstant(DoubleConstant node) => defaultConstant(node);
+  @override
   R visitStringConstant(StringConstant node) => defaultConstant(node);
+  @override
   R visitSymbolConstant(SymbolConstant node) => defaultConstant(node);
+  @override
   R visitMapConstant(MapConstant node) => defaultConstant(node);
+  @override
   R visitListConstant(ListConstant node) => defaultConstant(node);
+  @override
   R visitSetConstant(SetConstant node) => defaultConstant(node);
+  @override
   R visitRecordConstant(RecordConstant node) => defaultConstant(node);
+  @override
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
+  @override
   R visitInstantiationConstant(InstantiationConstant node) =>
       defaultConstant(node);
+  @override
   R visitTypedefTearOffConstant(TypedefTearOffConstant node) =>
       defaultConstant(node);
+  @override
   R visitStaticTearOffConstant(StaticTearOffConstant node) =>
       defaultConstant(node);
+  @override
   R visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
       defaultConstant(node);
+  @override
   R visitRedirectingFactoryTearOffConstant(
           RedirectingFactoryTearOffConstant node) =>
       defaultConstant(node);
+  @override
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
+  @override
   R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
 }
 
 abstract class ConstantVisitor1<R, A> {
   const ConstantVisitor1();
 
+  R visitNullConstant(NullConstant node, A arg);
+  R visitBoolConstant(BoolConstant node, A arg);
+  R visitIntConstant(IntConstant node, A arg);
+  R visitDoubleConstant(DoubleConstant node, A arg);
+  R visitStringConstant(StringConstant node, A arg);
+  R visitSymbolConstant(SymbolConstant node, A arg);
+  R visitMapConstant(MapConstant node, A arg);
+  R visitListConstant(ListConstant node, A arg);
+  R visitSetConstant(SetConstant node, A arg);
+  R visitRecordConstant(RecordConstant node, A arg);
+  R visitInstanceConstant(InstanceConstant node, A arg);
+  R visitInstantiationConstant(InstantiationConstant node, A arg);
+  R visitStaticTearOffConstant(StaticTearOffConstant node, A arg);
+  R visitTypedefTearOffConstant(TypedefTearOffConstant node, A arg);
+  R visitConstructorTearOffConstant(ConstructorTearOffConstant node, A arg);
+  R visitRedirectingFactoryTearOffConstant(
+      RedirectingFactoryTearOffConstant node, A arg);
+  R visitTypeLiteralConstant(TypeLiteralConstant node, A arg);
+  R visitUnevaluatedConstant(UnevaluatedConstant node, A arg);
+}
+
+/// Helper mixin for [ConstantVisitor1] that implements visit methods by
+/// delegating to the [defaultConstant] method.
+mixin ConstantVisitor1DefaultMixin<R, A> implements ConstantVisitor1<R, A> {
   R defaultConstant(Constant node, A arg);
 
+  @override
   R visitNullConstant(NullConstant node, A arg) => defaultConstant(node, arg);
+  @override
   R visitBoolConstant(BoolConstant node, A arg) => defaultConstant(node, arg);
+  @override
   R visitIntConstant(IntConstant node, A arg) => defaultConstant(node, arg);
+  @override
   R visitDoubleConstant(DoubleConstant node, A arg) =>
       defaultConstant(node, arg);
+  @override
   R visitStringConstant(StringConstant node, A arg) =>
       defaultConstant(node, arg);
+  @override
   R visitSymbolConstant(SymbolConstant node, A arg) =>
       defaultConstant(node, arg);
+  @override
   R visitMapConstant(MapConstant node, A arg) => defaultConstant(node, arg);
+  @override
   R visitListConstant(ListConstant node, A arg) => defaultConstant(node, arg);
+  @override
   R visitSetConstant(SetConstant node, A arg) => defaultConstant(node, arg);
+  @override
   R visitRecordConstant(RecordConstant node, A arg) =>
       defaultConstant(node, arg);
+  @override
   R visitInstanceConstant(InstanceConstant node, A arg) =>
       defaultConstant(node, arg);
+  @override
   R visitInstantiationConstant(InstantiationConstant node, A arg) =>
       defaultConstant(node, arg);
+  @override
   R visitStaticTearOffConstant(StaticTearOffConstant node, A arg) =>
       defaultConstant(node, arg);
+  @override
   R visitTypedefTearOffConstant(TypedefTearOffConstant node, A arg) =>
       defaultConstant(node, arg);
+  @override
   R visitConstructorTearOffConstant(ConstructorTearOffConstant node, A arg) =>
       defaultConstant(node, arg);
+  @override
   R visitRedirectingFactoryTearOffConstant(
           RedirectingFactoryTearOffConstant node, A arg) =>
       defaultConstant(node, arg);
+  @override
   R visitTypeLiteralConstant(TypeLiteralConstant node, A arg) =>
       defaultConstant(node, arg);
+  @override
   R visitUnevaluatedConstant(UnevaluatedConstant node, A arg) =>
       defaultConstant(node, arg);
 }
 
 abstract class _ConstantCallback<R> {
-  R defaultConstant(Constant node);
-
   R visitNullConstant(NullConstant node);
   R visitBoolConstant(BoolConstant node);
   R visitIntConstant(IntConstant node);
@@ -1178,41 +1264,12 @@ class _ConstantCallbackVisitor<R> implements ConstantVisitor<R> {
 
   @override
   R visitNullConstant(NullConstant node) => _callback.visitNullConstant(node);
-
-  @override
-  R defaultConstant(Constant node) => _callback.defaultConstant(node);
 }
 
-/// Visitor-like class used for visiting a [Constant] node while computing a
-/// value for each subnode. The visitor caches the computed values ensuring that
-/// each subnode is only visited once.
-abstract class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
-  late final _ConstantCallbackVisitor<R> _visitor;
-  Map<Constant, R> cache = new LinkedHashMap.identity();
-
-  ComputeOnceConstantVisitor() {
-    _visitor = new _ConstantCallbackVisitor<R>(this);
-  }
-
-  /// Visits [node] if not already visited to compute a value for [node].
-  ///
-  /// If the value has already been computed the cached value is returned
-  /// immediately.
-  ///
-  /// Call this method to compute values for subnodes recursively, while only
-  /// visiting each subnode once.
-  R visitConstant(Constant node) {
-    return cache[node] ??= processValue(node, node.accept(_visitor));
-  }
-
-  /// Returns the computed [value] for [node].
-  ///
-  /// Override this method to process the computed value before caching.
-  R processValue(Constant node, R value) {
-    return value;
-  }
-
-  @override
+/// Helper mixin for [ComputeOnceConstantVisitor] and [VisitOnceConstantVisitor]
+/// that implements the visit methods by delegating to the [defaultConstant]
+/// method.
+mixin OnceConstantVisitorDefaultMixin<R> implements _ConstantCallback<R> {
   R defaultConstant(Constant node);
 
   @override
@@ -1259,6 +1316,36 @@ abstract class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
   R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
 }
 
+/// Visitor-like class used for visiting a [Constant] node while computing a
+/// value for each subnode. The visitor caches the computed values ensuring that
+/// each subnode is only visited once.
+abstract class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
+  late final _ConstantCallbackVisitor<R> _visitor;
+  Map<Constant, R> cache = new LinkedHashMap.identity();
+
+  ComputeOnceConstantVisitor() {
+    _visitor = new _ConstantCallbackVisitor<R>(this);
+  }
+
+  /// Visits [node] if not already visited to compute a value for [node].
+  ///
+  /// If the value has already been computed the cached value is returned
+  /// immediately.
+  ///
+  /// Call this method to compute values for subnodes recursively, while only
+  /// visiting each subnode once.
+  R visitConstant(Constant node) {
+    return cache[node] ??= processValue(node, node.accept(_visitor));
+  }
+
+  /// Returns the computed [value] for [node].
+  ///
+  /// Override this method to process the computed value before caching.
+  R processValue(Constant node, R value) {
+    return value;
+  }
+}
+
 /// Visitor-like class used for visiting each subnode of a [Constant] node once.
 ///
 /// The visitor records the visited node to ensure that each subnode is only
@@ -1280,54 +1367,6 @@ abstract class VisitOnceConstantVisitor implements _ConstantCallback<void> {
       node.accept(_visitor);
     }
   }
-
-  @override
-  void defaultConstant(Constant node);
-
-  @override
-  void visitNullConstant(NullConstant node) => defaultConstant(node);
-  @override
-  void visitBoolConstant(BoolConstant node) => defaultConstant(node);
-  @override
-  void visitIntConstant(IntConstant node) => defaultConstant(node);
-  @override
-  void visitDoubleConstant(DoubleConstant node) => defaultConstant(node);
-  @override
-  void visitStringConstant(StringConstant node) => defaultConstant(node);
-  @override
-  void visitSymbolConstant(SymbolConstant node) => defaultConstant(node);
-  @override
-  void visitMapConstant(MapConstant node) => defaultConstant(node);
-  @override
-  void visitListConstant(ListConstant node) => defaultConstant(node);
-  @override
-  void visitSetConstant(SetConstant node) => defaultConstant(node);
-  @override
-  void visitRecordConstant(RecordConstant node) => defaultConstant(node);
-  @override
-  void visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
-  @override
-  void visitInstantiationConstant(InstantiationConstant node) =>
-      defaultConstant(node);
-  @override
-  void visitTypedefTearOffConstant(TypedefTearOffConstant node) =>
-      defaultConstant(node);
-  @override
-  void visitStaticTearOffConstant(StaticTearOffConstant node) =>
-      defaultConstant(node);
-  @override
-  void visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
-      defaultConstant(node);
-  @override
-  void visitRedirectingFactoryTearOffConstant(
-          RedirectingFactoryTearOffConstant node) =>
-      defaultConstant(node);
-  @override
-  void visitTypeLiteralConstant(TypeLiteralConstant node) =>
-      defaultConstant(node);
-  @override
-  void visitUnevaluatedConstant(UnevaluatedConstant node) =>
-      defaultConstant(node);
 }
 
 abstract class MemberReferenceVisitor<R> {
@@ -1395,7 +1434,6 @@ abstract class Visitor<R> extends TreeVisitor<R>
   R visitRecordType(RecordType node) => defaultDartType(node);
 
   // Constants
-  @override
   R defaultConstant(Constant node) => defaultNode(node);
   @override
   R visitNullConstant(NullConstant node) => defaultConstant(node);
@@ -1546,7 +1584,6 @@ abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
   R visitExtensionType(ExtensionType node, A arg) => defaultDartType(node, arg);
 
   // Constants
-  @override
   R defaultConstant(Constant node, A arg) => defaultNode(node, arg);
   @override
   R visitNullConstant(NullConstant node, A arg) => defaultConstant(node, arg);
@@ -2425,67 +2462,6 @@ abstract class StatementVisitor1<R, A> {
       defaultStatement(node, arg);
   R visitPatternVariableDeclaration(PatternVariableDeclaration node, A arg) =>
       defaultStatement(node, arg);
-  R visitFunctionDeclaration(FunctionDeclaration node, A arg) =>
-      defaultStatement(node, arg);
-}
-
-abstract class BodyVisitor1<R, A> extends ExpressionVisitor1<R, A>
-    implements StatementVisitor1<R, A> {
-  const BodyVisitor1();
-
-  @override
-  R defaultStatement(Statement node, A arg);
-  @override
-  R visitExpressionStatement(ExpressionStatement node, A arg) =>
-      defaultStatement(node, arg);
-  @override
-  R visitBlock(Block node, A arg) => defaultStatement(node, arg);
-  @override
-  R visitAssertBlock(AssertBlock node, A arg) => defaultStatement(node, arg);
-  @override
-  R visitEmptyStatement(EmptyStatement node, A arg) =>
-      defaultStatement(node, arg);
-  @override
-  R visitAssertStatement(AssertStatement node, A arg) =>
-      defaultStatement(node, arg);
-  @override
-  R visitLabeledStatement(LabeledStatement node, A arg) =>
-      defaultStatement(node, arg);
-  @override
-  R visitBreakStatement(BreakStatement node, A arg) =>
-      defaultStatement(node, arg);
-  @override
-  R visitWhileStatement(WhileStatement node, A arg) =>
-      defaultStatement(node, arg);
-  @override
-  R visitDoStatement(DoStatement node, A arg) => defaultStatement(node, arg);
-  @override
-  R visitForStatement(ForStatement node, A arg) => defaultStatement(node, arg);
-  @override
-  R visitForInStatement(ForInStatement node, A arg) =>
-      defaultStatement(node, arg);
-  @override
-  R visitSwitchStatement(SwitchStatement node, A arg) =>
-      defaultStatement(node, arg);
-  @override
-  R visitContinueSwitchStatement(ContinueSwitchStatement node, A arg) =>
-      defaultStatement(node, arg);
-  @override
-  R visitIfStatement(IfStatement node, A arg) => defaultStatement(node, arg);
-  @override
-  R visitReturnStatement(ReturnStatement node, A arg) =>
-      defaultStatement(node, arg);
-  @override
-  R visitTryCatch(TryCatch node, A arg) => defaultStatement(node, arg);
-  @override
-  R visitTryFinally(TryFinally node, A arg) => defaultStatement(node, arg);
-  @override
-  R visitYieldStatement(YieldStatement node, A arg) =>
-      defaultStatement(node, arg);
-  @override
-  R visitVariableDeclaration(VariableDeclaration node, A arg) =>
-      defaultStatement(node, arg);
-  @override
   R visitFunctionDeclaration(FunctionDeclaration node, A arg) =>
       defaultStatement(node, arg);
 }

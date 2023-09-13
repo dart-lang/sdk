@@ -176,10 +176,6 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
   }
 
   @override
-  Constant? defaultConstant(Constant node) => throw new UnsupportedError(
-      "Unhandled constant ${node} (${node.runtimeType})");
-
-  @override
   Constant? visitNullConstant(NullConstant node) => null;
 
   @override
@@ -353,6 +349,34 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
 
   @override
   Constant? visitUnevaluatedConstant(UnevaluatedConstant node) => null;
+
+  @override
+  Constant? visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
+      null;
+
+  @override
+  Constant? visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node) =>
+      null;
+
+  @override
+  Constant? visitTypedefTearOffConstant(TypedefTearOffConstant node) {
+    List<DartType>? types;
+    for (int index = 0; index < node.types.length; index++) {
+      DartType? type = computeConstCanonicalType(
+          node.types[index], _evaluator.coreTypes,
+          isNonNullableByDefault: _evaluator.isNonNullableByDefault);
+      if (type != null) {
+        types ??= node.types.toList(growable: false);
+        types[index] = type;
+      }
+    }
+    if (types != null) {
+      return new TypedefTearOffConstant(
+          node.parameters, node.tearOffConstant, types);
+    }
+    return null;
+  }
 }
 
 class ConstantsTransformer extends RemovingTransformer {

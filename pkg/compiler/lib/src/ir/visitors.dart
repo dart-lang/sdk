@@ -225,7 +225,9 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   }
 }
 
-class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
+// TODO(fishythefish): Remove default mixin.
+class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue>
+    with ir.OnceConstantVisitorDefaultMixin<ConstantValue> {
   final IrToElementMap elementMap;
 
   ConstantValuefier(this.elementMap);

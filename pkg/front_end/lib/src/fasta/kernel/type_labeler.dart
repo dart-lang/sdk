@@ -311,9 +311,6 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   @override
-  void defaultConstant(Constant node) {}
-
-  @override
   void visitNullConstant(NullConstant node) {
     result.add('${node.value}');
   }

@@ -340,10 +340,6 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
   }
 
   @override
-  void defaultConstant(Constant node) => throw new UnimplementedError(
-      'Unexpected constant $node (${node.runtimeType})');
-
-  @override
   void visitNullConstant(NullConstant node) {
     sb.write('Null()');
   }

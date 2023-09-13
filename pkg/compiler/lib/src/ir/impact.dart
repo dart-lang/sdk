@@ -220,7 +220,9 @@ class ImpactBuilderData {
   }
 }
 
-class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
+// TODO(fishythefish): Remove default mixin.
+class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor
+    with ir.OnceConstantVisitorDefaultMixin<void> {
   final ImpactRegistry registry;
   final ir.LibraryDependency? import;
   final ir.ConstantExpression expression;

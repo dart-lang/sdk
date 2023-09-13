@@ -209,7 +209,7 @@ static method test(<T extends core::Object? = dynamic>(T%) → void t1a, core::L
   <ali::Class<<T extends core::Object? = dynamic>(T%) → void>>[];
   <(ali::Class<<T extends core::Object? = dynamic>(T%) → void>) → void>[];
   <(core::List<ali::Class<<T extends core::Object? = dynamic>(T%) → void>>) → void>[];
-  ali::ExtensionType|<dynamic>(invalid-expression "pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:63:10: Error: The argument type 'int' can't be assigned to the parameter type 'List<dynamic>'.
+  ali::ExtensionType|constructor#<dynamic>(invalid-expression "pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:63:10: Error: The argument type 'int' can't be assigned to the parameter type 'List<dynamic>'.
  - 'List' is from 'dart:core'.
   new T7(0); // Error
          ^" in 0 as{TypeError} core::List<dynamic>);
@@ -243,18 +243,18 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     ;
 }
 extension type ExtensionType<T extends core::Object? = dynamic>(core::List<T%> it) {
-  constructor • = ali::ExtensionType|;
-  constructor tearoff • = ali::ExtensionType|_#new#tearOff;
+  constructor • = ali::ExtensionType|constructor#;
+  constructor tearoff • = ali::ExtensionType|constructor#_#new#tearOff;
 }
-static inline-class-member method ExtensionType|<T extends core::Object? = dynamic>(core::List<ali::ExtensionType|::T%> it) → ali::ExtensionType<ali::ExtensionType|::T%> /* = core::List<ali::ExtensionType|::T%> */ {
-  lowered final ali::ExtensionType<ali::ExtensionType|::T%> /* = core::List<ali::ExtensionType|::T%> */ #this = it;
+static inline-class-member method ExtensionType|constructor#<T extends core::Object? = dynamic>(core::List<ali::ExtensionType|constructor#::T%> it) → ali::ExtensionType<ali::ExtensionType|constructor#::T%> /* = core::List<ali::ExtensionType|constructor#::T%> */ {
+  lowered final ali::ExtensionType<ali::ExtensionType|constructor#::T%> /* = core::List<ali::ExtensionType|constructor#::T%> */ #this = it;
   return #this;
 }
-static inline-class-member method ExtensionType|_#new#tearOff<T extends core::Object? = dynamic>(core::List<ali::ExtensionType|_#new#tearOff::T%> it) → ali::ExtensionType<ali::ExtensionType|_#new#tearOff::T%> /* = core::List<ali::ExtensionType|_#new#tearOff::T%> */
-  return ali::ExtensionType|<ali::ExtensionType|_#new#tearOff::T%>(it);
+static inline-class-member method ExtensionType|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<ali::ExtensionType|constructor#_#new#tearOff::T%> it) → ali::ExtensionType<ali::ExtensionType|constructor#_#new#tearOff::T%> /* = core::List<ali::ExtensionType|constructor#_#new#tearOff::T%> */
+  return ali::ExtensionType|constructor#<ali::ExtensionType|constructor#_#new#tearOff::T%>(it);
 static method test(<T extends core::Object? = dynamic>(T%) → void t1, <T extends core::Object? = dynamic>(T%) → void t2, core::List<<T extends core::Object? = dynamic>(T%) → void> t3, (<T extends core::Object? = dynamic>(T%) → void, core::int) t5, ({required a: <T extends core::Object? = dynamic>(T%) → void, required b: core::int}) t6, <S extends <T extends core::Object? = dynamic>(T%) → void = dynamic>(S) → void t8, (core::List<<T extends core::Object? = dynamic>(T%) → void>, core::int) t9, ({required a: core::List<<T extends core::Object? = dynamic>(T%) → void>, required b: core::int}) t10, FutureOr<<T extends core::Object? = dynamic>(T%) → void>t11, FutureOr<core::List<<T extends core::Object? = dynamic>(T%) → void>>t12) → dynamic {
   new ali::Class::•<<T extends core::Object? = dynamic>(T%) → void>();
-  ali::ExtensionType|<dynamic>(<dynamic>[]);
+  ali::ExtensionType|constructor#<dynamic>(<dynamic>[]);
 }
 static method _#T4#new#tearOff<X extends <T extends core::Object? = dynamic>(T%) → void>() → ali::Class<ali::_#T4#new#tearOff::X>
   return new ali::Class::•<ali::_#T4#new#tearOff::X>();

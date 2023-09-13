@@ -3,47 +3,47 @@ import self as self;
 import "dart:core" as core;
 
 extension type I(core::int i) {
-  constructor _ = self::I|_;
-  constructor tearoff _ = self::I|_#_#tearOff;
-  static factory • = self::I|;
-  static factory tearoff • = self::I|_#new#tearOff;
+  constructor _ = self::I|constructor#_;
+  constructor tearoff _ = self::I|constructor#_#_#tearOff;
+  static factory • = self::I|constructor#;
+  static factory tearoff • = self::I|constructor#_#new#tearOff;
 }
 extension type J(core::int i) {
-  constructor _ = self::J|_;
-  constructor tearoff _ = self::J|_#_#tearOff;
-  static factory • = self::J|;
-  static factory tearoff • = self::J|_#new#tearOff;
+  constructor _ = self::J|constructor#_;
+  constructor tearoff _ = self::J|constructor#_#_#tearOff;
+  static factory • = self::J|constructor#;
+  static factory tearoff • = self::J|constructor#_#new#tearOff;
 }
 extension type K<T extends core::Object? = dynamic>(T% i) {
-  constructor _ = self::K|_;
-  constructor tearoff _ = self::K|_#_#tearOff;
-  static factory • = self::K|;
-  static factory tearoff • = self::K|_#new#tearOff;
+  constructor _ = self::K|constructor#_;
+  constructor tearoff _ = self::K|constructor#_#_#tearOff;
+  static factory • = self::K|constructor#;
+  static factory tearoff • = self::K|constructor#_#new#tearOff;
 }
-static inline-class-member method I|_(core::int i) → self::I /* = core::int */
+static inline-class-member method I|constructor#_(core::int i) → self::I /* = core::int */
   ;
-static inline-class-member method I|_#_#tearOff(core::int i) → self::I /* = core::int */
-  return self::I|_(i);
-static inline-class-member method I|() → self::I /* = core::int */
+static inline-class-member method I|constructor#_#_#tearOff(core::int i) → self::I /* = core::int */
+  return self::I|constructor#_(i);
+static inline-class-member method I|constructor#() → self::I /* = core::int */
   ;
-static inline-class-member method I|_#new#tearOff() → self::I /* = core::int */
-  return self::I|();
-static inline-class-member method J|_(core::int i) → self::J /* = core::int */
+static inline-class-member method I|constructor#_#new#tearOff() → self::I /* = core::int */
+  return self::I|constructor#();
+static inline-class-member method J|constructor#_(core::int i) → self::J /* = core::int */
   ;
-static inline-class-member method J|_#_#tearOff(core::int i) → self::J /* = core::int */
-  return self::J|_(i);
-static inline-class-member method J|(core::int i) → self::J /* = core::int */
+static inline-class-member method J|constructor#_#_#tearOff(core::int i) → self::J /* = core::int */
+  return self::J|constructor#_(i);
+static inline-class-member method J|constructor#(core::int i) → self::J /* = core::int */
   ;
-static inline-class-member method J|_#new#tearOff(core::int i) → self::J /* = core::int */
-  return self::J|(i);
-static inline-class-member method K|_<T extends core::Object? = dynamic>(self::K|_::T% i) → self::K<self::K|_::T%> /* = self::K|_::T% */
+static inline-class-member method J|constructor#_#new#tearOff(core::int i) → self::J /* = core::int */
+  return self::J|constructor#(i);
+static inline-class-member method K|constructor#_<T extends core::Object? = dynamic>(self::K|constructor#_::T% i) → self::K<self::K|constructor#_::T%> /* = self::K|constructor#_::T% */
   ;
-static inline-class-member method K|_#_#tearOff<T extends core::Object? = dynamic>(self::K|_#_#tearOff::T% i) → self::K<self::K|_#_#tearOff::T%> /* = self::K|_#_#tearOff::T% */
-  return self::K|_<self::K|_#_#tearOff::T%>(i);
-static inline-class-member method K|<T extends core::Object? = dynamic>(self::K|::T% i) → self::K<self::K|::T%> /* = self::K|::T% */
+static inline-class-member method K|constructor#_#_#tearOff<T extends core::Object? = dynamic>(self::K|constructor#_#_#tearOff::T% i) → self::K<self::K|constructor#_#_#tearOff::T%> /* = self::K|constructor#_#_#tearOff::T% */
+  return self::K|constructor#_<self::K|constructor#_#_#tearOff::T%>(i);
+static inline-class-member method K|constructor#<T extends core::Object? = dynamic>(self::K|constructor#::T% i) → self::K<self::K|constructor#::T%> /* = self::K|constructor#::T% */
   ;
-static inline-class-member method K|_#new#tearOff<T extends core::Object? = dynamic>(self::K|_#new#tearOff::T% i) → self::K<self::K|_#new#tearOff::T%> /* = self::K|_#new#tearOff::T% */
-  return self::K|<self::K|_#new#tearOff::T%>(i);
+static inline-class-member method K|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::K|constructor#_#new#tearOff::T% i) → self::K<self::K|constructor#_#new#tearOff::T%> /* = self::K|constructor#_#new#tearOff::T% */
+  return self::K|constructor#<self::K|constructor#_#new#tearOff::T%>(i);
 static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic

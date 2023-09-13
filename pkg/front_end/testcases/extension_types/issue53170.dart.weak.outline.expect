@@ -21,66 +21,66 @@ import self as self;
 import "dart:core" as core;
 
 extension type S1(core::num id) implements core::String {
-  constructor • = self::S1|;
-  constructor tearoff • = self::S1|_#new#tearOff;
+  constructor • = self::S1|constructor#;
+  constructor tearoff • = self::S1|constructor#_#new#tearOff;
 }
 extension type S2(core::int id) implements core::num {
-  constructor • = self::S2|;
-  constructor tearoff • = self::S2|_#new#tearOff;
+  constructor • = self::S2|constructor#;
+  constructor tearoff • = self::S2|constructor#_#new#tearOff;
 }
 extension type V1(core::num id) {
-  constructor • = self::V1|;
-  constructor tearoff • = self::V1|_#new#tearOff;
+  constructor • = self::V1|constructor#;
+  constructor tearoff • = self::V1|constructor#_#new#tearOff;
 }
 extension type V2(core::String id) implements self::V1 /* = core::num */ {
-  constructor • = self::V2|;
-  constructor tearoff • = self::V2|_#new#tearOff;
+  constructor • = self::V2|constructor#;
+  constructor tearoff • = self::V2|constructor#_#new#tearOff;
 }
 extension type V3(core::int id) implements self::V1 /* = core::num */ {
-  constructor • = self::V3|;
-  constructor tearoff • = self::V3|_#new#tearOff;
+  constructor • = self::V3|constructor#;
+  constructor tearoff • = self::V3|constructor#_#new#tearOff;
 }
 extension type W1<T extends core::Object? = dynamic>(T% id) {
-  constructor • = self::W1|;
-  constructor tearoff • = self::W1|_#new#tearOff;
+  constructor • = self::W1|constructor#;
+  constructor tearoff • = self::W1|constructor#_#new#tearOff;
 }
 extension type W2(core::String id) implements self::W1<core::num> /* = core::num */ {
-  constructor • = self::W2|;
-  constructor tearoff • = self::W2|_#new#tearOff;
+  constructor • = self::W2|constructor#;
+  constructor tearoff • = self::W2|constructor#_#new#tearOff;
 }
 extension type W3(core::int id) implements self::W1<core::num> /* = core::num */ {
-  constructor • = self::W3|;
-  constructor tearoff • = self::W3|_#new#tearOff;
+  constructor • = self::W3|constructor#;
+  constructor tearoff • = self::W3|constructor#_#new#tearOff;
 }
-static inline-class-member method S1|(core::num id) → self::S1 /* = core::num */
+static inline-class-member method S1|constructor#(core::num id) → self::S1 /* = core::num */
   ;
-static inline-class-member method S1|_#new#tearOff(core::num id) → self::S1 /* = core::num */
-  return self::S1|(id);
-static inline-class-member method S2|(core::int id) → self::S2 /* = core::int */
+static inline-class-member method S1|constructor#_#new#tearOff(core::num id) → self::S1 /* = core::num */
+  return self::S1|constructor#(id);
+static inline-class-member method S2|constructor#(core::int id) → self::S2 /* = core::int */
   ;
-static inline-class-member method S2|_#new#tearOff(core::int id) → self::S2 /* = core::int */
-  return self::S2|(id);
-static inline-class-member method V1|(core::num id) → self::V1 /* = core::num */
+static inline-class-member method S2|constructor#_#new#tearOff(core::int id) → self::S2 /* = core::int */
+  return self::S2|constructor#(id);
+static inline-class-member method V1|constructor#(core::num id) → self::V1 /* = core::num */
   ;
-static inline-class-member method V1|_#new#tearOff(core::num id) → self::V1 /* = core::num */
-  return self::V1|(id);
-static inline-class-member method V2|(core::String id) → self::V2 /* = core::String */
+static inline-class-member method V1|constructor#_#new#tearOff(core::num id) → self::V1 /* = core::num */
+  return self::V1|constructor#(id);
+static inline-class-member method V2|constructor#(core::String id) → self::V2 /* = core::String */
   ;
-static inline-class-member method V2|_#new#tearOff(core::String id) → self::V2 /* = core::String */
-  return self::V2|(id);
-static inline-class-member method V3|(core::int id) → self::V3 /* = core::int */
+static inline-class-member method V2|constructor#_#new#tearOff(core::String id) → self::V2 /* = core::String */
+  return self::V2|constructor#(id);
+static inline-class-member method V3|constructor#(core::int id) → self::V3 /* = core::int */
   ;
-static inline-class-member method V3|_#new#tearOff(core::int id) → self::V3 /* = core::int */
-  return self::V3|(id);
-static inline-class-member method W1|<T extends core::Object? = dynamic>(self::W1|::T% id) → self::W1<self::W1|::T%> /* = self::W1|::T% */
+static inline-class-member method V3|constructor#_#new#tearOff(core::int id) → self::V3 /* = core::int */
+  return self::V3|constructor#(id);
+static inline-class-member method W1|constructor#<T extends core::Object? = dynamic>(self::W1|constructor#::T% id) → self::W1<self::W1|constructor#::T%> /* = self::W1|constructor#::T% */
   ;
-static inline-class-member method W1|_#new#tearOff<T extends core::Object? = dynamic>(self::W1|_#new#tearOff::T% id) → self::W1<self::W1|_#new#tearOff::T%> /* = self::W1|_#new#tearOff::T% */
-  return self::W1|<self::W1|_#new#tearOff::T%>(id);
-static inline-class-member method W2|(core::String id) → self::W2 /* = core::String */
+static inline-class-member method W1|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::W1|constructor#_#new#tearOff::T% id) → self::W1<self::W1|constructor#_#new#tearOff::T%> /* = self::W1|constructor#_#new#tearOff::T% */
+  return self::W1|constructor#<self::W1|constructor#_#new#tearOff::T%>(id);
+static inline-class-member method W2|constructor#(core::String id) → self::W2 /* = core::String */
   ;
-static inline-class-member method W2|_#new#tearOff(core::String id) → self::W2 /* = core::String */
-  return self::W2|(id);
-static inline-class-member method W3|(core::int id) → self::W3 /* = core::int */
+static inline-class-member method W2|constructor#_#new#tearOff(core::String id) → self::W2 /* = core::String */
+  return self::W2|constructor#(id);
+static inline-class-member method W3|constructor#(core::int id) → self::W3 /* = core::int */
   ;
-static inline-class-member method W3|_#new#tearOff(core::int id) → self::W3 /* = core::int */
-  return self::W3|(id);
+static inline-class-member method W3|constructor#_#new#tearOff(core::int id) → self::W3 /* = core::int */
+  return self::W3|constructor#(id);

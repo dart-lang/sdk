@@ -3,37 +3,37 @@ import self as self;
 import "dart:core" as core;
 
 extension type Class(core::int i) {
-  constructor • = self::Class|;
-  constructor tearoff • = self::Class|_#new#tearOff;
-  constructor named = self::Class|named;
-  constructor tearoff named = self::Class|_#named#tearOff;
-  static redirecting-factory redirect = self::Class|redirect;
-  static redirecting-factory tearoff redirect = self::Class|_#redirect#tearOff;
-  static factory fact = self::Class|fact;
-  static factory tearoff fact = self::Class|_#fact#tearOff;
-  static redirecting-factory redirect2 = self::Class|redirect2;
-  static redirecting-factory tearoff redirect2 = self::Class|_#redirect2#tearOff;
+  constructor • = self::Class|constructor#;
+  constructor tearoff • = self::Class|constructor#_#new#tearOff;
+  constructor named = self::Class|constructor#named;
+  constructor tearoff named = self::Class|constructor#_#named#tearOff;
+  static redirecting-factory redirect = self::Class|constructor#redirect;
+  static redirecting-factory tearoff redirect = self::Class|constructor#_#redirect#tearOff;
+  static factory fact = self::Class|constructor#fact;
+  static factory tearoff fact = self::Class|constructor#_#fact#tearOff;
+  static redirecting-factory redirect2 = self::Class|constructor#redirect2;
+  static redirecting-factory tearoff redirect2 = self::Class|constructor#_#redirect2#tearOff;
 }
-static inline-class-member method Class|(core::int i) → self::Class /* = core::int */
+static inline-class-member method Class|constructor#(core::int i) → self::Class /* = core::int */
   ;
-static inline-class-member method Class|_#new#tearOff(core::int i) → self::Class /* = core::int */
-  return self::Class|(i);
-static inline-class-member method Class|named(core::int i) → self::Class /* = core::int */
+static inline-class-member method Class|constructor#_#new#tearOff(core::int i) → self::Class /* = core::int */
+  return self::Class|constructor#(i);
+static inline-class-member method Class|constructor#named(core::int i) → self::Class /* = core::int */
   ;
-static inline-class-member method Class|_#named#tearOff(core::int i) → self::Class /* = core::int */
-  return self::Class|named(i);
-static inline-class-member method Class|redirect(core::int i) → self::Class /* = core::int */ /* redirection-target: self::Class| */
-  return self::Class|(i);
-static inline-class-member method Class|_#redirect#tearOff(core::int i) → self::Class /* = core::int */
-  return self::Class|(i);
-static inline-class-member method Class|fact(core::int i) → self::Class /* = core::int */
+static inline-class-member method Class|constructor#_#named#tearOff(core::int i) → self::Class /* = core::int */
+  return self::Class|constructor#named(i);
+static inline-class-member method Class|constructor#redirect(core::int i) → self::Class /* = core::int */ /* redirection-target: self::Class|constructor# */
+  return self::Class|constructor#(i);
+static inline-class-member method Class|constructor#_#redirect#tearOff(core::int i) → self::Class /* = core::int */
+  return self::Class|constructor#(i);
+static inline-class-member method Class|constructor#fact(core::int i) → self::Class /* = core::int */
   ;
-static inline-class-member method Class|_#fact#tearOff(core::int i) → self::Class /* = core::int */
-  return self::Class|fact(i);
-static inline-class-member method Class|redirect2(core::int i) → self::Class /* = core::int */ /* redirection-target: self::Class| */
-  return self::Class|(i);
-static inline-class-member method Class|_#redirect2#tearOff(core::int i) → self::Class /* = core::int */
-  return self::Class|(i);
+static inline-class-member method Class|constructor#_#fact#tearOff(core::int i) → self::Class /* = core::int */
+  return self::Class|constructor#fact(i);
+static inline-class-member method Class|constructor#redirect2(core::int i) → self::Class /* = core::int */ /* redirection-target: self::Class|constructor# */
+  return self::Class|constructor#(i);
+static inline-class-member method Class|constructor#_#redirect2#tearOff(core::int i) → self::Class /* = core::int */
+  return self::Class|constructor#(i);
 static method test() → dynamic
   ;
 static method main() → dynamic

@@ -110,9 +110,6 @@ class UnevaluatedConstantFinder extends ComputeOnceConstantVisitor<bool> {
   UnevaluatedConstantFinder();
 
   @override
-  bool defaultConstant(Constant node) => false;
-
-  @override
   bool visitUnevaluatedConstant(UnevaluatedConstant node) => true;
 
   @override
@@ -173,4 +170,40 @@ class UnevaluatedConstantFinder extends ComputeOnceConstantVisitor<bool> {
     }
     return false;
   }
+
+  @override
+  bool visitBoolConstant(BoolConstant node) => false;
+
+  @override
+  bool visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
+      false;
+
+  @override
+  bool visitDoubleConstant(DoubleConstant node) => false;
+
+  @override
+  bool visitIntConstant(IntConstant node) => false;
+
+  @override
+  bool visitNullConstant(NullConstant node) => false;
+
+  @override
+  bool visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node) =>
+      false;
+
+  @override
+  bool visitStaticTearOffConstant(StaticTearOffConstant node) => false;
+
+  @override
+  bool visitStringConstant(StringConstant node) => false;
+
+  @override
+  bool visitSymbolConstant(SymbolConstant node) => false;
+
+  @override
+  bool visitTypeLiteralConstant(TypeLiteralConstant node) => false;
+
+  @override
+  bool visitTypedefTearOffConstant(TypedefTearOffConstant node) => false;
 }

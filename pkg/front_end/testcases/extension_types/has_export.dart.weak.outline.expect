@@ -14,10 +14,10 @@ import "dart:core" as core;
 
 part has_part_of_lib.dart;
 extension type C(core::int i) { // from org-dartlang-testcase:///has_part_of_lib.dart
-  constructor • = has::C|;
-  constructor tearoff • = has::C|_#new#tearOff;
+  constructor • = has::C|constructor#;
+  constructor tearoff • = has::C|constructor#_#new#tearOff;
 }
-static inline-class-member method /* from org-dartlang-testcase:///has_part_of_lib.dart */ C|(core::int i) → has::C /* = core::int */
+static inline-class-member method /* from org-dartlang-testcase:///has_part_of_lib.dart */ C|constructor#(core::int i) → has::C /* = core::int */
   ;
-static inline-class-member method /* from org-dartlang-testcase:///has_part_of_lib.dart */ C|_#new#tearOff(core::int i) → has::C /* = core::int */
-  return has::C|(i);
+static inline-class-member method /* from org-dartlang-testcase:///has_part_of_lib.dart */ C|constructor#_#new#tearOff(core::int i) → has::C /* = core::int */
+  return has::C|constructor#(i);

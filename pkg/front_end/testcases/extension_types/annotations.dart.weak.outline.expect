@@ -6,20 +6,20 @@ import "dart:core" as core;
 extension type A(core::int i) {
   method m = self::A|m;
   method tearoff m = self::A|get#m;
-  constructor • = self::A|;
-  constructor tearoff • = self::A|_#new#tearOff;
-  constructor constructor = self::A|constructor;
-  constructor tearoff constructor = self::A|_#constructor#tearOff;
+  constructor • = self::A|constructor#;
+  constructor tearoff • = self::A|constructor#_#new#tearOff;
+  constructor constructor = self::A|constructor#constructor;
+  constructor tearoff constructor = self::A|constructor#_#constructor#tearOff;
 }
-static inline-class-member method A|(core::int i) → self::A /* = core::int */
+static inline-class-member method A|constructor#(core::int i) → self::A /* = core::int */
   ;
-static inline-class-member method A|_#new#tearOff(core::int i) → self::A /* = core::int */
-  return self::A|(i);
+static inline-class-member method A|constructor#_#new#tearOff(core::int i) → self::A /* = core::int */
+  return self::A|constructor#(i);
 @core::Deprecated::•("")
-static inline-class-member method A|constructor(core::int i) → self::A /* = core::int */
+static inline-class-member method A|constructor#constructor(core::int i) → self::A /* = core::int */
   ;
-static inline-class-member method A|_#constructor#tearOff(core::int i) → self::A /* = core::int */
-  return self::A|constructor(i);
+static inline-class-member method A|constructor#_#constructor#tearOff(core::int i) → self::A /* = core::int */
+  return self::A|constructor#constructor(i);
 @core::Deprecated::•("")
 static inline-class-member method A|m(lowered final self::A /* = core::int */ #this) → void
   ;

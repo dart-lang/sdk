@@ -3,18 +3,18 @@ import self as self;
 import "dart:core" as core;
 
 extension type IC1(core::int id) {
-  constructor • = self::IC1|;
-  constructor tearoff • = self::IC1|_#new#tearOff;
-  static redirecting-factory f = self::IC1|f;
-  static redirecting-factory tearoff f = self::IC1|_#f#tearOff;
+  constructor • = self::IC1|constructor#;
+  constructor tearoff • = self::IC1|constructor#_#new#tearOff;
+  static redirecting-factory f = self::IC1|constructor#f;
+  static redirecting-factory tearoff f = self::IC1|constructor#_#f#tearOff;
 }
-static inline-class-member method IC1|(core::int id) → self::IC1 /* = core::int */
+static inline-class-member method IC1|constructor#(core::int id) → self::IC1 /* = core::int */
   ;
-static inline-class-member method IC1|_#new#tearOff(core::int id) → self::IC1 /* = core::int */
-  return self::IC1|(id);
-static inline-class-member method IC1|f(core::int id) → self::IC1 /* = core::int */ /* redirection-target: self::IC1| */
-  return self::IC1|(id);
-static inline-class-member method IC1|_#f#tearOff(core::int id) → self::IC1 /* = core::int */
-  return self::IC1|(id);
+static inline-class-member method IC1|constructor#_#new#tearOff(core::int id) → self::IC1 /* = core::int */
+  return self::IC1|constructor#(id);
+static inline-class-member method IC1|constructor#f(core::int id) → self::IC1 /* = core::int */ /* redirection-target: self::IC1|constructor# */
+  return self::IC1|constructor#(id);
+static inline-class-member method IC1|constructor#_#f#tearOff(core::int id) → self::IC1 /* = core::int */
+  return self::IC1|constructor#(id);
 static method main() → dynamic
   ;

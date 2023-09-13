@@ -106,9 +106,17 @@ class NameScheme {
             : new PublicMemberName(name);
       case ContainerType.ExtensionType:
       case ContainerType.Extension:
-        return new ExtensionProcedureName(
-            libraryName, containerName!, containerType, kind, name,
-            isStatic: isStatic);
+        switch (kind) {
+          case ProcedureKind.Method:
+          case ProcedureKind.Getter:
+          case ProcedureKind.Setter:
+          case ProcedureKind.Operator:
+            return new ExtensionProcedureName(
+                libraryName, containerName!, containerType, kind, name,
+                isStatic: isStatic);
+          case ProcedureKind.Factory:
+            throw new UnsupportedError('Unexpected procedure kind ${kind}');
+        }
     }
   }
 
@@ -469,7 +477,8 @@ class ExtensionTypeConstructorName extends UpdatableMemberName {
     } else {
       name = _text;
     }
-    return new Name.byReference('${className}|${name}', _libraryName.reference);
+    return new Name.byReference(
+        '${className}|constructor#${name}', _libraryName.reference);
   }
 }
 

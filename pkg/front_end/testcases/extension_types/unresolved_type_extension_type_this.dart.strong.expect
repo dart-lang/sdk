@@ -13,12 +13,12 @@ library;
 import self as self;
 
 extension type Extension(invalid-type it) {
-  constructor • = self::Extension|;
-  constructor tearoff • = self::Extension|_#new#tearOff;
+  constructor • = self::Extension|constructor#;
+  constructor tearoff • = self::Extension|constructor#_#new#tearOff;
 }
-static inline-class-member method Extension|(invalid-type it) → self::Extension /* = invalid-type */ {
+static inline-class-member method Extension|constructor#(invalid-type it) → self::Extension /* = invalid-type */ {
   lowered final self::Extension /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method Extension|_#new#tearOff(invalid-type it) → self::Extension /* = invalid-type */
-  return self::Extension|(it);
+static inline-class-member method Extension|constructor#_#new#tearOff(invalid-type it) → self::Extension /* = invalid-type */
+  return self::Extension|constructor#(it);

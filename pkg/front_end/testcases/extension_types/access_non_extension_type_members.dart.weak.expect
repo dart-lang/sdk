@@ -21,29 +21,29 @@ class B extends self::A {
     ;
 }
 extension type E(self::B it) implements self::B {
-  constructor • = self::E|;
-  constructor tearoff • = self::E|_#new#tearOff;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
 extension type F(self::B it) implements self::E /* = self::B */ {
-  constructor • = self::F|;
-  constructor tearoff • = self::F|_#new#tearOff;
+  constructor • = self::F|constructor#;
+  constructor tearoff • = self::F|constructor#_#new#tearOff;
 }
-static inline-class-member method E|(self::B it) → self::E /* = self::B */ {
+static inline-class-member method E|constructor#(self::B it) → self::E /* = self::B */ {
   lowered final self::E /* = self::B */ #this = it;
   return #this;
 }
-static inline-class-member method E|_#new#tearOff(self::B it) → self::E /* = self::B */
-  return self::E|(it);
-static inline-class-member method F|(self::B it) → self::F /* = self::B */ {
+static inline-class-member method E|constructor#_#new#tearOff(self::B it) → self::E /* = self::B */
+  return self::E|constructor#(it);
+static inline-class-member method F|constructor#(self::B it) → self::F /* = self::B */ {
   lowered final self::F /* = self::B */ #this = it;
   return #this;
 }
-static inline-class-member method F|_#new#tearOff(self::B it) → self::F /* = self::B */
-  return self::F|(it);
+static inline-class-member method F|constructor#_#new#tearOff(self::B it) → self::F /* = self::B */
+  return self::F|constructor#(it);
 static method main() → dynamic {
   self::B b = new self::B::•();
-  self::E /* = self::B */ e = self::E|(b);
-  self::F /* = self::B */ f = self::F|(b);
+  self::E /* = self::B */ e = self::E|constructor#(b);
+  self::F /* = self::B */ f = self::F|constructor#(b);
   self::expect(42, b.{self::A::field}{core::int});
   self::expect(42, e.{self::A::field}{core::int});
   self::expect(42, f.{self::A::field}{core::int});
