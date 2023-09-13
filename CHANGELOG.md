@@ -173,6 +173,13 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 
 [#53106]: https://github.com/dart-lang/sdk/issues/53106
 
+#### Dart format
+
+- Always split enum declarations containing a line comment.
+- Fix regression in splitting type annotations with library prefixes.
+- Support `--enable-experiment` command-line option to enable language
+  experiments.
+
 #### Pub
 
 - New option `dart pub upgrade --tighten` which will update dependencies' lower
