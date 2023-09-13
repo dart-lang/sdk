@@ -48,10 +48,6 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
     return newConstants;
   }
 
-  /// By default, don't change the [node].
-  @override
-  Constant? defaultConstant(Constant node) => null;
-
   /// Visits [node] if not already visited to compute a value for [node].
   ///
   /// If the value has already been computed the cached value is returned
@@ -65,35 +61,34 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
   }
 
   @override
-  Constant? visitBoolConstant(BoolConstant node) => defaultConstant(node);
+  Constant? visitBoolConstant(BoolConstant node) => null;
 
   @override
   Constant? visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
-      defaultConstant(node);
+      null;
 
   @override
-  Constant? visitDoubleConstant(DoubleConstant node) => defaultConstant(node);
+  Constant? visitDoubleConstant(DoubleConstant node) => null;
 
   @override
-  Constant? visitIntConstant(IntConstant node) => defaultConstant(node);
+  Constant? visitIntConstant(IntConstant node) => null;
 
   @override
-  Constant? visitNullConstant(NullConstant node) => defaultConstant(node);
+  Constant? visitNullConstant(NullConstant node) => null;
 
   @override
   Constant? visitRedirectingFactoryTearOffConstant(
           RedirectingFactoryTearOffConstant node) =>
-      defaultConstant(node);
+      null;
 
   @override
-  Constant? visitStaticTearOffConstant(StaticTearOffConstant node) =>
-      defaultConstant(node);
+  Constant? visitStaticTearOffConstant(StaticTearOffConstant node) => null;
 
   @override
-  Constant? visitStringConstant(StringConstant node) => defaultConstant(node);
+  Constant? visitStringConstant(StringConstant node) => null;
 
   @override
-  Constant? visitSymbolConstant(SymbolConstant node) => defaultConstant(node);
+  Constant? visitSymbolConstant(SymbolConstant node) => null;
 
   @override
   Constant? visitInstanceConstant(InstanceConstant node) {

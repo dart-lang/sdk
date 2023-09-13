@@ -108,7 +108,8 @@ class Constants {
   }
 }
 
-class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
+class ConstantInstantiator extends ConstantVisitor<w.ValueType>
+    with ConstantVisitorDefaultMixin<w.ValueType> {
   final Constants constants;
   final w.BaseFunction? function;
   final w.InstructionsBuilder b;
@@ -222,7 +223,8 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
   }
 }
 
-class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
+class ConstantCreator extends ConstantVisitor<ConstantInfo?>
+    with ConstantVisitorDefaultMixin<ConstantInfo?> {
   final Constants constants;
 
   ConstantCreator(this.constants);

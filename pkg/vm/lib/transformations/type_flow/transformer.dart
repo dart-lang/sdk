@@ -2086,7 +2086,8 @@ class _TreeShakerPass2 extends RemovingTransformer {
   }
 }
 
-class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
+class _TreeShakerConstantVisitor extends ConstantVisitor<Null>
+    with ConstantVisitorDefaultMixin<Null> {
   final TreeShaker shaker;
   final _TreeShakerTypeVisitor typeVisitor;
   final Set<Constant> constants = new Set<Constant>();

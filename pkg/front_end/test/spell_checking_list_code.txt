@@ -377,6 +377,7 @@ degrades
 degree
 del
 delegated
+delegating
 delimit
 delimiting
 demands

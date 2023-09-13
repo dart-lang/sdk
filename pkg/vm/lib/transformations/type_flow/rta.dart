@@ -419,7 +419,8 @@ class _MemberVisitor extends RecursiveVisitor {
   }
 }
 
-class _ConstantVisitor extends ConstantVisitor<void> {
+class _ConstantVisitor extends ConstantVisitor<void>
+    with ConstantVisitorDefaultMixin<void> {
   final RapidTypeAnalysis rta;
   final Set<Constant> visited = {};
 
