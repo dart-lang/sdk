@@ -3451,7 +3451,13 @@ WarningCode.DEPRECATED_MIXIN_FUNCTION:
 WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
   status: hasFix
 WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The fix is to remove the extra arguments..
+WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT:
+  status: needsFix
+  notes: |-
+    The fix is to remove the unexpected named argument.
 WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE:
   status: needsEvaluation
 WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT:

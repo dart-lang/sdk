@@ -26,7 +26,7 @@ final class DocDirective {
   final int nameOffset;
   final int nameEnd;
 
-  final DocDirectiveName name;
+  final DocDirectiveType type;
 
   final List<DocDirectiveArgument> positionalArguments;
   final List<DocDirectiveNamedArgument> namedArguments;
@@ -36,7 +36,7 @@ final class DocDirective {
     required this.end,
     required this.nameOffset,
     required this.nameEnd,
-    required this.name,
+    required this.type,
     required this.positionalArguments,
     required this.namedArguments,
   });
@@ -63,25 +63,6 @@ sealed class DocDirectiveArgument {
   });
 }
 
-enum DocDirectiveName {
-  /// The name of a [DocDirective] declaring an embedded video with HTML video
-  /// controls.
-  ///
-  /// This directive has three required arguments: the width, the height, and
-  /// the URL. A named 'id' argument can also be given. For example:
-  ///
-  /// `{@animation 600 400 https://www.example.com/example.mp4 id=video1}`
-  animation,
-
-  /// The name of a [DocDirective] declaring an embedded YouTube video.
-  ///
-  /// This directive has three required arguments: the width, the height, and
-  /// the URL. For example:
-  ///
-  /// `{@youtube 600 400 https://www.youtube.com/watch?v=abc123}`
-  youtube;
-}
-
 /// A named argument in a doc directive. See [DocDirective] for their syntax.
 @experimental
 final class DocDirectiveNamedArgument extends DocDirectiveArgument {
@@ -104,6 +85,63 @@ final class DocDirectivePositionalArgument extends DocDirectiveArgument {
     required super.offset,
     required super.end,
     required super.value,
+  });
+}
+
+@experimental
+enum DocDirectiveType {
+  /// A [DocDirective] declaring an embedded video with HTML video controls.
+  ///
+  /// This directive has three required arguments: the width, the height, and
+  /// the URL. A named 'id' argument can also be given. For example:
+  ///
+  /// `{@animation 600 400 https://www.example.com/example.mp4 id=video1}`
+  animation(
+    'animation',
+    positionalParameters: ['width', 'height', 'url'],
+    namedParameters: ['id'],
+  ),
+
+  /// A [DocDirective] declaring an example file.
+  ///
+  /// This directive has one required argument: the path. A named 'region'
+  /// argument, and a named 'lang' argument can also be given. For example:
+  ///
+  /// `{@example abc/def/xyz_component.dart region=template lang=html}`
+  example(
+    'example',
+    positionalParameters: ['path'],
+    namedParameters: ['region', 'lang'],
+  ),
+
+  /// A [DocDirective] declaring amacro application.
+  ///
+  /// This directive has one required argument: the name. For example:
+  ///
+  /// `{@macro some-macro}`
+  macro('macro', positionalParameters: ['name']),
+
+  /// A [DocDirective] declaring an embedded YouTube video.
+  ///
+  /// This directive has three required arguments: the width, the height, and
+  /// the URL. For example:
+  ///
+  /// `{@youtube 600 400 https://www.youtube.com/watch?v=abc123}`
+  youtube('youtube', positionalParameters: ['width', 'height', 'url']);
+
+  /// The name of the directive, as written in a doc comment.
+  final String name;
+
+  /// The positional parameter names, which are each required.
+  final List<String> positionalParameters;
+
+  /// The named parameter names, which are each optional.
+  final List<String> namedParameters;
+
+  const DocDirectiveType(
+    this.name, {
+    this.positionalParameters = const <String>[],
+    this.namedParameters = const <String>[],
   });
 }
 

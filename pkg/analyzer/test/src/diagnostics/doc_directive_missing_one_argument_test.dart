@@ -15,7 +15,7 @@ void main() {
 
 @reflectiveTest
 class DocDirectiveMissingOneArgumentTest extends PubPackageResolutionTest {
-  test_animation_hasOptionalIdParameter() async {
+  test_animation_hasOptionalIdArgument() async {
     await assertNoErrorsInCode('''
 /// {@animation 600 400 http://google.com id=my-id}
 class C {}
@@ -27,6 +27,15 @@ class C {}
 /// {@animation 600 400 http://google.com}
 class C {}
 ''');
+  }
+
+  test_example_hasNoArguments() async {
+    await assertErrorsInCode('''
+/// {@example}
+class C {}
+''', [
+      error(WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT, 4, 11),
+    ]);
   }
 
   test_youtube_hasThreeArguments() async {
