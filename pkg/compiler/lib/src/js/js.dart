@@ -55,10 +55,46 @@ CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
 
   Dart2JSJavaScriptPrintingContext context = Dart2JSJavaScriptPrintingContext(
       monitor, outBuffer, sourceInformationProcessor, annotationMonitor);
+
+  /// We defer deserialization of function bodies but maintain maps using
+  /// nodes as keys for source map generation. In order to ensure the map's
+  /// references are the same between printing and source map generation we
+  /// cache the contents of the deferred blocks during these two operations.
+  final deferredBlockCollector = _CollectDeferredBlocksAndSetCaches();
+  deferredBlockCollector.setCache(node);
   Printer printer = Printer(options, context);
   printer.visit(node);
   sourceInformationProcessor.process(node, outBuffer);
+  deferredBlockCollector.clearCache();
   return outBuffer;
+}
+
+class _CollectDeferredBlocksAndSetCaches extends BaseVisitorVoid {
+  final List<DeferredBlock> _blocks = [];
+
+  _CollectDeferredBlocksAndSetCaches();
+
+  void setCache(Node node) {
+    node.accept(this);
+  }
+
+  void clearCache() {
+    _blocks.forEach((block) => block._clearCache());
+    _blocks.clear();
+  }
+
+  @override
+  void visitBlock(Block node) {
+    if (node is DeferredBlock) {
+      if (!node._isCached) {
+        _blocks.add(node);
+        node._setCache();
+        super.visitBlock(node);
+      }
+    } else {
+      super.visitBlock(node);
+    }
+  }
 }
 
 class JavaScriptAnnotationMonitor {
@@ -268,8 +304,19 @@ class DeferredExpressionData {
 /// Each time [statements] is invoked, the enclosed [Statement] list will be
 /// deserialized so care should be taken to limit this.
 class DeferredBlock extends Statement implements Block {
+  bool hit = false;
+  List<Statement> getLoaded() {
+    return _statements.loaded();
+  }
+
+  List<Statement>? _cached;
+
+  void _setCache() => _cached = getLoaded();
+  void _clearCache() => _cached = null;
+  bool get _isCached => _cached != null;
+
   @override
-  List<Statement> get statements => _statements.loaded();
+  List<Statement> get statements => _cached ?? getLoaded();
 
   final Deferrable<List<Statement>> _statements;
 

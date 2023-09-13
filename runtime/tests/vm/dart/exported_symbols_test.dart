@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:io";
-
 import "package:expect/expect.dart";
+
+import "use_flag_test_helper.dart";
 
 main() {
   if (Platform.isWindows) return;
@@ -35,7 +36,7 @@ main() {
   symbols.remove("_IO_stdin_used"); // Only on IA32 for libc.
   print(symbols);
 
-  Expect.setEquals(symbols, [
+  var expectedSymbols = [
     "Dart_AddSymbols",
     "Dart_Allocate",
     "Dart_AllocateWithNativeFields",
@@ -334,5 +335,20 @@ main() {
     "Dart_WaitForEvent",
     "Dart_WriteHeapSnapshot",
     "Dart_WriteProfileToTimeline",
-  ]);
+  ];
+
+  if (isAOTRuntime) {
+    expectedSymbols.addAll([
+      "Dart_LoadELF",
+      "Dart_LoadELF_Memory",
+      "Dart_UnloadELF",
+    ]);
+    if (!Platform.isMacOS) {
+      expectedSymbols.addAll([
+        "Dart_LoadELF_Fd",
+      ]);
+    }
+  }
+
+  Expect.setEquals(expectedSymbols, symbols);
 }

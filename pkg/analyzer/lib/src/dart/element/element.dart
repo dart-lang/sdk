@@ -1093,6 +1093,15 @@ class ConstructorElementImpl extends ExecutableElementImpl
       super.enclosingElement as InterfaceElementImpl;
 
   @override
+  bool get hasLiteral {
+    if (super.hasLiteral) return true;
+    var enclosingElement = this.enclosingElement;
+    if (enclosingElement is! ExtensionTypeElement) return false;
+    return this == enclosingElement.primaryConstructor &&
+        enclosingElement.hasLiteral;
+  }
+
+  @override
   bool get isConst {
     return hasModifier(Modifier.CONST);
   }

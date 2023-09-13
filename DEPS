@@ -80,7 +80,7 @@ vars = {
   # https://fuchsia.googlesource.com/integration/+/HEAD/toolchain
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
   "clang_version": "git_revision:6d667d4b261e81f325756fdfd5bb43b3b3d2451d",
-  "gn_version": "git_revision:e3978de3e8dafb50a2b11efa784e08699a43faf8",
+  "gn_version": "git_revision:991530ce394efb58fcd848195469022fa17ae126",
 
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/gn
   "fuchsia_sdk_version": "version:12.20230407.0.1",
@@ -141,7 +141,7 @@ vars = {
   #   and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
-  "dart_style_rev": "2956b1a705953f880a5dae9d3a0969df0fc45e99", # disable rev_sdk_deps.dart
+  "dart_style_rev": "1a2def95a3c04dafd27b85d17e6e828bd4afa1a3", # disable rev_sdk_deps.dart
   "dartdoc_rev": "dd28f4ce4135c019c9943ef6c27e10cdcfe6760c",
   "ecosystem_rev": "e96fbdbf1135a9e41ef66eb23e6c35f41e0e05b7",
   "ffi_rev": "d36e05af55293bcc511d6b3a99ea4b8cb69f6323",

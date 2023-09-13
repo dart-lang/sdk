@@ -473,25 +473,12 @@ JSArray _createJSProxyOfList(List<JSAny?> list) {
   // Needed for `concat` to spread the contents of the current array instead of
   // prepending.
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/isConcatSpreadable
-  unsafe.JSObjectUtilExtension(jsExportWrapper)[_Symbol.isConcatSpreadable] =
-      true.toJS;
+  jsExportWrapper.setProperty(_Symbol.isConcatSpreadable, true.toJS);
 
-  final getIndex =
-      (unsafe.JSObjectUtilExtension(jsExportWrapper)['_getIndex'.toJS]
-              as JSFunction)
-          .toExternRef;
-  final setIndex =
-      (unsafe.JSObjectUtilExtension(jsExportWrapper)['_setIndex'.toJS]
-              as JSFunction)
-          .toExternRef;
-  final hasIndex =
-      (unsafe.JSObjectUtilExtension(jsExportWrapper)['_hasIndex'.toJS]
-              as JSFunction)
-          .toExternRef;
-  final deleteIndex =
-      (unsafe.JSObjectUtilExtension(jsExportWrapper)['_deleteIndex'.toJS]
-              as JSFunction)
-          .toExternRef;
+  final getIndex = jsExportWrapper['_getIndex']!.toExternRef;
+  final setIndex = jsExportWrapper['_setIndex']!.toExternRef;
+  final hasIndex = jsExportWrapper['_hasIndex']!.toExternRef;
+  final deleteIndex = jsExportWrapper['_deleteIndex']!.toExternRef;
 
   final proxy = _box<JSArray>(js_helper.JS<WasmExternRef?>('''
     (wrapper, getIndex, setIndex, hasIndex, deleteIndex) => new Proxy(wrapper, {

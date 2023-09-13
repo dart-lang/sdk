@@ -134,6 +134,17 @@ E e = E.zero();
     ]);
   }
 
+  test_usingNew_extensionType_nonConst() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+@literal
+extension type const E(int i) { 
+  E.zero(): this(0);
+}
+E e = E.zero();
+''');
+  }
+
   test_usingNew_extensionType_primaryConstructor() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';

@@ -219,6 +219,26 @@ class IlTestPrinter : public AllStatic {
 
     void WriteAttribute(const Slot* slot) { writer_->PrintValue(slot->Name()); }
 
+    void WriteAttribute(const Object* obj) {
+      if (obj->IsNull()) {
+        writer_->PrintValueNull();
+      } else if (obj->IsBool()) {
+        writer_->PrintValueBool(Bool::Cast(*obj).value());
+      } else if (obj->IsInteger()) {
+        auto value = Integer::Cast(*obj).AsInt64Value();
+        // PrintValue64 and PrintValue will check if integer is representable
+        // as a JS number, which is too strict. We don't actually need
+        // such checks because we only load resulting JSON in Dart.
+        writer_->buffer()->Printf("%" Pd64 "", value);
+      } else if (obj->IsString()) {
+        const auto& str = String::Cast(*obj);
+        writer_->PrintValueStr(str, 0, str.Length());
+      } else {
+        const auto& cls = Class::Handle(obj->clazz());
+        writer_->PrintfValue("Instance of %s", cls.UserVisibleNameCString());
+      }
+    }
+
     template <typename... Ts>
     void WriteTuple(const std::tuple<Ts...>& tuple) {
       std::apply([&](Ts const&... elements) { WriteAttribute(elements...); },

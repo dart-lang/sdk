@@ -1,7 +1,6 @@
 // @dart = 2.19
 base class A {}
-
 abstract base class B {}
-
-base mixin M {}
+base
+mixin M {}
 base class C = Object with M;

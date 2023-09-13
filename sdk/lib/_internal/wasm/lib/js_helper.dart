@@ -10,6 +10,7 @@ import 'dart:_js_annotations' as js;
 import 'dart:_js_types' as js_types;
 import 'dart:_wasm';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 part 'regexp_helper.dart';
@@ -96,11 +97,6 @@ extension JSArrayExtension on JSArray {
   external JSAny? operator [](JSNumber index);
   external void operator []=(JSNumber index, JSAny? value);
   external JSNumber get length;
-}
-
-extension JSObjectExtension on JSObject {
-  external JSAny? operator [](JSString key);
-  external void operator []=(JSString key, JSAny? value);
 }
 
 class JSArrayIteratorAdapter<T> implements Iterator<T> {

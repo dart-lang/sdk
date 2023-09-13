@@ -14,17 +14,17 @@ import 'dart:js_interop' hide JS;
 T _box<T>(WasmExternRef? ref) => JSValue.box(ref) as T;
 
 @patch
-extension JSObjectUtilExtension on JSObject {
+extension JSObjectUnsafeUtilExtension on JSObject {
   @patch
   JSBoolean hasProperty(JSAny property) => _box<JSBoolean>(JS<WasmExternRef?>(
       '(o, p) => p in o', toExternRef, property.toExternRef));
 
   @patch
-  JSAny? operator [](JSAny property) => _box<JSAny?>(
+  T getProperty<T extends JSAny?>(JSAny property) => _box<T>(
       JS<WasmExternRef?>('(o, p) => o[p]', toExternRef, property.toExternRef));
 
   @patch
-  void operator []=(JSAny property, JSAny? value) => JS<void>(
+  void setProperty(JSAny property, JSAny? value) => JS<void>(
       '(o, p, v) => o[p] = v',
       toExternRef,
       property.toExternRef,
@@ -57,7 +57,7 @@ extension JSObjectUtilExtension on JSObject {
 }
 
 @patch
-extension JSFunctionUtilExtension on JSFunction {
+extension JSFunctionUnsafeUtilExtension on JSFunction {
   @patch
   JSObject _callAsConstructor(
           [JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]) =>

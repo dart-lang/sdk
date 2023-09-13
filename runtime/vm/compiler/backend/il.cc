@@ -1127,6 +1127,14 @@ bool Value::BindsToConstant() const {
   return definition()->OriginalDefinition()->IsConstant();
 }
 
+bool Value::BindsToConstant(ConstantInstr** constant_defn) const {
+  if (auto constant = definition()->OriginalDefinition()->AsConstant()) {
+    *constant_defn = constant;
+    return true;
+  }
+  return false;
+}
+
 // Returns true if the value represents constant null.
 bool Value::BindsToConstantNull() const {
   ConstantInstr* constant = definition()->OriginalDefinition()->AsConstant();
@@ -3380,51 +3388,39 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
     }
   }
   *negated = false;
-  PassiveObject& constant = PassiveObject::Handle();
+  ConstantInstr* constant_defn = nullptr;
   Value* other = nullptr;
-  if (compare->right()->BindsToConstant()) {
-    constant = compare->right()->BoundConstant().ptr();
-    other = compare->left();
-  } else if (compare->left()->BindsToConstant()) {
-    constant = compare->left()->BoundConstant().ptr();
-    other = compare->right();
-  } else {
+
+  if (!compare->IsComparisonWithConstant(&other, &constant_defn)) {
     return compare;
   }
 
+  const Object& constant = constant_defn->value();
   const bool can_merge = is_branch || (other->Type()->ToCid() == kBoolCid);
   Definition* other_defn = other->definition();
   Token::Kind kind = compare->kind();
-  // Handle e === true.
-  if ((kind == Token::kEQ_STRICT) && (constant.ptr() == Bool::True().ptr()) &&
-      can_merge) {
+
+  if (!constant.IsBool() || !can_merge) {
+    return compare;
+  }
+
+  const bool constant_value = Bool::Cast(constant).value();
+
+  // Handle `e === true` and `e !== false`: these cases don't require
+  // negation and allow direct merge.
+  if ((kind == Token::kEQ_STRICT) == constant_value) {
     return other_defn;
   }
-  // Handle e !== false.
-  if ((kind == Token::kNE_STRICT) && (constant.ptr() == Bool::False().ptr()) &&
-      can_merge) {
-    return other_defn;
-  }
-  // Handle e !== true.
-  if ((kind == Token::kNE_STRICT) && (constant.ptr() == Bool::True().ptr()) &&
-      other_defn->IsComparison() && can_merge &&
-      other_defn->HasOnlyUse(other)) {
-    ComparisonInstr* comp = other_defn->AsComparison();
-    if (!IsFpCompare(comp)) {
+
+  // We now have `e !== true` or `e === false`: these cases require
+  // negation.
+  if (auto comp = other_defn->AsComparison()) {
+    if (other_defn->HasOnlyUse(other) && !IsFpCompare(comp)) {
       *negated = true;
       return other_defn;
     }
   }
-  // Handle e === false.
-  if ((kind == Token::kEQ_STRICT) && (constant.ptr() == Bool::False().ptr()) &&
-      other_defn->IsComparison() && can_merge &&
-      other_defn->HasOnlyUse(other)) {
-    ComparisonInstr* comp = other_defn->AsComparison();
-    if (!IsFpCompare(comp)) {
-      *negated = true;
-      return other_defn;
-    }
-  }
+
   return compare;
 }
 
@@ -3470,11 +3466,10 @@ static bool RecognizeTestPattern(Value* left, Value* right, bool* negate) {
 
 Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
   Zone* zone = flow_graph->zone();
-  // Only handle strict-compares.
   if (comparison()->IsStrictCompare()) {
     bool negated = false;
     Definition* replacement = CanonicalizeStrictCompare(
-        comparison()->AsStrictCompare(), &negated, /* is_branch = */ true);
+        comparison()->AsStrictCompare(), &negated, /*is_branch=*/true);
     if (replacement == comparison()) {
       return this;
     }
@@ -3508,8 +3503,12 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       comp->ClearSSATempIndex();
       comp->ClearTempIndex();
     }
-  } else if (comparison()->IsEqualityCompare() &&
-             comparison()->operation_cid() == kSmiCid) {
+
+    return this;
+  }
+
+  if (comparison()->IsEqualityCompare() &&
+      comparison()->operation_cid() == kSmiCid) {
     BinarySmiOpInstr* bit_and = nullptr;
     bool negate = false;
     if (RecognizeTestPattern(comparison()->left(), comparison()->right(),
@@ -3543,7 +3542,7 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
 
   bool negated = false;
   Definition* replacement = CanonicalizeStrictCompare(this, &negated,
-                                                      /* is_branch = */ false);
+                                                      /*is_branch=*/false);
   if (negated && replacement->IsComparison()) {
     ASSERT(replacement != this);
     replacement->AsComparison()->NegateComparison();

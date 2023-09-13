@@ -17,9 +17,9 @@ external void eval(String code);
 void createObjectTest() {
   JSObject o = newObject<JSObject>();
   Expect.isFalse(o.hasProperty('foo'.toJS).toDart);
-  o['foo'.toJS] = 'bar'.toJS;
+  o['foo'] = 'bar'.toJS;
   Expect.isTrue(o.hasProperty('foo'.toJS).toDart);
-  Expect.equals('bar', (o['foo'.toJS] as JSString).toDart);
+  Expect.equals('bar', (o['foo'] as JSString).toDart);
 }
 
 void equalTest() {
@@ -46,9 +46,9 @@ void equalTest() {
     ''');
     JSObject gc = globalContext;
     void test(String propertyName, bool testCanonicalization) {
-      Expect.equals(gc[propertyName.toJS], gc[propertyName.toJS]);
+      Expect.equals(gc[propertyName], gc[propertyName]);
       if (testCanonicalization) {
-        Expect.equals(gc[propertyName.toJS], gc[(propertyName + "2").toJS]);
+        Expect.equals(gc[propertyName], gc[propertyName + "2"]);
       }
     }
 
@@ -83,11 +83,10 @@ void typeofTest() {
   };
   void test(String property, String expectedType) {
     Expect.isTrue(
-        globalContext[property.toJS]?.typeofEquals(expectedType.toJS).toDart);
+        globalContext[property]?.typeofEquals(expectedType.toJS).toDart);
     for (final type in types) {
       if (type != expectedType) {
-        Expect.isFalse(
-            globalContext[property.toJS]?.typeofEquals(type.toJS).toDart);
+        Expect.isFalse(globalContext[property]?.typeofEquals(type.toJS).toDart);
       }
     }
   }
@@ -110,9 +109,9 @@ void instanceOfTest() {
       globalThis.obj = new JSClass1();
     ''');
   JSObject gc = globalContext;
-  JSObject obj = gc['obj'.toJS] as JSObject;
-  JSFunction jsClass1Constructor = gc['JSClass1'.toJS] as JSFunction;
-  JSFunction jsClass2Constructor = gc['JSClass2'.toJS] as JSFunction;
+  JSObject obj = gc['obj'] as JSObject;
+  JSFunction jsClass1Constructor = gc['JSClass1'] as JSFunction;
+  JSFunction jsClass2Constructor = gc['JSClass2'] as JSFunction;
   Expect.isTrue(obj.instanceof(jsClass1Constructor).toDart);
   Expect.isFalse(obj.instanceof(jsClass2Constructor).toDart);
 }
@@ -152,7 +151,7 @@ void evalAndConstructTest() {
     globalThis.JSClass = JSClass;
   ''');
   JSObject gc = globalContext;
-  JSFunction constructor = gc['JSClass'.toJS] as JSFunction;
+  JSFunction constructor = gc['JSClass'] as JSFunction;
 
   // Var args
   JSObject jsObj1 =
@@ -268,7 +267,7 @@ void deepConversionsTest() {
     globalThis.keyObject2 = keyObject;
   ''');
   JSObject gc = globalContext;
-  Expect.isNull(gc['a'.toJS]);
+  Expect.isNull(gc['a']);
   Expect.equals('foo', gc.getProperty<JSString>('b'.toJS).toDart);
   _expectRecEquals(
       ['a', 'b', 'c'],
@@ -320,7 +319,7 @@ void deepConversionsTest() {
       gc.getProperty<JSDataView>('dataView'.toJS).toDart.buffer.asUint8List());
 
   // Confirm a function that takes a roundtrip remains a function.
-  JSFunction foo = gc['f'.toJS].dartify() as JSFunction;
+  JSFunction foo = gc['f'].dartify() as JSFunction;
   Expect.equals(
       'hello world', gc.callMethod<JSString>('invoke'.toJS, foo).toDart);
 
@@ -334,12 +333,12 @@ void deepConversionsTest() {
       3,
       {'baz': 'boo'}
     ],
-  ], gc['implicitExplicit'.toJS].dartify() as Iterable);
+  ], gc['implicitExplicit'].dartify() as Iterable);
 
   // Test that JS objects behave as expected in Map / Set.
   Set<Object?> set = {};
-  JSAny? key1 = gc['keyObject1'.toJS];
-  JSAny? key2 = gc['keyObject2'.toJS];
+  JSAny? key1 = gc['keyObject1'];
+  JSAny? key2 = gc['keyObject2'];
   Expect.isTrue(set.add(key1));
   Expect.isTrue(set.contains(key1));
   Expect.isFalse(set.add(key2));
