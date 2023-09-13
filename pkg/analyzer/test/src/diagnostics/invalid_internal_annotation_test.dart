@@ -205,6 +205,7 @@ import 'package:meta/meta.dart';
 
     assertErrorsInResult([
       error(WarningCode.INVALID_INTERNAL_ANNOTATION, 33, 9),
+      error(WarningCode.UNUSED_ELEMENT, 58, 2),
     ]);
   }
 
@@ -361,6 +362,8 @@ extension type _E(int i) {
 }
 ''');
 
-    assertNoErrorsInResult();
+    assertErrorsInResult([
+      error(WarningCode.UNUSED_ELEMENT, 48, 2),
+    ]);
   }
 }
