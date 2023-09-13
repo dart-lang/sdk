@@ -45,8 +45,11 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
     other unrelated class in the library (because a class elsewhere in the
     program might extend one of the classes and implement the other, creating an
     override relationship between them).
-  - If it is implicitly overridden by an instance of `noSuchMethod` elsewhere in
-    the library.
+  - If there is a concrete class `C` in the library whose interface contains a
+    getter with the same name, but `C` does not have an implementation of that
+    getter (such unimplemented getters aren't safe for field promotion, because
+    they are implicitly forwarded to `noSuchMethod`, which might not return the
+    same value each time it's called).
 
 - **Breaking Change** [#53167][]: Use a more precise split point for refutable
   patterns. Previously, in an if-case statement, if flow analysis could prove
