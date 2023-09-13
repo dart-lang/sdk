@@ -34,7 +34,7 @@ import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
-import "package:vm_service/vm_service_io.dart" as vm_service;
+import 'package:vm_service/vm_service_io.dart' as vm_service;
 
 final String kCustomCss = '''
 .lead, .page-title+.markdown-body>p:first-child {
@@ -290,16 +290,16 @@ class CollectReportPage extends DiagnosticPage {
     var server = this.server;
 
     // General data.
-    collectedData["currentTime"] = DateTime.now().millisecondsSinceEpoch;
-    collectedData["operatingSystem"] = Platform.operatingSystem;
-    collectedData["version"] = Platform.version;
-    collectedData["clientId"] = server.options.clientId;
-    collectedData["clientVersion"] = server.options.clientVersion;
-    collectedData["protocolVersion"] = PROTOCOL_VERSION;
-    collectedData["serverType"] = server.runtimeType.toString();
-    collectedData["uptime"] = server.uptime.toString();
+    collectedData['currentTime'] = DateTime.now().millisecondsSinceEpoch;
+    collectedData['operatingSystem'] = Platform.operatingSystem;
+    collectedData['version'] = Platform.version;
+    collectedData['clientId'] = server.options.clientId;
+    collectedData['clientVersion'] = server.options.clientVersion;
+    collectedData['protocolVersion'] = PROTOCOL_VERSION;
+    collectedData['serverType'] = server.runtimeType.toString();
+    collectedData['uptime'] = server.uptime.toString();
     if (server is LegacyAnalysisServer) {
-      collectedData["serverServices"] =
+      collectedData['serverServices'] =
           server.serverServices.map((e) => e.toString()).toList();
     }
 
@@ -308,16 +308,16 @@ class CollectReportPage extends DiagnosticPage {
     if (profiler != null) {
       usage = await profiler.getProcessUsage(pid);
     }
-    collectedData["memoryKB"] = usage?.memoryKB;
-    collectedData["cpuPercentage"] = usage?.cpuPercentage;
-    collectedData["currentRss"] = ProcessInfo.currentRss;
-    collectedData["maxRss"] = ProcessInfo.maxRss;
+    collectedData['memoryKB'] = usage?.memoryKB;
+    collectedData['cpuPercentage'] = usage?.cpuPercentage;
+    collectedData['currentRss'] = ProcessInfo.currentRss;
+    collectedData['maxRss'] = ProcessInfo.maxRss;
 
     // Communication.
     for (var data in {
-      "startup": server.performanceDuringStartup,
+      'startup': server.performanceDuringStartup,
       if (server.performanceAfterStartup != null)
-        "afterStartup": server.performanceAfterStartup!
+        'afterStartup': server.performanceAfterStartup!
     }.entries) {
       var perf = data.value;
       var perfData = {};
@@ -330,68 +330,68 @@ class CollectReportPage extends DiagnosticPage {
       var maximumLatency = perf.maxLatency;
       var slowRequestCount = perf.slowRequestCount;
 
-      perfData["RequestCount"] = requestCount;
-      perfData["LatencyCount"] = latencyCount;
-      perfData["AverageLatency"] = averageLatency;
-      perfData["MaximumLatency"] = maximumLatency;
-      perfData["SlowRequestCount"] = slowRequestCount;
+      perfData['RequestCount'] = requestCount;
+      perfData['LatencyCount'] = latencyCount;
+      perfData['AverageLatency'] = averageLatency;
+      perfData['MaximumLatency'] = maximumLatency;
+      perfData['SlowRequestCount'] = slowRequestCount;
     }
 
     // Contexts.
     var driverMapValues = server.driverMap.values.toList();
     var contexts = [];
-    collectedData["contexts"] = contexts;
+    collectedData['contexts'] = contexts;
     Set<String> uniqueKnownFiles = {};
     for (var data in driverMapValues) {
       var contextData = {};
       contexts.add(contextData);
       // We don't include the name as some might see that as "secret".
-      contextData["priorityFiles"] = data.priorityFiles.length;
-      contextData["addedFiles"] = data.addedFiles.length;
-      contextData["knownFiles"] = data.knownFiles.length;
+      contextData['priorityFiles'] = data.priorityFiles.length;
+      contextData['addedFiles'] = data.addedFiles.length;
+      contextData['knownFiles'] = data.knownFiles.length;
       uniqueKnownFiles.addAll(data.knownFiles);
 
-      contextData["lints"] =
+      contextData['lints'] =
           data.analysisOptions.lintRules.map((e) => e.name).toList();
-      contextData["plugins"] = data.analysisOptions.enabledPluginNames.toList();
+      contextData['plugins'] = data.analysisOptions.enabledPluginNames.toList();
     }
-    collectedData["uniqueKnownFiles"] = uniqueKnownFiles.length;
+    collectedData['uniqueKnownFiles'] = uniqueKnownFiles.length;
 
     // Recorded performance data (timing and code completion).
     void collectPerformance(List<RequestPerformance> items, String type) {
       var performance = [];
-      collectedData["performance$type"] = performance;
+      collectedData['performance$type'] = performance;
       for (var item in items) {
         var itemData = {};
         performance.add(itemData);
-        itemData["id"] = item.id;
-        itemData["operation"] = item.operation;
-        itemData["requestLatency"] = item.requestLatency;
-        itemData["elapsed"] = item.performance.elapsed.inMilliseconds;
-        itemData["startTime"] = item.startTime?.toIso8601String();
+        itemData['id'] = item.id;
+        itemData['operation'] = item.operation;
+        itemData['requestLatency'] = item.requestLatency;
+        itemData['elapsed'] = item.performance.elapsed.inMilliseconds;
+        itemData['startTime'] = item.startTime?.toIso8601String();
 
         var buffer = StringBuffer();
         item.performance.write(buffer: buffer);
-        itemData["performance"] = buffer.toString();
+        itemData['performance'] = buffer.toString();
       }
     }
 
     collectPerformance(
-        server.recentPerformance.completion.items.toList(), "Completion");
+        server.recentPerformance.completion.items.toList(), 'Completion');
     collectPerformance(
-        server.recentPerformance.requests.items.toList(), "Requests");
+        server.recentPerformance.requests.items.toList(), 'Requests');
     collectPerformance(
-        server.recentPerformance.slowRequests.items.toList(), "SlowRequests");
+        server.recentPerformance.slowRequests.items.toList(), 'SlowRequests');
 
     // Exceptions.
     var exceptions = [];
-    collectedData["exceptions"] = exceptions;
+    collectedData['exceptions'] = exceptions;
     for (var exception in server.exceptions.items) {
       exceptions.add({
-        "exception": exception.exception?.toString(),
-        "fatal": exception.fatal,
-        "message": exception.message,
-        "stackTrace": exception.stackTrace.toString(),
+        'exception': exception.exception?.toString(),
+        'fatal': exception.fatal,
+        'message': exception.message,
+        'stackTrace': exception.stackTrace.toString(),
       });
     }
 
@@ -407,35 +407,35 @@ class CollectReportPage extends DiagnosticPage {
     var serverUri = serviceProtocolInfo.serverUri;
     if (serverUri != null) {
       var path = serverUri.path;
-      if (!path.endsWith("/")) path += "/";
+      if (!path.endsWith('/')) path += '/';
       var wsUriString = 'ws://${serverUri.authority}${path}ws';
       var serviceClient = await vm_service.vmServiceConnectUri(wsUriString);
       var vm = await serviceClient.getVM();
-      collectedData["vm.architectureBits"] = vm.architectureBits;
-      collectedData["vm.hostCPU"] = vm.hostCPU;
-      collectedData["vm.operatingSystem"] = vm.operatingSystem;
-      collectedData["vm.startTime"] = vm.startTime;
+      collectedData['vm.architectureBits'] = vm.architectureBits;
+      collectedData['vm.hostCPU'] = vm.hostCPU;
+      collectedData['vm.operatingSystem'] = vm.operatingSystem;
+      collectedData['vm.startTime'] = vm.startTime;
 
       var processMemoryUsage = await serviceClient.getProcessMemoryUsage();
-      collectedData["processMemoryUsage"] = processMemoryUsage.json;
+      collectedData['processMemoryUsage'] = processMemoryUsage.json;
 
       var isolateData = [];
-      collectedData["isolates"] = isolateData;
+      collectedData['isolates'] = isolateData;
       var isolates = vm.isolates ?? [];
       for (var isolate in isolates) {
         String? id = isolate.id;
         if (id == null) continue;
         var thisIsolateData = {};
         isolateData.add(thisIsolateData);
-        thisIsolateData["id"] = id;
-        thisIsolateData["isolateGroupId"] = isolate.isolateGroupId;
-        thisIsolateData["name"] = isolate.name;
+        thisIsolateData['id'] = id;
+        thisIsolateData['isolateGroupId'] = isolate.isolateGroupId;
+        thisIsolateData['name'] = isolate.name;
         var isolateMemoryUsage = await serviceClient.getMemoryUsage(id);
-        thisIsolateData["memory"] = isolateMemoryUsage.json;
+        thisIsolateData['memory'] = isolateMemoryUsage.json;
         var allocationProfile = await serviceClient.getAllocationProfile(id);
         var allocationMembers = allocationProfile.members ?? [];
         var allocationProfileData = [];
-        thisIsolateData["allocationProfile"] = allocationProfileData;
+        thisIsolateData['allocationProfile'] = allocationProfileData;
         for (var member in allocationMembers) {
           var bytesCurrent = member.bytesCurrent;
           // Filter out very small entries to avoid the report becoming too big.
@@ -443,16 +443,16 @@ class CollectReportPage extends DiagnosticPage {
 
           var memberData = {};
           allocationProfileData.add(memberData);
-          memberData["bytesCurrent"] = bytesCurrent;
-          memberData["instancesCurrent"] = member.instancesCurrent;
-          memberData["accumulatedSize"] = member.accumulatedSize;
-          memberData["instancesAccumulated"] = member.instancesAccumulated;
-          memberData["className"] = member.classRef?.name;
-          memberData["libraryName"] = member.classRef?.library?.name;
+          memberData['bytesCurrent'] = bytesCurrent;
+          memberData['instancesCurrent'] = member.instancesCurrent;
+          memberData['accumulatedSize'] = member.accumulatedSize;
+          memberData['instancesAccumulated'] = member.instancesAccumulated;
+          memberData['className'] = member.classRef?.name;
+          memberData['libraryName'] = member.classRef?.library?.name;
         }
         allocationProfileData.sort((a, b) {
-          int bytesCurrentA = a["bytesCurrent"] as int;
-          int bytesCurrentB = b["bytesCurrent"] as int;
+          int bytesCurrentA = a['bytesCurrent'] as int;
+          int bytesCurrentB = b['bytesCurrent'] as int;
           // Largest first.
           return bytesCurrentB.compareTo(bytesCurrentA);
         });
@@ -1629,12 +1629,12 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
     h3("Request '${item.operation}'");
     var requestLatency = item.requestLatency;
     if (requestLatency != null) {
-      buf.writeln("Request latency: $requestLatency ms.");
+      buf.writeln('Request latency: $requestLatency ms.');
       buf.writeln('<p>');
     }
     var startTime = item.startTime;
     if (startTime != null) {
-      buf.writeln("Request start time: ${startTime.toIso8601String()}.");
+      buf.writeln('Request start time: ${startTime.toIso8601String()}.');
       buf.writeln('<p>');
     }
     var buffer = StringBuffer();

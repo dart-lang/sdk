@@ -369,7 +369,7 @@ part of foo;
     await waitForTasksFinished();
     await _getNavigation(offset: 10, length: 0);
     expect(regions, hasLength(1));
-    assertHasRegionString("foo");
+    assertHasRegionString('foo');
     expect(testTargets, hasLength(1));
     expect(testTargets[0].kind, ElementKind.LIBRARY);
     assertHasFileTarget(partOfFile.path, 8, 3); // library [[foo]]

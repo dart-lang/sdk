@@ -234,7 +234,7 @@ void f() {
 ''');
   }
 
-  @FailingTest(issue: "https://github.com/dart-lang/sdk/issues/51139")
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51139')
   Future<void> test_caseConstConstructorCall() async {
     await resolveTestCode('''
 class A {
@@ -357,7 +357,7 @@ void f() {
     await assertNoFix();
   }
 
-  @FailingTest(reason: "TODO(keertip): Add support for local variables")
+  @FailingTest(reason: 'TODO(keertip): Add support for local variables')
   Future<void> test_caseWithLocalVariable() async {
     await resolveTestCode('''
 void f() {
@@ -402,7 +402,7 @@ class A {
 ''');
   }
 
-  @FailingTest(reason: "TODO(keertip): Add support for local variables")
+  @FailingTest(reason: 'TODO(keertip): Add support for local variables')
   Future<void> test_relationalExpressionConst() async {
     await resolveTestCode('''
 void f(int x) {

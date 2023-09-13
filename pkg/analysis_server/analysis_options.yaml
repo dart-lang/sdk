@@ -35,6 +35,7 @@ linter:
     - depend_on_referenced_packages
     - implicit_call_tearoffs
     - library_annotations
+    - prefer_single_quotes
     - unawaited_futures
     - unnecessary_breaks
     - unnecessary_library_directive

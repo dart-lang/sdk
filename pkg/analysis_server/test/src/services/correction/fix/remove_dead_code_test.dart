@@ -515,7 +515,7 @@ void f() {
 ''');
   }
 
-  @FailingTest(issue: "https://github.com/dart-lang/sdk/issues/50950")
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50950')
   Future<void> test_switchExpression() async {
     await resolveTestCode('''
 void f() {

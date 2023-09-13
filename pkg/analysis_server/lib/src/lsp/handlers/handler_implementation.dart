@@ -37,12 +37,12 @@ class ImplementationHandler
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await performance.runAsync(
-      "requireResolvedUnit",
+      'requireResolvedUnit',
       (_) async => path.mapResult(requireResolvedUnit),
     );
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
     return await performance.runAsync(
-        "_getImplementations",
+        '_getImplementations',
         (performance) async => offset.mapResult((offset) =>
             _getImplementations(unit.result, offset, token, performance)));
   }
@@ -67,12 +67,12 @@ class ImplementationHandler
 
     var allSubtypes = <InterfaceElement>{};
     await performance.runAsync(
-        "appendAllSubtypes",
+        'appendAllSubtypes',
         (performance) => server.searchEngine
             .appendAllSubtypes(interfaceElement, allSubtypes, performance));
 
     final locations = performance.run(
-        "filter and get location",
+        'filter and get location',
         (_) => allSubtypes
             .map((element) {
               return needsMember

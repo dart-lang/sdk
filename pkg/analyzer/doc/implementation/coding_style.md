@@ -23,6 +23,9 @@ This section documents the styles we have agreed to follow.
 
 None.
 
+- prefer_single_quotes - We don't enforce this in each of our packages yet, but
+  we aspire to.
+
 ### Formatting and sorting
 
 All of our source code is expected to be

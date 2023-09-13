@@ -34,8 +34,8 @@ void f(int x) {
   }
 
   @FailingTest(
-      issue: "https://github.com/dart-lang/sdk/issues/49960",
-      reason: "Fix once error is reported")
+      issue: 'https://github.com/dart-lang/sdk/issues/49960',
+      reason: 'Fix once error is reported')
   Future<void> test_declaredVariablePattern_patternAssignment() async {
     await resolveTestCode('''
 f() {

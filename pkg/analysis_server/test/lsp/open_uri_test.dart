@@ -17,7 +17,7 @@ void main() {
 
 @reflectiveTest
 class OpenUriTest extends AbstractLspAnalysisServerTest {
-  final exampleUri = Uri.parse("https://example.org");
+  final exampleUri = Uri.parse('https://example.org');
 
   Future<void> initializeWithUriSupport() async {
     await initialize(initializationOptions: {

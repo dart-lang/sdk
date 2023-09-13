@@ -28,7 +28,7 @@ class AnalysisGetHoverHandler extends LegacyHandler {
 
     // Prepare the resolved units.
     var result = await performance.runAsync(
-        "getResolvedUnit", (_) async => await server.getResolvedUnit(file));
+        'getResolvedUnit', (_) async => await server.getResolvedUnit(file));
     if (result is! ResolvedUnitResult) {
       sendResponse(Response.fileNotAnalyzed(request, file));
       return;
@@ -40,7 +40,7 @@ class AnalysisGetHoverHandler extends LegacyHandler {
     var computer = DartUnitHoverComputer(
         server.getDartdocDirectiveInfoFor(result), unit, params.offset);
     var hoverInformation =
-        performance.run("compute", (_) => computer.compute());
+        performance.run('compute', (_) => computer.compute());
     if (hoverInformation != null) {
       hovers.add(hoverInformation);
     }
