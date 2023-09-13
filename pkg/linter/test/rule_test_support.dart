@@ -159,6 +159,8 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
 class PubPackageResolutionTest extends _ContextResolutionTest {
   final List<String> _lintRules = const [];
 
+  bool get addFixnumPackageDep => false;
+
   bool get addFlutterPackageDep => false;
 
   bool get addJsPackageDep => false;
@@ -384,6 +386,14 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       languageVersion: testPackageLanguageVersion,
     );
 
+    if (addFixnumPackageDep) {
+      var fixnumPath = '/packages/fixnum';
+      addFixnumPackageFiles(
+        getFolder(fixnumPath),
+      );
+      configCopy.add(name: 'fixnum', rootPath: fixnumPath);
+    }
+
     if (addFlutterPackageDep) {
       var flutterPath = '/packages/flutter';
       addFlutterPackageFiles(
@@ -445,6 +455,18 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       pubspecAst.accept(entry.value);
     }
     return [...listener.errors];
+  }
+
+  /// Creates a fake 'fixnum' package that can be used by tests.
+  static void addFixnumPackageFiles(Folder rootFolder) {
+    var libFolder = rootFolder.getChildAssumingFolder('lib');
+    libFolder.getChildAssumingFile('fixnum.dart').writeAsStringSync(r'''
+library fixnum;
+
+class Int32 {}
+
+class Int64 {}
+''');
   }
 
   /// Create a fake 'flutter' package that can be used by tests.

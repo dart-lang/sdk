@@ -2,12 +2,6 @@
   "configVersion": 2,
   "packages": [
     {
-      "name": "fixnum",
-      "rootUri": "../../mock_packages/fixnum/",
-      "packageUri": "lib/",
-      "languageVersion": "2.17"
-    },
-    {
       "name": "flutter",
       "rootUri": "../../mock_packages/flutter/",
       "packageUri": "lib/",
