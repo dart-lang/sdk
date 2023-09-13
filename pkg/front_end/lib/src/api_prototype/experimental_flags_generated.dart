@@ -71,9 +71,9 @@ class ExperimentalFlag {
       name: 'const-functions',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(3, 2),
-      experimentEnabledVersion: const Version(3, 2),
-      experimentReleasedVersion: const Version(3, 2));
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag constantUpdate2018 = const ExperimentalFlag(
       name: 'constant-update-2018',
@@ -143,17 +143,17 @@ class ExperimentalFlag {
       name: 'inline-class',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(3, 2),
-      experimentEnabledVersion: const Version(3, 2),
-      experimentReleasedVersion: const Version(3, 2));
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag macros = const ExperimentalFlag(
       name: 'macros',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(3, 2),
-      experimentEnabledVersion: const Version(3, 2),
-      experimentReleasedVersion: const Version(3, 2));
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag namedArgumentsAnywhere = const ExperimentalFlag(
       name: 'named-arguments-anywhere',
@@ -167,9 +167,9 @@ class ExperimentalFlag {
       name: 'native-assets',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(3, 2),
-      experimentEnabledVersion: const Version(3, 2),
-      experimentReleasedVersion: const Version(3, 2));
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag nonNullable = const ExperimentalFlag(
       name: 'non-nullable',
@@ -239,9 +239,9 @@ class ExperimentalFlag {
       name: 'test-experiment',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(3, 2),
-      experimentEnabledVersion: const Version(3, 2),
-      experimentReleasedVersion: const Version(3, 2));
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag tripleShift = const ExperimentalFlag(
       name: 'triple-shift',
@@ -263,9 +263,9 @@ class ExperimentalFlag {
       name: 'variance',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(3, 2),
-      experimentEnabledVersion: const Version(3, 2),
-      experimentReleasedVersion: const Version(3, 2));
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
 }
 
 /// Interface for accessing the global state of experimental features.

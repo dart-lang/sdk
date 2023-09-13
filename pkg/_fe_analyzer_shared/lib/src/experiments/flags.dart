@@ -6,6 +6,7 @@
 //
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
+const Version defaultLanguageVersion = const Version(3, 2);
 
 /// Enum for experimental flags shared between the CFE and the analyzer.
 enum ExperimentalFlag {
@@ -20,8 +21,8 @@ enum ExperimentalFlag {
       name: 'const-functions',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 2),
-      experimentReleasedVersion: const Version(3, 2)),
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
 
   constantUpdate2018(
       name: 'constant-update-2018',
@@ -83,15 +84,15 @@ enum ExperimentalFlag {
       name: 'inline-class',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 2),
-      experimentReleasedVersion: const Version(3, 2)),
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
 
   macros(
       name: 'macros',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 2),
-      experimentReleasedVersion: const Version(3, 2)),
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
 
   namedArgumentsAnywhere(
       name: 'named-arguments-anywhere',
@@ -104,8 +105,8 @@ enum ExperimentalFlag {
       name: 'native-assets',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 2),
-      experimentReleasedVersion: const Version(3, 2)),
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
 
   nonNullable(
       name: 'non-nullable',
@@ -167,8 +168,8 @@ enum ExperimentalFlag {
       name: 'test-experiment',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 2),
-      experimentReleasedVersion: const Version(3, 2)),
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
 
   tripleShift(
       name: 'triple-shift',
@@ -188,8 +189,8 @@ enum ExperimentalFlag {
       name: 'variance',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 2),
-      experimentReleasedVersion: const Version(3, 2)),
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
   ;
 
   final String name;
