@@ -29,6 +29,22 @@ class C {}
 ''');
   }
 
+  test_canonicalFor_hasNoArguments() async {
+    await assertErrorsInCode('''
+/// {@canonicalFor}
+class C {}
+''', [
+      error(WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT, 4, 16),
+    ]);
+  }
+
+  test_canonicalFor_hasOneArguments() async {
+    await assertNoErrorsInCode('''
+/// {@canonicalFor String}
+class C {}
+''');
+  }
+
   test_example_hasNoArguments() async {
     await assertErrorsInCode('''
 /// {@example}

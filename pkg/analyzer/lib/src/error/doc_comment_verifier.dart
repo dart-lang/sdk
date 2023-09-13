@@ -56,6 +56,12 @@ class DocCommentVerifier {
       }
     }
 
+    if (docDirective.type.restParametersAllowed) {
+      // TODO(srawlins): We probably want to enforce that at least one argument
+      // is given, particularly for 'category' and 'subCategory'.
+      return;
+    }
+
     if (positionalArgumentCount > requiredCount) {
       var errorOffset = docDirective.positionalArguments[requiredCount].offset;
       var errorLength = docDirective.positionalArguments.last.end - errorOffset;
