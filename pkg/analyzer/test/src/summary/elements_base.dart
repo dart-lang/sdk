@@ -25,12 +25,7 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
     newFile(path, contents);
   }
 
-  Future<LibraryElementImpl> buildLibrary(
-    String text, {
-    bool allowErrors = false,
-    bool dumpSummaries = false,
-    List<Set<String>>? preBuildSequence,
-  }) async {
+  Future<LibraryElementImpl> buildLibrary(String text) async {
     final file = newFile(testFile.path, text);
     final analysisContext = contextFor(file);
     final analysisSession = analysisContext.currentSession;

@@ -4310,8 +4310,7 @@ library
 
   test_class_constructor_field_formal_multiple_matching_fields() async {
     // This is a compile-time error but it should still analyze consistently.
-    var library = await buildLibrary('class C { C(this.x); int x; String x; }',
-        allowErrors: true);
+    var library = await buildLibrary('class C { C(this.x); int x; String x; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4348,8 +4347,7 @@ library
 
   test_class_constructor_field_formal_no_matching_field() async {
     // This is a compile-time error but it should still analyze consistently.
-    var library =
-        await buildLibrary('class C { C(this.x); }', allowErrors: true);
+    var library = await buildLibrary('class C { C(this.x); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4365,8 +4363,7 @@ library
   }
 
   test_class_constructor_field_formal_typed_dynamic() async {
-    var library = await buildLibrary('class C { num x; C(dynamic this.x); }',
-        allowErrors: true);
+    var library = await buildLibrary('class C { num x; C(dynamic this.x); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -4775,7 +4772,7 @@ class C {
   const C() : x = foo();
 }
 int foo() => 42;
-''', allowErrors: true);
+''');
     // It is OK to keep non-constant initializers.
     checkElementText(library, r'''
 library
@@ -6204,7 +6201,7 @@ library
 class C<E> {
   factory C() = D.named<E>;
 }
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -6224,7 +6221,7 @@ class D {}
 class C<E> {
   factory C() = D.named<E>;
 }
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -6563,7 +6560,7 @@ library
 class C<E> {
   factory C() = D<E>;
 }
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -9675,8 +9672,7 @@ library
 
   test_class_interfaces_unresolved() async {
     var library = await buildLibrary(
-        'class C implements X, Y, Z {} class X {} class Z {}',
-        allowErrors: true);
+        'class C implements X, Y, Z {} class X {} class Z {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -10279,8 +10275,7 @@ library
 
   test_class_mixins_unresolved() async {
     var library = await buildLibrary(
-        'class C extends Object with X, Y, Z {} class X {} class Z {}',
-        allowErrors: true);
+        'class C extends Object with X, Y, Z {} class X {} class Z {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -11701,7 +11696,7 @@ library
   }
 
   test_class_supertype_unresolved() async {
-    var library = await buildLibrary('class C extends D {}', allowErrors: true);
+    var library = await buildLibrary('class C extends D {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -16296,7 +16291,7 @@ class C {
   static const f = 1 + foo();
 }
 int foo() => 42;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -16342,7 +16337,7 @@ class C {
   final f = 1 + foo();
 }
 int foo() => 42;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -16530,7 +16525,7 @@ library
   test_const_invalid_intLiteral() async {
     var library = await buildLibrary(r'''
 const int x = 0x;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 const int x = 0;
 ''');
@@ -16597,7 +16592,7 @@ library
     var library = await buildLibrary(r'''
 const v = 1 + foo();
 int foo() => 42;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -16636,7 +16631,7 @@ library
   test_const_invalid_topLevel_switchExpression() async {
     var library = await buildLibrary(r'''
 const a = 0 + switch (true) {_ => 1};
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -16659,7 +16654,7 @@ library
     var library = await buildLibrary(r'''
 const int a = 0;
 const bool b = a + 5;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -17348,7 +17343,7 @@ library
     var library = await buildLibrary(r'''
 class C {}
 const V = const C.named();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -17387,7 +17382,7 @@ library
   test_const_invokeConstructor_named_unresolved2() async {
     var library = await buildLibrary(r'''
 const V = const C.named();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -17426,7 +17421,7 @@ class C {
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C.named();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   imports
@@ -17469,7 +17464,7 @@ library
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C.named();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   imports
@@ -17510,7 +17505,7 @@ library
   test_const_invokeConstructor_named_unresolved5() async {
     var library = await buildLibrary(r'''
 const V = const p.C.named();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -17550,7 +17545,7 @@ library
     var library = await buildLibrary(r'''
 class C<T> {}
 const V = const C.named();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -17709,7 +17704,7 @@ library
   test_const_invokeConstructor_unnamed_unresolved() async {
     var library = await buildLibrary(r'''
 const V = const C();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -17741,7 +17736,7 @@ library
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   imports
@@ -17777,7 +17772,7 @@ library
   test_const_invokeConstructor_unnamed_unresolved3() async {
     var library = await buildLibrary(r'''
 const V = const p.C();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20095,7 +20090,7 @@ library
   test_const_reference_unresolved_prefix0() async {
     var library = await buildLibrary(r'''
 const V = foo;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20118,7 +20113,7 @@ library
     var library = await buildLibrary(r'''
 class C {}
 const V = C.foo;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -20156,7 +20151,7 @@ class C {}
     var library = await buildLibrary(r'''
 import 'foo.dart' as p;
 const V = p.C.foo;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   imports
@@ -24983,7 +24978,7 @@ class Z {}
 enum E implements X, Y, Z {
   v
 }
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -32895,7 +32890,7 @@ class C {
     }
   }
 }
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -32917,7 +32912,7 @@ class C {
     }
   }
 }
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -32940,7 +32935,7 @@ main() {
       break;
   }
 }
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -42667,7 +42662,7 @@ typedef V F(V p);
 V f(V p) {}
 V V2 = null;
 int V = 0;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -42722,7 +42717,7 @@ library
     var library = await buildLibrary('''
 var V;
 static List<V> V2;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -42754,7 +42749,7 @@ library
 class C<T> {
   m(T.K p) {}
 }
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -42777,7 +42772,7 @@ library
   test_type_invalid_unresolvedPrefix() async {
     var library = await buildLibrary('''
 p.C v;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -44043,7 +44038,7 @@ library
   }
 
   test_type_unresolved() async {
-    var library = await buildLibrary('C c;', allowErrors: true);
+    var library = await buildLibrary('C c;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -44062,8 +44057,7 @@ library
   }
 
   test_type_unresolved_prefixed() async {
-    var library = await buildLibrary('import "dart:core" as core; core.C c;',
-        allowErrors: true);
+    var library = await buildLibrary('import "dart:core" as core; core.C c;');
     checkElementText(library, r'''
 library
   imports
@@ -46474,7 +46468,7 @@ class A {
 
 @A(super)
 class C {}
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -46514,7 +46508,7 @@ class A {
 
 @A(this)
 class C {}
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -46547,8 +46541,7 @@ library
   }
 
   test_unresolved_annotation_namedConstructorCall_noClass() async {
-    var library =
-        await buildLibrary('@foo.bar() class C {}', allowErrors: true);
+    var library = await buildLibrary('@foo.bar() class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -46579,8 +46572,7 @@ library
   }
 
   test_unresolved_annotation_namedConstructorCall_noConstructor() async {
-    var library =
-        await buildLibrary('@String.foo() class C {}', allowErrors: true);
+    var library = await buildLibrary('@String.foo() class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -46611,7 +46603,7 @@ library
   }
 
   test_unresolved_annotation_prefixedIdentifier_badPrefix() async {
-    var library = await buildLibrary('@foo.bar class C {}', allowErrors: true);
+    var library = await buildLibrary('@foo.bar class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -46639,9 +46631,8 @@ library
   }
 
   test_unresolved_annotation_prefixedIdentifier_noDeclaration() async {
-    var library = await buildLibrary(
-        'import "dart:async" as foo; @foo.bar class C {}',
-        allowErrors: true);
+    var library =
+        await buildLibrary('import "dart:async" as foo; @foo.bar class C {}');
     checkElementText(library, r'''
 library
   imports
@@ -46671,8 +46662,7 @@ library
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_badPrefix() async {
-    var library =
-        await buildLibrary('@foo.bar.baz() class C {}', allowErrors: true);
+    var library = await buildLibrary('@foo.bar.baz() class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -46709,8 +46699,7 @@ library
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noClass() async {
     var library = await buildLibrary(
-        'import "dart:async" as foo; @foo.bar.baz() class C {}',
-        allowErrors: true);
+        'import "dart:async" as foo; @foo.bar.baz() class C {}');
     checkElementText(library, r'''
 library
   imports
@@ -46749,8 +46738,7 @@ library
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor() async {
     var library = await buildLibrary(
-        'import "dart:async" as foo; @foo.Future.bar() class C {}',
-        allowErrors: true);
+        'import "dart:async" as foo; @foo.Future.bar() class C {}');
     checkElementText(library, r'''
 library
   imports
@@ -46788,8 +46776,7 @@ library
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_badPrefix() async {
-    var library =
-        await buildLibrary('@foo.bar() class C {}', allowErrors: true);
+    var library = await buildLibrary('@foo.bar() class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -46820,9 +46807,8 @@ library
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass() async {
-    var library = await buildLibrary(
-        'import "dart:async" as foo; @foo.bar() class C {}',
-        allowErrors: true);
+    var library =
+        await buildLibrary('import "dart:async" as foo; @foo.bar() class C {}');
     checkElementText(library, r'''
 library
   imports
@@ -46855,7 +46841,7 @@ library
   }
 
   test_unresolved_annotation_simpleIdentifier() async {
-    var library = await buildLibrary('@foo class C {}', allowErrors: true);
+    var library = await buildLibrary('@foo class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -46906,7 +46892,7 @@ library
   }
 
   test_unresolved_annotation_unnamedConstructorCall_noClass() async {
-    var library = await buildLibrary('@foo() class C {}', allowErrors: true);
+    var library = await buildLibrary('@foo() class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -46929,7 +46915,7 @@ library
   }
 
   test_unresolved_export() async {
-    var library = await buildLibrary("export 'foo.dart';", allowErrors: true);
+    var library = await buildLibrary("export 'foo.dart';");
     checkElementText(library, r'''
 library
   exports
@@ -46939,7 +46925,7 @@ library
   }
 
   test_unresolved_import() async {
-    var library = await buildLibrary("import 'foo.dart';", allowErrors: true);
+    var library = await buildLibrary("import 'foo.dart';");
     var importedLibrary = library.libraryImports[0].importedLibrary!;
     expect(importedLibrary.loadLibraryFunction, isNotNull);
     expect(importedLibrary.publicNamespace, isNotNull);
