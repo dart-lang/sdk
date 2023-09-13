@@ -310,16 +310,16 @@ namespace dart {
   V(::, _storePointer, FfiStorePointer, 0x8b5a5939)                            \
   V(::, _fromAddress, FfiFromAddress, 0x810f9a01)                              \
   V(Pointer, get:address, FfiGetAddress, 0x7ccffbde)                           \
-  V(::, _asExternalTypedDataInt8, FfiAsExternalTypedDataInt8, 0x767b7ab8)      \
-  V(::, _asExternalTypedDataInt16, FfiAsExternalTypedDataInt16, 0xd08e6de6)    \
-  V(::, _asExternalTypedDataInt32, FfiAsExternalTypedDataInt32, 0x3815fd66)    \
-  V(::, _asExternalTypedDataInt64, FfiAsExternalTypedDataInt64, 0xaf9bbc1b)    \
-  V(::, _asExternalTypedDataUint8, FfiAsExternalTypedDataUint8, 0x3513fc54)    \
-  V(::, _asExternalTypedDataUint16, FfiAsExternalTypedDataUint16, 0x8996925a)  \
-  V(::, _asExternalTypedDataUint32, FfiAsExternalTypedDataUint32, 0xd2645061)  \
-  V(::, _asExternalTypedDataUint64, FfiAsExternalTypedDataUint64, 0x06afe5e5)  \
-  V(::, _asExternalTypedDataFloat, FfiAsExternalTypedDataFloat, 0x6f37d22c)    \
-  V(::, _asExternalTypedDataDouble, FfiAsExternalTypedDataDouble, 0x40bf4e01)  \
+  V(::, _asExternalTypedDataInt8, FfiAsExternalTypedDataInt8, 0x767b7e79)      \
+  V(::, _asExternalTypedDataInt16, FfiAsExternalTypedDataInt16, 0xd08e71a7)    \
+  V(::, _asExternalTypedDataInt32, FfiAsExternalTypedDataInt32, 0x38160127)    \
+  V(::, _asExternalTypedDataInt64, FfiAsExternalTypedDataInt64, 0xaf9bbfdc)    \
+  V(::, _asExternalTypedDataUint8, FfiAsExternalTypedDataUint8, 0x35140015)    \
+  V(::, _asExternalTypedDataUint16, FfiAsExternalTypedDataUint16, 0x8996961b)  \
+  V(::, _asExternalTypedDataUint32, FfiAsExternalTypedDataUint32, 0xd2645422)  \
+  V(::, _asExternalTypedDataUint64, FfiAsExternalTypedDataUint64, 0x06afe9a6)  \
+  V(::, _asExternalTypedDataFloat, FfiAsExternalTypedDataFloat, 0x6f37d5ed)    \
+  V(::, _asExternalTypedDataDouble, FfiAsExternalTypedDataDouble, 0x40bf51c2)  \
   V(::, _getNativeField, GetNativeField, 0xa0051366)                           \
   V(::, reachabilityFence, ReachabilityFence, 0x73009f9f)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0xb98ea6c2)                          \
