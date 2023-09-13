@@ -206,6 +206,14 @@ class _ElementWriter {
       _elementPrinter.writeElementList('fields', sorted);
     }
 
+    void writeConstructors() {
+      if (augmented is AugmentedInterfaceElementImpl) {
+        final sorted = augmented.constructors.sortedBy((e) => e.name);
+        expect(sorted, isNotEmpty);
+        _elementPrinter.writeElementList('constructors', sorted);
+      }
+    }
+
     void writeAccessors() {
       final sorted = augmented.accessors.sortedBy((e) => e.name);
       _elementPrinter.writeElementList('accessors', sorted);
@@ -223,6 +231,7 @@ class _ElementWriter {
           _elementPrinter.writeTypeList('mixins', augmented.mixins);
           _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
           writeFields();
+          writeConstructors();
           writeAccessors();
           writeMethods();
         case AugmentedMixinElement():
@@ -296,6 +305,7 @@ class _ElementWriter {
     }
 
     _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isAugmentation, 'augment ');
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isConst, 'const ');
@@ -619,9 +629,6 @@ class _ElementWriter {
       if (e is MixinElement) {
         expect(constructors, isEmpty);
       } else if (configuration.withConstructors) {
-        if (!e.isAugmentation) {
-          expect(constructors, isNotEmpty);
-        }
         _writeElements('constructors', constructors, _writeConstructorElement);
       }
 

@@ -179,6 +179,7 @@ class BundleWriter {
             _resolutionSink._writeTypeList(augmented.mixins);
             _resolutionSink._writeTypeList(augmented.interfaces);
             _resolutionSink._writeElementList(augmented.fields);
+            _resolutionSink._writeElementList(augmented.constructors);
             _resolutionSink._writeElementList(augmented.accessors);
             _resolutionSink._writeElementList(augmented.methods);
           },

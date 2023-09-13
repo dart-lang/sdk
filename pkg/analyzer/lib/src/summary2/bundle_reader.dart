@@ -138,6 +138,7 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
         augmented.mixins = reader._readInterfaceTypeList();
         augmented.interfaces = reader._readInterfaceTypeList();
         augmented.fields = reader.readElementList();
+        augmented.constructors = reader.readElementList();
         augmented.accessors = reader.readElementList();
         augmented.methods = reader.readElementList();
       }

@@ -4,12 +4,14 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'class_test.dart' as class_;
 import 'doc_comment_test.dart' as doc_comment;
 import 'extension_type_test.dart' as extension_type;
 
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
+    class_.main();
     doc_comment.main();
     extension_type.main();
   }, name: 'parser');

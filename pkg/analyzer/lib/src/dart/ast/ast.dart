@@ -4161,6 +4161,9 @@ final class ConstantPatternImpl extends DartPatternImpl
 ///    initializerList ::=
 ///        ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
 abstract final class ConstructorDeclaration implements ClassMember {
+  /// Return the 'augment' keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
+
   /// Return the body of the constructor.
   FunctionBody get body;
 
@@ -4232,6 +4235,9 @@ abstract final class ConstructorDeclaration implements ClassMember {
 ///        ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
 final class ConstructorDeclarationImpl extends ClassMemberImpl
     implements ConstructorDeclaration {
+  @override
+  final Token? augmentKeyword;
+
   /// The token for the 'external' keyword, or `null` if the constructor is not
   /// external.
   @override
@@ -4303,6 +4309,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   ConstructorDeclarationImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.externalKeyword,
     required this.constKeyword,
     required this.factoryKeyword,
@@ -4381,6 +4388,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('externalKeyword', externalKeyword)
     ..addToken('constKeyword', constKeyword)
     ..addToken('factoryKeyword', factoryKeyword)

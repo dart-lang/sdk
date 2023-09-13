@@ -154,6 +154,7 @@ class TypesBuilder {
         augmented.mixins.addAll(element.mixins);
         augmented.interfaces.addAll(element.interfaces);
         augmented.fields.addAll(element.fields.notAugmented);
+        augmented.constructors.addAll(element.constructors.notAugmented);
         augmented.accessors.addAll(element.accessors.notAugmented);
         augmented.methods.addAll(element.methods.notAugmented);
       }
@@ -436,6 +437,15 @@ class TypesBuilder {
         augmented is AugmentedInterfaceElementImpl) {
       augmented.interfaces.addAll(
         toDeclaration.mapInterfaceTypes(element.interfaces),
+      );
+
+      augmented.constructors.addAll(
+        element.constructors.notAugmented.map((element) {
+          if (toDeclaration.map.isEmpty) {
+            return element;
+          }
+          return ConstructorMember(typeProvider, element, toDeclaration, false);
+        }),
       );
     }
 

@@ -43,6 +43,7 @@ class AugmentedClassDeclarationBuilder
 
   void augment(ClassElementImpl element) {
     addFields(element.fields);
+    addConstructors(element.constructors);
     addAccessors(element.accessors);
     addMethods(element.methods);
   }
@@ -50,6 +51,7 @@ class AugmentedClassDeclarationBuilder
 
 abstract class AugmentedInstanceDeclarationBuilder {
   final Map<String, FieldElementImpl> fields = {};
+  final Map<String, ConstructorElementImpl> constructors = {};
   final Map<String, PropertyAccessorElementImpl> accessors = {};
   final Map<String, MethodElementImpl> methods = {};
 
@@ -72,6 +74,20 @@ abstract class AugmentedInstanceDeclarationBuilder {
         }
       }
       accessors[name] = element;
+    }
+  }
+
+  void addConstructors(List<ConstructorElementImpl> elements) {
+    for (final element in elements) {
+      final name = element.name;
+      if (element.isAugmentation) {
+        final existing = constructors[name];
+        if (existing != null) {
+          existing.augmentation = element;
+          element.augmentationTarget = existing;
+        }
+      }
+      constructors[name] = element;
     }
   }
 
@@ -280,6 +296,7 @@ class LibraryBuilder {
       }
       elementBuilder.buildDeclarationElements(linkingUnit.node);
     }
+    _buildClassSyntheticConstructors();
     _declareDartCoreDynamicNever();
   }
 
@@ -655,6 +672,31 @@ class LibraryBuilder {
       importKeywordOffset: state.unlinked.importKeywordOffset,
       uri: uri,
     );
+  }
+
+  void _buildClassSyntheticConstructors() {
+    bool hasConstructor(ClassElementImpl element) {
+      if (element.constructors.isNotEmpty) return true;
+      if (element.augmentation case final augmentation?) {
+        return hasConstructor(augmentation);
+      }
+      return false;
+    }
+
+    for (final classElement in element.topLevelElements) {
+      if (classElement is! ClassElementImpl) continue;
+      if (classElement.isMixinApplication) continue;
+      if (classElement.isAugmentation) continue;
+      if (hasConstructor(classElement)) continue;
+
+      final constructor = ConstructorElementImpl('', -1)..isSynthetic = true;
+      final containerRef = classElement.reference!.getChild('@constructor');
+      final reference = containerRef.getChild('new');
+      reference.element = constructor;
+      constructor.reference = reference;
+
+      classElement.constructors = [constructor].toFixedList();
+    }
   }
 
   List<NamespaceCombinator> _buildCombinators(

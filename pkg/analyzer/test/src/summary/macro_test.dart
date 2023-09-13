@@ -138,8 +138,6 @@ library
     package:test/_macro_types.dart
       classes
         class MyClass @-1
-          constructors
-            synthetic @-1
   exportedReferences
     declared self::@class::MyClass
     declared self::@class::A
@@ -209,8 +207,6 @@ library
     package:test/_macro_types.dart
       classes
         class MyClass @-1
-          constructors
-            synthetic @-1
   exportedReferences
     declared self::@class::MyClass
     declared self::@class::A
@@ -279,8 +275,6 @@ library
     package:test/_macro_types.dart
       classes
         class MyClass @-1
-          constructors
-            synthetic @-1
   exportedReferences
     declared self::@class::MyClass
     declared self::@class::A
@@ -354,8 +348,6 @@ library
     package:test/_macro_types.dart
       classes
         class MyClass @-1
-          constructors
-            synthetic @-1
   exportedReferences
     declared self::@class::MyClass
     declared self::@class::A

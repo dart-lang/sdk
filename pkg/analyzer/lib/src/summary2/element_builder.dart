@@ -203,6 +203,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameOffset = nameNode.offset;
 
     var element = ConstructorElementImpl(name, nameOffset);
+    element.isAugmentation = node.augmentKeyword != null;
     element.isConst = node.constKeyword != null;
     element.isExternal = node.externalKeyword != null;
     element.isFactory = node.factoryKeyword != null;
@@ -1238,13 +1239,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _withEnclosing(holder, () {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
-
-    // TODO(scheglov) To it after all augmentations
-    if (!element.isAugmentation && !holder.hasConstructors) {
-      holder.addConstructor(
-        ConstructorElementImpl('', -1)..isSynthetic = true,
-      );
-    }
 
     element.accessors = holder.propertyAccessors;
     element.constructors = holder.constructors;
