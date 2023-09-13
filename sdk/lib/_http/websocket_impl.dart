@@ -1020,7 +1020,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
         query: uri.query,
         fragment: uri.fragment);
     final client = customClient ?? HttpClient();
-    // The default userAgent is only overriden, if no custom HttpClient is set.
+    // The default userAgent is only overridden, if no custom HttpClient is set.
     if (customClient == null && _overrideUserAgent) {
       client.userAgent = _userAgent;
     }
