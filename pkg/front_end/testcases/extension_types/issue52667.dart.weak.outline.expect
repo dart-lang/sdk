@@ -7,20 +7,20 @@ class Foo extends core::Object {
     ;
 }
 extension type FooBar(self::Foo i) implements self::Foo {
-  constructor • = self::FooBar|;
-  constructor tearoff • = self::FooBar|_#new#tearOff;
+  constructor • = self::FooBar|constructor#;
+  constructor tearoff • = self::FooBar|constructor#_#new#tearOff;
 }
 extension type FooBaz(self::Foo i) implements self::Foo {
-  constructor • = self::FooBaz|;
-  constructor tearoff • = self::FooBaz|_#new#tearOff;
+  constructor • = self::FooBaz|constructor#;
+  constructor tearoff • = self::FooBaz|constructor#_#new#tearOff;
 }
-static inline-class-member method FooBar|(self::Foo i) → self::FooBar /* = self::Foo */
+static inline-class-member method FooBar|constructor#(self::Foo i) → self::FooBar /* = self::Foo */
   ;
-static inline-class-member method FooBar|_#new#tearOff(self::Foo i) → self::FooBar /* = self::Foo */
-  return self::FooBar|(i);
-static inline-class-member method FooBaz|(self::Foo i) → self::FooBaz /* = self::Foo */
+static inline-class-member method FooBar|constructor#_#new#tearOff(self::Foo i) → self::FooBar /* = self::Foo */
+  return self::FooBar|constructor#(i);
+static inline-class-member method FooBaz|constructor#(self::Foo i) → self::FooBaz /* = self::Foo */
   ;
-static inline-class-member method FooBaz|_#new#tearOff(self::Foo i) → self::FooBaz /* = self::Foo */
-  return self::FooBaz|(i);
+static inline-class-member method FooBaz|constructor#_#new#tearOff(self::Foo i) → self::FooBaz /* = self::Foo */
+  return self::FooBaz|constructor#(i);
 static method main() → void
   ;

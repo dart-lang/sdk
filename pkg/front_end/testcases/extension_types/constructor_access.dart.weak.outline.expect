@@ -3,27 +3,27 @@ import self as self;
 import "dart:core" as core;
 
 extension type Class(core::int it) {
-  constructor • = self::Class|;
-  constructor tearoff • = self::Class|_#new#tearOff;
-  constructor named = self::Class|named;
-  constructor tearoff named = self::Class|_#named#tearOff;
+  constructor • = self::Class|constructor#;
+  constructor tearoff • = self::Class|constructor#_#new#tearOff;
+  constructor named = self::Class|constructor#named;
+  constructor tearoff named = self::Class|constructor#_#named#tearOff;
 }
 extension type GenericClass<T extends core::Object? = dynamic>(T% it) {
-  constructor • = self::GenericClass|;
-  constructor tearoff • = self::GenericClass|_#new#tearOff;
+  constructor • = self::GenericClass|constructor#;
+  constructor tearoff • = self::GenericClass|constructor#_#new#tearOff;
 }
-static inline-class-member method Class|(core::int it) → self::Class /* = core::int */
+static inline-class-member method Class|constructor#(core::int it) → self::Class /* = core::int */
   ;
-static inline-class-member method Class|_#new#tearOff(core::int it) → self::Class /* = core::int */
-  return self::Class|(it);
-static inline-class-member method Class|named(core::int it) → self::Class /* = core::int */
+static inline-class-member method Class|constructor#_#new#tearOff(core::int it) → self::Class /* = core::int */
+  return self::Class|constructor#(it);
+static inline-class-member method Class|constructor#named(core::int it) → self::Class /* = core::int */
   ;
-static inline-class-member method Class|_#named#tearOff(core::int it) → self::Class /* = core::int */
-  return self::Class|named(it);
-static inline-class-member method GenericClass|<T extends core::Object? = dynamic>(self::GenericClass|::T% it) → self::GenericClass<self::GenericClass|::T%> /* = self::GenericClass|::T% */
+static inline-class-member method Class|constructor#_#named#tearOff(core::int it) → self::Class /* = core::int */
+  return self::Class|constructor#named(it);
+static inline-class-member method GenericClass|constructor#<T extends core::Object? = dynamic>(self::GenericClass|constructor#::T% it) → self::GenericClass<self::GenericClass|constructor#::T%> /* = self::GenericClass|constructor#::T% */
   ;
-static inline-class-member method GenericClass|_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|_#new#tearOff::T%> /* = self::GenericClass|_#new#tearOff::T% */
-  return self::GenericClass|<self::GenericClass|_#new#tearOff::T%>(it);
+static inline-class-member method GenericClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|constructor#_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|constructor#_#new#tearOff::T%> /* = self::GenericClass|constructor#_#new#tearOff::T% */
+  return self::GenericClass|constructor#<self::GenericClass|constructor#_#new#tearOff::T%>(it);
 static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic

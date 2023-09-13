@@ -30,50 +30,50 @@ import self as self;
 import "dart:core" as core;
 
 extension type A(core::int it) {
-  constructor • = self::A|;
-  constructor tearoff • = self::A|_#new#tearOff;
+  constructor • = self::A|constructor#;
+  constructor tearoff • = self::A|constructor#_#new#tearOff;
 }
 extension type B(core::int it) {
-  constructor • = self::B|;
-  constructor tearoff • = self::B|_#new#tearOff;
+  constructor • = self::B|constructor#;
+  constructor tearoff • = self::B|constructor#_#new#tearOff;
 }
 extension type C(core::int it) {
-  constructor • = self::C|;
-  constructor tearoff • = self::C|_#new#tearOff;
+  constructor • = self::C|constructor#;
+  constructor tearoff • = self::C|constructor#_#new#tearOff;
 }
 extension type D(core::int it) {
-  constructor • = self::D|;
-  constructor tearoff • = self::D|_#new#tearOff;
+  constructor • = self::D|constructor#;
+  constructor tearoff • = self::D|constructor#_#new#tearOff;
 }
 extension type E(core::int it) {
-  constructor • = self::E|;
-  constructor tearoff • = self::E|_#new#tearOff;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
 extension type F(core::int it) {
-  constructor • = self::F|;
-  constructor tearoff • = self::F|_#new#tearOff;
+  constructor • = self::F|constructor#;
+  constructor tearoff • = self::F|constructor#_#new#tearOff;
 }
-static inline-class-member method A|(core::int it) → self::A /* = core::int */
+static inline-class-member method A|constructor#(core::int it) → self::A /* = core::int */
   ;
-static inline-class-member method A|_#new#tearOff(core::int it) → self::A /* = core::int */
-  return self::A|(it);
-static inline-class-member method B|(core::int it) → self::B /* = core::int */
+static inline-class-member method A|constructor#_#new#tearOff(core::int it) → self::A /* = core::int */
+  return self::A|constructor#(it);
+static inline-class-member method B|constructor#(core::int it) → self::B /* = core::int */
   ;
-static inline-class-member method B|_#new#tearOff(core::int it) → self::B /* = core::int */
-  return self::B|(it);
-static inline-class-member method C|(core::int it) → self::C /* = core::int */
+static inline-class-member method B|constructor#_#new#tearOff(core::int it) → self::B /* = core::int */
+  return self::B|constructor#(it);
+static inline-class-member method C|constructor#(core::int it) → self::C /* = core::int */
   ;
-static inline-class-member method C|_#new#tearOff(core::int it) → self::C /* = core::int */
-  return self::C|(it);
-static inline-class-member method D|(core::int it) → self::D /* = core::int */
+static inline-class-member method C|constructor#_#new#tearOff(core::int it) → self::C /* = core::int */
+  return self::C|constructor#(it);
+static inline-class-member method D|constructor#(core::int it) → self::D /* = core::int */
   ;
-static inline-class-member method D|_#new#tearOff(core::int it) → self::D /* = core::int */
-  return self::D|(it);
-static inline-class-member method E|(core::int it) → self::E /* = core::int */
+static inline-class-member method D|constructor#_#new#tearOff(core::int it) → self::D /* = core::int */
+  return self::D|constructor#(it);
+static inline-class-member method E|constructor#(core::int it) → self::E /* = core::int */
   ;
-static inline-class-member method E|_#new#tearOff(core::int it) → self::E /* = core::int */
-  return self::E|(it);
-static inline-class-member method F|(core::int it) → self::F /* = core::int */
+static inline-class-member method E|constructor#_#new#tearOff(core::int it) → self::E /* = core::int */
+  return self::E|constructor#(it);
+static inline-class-member method F|constructor#(core::int it) → self::F /* = core::int */
   ;
-static inline-class-member method F|_#new#tearOff(core::int it) → self::F /* = core::int */
-  return self::F|(it);
+static inline-class-member method F|constructor#_#new#tearOff(core::int it) → self::F /* = core::int */
+  return self::F|constructor#(it);

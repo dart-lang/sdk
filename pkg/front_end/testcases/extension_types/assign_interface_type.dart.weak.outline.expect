@@ -11,44 +11,44 @@ class B extends self::A {
     ;
 }
 extension type C(core::Object? o) {
-  constructor • = self::C|;
-  constructor tearoff • = self::C|_#new#tearOff;
+  constructor • = self::C|constructor#;
+  constructor tearoff • = self::C|constructor#_#new#tearOff;
 }
 extension type D(core::Object o) {
-  constructor • = self::D|;
-  constructor tearoff • = self::D|_#new#tearOff;
+  constructor • = self::D|constructor#;
+  constructor tearoff • = self::D|constructor#_#new#tearOff;
 }
 extension type E(self::B it) implements self::A {
-  constructor • = self::E|;
-  constructor tearoff • = self::E|_#new#tearOff;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
 extension type F(self::B it) implements self::E /* = self::B */, self::B {
-  constructor • = self::F|;
-  constructor tearoff • = self::F|_#new#tearOff;
+  constructor • = self::F|constructor#;
+  constructor tearoff • = self::F|constructor#_#new#tearOff;
 }
 extension type G<T extends core::Object? = dynamic>(T% o) {
-  constructor • = self::G|;
-  constructor tearoff • = self::G|_#new#tearOff;
+  constructor • = self::G|constructor#;
+  constructor tearoff • = self::G|constructor#_#new#tearOff;
 }
-static inline-class-member method C|(core::Object? o) → self::C /* = core::Object? */
+static inline-class-member method C|constructor#(core::Object? o) → self::C /* = core::Object? */
   ;
-static inline-class-member method C|_#new#tearOff(core::Object? o) → self::C /* = core::Object? */
-  return self::C|(o);
-static inline-class-member method D|(core::Object o) → self::D /* = core::Object */
+static inline-class-member method C|constructor#_#new#tearOff(core::Object? o) → self::C /* = core::Object? */
+  return self::C|constructor#(o);
+static inline-class-member method D|constructor#(core::Object o) → self::D /* = core::Object */
   ;
-static inline-class-member method D|_#new#tearOff(core::Object o) → self::D /* = core::Object */
-  return self::D|(o);
-static inline-class-member method E|(self::B it) → self::E /* = self::B */
+static inline-class-member method D|constructor#_#new#tearOff(core::Object o) → self::D /* = core::Object */
+  return self::D|constructor#(o);
+static inline-class-member method E|constructor#(self::B it) → self::E /* = self::B */
   ;
-static inline-class-member method E|_#new#tearOff(self::B it) → self::E /* = self::B */
-  return self::E|(it);
-static inline-class-member method F|(self::B it) → self::F /* = self::B */
+static inline-class-member method E|constructor#_#new#tearOff(self::B it) → self::E /* = self::B */
+  return self::E|constructor#(it);
+static inline-class-member method F|constructor#(self::B it) → self::F /* = self::B */
   ;
-static inline-class-member method F|_#new#tearOff(self::B it) → self::F /* = self::B */
-  return self::F|(it);
-static inline-class-member method G|<T extends core::Object? = dynamic>(self::G|::T% o) → self::G<self::G|::T%> /* = self::G|::T% */
+static inline-class-member method F|constructor#_#new#tearOff(self::B it) → self::F /* = self::B */
+  return self::F|constructor#(it);
+static inline-class-member method G|constructor#<T extends core::Object? = dynamic>(self::G|constructor#::T% o) → self::G<self::G|constructor#::T%> /* = self::G|constructor#::T% */
   ;
-static inline-class-member method G|_#new#tearOff<T extends core::Object? = dynamic>(self::G|_#new#tearOff::T% o) → self::G<self::G|_#new#tearOff::T%> /* = self::G|_#new#tearOff::T% */
-  return self::G|<self::G|_#new#tearOff::T%>(o);
+static inline-class-member method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::G|constructor#_#new#tearOff::T% o) → self::G<self::G|constructor#_#new#tearOff::T%> /* = self::G|constructor#_#new#tearOff::T% */
+  return self::G|constructor#<self::G|constructor#_#new#tearOff::T%>(o);
 static method test<T1 extends core::Object? = dynamic, T2 extends self::A>(core::Object o, self::A a, self::B b, self::C /* = core::Object? */ c, self::D /* = core::Object */ d, self::E /* = self::B */ e, self::F /* = self::B */ f, self::G<self::test::T1%> /* = self::test::T1% */ g1, self::G<self::test::T2> /* = self::test::T2 */ g2) → dynamic
   ;

@@ -34,24 +34,24 @@ extension type B(self::A a) {
   static get staticGetter = get self::B|staticGetter;
   set setter = self::B|set#setter;
   static set staticSetter = set self::B|staticSetter;
-  constructor _ = self::B|_;
-  constructor tearoff _ = self::B|_#_#tearOff;
-  constructor • = self::B|;
-  constructor tearoff • = self::B|_#new#tearOff;
-  constructor named = self::B|named;
-  constructor tearoff named = self::B|_#named#tearOff;
+  constructor _ = self::B|constructor#_;
+  constructor tearoff _ = self::B|constructor#_#_#tearOff;
+  constructor • = self::B|constructor#;
+  constructor tearoff • = self::B|constructor#_#new#tearOff;
+  constructor named = self::B|constructor#named;
+  constructor tearoff named = self::B|constructor#_#named#tearOff;
 }
-static inline-class-member method B|_(self::A a) → self::B /* = self::A */ {
+static inline-class-member method B|constructor#_(self::A a) → self::B /* = self::A */ {
   lowered final self::B /* = self::A */ #this = a;
   return #this;
 }
-static inline-class-member method B|_#_#tearOff(self::A a) → self::B /* = self::A */
-  return self::B|_(a);
-external static inline-class-member method B|(self::A a) → self::B /* = self::A */;
-static inline-class-member method B|_#new#tearOff(self::A a) → self::B /* = self::A */
+static inline-class-member method B|constructor#_#_#tearOff(self::A a) → self::B /* = self::A */
+  return self::B|constructor#_(a);
+external static inline-class-member method B|constructor#(self::A a) → self::B /* = self::A */;
+static inline-class-member method B|constructor#_#new#tearOff(self::A a) → self::B /* = self::A */
   return js_2::_callConstructorUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), a);
-external static inline-class-member method B|named(core::int i) → self::B /* = self::A */;
-static inline-class-member method B|_#named#tearOff(core::int i) → self::B /* = self::A */
+external static inline-class-member method B|constructor#named(core::int i) → self::B /* = self::A */;
+static inline-class-member method B|constructor#_#named#tearOff(core::int i) → self::B /* = self::A */
   return js_2::_callConstructorUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), i);
 external static inline-class-member method B|get#field(lowered self::A #this) → self::A;
 external static inline-class-member method B|set#field(lowered self::A #this, self::A #externalFieldValue) → void;

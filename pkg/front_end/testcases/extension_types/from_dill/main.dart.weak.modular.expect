@@ -15,7 +15,7 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///main_lib2.dart";
 
 static method main() → dynamic {
-  mai2::ExtensionType /* = core::int */ e1 = mai2::ExtensionType|(42);
+  mai2::ExtensionType /* = core::int */ e1 = mai2::ExtensionType|constructor#(42);
   mai::expect(42, mai2::ExtensionType|instanceMethod(e1));
   mai::expect(42, mai2::ExtensionType|get#instanceMethod(e1)(){() → core::int});
   mai::expect(43, mai2::ExtensionType|+(e1, 1));
@@ -30,13 +30,13 @@ static method main() → dynamic {
   mai::expect(124, mai2::ExtensionType|staticField);
   mai::expect(124, mai2::ExtensionType|staticGetter);
   mai::expect(42, #C2(42){(core::int) → mai2::ExtensionType /* = core::int */});
-  mai::expect(43, mai2::ExtensionType|named(42));
+  mai::expect(43, mai2::ExtensionType|constructor#named(42));
   mai::expect(43, #C3(42){(core::int) → mai2::ExtensionType /* = core::int */});
-  mai::expect(44, mai2::ExtensionType|redirectingGenerative(42));
+  mai::expect(44, mai2::ExtensionType|constructor#redirectingGenerative(42));
   mai::expect(44, #C4(42){(core::int) → mai2::ExtensionType /* = core::int */});
-  mai::expect(45, mai2::ExtensionType|fact(42));
+  mai::expect(45, mai2::ExtensionType|constructor#fact(42));
   mai::expect(45, #C5(42){(core::int) → mai2::ExtensionType /* = core::int */});
-  mai::expect(42, mai2::ExtensionType|(42));
+  mai::expect(42, mai2::ExtensionType|constructor#(42));
   mai::expect(42, #C6(42){(core::int) → mai2::ExtensionType /* = core::int */});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
@@ -46,9 +46,9 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 
 constants  {
   #C1 = static-tearoff mai2::ExtensionType|staticMethod
-  #C2 = static-tearoff mai2::ExtensionType|_#new#tearOff
-  #C3 = static-tearoff mai2::ExtensionType|_#named#tearOff
-  #C4 = static-tearoff mai2::ExtensionType|_#redirectingGenerative#tearOff
-  #C5 = static-tearoff mai2::ExtensionType|_#fact#tearOff
-  #C6 = static-tearoff mai2::ExtensionType|_#redirectingFactory#tearOff
+  #C2 = static-tearoff mai2::ExtensionType|constructor#_#new#tearOff
+  #C3 = static-tearoff mai2::ExtensionType|constructor#_#named#tearOff
+  #C4 = static-tearoff mai2::ExtensionType|constructor#_#redirectingGenerative#tearOff
+  #C5 = static-tearoff mai2::ExtensionType|constructor#_#fact#tearOff
+  #C6 = static-tearoff mai2::ExtensionType|constructor#_#redirectingFactory#tearOff
 }

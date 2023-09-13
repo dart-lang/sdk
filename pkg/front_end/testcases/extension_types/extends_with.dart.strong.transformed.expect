@@ -257,232 +257,232 @@ class BarBoz extends core::Object {
     ;
 }
 extension type ET1(core::int i) {
-  constructor • = self::ET1|;
-  constructor tearoff • = self::ET1|_#new#tearOff;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
 }
 extension type ET2(core::int i) {
-  constructor • = self::ET2|;
-  constructor tearoff • = self::ET2|_#new#tearOff;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
 }
 extension type ET3(core::int i) {
-  constructor • = self::ET3|;
-  constructor tearoff • = self::ET3|_#new#tearOff;
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
 }
 extension type ET4(core::int i) {
-  constructor • = self::ET4|;
-  constructor tearoff • = self::ET4|_#new#tearOff;
+  constructor • = self::ET4|constructor#;
+  constructor tearoff • = self::ET4|constructor#_#new#tearOff;
 }
 extension type ET5(core::int i) {
-  constructor • = self::ET5|;
-  constructor tearoff • = self::ET5|_#new#tearOff;
+  constructor • = self::ET5|constructor#;
+  constructor tearoff • = self::ET5|constructor#_#new#tearOff;
 }
 extension type ET6(self::Bar i) {
-  constructor • = self::ET6|;
-  constructor tearoff • = self::ET6|_#new#tearOff;
+  constructor • = self::ET6|constructor#;
+  constructor tearoff • = self::ET6|constructor#_#new#tearOff;
 }
 extension type ET7(self::Bar i) {
-  constructor • = self::ET7|;
-  constructor tearoff • = self::ET7|_#new#tearOff;
+  constructor • = self::ET7|constructor#;
+  constructor tearoff • = self::ET7|constructor#_#new#tearOff;
 }
 extension type ET8(self::Baz i) {
-  constructor • = self::ET8|;
-  constructor tearoff • = self::ET8|_#new#tearOff;
+  constructor • = self::ET8|constructor#;
+  constructor tearoff • = self::ET8|constructor#_#new#tearOff;
 }
 extension type ET9(self::Baz i) {
-  constructor • = self::ET9|;
-  constructor tearoff • = self::ET9|_#new#tearOff;
+  constructor • = self::ET9|constructor#;
+  constructor tearoff • = self::ET9|constructor#_#new#tearOff;
 }
 extension type ET10(self::Boz i) {
-  constructor • = self::ET10|;
-  constructor tearoff • = self::ET10|_#new#tearOff;
+  constructor • = self::ET10|constructor#;
+  constructor tearoff • = self::ET10|constructor#_#new#tearOff;
 }
 extension type ET11(self::Bar i) implements self::Bar {
-  constructor • = self::ET11|;
-  constructor tearoff • = self::ET11|_#new#tearOff;
+  constructor • = self::ET11|constructor#;
+  constructor tearoff • = self::ET11|constructor#_#new#tearOff;
 }
 extension type ET12(self::Bar i) implements self::Bar {
-  constructor • = self::ET12|;
-  constructor tearoff • = self::ET12|_#new#tearOff;
+  constructor • = self::ET12|constructor#;
+  constructor tearoff • = self::ET12|constructor#_#new#tearOff;
 }
 extension type ET13(self::Bar i) implements self::Bar {
-  constructor • = self::ET13|;
-  constructor tearoff • = self::ET13|_#new#tearOff;
+  constructor • = self::ET13|constructor#;
+  constructor tearoff • = self::ET13|constructor#_#new#tearOff;
 }
 extension type ET14(self::Bar i) implements self::Bar {
-  constructor • = self::ET14|;
-  constructor tearoff • = self::ET14|_#new#tearOff;
+  constructor • = self::ET14|constructor#;
+  constructor tearoff • = self::ET14|constructor#_#new#tearOff;
 }
 extension type ET15(self::Bar i) implements self::Bar {
-  constructor • = self::ET15|;
-  constructor tearoff • = self::ET15|_#new#tearOff;
+  constructor • = self::ET15|constructor#;
+  constructor tearoff • = self::ET15|constructor#_#new#tearOff;
 }
 extension type ET16(self::Bar i) implements self::Bar {
-  constructor • = self::ET16|;
-  constructor tearoff • = self::ET16|_#new#tearOff;
+  constructor • = self::ET16|constructor#;
+  constructor tearoff • = self::ET16|constructor#_#new#tearOff;
 }
 extension type ET17(self::Bar i) implements self::Bar {
-  constructor • = self::ET17|;
-  constructor tearoff • = self::ET17|_#new#tearOff;
+  constructor • = self::ET17|constructor#;
+  constructor tearoff • = self::ET17|constructor#_#new#tearOff;
 }
 extension type ET18(self::BarBaz i) implements self::Bar {
-  constructor • = self::ET18|;
-  constructor tearoff • = self::ET18|_#new#tearOff;
+  constructor • = self::ET18|constructor#;
+  constructor tearoff • = self::ET18|constructor#_#new#tearOff;
 }
 extension type ET19(self::BarBaz i) implements self::Bar {
-  constructor • = self::ET19|;
-  constructor tearoff • = self::ET19|_#new#tearOff;
+  constructor • = self::ET19|constructor#;
+  constructor tearoff • = self::ET19|constructor#_#new#tearOff;
 }
 extension type ET20(self::BarBaz i) implements self::Bar {
-  constructor • = self::ET20|;
-  constructor tearoff • = self::ET20|_#new#tearOff;
+  constructor • = self::ET20|constructor#;
+  constructor tearoff • = self::ET20|constructor#_#new#tearOff;
 }
 extension type ET21(self::Boz i) implements self::Bar {
-  constructor • = self::ET21|;
-  constructor tearoff • = self::ET21|_#new#tearOff;
+  constructor • = self::ET21|constructor#;
+  constructor tearoff • = self::ET21|constructor#_#new#tearOff;
 }
 extension type ET22(core::int i) {
-  constructor • = self::ET22|;
-  constructor tearoff • = self::ET22|_#new#tearOff;
+  constructor • = self::ET22|constructor#;
+  constructor tearoff • = self::ET22|constructor#_#new#tearOff;
 }
 extension type ET23(core::int i) {
-  constructor • = self::ET23|;
-  constructor tearoff • = self::ET23|_#new#tearOff;
+  constructor • = self::ET23|constructor#;
+  constructor tearoff • = self::ET23|constructor#_#new#tearOff;
 }
-static inline-class-member method ET1|(core::int i) → self::ET1 /* = core::int */ {
+static inline-class-member method ET1|constructor#(core::int i) → self::ET1 /* = core::int */ {
   lowered final self::ET1 /* = core::int */ #this = i;
   return #this;
 }
-static inline-class-member method ET1|_#new#tearOff(core::int i) → self::ET1 /* = core::int */
-  return self::ET1|(i);
-static inline-class-member method ET2|(core::int i) → self::ET2 /* = core::int */ {
+static inline-class-member method ET1|constructor#_#new#tearOff(core::int i) → self::ET1 /* = core::int */
+  return self::ET1|constructor#(i);
+static inline-class-member method ET2|constructor#(core::int i) → self::ET2 /* = core::int */ {
   lowered final self::ET2 /* = core::int */ #this = i;
   return #this;
 }
-static inline-class-member method ET2|_#new#tearOff(core::int i) → self::ET2 /* = core::int */
-  return self::ET2|(i);
-static inline-class-member method ET3|(core::int i) → self::ET3 /* = core::int */ {
+static inline-class-member method ET2|constructor#_#new#tearOff(core::int i) → self::ET2 /* = core::int */
+  return self::ET2|constructor#(i);
+static inline-class-member method ET3|constructor#(core::int i) → self::ET3 /* = core::int */ {
   lowered final self::ET3 /* = core::int */ #this = i;
   return #this;
 }
-static inline-class-member method ET3|_#new#tearOff(core::int i) → self::ET3 /* = core::int */
-  return self::ET3|(i);
-static inline-class-member method ET4|(core::int i) → self::ET4 /* = core::int */ {
+static inline-class-member method ET3|constructor#_#new#tearOff(core::int i) → self::ET3 /* = core::int */
+  return self::ET3|constructor#(i);
+static inline-class-member method ET4|constructor#(core::int i) → self::ET4 /* = core::int */ {
   lowered final self::ET4 /* = core::int */ #this = i;
   return #this;
 }
-static inline-class-member method ET4|_#new#tearOff(core::int i) → self::ET4 /* = core::int */
-  return self::ET4|(i);
-static inline-class-member method ET5|(core::int i) → self::ET5 /* = core::int */ {
+static inline-class-member method ET4|constructor#_#new#tearOff(core::int i) → self::ET4 /* = core::int */
+  return self::ET4|constructor#(i);
+static inline-class-member method ET5|constructor#(core::int i) → self::ET5 /* = core::int */ {
   lowered final self::ET5 /* = core::int */ #this = i;
   return #this;
 }
-static inline-class-member method ET5|_#new#tearOff(core::int i) → self::ET5 /* = core::int */
-  return self::ET5|(i);
-static inline-class-member method ET6|(self::Bar i) → self::ET6 /* = self::Bar */ {
+static inline-class-member method ET5|constructor#_#new#tearOff(core::int i) → self::ET5 /* = core::int */
+  return self::ET5|constructor#(i);
+static inline-class-member method ET6|constructor#(self::Bar i) → self::ET6 /* = self::Bar */ {
   lowered final self::ET6 /* = self::Bar */ #this = i;
   return #this;
 }
-static inline-class-member method ET6|_#new#tearOff(self::Bar i) → self::ET6 /* = self::Bar */
-  return self::ET6|(i);
-static inline-class-member method ET7|(self::Bar i) → self::ET7 /* = self::Bar */ {
+static inline-class-member method ET6|constructor#_#new#tearOff(self::Bar i) → self::ET6 /* = self::Bar */
+  return self::ET6|constructor#(i);
+static inline-class-member method ET7|constructor#(self::Bar i) → self::ET7 /* = self::Bar */ {
   lowered final self::ET7 /* = self::Bar */ #this = i;
   return #this;
 }
-static inline-class-member method ET7|_#new#tearOff(self::Bar i) → self::ET7 /* = self::Bar */
-  return self::ET7|(i);
-static inline-class-member method ET8|_#new#tearOff(self::Baz i) → self::ET8 /* = self::Baz */
-  return self::ET8|(i);
-static inline-class-member method ET8|(self::Baz i) → self::ET8 /* = self::Baz */ {
+static inline-class-member method ET7|constructor#_#new#tearOff(self::Bar i) → self::ET7 /* = self::Bar */
+  return self::ET7|constructor#(i);
+static inline-class-member method ET8|constructor#_#new#tearOff(self::Baz i) → self::ET8 /* = self::Baz */
+  return self::ET8|constructor#(i);
+static inline-class-member method ET8|constructor#(self::Baz i) → self::ET8 /* = self::Baz */ {
   lowered final self::ET8 /* = self::Baz */ #this = i;
   return #this;
 }
-static inline-class-member method ET9|(self::Baz i) → self::ET9 /* = self::Baz */ {
+static inline-class-member method ET9|constructor#(self::Baz i) → self::ET9 /* = self::Baz */ {
   lowered final self::ET9 /* = self::Baz */ #this = i;
   return #this;
 }
-static inline-class-member method ET9|_#new#tearOff(self::Baz i) → self::ET9 /* = self::Baz */
-  return self::ET9|(i);
-static inline-class-member method ET10|(self::Boz i) → self::ET10 /* = self::Boz */ {
+static inline-class-member method ET9|constructor#_#new#tearOff(self::Baz i) → self::ET9 /* = self::Baz */
+  return self::ET9|constructor#(i);
+static inline-class-member method ET10|constructor#(self::Boz i) → self::ET10 /* = self::Boz */ {
   lowered final self::ET10 /* = self::Boz */ #this = i;
   return #this;
 }
-static inline-class-member method ET10|_#new#tearOff(self::Boz i) → self::ET10 /* = self::Boz */
-  return self::ET10|(i);
-static inline-class-member method ET11|(self::Bar i) → self::ET11 /* = self::Bar */ {
+static inline-class-member method ET10|constructor#_#new#tearOff(self::Boz i) → self::ET10 /* = self::Boz */
+  return self::ET10|constructor#(i);
+static inline-class-member method ET11|constructor#(self::Bar i) → self::ET11 /* = self::Bar */ {
   lowered final self::ET11 /* = self::Bar */ #this = i;
   return #this;
 }
-static inline-class-member method ET11|_#new#tearOff(self::Bar i) → self::ET11 /* = self::Bar */
-  return self::ET11|(i);
-static inline-class-member method ET12|(self::Bar i) → self::ET12 /* = self::Bar */ {
+static inline-class-member method ET11|constructor#_#new#tearOff(self::Bar i) → self::ET11 /* = self::Bar */
+  return self::ET11|constructor#(i);
+static inline-class-member method ET12|constructor#(self::Bar i) → self::ET12 /* = self::Bar */ {
   lowered final self::ET12 /* = self::Bar */ #this = i;
   return #this;
 }
-static inline-class-member method ET12|_#new#tearOff(self::Bar i) → self::ET12 /* = self::Bar */
-  return self::ET12|(i);
-static inline-class-member method ET13|(self::Bar i) → self::ET13 /* = self::Bar */ {
+static inline-class-member method ET12|constructor#_#new#tearOff(self::Bar i) → self::ET12 /* = self::Bar */
+  return self::ET12|constructor#(i);
+static inline-class-member method ET13|constructor#(self::Bar i) → self::ET13 /* = self::Bar */ {
   lowered final self::ET13 /* = self::Bar */ #this = i;
   return #this;
 }
-static inline-class-member method ET13|_#new#tearOff(self::Bar i) → self::ET13 /* = self::Bar */
-  return self::ET13|(i);
-static inline-class-member method ET14|(self::Bar i) → self::ET14 /* = self::Bar */ {
+static inline-class-member method ET13|constructor#_#new#tearOff(self::Bar i) → self::ET13 /* = self::Bar */
+  return self::ET13|constructor#(i);
+static inline-class-member method ET14|constructor#(self::Bar i) → self::ET14 /* = self::Bar */ {
   lowered final self::ET14 /* = self::Bar */ #this = i;
   return #this;
 }
-static inline-class-member method ET14|_#new#tearOff(self::Bar i) → self::ET14 /* = self::Bar */
-  return self::ET14|(i);
-static inline-class-member method ET15|(self::Bar i) → self::ET15 /* = self::Bar */ {
+static inline-class-member method ET14|constructor#_#new#tearOff(self::Bar i) → self::ET14 /* = self::Bar */
+  return self::ET14|constructor#(i);
+static inline-class-member method ET15|constructor#(self::Bar i) → self::ET15 /* = self::Bar */ {
   lowered final self::ET15 /* = self::Bar */ #this = i;
   return #this;
 }
-static inline-class-member method ET15|_#new#tearOff(self::Bar i) → self::ET15 /* = self::Bar */
-  return self::ET15|(i);
-static inline-class-member method ET16|(self::Bar i) → self::ET16 /* = self::Bar */ {
+static inline-class-member method ET15|constructor#_#new#tearOff(self::Bar i) → self::ET15 /* = self::Bar */
+  return self::ET15|constructor#(i);
+static inline-class-member method ET16|constructor#(self::Bar i) → self::ET16 /* = self::Bar */ {
   lowered final self::ET16 /* = self::Bar */ #this = i;
   return #this;
 }
-static inline-class-member method ET16|_#new#tearOff(self::Bar i) → self::ET16 /* = self::Bar */
-  return self::ET16|(i);
-static inline-class-member method ET17|(self::Bar i) → self::ET17 /* = self::Bar */ {
+static inline-class-member method ET16|constructor#_#new#tearOff(self::Bar i) → self::ET16 /* = self::Bar */
+  return self::ET16|constructor#(i);
+static inline-class-member method ET17|constructor#(self::Bar i) → self::ET17 /* = self::Bar */ {
   lowered final self::ET17 /* = self::Bar */ #this = i;
   return #this;
 }
-static inline-class-member method ET17|_#new#tearOff(self::Bar i) → self::ET17 /* = self::Bar */
-  return self::ET17|(i);
-static inline-class-member method ET18|(self::BarBaz i) → self::ET18 /* = self::BarBaz */ {
+static inline-class-member method ET17|constructor#_#new#tearOff(self::Bar i) → self::ET17 /* = self::Bar */
+  return self::ET17|constructor#(i);
+static inline-class-member method ET18|constructor#(self::BarBaz i) → self::ET18 /* = self::BarBaz */ {
   lowered final self::ET18 /* = self::BarBaz */ #this = i;
   return #this;
 }
-static inline-class-member method ET18|_#new#tearOff(self::BarBaz i) → self::ET18 /* = self::BarBaz */
-  return self::ET18|(i);
-static inline-class-member method ET19|(self::BarBaz i) → self::ET19 /* = self::BarBaz */ {
+static inline-class-member method ET18|constructor#_#new#tearOff(self::BarBaz i) → self::ET18 /* = self::BarBaz */
+  return self::ET18|constructor#(i);
+static inline-class-member method ET19|constructor#(self::BarBaz i) → self::ET19 /* = self::BarBaz */ {
   lowered final self::ET19 /* = self::BarBaz */ #this = i;
   return #this;
 }
-static inline-class-member method ET19|_#new#tearOff(self::BarBaz i) → self::ET19 /* = self::BarBaz */
-  return self::ET19|(i);
-static inline-class-member method ET20|(self::BarBaz i) → self::ET20 /* = self::BarBaz */ {
+static inline-class-member method ET19|constructor#_#new#tearOff(self::BarBaz i) → self::ET19 /* = self::BarBaz */
+  return self::ET19|constructor#(i);
+static inline-class-member method ET20|constructor#(self::BarBaz i) → self::ET20 /* = self::BarBaz */ {
   lowered final self::ET20 /* = self::BarBaz */ #this = i;
   return #this;
 }
-static inline-class-member method ET20|_#new#tearOff(self::BarBaz i) → self::ET20 /* = self::BarBaz */
-  return self::ET20|(i);
-static inline-class-member method ET21|(self::Boz i) → self::ET21 /* = self::Boz */ {
+static inline-class-member method ET20|constructor#_#new#tearOff(self::BarBaz i) → self::ET20 /* = self::BarBaz */
+  return self::ET20|constructor#(i);
+static inline-class-member method ET21|constructor#(self::Boz i) → self::ET21 /* = self::Boz */ {
   lowered final self::ET21 /* = self::Boz */ #this = i;
   return #this;
 }
-static inline-class-member method ET21|_#new#tearOff(self::Boz i) → self::ET21 /* = self::Boz */
-  return self::ET21|(i);
-static inline-class-member method ET22|(core::int i) → self::ET22 /* = core::int */ {
+static inline-class-member method ET21|constructor#_#new#tearOff(self::Boz i) → self::ET21 /* = self::Boz */
+  return self::ET21|constructor#(i);
+static inline-class-member method ET22|constructor#(core::int i) → self::ET22 /* = core::int */ {
   lowered final self::ET22 /* = core::int */ #this = i;
   return #this;
 }
-static inline-class-member method ET22|_#new#tearOff(core::int i) → self::ET22 /* = core::int */
-  return self::ET22|(i);
-static inline-class-member method ET23|(core::int i) → self::ET23 /* = core::int */ {
+static inline-class-member method ET22|constructor#_#new#tearOff(core::int i) → self::ET22 /* = core::int */
+  return self::ET22|constructor#(i);
+static inline-class-member method ET23|constructor#(core::int i) → self::ET23 /* = core::int */ {
   lowered final self::ET23 /* = core::int */ #this = i;
   return #this;
 }
-static inline-class-member method ET23|_#new#tearOff(core::int i) → self::ET23 /* = core::int */
-  return self::ET23|(i);
+static inline-class-member method ET23|constructor#_#new#tearOff(core::int i) → self::ET23 /* = core::int */
+  return self::ET23|constructor#(i);

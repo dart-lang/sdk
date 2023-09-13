@@ -94,7 +94,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault
       ..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
     nameScheme
-        .getProcedureMemberName(ProcedureKind.Factory, name)
+        .getConstructorMemberName(name, isTearOff: false)
         .attachMember(_procedureInternal);
     _factoryTearOff = createFactoryTearOffProcedure(
         nameScheme.getConstructorMemberName(name, isTearOff: true),

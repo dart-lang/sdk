@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 extension type Id(core::int id) {
-  constructor • = self::Id|;
-  constructor tearoff • = self::Id|_#new#tearOff;
+  constructor • = self::Id|constructor#;
+  constructor tearoff • = self::Id|constructor#_#new#tearOff;
 }
-static inline-class-member method Id|(core::int id) → self::Id /* = core::int */
+static inline-class-member method Id|constructor#(core::int id) → self::Id /* = core::int */
   ;
-static inline-class-member method Id|_#new#tearOff(core::int id) → self::Id /* = core::int */
-  return self::Id|(id);
+static inline-class-member method Id|constructor#_#new#tearOff(core::int id) → self::Id /* = core::int */
+  return self::Id|constructor#(id);
 static method test() → dynamic
   ;
 static method main() → dynamic

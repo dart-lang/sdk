@@ -5,54 +5,54 @@ import "dart:core" as core;
 extension type I(core::int it) {
   method m = self::I|m;
   method tearoff m = self::I|get#m;
-  constructor _ = self::I|_;
-  constructor tearoff _ = self::I|_#_#tearOff;
-  constructor • = self::I|;
-  constructor tearoff • = self::I|_#new#tearOff;
+  constructor _ = self::I|constructor#_;
+  constructor tearoff _ = self::I|constructor#_#_#tearOff;
+  constructor • = self::I|constructor#;
+  constructor tearoff • = self::I|constructor#_#new#tearOff;
 }
 extension type I2(core::int it) {
   method m = self::I2|m;
   method tearoff m = self::I2|get#m;
-  constructor _ = self::I2|_;
-  constructor tearoff _ = self::I2|_#_#tearOff;
-  constructor • = self::I2|;
-  constructor tearoff • = self::I2|_#new#tearOff;
+  constructor _ = self::I2|constructor#_;
+  constructor tearoff _ = self::I2|constructor#_#_#tearOff;
+  constructor • = self::I2|constructor#;
+  constructor tearoff • = self::I2|constructor#_#new#tearOff;
 }
-static inline-class-member method I|_(core::int it) → self::I /* = core::int */ {
+static inline-class-member method I|constructor#_(core::int it) → self::I /* = core::int */ {
   lowered final self::I /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method I|_#_#tearOff(core::int it) → self::I /* = core::int */
-  return self::I|_(it);
-static inline-class-member method I|(core::int x, [core::int? y = #C1]) → self::I /* = core::int */ {
+static inline-class-member method I|constructor#_#_#tearOff(core::int it) → self::I /* = core::int */
+  return self::I|constructor#_(it);
+static inline-class-member method I|constructor#(core::int x, [core::int? y = #C1]) → self::I /* = core::int */ {
   lowered final self::I /* = core::int */ #this = x.{core::num::+}(let final core::int? #t1 = y in #t1 == null ?{core::int} 42 : #t1{core::int}){(core::num) → core::int};
   return #this;
 }
-static inline-class-member method I|_#new#tearOff(core::int x, [core::int? y]) → self::I /* = core::int */
-  return self::I|(x, y);
+static inline-class-member method I|constructor#_#new#tearOff(core::int x, [core::int? y]) → self::I /* = core::int */
+  return self::I|constructor#(x, y);
 static inline-class-member method I|m(lowered final self::I /* = core::int */ #this, core::String s, [core::int i = #C2]) → void {}
 static inline-class-member method I|get#m(lowered final self::I /* = core::int */ #this) → (core::String, [core::int]) → void
   return (core::String s, [core::int i = #C2]) → void => self::I|m(#this, s, i);
-static inline-class-member method I2|_(core::int it) → self::I2 /* = core::int */ {
+static inline-class-member method I2|constructor#_(core::int it) → self::I2 /* = core::int */ {
   lowered final self::I2 /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method I2|_#_#tearOff(core::int it) → self::I2 /* = core::int */
-  return self::I2|_(it);
-static inline-class-member method I2|(core::int x, {core::int? y = #C1}) → self::I2 /* = core::int */ {
+static inline-class-member method I2|constructor#_#_#tearOff(core::int it) → self::I2 /* = core::int */
+  return self::I2|constructor#_(it);
+static inline-class-member method I2|constructor#(core::int x, {core::int? y = #C1}) → self::I2 /* = core::int */ {
   lowered final self::I2 /* = core::int */ #this = x.{core::num::+}(let final core::int? #t2 = y in #t2 == null ?{core::int} 87 : #t2{core::int}){(core::num) → core::int};
   return #this;
 }
-static inline-class-member method I2|_#new#tearOff(core::int x, {core::int? y}) → self::I2 /* = core::int */
-  return self::I2|(x, y: y);
+static inline-class-member method I2|constructor#_#new#tearOff(core::int x, {core::int? y}) → self::I2 /* = core::int */
+  return self::I2|constructor#(x, y: y);
 static inline-class-member method I2|m(lowered final self::I2 /* = core::int */ #this, core::String s, {core::int i = #C2}) → void {}
 static inline-class-member method I2|get#m(lowered final self::I2 /* = core::int */ #this) → (core::String, {i: core::int}) → void
   return (core::String s, {core::int i = #C2}) → void => self::I2|m(#this, s, i: i);
 static method main() → dynamic {
-  self::expect(42, self::I|(0));
-  self::expect(0, self::I|(0, 0));
-  self::expect(87, self::I2|(0));
-  self::expect(0, self::I2|(0, y: 0));
+  self::expect(42, self::I|constructor#(0));
+  self::expect(0, self::I|constructor#(0, 0));
+  self::expect(87, self::I2|constructor#(0));
+  self::expect(0, self::I2|constructor#(0, y: 0));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual)) {

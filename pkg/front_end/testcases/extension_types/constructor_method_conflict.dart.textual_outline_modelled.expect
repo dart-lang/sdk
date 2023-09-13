@@ -1,0 +1,7 @@
+---- unknown chunk starts ----
+extension type E1.name(int it) {
+---- unknown chunk ends ----
+void name() {}
+---- unknown chunk starts ----
+}
+---- unknown chunk ends ----

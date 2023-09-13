@@ -22,22 +22,22 @@ import self as self;
 import "dart:core" as core;
 
 extension type ExtensionType1(core::int it) {
-  constructor • = self::ExtensionType1|;
-  constructor tearoff • = self::ExtensionType1|_#new#tearOff;
+  constructor • = self::ExtensionType1|constructor#;
+  constructor tearoff • = self::ExtensionType1|constructor#_#new#tearOff;
 }
 extension type ExtensionType2<T extends core::Object? = dynamic>(core::int it) implements core::int, self::ExtensionType1 /* = core::int */ {
-  constructor _ = self::ExtensionType2|_;
-  constructor tearoff _ = self::ExtensionType2|_#_#tearOff;
+  constructor _ = self::ExtensionType2|constructor#_;
+  constructor tearoff _ = self::ExtensionType2|constructor#_#_#tearOff;
 }
-static inline-class-member method ExtensionType1|(core::int it) → self::ExtensionType1 /* = core::int */ {
+static inline-class-member method ExtensionType1|constructor#(core::int it) → self::ExtensionType1 /* = core::int */ {
   lowered final self::ExtensionType1 /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method ExtensionType1|_#new#tearOff(core::int it) → self::ExtensionType1 /* = core::int */
-  return self::ExtensionType1|(it);
-static inline-class-member method ExtensionType2|_<T extends core::Object? = dynamic>(core::int it) → self::ExtensionType2<self::ExtensionType2|_::T%> /* = core::int */ {
-  lowered final self::ExtensionType2<self::ExtensionType2|_::T%> /* = core::int */ #this = it;
+static inline-class-member method ExtensionType1|constructor#_#new#tearOff(core::int it) → self::ExtensionType1 /* = core::int */
+  return self::ExtensionType1|constructor#(it);
+static inline-class-member method ExtensionType2|constructor#_<T extends core::Object? = dynamic>(core::int it) → self::ExtensionType2<self::ExtensionType2|constructor#_::T%> /* = core::int */ {
+  lowered final self::ExtensionType2<self::ExtensionType2|constructor#_::T%> /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method ExtensionType2|_#_#tearOff<T extends core::Object? = dynamic>(core::int it) → self::ExtensionType2<self::ExtensionType2|_#_#tearOff::T%> /* = core::int */
-  return self::ExtensionType2|_<self::ExtensionType2|_#_#tearOff::T%>(it);
+static inline-class-member method ExtensionType2|constructor#_#_#tearOff<T extends core::Object? = dynamic>(core::int it) → self::ExtensionType2<self::ExtensionType2|constructor#_#_#tearOff::T%> /* = core::int */
+  return self::ExtensionType2|constructor#_<self::ExtensionType2|constructor#_#_#tearOff::T%>(it);

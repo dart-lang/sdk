@@ -18,21 +18,21 @@ class B extends self::A {
     ;
 }
 extension type E(self::B it) implements self::B {
-  constructor • = self::E|;
-  constructor tearoff • = self::E|_#new#tearOff;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
 extension type F(self::B it) implements self::E /* = self::B */ {
-  constructor • = self::F|;
-  constructor tearoff • = self::F|_#new#tearOff;
+  constructor • = self::F|constructor#;
+  constructor tearoff • = self::F|constructor#_#new#tearOff;
 }
-static inline-class-member method E|(self::B it) → self::E /* = self::B */
+static inline-class-member method E|constructor#(self::B it) → self::E /* = self::B */
   ;
-static inline-class-member method E|_#new#tearOff(self::B it) → self::E /* = self::B */
-  return self::E|(it);
-static inline-class-member method F|(self::B it) → self::F /* = self::B */
+static inline-class-member method E|constructor#_#new#tearOff(self::B it) → self::E /* = self::B */
+  return self::E|constructor#(it);
+static inline-class-member method F|constructor#(self::B it) → self::F /* = self::B */
   ;
-static inline-class-member method F|_#new#tearOff(self::B it) → self::F /* = self::B */
-  return self::F|(it);
+static inline-class-member method F|constructor#_#new#tearOff(self::B it) → self::F /* = self::B */
+  return self::F|constructor#(it);
 static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic

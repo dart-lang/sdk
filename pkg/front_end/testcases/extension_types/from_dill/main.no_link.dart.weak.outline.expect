@@ -31,38 +31,38 @@ extension type ExtensionType(core::int it) {
   static get staticGetter = get self2::ExtensionType|staticGetter;
   set instanceSetter = self2::ExtensionType|set#instanceSetter;
   static set staticSetter = set self2::ExtensionType|staticSetter;
-  constructor • = self2::ExtensionType|;
-  constructor tearoff • = self2::ExtensionType|_#new#tearOff;
-  constructor named = self2::ExtensionType|named;
-  constructor tearoff named = self2::ExtensionType|_#named#tearOff;
-  constructor redirectingGenerative = self2::ExtensionType|redirectingGenerative;
-  constructor tearoff redirectingGenerative = self2::ExtensionType|_#redirectingGenerative#tearOff;
-  static factory fact = self2::ExtensionType|fact;
-  static factory tearoff fact = self2::ExtensionType|_#fact#tearOff;
-  static redirecting-factory redirectingFactory = self2::ExtensionType|redirectingFactory;
-  static redirecting-factory tearoff redirectingFactory = self2::ExtensionType|_#redirectingFactory#tearOff;
+  constructor • = self2::ExtensionType|constructor#;
+  constructor tearoff • = self2::ExtensionType|constructor#_#new#tearOff;
+  constructor named = self2::ExtensionType|constructor#named;
+  constructor tearoff named = self2::ExtensionType|constructor#_#named#tearOff;
+  constructor redirectingGenerative = self2::ExtensionType|constructor#redirectingGenerative;
+  constructor tearoff redirectingGenerative = self2::ExtensionType|constructor#_#redirectingGenerative#tearOff;
+  static factory fact = self2::ExtensionType|constructor#fact;
+  static factory tearoff fact = self2::ExtensionType|constructor#_#fact#tearOff;
+  static redirecting-factory redirectingFactory = self2::ExtensionType|constructor#redirectingFactory;
+  static redirecting-factory tearoff redirectingFactory = self2::ExtensionType|constructor#_#redirectingFactory#tearOff;
 }
 static field core::int ExtensionType|staticField;
-static inline-class-member method ExtensionType|(core::int it) → self2::ExtensionType /* = core::int */
+static inline-class-member method ExtensionType|constructor#(core::int it) → self2::ExtensionType /* = core::int */
   ;
-static inline-class-member method ExtensionType|_#new#tearOff(core::int it) → self2::ExtensionType /* = core::int */
-  return self2::ExtensionType|(it);
-static inline-class-member method ExtensionType|named(core::int it) → self2::ExtensionType /* = core::int */
+static inline-class-member method ExtensionType|constructor#_#new#tearOff(core::int it) → self2::ExtensionType /* = core::int */
+  return self2::ExtensionType|constructor#(it);
+static inline-class-member method ExtensionType|constructor#named(core::int it) → self2::ExtensionType /* = core::int */
   ;
-static inline-class-member method ExtensionType|_#named#tearOff(core::int it) → self2::ExtensionType /* = core::int */
-  return self2::ExtensionType|named(it);
-static inline-class-member method ExtensionType|redirectingGenerative(core::int it) → self2::ExtensionType /* = core::int */
+static inline-class-member method ExtensionType|constructor#_#named#tearOff(core::int it) → self2::ExtensionType /* = core::int */
+  return self2::ExtensionType|constructor#named(it);
+static inline-class-member method ExtensionType|constructor#redirectingGenerative(core::int it) → self2::ExtensionType /* = core::int */
   ;
-static inline-class-member method ExtensionType|_#redirectingGenerative#tearOff(core::int it) → self2::ExtensionType /* = core::int */
-  return self2::ExtensionType|redirectingGenerative(it);
-static inline-class-member method ExtensionType|fact(core::int it) → self2::ExtensionType /* = core::int */
+static inline-class-member method ExtensionType|constructor#_#redirectingGenerative#tearOff(core::int it) → self2::ExtensionType /* = core::int */
+  return self2::ExtensionType|constructor#redirectingGenerative(it);
+static inline-class-member method ExtensionType|constructor#fact(core::int it) → self2::ExtensionType /* = core::int */
   ;
-static inline-class-member method ExtensionType|_#fact#tearOff(core::int it) → self2::ExtensionType /* = core::int */
-  return self2::ExtensionType|fact(it);
-static inline-class-member method ExtensionType|redirectingFactory(core::int it) → self2::ExtensionType /* = core::int */ /* redirection-target: self2::ExtensionType| */
-  return self2::ExtensionType|(it);
-static inline-class-member method ExtensionType|_#redirectingFactory#tearOff(core::int it) → self2::ExtensionType /* = core::int */
-  return self2::ExtensionType|(it);
+static inline-class-member method ExtensionType|constructor#_#fact#tearOff(core::int it) → self2::ExtensionType /* = core::int */
+  return self2::ExtensionType|constructor#fact(it);
+static inline-class-member method ExtensionType|constructor#redirectingFactory(core::int it) → self2::ExtensionType /* = core::int */ /* redirection-target: self2::ExtensionType|constructor# */
+  return self2::ExtensionType|constructor#(it);
+static inline-class-member method ExtensionType|constructor#_#redirectingFactory#tearOff(core::int it) → self2::ExtensionType /* = core::int */
+  return self2::ExtensionType|constructor#(it);
 static inline-class-member method ExtensionType|instanceMethod(lowered final self2::ExtensionType /* = core::int */ #this) → core::int
   ;
 static inline-class-member method ExtensionType|get#instanceMethod(lowered final self2::ExtensionType /* = core::int */ #this) → () → core::int

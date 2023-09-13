@@ -3,50 +3,50 @@ import self as self;
 import "dart:core" as core;
 
 extension type V1(core::int id) {
-  constructor n0 = self::V1|n0;
-  constructor tearoff n0 = self::V1|_#n0#tearOff;
-  constructor • = self::V1|;
-  constructor tearoff • = self::V1|_#new#tearOff;
-  constructor n1 = self::V1|n1;
-  constructor tearoff n1 = self::V1|_#n1#tearOff;
-  constructor n2 = self::V1|n2;
-  constructor tearoff n2 = self::V1|_#n2#tearOff;
+  constructor n0 = self::V1|constructor#n0;
+  constructor tearoff n0 = self::V1|constructor#_#n0#tearOff;
+  constructor • = self::V1|constructor#;
+  constructor tearoff • = self::V1|constructor#_#new#tearOff;
+  constructor n1 = self::V1|constructor#n1;
+  constructor tearoff n1 = self::V1|constructor#_#n1#tearOff;
+  constructor n2 = self::V1|constructor#n2;
+  constructor tearoff n2 = self::V1|constructor#_#n2#tearOff;
 }
-static inline-class-member method V1|n0(core::int id) → self::V1 /* = core::int */ {
+static inline-class-member method V1|constructor#n0(core::int id) → self::V1 /* = core::int */ {
   lowered final self::V1 /* = core::int */ #this = id;
   return #this;
 }
-static inline-class-member method V1|_#n0#tearOff(core::int id) → self::V1 /* = core::int */
-  return self::V1|n0(id);
-static inline-class-member method V1|(core::int id) → self::V1 /* = core::int */ {
+static inline-class-member method V1|constructor#_#n0#tearOff(core::int id) → self::V1 /* = core::int */
+  return self::V1|constructor#n0(id);
+static inline-class-member method V1|constructor#(core::int id) → self::V1 /* = core::int */ {
   lowered final self::V1 /* = core::int */ #this = id;
   {
     self::expect(#this, #this as{Unchecked} core::int);
   }
   return #this;
 }
-static inline-class-member method V1|_#new#tearOff(core::int id) → self::V1 /* = core::int */
-  return self::V1|(id);
-static inline-class-member method V1|n1([core::int x = #C1]) → self::V1 /* = core::int */ {
+static inline-class-member method V1|constructor#_#new#tearOff(core::int id) → self::V1 /* = core::int */
+  return self::V1|constructor#(id);
+static inline-class-member method V1|constructor#n1([core::int x = #C1]) → self::V1 /* = core::int */ {
   lowered final self::V1 /* = core::int */ #this = x;
   {
     self::expect(#this, #this as{Unchecked} core::int);
   }
   return #this;
 }
-static inline-class-member method V1|_#n1#tearOff([has-declared-initializer core::int x]) → self::V1 /* = core::int */
-  return self::V1|n1(x);
-static inline-class-member method V1|n2(core::int id) → self::V1 /* = core::int */ {
+static inline-class-member method V1|constructor#_#n1#tearOff([has-declared-initializer core::int x]) → self::V1 /* = core::int */
+  return self::V1|constructor#n1(x);
+static inline-class-member method V1|constructor#n2(core::int id) → self::V1 /* = core::int */ {
   lowered final self::V1 /* = core::int */ #this;
-  #this = self::V1|n1(id);
+  #this = self::V1|constructor#n1(id);
   return #this;
 }
-static inline-class-member method V1|_#n2#tearOff(core::int id) → self::V1 /* = core::int */
-  return self::V1|n2(id);
+static inline-class-member method V1|constructor#_#n2#tearOff(core::int id) → self::V1 /* = core::int */
+  return self::V1|constructor#n2(id);
 static method main() → dynamic {
-  self::V1|(0);
-  self::V1|n1(1);
-  self::V1|n2(2);
+  self::V1|constructor#(0);
+  self::V1|constructor#n1(1);
+  self::V1|constructor#n2(2);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!core::identical(expected, actual))

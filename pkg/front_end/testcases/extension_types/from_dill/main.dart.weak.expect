@@ -15,7 +15,7 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///main_lib2.dart";
 
 static method main() → dynamic {
-  mai2::ExtensionType /* = core::int */ e1 = mai2::ExtensionType|(42);
+  mai2::ExtensionType /* = core::int */ e1 = mai2::ExtensionType|constructor#(42);
   mai::expect(42, mai2::ExtensionType|instanceMethod(e1));
   mai::expect(42, mai2::ExtensionType|get#instanceMethod(e1)(){() → core::int});
   mai::expect(43, mai2::ExtensionType|+(e1, 1));
@@ -30,13 +30,13 @@ static method main() → dynamic {
   mai::expect(124, mai2::ExtensionType|staticField);
   mai::expect(124, mai2::ExtensionType|staticGetter);
   mai::expect(42, #C2(42){(core::int) → mai2::ExtensionType /* = core::int */});
-  mai::expect(43, mai2::ExtensionType|named(42));
+  mai::expect(43, mai2::ExtensionType|constructor#named(42));
   mai::expect(43, #C3(42){(core::int) → mai2::ExtensionType /* = core::int */});
-  mai::expect(44, mai2::ExtensionType|redirectingGenerative(42));
+  mai::expect(44, mai2::ExtensionType|constructor#redirectingGenerative(42));
   mai::expect(44, #C4(42){(core::int) → mai2::ExtensionType /* = core::int */});
-  mai::expect(45, mai2::ExtensionType|fact(42));
+  mai::expect(45, mai2::ExtensionType|constructor#fact(42));
   mai::expect(45, #C5(42){(core::int) → mai2::ExtensionType /* = core::int */});
-  mai::expect(42, mai2::ExtensionType|(42));
+  mai::expect(42, mai2::ExtensionType|constructor#(42));
   mai::expect(42, #C6(42){(core::int) → mai2::ExtensionType /* = core::int */});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
@@ -58,45 +58,45 @@ extension type ExtensionType(core::int it) {
   static get staticGetter = get mai2::ExtensionType|staticGetter;
   set instanceSetter = mai2::ExtensionType|set#instanceSetter;
   static set staticSetter = set mai2::ExtensionType|staticSetter;
-  constructor • = mai2::ExtensionType|;
-  constructor tearoff • = mai2::ExtensionType|_#new#tearOff;
-  constructor named = mai2::ExtensionType|named;
-  constructor tearoff named = mai2::ExtensionType|_#named#tearOff;
-  constructor redirectingGenerative = mai2::ExtensionType|redirectingGenerative;
-  constructor tearoff redirectingGenerative = mai2::ExtensionType|_#redirectingGenerative#tearOff;
-  static factory fact = mai2::ExtensionType|fact;
-  static factory tearoff fact = mai2::ExtensionType|_#fact#tearOff;
-  static redirecting-factory redirectingFactory = mai2::ExtensionType|redirectingFactory;
-  static redirecting-factory tearoff redirectingFactory = mai2::ExtensionType|_#redirectingFactory#tearOff;
+  constructor • = mai2::ExtensionType|constructor#;
+  constructor tearoff • = mai2::ExtensionType|constructor#_#new#tearOff;
+  constructor named = mai2::ExtensionType|constructor#named;
+  constructor tearoff named = mai2::ExtensionType|constructor#_#named#tearOff;
+  constructor redirectingGenerative = mai2::ExtensionType|constructor#redirectingGenerative;
+  constructor tearoff redirectingGenerative = mai2::ExtensionType|constructor#_#redirectingGenerative#tearOff;
+  static factory fact = mai2::ExtensionType|constructor#fact;
+  static factory tearoff fact = mai2::ExtensionType|constructor#_#fact#tearOff;
+  static redirecting-factory redirectingFactory = mai2::ExtensionType|constructor#redirectingFactory;
+  static redirecting-factory tearoff redirectingFactory = mai2::ExtensionType|constructor#_#redirectingFactory#tearOff;
 }
 static field core::int ExtensionType|staticField = 123;
-static inline-class-member method ExtensionType|(core::int it) → mai2::ExtensionType /* = core::int */ {
+static inline-class-member method ExtensionType|constructor#(core::int it) → mai2::ExtensionType /* = core::int */ {
   lowered final mai2::ExtensionType /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method ExtensionType|_#new#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
-  return mai2::ExtensionType|(it);
-static inline-class-member method ExtensionType|named(core::int it) → mai2::ExtensionType /* = core::int */ {
+static inline-class-member method ExtensionType|constructor#_#new#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
+  return mai2::ExtensionType|constructor#(it);
+static inline-class-member method ExtensionType|constructor#named(core::int it) → mai2::ExtensionType /* = core::int */ {
   lowered final mai2::ExtensionType /* = core::int */ #this = it.{core::num::+}(1){(core::num) → core::int};
   return #this;
 }
-static inline-class-member method ExtensionType|_#named#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
-  return mai2::ExtensionType|named(it);
-static inline-class-member method ExtensionType|redirectingGenerative(core::int it) → mai2::ExtensionType /* = core::int */ {
+static inline-class-member method ExtensionType|constructor#_#named#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
+  return mai2::ExtensionType|constructor#named(it);
+static inline-class-member method ExtensionType|constructor#redirectingGenerative(core::int it) → mai2::ExtensionType /* = core::int */ {
   lowered final mai2::ExtensionType /* = core::int */ #this;
-  #this = mai2::ExtensionType|(it.{core::num::+}(2){(core::num) → core::int});
+  #this = mai2::ExtensionType|constructor#(it.{core::num::+}(2){(core::num) → core::int});
   return #this;
 }
-static inline-class-member method ExtensionType|_#redirectingGenerative#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
-  return mai2::ExtensionType|redirectingGenerative(it);
-static inline-class-member method ExtensionType|fact(core::int it) → mai2::ExtensionType /* = core::int */
-  return mai2::ExtensionType|(it.{core::num::+}(3){(core::num) → core::int});
-static inline-class-member method ExtensionType|_#fact#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
-  return mai2::ExtensionType|fact(it);
-static inline-class-member method ExtensionType|redirectingFactory(core::int it) → mai2::ExtensionType /* = core::int */ /* redirection-target: mai2::ExtensionType| */
-  return mai2::ExtensionType|(it);
-static inline-class-member method ExtensionType|_#redirectingFactory#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
-  return mai2::ExtensionType|(it);
+static inline-class-member method ExtensionType|constructor#_#redirectingGenerative#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
+  return mai2::ExtensionType|constructor#redirectingGenerative(it);
+static inline-class-member method ExtensionType|constructor#fact(core::int it) → mai2::ExtensionType /* = core::int */
+  return mai2::ExtensionType|constructor#(it.{core::num::+}(3){(core::num) → core::int});
+static inline-class-member method ExtensionType|constructor#_#fact#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
+  return mai2::ExtensionType|constructor#fact(it);
+static inline-class-member method ExtensionType|constructor#redirectingFactory(core::int it) → mai2::ExtensionType /* = core::int */ /* redirection-target: mai2::ExtensionType|constructor# */
+  return mai2::ExtensionType|constructor#(it);
+static inline-class-member method ExtensionType|constructor#_#redirectingFactory#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
+  return mai2::ExtensionType|constructor#(it);
 static inline-class-member method ExtensionType|instanceMethod(lowered final mai2::ExtensionType /* = core::int */ #this) → core::int
   return #this as{Unchecked} core::int;
 static inline-class-member method ExtensionType|get#instanceMethod(lowered final mai2::ExtensionType /* = core::int */ #this) → () → core::int
@@ -116,9 +116,9 @@ static inline-class-member set ExtensionType|staticSetter(core::int value) → v
 
 constants  {
   #C1 = static-tearoff mai2::ExtensionType|staticMethod
-  #C2 = static-tearoff mai2::ExtensionType|_#new#tearOff
-  #C3 = static-tearoff mai2::ExtensionType|_#named#tearOff
-  #C4 = static-tearoff mai2::ExtensionType|_#redirectingGenerative#tearOff
-  #C5 = static-tearoff mai2::ExtensionType|_#fact#tearOff
-  #C6 = static-tearoff mai2::ExtensionType|_#redirectingFactory#tearOff
+  #C2 = static-tearoff mai2::ExtensionType|constructor#_#new#tearOff
+  #C3 = static-tearoff mai2::ExtensionType|constructor#_#named#tearOff
+  #C4 = static-tearoff mai2::ExtensionType|constructor#_#redirectingGenerative#tearOff
+  #C5 = static-tearoff mai2::ExtensionType|constructor#_#fact#tearOff
+  #C6 = static-tearoff mai2::ExtensionType|constructor#_#redirectingFactory#tearOff
 }

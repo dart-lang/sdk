@@ -5,7 +5,7 @@ import "main_lib2.dart" as mai;
 import "org-dartlang-testcase:///main_lib1.dart";
 
 static method main() → dynamic {
-  mai::ExtensionType|(0);
+  mai::ExtensionType|constructor#(0);
 }
 
 library;
@@ -21,12 +21,12 @@ import self as mai;
 import "dart:core" as core;
 
 extension type ExtensionType(core::int i) {
-  constructor • = mai::ExtensionType|;
-  constructor tearoff • = mai::ExtensionType|_#new#tearOff;
+  constructor • = mai::ExtensionType|constructor#;
+  constructor tearoff • = mai::ExtensionType|constructor#_#new#tearOff;
 }
-static inline-class-member method ExtensionType|(core::int i) → mai::ExtensionType /* = core::int */ {
+static inline-class-member method ExtensionType|constructor#(core::int i) → mai::ExtensionType /* = core::int */ {
   lowered final mai::ExtensionType /* = core::int */ #this = i;
   return #this;
 }
-static inline-class-member method ExtensionType|_#new#tearOff(core::int i) → mai::ExtensionType /* = core::int */
-  return mai::ExtensionType|(i);
+static inline-class-member method ExtensionType|constructor#_#new#tearOff(core::int i) → mai::ExtensionType /* = core::int */
+  return mai::ExtensionType|constructor#(i);

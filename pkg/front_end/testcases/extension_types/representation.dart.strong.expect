@@ -33,30 +33,30 @@ import self as self;
 import "dart:core" as core;
 
 extension type Missing(invalid-type #) {
-  constructor • = self::Missing|;
-  constructor tearoff • = self::Missing|_#new#tearOff;
+  constructor • = self::Missing|constructor#;
+  constructor tearoff • = self::Missing|constructor#_#new#tearOff;
 }
 extension type Multiple(core::bool instanceField1) {
-  constructor • = self::Multiple|;
-  constructor tearoff • = self::Multiple|_#new#tearOff;
+  constructor • = self::Multiple|constructor#;
+  constructor tearoff • = self::Multiple|constructor#_#new#tearOff;
 }
 extension type Duplicate(core::bool instanceField) {
-  constructor • = self::Duplicate|;
-  constructor tearoff • = self::Duplicate|_#new#tearOff;
+  constructor • = self::Duplicate|constructor#;
+  constructor tearoff • = self::Duplicate|constructor#_#new#tearOff;
 }
-static inline-class-member method Missing|() → self::Missing /* = invalid-type */ {
+static inline-class-member method Missing|constructor#() → self::Missing /* = invalid-type */ {
   lowered final self::Missing /* = invalid-type */ #this;
   return #this;
 }
-static inline-class-member method Missing|_#new#tearOff() → self::Missing /* = invalid-type */
-  return self::Missing|();
-static inline-class-member method Multiple|(core::bool instanceField1, core::int instanceField2) → self::Multiple /* = core::bool */ {
+static inline-class-member method Missing|constructor#_#new#tearOff() → self::Missing /* = invalid-type */
+  return self::Missing|constructor#();
+static inline-class-member method Multiple|constructor#(core::bool instanceField1, core::int instanceField2) → self::Multiple /* = core::bool */ {
   lowered final self::Multiple /* = core::bool */ #this = instanceField2;
   return #this;
 }
-static inline-class-member method Multiple|_#new#tearOff(core::bool instanceField1, core::int instanceField2) → self::Multiple /* = core::bool */
-  return self::Multiple|(instanceField1, instanceField2);
-static inline-class-member method Duplicate|(core::int instanceField, core::int instanceField) → self::Duplicate /* = core::bool */ {
+static inline-class-member method Multiple|constructor#_#new#tearOff(core::bool instanceField1, core::int instanceField2) → self::Multiple /* = core::bool */
+  return self::Multiple|constructor#(instanceField1, instanceField2);
+static inline-class-member method Duplicate|constructor#(core::int instanceField, core::int instanceField) → self::Duplicate /* = core::bool */ {
   lowered final self::Duplicate /* = core::bool */ #this;
   final dynamic #t1 = invalid-expression "pkg/front_end/testcases/extension_types/representation.dart:9:31: Error: Can't use 'instanceField' because it is declared more than once.
 extension type Duplicate(bool instanceField, int instanceField) {} // Error
@@ -66,5 +66,5 @@ extension type Duplicate(bool instanceField, int instanceField) {} // Error
                                                  ^^^^^^^^^^^^^";
   return #this;
 }
-static inline-class-member method Duplicate|_#new#tearOff(core::int instanceField, core::int instanceField) → self::Duplicate /* = core::bool */
-  return self::Duplicate|(instanceField, instanceField);
+static inline-class-member method Duplicate|constructor#_#new#tearOff(core::int instanceField, core::int instanceField) → self::Duplicate /* = core::bool */
+  return self::Duplicate|constructor#(instanceField, instanceField);
