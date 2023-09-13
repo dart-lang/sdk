@@ -197,10 +197,6 @@ class AnnotationVerifier {
   /// `@literal` annotation.
   void _checkLiteral(AstNode node) {
     var parent = node.parent;
-    // Primary constructor of an extension type declaration.
-    if (parent is ExtensionTypeDeclaration && parent.constKeyword != null) {
-      return;
-    }
     if (parent is! ConstructorDeclaration || parent.constKeyword == null) {
       _errorReporter
           .reportErrorForNode(WarningCode.INVALID_LITERAL_ANNOTATION, node, []);
