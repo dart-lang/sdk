@@ -41,12 +41,14 @@ extension type const E(int i) {
 ''');
   }
 
-  test_extensionType_primaryConstructor_const() async {
-    await assertNoErrorsInCode(r'''
+  test_extensionType_declaration() async {
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @literal
 extension type const E(int i) { }
-''');
+''', [
+      error(WarningCode.INVALID_LITERAL_ANNOTATION, 33, 8),
+    ]);
   }
 
   test_nonConstConstructor() async {

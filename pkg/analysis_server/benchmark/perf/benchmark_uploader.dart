@@ -25,7 +25,7 @@ void main(List<String> args) async {
     }
 
     if (!Platform.isWindows) {
-      print("Analyzer benchmark uploads only run on Windows");
+      print('Analyzer benchmark uploads only run on Windows');
       exit(1);
     }
     final targetResults = [
@@ -100,8 +100,8 @@ Future<void> uploadResults(List<Map<String, dynamic>> results) async {
     final resultsFile = File.fromUri(tempDir.uri.resolve('results.json'));
     resultsFile.writeAsStringSync(resultsJson, flush: true);
 
-    final taskId = Platform.environment['SWARMING_TASK_ID'] ?? "test_task_id";
-    if (taskId == "test_task_id") {
+    final taskId = Platform.environment['SWARMING_TASK_ID'] ?? 'test_task_id';
+    if (taskId == 'test_task_id') {
       print('Benchmark_uploader requires SWARMING_TASK_ID in the environment.');
     }
     final cloudStoragePath =

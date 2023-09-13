@@ -5636,6 +5636,7 @@ class AstBuilder extends StackListener {
     var constructor = ConstructorDeclarationImpl(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: modifiers?.augmentKeyword,
       externalKeyword: modifiers?.externalKeyword,
       constKeyword: modifiers?.finalConstOrVarKeyword,
       factoryKeyword: null,
@@ -5708,6 +5709,7 @@ class AstBuilder extends StackListener {
     final constructor = ConstructorDeclarationImpl(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: modifiers?.augmentKeyword,
       externalKeyword: modifiers?.externalKeyword,
       constKeyword: modifiers?.finalConstOrVarKeyword,
       factoryKeyword: factoryKeyword,

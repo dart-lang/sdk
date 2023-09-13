@@ -88,7 +88,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
           isFirstPackage = false;
         }
         if (importUri.compareTo(existingImport.uri) < 0) {
-          var importCode = "import $quote$importUri$quote;$eol";
+          var importCode = 'import $quote$importUri$quote;$eol';
           doSourceChange_addElementEdit(change, targetLibrary,
               SourceEdit(existingImport.offset, 0, importCode));
           inserted = true;
@@ -96,7 +96,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
         }
       }
       if (!inserted) {
-        var importCode = "${eol}import $quote$importUri$quote;";
+        var importCode = '${eol}import $quote$importUri$quote;';
         if (isPackage && isFirstPackage && isAfterDart) {
           importCode = eol + importCode;
         }
@@ -114,7 +114,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
   if (libraryDirective != null) {
     var prefix = eol + eol;
     for (var importUri in uriList) {
-      var importCode = "${prefix}import $quote$importUri$quote;";
+      var importCode = '${prefix}import $quote$importUri$quote;';
       prefix = eol;
       doSourceChange_addElementEdit(change, targetLibrary,
           SourceEdit(libraryDirective.end, 0, importCode));
@@ -128,7 +128,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
     var offset = desc.offset;
     for (var i = 0; i < uriList.length; i++) {
       var importUri = uriList[i];
-      var importCode = "import $quote$importUri$quote;$eol";
+      var importCode = 'import $quote$importUri$quote;$eol';
       if (i == 0) {
         importCode = desc.prefix + importCode;
       }

@@ -210,7 +210,7 @@ abstract class Site {
               page.contentDispositionString(queryParameters);
           if (contentDispositionString != null) {
             response.headers
-                .add("Content-Disposition", contentDispositionString);
+                .add('Content-Disposition', contentDispositionString);
           }
           response.write(await page.generate(queryParameters));
           unawaited(response.close());

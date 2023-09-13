@@ -225,8 +225,7 @@ abstract class AugmentedInterfaceElementImpl
   List<InterfaceType> mixins = [];
 
   @override
-  // TODO: implement constructors
-  List<ConstructorElement> get constructors => throw UnimplementedError();
+  List<ConstructorElement> constructors = [];
 
   @override
   // TODO: implement declaration
@@ -3476,9 +3475,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   InterfaceElementImpl? get augmentationTarget;
 
   @override
-  AugmentedInterfaceElement? get augmented {
-    throw UnimplementedError();
-  }
+  AugmentedInterfaceElement? get augmented;
 
   @override
   List<Element> get children => [

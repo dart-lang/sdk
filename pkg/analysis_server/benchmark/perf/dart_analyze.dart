@@ -77,7 +77,7 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
         verbose: false,
         stdout: stdout,
       );
-      int kbNoCache = jsonDecode(stdout[1])["memory"] as int;
+      int kbNoCache = jsonDecode(stdout[1])['memory'] as int;
       result.add('no-cache-memory', BenchMarkResult('bytes', kbNoCache * 1024));
 
       stdout = [];
@@ -95,7 +95,7 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
         verbose: false,
         stdout: stdout,
       );
-      int kbWithCache = jsonDecode(stdout[1])["memory"] as int;
+      int kbWithCache = jsonDecode(stdout[1])['memory'] as int;
       result.add(
           'with-cache-memory', BenchMarkResult('bytes', kbWithCache * 1024));
     }
@@ -119,7 +119,7 @@ class CmdLineOneProjectBenchmark extends AbstractCmdLineBenchmark {
 
   @override
   List<String> analyzeWhat(bool quick) =>
-      quick ? ["meta"] : ["analysis_server"];
+      quick ? ['meta'] : ['analysis_server'];
 }
 
 class CmdLineSeveralProjectsBenchmark extends AbstractCmdLineBenchmark {

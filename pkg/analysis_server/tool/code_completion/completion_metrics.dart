@@ -11,7 +11,6 @@ import 'dart:io' show stdout;
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
-import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
@@ -44,8 +43,6 @@ import 'package:analyzer/dart/element/element.dart'
         VariableElement;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:args/args.dart';
@@ -312,13 +309,6 @@ class CompletionMetrics {
   /// The name associated with this set of metrics.
   final String name;
 
-  /// A flag indicating whether available suggestions should be enabled for this
-  /// run.
-  final bool availableSuggestions;
-
-  /// A flag indicating whether the new protocol should be used for this run.
-  final bool useNewProtocol;
-
   /// The function to be executed when this metrics collector is enabled.
   final void Function()? enableFunction;
 
@@ -394,18 +384,12 @@ class CompletionMetrics {
 
   final Map<CompletionGroup, List<CompletionResult>> worstResults = {};
 
-  CompletionMetrics(this.name,
-      {required this.availableSuggestions,
-      this.useNewProtocol = false,
-      this.enableFunction,
-      this.disableFunction})
-      : assert(!(availableSuggestions && useNewProtocol)),
-        userTag = UserTag(name);
+  CompletionMetrics(this.name, {this.enableFunction, this.disableFunction})
+      : userTag = UserTag(name);
 
   /// Return an instance extracted from the decoded JSON [map].
   factory CompletionMetrics.fromJson(Map<String, dynamic> map) {
-    var metrics = CompletionMetrics(map['name'] as String,
-        availableSuggestions: map['availableSuggestions'] as bool);
+    var metrics = CompletionMetrics(map['name'] as String);
     metrics.completionCounter
         .fromJson(map['completionCounter'] as Map<String, dynamic>);
     metrics.completionMissedTokenCounter
@@ -555,7 +539,6 @@ class CompletionMetrics {
   Map<String, dynamic> toJson() {
     return {
       'name': name,
-      'availableSuggestions': availableSuggestions,
       'completionCounter': completionCounter.toJson(),
       'completionMissedTokenCounter': completionMissedTokenCounter.toJson(),
       'completionKindCounter': completionKindCounter.toJson(),
@@ -731,10 +714,6 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   /// A list of the metrics to be computed.
   final List<CompletionMetrics> targetMetrics = [];
 
-  DeclarationsTracker? _declarationsTracker;
-
-  protocol.CompletionAvailableSuggestionsParams? _availableSuggestionsParams;
-
   CompletionQualityMetricsComputer(
       super.rootPath, CompletionMetricsQualityOptions super.options);
 
@@ -771,7 +750,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   }
 
   /// Compare the metrics when each feature is used in isolation.
-  void compareIndividualFeatures({bool availableSuggestions = false}) {
+  void compareIndividualFeatures() {
     var featureNames = FeatureComputer.featureNames;
     var featureCount = featureNames.length;
     for (var i = 0; i < featureCount; i++) {
@@ -779,7 +758,6 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       weights[i] = 1.00;
       targetMetrics.add(CompletionMetrics(
         featureNames[i],
-        availableSuggestions: availableSuggestions,
         enableFunction: () {
           FeatureComputer.featureWeights = weights;
         },
@@ -792,13 +770,11 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   }
 
   /// Compare the relevance [tables] to the default relevance tables.
-  void compareRelevanceTables(List<RelevanceTables> tables,
-      {bool availableSuggestions = false}) {
+  void compareRelevanceTables(List<RelevanceTables> tables) {
     assert(tables.isNotEmpty);
     for (var tablePair in tables) {
       targetMetrics.add(CompletionMetrics(
         tablePair.name,
-        availableSuggestions: availableSuggestions,
         enableFunction: () {
           elementKindRelevance = tablePair.elementKindRelevance;
           keywordRelevance = tablePair.keywordRelevance;
@@ -816,22 +792,16 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     // To compare two or more changes to completions, add a `CompletionMetrics`
     // object with enable and disable functions to the list of `targetMetrics`.
     targetMetrics.add(CompletionMetrics('shipping',
-        availableSuggestions: true,
-        enableFunction: null,
-        disableFunction: null));
+        enableFunction: null, disableFunction: null));
 
     // To compare two or more relevance tables, uncomment the line below and
     // add the `RelevanceTables` to the list. The default relevance tables
     // should not be included in the list.
-//    compareRelevanceTables([], availableSuggestions: false);
+//    compareRelevanceTables([]);
 
     // To compare the relative benefit from each of the features, uncomment the
     // line below.
-//    compareIndividualFeatures(availableSuggestions: false);
-
-    // To compare the new protocol to the old, uncomment the lines below.
-//    targetMetrics.add(CompletionMetrics('new protocol',
-//        availableSuggestions: false, useNewProtocol: true));
+//    compareIndividualFeatures();
 
     await super.computeMetrics();
   }
@@ -860,9 +830,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
         listener,
         OperationPerformanceImpl('<root>'),
         request,
-        metrics.availableSuggestions ? _declarationsTracker : null,
-        metrics.availableSuggestions ? _availableSuggestionsParams : null,
-        metrics.useNewProtocol ? NotImportedSuggestions() : null,
+        NotImportedSuggestions(),
       );
       stopwatch.stop();
 
@@ -1414,21 +1382,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   }
 
   @override
-  void setupForResolution(AnalysisContext context) {
-    if (targetMetrics.any((metrics) => metrics.availableSuggestions)) {
-      var declarationsTracker = DeclarationsTracker(
-          MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
-      declarationsTracker.addContext(context);
-      while (declarationsTracker.hasWork) {
-        declarationsTracker.doWork();
-      }
-
-      // Have the [AvailableDeclarationsSet] computed to use later.
-      _availableSuggestionsParams = createCompletionAvailableSuggestions(
-          declarationsTracker.allLibraries.toList(), []);
-      _declarationsTracker = declarationsTracker;
-    }
-  }
+  void setupForResolution(AnalysisContext context) {}
 
   int _computeCharsBeforeTop(ExpectedCompletion target,
       List<protocol.CompletionSuggestion> suggestions,
@@ -1455,92 +1409,22 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       MetricsSuggestionListener listener,
       OperationPerformanceImpl performance,
       DartCompletionRequest dartRequest,
-      [DeclarationsTracker? declarationsTracker,
-      protocol.CompletionAvailableSuggestionsParams? availableSuggestionsParams,
-      NotImportedSuggestions? notImportedSuggestions]) async {
+      NotImportedSuggestions notImportedSuggestions) async {
     List<protocol.CompletionSuggestion> suggestions;
 
     var budget = CompletionBudget(Duration(seconds: 30));
-    if (declarationsTracker == null) {
-      // available suggestions == false
-      var serverSuggestions = await DartCompletionManager(
-        budget: budget,
-        listener: listener,
-        notImportedSuggestions: notImportedSuggestions,
-      ).computeSuggestions(
-        dartRequest,
-        performance,
-        useFilter: true,
-      );
-      suggestions = serverSuggestions.map((serverSuggestion) {
-        return serverSuggestion.build();
-      }).toList();
-    } else {
-      // available suggestions == true
-      var includedElementKinds = <protocol.ElementKind>{};
-      var includedElementNames = <String>{};
-      var includedSuggestionRelevanceTagList =
-          <protocol.IncludedSuggestionRelevanceTag>[];
-      var includedSuggestionSetList = <protocol.IncludedSuggestionSet>[];
-      var serverSuggestions = await DartCompletionManager(
-        budget: budget,
-        includedElementKinds: includedElementKinds,
-        includedElementNames: includedElementNames,
-        includedSuggestionRelevanceTags: includedSuggestionRelevanceTagList,
-        listener: listener,
-      ).computeSuggestions(
-        dartRequest,
-        performance,
-        useFilter: true,
-      );
-      suggestions = serverSuggestions.map((serverSuggestion) {
-        return serverSuggestion.build();
-      }).toList();
-
-      computeIncludedSetList(declarationsTracker, dartRequest,
-          includedSuggestionSetList, includedElementNames);
-
-      var includedSuggestionSetMap = {
-        for (var includedSuggestionSet in includedSuggestionSetList)
-          includedSuggestionSet.id: includedSuggestionSet,
-      };
-
-      var includedSuggestionRelevanceTagMap = {
-        for (var includedSuggestionRelevanceTag
-            in includedSuggestionRelevanceTagList)
-          includedSuggestionRelevanceTag.tag:
-              includedSuggestionRelevanceTag.relevanceBoost,
-      };
-
-      for (var availableSuggestionSet
-          in availableSuggestionsParams!.changedLibraries!) {
-        var id = availableSuggestionSet.id;
-        for (var availableSuggestion in availableSuggestionSet.items) {
-          // Exclude available suggestions where this element kind doesn't match
-          // an element kind in includedElementKinds.
-          var elementKind = availableSuggestion.element.kind;
-          if (includedElementKinds.contains(elementKind)) {
-            if (includedSuggestionSetMap.containsKey(id)) {
-              var relevance = includedSuggestionSetMap[id]!.relevance;
-
-              // Search for any matching relevance tags to apply any boosts
-              if (includedSuggestionRelevanceTagList.isNotEmpty &&
-                  availableSuggestion.relevanceTags != null &&
-                  availableSuggestion.relevanceTags!.isNotEmpty) {
-                for (var tag in availableSuggestion.relevanceTags!) {
-                  if (includedSuggestionRelevanceTagMap.containsKey(tag)) {
-                    // apply the boost
-                    relevance += includedSuggestionRelevanceTagMap[tag]!;
-                  }
-                }
-              }
-              suggestions
-                  .add(availableSuggestion.toCompletionSuggestion(relevance));
-            }
-          }
-        }
-      }
-    }
+    var serverSuggestions = await DartCompletionManager(
+      budget: budget,
+      listener: listener,
+      notImportedSuggestions: notImportedSuggestions,
+    ).computeSuggestions(
+      dartRequest,
+      performance,
+      useFilter: true,
+    );
+    suggestions = serverSuggestions.map((serverSuggestion) {
+      return serverSuggestion.build();
+    }).toList();
 
     // Note that some routes sort suggestions before responding differently.
     // The Cider and legacy handlers use [fuzzyFilterSort], which does not match
@@ -2029,19 +1913,4 @@ extension on num {
   String asPercentage([int fractionDigits = 1]) =>
       '${(this * 100).toStringAsFixed(fractionDigits)}%'
           .padLeft(4 + fractionDigits);
-}
-
-extension AvailableSuggestionsExtension on protocol.AvailableSuggestion {
-  // TODO(jwren) I am not sure if we want CompletionSuggestionKind.INVOCATION in
-  // call cases here, to iterate I need to figure out why this algorithm is
-  // taking so much time.
-  protocol.CompletionSuggestion toCompletionSuggestion(int relevance) =>
-      protocol.CompletionSuggestion(
-          protocol.CompletionSuggestionKind.INVOCATION,
-          relevance,
-          label,
-          label.length,
-          0,
-          element.isDeprecated,
-          false);
 }

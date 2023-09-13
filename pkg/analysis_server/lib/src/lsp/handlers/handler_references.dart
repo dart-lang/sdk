@@ -42,7 +42,7 @@ class ReferencesHandler
     final unit = await path.mapResult(requireResolvedUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
     return await message.performance.runAsync(
-        "_getReferences",
+        '_getReferences',
         (performance) async => offset.mapResult((offset) => _getReferences(
             unit.result, offset, params, unit.result, performance)));
   }
@@ -77,7 +77,7 @@ class ReferencesHandler
     final computer = ElementReferencesComputer(server.searchEngine);
     final session = element.session ?? unit.session;
     final results = await performance.runAsync(
-        "computer.compute",
+        'computer.compute',
         (childPerformance) =>
             computer.compute(element, false, performance: childPerformance));
 
@@ -97,12 +97,12 @@ class ReferencesHandler
     }
 
     final referenceResults = performance.run(
-        "convert", (_) => convert(results, toLocation).whereNotNull().toList());
+        'convert', (_) => convert(results, toLocation).whereNotNull().toList());
 
     final compilationUnit = unit.unit;
     if (params.context.includeDeclaration == true) {
       // Also include the definition for the symbol at this location.
-      referenceResults.addAll(performance.run("_getDeclarations",
+      referenceResults.addAll(performance.run('_getDeclarations',
           (_) => _getDeclarations(compilationUnit, offset)));
     }
 

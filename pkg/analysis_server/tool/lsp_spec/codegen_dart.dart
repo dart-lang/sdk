@@ -389,11 +389,11 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
       buffer.writeIndentedln('return $invocation;');
     } else {
       buffer
-        ..writeIndentedln("if (!$invocation) {")
+        ..writeIndentedln('if (!$invocation) {')
         ..indent()
-        ..writeIndentedln("return false;")
+        ..writeIndentedln('return false;')
         ..outdent()
-        ..writeIndentedln("}");
+        ..writeIndentedln('}');
     }
     if (!_canParseFunctions.containsKey(functionName)) {
       var temp = IndentableStringBuffer();
@@ -427,28 +427,28 @@ void _writeCanParseType(IndentableStringBuffer buffer, Interface? interface,
       '}) {');
 
   buffer
-    ..writeIndentedln("reporter.push(fieldName);")
+    ..writeIndentedln('reporter.push(fieldName);')
     ..writeIndentedln('try {')
     ..indent();
   buffer
-    ..writeIndentedln("if (!allowsUndefined && !map.containsKey(fieldName)) {")
+    ..writeIndentedln('if (!allowsUndefined && !map.containsKey(fieldName)) {')
     ..indent()
     ..writeIndentedln("reporter.reportError('must not be undefined');")
     ..writeIndentedln('return false;')
     ..outdent()
     ..writeIndentedln('}');
 
-  buffer.writeIndentedln("final value = map[fieldName];");
-  buffer.writeIndentedln("final nullCheck = allowsNull || allowsUndefined;");
+  buffer.writeIndentedln('final value = map[fieldName];');
+  buffer.writeIndentedln('final nullCheck = allowsNull || allowsUndefined;');
   buffer
-    ..writeIndentedln("if (!nullCheck && value == null) {")
+    ..writeIndentedln('if (!nullCheck && value == null) {')
     ..indent()
     ..writeIndentedln("reporter.reportError('must not be null');")
     ..writeIndentedln('return false;')
     ..outdent()
     ..writeIndentedln('}');
 
-  buffer.writeIndented("if ((!nullCheck || value != null) && ");
+  buffer.writeIndented('if ((!nullCheck || value != null) && ');
   _writeTypeCheckCondition(buffer, interface, 'value', type, 'reporter',
       negation: true, parenForCollection: true);
 
@@ -458,7 +458,7 @@ void _writeCanParseType(IndentableStringBuffer buffer, Interface? interface,
   buffer
     ..write(') {')
     ..indent()
-    ..writeIndentedln("reporter.reportError($quote$failureMessage$quote);")
+    ..writeIndentedln('reporter.reportError($quote$failureMessage$quote);')
     ..writeIndentedln('return false;')
     ..outdent()
     ..writeIndentedln('}')
@@ -470,7 +470,7 @@ void _writeCanParseType(IndentableStringBuffer buffer, Interface? interface,
     ..writeIndentedln('}')
     ..writeIndentedln('return true;');
 
-  buffer.writeln("}");
+  buffer.writeln('}');
 }
 
 void _writeConst(IndentableStringBuffer buffer, Constant cons) {
@@ -843,9 +843,9 @@ void _writeFromJsonConstructor(
   }
   if (interface.abstract) {
     buffer.writeIndentedln(
-      "throw ArgumentError("
+      'throw ArgumentError('
       "'Supplied map is not valid for any subclass of ${interface.name}'"
-      ");",
+      ');',
     );
   } else {
     for (final field in allFields) {

@@ -106,17 +106,17 @@ class _WindowsProcessProfiler extends ProcessProfiler {
 
   UsageInfo? _parse(String tasklistResults) {
     try {
-      var lines = tasklistResults.split(RegExp("\r?\n"));
+      var lines = tasklistResults.split(RegExp('\r?\n'));
       for (var line in lines) {
         if (line.trim().isEmpty) continue;
         // Hacky parsing of csv line.
-        var entries = jsonDecode("[$line]") as List;
+        var entries = jsonDecode('[$line]') as List;
         if (entries.length != 5) continue;
         // E.g. 123,456 K
         var memory = entries[4] as String;
-        memory = memory.substring(0, memory.indexOf(" "));
-        memory = memory.replaceAll(",", "");
-        memory = memory.replaceAll(".", "");
+        memory = memory.substring(0, memory.indexOf(' '));
+        memory = memory.replaceAll(',', '');
+        memory = memory.replaceAll('.', '');
         return UsageInfo(null, int.parse(memory));
       }
       return null;

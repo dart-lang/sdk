@@ -321,7 +321,7 @@ class DartFixKind {
   static const ADD_SUPER_PARAMETER = FixKind(
     'dart.fix.add.superParameter',
     DartFixKindPriority.DEFAULT,
-    "Add required parameter{0}",
+    'Add required parameter{0}',
   );
   static const ADD_SWITCH_CASE_BREAK = FixKind(
     'dart.fix.add.switchCaseReturn',
@@ -451,7 +451,7 @@ class DartFixKind {
   static const CONVERT_TO_CONSTANT_PATTERN = FixKind(
     'dart.fix.convert.toConstantPattern',
     49,
-    "Convert to constant pattern",
+    'Convert to constant pattern',
   );
   static const CONVERT_TO_CONTAINS = FixKind(
     'dart.fix.convert.toContains',
@@ -681,7 +681,7 @@ class DartFixKind {
   static const CONVERT_TO_WILDCARD_PATTERN = FixKind(
     'dart.fix.convert.toWildcardPattern',
     DartFixKindPriority.DEFAULT,
-    "Convert to wildcard pattern",
+    'Convert to wildcard pattern',
   );
   static const CREATE_CLASS = FixKind(
     'dart.fix.create.class',
@@ -890,17 +890,17 @@ class DartFixKind {
   static const MAKE_REQUIRED_NAMED_PARAMETERS_FIRST = FixKind(
     'dart.fix.makeRequiredNamedParametersFirst',
     DartFixKindPriority.DEFAULT,
-    "Put required named parameter first",
+    'Put required named parameter first',
   );
   static const MAKE_REQUIRED_NAMED_PARAMETERS_FIRST_MULTI = FixKind(
     'dart.fix.makeRequiredNamedParametersFirst.multi',
     DartFixKindPriority.IN_FILE,
-    "Put required named parameters first everywhere in file",
+    'Put required named parameters first everywhere in file',
   );
   static const MAKE_SUPER_INVOCATION_LAST = FixKind(
     'dart.fix.makeSuperInvocationLast',
     DartFixKindPriority.DEFAULT,
-    "Move the invocation to the end of the initializer list",
+    'Move the invocation to the end of the initializer list',
   );
   static const MAKE_VARIABLE_NOT_FINAL = FixKind(
     'dart.fix.makeVariableNotFinal',
@@ -915,22 +915,22 @@ class DartFixKind {
   static const MATCH_ANY_MAP = FixKind(
     'dart.fix.matchAnyMap',
     DartFixKindPriority.DEFAULT,
-    "Match any map",
+    'Match any map',
   );
   static const MATCH_EMPTY_MAP = FixKind(
     'dart.fix.matchEmptyMap',
     DartFixKindPriority.DEFAULT,
-    "Match an empty map",
+    'Match an empty map',
   );
   static const MOVE_ANNOTATION_TO_LIBRARY_DIRECTIVE = FixKind(
     'dart.fix.moveAnnotationToLibraryDirective',
     DartFixKindPriority.DEFAULT,
-    "Move this annotation to a library directive",
+    'Move this annotation to a library directive',
   );
   static const MOVE_DOC_COMMENT_TO_LIBRARY_DIRECTIVE = FixKind(
     'dart.fix.moveDocCommentToLibraryDirective',
     DartFixKindPriority.DEFAULT,
-    "Move this doc comment to a library directive",
+    'Move this doc comment to a library directive',
   );
   static const MOVE_TYPE_ARGUMENTS_TO_CLASS = FixKind(
     'dart.fix.moveTypeArgumentsToClass',
@@ -1052,7 +1052,7 @@ class DartFixKind {
   static const REMOVE_DEFAULT_VALUE = FixKind(
     'dart.fix.remove.defaultValue',
     DartFixKindPriority.DEFAULT,
-    "Remove the default value",
+    'Remove the default value',
   );
   static const REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE = FixKind(
     'dart.fix.remove.deprecatedNewInCommentReference',
@@ -1783,7 +1783,7 @@ class DartFixKind {
   static const REPLACE_WITH_UNICODE_ESCAPE = FixKind(
     'dart.fix.replace.withUnicodeEscape',
     DartFixKindPriority.DEFAULT,
-    "Replace with Unicode escape",
+    'Replace with Unicode escape',
   );
   static const REPLACE_WITH_VAR = FixKind(
     'dart.fix.replace.withVar',

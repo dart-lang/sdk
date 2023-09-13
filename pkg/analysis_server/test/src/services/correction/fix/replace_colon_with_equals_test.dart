@@ -21,7 +21,7 @@ class ReplaceColonWithEqualsDeprecatedTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REPLACE_COLON_WITH_EQUALS;
 
   @override
-  String get latestLanguageVersion => "2.19";
+  String get latestLanguageVersion => '2.19';
 
   Future<void> test_defaultFormalParameter() async {
     await resolveTestCode('''

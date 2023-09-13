@@ -131,7 +131,7 @@ class FailingTestAnnotationTracker extends RecursiveAstVisitor<void> {
           .where((arg) => arg.name.label.name == 'issue')
           .firstOrNull;
       final issueUrl = (issue?.expression as SimpleStringLiteral?)?.value;
-      if (issueUrl != null && issueUrl.startsWith("https://github.com/")) {
+      if (issueUrl != null && issueUrl.startsWith('https://github.com/')) {
         final issueUri = Uri.parse(issueUrl);
         final apiUri = issueUri.replace(
             host: 'api.github.com',
