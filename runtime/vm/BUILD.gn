@@ -134,8 +134,7 @@ protozero_library("perfetto_protos_protozero") {
 proto_library("perfetto_protos_dart") {
   generate_cc = false
   generate_python = false
-  generator_plugin_script =
-      "//third_party/pkg/protobuf/protoc_plugin/bin/protoc-gen-dart"
+  generator_plugin_script = "protos/tools/protoc_gen_dart_wrapper"
   generator_plugin_suffixes = [ ".pb.dart" ]
 
   proto_in_dir = "."
