@@ -215,6 +215,52 @@ library
 ''');
   }
 
+  test_augmented_constructors_add_named_generic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A<T2> {
+  A.named(T2 a);
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A<T1> {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        typeParameters
+          covariant T1 @33
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmented
+          constructors
+            ConstructorMember
+              base: self::@augmentation::package:test/a.dart::@class::A::@constructor::named
+              substitution: {T2: T1}
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            typeParameters
+              covariant T2 @45
+                defaultType: dynamic
+            augmentationTarget: self::@class::A
+            constructors
+              named @55
+                periodOffset: 54
+                nameEnd: 60
+                parameters
+                  requiredPositional a @64
+                    type: T2
+''');
+  }
+
   test_augmented_constructors_add_named_hasUnnamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
@@ -325,6 +371,114 @@ library
             augmentationTarget: self::@class::A
             constructors
               @49
+''');
+  }
+
+  test_augmented_constructors_add_useFieldFormal() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  A.named(this.f);
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  final int f;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        fields
+          final f @47
+            type: int
+        accessors
+          synthetic get f @-1
+            returnType: int
+        augmented
+          fields
+            self::@class::A::@field::f
+          constructors
+            self::@augmentation::package:test/a.dart::@class::A::@constructor::named
+          accessors
+            self::@class::A::@getter::f
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            constructors
+              named @51
+                periodOffset: 50
+                nameEnd: 56
+                parameters
+                  requiredPositional final this.f @62
+                    type: int
+                    field: self::@class::A::@field::f
+''');
+  }
+
+  test_augmented_constructors_add_useFieldInitializer() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  const A.named() : f = 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  final int f;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        fields
+          final f @47
+            type: int
+        accessors
+          synthetic get f @-1
+            returnType: int
+        augmented
+          fields
+            self::@class::A::@field::f
+          constructors
+            self::@augmentation::package:test/a.dart::@class::A::@constructor::named
+          accessors
+            self::@class::A::@getter::f
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            constructors
+              const named @57
+                periodOffset: 56
+                nameEnd: 62
+                constantInitializers
+                  ConstructorFieldInitializer
+                    fieldName: SimpleIdentifier
+                      token: f @67
+                      staticElement: self::@class::A::@field::f
+                      staticType: null
+                    equals: = @69
+                    expression: IntegerLiteral
+                      literal: 0 @71
+                      staticType: int
 ''');
   }
 
@@ -972,6 +1126,110 @@ library
                 returnType: void
                 id: setter_1
                 variable: field_1
+''');
+  }
+
+  test_augmented_fields_add_useFieldFormal() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  final int foo;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  A(this.foo);
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        constructors
+          @37
+            parameters
+              requiredPositional final this.foo @44
+                type: int
+                field: self::@augmentation::package:test/a.dart::@class::A::@field::foo
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@class::A::@field::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            fields
+              final foo @59
+                type: int
+            accessors
+              synthetic get foo @-1
+                returnType: int
+''');
+  }
+
+  test_augmented_fields_add_useFieldInitializer() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  final int foo;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  const A() : foo = 0;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        constructors
+          const @43
+            constantInitializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: foo @49
+                  staticElement: self::@augmentation::package:test/a.dart::@class::A::@field::foo
+                  staticType: null
+                equals: = @53
+                expression: IntegerLiteral
+                  literal: 0 @55
+                  staticType: int
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@class::A::@field::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            fields
+              final foo @59
+                type: int
+            accessors
+              synthetic get foo @-1
+                returnType: int
 ''');
   }
 

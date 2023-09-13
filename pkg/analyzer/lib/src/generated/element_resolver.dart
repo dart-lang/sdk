@@ -147,14 +147,6 @@ class ElementResolver {
     }
   }
 
-  void visitConstructorFieldInitializer(
-      covariant ConstructorFieldInitializerImpl node) {
-    var fieldName = node.fieldName;
-    final enclosingClass = _resolver.enclosingClass!;
-    var fieldElement = enclosingClass.getField(fieldName.name);
-    fieldName.staticElement = fieldElement;
-  }
-
   void visitConstructorName(covariant ConstructorNameImpl node) {
     var type = node.type.type;
     if (type == null) {

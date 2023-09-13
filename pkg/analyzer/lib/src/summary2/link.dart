@@ -129,6 +129,7 @@ class Linker {
 
     _createTypeSystem();
     _resolveTypes();
+    _resolveConstructorFieldFormals();
     _buildEnumChildren();
     _computeFieldPromotability();
 
@@ -267,6 +268,12 @@ class Linker {
 
   void _resolveConstantInitializers() {
     ConstantInitializersResolver(this).perform();
+  }
+
+  void _resolveConstructorFieldFormals() {
+    for (final library in builders.values) {
+      library.resolveConstructorFieldFormals();
+    }
   }
 
   void _resolveConstructors() {

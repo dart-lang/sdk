@@ -355,7 +355,7 @@ class InstanceMemberInferrer {
         // Infer initializing formal parameter types. This must happen after
         // field types are inferred.
         //
-        for (final constructor in classElement.constructors) {
+        for (final constructor in container.constructors) {
           _inferConstructor(constructor);
         }
       }
