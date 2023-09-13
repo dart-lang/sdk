@@ -11,10 +11,26 @@ main() {
   if (Platform.isWindows) return;
   if (Platform.isAndroid) return; // no nm available on test device
 
-  var result = Process.runSync("nm", [
+  var nm;
+  for (var path in [
+    "buildtools/linux-arm64/clang/bin/llvm-nm",
+    "buildtools/linux-x64/clang/bin/llvm-nm",
+    "buildtools/mac-arm64/clang/bin/llvm-nm",
+    "buildtools/mac-x64/clang/bin/llvm-nm",
+  ]) {
+    if (new File(path).existsSync()) {
+      nm = path;
+      break;
+    }
+  }
+  if (nm == null) {
+    throw "Could not find nm";
+  }
+
+  var result = Process.runSync(nm, [
     Platform.isMacOS ? "--extern-only" : "--dynamic",
     "--defined-only",
-    "--format=posix",
+    "--format=just-symbols",
     Platform.executable
   ]);
   if (result.exitCode != 0) {
@@ -25,11 +41,9 @@ main() {
   }
 
   var symbols = result.stdout.split("\n")..remove("");
-  for (var i = 0; i < symbols.length; i++) {
-    // Get just the symbol name. Old nm on bots doesn't have --just-symbols.
-    symbols[i] = symbols[i].split(" ")[0];
-    if (Platform.isMacOS) {
-      // Remove leading underscores.
+  if (Platform.isMacOS) {
+    // Remove leading underscores.
+    for (var i = 0; i < symbols.length; i++) {
       symbols[i] = symbols[i].substring(1);
     }
   }

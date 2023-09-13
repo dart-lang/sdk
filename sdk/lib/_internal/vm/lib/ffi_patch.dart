@@ -92,42 +92,52 @@ external DS _asFunctionInternal<DS extends Function, NS extends Function>(
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalInt8Array")
 external Int8List _asExternalTypedDataInt8(Pointer<Int8> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalInt16Array")
 external Int16List _asExternalTypedDataInt16(Pointer<Int16> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalInt32Array")
 external Int32List _asExternalTypedDataInt32(Pointer<Int32> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalInt64Array")
 external Int64List _asExternalTypedDataInt64(Pointer<Int64> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalUint8Array")
 external Uint8List _asExternalTypedDataUint8(Pointer<Uint8> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalUint16Array")
 external Uint16List _asExternalTypedDataUint16(Pointer<Uint16> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalUint32Array")
 external Uint32List _asExternalTypedDataUint32(Pointer<Uint32> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalUint64Array")
 external Uint64List _asExternalTypedDataUint64(Pointer<Uint64> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalFloat32Array")
 external Float32List _asExternalTypedDataFloat(Pointer<Float> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalFloat64Array")
 external Float64List _asExternalTypedDataDouble(
     Pointer<Double> ptr, int length);
 
