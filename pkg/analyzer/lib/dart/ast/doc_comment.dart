@@ -13,19 +13,97 @@ import 'package:meta/meta.dart';
 /// Documentation directives are declared with `{@` at the start of a line of a
 /// documentation comment, followed the name of a doc directive, arguments, and
 /// finally a right curly brace (`}`).
+///
+/// Arguments are separated from the directive name, and from each other, by
+/// whitespace. There are two types of arguments: positional and named. Named
+/// arguments are written as `NAME=VALUE`, without any internal whitespace.
+/// Named arguments can be optional.
 @experimental
-sealed class DocDirective {
+final class DocDirective {
   /// The offset of the starting text, '@docImport'.
   final int offset;
   final int end;
   final int nameOffset;
   final int nameEnd;
 
+  final DocDirectiveName name;
+
+  final List<DocDirectiveArgument> positionalArguments;
+  final List<DocDirectiveNamedArgument> namedArguments;
+
   DocDirective({
     required this.offset,
     required this.end,
     required this.nameOffset,
     required this.nameEnd,
+    required this.name,
+    required this.positionalArguments,
+    required this.namedArguments,
+  });
+}
+
+/// An argument in a doc directive. See [DocDirective] for their syntax.
+@experimental
+sealed class DocDirectiveArgument {
+  /// The offset of the start of the argument, from the beginning of the
+  /// compilation unit.
+  final int offset;
+
+  /// The offset just after the end of the argument, from the beginning of the
+  /// compilation unit.
+  final int end;
+
+  /// The value of the argument.
+  final String value;
+
+  DocDirectiveArgument({
+    required this.offset,
+    required this.end,
+    required this.value,
+  });
+}
+
+enum DocDirectiveName {
+  /// The name of a [DocDirective] declaring an embedded video with HTML video
+  /// controls.
+  ///
+  /// This directive has three required arguments: the width, the height, and
+  /// the URL. A named 'id' argument can also be given. For example:
+  ///
+  /// `{@animation 600 400 https://www.example.com/example.mp4 id=video1}`
+  animation,
+
+  /// The name of a [DocDirective] declaring an embedded YouTube video.
+  ///
+  /// This directive has three required arguments: the width, the height, and
+  /// the URL. For example:
+  ///
+  /// `{@youtube 600 400 https://www.youtube.com/watch?v=abc123}`
+  youtube;
+}
+
+/// A named argument in a doc directive. See [DocDirective] for their syntax.
+@experimental
+final class DocDirectiveNamedArgument extends DocDirectiveArgument {
+  /// The name of the argument.
+  final String name;
+
+  DocDirectiveNamedArgument({
+    required super.offset,
+    required super.end,
+    required this.name,
+    required super.value,
+  });
+}
+
+/// A positional argument in a doc directive. See [DocDirective] for their
+/// syntax.
+@experimental
+final class DocDirectivePositionalArgument extends DocDirectiveArgument {
+  DocDirectivePositionalArgument({
+    required super.offset,
+    required super.end,
+    required super.value,
   });
 }
 
@@ -83,33 +161,4 @@ final class MdCodeBlockLine {
   final int length;
 
   MdCodeBlockLine({required this.offset, required this.length});
-}
-
-/// A [DocDirective] declaring an embedded YouTube video.
-///
-/// This directive has three required arguments: the width, the height, and the
-/// URL. For example:
-///
-/// `{@youtube 600 400 https://www.youtube.com/watch?v=abc123}`
-@experimental
-final class YouTubeDocDirective extends DocDirective {
-  final int? widthOffset;
-  final int? widthEnd;
-  final int? heightOffset;
-  final int? heightEnd;
-  final int? urlOffset;
-  final int? urlEnd;
-
-  YouTubeDocDirective({
-    required super.offset,
-    required super.end,
-    required super.nameOffset,
-    required super.nameEnd,
-    required this.widthOffset,
-    required this.widthEnd,
-    required this.heightOffset,
-    required this.heightEnd,
-    required this.urlOffset,
-    required this.urlEnd,
-  });
 }

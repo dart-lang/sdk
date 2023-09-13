@@ -1364,6 +1364,9 @@ class Intrinsifier {
         int typeParameterIndex = translator.typeParameterIndex[typeParameter]!;
         b.local_get(preciseObject);
         b.struct_get(classInfo.struct, typeParameterIndex);
+        // TODO(jessicalally): Remove this null check when type argument fields
+        // are made non-nullable.
+        b.ref_as_non_null();
       }
       b.array_new_fixed(arrayType, cls.typeParameters.length);
       return true;

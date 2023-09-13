@@ -31,6 +31,24 @@ class A {
 ''');
   }
 
+  test_extensionType_constConstructor() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+extension type const E(int i) {
+  @literal
+  const E.zero(): this(0);
+}
+''');
+  }
+
+  test_extensionType_primaryConstructor_const() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+@literal
+extension type const E(int i) { }
+''');
+  }
+
   test_nonConstConstructor() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';

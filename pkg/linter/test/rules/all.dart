@@ -157,6 +157,7 @@ import 'public_member_api_docs_test.dart' as public_member_api_docs;
 import 'recursive_getters_test.dart' as recursive_getters;
 import 'secure_pubspec_urls_test.dart' as secure_pubspec_urls;
 import 'sized_box_for_whitespace_test.dart' as sized_box_for_whitespace;
+import 'sized_box_shrink_expand_test.dart' as sized_box_shrink_expand;
 import 'slash_for_doc_comments_test.dart' as slash_for_doc_comments;
 import 'sort_constructors_first_test.dart' as sort_constructors_first;
 import 'sort_pub_dependencies_test.dart' as sort_pub_dependencies;
@@ -348,6 +349,7 @@ void main() {
   recursive_getters.main();
   secure_pubspec_urls.main();
   sized_box_for_whitespace.main();
+  sized_box_shrink_expand.main();
   slash_for_doc_comments.main();
   sort_constructors_first.main();
   sort_pub_dependencies.main();

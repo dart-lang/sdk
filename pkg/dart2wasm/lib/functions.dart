@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/closures.dart';
 import 'package:dart2wasm/dispatch_table.dart';
 import 'package:dart2wasm/reference_extensions.dart';
 import 'package:dart2wasm/translator.dart';
@@ -132,7 +130,6 @@ class FunctionCollector {
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
       _worklist.add(target);
-
       return _getFunctionTypeAndName(target, m.functions.define);
     });
   }
@@ -160,15 +157,8 @@ class FunctionCollector {
           "${target.asMember} tear-off");
     }
 
-    Member member = target.asMember;
-    final ftype = member.accept1(_FunctionTypeGenerator(translator), target);
-
-    if (target.isInitializerReference) {
-      return action(ftype, '${member} initializer');
-    } else if (target.isConstructorBodyReference) {
-      return action(ftype, '${member} constructor body');
-    }
-
+    final ftype =
+        target.asMember.accept1(_FunctionTypeGenerator(translator), target);
     return action(ftype, "${target.asMember}");
   }
 
@@ -234,148 +224,8 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
 
   @override
   w.FunctionType visitConstructor(Constructor node, Reference target) {
-    // Get this constructor's argument types
-    List<w.ValueType> arguments = _getInputTypes(
-        translator, target, null, false, translator.translateType);
-
-    if (translator.constructorClosures[node.reference] == null) {
-      // If this is the first of the constructor's methods to be generated,
-      // generate the closures for the constructor
-      Closures closures = Closures(translator, node);
-
-      closures.findCaptures(node);
-      closures.collectContexts(node);
-      closures.buildContexts();
-
-      translator.constructorClosures[node.reference] = closures;
-    }
-
-    if (target.isInitializerReference) {
-      return _getInitializerType(node, target, arguments);
-    }
-
-    if (target.isConstructorBodyReference) {
-      return _getConstructorBodyType(node, arguments);
-    }
-
-    return _getConstructorAllocatorType(node, arguments);
-  }
-
-  w.FunctionType _getConstructorAllocatorType(
-      Constructor node, List<w.ValueType> arguments) {
-    return translator.m.types.defineFunction(arguments,
-        [translator.classInfo[node.enclosingClass]!.nonNullableType.unpacked]);
-  }
-
-  w.FunctionType _getInitializerType(
-      Constructor node, Reference target, List<w.ValueType> arguments) {
-    final ClassInfo info = translator.classInfo[node.enclosingClass]!;
-    assert(translator.constructorClosures.containsKey(node.reference));
-    Closures closures = translator.constructorClosures[node.reference]!;
-
-    List<w.ValueType> superOrRedirectedInitializerArgs = [];
-
-    for (Initializer initializer in node.initializers) {
-      if (initializer is SuperInitializer) {
-        Supertype? supersupertype = initializer.target.enclosingClass.supertype;
-
-        if (supersupertype != null) {
-          ClassInfo superInfo = info.superInfo!;
-          w.FunctionType superInitializer = translator.functions
-              .getFunctionType(initializer.target.initializerReference);
-
-          final int numSuperclassFields = superInfo.getClassFieldTypes().length;
-          final int numSuperContextAndConstructorArgs =
-              superInitializer.outputs.length - numSuperclassFields;
-
-          // get types of super initializer outputs, ignoring the superclass
-          // fields
-          superOrRedirectedInitializerArgs = superInitializer.outputs
-              .sublist(0, numSuperContextAndConstructorArgs);
-        }
-      } else if (initializer is RedirectingInitializer) {
-        Supertype? supersupertype = initializer.target.enclosingClass.supertype;
-
-        if (supersupertype != null) {
-          w.FunctionType redirectedInitializer = translator.functions
-              .getFunctionType(initializer.target.initializerReference);
-
-          final int numClassFields = info.getClassFieldTypes().length;
-          final int numRedirectedContextAndConstructorArgs =
-              redirectedInitializer.outputs.length - numClassFields;
-
-          // get types of redirecting initializer outputs, ignoring the class
-          // fields
-          superOrRedirectedInitializerArgs = redirectedInitializer.outputs
-              .sublist(0, numRedirectedContextAndConstructorArgs);
-        }
-      }
-    }
-
-    // Get this classes's field types
-    final List<w.ValueType> fieldTypes = info.getClassFieldTypes();
-
-    // Add nullable context reference for when the constructor has a non-empty
-    // context
-    Context? context = closures.contexts[node];
-    w.ValueType? contextRef = null;
-
-    if (context != null && !context.isEmpty) {
-      contextRef = w.RefType.struct(nullable: true);
-    }
-
-    final List<w.ValueType> outputs = superOrRedirectedInitializerArgs +
-        arguments.reversed.toList() +
-        (contextRef != null ? [contextRef] : []) +
-        fieldTypes;
-
-    return translator.m.types.defineFunction(arguments, outputs);
-  }
-
-  w.FunctionType _getConstructorBodyType(
-      Constructor node, List<w.ValueType> arguments) {
-    assert(translator.constructorClosures.containsKey(node.reference));
-    Closures closures = translator.constructorClosures[node.reference]!;
-    Context? context = closures.contexts[node];
-
-    List<w.ValueType> inputs = [
-      translator.classInfo[node.enclosingClass]!.nonNullableType.unpacked
-    ];
-
-    if (context != null && !context.isEmpty) {
-      // Nullable context reference for when the constructor has a non-empty
-      // context
-      w.ValueType contextRef = w.RefType.struct(nullable: true);
-      inputs.add(contextRef);
-    }
-
-    inputs += arguments;
-
-    for (Initializer initializer in node.initializers) {
-      if (initializer is SuperInitializer) {
-        Supertype? supersupertype = initializer.target.enclosingClass.supertype;
-
-        if (supersupertype != null) {
-          w.FunctionType superConstructorBodyType = translator.functions
-              .getFunctionType(initializer.target.constructorBodyReference);
-
-          // drop receiver param
-          inputs += superConstructorBodyType.inputs.sublist(1);
-        }
-      } else if (initializer is RedirectingInitializer) {
-        Supertype? supersupertype = initializer.target.enclosingClass.supertype;
-
-        if (supersupertype != null) {
-          w.FunctionType redirectedConstructorBodyType = translator.functions
-              .getFunctionType(initializer.target.constructorBodyReference);
-
-          // drop receiver param
-          inputs += redirectedConstructorBodyType.inputs.sublist(1);
-        }
-      }
-    }
-
-    return translator.m.types.defineFunction(inputs, []);
+    return _makeFunctionType(translator, target, [],
+        translator.classInfo[node.enclosingClass]!.nonNullableType);
   }
 }
 

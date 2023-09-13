@@ -79,7 +79,7 @@ class _DependencyTracker {
 /// This is the basic unit of processing in type flow analysis.
 /// Call sites calling the same method with the same argument types
 /// may reuse results of the analysis through the same _Invocation instance.
-abstract class _Invocation extends _DependencyTracker
+abstract base class _Invocation extends _DependencyTracker
     with LinkedListEntry<_Invocation> {
   final Selector selector;
   final Args<Type> args;
@@ -187,7 +187,7 @@ abstract class _Invocation extends _DependencyTracker
   }
 }
 
-class _DirectInvocation extends _Invocation {
+final class _DirectInvocation extends _Invocation {
   _DirectInvocation(DirectSelector selector, Args<Type> args)
       : super(selector, args);
 
@@ -367,7 +367,7 @@ class _DirectInvocation extends _Invocation {
   }
 }
 
-class _DispatchableInvocation extends _Invocation {
+final class _DispatchableInvocation extends _Invocation {
   bool _isPolymorphic = false;
   Set<Call>? _callSites; // Populated only if not polymorphic.
   Member? _monomorphicTarget;

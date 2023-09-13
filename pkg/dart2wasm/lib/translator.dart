@@ -91,7 +91,6 @@ class Translator with KernelNodes {
   final Map<Field, w.Table> declaredTables = {};
   final Set<Member> membersContainingInnerFunctions = {};
   final Set<Member> membersBeingGenerated = {};
-  final Map<Reference, Closures> constructorClosures = {};
   final List<_FunctionGenerator> _pendingFunctions = [];
   late final Procedure mainFunction;
   late final w.ModuleBuilder m;
@@ -348,16 +347,11 @@ class Translator with KernelNodes {
         print(codeGen.function.body.trace);
       }
 
-      // All the constructor methods have access to the constructor's lambdas,
-      // but we only want to generate the lambda functions once, so only
-      // generate lambdas after the initializer methods are generated.
-      if (member is! Constructor || reference.isInitializerReference) {
-        for (Lambda lambda in codeGen.closures.lambdas.values) {
-          w.BaseFunction lambdaFunction = CodeGenerator.forFunction(
-                  this, lambda.functionNode, lambda.function, reference)
-              .generateLambda(lambda, codeGen.closures);
-          _printFunction(lambdaFunction, "$canonicalName (closure)");
-        }
+      for (Lambda lambda in codeGen.closures.lambdas.values) {
+        w.BaseFunction lambdaFunction = CodeGenerator.forFunction(
+                this, lambda.functionNode, lambda.function, reference)
+            .generateLambda(lambda, codeGen.closures);
+        _printFunction(lambdaFunction, "$canonicalName (closure)");
       }
 
       // Use an indexed loop to handle pending closure trampolines, since new
@@ -368,7 +362,6 @@ class Translator with KernelNodes {
       _pendingFunctions.clear();
     }
 
-    constructorClosures.clear();
     dispatchTable.output();
     initFunction.body.end();
 
@@ -913,7 +906,6 @@ class Translator with KernelNodes {
     Member member = target.asMember;
     if (membersContainingInnerFunctions.contains(member)) return false;
     if (membersBeingGenerated.contains(member)) return false;
-    if (target.isInitializerReference) return true;
     if (member is Field) return true;
     if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
     if (getPragma<Constant>(member, "wasm:prefer-inline") != null) return true;

@@ -6,7 +6,7 @@ part of dart.io;
 
 /// A TCP socket using TLS and SSL.
 ///
-/// A secure socket may be used as either a [Stream] or an [IOSink].
+/// See [Socket] for more information.
 abstract interface class SecureSocket implements Socket {
   external factory SecureSocket._(RawSecureSocket rawSocket);
 
@@ -227,6 +227,8 @@ abstract interface class SecureSocket implements Socket {
 /// using the trusted certificates set in the [SecurityContext] object.
 /// The default [SecurityContext] object contains a built-in set of trusted
 /// root certificates for well-known certificate authorities.
+///
+/// See [RawSocket] for more information.
 abstract interface class RawSecureSocket implements RawSocket {
   /// Constructs a new secure client socket and connect it to the given
   /// host on the given port.

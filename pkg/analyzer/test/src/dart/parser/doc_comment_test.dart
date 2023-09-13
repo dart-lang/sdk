@@ -16,6 +16,97 @@ main() {
 
 @reflectiveTest
 class DocCommentParserTest extends ParserDiagnosticsTest {
+  test_animationDirective_namedArgument_blankValue() {
+    final parseResult = parseStringWithErrors(r'''
+int x = 0;
+
+/// Text.
+/// {@animation 600 400 http://google.com arg=}
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('animation');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@animation 600 400 http://google.com arg=}
+  docDirectives
+    DocDirective
+      offset: [26, 70]
+      name: [DocDirectiveName.animation]
+      positionalArguments
+        600
+        400
+        http://google.com
+      namedArguments
+        arg=
+''');
+  }
+
+  test_animationDirective_namedArgument_missingClosingBrace() {
+    final parseResult = parseStringWithErrors(r'''
+int x = 0;
+
+/// Text.
+/// {@animation 600 400 http://google.com arg=value
+class A {}
+''');
+    parseResult.assertErrors([
+      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE, 73, 1),
+    ]);
+
+    final node = parseResult.findNode.comment('animation');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@animation 600 400 http://google.com arg=value
+  docDirectives
+    DocDirective
+      offset: [26, 74]
+      name: [DocDirectiveName.animation]
+      positionalArguments
+        600
+        400
+        http://google.com
+      namedArguments
+        arg=value
+''');
+  }
+
+  test_animationDirective_namedArgument_missingValueAndClosingBrace() async {
+    final parseResult = parseStringWithErrors(r'''
+int x = 0;
+
+/// Text.
+/// {@animation 600 400 http://google.com arg=
+class A {}
+''');
+    parseResult.assertErrors([
+      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE, 68, 1),
+    ]);
+
+    final node = parseResult.findNode.comment('animation');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@animation 600 400 http://google.com arg=
+  docDirectives
+    DocDirective
+      offset: [26, 69]
+      name: [DocDirectiveName.animation]
+      positionalArguments
+        600
+        400
+        http://google.com
+      namedArguments
+        arg=
+''');
+  }
+
   test_codeSpan() {
     final parseResult = parseStringWithErrors(r'''
 /// `a[i]` and [b].
@@ -1303,12 +1394,13 @@ Comment
     /// Text.
     /// {@youtube 600 400 http://google.com}
   docDirectives
-    YouTubeDocDirective
+    DocDirective
       offset: [26, 63]
-      name: [28, 35]
-      width: [36, 39]
-      height: [40, 43]
-      url: [44, 61]
+      name: [DocDirectiveName.youtube]
+      positionalArguments
+        600
+        400
+        http://google.com
 ''');
   }
 
@@ -1318,7 +1410,7 @@ Comment
 class A {}
 ''');
     parseResult.assertErrors([
-      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE, 35, 1),
+      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE, 39, 1),
     ]);
 
     final node = parseResult.findNode.comment('youtube');
@@ -1327,12 +1419,13 @@ Comment
   tokens
     /// {@youtube 600 400 http://google.com
   docDirectives
-    YouTubeDocDirective
+    DocDirective
       offset: [4, 40]
-      name: [6, 13]
-      width: [14, 17]
-      height: [18, 21]
-      url: [22, 39]
+      name: [DocDirectiveName.youtube]
+      positionalArguments
+        600
+        400
+        http://google.com
 ''');
   }
 
@@ -1349,12 +1442,12 @@ Comment
   tokens
     /// {@youtube 600 400}
   docDirectives
-    YouTubeDocDirective
+    DocDirective
       offset: [4, 23]
-      name: [6, 13]
-      width: [14, 17]
-      height: [18, 21]
-      url: [null, null]
+      name: [DocDirectiveName.youtube]
+      positionalArguments
+        600
+        400
 ''');
   }
 
@@ -1371,12 +1464,11 @@ Comment
   tokens
     /// {@youtube 600}
   docDirectives
-    YouTubeDocDirective
+    DocDirective
       offset: [4, 19]
-      name: [6, 13]
-      width: [14, 17]
-      height: [null, null]
-      url: [null, null]
+      name: [DocDirectiveName.youtube]
+      positionalArguments
+        600
 ''');
   }
 
@@ -1393,12 +1485,9 @@ Comment
   tokens
     /// {@youtube }
   docDirectives
-    YouTubeDocDirective
+    DocDirective
       offset: [4, 16]
-      name: [6, 13]
-      width: [null, null]
-      height: [null, null]
-      url: [null, null]
+      name: [DocDirectiveName.youtube]
 ''');
   }
 }

@@ -1708,22 +1708,29 @@ Expected parent: (${parent.runtimeType}) $parent
   }
 
   void _writeDocDirective(DocDirective docDirective) {
-    switch (docDirective) {
-      case YouTubeDocDirective():
-        _sink.writelnWithIndent('YouTubeDocDirective');
+    _sink.writelnWithIndent('DocDirective');
+    _sink.withIndent(() {
+      _sink.writelnWithIndent(
+          'offset: [${docDirective.offset}, ${docDirective.end}]');
+      _sink.writelnWithIndent('name: [${docDirective.name}]');
+      if (docDirective.positionalArguments.isNotEmpty) {
+        _sink.writelnWithIndent('positionalArguments');
         _sink.withIndent(() {
-          _sink.writelnWithIndent(
-              'offset: [${docDirective.offset}, ${docDirective.end}]');
-          _sink.writelnWithIndent(
-              'name: [${docDirective.nameOffset}, ${docDirective.nameEnd}]');
-          _sink.writelnWithIndent(
-              'width: [${docDirective.widthOffset}, ${docDirective.widthEnd}]');
-          _sink.writelnWithIndent(
-              'height: [${docDirective.heightOffset}, ${docDirective.heightEnd}]');
-          _sink.writelnWithIndent(
-              'url: [${docDirective.urlOffset}, ${docDirective.urlEnd}]');
+          for (var argument in docDirective.positionalArguments) {
+            _sink.writelnWithIndent(argument.value);
+          }
         });
-    }
+      }
+      if (docDirective.namedArguments.isNotEmpty) {
+        _sink.writelnWithIndent('namedArguments');
+        _sink.withIndent(() {
+          for (var argument in docDirective.namedArguments) {
+            _sink.writeWithIndent(argument.name);
+            _sink.writeln('=${argument.value}');
+          }
+        });
+      }
+    });
   }
 
   void _writeDocImport(DocImport docImport) {

@@ -28,4 +28,4 @@ SDK_DIR="$CUR_DIR/../../.."
 # checked-in dart binaries must be adjusted.
 DART="$SDK_DIR/tools/sdks/dart-sdk/bin/dart"
 
-exec "$DART" $DART_VM_FLAGS --enable-experiment=records,patterns "${SDK_DIR}/pkg/vm/bin/compare_il.dart" $@
+exec "$DART" $DART_VM_FLAGS "${SDK_DIR}/pkg/vm/bin/compare_il.dart" $@

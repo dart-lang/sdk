@@ -68,13 +68,15 @@ static method testRemovalOfStatementBodies() → dynamic {
   on core::Object catch(final core::Object e) {
   }
   {}
+  #L1:
   switch(42) /* core::int */ {
-    #L1:
+    #L2:
     case #C3:
       {}
   }
+  #L3:
   switch(42) /* core::int */ {
-    #L2:
+    #L4:
     default:
       {}
   }

@@ -468,7 +468,7 @@
     "name": "use_build_context_synchronously",
     "description": "Do not use BuildContexts across async gaps.",
     "group": "errors",
-    "state": "experimental",
+    "state": "stable",
     "incompatible": [],
     "sets": [
       "flutter"
@@ -2186,7 +2186,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "needsFix",
-    "details": "Use `SizedBox.shrink(...)` and `SizedBox.expand(...)` constructors appropriately.\n\nThe `SizedBox.shrink(...)` and `SizedBox.expand(...)` constructors should be used\ninstead of the more general `SizedBox(...)` constructor when the named constructors\ncapture the intent of the code more succinctly.\n\n**Examples**\n\n**BAD:**\n```dart\nWidget buildLogo() {\n  return SizedBox(\n    height: 0,\n    width: 0,\n    child: const MyLogo(),\n  );\n}\n```\n\n```dart\nWidget buildLogo() {\n  return SizedBox(\n    height: double.infinity,\n    width: double.infinity,\n    child: const MyLogo(),\n  );\n}\n```\n\n**GOOD:**\n```dart\nWidget buildLogo() {\n  return SizedBox.shrink(\n    child: const MyLogo(),\n  );\n}\n```\n\n```dart\nWidget buildLogo() {\n  return SizedBox.expand(\n    child: const MyLogo(),\n  );\n}\n```\n",
+    "details": "Use `SizedBox.shrink(...)` and `SizedBox.expand(...)` constructors\nappropriately.\n\nEither the `SizedBox.shrink(...)` or `SizedBox.expand(...)` constructor should\nbe used instead of the more general `SizedBox(...)` constructor when one of the\nnamed constructors capture the intent of the code more succinctly.\n\n**Examples**\n\n**BAD:**\n```dart\nWidget buildLogo() {\n  return SizedBox(\n    height: 0,\n    width: 0,\n    child: const MyLogo(),\n  );\n}\n```\n\n```dart\nWidget buildLogo() {\n  return SizedBox(\n    height: double.infinity,\n    width: double.infinity,\n    child: const MyLogo(),\n  );\n}\n```\n\n**GOOD:**\n```dart\nWidget buildLogo() {\n  return SizedBox.shrink(\n    child: const MyLogo(),\n  );\n}\n```\n\n```dart\nWidget buildLogo() {\n  return SizedBox.expand(\n    child: const MyLogo(),\n  );\n}\n```\n",
     "sinceDartSdk": "2.16.0"
   },
   {

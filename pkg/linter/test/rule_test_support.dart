@@ -451,8 +451,25 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   static void addFlutterPackageFiles(Folder rootFolder) {
     var libFolder = rootFolder.getChildAssumingFolder('lib');
     libFolder.getChildAssumingFile('widgets.dart').writeAsStringSync(r'''
+export 'src/widgets/basic.dart';
 export 'src/widgets/container.dart';
 export 'src/widgets/framework.dart';
+''');
+
+    libFolder
+        .getChildAssumingFolder('src')
+        .getChildAssumingFolder('widgets')
+        .getChildAssumingFile('basic.dart')
+        .writeAsStringSync(r'''
+import 'framework.dart';
+
+class SizedBox implements Widget {
+  SizedBox({
+    double height = 0,
+    double width = 0,
+    Widget? child,
+  });
+}
 ''');
 
     libFolder
@@ -476,8 +493,6 @@ class Container extends StatelessWidget {
     Widget? child,
   });
 }
-
-class SizedBox implements Widget {}
 
 class Row implements Widget {}
 ''');
