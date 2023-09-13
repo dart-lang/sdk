@@ -88,6 +88,15 @@ import 'package:meta/meta.dart';
     assertNoErrorsInResult();
   }
 
+  void test_annotationInTest_extensionType() async {
+    await resolveFileCode('$testPackageRootPath/test/foo_test.dart', r'''
+import 'package:meta/meta.dart';
+@internal extension type E(int i) {}
+''');
+
+    assertNoErrorsInResult();
+  }
+
   void test_privateClass() async {
     await resolveFileCode(testPackageLibSrcFilePath, r'''
 import 'package:meta/meta.dart';
@@ -181,6 +190,17 @@ import 'package:meta/meta.dart';
     await resolveFileCode(testPackageLibSrcFilePath, r'''
 import 'package:meta/meta.dart';
 @internal extension on String {}
+''');
+
+    assertErrorsInResult([
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 33, 9),
+    ]);
+  }
+
+  void test_privateExtensionType() async {
+    await resolveFileCode(testPackageLibSrcFilePath, r'''
+import 'package:meta/meta.dart';
+@internal extension type _E(int i) {}
 ''');
 
     assertErrorsInResult([
@@ -331,5 +351,16 @@ class _C {
       error(WarningCode.UNUSED_ELEMENT, 39, 2),
       error(WarningCode.UNUSED_ELEMENT, 68, 1),
     ]);
+  }
+
+  void test_publicMethod_privateExtensionType() async {
+    await resolveFileCode(testPackageLibSrcFilePath, r'''
+import 'package:meta/meta.dart';
+extension type _E(int i) {
+  @internal void f() {}
+}
+''');
+
+    assertNoErrorsInResult();
   }
 }

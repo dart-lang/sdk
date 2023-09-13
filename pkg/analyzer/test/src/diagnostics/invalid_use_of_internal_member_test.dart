@@ -23,7 +23,12 @@ class InvalidUseOfInternalMemberTest extends PubPackageResolutionTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackagePubspecYamlFile(PubspecYamlFileConfig());
+    newAnalysisOptionsYamlFile(
+      fooPackageRootPath,
+      AnalysisOptionsFileConfig(
+        experiments: experiments,
+      ).toContent(),
+    );
     writeTestPackageConfig(
       PackageConfigFileBuilder()
         ..add(
@@ -44,6 +49,22 @@ class A {}
 import 'src/a.dart';
 
 A a = A();
+''');
+    await resolveFile2('$fooPackageRootPath/lib/a.dart');
+
+    assertNoErrorsInResult();
+  }
+
+  test_insidePackage_extensionType() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+@internal
+extension type E(int i) {}
+''');
+    newFile('$fooPackageRootPath/lib/a.dart', '''
+import 'src/a.dart';
+
+E e = E(1);
 ''');
     await resolveFile2('$fooPackageRootPath/lib/a.dart');
 
@@ -238,6 +259,22 @@ import 'package:foo/src/a.dart';
 int a = 'hello'.f();
 ''', [
       error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 50, 1),
+    ]);
+  }
+
+  test_outsidePackage_extensionType() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+@internal
+extension type E(int i) {}
+''');
+
+    await assertErrorsInCode('''
+import 'package:foo/src/a.dart';
+
+E e = E(1);
+''', [
+      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 34, 1),
     ]);
   }
 
