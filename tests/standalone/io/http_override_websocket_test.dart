@@ -424,7 +424,133 @@ Future<void> websocketHttpOverridesSuccess() async {
   }, createHttpClient: createWebSocketHttpClient2);
 }
 
+// UserAgentTester creates a test HttpServer which records UserAgents
+// of WebSocket requests.
+class UserAgentTester {
+  UserAgentTester();
+
+  String? _lastUserAgent = '';
+  HttpServer? _server = null;
+
+  // Initialize the UserAgentRecorder.
+  Future<HttpServer> init() async {
+    final server = await HttpServer.bind('localhost', 0);
+    server.listen(_listen);
+    _server = server;
+    return server;
+  }
+
+  // Stop the http server used for testing.
+  Future<void> close() async {
+    _server?.close(force: true);
+  }
+
+  _listen(HttpRequest request) {
+    // Extract the user agent from new connections.
+    _lastUserAgent = request.headers.value(HttpHeaders.userAgentHeader);
+    // Close the response to finish handling the request.
+    request.response.close();
+  }
+
+  // open a WebSocket connection to the test http server and return the
+  // UserAgent encountered by it.
+  Future<String?> webSocket() async {
+    // Connect to the http server.
+    try {
+      await WebSocket.connect("ws://localhost:${_server?.port}");
+    } on WebSocketException catch (e) {
+      // The connection is expected to fail as the WebSocket request is never
+      // actually upgraded to establish a connection.
+      Expect.contains("was not upgraded to websocket", e.message);
+    } catch (e, stackTrace) {
+      Expect.fail("Unexpected exception: $e\n$stackTrace");
+    }
+    return _lastUserAgent;
+  }
+}
+
+// Override the HttpClient with one that has a custom user agent set and verify
+// that a test http server will actually encounter the custom user agent.
+Future<void> websocketHttpOverridesClient() async {
+  // Create a http server for recording user agent strings.
+  final userAgentTester = UserAgentTester();
+  await userAgentTester.init();
+  // Create custom user agent values.
+  final customUserAgent1 = 'Custom Agent 1';
+  final customUserAgent2 = 'Custom Agent 2';
+  // Create a custom http client. This may not be in a function set for the
+  // createHttpClient passed to Http.Overrides, as it would cause an infinite
+  // recursion. The HttpClient factory checks for HttpOverrides and would
+  // call the createHttpClient function.
+  final customClient1 = HttpClient()..userAgent = customUserAgent1;
+  final customClient2 = HttpClient()..userAgent = customUserAgent2;
+  // Override the default http client with one that has a custom user agent set.
+  await HttpOverrides.runZoned(
+    () async {
+      // The encountered user agent should match the overridden value.
+      final userAgent = await userAgentTester.webSocket();
+      Expect.equals(customUserAgent1, userAgent,
+          "The http server should encounter the user agent used by the overridden http client.");
+    },
+    createHttpClient: (c) => customClient1,
+  );
+  // Override the default http client with another one that has another  custom
+  // user agent set. This should confirm that the create client is honoured.
+  await HttpOverrides.runZoned(
+    () async {
+      // The encountered user agent should match the newly overridden value.
+      final userAgent = await userAgentTester.webSocket();
+      Expect.equals(customUserAgent2, userAgent,
+          "The http server should encounter the user agent used by the overridden http client.");
+    },
+    createHttpClient: (c) => customClient2,
+  );
+  // Close the http server used for testing.
+  await userAgentTester.close();
+}
+
+// Verify that the static custom user agent property of WebSocket is honoured.
+Future<void> websocketHttpOverridesStaticUserAgent() async {
+  // Create a http server for recording user agents strings.
+  final userAgentTester = UserAgentTester();
+  await userAgentTester.init();
+  // Create custom user agents for http clients.
+  final staticUserAgent = 'Static Agent';
+  final customUserAgent = 'Custom Agent';
+  // Create a custom http client. This may not be in a function set for the
+  // createHttpClient passed to Http.Overrides, as it would cause an infinite
+  // recursion. The HttpClient factory checks for HttpOverrides and would
+  // call the createHttpClient function.
+  final customClient = HttpClient()..userAgent = customUserAgent;
+  // Set the static uer agent value to a custom string.
+  WebSocket.userAgent = staticUserAgent;
+  await HttpOverrides.runZoned(
+    () async {
+      // The encountered user agent should match the static value.
+      final userAgent = await userAgentTester.webSocket();
+      Expect.equals(staticUserAgent, userAgent,
+          "The http server should encounter the user agent value set using the static userAgent property of WebSocket.");
+    },
+    createHttpClient: (c) => customClient,
+  );
+  // Set the static user agent value to null.
+  WebSocket.userAgent = null;
+  await HttpOverrides.runZoned(
+    () async {
+      // The encountered user agent should be null.
+      final userAgent = await userAgentTester.webSocket();
+      Expect.equals(
+          null, userAgent, "The http server should encounter no user agent.");
+    },
+    createHttpClient: (c) => customClient,
+  );
+  // Close the http server used for testing.
+  await userAgentTester.close();
+}
+
 main() async {
   await websocketHttpOverridesNoAcceptHeader();
   await websocketHttpOverridesSuccess();
+  await websocketHttpOverridesClient();
+  await websocketHttpOverridesStaticUserAgent();
 }
