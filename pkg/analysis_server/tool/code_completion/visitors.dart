@@ -672,6 +672,14 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             // }
           }
         }
+
+        // A class reference followed by parens in an annotation is a
+        // constructor reference.
+        if (elementKind == protocol.ElementKind.CLASS &&
+            node.thisOrAncestorOfType<Annotation>() != null &&
+            node.endToken.next?.type == TokenType.OPEN_PAREN) {
+          elementKind = protocol.ElementKind.CONSTRUCTOR;
+        }
       }
       safelyRecordEntity(node, elementKind: elementKind);
     }
