@@ -414,8 +414,8 @@ class AnnotationVerifier {
       } else if (parent.declaredElement != null) {
         final declaredElement = parent.declaredElement!;
         if (element.isVisibleForOverriding &&
-                !declaredElement.isInstanceMember ||
-            declaredElement.enclosingElement is ExtensionTypeElement) {
+            (!declaredElement.isInstanceMember ||
+                declaredElement.enclosingElement is ExtensionTypeElement)) {
           reportInvalidVisibleForOverriding();
         }
 
