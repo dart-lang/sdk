@@ -26,11 +26,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   EquivalenceVisitor({this.strategy = const EquivalenceStrategy()});
 
   @override
-  bool defaultNode(Node node, Node other) {
-    return false;
-  }
-
-  @override
   bool defaultTreeNode(TreeNode node, Node other) {
     return false;
   }
@@ -59,11 +54,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   bool visitExtensionTypeDeclaration(
       ExtensionTypeDeclaration node, Node other) {
     return strategy.checkExtensionTypeDeclaration(this, node, other);
-  }
-
-  @override
-  bool defaultMember(Member node, Node other) {
-    return false;
   }
 
   @override
@@ -356,11 +346,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool defaultBasicLiteral(BasicLiteral node, Node other) {
-    return false;
-  }
-
-  @override
   bool visitStringLiteral(StringLiteral node, Node other) {
     return strategy.checkStringLiteral(this, node, other);
   }
@@ -648,11 +633,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool defaultPattern(Pattern node, Node other) {
-    return false;
-  }
-
-  @override
   bool visitConstantPattern(ConstantPattern node, Node other) {
     return strategy.checkConstantPattern(this, node, other);
   }
@@ -848,11 +828,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool defaultConstant(Constant node, Node other) {
-    return false;
-  }
-
-  @override
   bool visitNullConstant(NullConstant node, Node other) {
     return strategy.checkNullConstant(this, node, other);
   }
@@ -966,11 +941,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool defaultMemberReference(Member node, Node other) {
-    return false;
-  }
-
-  @override
   bool visitFieldReference(Field node, Node other) {
     return false;
   }
@@ -982,11 +952,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
 
   @override
   bool visitProcedureReference(Procedure node, Node other) {
-    return false;
-  }
-
-  @override
-  bool defaultConstantReference(Constant node, Node other) {
     return false;
   }
 

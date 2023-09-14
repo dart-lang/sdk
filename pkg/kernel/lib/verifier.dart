@@ -1759,7 +1759,7 @@ class VerifyGetStaticType extends RecursiveVisitor {
   }
 }
 
-class CheckParentPointers extends Visitor<void> with VisitorVoidMixin {
+class CheckParentPointers extends VisitorDefault<void> with VisitorVoidMixin {
   static void check(TreeNode node) {
     node.accept(new CheckParentPointers(node.parent));
   }

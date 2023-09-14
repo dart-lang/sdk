@@ -30,7 +30,7 @@ TreeNode? computeTreeNodeWithOffset(TreeNode? node) {
 
 /// Abstract visitor for computing data corresponding to a node or element,
 /// and record it with a generic [Id]
-abstract class DataExtractor<T> extends Visitor<void>
+abstract class DataExtractor<T> extends VisitorDefault<void>
     with VisitorVoidMixin, DataRegistry<T> {
   @override
   final Map<Id, ActualData<T>> actualMap;

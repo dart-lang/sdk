@@ -1256,7 +1256,7 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
   }
 }
 
-class NodeCounter extends Visitor<void> with VisitorVoidMixin {
+class NodeCounter extends VisitorDefault<void> with VisitorVoidMixin {
   int count = 0;
 
   int countNodes(Node node) {

@@ -10,7 +10,7 @@ import 'package:kernel/ast.dart';
 
 import 'indentation.dart' show Indentation, Tagging;
 
-class DebugPrinter extends Visitor<void>
+class DebugPrinter extends VisitorDefault<void>
     with Indentation, Tagging<Node>, VisitorVoidMixin {
   @override
   StringBuffer sb = new StringBuffer();

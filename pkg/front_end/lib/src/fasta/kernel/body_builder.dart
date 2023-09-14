@@ -10088,7 +10088,7 @@ bool isOrphaned(TreeNode node) {
   return !visitor.foundNode;
 }
 
-class _FindChildVisitor extends Visitor<void> with VisitorVoidMixin {
+class _FindChildVisitor extends VisitorDefault<void> with VisitorVoidMixin {
   final TreeNode soughtNode;
   bool foundNode = false;
 

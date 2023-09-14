@@ -5972,12 +5972,12 @@ class FunctionValue implements Constant {
   }
 
   @override
-  R acceptReference<R>(Visitor<R> v) {
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) {
     throw new UnimplementedError();
   }
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) {
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) {
     throw new UnimplementedError();
   }
 
@@ -6039,12 +6039,12 @@ class _AbortDueToErrorConstant extends AbortConstant {
   }
 
   @override
-  R acceptReference<R>(Visitor<R> v) {
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) {
     throw new UnimplementedError();
   }
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) {
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) {
     throw new UnimplementedError();
   }
 
@@ -6100,12 +6100,12 @@ class _AbortDueToInvalidExpressionConstant extends AbortConstant {
   }
 
   @override
-  R acceptReference<R>(Visitor<R> v) {
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) {
     throw new UnimplementedError();
   }
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) {
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) {
     throw new UnimplementedError();
   }
 
@@ -6162,12 +6162,12 @@ class _AbortDueToThrowConstant extends AbortConstant {
   }
 
   @override
-  R acceptReference<R>(Visitor<R> v) {
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) {
     throw new UnimplementedError();
   }
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) {
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) {
     throw new UnimplementedError();
   }
 

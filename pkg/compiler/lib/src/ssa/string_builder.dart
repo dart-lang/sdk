@@ -10,7 +10,8 @@ import 'builder.dart';
 import 'nodes.dart';
 
 /// Visits and concatenates the expressions in a string concatenation.
-class KernelStringBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
+class KernelStringBuilder extends ir.VisitorDefault<void>
+    with ir.VisitorVoidMixin {
   final KernelSsaGraphBuilder builder;
 
   /// The string value generated so far.

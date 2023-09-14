@@ -14,7 +14,7 @@ import 'scope.dart';
 /// assigned/captured/free at various points to build a [ClosureScopeModel] and
 /// a [VariableScopeModel] that can respond to queries about how a particular
 /// variable is being used at any point in the code.
-class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
+class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
     with VariableCollectorMixin, ir.VisitorThrowingMixin<EvaluationComplexity> {
   final Dart2jsConstantEvaluator _constantEvaluator;
   late final ir.StaticTypeContext _staticTypeContext;
