@@ -3,55 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A lightweight DOM model.
+library;
 
 import 'dart:convert';
 
 const _htmlEscape = HtmlEscape(HtmlEscapeMode.element);
-
-abstract class Node {
-  Element? parent;
-
-  final List<Node> nodes = [];
-}
-
-class Element extends Node {
-  final String name;
-
-  Map<String, String> attributes = {};
-
-  List<Element> get children => nodes.whereType<Element>().toList();
-
-  Element.tag(this.name);
-
-  void append(Node child) {
-    child.parent = this;
-    nodes.add(child);
-  }
-
-  List<String> get classes {
-    final classes = attributes['class'];
-    if (classes != null) {
-      return classes.split(' ').toList();
-    } else {
-      return const [];
-    }
-  }
-}
-
-class Text extends Node {
-  static final RegExp tagRegex = RegExp(r'<[^>]+>');
-
-  final String text;
-
-  Text(this.text);
-
-  @override
-  List<Node> get nodes => const [];
-
-  String get textRemoveTags {
-    return text.replaceAll(tagRegex, '');
-  }
-}
 
 class Document extends Element {
   static const Set<String> selfClosing = {
@@ -104,5 +60,50 @@ class Document extends Element {
     buf.writeln();
 
     return buf.toString();
+  }
+}
+
+class Element extends Node {
+  final String name;
+
+  Map<String, String> attributes = {};
+
+  Element.tag(this.name);
+
+  List<Element> get children => nodes.whereType<Element>().toList();
+
+  List<String> get classes {
+    final classes = attributes['class'];
+    if (classes != null) {
+      return classes.split(' ').toList();
+    } else {
+      return const [];
+    }
+  }
+
+  void append(Node child) {
+    child.parent = this;
+    nodes.add(child);
+  }
+}
+
+abstract class Node {
+  Element? parent;
+
+  final List<Node> nodes = [];
+}
+
+class Text extends Node {
+  static final RegExp tagRegex = RegExp(r'<[^>]+>');
+
+  final String text;
+
+  Text(this.text);
+
+  @override
+  List<Node> get nodes => const [];
+
+  String get textRemoveTags {
+    return text.replaceAll(tagRegex, '');
   }
 }
