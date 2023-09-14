@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type A(core::int value) {
+  constructor _ = self::A|_;
+  tearoff _ = self::A|_#_#tearOff;
+  constructor name1 = self::A|name1;
+  tearoff name1 = self::A|_#name1#tearOff;
+}
+static inline-class-member method A|_(core::int value) → self::A /* = core::int */
+  ;
+static inline-class-member method A|_#_#tearOff(core::int value) → self::A /* = core::int */
+  return self::A|_(value);
+static inline-class-member method A|name1(core::int value) → self::A /* = core::int */
+  ;
+static inline-class-member method A|_#name1#tearOff(core::int value) → self::A /* = core::int */
+  return self::A|name1(value);
+static method method() → void
+  ;

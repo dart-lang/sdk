@@ -7,7 +7,7 @@ abstract class BI1 extends core::Object {
 }
 class BI1A extends core::Object implements self::BI1 {
 [@vm.inferred-type.metadata=int] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  final field core::int? value;
-[@vm.unboxing-info.metadata=(i)->b]  constructor •([@vm.inferred-type.metadata=int] core::int? value) → self::BI1A
+[@vm.unboxing-info.metadata=(i)->b]  constructor •([@vm.inferred-arg-type.metadata=int] core::int? value) → self::BI1A
     : self::BI1A::value = value, super core::Object::•()
     ;
 }
@@ -40,7 +40,7 @@ abstract class BI3 extends core::Object {
 }
 class BI3A extends core::Object implements self::BI3 {
 [@vm.inferred-type.metadata=int?] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  field core::int? value;
-[@vm.unboxing-info.metadata=(i)->b]  constructor •([@vm.inferred-type.metadata=int] core::int? value) → self::BI3A
+[@vm.unboxing-info.metadata=(i)->b]  constructor •([@vm.inferred-arg-type.metadata=int] core::int? value) → self::BI3A
     : self::BI3A::value = value, super core::Object::•()
     ;
 }
@@ -50,14 +50,14 @@ class BI3B extends core::Object implements self::BI3 {
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  get value() → core::int?
     return [@vm.inferred-type.metadata=int] self::smiOrMint;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  set value([@vm.inferred-type.metadata=dart.core::Null? (value: null)] core::int? v) → void {}
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  set value([@vm.inferred-arg-type.metadata=dart.core::Null? (value: null)] core::int? v) → void {}
 }
 abstract class UBI extends core::Object {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5] [@vm.unboxing-info.metadata=()->i]  abstract get /*isLegacy*/ value() → core::int?;
 }
 class UBIA extends core::Object implements self::UBI {
 [@vm.inferred-type.metadata=int] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:5] [@vm.unboxing-info.metadata=(i)->i]  field core::int? value;
-[@vm.unboxing-info.metadata=(i)->b]  constructor •([@vm.inferred-type.metadata=int] core::int? value) → self::UBIA
+[@vm.unboxing-info.metadata=(i)->b]  constructor •([@vm.inferred-arg-type.metadata=int] core::int? value) → self::UBIA
     : self::UBIA::value = value, super core::Object::•()
     ;
 }
@@ -74,7 +74,7 @@ class UBIB extends core::Object implements self::UBI {
   return -6144092014192636707;
 [@vm.unboxing-info.metadata=()->i]static get smiOrMint() → core::int
   return [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::int} 1 : [@vm.inferred-type.metadata=int] self::mint;
-static method use([@vm.inferred-type.metadata=int?] dynamic object) → void {
+static method use([@vm.inferred-arg-type.metadata=int?] dynamic object) → void {
   [@vm.inferred-type.metadata=int?] self::usedObject == null ?{dynamic} self::usedObject = object : null;
 }
 static method main() → dynamic {

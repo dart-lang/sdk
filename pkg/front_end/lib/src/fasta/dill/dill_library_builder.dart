@@ -12,6 +12,7 @@ import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/extension_builder.dart';
+import '../builder/extension_type_declaration_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -378,6 +379,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         } else if (node is Extension) {
           libraryUri = node.enclosingLibrary.importUri;
           name = node.name;
+        } else if (node is ExtensionTypeDeclaration) {
+          libraryUri = node.enclosingLibrary.importUri;
+          name = node.name;
         } else {
           unhandled("${node.runtimeType}", "finalizeExports", -1, fileUri);
         }
@@ -407,7 +411,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
                   node == declaration.typedef) ||
               (declaration is MemberBuilder && node == declaration.member) ||
               (declaration is ExtensionBuilder &&
-                  node == declaration.extension),
+                  node == declaration.extension) ||
+              (declaration is ExtensionTypeDeclarationBuilder &&
+                  node == declaration.extensionTypeDeclaration),
           "Unexpected declaration ${declaration} (${declaration.runtimeType}) "
           "for node ${node} (${node.runtimeType}).");
     }

@@ -8,13 +8,18 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_lazy_type_hierarchy.dart'
     as type_hierarchy;
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+
+typedef StaticOptions
+    = Either3<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>;
 
 /// A handler for the initial "prepare" request for starting navigation with
 /// Type Hierarchy.
@@ -26,7 +31,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 /// The target returned by this handler will be sent back to the server for
 /// supertype/supertype items as the user navigates the type hierarchy in the
 /// client.
-class PrepareTypeHierarchyHandler extends LspMessageHandler<
+class PrepareTypeHierarchyHandler extends SharedMessageHandler<
     TypeHierarchyPrepareParams,
     TextDocumentPrepareTypeHierarchyResult> with _TypeHierarchyUtils {
   PrepareTypeHierarchyHandler(super.server);
@@ -70,7 +75,26 @@ class PrepareTypeHierarchyHandler extends LspMessageHandler<
   }
 }
 
-class TypeHierarchySubtypesHandler extends LspMessageHandler<
+class TypeHierarchyRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  TypeHierarchyRegistrations(super.info);
+
+  @override
+  ToJsonable? get options => TypeHierarchyRegistrationOptions(
+        documentSelector: [dartFiles],
+      );
+
+  @override
+  Method get registrationMethod => Method.textDocument_prepareTypeHierarchy;
+
+  @override
+  StaticOptions get staticOptions => Either3.t1(true);
+
+  @override
+  bool get supportsDynamic => clientDynamic.typeHierarchy;
+}
+
+class TypeHierarchySubtypesHandler extends SharedMessageHandler<
     TypeHierarchySubtypesParams,
     TypeHierarchySubtypesResult> with _TypeHierarchyUtils {
   TypeHierarchySubtypesHandler(super.server);
@@ -106,7 +130,7 @@ class TypeHierarchySubtypesHandler extends LspMessageHandler<
   }
 }
 
-class TypeHierarchySupertypesHandler extends LspMessageHandler<
+class TypeHierarchySupertypesHandler extends SharedMessageHandler<
     TypeHierarchySupertypesParams,
     TypeHierarchySupertypesResult> with _TypeHierarchyUtils {
   TypeHierarchySupertypesHandler(super.server);

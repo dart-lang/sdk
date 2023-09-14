@@ -303,7 +303,7 @@ class Translator with KernelNodes {
       String? exportName = functions.getExport(reference);
 
       if (options.printKernel || options.printWasm) {
-        String header = "#${function.index}: $canonicalName";
+        String header = "#${function.name}: $canonicalName";
         if (exportName != null) {
           header = "$header (exported as $exportName)";
         }
@@ -371,7 +371,7 @@ class Translator with KernelNodes {
         _printFunction(function, info.constant);
       } else {
         if (options.printWasm) {
-          print("Global #${info.global.index}: ${info.constant}");
+          print("Global #${info.global.name}: ${info.constant}");
           final global = info.global;
           if (global is w.GlobalBuilder) {
             print(global.initializer.trace);
@@ -386,7 +386,7 @@ class Translator with KernelNodes {
 
   void _printFunction(w.BaseFunction function, Object name) {
     if (options.printWasm) {
-      print("#${function.index}: $name");
+      print("#${function.name}: $name");
       final f = function;
       if (f is w.FunctionBuilder) {
         print(f.body.trace);
@@ -577,7 +577,7 @@ class Translator with KernelNodes {
           nullable: nullable);
     }
     if (type is ExtensionType) {
-      return translateStorageType(type.instantiatedRepresentationType);
+      return translateStorageType(type.typeErasure);
     }
     if (type is RecordType) {
       return getRecordClassInfo(type).typeWithNullability(nullable);
@@ -904,17 +904,17 @@ class Translator with KernelNodes {
   bool shouldInline(Reference target) {
     if (!options.inlining) return false;
     Member member = target.asMember;
-    if (member.function?.asyncMarker == AsyncMarker.SyncStar) return false;
     if (membersContainingInnerFunctions.contains(member)) return false;
     if (membersBeingGenerated.contains(member)) return false;
     if (member is Field) return true;
+    if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
     if (getPragma<Constant>(member, "wasm:prefer-inline") != null) return true;
     Statement? body = member.function!.body;
     return body != null &&
         NodeCounter().countNodes(body) <= options.inliningLimit;
   }
 
-  T? getPragma<T>(Annotatable node, String name, [T? defaultvalue]) {
+  T? getPragma<T>(Annotatable node, String name, [T? defaultValue]) {
     for (Expression annotation in node.annotations) {
       if (annotation is ConstantExpression) {
         Constant constant = annotation.constant;
@@ -928,7 +928,10 @@ class Translator with KernelNodes {
               if (value is PrimitiveConstant<T>) {
                 return value.value;
               }
-              return value as T? ?? defaultvalue;
+              if (value is NullConstant) {
+                return defaultValue;
+              }
+              return value as T? ?? defaultValue;
             }
           }
         }

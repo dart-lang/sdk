@@ -5666,18 +5666,20 @@ TEST_CASE(Metadata) {
   res = lib.GetMetadata(func);
   PrintMetadata("A.aFunc", res);
 
-  func = lib.LookupLocalFunction(String::Handle(Symbols::New(thread, "main")));
+  func = lib.LookupFunctionAllowPrivate(
+      String::Handle(Symbols::New(thread, "main")));
   EXPECT(!func.IsNull());
   res = lib.GetMetadata(func);
   PrintMetadata("main", res);
 
-  func = lib.LookupLocalFunction(
+  func = lib.LookupFunctionAllowPrivate(
       String::Handle(Symbols::New(thread, "get:tlGetter")));
   EXPECT(!func.IsNull());
   res = lib.GetMetadata(func);
   PrintMetadata("tlGetter", res);
 
-  field = lib.LookupLocalField(String::Handle(Symbols::New(thread, "gVar")));
+  field =
+      lib.LookupFieldAllowPrivate(String::Handle(Symbols::New(thread, "gVar")));
   EXPECT(!field.IsNull());
   res = lib.GetMetadata(field);
   PrintMetadata("gVar", res);

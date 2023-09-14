@@ -37,7 +37,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -285,12 +285,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0xc;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x8;
 static constexpr dart::compiler::target::word ReceivePort_send_port_offset =
     0x4;
-static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x8;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0xc;
 static constexpr dart::compiler::target::word Record_shape_offset = 0x4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 0x8;
@@ -688,7 +689,7 @@ static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x14;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word RecordType_InstanceSize = 0x1c;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 0x3c;
 static constexpr dart::compiler::target::word Script_InstanceSize = 0x30;
@@ -747,7 +748,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x48;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -999,12 +1000,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
 static constexpr dart::compiler::target::word ReceivePort_send_port_offset =
     0x8;
-static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x10;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x18;
 static constexpr dart::compiler::target::word Record_shape_offset = 0x8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 0x10;
@@ -1407,7 +1409,7 @@ static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x28;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word RecordType_InstanceSize = 0x38;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 0x78;
 static constexpr dart::compiler::target::word Script_InstanceSize = 0x50;
@@ -1465,7 +1467,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -1713,12 +1715,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0xc;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x8;
 static constexpr dart::compiler::target::word ReceivePort_send_port_offset =
     0x4;
-static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x8;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0xc;
 static constexpr dart::compiler::target::word Record_shape_offset = 0x4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 0x8;
@@ -2115,7 +2118,7 @@ static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x14;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word RecordType_InstanceSize = 0x1c;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 0x3c;
 static constexpr dart::compiler::target::word Script_InstanceSize = 0x30;
@@ -2174,7 +2177,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x48;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -2426,12 +2429,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
 static constexpr dart::compiler::target::word ReceivePort_send_port_offset =
     0x8;
-static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x10;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x18;
 static constexpr dart::compiler::target::word Record_shape_offset = 0x8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 0x10;
@@ -2836,7 +2840,7 @@ static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x28;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word RecordType_InstanceSize = 0x38;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 0x78;
 static constexpr dart::compiler::target::word Script_InstanceSize = 0x50;
@@ -2895,7 +2899,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -3144,12 +3148,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
 static constexpr dart::compiler::target::word ReceivePort_send_port_offset =
     0x8;
-static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0xc;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x10;
 static constexpr dart::compiler::target::word Record_shape_offset = 0xc;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 0x10;
@@ -3551,7 +3556,7 @@ static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x18;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word RecordType_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 0x50;
 static constexpr dart::compiler::target::word Script_InstanceSize = 0x38;
@@ -3610,7 +3615,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -3859,12 +3864,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
 static constexpr dart::compiler::target::word ReceivePort_send_port_offset =
     0x8;
-static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0xc;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x10;
 static constexpr dart::compiler::target::word Record_shape_offset = 0xc;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 0x10;
@@ -4268,7 +4274,7 @@ static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x18;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word RecordType_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 0x50;
 static constexpr dart::compiler::target::word Script_InstanceSize = 0x38;
@@ -4326,7 +4332,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -4574,12 +4580,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0xc;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x8;
 static constexpr dart::compiler::target::word ReceivePort_send_port_offset =
     0x4;
-static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x8;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0xc;
 static constexpr dart::compiler::target::word Record_shape_offset = 0x4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 0x8;
@@ -4978,7 +4985,7 @@ static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x14;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word RecordType_InstanceSize = 0x1c;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 0x3c;
 static constexpr dart::compiler::target::word Script_InstanceSize = 0x30;
@@ -5037,7 +5044,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x48;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -5289,12 +5296,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
 static constexpr dart::compiler::target::word ReceivePort_send_port_offset =
     0x8;
-static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x10;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x18;
 static constexpr dart::compiler::target::word Record_shape_offset = 0x8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 0x10;
@@ -5698,7 +5706,7 @@ static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x28;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word RecordType_InstanceSize = 0x38;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 0x78;
 static constexpr dart::compiler::target::word Script_InstanceSize = 0x50;
@@ -5753,7 +5761,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -5996,12 +6004,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0xc;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x8;
 static constexpr dart::compiler::target::word ReceivePort_send_port_offset =
     0x4;
-static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x8;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0xc;
 static constexpr dart::compiler::target::word Record_shape_offset = 0x4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 0x8;
@@ -6399,7 +6408,7 @@ static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0xc;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word RecordType_InstanceSize = 0x1c;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 0x3c;
 static constexpr dart::compiler::target::word Script_InstanceSize = 0x30;
@@ -6455,7 +6464,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x48;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -6702,12 +6711,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
 static constexpr dart::compiler::target::word ReceivePort_send_port_offset =
     0x8;
-static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x10;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x18;
 static constexpr dart::compiler::target::word Record_shape_offset = 0x8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 0x10;
@@ -7110,7 +7120,7 @@ static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x18;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word RecordType_InstanceSize = 0x38;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 0x78;
 static constexpr dart::compiler::target::word Script_InstanceSize = 0x50;
@@ -7165,7 +7175,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -7408,12 +7418,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0xc;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x8;
 static constexpr dart::compiler::target::word ReceivePort_send_port_offset =
     0x4;
-static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x8;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0xc;
 static constexpr dart::compiler::target::word Record_shape_offset = 0x4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 0x8;
@@ -7810,7 +7821,7 @@ static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0xc;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word RecordType_InstanceSize = 0x1c;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 0x3c;
 static constexpr dart::compiler::target::word Script_InstanceSize = 0x30;
@@ -7866,7 +7877,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x48;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -8113,12 +8124,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
 static constexpr dart::compiler::target::word ReceivePort_send_port_offset =
     0x8;
-static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x10;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x18;
 static constexpr dart::compiler::target::word Record_shape_offset = 0x8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 0x10;
@@ -8523,7 +8535,7 @@ static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x18;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word RecordType_InstanceSize = 0x38;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 0x78;
 static constexpr dart::compiler::target::word Script_InstanceSize = 0x50;
@@ -8579,7 +8591,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -8823,12 +8835,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
 static constexpr dart::compiler::target::word ReceivePort_send_port_offset =
     0x8;
-static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0xc;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x10;
 static constexpr dart::compiler::target::word Record_shape_offset = 0xc;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 0x10;
@@ -9230,7 +9243,7 @@ static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x10;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word RecordType_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 0x50;
 static constexpr dart::compiler::target::word Script_InstanceSize = 0x38;
@@ -9286,7 +9299,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -9530,12 +9543,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
 static constexpr dart::compiler::target::word ReceivePort_send_port_offset =
     0x8;
-static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0xc;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x10;
 static constexpr dart::compiler::target::word Record_shape_offset = 0xc;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 0x10;
@@ -9939,7 +9953,7 @@ static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x10;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word RecordType_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 0x50;
 static constexpr dart::compiler::target::word Script_InstanceSize = 0x38;
@@ -9994,7 +10008,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x24;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -10237,12 +10251,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0xc;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x8;
 static constexpr dart::compiler::target::word ReceivePort_send_port_offset =
     0x4;
-static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x8;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0xc;
 static constexpr dart::compiler::target::word Record_shape_offset = 0x4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 0x8;
@@ -10641,7 +10656,7 @@ static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0xc;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word RecordType_InstanceSize = 0x1c;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 0x3c;
 static constexpr dart::compiler::target::word Script_InstanceSize = 0x30;
@@ -10697,7 +10712,7 @@ static constexpr dart::compiler::target::word Context_elements_start_offset =
 static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
-static constexpr dart::compiler::target::word ContextScope_element_size = 0x48;
+static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -10944,12 +10959,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 0x10;
+static constexpr dart::compiler::target::word PersistentHandle_ptr_offset = 0x0;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     0x10;
 static constexpr dart::compiler::target::word ReceivePort_send_port_offset =
     0x8;
-static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x10;
+static constexpr dart::compiler::target::word ReceivePort_handler_offset = 0x18;
 static constexpr dart::compiler::target::word Record_shape_offset = 0x8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 0x10;
@@ -11353,7 +11369,7 @@ static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x18;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word RecordType_InstanceSize = 0x38;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 0x78;
 static constexpr dart::compiler::target::word Script_InstanceSize = 0x50;
@@ -11408,7 +11424,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x24;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -11685,13 +11701,15 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0xc;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
     0x4;
 static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
-    0x8;
+    0xc;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 0x4;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 0x8;
@@ -12131,7 +12149,7 @@ static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x8;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize =
-    0x14;
+    0x18;
 static constexpr dart::compiler::target::word AOT_RecordType_InstanceSize =
     0x1c;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 0x3c;
@@ -12197,7 +12215,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x48;
+    0x50;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -12474,13 +12492,15 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
-    0x10;
+    0x18;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 0x10;
@@ -12921,7 +12941,7 @@ static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x10;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize =
-    0x28;
+    0x30;
 static constexpr dart::compiler::target::word AOT_RecordType_InstanceSize =
     0x38;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 0x78;
@@ -12993,7 +13013,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x48;
+    0x50;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -13270,13 +13290,15 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
-    0x10;
+    0x18;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 0x10;
@@ -13719,7 +13741,7 @@ static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x10;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize =
-    0x28;
+    0x30;
 static constexpr dart::compiler::target::word AOT_RecordType_InstanceSize =
     0x38;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 0x78;
@@ -13785,7 +13807,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x24;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -14062,13 +14084,15 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
-    0xc;
+    0x10;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 0xc;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 0x10;
@@ -14511,7 +14535,7 @@ static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x10;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize =
-    0x18;
+    0x20;
 static constexpr dart::compiler::target::word AOT_RecordType_InstanceSize =
     0x28;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 0x50;
@@ -14577,7 +14601,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x24;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -14854,13 +14878,15 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
-    0xc;
+    0x10;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 0xc;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 0x10;
@@ -15305,7 +15331,7 @@ static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x10;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize =
-    0x18;
+    0x20;
 static constexpr dart::compiler::target::word AOT_RecordType_InstanceSize =
     0x28;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 0x50;
@@ -15371,7 +15397,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x24;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -15648,13 +15674,15 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0xc;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
     0x4;
 static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
-    0x8;
+    0xc;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 0x4;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 0x8;
@@ -16095,7 +16123,7 @@ static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x8;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize =
-    0x14;
+    0x18;
 static constexpr dart::compiler::target::word AOT_RecordType_InstanceSize =
     0x1c;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 0x3c;
@@ -16161,7 +16189,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x48;
+    0x50;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -16438,13 +16466,15 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
-    0x10;
+    0x18;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 0x10;
@@ -16886,7 +16916,7 @@ static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x10;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize =
-    0x28;
+    0x30;
 static constexpr dart::compiler::target::word AOT_RecordType_InstanceSize =
     0x38;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 0x78;
@@ -16949,7 +16979,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x24;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -17220,13 +17250,15 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0xc;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
     0x4;
 static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
-    0x8;
+    0xc;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 0x4;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 0x8;
@@ -17666,7 +17698,7 @@ static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x8;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize =
-    0xc;
+    0x10;
 static constexpr dart::compiler::target::word AOT_RecordType_InstanceSize =
     0x1c;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 0x3c;
@@ -17729,7 +17761,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x48;
+    0x50;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -18000,13 +18032,15 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
-    0x10;
+    0x18;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 0x10;
@@ -18447,7 +18481,7 @@ static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x10;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize =
-    0x18;
+    0x20;
 static constexpr dart::compiler::target::word AOT_RecordType_InstanceSize =
     0x38;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 0x78;
@@ -18516,7 +18550,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x48;
+    0x50;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -18787,13 +18821,15 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
-    0x10;
+    0x18;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 0x10;
@@ -19236,7 +19272,7 @@ static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x10;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize =
-    0x18;
+    0x20;
 static constexpr dart::compiler::target::word AOT_RecordType_InstanceSize =
     0x38;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 0x78;
@@ -19299,7 +19335,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x24;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -19570,13 +19606,15 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
-    0xc;
+    0x10;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 0xc;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 0x10;
@@ -20019,7 +20057,7 @@ static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x10;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize =
-    0x10;
+    0x18;
 static constexpr dart::compiler::target::word AOT_RecordType_InstanceSize =
     0x28;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 0x50;
@@ -20082,7 +20120,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x24;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -20353,13 +20391,15 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
-    0xc;
+    0x10;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 0xc;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 0x10;
@@ -20804,7 +20844,7 @@ static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x10;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize =
-    0x10;
+    0x18;
 static constexpr dart::compiler::target::word AOT_RecordType_InstanceSize =
     0x28;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 0x50;
@@ -20867,7 +20907,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x24;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -21138,13 +21178,15 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x238;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0xc;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
     0x4;
 static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
-    0x8;
+    0xc;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 0x4;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 0x8;
@@ -21585,7 +21627,7 @@ static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x8;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize =
-    0xc;
+    0x10;
 static constexpr dart::compiler::target::word AOT_RecordType_InstanceSize =
     0x1c;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 0x3c;
@@ -21648,7 +21690,7 @@ static constexpr dart::compiler::target::word AOT_Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
-    0x48;
+    0x50;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -21919,13 +21961,15 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_yield_async_star_offset = 0x470;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     0x10;
+static constexpr dart::compiler::target::word AOT_PersistentHandle_ptr_offset =
+    0x0;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ReceivePort_send_port_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_ReceivePort_handler_offset =
-    0x10;
+    0x18;
 static constexpr dart::compiler::target::word AOT_Record_shape_offset = 0x8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 0x10;
@@ -22367,7 +22411,7 @@ static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x10;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize =
-    0x18;
+    0x20;
 static constexpr dart::compiler::target::word AOT_RecordType_InstanceSize =
     0x38;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 0x78;

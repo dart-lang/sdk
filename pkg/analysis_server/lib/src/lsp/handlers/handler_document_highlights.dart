@@ -7,8 +7,11 @@ import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 
-class DocumentHighlightsHandler extends LspMessageHandler<
+typedef StaticOptions = Either2<bool, DocumentHighlightOptions>;
+
+class DocumentHighlightsHandler extends SharedMessageHandler<
     TextDocumentPositionParams, List<DocumentHighlight>?> {
   DocumentHighlightsHandler(super.server);
   @override
@@ -52,4 +55,22 @@ class DocumentHighlightsHandler extends LspMessageHandler<
       return success(null);
     });
   }
+}
+
+class DocumentHighlightsRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  DocumentHighlightsRegistrations(super.info);
+
+  @override
+  ToJsonable? get options =>
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes);
+
+  @override
+  Method get registrationMethod => Method.textDocument_documentHighlight;
+
+  @override
+  StaticOptions get staticOptions => Either2.t1(true);
+
+  @override
+  bool get supportsDynamic => clientDynamic.documentHighlights;
 }

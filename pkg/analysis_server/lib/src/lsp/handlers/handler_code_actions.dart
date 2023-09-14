@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/analysis_options.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/dart.dart';
@@ -12,8 +13,11 @@ import 'package:analysis_server/src/lsp/handlers/code_actions/plugins.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/pubspec.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart' show groupBy;
+
+typedef StaticOptions = Either2<bool, CodeActionOptions>;
 
 class CodeActionHandler
     extends LspMessageHandler<CodeActionParams, TextDocumentCodeActionResult> {
@@ -218,6 +222,36 @@ class CodeActionHandler
 
     return success(allActions);
   }
+}
+
+class CodeActionRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  CodeActionRegistrations(super.info);
+
+  bool get codeActionLiteralSupport => clientCapabilities.literalCodeActions;
+
+  @override
+  ToJsonable? get options => CodeActionRegistrationOptions(
+        documentSelector: fullySupportedTypes,
+        codeActionKinds: DartCodeActionKind.serverSupportedKinds,
+      );
+
+  @override
+  Method get registrationMethod => Method.textDocument_codeAction;
+
+  @override
+  StaticOptions get staticOptions =>
+      // "The `CodeActionOptions` return type is only valid if the client
+      // signals code action literal support via the property
+      // `textDocument.codeAction.codeActionLiteralSupport`."
+      codeActionLiteralSupport
+          ? Either2.t2(CodeActionOptions(
+              codeActionKinds: DartCodeActionKind.serverSupportedKinds,
+            ))
+          : Either2.t1(true);
+
+  @override
+  bool get supportsDynamic => clientDynamic.codeActions;
 }
 
 /// Sorts [CodeActionWithPriority]s by priority, and removes duplicates keeping

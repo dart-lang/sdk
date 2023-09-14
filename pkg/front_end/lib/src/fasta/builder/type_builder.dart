@@ -7,11 +7,17 @@ library fasta.type_builder;
 import 'package:kernel/ast.dart' show DartType, Supertype;
 import 'package:kernel/class_hierarchy.dart';
 
+import '../kernel/type_algorithms.dart';
+import '../messages.dart';
+import '../scope.dart';
 import '../source/source_library_builder.dart';
+import 'formal_parameter_builder.dart';
+import 'invalid_type_declaration_builder.dart';
 import 'library_builder.dart';
-import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'omitted_type_builder.dart';
+import 'record_type_builder.dart';
+import 'type_alias_builder.dart';
 import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
 
@@ -273,7 +279,7 @@ enum TypeUse {
   macroTypeArgument,
 }
 
-abstract class TypeBuilder {
+sealed class TypeBuilder {
   const TypeBuilder();
 
   TypeDeclarationBuilder? get declaration => null;
@@ -303,11 +309,36 @@ abstract class TypeBuilder {
   ///
   /// If [unboundTypes] is provided, created type builders that are not bound
   /// are added to [unboundTypes]. Otherwise, creating an unbound type builder
-  /// throws an error.
+  /// results in an assertion error.
+  ///
+  /// If [unboundTypeVariables] is provided, created type variable builders are
+  /// added to [unboundTypeVariables]. Otherwise, creating a
+  /// type variable builder result in an assertion error.
+  ///
+  /// The [unboundTypes] and [unboundTypeVariables] must be processed by the
+  /// call, unless the created [TypeBuilder]s and [TypeVariableBuilder]s are
+  /// not part of the generated AST.
   // TODO(johnniwinther): Change [NamedTypeBuilder] to hold the
   // [TypeParameterScopeBuilder] should resolve it, so that we cannot create
   // [NamedTypeBuilder]s that are orphaned.
-  TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) => this;
+  TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution,
+      {List<TypeBuilder>? unboundTypes,
+      List<TypeVariableBuilder>? unboundTypeVariables}) {
+    if (substitution.isEmpty) {
+      return this;
+    }
+    List<TypeBuilder> unboundTypesInternal = unboundTypes ?? [];
+    List<TypeVariableBuilder> unboundTypeVariablesInternal =
+        unboundTypeVariables ?? [];
+    TypeBuilder result = substitute(this, substitution,
+        unboundTypes: unboundTypesInternal,
+        unboundTypeVariables: unboundTypeVariablesInternal);
+    assert(unboundTypes != null || unboundTypesInternal.isEmpty,
+        "Non-empty unbound types: $unboundTypesInternal.");
+    assert(unboundTypeVariables != null || unboundTypeVariablesInternal.isEmpty,
+        "Non-empty unbound type variables: $unboundTypeVariables.");
+    return result;
+  }
 
   /// Clones the type builder recursively without binding the subterms to
   /// existing declaration or type variable builders.  All newly built types
@@ -378,62 +409,75 @@ abstract class TypeBuilder {
   ///
   /// If this type is not an [InferableTypeBuilder], this call is a no-op.
   void registerInferable(Inferable inferable) {}
-}
 
-abstract class InferableType {
-  /// Triggers inference of this type.
+  /// Computes the unaliased type builder for this type builder.
   ///
-  /// If an [Inferable] has been register, this is called to infer the type of
-  /// this builder. Otherwise the type is inferred to be `dynamic`.
-  DartType inferType(ClassHierarchyBase hierarchy);
+  /// If [usedTypeAliasBuilders] is supplied, the [TypeAliasBuilder]s used
+  /// during unaliasing are added to [usedTypeAliasBuilders].
+  ///
+  /// If [unboundTypes] is provided, created type builders that are not bound
+  /// are added to [unboundTypes]. Otherwise, creating an unbound type builder
+  /// results in an assertion error.
+  ///
+  /// If [unboundTypeVariables] is provided, created type variable builders are
+  /// added to [unboundTypeVariables]. Otherwise, creating a
+  /// type variable builder result in an assertion error.
+  ///
+  /// The [unboundTypes] and [unboundTypeVariables] must be processed by the
+  /// call, unless the created [TypeBuilder]s and [TypeVariableBuilder]s are
+  /// not part of the generated AST.
+  TypeBuilder? unalias(
+          {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
+          List<TypeBuilder>? unboundTypes,
+          List<TypeVariableBuilder>? unboundTypeVariables}) =>
+      this;
 }
 
-class InferableTypeUse implements InferableType {
-  final SourceLibraryBuilder sourceLibraryBuilder;
-  final TypeBuilder typeBuilder;
-  final TypeUse typeUse;
+abstract class OmittedTypeBuilder extends TypeBuilder {
+  const OmittedTypeBuilder();
 
-  InferableTypeUse(this.sourceLibraryBuilder, this.typeBuilder, this.typeUse);
+  bool get hasType;
 
-  @override
-  DartType inferType(ClassHierarchyBase hierarchy) {
-    return typeBuilder.build(sourceLibraryBuilder, typeUse,
-        hierarchy: hierarchy);
-  }
+  DartType get type;
 }
 
-mixin InferableTypeBuilderMixin implements TypeBuilder {
-  bool get hasType => _type != null;
-
-  DartType? _type;
-
-  DartType get type => _type!;
-
-  List<InferredTypeListener>? _listeners;
-
+abstract class FunctionTypeBuilder extends TypeBuilder {
   @override
-  void registerInferredTypeListener(InferredTypeListener onType) {
-    if (isExplicit) return;
-    if (hasType) {
-      onType.onInferredType(type);
-    } else {
-      (_listeners ??= []).add(onType);
-    }
-  }
+  int get charOffset;
+  TypeBuilder get returnType;
+  List<ParameterBuilder>? get formals;
+  List<TypeVariableBuilder>? get typeVariables;
+}
 
-  DartType registerType(DartType type) {
-    // TODO(johnniwinther): Avoid multiple registration from enums and
-    //  duplicated fields.
-    if (_type == null) {
-      _type = type;
-      List<InferredTypeListener>? listeners = _listeners;
-      if (listeners != null) {
-        _listeners = null;
-        for (InferredTypeListener listener in listeners) {
-          listener.onInferredType(type);
-        }
-      }
-    }
-    return _type!;
-  }
+abstract class InvalidTypeBuilder extends TypeBuilder {}
+
+abstract class NamedTypeBuilder extends TypeBuilder {
+  @override
+  Object get name;
+
+  int get nameOffset;
+
+  int get nameLength;
+
+  void resolveIn(
+      Scope scope, int charOffset, Uri fileUri, LibraryBuilder library);
+  void bind(LibraryBuilder libraryBuilder, TypeDeclarationBuilder declaration);
+  List<TypeBuilder>? get arguments;
+  NamedTypeBuilder withArguments(List<TypeBuilder> arguments);
+  InvalidTypeDeclarationBuilder buildInvalidTypeDeclarationBuilder(
+      LocatedMessage message,
+      {List<LocatedMessage>? context});
+}
+
+abstract class RecordTypeBuilder extends TypeBuilder {
+  List<RecordTypeFieldBuilder>? get positionalFields;
+  List<RecordTypeFieldBuilder>? get namedFields;
+  @override
+  int get charOffset;
+  @override
+  Uri get fileUri;
+}
+
+abstract class FixedTypeBuilder extends TypeBuilder {
+  const FixedTypeBuilder();
 }

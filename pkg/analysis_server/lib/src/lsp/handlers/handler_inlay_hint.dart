@@ -4,9 +4,14 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_inlay_hint.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+
+typedef StaticOptions
+    = Either3<bool, InlayHintOptions, InlayHintRegistrationOptions>;
 
 class InlayHintHandler
     extends LspMessageHandler<InlayHintParams, List<InlayHint>> {
@@ -51,4 +56,26 @@ class InlayHintHandler
       return success(hints);
     });
   }
+}
+
+class InlayHintRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  InlayHintRegistrations(super.info);
+
+  @override
+  ToJsonable? get options => InlayHintRegistrationOptions(
+        documentSelector: [dartFiles],
+        resolveProvider: false,
+      );
+
+  @override
+  Method get registrationMethod => Method.textDocument_inlayHint;
+
+  @override
+  StaticOptions get staticOptions => Either3.t2(
+        InlayHintOptions(resolveProvider: false),
+      );
+
+  @override
+  bool get supportsDynamic => clientDynamic.inlayHints;
 }

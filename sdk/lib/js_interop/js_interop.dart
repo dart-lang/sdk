@@ -136,8 +136,15 @@ typedef JSBoolean = js_types.JSBoolean;
 /// The type of JS strings, [JSString] <: [JSAny].
 typedef JSString = js_types.JSString;
 
-/// A getter to retrieve the Global [JSObject].
-external JSObject get globalJSObject;
+/// The type of JS Symbols, [JSSymbol] <: [JSAny].
+typedef JSSymbol = js_types.JSSymbol;
+
+/// The type of JS BigInts, [JSBigInt] <: [JSAny].
+typedef JSBigInt = js_types.JSBigInt;
+
+/// A getter to retrieve the global context that is used in static interop
+/// lowering.
+external JSObject get globalContext;
 
 /// `JSUndefined` and `JSNull` are actual reified types on some backends, but
 /// not others. Instead, users should use nullable types for any type that could

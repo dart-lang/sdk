@@ -14,54 +14,6 @@ import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
-// TODO(pq): migrate these codes to `option_codes.dart`?
-
-/// A hint code indicating reference to a deprecated lint.
-///
-/// Parameters:
-/// 0: the rule name
-const AnalysisOptionsHintCode DEPRECATED_LINT_HINT = AnalysisOptionsHintCode(
-    'DEPRECATED_LINT_HINT',
-    "'{0}' is a deprecated lint rule and should not be used",
-    correctionMessage: "Try removing '{0}'.");
-
-/// A hint code indicating reference to a deprecated lint.
-///
-/// Parameters:
-/// 0: the deprecated lint name
-/// 1: the replacing rule name
-const AnalysisOptionsHintCode DEPRECATED_LINT_HINT_WITH_REPLACEMENT =
-    AnalysisOptionsHintCode('DEPRECATED_LINT_HINT_WITH_REPLACEMENT',
-        "'{0}' is deprecated and should be replaced by '{1}'",
-        correctionMessage: "Try replacing '{0}' with '{1}'.");
-
-/// Duplicate rules.
-///
-/// Parameters:
-/// 0: the rule name
-const AnalysisOptionsHintCode DUPLICATE_RULE_HINT = AnalysisOptionsHintCode(
-    'DUPLICATE_RULE',
-    "The rule {0} is already specified and doesn't need to be specified again.",
-    correctionMessage: "Try removing all but one specification of the rule.");
-
-/// An error code indicating an incompatible rule.
-///
-/// Parameters:
-/// 0: the rule name
-/// 1: the incompatible rule
-const AnalysisOptionsWarningCode INCOMPATIBLE_LINT_WARNING =
-    AnalysisOptionsWarningCode('INCOMPATIBLE_LINT_WARNING',
-        "The rule '{0}' is incompatible with the rule '{1}'",
-        correctionMessage: "Try removing one of the incompatible rules.");
-
-/// An error code indicating an undefined lint rule.
-///
-/// Parameters:
-/// 0: the rule name
-const AnalysisOptionsWarningCode UNDEFINED_LINT_WARNING =
-    AnalysisOptionsWarningCode(
-        'UNDEFINED_LINT_WARNING', "'{0}' is not a recognized lint rule");
-
 /// Rule provider.
 typedef LintRuleProvider = Iterable<LintRule> Function();
 
@@ -127,7 +79,8 @@ class LinterRuleOptionsValidator extends OptionsValidator {
 
       final rule = getRegisteredLint(value as Object);
       if (rule == null) {
-        reporter.reportErrorForSpan(UNDEFINED_LINT_WARNING, node.span, [value]);
+        reporter.reportErrorForSpan(
+            AnalysisOptionsWarningCode.UNDEFINED_LINT, node.span, [value]);
         return;
       }
 
@@ -135,9 +88,12 @@ class LinterRuleOptionsValidator extends OptionsValidator {
         final incompatibleRule = findIncompatibleRule(rule);
         if (incompatibleRule != null) {
           reporter.reportErrorForSpan(
-              INCOMPATIBLE_LINT_WARNING, node.span, [value, incompatibleRule]);
+              AnalysisOptionsWarningCode.INCOMPATIBLE_LINT,
+              node.span,
+              [value, incompatibleRule]);
         } else if (!seenRules.add(rule.name)) {
-          reporter.reportErrorForSpan(DUPLICATE_RULE_HINT, node.span, [value]);
+          reporter.reportErrorForSpan(
+              AnalysisOptionsHintCode.DUPLICATE_RULE, node.span, [value]);
         }
       }
       // Report removed or deprecated lint warnings defined directly (and not in
@@ -147,11 +103,13 @@ class LinterRuleOptionsValidator extends OptionsValidator {
         if (state is DeprecatedState && isDeprecatedInCurrentSdk(state)) {
           var replacedBy = state.replacedBy;
           if (replacedBy != null) {
-            reporter.reportErrorForSpan(DEPRECATED_LINT_HINT_WITH_REPLACEMENT,
-                node.span, [value, replacedBy]);
+            reporter.reportErrorForSpan(
+                AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT,
+                node.span,
+                [value, replacedBy]);
           } else {
-            reporter
-                .reportErrorForSpan(DEPRECATED_LINT_HINT, node.span, [value]);
+            reporter.reportErrorForSpan(
+                AnalysisOptionsHintCode.DEPRECATED_LINT, node.span, [value]);
           }
         } else if (isRemovedInCurrentSdk(state)) {
           var since = state.since.toString();

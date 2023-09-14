@@ -82,6 +82,7 @@ class LspClientCapabilities {
   final Set<SymbolKind> workspaceSymbolKinds;
   final Set<CompletionItemKind> completionItemKinds;
   final Set<InsertTextMode> completionInsertTextModes;
+  final bool completionLabelDetails;
   final bool completionDefaultEditRange;
   final bool completionDefaultTextMode;
   final bool experimentalSnippetTextEdit;
@@ -121,6 +122,7 @@ class LspClientCapabilities {
     final completionItemKinds = _listToSet(
         completion?.completionItemKind?.valueSet,
         defaults: defaultSupportedCompletionKinds);
+    final completionLabelDetails = completionItem?.labelDetailsSupport ?? false;
     final completionSnippets = completionItem?.snippetSupport ?? false;
     final completionDefaultEditRange = completionDefaults.contains('editRange');
     final completionDefaultTextMode =
@@ -200,6 +202,7 @@ class LspClientCapabilities {
       workspaceSymbolKinds: workspaceSymbolKinds,
       completionItemKinds: completionItemKinds,
       completionInsertTextModes: completionInsertTextModes,
+      completionLabelDetails: completionLabelDetails,
       completionDefaultEditRange: completionDefaultEditRange,
       completionDefaultTextMode: completionDefaultTextMode,
       experimentalSnippetTextEdit: experimentalSnippetTextEdit,
@@ -236,6 +239,7 @@ class LspClientCapabilities {
     required this.workspaceSymbolKinds,
     required this.completionItemKinds,
     required this.completionInsertTextModes,
+    required this.completionLabelDetails,
     required this.completionDefaultEditRange,
     required this.completionDefaultTextMode,
     required this.experimentalSnippetTextEdit,

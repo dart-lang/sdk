@@ -269,14 +269,16 @@ Fragment BaseFlowGraphBuilder::UnboxedIntConstant(
 
 Fragment BaseFlowGraphBuilder::MemoryCopy(classid_t src_cid,
                                           classid_t dest_cid,
-                                          bool unboxed_length) {
+                                          bool unboxed_inputs,
+                                          bool can_overlap) {
   Value* length = Pop();
   Value* dest_start = Pop();
   Value* src_start = Pop();
   Value* dest = Pop();
   Value* src = Pop();
-  auto copy = new (Z) MemoryCopyInstr(src, dest, src_start, dest_start, length,
-                                      src_cid, dest_cid, unboxed_length);
+  auto copy =
+      new (Z) MemoryCopyInstr(src, dest, src_start, dest_start, length, src_cid,
+                              dest_cid, unboxed_inputs, can_overlap);
   return Fragment(copy);
 }
 
@@ -1240,7 +1242,7 @@ Fragment BaseFlowGraphBuilder::InitConstantParameters() {
   const intptr_t parameter_count = parsed_function_->function().NumParameters();
   for (intptr_t i = 0; i < parameter_count; ++i) {
     LocalVariable* raw_parameter = parsed_function_->RawParameterVariable(i);
-    const Object* param_value = raw_parameter->parameter_value();
+    const Object* param_value = raw_parameter->inferred_arg_value();
     if (param_value != nullptr) {
       instructions += Constant(*param_value);
       instructions += StoreLocalRaw(TokenPosition::kNoSource, raw_parameter);

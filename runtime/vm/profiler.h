@@ -569,16 +569,7 @@ class CodeLookupTable : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(CodeLookupTable);
 };
 
-// Interface for a class that can create a ProcessedSampleBuffer.
-class ProcessedSampleBufferBuilder {
- public:
-  virtual ~ProcessedSampleBufferBuilder() = default;
-  virtual ProcessedSampleBuffer* BuildProcessedSampleBuffer(
-      SampleFilter* filter,
-      ProcessedSampleBuffer* buffer = nullptr) = 0;
-};
-
-class SampleBuffer : public ProcessedSampleBufferBuilder {
+class SampleBuffer {
  public:
   SampleBuffer() = default;
   virtual ~SampleBuffer() = default;
@@ -631,7 +622,7 @@ class SampleBuffer : public ProcessedSampleBufferBuilder {
 
   intptr_t capacity() const { return capacity_; }
 
-  virtual ProcessedSampleBuffer* BuildProcessedSampleBuffer(
+  ProcessedSampleBuffer* BuildProcessedSampleBuffer(
       SampleFilter* filter,
       ProcessedSampleBuffer* buffer = nullptr);
 
@@ -741,7 +732,7 @@ class SampleBlock : public SampleBuffer {
   DISALLOW_COPY_AND_ASSIGN(SampleBlock);
 };
 
-class SampleBlockBuffer : public ProcessedSampleBufferBuilder {
+class SampleBlockBuffer {
  public:
   static constexpr intptr_t kDefaultBlockCount = 600;
 
@@ -776,7 +767,8 @@ class SampleBlockBuffer : public ProcessedSampleBufferBuilder {
 
   intptr_t Size() const { return memory_->size(); }
 
-  virtual ProcessedSampleBuffer* BuildProcessedSampleBuffer(
+  ProcessedSampleBuffer* BuildProcessedSampleBuffer(
+      Isolate* isolate,
       SampleFilter* filter,
       ProcessedSampleBuffer* buffer = nullptr);
 
@@ -797,24 +789,6 @@ class SampleBlockBuffer : public ProcessedSampleBufferBuilder {
 
   friend class Isolate;
   DISALLOW_COPY_AND_ASSIGN(SampleBlockBuffer);
-};
-
-class StreamingSampleBufferBuilder : public ProcessedSampleBufferBuilder {
- public:
-  explicit StreamingSampleBufferBuilder(Isolate* isolate) : isolate_(isolate) {}
-
-  virtual ProcessedSampleBuffer* BuildProcessedSampleBuffer(
-      SampleFilter* filter,
-      ProcessedSampleBuffer* buffer = nullptr);
-
-  // Returns true when at least one sample in the sample block list has a user
-  // tag with CPU sample streaming enabled.
-  bool HasStreamableSamples(Thread* thread);
-
- private:
-  Isolate* isolate_;
-
-  DISALLOW_COPY_AND_ASSIGN(StreamingSampleBufferBuilder);
 };
 
 intptr_t Profiler::Size() {

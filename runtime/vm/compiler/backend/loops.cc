@@ -1149,8 +1149,12 @@ const char* LoopInfo::ToCString() const {
 }
 
 LoopHierarchy::LoopHierarchy(ZoneGrowableArray<BlockEntryInstr*>* headers,
-                             const GrowableArray<BlockEntryInstr*>& preorder)
-    : headers_(headers), preorder_(preorder), top_(nullptr) {
+                             const GrowableArray<BlockEntryInstr*>& preorder,
+                             bool print_traces)
+    : headers_(headers),
+      preorder_(preorder),
+      top_(nullptr),
+      print_traces_(print_traces) {
   Build();
 }
 
@@ -1184,7 +1188,7 @@ void LoopHierarchy::Build() {
     }
   }
   // If tracing is requested, print the loop hierarchy.
-  if (FLAG_trace_optimization) {
+  if (FLAG_trace_optimization && print_traces_) {
     Print(top_);
   }
 }

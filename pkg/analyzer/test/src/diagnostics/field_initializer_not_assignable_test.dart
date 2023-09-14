@@ -10,8 +10,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FieldInitializerNotAssignableTest);
-    defineReflectiveTests(
-        FieldInitializerNotAssignableWithoutNullSafetyAndNoImplicitCastsTest);
     defineReflectiveTests(FieldInitializerNotAssignableWithStrictCastsTest);
   });
 }
@@ -50,36 +48,6 @@ class A {
 }
 ''', [
       error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 31, 2),
-    ]);
-  }
-
-  test_enum_unrelated() async {
-    await assertErrorsInCode('''
-enum E {
-  v;
-  final int x;
-  const E() : x = '';
-}
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH, 11, 1),
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 47, 2),
-      error(CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE, 47, 2),
-    ]);
-  }
-}
-
-@reflectiveTest
-class FieldInitializerNotAssignableWithoutNullSafetyAndNoImplicitCastsTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
-  test_constructorInitializer() async {
-    await assertErrorsWithNoImplicitCasts('''
-class A {
-  int i;
-  A(num n) : i = n;
-}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 36, 1),
     ]);
   }
 }

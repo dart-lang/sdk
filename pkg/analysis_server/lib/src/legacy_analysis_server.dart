@@ -485,6 +485,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   }
 
   @override
+  @protected
   bool get supportsShowMessageRequest =>
       clientCapabilities.requests.contains('showMessageRequest');
 
@@ -521,7 +522,6 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Handle a [request] that was read from the communication channel.
   void handleRequest(Request request) {
     final startTime = DateTime.now();
-    analyticsManager.startedRequest(request: request, startTime: startTime);
     performance.logRequestTiming(request.clientRequestTime);
 
     // Because we don't `await` the execution of the handlers, we wrap the
@@ -545,8 +545,14 @@ class LegacyAnalysisServer extends AnalysisServer {
         if (generator != null) {
           var handler =
               generator(this, request, cancellationToken, performance);
+          if (!handler.recordsOwnAnalytics) {
+            analyticsManager.startedRequest(
+                request: request, startTime: startTime);
+          }
           await handler.handle();
         } else {
+          analyticsManager.startedRequest(
+              request: request, startTime: startTime);
           sendResponse(Response.unknownRequest(request));
         }
       });
@@ -799,6 +805,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   }
 
   @override
+  @visibleForOverriding
   Future<String?> showUserPrompt(
     MessageType type,
     String message,

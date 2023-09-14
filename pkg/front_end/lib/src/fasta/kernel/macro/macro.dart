@@ -23,9 +23,7 @@ import '../../builder/class_builder.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/library_builder.dart';
 import '../../builder/member_builder.dart';
-import '../../builder/named_type_builder.dart';
 import '../../builder/nullability_builder.dart';
-import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_alias_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/type_declaration_builder.dart';
@@ -1385,7 +1383,7 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
   @override
   Future<macro.TypeAnnotation> inferType(
           macro.OmittedTypeAnnotation omittedType) =>
-      new Future.value(macroApplications._inferOmittedType(omittedType));
+      new Future.value(macroApplications._inferOmittedType(omittedType)!);
 
   @override
   Future<List<macro.Declaration>> topLevelDeclarationsOf(

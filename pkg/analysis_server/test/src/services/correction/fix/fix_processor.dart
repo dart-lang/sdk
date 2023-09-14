@@ -100,8 +100,22 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     return DartChangeWorkspace([await session]);
   }
 
-  Future<void> assertHasFix(String expected) async {
-    change = await _computeSourceChange();
+  Future<void> assertFormat(String expectedCode) async {
+    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
+    var analysisContext = contextFor(testFile);
+    tracker.addContext(analysisContext);
+    processor = BulkFixProcessor(TestInstrumentationService(), await workspace,
+        useConfigFiles: useConfigFiles);
+    await processor.formatCode([analysisContext]);
+    var change = processor.builder.sourceChange;
+    var fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
+    expect(resultCode, expectedCode);
+  }
+
+  Future<void> assertHasFix(String expected, {bool isParse = false}) async {
+    change = await _computeSourceChange(isParse: isParse);
 
     // apply to "file"
     var fileEdits = change.edits;
@@ -118,15 +132,33 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     expect(fileEdits, isEmpty);
   }
 
+  Future<void> assertOrganize(String expectedCode) async {
+    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
+    var analysisContext = contextFor(testFile);
+    tracker.addContext(analysisContext);
+    processor = BulkFixProcessor(TestInstrumentationService(), await workspace,
+        useConfigFiles: useConfigFiles);
+    await processor.organizeDirectives([analysisContext]);
+    var change = processor.builder.sourceChange;
+    var fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
+    expect(resultCode, expectedCode);
+  }
+
   /// Computes fixes for the specified [testUnit].
-  Future<BulkFixProcessor> computeFixes() async {
+  Future<BulkFixProcessor> computeFixes({bool isParse = false}) async {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
     var analysisContext = contextFor(testFile);
     tracker.addContext(analysisContext);
     var processor = BulkFixProcessor(
         TestInstrumentationService(), await workspace,
         useConfigFiles: useConfigFiles);
-    await processor.fixErrors([analysisContext]);
+    if (isParse) {
+      await processor.fixErrorsUsingParsedResult([analysisContext]);
+    } else {
+      await processor.fixErrors([analysisContext]);
+    }
     return processor;
   }
 
@@ -149,8 +181,8 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   }
 
   /// Returns the source change for computed fixes in the specified [testUnit].
-  Future<SourceChange> _computeSourceChange() async {
-    processor = await computeFixes();
+  Future<SourceChange> _computeSourceChange({bool isParse = false}) async {
+    processor = await computeFixes(isParse: isParse);
     return processor.builder.sourceChange;
   }
 

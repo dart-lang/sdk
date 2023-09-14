@@ -42,7 +42,6 @@ class ParseBase with ResourceProviderMixin {
       featureSet: featureSet,
       lineInfo: lineInfo,
     );
-    parser.enableOptionalNewAndConst = true;
 
     var unit = parser.parseCompilationUnit(token);
 

@@ -13,9 +13,7 @@ import 'dart:js_interop';
 class A {}
 
 @JS()
-inline class B {
-  final A a;
-
+extension type B._(A a) {
   external B(A a);
 
   external B.named(int i);

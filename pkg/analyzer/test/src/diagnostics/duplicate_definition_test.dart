@@ -1222,6 +1222,36 @@ extension type E(int it) {
     ]);
   }
 
+  test_instance_representation_getter() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  int get it => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 37, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 21, 2)]),
+    ]);
+  }
+
+  test_instance_representation_method() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  void it() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 34, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 21, 2)]),
+    ]);
+  }
+
+  test_instance_representation_setter() async {
+    await assertNoErrorsInCode(r'''
+extension type E(int it) {
+  set it(int _) {}
+}
+''');
+  }
+
   test_instance_setter_getter() async {
     await assertNoErrorsInCode(r'''
 extension type E(int it) {

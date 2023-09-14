@@ -6,11 +6,11 @@ import 'package:dev_compiler/src/compiler/module_builder.dart'
     show ModuleFormat;
 import 'package:test/test.dart';
 
+import '../shared_test_options.dart';
 import 'expression_compiler_e2e_suite.dart';
-import 'setup_compiler_options.dart';
 
 void main(List<String> args) async {
-  var driver = await TestDriver.init();
+  var driver = await ExpressionEvaluationTestDriver.init();
 
   tearDownAll(() async {
     await driver.finish();
@@ -116,7 +116,8 @@ main() {
 }
 ''';
 
-void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
+void runSharedTests(
+    SetupCompilerOptions setup, ExpressionEvaluationTestDriver driver) {
   group('Runtime debugging API |', () {
     var source = simpleClassSource;
 
@@ -416,7 +417,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     });
 
     test('typeName (int type)', () async {
-      var typeName = await driver.evaluateDartExpression(
+      var typeName = await driver.evaluateDartExpressionInFrame(
         breakpointId: 'BP',
         expression: 'xType.toString()',
       );
@@ -424,7 +425,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     });
 
     test('typeName (base type)', () async {
-      var typeName = await driver.evaluateDartExpression(
+      var typeName = await driver.evaluateDartExpressionInFrame(
         breakpointId: 'BP',
         expression: 'baseType.toString()',
       );
@@ -432,7 +433,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     });
 
     test('getObjectMetadata (int type)', () async {
-      var typeName = await driver.evaluateDartExpression(
+      var typeName = await driver.evaluateDartExpressionInFrame(
         breakpointId: 'BP',
         expression: 'xType.toString()',
       );
@@ -451,7 +452,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     });
 
     test('getObjectMetadata (base type)', () async {
-      var typeName = await driver.evaluateDartExpression(
+      var typeName = await driver.evaluateDartExpressionInFrame(
         breakpointId: 'BP',
         expression: 'baseType.toString()',
       );
@@ -470,7 +471,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     });
 
     test('getObjectMetadata (type)', () async {
-      var typeName = await driver.evaluateDartExpression(
+      var typeName = await driver.evaluateDartExpressionInFrame(
         breakpointId: 'BP',
         expression: 'baseTypeType.toString()',
       );
@@ -489,7 +490,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     });
 
     test('getObjectMetadata (Set type)', () async {
-      var typeName = await driver.evaluateDartExpression(
+      var typeName = await driver.evaluateDartExpressionInFrame(
         breakpointId: 'BP',
         expression: 'setType.toString()',
       );
@@ -508,7 +509,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     });
 
     test('getObjectMetadata (List type)', () async {
-      var typeName = await driver.evaluateDartExpression(
+      var typeName = await driver.evaluateDartExpressionInFrame(
         breakpointId: 'BP',
         expression: 'listType.toString()',
       );
@@ -527,7 +528,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     });
 
     test('getObjectMetadata (Map type)', () async {
-      var typeName = await driver.evaluateDartExpression(
+      var typeName = await driver.evaluateDartExpressionInFrame(
         breakpointId: 'BP',
         expression: 'mapType.toString()',
       );

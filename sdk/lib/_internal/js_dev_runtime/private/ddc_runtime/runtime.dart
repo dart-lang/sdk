@@ -21,14 +21,16 @@ import 'dart:_foreign_helper'
         spread;
 import 'dart:_interceptors'
     show
+        JavaScriptBigInt,
         JavaScriptFunction,
+        JavaScriptObject,
+        JavaScriptSymbol,
         JSArray,
+        JSFunction,
         JSInt,
         jsNull,
         JSNumNotInt,
-        JSFunction,
         LegacyJavaScriptObject,
-        JavaScriptObject,
         NativeError;
 
 import 'dart:_internal' as internal show LateError, Symbol;

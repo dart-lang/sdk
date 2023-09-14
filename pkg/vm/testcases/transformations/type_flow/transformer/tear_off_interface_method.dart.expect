@@ -20,7 +20,7 @@ class B extends self::A {
 }
 class TearOffInterfaceMethod extends core::Object {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  field dynamic bazz;
-  constructor •([@vm.inferred-type.metadata=#lib::B] self::A arg) → self::TearOffInterfaceMethod
+  constructor •([@vm.inferred-arg-type.metadata=#lib::B] self::A arg) → self::TearOffInterfaceMethod
     : self::TearOffInterfaceMethod::bazz = arg.{self::A::foo}{() → core::int}, super core::Object::•()
     ;
 }

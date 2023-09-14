@@ -1208,7 +1208,7 @@ class Declare extends Statement {
 
   @override
   void preVisit(PreVisitor visitor) {
-    var variableBinder = _VariableBinder(errors: visitor.errors);
+    var variableBinder = _VariableBinder(visitor);
     variableBinder.casePatternStart();
     pattern.preVisit(visitor, variableBinder, isInAssignment: false);
     variableBinder.casePatternFinish();
@@ -1395,7 +1395,7 @@ class ExpressionCase extends Node {
   void _preVisit(PreVisitor visitor) {
     final guardedPattern = this.guardedPattern;
     if (guardedPattern != null) {
-      var variableBinder = _VariableBinder(errors: visitor.errors);
+      var variableBinder = _VariableBinder(visitor);
       variableBinder.casePatternStart();
       guardedPattern.pattern
           .preVisit(visitor, variableBinder, isInAssignment: false);
@@ -1904,7 +1904,7 @@ class IfCase extends IfBase {
   @override
   void preVisit(PreVisitor visitor) {
     expression.preVisit(visitor);
-    var variableBinder = _VariableBinder(errors: visitor.errors);
+    var variableBinder = _VariableBinder(visitor);
     variableBinder.casePatternStart();
     pattern.preVisit(visitor, variableBinder, isInAssignment: false);
     _candidateVariables = variableBinder.casePatternFinish();
@@ -1950,7 +1950,7 @@ class IfCaseElement extends IfElementBase {
   @override
   void preVisit(PreVisitor visitor) {
     expression.preVisit(visitor);
-    var variableBinder = _VariableBinder(errors: visitor.errors);
+    var variableBinder = _VariableBinder(visitor);
     variableBinder.casePatternStart();
     pattern.preVisit(visitor, variableBinder, isInAssignment: false);
     _variables = variableBinder.casePatternFinish();
@@ -2581,6 +2581,7 @@ class MiniAstOperations
     'List<int>': false,
     'Never': false,
     'num': false,
+    'num?': false,
     'Object': false,
     'Object?': false,
     'String': false,
@@ -2616,7 +2617,9 @@ class MiniAstOperations
     'error <: int': Type('error'),
     'error <: num': Type('error'),
     'int <: dynamic': Type('int'),
+    'int <: int': Type('int'),
     'int <: num': Type('int'),
+    'int <: Object': Type('int'),
     'int <: Object?': Type('int'),
     'List <: Iterable<int>': Type('List<int>'),
     'Never <: int': Type('Never'),
@@ -3234,7 +3237,7 @@ class PatternAssignment extends Expression {
 
   @override
   void preVisit(PreVisitor visitor) {
-    var variableBinder = _VariableBinder(errors: visitor.errors);
+    var variableBinder = _VariableBinder(visitor);
     variableBinder.casePatternStart();
     lhs.preVisit(visitor, variableBinder, isInAssignment: true);
     variableBinder.casePatternFinish();
@@ -3265,7 +3268,7 @@ class PatternForIn extends Statement {
   void preVisit(PreVisitor visitor) {
     expression.preVisit(visitor);
 
-    var variableBinder = _VariableBinder(errors: visitor.errors);
+    var variableBinder = _VariableBinder(visitor);
     variableBinder.casePatternStart();
     pattern.preVisit(visitor, variableBinder, isInAssignment: false);
     variableBinder.casePatternFinish();
@@ -3313,7 +3316,7 @@ class PatternForInElement extends CollectionElement {
   void preVisit(PreVisitor visitor) {
     expression.preVisit(visitor);
 
-    var variableBinder = _VariableBinder(errors: visitor.errors);
+    var variableBinder = _VariableBinder(visitor);
     variableBinder.casePatternStart();
     pattern.preVisit(visitor, variableBinder, isInAssignment: false);
     variableBinder.casePatternFinish();
@@ -3400,6 +3403,7 @@ class PatternVariableJoin extends Var {
   void _handleJoin({
     required List<Var> components,
     required JoinedPatternVariableInconsistency inconsistency,
+    required PreVisitor visitor,
   }) {
     expect(isJoined, false);
     expect(components.map((c) => c.identity),
@@ -3408,6 +3412,7 @@ class PatternVariableJoin extends Var {
     expect(components, expectedComponents, reason: 'at $location');
     this.inconsistency = inconsistency;
     this.isJoined = true;
+    visitor._assignedVariables.declare(this);
   }
 }
 
@@ -4191,7 +4196,7 @@ class SwitchStatementMember extends Node {
   }) : super._();
 
   void _preVisit(PreVisitor visitor) {
-    var variableBinder = _VariableBinder(errors: visitor.errors);
+    var variableBinder = _VariableBinder(visitor);
     variableBinder.switchStatementSharedCaseScopeStart(this);
     for (SwitchHead element in elements) {
       if (element is SwitchHeadCase) {
@@ -5745,12 +5750,13 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  Type resolveObjectPatternPropertyGet({
+  (_PropertyElement?, Type) resolveObjectPatternPropertyGet({
     required Pattern objectPattern,
     required Type receiverType,
     required shared.RecordPatternField<Node, Pattern> field,
   }) {
-    return _harness.getMember(receiverType, field.name!)?._type ?? dynamicType;
+    var propertyMember = _harness.getMember(receiverType, field.name!);
+    return (propertyMember, propertyMember?._type ?? dynamicType);
   }
 
   @override
@@ -5862,9 +5868,9 @@ class _PropertyElement {
 }
 
 class _VariableBinder extends VariableBinder<Node, Var> {
-  _VariableBinder({
-    required super.errors,
-  });
+  final PreVisitor visitor;
+
+  _VariableBinder(this.visitor) : super(errors: visitor.errors);
 
   @override
   Var joinPatternVariables({
@@ -5879,6 +5885,7 @@ class _VariableBinder extends VariableBinder<Node, Var> {
     joinedVariable._handleJoin(
       components: components,
       inconsistency: inconsistency,
+      visitor: visitor,
     );
     return joinedVariable;
   }

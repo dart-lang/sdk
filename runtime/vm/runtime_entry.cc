@@ -59,9 +59,14 @@ DEFINE_FLAG(int,
             4000,
             "Counter threshold before a function gets reoptimized.");
 DEFINE_FLAG(bool,
-            stress_write_barrier_elimination,
+            runtime_allocate_old,
             false,
-            "Stress test write barrier elimination.");
+            "Use old-space for allocation via runtime calls.");
+DEFINE_FLAG(bool,
+            runtime_allocate_spill_tlab,
+            false,
+            "Ensure results of allocation via runtime calls are not in an "
+            "active TLAB.");
 DEFINE_FLAG(bool, trace_deoptimization, false, "Trace deoptimization");
 DEFINE_FLAG(bool,
             trace_deoptimization_verbose,
@@ -327,7 +332,16 @@ DEFINE_RUNTIME_ENTRY(IntegerDivisionByZeroException, 0) {
 }
 
 static Heap::Space SpaceForRuntimeAllocation() {
-  return FLAG_stress_write_barrier_elimination ? Heap::kOld : Heap::kNew;
+  return UNLIKELY(FLAG_runtime_allocate_old) ? Heap::kOld : Heap::kNew;
+}
+
+static void RuntimeAllocationEpilogue(Thread* thread) {
+  if (UNLIKELY(FLAG_runtime_allocate_spill_tlab)) {
+    static uword count = 0;
+    if ((count++ % 10) == 0) {
+      thread->heap()->new_space()->AbandonRemainingTLAB(thread);
+    }
+  }
 }
 
 // Allocation of a fixed length array of given element type.
@@ -359,7 +373,6 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   const Array& array = Array::Handle(
       zone,
       Array::New(static_cast<intptr_t>(len), SpaceForRuntimeAllocation()));
-  arguments.SetReturn(array);
   TypeArguments& element_type =
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
   // An Array is raw or takes one type argument. However, its type argument
@@ -368,56 +381,74 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   ASSERT(element_type.IsNull() ||
          (element_type.Length() >= 1 && element_type.IsInstantiated()));
   array.SetTypeArguments(element_type);  // May be null.
+  arguments.SetReturn(array);
+  RuntimeAllocationEpilogue(thread);
 }
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateDouble, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
     isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
-  arguments.SetReturn(Object::Handle(zone, Double::New(0.0)));
+  arguments.SetReturn(
+      Object::Handle(zone, Double::New(0.0, SpaceForRuntimeAllocation())));
+  RuntimeAllocationEpilogue(thread);
 }
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxDouble, 0) {
   const double val = thread->unboxed_double_runtime_arg();
-  arguments.SetReturn(Object::Handle(zone, Double::New(val)));
+  arguments.SetReturn(
+      Object::Handle(zone, Double::New(val, SpaceForRuntimeAllocation())));
+  RuntimeAllocationEpilogue(thread);
 }
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxFloat32x4, 0) {
   const auto val = thread->unboxed_simd128_runtime_arg();
-  arguments.SetReturn(Object::Handle(zone, Float32x4::New(val)));
+  arguments.SetReturn(
+      Object::Handle(zone, Float32x4::New(val, SpaceForRuntimeAllocation())));
+  RuntimeAllocationEpilogue(thread);
 }
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxFloat64x2, 0) {
   const auto val = thread->unboxed_simd128_runtime_arg();
-  arguments.SetReturn(Object::Handle(zone, Float64x2::New(val)));
+  arguments.SetReturn(
+      Object::Handle(zone, Float64x2::New(val, SpaceForRuntimeAllocation())));
+  RuntimeAllocationEpilogue(thread);
 }
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
     isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
-  arguments.SetReturn(Object::Handle(zone, Integer::New(kMaxInt64)));
+  arguments.SetReturn(Object::Handle(
+      zone, Integer::New(kMaxInt64, SpaceForRuntimeAllocation())));
+  RuntimeAllocationEpilogue(thread);
 }
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat32x4, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
     isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
-  arguments.SetReturn(Object::Handle(zone, Float32x4::New(0.0, 0.0, 0.0, 0.0)));
+  arguments.SetReturn(Object::Handle(
+      zone, Float32x4::New(0.0, 0.0, 0.0, 0.0, SpaceForRuntimeAllocation())));
+  RuntimeAllocationEpilogue(thread);
 }
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat64x2, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
     isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
-  arguments.SetReturn(Object::Handle(zone, Float64x2::New(0.0, 0.0)));
+  arguments.SetReturn(Object::Handle(
+      zone, Float64x2::New(0.0, 0.0, SpaceForRuntimeAllocation())));
+  RuntimeAllocationEpilogue(thread);
 }
 
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateInt32x4, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
     isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
-  arguments.SetReturn(Object::Handle(zone, Int32x4::New(0, 0, 0, 0)));
+  arguments.SetReturn(Object::Handle(
+      zone, Int32x4::New(0, 0, 0, 0, SpaceForRuntimeAllocation())));
+  RuntimeAllocationEpilogue(thread);
 }
 
 // Allocate typed data array of given class id and length.
@@ -440,8 +471,10 @@ DEFINE_RUNTIME_ENTRY(AllocateTypedData, 2) {
     Exceptions::ThrowOOM();
   }
   const auto& typed_data =
-      TypedData::Handle(zone, TypedData::New(cid, static_cast<intptr_t>(len)));
+      TypedData::Handle(zone, TypedData::New(cid, static_cast<intptr_t>(len),
+                                             SpaceForRuntimeAllocation()));
   arguments.SetReturn(typed_data);
+  RuntimeAllocationEpilogue(thread);
 }
 
 // Helper returning the token position of the Dart caller.
@@ -470,8 +503,6 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
   ASSERT(cls.is_allocate_finalized());
   const Instance& instance = Instance::Handle(
       zone, Instance::NewAlreadyFinalized(cls, SpaceForRuntimeAllocation()));
-
-  arguments.SetReturn(instance);
   if (cls.NumTypeArguments() == 0) {
     // No type arguments required for a non-parameterized type.
     ASSERT(Instance::CheckedHandle(zone, arguments.ArgAt(1)).IsNull());
@@ -486,6 +517,8 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
             (type_arguments.Length() >= cls.NumTypeArguments())));
     instance.SetTypeArguments(type_arguments);
   }
+  arguments.SetReturn(instance);
+  RuntimeAllocationEpilogue(thread);
 }
 
 DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
@@ -675,6 +708,7 @@ DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
                    Object::null_type_arguments(), function, context,
                    SpaceForRuntimeAllocation()));
   arguments.SetReturn(closure);
+  RuntimeAllocationEpilogue(thread);
 }
 
 // Allocate a new context large enough to hold the given number of variables.
@@ -685,6 +719,7 @@ DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
   const Context& context = Context::Handle(
       zone, Context::New(num_variables.Value(), SpaceForRuntimeAllocation()));
   arguments.SetReturn(context);
+  RuntimeAllocationEpilogue(thread);
 }
 
 // Make a copy of the given context, including the values of the captured
@@ -702,6 +737,7 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
     cloned_ctx.SetAt(i, inst);
   }
   arguments.SetReturn(cloned_ctx);
+  RuntimeAllocationEpilogue(thread);
 }
 
 // Allocate a new record instance.
@@ -712,6 +748,7 @@ DEFINE_RUNTIME_ENTRY(AllocateRecord, 1) {
   const Record& record =
       Record::Handle(zone, Record::New(shape, SpaceForRuntimeAllocation()));
   arguments.SetReturn(record);
+  RuntimeAllocationEpilogue(thread);
 }
 
 // Allocate a new small record instance and initialize its fields.
@@ -733,6 +770,7 @@ DEFINE_RUNTIME_ENTRY(AllocateSmallRecord, 4) {
     record.SetFieldAt(2, value2);
   }
   arguments.SetReturn(record);
+  RuntimeAllocationEpilogue(thread);
 }
 
 // Allocate a SuspendState object.
@@ -775,6 +813,7 @@ DEFINE_RUNTIME_ENTRY(AllocateSuspendState, 2) {
                                SpaceForRuntimeAllocation());
   }
   arguments.SetReturn(result);
+  RuntimeAllocationEpilogue(thread);
 }
 
 // Makes a copy of the given SuspendState object, including the payload frame.
@@ -786,6 +825,7 @@ DEFINE_RUNTIME_ENTRY(CloneSuspendState, 1) {
   const SuspendState& dst = SuspendState::Handle(
       zone, SuspendState::Clone(thread, src, SpaceForRuntimeAllocation()));
   arguments.SetReturn(dst);
+  RuntimeAllocationEpilogue(thread);
 }
 
 // Helper routine for tracing a type check.
@@ -4053,6 +4093,8 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   current_thread->set_execution_state(Thread::kThreadInVM);
 
   current_thread->ExitSafepoint();
+
+  current_thread->set_unboxed_int64_runtime_arg(metadata.context());
 
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata thread %p", current_thread);
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata entry_point %p",

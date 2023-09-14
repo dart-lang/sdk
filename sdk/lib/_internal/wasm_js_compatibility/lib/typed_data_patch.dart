@@ -5,9 +5,7 @@
 import 'dart:_internal' show FixedLengthListMixin, patch, UnmodifiableListBase;
 import 'dart:_js_helper' as js;
 import 'dart:_js_types';
-import 'dart:_simd';
 import 'dart:_string_helper';
-import 'dart:_typed_data_helper';
 import 'dart:_wasm';
 import 'dart:typed_data';
 import 'dart:js_interop';
@@ -231,110 +229,110 @@ class Float64x2List {
 abstract class UnmodifiableByteBufferView implements Uint8List {
   @patch
   factory UnmodifiableByteBufferView(ByteBuffer data) =
-      UnmodifiableByteBufferViewImpl;
+      _UnmodifiableByteBufferViewImpl;
 }
 
 @patch
 abstract class UnmodifiableByteDataView implements Uint8List {
   @patch
   factory UnmodifiableByteDataView(ByteData data) =
-      UnmodifiableByteDataViewImpl;
+      _UnmodifiableByteDataViewImpl;
 }
 
 @patch
 abstract class UnmodifiableUint8ListView implements Uint8List {
   @patch
   factory UnmodifiableUint8ListView(Uint8List list) =
-      UnmodifiableUint8ListViewImpl;
+      _UnmodifiableUint8ListViewImpl;
 }
 
 @patch
 abstract class UnmodifiableInt8ListView implements Int8List {
   @patch
   factory UnmodifiableInt8ListView(Int8List list) =
-      UnmodifiableInt8ListViewImpl;
+      _UnmodifiableInt8ListViewImpl;
 }
 
 @patch
 abstract class UnmodifiableUint8ClampedListView implements Uint8ClampedList {
   @patch
   factory UnmodifiableUint8ClampedListView(Uint8ClampedList list) =
-      UnmodifiableUint8ClampedListViewImpl;
+      _UnmodifiableUint8ClampedListViewImpl;
 }
 
 @patch
 abstract class UnmodifiableUint16ListView implements Uint16List {
   @patch
   factory UnmodifiableUint16ListView(Uint16List list) =
-      UnmodifiableUint16ListViewImpl;
+      _UnmodifiableUint16ListViewImpl;
 }
 
 @patch
 abstract class UnmodifiableInt16ListView implements Int16List {
   @patch
   factory UnmodifiableInt16ListView(Int16List list) =
-      UnmodifiableInt16ListViewImpl;
+      _UnmodifiableInt16ListViewImpl;
 }
 
 @patch
 abstract class UnmodifiableUint32ListView implements Uint32List {
   @patch
   factory UnmodifiableUint32ListView(Uint32List list) =
-      UnmodifiableUint32ListViewImpl;
+      _UnmodifiableUint32ListViewImpl;
 }
 
 @patch
 abstract class UnmodifiableInt32ListView implements Int32List {
   @patch
   factory UnmodifiableInt32ListView(Int32List list) =
-      UnmodifiableInt32ListViewImpl;
+      _UnmodifiableInt32ListViewImpl;
 }
 
 @patch
 abstract class UnmodifiableUint64ListView implements Uint64List {
   @patch
   factory UnmodifiableUint64ListView(Uint64List list) =
-      UnmodifiableUint64ListViewImpl;
+      _UnmodifiableUint64ListViewImpl;
 }
 
 @patch
 abstract class UnmodifiableInt64ListView implements Int64List {
   @patch
   factory UnmodifiableInt64ListView(Int64List list) =
-      UnmodifiableInt64ListViewImpl;
+      _UnmodifiableInt64ListViewImpl;
 }
 
 @patch
 abstract class UnmodifiableInt32x4ListView implements Int32x4List {
   @patch
   factory UnmodifiableInt32x4ListView(Int32x4List list) =
-      UnmodifiableInt32x4ListViewImpl;
+      _UnmodifiableInt32x4ListViewImpl;
 }
 
 @patch
 abstract class UnmodifiableFloat32x4ListView implements Float32x4List {
   @patch
   factory UnmodifiableFloat32x4ListView(Float32x4List list) =
-      UnmodifiableFloat32x4ListViewImpl;
+      _UnmodifiableFloat32x4ListViewImpl;
 }
 
 @patch
 abstract class UnmodifiableFloat64x2ListView implements Float64x2List {
   @patch
   factory UnmodifiableFloat64x2ListView(Float64x2List list) =
-      UnmodifiableFloat64x2ListViewImpl;
+      _UnmodifiableFloat64x2ListViewImpl;
 }
 
 @patch
 abstract class UnmodifiableFloat32ListView implements Float32List {
   @patch
   factory UnmodifiableFloat32ListView(Float32List list) =
-      UnmodifiableFloat32ListViewImpl;
+      _UnmodifiableFloat32ListViewImpl;
 }
 
 @patch
 abstract class UnmodifiableFloat64ListView implements Float64List {
   @patch
   factory UnmodifiableFloat64ListView(Float64List list) =
-      UnmodifiableFloat64ListViewImpl;
+      _UnmodifiableFloat64ListViewImpl;
 }

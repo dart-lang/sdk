@@ -5,7 +5,7 @@
 part of 'tables.dart';
 
 /// A table defined in a module.
-class TableBuilder extends ir.Table with Builder<ir.DefinedTable> {
+class TableBuilder extends ir.Table with IndexableBuilder<ir.DefinedTable> {
   final List<ir.BaseFunction?> elements;
 
   TableBuilder(super.index, super.type, super.minSize, super.maxSize)
@@ -19,5 +19,5 @@ class TableBuilder extends ir.Table with Builder<ir.DefinedTable> {
 
   @override
   ir.DefinedTable forceBuild() =>
-      ir.DefinedTable(elements, index, type, minSize, maxSize);
+      ir.DefinedTable(elements, finalizableIndex, type, minSize, maxSize);
 }

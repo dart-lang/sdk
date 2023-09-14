@@ -19,13 +19,16 @@ class ImplementedComputer {
 
   Future<void> compute() async {
     for (var element in unitElement.classes) {
-      await _computeForClassElement(element);
+      await _computeForInterfaceElement(element);
     }
     for (var element in unitElement.enums) {
-      await _computeForClassElement(element);
+      await _computeForInterfaceElement(element);
+    }
+    for (var element in unitElement.extensionTypes) {
+      await _computeForInterfaceElement(element);
     }
     for (var element in unitElement.mixins) {
-      await _computeForClassElement(element);
+      await _computeForInterfaceElement(element);
     }
   }
 
@@ -50,7 +53,7 @@ class ImplementedComputer {
     }
   }
 
-  Future<void> _computeForClassElement(InterfaceElement element) async {
+  Future<void> _computeForInterfaceElement(InterfaceElement element) async {
     // Always include Object and its members.
     if (element is ClassElement && element.isDartCoreObject) {
       _addImplementedClass(element);

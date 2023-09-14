@@ -1,0 +1,29 @@
+name: linter
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+description: >-
+  The implementation of the lint rules supported by the analyzer framework.
+  This package is not intended to be used directly.
+
+environment:
+  sdk: ^3.2.0-edge
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  analyzer: any
+  args: any
+  collection: any
+  http: any
+  meta: any
+  path: any
+  pub_semver: any
+  source_span: any
+  yaml: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  cli_util: any
+  lints: any
+  test: any
+  test_reflective_loader: any

@@ -19,10 +19,12 @@ import '../uris.dart';
 import '../util/helpers.dart';
 import 'builder.dart';
 import 'class_builder.dart';
+import 'formal_parameter_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
-import 'named_type_builder.dart';
 import 'nullability_builder.dart';
+import 'record_type_builder.dart';
+import 'type_alias_builder.dart';
 import 'type_builder.dart';
 import 'type_declaration_builder.dart';
 
@@ -191,8 +193,8 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     return new TypeParameterType(parameter, nullability);
   }
 
-  void finish(
-      LibraryBuilder library, ClassBuilder object, TypeBuilder dynamicType) {
+  void finish(SourceLibraryBuilder library, ClassBuilder object,
+      TypeBuilder dynamicType) {
     if (isPatch) return;
     DartType objectType = object.buildAliasedType(
         library,
@@ -263,5 +265,92 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     return new List<TypeParameter>.generate(
         builders.length, (int i) => builders[i].parameter,
         growable: true);
+  }
+}
+
+List<TypeVariableBuilder> sortTypeVariablesTopologically(
+    Iterable<TypeVariableBuilder> typeVariables) {
+  Set<TypeVariableBuilder> unhandled = new Set<TypeVariableBuilder>.identity()
+    ..addAll(typeVariables);
+  List<TypeVariableBuilder> result = <TypeVariableBuilder>[];
+  while (unhandled.isNotEmpty) {
+    TypeVariableBuilder rootVariable = unhandled.first;
+    unhandled.remove(rootVariable);
+    if (rootVariable.bound != null) {
+      _sortTypeVariablesTopologicallyFromRoot(
+          rootVariable.bound!, unhandled, result);
+    }
+    result.add(rootVariable);
+  }
+  return result;
+}
+
+void _sortTypeVariablesTopologicallyFromRoot(TypeBuilder root,
+    Set<TypeVariableBuilder> unhandled, List<TypeVariableBuilder> result) {
+  List<TypeVariableBuilder>? foundTypeVariables;
+  List<TypeBuilder>? internalDependents;
+
+  switch (root) {
+    case NamedTypeBuilder(:TypeDeclarationBuilder? declaration):
+      if (declaration is ClassBuilder) {
+        foundTypeVariables = declaration.typeVariables;
+      } else if (declaration is TypeAliasBuilder) {
+        foundTypeVariables = declaration.typeVariables;
+        internalDependents = <TypeBuilder>[declaration.type];
+      } else if (declaration is TypeVariableBuilder) {
+        foundTypeVariables = <TypeVariableBuilder>[declaration];
+      }
+    case FunctionTypeBuilder(
+        :List<TypeVariableBuilder>? typeVariables,
+        :List<ParameterBuilder>? formals,
+        :TypeBuilder returnType
+      ):
+      foundTypeVariables = typeVariables;
+      if (formals != null) {
+        internalDependents = <TypeBuilder>[];
+        for (ParameterBuilder formal in formals) {
+          internalDependents.add(formal.type);
+        }
+      }
+      if (returnType is! OmittedTypeBuilder) {
+        (internalDependents ??= <TypeBuilder>[]).add(returnType);
+      }
+    case RecordTypeBuilder(
+        :List<RecordTypeFieldBuilder>? positionalFields,
+        :List<RecordTypeFieldBuilder>? namedFields
+      ):
+      if (positionalFields != null) {
+        internalDependents = <TypeBuilder>[];
+        for (RecordTypeFieldBuilder field in positionalFields) {
+          internalDependents.add(field.type);
+        }
+      }
+      if (namedFields != null) {
+        internalDependents ??= <TypeBuilder>[];
+        for (RecordTypeFieldBuilder field in namedFields) {
+          internalDependents.add(field.type);
+        }
+      }
+    case OmittedTypeBuilder():
+    case FixedTypeBuilder():
+    case InvalidTypeBuilder():
+  }
+
+  if (foundTypeVariables != null && foundTypeVariables.isNotEmpty) {
+    for (TypeVariableBuilder variable in foundTypeVariables) {
+      if (unhandled.contains(variable)) {
+        unhandled.remove(variable);
+        if (variable.bound != null) {
+          _sortTypeVariablesTopologicallyFromRoot(
+              variable.bound!, unhandled, result);
+        }
+        result.add(variable);
+      }
+    }
+  }
+  if (internalDependents != null && internalDependents.isNotEmpty) {
+    for (TypeBuilder type in internalDependents) {
+      _sortTypeVariablesTopologicallyFromRoot(type, unhandled, result);
+    }
   }
 }

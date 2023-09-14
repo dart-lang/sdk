@@ -1032,15 +1032,16 @@ struct InferredTypeMetadata {
   bool IsConstant() const { return (flags & kFlagConstant) != 0; }
   bool ReceiverNotInt() const { return (flags & kFlagReceiverNotInt) != 0; }
 
-  CompileType ToCompileType(Zone* zone) const {
+  CompileType ToCompileType(Zone* zone,
+                            const AbstractType* static_type = nullptr,
+                            bool can_be_sentinel = false) const {
     if (IsInt() && cid == kDynamicCid) {
       return CompileType::FromAbstractType(
           Type::ZoneHandle(
               zone, (IsNullable() ? Type::NullableIntType() : Type::IntType())),
-          IsNullable(), CompileType::kCannotBeSentinel);
+          IsNullable(), can_be_sentinel);
     } else {
-      return CompileType(IsNullable(), CompileType::kCannotBeSentinel, cid,
-                         nullptr);
+      return CompileType(IsNullable(), can_be_sentinel, cid, static_type);
     }
   }
 };
@@ -1048,10 +1049,25 @@ struct InferredTypeMetadata {
 // Helper class which provides access to inferred type metadata.
 class InferredTypeMetadataHelper : public MetadataHelper {
  public:
-  static const char* tag() { return "vm.inferred-type.metadata"; }
+  enum class Kind {
+    Type,     // Inferred type of a call, field or variable.
+    ArgType,  // Inferred incoming argument type.
+  };
+
+  static const char* tag(Kind kind) {
+    switch (kind) {
+      case Kind::Type:
+        return "vm.inferred-type.metadata";
+      case Kind::ArgType:
+        return "vm.inferred-arg-type.metadata";
+    }
+    UNREACHABLE();
+    return nullptr;
+  }
 
   explicit InferredTypeMetadataHelper(KernelReaderHelper* helper,
-                                      ConstantReader* constant_reader);
+                                      ConstantReader* constant_reader,
+                                      Kind kind = Kind::Type);
 
   InferredTypeMetadata GetInferredType(intptr_t node_offset,
                                        bool read_constant = true);

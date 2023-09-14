@@ -11,6 +11,10 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnusedCatchClause extends ResolvedCorrectionProducer {
   @override
+  // May not be appropriate while actively coding.
+  bool get canBeAppliedAutomatically => false;
+
+  @override
   bool get canBeAppliedInBulk => true;
 
   @override

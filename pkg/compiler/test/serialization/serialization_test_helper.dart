@@ -8,6 +8,7 @@ import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/dump_info.dart';
 import 'package:compiler/src/io/source_information.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/inferrer/types.dart';
@@ -35,7 +36,10 @@ Future<void> generateJavaScriptCode(Compiler compiler,
   final programSize = compiler.runCodegenEnqueuer(
       codegenResults, SourceLookup(compiler.componentForTesting));
   if (compiler.options.dumpInfo) {
-    await compiler.runDumpInfo(codegenResults, programSize);
+    await compiler.runDumpInfo(
+        codegenResults,
+        DumpInfoProgramData.fromEmitterResults(
+            compiler.backendStrategy, compiler.dumpInfoRegistry, programSize));
   }
 }
 

@@ -188,6 +188,7 @@ CyclicClassHierarchy/script1: Fail # We report an error for each class involved 
 CyclicClassHierarchy/script2: Fail # We report an error for each class involved in the cycle.
 CyclicRedirectingFactoryConstructors/part_wrapped_script: Fail # Error is reported for each factory involved in the cycle.
 CyclicRedirectingFactoryConstructors/script: Fail # Error is reported for each factory involved in the cycle.
+CyclicRepresentationDependency/analyzerCode: Fail
 CyclicTypedef/example: Fail
 DeferredAfterPrefix/example: Fail
 DeferredExtensionImport/analyzerCode: Fail
@@ -520,6 +521,8 @@ InvalidCastTopLevelFunction/example: Fail
 InvalidCatchArguments/example: Fail
 InvalidContinueTarget/analyzerCode: Fail
 InvalidContinueTarget/example: Fail
+InvalidExtensionTypeSuperExtensionType/analyzerCode: Fail
+InvalidExtensionTypeSuperInterface/analyzerCode: Fail
 InvalidGetterSetterType/analyzerCode: Fail
 InvalidGetterSetterTypeBothInheritedField/analyzerCode: Fail
 InvalidGetterSetterTypeBothInheritedFieldLegacy/analyzerCode: Fail
@@ -587,18 +590,18 @@ JsInteropExportMemberCollision/analyzerCode: Fail # Web compiler specific
 JsInteropExportMemberCollision/example: Fail # Web compiler specific
 JsInteropExportNoExportableMembers/analyzerCode: Fail # Web compiler specific
 JsInteropExportNoExportableMembers/example: Fail # Web compiler specific
+JsInteropExtensionTypeNotInterop/analyzerCode: Fail # Web compiler specific
+JsInteropExtensionTypeNotInterop/example: Fail # Web compiler specific
+JsInteropExtensionTypeMemberNotInterop/analyzerCode: Fail # Web compiler specific
+JsInteropExtensionTypeMemberNotInterop/example: Fail # Web compiler specific
+JsInteropExtensionTypeUsedWithWrongJsAnnotation/analyzerCode: Fail # Web compiler specific
+JsInteropExtensionTypeUsedWithWrongJsAnnotation/example: Fail # Web compiler specific
 JsInteropExternalExtensionMemberOnTypeInvalid/analyzerCode: Fail # Web compiler specific
 JsInteropExternalExtensionMemberOnTypeInvalid/example: Fail # Web compiler specific
 JsInteropExternalExtensionMemberWithStaticDisallowed/analyzerCode: Fail # Web compiler specific
 JsInteropExternalExtensionMemberWithStaticDisallowed/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
-JsInteropInlineClassNotInterop/analyzerCode: Fail # Web compiler specific
-JsInteropInlineClassNotInterop/example: Fail # Web compiler specific
-JsInteropInlineClassMemberNotInterop/analyzerCode: Fail # Web compiler specific
-JsInteropInlineClassMemberNotInterop/example: Fail # Web compiler specific
-JsInteropInlineClassUsedWithWrongJsAnnotation/analyzerCode: Fail # Web compiler specific
-JsInteropInlineClassUsedWithWrongJsAnnotation/example: Fail # Web compiler specific
 JsInteropInvalidStaticClassMemberName/analyzerCode: Fail
 JsInteropInvalidStaticClassMemberName/example: Fail
 JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
@@ -645,6 +648,8 @@ JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/analyzerCode: Fail # We
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/example: Fail # Web compiler specific
 JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
+JsInteropStaticInteropWithInvalidJsTypesSupertype/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithInvalidJsTypesSupertype/example: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 JsInteropFunctionToJSRequiresStaticType/analyzerCode: Fail # Web compiler specific

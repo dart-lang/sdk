@@ -22,7 +22,7 @@ import 'formal_parameter_kind.dart' show FormalParameterKind;
 
 import 'identifier_context.dart' show IdentifierContext;
 
-import 'declaration_kind.dart' show DeclarationKind;
+import 'declaration_kind.dart' show DeclarationHeaderKind, DeclarationKind;
 
 import 'member_kind.dart' show MemberKind;
 
@@ -137,7 +137,6 @@ class Listener implements UnescapeErrorListener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -175,7 +174,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("ClassHeader");
   }
 
-  /// Handle recovery associated with a class header.
+  /// Handle recovery associated with a class or extension type header.
   /// This may be called multiple times after [handleClassHeader]
   /// to recover information about the previous class header.
   /// The substructures are a subset of
@@ -183,8 +182,8 @@ class Listener implements UnescapeErrorListener {
   /// - supertype
   /// - with clause
   /// - implemented types
-  void handleRecoverClassHeader() {
-    logEvent("RecoverClassHeader");
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
+    logEvent("RecoverDeclarationHeader");
   }
 
   /// Handle the end of a class declaration.  Substructures:
@@ -298,6 +297,10 @@ class Listener implements UnescapeErrorListener {
       Token beginToken, Token? constKeyword, bool hasConstructorName) {
     logEvent('PrimaryConstructor');
   }
+
+  /// Handle the omission of a primary constructor declaration. Currently only
+  /// occurring in extension type declarations.
+  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {}
 
   void beginCombinators(Token token) {}
 
@@ -864,7 +867,6 @@ class Listener implements UnescapeErrorListener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,

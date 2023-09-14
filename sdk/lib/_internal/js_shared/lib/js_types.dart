@@ -51,6 +51,7 @@ class JSExportedDartFunction implements JSFunction {}
 @staticInterop
 class JSArray implements JSObject {
   external factory JSArray();
+  // TODO(srujzs): Should we make this an `int`?
   external factory JSArray.withLength(JSNumber length);
 }
 
@@ -117,6 +118,14 @@ class JSBoolean implements JSAny {}
 @JS()
 @staticInterop
 class JSString implements JSAny {}
+
+@JS()
+@staticInterop
+class JSSymbol implements JSAny {}
+
+@JS()
+@staticInterop
+class JSBigInt implements JSAny {}
 
 /// [JSVoid] is just a typedef for [void]. While we could just use
 /// `JSUndefined`, in the future we may be able to use this to elide `return`s

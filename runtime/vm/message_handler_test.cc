@@ -21,9 +21,6 @@ class MessageHandlerTestPeer {
   void ClosePort(Dart_Port port) { handler_->ClosePort(port); }
   void CloseAllPorts() { handler_->CloseAllPorts(); }
 
-  void increment_live_ports() { handler_->increment_live_ports(); }
-  void decrement_live_ports() { handler_->decrement_live_ports(); }
-
   MessageQueue* queue() const { return handler_->queue_; }
   MessageQueue* oob_queue() const { return handler_->oob_queue_; }
 
@@ -352,12 +349,13 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
   ThreadPool pool;
   MessageHandlerTestPeer handler_peer(&handler);
 
-  EXPECT(!handler.HasLivePorts());
-  handler_peer.increment_live_ports();
-
   handler.Run(&pool, TestStartFunction, TestEndFunction,
               reinterpret_cast<uword>(&handler));
+
+  EXPECT(!PortMap::HasPorts(&handler));
   Dart_Port port = PortMap::CreatePort(&handler);
+  EXPECT(PortMap::HasPorts(&handler));
+
   handler_peer.PostMessage(BlankMessage(port, Message::kNormalPriority));
 
   // Wait for the first message to be handled.
@@ -399,9 +397,13 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
     for (int i = 1; i < 11; i++) {
       EXPECT_EQ(ports[i - 1], handler_ports[i]);
     }
-    handler_peer.decrement_live_ports();
-    EXPECT(!handler.HasLivePorts());
   }
+
+  for (int i = 0; i < 10; i++) {
+    PortMap::ClosePort(ports[i]);
+  }
+  PortMap::ClosePort(port);
+  EXPECT(!PortMap::HasPorts(&handler));
 
   // Must join the thread or the VM shutdown is racing with any VM state the
   // thread touched.

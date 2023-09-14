@@ -23,7 +23,7 @@ NativeMessageHandler::~NativeMessageHandler() {
 }
 
 #if defined(DEBUG)
-void NativeMessageHandler::CheckAccess() {
+void NativeMessageHandler::CheckAccess() const {
   ASSERT(Isolate::Current() == nullptr);
 }
 #endif

@@ -17,6 +17,12 @@ class D<X extends self::B<self::D::X, self::D::Y> = self::B<dynamic, dynamic>, Y
     : super core::Object::•()
     ;
 }
+class E<X extends (self::B<self::E::X, self::E::Y>, core::int) = (self::B<dynamic, dynamic>, core::int), Y extends ({required c: self::C<self::E::X, self::E::Y>, required d: core::int}) = ({required c: self::C<dynamic, dynamic>, required d: core::int}), Z extends (core::int, (self::E::Y) → self::E::X) = (core::int, (Never) → (self::B<dynamic, dynamic>, core::int)), W extends ({required a: core::num})> extends core::Object {
+  synthetic constructor •() → self::E<self::E::X, self::E::Y, self::E::Z, self::E::W>
+    : super core::Object::•()
+    ;
+}
 static method main() → dynamic {
   self::D<self::B<dynamic, dynamic>, self::C<dynamic, dynamic>, (Never) → self::B<dynamic, dynamic>, core::num> d;
+  self::E<(self::B<dynamic, dynamic>, core::int), ({required c: self::C<dynamic, dynamic>, required d: core::int}), (core::int, (Never) → (self::B<dynamic, dynamic>, core::int)), ({required a: core::num})> e;
 }

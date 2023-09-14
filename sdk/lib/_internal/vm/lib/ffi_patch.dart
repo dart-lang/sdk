@@ -77,7 +77,9 @@ int sizeOf<T extends NativeType>() {
   throw UnimplementedError("$T");
 }
 
+@pragma("vm:idempotent")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Pointer<T> _fromAddress<T extends NativeType>(int ptr);
 
 // The real implementation of this function (for interface calls) lives in
@@ -89,33 +91,43 @@ external DS _asFunctionInternal<DS extends Function, NS extends Function>(
     Pointer<NativeFunction<NS>> ptr, bool isLeaf);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Int8List _asExternalTypedDataInt8(Pointer<Int8> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Int16List _asExternalTypedDataInt16(Pointer<Int16> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Int32List _asExternalTypedDataInt32(Pointer<Int32> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Int64List _asExternalTypedDataInt64(Pointer<Int64> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Uint8List _asExternalTypedDataUint8(Pointer<Uint8> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Uint16List _asExternalTypedDataUint16(Pointer<Uint16> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Uint32List _asExternalTypedDataUint32(Pointer<Uint32> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Uint64List _asExternalTypedDataUint64(Pointer<Uint64> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Float32List _asExternalTypedDataFloat(Pointer<Float> ptr, int length);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Float64List _asExternalTypedDataDouble(
     Pointer<Double> ptr, int length);
 
@@ -140,21 +152,32 @@ external Float64List _asExternalTypedDataDouble(
 external dynamic _nativeCallbackFunction<NS extends Function>(
     Function target, Object? exceptionalReturn);
 
-@pragma("vm:external-name", "Ffi_pointerFromFunction")
-external Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(
-    dynamic function);
-
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_nativeAsyncCallbackFunction")
 external dynamic _nativeAsyncCallbackFunction<NS extends Function>();
 
-@pragma("vm:external-name", "Ffi_pointerAsyncFromFunction")
-external Pointer<NS> _pointerAsyncFromFunction<NS extends NativeFunction>(
+@pragma("vm:external-name", "Ffi_createNativeCallableListener")
+external Pointer<NS> _createNativeCallableListener<NS extends NativeFunction>(
     dynamic function, RawReceivePort port);
 
-@pragma("vm:external-name", "Ffi_deleteAsyncFunctionPointer")
-external void _deleteAsyncFunctionPointer<NS extends NativeFunction>(
+@pragma("vm:external-name", "Ffi_createNativeCallableIsolateLocal")
+external Pointer<NS>
+    _createNativeCallableIsolateLocal<NS extends NativeFunction>(
+        dynamic trampoline, dynamic target, bool keepIsolateAlive);
+
+@pragma("vm:external-name", "Ffi_deleteNativeCallable")
+external void _deleteNativeCallable<NS extends NativeFunction>(
     Pointer<NS> pointer);
+
+@pragma("vm:external-name", "Ffi_updateNativeCallableKeepIsolateAliveCounter")
+external void
+    _updateNativeCallableKeepIsolateAliveCounter<NS extends NativeFunction>(
+        int delta);
+
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_nativeIsolateLocalCallbackFunction")
+external dynamic _nativeIsolateLocalCallbackFunction<NS extends Function>(
+    dynamic exceptionalReturn);
 
 @patch
 @pragma("vm:entry-point")
@@ -177,6 +200,7 @@ final class Pointer<T extends NativeType> {
 
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:idempotent")
   external int get address;
 
   Pointer<T> _offsetBy(int offsetInBytes) =>
@@ -186,33 +210,78 @@ final class Pointer<T extends NativeType> {
   Pointer<U> cast<U extends NativeType>() => Pointer.fromAddress(address);
 }
 
-@patch
-final class NativeCallable<T extends Function> {
-  Pointer<NativeFunction<T>> _pointer = nullptr;
-  final RawReceivePort _port;
+abstract final class _NativeCallableBase<T extends Function>
+    implements NativeCallable<T> {
+  Pointer<NativeFunction<T>> _pointer;
 
-  @patch
-  NativeCallable.listener(@DartRepresentationOf("T") Function callback)
-      : _port = RawReceivePort()..close() {
-    throw UnsupportedError("NativeCallable cannot be constructed dynamically.");
-  }
+  _NativeCallableBase(this._pointer);
 
-  NativeCallable._(void Function(List) handler, String portDebugName)
-      : _port = RawReceivePort(
-            Zone.current.bindUnaryCallbackGuarded(handler), portDebugName);
-
-  @patch
+  @override
   Pointer<NativeFunction<T>> get nativeFunction => _pointer;
 
-  @patch
+  @override
   void close() {
     if (_pointer == nullptr) {
       throw StateError("NativeCallable is already closed.");
     }
-    _port.close();
-    _deleteAsyncFunctionPointer(_pointer);
+    _deleteNativeCallable(_pointer);
     _pointer = nullptr;
   }
+}
+
+final class _NativeCallableIsolateLocal<T extends Function>
+    extends _NativeCallableBase<T> {
+  bool _keepIsolateAlive = true;
+
+  _NativeCallableIsolateLocal(super._pointer);
+
+  @override
+  void close() {
+    super.close();
+    _setKeepIsolateAlive(false);
+  }
+
+  @override
+  void set keepIsolateAlive(bool value) {
+    if (_pointer == nullptr) {
+      throw StateError("NativeCallable is already closed.");
+    }
+    _setKeepIsolateAlive(value);
+  }
+
+  void _setKeepIsolateAlive(bool value) {
+    if (_keepIsolateAlive != value) {
+      _keepIsolateAlive = value;
+      _updateNativeCallableKeepIsolateAliveCounter(value ? 1 : -1);
+    }
+  }
+
+  @override
+  bool get keepIsolateAlive => _keepIsolateAlive;
+}
+
+final class _NativeCallableListener<T extends Function>
+    extends _NativeCallableBase<T> {
+  final RawReceivePort _port;
+
+  _NativeCallableListener(void Function(List) handler, String portDebugName)
+      : _port = RawReceivePort(
+            Zone.current.bindUnaryCallbackGuarded(handler), portDebugName),
+        super(nullptr);
+
+  @override
+  void close() {
+    super.close();
+    _port.close();
+  }
+
+  @override
+  void set keepIsolateAlive(bool value) {
+    _port.keepIsolateAlive = value;
+  }
+
+  @override
+  bool get keepIsolateAlive => _port.keepIsolateAlive;
 }
 
 @patch
@@ -255,6 +324,7 @@ final class Array<T extends NativeType> {
 /// calculations. See pkg/vm/lib/transformations/ffi.dart.
 @pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
+@pragma("vm:idempotent")
 external int _abi();
 
 @patch
@@ -295,123 +365,155 @@ external void _memCopy(Object target, int targetOffsetInBytes, Object source,
 // getting rid of these allocations by inlining these functions.
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadInt8(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadInt16(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadInt32(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadInt64(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadUint8(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadUint16(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadUint32(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadUint64(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadAbiSpecificInt<T extends AbiSpecificInteger>(
     Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _loadAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
     Object typedDataBase, int index);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external double _loadFloat(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external double _loadDouble(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external double _loadFloatUnaligned(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external double _loadDoubleUnaligned(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external Pointer<S> _loadPointer<S extends NativeType>(
     Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeInt8(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeInt16(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeInt32(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeInt64(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeUint8(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeUint16(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeUint32(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeUint64(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _storeAbiSpecificInt<T extends AbiSpecificInteger>(
     Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external int _storeAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
     Object typedDataBase, int index, int value);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeFloat(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeDouble(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeFloatUnaligned(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storeDoubleUnaligned(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
+@pragma("vm:idempotent")
 external void _storePointer<S extends NativeType>(
     Object typedDataBase, int offsetInBytes, Pointer<S> value);
 
+@pragma("vm:prefer-inline")
 bool _loadBool(Object typedDataBase, int offsetInBytes) =>
     _loadUint8(typedDataBase, offsetInBytes) != 0;
 
+@pragma("vm:prefer-inline")
 void _storeBool(Object typedDataBase, int offsetInBytes, bool value) =>
     _storeUint8(typedDataBase, offsetInBytes, value ? 1 : 0);
 

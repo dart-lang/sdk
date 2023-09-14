@@ -5,7 +5,7 @@ import "dart:math" as math;
 
 import "dart:math" show Random;
 
-static method listEquals<E extends core::Object? = dynamic>([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<self::listEquals::E%> list1, [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<self::listEquals::E%> list2) → core::bool {
+static method listEquals<E extends core::Object? = dynamic>([@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<self::listEquals::E%> list1, [@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<self::listEquals::E%> list2) → core::bool {
   if(core::identical(list1, list2)) {
     return true;
   }

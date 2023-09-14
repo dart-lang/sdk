@@ -656,7 +656,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       if (showOffsets && node is TreeNode) {
         writeWord("[${node.fileOffset}]");
       }
-      if (showMetadata && node is TreeNode) {
+      if (showMetadata && node is TreeNode && node is! VariableDeclaration) {
         writeMetadata(node);
       }
 
@@ -1369,12 +1369,13 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
-    writeWord('inline class');
+    writeWord('extension type');
     writeWord(getExtensionTypeDeclarationName(node));
     writeTypeParameterList(node.typeParameters);
-    writeWord('/* declaredRepresentationType =');
+    writeSymbol('(');
     writeType(node.declaredRepresentationType);
-    writeWord('*/');
+    writeWord(node.representationName);
+    writeSymbol(')');
     if (node.implements.isNotEmpty) {
       writeSpaced('implements');
       writeList(node.implements, writeType);
@@ -2653,6 +2654,10 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       state = Printer.WORD;
     }
     writeNullability(node.declaredNullability);
+
+    writeWord("/* =");
+    writeType(node.typeErasure);
+    writeWord("*/");
   }
 
   @override
@@ -2707,8 +2712,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeType(node.left);
     writeSpaced('&');
     writeType(node.right);
-    writeWord("/* '");
 
+    writeWord("/* '");
     writeDartTypeNullability(node.left, inComment: true);
     writeWord("' & '");
     writeDartTypeNullability(node.right, inComment: true);

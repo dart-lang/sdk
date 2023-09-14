@@ -246,10 +246,11 @@ class FfiTransformer extends Transformer {
   final Procedure fromAddressInternal;
   final Procedure libraryLookupMethod;
   final Procedure abiMethod;
-  final Procedure pointerFromFunctionProcedure;
-  final Procedure pointerAsyncFromFunctionProcedure;
+  final Procedure createNativeCallableListenerProcedure;
   final Procedure nativeCallbackFunctionProcedure;
   final Procedure nativeAsyncCallbackFunctionProcedure;
+  final Procedure createNativeCallableIsolateLocalProcedure;
+  final Procedure nativeIsolateLocalCallbackFunctionProcedure;
   final Map<NativeType, Procedure> loadMethods;
   final Map<NativeType, Procedure> loadUnalignedMethods;
   final Map<NativeType, Procedure> storeMethods;
@@ -272,8 +273,10 @@ class FfiTransformer extends Transformer {
   final Procedure checkAbiSpecificIntegerMappingFunction;
   final Class rawRecvPortClass;
   final Class nativeCallableClass;
-  final Constructor nativeCallableListenerConstructor;
-  final Constructor nativeCallablePrivateConstructor;
+  final Procedure nativeCallableIsolateLocalConstructor;
+  final Constructor nativeCallablePrivateIsolateLocalConstructor;
+  final Procedure nativeCallableListenerConstructor;
+  final Constructor nativeCallablePrivateListenerConstructor;
   final Field nativeCallablePortField;
   final Field nativeCallablePointerField;
 
@@ -464,14 +467,17 @@ class FfiTransformer extends Transformer {
         libraryLookupMethod =
             index.getProcedure('dart:ffi', 'DynamicLibrary', 'lookup'),
         abiMethod = index.getTopLevelProcedure('dart:ffi', '_abi'),
-        pointerFromFunctionProcedure =
-            index.getTopLevelProcedure('dart:ffi', '_pointerFromFunction'),
-        pointerAsyncFromFunctionProcedure =
-            index.getTopLevelProcedure('dart:ffi', '_pointerAsyncFromFunction'),
+        createNativeCallableListenerProcedure = index.getTopLevelProcedure(
+            'dart:ffi', '_createNativeCallableListener'),
+        createNativeCallableIsolateLocalProcedure = index.getTopLevelProcedure(
+            'dart:ffi', '_createNativeCallableIsolateLocal'),
         nativeCallbackFunctionProcedure =
             index.getTopLevelProcedure('dart:ffi', '_nativeCallbackFunction'),
         nativeAsyncCallbackFunctionProcedure = index.getTopLevelProcedure(
             'dart:ffi', '_nativeAsyncCallbackFunction'),
+        nativeIsolateLocalCallbackFunctionProcedure =
+            index.getTopLevelProcedure(
+                'dart:ffi', '_nativeIsolateLocalCallbackFunction'),
         nativeTypesClasses = nativeTypeClassNames.map((nativeType, name) =>
             MapEntry(nativeType, index.getClass('dart:ffi', name))),
         classNativeTypes = nativeTypeClassNames.map((nativeType, name) =>
@@ -529,14 +535,18 @@ class FfiTransformer extends Transformer {
             'dart:ffi', "_checkAbiSpecificIntegerMapping"),
         rawRecvPortClass = index.getClass('dart:isolate', 'RawReceivePort'),
         nativeCallableClass = index.getClass('dart:ffi', 'NativeCallable'),
+        nativeCallableIsolateLocalConstructor =
+            index.getProcedure('dart:ffi', 'NativeCallable', 'isolateLocal'),
+        nativeCallablePrivateIsolateLocalConstructor =
+            index.getConstructor('dart:ffi', '_NativeCallableIsolateLocal', ''),
         nativeCallableListenerConstructor =
-            index.getConstructor('dart:ffi', 'NativeCallable', 'listener'),
-        nativeCallablePrivateConstructor =
-            index.getConstructor('dart:ffi', 'NativeCallable', '_'),
+            index.getProcedure('dart:ffi', 'NativeCallable', 'listener'),
+        nativeCallablePrivateListenerConstructor =
+            index.getConstructor('dart:ffi', '_NativeCallableListener', ''),
         nativeCallablePortField =
-            index.getField('dart:ffi', 'NativeCallable', '_port'),
+            index.getField('dart:ffi', '_NativeCallableListener', '_port'),
         nativeCallablePointerField =
-            index.getField('dart:ffi', 'NativeCallable', '_pointer') {
+            index.getField('dart:ffi', '_NativeCallableBase', '_pointer') {
     nativeFieldWrapperClass1Type = nativeFieldWrapperClass1Class.getThisType(
         coreTypes, Nullability.nonNullable);
     voidType = nativeTypesClasses[NativeType.kVoid]!

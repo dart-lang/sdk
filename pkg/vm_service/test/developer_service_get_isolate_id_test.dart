@@ -26,7 +26,9 @@ Future testeeMain() async {
   childIsolate = await iso.Isolate.spawn(spawnEntry, 0);
   // Assign the id for this isolate and it's child to strings so they can
   // be read by the tester.
+  // ignore: sdk_version_since
   selfId = Service.getIsolateId(iso.Isolate.current)!;
+  // ignore: sdk_version_since
   childId = Service.getIsolateId(childIsolate)!;
   debugger();
 }

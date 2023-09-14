@@ -651,23 +651,32 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
   // The parent is either a library or a class (in which case the procedure is a
   // static method).
   NameIndex enclosing = EnclosingName(procedure);
-  Function& function = Function::Handle(Z);
+  Class& klass = Class::Handle(Z);
   if (IsLibrary(enclosing)) {
     Library& library = Library::Handle(
         Z, LookupLibraryByKernelLibrary(enclosing, /*required=*/false));
-    if (!library.IsNull()) {
-      function = library.LookupFunctionAllowPrivate(procedure_name);
+    if (library.IsNull()) {
+      if (required) {
+        LookupFailed(procedure);
+      }
+      return Function::null();
     }
+    klass = library.toplevel_class();
   } else {
     ASSERT(IsClass(enclosing));
-    Class& klass = Class::Handle(
-        Z, LookupClassByKernelClass(enclosing, /*required=*/false));
-    if (!klass.IsNull()) {
-      const auto& error = klass.EnsureIsFinalized(thread_);
-      ASSERT(error == Error::null());
-      function = klass.LookupFunctionAllowPrivate(procedure_name);
+    klass = LookupClassByKernelClass(enclosing, /*required=*/false);
+    if (klass.IsNull()) {
+      if (required) {
+        LookupFailed(procedure);
+      }
+      return Function::null();
     }
   }
+
+  const auto& error = klass.EnsureIsFinalized(thread_);
+  ASSERT(error == Error::null());
+  Function& function =
+      Function::Handle(Z, klass.LookupFunctionAllowPrivate(procedure_name));
   if (function.IsNull() && required) {
     LookupFailed(procedure);
   }
@@ -1802,8 +1811,9 @@ DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForMethodInvocation(
 
 InferredTypeMetadataHelper::InferredTypeMetadataHelper(
     KernelReaderHelper* helper,
-    ConstantReader* constant_reader)
-    : MetadataHelper(helper, tag(), /* precompiler_only = */ true),
+    ConstantReader* constant_reader,
+    InferredTypeMetadataHelper::Kind kind)
+    : MetadataHelper(helper, tag(kind), /* precompiler_only = */ true),
       constant_reader_(constant_reader) {}
 
 InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
@@ -2292,7 +2302,7 @@ void KernelReaderHelper::SkipDartType() {
       ReadNullability();
       SkipCanonicalNameReference();  // read index for canonical name.
       SkipListOfDartTypes();         // read type arguments
-      SkipDartType();                // read instantiated representation type.
+      SkipDartType();                // read type erasure.
       break;
     }
     case kTypedefType:
@@ -2842,14 +2852,6 @@ void KernelReaderHelper::SkipStatement() {
       SkipStatement();          // read body.
       return;
     }
-    case kForInStatement:
-    case kAsyncForInStatement:
-      ReadPosition();             // read position.
-      ReadPosition();             // read body position.
-      SkipVariableDeclaration();  // read variable.
-      SkipExpression();           // read iterable.
-      SkipStatement();            // read body.
-      return;
     case kSwitchStatement: {
       ReadPosition();                     // read position.
       ReadBool();                         // read exhaustive flag.
@@ -2922,6 +2924,8 @@ void KernelReaderHelper::SkipStatement() {
       SkipVariableDeclaration();  // read variable.
       SkipFunctionNode();         // read function node.
       return;
+    case kForInStatement:
+    case kAsyncForInStatement:
     case kIfCaseStatement:
     case kPatternSwitchStatement:
     case kPatternVariableDeclaration:
@@ -3585,11 +3589,11 @@ void TypeTranslator::BuildIntersectionType() {
 }
 
 void TypeTranslator::BuildExtensionType() {
-  // We skip the extension type and only use the representation type.
+  // We skip the extension type and only use the type erasure.
   helper_->ReadNullability();
   helper_->SkipCanonicalNameReference();  // read index for canonical name.
   helper_->SkipListOfDartTypes();         // read type arguments
-  BuildTypeInternal();  // read instantiated representation type.
+  BuildTypeInternal();                    // read type erasure.
 }
 
 const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {

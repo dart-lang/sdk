@@ -314,7 +314,8 @@ class BaseFlowGraphBuilder {
   Fragment CheckStackOverflowInPrologue(TokenPosition position);
   Fragment MemoryCopy(classid_t src_cid,
                       classid_t dest_cid,
-                      bool unboxed_length);
+                      bool unboxed_inputs,
+                      bool can_overlap = true);
   Fragment TailCall(const Code& code);
   Fragment Utf8Scan();
 

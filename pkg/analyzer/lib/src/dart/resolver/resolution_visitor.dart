@@ -294,14 +294,21 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         var withClause = node.withClause;
 
         if (extendsClause != null) {
-          ErrorCode errorCode = withClause == null
-              ? CompileTimeErrorCode.EXTENDS_NON_CLASS
-              : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
-          _resolveType(extendsClause.superclass, errorCode, asClass: true);
+          _resolveType(
+            declaration: node,
+            clause: extendsClause,
+            namedType: extendsClause.superclass,
+          );
         }
 
-        _resolveWithClause(withClause);
-        _resolveImplementsClause(node.implementsClause);
+        _resolveWithClause(
+          declaration: node,
+          clause: withClause,
+        );
+        _resolveImplementsClause(
+          declaration: node,
+          clause: node.implementsClause,
+        );
 
         _defineElements(element.accessors);
         _defineElements(element.methods);
@@ -326,13 +333,19 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         node.typeParameters?.accept(this);
 
         _resolveType(
-          node.superclass,
-          CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS,
-          asClass: true,
+          declaration: node,
+          clause: null,
+          namedType: node.superclass,
         );
 
-        _resolveWithClause(node.withClause);
-        _resolveImplementsClause(node.implementsClause);
+        _resolveWithClause(
+          declaration: node,
+          clause: node.withClause,
+        );
+        _resolveImplementsClause(
+          declaration: node,
+          clause: node.implementsClause,
+        );
       });
     });
 
@@ -510,8 +523,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
 
-        _resolveWithClause(node.withClause);
-        _resolveImplementsClause(node.implementsClause);
+        _resolveWithClause(
+          declaration: node,
+          clause: node.withClause,
+        );
+        _resolveImplementsClause(
+          declaration: node,
+          clause: node.implementsClause,
+        );
 
         _defineElements(element.accessors);
         _defineElements(element.methods);
@@ -566,13 +585,21 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     _setOrCreateMetadataElements(element, node.metadata);
 
+    _setOrCreateMetadataElements(
+      element.representation,
+      node.representation.fieldMetadata,
+    );
+
     _withElementWalker(ElementWalker.forExtensionType(element), () {
       _withNameScope(() {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
 
         node.representation.accept(this);
-        _resolveImplementsClause(node.implementsClause);
+        _resolveImplementsClause(
+          declaration: node,
+          clause: node.implementsClause,
+        );
 
         _defineElements(element.accessors);
         _defineElements(element.methods);
@@ -1055,8 +1082,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
 
-        _resolveOnClause(node.onClause);
-        _resolveImplementsClause(node.implementsClause);
+        _resolveOnClause(
+          declaration: node,
+          clause: node.onClause,
+        );
+        _resolveImplementsClause(
+          declaration: node,
+          clause: node.implementsClause,
+        );
 
         _defineElements(element.accessors);
         _defineElements(element.methods);
@@ -1565,21 +1598,29 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     });
   }
 
-  void _resolveImplementsClause(ImplementsClause? clause) {
+  void _resolveImplementsClause({
+    required Declaration? declaration,
+    required ImplementsClauseImpl? clause,
+  }) {
     if (clause == null) return;
 
     _resolveTypes(
-      clause.interfaces,
-      CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
+      declaration: declaration,
+      clause: clause,
+      namedTypes: clause.interfaces,
     );
   }
 
-  void _resolveOnClause(OnClause? clause) {
+  void _resolveOnClause({
+    required Declaration? declaration,
+    required OnClauseImpl? clause,
+  }) {
     if (clause == null) return;
 
     _resolveTypes(
-      clause.superclassConstraints,
-      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+      declaration: declaration,
+      clause: clause,
+      namedTypes: clause.superclassConstraints,
     );
   }
 
@@ -1595,15 +1636,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _namedTypeResolver.redirectedConstructor_namedType = null;
   }
 
-  /// Return the [InterfaceType] of the given [namedType].
-  ///
-  /// If the resulting type is not a valid interface type, return `null`.
-  ///
-  /// The flag [asClass] specifies if the type will be used as a class, so mixin
-  /// declarations are not valid (they declare interfaces and mixins, but not
-  /// classes).
-  void _resolveType(NamedTypeImpl namedType, ErrorCode errorCode,
-      {bool asClass = false}) {
+  /// Resolves the given [namedType], reports errors if the resulting type
+  /// is not valid in the context of the [declaration] and [clause].
+  void _resolveType({
+    required Declaration? declaration,
+    required AstNode? clause,
+    required NamedTypeImpl namedType,
+  }) {
     _namedTypeResolver.classHierarchy_namedType = namedType;
     visitNamedType(namedType);
     _namedTypeResolver.classHierarchy_namedType = null;
@@ -1612,24 +1651,61 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    DartType type = namedType.typeOrThrow;
-    if (type is InterfaceType) {
-      final element = type.element;
-      if (element is EnumElement || element is MixinElement && asClass) {
-        _errorReporter.reportErrorForNode(errorCode, namedType);
-        return;
-      }
+    final type = namedType.typeOrThrow;
+
+    final enclosingElement = _namedTypeResolver.enclosingClass;
+    if (enclosingElement is ExtensionTypeElementImpl) {
+      _verifyExtensionElementImplements(enclosingElement, namedType, type);
       return;
     }
 
-    // If the type is not an InterfaceType, then visitNamedType() sets the type
-    // to be a DynamicTypeImpl
-    if (!_libraryElement.shouldIgnoreUndefinedNamedType(namedType)) {
-      final firstToken = namedType.importPrefix?.name ?? namedType.name2;
-      final offset = firstToken.offset;
-      final length = namedType.name2.end - offset;
-      _errorReporter.reportErrorForOffset(errorCode, offset, length);
+    final element = type.element;
+    switch (element) {
+      case ClassElement():
+        return;
+      case MixinElement():
+        if (clause is ImplementsClause ||
+            clause is OnClause ||
+            clause is WithClause) {
+          return;
+        }
     }
+
+    if (_libraryElement.shouldIgnoreUndefinedNamedType(namedType)) {
+      return;
+    }
+
+    ErrorCode? errorCode;
+    switch (clause) {
+      case null:
+        if (declaration is ClassTypeAlias) {
+          errorCode = CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
+        }
+      case ExtendsClause():
+        if (declaration is ClassDeclaration) {
+          errorCode = declaration.withClause == null
+              ? CompileTimeErrorCode.EXTENDS_NON_CLASS
+              : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
+        }
+      case ImplementsClause():
+        errorCode = CompileTimeErrorCode.IMPLEMENTS_NON_CLASS;
+      case OnClause():
+        errorCode =
+            CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE;
+      case WithClause():
+        errorCode = CompileTimeErrorCode.MIXIN_OF_NON_CLASS;
+    }
+
+    // Should not happen.
+    if (errorCode == null) {
+      assert(false);
+      return;
+    }
+
+    final firstToken = namedType.importPrefix?.name ?? namedType.name2;
+    final offset = firstToken.offset;
+    final length = namedType.name2.end - offset;
+    _errorReporter.reportErrorForOffset(errorCode, offset, length);
   }
 
   /// Resolve the types in the given list of type names.
@@ -1641,20 +1717,32 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   ///        be an enum
   /// @param dynamicTypeError the error to produce if the type name is "dynamic"
   /// @return an array containing all of the types that were resolved.
-  void _resolveTypes(NodeList<NamedType> namedTypes, ErrorCode errorCode) {
+  void _resolveTypes({
+    required Declaration? declaration,
+    required AstNode clause,
+    required NodeList<NamedTypeImpl> namedTypes,
+  }) {
     for (var namedType in namedTypes) {
-      _resolveType(namedType as NamedTypeImpl, errorCode);
+      _resolveType(
+        declaration: declaration,
+        clause: clause,
+        namedType: namedType,
+      );
     }
   }
 
-  void _resolveWithClause(WithClause? clause) {
+  void _resolveWithClause({
+    required Declaration? declaration,
+    required WithClauseImpl? clause,
+  }) {
     if (clause == null) return;
 
     for (var namedType in clause.mixinTypes) {
       _namedTypeResolver.withClause_namedType = namedType;
       _resolveType(
-        namedType as NamedTypeImpl,
-        CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
+        declaration: declaration,
+        clause: clause,
+        namedType: namedType,
       );
       _namedTypeResolver.withClause_namedType = null;
     }
@@ -1678,6 +1766,57 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       element.metadata = annotations.map((annotation) {
         return annotation.elementAnnotation!;
       }).toList();
+    }
+  }
+
+  void _verifyExtensionElementImplements(
+    ExtensionTypeElementImpl declaredElement,
+    NamedTypeImpl node,
+    DartType type,
+  ) {
+    final typeSystem = _libraryElement.typeSystem;
+
+    if (!typeSystem.isValidExtensionTypeSuperinterface(type)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE,
+        node,
+        [type],
+      );
+      return;
+    }
+
+    // When `type` is an extension type.
+    if (type is InterfaceTypeImpl) {
+      final implementedRepresentation = type.representationType;
+      if (implementedRepresentation != null) {
+        final declaredRepresentation = declaredElement.representation.type;
+        if (!typeSystem.isSubtypeOf(
+          declaredRepresentation,
+          implementedRepresentation,
+        )) {
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE,
+            node,
+            [
+              implementedRepresentation,
+              type.element.name,
+              declaredRepresentation,
+              declaredElement.name,
+            ],
+          );
+        }
+        return;
+      }
+    }
+
+    final declaredRepresentation = declaredElement.representation.type;
+    if (!typeSystem.isSubtypeOf(declaredRepresentation, type)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
+        node,
+        [type, declaredRepresentation],
+      );
     }
   }
 

@@ -3,33 +3,92 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../../build/dart/dart_action.gni")
+import("../../utils/compile_platform.gni")
 import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
-sdk_outline_sound_dill = "$root_out_dir/ddc_outline.dill"
-sdk_full_sound_dill = "$root_out_dir/ddc_platform.dill"
+sdk_outline_dill = "$root_out_dir/ddc_outline.dill"
+sdk_full_dill = "$root_out_dir/ddc_platform.dill"
 sdk_outline_unsound_dill = "$root_out_dir/ddc_outline_unsound.dill"
 sdk_full_unsound_dill = "$root_out_dir/ddc_platform_unsound.dill"
+
+sdk_root = "../../sdk"
+
+application_snapshot("dartdevc") {
+  main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
+
+  training_args = [
+    "--dart-sdk-summary",
+    rebase_path(sdk_outline_dill),
+    "-o",
+    "dartdevc.js",
+    rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
+  ]
+
+  deps = [ ":ddc_platform" ]
+  inputs = [ sdk_outline_dill ]
+}
+
+template("dart2js_compile") {
+  assert(defined(invoker.main), "Must specify the main file")
+  main = invoker.main
+  assert(defined(invoker.out), "Must specify the out file")
+  out = invoker.out
+  abs_main = rebase_path(main)
+  abs_output = rebase_path(out)
+
+  prebuilt_dart_action(target_name) {
+    deps = invoker.deps + [
+             "../compiler:compile_dart2js_platform",
+             "../compiler:compile_dart2js_platform_unsound",
+           ]
+
+    inputs = [
+      "$root_out_dir/dart2js_platform.dill",
+      "$root_out_dir/dart2js_platform_unsound.dill",
+      "$root_out_dir/dart2js_outline.dill",
+      "$root_out_dir/dart2js_outline_unsound.dill",
+    ]
+    outputs = [ out ]
+
+    script = "../../pkg/compiler/lib/src/dart2js.dart"
+
+    packages = "../../.dart_tool/package_config.json"
+
+    vm_args = [ "-Dsdk_hash=$sdk_hash" ]
+
+    args = [
+      "$abs_main",
+      "-m",
+      "--invoker=gn_build",
+      "-o$abs_output",
+      "--no-source-maps",
+      "--platform-binaries=" + rebase_path("$root_out_dir"),
+    ]
+  }
+}
+
+dart2js_compile("stack_trace_mapper") {
+  main = rebase_path("../../pkg/dev_compiler/web/stack_trace_mapper.dart")
+  out = "$root_out_dir/dev_compiler/build/web/dart_stack_trace_mapper.js"
+  deps = [ ":ddc_files_stamp" ]
+}
 
 # Builds everything needed to run tests with DDC (stable) using test.dart.
 group("ddc_stable_test") {
   deps = [
+    ":dartdevc",
     ":ddc_stable_test_local",
     "../..:create_sdk",
-
-    # TODO(nshahan): Move the dartdevc snapshot target to this file.
-    "../dartdevc:dartdevc",
   ]
 }
 
 # Builds everything needed to run tests with DDC (canary) using test.dart.
 group("ddc_canary_test") {
   deps = [
+    ":dartdevc",
     ":ddc_canary_test_local",
     "../..:create_sdk",
-
-    # TODO(nshahan): Move the dartdevc snapshot target to this file.
-    "../dartdevc:dartdevc",
   ]
 }
 
@@ -62,6 +121,11 @@ group("ddc_canary_test_local") {
 create_timestamp_file("ddc_files_stamp") {
   path = rebase_path("../../pkg/dev_compiler/lib")
   output = "$target_gen_dir/ddc_files.stamp"
+}
+
+create_timestamp_file("ddc_sdk_patch_stamp") {
+  path = rebase_path("$sdk_root/lib/_internal/js_dev_runtime")
+  output = "$target_gen_dir/ddc_sdk_patch_stamp.stamp"
 }
 
 # Compiles to JavaScript using DDC (stable) all packages imported in tests.
@@ -114,11 +178,11 @@ template("ddc_compile") {
     js_gen_dir = "$target_gen_dir/stable"
   }
   if (invoker.sound_null_safety) {
-    platform_dep = "../dartdevc:dartdevc_platform_sound"
-    sdk_outline = sdk_outline_sound_dill
+    platform_dep = ":ddc_platform"
+    sdk_outline = sdk_outline_dill
     js_gen_dir = "$js_gen_dir/pkg"
   } else {
-    platform_dep = "../dartdevc:dartdevc_platform_unsound"
+    platform_dep = ":ddc_platform_unsound"
     sdk_outline = sdk_outline_unsound_dill
     js_gen_dir = "${js_gen_dir}_unsound/pkg"
   }
@@ -293,6 +357,46 @@ ddc_compile("meta_canary_unsound_js") {
   sound_null_safety = false
 }
 
+template("compile_ddc_platform") {
+  assert(defined(invoker.sound_null_safety),
+         "Need 'sound_null_safety' in $target_name.")
+
+  compile_platform(target_name) {
+    single_root_scheme = "org-dartlang-sdk"
+    single_root_base = rebase_path("$sdk_root/")
+    libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
+
+    args = [
+      "--target=dartdevc",
+      "dart:core",
+    ]
+
+    if (invoker.sound_null_safety) {
+      args += [ "--nnbd-strong" ]
+
+      outputs = [
+        sdk_full_dill,
+        sdk_outline_dill,
+      ]
+    } else {
+      args += [ "--nnbd-weak" ]
+
+      outputs = [
+        sdk_full_unsound_dill,
+        sdk_outline_unsound_dill,
+      ]
+    }
+  }
+}
+
+compile_ddc_platform("ddc_platform") {
+  sound_null_safety = true
+}
+
+compile_ddc_platform("ddc_platform_unsound") {
+  sound_null_safety = false
+}
+
 # Compiles the DDC SDK JavaScript modules from the platform .dill file.
 template("ddc_compile_sdk") {
   assert(defined(invoker.sound_null_safety),
@@ -312,11 +416,11 @@ template("ddc_compile_sdk") {
     js_gen_dir = "$target_gen_dir/stable"
   }
   if (invoker.sound_null_safety) {
-    platform_dep = "../dartdevc:dartdevc_platform_sound"
-    platform_input = sdk_full_sound_dill
+    platform_dep = ":ddc_platform"
+    platform_input = sdk_full_dill
     js_gen_dir = "$js_gen_dir/sdk"
   } else {
-    platform_dep = "../dartdevc:dartdevc_platform_unsound"
+    platform_dep = ":ddc_platform_unsound"
     platform_input = sdk_full_unsound_dill
     js_gen_dir = "${js_gen_dir}_unsound/sdk"
   }

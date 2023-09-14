@@ -168,7 +168,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   /// Generate code for the member.
   void generate() {
     // Build closure information.
-    closures = Closures(this);
+    closures = Closures(this.translator, this.member);
 
     Member member = this.member;
 
@@ -202,8 +202,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           b,
           SymbolConstant(member.name.text, null),
           translator.classInfo[translator.symbolClass]!.nonNullableType);
-      b.call(translator.functions.getFunction(translator
-          .noSuchMethodErrorThrowUnimplementedExternalMemberError.reference));
+      call(translator
+          .noSuchMethodErrorThrowUnimplementedExternalMemberError.reference);
       b.unreachable();
       b.end();
       return;
@@ -656,7 +656,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
   }
 
-  w.ValueType call(Reference target) {
+  List<w.ValueType> call(Reference target) {
     if (translator.shouldInline(target)) {
       w.FunctionType targetFunctionType =
           translator.functions.getFunctionType(target);
@@ -670,14 +670,14 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       CodeGenerator(translator, function, target,
               paramLocals: inlinedLocals, returnLabel: block)
           .generate();
-      return translator.outputOrVoid(targetFunctionType.outputs);
+      return targetFunctionType.outputs;
     } else {
       w.BaseFunction targetFunction = translator.functions.getFunction(target);
       String access =
           target.isGetter ? "get" : (target.isSetter ? "set" : "call");
       b.comment("Direct $access of '${target.asMember}'");
       b.call(targetFunction);
-      return translator.outputOrVoid(targetFunction.type.outputs);
+      return targetFunction.type.outputs;
     }
   }
 
@@ -839,9 +839,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       } else {
         b.ref_null(w.HeapType.none);
       }
-      w.BaseFunction f = translator.functions
-          .getFunction(translator.throwAssertionError.reference);
-      b.call(f);
+      call(translator.throwAssertionError.reference);
 
       b.unreachable();
       b.end();
@@ -1492,7 +1490,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (intrinsicResult != null) return intrinsicResult;
 
     _visitArguments(node.arguments, node.targetReference, 0);
-    return call(node.targetReference);
+    return translator.outputOrVoid(call(node.targetReference));
   }
 
   Member _lookupSuperTarget(Member interfaceTarget, {required bool setter}) {
@@ -1510,7 +1508,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.ValueType receiverType = targetFunction.type.inputs.first;
     visitThis(receiverType);
     _visitArguments(node.arguments, target, 1);
-    return call(target);
+    return translator.outputOrVoid(call(target));
   }
 
   @override
@@ -1565,7 +1563,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           translator.functions.getFunction(singleTarget.reference);
       wrap(node.receiver, targetFunction.type.inputs.first);
       _visitArguments(node.arguments, node.interfaceTargetReference, 1);
-      return call(singleTarget.reference);
+      return translator.outputOrVoid(call(singleTarget.reference));
     }
     return _virtualCall(node, target, _VirtualCallKind.Call,
         (signature) => wrap(node.receiver, signature.inputs.first), (_) {
@@ -1651,9 +1649,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     createInvocationObject(translator, function, forwarder.memberName,
         typeArgsLocal, positionalArgsLocal, namedArgsLocal);
 
-    w.BaseFunction f = translator.functions
-        .getFunction(translator.noSuchMethodErrorThrowWithInvocation.reference);
-    b.call(f);
+    call(translator.noSuchMethodErrorThrowWithInvocation.reference);
     b.unreachable();
     b.end(); // nullBlock
 
@@ -1769,7 +1765,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     if (selector.targetCount == 1) {
       pushArguments(selector.signature);
-      return call(selector.singularTarget!);
+      return translator.outputOrVoid(call(selector.singularTarget!));
     }
 
     int? offset = selector.offset;
@@ -1939,7 +1935,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (target is Field) {
       return translator.globals.readGlobal(b, target);
     } else {
-      return call(target.reference);
+      return translator.outputOrVoid(call(target.reference));
     }
   }
 
@@ -2072,9 +2068,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b.local_get(nullableReceiverLocal);
     createGetterInvocationObject(translator, function, forwarder.memberName);
 
-    w.BaseFunction f = translator.functions
-        .getFunction(translator.noSuchMethodErrorThrowWithInvocation.reference);
-    b.call(f);
+    call(translator.noSuchMethodErrorThrowWithInvocation.reference);
     b.unreachable();
     b.end(); // nullBlock
 
@@ -2113,9 +2107,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     createSetterInvocationObject(
         translator, function, forwarder.memberName, positionalArgLocal);
 
-    w.BaseFunction f = translator.functions
-        .getFunction(translator.noSuchMethodErrorThrowWithInvocation.reference);
-    b.call(f);
+    call(translator.noSuchMethodErrorThrowWithInvocation.reference);
     b.unreachable();
     b.end(); // nullBlock
 
@@ -2145,7 +2137,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       w.BaseFunction targetFunction =
           translator.functions.getFunction(target.reference);
       wrap(receiver, targetFunction.type.inputs.single);
-      return call(target.reference);
+      return translator.outputOrVoid(call(target.reference));
     }
   }
 
@@ -2581,7 +2573,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         node.expressions,
         InterfaceType(
             translator.coreTypes.stringClass, Nullability.nonNullable));
-    return call(translator.stringInterpolate.reference);
+    return translator
+        .outputOrVoid(call(translator.stringInterpolate.reference));
   }
 
   @override
@@ -2675,20 +2668,18 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitMapLiteral(MapLiteral node, w.ValueType expectedType) {
-    w.BaseFunction mapFactory =
-        translator.functions.getFunction(translator.mapFactory.reference);
-    w.ValueType factoryReturnType = mapFactory.type.outputs.single;
     types.makeType(this, node.keyType);
     types.makeType(this, node.valueType);
-    b.call(mapFactory);
+    w.ValueType factoryReturnType =
+        call(translator.mapFactory.reference).single;
     if (node.entries.isEmpty) {
       return factoryReturnType;
     }
-    w.BaseFunction mapPut =
-        translator.functions.getFunction(translator.mapPut.reference);
-    w.ValueType putReceiverType = mapPut.type.inputs[0];
-    w.ValueType putKeyType = mapPut.type.inputs[1];
-    w.ValueType putValueType = mapPut.type.inputs[2];
+    w.FunctionType mapPutType =
+        translator.functions.getFunctionType(translator.mapPut.reference);
+    w.ValueType putReceiverType = mapPutType.inputs[0];
+    w.ValueType putKeyType = mapPutType.inputs[1];
+    w.ValueType putValueType = mapPutType.inputs[2];
     w.Local mapLocal = addLocal(putReceiverType);
     translator.convertType(function, factoryReturnType, mapLocal.type);
     b.local_set(mapLocal);
@@ -2696,7 +2687,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.local_get(mapLocal);
       wrap(entry.key, putKeyType);
       wrap(entry.value, putValueType);
-      b.call(mapPut);
+      call(translator.mapPut.reference);
       b.drop();
     }
     b.local_get(mapLocal);
@@ -2705,25 +2696,23 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitSetLiteral(SetLiteral node, w.ValueType expectedType) {
-    w.BaseFunction setFactory =
-        translator.functions.getFunction(translator.setFactory.reference);
-    w.ValueType factoryReturnType = setFactory.type.outputs.single;
     types.makeType(this, node.typeArgument);
-    b.call(setFactory);
+    w.ValueType factoryReturnType =
+        call(translator.setFactory.reference).single;
     if (node.expressions.isEmpty) {
       return factoryReturnType;
     }
-    w.BaseFunction setAdd =
-        translator.functions.getFunction(translator.setAdd.reference);
-    w.ValueType addReceiverType = setAdd.type.inputs[0];
-    w.ValueType addKeyType = setAdd.type.inputs[1];
+    w.FunctionType setAddType =
+        translator.functions.getFunctionType(translator.setAdd.reference);
+    w.ValueType addReceiverType = setAddType.inputs[0];
+    w.ValueType addKeyType = setAddType.inputs[1];
     w.Local setLocal = addLocal(addReceiverType);
     translator.convertType(function, factoryReturnType, setLocal.type);
     b.local_set(setLocal);
     for (Expression element in node.expressions) {
       b.local_get(setLocal);
       wrap(element, addKeyType);
-      b.call(setAdd);
+      call(translator.setAdd.reference);
       b.drop();
     }
     b.local_get(setLocal);
@@ -2772,7 +2761,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     LibraryDependency import = node.import;
     _emitString(import.enclosingLibrary.importUri.toString());
     _emitString(import.name!);
-    return call(translator.loadLibrary.reference);
+    return translator.outputOrVoid(call(translator.loadLibrary.reference));
   }
 
   @override
@@ -2781,7 +2770,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     LibraryDependency import = node.import;
     _emitString(import.enclosingLibrary.importUri.toString());
     _emitString(import.name!);
-    return call(translator.checkLibraryIsLoaded.reference);
+    return translator
+        .outputOrVoid(call(translator.checkLibraryIsLoaded.reference));
   }
 
   /// Pushes the `_Type` object for a function or class type parameter to the
@@ -3129,7 +3119,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b.local_tee(argExpectedTypeLocal);
 
     // Check that argument type is subtype of expected type
-    b.call(translator.functions.getFunction(translator.isSubtype.reference));
+    call(translator.isSubtype.reference);
 
     b.i32_eqz();
     b.if_();
@@ -3153,8 +3143,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         .addLocal(translator.classInfo[translator.typeClass]!.nonNullableType);
     types.makeType(this, bound);
     b.local_tee(boundLocal);
-    b.call(
-        translator.functions.getFunction(translator.isTypeSubtype.reference));
+    call(translator.isTypeSubtype.reference);
 
     b.i32_eqz();
     b.if_();
@@ -3308,8 +3297,8 @@ class SwitchInfo {
       // Object switch
       nonNullableType = translator.topInfo.nonNullableType;
       nullableType = translator.topInfo.nullableType;
-      compare = () => codeGen.b.call(translator.functions
-          .getFunction(translator.coreTypes.identicalProcedure.reference));
+      compare =
+          () => codeGen.call(translator.coreTypes.identicalProcedure.reference);
     }
 
     // Special cases

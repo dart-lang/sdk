@@ -1599,14 +1599,11 @@ class TypeErrorDecoder {
 
 class NullError extends TypeError implements NoSuchMethodError {
   final String _message;
-  final String? _method;
 
-  NullError(this._message, match)
-      : _method = match == null ? null : JS('', '#.method', match);
+  NullError(this._message);
 
   String toString() {
-    if (_method == null) return 'NoSuchMethodError: $_message';
-    return "NoSuchMethodError: method not found: '$_method' on null";
+    return 'Null check operator used on a null value';
   }
 }
 
@@ -1727,8 +1724,7 @@ Object _unwrapNonDartException(Object ex) {
               ex, JsNoSuchMethodError('$message (Error $ieErrorCode)', null));
         case 445:
         case 5007:
-          return saveStackTrace(
-              ex, NullError('$message (Error $ieErrorCode)', null));
+          return saveStackTrace(ex, NullError('$message (Error $ieErrorCode)'));
       }
     }
   }
@@ -1762,7 +1758,7 @@ Object _unwrapNonDartException(Object ex) {
         (match = nullLiteralCall.matchTypeError(message)) != null ||
         (match = undefProperty.matchTypeError(message)) != null ||
         (match = undefLiteralProperty.matchTypeError(message)) != null) {
-      return saveStackTrace(ex, NullError(message, match));
+      return saveStackTrace(ex, NullError(message));
     }
 
     // If we cannot determine what kind of error this is, we fall back
@@ -1831,7 +1827,17 @@ StackTrace getTraceFromException(exception) {
   _StackTrace? trace = JS('_StackTrace|Null', r'#.$cachedTrace', exception);
   if (trace != null) return trace;
   trace = new _StackTrace(exception);
-  return JS('_StackTrace', r'#.$cachedTrace = #', exception, trace);
+
+  // When storing a property on a primitive value `v`, JavaScript converts the
+  // primitive value to an ephemeral wrapper object via `Object(v)`, and then
+  // stores the property on the wrapper object. This is either (1) a useless
+  // operation or (2) an error in "use strict" mode. So only store the cached
+  // stack trace on an exception value that is actually an object.
+  if (JS('bool', 'typeof # === "object"', exception)) {
+    JS('', r'#.$cachedTrace = #', exception, trace);
+  }
+
+  return trace;
 }
 
 class _StackTrace implements StackTrace {
@@ -3352,3 +3358,20 @@ void Function(T)? wrapZoneUnaryCallback<T>(void Function(T)? callback) {
 // TODO(48585): Move this class back to the dart:_rti library when old DDC
 // runtime type system has been removed.
 abstract class TrustedGetRuntimeType {}
+
+/// The global context that "static interop" members use for namespaces.
+///
+/// For example, an interop library with no library-level `@JS` annotation and a
+/// top-level external member named or renamed to 'foo' will lower a call to
+/// that member as `<staticInteropGlobalContext>.foo`. The same applies for any
+/// external constructors or class/extension type static members.
+///
+/// If the library does have a `@JS` annotation with a value, the call then gets
+/// lowered to `<staticInteropGlobalContext>.<libraryJSAnnotationValue>.foo`.
+///
+/// To see which members get lowered with this, see the transformation in
+/// `pkg/_js_interop_checks/lib/src/js_util_optimizer.dart`.
+///
+/// This should match the global context that non-static interop members use.
+Object get staticInteropGlobalContext =>
+    JS('creates:;returns:Object;depends:none;effects:none;gvn:true', 'self');

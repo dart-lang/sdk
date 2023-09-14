@@ -96,8 +96,8 @@ test2() {
 
   gA = null;
   gB = null;
-  Expect.throws(call2a, checkNSME(r'$and'), 'foo2($gA, $gB) NSME');
-  Expect.throws(call2b, checkNSME(r'$xor'), 'foo2($gA, $gB) NSME');
+  Expect.throws(call2a, checkNSME(r'Null check'), 'foo2($gA, $gB) NSME');
+  Expect.throws(call2b, checkNSME(r'Null check'), 'foo2($gA, $gB) NSME');
 
   gA = 1;
   gB = null;
@@ -106,8 +106,8 @@ test2() {
 
   gA = null;
   gB = 2;
-  Expect.throws(call2a, checkNSME(r'$and'), 'foo2($gA, $gB) NSME');
-  Expect.throws(call2b, checkNSME(r'$xor'), 'foo2($gA, $gB) NSME');
+  Expect.throws(call2a, checkNSME(r'Null check'), 'foo2($gA, $gB) NSME');
+  Expect.throws(call2b, checkNSME(r'Null check'), 'foo2($gA, $gB) NSME');
 }
 
 main() {

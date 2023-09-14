@@ -22,6 +22,8 @@ const intptr_t k_FutureListener_stateThen = 1;
 const intptr_t k_FutureListener_stateCatchError = 2;
 // - sdk/lib/async/future_impl.dart:_FutureListener.stateWhenComplete.
 const intptr_t k_FutureListener_stateWhenComplete = 8;
+// - sdk/lib/async/future_impl.dart:_FutureListener.maskAwait.
+const intptr_t k_FutureListener_maskAwait = 16;
 
 bool WasPreviouslySuspended(const Function& function,
                             const Object& suspend_state_var) {
@@ -386,14 +388,25 @@ void AsyncAwareStackUnwinder::InitializeAwaiterFrameFromFutureListener(
       state == k_FutureListener_stateCatchError ||
       state == k_FutureListener_stateWhenComplete ||
       state ==
-          (k_FutureListener_stateThen | k_FutureListener_stateCatchError)) {
+          (k_FutureListener_stateThen | k_FutureListener_stateCatchError) ||
+      state == (k_FutureListener_stateThen | k_FutureListener_stateCatchError |
+                k_FutureListener_maskAwait)) {
     awaiter_frame_.next = Get_FutureListener_result(listener);
   } else {
     awaiter_frame_.next = Object::null();
   }
   awaiter_frame_.closure =
       Closure::RawCast(Get_FutureListener_callback(listener));
-  if (state == k_FutureListener_stateCatchError) {
+
+  // If the Future has catchError callback attached through either
+  // `Future.onError` or `Future.then(..., onError: ...)` then we should
+  // treat this listener as a catch all exception handler. However we should
+  // ignore the case when these callbacks are simply forwarding errors into a
+  // suspended async function, because it will be represented by its own async
+  // frame.
+  if ((state &
+       (k_FutureListener_stateCatchError | k_FutureListener_maskAwait)) ==
+      k_FutureListener_stateCatchError) {
     awaiter_frame_.has_catch_error = true;
   }
 }

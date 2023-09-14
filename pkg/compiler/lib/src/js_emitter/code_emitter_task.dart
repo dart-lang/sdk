@@ -78,7 +78,7 @@ class CodeEmitterTask extends CompilerTask {
           _compiler.options,
           _compiler.reporter,
           _compiler.outputProvider,
-          _compiler.dumpInfoTask,
+          _compiler.dumpInfoRegistry,
           namer,
           closedWorld,
           codegen.rtiRecipeEncoder,
@@ -215,7 +215,7 @@ abstract class Emitter implements ModularEmitter {
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);
 
   /// Returns the size of the code generated for a given output [unit].
-  int generatedSize(OutputUnit unit);
+  Map<OutputUnit, int> get generatedSizes;
 }
 
 class _EmitterMetrics implements Metrics {

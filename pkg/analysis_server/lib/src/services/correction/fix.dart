@@ -67,8 +67,12 @@ class DartFixContextImpl implements DartFixContext {
   @override
   final AnalysisError error;
 
+  @override
+  final bool autoTriggered;
+
   DartFixContextImpl(this.instrumentationService, this.workspace,
-      this.resolveResult, this.error);
+      this.resolveResult, this.error,
+      {this.autoTriggered = false});
 
   @override
   Future<Map<LibraryElement, Element>> getTopLevelDeclarations(

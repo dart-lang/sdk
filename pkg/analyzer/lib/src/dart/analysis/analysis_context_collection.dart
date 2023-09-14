@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/analysis/context_builder.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
+import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
@@ -60,6 +61,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     AnalysisDriverScheduler? scheduler,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
+    InfoDeclarationStore? infoDeclarationStore,
     @Deprecated('Use updateAnalysisOptions2, which must be a function that '
         'accepts a second parameter')
     void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
@@ -111,6 +113,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         updateAnalysisOptions2: updateAnalysisOptions2,
         fileContentCache: fileContentCache,
         unlinkedUnitStore: unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
+        infoDeclarationStore: infoDeclarationStore,
         macroKernelBuilder: macroKernelBuilder,
         macroExecutor: macroExecutor,
         ownedFiles: ownedFiles,

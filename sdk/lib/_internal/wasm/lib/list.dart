@@ -114,11 +114,11 @@ class _List<E> extends _ModifiableList<E> with FixedLengthListMixin<E> {
   factory _List(int length) => _List._(length);
 
   // Specialization of List.empty constructor for growable == false.
-  // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
+  // Used by pkg/dart2wasm/lib/list_factory_specializer.dart.
   factory _List.empty() => _List<E>(0);
 
   // Specialization of List.filled constructor for growable == false.
-  // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
+  // Used by pkg/dart2wasm/lib/list_factory_specializer.dart.
   factory _List.filled(int length, E fill) {
     final result = _List<E>(length);
     if (fill != null) {
@@ -128,7 +128,7 @@ class _List<E> extends _ModifiableList<E> with FixedLengthListMixin<E> {
   }
 
   // Specialization of List.generate constructor for growable == false.
-  // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
+  // Used by pkg/dart2wasm/lib/list_factory_specializer.dart.
   factory _List.generate(int length, E generator(int index)) {
     final result = _List<E>(length);
     for (int i = 0; i < result.length; ++i) {

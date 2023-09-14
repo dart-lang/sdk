@@ -47,6 +47,7 @@ declare_args() {
 # ........dartdev.dart.snapshot (app-jit snapshot or kernel dill file)
 # ........dartdevc.dart.snapshot
 # ........dds.dart.snapshot
+# ........frontend_server_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........frontend_server.dart.snapshot
 # ........gen_kernel.dart.snapshot (if not on ia32)
 # ........kernel-service.dart.snapshot
@@ -138,7 +139,7 @@ _full_sdk_snapshots = _platform_sdk_snapshots + [
                         ],
                         [
                           "dartdevc",
-                          "../utils/dartdevc",
+                          "../utils/ddc:dartdevc",
                         ],
                         [
                           "kernel_worker",
@@ -394,7 +395,19 @@ group("copy_full_sdk_scripts") {
   }
 }
 
-# This loop generates "copy" targets that put snapshots into bin/snapshots
+# This target puts the frontend_server AOT snapshot into bin/snapshots
+copy("copy_frontend_server_aot_snapshot") {
+  visibility = [
+    ":copy_full_sdk_snapshots",
+    ":copy_platform_sdk_snapshots",
+  ]
+  deps = [ "../utils/kernel-service:frontend_server_aot" ]
+  sources = [ "$root_out_dir/frontend_server_aot.dart.snapshot" ]
+  outputs = [ "$root_out_dir/$dart_sdk_output/bin/snapshots/frontend_server_aot.dart.snapshot" ]
+}
+
+# This loop generates "copy" targets that put AppJIT snapshots into
+# bin/snapshots
 foreach(snapshot, _full_sdk_snapshots) {
   root = root_gen_dir
 
@@ -423,6 +436,9 @@ group("copy_platform_sdk_snapshots") {
   foreach(snapshot, _platform_sdk_snapshots) {
     public_deps += [ ":copy_${snapshot[0]}_snapshot" ]
   }
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+    public_deps += [ ":copy_frontend_server_aot_snapshot" ]
+  }
 }
 
 # This is the main rule for copying snapshots from _full_sdk_snapshots to
@@ -432,6 +448,9 @@ group("copy_full_sdk_snapshots") {
   public_deps = []
   foreach(snapshot, _full_sdk_snapshots) {
     public_deps += [ ":copy_${snapshot[0]}_snapshot" ]
+  }
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+    public_deps += [ ":copy_frontend_server_aot_snapshot" ]
   }
 }
 
@@ -518,7 +537,7 @@ copy("copy_dev_compiler_dills") {
   visibility = [ ":copy_dev_compiler_sdk" ]
   deps = [
     ":copy_libraries",
-    "../utils/dartdevc:dartdevc_platform_sound",
+    "../utils/ddc:ddc_platform",
   ]
   sources = [
     "$root_out_dir/ddc_outline.dill",
@@ -542,9 +561,8 @@ copy("copy_dev_compiler_amd_require_js") {
 # Used when running DDC compiled applications.
 copy("copy_dev_compiler_stack_trace_mapper") {
   visibility = [ ":copy_dev_compiler_sdk" ]
-  deps = [ "../utils/dartdevc:stack_trace_mapper" ]
-  dart_out =
-      get_label_info("../utils/dartdevc:stack_trace_mapper", "root_out_dir")
+  deps = [ "../utils/ddc:stack_trace_mapper" ]
+  dart_out = get_label_info("../utils/ddc:stack_trace_mapper", "root_out_dir")
   sources = [ "$dart_out/dev_compiler/build/web/dart_stack_trace_mapper.js" ]
   outputs = [
     "$root_out_dir/$dart_sdk_output/lib/dev_compiler/web/{{source_file_part}}",

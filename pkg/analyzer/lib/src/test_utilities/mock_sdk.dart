@@ -779,7 +779,11 @@ final class Pointer<T extends NativeType> extends NativeType {
 final Pointer<Never> nullptr = Pointer.fromAddress(0);
 
 class NativeCallable<T extends Function> {
-  NativeCallable.listener(@DartRepresentationOf('T') Function callback) {}
+  NativeCallable.isolateLocal(
+      @DartRepresentationOf("T") Function callback,
+      {Object? exceptionalReturn}) {}
+
+  NativeCallable.listener(@DartRepresentationOf("T") Function callback) {}
 
   Pointer<NativeFunction<T>> get nativeFunction;
 

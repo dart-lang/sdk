@@ -114,6 +114,8 @@ class C0 {
 
 class C1 {
   const C1()
+  //    ^^
+  // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTANT_CONSTRUCTOR
       : x = C0.X
       //^
       // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION

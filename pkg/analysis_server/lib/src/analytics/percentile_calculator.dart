@@ -17,6 +17,9 @@ class PercentileCalculator {
   /// Initialize a newly created percentile calculator.
   PercentileCalculator();
 
+  /// The number of values recorded.
+  int get valueCount => _valueCount;
+
   /// Record that the given [value] has been seen.
   void addValue(int value) {
     _counts[value] = (_counts[value] ?? 0) + 1;

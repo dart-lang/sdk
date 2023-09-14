@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/non_covariant_type_parameter_position.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -28,6 +29,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/constructor_fields_verifier.dart';
@@ -687,7 +689,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
     var outerClass = _enclosingClass;
     try {
       final element = node.declaredElement!;
@@ -703,10 +707,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _duplicateDefinitionVerifier.checkExtensionType(node, declarationElement);
       _checkForConflictingClassMembers();
+      _checkForConflictingGenerics(node);
       _constructorFieldsVerifier.enterExtensionType(node, declarationElement);
       _checkForNonCovariantTypeParameterPositionInRepresentationType(
           node, element);
-      // TODO(scheglov) Add checks.
+      _checkForExtensionTypeRepresentationDependsOnItself(node, element);
+      _checkForExtensionTypeImplementsDeferred(node);
+      _checkForExtensionTypeImplementsItself(node, element);
+      _checkForExtensionTypeMemberConflicts(
+        node: node,
+        element: element,
+      );
+      _checkForExtensionTypeWithAbstractMember(node);
 
       super.visitExtensionTypeDeclaration(node);
     } finally {
@@ -729,6 +741,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
     try {
+      _checkForExtensionTypeDeclaresInstanceField(node);
       _checkForNotInitializedNonNullableStaticField(node);
       _checkForWrongTypeParameterVarianceInField(node);
       _checkForLateFinalFieldWithConstConstructor(node);
@@ -811,7 +824,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       _checkForTypeAnnotationDeferredClass(returnType);
       _returnTypeVerifier.verifyReturnType(returnType);
-      _checkForImplicitDynamicReturn(node.name, node.declaredElement!);
       _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForMainFunction2(node);
       super.visitFunctionDeclaration(node);
@@ -872,20 +884,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     try {
       _checkForTypeAnnotationDeferredClass(node.returnType);
 
-      // TODO(jmesserly): ideally we'd use _checkForImplicitDynamicReturn, and
-      // we can get the function element via `node?.element?.type?.element` but
-      // it doesn't have hasImplicitReturnType set correctly.
-      if (!_options.implicitDynamic && node.returnType == null) {
-        DartType parameterType = node.declaredElement!.type;
-        if (parameterType is FunctionType &&
-            parameterType.returnType is DynamicType) {
-          errorReporter.reportErrorForToken(
-              LanguageCode.IMPLICIT_DYNAMIC_RETURN,
-              node.name,
-              [node.name.lexeme]);
-        }
-      }
-
       super.visitFunctionTypedFormalParameter(node);
     } finally {
       _isInFunctionTypedFormalParameter = old;
@@ -908,12 +906,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       node.pattern.accept(this);
     });
     node.whenClause?.accept(this);
-  }
-
-  @override
-  void visitImplementsClause(ImplementsClause node) {
-    node.interfaces.forEach(_checkForImplicitDynamicType);
-    super.visitImplementsClause(node);
   }
 
   @override
@@ -971,7 +963,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkForNewWithUndefinedConstructor(node, constructorName, namedType);
       }
     }
-    _checkForImplicitDynamicType(namedType);
     super.visitInstanceCreationExpression(node);
   }
 
@@ -1022,7 +1013,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForExtensionDeclaresMemberOfObject(node);
       _checkForTypeAnnotationDeferredClass(returnType);
       _returnTypeVerifier.verifyReturnType(returnType);
-      _checkForImplicitDynamicReturn(node.name, node.declaredElement!);
       _checkForWrongTypeParameterVarianceInMethod(node);
       super.visitMethodDeclaration(node);
     });
@@ -1226,16 +1216,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     _checkForPrivateOptionalParameter(node);
     _checkForTypeAnnotationDeferredClass(node.type);
-
-    // Checks for an implicit dynamic parameter type.
-    //
-    // We can skip other parameter kinds besides simple formal, because:
-    // - DefaultFormalParameter contains a simple one, so it gets here,
-    // - FieldFormalParameter error should be reported on the field,
-    // - FunctionTypedFormalParameter is a function type, not dynamic.
-    _checkForImplicitDynamicIdentifier(node, node.name,
-        variable: node.declaredElement!);
-
     super.visitSimpleFormalParameter(node);
   }
 
@@ -1277,6 +1257,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     );
     _isInConstructorInitializer = true;
     try {
+      _checkForExtensionTypeConstructorWithSuperInvocation(node);
       super.visitSuperConstructorInvocation(node);
     } finally {
       _isInConstructorInitializer = false;
@@ -1286,6 +1267,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
     super.visitSuperFormalParameter(node);
+
+    if (_enclosingClass is ExtensionTypeElement) {
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode
+            .EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER,
+        node.superKeyword,
+      );
+      return;
+    }
 
     var constructor = node.parentFormalParameterList.parent;
     if (!(constructor is ConstructorDeclaration &&
@@ -1401,7 +1391,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForBuiltInIdentifierAsName(node.name,
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME);
     _checkForTypeAnnotationDeferredClass(node.bound);
-    _checkForImplicitDynamicType(node.bound);
     _checkForGenericFunctionType(node.bound);
     node.bound?.accept(_uninstantiatedBoundChecker);
     super.visitTypeParameter(node);
@@ -1419,8 +1408,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     final nameToken = node.name;
     var initializerNode = node.initializer;
     // do checks
-    _checkForImplicitDynamicIdentifier(node, nameToken,
-        variable: node.declaredElement!);
     _checkForAbstractOrExternalVariableInitializer(node);
     // visit initializer
     String name = nameToken.lexeme;
@@ -1459,12 +1446,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _isInLateLocalVariable.removeLast();
   }
 
-  @override
-  void visitWithClause(WithClause node) {
-    node.mixinTypes.forEach(_checkForImplicitDynamicType);
-    super.visitWithClause(node);
-  }
-
   /// Checks the class for problems with the superclass, mixins, or implemented
   /// interfaces.
   void _checkClassInheritance(
@@ -1479,7 +1460,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         !_checkForImplementsClauseErrorCodes(implementsClause) &&
         !_checkForAllMixinErrorCodes(withClause) &&
         !_checkForNoGenerativeConstructorsInSuperclass(superclass)) {
-      _checkForImplicitDynamicType(superclass);
       _checkForExtendsDeferredClass(superclass);
       _checkForRepeatedType(implementsClause?.interfaces,
           CompileTimeErrorCode.IMPLEMENTS_REPEATED);
@@ -1580,7 +1560,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               mixinName, CompileTimeErrorCode.MIXIN_DEFERRED_CLASS)) {
             problemReported = true;
           }
-          if (mixinElement is MixinElement) {
+          if (mixinType.element is ExtensionTypeElement) {
+            // Already reported.
+          } else if (mixinElement is MixinElement) {
             if (_checkForMixinSuperclassConstraints(
                 mixinNameIndex, mixinName)) {
               problemReported = true;
@@ -2023,8 +2005,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           name,
           inherited.enclosingElement.displayName,
         ]);
-      } else if (inherited is PropertyAccessorElement &&
-          _enclosingClass is! ExtensionTypeElement) {
+      } else if (inherited is PropertyAccessorElement) {
+        // Extension type methods redeclare getters with the same name.
+        if (_enclosingClass is ExtensionTypeElement && inherited.isGetter) {
+          continue;
+        }
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, method, [
           _enclosingClass!.displayName,
@@ -2051,8 +2036,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           name,
           inherited.enclosingElement.displayName,
         ]);
-      } else if (inherited is MethodElement &&
-          _enclosingClass is! ExtensionTypeElement) {
+      } else if (inherited is MethodElement) {
+        // Extension type getters redeclare methods with the same name.
+        if (_enclosingClass is ExtensionTypeElement && accessor.isGetter) {
+          continue;
+        }
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, accessor, [
           _enclosingClass!.displayName,
@@ -2153,6 +2141,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
           node.name,
           [
+            _enclosingClass!.kind.displayName,
             _enclosingClass!.name,
             error.first.getDisplayString(withNullability: true),
             error.second.getDisplayString(withNullability: true),
@@ -2847,18 +2836,145 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForExtensionDeclaresMemberOfObject(MethodDeclaration node) {
-    if (_enclosingExtension == null) return;
+    if (_enclosingExtension != null) {
+      if (node.hasObjectMemberName) {
+        errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT,
+          node.name,
+        );
+      }
+    }
 
-    var name = node.name.lexeme;
-    if (name == '==' ||
-        name == 'hashCode' ||
-        name == 'toString' ||
-        name == 'runtimeType' ||
-        name == FunctionElement.NO_SUCH_METHOD_METHOD_NAME) {
+    if (_enclosingClass is ExtensionTypeElement) {
+      if (node.hasObjectMemberName) {
+        errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
+          node.name,
+        );
+      }
+    }
+  }
+
+  void _checkForExtensionTypeConstructorWithSuperInvocation(
+    SuperConstructorInvocation node,
+  ) {
+    if (_enclosingClass is ExtensionTypeElement) {
       errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT,
+        CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION,
+        node.superKeyword,
+      );
+    }
+  }
+
+  void _checkForExtensionTypeDeclaresInstanceField(FieldDeclaration node) {
+    if (_enclosingClass is! ExtensionTypeElement) {
+      return;
+    }
+
+    if (node.isStatic || node.externalKeyword != null) {
+      return;
+    }
+
+    for (final field in node.fields.variables) {
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
+        field.name,
+      );
+    }
+  }
+
+  void _checkForExtensionTypeImplementsDeferred(
+    ExtensionTypeDeclarationImpl node,
+  ) {
+    final clause = node.implementsClause;
+    if (clause == null) {
+      return;
+    }
+
+    for (final type in clause.interfaces) {
+      _checkForExtendsOrImplementsDeferredClass(
+        type,
+        CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS,
+      );
+    }
+  }
+
+  void _checkForExtensionTypeImplementsItself(
+    ExtensionTypeDeclarationImpl node,
+    ExtensionTypeElementImpl element,
+  ) {
+    if (element.hasImplementsSelfReference) {
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF,
         node.name,
       );
+    }
+  }
+
+  void _checkForExtensionTypeMemberConflicts({
+    required ExtensionTypeDeclaration node,
+    required ExtensionTypeElement element,
+  }) {
+    void report(String memberName, List<ExecutableElement> candidates) {
+      final contextMessages = candidates.map<DiagnosticMessage>((executable) {
+        final container = executable.enclosingElement as InterfaceElement;
+        return DiagnosticMessageImpl(
+          filePath: executable.source.fullName,
+          offset: executable.nameOffset,
+          length: executable.nameLength,
+          message: "Inherited from '${container.name}'",
+          url: null,
+        );
+      }).toList();
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
+        node.name,
+        [node.name.lexeme, memberName],
+        contextMessages,
+      );
+    }
+
+    final interface = _inheritanceManager.getInterface(element);
+    for (final conflict in interface.conflicts) {
+      switch (conflict) {
+        case CandidatesConflict _:
+          report(conflict.name.name, conflict.candidates);
+        case HasNonExtensionAndExtensionMemberConflict _:
+          report(conflict.name.name, [
+            ...conflict.nonExtension,
+            ...conflict.extension,
+          ]);
+        case NotUniqueExtensionMemberConflict _:
+          report(conflict.name.name, conflict.candidates);
+      }
+    }
+  }
+
+  void _checkForExtensionTypeRepresentationDependsOnItself(
+    ExtensionTypeDeclarationImpl node,
+    ExtensionTypeElementImpl element,
+  ) {
+    if (element.hasRepresentationSelfReference) {
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
+        node.name,
+      );
+    }
+  }
+
+  void _checkForExtensionTypeWithAbstractMember(
+    ExtensionTypeDeclarationImpl node,
+  ) {
+    for (final member in node.members) {
+      if (member is MethodDeclarationImpl && !member.isStatic) {
+        if (member.isAbstract) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER,
+            member,
+            [member.name.lexeme, node.name.lexeme],
+          );
+        }
+      }
     }
   }
 
@@ -3113,61 +3229,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
     return foundError;
-  }
-
-  void _checkForImplicitDynamicIdentifier(
-    AstNode node,
-    Token? id, {
-    required VariableElement variable,
-  }) {
-    if (id == null) {
-      return;
-    }
-    if (_options.implicitDynamic) {
-      return;
-    }
-    if (variable.hasImplicitType && variable.type is DynamicType) {
-      ErrorCode errorCode;
-      if (variable is FieldElement) {
-        errorCode = LanguageCode.IMPLICIT_DYNAMIC_FIELD;
-      } else if (variable is ParameterElement) {
-        errorCode = LanguageCode.IMPLICIT_DYNAMIC_PARAMETER;
-      } else {
-        errorCode = LanguageCode.IMPLICIT_DYNAMIC_VARIABLE;
-      }
-      // Parameters associated with a variable always have a name, so we can
-      // safely rely on [id] being non-`null`.
-      errorReporter.reportErrorForNode(errorCode, node, [id.lexeme]);
-    }
-  }
-
-  void _checkForImplicitDynamicReturn(
-      Token functionName, ExecutableElement element) {
-    if (_options.implicitDynamic) {
-      return;
-    }
-    if (element is PropertyAccessorElement && element.isSetter) {
-      return;
-    }
-    if (element.hasImplicitReturnType && element.returnType is DynamicType) {
-      errorReporter.reportErrorForToken(LanguageCode.IMPLICIT_DYNAMIC_RETURN,
-          functionName, [element.displayName]);
-    }
-  }
-
-  void _checkForImplicitDynamicType(TypeAnnotation? node) {
-    if (_options.implicitDynamic ||
-        node == null ||
-        (node is NamedType && node.typeArguments != null)) {
-      return;
-    }
-    DartType type = node.typeOrThrow;
-    if (type is ParameterizedType &&
-        type.typeArguments.isNotEmpty &&
-        type.typeArguments.any((t) => t is DynamicType)) {
-      errorReporter
-          .reportErrorForNode(LanguageCode.IMPLICIT_DYNAMIC_TYPE, node, [type]);
-    }
   }
 
   /// Check that if the visiting library is not system, then any given library
@@ -4739,9 +4800,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
         TypeParameter? current = parameter;
         for (var step = 0; current != null; step++) {
-          var bound = current.bound;
-          if (bound is NamedType) {
-            current = elementToNode[bound.element];
+          final boundNode = current.bound;
+          if (boundNode is NamedType) {
+            var boundType = boundNode.typeOrThrow;
+            boundType = boundType.representationTypeErasureOrSelf;
+            current = elementToNode[boundType.element];
           } else {
             current = null;
           }

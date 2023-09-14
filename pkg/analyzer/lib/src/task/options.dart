@@ -853,9 +853,7 @@ class StrongModeOptionValueValidator extends OptionsValidator {
     var analyzer = options.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
       var strongModeNode = analyzer.valueAt(AnalyzerOptions.strongMode);
-      if (strongModeNode is YamlScalar) {
-        return _validateStrongModeAsScalar(reporter, strongModeNode);
-      } else if (strongModeNode is YamlMap) {
+      if (strongModeNode is YamlMap) {
         return _validateStrongModeAsMap(reporter, strongModeNode);
       } else if (strongModeNode != null) {
         reporter.reportErrorForSpan(
@@ -875,21 +873,11 @@ class StrongModeOptionValueValidator extends OptionsValidator {
           _builder.reportError(reporter, AnalyzerOptions.strongMode, k);
         } else if (key == AnalyzerOptions.declarationCasts) {
           reporter.reportErrorForSpan(
-              AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED,
-              k.span,
-              [AnalyzerOptions.declarationCasts]);
-        } else if (key == AnalyzerOptions.implicitCasts) {
-          reporter.reportErrorForSpan(
-              AnalysisOptionsWarningCode
-                  .ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT,
-              k.span,
-              [AnalyzerOptions.implicitCasts, 'strict-casts']);
-        } else if (key == AnalyzerOptions.implicitDynamic) {
-          reporter.reportErrorForSpan(
-              AnalysisOptionsWarningCode
-                  .ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT,
-              k.span,
-              [AnalyzerOptions.implicitDynamic, 'strict-raw-types']);
+              AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, v.span, [
+            AnalyzerOptions.strongMode,
+            v.valueOrThrow,
+            AnalyzerOptions.trueOrFalseProposal
+          ]);
         } else {
           // The key is valid.
           if (v is YamlScalar) {
@@ -904,26 +892,6 @@ class StrongModeOptionValueValidator extends OptionsValidator {
         }
       }
     });
-  }
-
-  void _validateStrongModeAsScalar(
-      ErrorReporter reporter, YamlScalar strongModeNode) {
-    var stringValue = toLowerCase(strongModeNode.value);
-    if (!AnalyzerOptions.trueOrFalse.contains(stringValue)) {
-      reporter.reportErrorForSpan(
-          AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, strongModeNode.span, [
-        AnalyzerOptions.strongMode,
-        strongModeNode.valueOrThrow,
-        AnalyzerOptions.trueOrFalseProposal
-      ]);
-    } else if (stringValue == 'false') {
-      reporter.reportErrorForSpan(
-          AnalysisOptionsWarningCode.SPEC_MODE_REMOVED, strongModeNode.span);
-    } else if (stringValue == 'true') {
-      reporter.reportErrorForSpan(
-          AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED,
-          strongModeNode.span);
-    }
   }
 }
 

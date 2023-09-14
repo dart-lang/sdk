@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_IL_TEST_HELPER_H_
 #define RUNTIME_VM_COMPILER_BACKEND_IL_TEST_HELPER_H_
 
+#include <memory>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -14,6 +15,7 @@
 #include "platform/allocation.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
+#include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/compiler/jit/compiler.h"
@@ -79,6 +81,8 @@ class TestPipeline : public ValueObject {
                         mode == CompilerPass::PipelineMode::kAOT,
                         is_optimizing,
                         CompilerState::ShouldTrace(function)),
+        speculative_policy_(std::unique_ptr<SpeculativeInliningPolicy>(
+            new SpeculativeInliningPolicy(/*enable_suppresson=*/false))),
         mode_(mode) {}
   ~TestPipeline() { delete pass_state_; }
 
@@ -99,6 +103,7 @@ class TestPipeline : public ValueObject {
   const Function& function_;
   Thread* thread_;
   CompilerState compiler_state_;
+  std::unique_ptr<SpeculativeInliningPolicy> speculative_policy_;
   CompilerPass::PipelineMode mode_;
   ZoneGrowableArray<const ICData*>* ic_data_array_ = nullptr;
   ParsedFunction* parsed_function_ = nullptr;
@@ -286,15 +291,19 @@ class FlowGraphBuilderHelper {
     return flow_graph_.GetConstant(Double::Handle(Double::NewCanonical(value)));
   }
 
-  // Adds a variable into the scope which would provide static type for the
-  // parameter.
+  // Adds a variable into the scope which would provide inferred argument type
+  // for the parameter.
   void AddVariable(const char* name,
                    const AbstractType& static_type,
-                   CompileType* param_type = nullptr) {
-    LocalVariable* v = new LocalVariable(
-        TokenPosition::kNoSource, TokenPosition::kNoSource,
-        String::Handle(Symbols::New(Thread::Current(), name)), static_type,
-        LocalVariable::kNoKernelOffset, param_type);
+                   CompileType* inferred_arg_type = nullptr) {
+    LocalVariable* v =
+        new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                          String::Handle(Symbols::New(Thread::Current(), name)),
+                          static_type, LocalVariable::kNoKernelOffset,
+                          new CompileType(CompileType::FromAbstractType(
+                              static_type, CompileType::kCanBeNull,
+                              CompileType::kCannotBeSentinel)),
+                          inferred_arg_type);
     v->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
     flow_graph()->parsed_function().scope()->AddVariable(v);
   }

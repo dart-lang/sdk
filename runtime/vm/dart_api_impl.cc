@@ -2193,7 +2193,7 @@ DART_EXPORT bool Dart_HasLivePorts() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate);
   NoSafepointScope no_safepoint_scope;
-  return isolate->message_handler()->HasLivePorts();
+  return isolate->HasLivePorts();
 }
 
 DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
@@ -5922,8 +5922,9 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   if (FLAG_enable_mirrors) {
     // Notify mirrors that MirrorSystem.libraries needs to be recomputed.
     const Library& libmirrors = Library::Handle(Z, Library::MirrorsLibrary());
-    const Field& dirty_bit = Field::Handle(
-        Z, libmirrors.LookupLocalField(String::Handle(String::New("_dirty"))));
+    const Field& dirty_bit =
+        Field::Handle(Z, libmirrors.LookupFieldAllowPrivate(
+                             String::Handle(String::New("_dirty"))));
     ASSERT(!dirty_bit.IsNull() && dirty_bit.is_static());
     dirty_bit.SetStaticValue(Bool::True());
   }

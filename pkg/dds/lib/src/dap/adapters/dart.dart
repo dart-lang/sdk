@@ -804,7 +804,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         if (isolateManager.autoResumeStartingIsolates) {
           await isolateManager.resumeIsolate(isolate);
         } else {
-          isolateManager.sendStoppedOnEntryEvent(thread.isolateNumber);
+          isolateManager.sendStoppedOnEntryEvent(thread.threadId);
         }
       }
     }));
@@ -1096,7 +1096,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// If no message could be extracted, returns the whole original error.
   String extractEvaluationErrorMessage(String rawError) {
     final match = _evalErrorMessagePattern.firstMatch(rawError);
-    final shortError = match != null ? match.group(1)! : null;
+    final shortError = match?.group(1);
     return shortError ?? rawError;
   }
 
@@ -1105,7 +1105,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// If no message could be extracted, returns the whole original error.
   String extractUnhandledExceptionMessage(String rawError) {
     final match = _exceptionMessagePattern.firstMatch(rawError);
-    final shortError = match != null ? match.group(1)! : null;
+    final shortError = match?.group(1);
     return shortError ?? rawError;
   }
 
@@ -1635,19 +1635,19 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     //  requests can be used to enforce paging in the client."
     const stackFrameBatchSize = 20;
 
-    final isolateNumber = args.threadId;
-    final thread = isolateManager.getThread(isolateNumber);
+    final threadId = args.threadId;
+    final thread = isolateManager.getThread(threadId);
     final topFrame = thread?.pauseEvent?.topFrame;
     final startFrame = args.startFrame ?? 0;
     final numFrames = args.levels ?? 0;
     var totalFrames = 1;
 
     if (thread == null) {
-      throw DebugAdapterException('No thread with threadId $isolateNumber');
+      throw DebugAdapterException('No thread with threadId $threadId');
     }
 
     if (!thread.paused) {
-      throw DebugAdapterException('Thread $isolateNumber is not paused');
+      throw DebugAdapterException('Thread $threadId is not paused');
     }
 
     final stackFrames = <StackFrame>[];
@@ -1797,7 +1797,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final threads = [
       for (final thread in isolateManager.threads)
         Thread(
-          id: thread.isolateNumber,
+          id: thread.threadId,
           name: thread.isolate.name ?? '<unnamed isolate>',
         )
     ];

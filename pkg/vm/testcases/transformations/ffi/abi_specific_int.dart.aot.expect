@@ -15,12 +15,12 @@ abstract final class WChar extends ffi::AbiSpecificInteger /*hasConstConstructor
 }
 @#C18
 final class WCharStruct extends ffi::Struct {
-  constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::WCharStruct
+  constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::WCharStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=()->i]  get a0() → core::int
     return [@vm.inferred-type.metadata=int] ffi::_loadAbiSpecificInt<self::WChar>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] [@vm.inferred-type.metadata=dart.ffi::Pointer] this.{ffi::_Compound::_typedDataBase}{core::Object}, #C20.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=(i)->i]  set a0([@vm.inferred-type.metadata=dart.core::_Smi] core::int #externalFieldValue) → void
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=(i)->i]  set a0([@vm.inferred-arg-type.metadata=dart.core::_Smi] core::int #externalFieldValue) → void
     return [@vm.inferred-type.metadata=int] ffi::_storeAbiSpecificInt<self::WChar>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] [@vm.inferred-type.metadata=dart.ffi::Pointer] this.{ffi::_Compound::_typedDataBase}{core::Object}, #C20.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue);
 [@vm.unboxing-info.metadata=()->i]  @#C10
   static get #sizeOf() → core::int*
@@ -28,7 +28,7 @@ final class WCharStruct extends ffi::Struct {
 }
 @#C27
 final class WCharArrayStruct extends ffi::Struct {
-  constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::WCharArrayStruct
+  constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::WCharArrayStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  get a0() → ffi::Array<self::WChar>

@@ -494,6 +494,38 @@ extension DeserializerExtensions on Deserializer {
     if (checkNull()) return null;
     return expectCode();
   }
+
+  Diagnostic expectDiagnostic() {
+    expectList();
+    List<DiagnosticMessage> context = [
+      for (; moveNext();) expectDiagnosticMessage(),
+    ];
+
+    String? correctionMessage = (this..moveNext()).expectNullableString();
+    DiagnosticMessage message = (this..moveNext()).expectDiagnosticMessage();
+    Severity severity = Severity.values[(this..moveNext()).expectInt()];
+
+    return new Diagnostic(message, severity,
+        contextMessages: context, correctionMessage: correctionMessage);
+  }
+
+  DiagnosticMessage expectDiagnosticMessage() {
+    String message = expectString();
+
+    moveNext();
+    RemoteInstance? target = checkNull() ? null : expectRemoteInstance();
+
+    return switch (target) {
+      null => new DiagnosticMessage(message),
+      DeclarationImpl() =>
+        new DiagnosticMessage(message, target: target.asDiagnosticTarget),
+      TypeAnnotationImpl() =>
+        new DiagnosticMessage(message, target: target.asDiagnosticTarget),
+      _ => throw new UnsupportedError(
+          'Unsupported target type ${target.runtimeType}, only Declarations '
+          'and TypeAnnotations are allowed.'),
+    };
+  }
 }
 
 extension SerializeNullable on Serializable? {
@@ -622,6 +654,34 @@ extension SerializeCode on Code {
         }
         serializer.endList();
         return;
+    }
+  }
+}
+
+extension SerializeDiagnostic on Diagnostic {
+  void serialize(Serializer serializer) {
+    serializer.startList();
+    for (DiagnosticMessage message in contextMessages) {
+      message.serialize(serializer);
+    }
+    serializer.endList();
+
+    serializer.addNullableString(correctionMessage);
+    message.serialize(serializer);
+    serializer.addInt(severity.index);
+  }
+}
+
+extension SerializeDiagnosticMessage on DiagnosticMessage {
+  void serialize(Serializer serializer) {
+    serializer.addString(message);
+    switch (target) {
+      case null:
+        serializer.addNull();
+      case DeclarationDiagnosticTarget target:
+        (target.declaration as DeclarationImpl).serialize(serializer);
+      case TypeAnnotationDiagnosticTarget target:
+        (target.typeAnnotation as TypeAnnotationImpl).serialize(serializer);
     }
   }
 }

@@ -521,13 +521,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the name of the class implementing the conflicting interface
-  ///  1: the first conflicting type
-  ///  2: the second conflicting type
+  ///  0: the name of the kind of the element implementing the conflicting interface
+  ///  1: the name of the element implementing the conflicting interface
+  ///  2: the first conflicting type
+  ///  3: the second conflicting type
   static const CompileTimeErrorCode CONFLICTING_GENERIC_INTERFACES =
       CompileTimeErrorCode(
     'CONFLICTING_GENERIC_INTERFACES',
-    "The class '{0}' can't implement both '{1}' and '{2}' because the type "
+    "The {0} '{1}' can't implement both '{2}' and '{3}' because the type "
         "arguments are different.",
     hasPublishedDocs: true,
   );
@@ -682,6 +683,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing the keyword 'const' from the constructor or removing the "
         "keyword 'deferred' from the import.",
+    hasPublishedDocs: true,
     uniqueName: 'CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY',
   );
 
@@ -841,6 +843,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Methods can't be invoked in constant expressions.",
   );
 
+  ///  Parameters:
+  ///  0: the name of the property being accessed
+  ///  1: the type with the property being accessed
+  static const CompileTimeErrorCode CONST_EVAL_PROPERTY_ACCESS =
+      CompileTimeErrorCode(
+    'CONST_EVAL_PROPERTY_ACCESS',
+    "The property '{0}' can't be accessed on the type '{1}' in a constant "
+        "expression.",
+  );
+
   ///  16.12.2 Const: It is a compile-time error if evaluation of a constant
   ///  object results in an uncaught exception being thrown.
   static const CompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION =
@@ -902,6 +914,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode CONST_EVAL_TYPE_NUM = CompileTimeErrorCode(
     'CONST_EVAL_TYPE_NUM',
     "In constant expressions, operands of this operator must be of type 'num'.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_STRING =
+      CompileTimeErrorCode(
+    'CONST_EVAL_TYPE_STRING',
+    "In constant expressions, operands of this operator must be of type "
+        "'String'.",
   );
 
   static const CompileTimeErrorCode CONST_EVAL_TYPE_TYPE = CompileTimeErrorCode(
@@ -1008,6 +1028,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  static const CompileTimeErrorCode CONST_TYPE_PARAMETER = CompileTimeErrorCode(
+    'CONST_TYPE_PARAMETER',
+    "Type parameters can't be used in a constant expression.",
+    correctionMessage:
+        "Try replacing the type parameter with a different type.",
+  );
+
+  ///  No parameters.
   static const CompileTimeErrorCode CONST_WITH_NON_CONST = CompileTimeErrorCode(
     'CONST_WITH_NON_CONST',
     "The constructor being called isn't a const constructor.",
@@ -1111,17 +1139,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode COULD_NOT_INFER = CompileTimeErrorCode(
     'COULD_NOT_INFER',
     "Couldn't infer type parameter '{0}'.{1}",
-  );
-
-  ///  No parameters.
-  static const CompileTimeErrorCode DEFAULT_LIST_CONSTRUCTOR =
-      CompileTimeErrorCode(
-    'DEFAULT_LIST_CONSTRUCTOR',
-    "The default 'List' constructor isn't available when null safety is "
-        "enabled.",
-    correctionMessage:
-        "Try using a list literal, 'List.filled' or 'List.generate'.",
-    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -1307,6 +1324,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EMPTY_MAP_PATTERN',
     "A map pattern must have at least one entry.",
     correctionMessage: "Try replacing it with an object pattern 'Map()'.",
+    hasPublishedDocs: true,
   );
 
   static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
@@ -1594,6 +1612,115 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "of a cascade expression.",
     correctionMessage: "Try using '.' instead of '..'.",
     hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode
+      EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
+    "Extension type constructors can't declare super formal parameters.",
+    correctionMessage: "Try removing the super formal parameter declaration.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode
+      EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION = CompileTimeErrorCode(
+    'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
+    "Extension type constructors can't include superinitializers.",
+    correctionMessage: "Try removing the superconstructor invocation.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode EXTENSION_TYPE_DECLARES_INSTANCE_FIELD =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_DECLARES_INSTANCE_FIELD',
+    "Extension types can't declare instance fields.",
+    correctionMessage: "Try replacing the field with a getter.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT',
+    "Extension types can't declare members with the same name as a member "
+        "declared by 'Object'.",
+    correctionMessage: "Try specifying a different name for the member.",
+  );
+
+  ///  Parameters:
+  ///  0: the display string of the disallowed type
+  static const CompileTimeErrorCode EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE',
+    "Extension types can't implement '{0}'.",
+    correctionMessage:
+        "Try specifying a different type, or remove the type from the list.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode EXTENSION_TYPE_IMPLEMENTS_ITSELF =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_IMPLEMENTS_ITSELF',
+    "The extension type can't implement itself.",
+    correctionMessage:
+        "Try removing the superinterface that references this extension type.",
+  );
+
+  ///  Parameters:
+  ///  0: the implemented not extension type
+  ///  1: the ultimate representation type
+  static const CompileTimeErrorCode EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE',
+    "'{0}' is not a supertype of '{1}', the representation type.",
+    correctionMessage:
+        "Try specifying a different type, or remove the type from the list.",
+  );
+
+  ///  Parameters:
+  ///  0: the representation type of the implemented extension type
+  ///  1: the name of the implemented extension type
+  ///  2: the representation type of the this extension type
+  ///  3: the name of the this extension type
+  static const CompileTimeErrorCode
+      EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE',
+    "'{0}', the representation type of '{1}', is not a supertype of '{2}', the "
+        "representation type of '{3}'.",
+    correctionMessage:
+        "Try specifying a different type, or remove the type from the list.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the extension type
+  ///  1: the name of the conflicting member
+  static const CompileTimeErrorCode EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT',
+    "The extension type '{0}' has more than one distinct member named '{1}' "
+        "from implemented types.",
+    correctionMessage:
+        "Try redeclaring the corresponding member in this extension type.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode
+      EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF = CompileTimeErrorCode(
+    'EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
+    "The extension type representation can't depend on itself.",
+    correctionMessage: "Try specifying a different type.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the abstract method
+  ///  1: the name of the enclosing extension type
+  static const CompileTimeErrorCode EXTENSION_TYPE_WITH_ABSTRACT_MEMBER =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_WITH_ABSTRACT_MEMBER',
+    "'{0}' must have a method body because '{1}' is an extension type.",
+    correctionMessage: "Try adding a body to '{0}'.",
   );
 
   static const CompileTimeErrorCode EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER =
@@ -2985,6 +3112,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try specifying the getter name explicitly, or using a variable "
         "pattern.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -3932,7 +4060,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode OBSOLETE_COLON_FOR_DEFAULT_VALUE =
       CompileTimeErrorCode(
     'OBSOLETE_COLON_FOR_DEFAULT_VALUE',
-    "Using a colon as a separator before a default value is no longer "
+    "Using a colon as the separator before a default value is no longer "
         "supported.",
     correctionMessage: "Try replacing the colon with an equal sign.",
     hasPublishedDocs: true,
@@ -4184,6 +4312,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'RECURSIVE_COMPILE_TIME_CONSTANT',
     "The compile-time constant expression depends on itself.",
     hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode RECURSIVE_CONSTANT_CONSTRUCTOR =
+      CompileTimeErrorCode(
+    'RECURSIVE_CONSTANT_CONSTRUCTOR',
+    "The constant constructor depends on itself.",
   );
 
   ///  No parameters.
@@ -4445,6 +4580,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'REST_ELEMENT_IN_MAP_PATTERN',
     "A map pattern can't contain a rest pattern.",
     correctionMessage: "Try removing the rest pattern.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -5653,126 +5789,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 }
 
-class LanguageCode extends ErrorCode {
-  ///  Parameters:
-  ///  0: the name of the field
-  static const LanguageCode IMPLICIT_DYNAMIC_FIELD = LanguageCode(
-    'IMPLICIT_DYNAMIC_FIELD',
-    "Missing field type for '{0}'.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the function
-  ///  1: the names of the type arguments
-  static const LanguageCode IMPLICIT_DYNAMIC_FUNCTION = LanguageCode(
-    'IMPLICIT_DYNAMIC_FUNCTION',
-    "Missing type arguments for generic function '{0}<{1}>'.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of type
-  static const LanguageCode IMPLICIT_DYNAMIC_INVOKE = LanguageCode(
-    'IMPLICIT_DYNAMIC_INVOKE',
-    "Missing type arguments for calling generic function type '{0}'.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  static const LanguageCode IMPLICIT_DYNAMIC_LIST_LITERAL = LanguageCode(
-    'IMPLICIT_DYNAMIC_LIST_LITERAL',
-    "Missing type argument for list literal.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  static const LanguageCode IMPLICIT_DYNAMIC_MAP_LITERAL = LanguageCode(
-    'IMPLICIT_DYNAMIC_MAP_LITERAL',
-    "Missing type arguments for map literal.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the function
-  ///  1: the names of the type arguments
-  static const LanguageCode IMPLICIT_DYNAMIC_METHOD = LanguageCode(
-    'IMPLICIT_DYNAMIC_METHOD',
-    "Missing type arguments for generic method '{0}<{1}>'.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the parameter
-  static const LanguageCode IMPLICIT_DYNAMIC_PARAMETER = LanguageCode(
-    'IMPLICIT_DYNAMIC_PARAMETER',
-    "Missing parameter type for '{0}'.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the function or method
-  static const LanguageCode IMPLICIT_DYNAMIC_RETURN = LanguageCode(
-    'IMPLICIT_DYNAMIC_RETURN',
-    "Missing return type for '{0}'.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the type
-  static const LanguageCode IMPLICIT_DYNAMIC_TYPE = LanguageCode(
-    'IMPLICIT_DYNAMIC_TYPE',
-    "Missing type arguments for generic type '{0}'.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the variable
-  static const LanguageCode IMPLICIT_DYNAMIC_VARIABLE = LanguageCode(
-    'IMPLICIT_DYNAMIC_VARIABLE',
-    "Missing variable type for '{0}'.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  /// Initialize a newly created error code to have the given [name].
-  const LanguageCode(
-    String name,
-    String problemMessage, {
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    String? uniqueName,
-  }) : super(
-          name: name,
-          problemMessage: problemMessage,
-          uniqueName: 'LanguageCode.${uniqueName ?? name}',
-        );
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorType.COMPILE_TIME_ERROR.severity;
-
-  @override
-  ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
-}
-
 class StaticWarningCode extends AnalyzerErrorCode {
   ///  No parameters.
   static const StaticWarningCode DEAD_NULL_AWARE_EXPRESSION = StaticWarningCode(
@@ -6028,6 +6044,18 @@ class WarningCode extends AnalyzerErrorCode {
     "Using the 'new' keyword in a comment reference is deprecated.",
     correctionMessage: "Try referring to a constructor by its name.",
     hasPublishedDocs: true,
+  );
+
+  static const WarningCode DOC_IMPORT_CANNOT_BE_DEFERRED = WarningCode(
+    'DOC_IMPORT_CANNOT_BE_DEFERRED',
+    "Doc imports can't be deferred.",
+    correctionMessage: "Try removing the 'deferred' keyword.",
+  );
+
+  static const WarningCode DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS = WarningCode(
+    'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
+    "Doc imports can't have configurations.",
+    correctionMessage: "Try removing the configurations.",
   );
 
   ///  Duplicate exports.
@@ -6539,6 +6567,7 @@ class WarningCode extends AnalyzerErrorCode {
     "The annotation 'visibleOutsideTemplate' can only be applied to a member "
         "of a class, enum, or mixin that is annotated with "
         "'visibleForTemplate'.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -6819,6 +6848,18 @@ class WarningCode extends AnalyzerErrorCode {
         "comma.",
     correctionMessage: "Try adding a trailing comma.",
     hasPublishedDocs: true,
+  );
+
+  ///  An error code indicating the use of a redeclare annotation on a member that does not redeclare.
+  ///
+  ///  Parameters:
+  ///  0: the kind of member
+  static const WarningCode REDECLARE_ON_NON_REDECLARING_MEMBER = WarningCode(
+    'REDECLARE_ON_NON_REDECLARING_MEMBER',
+    "The {0} doesn't redeclare a {0} declared in a superinterface.",
+    correctionMessage:
+        "Try updating this member to match a declaration in a superinterface, "
+        "or removing the redeclare annotation.",
   );
 
   ///  An error code indicating use of a removed lint rule.

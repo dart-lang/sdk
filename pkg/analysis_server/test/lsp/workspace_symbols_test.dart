@@ -112,6 +112,38 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     // Unnamed extensions are not returned in Workspace Symbols.
   }
 
+  Future<void> test_extensionType() async {
+    const content = r'''
+extension type MyExtensionType(int it) {}
+''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final symbols = await getWorkspaceSymbols('MyExt');
+
+    final namedExtensions =
+        symbols.firstWhere((s) => s.name == 'MyExtensionType');
+    expect(namedExtensions.kind, equals(SymbolKind.Class));
+    expect(namedExtensions.containerName, isNull);
+  }
+
+  Future<void> test_extensionType_method() async {
+    const content = r'''
+extension type E(int it) {
+  void foo() {}
+}
+''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final symbols = await getWorkspaceSymbols('foo');
+
+    final namedExtensions =
+        symbols.firstWhere((s) => s.name == 'foo()' && s.containerName == 'E');
+    expect(namedExtensions.kind, equals(SymbolKind.Method));
+    expect(namedExtensions.containerName, 'E');
+  }
+
   Future<void> test_fullMatch() async {
     const content = '''
     [[String topLevel = '']];

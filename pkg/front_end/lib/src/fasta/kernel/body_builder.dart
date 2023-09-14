@@ -336,6 +336,11 @@ class BodyBuilder extends StackListenerImpl
         typeInferrer.assignedVariables.declare(iterator.current.variable!);
       }
     }
+    if (thisVariable != null && context.isConstructor) {
+      // The this variable is not part of the [formalParameterScope] in
+      // constructors.
+      typeInferrer.assignedVariables.declare(thisVariable!);
+    }
   }
 
   BodyBuilder.forField(
@@ -4948,7 +4953,7 @@ class BodyBuilder extends StackListenerImpl
         Message message = fasta.templateNotAType.withArguments(displayName);
         libraryBuilder.addProblem(
             message, offset, lengthOfSpan(beginToken, suffix), uri);
-        push(new NamedTypeBuilder.forInvalidType(
+        push(new NamedTypeBuilderImpl.forInvalidType(
             name,
             libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable),
             message.withLocation(
@@ -4976,7 +4981,7 @@ class BodyBuilder extends StackListenerImpl
       // TODO(ahe): Arguments could be passed here.
       libraryBuilder.addProblem(
           name.message, name.charOffset, name.name.length, name.fileUri);
-      result = new NamedTypeBuilder.forInvalidType(
+      result = new NamedTypeBuilderImpl.forInvalidType(
           name.name,
           libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable),
           name.message
@@ -5044,7 +5049,7 @@ class BodyBuilder extends StackListenerImpl
         const FixedNullableList<RecordTypeFieldBuilder>().popNonNullable(stack,
             hasNamedFields ? count - 1 : count, dummyRecordTypeFieldBuilder);
 
-    push(new RecordTypeBuilder(
+    push(new RecordTypeBuilderImpl(
       positionalFields,
       namedFields,
       questionMark != null
@@ -5077,7 +5082,7 @@ class BodyBuilder extends StackListenerImpl
     push(new RecordTypeFieldBuilder(
         [],
         type is ParserRecovery
-            ? new InvalidTypeBuilder(uri, type.charOffset)
+            ? new InvalidTypeBuilderImpl(uri, type.charOffset)
             : type as TypeBuilder,
         name is Identifier ? name.name : null,
         name is Identifier ? name.charOffset : TreeNode.noOffset));
@@ -5131,7 +5136,7 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("VoidKeyword");
     int offset = offsetForToken(token);
     // "void" is always nullable.
-    push(new NamedTypeBuilder.fromTypeDeclarationBuilder(
+    push(new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
         new VoidTypeDeclarationBuilder(
             const VoidType(), libraryBuilder, offset),
         const NullabilityBuilder.inherent(),
@@ -8993,42 +8998,80 @@ class BodyBuilder extends StackListenerImpl
 
   void _validateTypeVariableUseInternal(TypeBuilder? builder,
       {required bool allowPotentiallyConstantType}) {
-    if (builder is NamedTypeBuilder) {
-      if (builder.declaration!.isTypeVariable) {
-        TypeVariableBuilder typeParameterBuilder =
-            builder.declaration as TypeVariableBuilder;
-        TypeParameter typeParameter = typeParameterBuilder.parameter;
-        if (typeParameter.parent is Class ||
-            typeParameter.parent is Extension) {
-          if (constantContext != ConstantContext.none &&
-              (!inConstructorInitializer || !allowPotentiallyConstantType)) {
-            LocatedMessage message = fasta.messageTypeVariableInConstantContext
-                .withLocation(builder.fileUri!, builder.charOffset!,
-                    typeParameter.name!.length);
-            builder.bind(
-                libraryBuilder,
-                new InvalidTypeDeclarationBuilder(
-                    typeParameter.name!, message));
-            addProblem(
-                message.messageObject, message.charOffset, message.length);
+    switch (builder) {
+      case NamedTypeBuilder(
+          :TypeDeclarationBuilder? declaration,
+          :List<TypeBuilder>? arguments
+        ):
+        if (declaration!.isTypeVariable) {
+          TypeVariableBuilder typeParameterBuilder =
+              declaration as TypeVariableBuilder;
+          TypeParameter typeParameter = typeParameterBuilder.parameter;
+          if (typeParameter.parent is Class ||
+              typeParameter.parent is Extension) {
+            if (constantContext != ConstantContext.none &&
+                (!inConstructorInitializer || !allowPotentiallyConstantType)) {
+              LocatedMessage message =
+                  fasta.messageTypeVariableInConstantContext.withLocation(
+                      builder.fileUri!,
+                      builder.charOffset!,
+                      typeParameter.name!.length);
+              builder.bind(
+                  libraryBuilder,
+                  new InvalidTypeDeclarationBuilder(
+                      typeParameter.name!, message));
+              addProblem(
+                  message.messageObject, message.charOffset, message.length);
+            }
           }
         }
-      }
-      if (builder.arguments != null) {
-        for (TypeBuilder typeBuilder in builder.arguments!) {
-          _validateTypeVariableUseInternal(typeBuilder,
-              allowPotentiallyConstantType: allowPotentiallyConstantType);
+        if (arguments != null) {
+          for (TypeBuilder typeBuilder in arguments) {
+            _validateTypeVariableUseInternal(typeBuilder,
+                allowPotentiallyConstantType: allowPotentiallyConstantType);
+          }
         }
-      }
-    } else if (builder is FunctionTypeBuilder) {
-      _validateTypeVariableUseInternal(builder.returnType,
-          allowPotentiallyConstantType: allowPotentiallyConstantType);
-      if (builder.formals != null) {
-        for (ParameterBuilder formalParameterBuilder in builder.formals!) {
-          _validateTypeVariableUseInternal(formalParameterBuilder.type,
-              allowPotentiallyConstantType: allowPotentiallyConstantType);
+      case FunctionTypeBuilder(
+          :List<TypeVariableBuilder>? typeVariables,
+          :List<ParameterBuilder>? formals,
+          :TypeBuilder returnType
+        ):
+        if (typeVariables != null) {
+          for (TypeVariableBuilder typeVariable in typeVariables) {
+            _validateTypeVariableUseInternal(typeVariable.bound,
+                allowPotentiallyConstantType: allowPotentiallyConstantType);
+            _validateTypeVariableUseInternal(typeVariable.defaultType,
+                allowPotentiallyConstantType: allowPotentiallyConstantType);
+          }
         }
-      }
+        _validateTypeVariableUseInternal(returnType,
+            allowPotentiallyConstantType: allowPotentiallyConstantType);
+        if (formals != null) {
+          for (ParameterBuilder formalParameterBuilder in formals) {
+            _validateTypeVariableUseInternal(formalParameterBuilder.type,
+                allowPotentiallyConstantType: allowPotentiallyConstantType);
+          }
+        }
+      case RecordTypeBuilder(
+          :List<RecordTypeFieldBuilder>? positionalFields,
+          :List<RecordTypeFieldBuilder>? namedFields
+        ):
+        if (positionalFields != null) {
+          for (RecordTypeFieldBuilder field in positionalFields) {
+            _validateTypeVariableUseInternal(field.type,
+                allowPotentiallyConstantType: allowPotentiallyConstantType);
+          }
+        }
+        if (namedFields != null) {
+          for (RecordTypeFieldBuilder field in namedFields) {
+            _validateTypeVariableUseInternal(field.type,
+                allowPotentiallyConstantType: allowPotentiallyConstantType);
+          }
+        }
+      case OmittedTypeBuilder():
+      case FixedTypeBuilder():
+      case InvalidTypeBuilder():
+      case null:
     }
   }
 
@@ -9825,7 +9868,7 @@ class FormalParameters {
   TypeBuilder toFunctionType(
       TypeBuilder returnType, NullabilityBuilder nullabilityBuilder,
       [List<TypeVariableBuilder>? typeParameters]) {
-    return new FunctionTypeBuilder(returnType, typeParameters, parameters,
+    return new FunctionTypeBuilderImpl(returnType, typeParameters, parameters,
         nullabilityBuilder, uri, charOffset);
   }
 

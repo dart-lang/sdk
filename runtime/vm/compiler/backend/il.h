@@ -1031,7 +1031,7 @@ class Instruction : public ZoneAllocated {
 
   virtual bool ComputeCanDeoptimizeAfterCall() const {
     // TODO(dartbug.com/45213): Incrementally migrate IR instructions from using
-    // [ComputeCanDeoptimize] to either [ComputeCanDeoptimizeAfterCall] if they
+    // [ComputeCanDeoptimize] to [ComputeCanDeoptimizeAfterCall] if they
     // can only lazy deoptimize.
     return false;
   }
@@ -1296,7 +1296,7 @@ class Instruction : public ZoneAllocated {
     return false;
   }
 
-  virtual void InheritDeoptTarget(Zone* zone, Instruction* other);
+  void InheritDeoptTarget(Zone* zone, Instruction* other);
 
   bool NeedsEnvironment() const {
     return ComputeCanDeoptimize() || ComputeCanDeoptimizeAfterCall() ||
@@ -1360,7 +1360,7 @@ class Instruction : public ZoneAllocated {
   // Fetch deopt id without checking if this computation can deoptimize.
   intptr_t GetDeoptId() const { return deopt_id_; }
 
-  void CopyDeoptIdFrom(const Instruction& instr) {
+  virtual void CopyDeoptIdFrom(const Instruction& instr) {
     deopt_id_ = instr.deopt_id_;
   }
 
@@ -3064,11 +3064,13 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
                   Value* length,
                   classid_t src_cid,
                   classid_t dest_cid,
-                  bool unboxed_length)
+                  bool unboxed_inputs,
+                  bool can_overlap = true)
       : src_cid_(src_cid),
         dest_cid_(dest_cid),
         element_size_(Instance::ElementSizeFor(src_cid)),
-        unboxed_length_(unboxed_length) {
+        unboxed_inputs_(unboxed_inputs),
+        can_overlap_(can_overlap) {
     ASSERT(IsArrayTypeSupported(src_cid));
     ASSERT(IsArrayTypeSupported(dest_cid));
     ASSERT(Instance::ElementSizeFor(src_cid) ==
@@ -3091,11 +3093,11 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   DECLARE_INSTRUCTION(MemoryCopy)
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
-    if (index == kLengthPos && unboxed_length_) {
-      return kUnboxedIntPtr;
+    if (index == kSrcPos || index == kDestPos) {
+      // The object inputs are always tagged.
+      return kTagged;
     }
-    // All inputs are tagged (for now).
-    return kTagged;
+    return unboxed_inputs() ? kUnboxedIntPtr : kTagged;
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -3110,16 +3112,20 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   Value* length() const { return inputs_[kLengthPos]; }
 
   intptr_t element_size() const { return element_size_; }
-  bool unboxed_length() const { return unboxed_length_; }
+  bool unboxed_inputs() const { return unboxed_inputs_; }
+  bool can_overlap() const { return can_overlap_; }
 
   // Optimizes MemoryCopyInstr with constant parameters to use larger moves.
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+  PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
   F(classid_t, src_cid_)                                                       \
   F(classid_t, dest_cid_)                                                      \
   F(intptr_t, element_size_)                                                   \
-  F(bool, unboxed_length_)
+  F(bool, unboxed_inputs_)                                                     \
+  F(bool, can_overlap_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MemoryCopyInstr,
                                           TemplateInstruction,
@@ -3133,6 +3139,38 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
                                classid_t array_cid,
                                Register array_reg,
                                Location start_loc);
+
+  // Generates an unrolled loop for copying a known amount of data from
+  // src to dest.
+  void EmitUnrolledCopy(FlowGraphCompiler* compiler,
+                        Register dest_reg,
+                        Register src_reg,
+                        intptr_t num_elements,
+                        bool reversed);
+
+  // Called prior to EmitLoopCopy() to adjust the length register as needed
+  // for the code emitted by EmitLoopCopy. May jump to done if the emitted
+  // loop(s) should be skipped.
+  void PrepareLengthRegForLoop(FlowGraphCompiler* compiler,
+                               Register length_reg,
+                               compiler::Label* done);
+
+  // Generates a loop for copying the data from src to dest, for cases where
+  // either the length is not known at compile time or too large to unroll.
+  //
+  // copy_forwards is only provided (not nullptr) when a backwards loop is
+  // requested. May jump to copy_forwards if backwards iteration is slower than
+  // forwards iteration and the emitted code verifies no actual overlap exists.
+  //
+  // May jump to done if no copying is needed.
+  //
+  // Assumes that PrepareLengthRegForLoop() has been called beforehand.
+  void EmitLoopCopy(FlowGraphCompiler* compiler,
+                    Register dest_reg,
+                    Register src_reg,
+                    Register length_reg,
+                    compiler::Label* done,
+                    compiler::Label* copy_forwards = nullptr);
 
   static bool IsArrayTypeSupported(classid_t array_cid) {
     if (IsTypedDataBaseClassId(array_cid)) {
@@ -3365,7 +3403,8 @@ class ThrowInstr : public TemplateInstruction<1, Throws> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   Value* exception() const { return inputs_[0]; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
   }
 
@@ -3405,7 +3444,8 @@ class ReThrowInstr : public TemplateInstruction<2, Throws> {
   Value* exception() const { return inputs_[0]; }
   Value* stacktrace() const { return inputs_[1]; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
   }
 
@@ -3774,7 +3814,10 @@ class BranchInstr : public Instruction {
   }
   TargetEntryInstr* constant_target() const { return constant_target_; }
 
-  virtual void InheritDeoptTarget(Zone* zone, Instruction* other);
+  virtual void CopyDeoptIdFrom(const Instruction& instr) {
+    Instruction::CopyDeoptIdFrom(instr);
+    comparison()->CopyDeoptIdFrom(instr);
+  }
 
   virtual bool MayThrow() const { return comparison()->MayThrow(); }
 
@@ -5207,6 +5250,11 @@ class IfThenElseInstr : public Definition {
 
   virtual bool MayThrow() const { return comparison()->MayThrow(); }
 
+  virtual void CopyDeoptIdFrom(const Instruction& instr) {
+    Definition::CopyDeoptIdFrom(instr);
+    comparison()->CopyDeoptIdFrom(instr);
+  }
+
   PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
@@ -5326,7 +5374,8 @@ class StaticCallInstr : public TemplateDartCall<0> {
     return ic_data() == nullptr ? call_count_ : ic_data()->AggregateCount();
   }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
   }
 
@@ -5724,7 +5773,8 @@ class FfiCallInstr : public VariadicDefinition {
   }
 
   // FfiCallInstr calls C code, which can call back into Dart.
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
   }
 
@@ -6773,7 +6823,8 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
   const AbstractType& type() const { return type_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
   }
 
@@ -9235,7 +9286,8 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
   DECLARE_INSTRUCTION(CheckStackOverflow)
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
   }
 
@@ -9908,7 +9960,8 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
 
   // CheckNull can implicitly call Dart code (NoSuchMethodError constructor),
   // so it needs a deopt ID in optimized and unoptimized code.
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
   }
   virtual bool CanBecomeDeoptimizationTarget() const { return true; }
@@ -10085,7 +10138,8 @@ class GenericCheckBoundInstr : public CheckBoundBase {
 
   // GenericCheckBound can implicitly call Dart code (RangeError or
   // ArgumentError constructor), so it can lazily deopt.
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
   }
 
@@ -10161,6 +10215,11 @@ class CheckConditionInstr : public Instruction {
   virtual Value* InputAt(intptr_t i) const { return comparison()->InputAt(i); }
 
   virtual bool MayThrow() const { return false; }
+
+  virtual void CopyDeoptIdFrom(const Instruction& instr) {
+    Instruction::CopyDeoptIdFrom(instr);
+    comparison()->CopyDeoptIdFrom(instr);
+  }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -10604,7 +10663,8 @@ class Call1ArgStubInstr : public TemplateDefinition<1, Throws> {
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual bool CanCallDart() const { return true; }
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const { return true; }
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
     return InputCount();
@@ -10669,7 +10729,8 @@ class SuspendInstr : public TemplateDefinition<2, Throws> {
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual bool CanCallDart() const { return true; }
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const { return true; }
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
     return InputCount();
@@ -10829,6 +10890,9 @@ class Environment : public ZoneAllocated {
 
   void MarkAsLazyDeoptToBeforeDeoptId() {
     bitfield_ = LazyDeoptToBeforeDeoptId::update(true, bitfield_);
+    // As eager and lazy deopts will target the before environment, we do not
+    // want to prune inputs on lazy deopts.
+    bitfield_ = LazyDeoptPruningBits::update(0, bitfield_);
   }
 
   // This environment belongs to an optimistically hoisted instruction.
@@ -10837,6 +10901,9 @@ class Environment : public ZoneAllocated {
   void MarkAsHoisted() { bitfield_ = Hoisted::update(true, bitfield_); }
 
   Environment* GetLazyDeoptEnv(Zone* zone) {
+    if (LazyDeoptToBeforeDeoptId()) {
+      ASSERT(LazyDeoptPruneCount() == 0);
+    }
     const intptr_t num_args_to_prune = LazyDeoptPruneCount();
     if (num_args_to_prune == 0) return this;
     return DeepCopy(zone, Length() - num_args_to_prune);

@@ -103,18 +103,6 @@ String magenta(String string) => wrap(string, MAGENTA_COLOR);
 String cyan(String string) => wrap(string, CYAN_COLOR);
 String white(String string) => wrap(string, WHITE_COLOR);
 
-/// Returns whether [sink] supports ANSI escapes or `null` if it could not be
-/// determined.
-bool? _supportsAnsiEscapes(sink) {
-  try {
-    return sink.supportsAnsiEscapes;
-  } on NoSuchMethodError {
-    // Ignored: We're running on an older version of the Dart VM which doesn't
-    // implement `supportsAnsiEscapes`.
-    return null;
-  }
-}
-
 /// Callback used by [_computeEnableColors] to report why it has or hasn't
 /// chosen to use ANSI colors.
 void Function(String) printEnableColorsReason = (_) {};
@@ -130,28 +118,18 @@ void Function(String) printEnableColorsReason = (_) {};
 /// Note: do not call this method directly, as it is expensive to
 /// compute. Instead, use [CompilerContext.enableColors].
 bool _computeEnableColors() {
-  bool? stderrSupportsColors = _supportsAnsiEscapes(stdout);
-  bool? stdoutSupportsColors = _supportsAnsiEscapes(stderr);
-
-  if (stdoutSupportsColors == false) {
+  if (!stdout.supportsAnsiEscapes) {
     printEnableColorsReason(
         "Not enabling colors, stdout does not support ANSI colors.");
     return false;
   }
-  if (stderrSupportsColors == false) {
+  if (!stderr.supportsAnsiEscapes) {
     printEnableColorsReason(
         "Not enabling colors, stderr does not support ANSI colors.");
     return false;
   }
 
   if (Platform.isWindows) {
-    if (stderrSupportsColors != true || stdoutSupportsColors != true) {
-      // In this case, either [stdout] or [stderr] did not support the
-      // property `supportsAnsiEscapes`. Since we do not have another way
-      // to determine support for colors, we disable them.
-      printEnableColorsReason("Not enabling colors as ANSI is not supported.");
-      return false;
-    }
     printEnableColorsReason("Enabling colors as OS is Windows.");
     return true;
   }

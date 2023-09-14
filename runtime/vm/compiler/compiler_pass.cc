@@ -298,6 +298,13 @@ void CompilerPass::RunInliningPipeline(PipelineMode mode,
   INVOKE_PASS(TryOptimizePatterns);
 }
 
+void CompilerPass::RunForceOptimizedInliningPipeline(
+    CompilerPassState* pass_state) {
+  INVOKE_PASS(TypePropagation);
+  INVOKE_PASS(Canonicalize);
+  INVOKE_PASS(ConstantPropagation);
+}
+
 // Keep in sync with TestPipeline::RunForcedOptimizedAfterSSAPasses.
 FlowGraph* CompilerPass::RunForceOptimizedPipeline(
     PipelineMode mode,
@@ -585,11 +592,7 @@ COMPILER_PASS(ReorderBlocks, {
   }
 });
 
-COMPILER_PASS(EliminateWriteBarriers, {
-  if (FLAG_eliminate_write_barriers) {
-    EliminateWriteBarriers(flow_graph);
-  }
-});
+COMPILER_PASS(EliminateWriteBarriers, { EliminateWriteBarriers(flow_graph); });
 
 COMPILER_PASS(FinalizeGraph, {
   // At the end of the pipeline, force recomputing and caching graph

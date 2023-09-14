@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:dart_style/dart_style.dart' show DartFormatter;
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/util/textual_outline.dart';
 import 'package:testing/testing.dart'
     show
@@ -22,6 +23,7 @@ import 'package:testing/testing.dart'
         runMe;
 
 import '../utils/kernel_chain.dart' show MatchContext;
+import 'testing/folder_options.dart';
 import 'testing/suite.dart' show UPDATE_EXPECTATIONS;
 
 const List<Map<String, String>> EXPECTATIONS = [
@@ -44,14 +46,16 @@ const List<Map<String, String>> EXPECTATIONS = [
 ];
 
 Future<Context> createContext(Chain suite, Map<String, String> environment) {
-  return new Future.value(
-      new Context(environment[UPDATE_EXPECTATIONS] == "true"));
+  return new Future.value(new Context(suite.uri, environment));
 }
 
 void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../../testing.json");
 
 class Context extends ChainContext with MatchContext {
+  final SuiteFolderOptions suiteFolderOptions;
+  final Map<ExperimentalFlag, bool> forcedExperimentalFlags;
+
   @override
   final bool updateExpectations;
 
@@ -61,7 +65,11 @@ class Context extends ChainContext with MatchContext {
   @override
   bool get canBeFixWithUpdateExpectations => true;
 
-  Context(this.updateExpectations);
+  Context(Uri baseUri, Map<String, String> environment)
+      : suiteFolderOptions = new SuiteFolderOptions(baseUri),
+        updateExpectations = environment[UPDATE_EXPECTATIONS] == "true",
+        forcedExperimentalFlags =
+            SuiteFolderOptions.computeForcedExperimentalFlags(environment);
 
   @override
   final List<Step> steps = const <Step>[
@@ -82,21 +90,30 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
   @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) async {
+    FolderOptions folderOptions =
+        context.suiteFolderOptions.computeFolderOptions(description);
+    Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
+        .computeExplicitExperimentalFlags(context.forcedExperimentalFlags);
+
     List<int> bytes = new File.fromUri(description.uri).readAsBytesSync();
     for (bool modelled in [false, true]) {
-      // TODO(jensj): NNBD should be configured correctly.
       String? result = textualOutline(
-        bytes,
-        const ScannerConfiguration(
-          enableExtensionMethods: true,
-          enableNonNullable: true,
-          enableTripleShift: true,
-        ),
-        throwOnUnexpected: true,
-        performModelling: modelled,
-        addMarkerForUnknownForTest: modelled,
-        returnNullOnError: false,
-      );
+          bytes,
+          new ScannerConfiguration(
+            enableExtensionMethods: isExperimentEnabled(
+                ExperimentalFlag.extensionMethods,
+                explicitExperimentalFlags: experimentalFlags),
+            enableNonNullable: isExperimentEnabled(ExperimentalFlag.nonNullable,
+                explicitExperimentalFlags: experimentalFlags),
+            enableTripleShift: isExperimentEnabled(ExperimentalFlag.tripleShift,
+                explicitExperimentalFlags: experimentalFlags),
+          ),
+          throwOnUnexpected: true,
+          performModelling: modelled,
+          addMarkerForUnknownForTest: modelled,
+          returnNullOnError: false,
+          enablePatterns: isExperimentEnabled(ExperimentalFlag.patterns,
+              explicitExperimentalFlags: experimentalFlags));
       if (result == null) {
         return new Result(
             null, context.expectationSet["EmptyOutput"], description.uri);
@@ -140,9 +157,21 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       if (expectMatch.outcome != Expectation.pass) return expectMatch;
 
       if (formatterException != null) {
-        return new Result(
-            null, context.expectationSet["FormatterCrash"], formatterException,
-            trace: formatterExceptionSt);
+        bool hasUnreleasedExperiment = false;
+        for (MapEntry<ExperimentalFlag, bool> entry
+            in experimentalFlags.entries) {
+          if (entry.value) {
+            if (!entry.key.isEnabledByDefault) {
+              hasUnreleasedExperiment = true;
+              break;
+            }
+          }
+        }
+        if (!hasUnreleasedExperiment) {
+          return new Result(null, context.expectationSet["FormatterCrash"],
+              formatterException,
+              trace: formatterExceptionSt);
+        }
       }
     }
 

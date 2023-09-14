@@ -1506,8 +1506,8 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
   // Whether this is a leaf call - i.e. one that doesn't call back into Dart.
   bool is_leaf_;
 
-  // The kind of trampoline this is. See FfiTrampolineKind.
-  uint8_t trampoline_kind_;
+  // The kind of trampoline this is. See FfiFunctionKind.
+  uint8_t ffi_function_kind_;
 };
 
 class UntaggedField : public UntaggedObject {
@@ -2415,8 +2415,8 @@ class UntaggedContext : public UntaggedObject {
 
 #define CONTEXT_SCOPE_VARIABLE_DESC_FLAG_LIST(V)                               \
   V(Final)                                                                     \
-  V(Const)                                                                     \
   V(Late)                                                                      \
+  V(Nullable)                                                                  \
   V(Invisible)                                                                 \
   V(AwaiterLink)
 
@@ -2436,10 +2436,8 @@ class UntaggedContextScope : public UntaggedObject {
 #undef DECLARE_BIT
     };
     CompressedSmiPtr late_init_offset;
-    union {
-      CompressedAbstractTypePtr type;
-      CompressedInstancePtr value;  // iff is_const is true
-    };
+    CompressedAbstractTypePtr type;
+    CompressedSmiPtr cid;
     CompressedSmiPtr context_index;
     CompressedSmiPtr context_level;
     CompressedSmiPtr kernel_offset;
@@ -2478,7 +2476,7 @@ class UntaggedContextScope : public UntaggedObject {
   DEFINE_ACCESSOR(SmiPtr, flags)
   DEFINE_ACCESSOR(SmiPtr, late_init_offset)
   DEFINE_ACCESSOR(AbstractTypePtr, type)
-  DEFINE_ACCESSOR(InstancePtr, value)
+  DEFINE_ACCESSOR(SmiPtr, cid)
   DEFINE_ACCESSOR(SmiPtr, context_index)
   DEFINE_ACCESSOR(SmiPtr, context_level)
   DEFINE_ACCESSOR(SmiPtr, kernel_offset)
@@ -3421,6 +3419,7 @@ class UntaggedReceivePort : public UntaggedInstance {
 
   COMPRESSED_POINTER_FIELD(SendPortPtr, send_port)
   VISIT_FROM(send_port)
+  COMPRESSED_POINTER_FIELD(SmiPtr, bitfield)
   COMPRESSED_POINTER_FIELD(InstancePtr, handler)
 #if defined(PRODUCT)
   VISIT_TO(handler)

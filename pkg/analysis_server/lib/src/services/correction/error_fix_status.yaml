@@ -44,9 +44,9 @@
 #   issue created for it.
 #
 # Stats:
-# -   0 "needsEvaluation"
-# - 381 "needsFix"
-# - 348 "hasFix"
+# -  18 "needsEvaluation"
+# - 362 "needsFix"
+# - 366 "hasFix"
 # - 490 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -58,9 +58,18 @@ AnalysisOptionsErrorCode.PARSE_ERROR:
   notes: |-
     Because of the way the YAML parser works, there isn't enough information to
     be able to provide a fix.
-AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED:
+AnalysisOptionsHintCode.DEPRECATED_LINT:
   status: needsFix
-  notes: Fixed.
+  notes: |-
+    We should be able to remove the lint rule.
+AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT:
+  status: needsFix
+  notes: |-
+    We should be able to replace the deprecated lint rule with its replacement.
+AnalysisOptionsHintCode.DUPLICATE_RULE:
+  status: needsFix
+  notes: |-
+    We could offer to remove the duplicate rule.
 AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
   status: needsFix
   notes: |-
@@ -82,6 +91,11 @@ AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING:
   status: noFix
   notes: |-
     The fix needs to be made in the included file.
+AnalysisOptionsWarningCode.INCOMPATIBLE_LINT:
+  status: noFix
+  notes: |-
+    Without knowing which rule the user would prefer to use, we cannot remove
+    the reported one.
 AnalysisOptionsWarningCode.INVALID_OPTION:
   status: needsFix
   notes: |-
@@ -106,16 +120,13 @@ AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE:
 AnalysisOptionsWarningCode.REMOVED_LINT:
   status: needsFix
   notes: |-
-    The fix is to remove the name of the removed lint.
+    The fix is to remove the name of the removed lint rule.
 AnalysisOptionsWarningCode.REPLACED_LINT:
   status: needsFix
-  notes: |-
-    The fix is to replace the replaced lint name with the name of the replacing
-    lint.
-AnalysisOptionsWarningCode.SPEC_MODE_REMOVED:
+AnalysisOptionsWarningCode.UNDEFINED_LINT:
   status: needsFix
   notes: |-
-    Provide a fix to remove the deprecated setting.
+    The fix is to remove the name of the lint rule.
 AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE:
   status: needsFix
   notes: |-
@@ -394,6 +405,8 @@ CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:
   status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS:
+  status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
   status: noFix
 CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
@@ -407,6 +420,8 @@ CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
 CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
   status: noFix
 CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
+  status: noFix
+CompileTimeErrorCode.CONST_EVAL_TYPE_STRING:
   status: noFix
 CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE:
   status: noFix
@@ -430,6 +445,8 @@ CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET:
   status: noFix
 CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP:
   status: noFix
+CompileTimeErrorCode.CONST_TYPE_PARAMETER:
+  status: needsEvaluation
 CompileTimeErrorCode.CONST_WITH_NON_CONST:
   status: hasFix
 CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
@@ -457,10 +474,6 @@ CompileTimeErrorCode.CONTINUE_LABEL_INVALID:
   status: noFix
 CompileTimeErrorCode.COULD_NOT_INFER:
   status: noFix
-CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0.
 CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR:
   status: needsFix
   notes: |-
@@ -636,6 +649,36 @@ CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE:
     Replace the `..` with `.`.
 CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS:
   status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER:
+  status: needsFix
+  notes: |-
+    Remove it.
+CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION:
+  status: needsFix
+  notes: |-
+    Remove it.
+CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
+  status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
+  status: needsFix
+  notes: |-
+    Offer to delete the invalid member.
+CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE:
+  status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF:
+  status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE:
+  status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE:
+  status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT:
+  status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF:
+  status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER:
+  status: needsFix
+  notes: |-
+    Convert to block body.
 CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
   status: needsFix
   notes: |-
@@ -1322,6 +1365,8 @@ CompileTimeErrorCode.PRIVATE_SETTER:
   status: noFix
 CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL:
   status: noFix
+CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR:
+  status: noFix
 CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT:
   status: noFix
 CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT:
@@ -1748,12 +1793,6 @@ FfiCode.PACKED_ANNOTATION_ALIGNMENT:
   status: noFix
 FfiCode.SIZE_ANNOTATION_DIMENSIONS:
   status: noFix
-FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS:
-  status: noFix
-FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS:
-  status: noFix
-FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH:
-  status: noFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
   status: hasFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
@@ -1805,56 +1844,6 @@ HintCode.UNUSED_ELEMENT:
   status: hasFix
 HintCode.UNUSED_ELEMENT_PARAMETER:
   status: hasFix
-LanguageCode.IMPLICIT_DYNAMIC_FIELD:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_FUNCTION:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_INVOKE:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_LIST_LITERAL:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_MAP_LITERAL:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_METHOD:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_PARAMETER:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_RETURN:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_TYPE:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_VARIABLE:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
 LintCode.always_declare_return_types:
   status: hasFix
 LintCode.always_put_control_body_on_new_line:
@@ -2675,18 +2664,34 @@ ParserErrorCode.ENUM_IN_CLASS:
     Move the nested enum to the top level.
 ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND:
   status: noFix
-ParserErrorCode.EXPECTED_BODY:
+ParserErrorCode.EXPECTED_CASE_OR_DEFAULT:
+  status: noFix
+ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY:
   status: needsFix
   notes: |-
     Add an empty body.
-ParserErrorCode.EXPECTED_CASE_OR_DEFAULT:
-  status: noFix
+ParserErrorCode.EXPECTED_CLASS_BODY:
+  status: needsFix
+  notes: |-
+    Add an empty body.
 ParserErrorCode.EXPECTED_CLASS_MEMBER:
   status: noFix
 ParserErrorCode.EXPECTED_ELSE_OR_COMMA:
   status: noFix
 ParserErrorCode.EXPECTED_EXECUTABLE:
   status: noFix
+ParserErrorCode.EXPECTED_EXTENSION_BODY:
+  status: needsFix
+  notes: |-
+    Add an empty body.
+ParserErrorCode.EXPECTED_EXTENSION_TYPE_BODY:
+  status: needsFix
+  notes: |-
+    Add an empty body.
+ParserErrorCode.EXPECTED_FINALLY_CLAUSE_BODY:
+  status: needsFix
+  notes: |-
+    Add an empty body.
 ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD:
   status: noFix
 ParserErrorCode.EXPECTED_INSTEAD:
@@ -2695,6 +2700,10 @@ ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL:
   status: needsFix
   notes: |-
     Add the braces or brackets for the literal.
+ParserErrorCode.EXPECTED_MIXIN_BODY:
+  status: needsFix
+  notes: |-
+    Add an empty body.
 ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS:
   status: noFix
 ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS:
@@ -2709,8 +2718,20 @@ ParserErrorCode.EXPECTED_REPRESENTATION_TYPE:
   status: noFix
 ParserErrorCode.EXPECTED_STRING_LITERAL:
   status: noFix
+ParserErrorCode.EXPECTED_SWITCH_EXPRESSION_BODY:
+  status: needsFix
+  notes: |-
+    Add an empty body.
+ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY:
+  status: needsFix
+  notes: |-
+    Add an empty body.
 ParserErrorCode.EXPECTED_TOKEN:
   status: hasFix
+ParserErrorCode.EXPECTED_TRY_STATEMENT_BODY:
+  status: needsFix
+  notes: |-
+    Add an empty body.
 ParserErrorCode.EXPECTED_TYPE_NAME:
   status: noFix
 ParserErrorCode.EXPERIMENT_NOT_ENABLED:
@@ -2735,6 +2756,10 @@ ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD:
   status: needsFix
   notes: |-
     Remove the field, or add `static`.
+ParserErrorCode.EXTENSION_TYPE_EXTENDS:
+  status: needsEvaluation
+ParserErrorCode.EXTENSION_TYPE_WITH:
+  status: needsEvaluation
 ParserErrorCode.EXTERNAL_CLASS:
   status: needsFix
   notes: |-
@@ -3044,6 +3069,10 @@ ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE:
   status: noFix
 ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT:
   status: noFix
+ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR:
+  status: needsEvaluation
+ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS:
+  status: needsEvaluation
 ParserErrorCode.MISSING_STAR_AFTER_SYNC:
   status: needsFix
   notes: |-
@@ -3098,6 +3127,11 @@ ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
   status: needsFix
   notes: |-
     Merge the groups.
+ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS:
+  status: needsFix
+  notes: |-
+    Remove extra fields.
+    Maybe wrap into a record.
 ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH:
   status: noFix
 ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS:
@@ -3183,6 +3217,9 @@ ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Remove the redirection.
+ParserErrorCode.REPRESENTATION_FIELD_MODIFIER:
+  status: needsFix
+  notes: Remove it.
 ParserErrorCode.SEALED_ENUM:
   status: needsEvaluation
 ParserErrorCode.SEALED_MIXIN:
@@ -3421,6 +3458,10 @@ WarningCode.DEPRECATED_MIXIN_FUNCTION:
     The fix is to remove `Function` from where it's referenced.
 WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
   status: hasFix
+WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED:
+  status: needsFix
+WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
+  status: needsFix
 WarningCode.DUPLICATE_EXPORT:
   status: needsFix
   notes: |-
@@ -3623,6 +3664,8 @@ WarningCode.RECEIVER_OF_TYPE_NEVER:
   notes: |-
     We _could_ remove the thing being received (method invocation, etc.)
 WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+  status: hasFix
+WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER:
   status: hasFix
 WarningCode.REMOVED_LINT_USE:
   status: needsFix

@@ -1,0 +1,11 @@
+Add directories here to define configurations for testing analysis options variations.
+
+For example:
+
+  configs/
+    control-flow-collections/
+      analysis_options.yaml
+    spread-collections/
+      analysis_options.yaml
+
+See the 'experiments' test group in rule_test.dart.

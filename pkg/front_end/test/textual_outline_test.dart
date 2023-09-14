@@ -18,7 +18,8 @@ void main() {
   String? result = textualOutline(utf8.encode("""
 b() { print("hello"); }
 a() { print("hello"); }
-"""), scannerConfiguration, throwOnUnexpected: true, performModelling: false);
+"""), scannerConfiguration,
+      throwOnUnexpected: true, performModelling: false, enablePatterns: true);
   if (result !=
       """
 b() {}
@@ -34,7 +35,8 @@ a() { print("hello"); }
 """), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      enablePatterns: true);
   if (result !=
       """
 a() {}
@@ -50,7 +52,8 @@ a() {}
 """), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      enablePatterns: true);
   if (result !=
       """
 a() {}""") {
@@ -65,7 +68,8 @@ a() {
 """), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      enablePatterns: true);
   if (result !=
       """
 a() {}""") {
@@ -79,7 +83,8 @@ class A {}
 """), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      enablePatterns: true);
   if (result !=
       """
 class A {}
@@ -96,7 +101,8 @@ class A {
 """), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      enablePatterns: true);
   if (result !=
       """
 class A {}""") {
@@ -115,7 +121,8 @@ int f1, f2;
 """), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      enablePatterns: true);
   if (result !=
       """
 @a
@@ -139,7 +146,8 @@ int f1, f2;
 """), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      enablePatterns: true);
   if (result !=
       """
 @a
@@ -160,7 +168,8 @@ class A<T> {}
 """), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      enablePatterns: true);
   if (result !=
       """
 class A<T> {}
@@ -186,7 +195,8 @@ import "baz.dart";
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true,
-      returnNullOnError: false);
+      returnNullOnError: false,
+      enablePatterns: true);
   if (result !=
       """
 import "bar.dart";
@@ -213,7 +223,8 @@ export "baz.dart";
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true,
-      returnNullOnError: false);
+      returnNullOnError: false,
+      enablePatterns: true);
   if (result !=
       """
 export "bar.dart";
@@ -245,7 +256,8 @@ import "baz.dart";
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true,
-      returnNullOnError: false);
+      returnNullOnError: false,
+      enablePatterns: true);
   if (result !=
       """
 export "bar.dart";
@@ -273,7 +285,8 @@ bar() {
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true,
-      returnNullOnError: false);
+      returnNullOnError: false,
+      enablePatterns: true);
   if (result !=
       """
 part "foo.dart";
@@ -298,7 +311,8 @@ foo() {
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true,
-      returnNullOnError: false);
+      returnNullOnError: false,
+      enablePatterns: true);
   if (result !=
       """
 @Object2()
@@ -319,7 +333,8 @@ class Class1 {
 """), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      enablePatterns: true);
   if (result !=
       """
 class Class1 {
@@ -340,7 +355,8 @@ class D2 = Super with Mixin;
 """), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      enablePatterns: true);
   if (result !=
       """
 class C<V> extends Super<V> with Mixin<V> {}
@@ -366,7 +382,8 @@ import "a0.dart";
 """), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      enablePatterns: true);
   if (result !=
       """
 @Object3
@@ -400,7 +417,8 @@ export "a3.dart" show foo;
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true,
-      returnNullOnError: false);
+      returnNullOnError: false,
+      enablePatterns: true);
   if (result !=
       """
 ---- unknown chunk starts ----
@@ -426,7 +444,8 @@ main() {
 """), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      enablePatterns: true);
   if (result !=
       """
 library test;

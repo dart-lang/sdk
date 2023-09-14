@@ -39,11 +39,10 @@ import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/extension_type_declaration_builder.dart';
 import '../builder/field_builder.dart';
-import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/function_type_builder.dart';
-import '../builder/invalid_type_builder.dart';
+import '../builder/inferable_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -70,7 +69,6 @@ import '../fasta_codes.dart';
 import '../identifiers.dart' show QualifiedName, flattenName;
 import '../import.dart' show Import;
 import '../kernel/body_builder_context.dart';
-import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
@@ -112,7 +110,6 @@ import '../problems.dart' show unexpected, unhandled;
 import '../scope.dart';
 import '../util/helpers.dart';
 import 'class_declaration.dart';
-import 'constructor_declaration.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
@@ -1559,7 +1556,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (cls != objectClass) {
         cls.supertype ??= objectClass.asRawSupertype;
         declaration.supertypeBuilder ??=
-            new NamedTypeBuilder.fromTypeDeclarationBuilder(
+            new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
                 objectClassBuilder, const NullabilityBuilder.omitted(),
                 instanceTypeVariableAccess:
                     InstanceTypeVariableAccessState.Unexpected);
@@ -1759,7 +1756,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         return new DependentTypeBuilder(builder.omittedTypeBuilder);
       }
     }
-    return registerUnresolvedNamedType(new NamedTypeBuilder(
+    return registerUnresolvedNamedType(new NamedTypeBuilderImpl(
         name, nullabilityBuilder,
         arguments: arguments,
         fileUri: fileUri,
@@ -1774,7 +1771,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   TypeBuilder addVoidType(int charOffset) {
     // 'void' is always nullable.
-    return new NamedTypeBuilder.fromTypeDeclarationBuilder(
+    return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
         new VoidTypeDeclarationBuilder(const VoidType(), this, charOffset),
         const NullabilityBuilder.inherent(),
         charOffset: charOffset,
@@ -2557,72 +2554,64 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       /// Helper function that returns `true` if a type variable with a name
       /// from [typeVariableNames] is referenced in [type].
       bool usesTypeVariables(TypeBuilder? type) {
-        if (type is NamedTypeBuilder) {
-          if (type.declaration is TypeVariableBuilder) {
-            return typeVariableNames!.contains(type.declaration!.name);
-          }
+        switch (type) {
+          case NamedTypeBuilder(
+              :TypeDeclarationBuilder? declaration,
+              :List<TypeBuilder>? arguments
+            ):
+            if (declaration is TypeVariableBuilder) {
+              return typeVariableNames!.contains(declaration.name);
+            }
 
-          List<TypeBuilder>? typeArguments = type.arguments;
-          if (typeArguments != null && typeVariables != null) {
-            for (TypeBuilder argument in typeArguments) {
-              if (usesTypeVariables(argument)) {
-                return true;
+            if (arguments != null && typeVariables != null) {
+              for (TypeBuilder argument in arguments) {
+                if (usesTypeVariables(argument)) {
+                  return true;
+                }
               }
             }
-          }
-        } else if (type is FunctionTypeBuilder) {
-          if (type.formals != null) {
-            for (ParameterBuilder formal in type.formals!) {
-              if (usesTypeVariables(formal.type)) {
-                return true;
+          case FunctionTypeBuilder(
+              :List<ParameterBuilder>? formals,
+              :List<TypeVariableBuilder>? typeVariables
+            ):
+            if (formals != null) {
+              for (ParameterBuilder formal in formals) {
+                if (usesTypeVariables(formal.type)) {
+                  return true;
+                }
               }
             }
-          }
-          List<TypeVariableBuilder>? typeVariables = type.typeVariables;
-          if (typeVariables != null) {
-            for (TypeVariableBuilder variable in typeVariables) {
-              if (usesTypeVariables(variable.bound)) {
-                return true;
+            if (typeVariables != null) {
+              for (TypeVariableBuilder variable in typeVariables) {
+                if (usesTypeVariables(variable.bound)) {
+                  return true;
+                }
               }
             }
-          }
-          return usesTypeVariables(type.returnType);
-        } else if (type is RecordTypeBuilder) {
-          if (type.positionalFields != null) {
-            for (RecordTypeFieldBuilder fieldBuilder
-                in type.positionalFields!) {
-              if (usesTypeVariables(fieldBuilder.type)) {
-                return true;
+            return usesTypeVariables(type.returnType);
+          case RecordTypeBuilder(
+              :List<RecordTypeFieldBuilder>? positionalFields,
+              :List<RecordTypeFieldBuilder>? namedFields
+            ):
+            if (positionalFields != null) {
+              for (RecordTypeFieldBuilder fieldBuilder in positionalFields) {
+                if (usesTypeVariables(fieldBuilder.type)) {
+                  return true;
+                }
               }
             }
-          }
-          if (type.namedFields != null) {
-            for (RecordTypeFieldBuilder fieldBuilder in type.namedFields!) {
-              if (usesTypeVariables(fieldBuilder.type)) {
-                return true;
+            if (namedFields != null) {
+              for (RecordTypeFieldBuilder fieldBuilder in namedFields) {
+                if (usesTypeVariables(fieldBuilder.type)) {
+                  return true;
+                }
               }
             }
-          }
-        } else if (type is DependentTypeBuilder) {
-          return false;
-        } else if (type is FixedTypeBuilder) {
-          return false;
-        } else if (type is ImplicitTypeBuilder) {
-          return false;
-        } else if (type is InferableTypeBuilder) {
-          return false;
-        } else if (type is InvalidTypeBuilder) {
-          return false;
-        } else if (type is OmittedTypeBuilder) {
-          return false;
-        } else if (type == null) {
-          return false;
-        } else {
-          return unhandled(
-              "${type.runtimeType}",
-              "SourceLibraryBuilder._applyMixins.usesTypeVariables",
-              type.charOffset ?? TreeNode.noOffset,
-              type.fileUri ?? fileUri);
+          case FixedTypeBuilder():
+          case InvalidTypeBuilder():
+          case OmittedTypeBuilder():
+          case null:
+            return false;
         }
         return false;
       }
@@ -2691,7 +2680,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             applicationTypeArguments = <TypeBuilder>[];
             for (TypeVariableBuilder typeVariable in typeVariables) {
               applicationTypeArguments.add(
-                  new NamedTypeBuilder.fromTypeDeclarationBuilder(
+                  new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
                       // The type variable types passed as arguments to the
                       // generic class representing the anonymous mixin
                       // application should refer back to the type variables of
@@ -3013,19 +3002,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String? nativeMethodName,
       {Token? beginInitializers,
       required bool forAbstractClassOrMixin}) {
-    Reference? constructorReference;
-    Reference? tearOffReference;
-    if (_currentClassReferencesFromIndexed != null) {
-      constructorReference = _currentClassReferencesFromIndexed!
-          .lookupConstructorReference(new Name(
-              constructorName, _currentClassReferencesFromIndexed!.library));
-      tearOffReference = _currentClassReferencesFromIndexed!
-          .lookupGetterReference(new Name(
-              constructorTearOffName(constructorName),
-              _currentClassReferencesFromIndexed!.library));
-    }
-    AbstractSourceConstructorBuilder constructorBuilder;
-
     ContainerType containerType =
         currentTypeParameterScopeBuilder.containerType;
     ContainerName? containerName =
@@ -3037,6 +3013,30 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         libraryName: referencesFrom != null
             ? new LibraryName(referencesFrom!.reference)
             : libraryName);
+
+    Reference? constructorReference;
+    Reference? tearOffReference;
+
+    if (_currentClassReferencesFromIndexed != null) {
+      constructorReference = _currentClassReferencesFromIndexed!
+          .lookupConstructorReference(nameScheme
+              .getConstructorMemberName(constructorName, isTearOff: false)
+              .name);
+      tearOffReference = _currentClassReferencesFromIndexed!
+          .lookupGetterReference(nameScheme
+              .getConstructorMemberName(constructorName, isTearOff: true)
+              .name);
+    } else if (referencesFromIndexed != null) {
+      constructorReference = referencesFromIndexed!.lookupGetterReference(
+          nameScheme
+              .getConstructorMemberName(constructorName, isTearOff: false)
+              .name);
+      tearOffReference = referencesFromIndexed!.lookupGetterReference(nameScheme
+          .getConstructorMemberName(constructorName, isTearOff: true)
+          .name);
+    }
+    AbstractSourceConstructorBuilder constructorBuilder;
+
     if (currentTypeParameterScopeBuilder.kind ==
             TypeParameterScopeKind.inlineClassDeclaration ||
         currentTypeParameterScopeBuilder.kind ==
@@ -3112,10 +3112,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String? nativeMethodName,
       AsyncMarker asyncModifier,
       {required bool isInstanceMember,
-      required bool isExtensionMember}) {
+      required bool isExtensionMember,
+      required bool isExtensionTypeMember}) {
     assert(!isExtensionMember ||
         currentTypeParameterScopeBuilder.kind ==
             TypeParameterScopeKind.extensionDeclaration);
+    assert(!isExtensionTypeMember ||
+        currentTypeParameterScopeBuilder.kind ==
+            TypeParameterScopeKind.extensionTypeDeclaration);
     ContainerType containerType =
         currentTypeParameterScopeBuilder.containerType;
     ContainerName? containerName =
@@ -3150,15 +3154,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       } else {
         if (kind == ProcedureKind.Setter &&
-            // Extension instance setters are encoded as methods.
-            !(isExtensionMember && isInstanceMember)) {
+            // Extension (type) instance setters are encoded as methods.
+            !((isExtensionMember || isExtensionTypeMember) &&
+                isInstanceMember)) {
           procedureReference =
               referencesFromIndexed!.lookupSetterReference(nameToLookup);
         } else {
           procedureReference =
               referencesFromIndexed!.lookupGetterReference(nameToLookup);
         }
-        if (isExtensionMember && kind == ProcedureKind.Method) {
+        if ((isExtensionMember || isExtensionTypeMember) &&
+            kind == ProcedureKind.Method) {
           tearOffReference = referencesFromIndexed!.lookupGetterReference(
               nameScheme
                   .getProcedureMemberName(ProcedureKind.Getter, name)
@@ -3209,7 +3215,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         TypeParameterScopeKind.extensionDeclaration) {
       // Make the synthesized return type invalid for extensions.
       String name = currentTypeParameterScopeBuilder.parent!.name;
-      returnType = new NamedTypeBuilder.forInvalidType(
+      returnType = new NamedTypeBuilderImpl.forInvalidType(
           currentTypeParameterScopeBuilder.parent!.name,
           const NullabilityBuilder.omitted(),
           messageExtensionDeclaresConstructor.withLocation(
@@ -3253,11 +3259,22 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Reference? tearOffReference;
     if (_currentClassReferencesFromIndexed != null) {
       constructorReference = _currentClassReferencesFromIndexed!
-          .lookupConstructorReference(new Name(
-              procedureName, _currentClassReferencesFromIndexed!.library));
+          .lookupConstructorReference(procedureNameScheme
+              .getConstructorMemberName(procedureName, isTearOff: false)
+              .name);
       tearOffReference = _currentClassReferencesFromIndexed!
-          .lookupGetterReference(new Name(constructorTearOffName(procedureName),
-              _currentClassReferencesFromIndexed!.library));
+          .lookupGetterReference(procedureNameScheme
+              .getConstructorMemberName(procedureName, isTearOff: true)
+              .name);
+    } else if (referencesFromIndexed != null) {
+      constructorReference = referencesFromIndexed!.lookupGetterReference(
+          procedureNameScheme
+              .getConstructorMemberName(procedureName, isTearOff: false)
+              .name);
+      tearOffReference = referencesFromIndexed!.lookupGetterReference(
+          procedureNameScheme
+              .getConstructorMemberName(procedureName, isTearOff: true)
+              .name);
     }
 
     SourceFactoryBuilder procedureBuilder;
@@ -3311,7 +3328,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     TypeParameterScopeBuilder savedDeclaration =
         currentTypeParameterScopeBuilder;
     currentTypeParameterScopeBuilder = factoryDeclaration;
-    if (returnType is NamedTypeBuilder && !typeVariables.isEmpty) {
+    if (returnType is NamedTypeBuilderImpl && !typeVariables.isEmpty) {
       returnType.arguments =
           new List<TypeBuilder>.generate(typeVariables.length, (int index) {
         return addNamedType(
@@ -3460,7 +3477,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       NullabilityBuilder nullabilityBuilder,
       Uri fileUri,
       int charOffset) {
-    FunctionTypeBuilder builder = new FunctionTypeBuilder(returnType,
+    FunctionTypeBuilder builder = new FunctionTypeBuilderImpl(returnType,
         typeVariables, formals, nullabilityBuilder, fileUri, charOffset);
     checkTypeVariables(typeVariables, null);
     if (typeVariables != null) {
@@ -3925,29 +3942,23 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return copy;
   }
 
-  int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
-    int count = 0;
-
+  /// Adds all [unboundTypeVariables] to [typeVariableBuilders], mapping them
+  /// to this library.
+  ///
+  /// This is used to compute the bounds of type variable while taking the
+  /// bound dependencies, which might span multiple libraries, into account.
+  void collectUnboundTypeVariables(
+      Map<TypeVariableBuilder, SourceLibraryBuilder> typeVariableBuilders) {
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
-        count += patchLibrary.finishTypeVariables(object, dynamicType);
+        patchLibrary.collectUnboundTypeVariables(typeVariableBuilders);
       }
     }
-
-    count += unboundTypeVariables.length;
-
-    // Ensure that type parameters are built after their dependencies by sorting
-    // them topologically using references in bounds.
-    for (TypeVariableBuilder builder
-        in _sortTypeVariablesTopologically(unboundTypeVariables)) {
-      builder.finish(this, object, dynamicType);
+    for (TypeVariableBuilder builder in unboundTypeVariables) {
+      typeVariableBuilders[builder] = this;
     }
     unboundTypeVariables.clear();
-
-    processPendingNullabilities();
-
-    return count;
   }
 
   /// Assigns nullabilities to types in [_pendingNullabilities].
@@ -3958,6 +3969,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// may be bounds to some of the type parameters of other types from the input
   /// list.
   void processPendingNullabilities() {
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        patchLibrary.processPendingNullabilities();
+      }
+    }
+
     // The bounds of type parameters may be type-parameter types of other
     // parameters from the same declaration.  In this case we need to set the
     // nullability for them first.  To preserve the ordering, we implement a
@@ -4261,22 +4279,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    void processSourceConstructorBuilder(SourceMemberBuilder member,
+    void processSourceConstructorBuilder(SourceFunctionBuilder member,
         {required bool inErrorRecovery}) {
-      List<FormalParameterBuilder>? formals;
-      if (member is SourceFactoryBuilder) {
-        assert(member.isFactory,
-            "Unexpected constructor member (${member.runtimeType}).");
-        count += computeDefaultTypesForVariables(member.typeVariables,
-            // Type variables are inherited from the class so if the class
-            // has issues, so does the factory constructors.
-            inErrorRecovery: inErrorRecovery);
-        formals = member.formals;
-      } else {
-        assert(member is ConstructorDeclaration,
-            "Unexpected constructor member (${member.runtimeType}).");
-        formals = (member as ConstructorDeclaration).formals;
-      }
+      count += computeDefaultTypesForVariables(member.typeVariables,
+          // Type variables are inherited from the enclosing declaration, so if
+          // it has issues, so do the constructors.
+          inErrorRecovery: inErrorRecovery);
+      List<FormalParameterBuilder>? formals = member.formals;
       if (formals != null && formals.isNotEmpty) {
         for (FormalParameterBuilder formal in formals) {
           List<NonSimplicityIssue> issues =
@@ -4294,7 +4303,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else if (member is SourceFieldBuilder) {
         processSourceFieldBuilder(member);
       } else {
-        processSourceConstructorBuilder(member,
+        assert(member is SourceFactoryBuilder ||
+            member is SourceConstructorBuilder);
+        processSourceConstructorBuilder(member as SourceFunctionBuilder,
             inErrorRecovery: inErrorRecovery);
       }
     }
@@ -4358,6 +4369,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         reportIssues(issues);
         count += computeDefaultTypesForVariables(declaration.typeParameters,
             inErrorRecovery: issues.isNotEmpty);
+
+        Iterator<SourceMemberBuilder> iterator = declaration.constructorScope
+            .filteredIterator<SourceMemberBuilder>(
+                includeDuplicates: false, includeAugmentations: true);
+        while (iterator.moveNext()) {
+          processSourceMemberBuilder(iterator.current,
+              inErrorRecovery: issues.isNotEmpty);
+        }
 
         declaration.forEach((String name, Builder member) {
           if (member is SourceMemberBuilder) {
@@ -5720,78 +5739,6 @@ class ImplicitLanguageVersion implements LanguageVersion {
   @override
   String toString() {
     return 'ImplicitLanguageVersion(version=$version)';
-  }
-}
-
-List<TypeVariableBuilder> _sortTypeVariablesTopologically(
-    Iterable<TypeVariableBuilder> typeVariables) {
-  Set<TypeVariableBuilder> unhandled = new Set<TypeVariableBuilder>.identity()
-    ..addAll(typeVariables);
-  List<TypeVariableBuilder> result = <TypeVariableBuilder>[];
-  while (unhandled.isNotEmpty) {
-    TypeVariableBuilder rootVariable = unhandled.first;
-    unhandled.remove(rootVariable);
-    if (rootVariable.bound != null) {
-      _sortTypeVariablesTopologicallyFromRoot(
-          rootVariable.bound!, unhandled, result);
-    }
-    result.add(rootVariable);
-  }
-  return result;
-}
-
-void _sortTypeVariablesTopologicallyFromRoot(TypeBuilder root,
-    Set<TypeVariableBuilder> unhandled, List<TypeVariableBuilder> result) {
-  List<TypeVariableBuilder>? typeVariables;
-  List<TypeBuilder>? internalDependents;
-
-  if (root is NamedTypeBuilder) {
-    TypeDeclarationBuilder? declaration = root.declaration;
-    if (declaration is ClassBuilder) {
-      if (declaration.typeVariables != null &&
-          declaration.typeVariables!.isNotEmpty) {
-        typeVariables = declaration.typeVariables;
-      }
-    } else if (declaration is TypeAliasBuilder) {
-      if (declaration.typeVariables != null &&
-          declaration.typeVariables!.isNotEmpty) {
-        typeVariables = declaration.typeVariables;
-      }
-      internalDependents = <TypeBuilder>[declaration.type];
-    } else if (declaration is TypeVariableBuilder) {
-      typeVariables = <TypeVariableBuilder>[declaration];
-    }
-  } else if (root is FunctionTypeBuilder) {
-    if (root.typeVariables != null && root.typeVariables!.isNotEmpty) {
-      typeVariables = root.typeVariables;
-    }
-    if (root.formals != null && root.formals!.isNotEmpty) {
-      internalDependents = <TypeBuilder>[];
-      for (ParameterBuilder formal in root.formals!) {
-        internalDependents.add(formal.type);
-      }
-    }
-    if (root.returnType is! OmittedTypeBuilder) {
-      (internalDependents ??= <TypeBuilder>[]).add(root.returnType);
-    }
-  }
-
-  if (typeVariables != null && typeVariables.isNotEmpty) {
-    for (TypeVariableBuilder variable in typeVariables) {
-      if (unhandled.contains(variable)) {
-        unhandled.remove(variable);
-        if (variable.bound != null) {
-          _sortTypeVariablesTopologicallyFromRoot(
-              variable.bound!, unhandled, result);
-        }
-        result.add(variable);
-      }
-    }
-  }
-  if (internalDependents != null && internalDependents.isNotEmpty) {
-    for (TypeBuilder type in internalDependents) {
-      _sortTypeVariablesTopologicallyFromRoot(type, unhandled, result);
-    }
   }
 }
 

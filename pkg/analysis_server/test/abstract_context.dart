@@ -124,12 +124,11 @@ class AbstractContextTest with ResourceProviderMixin {
   void createAnalysisOptionsFile({
     List<String>? experiments,
     List<String>? cannotIgnore,
-    bool? implicitCasts,
     List<String>? lints,
   }) {
     var buffer = StringBuffer();
 
-    if (experiments != null || implicitCasts != null || cannotIgnore != null) {
+    if (experiments != null || cannotIgnore != null) {
       buffer.writeln('analyzer:');
     }
 
@@ -138,11 +137,6 @@ class AbstractContextTest with ResourceProviderMixin {
       for (var experiment in experiments) {
         buffer.writeln('    - $experiment');
       }
-    }
-
-    if (implicitCasts != null) {
-      buffer.writeln('  strong-mode:');
-      buffer.writeln('    implicit-casts: $implicitCasts');
     }
 
     if (cannotIgnore != null) {

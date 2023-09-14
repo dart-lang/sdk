@@ -186,131 +186,117 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register src_reg = locs()->in(kSrcPos).reg();
-  const Register dest_reg = locs()->in(kDestPos).reg();
-  const Location src_start_loc = locs()->in(kSrcStartPos);
-  const Location dest_start_loc = locs()->in(kDestStartPos);
-  const Location length_loc = locs()->in(kLengthPos);
-  const bool constant_length = length_loc.IsConstant();
-  const Register length_reg = constant_length ? kNoRegister : length_loc.reg();
+void MemoryCopyInstr::PrepareLengthRegForLoop(FlowGraphCompiler* compiler,
+                                              Register length_reg,
+                                              compiler::Label* done) {
+  __ BranchIfZero(length_reg, done);
+}
 
-  EmitComputeStartPointer(compiler, src_cid_, src_reg, src_start_loc);
-  EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_start_loc);
+void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
+                                   Register dest_reg,
+                                   Register src_reg,
+                                   Register length_reg,
+                                   compiler::Label* done,
+                                   compiler::Label* copy_forwards) {
+  const intptr_t loop_subtract = unboxed_inputs() ? 1 : Smi::RawValue(1);
+  // The size of an (sub)element in an individual load/store pair.
+  intptr_t mov_size = Utils::Minimum<intptr_t>(element_size_, XLEN / 8);
 
-  if (constant_length) {
-    const intptr_t num_bytes =
-        Integer::Cast(length_loc.constant()).AsInt64Value() * element_size_;
-    const intptr_t mov_size =
-        Utils::Minimum(element_size_, static_cast<intptr_t>(XLEN / 8));
-    const intptr_t mov_repeat = num_bytes / mov_size;
-    ASSERT(num_bytes % mov_size == 0);
-    for (intptr_t i = 0; i < mov_repeat; i++) {
-      switch (mov_size) {
-        case 1:
-          __ lb(TMP, compiler::Address(src_reg, mov_size * i));
-          __ sb(TMP, compiler::Address(dest_reg, mov_size * i));
-          break;
-        case 2:
-          __ lh(TMP, compiler::Address(src_reg, mov_size * i));
-          __ sh(TMP, compiler::Address(dest_reg, mov_size * i));
-          break;
-        case 4:
-          __ lw(TMP, compiler::Address(src_reg, mov_size * i));
-          __ sw(TMP, compiler::Address(dest_reg, mov_size * i));
-          break;
-        case 8:
-#if XLEN == 64
-          __ ld(TMP, compiler::Address(src_reg, mov_size * i));
-          __ sd(TMP, compiler::Address(dest_reg, mov_size * i));
-#else
-          UNREACHABLE();
-#endif
-          break;
-        case 16:
-#if XLEN == 128
-          __ lq(TMP, compiler::Address(src_reg, mov_size * i));
-          __ sq(TMP, compiler::Address(dest_reg, mov_size * i));
-#else
-          UNREACHABLE();
-#endif
-          break;
-      }
+  if (copy_forwards != nullptr) {
+    // Verify that the overlap actually exists by checking to see if
+    // the first element in dest <= the last element in src.
+    const intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
+                           (unboxed_inputs() ? 0 : kSmiTagShift);
+    if (shift == 0) {
+      __ subi(TMP, length_reg, mov_size);
+    } else if (shift < 0) {
+      __ srai(TMP, length_reg, -shift);
+      __ subi(TMP, TMP, mov_size);
+    } else {
+      __ slli(TMP, length_reg, shift);
+      __ subi(TMP, TMP, mov_size);
     }
-    return;
+    __ add(TMP, src_reg, TMP);
+    __ CompareRegisters(dest_reg, TMP);
+    __ BranchIf(UNSIGNED_GREATER, copy_forwards,
+                compiler::Assembler::kNearJump);
+    // There is overlap, so adjust dest_reg and src_reg appropriately.
+    __ add(dest_reg, dest_reg, TMP);
+    __ sub(dest_reg, dest_reg, src_reg);
+    __ MoveRegister(src_reg, TMP);
+    // Negate the increment to the next (sub)element. This way, the
+    // (sub)elements will be copied in reverse order (highest to lowest).
+    mov_size = -mov_size;
   }
-
-  compiler::Label loop, done;
-
-  const intptr_t loop_subtract = unboxed_length_ ? 1 : Smi::RawValue(1);
-  __ beqz(length_reg, &done);
-
+  compiler::Label loop;
   __ Bind(&loop);
   switch (element_size_) {
     case 1:
       __ lb(TMP, compiler::Address(src_reg));
-      __ addi(src_reg, src_reg, 1);
+      __ addi(src_reg, src_reg, mov_size);
       __ sb(TMP, compiler::Address(dest_reg));
-      __ addi(dest_reg, dest_reg, 1);
+      __ addi(dest_reg, dest_reg, mov_size);
       break;
     case 2:
       __ lh(TMP, compiler::Address(src_reg));
-      __ addi(src_reg, src_reg, 2);
+      __ addi(src_reg, src_reg, mov_size);
       __ sh(TMP, compiler::Address(dest_reg));
-      __ addi(dest_reg, dest_reg, 2);
+      __ addi(dest_reg, dest_reg, mov_size);
       break;
     case 4:
       __ lw(TMP, compiler::Address(src_reg));
-      __ addi(src_reg, src_reg, 4);
+      __ addi(src_reg, src_reg, mov_size);
       __ sw(TMP, compiler::Address(dest_reg));
-      __ addi(dest_reg, dest_reg, 4);
+      __ addi(dest_reg, dest_reg, mov_size);
       break;
     case 8:
-#if XLEN == 32
-      __ lw(TMP, compiler::Address(src_reg, 0));
-      __ lw(TMP2, compiler::Address(src_reg, 4));
-      __ addi(src_reg, src_reg, 8);
-      __ sw(TMP, compiler::Address(dest_reg, 0));
-      __ sw(TMP2, compiler::Address(dest_reg, 4));
-      __ addi(dest_reg, dest_reg, 8);
-#else
+#if XLEN >= 64
       __ ld(TMP, compiler::Address(src_reg));
-      __ addi(src_reg, src_reg, 8);
+      __ addi(src_reg, src_reg, mov_size);
       __ sd(TMP, compiler::Address(dest_reg));
-      __ addi(dest_reg, dest_reg, 8);
+      __ addi(dest_reg, dest_reg, mov_size);
+#else
+      __ lw(TMP, compiler::Address(src_reg));
+      __ lw(TMP2, compiler::Address(src_reg, mov_size));
+      __ addi(src_reg, src_reg, 2 * mov_size);
+      __ sw(TMP, compiler::Address(dest_reg));
+      __ sw(TMP2, compiler::Address(dest_reg, mov_size));
+      __ addi(dest_reg, dest_reg, 2 * mov_size);
 #endif
       break;
     case 16:
-#if XLEN == 32
-      __ lw(TMP, compiler::Address(src_reg, 0));
-      __ lw(TMP2, compiler::Address(src_reg, 4));
-      __ sw(TMP, compiler::Address(dest_reg, 0));
-      __ sw(TMP2, compiler::Address(dest_reg, 4));
-      __ lw(TMP, compiler::Address(src_reg, 8));
-      __ lw(TMP2, compiler::Address(src_reg, 12));
-      __ addi(src_reg, src_reg, 16);
-      __ sw(TMP, compiler::Address(dest_reg, 8));
-      __ sw(TMP2, compiler::Address(dest_reg, 12));
-      __ addi(dest_reg, dest_reg, 16);
-#elif XLEN == 64
-      __ ld(TMP, compiler::Address(src_reg, 0));
-      __ ld(TMP2, compiler::Address(src_reg, 8));
-      __ addi(src_reg, src_reg, 16);
-      __ sd(TMP, compiler::Address(dest_reg, 0));
-      __ sd(TMP2, compiler::Address(dest_reg, 8));
-      __ addi(dest_reg, dest_reg, 16);
-#elif XLEN == 128
+#if XLEN >= 128
       __ lq(TMP, compiler::Address(src_reg));
-      __ addi(src_reg, src_reg, 16);
+      __ addi(src_reg, src_reg, mov_size);
       __ sq(TMP, compiler::Address(dest_reg));
-      __ addi(dest_reg, dest_reg, 16);
+      __ addi(dest_reg, dest_reg, mov_size);
+#elif XLEN == 64
+      __ ld(TMP, compiler::Address(src_reg));
+      __ ld(TMP2, compiler::Address(src_reg, mov_size));
+      __ addi(src_reg, src_reg, 2 * mov_size);
+      __ sd(TMP, compiler::Address(dest_reg));
+      __ sd(TMP2, compiler::Address(dest_reg, mov_size));
+      __ addi(dest_reg, dest_reg, 2 * mov_size);
+#else
+      __ lw(TMP, compiler::Address(src_reg));
+      __ lw(TMP2, compiler::Address(src_reg, mov_size));
+      __ sw(TMP, compiler::Address(dest_reg));
+      __ sw(TMP2, compiler::Address(dest_reg, mov_size));
+      __ lw(TMP, compiler::Address(src_reg, 2 * mov_size));
+      __ lw(TMP2, compiler::Address(src_reg, 3 * mov_size));
+      __ addi(src_reg, src_reg, 4 * mov_size);
+      __ sw(TMP, compiler::Address(dest_reg, 2 * mov_size));
+      __ sw(TMP2, compiler::Address(dest_reg, 3 * mov_size));
+      __ addi(dest_reg, dest_reg, 4 * mov_size);
 #endif
+      break;
+    default:
+      UNREACHABLE();
       break;
   }
 
   __ subi(length_reg, length_reg, loop_subtract);
   __ bnez(length_reg, &loop);
-  __ Bind(&done);
 }
 
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
@@ -364,7 +350,8 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
   }
   __ AddImmediate(array_reg, offset);
   const Register start_reg = start_loc.reg();
-  intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) - 1;
+  intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
+                   (unboxed_inputs() ? 0 : kSmiTagShift);
   __ AddShifted(array_reg, array_reg, start_reg, shift);
 }
 
@@ -1178,7 +1165,6 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
   const FRegister left = locs->in(0).fpu_reg();
   const FRegister right = locs->in(1).fpu_reg();
 
-  // TODO(riscv): Check if this does want we want for comparisons involving NaN.
   switch (kind) {
     case Token::kEQ:
       __ feqd(TMP, left, right);
@@ -2493,7 +2479,6 @@ static void LoadValueCid(FlowGraphCompiler* compiler,
 }
 
 DEFINE_UNIMPLEMENTED_INSTRUCTION(GuardFieldTypeInstr)
-DEFINE_UNIMPLEMENTED_INSTRUCTION(CheckConditionInstr)
 
 LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {

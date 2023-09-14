@@ -59,7 +59,7 @@ import 'dart:_wasm';
 
 part "bool.dart";
 part "closure.dart";
-part "double.dart";
+part "double_patch.dart";
 part "errors_patch.dart";
 part "growable_list.dart";
 part "identical_patch.dart";

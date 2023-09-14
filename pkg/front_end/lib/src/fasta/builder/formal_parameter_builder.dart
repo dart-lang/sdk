@@ -28,7 +28,6 @@ import 'declaration_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
-import 'named_type_builder.dart';
 import 'omitted_type_builder.dart';
 import 'type_builder.dart';
 import 'variable_builder.dart';
@@ -199,12 +198,13 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         type.clone(newTypes, contextLibrary, contextDeclaration), name);
   }
 
-  FormalParameterBuilder forPrimaryConstructor() {
+  FormalParameterBuilder forPrimaryConstructor(
+      SourceLibraryBuilder sourceLibraryBuilder) {
     return new FormalParameterBuilder(
         metadata,
         kind,
         modifiers | initializingFormalMask,
-        const ImplicitTypeBuilder(),
+        sourceLibraryBuilder.addInferableType(),
         name,
         null,
         charOffset,

@@ -215,12 +215,8 @@ class LspAnalysisServer extends AnalysisServer {
   Future<void> get exited => channel.closed;
 
   /// Initialization options provided by the LSP client. Allows opting in/out of
-  /// specific server functionality. This getter is for convenience and will
-  /// throw if accessed prior to initialization.
-  /// TODO(dantup): Make this nullable and review all uses of it to ensure
-  ///  there aren't potential errors here.
-  LspInitializationOptions get initializationOptions =>
-      _initializationOptions as LspInitializationOptions;
+  /// specific server functionality. Will be null prior to initialization.
+  LspInitializationOptions? get initializationOptions => _initializationOptions;
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
   @override
@@ -230,13 +226,16 @@ class LspAnalysisServer extends AnalysisServer {
   LspNotificationManager get notificationManager =>
       super.notificationManager as LspNotificationManager;
 
+  bool get onlyAnalyzeProjectsWithOpenFiles =>
+      _initializationOptions?.onlyAnalyzeProjectsWithOpenFiles ?? false;
+
   @override
   OpenUriNotificationSender? get openUriNotificationSender {
-    if (!initializationOptions.allowOpenUri) {
+    if (!(initializationOptions?.allowOpenUri ?? false)) {
       return null;
     }
 
-    return (Uri uri) {
+    return (Uri uri) async {
       final params = OpenUriParams(uri: uri);
       final message = NotificationMessage(
         method: CustomMethods.openUri,
@@ -266,7 +265,10 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Whether or not the client has advertised support for
   /// 'window/showMessageRequest'.
+  ///
+  /// Callers should use [userPromptSender] instead of checking this directly.
   @override
+  @protected
   bool get supportsShowMessageRequest =>
       lspClientCapabilities?.supportsShowMessageRequest ?? false;
 
@@ -801,7 +803,7 @@ class LspAnalysisServer extends AnalysisServer {
   bool shouldSendClosingLabelsFor(String file) {
     // Closing labels should only be sent for open (priority) files in the
     // workspace.
-    return initializationOptions.closingLabels &&
+    return (initializationOptions?.closingLabels ?? false) &&
         priorityFiles.contains(file) &&
         isAnalyzed(file);
   }
@@ -810,7 +812,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// given absolute path.
   bool shouldSendFlutterOutlineFor(String file) {
     // Outlines should only be sent for open (priority) files in the workspace.
-    return initializationOptions.flutterOutline &&
+    return (initializationOptions?.flutterOutline ?? false) &&
         priorityFiles.contains(file) &&
         _isInFlutterProject(file);
   }
@@ -819,7 +821,8 @@ class LspAnalysisServer extends AnalysisServer {
   /// absolute path.
   bool shouldSendOutlineFor(String file) {
     // Outlines should only be sent for open (priority) files in the workspace.
-    return initializationOptions.outline && priorityFiles.contains(file);
+    return (initializationOptions?.outline ?? false) &&
+        priorityFiles.contains(file);
   }
 
   void showErrorMessageToUser(String message) {
@@ -837,13 +840,11 @@ class LspAnalysisServer extends AnalysisServer {
   /// Shows the user a prompt with some actions to select from using
   /// 'window/showMessageRequest'.
   ///
-  /// Callers should verify the client supports 'window/showMessageRequest' with
-  /// [supportsShowMessageRequest] before calling this, and handle cases where
-  /// it is not appropriately.
-  ///
-  /// This is just a convenience method over [showUserPromptItems] where only
-  /// title strings are used.
+  /// Callers should use [userPromptSender] instead of calling this method
+  /// directly because it returns null if the client does not support user
+  /// prompts.
   @override
+  @visibleForOverriding
   Future<String?> showUserPrompt(
     MessageType type,
     String message,
@@ -940,11 +941,15 @@ class LspAnalysisServer extends AnalysisServer {
   void _checkAnalytics() {
     // TODO(dantup): This code should move to base server.
     var unifiedAnalytics = analyticsManager.analytics;
-    if (supportsShowMessageRequest && unifiedAnalytics.shouldShowMessage) {
-      unawaited(showUserPrompt(
-          MessageType.info, unifiedAnalytics.getConsentMessage, ['Ok']));
-      unifiedAnalytics.clientShowedMessage();
+    var prompt = userPromptSender;
+    if (!unifiedAnalytics.shouldShowMessage || prompt == null) {
+      return;
     }
+
+    unawaited(
+      prompt(MessageType.info, unifiedAnalytics.getConsentMessage, ['Ok']),
+    );
+    unifiedAnalytics.clientShowedMessage();
   }
 
   /// Computes analysis roots for a set of open files.

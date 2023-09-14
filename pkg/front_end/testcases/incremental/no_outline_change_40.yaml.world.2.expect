@@ -13,10 +13,10 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
     return () → dynamic => lib1::Extension1|baz(#this);
 }
 library from "org-dartlang-test:///lib2.dart" as lib2 {
-additionalExports = (lib1::Extension1,
-  main::main,
-  main::A,
-  main::Extension2)
+additionalExports = (main::A,
+  lib1::Extension1,
+  main::Extension2,
+  main::main)
 
   import "org-dartlang-test:///main.dart";
   import "org-dartlang-test:///lib1.dart";

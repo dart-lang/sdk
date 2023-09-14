@@ -254,8 +254,7 @@ suggestions
           Keyword.CONST,
           if (context.isClass || context.isMixin) Keyword.COVARIANT,
           Keyword.DYNAMIC,
-          // TODO(scheglov) This does not look right, mixin.
-          if (context.isClass || context.isMixin) Keyword.FACTORY,
+          if (context.isClass) Keyword.FACTORY,
           Keyword.FINAL,
           Keyword.GET,
           Keyword.LATE,
@@ -499,8 +498,7 @@ ${keywords.asKeywordSuggestions}
             Keyword.CONST,
             if (context.isClass || context.isMixin) Keyword.COVARIANT,
             Keyword.DYNAMIC,
-            // TODO(scheglov) This does not look right, mixin.
-            if (context.isClass || context.isMixin) Keyword.FACTORY,
+            if (context.isClass) Keyword.FACTORY,
             Keyword.FINAL,
             Keyword.GET,
             Keyword.LATE,

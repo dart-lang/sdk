@@ -144,6 +144,8 @@ front_end/test/hot_reload_e2e_test: Skip
 frontend_server/test/*: SkipByDesign # Only meant to run on vm
 js_runtime/test/*: SkipByDesign # Only meant to run on vm
 js_shared/test/*: SkipByDesign # Only meant to run on vm
+linter/test/*: SkipByDesign # Only meant to run on vm
+linter/tool/*: SkipByDesign # Only meant to run on vm
 native_stack_traces/test/*: SkipByDesign # Only meant to run on vm
 vm/test/*: SkipByDesign # Only meant to run on vm
 vm_service/test/*: SkipByDesign # Uses dart:io

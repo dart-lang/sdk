@@ -6,6 +6,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart'
     hide TypeHierarchyItem, Element;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,8 +14,11 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:collection/collection.dart';
 
+typedef StaticOptions
+    = Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>;
+
 class ImplementationHandler
-    extends LspMessageHandler<TextDocumentPositionParams, List<Location>> {
+    extends SharedMessageHandler<TextDocumentPositionParams, List<Location>> {
   ImplementationHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_implementation;
@@ -100,4 +104,22 @@ class ImplementationHandler
 
     return success(locations);
   }
+}
+
+class ImplementationRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  ImplementationRegistrations(super.info);
+
+  @override
+  ToJsonable? get options =>
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes);
+
+  @override
+  Method get registrationMethod => Method.textDocument_implementation;
+
+  @override
+  StaticOptions get staticOptions => Either3.t1(true);
+
+  @override
+  bool get supportsDynamic => clientDynamic.implementation;
 }

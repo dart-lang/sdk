@@ -224,6 +224,72 @@ enum B {
     assertHasDeclaration(ElementKind.SETTER, 'B');
   }
 
+  Future<void> test_extensionType_methodGetter() async {
+    addTestFile('''
+extension type A(int it) {
+  void foo() {}
+  void bar() {}
+}
+extension type B(int it) {
+  int get foo => 0;
+}
+''');
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(2));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.GETTER, 'B');
+  }
+
+  Future<void> test_extensionType_methodGetterSetter() async {
+    addTestFile('''
+extension type A(int it) {
+  void foo() {}
+  void bar() {}
+}
+extension type B(int it) {
+  int get foo => 0;
+  set foo(int _) {}
+}
+''');
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(3));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.GETTER, 'B');
+    assertHasDeclaration(ElementKind.SETTER, 'B');
+  }
+
+  Future<void> test_extensionType_methodMethod() async {
+    addTestFile('''
+extension type A(int it) {
+  void foo() {}
+  void bar() {}
+}
+extension type B(int it) {
+  void foo() {}
+}
+''');
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(2));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.METHOD, 'B');
+  }
+
+  Future<void> test_extensionType_methodSetter() async {
+    addTestFile('''
+extension type A(int it) {
+  void foo() {}
+  void bar() {}
+}
+extension type B(int it) {
+  set foo(int _) {}
+}
+''');
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(2));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.SETTER, 'B');
+  }
+
   Future<void> test_localVariable() async {
     addTestFile('''
 class A {

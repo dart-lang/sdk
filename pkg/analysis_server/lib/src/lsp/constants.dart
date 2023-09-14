@@ -45,10 +45,47 @@ const dartSignatureHelpTriggerCharacters = <String>['('];
 /// Characters to trigger formatting when format-on-type is enabled.
 const dartTypeFormattingCharacters = ['}', ';'];
 
+/// A [TextDocumentFilterWithScheme] for Analysis Options files.
+final analysisOptionsFile = TextDocumentFilterWithScheme(
+    language: 'yaml', scheme: 'file', pattern: '**/analysis_options.yaml');
+
 /// A [ProgressToken] used for reporting progress while the server is analyzing.
 final analyzingProgressToken = ProgressToken.t2('ANALYZING');
 
+/// A [TextDocumentFilterWithScheme] for Dart file.
+final dartFiles =
+    TextDocumentFilterWithScheme(language: 'dart', scheme: 'file');
+
 final emptyWorkspaceEdit = WorkspaceEdit();
+
+final fileOperationRegistrationOptions = FileOperationRegistrationOptions(
+  filters: [
+    FileOperationFilter(
+      scheme: 'file',
+      pattern: FileOperationPattern(
+        glob: '**/*.dart',
+        matches: FileOperationPatternKind.file,
+      ),
+    ),
+    FileOperationFilter(
+      scheme: 'file',
+      pattern: FileOperationPattern(
+        glob: '**/',
+        matches: FileOperationPatternKind.folder,
+      ),
+    )
+  ],
+);
+
+/// A [TextDocumentFilterWithScheme] for Fix Data files.
+final fixDataFile = TextDocumentFilterWithScheme(
+    language: 'yaml',
+    scheme: 'file',
+    pattern: '**/lib/{fix_data.yaml,fix_data/**.yaml}');
+
+/// A [TextDocumentFilterWithScheme] for Pubspec files.
+final pubspecFile = TextDocumentFilterWithScheme(
+    language: 'yaml', scheme: 'file', pattern: '**/pubspec.yaml');
 
 /// Constants for command IDs that are exchanged between LSP client/server.
 abstract class Commands {

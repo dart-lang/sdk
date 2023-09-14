@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -36,6 +37,7 @@ import 'package:pub_semver/pub_semver.dart';
 class BundleReader {
   final SummaryDataReader _reader;
   final Map<Uri, Uint8List> _unitsInformativeBytes;
+  final InfoDeclarationStore _infoDeclarationStore;
 
   final Map<Uri, LibraryReader> libraryMap = {};
 
@@ -43,8 +45,10 @@ class BundleReader {
     required LinkedElementFactory elementFactory,
     required Uint8List resolutionBytes,
     Map<Uri, Uint8List> unitsInformativeBytes = const {},
+    required InfoDeclarationStore infoDeclarationStore,
   })  : _reader = SummaryDataReader(resolutionBytes),
-        _unitsInformativeBytes = unitsInformativeBytes {
+        _unitsInformativeBytes = unitsInformativeBytes,
+        _infoDeclarationStore = infoDeclarationStore {
     _reader.offset = _reader.bytes.length - 4 * 4;
     var baseResolutionOffset = _reader.readUInt32();
     var librariesOffset = _reader.readUInt32();
@@ -79,6 +83,7 @@ class BundleReader {
         reference: reference,
         offset: libraryHeader.offset,
         classMembersLengths: libraryHeader.classMembersLengths,
+        infoDeclarationStore: _infoDeclarationStore,
       );
     }
   }
@@ -513,6 +518,7 @@ class LibraryReader {
   final _ReferenceReader _referenceReader;
   final Reference _reference;
   final int _offset;
+  final InfoDeclarationStore _deserializedDataStore;
 
   final Uint32List _classMembersLengths;
   int _classMembersLengthsIndex = 0;
@@ -526,6 +532,7 @@ class LibraryReader {
     required Reference reference,
     required int offset,
     required Uint32List classMembersLengths,
+    required InfoDeclarationStore infoDeclarationStore,
   })  : _elementFactory = elementFactory,
         _reader = reader,
         _unitsInformativeBytes = unitsInformativeBytes,
@@ -533,7 +540,8 @@ class LibraryReader {
         _referenceReader = referenceReader,
         _reference = reference,
         _offset = offset,
-        _classMembersLengths = classMembersLengths;
+        _classMembersLengths = classMembersLengths,
+        _deserializedDataStore = infoDeclarationStore;
 
   LibraryElementImpl readElement({required Source librarySource}) {
     var analysisContext = _elementFactory.analysisContext;
@@ -590,7 +598,8 @@ class LibraryReader {
 
     _declareDartCoreDynamicNever();
 
-    InformativeDataApplier(_elementFactory, _unitsInformativeBytes)
+    InformativeDataApplier(
+            _elementFactory, _unitsInformativeBytes, _deserializedDataStore)
         .applyTo(libraryElement);
 
     _readPropertyAccessorAugmentations(accessorAugmentationsOffset);

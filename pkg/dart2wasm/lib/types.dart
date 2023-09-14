@@ -18,11 +18,20 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 /// the class ID of the masquerade.
 class TypeCategory {
   static const abstractClass = 0;
-  static const function = 1;
-  static const record = 2;
-  static const notMasqueraded = 3;
-  static const minMasqueradeClassId = 4;
+  static const object = 1;
+  static const function = 2;
+  static const record = 3;
+  static const notMasqueraded = 4;
+  static const minMasqueradeClassId = 5;
   static const maxMasqueradeClassId = 63; // Leaves 2 unused bits for future use
+}
+
+/// Values for the `_kind` field in `_TopType`. Must match the definitions in
+/// `_TopType`.
+class TopTypeKind {
+  static const int objectKind = 0;
+  static const int dynamicKind = 1;
+  static const int voidKind = 2;
 }
 
 class InterfaceTypeEnvironment {
@@ -279,6 +288,8 @@ class Types {
       int category;
       if (cls == null || cls.isAbstract) {
         category = TypeCategory.abstractClass;
+      } else if (cls == coreTypes.objectClass) {
+        category = TypeCategory.object;
       } else if (cls == translator.closureClass) {
         category = TypeCategory.function;
       } else if (recordClasses.contains(cls)) {
@@ -333,28 +344,30 @@ class Types {
             type.positional.every(_isTypeConstant) &&
             type.named.every((n) => _isTypeConstant(n.type))) ||
         type is TypeParameterType && isFunctionTypeParameter(type) ||
-        type is ExtensionType &&
-            _isTypeConstant(type.instantiatedRepresentationType);
+        type is ExtensionType && _isTypeConstant(type.typeErasure);
   }
 
   Class classForType(DartType type) {
     if (type is DynamicType) {
-      return translator.dynamicTypeClass;
+      return translator.topTypeClass;
     } else if (type is VoidType) {
-      return translator.voidTypeClass;
+      return translator.topTypeClass;
     } else if (type is NeverType) {
-      // For runtime types with sound null safety, `Never?` is the same as
-      // `Null`.
-      if (type.nullability == Nullability.nullable) {
-        return translator.nullTypeClass;
-      } else {
-        return translator.neverTypeClass;
-      }
+      return translator.bottomTypeClass;
     } else if (type is NullType) {
-      return translator.nullTypeClass;
+      return translator.bottomTypeClass;
     } else if (type is FutureOrType) {
       return translator.futureOrTypeClass;
     } else if (type is InterfaceType) {
+      if (type.classNode == coreTypes.objectClass) {
+        return translator.topTypeClass;
+      }
+      if (type.classNode == coreTypes.functionClass) {
+        return translator.abstractFunctionTypeClass;
+      }
+      if (type.classNode == coreTypes.recordClass) {
+        return translator.abstractRecordTypeClass;
+      }
       return translator.interfaceTypeClass;
     } else if (type is FunctionType) {
       return translator.functionTypeClass;
@@ -365,11 +378,25 @@ class Types {
         return translator.interfaceTypeParameterTypeClass;
       }
     } else if (type is ExtensionType) {
-      return classForType(type.instantiatedRepresentationType);
+      return classForType(type.typeErasure);
     } else if (type is RecordType) {
       return translator.recordTypeClass;
     }
     throw "Unexpected DartType: $type";
+  }
+
+  bool isSpecializedClass(Class cls) {
+    return cls == coreTypes.objectClass ||
+        cls == coreTypes.functionClass ||
+        cls == coreTypes.recordClass;
+  }
+
+  int topTypeKind(DartType type) {
+    return type is VoidType
+        ? TopTypeKind.voidKind
+        : type is DynamicType
+            ? TopTypeKind.dynamicKind
+            : TopTypeKind.objectKind;
   }
 
   /// Allocates a `List<_Type>` from [types] and pushes it to the stack.
@@ -408,16 +435,22 @@ class Types {
   }
 
   /// Normalizes a Dart type. Many rules are already applied for us, but we
-  /// still have to manually normalize [FutureOr].
+  /// still have to manually turn `Never?` into `Null` and normalize `FutureOr`.
   DartType normalize(DartType type) {
+    if (type is NeverType && type.declaredNullability == Nullability.nullable) {
+      return const NullType();
+    }
+
     if (type is! FutureOrType) return type;
 
     final s = normalize(type.typeArgument);
 
-    // `coreTypes.isTope` and `coreTypes.isObject` take into account the
-    // normalization rules of `futureOr`.
+    // `coreTypes.isTop` and `coreTypes.isObject` take into account the
+    // normalization rules of `FutureOr`.
     if (coreTypes.isTop(type) || coreTypes.isObject(type)) {
-      return s;
+      return type.declaredNullability == Nullability.nullable
+          ? s.withDeclaredNullability(Nullability.nullable)
+          : s;
     } else if (s is NeverType) {
       return InterfaceType(coreTypes.futureClass, Nullability.nonNullable,
           const [const NeverType.nonNullable()]);
@@ -524,7 +557,7 @@ class Types {
     }
 
     if (type is ExtensionType) {
-      return makeType(codeGen, type.instantiatedRepresentationType);
+      return makeType(codeGen, type.typeErasure);
     }
 
     ClassInfo info = translator.classInfo[classForType(type)]!;

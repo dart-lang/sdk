@@ -8,7 +8,7 @@ import 'package:front_end/src/fasta/util/helpers.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/legacy_erasure.dart';
-import 'package:kernel/src/unaliasing.dart';
+import 'package:kernel/src/unaliasing.dart' as unaliasing;
 
 import '../fasta_codes.dart'
     show
@@ -31,7 +31,6 @@ import '../fasta_codes.dart'
         templateTypeNotFound;
 import '../identifiers.dart' show Identifier, QualifiedName, flattenName;
 import '../kernel/implicit_field_type.dart';
-import '../kernel/type_algorithms.dart';
 import '../problems.dart' show unhandled;
 import '../scope.dart';
 import '../source/source_library_builder.dart';
@@ -39,6 +38,7 @@ import '../uris.dart';
 import 'builder.dart';
 import 'builtin_type_declaration_builder.dart';
 import 'class_builder.dart';
+import 'inferable_type_builder.dart';
 import 'invalid_type_declaration_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
@@ -93,10 +93,11 @@ enum InstanceTypeVariableAccessState {
   Unexpected,
 }
 
-abstract class NamedTypeBuilder extends TypeBuilder {
+abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   @override
   final Object name;
 
+  @override
   List<TypeBuilder>? arguments;
 
   @override
@@ -116,7 +117,8 @@ abstract class NamedTypeBuilder extends TypeBuilder {
 
   final bool hasExplicitTypeArguments;
 
-  factory NamedTypeBuilder(Object name, NullabilityBuilder nullabilityBuilder,
+  factory NamedTypeBuilderImpl(
+      Object name, NullabilityBuilder nullabilityBuilder,
       {List<TypeBuilder>? arguments,
       Uri? fileUri,
       int? charOffset,
@@ -145,7 +147,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
             performTypeCanonicalization: performTypeCanonicalization);
   }
 
-  NamedTypeBuilder._(
+  NamedTypeBuilderImpl._(
       {required this.name,
       required this.nullabilityBuilder,
       this.arguments,
@@ -160,13 +162,13 @@ abstract class NamedTypeBuilder extends TypeBuilder {
         this.hasExplicitTypeArguments = arguments != null,
         this._declaration = declaration;
 
-  factory NamedTypeBuilder.forDartType(
+  factory NamedTypeBuilderImpl.forDartType(
       DartType type,
       TypeDeclarationBuilder _declaration,
       NullabilityBuilder nullabilityBuilder,
       {List<TypeBuilder>? arguments}) = _ExplicitNamedTypeBuilder.forDartType;
 
-  factory NamedTypeBuilder.fromTypeDeclarationBuilder(
+  factory NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
       TypeDeclarationBuilder declaration, NullabilityBuilder nullabilityBuilder,
       {List<TypeBuilder>? arguments,
       Uri? fileUri,
@@ -174,7 +176,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
       required InstanceTypeVariableAccessState instanceTypeVariableAccess,
       DartType? type}) = _ExplicitNamedTypeBuilder.fromTypeDeclarationBuilder;
 
-  factory NamedTypeBuilder.forInvalidType(String name,
+  factory NamedTypeBuilderImpl.forInvalidType(String name,
           NullabilityBuilder nullabilityBuilder, LocatedMessage message,
           {List<LocatedMessage>? context}) =
       _ExplicitNamedTypeBuilder.forInvalidType;
@@ -185,6 +187,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
   @override
   bool get isVoidType => declaration is VoidTypeDeclarationBuilder;
 
+  @override
   void bind(LibraryBuilder libraryBuilder, TypeDeclarationBuilder declaration) {
     _declaration = declaration.origin;
     _check(libraryBuilder);
@@ -200,6 +203,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
+  @override
   int get nameOffset {
     if (name is Identifier) {
       Identifier identifier = name as Identifier;
@@ -208,10 +212,12 @@ abstract class NamedTypeBuilder extends TypeBuilder {
     return charOffset!;
   }
 
+  @override
   int get nameLength {
     return nameText.length;
   }
 
+  @override
   void resolveIn(
       Scope scope, int charOffset, Uri fileUri, LibraryBuilder library) {
     if (_declaration != null) return;
@@ -349,6 +355,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
     return buffer;
   }
 
+  @override
   InvalidTypeDeclarationBuilder buildInvalidTypeDeclarationBuilder(
       LocatedMessage message,
       {List<LocatedMessage>? context}) {
@@ -403,9 +410,24 @@ abstract class NamedTypeBuilder extends TypeBuilder {
       library.reportFeatureNotEnabled(library.libraryFeatures.records,
           fileUri ?? library.fileUri, charOffset!, nameText.length);
     }
-    return unalias(aliasedType,
+    return unaliasing.unalias(aliasedType,
         legacyEraseAliases:
             !_performTypeCanonicalization && !library.isNonNullableByDefault);
+  }
+
+  @override
+  TypeBuilder? unalias(
+      {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
+      List<TypeBuilder>? unboundTypes,
+      List<TypeVariableBuilder>? unboundTypeVariables}) {
+    assert(declaration != null, "Declaration has not been resolved on $this.");
+    if (declaration is TypeAliasBuilder) {
+      return (declaration as TypeAliasBuilder).unalias(arguments,
+          usedTypeAliasBuilders: usedTypeAliasBuilders,
+          unboundTypes: unboundTypes,
+          unboundTypeVariables: unboundTypeVariables);
+    }
+    return this;
   }
 
   @override
@@ -546,16 +568,6 @@ abstract class NamedTypeBuilder extends TypeBuilder {
   }
 
   @override
-  TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) {
-    List<TypeBuilder> unboundTypes = [];
-    List<TypeVariableBuilder> unboundTypeVariables = [];
-    TypeBuilder result = substitute(this, substitution,
-        unboundTypes: unboundTypes, unboundTypeVariables: unboundTypeVariables);
-    assert(unboundTypes.isEmpty && unboundTypeVariables.isEmpty);
-    return result;
-  }
-
-  @override
   NamedTypeBuilder clone(
       List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
@@ -568,7 +580,8 @@ abstract class NamedTypeBuilder extends TypeBuilder {
             .clone(newTypes, contextLibrary, contextDeclaration);
       }, growable: false);
     }
-    NamedTypeBuilder newType = new NamedTypeBuilder(name, nullabilityBuilder,
+    NamedTypeBuilderImpl newType = new NamedTypeBuilderImpl(
+        name, nullabilityBuilder,
         arguments: clonedArguments,
         fileUri: fileUri,
         charOffset: charOffset,
@@ -584,7 +597,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
   @override
   NamedTypeBuilder withNullabilityBuilder(
       NullabilityBuilder nullabilityBuilder) {
-    return new NamedTypeBuilder.fromTypeDeclarationBuilder(
+    return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
         declaration!, nullabilityBuilder,
         arguments: arguments,
         fileUri: fileUri,
@@ -594,16 +607,17 @@ abstract class NamedTypeBuilder extends TypeBuilder {
 
   /// Returns a copy of this named type using the provided type [arguments]
   /// instead of the original type arguments.
+  @override
   NamedTypeBuilder withArguments(List<TypeBuilder> arguments) {
     if (_declaration != null) {
-      return new NamedTypeBuilder.fromTypeDeclarationBuilder(
+      return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
           _declaration!, nullabilityBuilder,
           arguments: arguments,
           fileUri: fileUri,
           charOffset: charOffset,
           instanceTypeVariableAccess: _instanceTypeVariableAccess);
     } else {
-      return new NamedTypeBuilder(name, nullabilityBuilder,
+      return new NamedTypeBuilderImpl(name, nullabilityBuilder,
           arguments: arguments,
           fileUri: fileUri,
           charOffset: charOffset,
@@ -616,7 +630,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
 ///
 /// This is the normal function type whose type arguments are either explicit or
 /// omitted.
-class _ExplicitNamedTypeBuilder extends NamedTypeBuilder {
+class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
   DartType? _type;
 
   _ExplicitNamedTypeBuilder(Object name, NullabilityBuilder nullabilityBuilder,
@@ -696,7 +710,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilder {
 ///
 /// This occurs through macros where type arguments can be defined in terms of
 /// inferred types, making this type indirectly depend on type inference.
-class _InferredNamedTypeBuilder extends NamedTypeBuilder
+class _InferredNamedTypeBuilder extends NamedTypeBuilderImpl
     with InferableTypeBuilderMixin {
   _InferredNamedTypeBuilder(Object name, NullabilityBuilder nullabilityBuilder,
       {List<TypeBuilder>? arguments,

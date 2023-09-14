@@ -7,8 +7,13 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
+import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:collection/collection.dart';
 import 'package:test/test.dart' hide expect;
 import 'package:test/test.dart' as test show expect;
+
+import 'change_verifier.dart';
 
 /// Helpers to simplify building LSP requests for use in tests.
 ///
@@ -21,8 +26,73 @@ import 'package:test/test.dart' as test show expect;
 mixin LspRequestHelpersMixin {
   int _id = 0;
 
+  final startOfDocPos = Position(line: 0, character: 0);
+
+  final startOfDocRange = Range(
+      start: Position(line: 0, character: 0),
+      end: Position(line: 0, character: 0));
+
   /// Whether to include 'clientRequestTime' fields in outgoing messages.
   bool includeClientRequestTime = false;
+
+  String applyTextEdit(String content, TextEdit edit) {
+    final startPos = edit.range.start;
+    final endPos = edit.range.end;
+    final lineInfo = LineInfo.fromContent(content);
+    final start = lineInfo.getOffsetOfLine(startPos.line) + startPos.character;
+    final end = lineInfo.getOffsetOfLine(endPos.line) + endPos.character;
+    return content.replaceRange(start, end, edit.newText);
+  }
+
+  String applyTextEdits(String content, List<TextEdit> changes) {
+    // Complex text manipulations are described with an array of TextEdit's,
+    // representing a single change to the document.
+    //
+    // All text edits ranges refer to positions in the original document. Text
+    // edits ranges must never overlap, that means no part of the original
+    // document must be manipulated by more than one edit. It is possible
+    // that multiple edits have the same start position (eg. multiple inserts in
+    // reverse order), however since that involves complicated tracking and we
+    // only apply edits here sequentially, we don't supported them. We do sort
+    // edits to ensure we apply the later ones first, so we can assume the locations
+    // in the edit are still valid against the new string as each edit is applied.
+
+    /// Ensures changes are simple enough to apply easily without any complicated
+    /// logic.
+    void validateChangesCanBeApplied() {
+      /// Check if a position is before (but not equal) to another position.
+      bool isBeforeOrEqual(Position p, Position other) =>
+          p.line < other.line ||
+          (p.line == other.line && p.character <= other.character);
+
+      /// Check if a position is after (but not equal) to another position.
+      bool isAfterOrEqual(Position p, Position other) =>
+          p.line > other.line ||
+          (p.line == other.line && p.character >= other.character);
+      // Check if two ranges intersect.
+      bool rangesIntersect(Range r1, Range r2) {
+        var endsBefore = isBeforeOrEqual(r1.end, r2.start);
+        var startsAfter = isAfterOrEqual(r1.start, r2.end);
+        return !(endsBefore || startsAfter);
+      }
+
+      for (final change1 in changes) {
+        for (final change2 in changes) {
+          if (change1 != change2 &&
+              rangesIntersect(change1.range, change2.range)) {
+            throw 'Test helper applyTextEdits does not support applying multiple edits '
+                'where the edits are not in reverse order.';
+          }
+        }
+      }
+    }
+
+    validateChangesCanBeApplied();
+
+    final indexedEdits = changes.mapIndexed(TextEditWithIndex.new).toList();
+    indexedEdits.sort(TextEditWithIndex.compare);
+    return indexedEdits.map((e) => e.edit).fold(content, applyTextEdit);
+  }
 
   Future<List<CallHierarchyIncomingCall>?> callHierarchyIncoming(
       CallHierarchyItem item) {
@@ -43,6 +113,12 @@ mixin LspRequestHelpersMixin {
     return expectSuccessfulResponseTo(
         request, _fromJsonList(CallHierarchyOutgoingCall.fromJson));
   }
+
+  /// Gets the entire range for [code].
+  Range entireRange(String code) => Range(
+        start: startOfDocPos,
+        end: positionFromOffset(code.length, code),
+      );
 
   void expect(Object? actual, Matcher matcher, {String? reason}) =>
       test.expect(actual, matcher, reason: reason);
@@ -469,6 +545,11 @@ mixin LspRequestHelpersMixin {
           ? DateTime.now().millisecondsSinceEpoch
           : null,
     );
+  }
+
+  Position positionFromOffset(int offset, String contents) {
+    final lineInfo = LineInfo.fromContent(contents);
+    return toPosition(lineInfo.getLocation(offset));
   }
 
   Future<List<CallHierarchyItem>?> prepareCallHierarchy(Uri uri, Position pos) {

@@ -328,39 +328,30 @@ class Package implements Comparable<Package> {
   void _collectDartFiles(Directory dir, List<File> files) {
     for (var entity in dir.listSync(followLinks: false)) {
       if (entity is Directory) {
-        var name = path.basename(entity.path);
-
-        // Skip 'pkg/analyzer_cli/test/data'.
-        // Skip 'pkg/front_end/test/id_testing/data/'.
-        // Skip 'pkg/front_end/test/language_versioning/data/'.
-        // Skip 'pkg/front_end/outline_extraction_testcases/'.
-        if (name == 'data' && path.split(entity.parent.path).contains('test')) {
+        final uriPath = entity.uri.path;
+        const excludedPaths = {
+          'pkg/analysis_server/test/mock_packages/',
+          'pkg/analyzer_cli/test/data/',
+          'pkg/front_end/test/id_testing/data/',
+          'pkg/front_end/test/enable_non_nullable/data/',
+          'pkg/front_end/test/language_versioning/data/',
+          'pkg/front_end/test/macros/application/data/',
+          'pkg/front_end/test/macros/declaration/data/',
+          'pkg/front_end/test/macros/incremental/data/',
+          'pkg/front_end/outline_extraction_testcases/',
+          'pkg/front_end/testcases/',
+          'pkg/linter/test/rules/',
+          'pkg/linter/test_data/',
+          'pkg/native_assets_builder/test/test_projects/',
+          'pkg/vm/testcases/',
+        };
+        if (excludedPaths.contains(uriPath)) {
           continue;
         }
-
-        // Skip 'pkg/analysis_server/test/mock_packages'.
-        if (name == 'mock_packages') {
+        if (uriPath.contains('/.')) {
           continue;
         }
-
-        // Skip 'pkg/front_end/testcases'.
-        if (name == 'testcases') {
-          continue;
-        }
-
-        // Skip 'pkg/front_end/outline_extraction_testcases'.
-        if (name == 'outline_extraction_testcases') {
-          continue;
-        }
-
-        // Skip 'pkg/native_assets_builder/test/test_projects/'.
-        if (name == 'test_projects') {
-          continue;
-        }
-
-        if (!name.startsWith('.')) {
-          _collectDartFiles(entity, files);
-        }
+        _collectDartFiles(entity, files);
       } else if (entity is File && entity.path.endsWith('.dart')) {
         files.add(entity);
       }

@@ -5,10 +5,13 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/src/dart/analysis/search.dart' as search;
 
-class WorkspaceSymbolHandler
-    extends LspMessageHandler<WorkspaceSymbolParams, List<SymbolInformation>> {
+typedef StaticOptions = Either2<bool, WorkspaceSymbolOptions>;
+
+class WorkspaceSymbolHandler extends SharedMessageHandler<WorkspaceSymbolParams,
+    List<SymbolInformation>> {
   WorkspaceSymbolHandler(super.server);
   @override
   Method get handlesMessage => Method.workspace_symbol;
@@ -114,4 +117,18 @@ class WorkspaceSymbolHandler
         location: location,
         containerName: declaration.className ?? declaration.mixinName);
   }
+}
+
+class WorkspaceSymbolRegistrations extends FeatureRegistration
+    with StaticRegistration<StaticOptions> {
+  WorkspaceSymbolRegistrations(super.info);
+
+  @override
+  List<LspDynamicRegistration> get dynamicRegistrations => [];
+
+  @override
+  StaticOptions get staticOptions => Either2.t1(true);
+
+  @override
+  bool get supportsDynamic => false;
 }

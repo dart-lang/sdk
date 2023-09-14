@@ -1,3 +1,0 @@
-abstract class Foo {}
-extension type FooBar(int i) implements Foo {} extension type FooBaz(int i) implements Foo {}
-void main() {}

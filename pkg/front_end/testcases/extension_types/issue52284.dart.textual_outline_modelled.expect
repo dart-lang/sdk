@@ -1,0 +1,6 @@
+---- unknown chunk starts ----
+extension type Id(int id) {}
+---- unknown chunk ends ----
+expect(expected, actual) {}
+main() {}
+test() {}

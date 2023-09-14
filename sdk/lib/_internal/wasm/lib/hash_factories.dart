@@ -92,13 +92,8 @@ base class _WasmDefaultSet<E> extends _HashFieldBase
   Set<E> toSet() => _WasmDefaultSet<E>()..addAll(this);
 }
 
-abstract class _HashWasmImmutableBase extends _HashFieldBase
-    implements _HashAbstractImmutableBase {
-  external Uint32List? get _indexNullable;
-}
-
 @pragma("wasm:entry-point")
-base class _WasmImmutableMap<K, V> extends _HashWasmImmutableBase
+base class _WasmImmutableMap<K, V> extends _HashFieldBase
     with
         MapMixin<K, V>,
         _HashBase,
@@ -107,14 +102,16 @@ base class _WasmImmutableMap<K, V> extends _HashWasmImmutableBase
         _UnmodifiableMapMixin<K, V>,
         _ImmutableLinkedHashMapMixin<K, V>
     implements LinkedHashMap<K, V> {
-  factory _WasmImmutableMap._uninstantiable() {
-    throw UnsupportedError(
-        "Immutable maps can only be instantiated via constants");
+  // Dummy constructor to prevent the TFA from concluding that `_indexNullable`
+  // is never `null`.
+  @pragma("wasm:entry-point")
+  _WasmImmutableMap._() {
+    _indexNullable = null;
   }
 }
 
 @pragma("wasm:entry-point")
-base class _WasmImmutableSet<E> extends _HashWasmImmutableBase
+base class _WasmImmutableSet<E> extends _HashFieldBase
     with
         SetMixin<E>,
         _HashBase,
@@ -123,9 +120,11 @@ base class _WasmImmutableSet<E> extends _HashWasmImmutableBase
         _UnmodifiableSetMixin<E>,
         _ImmutableLinkedHashSetMixin<E>
     implements LinkedHashSet<E> {
-  factory _WasmImmutableSet._uninstantiable() {
-    throw UnsupportedError(
-        "Immutable sets can only be instantiated via constants");
+  // Dummy constructor to prevent the TFA from concluding that `_indexNullable`
+  // is never `null`.
+  @pragma("wasm:entry-point")
+  _WasmImmutableSet._() {
+    _indexNullable = null;
   }
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);

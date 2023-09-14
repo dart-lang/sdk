@@ -2,23 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/builder/record_type_builder.dart';
 import 'package:front_end/src/fasta/kernel/body_builder_context.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../../base/common.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/extension_type_declaration_builder.dart';
+import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
-import '../builder/named_type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
+import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../messages.dart';
 import '../problems.dart';
@@ -84,6 +89,10 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   SourceLibraryBuilder get libraryBuilder =>
       super.libraryBuilder as SourceLibraryBuilder;
+
+  @override
+  TypeBuilder? get declaredRepresentationTypeBuilder =>
+      representationFieldBuilder?.type;
 
   @override
   SourceExtensionTypeDeclarationBuilder get origin => _origin ?? this;
@@ -236,6 +245,9 @@ class SourceExtensionTypeDeclarationBuilder
                 typeBuilder.fileUri);
           }
         }
+        if (_checkRepresentationDependency(typeBuilder, {this}, {})) {
+          representationType = const InvalidType();
+        }
       } else {
         representationType = const DynamicType();
       }
@@ -250,6 +262,173 @@ class SourceExtensionTypeDeclarationBuilder
     buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
 
     return _extensionTypeDeclaration;
+  }
+
+  bool _checkRepresentationDependency(
+      TypeBuilder? typeBuilder,
+      Set<ExtensionTypeDeclarationBuilder> seenExtensionTypeDeclarations,
+      Set<TypeAliasBuilder> usedTypeAliasBuilders) {
+    TypeBuilder? unaliased = typeBuilder?.unalias(
+        usedTypeAliasBuilders: usedTypeAliasBuilders,
+        // We allow creating new type variables during unaliasing. This type
+        // variables are short-lived and therefore don't need to be bound.
+        unboundTypeVariables: []);
+    switch (unaliased) {
+      case NamedTypeBuilder(
+          :TypeDeclarationBuilder? declaration,
+          :List<TypeBuilder>? arguments
+        ):
+        if (declaration is ExtensionTypeDeclarationBuilder) {
+          if (!seenExtensionTypeDeclarations.add(declaration)) {
+            List<LocatedMessage> context = [];
+            for (ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder
+                in seenExtensionTypeDeclarations) {
+              if (extensionTypeDeclarationBuilder != this) {
+                context.add(messageExtensionTypeDeclarationCause.withLocation(
+                    extensionTypeDeclarationBuilder.fileUri,
+                    extensionTypeDeclarationBuilder.charOffset,
+                    extensionTypeDeclarationBuilder.name.length));
+              }
+            }
+            for (TypeAliasBuilder typeAliasBuilder in usedTypeAliasBuilders) {
+              context.add(messageTypedefCause.withLocation(
+                  typeAliasBuilder.fileUri,
+                  typeAliasBuilder.charOffset,
+                  typeAliasBuilder.name.length));
+            }
+            libraryBuilder.addProblem(
+                messageCyclicRepresentationDependency,
+                representationFieldBuilder!.type.charOffset!,
+                noLength,
+                representationFieldBuilder!.type.fileUri,
+                context: context);
+            return true;
+          } else {
+            TypeBuilder? representationTypeBuilder =
+                declaration.declaredRepresentationTypeBuilder;
+            if (representationTypeBuilder != null) {
+              if (_checkRepresentationDependency(
+                  representationTypeBuilder,
+                  seenExtensionTypeDeclarations.toSet(),
+                  usedTypeAliasBuilders.toSet())) {
+                return true;
+              }
+            }
+          }
+        }
+        if (arguments != null) {
+          for (TypeBuilder typeArgument in arguments) {
+            if (_checkRepresentationDependency(
+                typeArgument,
+                seenExtensionTypeDeclarations.toSet(),
+                usedTypeAliasBuilders.toSet())) {
+              return true;
+            }
+          }
+        }
+      case FunctionTypeBuilder(
+          :List<TypeVariableBuilder>? typeVariables,
+          :List<ParameterBuilder>? formals,
+          :TypeBuilder returnType
+        ):
+        if (_checkRepresentationDependency(
+            returnType,
+            seenExtensionTypeDeclarations.toSet(),
+            usedTypeAliasBuilders.toSet())) {
+          return true;
+        }
+        if (formals != null) {
+          for (ParameterBuilder formal in formals) {
+            if (_checkRepresentationDependency(
+                formal.type,
+                seenExtensionTypeDeclarations.toSet(),
+                usedTypeAliasBuilders.toSet())) {
+              return true;
+            }
+          }
+        }
+        if (typeVariables != null) {
+          for (TypeVariableBuilder typeVariable in typeVariables) {
+            TypeBuilder? bound = typeVariable.bound;
+            if (_checkRepresentationDependency(
+                bound,
+                seenExtensionTypeDeclarations.toSet(),
+                usedTypeAliasBuilders.toSet())) {
+              return true;
+            }
+          }
+        }
+      case RecordTypeBuilder(
+          :List<RecordTypeFieldBuilder>? positionalFields,
+          :List<RecordTypeFieldBuilder>? namedFields
+        ):
+        if (positionalFields != null) {
+          for (RecordTypeFieldBuilder field in positionalFields) {
+            if (_checkRepresentationDependency(
+                field.type,
+                seenExtensionTypeDeclarations.toSet(),
+                usedTypeAliasBuilders.toSet())) {
+              return true;
+            }
+          }
+        }
+        if (namedFields != null) {
+          for (RecordTypeFieldBuilder field in namedFields) {
+            if (_checkRepresentationDependency(
+                field.type,
+                seenExtensionTypeDeclarations.toSet(),
+                usedTypeAliasBuilders.toSet())) {
+              return true;
+            }
+          }
+        }
+      case OmittedTypeBuilder():
+      case FixedTypeBuilder():
+      case InvalidTypeBuilder():
+      case null:
+    }
+    return false;
+  }
+
+  void checkSupertypes(
+      CoreTypes coreTypes, ClassHierarchyBuilder hierarchyBuilder) {
+    if (interfaceBuilders != null) {
+      for (int i = 0; i < interfaceBuilders!.length; ++i) {
+        TypeBuilder typeBuilder = interfaceBuilders![i];
+        DartType interface =
+            typeBuilder.build(libraryBuilder, TypeUse.superType);
+        if (interface is InterfaceType) {
+          if (!hierarchyBuilder.types.isSubtypeOf(declaredRepresentationType,
+              interface, SubtypeCheckMode.withNullabilities)) {
+            libraryBuilder.addProblem(
+                templateInvalidExtensionTypeSuperInterface.withArguments(
+                    interface, declaredRepresentationType, name, true),
+                typeBuilder.charOffset!,
+                noLength,
+                typeBuilder.fileUri);
+          }
+        } else if (interface is ExtensionType) {
+          DartType instantiatedRepresentationType =
+              Substitution.fromExtensionType(interface).substituteType(interface
+                  .extensionTypeDeclaration.declaredRepresentationType);
+          if (!hierarchyBuilder.types.isSubtypeOf(
+              declaredRepresentationType,
+              instantiatedRepresentationType,
+              SubtypeCheckMode.withNullabilities)) {
+            libraryBuilder.addProblem(
+                templateInvalidExtensionTypeSuperExtensionType.withArguments(
+                    declaredRepresentationType,
+                    name,
+                    instantiatedRepresentationType,
+                    interface,
+                    true),
+                typeBuilder.charOffset!,
+                noLength,
+                typeBuilder.fileUri);
+          }
+        }
+      }
+    }
   }
 
   @override
@@ -371,9 +550,9 @@ class SourceExtensionTypeDeclarationBuilder
     return null;
   }
 
-  // TODO(johnniwinther): Implement representationType.
   @override
-  DartType get declaredRepresentationType => throw new UnimplementedError();
+  DartType get declaredRepresentationType =>
+      _extensionTypeDeclaration.declaredRepresentationType;
 
   @override
   Iterator<T> fullMemberIterator<T extends Builder>() =>

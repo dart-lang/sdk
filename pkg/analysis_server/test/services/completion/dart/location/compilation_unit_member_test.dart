@@ -813,6 +813,8 @@ mixin ^ class A {}
 ''');
     assertResponse(r'''
 suggestions
+  base
+    kind: keyword
 ''');
   }
 

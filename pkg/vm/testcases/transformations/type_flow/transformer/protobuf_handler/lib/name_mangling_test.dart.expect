@@ -40,7 +40,7 @@ class NameManglingKeep extends pro::GeneratedMessage {
   constructor _() → self::NameManglingKeep
     : super pro::GeneratedMessage::•()
     ;
-  static factory fromBuffer([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<core::int> i) → self::NameManglingKeep
+  static factory fromBuffer([@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<core::int> i) → self::NameManglingKeep
     return let final self::NameManglingKeep #t4 = [@vm.inferred-type.metadata=name_mangling.pb.dart::NameManglingKeep] self::NameManglingKeep::create() in block {
       [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.mergeFromBuffer] [@vm.inferred-type.metadata=!? (skip check)] #t4.{pro::GeneratedMessage::mergeFromBuffer}(i){(core::List<core::int>, [pro::ExtensionRegistry]) → void};
     } =>#t4;

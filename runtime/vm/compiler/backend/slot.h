@@ -311,28 +311,14 @@ class Slot : public ZoneAllocated {
 
   bool is_immutable() const { return IsImmutableBit::decode(flags_); }
 
-  intptr_t nullable_cid() const { return cid_; }
-  bool is_nullable() const { return IsNullableBit::decode(flags_); }
-
   // Returns true if properties of this slot were based on the guarded state
   // of the corresponding Dart field.
   bool is_guarded_field() const { return IsGuardedBit::decode(flags_); }
 
   bool is_compressed() const { return IsCompressedBit::decode(flags_); }
 
-  // Returns true if load from this slot can return sentinel value.
-  bool is_sentinel_visible() const {
-    return IsSentinelVisibleBit::decode(flags_);
-  }
-
-  // Static type of the slots if any.
-  //
-  // A value that is read from the slot is guaranteed to be assignable to its
-  // static type.
-  const AbstractType& static_type() const;
-
-  // More precise type information about values that can be read from this slot.
-  CompileType ComputeCompileType() const;
+  // Type information about values that can be read from this slot.
+  CompileType type() const { return type_; }
 
   const Field& field() const {
     ASSERT(IsDartField());
@@ -360,39 +346,32 @@ class Slot : public ZoneAllocated {
  private:
   Slot(Kind kind,
        int8_t flags,
-       ClassIdTagType cid,
        intptr_t offset_in_bytes,
        const void* data,
-       const AbstractType* static_type,
+       CompileType type,
        Representation representation,
        const FieldGuardState& field_guard_state = FieldGuardState())
       : kind_(kind),
         flags_(flags),
-        cid_(cid),
         offset_in_bytes_(offset_in_bytes),
         representation_(representation),
         field_guard_state_(field_guard_state),
         data_(data),
-        static_type_(static_type) {}
+        type_(type) {}
 
   Slot(const Slot& other)
       : Slot(other.kind_,
              other.flags_,
-             other.cid_,
              other.offset_in_bytes_,
              other.data_,
-             other.static_type_,
+             other.type_,
              other.representation_,
              other.field_guard_state_) {}
 
   using IsImmutableBit = BitField<int8_t, bool, 0, 1>;
-  using IsNullableBit = BitField<int8_t, bool, IsImmutableBit::kNextBit, 1>;
-  using IsGuardedBit = BitField<int8_t, bool, IsNullableBit::kNextBit, 1>;
+  using IsGuardedBit = BitField<int8_t, bool, IsImmutableBit::kNextBit, 1>;
   using IsCompressedBit = BitField<int8_t, bool, IsGuardedBit::kNextBit, 1>;
-  using IsSentinelVisibleBit =
-      BitField<int8_t, bool, IsCompressedBit::kNextBit, 1>;
-  using IsUnboxedBit =
-      BitField<int8_t, bool, IsSentinelVisibleBit::kNextBit, 1>;
+  using IsUnboxedBit = BitField<int8_t, bool, IsCompressedBit::kNextBit, 1>;
 
   template <typename T>
   const T* DataAs() const {
@@ -403,16 +382,12 @@ class Slot : public ZoneAllocated {
       Thread* thread,
       Kind kind,
       int8_t flags,
-      ClassIdTagType cid,
       intptr_t offset_in_bytes,
       const void* data,
-      const AbstractType* static_type,
+      CompileType type,
       Representation representation,
       const FieldGuardState& field_guard_state = FieldGuardState());
 
-  // There is a fixed statically known number of native slots so we cache
-  // them statically.
-  static AcqRelAtomic<Slot*> native_fields_;
   static const Slot& GetNativeSlot(Kind kind);
 
   const FieldGuardState& field_guard_state() const {
@@ -420,9 +395,7 @@ class Slot : public ZoneAllocated {
   }
 
   const Kind kind_;
-  const int8_t flags_;        // is_immutable, is_nullable
-  const ClassIdTagType cid_;  // Concrete cid of a value or kDynamicCid.
-
+  const int8_t flags_;
   const intptr_t offset_in_bytes_;
   const Representation representation_;
 
@@ -434,7 +407,7 @@ class Slot : public ZoneAllocated {
   //   - Field object for Dart fields;
   const void* data_;
 
-  const AbstractType* static_type_;
+  CompileType type_;
 
   friend class SlotCache;
 };

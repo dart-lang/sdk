@@ -120,29 +120,6 @@ extension on AnalysisOptionsImpl {
     }
   }
 
-  void applyStrongOptions(YamlNode? config) {
-    if (config is! YamlMap) {
-      return;
-    }
-    config.nodes.forEach((k, v) {
-      if (k is YamlScalar && v is YamlScalar) {
-        var feature = k.value?.toString();
-        var boolValue = v.boolValue;
-        if (boolValue == null) {
-          return;
-        }
-
-        if (feature == AnalyzerOptions.implicitCasts) {
-          implicitCasts = boolValue;
-        } else if (feature == AnalyzerOptions.implicitDynamic) {
-          implicitDynamic = boolValue;
-        } else if (feature == AnalyzerOptions.propagateLinterExceptions) {
-          propagateLinterExceptions = boolValue;
-        }
-      }
-    });
-  }
-
   void applyUnignorables(YamlNode? cannotIgnore) {
     if (cannotIgnore is! YamlList) {
       return;
@@ -200,10 +177,6 @@ extension AnalysisOptionsImplExtensions on AnalysisOptionsImpl {
     }
     var analyzer = optionMap.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
-      // Process strong mode option.
-      var strongMode = analyzer.valueAt(AnalyzerOptions.strongMode);
-      applyStrongOptions(strongMode);
-
       // Process filters.
       var filters = analyzer.valueAt(AnalyzerOptions.errors);
       errorProcessors = ErrorConfig(filters).processors;

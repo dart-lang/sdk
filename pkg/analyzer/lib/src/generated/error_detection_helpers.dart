@@ -141,12 +141,14 @@ mixin ErrorDetectionHelpers {
           expression,
           [staticType, fieldType],
           messages);
+    } else {
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
+          expression,
+          [staticType, fieldType],
+          messages);
     }
-    errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
-        expression,
-        [staticType, fieldType],
-        messages);
+
     // TODO(brianwilkerson) Define a hint corresponding to these errors and
     // report it if appropriate.
 //        // test the propagated type of the expression

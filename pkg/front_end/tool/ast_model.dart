@@ -182,10 +182,6 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'TypeParameterType': {
     'parameter': FieldRule(isDeclaration: false),
   },
-  'ExtensionType': {
-    '_instantiatedRepresentationType':
-        FieldRule(name: 'instantiatedRepresentationType'),
-  },
   'VariableDeclaration': {
     '_name': FieldRule(name: 'name'),
   },

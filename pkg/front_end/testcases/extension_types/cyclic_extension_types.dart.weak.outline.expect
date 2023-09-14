@@ -1,0 +1,79 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/cyclic_extension_types.dart:5:16: Error: 'A' is a supertype of itself.
+// extension type A(int it) implements B {}
+//                ^
+//
+// pkg/front_end/testcases/extension_types/cyclic_extension_types.dart:7:16: Error: 'B' is a supertype of itself.
+// extension type B(int it) implements A {}
+//                ^
+//
+// pkg/front_end/testcases/extension_types/cyclic_extension_types.dart:9:16: Error: 'C' is a supertype of itself.
+// extension type C(int it) implements D {}
+//                ^
+//
+// pkg/front_end/testcases/extension_types/cyclic_extension_types.dart:11:16: Error: 'D' is a supertype of itself.
+// extension type D(int it) implements E {}
+//                ^
+//
+// pkg/front_end/testcases/extension_types/cyclic_extension_types.dart:13:16: Error: 'E' is a supertype of itself.
+// extension type E(int it) implements F {}
+//                ^
+//
+// pkg/front_end/testcases/extension_types/cyclic_extension_types.dart:15:16: Error: 'F' is a supertype of itself.
+// extension type F(int it) implements D {}
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type A(core::int it) {
+  constructor • = self::A|;
+  tearoff • = self::A|_#new#tearOff;
+}
+extension type B(core::int it) {
+  constructor • = self::B|;
+  tearoff • = self::B|_#new#tearOff;
+}
+extension type C(core::int it) {
+  constructor • = self::C|;
+  tearoff • = self::C|_#new#tearOff;
+}
+extension type D(core::int it) {
+  constructor • = self::D|;
+  tearoff • = self::D|_#new#tearOff;
+}
+extension type E(core::int it) {
+  constructor • = self::E|;
+  tearoff • = self::E|_#new#tearOff;
+}
+extension type F(core::int it) {
+  constructor • = self::F|;
+  tearoff • = self::F|_#new#tearOff;
+}
+static inline-class-member method A|(core::int it) → self::A /* = core::int */
+  ;
+static inline-class-member method A|_#new#tearOff(core::int it) → self::A /* = core::int */
+  return self::A|(it);
+static inline-class-member method B|(core::int it) → self::B /* = core::int */
+  ;
+static inline-class-member method B|_#new#tearOff(core::int it) → self::B /* = core::int */
+  return self::B|(it);
+static inline-class-member method C|(core::int it) → self::C /* = core::int */
+  ;
+static inline-class-member method C|_#new#tearOff(core::int it) → self::C /* = core::int */
+  return self::C|(it);
+static inline-class-member method D|(core::int it) → self::D /* = core::int */
+  ;
+static inline-class-member method D|_#new#tearOff(core::int it) → self::D /* = core::int */
+  return self::D|(it);
+static inline-class-member method E|(core::int it) → self::E /* = core::int */
+  ;
+static inline-class-member method E|_#new#tearOff(core::int it) → self::E /* = core::int */
+  return self::E|(it);
+static inline-class-member method F|(core::int it) → self::F /* = core::int */
+  ;
+static inline-class-member method F|_#new#tearOff(core::int it) → self::F /* = core::int */
+  return self::F|(it);

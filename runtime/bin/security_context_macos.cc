@@ -113,47 +113,30 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
 
   const X509TrustState* certificate_trust_state =
       filter->certificate_trust_state();
+
+  STACK_OF(X509)* chain = SSL_get_peer_full_cert_chain(ssl);
+  const intptr_t chain_length = sk_X509_num(chain);
+  X509* root_cert =
+      chain_length == 0 ? nullptr : sk_X509_value(chain, chain_length - 1);
   if (certificate_trust_state != nullptr) {
     // Callback have been previously called to explicitly evaluate root_cert.
-    STACK_OF(X509)* unverified = sk_X509_dup(SSL_get_peer_full_cert_chain(ssl));
-    X509* root_cert = nullptr;
-    for (uintptr_t i = sk_X509_num(unverified); i > 0; i--) {
-      root_cert = sk_X509_shift(unverified);
-      if (root_cert == nullptr) {
-        break;
-      }
-    }
     if (certificate_trust_state->x509() == root_cert) {
       return certificate_trust_state->is_trusted() ? ssl_verify_ok
                                                    : ssl_verify_invalid;
     }
   }
 
-  STACK_OF(X509)* unverified = sk_X509_dup(SSL_get_peer_full_cert_chain(ssl));
-
   // Convert BoringSSL formatted certificates to SecCertificate certificates.
   ScopedCFMutableArrayRef cert_chain(nullptr);
-  X509* root_cert = nullptr;
-  int num_certs = sk_X509_num(unverified);
-  int current_cert = 0;
-  cert_chain.set(CFArrayCreateMutable(nullptr, num_certs, nullptr));
-  X509* ca;
-  // Look for the last certificate in the chain - it's a root certificate.
-  while ((ca = sk_X509_shift(unverified)) != nullptr) {
-    ScopedSecCertificateRef cert(CreateSecCertificateFromX509(ca));
-    if (cert == nullptr) {
+  cert_chain.set(CFArrayCreateMutable(nullptr, chain_length, nullptr));
+  for (intptr_t i = 0; i < chain_length; i++) {
+    auto cert = sk_X509_value(chain, i);
+    ScopedSecCertificateRef sec_cert(CreateSecCertificateFromX509(cert));
+    if (sec_cert == nullptr) {
       return ssl_verify_invalid;
     }
-    CFArrayAppendValue(cert_chain.get(), cert.release());
-    ++current_cert;
-
-    if (current_cert == num_certs) {
-      break;
-    }
+    CFArrayAppendValue(cert_chain.get(), sec_cert.release());
   }
-  ASSERT(current_cert == num_certs);
-  root_cert = ca;
-  X509_up_ref(ca);
 
   SSL_CTX* ssl_ctx = SSL_get_SSL_CTX(ssl);
   X509_STORE* store = SSL_CTX_get_cert_store(ssl_ctx);
@@ -223,6 +206,9 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
   dart_cobject_trusted_certs.value.as_int64 =
       reinterpret_cast<intptr_t>(trusted_certs.release());
 
+  if (root_cert != nullptr) {
+    X509_up_ref(root_cert);
+  }
   Dart_CObject dart_cobject_root_cert;
   dart_cobject_root_cert.type = Dart_CObject_kInt64;
   dart_cobject_root_cert.value.as_int64 = reinterpret_cast<intptr_t>(root_cert);

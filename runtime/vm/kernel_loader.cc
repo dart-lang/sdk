@@ -2120,7 +2120,7 @@ ClassPtr KernelLoader::LookupClass(const Library& library, NameIndex klass) {
 
   ASSERT(!library.IsNull());
   const String& name = H.DartClassName(klass);
-  Class& handle = Class::Handle(Z, library.LookupLocalClass(name));
+  Class& handle = Class::Handle(Z, library.LookupClass(name));
   bool register_class = true;
   if (handle.IsNull()) {
     // We do not register expression evaluation classes with the VM:

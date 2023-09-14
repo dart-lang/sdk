@@ -2949,9 +2949,10 @@ struct NameFormattingParams {
   }
 };
 
-enum class FfiTrampolineKind : uint8_t {
+enum class FfiFunctionKind : uint8_t {
   kCall,
-  kSyncCallback,
+  kIsolateLocalStaticCallback,
+  kIsolateLocalClosureCallback,
   kAsyncCallback,
 };
 
@@ -3013,10 +3014,10 @@ class Function : public Object {
   void SetFfiCallbackExceptionalReturn(const Instance& value) const;
 
   // Can only be called on FFI trampolines.
-  FfiTrampolineKind GetFfiTrampolineKind() const;
+  FfiFunctionKind GetFfiFunctionKind() const;
 
   // Can only be called on FFI trampolines.
-  void SetFfiTrampolineKind(FfiTrampolineKind value) const;
+  void SetFfiFunctionKind(FfiFunctionKind value) const;
 
   // Return the signature of this function.
   PRECOMPILER_WSR_FIELD_DECLARATION(FunctionType, signature);
@@ -3568,6 +3569,13 @@ class Function : public Object {
   // dependencies. It will be compiled into optimized code immediately when it's
   // run.
   bool ForceOptimize() const;
+
+  // Whether this function is idempotent (i.e. calling it twice has the same
+  // effect as calling it once - no visible side effects).
+  //
+  // If a function is idempotent VM may decide to abort halfway through one call
+  // and retry it again.
+  bool IsIdempotent() const;
 
   // Whether this function's |recognized_kind| requires optimization.
   bool RecognizedKindForceOptimize() const;
@@ -4348,10 +4356,10 @@ class FfiTrampolineData : public Object {
   }
   void set_callback_exceptional_return(const Instance& value) const;
 
-  FfiTrampolineKind trampoline_kind() const {
-    return static_cast<FfiTrampolineKind>(untag()->trampoline_kind_);
+  FfiFunctionKind ffi_function_kind() const {
+    return static_cast<FfiFunctionKind>(untag()->ffi_function_kind_);
   }
-  void set_trampoline_kind(FfiTrampolineKind kind) const;
+  void set_ffi_function_kind(FfiFunctionKind kind) const;
 
   int32_t callback_id() const { return untag()->callback_id_; }
   void set_callback_id(int32_t value) const;
@@ -5104,18 +5112,14 @@ class Library : public Object {
   ObjectPtr LookupReExport(
       const String& name,
       ZoneGrowableArray<intptr_t>* visited = nullptr) const;
-  ObjectPtr LookupObjectAllowPrivate(const String& name) const;
   ObjectPtr LookupLocalOrReExportObject(const String& name) const;
-  ObjectPtr LookupImportedObject(const String& name) const;
+  LibraryPrefixPtr LookupLocalLibraryPrefix(const String& name) const;
+
+  // These lookups are local within the library.
   ClassPtr LookupClass(const String& name) const;
   ClassPtr LookupClassAllowPrivate(const String& name) const;
-  ClassPtr SlowLookupClassAllowMultiPartPrivate(const String& name) const;
-  ClassPtr LookupLocalClass(const String& name) const;
   FieldPtr LookupFieldAllowPrivate(const String& name) const;
-  FieldPtr LookupLocalField(const String& name) const;
   FunctionPtr LookupFunctionAllowPrivate(const String& name) const;
-  FunctionPtr LookupLocalFunction(const String& name) const;
-  LibraryPrefixPtr LookupLocalLibraryPrefix(const String& name) const;
 
   // Look up a Script based on a url. If 'useResolvedUri' is not provided or is
   // false, 'url' should have a 'dart:' scheme for Dart core libraries,
@@ -5125,17 +5129,6 @@ class Library : public Object {
   // for Dart core libraries and a 'file:' scheme otherwise.
   ScriptPtr LookupScript(const String& url, bool useResolvedUri = false) const;
   ArrayPtr LoadedScripts() const;
-
-  // Resolve name in the scope of this library. First check the cache
-  // of already resolved names for this library. Then look in the
-  // local dictionary for the unmangled name N, the getter name get:N
-  // and setter name set:N.
-  // If the local dictionary contains no entry for these names,
-  // look in the scopes of all libraries that are imported
-  // without a library prefix.
-  ObjectPtr ResolveName(const String& name) const;
-
-  void AddAnonymousClass(const Class& cls) const;
 
   void AddExport(const Namespace& ns) const;
 
@@ -5415,8 +5408,8 @@ class Library : public Object {
   void RehashDictionary(const Array& old_dict, intptr_t new_dict_size) const;
   static LibraryPtr NewLibraryHelper(const String& url, bool import_core_lib);
   ObjectPtr LookupEntry(const String& name, intptr_t* index) const;
-  ObjectPtr LookupLocalObjectAllowPrivate(const String& name) const;
   ObjectPtr LookupLocalObject(const String& name) const;
+  ObjectPtr LookupLocalObjectAllowPrivate(const String& name) const;
 
   void AllocatePrivateKey() const;
 
@@ -7447,8 +7440,8 @@ class ContextScope : public Object {
   AbstractTypePtr TypeAt(intptr_t scope_index) const;
   void SetTypeAt(intptr_t scope_index, const AbstractType& type) const;
 
-  InstancePtr ConstValueAt(intptr_t scope_index) const;
-  void SetConstValueAt(intptr_t scope_index, const Instance& value) const;
+  intptr_t CidAt(intptr_t scope_index) const;
+  void SetCidAt(intptr_t scope_index, intptr_t cid) const;
 
   intptr_t ContextIndexAt(intptr_t scope_index) const;
   void SetContextIndexAt(intptr_t scope_index, intptr_t context_index) const;
@@ -12511,6 +12504,23 @@ class ReceivePort : public Instance {
     return OFFSET_OF(UntaggedReceivePort, handler_);
   }
 
+  bool is_open() const {
+    return IsOpen::decode(Smi::Value(untag()->bitfield()));
+  }
+  void set_is_open(bool value) const {
+    const auto updated = IsOpen::update(value, Smi::Value(untag()->bitfield()));
+    untag()->set_bitfield(Smi::New(updated));
+  }
+
+  bool keep_isolate_alive() const {
+    return IsKeepIsolateAlive::decode(Smi::Value(untag()->bitfield()));
+  }
+  void set_keep_isolate_alive(bool value) const {
+    const auto updated =
+        IsKeepIsolateAlive::update(value, Smi::Value(untag()->bitfield()));
+    untag()->set_bitfield(Smi::New(updated));
+  }
+
 #if !defined(PRODUCT)
   StackTracePtr allocation_location() const {
     return untag()->allocation_location();
@@ -12524,10 +12534,13 @@ class ReceivePort : public Instance {
   }
   static ReceivePortPtr New(Dart_Port id,
                             const String& debug_name,
-                            bool is_control_port,
                             Heap::Space space = Heap::kNew);
 
  private:
+  class IsOpen : public BitField<intptr_t, bool, 0, 1> {};
+  class IsKeepIsolateAlive
+      : public BitField<intptr_t, bool, IsOpen::kNextBit, 1> {};
+
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ReceivePort, Instance);
   friend class Class;
 };
@@ -13245,7 +13258,7 @@ class UserTag : public Instance {
   static UserTagPtr DefaultTag();
 
   static bool TagTableIsFull(Thread* thread);
-  static UserTagPtr FindTagById(uword tag_id);
+  static UserTagPtr FindTagById(const Isolate* isolate, uword tag_id);
   static UserTagPtr FindTagInIsolate(Isolate* isolate,
                                      Thread* thread,
                                      const String& label);

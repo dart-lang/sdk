@@ -19,7 +19,7 @@ class T2 extends core::Object implements self::I {
 }
 class Point extends core::Object /*hasConstConstructor*/  {
 [@vm.inferred-type.metadata=!] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  final field self::I x;
-  const constructor •([@vm.inferred-type.metadata=!] self::I x) → self::Point
+  const constructor •([@vm.inferred-arg-type.metadata=!] self::I x) → self::Point
     : self::Point::x = x, super core::Object::•()
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  method newPoint1() → self::Point
@@ -27,7 +27,7 @@ class Point extends core::Object /*hasConstConstructor*/  {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]  method newPoint2() → self::Point
     return new self::Point::•([@vm.direct-call.metadata=#lib::Point.x] [@vm.inferred-type.metadata=!] this.{self::Point::x}{self::I});
 }
-static method getX([@vm.inferred-type.metadata=#lib::Point] dynamic point) → dynamic {
+static method getX([@vm.inferred-arg-type.metadata=#lib::Point] dynamic point) → dynamic {
   [@vm.direct-call.metadata=#lib::Point.x] [@vm.inferred-type.metadata=!? (receiver not int)] point{dynamic}.x;
 }
 static method main() → dynamic {

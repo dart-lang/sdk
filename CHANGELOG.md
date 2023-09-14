@@ -2,7 +2,97 @@
 
 ### Language
 
+Dart 3.2 adds the following features. To use them, set your package's [SDK
+constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
+
+[language version]: https://dart.dev/guides/language/evolution
+
+- **Private field promotion**: In most circumstances, the types of private final
+  fields can now be promoted by null checks and `is` tests. For example:
+
+  ```dart
+  class Example {
+    final int? _privateField;
+    Example1(this._privateField);
+
+    f() {
+      if (_privateField != null) {
+        // _privateField has now been promoted; you can use it without
+        // null checking it.
+        int i = _privateField; // OK
+      }
+    }
+  }
+
+  // Private field promotions also work from outside of the class:
+  f(Example1 x) {
+    if (x._privateField != null) {
+      int i = x._privateField; // OK
+    }
+  }
+  ```
+
+  To ensure soundness, a field is not eligible for field promotion in the
+  following circumstances:
+  - If it's not final (because a non-final field could be changed in between the
+    test and the usage, invalidating the promotion).
+  - If it's overridden elsewhere in the library by a concrete getter or a
+    non-final field (because an access to an overridden field might resolve at
+    runtime to the overriding getter or field).
+  - If it's not private (because a non-private field might be overridden
+    elsewhere in the program).
+  - If it has the same name as a concrete getter or a non-final field in some
+    other unrelated class in the library (because a class elsewhere in the
+    program might extend one of the classes and implement the other, creating an
+    override relationship between them).
+  - If it is implicitly overridden by an instance of `noSuchMethod` elsewhere in
+    the library.
+
+- **Breaking Change** [#53167][]: Use a more precise split point for refutable
+  patterns. Previously, in an if-case statement, if flow analysis could prove
+  that the scrutinee expression was guaranteed to throw an exception, it would
+  sometimes fail to propagate type promotions implied by the pattern to the
+  (dead) code that follows. This change makes the type promotion behavior of
+  if-case statements consistent regardless of whether the scrutinee expression
+  throws an exception.
+
+  No live code is affected by this change, but there is a small chance that the
+  change in types will cause a compile-time error to appear in some dead code in
+  the user's project, where no compile-time error appeared previously.
+
+[#53167]: https://github.com/dart-lang/sdk/issues/53167
+
 ### Libraries
+
+#### `dart:async`
+
+- Added `broadcast` parameter to `Stream.empty` constructor.
+
+#### `dart:convert`
+
+- **Breaking change** [#52801][]:
+  - Changed return types of `utf8.encode()` and `Utf8Codec.encode()` from
+    `List<int>` to `Uint8List`.
+
+[#52801]: https://github.com/dart-lang/sdk/issues/52801
+
+#### `dart:developer`
+
+- Deprecated the `Service.getIsolateID` method.
+- Added `getIsolateId` method to `Service`.
+- Added `getObjectId` method to `Service`.
+
+#### `dart:io`
+
+- **Breaking change** [#53005][]: The headers returned by
+  `HttpClientResponse.headers` and `HttpRequest.headers` no longer include
+  trailing whitespace in their values.
+
+[#53005]: https://dartbug.com/53005
+
+#### `dart:isolate`
+
+- Added `Isolate.packageConfigSync` and `Isolate.resolvePackageUriSync` APIs.
 
 #### `dart:js_interop`
 
@@ -21,36 +111,80 @@
   `dart:js_interop` types like `JSNumber` when used in an external API. This
   only affects `dart:js_interop` classes and not `package:js` or other forms of
   JS interop.
+- **Subtyping `dart:js_interop` types**:
+  `@staticInterop` types can subtype only `JSObject` and `JSAny` from the set of
+  JS types in `dart:js_interop`. Subtyping other types from `dart:js_interop`
+  would result in confusing type errors before, so this makes it a static error.
+- **Global context of `dart:js_interop` and `@staticInterop` APIs**:
+  Static interop APIs will now use the same global context as non-static interop
+  instead of `globalThis` to avoid a greater migration. Static interop APIs,
+  either through `dart:js_interop` or the `@staticInterop` annotation, have used
+  JavaScript's `globalThis` as the global context. This is relevant to things
+  like external top-level members or external constructors, as this is the root
+  context we expect those members to reside in. Historically, this was not the
+  case in Dart2JS and DDC. We used either `self` or DDC's `global` in non-static
+  interop APIs with `package:js`. So, static interop APIs will now use one of
+  those global contexts. Functionally, this should matter in only a very small
+  number of cases, like when using older browser versions. `dart:js_interop`'s
+  `globalJSObject` is also renamed to `globalContext` and returns the global
+  context used in the lowerings.
+
+### Tools
+
+#### Dart Dev Compiler (DDC)
+
+- Applications compiled by DDC will no longer add members to the native
+  JavaScript Object prototype.
+- **Breaking change for JS interop with Symbols and BigInts**:
+  JavaScript `Symbol`s and `BigInt`s are now associated with their own
+  interceptor and should not be used with `package:js` classes. These types were
+  being intercepted with the assumption that they are a subtype of JavaScript's
+  `Object`, but this is incorrect. This lead to erroneous behavior when using
+  these types as Dart `Object`s. See [#53106][] for more details. Use
+  `dart:js_interop`'s `JSSymbol` and `JSBigInt` with extension types to interop
+  with these types.
+
+#### Dart2js
+
+- **Breaking change for JS interop with Symbols and BigInts**:
+  JavaScript `Symbol`s and `BigInt`s are now associated with their own
+  interceptor and should not be used with `package:js` classes. These types were
+  being intercepted with the assumption that they are a subtype of JavaScript's
+  `Object`, but this is incorrect. This lead to erroneous behavior when using
+  these types as Dart `Object`s. See [#53106][] for more details. Use
+  `dart:js_interop`'s `JSSymbol` and `JSBigInt` with extension types to interop
+  with these types.
+
+[#53106]: https://github.com/dart-lang/sdk/issues/53106
+
+#### Pub
+
+- New option `dart pub upgrade --tighten` which will update dependencies' lower
+  bounds in pubspec.yaml to match the current version.
+- The commands `dart pub get`/`add`/`upgrade` will now show if a dependency
+  changed between direct, dev and transitive dependency.
+- The command `dart pub upgrade` no longer shows unchanged dependencies.
 
 ## 3.1.0
-
-### Language
 
 ### Libraries
 
 #### `dart:async`
 
 - **Breaking change** [#52334][]:
-  - Added `interface` modifier to purely abstract classes:
+  - Added the `interface` modifier to purely abstract classes:
     `MultiStreamController`, `StreamConsumer`, `StreamIterator` and
-    `StreamTransformer`.
+    `StreamTransformer`. As a result, these types can only be implemented,
+    not extended or mixed in.
 
-[#52334]: https://dartbug.com/52334
-
-#### `dart:convert`
-
-- **Breaking change** [#52801][]:
-  - Changed return types of `utf8.encode()` and `Utf8Codec.encode()` from
-    `List<int>` to `Uint8List`.
-
-[#52801]: https://dartbug.com/52801
+[#52334]: https://github.com/dart-lang/sdk/issues/52334
 
 #### `dart:core`
 
-- `Uri.base` on native platforms now respectes `IOOverrides` overriding
+- `Uri.base` on native platforms now respects `IOOverrides` overriding
    current directory ([#39796][]).
 
-[#39796]: https://darbug.com/39796
+[#39796]: https://github.com/dart-lang/sdk/issues/39796
 
 #### `dart:io`
 
@@ -67,10 +201,6 @@
 
 [#51486]: https://github.com/dart-lang/sdk/issues/51486
 [#52027]: https://github.com/dart-lang/sdk/issues/52027
-
-#### `dart:isolate`
-
-- Added `Isolate.packageConfigSync` and `Isolate.resolvePackageUriSync` APIs.
 
 #### `dart:js_interop`
 
@@ -98,31 +228,77 @@
   calling `external void foo([int a, int b])` as `foo(0)` will now result in
   `foo(0)`, and not `foo(0, null)`.
 
+### Tools
+
+#### Linter
+
+- Added new static analysis lints you can [enable][enable-lints] in
+  your package's `analysis_options.yaml` file:
+  - [`no_self_assignments`](https://dart.dev/lints/no_self_assignments)
+  - [`no_wildcard_variable_uses`](https://dart.dev/lints/no_wildcard_variable_uses)
+
+[enable-lints]: https://dart.dev/tools/analysis#enabling-linter-rules
+
+## 3.0.7 - 2023-07-26
+
+This is a patch release that:
+
+- Fixes a bug in dart2js which would cause certain uses of records to lead to
+  bad codegen causing a `TypeError` or `NoSuchMethodError` to be thrown
+  at runtime (issue [#53001]).
+
+[#53001]: https://github.com/dart-lang/sdk/issues/53001
+
+## 3.0.6 - 2023-07-12
+
+This is a patch release that:
+
+- Fixes a flow in flow analysis that causes it to sometimes ignore destructuring
+  assignments (issue [#52767]).
+- Fixes an infinite loop in some web development compiles that include `is` or
+  `as` expressions involving record types with named fields (issue [#52869]).
+- Fixes a memory leak in Dart analyzer's file-watching (issue [#52791]).
+- Fixes a memory leak of file system watcher related data structures (issue [#52793]).
+
+[#52767]: https://github.com/dart-lang/sdk/issues/52767
+[#52869]: https://github.com/dart-lang/sdk/issues/52869
+[#52791]: https://github.com/dart-lang/sdk/issues/52791
+[#52793]: https://github.com/dart-lang/sdk/issues/52793
+
+## 3.0.5 - 2023-06-14
+
+This is a patch release that:
+
+- Fixes a bad cast in the frontend which can manifest as a crash in the dart2js
+  `ListFactorySpecializer` during Flutter web builds (issue [#52403]).
+
+[#52403]: https://github.com/dart-lang/sdk/issues/52403
+
 ## 3.0.4 - 2023-06-07
 
 This is a patch release that:
 
-- Handles formatting nullable record types with no fields (dart_style issue [#1224]).
+- `dart format` now handles formatting nullable record types
+  with no fields (dart_style issue [#1224]).
 - Fixes error when using records when targeting the web in development mode
-(issue [#52480]).
-- Fixes a bad cast in the frontend which can manifest as a crash in the dart2js
-`ListFactorySpecializer` during Flutter web builds (issue [#52403]).
+  (issue [#52480]).
 
 [#1224]: https://github.com/dart-lang/dart_style/issues/1224
-[#52403]: https://github.com/dart-lang/sdk/issues/52403
 [#52480]: https://github.com/dart-lang/sdk/issues/52480
 
 ## 3.0.3 - 2023-02-07
 
 This is a patch release that:
 
-- Fixes an AOT compiler crash when generating an implicit getter returning an unboxed record (issue [#52449]).
-- Fixes a situation in which variables appearing in multiple branches of an or-pattern might be erroneously reported as being mismatched (issue [#52373]).
+- Fixes an AOT compiler crash when generating an implicit getter
+  returning an unboxed record (issue [#52449]).
+- Fixes a situation in which variables appearing in multiple branches of an
+  or-pattern might be erroneously reported as being mismatched (issue [#52373]).
 - Adds missing `interface` modifiers on the purely abstract classes
   `MultiStreamController`, `StreamConsumer`, `StreamIterator` and
-  `StreamTransformer` ([#52334]).
+  `StreamTransformer` (issue [#52334]).
 - Fixes an error during debugging when `InternetAddress.tryParse` is
-used (issue [#52423]).
+  used (issue [#52423]).
 - Fixes a VM issue causing crashes on hot reload (issue [#126884]).
 - Improves linter support (issue [#4195]).
 - Fixes an issue in variable patterns preventing users from expressing
@@ -144,12 +320,14 @@ used (issue [#52423]).
 
 This is a patch release that:
 
-- Fixes a dart2js crash when using a switch case expression on a record where the fields don't match the cases. (issue [#52438]).
-- Add chips for class and mixin pages on dartdoc generated pages. (issue [#3392]).
+- Fixes a dart2js crash when using a switch case expression on a record where
+  the fields don't match the cases (issue [#52438]).
+- Add class modifier chips on class and mixin pages
+  generated with `dart doc` (issue [#3392]).
 - Fixes a situation causing the parser to fail resulting in an infinite loop
-leading to higher memory usage. (issue [#52352]).
-- Add clear errors when mixing inheritence in pre and post Dart 3 libraries.
-(issue: [#52078]).
+  leading to higher memory usage (issue [#52352]).
+- Add clear errors when mixing inheritance in pre and post Dart 3 libraries
+  (issue: [#52078]).
 
 [#52438]: https://github.com/dart-lang/sdk/issues/52438
 [#3392]: https://github.com/dart-lang/dartdoc/issues/3392
@@ -170,7 +348,7 @@ This is a patch release that:
   refers to a private getter (issue [#52041]).
 - Prevent the use of `when` and `as` as variable names in patterns
   (issue [#52260]).
-- Fixes an inconsistency in type promotion between the analuzer and VM
+- Fixes an inconsistency in type promotion between the analyzer and VM
   (issue [#52241]).
 - Improve performance on functions with many parameters (issue [#1212]).
 
@@ -306,10 +484,15 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
   declaration. If you haven't upgraded a class to Dart 3.0, you can still use it
   as a mixin.
 
-- **Breaking Change** [#50902][]: Dart reports a compile-time error if a
+- **Breaking change** [#50902][]: Dart reports a compile-time error if a
   `continue` statement targets a [label] that is not a loop (`for`, `do` and
   `while` statements) or a `switch` member. Fix this by changing the `continue`
   to target a valid labeled statement.
+
+- **Breaking change** [language/#2357][]: Starting in language version 3.0,
+  Dart reports a compile-time error if a colon (`:`) is used as the
+  separator before the default value of an optional named parameter.
+  Fix this by changing the colon (`:`) to an equal sign (`=`).
 
 [records]: https://dart.dev/language/records
 [tuples]: https://en.wikipedia.org/wiki/Tuple
@@ -325,6 +508,7 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 [mixin class]: https://dart.dev/language/mixins#class-mixin-or-mixin-class
 [#50902]: https://github.com/dart-lang/sdk/issues/50902
 [label]: https://dart.dev/language/branches#switch
+[language/#2357]: https://github.com/dart-lang/language/issues/2357
 
 ### Libraries
 
@@ -446,7 +630,7 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [`DeferredLibrary`]: https://api.dart.dev/stable/2.18.4/dart-async/DeferredLibrary-class.html
-[`deferred as`]: https://dart.dev/guides/language/language-tour#deferred-loading
+[`deferred as`]: https://dart.dev/language/libraries#deferred-loading
 
 #### `dart:collection`
 
@@ -491,7 +675,7 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [#50231]: https://github.com/dart-lang/sdk/issues/50231
-[`MAX_USER_TAGS`]: https://api.dart.dev/stable/dart-developer/UserTag/MAX_USER_TAGS-constant.html
+[`MAX_USER_TAGS`]: https://api.dart.dev/stable/2.19.6/dart-developer/UserTag/MAX_USER_TAGS-constant.html
 [`maxUserTags`]: https://api.dart.dev/beta/2.19.0-255.2.beta/dart-developer/UserTag/maxUserTags-constant.html
 [`Metrics`]: https://api.dart.dev/stable/2.18.2/dart-developer/Metrics-class.html
 [`Metric`]: https://api.dart.dev/stable/2.18.2/dart-developer/Metric-class.html
@@ -593,7 +777,7 @@ information on the flag, see [NATIVE_NULL_ASSERTIONS.md][].
 - Protects the Dart Analysis Server against extreme memory usage by limiting
   the number of plugins per analysis context to 1. (issue [#50981][]).
 
-[changing the severity of rules]: https://dart.dev/guides/language/analysis-options#changing-the-severity-of-rules
+[changing the severity of rules]: https://dart.dev/tools/analysis#changing-the-severity-of-rules
 [Dart SDK constraint]: https://dart.dev/tools/pub/pubspec#sdk-constraints
 
 #### Linter
@@ -687,7 +871,7 @@ This is a patch release that:
 
 This is a patch release that:
 
-- Fixes fixes broken usage of `Dart_CObject_Type`. (issue [#51459]).
+- Fixes broken usage of `Dart_CObject_Type`. (issue [#51459]).
 
 [#51459]: https://github.com/dart-lang/sdk/issues/51459
 

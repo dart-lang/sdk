@@ -498,7 +498,6 @@ class _MacroListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -826,7 +825,6 @@ class _MacroListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -2126,7 +2124,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleRecoverClassHeader() {
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
     _unexpected();
   }
 
@@ -2346,6 +2344,11 @@ class _MacroListener implements Listener {
   @override
   void endPrimaryConstructor(
       Token beginToken, Token? constKeyword, bool hasName) {
+    _unsupported();
+  }
+
+  @override
+  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
     _unsupported();
   }
 }

@@ -14,7 +14,7 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
 }
 [@vm.unboxing-info.metadata=()->i]static method doSomething() → core::int
   return 3;
-static method useFinalizableAsyncStar([@vm.inferred-type.metadata=#lib::MyFinalizable] ffi::Finalizable finalizable) → asy::Stream<core::int> async* {
+static method useFinalizableAsyncStar([@vm.inferred-arg-type.metadata=#lib::MyFinalizable] ffi::Finalizable finalizable) → asy::Stream<core::int> async* {
   final self::MyFinalizable finalizable2 = new self::MyFinalizable::•();
   yield block {
     final synthesized core::int :expressionValueWrappedFinalizable = self::doSomething();

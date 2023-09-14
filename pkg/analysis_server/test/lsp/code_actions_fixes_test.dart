@@ -367,6 +367,39 @@ void f(String a) {
     );
   }
 
+  /// Ensure the "fix all in file" action doesn't appear against an unfixable
+  /// item just because the diagnostic is also reported in a location that
+  /// is fixable.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/53021
+  Future<void> test_fixAll_unfixable() async {
+    registerLintRules();
+    newFile(analysisOptionsPath, '''
+linter:
+  rules:
+    - non_constant_identifier_names
+    ''');
+
+    const content = '''
+/// This is unfixable because it's a top-level. It should not have a "fix all
+/// in file" action.
+var aaa_a^aa = '';
+
+void f() {
+  /// These are here to ensure there's > 1 instance of this diagnostic to
+  /// allow "fix all in file" to appear.
+  final bbb_bbb = 0;
+  final ccc_ccc = 0;
+}
+''';
+
+    await expectNoAction(
+      content,
+      kind: CodeActionKind('quickfix.rename.toCamelCase.multi'),
+      title: 'Rename to camel case everywhere in file',
+    );
+  }
+
   Future<void> test_fixAll_whenMultiple() async {
     const content = '''
 void f(String a) {

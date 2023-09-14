@@ -1,0 +1,20 @@
+{
+  "_comment": "This mapping shows the runtime deferred load id for each deferred import in the program. The mappings are grouped by URI containing the import.",
+  "mapping": {
+    "memory:libA.dart": {
+      "libA": "1"
+    },
+    "memory:libB.dart": {
+      "libB": "2"
+    },
+    "memory:libC.dart": {
+      "libC": "3"
+    },
+    "memory:libD.dart": {
+      "libD": "4"
+    },
+    "memory:libE.dart": {
+      "libE": "5"
+    }
+  }
+}

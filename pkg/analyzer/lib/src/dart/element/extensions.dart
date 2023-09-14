@@ -5,9 +5,26 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta_meta.dart';
+
+extension DartTypeExtension on DartType {
+  bool get isExtensionType {
+    return element is ExtensionTypeElement;
+  }
+
+  /// If `this` is an [InterfaceType] that is an instantiation of an extension
+  /// type, returns its representation type erasure. Otherwise, returns self.
+  DartType get representationTypeErasureOrSelf {
+    final self = this;
+    if (self is InterfaceTypeImpl) {
+      return self.representationTypeErasure ?? self;
+    }
+    return self;
+  }
+}
 
 extension ElementAnnotationExtensions on ElementAnnotation {
   static final Map<String, TargetKind> _targetKindsByName = {
@@ -44,7 +61,11 @@ extension ElementAnnotationExtensions on ElementAnnotation {
         }
 
         return annotationKinds
-            .map((e) => e.getField('_name')?.toStringValue())
+            .map((e) {
+              // Support class-based and enum-based target kind implementations.
+              var field = e.getField('name') ?? e.getField('_name');
+              return field?.toStringValue();
+            })
             .map((name) => _targetKindsByName[name])
             .whereNotNull()
             .toSet();

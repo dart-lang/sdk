@@ -83,13 +83,12 @@ extension UninstantiatedExtension<T, U extends JSAny?, V extends Instantiated>
   external X returnX<X extends JSArray>();
 }
 
-inline class UninstantiatedInline<T, U extends JSAny?,
-    V extends InstantiatedInline> {
-  final JSObject obj;
-  external UninstantiatedInline(T t);
+extension type UninstantiatedExtensionType<T, U extends JSAny?,
+    V extends InstantiatedExtensionType>._(JSObject _) {
+  external UninstantiatedExtensionType(T t);
   //       ^
   // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
-  external factory UninstantiatedInline.named(U u);
+  external factory UninstantiatedExtensionType.fact(U u);
 
   // Test simple type parameters.
   external T fieldT;
@@ -142,8 +141,8 @@ inline class UninstantiatedInline<T, U extends JSAny?,
   external X returnX<X extends JSArray>();
 }
 
-extension UninstantiatedInlineExtension<T, U extends JSAny?,
-    V extends InstantiatedInline> on UninstantiatedInline<T, U, V> {
+extension UninstantiatedExtensionTypeExtension<T, U extends JSAny?,
+    V extends InstantiatedExtensionType> on UninstantiatedExtensionType<T, U, V> {
   external T get extensionGetT;
   //             ^
   // [web] External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.
@@ -190,15 +189,14 @@ extension InstantiatedExtension on Instantiated {
   external void consumeList(List<Instantiated> list);
 }
 
-inline class InstantiatedInline {
-  final JSObject obj;
+extension type InstantiatedExtensionType._(JSObject _) {
   // Test generic types where all the type parameters are instantiated.
-  external InstantiatedInline(List<JSNumber> list);
-  external List<InstantiatedInline> fieldList;
-  external List<InstantiatedInline> get getList;
-  external set setList(List<InstantiatedInline> list);
-  external List<InstantiatedInline> returnList();
-  external void consumeList(List<InstantiatedInline> list);
+  external InstantiatedExtensionType(List<JSNumber> list);
+  external List<InstantiatedExtensionType> fieldList;
+  external List<InstantiatedExtensionType> get getList;
+  external set setList(List<InstantiatedExtensionType> list);
+  external List<InstantiatedExtensionType> returnList();
+  external void consumeList(List<InstantiatedExtensionType> list);
 }
 
 void main() {}

@@ -115,11 +115,11 @@ class ObjectPointerVisitor;
   V(FfiInt64, "Int64")                                                         \
   V(FfiInt8, "Int8")                                                           \
   V(FfiIntPtr, "IntPtr")                                                       \
+  V(FfiIsolateLocalCallback, "_FfiIsolateLocalCallback")                       \
   V(FfiNativeFunction, "NativeFunction")                                       \
   V(FfiNativeType, "NativeType")                                               \
   V(FfiNativeTypes, "nativeTypes")                                             \
   V(FfiPointer, "Pointer")                                                     \
-  V(FfiPointerAsyncFromFunctionSendArgs, "_pointerAsyncFromFunctionSendArgs")  \
   V(FfiStructLayout, "_FfiStructLayout")                                       \
   V(FfiStructLayoutArray, "_FfiInlineArray")                                   \
   V(FfiTrampolineData, "FfiTrampolineData")                                    \
@@ -384,6 +384,7 @@ class ObjectPointerVisitor;
   V(_Type, "_Type")                                                            \
   V(_TypeParameter, "_TypeParameter")                                          \
   V(_TypeVariableMirror, "_TypeVariableMirror")                                \
+  V(_TypedListBase, "_TypedListBase")                                          \
   V(_Uint16ArrayFactory, "Uint16List.")                                        \
   V(_Uint16ArrayView, "_Uint16ArrayView")                                      \
   V(_Uint16List, "_Uint16List")                                                \
@@ -422,6 +423,7 @@ class ObjectPointerVisitor;
   V(_await, "_await")                                                          \
   V(_awaitWithTypeCheck, "_awaitWithTypeCheck")                                \
   V(_backtrackingStack, "_backtrackingStack")                                  \
+  V(_checkSetRangeArguments, "_checkSetRangeArguments")                        \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
@@ -447,6 +449,7 @@ class ObjectPointerVisitor;
   V(_mapGet, "_mapGet")                                                        \
   V(_mapKeys, "_mapKeys")                                                      \
   V(_name, "_name")                                                            \
+  V(_nativeSetRange, "_nativeSetRange")                                        \
   V(_objectEquals, "_objectEquals")                                            \
   V(_objectHashCode, "_objectHashCode")                                        \
   V(_objectNoSuchMethod, "_objectNoSuchMethod")                                \
@@ -490,7 +493,9 @@ class ObjectPointerVisitor;
   V(current_position, ":current_position")                                     \
   V(dynamic_assert_assignable_stc_check,                                       \
     ":dynamic_assert_assignable_stc_check")                                    \
+  V(end, "end")                                                                \
   V(executable, "executable")                                                  \
+  V(from, "from")                                                              \
   V(get, "get")                                                                \
   V(index_temp, ":index_temp")                                                 \
   V(isPaused, "isPaused")                                                      \
@@ -506,23 +511,27 @@ class ObjectPointerVisitor;
   V(relative, "relative")                                                      \
   V(result, "result")                                                          \
   V(set, "set")                                                                \
+  V(skip_count, "skipCount")                                                   \
   V(stack, ":stack")                                                           \
   V(stack_pointer, ":stack_pointer")                                           \
+  V(start, "start")                                                            \
   V(start_index_param, ":start_index_param")                                   \
   V(state, "state")                                                            \
   V(string_param, ":string_param")                                             \
   V(string_param_length, ":string_param_length")                               \
   V(system, "system")                                                          \
   V(vm_always_consider_inlining, "vm:always-consider-inlining")                \
+  V(vm_awaiter_link, "vm:awaiter-link")                                        \
   V(vm_entry_point, "vm:entry-point")                                          \
   V(vm_exact_result_type, "vm:exact-result-type")                              \
   V(vm_external_name, "vm:external-name")                                      \
   V(vm_ffi_abi_specific_mapping, "vm:ffi:abi-specific-mapping")                \
   V(vm_ffi_native_assets, "vm:ffi:native-assets")                              \
   V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
+  V(vm_force_optimize, "vm:force-optimize")                                    \
+  V(vm_idempotent, "vm:idempotent")                                            \
   V(vm_invisible, "vm:invisible")                                              \
   V(vm_isolate_unsendable, "vm:isolate-unsendable")                            \
-  V(vm_awaiter_link, "vm:awaiter-link")                                        \
   V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
   V(vm_notify_debugger_on_exception, "vm:notify-debugger-on-exception")        \

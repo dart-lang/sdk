@@ -15,12 +15,12 @@ abstract final class Incomplete extends ffi::AbiSpecificInteger /*hasConstConstr
 }
 @#C15
 final class IncompleteStruct extends ffi::Struct {
-  constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::IncompleteStruct
+  constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::IncompleteStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=()->i]  get a0() → core::int
     return [@vm.inferred-type.metadata=int] ffi::_loadAbiSpecificInt<self::Incomplete>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] [@vm.inferred-type.metadata=dart.ffi::Pointer] this.{ffi::_Compound::_typedDataBase}{core::Object}, #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=(i)->i]  set a0([@vm.inferred-type.metadata=dart.core::_Smi] core::int #externalFieldValue) → void
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=(i)->i]  set a0([@vm.inferred-arg-type.metadata=dart.core::_Smi] core::int #externalFieldValue) → void
     return [@vm.inferred-type.metadata=int] ffi::_storeAbiSpecificInt<self::Incomplete>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] [@vm.inferred-type.metadata=dart.ffi::Pointer] this.{ffi::_Compound::_typedDataBase}{core::Object}, #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue);
 [@vm.unboxing-info.metadata=()->i]  @#C8
   static get #sizeOf() → core::int*
@@ -28,7 +28,7 @@ final class IncompleteStruct extends ffi::Struct {
 }
 @#C24
 final class IncompleteArrayStruct extends ffi::Struct {
-  constructor #fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::IncompleteArrayStruct
+  constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::IncompleteArrayStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  get a0() → ffi::Array<self::Incomplete>

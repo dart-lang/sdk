@@ -1,36 +1,23 @@
-exhaustiveByValue(Null n) => 
-switch (n) {}
+exhaustiveByType(Null n) => switch (n) {
+      Null() => 0,
+    };
+exhaustiveByValue(Null n) => switch (n) {
+      null => 0,
+    };
+exhaustiveNullable(Object? o) => switch (o) {
+      Object() => 0,
+      Null() => 1,
+    };
+exhaustiveWithField(Null n) => switch (n) {
+      Null(:var hashCode) => hashCode,
+    };
+nonExhaustiveNullable(Object? o) => switch (o) {
+      Object() => 1,
+    };
+nonExhaustiveNullableRestricted(Object? o) => switch (o) {
+      Nullable(hashCode: 5) => 1,
+    };
+nonExhaustiveRestrictedField(Null n) => switch (n) {
+      Null(hashCode: 5) => 0,
+    };
 typedef Nullable = Object?;
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
-exhaustiveByType(Null n) => 
-switch (n) {}
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
-exhaustiveWithField(Null n) => 
-switch (n) {}
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
-nonExhaustiveRestrictedField(Null n) => 
-switch (n) {}
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
-exhaustiveNullable(Object? o) => 
-switch (o) {}
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
-nonExhaustiveNullable(Object? o) => 
-switch (o) {}
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
-nonExhaustiveNullableRestricted(Object? o) => 
-switch (o) {}
----- unknown chunk starts ----
-;
----- unknown chunk ends ----

@@ -1,0 +1,3 @@
+---- unknown chunk starts ----
+extension type A<T>(int it) {} extension type B<T>(int it) implements A<T> {} extension type C<T>(int it) implements A<T> {} extension type D(int it) implements A<int>, B<String> {} extension type E(int it) implements B<int>, C<String> {}
+---- unknown chunk ends ----

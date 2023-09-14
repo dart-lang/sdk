@@ -11,125 +11,12 @@ import 'abstract_refactoring.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExtractMethodEnumTest);
+    defineReflectiveTests(ExtractMethodTest_Enum);
+    defineReflectiveTests(ExtractMethodTest_Extension);
+    defineReflectiveTests(ExtractMethodTest_ExtensionType);
+    defineReflectiveTests(ExtractMethodTest_Mixin);
     defineReflectiveTests(ExtractMethodTest);
   });
-}
-
-@reflectiveTest
-class ExtractMethodEnumTest extends _ExtractMethodTest {
-  Future<void> test_bad_conflict_method_alreadyDeclaresMethod() async {
-    await indexTestUnit('''
-enum E {
-  v;
-  void res() {}
-  void foo() {
-// start
-    print(0);
-// end
-  }
-}
-''');
-    _createRefactoringForStartEndComments();
-    return _assertConditionsError(
-        "Enum 'E' already declares method with name 'res'.");
-  }
-
-  Future<void> test_bad_conflict_method_shadowsSuperDeclaration() async {
-    await indexTestUnit('''
-mixin M {
-  void res() {}
-}
-
-enum E with M {
-  v;
-  void foo() {
-    res();
-// start
-    print(0);
-// end
-  }
-}
-''');
-    _createRefactoringForStartEndComments();
-    return _assertConditionsError("Created method will shadow method 'M.res'.");
-  }
-
-  Future<void> test_bad_conflict_topLevel_willHideInheritedMemberUsage() async {
-    await indexTestUnit('''
-mixin M {
-  void res() {}
-}
-
-enum E with M {
-  v;
-  void foo() {
-    res();
-  }
-}
-
-void f() {
-// start
-  print(0);
-// end
-}
-''');
-    _createRefactoringForStartEndComments();
-    return _assertConditionsError(
-        "Created function will shadow method 'M.res'.");
-  }
-
-  Future<void> test_singleExpression_method() async {
-    await indexTestUnit('''
-enum E {
-  v;
-  void foo() {
-    int a = 1 + 2;
-  }
-}
-''');
-    _createRefactoringForString('1 + 2');
-    // apply refactoring
-    return _assertSuccessfulRefactoring('''
-enum E {
-  v;
-  void foo() {
-    int a = res();
-  }
-
-  int res() => 1 + 2;
-}
-''');
-  }
-
-  Future<void> test_statements_method() async {
-    await indexTestUnit('''
-enum E {
-  v;
-  void foo() {
-// start
-    print(0);
-// end
-  }
-}
-''');
-    _createRefactoringForStartEndComments();
-    // apply refactoring
-    return _assertSuccessfulRefactoring('''
-enum E {
-  v;
-  void foo() {
-// start
-    res();
-// end
-  }
-
-  void res() {
-    print(0);
-  }
-}
-''');
-  }
 }
 
 @reflectiveTest
@@ -3332,6 +3219,345 @@ String res() => 'test';
 import 'dart:async';
 
 Completer<int> newCompleter() => null;
+''');
+  }
+}
+
+@reflectiveTest
+class ExtractMethodTest_Enum extends _ExtractMethodTest {
+  Future<void> test_bad_conflict_method_alreadyDeclaresMethod() async {
+    await indexTestUnit('''
+enum E {
+  v;
+  void res() {}
+  void foo() {
+// start
+    print(0);
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    return _assertConditionsError(
+        "Enum 'E' already declares method with name 'res'.");
+  }
+
+  Future<void> test_bad_conflict_method_shadowsSuperDeclaration() async {
+    await indexTestUnit('''
+mixin M {
+  void res() {}
+}
+
+enum E with M {
+  v;
+  void foo() {
+    res();
+// start
+    print(0);
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    return _assertConditionsError("Created method will shadow method 'M.res'.");
+  }
+
+  Future<void> test_bad_conflict_topLevel_willHideInheritedMemberUsage() async {
+    await indexTestUnit('''
+mixin M {
+  void res() {}
+}
+
+enum E with M {
+  v;
+  void foo() {
+    res();
+  }
+}
+
+void f() {
+// start
+  print(0);
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    return _assertConditionsError(
+        "Created function will shadow method 'M.res'.");
+  }
+
+  Future<void> test_singleExpression_method() async {
+    await indexTestUnit('''
+enum E {
+  v;
+  void foo() {
+    int a = 1 + 2;
+  }
+}
+''');
+    _createRefactoringForString('1 + 2');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum E {
+  v;
+  void foo() {
+    int a = res();
+  }
+
+  int res() => 1 + 2;
+}
+''');
+  }
+
+  Future<void> test_statements_method() async {
+    await indexTestUnit('''
+enum E {
+  v;
+  void foo() {
+// start
+    print(0);
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum E {
+  v;
+  void foo() {
+// start
+    res();
+// end
+  }
+
+  void res() {
+    print(0);
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ExtractMethodTest_Extension extends _ExtractMethodTest {
+  Future<void> test_singleExpression_method() async {
+    await indexTestUnit('''
+extension E on int {
+  void foo() {
+    int a = 1 + 2;
+  }
+}
+''');
+    _createRefactoringForString('1 + 2');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+extension E on int {
+  void foo() {
+    int a = res();
+  }
+
+  int res() => 1 + 2;
+}
+''');
+  }
+
+  Future<void> test_statements_method() async {
+    await indexTestUnit('''
+extension E on int {
+  void foo() {
+// start
+    print(0);
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+extension E on int {
+  void foo() {
+// start
+    res();
+// end
+  }
+
+  void res() {
+    print(0);
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ExtractMethodTest_ExtensionType extends _ExtractMethodTest {
+  Future<void> test_bad_conflict_method_alreadyDeclaresMethod() async {
+    await indexTestUnit('''
+extension type E(int it) {
+  void res() {}
+  void foo() {
+// start
+    print(0);
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    return _assertConditionsError(
+        "Extension type 'E' already declares method with name 'res'.");
+  }
+
+  Future<void> test_bad_conflict_method_shadowsSuperDeclaration() async {
+    await indexTestUnit('''
+class A {
+  void res() {}
+}
+
+extension type E(A it) implements A {
+  void foo() {
+    res();
+// start
+    print(0);
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    return _assertConditionsError("Created method will shadow method 'A.res'.");
+  }
+
+  Future<void> test_singleExpression_method() async {
+    await indexTestUnit('''
+extension type E(int it) {
+  void foo() {
+    int a = 1 + 2;
+  }
+}
+''');
+    _createRefactoringForString('1 + 2');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+extension type E(int it) {
+  void foo() {
+    int a = res();
+  }
+
+  int res() => 1 + 2;
+}
+''');
+  }
+
+  Future<void> test_statements_method() async {
+    await indexTestUnit('''
+extension type E(int it) {
+  void foo() {
+// start
+    print(0);
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+extension type E(int it) {
+  void foo() {
+// start
+    res();
+// end
+  }
+
+  void res() {
+    print(0);
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ExtractMethodTest_Mixin extends _ExtractMethodTest {
+  Future<void> test_bad_conflict_method_alreadyDeclaresMethod() async {
+    await indexTestUnit('''
+mixin A {
+  void res() {}
+  void foo() {
+// start
+    print(0);
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    return _assertConditionsError(
+        "Class 'A' already declares method with name 'res'.");
+  }
+
+  Future<void> test_bad_conflict_method_shadowsSuperDeclaration() async {
+    await indexTestUnit('''
+class A {
+  void res() {}
+}
+
+mixin B implements A {
+  void foo() {
+    res();
+// start
+    print(0);
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    return _assertConditionsError("Created method will shadow method 'A.res'.");
+  }
+
+  Future<void> test_singleExpression_method() async {
+    await indexTestUnit('''
+mixin A {
+  void foo() {
+    int a = 1 + 2;
+  }
+}
+''');
+    _createRefactoringForString('1 + 2');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+mixin A {
+  void foo() {
+    int a = res();
+  }
+
+  int res() => 1 + 2;
+}
+''');
+  }
+
+  Future<void> test_statements_method() async {
+    await indexTestUnit('''
+mixin A {
+  void foo() {
+// start
+    print(0);
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+mixin A {
+  void foo() {
+// start
+    res();
+// end
+  }
+
+  void res() {
+    print(0);
+  }
+}
 ''');
   }
 }

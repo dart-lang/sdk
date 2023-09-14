@@ -1,5 +1,7 @@
-inline class Class {}
-inline class Class = Object with Mixin;
+NOTICE: Stream was rewritten by parser!
 
-inline[StringToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
-inline[StringToken] class[KeywordToken] Class[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] Mixin[StringToken];[SimpleToken][SimpleToken]
+inline ;class Class {}
+inline ;class Class = Object with Mixin;
+
+inline[StringToken] ;[SyntheticToken]class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
+inline[StringToken] ;[SyntheticToken]class[KeywordToken] Class[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] Mixin[StringToken];[SimpleToken][SimpleToken]

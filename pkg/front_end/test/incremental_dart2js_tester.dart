@@ -12,8 +12,7 @@ import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
 
 import 'package:front_end/src/fasta/kernel/utils.dart';
 
-import 'package:kernel/kernel.dart'
-    show Component, Library, LibraryPart, Reference;
+import 'package:kernel/kernel.dart' show Component, Library, LibraryPart;
 
 import 'incremental_suite.dart' as helper;
 
@@ -133,9 +132,7 @@ class Dart2jsTester {
         }
         if (!uris.contains(uri)) continue;
         foundCount++;
-        library.additionalExports.sort((Reference r1, Reference r2) {
-          return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
-        });
+        library.additionalExports.sort();
         library.problemsAsJson?.sort();
 
         List<int> libSerialized =
@@ -203,9 +200,7 @@ class Dart2jsTester {
       c.computeCanonicalNames();
 
       for (Library library in c.libraries) {
-        library.additionalExports.sort((Reference r1, Reference r2) {
-          return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
-        });
+        library.additionalExports.sort();
         library.problemsAsJson?.sort();
 
         List<int> libSerialized =

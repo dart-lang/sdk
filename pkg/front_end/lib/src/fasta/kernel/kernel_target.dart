@@ -65,6 +65,7 @@ import '../problems.dart' show unhandled;
 import '../scope.dart' show AmbiguousBuilder;
 import '../source/class_declaration.dart';
 import '../source/constructor_declaration.dart';
+import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
@@ -105,31 +106,31 @@ class KernelTarget extends TargetImplementation {
 
   // 'dynamic' is always nullable.
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
-  final NamedTypeBuilder dynamicType = new NamedTypeBuilder(
+  final NamedTypeBuilder dynamicType = new NamedTypeBuilderImpl(
       "dynamic", const NullabilityBuilder.inherent(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
-  final NamedTypeBuilder objectType = new NamedTypeBuilder(
+  final NamedTypeBuilder objectType = new NamedTypeBuilderImpl(
       "Object", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   // Null is always nullable.
   // TODO(johnniwinther): This could (maybe) use a FixedTypeBuilder when we
   //  have NullType?
-  final NamedTypeBuilder nullType = new NamedTypeBuilder(
+  final NamedTypeBuilder nullType = new NamedTypeBuilderImpl(
       "Null", const NullabilityBuilder.inherent(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
-  final NamedTypeBuilder bottomType = new NamedTypeBuilder(
+  final NamedTypeBuilder bottomType = new NamedTypeBuilderImpl(
       "Never", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
-  final NamedTypeBuilder enumType = new NamedTypeBuilder(
+  final NamedTypeBuilder enumType = new NamedTypeBuilderImpl(
       "Enum", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
-  final NamedTypeBuilder underscoreEnumType = new NamedTypeBuilder(
+  final NamedTypeBuilder underscoreEnumType = new NamedTypeBuilderImpl(
       "_Enum", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
@@ -463,7 +464,11 @@ class KernelTarget extends TargetImplementation {
           sortedSourceExtensionTypeBuilders, objectClassBuilder);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
-      loader.checkSupertypes(sortedSourceClassBuilders, objectClass, enumClass,
+      loader.checkSupertypes(
+          sortedSourceClassBuilders,
+          sortedSourceExtensionTypeBuilders,
+          objectClass,
+          enumClass,
           underscoreEnumClass);
 
       if (macroApplications != null) {
@@ -1007,6 +1012,7 @@ class KernelTarget extends TargetImplementation {
       return copy;
     }
 
+    SourceLibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
     Class cls = classBuilder.cls;
     Constructor superConstructor =
         superConstructorBuilder.member as Constructor;
@@ -1059,7 +1065,7 @@ class KernelTarget extends TargetImplementation {
     DelayedDefaultValueCloner delayedDefaultValueCloner =
         new DelayedDefaultValueCloner(
             superConstructor, constructor, substitutionMap,
-            libraryBuilder: classBuilder.libraryBuilder);
+            libraryBuilder: libraryBuilder);
 
     TypeDependency? typeDependency;
     if (hasTypeDependency) {
@@ -1069,8 +1075,9 @@ class KernelTarget extends TargetImplementation {
     }
 
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
-        superConstructor.name.text,
-        classBuilder.libraryBuilder,
+        new MemberName(libraryBuilder.libraryName,
+            constructorTearOffName(superConstructor.name.text)),
+        libraryBuilder,
         cls.fileUri,
         cls.fileOffset,
         tearOffReference,
@@ -1082,7 +1089,7 @@ class KernelTarget extends TargetImplementation {
           declarationConstructor: constructor,
           implementationConstructor: constructor,
           enclosingDeclarationTypeParameters: classBuilder.cls.typeParameters,
-          libraryBuilder: classBuilder.libraryBuilder);
+          libraryBuilder: libraryBuilder);
     }
     SyntheticSourceConstructorBuilder constructorBuilder =
         new SyntheticSourceConstructorBuilder(
@@ -1133,6 +1140,7 @@ class KernelTarget extends TargetImplementation {
       SourceClassBuilder classBuilder,
       Reference? constructorReference,
       Reference? tearOffReference) {
+    SourceLibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
     Class enclosingClass = classBuilder.cls;
     Constructor constructor = new Constructor(
         new FunctionNode(new EmptyStatement(),
@@ -1145,11 +1153,10 @@ class KernelTarget extends TargetImplementation {
       // TODO(johnniwinther): Should we add file end offsets to synthesized
       //  constructors?
       //..fileEndOffset = enclosingClass.fileOffset
-      ..isNonNullableByDefault =
-          enclosingClass.enclosingLibrary.isNonNullableByDefault;
+      ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
-        '',
-        classBuilder.libraryBuilder,
+        new MemberName(libraryBuilder.libraryName, constructorTearOffName('')),
+        libraryBuilder,
         enclosingClass.fileUri,
         enclosingClass.fileOffset,
         tearOffReference,
@@ -1161,7 +1168,7 @@ class KernelTarget extends TargetImplementation {
           declarationConstructor: constructor,
           implementationConstructor: constructor,
           enclosingDeclarationTypeParameters: classBuilder.cls.typeParameters,
-          libraryBuilder: classBuilder.libraryBuilder);
+          libraryBuilder: libraryBuilder);
     }
     return new SyntheticSourceConstructorBuilder(
         classBuilder, constructor, constructorTearOff);

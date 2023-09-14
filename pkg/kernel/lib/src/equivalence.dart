@@ -5239,10 +5239,6 @@ class EquivalenceStrategy {
     if (!checkExtensionType_typeArguments(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkExtensionType_instantiatedRepresentationType(
-        visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     visitor.popState();
     return result;
   }
@@ -9287,12 +9283,6 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
     return visitor.checkLists(node.typeArguments, other.typeArguments,
         visitor.checkNodes, 'typeArguments');
-  }
-
-  bool checkExtensionType_instantiatedRepresentationType(
-      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
-    return visitor.checkNodes(node.instantiatedRepresentationType,
-        other.instantiatedRepresentationType, 'instantiatedRepresentationType');
   }
 
   bool checkIntersectionType_left(EquivalenceVisitor visitor,

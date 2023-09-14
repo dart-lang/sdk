@@ -1,0 +1,44 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+}
+extension type FooBar(self::Foo i) implements self::Foo {
+  constructor • = self::FooBar|;
+  tearoff • = self::FooBar|_#new#tearOff;
+}
+extension type FooBaz(self::Foo i) implements self::Foo {
+  constructor • = self::FooBaz|;
+  tearoff • = self::FooBaz|_#new#tearOff;
+}
+static inline-class-member method FooBar|(self::Foo i) → self::FooBar /* = self::Foo */ {
+  lowered final self::FooBar /* = self::Foo */ #this = i;
+  return #this;
+}
+static inline-class-member method FooBar|_#new#tearOff(self::Foo i) → self::FooBar /* = self::Foo */
+  return self::FooBar|(i);
+static inline-class-member method FooBaz|(self::Foo i) → self::FooBaz /* = self::Foo */ {
+  lowered final self::FooBaz /* = self::Foo */ #this = i;
+  return #this;
+}
+static inline-class-member method FooBaz|_#new#tearOff(self::Foo i) → self::FooBaz /* = self::Foo */
+  return self::FooBaz|(i);
+static method main() → void {
+  final self::FooBar /* = self::Foo */ a = self::FooBar|(new self::Foo::•());
+  #L1:
+  {
+    final synthesized self::FooBar /* = self::Foo */ #0#0 = a;
+    {
+      final hoisted self::Foo a;
+      if(let final self::Foo #t1 = a = #0#0 in true) {
+        {
+          core::print("FooBar ${a}");
+        }
+      }
+    }
+  }
+}

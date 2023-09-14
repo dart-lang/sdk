@@ -55,9 +55,9 @@ class HandleVisitor;
 class Heap;
 class ICData;
 class IsolateGroupReloadContext;
+class IsolateMessageHandler;
 class IsolateObjectStore;
 class IsolateProfilerData;
-class ProgramReloadContext;
 class Log;
 class Message;
 class MessageHandler;
@@ -68,12 +68,13 @@ class ObjectIdRing;
 class ObjectPointerVisitor;
 class ObjectStore;
 class PersistentHandle;
+class ProgramReloadContext;
 class RwLock;
-class SafepointRwLock;
 class SafepointHandler;
-class SampleBuffer;
+class SafepointRwLock;
 class SampleBlock;
 class SampleBlockBuffer;
+class SampleBuffer;
 class SendPort;
 class SerializedObjectBuffer;
 class ServiceIdZone;
@@ -1072,8 +1073,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void MakeRunnableLocked();
   void Run();
 
-  MessageHandler* message_handler() const { return message_handler_; }
-  void set_message_handler(MessageHandler* value) { message_handler_ = value; }
+  MessageHandler* message_handler() const;
 
   bool is_runnable() const { return LoadIsolateFlagsBit<IsRunnableBit>(); }
   void set_is_runnable(bool value) {
@@ -1241,14 +1241,24 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     deopt_context_ = value;
   }
 
-  FfiCallbackMetadata::Trampoline CreateSyncFfiCallback(
-      Zone* zone,
-      const Function& function);
   FfiCallbackMetadata::Trampoline CreateAsyncFfiCallback(
       Zone* zone,
       const Function& send_function,
       Dart_Port send_port);
+  FfiCallbackMetadata::Trampoline CreateIsolateLocalFfiCallback(
+      Zone* zone,
+      const Function& trampoline,
+      const Closure& target,
+      bool keep_isolate_alive);
   void DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback);
+  void UpdateNativeCallableKeepIsolateAliveCounter(intptr_t delta);
+  bool HasOpenNativeCallables();
+
+  bool HasLivePorts();
+  ReceivePortPtr CreateReceivePort(const String& debug_name);
+  void SetReceivePortKeepAliveState(const ReceivePort& receive_port,
+                                    bool keep_isolate_alive);
+  void CloseReceivePort(const ReceivePort& receive_port);
 
   // Visible for testing.
   FfiCallbackMetadata::Metadata* ffi_callback_list_head() {
@@ -1639,10 +1649,11 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Random random_;
   Simulator* simulator_ = nullptr;
   Mutex mutex_;  // Protects compiler stats.
-  MessageHandler* message_handler_ = nullptr;
+  IsolateMessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
   DeoptContext* deopt_context_ = nullptr;
   FfiCallbackMetadata::Metadata* ffi_callback_list_head_ = nullptr;
+  intptr_t ffi_callback_keep_alive_counter_ = 0;
 
   GrowableObjectArrayPtr tag_table_;
 
@@ -1673,6 +1684,12 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   std::unique_ptr<VirtualMemory> regexp_backtracking_stack_cache_ = nullptr;
 
   intptr_t wake_pause_event_handler_count_;
+
+  // The number of open [ReceivePort]s the isolate owns.
+  intptr_t open_ports_ = 0;
+
+  // The number of open [ReceivePort]s that keep the isolate alive.
+  intptr_t open_ports_keepalive_ = 0;
 
   static Dart_IsolateGroupCreateCallback create_group_callback_;
   static Dart_InitializeIsolateCallback initialize_callback_;

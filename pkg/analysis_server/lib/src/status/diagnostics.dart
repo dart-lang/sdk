@@ -183,7 +183,7 @@ class AnalyticsPage extends DiagnosticPageWithNav {
           'statistics and to send basic crash reports. This data is used to '
           'help improve the Dart platform and tools over time.');
       p('To disable reporting of analytics, run:');
-      p('&nbsp;&nbsp;<code>dart --disable-analytics</code>');
+      p('&nbsp;&nbsp;<code>dart --disable-analytics</code>', raw: true);
       p('The information below will be reported the next time analytics are '
           'sent.');
     }
@@ -681,8 +681,6 @@ class ContextsPage extends DiagnosticPageWithNav {
   String describe(AnalysisOptionsImpl options) {
     var b = StringBuffer();
 
-    b.write(writeOption('Implicit dynamic', options.implicitDynamic));
-    b.write(writeOption('Implicit casts', options.implicitCasts));
     b.write(writeOption('Feature set', options.contextFeatures.toString()));
     b.write('<br>');
 
@@ -1278,7 +1276,7 @@ class LspPage extends DiagnosticPageWithNav {
     });
 
     h3('Initialization Options');
-    prettyJson(server.initializationOptions.raw);
+    prettyJson(server.initializationOptions?.raw);
   }
 }
 

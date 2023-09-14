@@ -6,10 +6,13 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 
-class FormatRangeHandler
-    extends LspMessageHandler<DocumentRangeFormattingParams, List<TextEdit>?> {
+typedef StaticOptions = Either2<bool, DocumentRangeFormattingOptions>;
+
+class FormatRangeHandler extends SharedMessageHandler<
+    DocumentRangeFormattingParams, List<TextEdit>?> {
   FormatRangeHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_rangeFormatting;
@@ -52,4 +55,28 @@ class FormatRangeHandler
       return formatRange(path, params.range);
     });
   }
+}
+
+class FormatRangeRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  FormatRangeRegistrations(super.info);
+
+  bool get enableFormatter => clientConfiguration.global.enableSdkFormatter;
+
+  @override
+  ToJsonable? get options => DocumentRangeFormattingRegistrationOptions(
+        documentSelector: [dartFiles], // This is currently Dart-specific
+      );
+
+  @override
+  Method get registrationMethod => Method.textDocument_rangeFormatting;
+
+  @override
+  StaticOptions get staticOptions => Either2.t1(true);
+
+  @override
+  bool get supportsDynamic => enableFormatter && clientDynamic.rangeFormatting;
+
+  @override
+  bool get supportsStatic => enableFormatter;
 }

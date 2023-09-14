@@ -1,0 +1,78 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int field = 42;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method method() → core::int
+    return this.{self::A::field}{core::int};
+  get getter() → core::int
+    return this.{self::A::field}{core::int};
+  set setter(core::int value) → void {
+    this.{self::A::field} = value;
+  }
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+}
+extension type E(self::B it) implements self::B {
+  constructor • = self::E|;
+  tearoff • = self::E|_#new#tearOff;
+}
+extension type F(self::B it) implements self::E /* = self::B */ {
+  constructor • = self::F|;
+  tearoff • = self::F|_#new#tearOff;
+}
+static inline-class-member method E|(self::B it) → self::E /* = self::B */ {
+  lowered final self::E /* = self::B */ #this = it;
+  return #this;
+}
+static inline-class-member method E|_#new#tearOff(self::B it) → self::E /* = self::B */
+  return self::E|(it);
+static inline-class-member method F|(self::B it) → self::F /* = self::B */ {
+  lowered final self::F /* = self::B */ #this = it;
+  return #this;
+}
+static inline-class-member method F|_#new#tearOff(self::B it) → self::F /* = self::B */
+  return self::F|(it);
+static method main() → dynamic {
+  self::B b = new self::B::•();
+  self::E /* = self::B */ e = self::E|(b);
+  self::F /* = self::B */ f = self::F|(b);
+  self::expect(42, b.{self::A::field}{core::int});
+  self::expect(42, e.{self::A::field}{core::int});
+  self::expect(42, f.{self::A::field}{core::int});
+  b.{self::A::field} = 87;
+  self::expect(87, b.{self::A::method}(){() → core::int});
+  self::expect(87, e.{self::A::method}(){() → core::int});
+  self::expect(87, f.{self::A::method}(){() → core::int});
+  b.{self::A::setter} = 123;
+  self::expect(123, b.{self::A::getter}{core::int});
+  self::expect(123, e.{self::A::getter}{core::int});
+  self::expect(123, f.{self::A::getter}{core::int});
+  e.{self::A::setter} = 87;
+  self::expect(87, b.{self::A::field}{core::int});
+  self::expect(87, e.{self::A::field}{core::int});
+  self::expect(87, f.{self::A::field}{core::int});
+  e.{self::A::field} = 42;
+  self::expect(42, b.{self::A::getter}{core::int});
+  self::expect(42, e.{self::A::getter}{core::int});
+  self::expect(42, f.{self::A::getter}{core::int});
+  f.{self::A::field} = 87;
+  self::expect(87, b.{self::A::field}{core::int});
+  self::expect(87, e.{self::A::field}{core::int});
+  self::expect(87, f.{self::A::field}{core::int});
+  f.{self::A::setter} = 123;
+  self::expect(123, b.{self::A::method}(){() → core::int});
+  self::expect(123, e.{self::A::method}(){() → core::int});
+  self::expect(123, f.{self::A::method}(){() → core::int});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

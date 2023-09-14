@@ -253,6 +253,25 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('Comment');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      if (node.codeBlocks.isNotEmpty) {
+        _sink.writelnWithIndent('codeBlocks');
+        _sink.withIndent(() {
+          for (var codeBlock in node.codeBlocks) {
+            _writeMdCodeBlock(codeBlock);
+          }
+        });
+      }
+      if (node.docImports.isNotEmpty) {
+        _sink.writelnWithIndent('docImports');
+        _sink.withIndent(() {
+          for (var docImport in node.docImports) {
+            _writeDocImport(docImport);
+          }
+        });
+      }
+      if (node.hasNodoc) {
+        _sink.writelnWithIndent('hasNodoc: true');
+      }
     });
   }
 
@@ -1679,6 +1698,14 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
+  void _writeDocImport(DocImport docImport) {
+    _sink.writelnWithIndent('DocImport');
+    _sink.withIndent(() {
+      _sink.writelnWithIndent('offset: ${docImport.offset}');
+      _writeNode('import', docImport.import);
+    });
+  }
+
   void _writeElement(String name, Element? element) {
     if (_withResolution) {
       _elementPrinter.writeNamedElement(name, element);
@@ -1700,6 +1727,25 @@ Expected parent: (${parent.runtimeType}) $parent
         _writeType('type', element.type);
       });
     }
+  }
+
+  void _writeMdCodeBlock(MdCodeBlock codeBlock) {
+    _sink.writelnWithIndent('MdCodeBlock');
+    _sink.withIndent(() {
+      var infoString = codeBlock.infoString;
+      _sink.writelnWithIndent('infoString: ${infoString ?? '<empty>'}');
+      assert(codeBlock.lines.isNotEmpty);
+      _sink.writelnWithIndent('lines');
+      _sink.withIndent(() {
+        for (var line in codeBlock.lines) {
+          _sink.writelnWithIndent('MdCodeBlockLine');
+          _sink.withIndent(() {
+            _sink.writelnWithIndent('offset: ${line.offset}');
+            _sink.writelnWithIndent('length: ${line.length}');
+          });
+        }
+      });
+    });
   }
 
   void _writeNamedChildEntities(AstNode node) {

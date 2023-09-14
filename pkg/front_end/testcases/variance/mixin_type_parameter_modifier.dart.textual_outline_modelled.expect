@@ -1,0 +1,3 @@
+class A {}
+main() {}
+mixin B<inout X, out Y, in Z> on A {}

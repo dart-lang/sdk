@@ -6,11 +6,17 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/encoder.dart';
+import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+
+typedef StaticOptions
+    = Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>;
 
 abstract class AbstractSemanticTokensHandler<T>
     extends LspMessageHandler<T, SemanticTokens?>
@@ -141,4 +147,35 @@ class SemanticTokensRangeHandler
   Future<ErrorOr<SemanticTokens?>> handle(SemanticTokensRangeParams params,
           MessageInfo message, CancellationToken token) =>
       _handleImpl(params.textDocument, token, range: params.range);
+}
+
+class SemanticTokensRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  SemanticTokensRegistrations(super.info);
+
+  @override
+  ToJsonable? get options => SemanticTokensRegistrationOptions(
+        documentSelector: fullySupportedTypes,
+        legend: semanticTokenLegend.lspLegend,
+        full: Either2<bool, SemanticTokensOptionsFull>.t2(
+          SemanticTokensOptionsFull(delta: false),
+        ),
+        range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
+      );
+
+  @override
+  Method get registrationMethod =>
+      CustomMethods.semanticTokenDynamicRegistration;
+
+  @override
+  StaticOptions get staticOptions => Either2.t1(
+        SemanticTokensOptions(
+          legend: semanticTokenLegend.lspLegend,
+          full: Either2.t2(SemanticTokensOptionsFull(delta: false)),
+          range: Either2.t1(true),
+        ),
+      );
+
+  @override
+  bool get supportsDynamic => clientDynamic.semanticTokens;
 }

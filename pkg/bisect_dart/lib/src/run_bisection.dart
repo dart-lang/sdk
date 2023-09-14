@@ -23,7 +23,7 @@ Future<void> runBisection(BisectionConfig config) async {
   final name = config.name;
   final startHash = config.start;
   final endHash = config.end;
-  final testCommand = config.testCommand;
+  final testCommands = config.testCommands;
   final failurePattern = config.failurePattern;
   final sdkCheckout = config.sdkPath;
 
@@ -43,7 +43,7 @@ Future<void> runBisection(BisectionConfig config) async {
 
   logger.info('Ensuring failure reproduces on $startHash.');
   final shouldFail = await _checkCommit(
-      startHash, testCommand, failurePattern, sdkCheckout, logger);
+      startHash, testCommands, failurePattern, sdkCheckout, logger);
   if (!shouldFail) {
     throw Exception('$startHash failed to reproduce the error.');
   }
@@ -51,7 +51,7 @@ Future<void> runBisection(BisectionConfig config) async {
   final hashBeforeRange = await _commitHashBefore(endHash, sdkCheckout, logger);
   logger.info('Ensuring failure does not reproduce on $hashBeforeRange.');
   final shouldSucceed = await _checkCommit(
-      hashBeforeRange, testCommand, failurePattern, sdkCheckout, logger);
+      hashBeforeRange, testCommands, failurePattern, sdkCheckout, logger);
   if (shouldSucceed) {
     throw Exception('$startHash failed to reproduced the error.');
   }
@@ -59,13 +59,13 @@ Future<void> runBisection(BisectionConfig config) async {
   final commitHashes =
       await _commitHashesInRange(startHash, endHash, sdkCheckout, logger);
   final regressionCommit = await _bisect(
-      commitHashes, testCommand, failurePattern, sdkCheckout, logger);
+      commitHashes, testCommands, failurePattern, sdkCheckout, logger);
   logger.info('Bisected to $regressionCommit.');
 }
 
 Future<String> _bisect(
   List<String> commitHashes,
-  String testCommand,
+  List<String> testCommands,
   Pattern failurePattern,
   Uri sdkCheckout,
   Logger logger,
@@ -80,7 +80,7 @@ Future<String> _bisect(
       'Bisecting ${commitHashes.first}...${commitHashes.last} ($numCommits commits). Trying $pivot.');
   final commitResult = await _checkCommit(
     pivot,
-    testCommand,
+    testCommands,
     failurePattern,
     sdkCheckout,
     logger,
@@ -93,16 +93,16 @@ Future<String> _bisect(
     remainingCommits = commitHashes.take(pivotIndex).toList();
   }
   return await _bisect(
-      remainingCommits, testCommand, failurePattern, sdkCheckout, logger);
+      remainingCommits, testCommands, failurePattern, sdkCheckout, logger);
 }
 
 /// Returns true if the commit has the [failurePattern].
-Future<bool> _checkCommit(String hash, String testCommand,
+Future<bool> _checkCommit(String hash, List<String> testCommands,
     Pattern failurePattern, Uri sdkCheckout, Logger logger) async {
   logger.config('Testing $hash.');
   await _gitCheckout(hash, sdkCheckout, logger);
   await _gclientSync(sdkCheckout, logger);
-  final testOutput = await _runTest(testCommand, sdkCheckout, logger);
+  final testOutput = await _runTest(testCommands, sdkCheckout, logger);
   final matches = failurePattern.allMatches(testOutput).toList();
   final foundFailure = matches.isNotEmpty;
   if (foundFailure) {
@@ -159,16 +159,21 @@ Future<void> _gclientSync(Uri sdkCheckout, Logger logger) {
 }
 
 Future<String> _runTest(
-    String testCommand, Uri sdkCheckout, Logger logger) async {
-  final arguments = testCommand.split(' ');
-  final result = await runProcess(
-    executable: Uri.file('python3'),
-    arguments: arguments,
-    logger: logger,
-    workingDirectory: sdkCheckout,
-    captureOutput: true,
-  );
-  return result.stdout;
+    List<String> testCommands, Uri sdkCheckout, Logger logger) async {
+  var output = "";
+  for (final command in testCommands) {
+    final commandSplit = command.split(' ');
+    final result = await runProcess(
+      executable: Uri.file(commandSplit.first),
+      arguments: commandSplit.sublist(1),
+      logger: logger,
+      workingDirectory: sdkCheckout,
+      captureOutput: true,
+    );
+    output += result.stdout;
+    output += result.stderr;
+  }
+  return output;
 }
 
 /// Ordered from now to old.
@@ -179,7 +184,7 @@ Future<List<String>> _commitHashesInRange(String commitHashStart,
     arguments: [
       'log',
       '--pretty=format:"%h"',
-      '$commitHashStart...$commitHashEnd',
+      '$commitHashEnd...$commitHashStart',
     ],
     captureOutput: true,
     logger: logger,

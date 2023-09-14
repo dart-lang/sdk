@@ -736,6 +736,23 @@ switch (i) {
     _assertFalse('switch (i) { case 0: i++; default: return 1; }');
   }
 
+  test_switchExpression_allThrow() async {
+    _assertTrue('var x = switch (i) { 0 => throw 0, _ => throw 1, };');
+  }
+
+  test_switchExpression_notAllThrow() async {
+    _assertFalse('var x = switch (i) { 0 => 0, _ => throw 1, };');
+  }
+
+  test_switchExpression_throwInWhen() async {
+    _assertTrue('''
+var x = switch (i) {
+  0 when throw 7 => 0,
+  _ => throw 1,
+};
+''');
+  }
+
   test_thisExpression() async {
     _assertFalse('this.a;');
   }

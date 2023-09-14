@@ -21,3 +21,18 @@ enum DeclarationKind {
   /// An enum.
   Enum,
 }
+
+/// Enum to specify in which declaration a header occurs.
+enum DeclarationHeaderKind {
+  /// Class declaration header, for instance `extends S with M implements I` in
+  ///
+  ///     class C extends S with M implements I {}
+  ///
+  Class,
+
+  /// Extension type declaration header, for instance `implements I` in
+  ///
+  ///     extension type E(T t) implements I {}
+  ///
+  ExtensionType,
+}

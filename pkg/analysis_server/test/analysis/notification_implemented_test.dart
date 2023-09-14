@@ -200,6 +200,15 @@ enum E implements A {
     assertNoImplementedMember('foo(int _) {} // E');
   }
 
+  Future<void> test_class_implementedBy_extensionType() async {
+    addTestFile('''
+class A {}
+extension type B(A it) implements A {}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedClass('A {');
+  }
+
   Future<void> test_class_implementedBy_mixin() async {
     addTestFile('''
 class A {} // ref
@@ -251,141 +260,13 @@ enum E with M {
     assertNoImplementedMember('foo() {} // E');
   }
 
-  Future<void> test_field_withField() async {
+  Future<void> test_extensionType_implementedBy_extensionType() async {
     addTestFile('''
-class A {
-  int f; // A
-}
-class B extends A {
-  int f;
-}
+extension type A(int it) {}
+extension type B(int it) implements A {}
 ''');
     await prepareImplementedElements();
-    assertHasImplementedMember('f; // A');
-  }
-
-  Future<void> test_field_withGetter() async {
-    addTestFile('''
-class A {
-  int f; // A
-}
-class B extends A {
-  get f => null;
-}
-''');
-    await prepareImplementedElements();
-    assertHasImplementedMember('f; // A');
-  }
-
-  Future<void> test_field_withSetter() async {
-    addTestFile('''
-class A {
-  int f; // A
-}
-class B extends A {
-  void set f(_) {}
-}
-''');
-    await prepareImplementedElements();
-    assertHasImplementedMember('f; // A');
-  }
-
-  Future<void> test_getter_withField() async {
-    addTestFile('''
-class A {
-  get f => null; // A
-}
-class B extends A {
-  int f;
-}
-''');
-    await prepareImplementedElements();
-    assertHasImplementedMember('f => null; // A');
-  }
-
-  Future<void> test_getter_withGetter() async {
-    addTestFile('''
-class A {
-  get f => null; // A
-}
-class B extends A {
-  get f => null;
-}
-''');
-    await prepareImplementedElements();
-    assertHasImplementedMember('f => null; // A');
-  }
-
-  Future<void> test_method_withMethod() async {
-    addTestFile('''
-class A {
-  m() {} // A
-}
-class B extends A {
-  m() {} // B
-}
-''');
-    await prepareImplementedElements();
-    assertHasImplementedMember('m() {} // A');
-    assertNoImplementedMember('m() {} // B');
-  }
-
-  Future<void> test_method_withMethod_indirectSubclass() async {
-    addTestFile('''
-class A {
-  m() {} // A
-}
-class B extends A {
-}
-class C extends A {
-  m() {}
-}
-''');
-    await prepareImplementedElements();
-    assertHasImplementedMember('m() {} // A');
-  }
-
-  Future<void> test_method_withMethod_private_differentLib() async {
-    newFile('$testPackageLibPath/lib.dart', r'''
-import 'test.dart';
-class B extends A {
-  void _m() {}
-}
-''');
-    addTestFile('''
-class A {
-  _m() {} // A
-}
-''');
-    await prepareImplementedElements();
-    assertNoImplementedMember('_m() {} // A');
-  }
-
-  Future<void> test_method_withMethod_private_sameLibrary() async {
-    addTestFile('''
-class A {
-  _m() {} // A
-}
-class B extends A {
-  _m() {} // B
-}
-''');
-    await prepareImplementedElements();
-    assertHasImplementedMember('_m() {} // A');
-    assertNoImplementedMember('_m() {} // B');
-  }
-
-  Future<void> test_method_withMethod_wasAbstract() async {
-    addTestFile('''
-abstract class A {
-  m(); // A
-}
-class B extends A {
-  m() {}
-}
-''');
-    await prepareImplementedElements();
-    assertHasImplementedMember('m(); // A');
+    assertHasImplementedClass('A(int it)');
   }
 
   Future<void> test_mixin_implemented() async {
@@ -422,7 +303,146 @@ class A extends Object with M {
     assertNoImplementedMember('bar() {} // ref');
   }
 
-  Future<void> test_setter_withField() async {
+  Future<void> test_ofClass_byClass_field_withField() async {
+    addTestFile('''
+class A {
+  int f; // A
+}
+class B extends A {
+  int f;
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('f; // A');
+  }
+
+  Future<void> test_ofClass_byClass_field_withGetter() async {
+    addTestFile('''
+class A {
+  int f; // A
+}
+class B extends A {
+  get f => null;
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('f; // A');
+  }
+
+  Future<void> test_ofClass_byClass_field_withSetter() async {
+    addTestFile('''
+class A {
+  int f; // A
+}
+class B extends A {
+  void set f(_) {}
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('f; // A');
+  }
+
+  Future<void> test_ofClass_byClass_getter_withField() async {
+    addTestFile('''
+class A {
+  get f => null; // A
+}
+class B extends A {
+  int f;
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('f => null; // A');
+  }
+
+  Future<void> test_ofClass_byClass_getter_withGetter() async {
+    addTestFile('''
+class A {
+  get f => null; // A
+}
+class B extends A {
+  get f => null;
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('f => null; // A');
+  }
+
+  Future<void> test_ofClass_byClass_method_withMethod() async {
+    addTestFile('''
+class A {
+  m() {} // A
+}
+class B extends A {
+  m() {} // B
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('m() {} // A');
+    assertNoImplementedMember('m() {} // B');
+  }
+
+  Future<void> test_ofClass_byClass_method_withMethod_indirectSubclass() async {
+    addTestFile('''
+class A {
+  m() {} // A
+}
+class B extends A {
+}
+class C extends A {
+  m() {}
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('m() {} // A');
+  }
+
+  Future<void>
+      test_ofClass_byClass_method_withMethod_private_differentLib() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+import 'test.dart';
+class B extends A {
+  void _m() {}
+}
+''');
+    addTestFile('''
+class A {
+  _m() {} // A
+}
+''');
+    await prepareImplementedElements();
+    assertNoImplementedMember('_m() {} // A');
+  }
+
+  Future<void>
+      test_ofClass_byClass_method_withMethod_private_sameLibrary() async {
+    addTestFile('''
+class A {
+  _m() {} // A
+}
+class B extends A {
+  _m() {} // B
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('_m() {} // A');
+    assertNoImplementedMember('_m() {} // B');
+  }
+
+  Future<void> test_ofClass_byClass_method_withMethod_wasAbstract() async {
+    addTestFile('''
+abstract class A {
+  m(); // A
+}
+class B extends A {
+  m() {}
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('m(); // A');
+  }
+
+  Future<void> test_ofClass_byClass_setter_withField() async {
     addTestFile('''
 class A {
   set f(_) {} // A
@@ -435,7 +455,7 @@ class B extends A {
     assertHasImplementedMember('f(_) {} // A');
   }
 
-  Future<void> test_setter_withSetter() async {
+  Future<void> test_ofClass_byClass_setter_withSetter() async {
     addTestFile('''
 class A {
   set f(_) {} // A
@@ -448,7 +468,7 @@ class B extends A {
     assertHasImplementedMember('f(_) {} // A');
   }
 
-  Future<void> test_static_field_instanceStatic() async {
+  Future<void> test_ofClass_byClass_static_field_instanceStatic() async {
     addTestFile('''
 class A {
   int F = 0;
@@ -461,7 +481,7 @@ class B extends A {
     assertNoImplementedMember('F = 0');
   }
 
-  Future<void> test_static_field_staticInstance() async {
+  Future<void> test_ofClass_byClass_static_field_staticInstance() async {
     addTestFile('''
 class A {
   static int F = 0;
@@ -474,7 +494,7 @@ class B extends A {
     assertNoImplementedMember('F = 0');
   }
 
-  Future<void> test_static_field_staticStatic() async {
+  Future<void> test_ofClass_byClass_static_field_staticStatic() async {
     addTestFile('''
 class A {
   static int F = 0;
@@ -487,7 +507,7 @@ class B extends A {
     assertNoImplementedMember('F = 0');
   }
 
-  Future<void> test_static_method_instanceStatic() async {
+  Future<void> test_ofClass_byClass_static_method_instanceStatic() async {
     addTestFile('''
 class A {
   int m() => 0;
@@ -500,7 +520,7 @@ class B extends A {
     assertNoImplementedMember('m() => 0');
   }
 
-  Future<void> test_static_method_staticInstance() async {
+  Future<void> test_ofClass_byClass_static_method_staticInstance() async {
     addTestFile('''
 class A {
   static int m() => 0;
@@ -513,7 +533,7 @@ class B extends A {
     assertNoImplementedMember('m() => 0');
   }
 
-  Future<void> test_static_method_staticStatic() async {
+  Future<void> test_ofClass_byClass_static_method_staticStatic() async {
     addTestFile('''
 class A {
   static int m() => 0;
@@ -524,6 +544,34 @@ class B extends A {
 ''');
     await prepareImplementedElements();
     assertNoImplementedMember('m() => 0');
+  }
+
+  Future<void> test_ofClass_byExtensionType_method_withMethod() async {
+    addTestFile('''
+class A {
+  void foo() {} // A
+}
+extension type E(A it) implements A {
+  void foo() {} // B
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('foo() {} // A');
+    assertNoImplementedMember('foo() {} // B');
+  }
+
+  Future<void> test_ofExtensionType_method_withMethod() async {
+    addTestFile('''
+extension type A(int) {
+  void foo() {} // A
+}
+extension type B(int) implements A {
+  void foo() {} // B
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('foo() {} // A');
+    assertNoImplementedMember('foo() {} // B');
   }
 
   Future<void> waitForImplementedElements() {

@@ -422,9 +422,18 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
     arguments = arguments.toList();
     arguments.add('--out=$outputFileName');
 
-    return Dart2jsCompilationCommand(outputFileName, bootstrapDependencies(),
-        computeCompilerPath(), arguments, environmentOverrides,
-        useSdk: _useSdk, alwaysCompile: !_useSdk);
+    var command = Dart2jsCompilationCommand(
+        outputFileName,
+        bootstrapDependencies(),
+        computeCompilerPath(),
+        arguments,
+        environmentOverrides,
+        useSdk: _useSdk,
+        alwaysCompile: !_useSdk);
+    if (_configuration.rr) {
+      return RRCommand(command);
+    }
+    return command;
   }
 
   @override
@@ -556,7 +565,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
     arguments = arguments.toList();
     arguments.add(outputFileName);
 
-    return CompilationCommand(
+    var command = CompilationCommand(
         'dart2wasm',
         outputFileName,
         bootstrapDependencies(),
@@ -564,6 +573,10 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
         arguments,
         environmentOverrides,
         alwaysCompile: !_useSdk);
+    if (_configuration.rr) {
+      return RRCommand(command);
+    }
+    return command;
   }
 
   @override
@@ -714,9 +727,13 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     var compilerPath = _useSdk
         ? '${_configuration.buildDirectory}/dart-sdk/bin/snapshots/dartdevc.dart.snapshot'
         : Repository.uri.resolve('pkg/dev_compiler/bin/dartdevc.dart').path;
-    return DevCompilerCompilationCommand(outputFile, bootstrapDependencies(),
-        computeCompilerPath(), args, environment,
+    var command = DevCompilerCompilationCommand(outputFile,
+        bootstrapDependencies(), computeCompilerPath(), args, environment,
         compilerPath: compilerPath, alwaysCompile: false);
+    if (_configuration.rr) {
+      return RRCommand(command);
+    }
+    return command;
   }
 
   @override
@@ -960,7 +977,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         "--snapshot-kind=app-aot-assembly",
         "--assembly=$tempDir/out.S",
       ],
-      if (_isAndroid && _isArm) '--no-sim-use-hardfp',
+      if (_isAndroid && (_isArm || _isArmX64)) ...[
+        '--no-sim-use-hardfp',
+        '--no-use-integer-division',
+      ],
       if (_configuration.isMinified) '--obfuscate',
       ..._nnbdModeArgument(_configuration),
       // The SIMARM precompiler assumes support for integer division, but the
@@ -1018,10 +1038,21 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     var ldFlags = <String>[];
     List<String>? target;
     if (_isAndroid) {
-      cc = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
-          "$host-x86_64/bin/$abiTriple-gcc";
+      if (_isArm || _isArmX64) {
+        cc =
+            '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/armv7a-linux-androideabi21-clang';
+      } else if (_isArm64) {
+        cc =
+            '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/aarch64-linux-android21-clang';
+      } else if (_isX64) {
+        cc =
+            '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/x86_64-linux-android21-clang';
+      } else {
+        throw 'Unimplemented';
+      }
       shared = '-shared';
       ldFlags.add('-Wl,--no-undefined');
+      ldFlags.add('-Wl,-z,max-page-size=65536');
     } else if (Platform.isLinux) {
       if (_isSimArm || (_isArm && _configuration.useQemu)) {
         cc = 'arm-linux-gnueabihf-gcc';
@@ -1177,6 +1208,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     var multiplier = 1;
     if (_isDebug) multiplier *= 2;
     if (_enableAsserts) multiplier *= 2;
+    if (_configuration.rr) multiplier *= 2;
     return multiplier;
   }
 
@@ -1205,9 +1237,13 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       arguments.insertAll(0, config.arguments);
       executable = config.executable;
     }
-    return CompilationCommand('app_jit', tempDir, bootstrapDependencies(),
-        executable, arguments, environmentOverrides,
+    var command = CompilationCommand('app_jit', tempDir,
+        bootstrapDependencies(), executable, arguments, environmentOverrides,
         alwaysCompile: !_useSdk);
+    if (_configuration.rr) {
+      return RRCommand(command);
+    }
+    return command;
   }
 
   @override
@@ -1384,7 +1420,8 @@ abstract class VMKernelCompilerMixin {
           name.startsWith('-D') ||
           name.startsWith('--define') ||
           name.startsWith('--packages=') ||
-          name.startsWith('--enable-experiment=')),
+          name.startsWith('--enable-experiment=') ||
+          name.startsWith('--keep-class-names-implementing=')),
       '-Ddart.vm.product=$isProductMode',
       if (_enableAsserts ||
           arguments.contains('--enable-asserts') ||

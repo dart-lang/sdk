@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph;
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -19,14 +18,27 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 void buildExtensionTypes(Linker linker, List<AstNode> declarations) {
   final walker = _Walker(linker);
   final nodes = <_Node>[];
+  final elements = <ExtensionTypeElementImpl>[];
   for (final declaration in declarations) {
     if (declaration is ExtensionTypeDeclarationImpl) {
       final node = walker.getNode(declaration);
       nodes.add(node);
+      elements.add(node.element);
     }
   }
 
   for (final node in nodes) {
+    walker.walk(node);
+  }
+
+  _breakImplementsCycles(elements);
+}
+
+/// Clears interfaces for extension types that have cycles.
+void _breakImplementsCycles(List<ExtensionTypeElementImpl> elements) {
+  final walker = _ImplementsWalker();
+  for (final element in elements) {
+    final node = walker.getNode(element);
     walker.walk(node);
   }
 }
@@ -59,6 +71,62 @@ class _ExtensionTypeErasure extends ReplacementVisitor {
     }
 
     return super.visitInterfaceType(type);
+  }
+}
+
+class _ImplementsNode extends graph.Node<_ImplementsNode> {
+  final _ImplementsWalker walker;
+  final ExtensionTypeElementImpl element;
+
+  @override
+  bool isEvaluated = false;
+
+  _ImplementsNode(this.walker, this.element);
+
+  @override
+  List<_ImplementsNode> computeDependencies() {
+    return element.interfaces
+        .map((interface) => interface.element)
+        .whereType<ExtensionTypeElementImpl>()
+        .map(walker.getNode)
+        .toList();
+  }
+
+  void _evaluate() {
+    isEvaluated = true;
+  }
+
+  void _markCircular() {
+    isEvaluated = true;
+    element.hasImplementsSelfReference = true;
+
+    final representationType = element.representation.type;
+    final typeSystem = element.library.typeSystem;
+
+    final superInterface = typeSystem.isNonNullable(representationType)
+        ? typeSystem.objectNone
+        : typeSystem.objectQuestion;
+    element.interfaces = [superInterface];
+  }
+}
+
+class _ImplementsWalker extends graph.DependencyWalker<_ImplementsNode> {
+  final Map<ExtensionTypeElementImpl, _ImplementsNode> nodeMap = Map.identity();
+
+  @override
+  void evaluate(_ImplementsNode v) {
+    v._evaluate();
+  }
+
+  @override
+  void evaluateScc(List<_ImplementsNode> scc) {
+    for (final node in scc) {
+      node._markCircular();
+    }
+  }
+
+  _ImplementsNode getNode(ExtensionTypeElementImpl element) {
+    return nodeMap[element] ??= _ImplementsNode(this, element);
   }
 }
 
@@ -122,14 +190,14 @@ class _Node extends graph.Node<_Node> {
   }
 
   void _markCircular() {
-    element.hasSelfReference = true;
+    element.hasRepresentationSelfReference = true;
     _evaluateWithType(InvalidTypeImpl.instance);
   }
 }
 
 class _Walker extends graph.DependencyWalker<_Node> {
   final Linker linker;
-  final Map<ExtensionTypeElement, _Node> nodeMap = Map.identity();
+  final Map<ExtensionTypeElementImpl, _Node> nodeMap = Map.identity();
 
   _Walker(this.linker);
 

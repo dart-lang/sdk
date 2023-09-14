@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
-    show InlineExtensionIndex;
+    show ExtensionIndex;
 import 'package:dart2wasm/js/callback_specializer.dart';
 import 'package:dart2wasm/js/inline_expander.dart';
 import 'package:dart2wasm/js/interop_specializer.dart';
@@ -34,27 +34,23 @@ class InteropTransformer extends Transformer {
   final CoreTypesUtil _util;
 
   InteropTransformer._(this._staticTypeContext, this._util,
-      this._methodCollector, inlineExtensionIndex)
+      this._methodCollector, extensionIndex)
       : _callbackSpecializer = CallbackSpecializer(
-            _staticTypeContext, _util, _methodCollector, inlineExtensionIndex),
+            _staticTypeContext, _util, _methodCollector, extensionIndex),
         _inlineExpander =
             InlineExpander(_staticTypeContext, _util, _methodCollector),
         _interopSpecializerFactory = InteropSpecializerFactory(
-            _staticTypeContext,
-            _util,
-            _methodCollector,
-            inlineExtensionIndex) {}
+            _staticTypeContext, _util, _methodCollector, extensionIndex) {}
 
   factory InteropTransformer(CoreTypes coreTypes, ClassHierarchy hierarchy) {
     final typeEnvironment = TypeEnvironment(coreTypes, hierarchy);
-    final inlineExtensionIndex =
-        InlineExtensionIndex(coreTypes, typeEnvironment);
-    final util = CoreTypesUtil(coreTypes, inlineExtensionIndex);
+    final extensionIndex = ExtensionIndex(coreTypes, typeEnvironment);
+    final util = CoreTypesUtil(coreTypes, extensionIndex);
     return InteropTransformer._(
         StatefulStaticTypeContext.stacked(typeEnvironment),
         util,
         MethodCollector(util),
-        inlineExtensionIndex);
+        extensionIndex);
   }
 
   @override

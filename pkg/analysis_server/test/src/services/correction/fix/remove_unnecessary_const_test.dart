@@ -22,7 +22,7 @@ class RemoveUnnecessaryConstBulkTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.unnecessary_const;
 
   Future<void> test_singleFile() async {
-    await resolveTestCode('''
+    await parseTestCode('''
 class C { const C(); }
 class D { const D(C c); }
 const c = const C();
@@ -35,7 +35,7 @@ class D { const D(C c); }
 const c = C();
 const list = [];
 var d = const D(C());
-''');
+''', isParse: true);
   }
 }
 

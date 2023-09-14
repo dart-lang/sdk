@@ -1,0 +1,5 @@
+name: non_flutter_app
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"

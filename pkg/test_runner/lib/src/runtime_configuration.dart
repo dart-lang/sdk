@@ -480,8 +480,8 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
     if (isCrashExpected) {
       arguments.insert(0, '--suppress-core-dump');
     }
-    var runtimeArgs =
-        FuchsiaEmulator.getTestArgs(_configuration.mode.name, arguments);
+    var runtimeArgs = FuchsiaEmulator.getTestArgs(
+        _configuration.mode.name, _configuration.architecture.name, arguments);
     runtimeArgs.insert(runtimeArgs.length - 1, '--disable-dart-dev');
     return [
       VMCommand(FuchsiaEmulator.fsshTool, runtimeArgs, environmentOverrides)

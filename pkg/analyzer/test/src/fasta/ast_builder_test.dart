@@ -181,6 +181,19 @@ ClassDeclaration
         offset: 223
       /// and [Object].
         offset: 231
+    codeBlocks
+      MdCodeBlock
+        infoString: <empty>
+        lines
+          MdCodeBlockLine
+            offset: 178
+            length: 4
+          MdCodeBlockLine
+            offset: 186
+            length: 36
+          MdCodeBlockLine
+            offset: 226
+            length: 4
   metadata
     Annotation
       atSign: @ @45

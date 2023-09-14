@@ -33,6 +33,10 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
           parsed_function->function().KernelLibraryOffset()),
       constant_reader_(&helper_, &active_class_),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
+      inferred_arg_type_metadata_helper_(
+          &helper_,
+          &constant_reader_,
+          InferredTypeMetadataHelper::Kind::ArgType),
       procedure_attributes_metadata_helper_(&helper_),
       type_translator_(&helper_,
                        &constant_reader_,
@@ -278,7 +282,9 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
               TokenPosition::kNoSource, TokenPosition::kNoSource,
               Symbols::Value(),
               AbstractType::ZoneHandle(Z, function.ParameterTypeAt(pos)),
-              LocalVariable::kNoKernelOffset, &parameter_type);
+              LocalVariable::kNoKernelOffset, /*is_late=*/false,
+              /*inferred_type=*/nullptr,
+              /*inferred_arg_type=*/&parameter_type);
         } else {
           result_->setter_value = MakeVariable(
               TokenPosition::kNoSource, TokenPosition::kNoSource,
@@ -389,7 +395,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     case UntaggedFunction::kFfiTrampoline: {
       needs_expr_temp_ = true;
       // Callbacks and calls with handles need try/catch variables.
-      if ((function.GetFfiTrampolineKind() != FfiTrampolineKind::kCall ||
+      if ((function.GetFfiFunctionKind() != FfiFunctionKind::kCall ||
            function.FfiCSignatureContainsHandles())) {
         ++depth_.try_;
         AddTryVariables();
@@ -1114,44 +1120,6 @@ void ScopeBuilder::VisitStatement() {
       --depth_.loop_;
       return;
     }
-    case kForInStatement:
-    case kAsyncForInStatement: {
-      PositionScope scope(&helper_.reader_);
-
-      intptr_t start_offset =
-          helper_.ReaderOffset() - 1;  // -1 to include tag byte.
-
-      helper_.ReadPosition();  // read position.
-      TokenPosition body_position =
-          helper_.ReadPosition();  // read body position.
-
-      // Notice the ordering: We skip the variable, read the iterable, go back,
-      // re-read the variable, go forward to after having read the iterable.
-      intptr_t offset = helper_.ReaderOffset();
-      helper_.SkipVariableDeclaration();  // read variable.
-      VisitExpression();                  // read iterable.
-
-      ++depth_.for_in_;
-      AddIteratorVariable();
-      ++depth_.loop_;
-      EnterScope(start_offset);
-
-      {
-        AlternativeReadingScope alt(&helper_.reader_, offset);
-        VisitVariableDeclaration();  // read variable.
-      }
-      VisitStatement();  // read body.
-
-      if (!body_position.IsReal()) {
-        body_position = helper_.reader_.min_position();
-      }
-      // TODO(jensj): From kernel_binary.cc
-      // forinstmt->variable_->set_end_position(forinstmt->position_);
-      ExitScope(body_position, helper_.reader_.max_position());
-      --depth_.loop_;
-      --depth_.for_in_;
-      return;
-    }
     case kSwitchStatement: {
       AddSwitchVariable();
       helper_.ReadPosition();                     // read position.
@@ -1273,6 +1241,8 @@ void ScopeBuilder::VisitStatement() {
       HandleLocalFunction(offset);  // read function node.
       return;
     }
+    case kForInStatement:
+    case kAsyncForInStatement:
     case kIfCaseStatement:
     case kPatternSwitchStatement:
     case kPatternVariableDeclaration:
@@ -1317,15 +1287,15 @@ void ScopeBuilder::VisitVariableDeclaration() {
 
   const intptr_t kernel_offset =
       helper_.data_program_offset_ + helper_.ReaderOffset();
+  // MetadataHelper expects relative offsets and adjusts them internally
+  const InferredTypeMetadata inferred_type =
+      inferred_type_metadata_helper_.GetInferredType(helper_.ReaderOffset());
   VariableDeclarationHelper helper(&helper_);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
   const intptr_t annotations_offset = helper_.ReaderOffset();
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   AbstractType& type = BuildAndVisitVariableType();
 
-  // In case `declaration->IsConst()` the flow graph building will take care of
-  // evaluating the constant and setting it via
-  // `declaration->SetConstantValue()`.
   const String& name = (H.StringSize(helper.name_index_) == 0)
                            ? GenerateName(":var", name_index_++)
                            : H.DartSymbolObfuscate(helper.name_index_);
@@ -1343,7 +1313,8 @@ void ScopeBuilder::VisitVariableDeclaration() {
     end_position = end_position.Next();
   }
   LocalVariable* variable =
-      MakeVariable(helper.position_, end_position, name, type, kernel_offset);
+      MakeVariable(helper.position_, end_position, name, type, kernel_offset,
+                   helper.IsLate(), &inferred_type);
   if (helper.annotation_count_ > 0) {
     variable->set_annotations_offset(annotations_offset);
   }
@@ -1523,11 +1494,11 @@ void ScopeBuilder::VisitIntersectionType() {
 }
 
 void ScopeBuilder::VisitExtensionType() {
-  // We skip the extension type and only use the representation type.
+  // We skip the extension type and only use the type erasure.
   helper_.ReadNullability();
   helper_.SkipCanonicalNameReference();  // read index for canonical name.
   helper_.SkipListOfDartTypes();         // read type arguments
-  VisitDartType();  // read instantiated representation type.
+  VisitDartType();                       // read type erasure.
 }
 
 void ScopeBuilder::VisitFutureOrType() {
@@ -1634,8 +1605,11 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   const intptr_t kernel_offset =
       helper_.data_program_offset_ + helper_.ReaderOffset();
   // MetadataHelper expects relative offsets and adjusts them internally
-  const InferredTypeMetadata parameter_type =
+  const InferredTypeMetadata inferred_type =
       inferred_type_metadata_helper_.GetInferredType(helper_.ReaderOffset());
+  const InferredTypeMetadata inferred_arg_type =
+      inferred_arg_type_metadata_helper_.GetInferredType(
+          helper_.ReaderOffset());
   VariableDeclarationHelper helper(&helper_);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
   const intptr_t annotations_offset = helper_.ReaderOffset();
@@ -1646,9 +1620,9 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   helper.SetJustRead(VariableDeclarationHelper::kType);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kInitializer);
 
-  LocalVariable* variable =
-      MakeVariable(helper.position_, helper.position_, name, type,
-                   kernel_offset, &parameter_type);
+  LocalVariable* variable = MakeVariable(
+      helper.position_, helper.position_, name, type, kernel_offset,
+      /*is_late=*/false, &inferred_type, &inferred_arg_type);
   if (helper.annotation_count_ > 0) {
     variable->set_annotations_offset(annotations_offset);
   }
@@ -1707,7 +1681,7 @@ void ScopeBuilder::AddVariableDeclarationParameter(
 
   // TODO(sjindel): We can also skip these checks on dynamic invocations as
   // well.
-  if (parameter_type.IsSkipCheck()) {
+  if (inferred_arg_type.IsSkipCheck()) {
     variable->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
   }
 
@@ -1726,19 +1700,31 @@ LocalVariable* ScopeBuilder::MakeVariable(
     TokenPosition declaration_pos,
     TokenPosition token_pos,
     const String& name,
-    const AbstractType& type,
+    const AbstractType& static_type,
     intptr_t kernel_offset /* = LocalVariable::kNoKernelOffset */,
-    const InferredTypeMetadata* param_type_md /* = nullptr */) {
-  CompileType* param_type = nullptr;
-  const Object* param_value = nullptr;
-  if (param_type_md != nullptr && !param_type_md->IsTrivial()) {
-    param_type = new (Z) CompileType(param_type_md->ToCompileType(Z));
-    if (param_type_md->IsConstant()) {
-      param_value = &param_type_md->constant_value;
+    bool is_late /* = false */,
+    const InferredTypeMetadata* inferred_type_md /* = nullptr */,
+    const InferredTypeMetadata* inferred_arg_type_md /* = nullptr */) {
+  CompileType* inferred_type = nullptr;
+  if (inferred_type_md != nullptr && !inferred_type_md->IsTrivial()) {
+    inferred_type = new (Z)
+        CompileType(inferred_type_md->ToCompileType(Z, &static_type, is_late));
+  } else {
+    inferred_type = new (Z) CompileType(CompileType::FromAbstractType(
+        static_type, CompileType::kCanBeNull, is_late));
+  }
+  CompileType* inferred_arg_type = nullptr;
+  const Object* inferred_arg_value = nullptr;
+  if (inferred_arg_type_md != nullptr && !inferred_arg_type_md->IsTrivial()) {
+    inferred_arg_type =
+        new (Z) CompileType(inferred_arg_type_md->ToCompileType(Z));
+    if (inferred_arg_type_md->IsConstant()) {
+      inferred_arg_value = &inferred_arg_type_md->constant_value;
     }
   }
-  return new (Z) LocalVariable(declaration_pos, token_pos, name, type,
-                               kernel_offset, param_type, param_value);
+  return new (Z) LocalVariable(declaration_pos, token_pos, name, static_type,
+                               kernel_offset, inferred_type, inferred_arg_type,
+                               inferred_arg_value);
 }
 
 void ScopeBuilder::AddExceptionVariable(
@@ -1813,19 +1799,6 @@ void ScopeBuilder::FinalizeCatchVariables() {
   FinalizeExceptionVariable(
       &result_->stack_trace_variables, &result_->raw_stack_trace_variables,
       GenerateName(":raw_stacktrace", unique_id), depth_.catch_);
-}
-
-void ScopeBuilder::AddIteratorVariable() {
-  if (depth_.function_ > 0) return;
-  if (result_->iterator_variables.length() >= depth_.for_in_) return;
-
-  ASSERT(result_->iterator_variables.length() == depth_.for_in_ - 1);
-  LocalVariable* iterator =
-      MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                   GenerateName(":iterator", depth_.for_in_ - 1),
-                   AbstractType::dynamic_type());
-  current_function_scope_->AddVariable(iterator);
-  result_->iterator_variables.Add(iterator);
 }
 
 void ScopeBuilder::AddSwitchVariable() {

@@ -1,0 +1,235 @@
+Problems reported:
+
+parser/inline_class/no_body:1:7: A class declaration must have a body, even if it is empty.
+class C;
+      ^
+
+parser/inline_class/no_body:1:8: Unexpected token ';'.
+class C;
+       ^
+
+parser/inline_class/no_body:2:7: A mixin declaration must have a body, even if it is empty.
+mixin M;
+      ^
+
+parser/inline_class/no_body:2:8: Unexpected token ';'.
+mixin M;
+       ^
+
+parser/inline_class/no_body:3:16: An extension declaration must have a body, even if it is empty.
+extension E on int;
+               ^^^
+
+parser/inline_class/no_body:3:19: Unexpected token ';'.
+extension E on int;
+                  ^
+
+parser/inline_class/no_body:4:25: An extension type declaration must have a body, even if it is empty.
+extension type ET1(int i);
+                        ^
+
+parser/inline_class/no_body:4:26: Unexpected token ';'.
+extension type ET1(int i);
+                         ^
+
+parser/inline_class/no_body:5:38: An extension type declaration must have a body, even if it is empty.
+extension type ET2(int i) implements Foo;
+                                     ^^^
+
+parser/inline_class/no_body:5:41: Unexpected token ';'.
+extension type ET2(int i) implements Foo;
+                                        ^
+
+parser/inline_class/no_body:6:43: An extension type declaration must have a body, even if it is empty.
+extension type ET3(int i) implements Foo, Bar;
+                                          ^^^
+
+parser/inline_class/no_body:6:46: Unexpected token ';'.
+extension type ET3(int i) implements Foo, Bar;
+                                             ^
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(C, classOrMixinDeclaration)
+    handleNoTypeVariables(;)
+    beginClassDeclaration(class, null, null, null, null, null, null, null, null, C)
+      handleNoType(C)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      handleNoType(C)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.Class)
+      handleRecoverableError(ExpectedClassBody, C, C)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(;)
+  beginMetadataStar(;)
+  endMetadataStar(0)
+  beginTopLevelMember(;)
+    handleRecoverableError(Message[UnexpectedToken, Unexpected token ';'., null, {lexeme: ;}], ;, ;)
+    handleInvalidTopLevelDeclaration(;)
+  endTopLevelDeclaration(mixin)
+  beginMetadataStar(mixin)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(mixin)
+    handleIdentifier(M, classOrMixinDeclaration)
+    handleNoTypeVariables(;)
+    beginMixinDeclaration(null, null, mixin, M)
+      handleMixinOn(null, 0)
+      handleImplements(null, 0)
+      handleMixinHeader(mixin)
+      handleMixinOn(null, 0)
+      handleImplements(null, 0)
+      handleRecoverMixinHeader()
+      handleRecoverableError(ExpectedMixinBody, M, M)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Mixin, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Mixin, 0, {, })
+    endMixinDeclaration(mixin, })
+  endTopLevelDeclaration(;)
+  beginMetadataStar(;)
+  endMetadataStar(0)
+  beginTopLevelMember(;)
+    handleRecoverableError(Message[UnexpectedToken, Unexpected token ';'., null, {lexeme: ;}], ;, ;)
+    handleInvalidTopLevelDeclaration(;)
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(on)
+    beginExtensionDeclaration(extension, E)
+      handleIdentifier(int, typeReference)
+      handleNoTypeArguments(;)
+      handleType(int, null)
+      handleRecoverableError(ExpectedExtensionBody, int, int)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Extension, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Extension, 0, {, })
+    endExtensionDeclaration(extension, on, })
+  endTopLevelDeclaration(;)
+  beginMetadataStar(;)
+  endMetadataStar(0)
+  beginTopLevelMember(;)
+    handleRecoverableError(Message[UnexpectedToken, Unexpected token ';'., null, {lexeme: ;}], ;, ;)
+    handleInvalidTopLevelDeclaration(;)
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(extension, ET1)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(int)
+          endMetadataStar(0)
+          beginFormalParameter(int, MemberKind.PrimaryConstructor, null, null, null)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i)
+            handleType(int, null)
+            handleIdentifier(i, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false)
+      handleImplements(null, 0)
+      handleNoType())
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      handleRecoverableError(ExpectedExtensionTypeBody, ), ))
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
+  endTopLevelDeclaration(;)
+  beginMetadataStar(;)
+  endMetadataStar(0)
+  beginTopLevelMember(;)
+    handleRecoverableError(Message[UnexpectedToken, Unexpected token ';'., null, {lexeme: ;}], ;, ;)
+    handleInvalidTopLevelDeclaration(;)
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(extension, ET2)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(int)
+          endMetadataStar(0)
+          beginFormalParameter(int, MemberKind.PrimaryConstructor, null, null, null)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i)
+            handleType(int, null)
+            handleIdentifier(i, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false)
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments(;)
+      handleType(Foo, null)
+      handleImplements(implements, 1)
+      handleNoType(Foo)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      handleRecoverableError(ExpectedExtensionTypeBody, Foo, Foo)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
+  endTopLevelDeclaration(;)
+  beginMetadataStar(;)
+  endMetadataStar(0)
+  beginTopLevelMember(;)
+    handleRecoverableError(Message[UnexpectedToken, Unexpected token ';'., null, {lexeme: ;}], ;, ;)
+    handleInvalidTopLevelDeclaration(;)
+  endTopLevelDeclaration(extension)
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(()
+    beginExtensionTypeDeclaration(extension, ET3)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+          beginMetadataStar(int)
+          endMetadataStar(0)
+          beginFormalParameter(int, MemberKind.PrimaryConstructor, null, null, null)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i)
+            handleType(int, null)
+            handleIdentifier(i, formalParameterDeclaration)
+            handleFormalParameterWithoutValue())
+          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+        endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, null, false)
+      handleIdentifier(Foo, typeReference)
+      handleNoTypeArguments(,)
+      handleType(Foo, null)
+      handleIdentifier(Bar, typeReference)
+      handleNoTypeArguments(;)
+      handleType(Bar, null)
+      handleImplements(implements, 2)
+      handleNoType(Bar)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      handleRecoverableError(ExpectedExtensionTypeBody, Bar, Bar)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, type, })
+  endTopLevelDeclaration(;)
+  beginMetadataStar(;)
+  endMetadataStar(0)
+  beginTopLevelMember(;)
+    handleRecoverableError(Message[UnexpectedToken, Unexpected token ';'., null, {lexeme: ;}], ;, ;)
+    handleInvalidTopLevelDeclaration(;)
+  endTopLevelDeclaration()
+endCompilationUnit(12, )

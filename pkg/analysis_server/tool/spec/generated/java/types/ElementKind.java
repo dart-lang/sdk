@@ -31,6 +31,8 @@ public class ElementKind {
 
   public static final String EXTENSION = "EXTENSION";
 
+  public static final String EXTENSION_TYPE = "EXTENSION_TYPE";
+
   public static final String FIELD = "FIELD";
 
   public static final String FILE = "FILE";

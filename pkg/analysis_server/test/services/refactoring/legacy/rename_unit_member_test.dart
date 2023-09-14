@@ -281,6 +281,21 @@ class Test {}
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
+  Future<void> test_checkNewName_ExtensionTypeElement() async {
+    await indexTestUnit('''
+extension type Test(int it) {}
+''');
+    createRenameRefactoringAtString('Test(int it)');
+    // empty
+    refactoring.newName = '';
+    assertRefactoringStatus(
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Extension type name must not be empty.');
+    // OK
+    refactoring.newName = 'NewName';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
   Future<void> test_checkNewName_FunctionElement() async {
     await indexTestUnit('''
 test() {}
@@ -668,6 +683,50 @@ extension NewName on int {
 void f() {
   NewName(0).foo();
 }
+''');
+  }
+
+  Future<void> test_createChange_ExtensionTypeElement_atDeclaration() async {
+    await indexTestUnit('''
+extension type Test(int it) {
+  void foo() {}
+}
+void f(Test a) {}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('Test(int it)');
+    expect(refactoring.refactoringName, 'Rename Extension Type');
+    expect(refactoring.elementKindName, 'extension type');
+    expect(refactoring.oldName, 'Test');
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+extension type NewName(int it) {
+  void foo() {}
+}
+void f(NewName a) {}
+''');
+  }
+
+  Future<void> test_createChange_ExtensionTypeElement_atReference() async {
+    await indexTestUnit('''
+extension type Test(int it) {
+  void foo() {}
+}
+void f(Test a) {}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('Test a)');
+    expect(refactoring.refactoringName, 'Rename Extension Type');
+    expect(refactoring.elementKindName, 'extension type');
+    expect(refactoring.oldName, 'Test');
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+extension type NewName(int it) {
+  void foo() {}
+}
+void f(NewName a) {}
 ''');
   }
 

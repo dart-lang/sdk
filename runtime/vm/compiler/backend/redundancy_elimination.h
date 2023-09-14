@@ -72,6 +72,12 @@ class AllocationSinking : public ZoneAllocated {
 
   void EliminateAllocation(Definition* alloc);
 
+  enum SafeUseCheck { kOptimisticCheck, kStrictCheck };
+
+  bool IsAllocationSinkingCandidate(Definition* alloc, SafeUseCheck check_type);
+
+  bool IsSafeUse(Value* use, SafeUseCheck check_type);
+
   Zone* zone() const { return flow_graph_->zone(); }
 
   FlowGraph* flow_graph_;

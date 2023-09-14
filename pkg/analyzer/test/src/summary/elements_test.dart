@@ -8661,6 +8661,39 @@ library
 ''');
   }
 
+  test_class_interfaces_extensionType() async {
+    var library = await buildLibrary('''
+class A {}
+extension type B(int it) {}
+class C {}
+class D implements A, B, C {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+      class C @45
+      class D @56
+        interfaces
+          A
+          C
+    extensionTypes
+      B @26
+        representation: self::@extensionType::B::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @32
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
   test_class_interfaces_Function() async {
     var library = await buildLibrary('''
 class A {}
@@ -9155,6 +9188,45 @@ library
       class G @73
         constructors
           synthetic @-1
+''');
+  }
+
+  test_class_mixins_extensionType() async {
+    var library = await buildLibrary('''
+mixin A {}
+extension type B(int it) {}
+mixin C {}
+class D extends Object with A, B, C {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class D @56
+        supertype: Object
+        mixins
+          A
+          C
+    extensionTypes
+      B @26
+        representation: self::@extensionType::B::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @32
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+    mixins
+      mixin A @6
+        superclassConstraints
+          Object
+      mixin C @45
+        superclassConstraints
+          Object
 ''');
   }
 
@@ -10555,6 +10627,32 @@ library
       class A @6
         constructors
           synthetic @-1
+''');
+  }
+
+  test_class_supertype_extensionType() async {
+    var library = await buildLibrary('''
+extension type A(int it) {}
+class B extends A {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class B @34
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @21
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
 ''');
   }
 
@@ -15892,6 +15990,63 @@ library
     accessors
       synthetic static get V @-1
         returnType: C<dynamic, dynamic>
+''');
+  }
+
+  test_const_invokeConstructor_generic_noTypeArguments_inferred() async {
+    var library = await buildLibrary(r'''
+class A<T> {
+  final T t;
+  const A(this.t);
+}
+const Object a = const A(0);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        fields
+          final t @23
+            type: T
+        constructors
+          const @34
+            parameters
+              requiredPositional final this.t @41
+                type: T
+                field: self::@class::A::@field::t
+        accessors
+          synthetic get t @-1
+            returnType: T
+    topLevelVariables
+      static const a @60
+        type: Object
+        shouldUseTypeForInitializerInference: true
+        constantInitializer
+          InstanceCreationExpression
+            keyword: const @64
+            constructorName: ConstructorName
+              type: NamedType
+                name: A @70
+                element: self::@class::A
+                type: A<int>
+              staticElement: ConstructorMember
+                base: self::@class::A::@constructor::new
+                substitution: {T: int}
+            argumentList: ArgumentList
+              leftParenthesis: ( @71
+              arguments
+                IntegerLiteral
+                  literal: 0 @72
+                  staticType: int
+              rightParenthesis: ) @73
+            staticType: A<int>
+    accessors
+      synthetic static get a @-1
+        returnType: Object
 ''');
   }
 
@@ -23751,6 +23906,54 @@ library
 ''');
   }
 
+  test_enum_interfaces_extensionType() async {
+    var library = await buildLibrary(r'''
+class A {}
+extension type B(int it) {}
+class C {}
+enum E implements A, B, C { v }
+''');
+    configuration
+      ..withConstructors = false
+      ..withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+      class C @45
+    enums
+      enum E @55
+        supertype: Enum
+        interfaces
+          A
+          C
+        fields
+          static const enumConstant v @78
+            type: E
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<E>
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+    extensionTypes
+      B @26
+        representation: self::@extensionType::B::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @32
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
   test_enum_interfaces_generic() async {
     var library = await buildLibrary(r'''
 class I<T> {}
@@ -24053,6 +24256,54 @@ library
       mixin M @6
         superclassConstraints
           Object
+''');
+  }
+
+  test_enum_mixins_extensionType() async {
+    var library = await buildLibrary(r'''
+class A {}
+extension type B(int it) {}
+class C {}
+enum E with A, B, C { v }
+''');
+    configuration
+      ..withConstructors = false
+      ..withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+      class C @45
+    enums
+      enum E @55
+        supertype: Enum
+        mixins
+          A
+          C
+        fields
+          static const enumConstant v @72
+            type: E
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<E>
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+    extensionTypes
+      B @26
+        representation: self::@extensionType::B::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @32
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
 ''');
   }
 
@@ -37641,6 +37892,42 @@ library
 ''');
   }
 
+  test_mixin_interfaces_extensionType() async {
+    var library = await buildLibrary(r'''
+class A {}
+extension type B(int it) {}
+class C {}
+mixin M implements A, B, C {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+      class C @45
+    extensionTypes
+      B @26
+        representation: self::@extensionType::B::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @32
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+    mixins
+      mixin M @56
+        superclassConstraints
+          Object
+        interfaces
+          A
+          C
+''');
+  }
+
   test_mixin_method_invokesSuperSelf() async {
     var library = await buildLibrary(r'''
 mixin M on A {
@@ -37737,6 +38024,40 @@ library
               requiredPositional _ @29
                 type: int
             returnType: void
+''');
+  }
+
+  test_mixin_superclassConstraints_extensionType() async {
+    var library = await buildLibrary(r'''
+class A {}
+extension type B(int it) {}
+class C {}
+mixin M on A, B, C {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+      class C @45
+    extensionTypes
+      B @26
+        representation: self::@extensionType::B::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @32
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+    mixins
+      mixin M @56
+        superclassConstraints
+          A
+          C
 ''');
   }
 
@@ -46728,6 +47049,38 @@ library
 ''');
   }
 
+  test_documentation() async {
+    var library = await buildLibrary(r'''
+/// Docs
+extension type A(int it) {
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @24
+        documentationComment: /// Docs
+        representation: self::@extensionType::A::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @30
+            type: int
+        constructors
+          @24
+            parameters
+              requiredPositional final this.it @30
+                type: int
+                field: self::@extensionType::A::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
   test_field_const_typed() async {
     var library = await buildLibrary(r'''
 extension type A(int it) {
@@ -46935,6 +47288,66 @@ library
         accessors
           synthetic get it @-1
             returnType: C
+''');
+  }
+
+  test_interfaces_cycle2() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) implements B {}
+extension type B(int it) implements A {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      hasImplementsSelfReference A @15
+        representation: self::@extensionType::A::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @21
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+      hasImplementsSelfReference B @56
+        representation: self::@extensionType::B::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @62
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
+  test_interfaces_cycle_self() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) implements A {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      hasImplementsSelfReference A @15
+        representation: self::@extensionType::A::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @21
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
 ''');
   }
 
@@ -47201,6 +47614,34 @@ library
 ''');
   }
 
+  test_notSimplyBounded_self() async {
+    var library = await buildLibrary(r'''
+extension type A<T extends A>(int it) {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      notSimplyBounded A @15
+        typeParameters
+          covariant T @17
+            bound: A<dynamic>
+            defaultType: dynamic
+        representation: self::@extensionType::A::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @34
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
   test_setter() async {
     var library = await buildLibrary(r'''
 extension type A(int it) {
@@ -47246,7 +47687,7 @@ extension type B(A it) {}
 library
   definingUnit
     extensionTypes
-      hasSelfReference A @15
+      hasRepresentationSelfReference A @15
         representation: self::@extensionType::A::@field::it
         typeErasure: InvalidType
         interfaces
@@ -47257,7 +47698,7 @@ library
         accessors
           synthetic get it @-1
             returnType: InvalidType
-      hasSelfReference B @42
+      hasRepresentationSelfReference B @42
         representation: self::@extensionType::B::@field::it
         typeErasure: InvalidType
         interfaces
@@ -47294,7 +47735,7 @@ library
         accessors
           synthetic get it @-1
             returnType: B
-      hasSelfReference B @42
+      hasRepresentationSelfReference B @42
         representation: self::@extensionType::B::@field::it
         typeErasure: InvalidType
         interfaces
@@ -47318,7 +47759,7 @@ extension type A(A it) {}
 library
   definingUnit
     extensionTypes
-      hasSelfReference A @15
+      hasRepresentationSelfReference A @15
         representation: self::@extensionType::A::@field::it
         typeErasure: InvalidType
         interfaces

@@ -85,7 +85,8 @@ void SourceReport::Init(Thread* thread,
     // Build the profile.
     SampleFilter samplesForIsolate(thread_->isolate()->main_port(),
                                    Thread::kMutatorTask, -1, -1);
-    profile_.Build(thread, &samplesForIsolate, Profiler::sample_block_buffer());
+    profile_.Build(thread, thread->isolate(), &samplesForIsolate,
+                   Profiler::sample_block_buffer());
   }
 }
 
@@ -329,9 +330,11 @@ bool SourceReport::ShouldCoverageSkipCallSite(const ICData* ic_data) {
   // shouldn't count against the coverage total.
   // See https://github.com/dart-lang/coverage/issues/341
   if (late_error_class_id_ == ClassId::kIllegalCid) {
-    const Class& lateErrorClass =
-        Class::Handle(Library::LookupCoreClass(Symbols::LateError()));
-    late_error_class_id_ = lateErrorClass.id();
+    const auto& dart_internal = Library::Handle(Library::InternalLibrary());
+    const auto& late_error_class =
+        Class::Handle(dart_internal.LookupClass(Symbols::LateError()));
+    ASSERT(!late_error_class.IsNull());
+    late_error_class_id_ = late_error_class.id();
   }
   Class& cls = Class::Handle(func.Owner());
   if (late_error_class_id_ == cls.id()) {

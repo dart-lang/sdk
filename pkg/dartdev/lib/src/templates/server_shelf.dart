@@ -48,14 +48,14 @@ environment:
   ${common.sdkConstraint}
 
 dependencies:
-  args: ^2.3.0
+  args: ^2.4.0
   shelf: ^1.4.0
   shelf_router: ^1.1.0
 
 dev_dependencies:
-  http: ^0.13.0
-  lints: ^2.0.0
-  test: ^1.21.0
+  http: ^1.1.0
+  lints: ^2.1.0
+  test: ^1.24.0
 ''';
 
 final String _readme = '''

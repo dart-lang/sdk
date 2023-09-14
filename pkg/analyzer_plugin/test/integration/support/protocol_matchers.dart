@@ -254,6 +254,7 @@ final Matcher isElement = LazyMatcher(() => MatchesJsonObject('Element', {
 ///   ENUM
 ///   ENUM_CONSTANT
 ///   EXTENSION
+///   EXTENSION_TYPE
 ///   FIELD
 ///   FILE
 ///   FUNCTION
@@ -284,6 +285,7 @@ final Matcher isElementKind = MatchesEnum('ElementKind', [
   'ENUM',
   'ENUM_CONSTANT',
   'EXTENSION',
+  'EXTENSION_TYPE',
   'FIELD',
   'FILE',
   'FUNCTION',

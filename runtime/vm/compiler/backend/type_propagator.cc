@@ -690,6 +690,18 @@ CompileType CompileType::FromCid(intptr_t cid) {
   return CompileType(cid == kNullCid, cid == kSentinelCid, cid, nullptr);
 }
 
+CompileType CompileType::FromUnboxedRepresentation(Representation rep) {
+  ASSERT(rep != kTagged);
+  ASSERT(rep != kUntagged);
+  if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    if (!Boxing::RequiresAllocation(rep)) {
+      return CompileType::Smi();
+    }
+    return CompileType::Int();
+  }
+  return CompileType::FromCid(Boxing::BoxCid(rep));
+}
+
 CompileType CompileType::Dynamic() {
   return CompileType(kCanBeNull, kCannotBeSentinel, kDynamicCid,
                      &Object::dynamic_type());
@@ -1193,7 +1205,7 @@ CompileType ParameterInstr::ComputeType() const {
     // Parameter is the receiver.
     if ((param_index == 0) &&
         (function.IsDynamicFunction() || function.IsGenerativeConstructor())) {
-      const AbstractType& type = pf.RawParameterVariable(0)->type();
+      const AbstractType& type = pf.RawParameterVariable(0)->static_type();
       if (type.IsObjectType() || type.IsNullType()) {
         // Receiver can be null.
         return CompileType(CompileType::kCanBeNull,
@@ -1247,7 +1259,7 @@ CompileType ParameterInstr::ComputeType() const {
     intptr_t inferred_cid = kDynamicCid;
     bool inferred_nullable = true;
     if (!block_->IsCatchBlockEntry()) {
-      inferred_type = param->parameter_type();
+      inferred_type = param->inferred_arg_type();
 
       if (inferred_type != nullptr) {
         // Use inferred type if it is an int.
@@ -1269,7 +1281,7 @@ CompileType ParameterInstr::ComputeType() const {
         (param->was_type_checked_by_caller() ||
          (is_unchecked_entry_param &&
           !param->is_explicit_covariant_parameter()))) {
-      const AbstractType& static_type = param->type();
+      const AbstractType& static_type = param->static_type();
       CompileType result(
           inferred_nullable && !static_type.IsStrictlyNonNullable(),
           block_->IsCatchBlockEntry() && param->is_late(),
@@ -1582,10 +1594,7 @@ CompileType LoadLocalInstr::ComputeType() const {
     // optimizations. See dartbug.com/43464.
     return CompileType::Dynamic();
   }
-  const AbstractType& local_type = local().type();
-  TraceStrongModeType(this, local_type);
-  return CompileType::FromAbstractType(local_type, CompileType::kCanBeNull,
-                                       local().is_late());
+  return *local().inferred_type();
 }
 
 CompileType DropTempsInstr::ComputeType() const {
@@ -1698,7 +1707,7 @@ CompileType LoadFieldInstr::ComputeType() const {
       }
     }
   }
-  CompileType type = slot().ComputeCompileType();
+  CompileType type = slot().type();
   if (calls_initializer()) {
     type = type.CopyNonSentinel();
   }
@@ -1974,8 +1983,8 @@ static CompileType ComputeArrayElementType(Value* array) {
   // type arguments which can be used to figure out element type.
   if (auto* load_field = array->definition()->AsLoadField()) {
     if (load_field->slot().IsDartField()) {
-      elem_type =
-          ExtractElementTypeFromArrayType(load_field->slot().static_type());
+      elem_type = load_field->slot().field().type();
+      elem_type = ExtractElementTypeFromArrayType(elem_type);
     }
   }
   return CompileType::FromAbstractType(elem_type, CompileType::kCanBeNull,

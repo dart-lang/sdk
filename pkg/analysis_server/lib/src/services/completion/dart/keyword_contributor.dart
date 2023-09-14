@@ -58,17 +58,6 @@ class KeywordContributor extends DartCompletionContributor {
 
 /// A visitor for generating keyword suggestions.
 class _KeywordVisitor extends SimpleAstVisitor<void> {
-  /// The keywords that are valid at the beginning of a pattern (and hence a
-  /// guarded pattern).
-  static const List<Keyword> patternKeywords = [
-    Keyword.CONST,
-    Keyword.FALSE,
-    Keyword.FINAL,
-    Keyword.NULL,
-    Keyword.TRUE,
-    Keyword.VAR,
-  ];
-
   final DartCompletionRequest request;
 
   final SuggestionBuilder builder;
@@ -112,155 +101,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
           _addSuggestion2(SYNC_STAR);
         }
       }
-    }
-  }
-
-  @override
-  void visitAsExpression(AsExpression node) {
-    if (identical(entity, node.asOperator) &&
-        node.expression is ParenthesizedExpression) {
-      _addSuggestion(Keyword.ASYNC);
-      _addSuggestion2(ASYNC_STAR);
-      _addSuggestion2(SYNC_STAR);
-    } else if (identical(entity, node.type)) {
-      _addSuggestion(Keyword.DYNAMIC);
-    }
-  }
-
-  @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitAwaitExpression(AwaitExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitBinaryExpression(BinaryExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitBlock(Block node) {
-    var prevStmt = OpType.getPreviousStatement(node, entity);
-    if (prevStmt is TryStatement) {
-      if (prevStmt.finallyBlock == null) {
-        _addSuggestion(Keyword.ON);
-        _addSuggestion(Keyword.CATCH);
-        _addSuggestion(Keyword.FINALLY);
-        if (prevStmt.catchClauses.isEmpty) {
-          // If try statement with no catch, on, or finally
-          // then only suggest these keywords
-          return;
-        }
-      }
-    }
-
-    if (entity is ExpressionStatement) {
-      var expression = (entity as ExpressionStatement).expression;
-      if (expression is SimpleIdentifier) {
-        var token = expression.token;
-        var previous = node.findPrevious(token);
-        if (previous != null && previous.isSynthetic) {
-          previous = node.findPrevious(previous);
-        }
-        var next = token.next!;
-        if (next.isSynthetic) {
-          next = next.next!;
-        }
-        if (previous != null &&
-            previous.type == TokenType.CLOSE_PAREN &&
-            next.type == TokenType.OPEN_CURLY_BRACKET) {
-          _addSuggestion(Keyword.ASYNC);
-          _addSuggestion2(ASYNC_STAR);
-          _addSuggestion2(SYNC_STAR);
-        }
-      }
-    }
-    _addStatementKeywords(node);
-    if (node.inCatchClause) {
-      _addSuggestion(Keyword.RETHROW);
-    }
-  }
-
-  @override
-  void visitBooleanLiteral(BooleanLiteral node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitCascadeExpression(CascadeExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitCaseClause(CaseClause node) {
-    _addSuggestions(patternKeywords);
-  }
-
-  @override
-  void visitClassDeclaration(ClassDeclaration node) {
-    final entity = this.entity;
-    // Don't suggest class name
-    if (entity == node.name) {
-      return;
-    }
-    if (entity == node.classKeyword) {
-      var previous = node.findPrevious(node.classKeyword);
-      if (previous != null) {
-        if (previous.keyword != Keyword.BASE &&
-            previous.keyword != Keyword.FINAL &&
-            previous.keyword != Keyword.INTERFACE &&
-            previous.keyword != Keyword.MIXIN &&
-            previous.keyword != Keyword.SEALED) {
-          if (previous.keyword != Keyword.ABSTRACT) {
-            if (request.featureSet.isEnabled(Feature.sealed_class)) {
-              _addSuggestion(Keyword.SEALED);
-            }
-          } else {
-            // abstract ^ class A {}
-            if (request.featureSet.isEnabled(Feature.class_modifiers)) {
-              _addSuggestions([
-                Keyword.BASE,
-                Keyword.FINAL,
-                Keyword.INTERFACE,
-                Keyword.MIXIN
-              ]);
-            }
-          }
-        }
-        if (request.featureSet.isEnabled(Feature.class_modifiers) &&
-            previous.keyword == Keyword.BASE) {
-          // base ^ class A {}
-          // abstract base ^ class A {}
-          _addSuggestion(Keyword.MIXIN);
-        }
-      }
-    } else if (entity == node.mixinKeyword) {
-      var previous = node.findPrevious(node.mixinKeyword!);
-      if (previous != null) {
-        if (previous.keyword != Keyword.BASE) {
-          // abstract ^ mixin class A {}
-          if (request.featureSet.isEnabled(Feature.class_modifiers)) {
-            _addSuggestion(Keyword.BASE);
-          }
-        }
-      }
-    } else if (entity == node.rightBracket) {
-      _addClassBodyKeywords();
-    } else if (entity is ClassMember) {
-      _addClassBodyKeywords();
-      var index = node.members.indexOf(entity);
-      var previous = index > 0 ? node.members[index - 1] : null;
-      if (previous is MethodDeclaration && previous.body.isEmpty) {
-        _addSuggestion(Keyword.ASYNC);
-        _addSuggestion2(ASYNC_STAR);
-        _addSuggestion2(SYNC_STAR);
-      }
-    } else {
-      _addClassDeclarationKeywords(node);
     }
   }
 
@@ -323,111 +163,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
       }
       _addCompilationUnitKeywords();
     }
-  }
-
-  @override
-  void visitConditionalExpression(ConditionalExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.initializers.isNotEmpty) {
-      if (entity is ConstructorInitializer) {
-        _addSuggestion(Keyword.ASSERT);
-      }
-      var last = node.initializers.last;
-      if (last == entity) {
-        var previous = node.findPrevious(last.beginToken);
-        if (previous != null && previous.end <= request.offset) {
-          _addSuggestion(Keyword.SUPER);
-          _addSuggestion(Keyword.THIS);
-        }
-      }
-    } else {
-      var separator = node.separator;
-      if (separator != null) {
-        var offset = request.offset;
-        if (separator.end <= offset && offset <= separator.next!.offset) {
-          _addSuggestion(Keyword.ASSERT);
-          _addSuggestion(Keyword.SUPER);
-          _addSuggestion(Keyword.THIS);
-        }
-      }
-    }
-  }
-
-  @override
-  void visitConstructorReference(ConstructorReference node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    if (node.name is SyntheticStringToken) {
-      return;
-    }
-    var parent = node.parent;
-    if (!(parent is GuardedPattern && parent.hasWhen)) {
-      _addSuggestion(Keyword.WHEN);
-    }
-  }
-
-  @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    if (entity == node.defaultValue) {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitEnumDeclaration(EnumDeclaration node) {
-    if (!request.featureSet.isEnabled(Feature.enhanced_enums)) {
-      return;
-    }
-
-    if (entity == node.name) {
-      return;
-    }
-
-    var semicolon = node.semicolon;
-    if (request.offset <= node.leftBracket.offset) {
-      if (node.withClause == null) {
-        _addSuggestion(Keyword.WITH);
-      }
-      if (node.implementsClause == null) {
-        _addSuggestion(Keyword.IMPLEMENTS);
-      }
-    } else if (semicolon != null && semicolon.end <= request.offset) {
-      _addEnumBodyKeywords();
-    }
-  }
-
-  @override
-  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    if (entity == node.expression) {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
-    // Don't suggest extension name
-    if (entity == node.name) {
-      return;
-    }
-    if (entity == node.rightBracket) {
-      _addExtensionBodyKeywords();
-    } else if (entity is ClassMember) {
-      _addExtensionBodyKeywords();
-    } else {
-      _addExtensionDeclarationKeywords(node);
-    }
-  }
-
-  @override
-  void visitExtensionOverride(ExtensionOverride node) {
-    _addExpressionKeywords(node);
   }
 
   @override
@@ -494,12 +229,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   @override
   void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
     _visitForEachParts(node);
-  }
-
-  @override
-  void visitForElement(ForElement node) {
-    _addCollectionElementKeywords();
-    _addExpressionKeywords(node);
   }
 
   @override
@@ -625,166 +354,27 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
     }
   }
 
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    // If the cursor is at the beginning of the declaration, include the
-    // compilation unit keywords.  See dartbug.com/41039.
-    if (entity == node.returnType || entity == node.name) {
-      _addSuggestion(Keyword.DYNAMIC);
-      _addSuggestion(Keyword.VOID);
-    }
-  }
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    if (entity == node.body) {
-      var body = node.body;
-      if (!body.isAsynchronous) {
-        _addSuggestion(Keyword.ASYNC);
-        if (body is! ExpressionFunctionBody) {
-          _addSuggestion2(ASYNC_STAR);
-          _addSuggestion2(SYNC_STAR);
-        }
-      }
-      var grandParent = node.parent;
-      if (body is EmptyFunctionBody &&
-          grandParent is FunctionDeclaration &&
-          grandParent.parent is CompilationUnit) {
-        _addCompilationUnitKeywords();
-      }
-    }
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitFunctionReference(FunctionReference node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
-    if (entity == node.type) {
-      _addSuggestion(Keyword.DYNAMIC);
-      _addSuggestion(Keyword.VOID);
-    }
-  }
-
-  @override
-  void visitIfElement(IfElement node) {
-    if (entity == node.rightParenthesis) {
-      var caseClause = node.caseClause;
-      if (caseClause == null) {
-        _addSuggestion(Keyword.CASE);
-        _addSuggestion(Keyword.IS);
-      } else if (caseClause.guardedPattern.hasWhen) {
-        if (caseClause.guardedPattern.whenClause?.expression == null) {
-          _addExpressionKeywords(node);
-        }
-      } else {
-        _addSuggestion(Keyword.WHEN);
-      }
-    } else if (entity == node.thenElement || entity == node.elseElement) {
-      _addCollectionElementKeywords();
-      _addExpressionKeywords(node);
-    } else if (entity == node.expression) {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitIfStatement(IfStatement node) {
-    if (_isPreviousTokenSynthetic(entity, TokenType.CLOSE_PAREN)) {
-      // analyzer parser
-      // Actual: if (x i^)
-      // Parsed: if (x) i^
-      _addSuggestion(Keyword.IS);
-    } else if (entity == node.rightParenthesis) {
-      var caseClause = node.caseClause;
-      if (caseClause == null) {
-        _addSuggestion(Keyword.CASE);
-        _addSuggestion(Keyword.IS);
-      } else if (caseClause.guardedPattern.hasWhen) {
-        if (caseClause.guardedPattern.whenClause?.expression == null) {
-          _addExpressionKeywords(node);
-        }
-      } else {
-        _addSuggestion(Keyword.WHEN);
-      }
-    } else if (entity == node.thenStatement || entity == node.elseStatement) {
-      _addStatementKeywords(node);
-    } else if (entity == node.expression) {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitImportDirective(ImportDirective node) {
-    if (entity == node.asKeyword) {
-      if (node.deferredKeyword == null) {
-        _addSuggestion(Keyword.DEFERRED);
-      }
-    }
-    // Handle degenerate case where import statement does not have a semicolon
-    // and the cursor is in the uri string
-    if ((entity == node.semicolon && node.uri.offset + 1 != request.offset) ||
-        node.combinators.contains(entity)) {
-      _addImportDirectiveKeywords(node);
-    }
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (entity == node.constructorName) {
-      // no keywords in 'new ^' expression
-    } else {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitIsExpression(IsExpression node) {
-    if (entity == node.isOperator) {
-      _addSuggestion(Keyword.IS);
-    } else {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {
-    // no suggestions
-  }
-
-  @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    if (entity == node.body) {
-      if (node.body.isEmpty) {
-        _addClassBodyKeywords();
-        _addSuggestion(Keyword.ASYNC);
-        _addSuggestion2(ASYNC_STAR);
-        _addSuggestion2(SYNC_STAR);
-      } else {
-        _addSuggestion(Keyword.ASYNC);
-        if (node.body is! ExpressionFunctionBody) {
-          _addSuggestion2(ASYNC_STAR);
-          _addSuggestion2(SYNC_STAR);
-        }
-      }
-    } else if (entity == node.returnType || entity == node.name) {
-      // If the cursor is at the beginning of the declaration, include the class
-      // body keywords.  See dartbug.com/41039.
-      _addClassBodyKeywords();
-    }
-  }
+  // @override
+  // void visitMethodDeclaration(MethodDeclaration node) {
+  //   if (entity == node.body) {
+  //     if (node.body.isEmpty) {
+  //       _addClassBodyKeywords();
+  //       _addSuggestion(Keyword.ASYNC);
+  //       _addSuggestion2(ASYNC_STAR);
+  //       _addSuggestion2(SYNC_STAR);
+  //     } else {
+  //       _addSuggestion(Keyword.ASYNC);
+  //       if (node.body is! ExpressionFunctionBody) {
+  //         _addSuggestion2(ASYNC_STAR);
+  //         _addSuggestion2(SYNC_STAR);
+  //       }
+  //     }
+  //   } else if (entity == node.returnType || entity == node.name) {
+  //     // If the cursor is at the beginning of the declaration, include the class
+  //     // body keywords.  See dartbug.com/41039.
+  //     _addClassBodyKeywords();
+  //   }
+  // }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
@@ -799,93 +389,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
       _addSuggestion(Keyword.DYNAMIC);
       _addSuggestion(Keyword.VOID);
     } else {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitMixinDeclaration(MixinDeclaration node) {
-    final entity = this.entity;
-    // Don't suggest mixin name
-    if (entity == node.name) {
-      return;
-    }
-    if (entity == node.rightBracket) {
-      _addClassBodyKeywords();
-    } else if (entity is ClassMember) {
-      _addClassBodyKeywords();
-      var index = node.members.indexOf(entity);
-      var previous = index > 0 ? node.members[index - 1] : null;
-      if (previous is MethodDeclaration && previous.body.isEmpty) {
-        _addSuggestion(Keyword.ASYNC);
-        _addSuggestion2(ASYNC_STAR);
-        _addSuggestion2(SYNC_STAR);
-      }
-    } else if (entity != node.mixinKeyword) {
-      _addMixinDeclarationKeywords(node);
-    }
-  }
-
-  @override
-  void visitNamedExpression(NamedExpression node) {
-    if (entity is SimpleIdentifier && entity == node.expression) {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitNullLiteral(NullLiteral node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitParenthesizedExpression(ParenthesizedExpression node) {
-    var expression = node.expression;
-    if (expression is Identifier || expression is PropertyAccess) {
-      if (entity == node.rightParenthesis) {
-        var next = expression.endToken.next;
-        if (next == entity || next == droppedToken) {
-          // Fasta parses `if (x i^)` as `if (x ^) where the `i` is in the token
-          // stream but not part of the ParenthesizedExpression.
-          _addSuggestion(Keyword.IS);
-          return;
-        }
-      }
-    }
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitPatternAssignment(PatternAssignment node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitPostfixExpression(PostfixExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (entity != node.identifier) {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitPrefixExpression(PrefixExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    // suggestions before '.' but not after
-    if (entity != node.propertyName) {
       _addExpressionKeywords(node);
     }
   }
@@ -911,13 +414,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitReturnStatement(ReturnStatement node) {
-    if (entity == node.expression) {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var entity = this.entity;
     if (node.type == entity && entity is GenericFunctionType) {
@@ -938,188 +434,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
     _addExpressionKeywords(node);
   }
 
-  @override
-  void visitSpreadElement(SpreadElement node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitSuperExpression(SuperExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitSwitchCase(SwitchCase node) {
-    _addStatementKeywords(node);
-  }
-
-  @override
-  void visitSwitchExpression(SwitchExpression node) {
-    if (entity == node.expression) {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitSwitchPatternCase(SwitchPatternCase node) {
-    final entity = this.entity;
-    if (entity == node.colon && request.target.offset <= node.colon.offset) {
-      var previous = node.colon.previous?.keyword;
-      if (previous == Keyword.AS) {
-        _addSuggestion(Keyword.DYNAMIC);
-      } else if (previous != Keyword.WHEN) {
-        _addSuggestions([Keyword.AS, Keyword.WHEN]);
-      }
-    } else if (entity is GuardedPattern) {
-      var pattern = node.guardedPattern.pattern;
-      if (pattern is DeclaredVariablePattern) {
-        var keyword = pattern.keyword;
-        if (keyword == null) {
-          _addConstantExpressionKeywords(node);
-          _addSuggestions([Keyword.FINAL, Keyword.VAR]);
-        }
-      } else if (pattern is ConstantPattern) {
-        _addConstantExpressionKeywords(node);
-        _addSuggestions([Keyword.FINAL, Keyword.VAR]);
-      } else {
-        _addConstantExpressionKeywords(node);
-      }
-    } else {
-      _addStatementKeywords(node);
-    }
-  }
-
-  @override
-  void visitSwitchStatement(SwitchStatement node) {
-    if (entity == node.expression) {
-      _addExpressionKeywords(node);
-    } else if (entity == node.rightBracket) {
-      _addSuggestion(Keyword.CASE);
-      _addSuggestion2(DEFAULT_COLON);
-      if (node.members.isNotEmpty) {
-        _addStatementKeywords(node);
-      }
-    }
-    if (node.members.contains(entity)) {
-      _addSuggestion(Keyword.CASE);
-      _addSuggestion2(DEFAULT_COLON);
-      if (entity != node.members.first) {
-        _addStatementKeywords(node);
-      }
-    }
-  }
-
-  @override
-  void visitSymbolLiteral(SymbolLiteral node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitThisExpression(ThisExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitThrowExpression(ThrowExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    var variableDeclarationList = node.variables;
-    if (entity != variableDeclarationList) return;
-    var variables = variableDeclarationList.variables;
-    if (variables.isEmpty || request.offset > variables.first.beginToken.end) {
-      return;
-    }
-    if (node.externalKeyword == null) {
-      _addSuggestion(Keyword.EXTERNAL);
-    }
-    if (variableDeclarationList.lateKeyword == null &&
-        request.featureSet.isEnabled(Feature.non_nullable)) {
-      _addSuggestion(Keyword.LATE);
-    }
-    if (!variables.first.isConst) {
-      _addSuggestion(Keyword.CONST);
-    }
-    if (!variables.first.isFinal) {
-      _addSuggestion(Keyword.FINAL);
-    }
-  }
-
-  @override
-  void visitTryStatement(TryStatement node) {
-    var obj = entity;
-    if (obj is CatchClause ||
-        (obj is KeywordToken && obj.value() == Keyword.FINALLY)) {
-      _addSuggestion(Keyword.ON);
-      _addSuggestion(Keyword.CATCH);
-      return;
-    }
-  }
-
-  @override
-  void visitTypeArgumentList(TypeArgumentList node) {
-    _addSuggestion(Keyword.DYNAMIC);
-    _addSuggestion(Keyword.VOID);
-  }
-
-  @override
-  void visitTypeLiteral(TypeLiteral node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    if (entity == node.initializer) {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
-    var keyword = node.keyword;
-    var variables = node.variables;
-    if (variables.isNotEmpty && entity == variables[0]) {
-      var type = node.type;
-      if (type == null && keyword?.keyword != Keyword.VAR) {
-        _addSuggestion(Keyword.DYNAMIC);
-        _addSuggestion(Keyword.VOID);
-      } else if (type is RecordTypeAnnotation) {
-        // This might be a record pattern that happens to look like a type, in
-        // which case the user might be typing `in`.
-        _addSuggestion(Keyword.IN);
-      }
-    }
-  }
-
-  @override
-  void visitWhenClause(WhenClause node) {
-    var whenKeyword = node.whenKeyword;
-    if (!whenKeyword.isSynthetic && request.offset > whenKeyword.end) {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  void _addClassBodyKeywords() {
-    _addSuggestions([
-      Keyword.CONST,
-      Keyword.COVARIANT,
-      Keyword.DYNAMIC,
-      Keyword.FACTORY,
-      Keyword.FINAL,
-      Keyword.GET,
-      Keyword.OPERATOR,
-      Keyword.SET,
-      Keyword.STATIC,
-      Keyword.VAR,
-      Keyword.VOID
-    ]);
-    if (request.featureSet.isEnabled(Feature.non_nullable)) {
-      _addSuggestion(Keyword.LATE);
-    }
-  }
-
   void _addClassDeclarationKeywords(ClassDeclaration node) {
     // Very simplistic suggestion because analyzer will warn if
     // the extends / with / implements keywords are out of order
@@ -1130,15 +444,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
     }
     if (node.implementsClause == null) {
       _addSuggestion(Keyword.IMPLEMENTS);
-    }
-  }
-
-  void _addCollectionElementKeywords() {
-    if (request.featureSet.isEnabled(Feature.control_flow_collections)) {
-      _addSuggestions([
-        Keyword.FOR,
-        Keyword.IF,
-      ]);
     }
   }
 
@@ -1182,21 +487,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _addEnumBodyKeywords() {
-    _addSuggestions([
-      Keyword.CONST,
-      Keyword.DYNAMIC,
-      Keyword.FINAL,
-      Keyword.GET,
-      Keyword.LATE,
-      Keyword.OPERATOR,
-      Keyword.SET,
-      Keyword.STATIC,
-      Keyword.VAR,
-      Keyword.VOID
-    ]);
-  }
-
   void _addExpressionKeywords(AstNode node) {
     _addSuggestions([
       Keyword.FALSE,
@@ -1214,23 +504,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
     }
     if (request.featureSet.isEnabled(Feature.patterns)) {
       _addSuggestion(Keyword.SWITCH);
-    }
-  }
-
-  void _addExtensionBodyKeywords() {
-    _addSuggestions([
-      Keyword.CONST,
-      Keyword.DYNAMIC,
-      Keyword.FINAL,
-      Keyword.GET,
-      Keyword.OPERATOR,
-      Keyword.SET,
-      Keyword.STATIC,
-      Keyword.VAR,
-      Keyword.VOID
-    ]);
-    if (request.featureSet.isEnabled(Feature.non_nullable)) {
-      _addSuggestion(Keyword.LATE);
     }
   }
 
@@ -1272,47 +545,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _addStatementKeywords(AstNode node) {
-    if (node.inClassMemberBody) {
-      _addSuggestions([Keyword.SUPER, Keyword.THIS]);
-    }
-    if (node.inAsyncMethodOrFunction) {
-      _addSuggestion(Keyword.AWAIT);
-    } else if (node.inAsyncStarOrSyncStarMethodOrFunction) {
-      _addSuggestion(Keyword.AWAIT);
-      _addSuggestion(Keyword.YIELD);
-      _addSuggestion2(YIELD_STAR);
-    }
-    if (node.inLoop) {
-      _addSuggestions([Keyword.BREAK, Keyword.CONTINUE]);
-    }
-    if (node.inSwitch) {
-      _addSuggestions([Keyword.BREAK]);
-    }
-    if (_isEntityAfterIfWithoutElse(node)) {
-      _addSuggestions([Keyword.ELSE]);
-    }
-    _addSuggestions([
-      Keyword.ASSERT,
-      Keyword.CONST,
-      Keyword.DO,
-      Keyword.DYNAMIC,
-      Keyword.FINAL,
-      Keyword.FOR,
-      Keyword.IF,
-      Keyword.RETURN,
-      Keyword.SWITCH,
-      Keyword.THROW,
-      Keyword.TRY,
-      Keyword.VAR,
-      Keyword.VOID,
-      Keyword.WHILE
-    ]);
-    if (request.featureSet.isEnabled(Feature.non_nullable)) {
-      _addSuggestion(Keyword.LATE);
-    }
-  }
-
   void _addSuggestion(Keyword keyword) {
     _addSuggestion2(keyword.lexeme);
   }
@@ -1325,30 +557,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
     for (var keyword in keywords) {
       _addSuggestion(keyword);
     }
-  }
-
-  bool _isEntityAfterIfWithoutElse(AstNode node) {
-    var block = node.thisOrAncestorOfType<Block>();
-    if (block == null) {
-      return false;
-    }
-    final entity = this.entity;
-    if (entity is Statement) {
-      var entityIndex = block.statements.indexOf(entity);
-      if (entityIndex > 0) {
-        var prevStatement = block.statements[entityIndex - 1];
-        return prevStatement is IfStatement &&
-            prevStatement.elseStatement == null;
-      }
-    }
-    if (entity is Token) {
-      for (var statement in block.statements) {
-        if (statement.endToken.next == entity) {
-          return statement is IfStatement && statement.elseStatement == null;
-        }
-      }
-    }
-    return false;
   }
 
   void _visitForEachParts(ForEachParts node) {
@@ -1388,25 +596,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
       return previousToken != null &&
           previousToken.isSynthetic &&
           previousToken.type == type;
-    }
-    return false;
-  }
-}
-
-extension on GuardedPattern {
-  /// Return `true` if this pattern has, or might have, a `when` keyword.
-  bool get hasWhen {
-    if (whenClause != null) {
-      return true;
-    }
-    var pattern = this.pattern;
-    if (pattern is DeclaredVariablePattern) {
-      if (pattern.name.lexeme == 'when') {
-        final type = pattern.type;
-        if (type is NamedType && type.typeArguments == null) {
-          return true;
-        }
-      }
     }
     return false;
   }

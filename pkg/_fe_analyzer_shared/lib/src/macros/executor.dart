@@ -155,6 +155,9 @@ abstract class MacroInstanceIdentifier implements Serializable {
 /// All modifications are expressed in terms of library augmentation
 /// declarations.
 abstract class MacroExecutionResult implements Serializable {
+  /// All [Diagnostic]s reported as a result of executing a macro.
+  List<Diagnostic> get diagnostics;
+
   /// Any augmentations to enum values that should be applied to an enum as a
   /// result of executing a macro, indexed by the identifier of the enum.
   Map<Identifier, Iterable<DeclarationCode>> get enumValueAugmentations;

@@ -71,7 +71,6 @@ class ForwardingListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -83,7 +82,6 @@ class ForwardingListener implements Listener {
         begin,
         abstractToken,
         macroToken,
-        inlineToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -415,7 +413,6 @@ class ForwardingListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -427,7 +424,6 @@ class ForwardingListener implements Listener {
         begin,
         abstractToken,
         macroToken,
-        inlineToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -1922,8 +1918,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleRecoverClassHeader() {
-    listener?.handleRecoverClassHeader();
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
+    listener?.handleRecoverDeclarationHeader(kind);
   }
 
   @override
@@ -2151,6 +2147,11 @@ class ForwardingListener implements Listener {
       Token beginToken, Token? constKeyword, bool hasConstructorName) {
     listener?.endPrimaryConstructor(
         beginToken, constKeyword, hasConstructorName);
+  }
+
+  @override
+  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
+    listener?.handleNoPrimaryConstructor(token, constKeyword);
   }
 }
 

@@ -442,6 +442,7 @@ final Matcher isElementDeclaration =
 ///   ENUM
 ///   ENUM_CONSTANT
 ///   EXTENSION
+///   EXTENSION_TYPE
 ///   FIELD
 ///   FILE
 ///   FUNCTION
@@ -472,6 +473,7 @@ final Matcher isElementKind = MatchesEnum('ElementKind', [
   'ENUM',
   'ENUM_CONSTANT',
   'EXTENSION',
+  'EXTENSION_TYPE',
   'FIELD',
   'FILE',
   'FUNCTION',

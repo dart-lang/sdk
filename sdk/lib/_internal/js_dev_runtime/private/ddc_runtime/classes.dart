@@ -469,11 +469,12 @@ void _installPropertiesForObject(jsProto) {
   }
 }
 
-void _installPropertiesForGlobalObject(jsProto) {
-  _installPropertiesForObject(jsProto);
-  // Use JS toString for JS objects, rather than the Dart one.
-  JS('', '#[dartx.toString] = function() { return this.toString(); }', jsProto);
-  identityEquals ??= JS('', '#[dartx._equals]', jsProto);
+/// Sets the [identityEquals] method to the equality operator from the Core
+/// Object class.
+///
+/// Only called once by generated code after the Core Object class definition.
+void _installIdentityEquals() {
+  identityEquals ??= JS('', '#.prototype[dartx._equals]', JS_CLASS_REF(Object));
 }
 
 final _extensionMap = JS('', 'new Map()');
@@ -486,10 +487,7 @@ void _applyExtension(jsType, dartExtType) {
   var jsProto = JS<Object?>('', '#.prototype', jsType);
   if (jsProto == null) return;
 
-  if (JS('!', '# === #', dartExtType, JS_CLASS_REF(Object))) {
-    _installPropertiesForGlobalObject(jsProto);
-    return;
-  }
+  if (JS('!', '# === #', dartExtType, JS_CLASS_REF(Object))) return;
 
   if (JS('!', '# === #.Object', jsType, global_)) {
     var extName = JS<String>('!', '#.name', dartExtType);

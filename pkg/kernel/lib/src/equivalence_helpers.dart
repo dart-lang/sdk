@@ -274,6 +274,10 @@ class ReferenceName {
       return new ReferenceName.internal(
           ReferenceNameKind.Declaration, node.name,
           parent: new ReferenceName.fromNamedNode(node.enclosingLibrary));
+    } else if (node is ExtensionTypeDeclaration) {
+      return new ReferenceName.internal(
+          ReferenceNameKind.Declaration, node.name,
+          parent: new ReferenceName.fromNamedNode(node.enclosingLibrary));
     } else if (node is Class) {
       return new ReferenceName.internal(
           ReferenceNameKind.Declaration, node.name,

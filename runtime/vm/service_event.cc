@@ -71,9 +71,9 @@ ServiceEvent::ServiceEvent(IsolateGroup* isolate_group,
 
   if ((event_kind == ServiceEvent::kPauseStart) ||
       (event_kind == ServiceEvent::kPauseExit)) {
-    timestamp_ = isolate->message_handler()->paused_timestamp();
+    timestamp_ = isolate_->message_handler()->paused_timestamp();
   } else if (event_kind == ServiceEvent::kResume) {
-    timestamp_ = isolate->last_resume_timestamp();
+    timestamp_ = isolate_->last_resume_timestamp();
   }
   ASSERT(timestamp_ > -1);
 }

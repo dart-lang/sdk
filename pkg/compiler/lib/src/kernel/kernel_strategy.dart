@@ -71,7 +71,8 @@ class KernelFrontendStrategy {
   late NativeDataBuilder _nativeDataBuilder;
   NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
 
-  late BackendUsageBuilder _backendUsageBuilder;
+  late final BackendUsageBuilder _backendUsageBuilder =
+      BackendUsageBuilder(this);
 
   late NativeResolutionEnqueuer _nativeResolutionEnqueuer;
 
@@ -88,7 +89,6 @@ class KernelFrontendStrategy {
       DiagnosticReporter reporter, env.Environment environment)
       : _elementMap = KernelToElementMap(reporter, environment, _options) {
     _modularStrategy = KernelModularStrategy(_compilerTask, _elementMap);
-    _backendUsageBuilder = BackendUsageBuilderImpl(this);
     noSuchMethodRegistry =
         NoSuchMethodRegistry(commonElements, NoSuchMethodResolver(_elementMap));
   }

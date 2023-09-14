@@ -252,6 +252,14 @@ Location LocationRegisterOrSmiConstant(Value* value,
   return Location::Constant(constant);
 }
 
+Location LocationWritableRegisterOrConstant(Value* value) {
+  ConstantInstr* constant = value->definition()->AsConstant();
+  return ((constant != nullptr) &&
+          compiler::Assembler::IsSafe(constant->value()))
+             ? Location::Constant(constant)
+             : Location::WritableRegister();
+}
+
 Location LocationWritableRegisterOrSmiConstant(Value* value,
                                                intptr_t min_value,
                                                intptr_t max_value) {

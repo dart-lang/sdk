@@ -244,7 +244,7 @@ class AnalyticsManager {
   /// Record that the given [response] was sent to the client.
   void sentResponseMessage({required ResponseMessage response}) {
     var sendTime = DateTime.now();
-    var id = response.id?.asString;
+    var id = response.id?.asLspIdString;
     if (id == null) {
       return;
     }
@@ -284,7 +284,7 @@ class AnalyticsManager {
   /// [startTime].
   void startedRequestMessage(
       {required RequestMessage request, required DateTime startTime}) {
-    _activeRequests[request.id.asString] = ActiveRequestData(
+    _activeRequests[request.id.asLspIdString] = ActiveRequestData(
         request.method.toString(), request.clientRequestTime, startTime);
   }
 
@@ -616,7 +616,12 @@ class AnalyticsManager {
 }
 
 extension on Either2<int, String> {
-  String get asString {
-    return map((value) => value.toString(), (value) => value);
+  /// Returns a String ID for this LSP request ID.
+  ///
+  /// Prefixes with "LSP:" to avoid collisions with legacy IDs when both kinds
+  /// of requests are being used (and may have independent/overlapping IDs).
+  String get asLspIdString {
+    var idString = map((value) => value.toString(), (value) => value);
+    return 'LSP:$idString';
   }
 }

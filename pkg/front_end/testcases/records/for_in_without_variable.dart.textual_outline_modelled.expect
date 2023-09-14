@@ -1,0 +1,2 @@
+List<A> left<A, B>(List<(A, B)> pairs) => [for (var (a, _) in pairs) a];
+void main() {}

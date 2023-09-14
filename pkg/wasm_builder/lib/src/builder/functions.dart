@@ -4,6 +4,7 @@
 
 import '../ir/ir.dart' as ir;
 import 'builder.dart';
+import 'util.dart';
 
 part 'function.dart';
 
@@ -14,13 +15,9 @@ class FunctionsBuilder with Builder<ir.Functions> {
   final _functionBuilders = <FunctionBuilder>[];
   final _importedFunctions = <ir.Import>[];
   int _nameCount = 0;
-  bool _anyFunctionsDefined = false;
   ir.BaseFunction? _start;
 
   FunctionsBuilder(this._module);
-
-  /// This is guarded by [_anyFunctionsDefined].
-  int get _index => _importedFunctions.length + _functionBuilders.length;
 
   set start(ir.BaseFunction init) {
     assert(_start == null);
@@ -39,8 +36,8 @@ class FunctionsBuilder with Builder<ir.Functions> {
   /// The [DefinedFunction.body] must be completed (including the terminating
   /// `end`) before the module can be serialized.
   FunctionBuilder define(ir.FunctionType type, [String? name]) {
-    _anyFunctionsDefined = true;
-    final function = FunctionBuilder(_module, _index, type, name);
+    final function =
+        FunctionBuilder(_module, ir.FinalizableIndex(), type, name);
     _functionBuilders.add(function);
     _addName(name, function);
     return function;
@@ -52,17 +49,18 @@ class FunctionsBuilder with Builder<ir.Functions> {
   /// using [FunctionsBuilder.define].
   ir.ImportedFunction import(String module, String name, ir.FunctionType type,
       [String? functionName]) {
-    if (_anyFunctionsDefined) {
-      throw "All function imports must be specified before any definitions.";
-    }
-    final function =
-        ir.ImportedFunction(module, name, _index, type, functionName);
+    final function = ir.ImportedFunction(
+        module, name, ir.FinalizableIndex(), type, functionName);
     _importedFunctions.add(function);
     _addName(functionName, function);
     return function;
   }
 
   @override
-  ir.Functions forceBuild() => ir.Functions(_start, _importedFunctions,
-      _functionBuilders.map((f) => f.build()).toList(), _functions, _nameCount);
+  ir.Functions forceBuild() {
+    final built = finalizeImportsAndBuilders<ir.DefinedFunction>(
+        _importedFunctions, _functionBuilders);
+    return ir.Functions(
+        _start, _importedFunctions, built, _functions, _nameCount);
+  }
 }

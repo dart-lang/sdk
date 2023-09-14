@@ -4,6 +4,7 @@ import "dart:core" as core;
 import "dart:ffi" as ffi;
 import "dart:typed_data" as typ;
 import "dart:_internal" as _in;
+import "package:ffi/src/allocation.dart" as all;
 
 import "dart:ffi";
 import "package:ffi/ffi.dart";
@@ -52,7 +53,7 @@ static method main() → dynamic {
     synthesized core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
     synthesized core::int #offset = #elementSize.{core::num::*}(#index){(core::num) → core::num};
   } =>ffi::_memCopy(#array.{ffi::Array::_typedDataBase}{core::Object}, #offset, subArray.{ffi::Array::_typedDataBase}{core::Object}, #C11, #elementSize);
-  #C17.{ffi::Allocator::free}(pointer){(ffi::Pointer<ffi::NativeType>) → void};
+  #C17.{all::CallocAllocator::free}(pointer){(ffi::Pointer<ffi::NativeType>) → void};
 }
 
 constants  {
@@ -72,7 +73,7 @@ constants  {
   #C14 = <core::int*>[#C9, #C9]
   #C15 = "vm:prefer-inline"
   #C16 = core::pragma {name:#C15, options:#C6}
-  #C17 = all::_CallocAllocator {}
+  #C17 = all::CallocAllocator {}
   #C18 = 1
 }
 

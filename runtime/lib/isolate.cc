@@ -61,8 +61,7 @@ DEFINE_NATIVE_ENTRY(RawReceivePort_factory, 0, 2) {
   ASSERT(
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, debug_name, arguments->NativeArgAt(1));
-  Dart_Port port_id = PortMap::CreatePort(isolate->message_handler());
-  return ReceivePort::New(port_id, debug_name, false /* not control port */);
+  return isolate->CreateReceivePort(debug_name);
 }
 
 DEFINE_NATIVE_ENTRY(RawReceivePort_get_id, 0, 1) {
@@ -73,17 +72,20 @@ DEFINE_NATIVE_ENTRY(RawReceivePort_get_id, 0, 1) {
 DEFINE_NATIVE_ENTRY(RawReceivePort_closeInternal, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   Dart_Port id = port.Id();
-  PortMap::ClosePort(id);
+  isolate->CloseReceivePort(port);
   return Integer::New(id);
 }
 
 DEFINE_NATIVE_ENTRY(RawReceivePort_setActive, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, active, arguments->NativeArgAt(1));
-  Dart_Port id = port.Id();
-  PortMap::SetPortState(
-      id, active.value() ? PortMap::kLivePort : PortMap::kInactivePort);
+  isolate->SetReceivePortKeepAliveState(port, active.value());
   return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(RawReceivePort_getActive, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
+  return Bool::Get(port.keep_isolate_alive()).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(SendPort_get_id, 0, 1) {
@@ -515,7 +517,8 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
     // Check whether the root library defines a main function.
     const Library& lib =
         Library::Handle(zone, IG->object_store()->root_library());
-    Function& func = Function::Handle(zone, lib.LookupLocalFunction(func_name));
+    Function& func =
+        Function::Handle(zone, lib.LookupFunctionAllowPrivate(func_name));
     if (func.IsNull()) {
       // Check whether main is reexported from the root library.
       const Object& obj = Object::Handle(zone, lib.LookupReExport(func_name));
@@ -548,7 +551,7 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
   // Resolve the function.
   if (class_name() == nullptr) {
     const Function& func =
-        Function::Handle(zone, lib.LookupLocalFunction(func_name));
+        Function::Handle(zone, lib.LookupFunctionAllowPrivate(func_name));
     if (func.IsNull()) {
       const String& msg = String::Handle(
           zone, String::NewFormatted(
@@ -560,7 +563,7 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
   }
 
   const String& cls_name = String::Handle(zone, String::New(class_name()));
-  const Class& cls = Class::Handle(zone, lib.LookupLocalClass(cls_name));
+  const Class& cls = Class::Handle(zone, lib.LookupClass(cls_name));
   if (cls.IsNull()) {
     const String& msg = String::Handle(
         zone, String::NewFormatted(
@@ -819,7 +822,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     const auto& lib = Library::Handle(zone, Library::IsolateLibrary());
     const auto& entry_name = String::Handle(zone, String::New("_startIsolate"));
     const auto& entry_point =
-        Function::Handle(zone, lib.LookupLocalFunction(entry_name));
+        Function::Handle(zone, lib.LookupFunctionAllowPrivate(entry_name));
     ASSERT(entry_point.IsFunction() && !entry_point.IsNull());
     const auto& result =
         Object::Handle(zone, DartEntry::InvokeFunction(entry_point, args));

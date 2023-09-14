@@ -8429,7 +8429,7 @@ bool Function::FfiCSignatureReturnsStruct() const {
 
 int32_t Function::FfiCallbackId() const {
   ASSERT(IsFfiTrampoline());
-  ASSERT(GetFfiTrampolineKind() != FfiTrampolineKind::kCall);
+  ASSERT(GetFfiFunctionKind() != FfiFunctionKind::kCall);
 
   const auto& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
@@ -8442,7 +8442,7 @@ int32_t Function::FfiCallbackId() const {
 
 void Function::AssignFfiCallbackId(int32_t callback_id) const {
   ASSERT(IsFfiTrampoline());
-  ASSERT(GetFfiTrampolineKind() != FfiTrampolineKind::kCall);
+  ASSERT(GetFfiFunctionKind() != FfiFunctionKind::kCall);
 
   const auto& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
@@ -8494,18 +8494,18 @@ void Function::SetFfiCallbackExceptionalReturn(const Instance& value) const {
   FfiTrampolineData::Cast(obj).set_callback_exceptional_return(value);
 }
 
-FfiTrampolineKind Function::GetFfiTrampolineKind() const {
+FfiFunctionKind Function::GetFfiFunctionKind() const {
   ASSERT(IsFfiTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
-  return FfiTrampolineData::Cast(obj).trampoline_kind();
+  return FfiTrampolineData::Cast(obj).ffi_function_kind();
 }
 
-void Function::SetFfiTrampolineKind(FfiTrampolineKind value) const {
+void Function::SetFfiFunctionKind(FfiFunctionKind value) const {
   ASSERT(IsFfiTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
-  FfiTrampolineData::Cast(obj).set_trampoline_kind(value);
+  FfiTrampolineData::Cast(obj).set_ffi_function_kind(value);
 }
 
 const char* Function::KindToCString(UntaggedFunction::Kind kind) {
@@ -9021,8 +9021,34 @@ void Function::SetIsOptimizable(bool value) const {
 }
 
 bool Function::ForceOptimize() const {
-  return RecognizedKindForceOptimize() || IsFfiTrampoline() ||
-         IsTypedDataViewFactory() || IsUnmodifiableTypedDataViewFactory();
+  if (RecognizedKindForceOptimize() || IsFfiTrampoline() ||
+      IsTypedDataViewFactory() || IsUnmodifiableTypedDataViewFactory()) {
+    return true;
+  }
+
+#if defined(TESTING)
+  // For run_vm_tests we allow marking arbitrary functions as force-optimize
+  // via `@pragma('vm:force-optimize')`.
+  if (has_pragma()) {
+    return Library::FindPragma(Thread::Current(), false, *this,
+                               Symbols::vm_force_optimize());
+  }
+#endif  // defined(TESTING)
+
+  return false;
+}
+
+bool Function::IsIdempotent() const {
+  if (!has_pragma()) return false;
+
+#if defined(TESTING)
+  const bool kAllowOnlyForCoreLibFunctions = false;
+#else
+  const bool kAllowOnlyForCoreLibFunctions = true;
+#endif  // defined(TESTING)
+
+  return Library::FindPragma(Thread::Current(), kAllowOnlyForCoreLibFunctions,
+                             *this, Symbols::vm_idempotent());
 }
 
 bool Function::RecognizedKindForceOptimize() const {
@@ -9076,6 +9102,11 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kRecord_numFields:
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kDouble_hashCode:
+    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy1:
+    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy2:
+    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy4:
+    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy8:
+    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy16:
     // Prevent the GC from running so that the operation is atomic from
     // a GC point of view. Always double check implementation in
     // kernel_to_il.cc that no GC can happen in between the relevant IL
@@ -9092,12 +9123,6 @@ bool Function::RecognizedKindForceOptimize() const {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 bool Function::CanBeInlined() const {
-  // Our force-optimized functions cannot deoptimize to an unoptimized frame.
-  // If the instructions of the force-optimized function body get moved via
-  // code motion, we might attempt do deoptimize a frame where the force-
-  // optimized function has only partially finished. Since force-optimized
-  // functions cannot deoptimize to unoptimized frames we prevent them from
-  // being inlined (for now).
   if (ForceOptimize()) {
     if (IsFfiTrampoline()) {
       // We currently don't support inlining FFI trampolines. Some of them
@@ -9107,7 +9132,14 @@ bool Function::CanBeInlined() const {
       // http://dartbug.com/45055.
       return false;
     }
-    return CompilerState::Current().is_aot();
+    if (CompilerState::Current().is_aot()) {
+      return true;
+    }
+    // Inlining of force-optimized functions requires target function to be
+    // idempotent becase if deoptimization is needed in inlined body, the
+    // execution of the force-optimized will be restarted at the beginning of
+    // the function.
+    return IsIdempotent();
   }
 
   if (HasBreakpoint()) {
@@ -10944,11 +10976,19 @@ static void FunctionPrintNameHelper(const Function& fun,
     }
     if (params.disambiguate_names &&
         fun.name() == Symbols::AnonymousClosure().ptr()) {
-      printer->Printf("<anonymous closure @%" Pd ">", fun.token_pos().Pos());
+      if (fun.token_pos().IsReal()) {
+        printer->Printf("<anonymous closure @%" Pd ">", fun.token_pos().Pos());
+      } else {
+        printer->Printf("<anonymous closure @no position>");
+      }
     } else {
       printer->AddString(fun.NameCString(params.name_visibility));
       if (params.disambiguate_names) {
-        printer->Printf("@<%" Pd ">", fun.token_pos().Pos());
+        if (fun.token_pos().IsReal()) {
+          printer->Printf("@<%" Pd ">", fun.token_pos().Pos());
+        } else {
+          printer->Printf("@<no position>");
+        }
       }
     }
     return;
@@ -11605,8 +11645,8 @@ void FfiTrampolineData::set_callback_exceptional_return(
   untag()->set_callback_exceptional_return(value.ptr());
 }
 
-void FfiTrampolineData::set_trampoline_kind(FfiTrampolineKind kind) const {
-  StoreNonPointer(&untag()->trampoline_kind_, static_cast<uint8_t>(kind));
+void FfiTrampolineData::set_ffi_function_kind(FfiFunctionKind kind) const {
+  StoreNonPointer(&untag()->ffi_function_kind_, static_cast<uint8_t>(kind));
 }
 
 FfiTrampolineDataPtr FfiTrampolineData::New() {
@@ -13610,36 +13650,6 @@ static bool ShouldBePrivate(const String& name) {
            name.CharAt(1) == 'e' && name.CharAt(2) == 't' &&
            name.CharAt(3) == ':'));
 }
-
-ObjectPtr Library::ResolveName(const String& name) const {
-  Object& obj = Object::Handle();
-  if (FLAG_use_lib_cache && LookupResolvedNamesCache(name, &obj)) {
-    return obj.ptr();
-  }
-  EnsureTopLevelClassIsFinalized();
-  obj = LookupLocalObject(name);
-  if (!obj.IsNull()) {
-    // Names that are in this library's dictionary and are unmangled
-    // are not cached. This reduces the size of the cache.
-    return obj.ptr();
-  }
-  String& accessor_name = String::Handle(Field::LookupGetterSymbol(name));
-  if (!accessor_name.IsNull()) {
-    obj = LookupLocalObject(accessor_name);
-  }
-  if (obj.IsNull()) {
-    accessor_name = Field::LookupSetterSymbol(name);
-    if (!accessor_name.IsNull()) {
-      obj = LookupLocalObject(accessor_name);
-    }
-    if (obj.IsNull() && !ShouldBePrivate(name)) {
-      obj = LookupImportedObject(name);
-    }
-  }
-  AddToResolvedNamesCache(name, obj);
-  return obj.ptr();
-}
-
 class StringEqualsTraits {
  public:
   static const char* Name() { return "StringEqualsTraits"; }
@@ -14069,15 +14079,6 @@ ObjectPtr Library::LookupLocalOrReExportObject(const String& name) const {
 
 FieldPtr Library::LookupFieldAllowPrivate(const String& name) const {
   EnsureTopLevelClassIsFinalized();
-  Object& obj = Object::Handle(LookupObjectAllowPrivate(name));
-  if (obj.IsField()) {
-    return Field::Cast(obj).ptr();
-  }
-  return Field::null();
-}
-
-FieldPtr Library::LookupLocalField(const String& name) const {
-  EnsureTopLevelClassIsFinalized();
   Object& obj = Object::Handle(LookupLocalObjectAllowPrivate(name));
   if (obj.IsField()) {
     return Field::Cast(obj).ptr();
@@ -14086,15 +14087,6 @@ FieldPtr Library::LookupLocalField(const String& name) const {
 }
 
 FunctionPtr Library::LookupFunctionAllowPrivate(const String& name) const {
-  EnsureTopLevelClassIsFinalized();
-  Object& obj = Object::Handle(LookupObjectAllowPrivate(name));
-  if (obj.IsFunction()) {
-    return Function::Cast(obj).ptr();
-  }
-  return Function::null();
-}
-
-FunctionPtr Library::LookupLocalFunction(const String& name) const {
   EnsureTopLevelClassIsFinalized();
   Object& obj = Object::Handle(LookupLocalObjectAllowPrivate(name));
   if (obj.IsFunction()) {
@@ -14115,95 +14107,7 @@ ObjectPtr Library::LookupLocalObjectAllowPrivate(const String& name) const {
   return obj.ptr();
 }
 
-ObjectPtr Library::LookupObjectAllowPrivate(const String& name) const {
-  // First check if name is found in the local scope of the library.
-  Object& obj = Object::Handle(LookupLocalObjectAllowPrivate(name));
-  if (!obj.IsNull()) {
-    return obj.ptr();
-  }
-
-  // Do not look up private names in imported libraries.
-  if (ShouldBePrivate(name)) {
-    return Object::null();
-  }
-
-  // Now check if name is found in any imported libs.
-  return LookupImportedObject(name);
-}
-
-ObjectPtr Library::LookupImportedObject(const String& name) const {
-  Object& obj = Object::Handle();
-  Namespace& import = Namespace::Handle();
-  Library& import_lib = Library::Handle();
-  String& import_lib_url = String::Handle();
-  String& first_import_lib_url = String::Handle();
-  Object& found_obj = Object::Handle();
-  String& found_obj_name = String::Handle();
-  ASSERT(!ShouldBePrivate(name));
-  for (intptr_t i = 0; i < num_imports(); i++) {
-    import = ImportAt(i);
-    obj = import.Lookup(name);
-    if (!obj.IsNull()) {
-      import_lib = import.target();
-      import_lib_url = import_lib.url();
-      if (found_obj.ptr() != obj.ptr()) {
-        if (first_import_lib_url.IsNull() ||
-            first_import_lib_url.StartsWith(Symbols::DartScheme())) {
-          // This is the first object we found, or the
-          // previously found object is exported from a Dart
-          // system library. The newly found object hides the one
-          // from the Dart library.
-          first_import_lib_url = import_lib.url();
-          found_obj = obj.ptr();
-          found_obj_name = obj.DictionaryName();
-        } else if (import_lib_url.StartsWith(Symbols::DartScheme())) {
-          // The newly found object is exported from a Dart system
-          // library. It is hidden by the previously found object.
-          // We continue to search.
-        } else if (Field::IsSetterName(found_obj_name) &&
-                   !Field::IsSetterName(name)) {
-          // We are looking for an unmangled name or a getter, but
-          // the first object we found is a setter. Replace the first
-          // object with the one we just found.
-          first_import_lib_url = import_lib.url();
-          found_obj = obj.ptr();
-          found_obj_name = found_obj.DictionaryName();
-        } else {
-          // We found two different objects with the same name.
-          // Note that we need to compare the names again because
-          // looking up an unmangled name can return a getter or a
-          // setter. A getter name is the same as the unmangled name,
-          // but a setter name is different from an unmangled name or a
-          // getter name.
-          if (Field::IsGetterName(found_obj_name)) {
-            found_obj_name = Field::NameFromGetter(found_obj_name);
-          }
-          String& second_obj_name = String::Handle(obj.DictionaryName());
-          if (Field::IsGetterName(second_obj_name)) {
-            second_obj_name = Field::NameFromGetter(second_obj_name);
-          }
-          if (found_obj_name.Equals(second_obj_name)) {
-            return Object::null();
-          }
-        }
-      }
-    }
-  }
-  return found_obj.ptr();
-}
-
 ClassPtr Library::LookupClass(const String& name) const {
-  Object& obj = Object::Handle(LookupLocalObject(name));
-  if (obj.IsNull() && !ShouldBePrivate(name)) {
-    obj = LookupImportedObject(name);
-  }
-  if (obj.IsClass()) {
-    return Class::Cast(obj).ptr();
-  }
-  return Class::null();
-}
-
-ClassPtr Library::LookupLocalClass(const String& name) const {
   Object& obj = Object::Handle(LookupLocalObject(name));
   if (obj.IsClass()) {
     return Class::Cast(obj).ptr();
@@ -14212,41 +14116,9 @@ ClassPtr Library::LookupLocalClass(const String& name) const {
 }
 
 ClassPtr Library::LookupClassAllowPrivate(const String& name) const {
-  // See if the class is available in this library or in the top level
-  // scope of any imported library.
-  Zone* zone = Thread::Current()->zone();
-  const Class& cls = Class::Handle(zone, LookupClass(name));
-  if (!cls.IsNull()) {
-    return cls.ptr();
-  }
-
-  // Now try to lookup the class using its private name, but only in
-  // this library (not in imported libraries).
-  if (ShouldBePrivate(name)) {
-    String& private_name = String::Handle(zone, PrivateName(name));
-    const Object& obj = Object::Handle(LookupLocalObject(private_name));
-    if (obj.IsClass()) {
-      return Class::Cast(obj).ptr();
-    }
-  }
-  return Class::null();
-}
-
-// Mixin applications can have multiple private keys from different libraries.
-ClassPtr Library::SlowLookupClassAllowMultiPartPrivate(
-    const String& name) const {
-  Array& dict = Array::Handle(dictionary());
-  Object& entry = Object::Handle();
-  String& cls_name = String::Handle();
-  for (intptr_t i = 0; i < dict.Length(); i++) {
-    entry = dict.At(i);
-    if (entry.IsClass()) {
-      cls_name = Class::Cast(entry).Name();
-      // Warning: comparison is not symmetric.
-      if (String::EqualsIgnoringPrivateKey(cls_name, name)) {
-        return Class::Cast(entry).ptr();
-      }
-    }
+  Object& obj = Object::Handle(LookupLocalObjectAllowPrivate(name));
+  if (obj.IsClass()) {
+    return Class::Cast(obj).ptr();
   }
   return Class::null();
 }
@@ -15259,12 +15131,12 @@ intptr_t KernelProgramInfo::KernelLibraryStartOffset(
     intptr_t library_index) const {
   const auto& blob = TypedDataBase::Handle(kernel_component());
   const intptr_t library_count =
-      Utils::BigEndianToHost32(*reinterpret_cast<uint32_t*>(
-          blob.DataAddr(blob.LengthInBytes() - 2 * 4)));
+      Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
+          blob.DataAddr(blob.LengthInBytes() - 2 * 4))));
   const intptr_t library_start =
-      Utils::BigEndianToHost32(*reinterpret_cast<uint32_t*>(
+      Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
           blob.DataAddr(blob.LengthInBytes() -
-                        (2 + 1 + (library_count - library_index)) * 4)));
+                        (2 + 1 + (library_count - library_index)) * 4))));
   return library_start;
 }
 
@@ -15280,11 +15152,11 @@ intptr_t KernelProgramInfo::KernelLibraryEndOffset(
     intptr_t library_index) const {
   const auto& blob = TypedDataBase::Handle(kernel_component());
   const intptr_t library_count =
-      Utils::BigEndianToHost32(*reinterpret_cast<uint32_t*>(
-          blob.DataAddr(blob.LengthInBytes() - 2 * 4)));
-  const intptr_t library_end =
-      Utils::BigEndianToHost32(*reinterpret_cast<uint32_t*>(blob.DataAddr(
-          blob.LengthInBytes() - (2 + (library_count - library_index)) * 4)));
+      Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
+          blob.DataAddr(blob.LengthInBytes() - 2 * 4))));
+  const intptr_t library_end = Utils::BigEndianToHost32(
+      LoadUnaligned(reinterpret_cast<uint32_t*>(blob.DataAddr(
+          blob.LengthInBytes() - (2 + (library_count - library_index)) * 4))));
   return library_end;
 }
 
@@ -15479,19 +15351,18 @@ FunctionPtr Library::GetFunction(const GrowableArray<Library*>& libs,
   for (intptr_t l = 0; l < libs.length(); l++) {
     const Library& lib = *libs[l];
     if (strcmp(class_name, "::") == 0) {
-      func_str = Symbols::New(thread, function_name);
-      func = lib.LookupFunctionAllowPrivate(func_str);
+      cls = lib.toplevel_class();
     } else {
       class_str = String::New(class_name);
       cls = lib.LookupClassAllowPrivate(class_str);
-      if (!cls.IsNull()) {
-        if (cls.EnsureIsFinalized(thread) == Error::null()) {
-          func_str = String::New(function_name);
-          if (function_name[0] == '.') {
-            func_str = String::Concat(class_str, func_str);
-          }
-          func = cls.LookupFunctionAllowPrivate(func_str);
+    }
+    if (!cls.IsNull()) {
+      if (cls.EnsureIsFinalized(thread) == Error::null()) {
+        func_str = String::New(function_name);
+        if (function_name[0] == '.') {
+          func_str = String::Concat(class_str, func_str);
         }
+        func = cls.LookupFunctionAllowPrivate(func_str);
       }
     }
     if (!func.IsNull()) {
@@ -16583,7 +16454,6 @@ void CallSiteData::set_arguments_descriptor(const Array& value) const {
 void ICData::SetReceiversStaticType(const AbstractType& type) const {
   untag()->set_receivers_static_type(type.ptr());
 
-#if defined(TARGET_ARCH_X64)
   if (!type.IsNull() && type.HasTypeClass() && (NumArgsTested() == 1) &&
       type.IsInstantiated() && !type.IsFutureOrType()) {
     const Class& cls = Class::Handle(type.type_class());
@@ -16591,7 +16461,6 @@ void ICData::SetReceiversStaticType(const AbstractType& type) const {
       set_tracking_exactness(true);
     }
   }
-#endif  // defined(TARGET_ARCH_X64)
 }
 #endif
 
@@ -18861,7 +18730,6 @@ void ContextScope::SetLateInitOffsetAt(intptr_t scope_index,
 }
 
 AbstractTypePtr ContextScope::TypeAt(intptr_t scope_index) const {
-  ASSERT(!IsConstAt(scope_index));
   return untag()->type_at(scope_index);
 }
 
@@ -18870,15 +18738,12 @@ void ContextScope::SetTypeAt(intptr_t scope_index,
   untag()->set_type_at(scope_index, type.ptr());
 }
 
-InstancePtr ContextScope::ConstValueAt(intptr_t scope_index) const {
-  ASSERT(IsConstAt(scope_index));
-  return untag()->value_at(scope_index);
+intptr_t ContextScope::CidAt(intptr_t scope_index) const {
+  return Smi::Value(untag()->cid_at(scope_index));
 }
 
-void ContextScope::SetConstValueAt(intptr_t scope_index,
-                                   const Instance& value) const {
-  ASSERT(IsConstAt(scope_index));
-  untag()->set_value_at(scope_index, value.ptr());
+void ContextScope::SetCidAt(intptr_t scope_index, intptr_t cid) const {
+  untag()->set_cid_at(scope_index, Smi::New(cid));
 }
 
 intptr_t ContextScope::ContextIndexAt(intptr_t scope_index) const {
@@ -26240,7 +26105,6 @@ const char* Capability::ToCString() const {
 
 ReceivePortPtr ReceivePort::New(Dart_Port id,
                                 const String& debug_name,
-                                bool is_control_port,
                                 Heap::Space space) {
   ASSERT(id != ILLEGAL_PORT);
   Thread* thread = Thread::Current();
@@ -26255,12 +26119,12 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
   const auto& result =
       ReceivePort::Handle(zone, Object::Allocate<ReceivePort>(space));
   result.untag()->set_send_port(send_port.ptr());
+  result.untag()->set_bitfield(
+      Smi::New(IsOpen::encode(true) | IsKeepIsolateAlive::encode(true)));
 #if !defined(PRODUCT)
   result.untag()->set_debug_name(debug_name.ptr());
   result.untag()->set_allocation_location(allocation_location_.ptr());
 #endif  // !defined(PRODUCT)
-  PortMap::SetPortState(
-      id, is_control_port ? PortMap::kControlPort : PortMap::kLivePort);
   return result.ptr();
 }
 
@@ -27445,10 +27309,10 @@ bool UserTag::TagTableIsFull(Thread* thread) {
   return tag_table.Length() == UserTags::kMaxUserTags;
 }
 
-UserTagPtr UserTag::FindTagById(uword tag_id) {
+UserTagPtr UserTag::FindTagById(const Isolate* isolate, uword tag_id) {
+  ASSERT(isolate != nullptr);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table =
       GrowableObjectArray::Handle(zone, isolate->tag_table());

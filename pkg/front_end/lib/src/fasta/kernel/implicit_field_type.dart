@@ -11,7 +11,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/assumptions.dart';
 import 'package:kernel/src/printer.dart';
 
-import '../builder/type_builder.dart';
+import '../builder/inferable_type_builder.dart';
 import '../constant_context.dart';
 import '../fasta_codes.dart';
 import '../problems.dart' show unsupported;

@@ -542,7 +542,13 @@ class _TypeReferenceCollectorVisitor extends js.BaseVisitorVoid {
         element.accept(this);
       }
     } else {
-      super.visitNode(node);
+      final deferredExpressionData = js.getNodeDeferredExpressionData(node);
+      if (deferredExpressionData != null) {
+        deferredExpressionData.typeReferences
+            .forEach(_finalizer._registerTypeReference);
+      } else {
+        super.visitNode(node);
+      }
     }
   }
 

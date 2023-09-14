@@ -269,11 +269,11 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
       break;
     }
     case kExtensionType: {
-      // We skip the extension type and only use the representation type.
+      // We skip the extension type and only use the type erasure.
       ReadNullability();
       SkipCanonicalNameReference();    // read index for canonical name.
       SkipListOfDartTypes();           // read type arguments
-      CalculateDartTypeFingerprint();  // read instantiated representation type.
+      CalculateDartTypeFingerprint();  // read type erasure.
       break;
     }
     case kFutureOrType:
@@ -761,14 +761,6 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       CalculateStatementFingerprint();          // read body.
       return;
     }
-    case kForInStatement:
-    case kAsyncForInStatement:
-      ReadPosition();                             // read position.
-      ReadPosition();                             // read body position.
-      CalculateVariableDeclarationFingerprint();  // read variable.
-      CalculateExpressionFingerprint();           // read iterable.
-      CalculateStatementFingerprint();            // read body.
-      return;
     case kSwitchStatement: {
       ReadPosition();                          // read position.
       ReadBool();                              // read exhaustive flag.
@@ -844,6 +836,8 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       CalculateVariableDeclarationFingerprint();  // read variable.
       CalculateFunctionNodeFingerprint();         // read function node.
       return;
+    case kForInStatement:
+    case kAsyncForInStatement:
     case kIfCaseStatement:
     case kPatternSwitchStatement:
     case kPatternVariableDeclaration:

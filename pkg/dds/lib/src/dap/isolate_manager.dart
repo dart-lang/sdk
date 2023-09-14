@@ -25,16 +25,8 @@ class IsolateManager {
   final DartDebugAdapter _adapter;
   final Map<String, Completer<void>> _isolateRegistrations = {};
   final Map<String, ThreadInfo> _threadsByIsolateId = {};
-  final Map<int, ThreadInfo> _threadsByIsolateNumber = {};
-
-  /// Tracks isolate numbers that have been seen (even if the isolate has since
-  /// exited).
-  ///
-  /// This is used to know whether a request from a DAP client references a
-  /// thread that has exited rather than an invalid number.
-  ///
-  /// DAP's "thread ID"s map directly onto VM Isolate Numbers.
-  final Set<int> _knownIsolateNumbers = {};
+  final Map<int, ThreadInfo> _threadsByThreadId = {};
+  int _nextThreadNumber = 1;
 
   /// Whether debugging is enabled for this session.
   ///
@@ -154,7 +146,7 @@ class IsolateManager {
   /// This is required if options like debugSdkLibraries are modified, but is a
   /// separate step to batch together changes to multiple options.
   Future<void> applyDebugOptions() async {
-    await Future.wait(_threadsByIsolateId.values.map(
+    await Future.wait(_threadsByThreadId.values.map(
       // debuggable libraries is the only thing currently affected by these
       // changable options.
       (thread) => _sendLibraryDebuggables(thread),
@@ -186,8 +178,7 @@ class IsolateManager {
     return _storedData[id];
   }
 
-  ThreadInfo? getThread(int isolateNumber) =>
-      _threadsByIsolateNumber[isolateNumber];
+  ThreadInfo? getThread(int threadId) => _threadsByThreadId[threadId];
 
   /// Handles Isolate and Debug events.
   Future<void> handleEvent(vm.Event event) async {
@@ -239,13 +230,11 @@ class IsolateManager {
       isolate.id!,
       () {
         // The first time we see an isolate, start tracking it.
-        final isolateNumber = int.parse(isolate.number!);
-        _knownIsolateNumbers.add(isolateNumber);
-        final info = ThreadInfo(this, isolateNumber, isolate);
-        _threadsByIsolateNumber[isolateNumber] = info;
+        final info = ThreadInfo(this, _nextThreadNumber++, isolate);
+        _threadsByThreadId[info.threadId] = info;
         // And notify the client about it.
         _adapter.sendEvent(
-          ThreadEventBody(reason: 'started', threadId: isolateNumber),
+          ThreadEventBody(reason: 'started', threadId: info.threadId),
         );
         return info;
       },
@@ -264,7 +253,7 @@ class IsolateManager {
 
   /// Calls reloadSources for all isolates.
   Future<void> reloadSources() async {
-    await Future.wait(_threadsByIsolateId.values.map(
+    await Future.wait(_threadsByThreadId.values.map(
       (isolate) => _reloadSources(isolate.isolate),
     ));
   }
@@ -277,10 +266,10 @@ class IsolateManager {
       return;
     }
 
-    await resumeThread(thread.isolateNumber);
+    await resumeThread(thread.threadId);
   }
 
-  /// Resumes (or steps) an isolate using its client [isolateNumber].
+  /// Resumes (or steps) an isolate using its client [threadId].
   ///
   /// If the isolate is not paused, or already has a pending resume request
   /// in-flight, a request will not be sent.
@@ -288,16 +277,16 @@ class IsolateManager {
   /// If the isolate is paused at an async suspension and the [resumeType] is
   /// [vm.StepOption.kOver], a [StepOption.kOverAsyncSuspension] step will be
   /// sent instead.
-  Future<void> resumeThread(int isolateNumber, [String? resumeType]) async {
+  Future<void> resumeThread(int threadId, [String? resumeType]) async {
     // The first time a user resumes a thread is our signal that the app is now
     // "running" and future isolates can be auto-resumed. This only affects
     // attach, as it's already `true` for launch requests.
     autoResumeStartingIsolates = true;
 
-    final thread = _threadsByIsolateNumber[isolateNumber];
+    final thread = _threadsByThreadId[threadId];
     if (thread == null) {
-      if (isInvalidThreadId(isolateNumber)) {
-        throw DebugAdapterException('Thread $isolateNumber was not found');
+      if (isInvalidThreadId(threadId)) {
+        throw DebugAdapterException('Thread $threadId was not found');
       } else {
         // Otherwise, this thread has exited and we don't need to do anything.
         // It's possible another debugger unpaused or we're shutting down and
@@ -342,16 +331,16 @@ class IsolateManager {
     }
   }
 
-  /// Pauses an isolate using its client [isolateNumber].
+  /// Pauses an isolate using its client [threadId].
   ///
   /// This is simply a _request_ to pause. It does not change any state by
   /// itself - we will handle the pause via an event if the pause request
   /// succeeds.
-  Future<void> pauseThread(int isolateNumber) async {
-    final thread = _threadsByIsolateNumber[isolateNumber];
+  Future<void> pauseThread(int threadId) async {
+    final thread = _threadsByThreadId[threadId];
     if (thread == null) {
-      if (isInvalidThreadId(isolateNumber)) {
-        throw DebugAdapterException('Thread $isolateNumber was not found');
+      if (isInvalidThreadId(threadId)) {
+        throw DebugAdapterException('Thread $threadId was not found');
       } else {
         // Otherwise, this thread has recently exited so we cannot attempt
         // to pause it.
@@ -368,18 +357,15 @@ class IsolateManager {
     }
   }
 
-  /// Checks whether [isolateNumber] is invalid and has never been used.
+  /// Checks whether [threadId] is invalid and has never been used.
   ///
-  /// Returns `false` is [isolateNumber] corresponds to either a live, or previously
+  /// Returns `false` is [threadId] corresponds to either a live, or previously
   /// exited thread.
-  bool isInvalidThreadId(int isolateNumber) =>
-      !_knownIsolateNumbers.contains(isolateNumber);
+  bool isInvalidThreadId(int threadId) => threadId >= _nextThreadNumber;
 
   /// Sends an event informing the client that a thread is stopped at entry.
-  void sendStoppedOnEntryEvent(int isolateNumber) {
-    _adapter.sendEvent(
-      StoppedEventBody(reason: 'entry', threadId: isolateNumber),
-    );
+  void sendStoppedOnEntryEvent(int threadId) {
+    _adapter.sendEvent(StoppedEventBody(reason: 'entry', threadId: threadId));
   }
 
   /// Records breakpoints for [uri].
@@ -394,7 +380,7 @@ class IsolateManager {
     _clientBreakpointsByUri[uri] = breakpoints;
 
     // Send the breakpoints to all existing threads.
-    await Future.wait(_threadsByIsolateNumber.values
+    await Future.wait(_threadsByThreadId.values
         .map((thread) => _sendBreakpoints(thread, uri: uri)));
   }
 
@@ -406,7 +392,7 @@ class IsolateManager {
 
     // Send the breakpoints to all existing threads.
     await Future.wait(
-      _threadsByIsolateNumber.values.map((thread) => _sendBreakpoints(thread)),
+      _threadsByThreadId.values.map((thread) => _sendBreakpoints(thread)),
     );
   }
 
@@ -416,7 +402,7 @@ class IsolateManager {
     _exceptionPauseMode = mode;
 
     // Send to all existing threads.
-    await Future.wait(_threadsByIsolateNumber.values.map(
+    await Future.wait(_threadsByThreadId.values.map(
       (thread) => _sendExceptionPauseMode(thread),
     ));
   }
@@ -518,10 +504,10 @@ class IsolateManager {
     if (thread != null) {
       // Notify the client.
       _adapter.sendEvent(
-        ThreadEventBody(reason: 'exited', threadId: thread.isolateNumber),
+        ThreadEventBody(reason: 'exited', threadId: thread.threadId),
       );
       _threadsByIsolateId.remove(isolateId);
-      _threadsByIsolateNumber.remove(thread.isolateNumber);
+      _threadsByThreadId.remove(thread.threadId);
     }
   }
 
@@ -558,7 +544,7 @@ class IsolateManager {
     if (eventKind == vm.EventKind.kPausePostRequest) {
       await _configureIsolate(thread);
       if (autoResumeStartingIsolates) {
-        await resumeThread(thread.isolateNumber);
+        await resumeThread(thread.threadId);
       }
     } else if (eventKind == vm.EventKind.kPauseStart) {
       // Don't resume from a PauseStart if this has already happened (see
@@ -568,9 +554,9 @@ class IsolateManager {
         // If requested, automatically resume. Otherwise send a Stopped event to
         // inform the client UI the thread is paused.
         if (autoResumeStartingIsolates) {
-          await resumeThread(thread.isolateNumber);
+          await resumeThread(thread.threadId);
         } else {
-          sendStoppedOnEntryEvent(thread.isolateNumber);
+          sendStoppedOnEntryEvent(thread.threadId);
         }
       }
     } else {
@@ -605,7 +591,7 @@ class IsolateManager {
         // breakpoints don't have false conditions.
         if (breakpoints.isEmpty ||
             !await _shouldHitBreakpoint(thread, breakpoints)) {
-          await resumeThread(thread.isolateNumber);
+          await resumeThread(thread.threadId);
           return;
         }
       } else if (eventKind == vm.EventKind.kPauseBreakpoint) {
@@ -628,7 +614,7 @@ class IsolateManager {
       _adapter.sendEvent(
         StoppedEventBody(
           reason: reason,
-          threadId: thread.isolateNumber,
+          threadId: thread.threadId,
           text: text,
         ),
       );
@@ -787,7 +773,7 @@ class IsolateManager {
   Future<void> resumeAll() async {
     final pausedThreads = threads.where((thread) => thread.paused).toList();
     await Future.wait(
-      pausedThreads.map((thread) => resumeThread(thread.isolateNumber)),
+      pausedThreads.map((thread) => resumeThread(thread.threadId)),
     );
   }
 
@@ -995,7 +981,7 @@ class IsolateManager {
 class ThreadInfo with FileUtils {
   final IsolateManager _manager;
   final vm.IsolateRef isolate;
-  final int isolateNumber;
+  final int threadId;
   var runnable = false;
   var atAsyncSuspension = false;
   int? exceptionReference;
@@ -1042,7 +1028,7 @@ class ThreadInfo with FileUtils {
   /// been responded to.
   var hasPendingResume = false;
 
-  ThreadInfo(this._manager, this.isolateNumber, this.isolate);
+  ThreadInfo(this._manager, this.threadId, this.isolate);
 
   Future<T> getObject<T extends vm.Response>(vm.ObjRef ref) =>
       _manager.getObject<T>(isolate, ref);

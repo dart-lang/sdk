@@ -2109,7 +2109,6 @@ mixin A {
   }
 
   void test_parsePartOfDirective_name() {
-    enableUriInPartOf = true;
     createParser("part of l;");
     var directive = parseFullDirective() as PartOfDirective;
     expect(directive.partKeyword, isNotNull);
@@ -2120,7 +2119,6 @@ mixin A {
   }
 
   void test_parsePartOfDirective_uri() {
-    enableUriInPartOf = true;
     createParser("part of 'lib.dart';");
     var directive = parseFullDirective() as PartOfDirective;
     expect(directive.partKeyword, isNotNull);

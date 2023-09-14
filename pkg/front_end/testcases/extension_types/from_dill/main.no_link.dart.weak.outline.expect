@@ -1,0 +1,81 @@
+library;
+import self as self;
+import "main_lib1.dart" as mai;
+additionalExports = (mai::main,
+  mai::expect)
+
+export "org-dartlang-testcase:///main_lib1.dart";
+
+
+library;
+import self as mai;
+
+import "org-dartlang-testcase:///main_lib2.dart";
+
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+extension type ExtensionType(core::int it) {
+  static field staticField = self2::ExtensionType|staticField;
+  method instanceMethod = self2::ExtensionType|instanceMethod;
+  tearoff instanceMethod = self2::ExtensionType|get#instanceMethod;
+  operator + = self2::ExtensionType|+;
+  get instanceGetter = self2::ExtensionType|get#instanceGetter;
+  static method staticMethod = self2::ExtensionType|staticMethod;
+  static get staticGetter = get self2::ExtensionType|staticGetter;
+  set instanceSetter = self2::ExtensionType|set#instanceSetter;
+  static set staticSetter = set self2::ExtensionType|staticSetter;
+  constructor • = self2::ExtensionType|;
+  tearoff • = self2::ExtensionType|_#new#tearOff;
+  constructor named = self2::ExtensionType|named;
+  tearoff named = self2::ExtensionType|_#named#tearOff;
+  constructor redirectingGenerative = self2::ExtensionType|redirectingGenerative;
+  tearoff redirectingGenerative = self2::ExtensionType|_#redirectingGenerative#tearOff;
+  static factory fact = self2::ExtensionType|fact;
+  static tearoff fact = self2::ExtensionType|_#fact#tearOff;
+  static redirecting-factory redirectingFactory = self2::ExtensionType|redirectingFactory;
+  static tearoff redirectingFactory = self2::ExtensionType|_#redirectingFactory#tearOff;
+}
+static field core::int ExtensionType|staticField;
+static inline-class-member method ExtensionType|(core::int it) → self2::ExtensionType /* = core::int */
+  ;
+static inline-class-member method ExtensionType|_#new#tearOff(core::int it) → self2::ExtensionType /* = core::int */
+  return self2::ExtensionType|(it);
+static inline-class-member method ExtensionType|named(core::int it) → self2::ExtensionType /* = core::int */
+  ;
+static inline-class-member method ExtensionType|_#named#tearOff(core::int it) → self2::ExtensionType /* = core::int */
+  return self2::ExtensionType|named(it);
+static inline-class-member method ExtensionType|redirectingGenerative(core::int it) → self2::ExtensionType /* = core::int */
+  ;
+static inline-class-member method ExtensionType|_#redirectingGenerative#tearOff(core::int it) → self2::ExtensionType /* = core::int */
+  return self2::ExtensionType|redirectingGenerative(it);
+static inline-class-member method ExtensionType|fact(core::int it) → self2::ExtensionType /* = core::int */
+  ;
+static inline-class-member method ExtensionType|_#fact#tearOff(core::int it) → self2::ExtensionType /* = core::int */
+  return self2::ExtensionType|fact(it);
+static inline-class-member method ExtensionType|redirectingFactory(core::int it) → self2::ExtensionType /* = core::int */ /* redirection-target: self2::ExtensionType| */
+  return self2::ExtensionType|(it);
+static inline-class-member method ExtensionType|_#redirectingFactory#tearOff(core::int it) → self2::ExtensionType /* = core::int */
+  return self2::ExtensionType|(it);
+static inline-class-member method ExtensionType|instanceMethod(lowered final self2::ExtensionType /* = core::int */ #this) → core::int
+  ;
+static inline-class-member method ExtensionType|get#instanceMethod(lowered final self2::ExtensionType /* = core::int */ #this) → () → core::int
+  return () → core::int => self2::ExtensionType|instanceMethod(#this);
+static inline-class-member method ExtensionType|+(lowered final self2::ExtensionType /* = core::int */ #this, core::int i) → core::int
+  ;
+static inline-class-member method ExtensionType|get#instanceGetter(lowered final self2::ExtensionType /* = core::int */ #this) → core::int
+  ;
+static inline-class-member method ExtensionType|set#instanceSetter(lowered final self2::ExtensionType /* = core::int */ #this, core::int value) → void
+  ;
+static inline-class-member method ExtensionType|staticMethod() → core::int
+  ;
+static inline-class-member get ExtensionType|staticGetter() → core::int
+  ;
+static inline-class-member set ExtensionType|staticSetter(core::int value) → void
+  ;

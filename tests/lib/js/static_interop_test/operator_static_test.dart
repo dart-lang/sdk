@@ -80,10 +80,7 @@ extension _ on StaticInterop {
 }
 
 @JS()
-inline class Inline {
-  final JSObject obj;
-  external Inline();
-
+extension type ExtensionType(JSObject _) {
   external void operator <(_);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.

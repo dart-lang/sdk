@@ -78,8 +78,8 @@ TEST_CASE(SlotFromGuardedField) {
   const Slot& slot2 = Slot::Get(field_clone_2, parsed_function);
   EXPECT_EQ(&slot1, &slot2);
   EXPECT(slot1.is_guarded_field());
-  EXPECT(!slot1.is_nullable());
-  EXPECT_EQ(kSmiCid, slot1.nullable_cid());
+  EXPECT(!slot1.type().is_nullable());
+  EXPECT_EQ(kSmiCid, slot1.type().ToCid());
 
   // Check that the field was added (once) to the list of guarded fields.
   EXPECT_EQ(1, parsed_function->guarded_fields()->Length());

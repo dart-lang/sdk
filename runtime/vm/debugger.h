@@ -609,32 +609,17 @@ class GroupDebugger {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  SafepointRwLock* code_breakpoints_lock() {
-    return code_breakpoints_lock_.get();
-  }
+  RwLock* code_breakpoints_lock() { return code_breakpoints_lock_.get(); }
 
-  SafepointRwLock* breakpoint_locations_lock() {
+  RwLock* breakpoint_locations_lock() {
     return breakpoint_locations_lock_.get();
   }
 
-  SafepointRwLock* single_stepping_set_lock() {
-    return single_stepping_set_lock_.get();
-  }
+  RwLock* single_stepping_set_lock() { return single_stepping_set_lock_.get(); }
+
   void RegisterSingleSteppingDebugger(Thread* thread, const Debugger* debugger);
   void UnregisterSingleSteppingDebugger(Thread* thread,
                                         const Debugger* debugger);
-
-  bool RunUnderReadLockIfNeededCallable(Thread* thread,
-                                        SafepointRwLock* rw_lock,
-                                        BoolCallable* callable);
-
-  template <typename T>
-  bool RunUnderReadLockIfNeeded(Thread* thread,
-                                SafepointRwLock* rw_lock,
-                                T function) {
-    LambdaBoolCallable<T> callable(function);
-    return RunUnderReadLockIfNeededCallable(thread, rw_lock, &callable);
-  }
 
   // Returns [true] if there is at least one breakpoint set in function or code.
   // Checks for both user-defined and internal temporary breakpoints.
@@ -644,16 +629,16 @@ class GroupDebugger {
  private:
   IsolateGroup* isolate_group_;
 
-  std::unique_ptr<SafepointRwLock> code_breakpoints_lock_;
+  std::unique_ptr<RwLock> code_breakpoints_lock_;
   CodeBreakpoint* code_breakpoints_;
 
   // Secondary list of all breakpoint_locations_(primary is in Debugger class).
   // This list is kept in sync with all the lists in Isolate Debuggers and is
   // used to quickly scan BreakpointLocations when new Function is compiled.
-  std::unique_ptr<SafepointRwLock> breakpoint_locations_lock_;
+  std::unique_ptr<RwLock> breakpoint_locations_lock_;
   MallocGrowableArray<BreakpointLocation*> breakpoint_locations_;
 
-  std::unique_ptr<SafepointRwLock> single_stepping_set_lock_;
+  std::unique_ptr<RwLock> single_stepping_set_lock_;
   DebuggerSet single_stepping_set_;
 
   void RemoveUnlinkedCodeBreakpoints();

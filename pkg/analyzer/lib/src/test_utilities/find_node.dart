@@ -48,12 +48,16 @@ class FindNode {
 
   ConditionalExpression get singleConditionalExpression => _single();
 
+  ConstructorDeclaration get singleConstructorDeclaration => _single();
+
   ConstructorFieldInitializer get singleConstructorFieldInitializer =>
       _single();
 
   ExportDirective get singleExportDirective => _single();
 
   ExtendsClause get singleExtendsClause => _single();
+
+  ExtensionDeclaration get singleExtensionDeclaration => _single();
 
   ExtensionTypeDeclaration get singleExtensionTypeDeclaration => _single();
 
@@ -136,11 +140,18 @@ class FindNode {
   RedirectingConstructorInvocation get singleRedirectingConstructorInvocation =>
       _single();
 
+  RepresentationConstructorName get singleRepresentationConstructorName =>
+      _single();
+
+  RepresentationDeclaration get singleRepresentationDeclaration => _single();
+
   RethrowExpression get singleRethrowExpression => _single();
 
   SetOrMapLiteral get singleSetOrMapLiteral => _single();
 
   SuperConstructorInvocation get singleSuperConstructorInvocation => _single();
+
+  SuperFormalParameter get singleSuperFormalParameter => _single();
 
   SwitchCase get singleSwitchCase => _single();
 

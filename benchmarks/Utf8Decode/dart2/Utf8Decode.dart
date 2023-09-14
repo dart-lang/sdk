@@ -41,7 +41,7 @@ class Utf8Decode extends BenchmarkBase {
 
   @override
   void setup() {
-    final Uint8List data = utf8.encode(text) as Uint8List;
+    final Uint8List data = utf8.encode(text);
     if (data.length != 10000) {
       throw 'Expected input data of exactly 10000 bytes.';
     }

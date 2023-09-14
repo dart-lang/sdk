@@ -223,7 +223,7 @@ class Driver implements ServerStarter {
     } else {
       // TODO(jcollins): implement a full map of `clientId`s to tools to cover
       // more analyzer entry points than vscode.
-      if (clientId == 'VS-Code') {
+      if (clientId == 'VS-Code' || clientId == 'VS-Code-Remote') {
         analyticsManager = AnalyticsManager(_createAnalytics(
             defaultSdk, defaultSdkPath, DashTool.vscodePlugins));
       } else {

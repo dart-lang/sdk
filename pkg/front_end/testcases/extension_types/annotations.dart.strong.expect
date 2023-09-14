@@ -1,0 +1,41 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+@#C2
+extension type A(core::int i) {
+  method m = self::A|m;
+  tearoff m = self::A|get#m;
+  constructor • = self::A|;
+  tearoff • = self::A|_#new#tearOff;
+  constructor constructor = self::A|constructor;
+  tearoff constructor = self::A|_#constructor#tearOff;
+}
+static inline-class-member method A|(@#C2 core::int i) → self::A /* = core::int */ {
+  lowered final self::A /* = core::int */ #this = i;
+  return #this;
+}
+static inline-class-member method A|_#new#tearOff(core::int i) → self::A /* = core::int */
+  return self::A|(i);
+@#C2
+static inline-class-member method A|constructor(core::int i) → self::A /* = core::int */ {
+  lowered final self::A /* = core::int */ #this = i;
+  return #this;
+}
+static inline-class-member method A|_#constructor#tearOff(core::int i) → self::A /* = core::int */
+  return self::A|constructor(i);
+@#C2
+static inline-class-member method A|m(lowered final self::A /* = core::int */ #this) → void {}
+static inline-class-member method A|get#m(lowered final self::A /* = core::int */ #this) → () → void
+  return () → void => self::A|m(#this);
+
+constants  {
+  #C1 = ""
+  #C2 = core::Deprecated {message:#C1}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///annotations.dart:
+- Deprecated. (from org-dartlang-sdk:///sdk/lib/core/annotations.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

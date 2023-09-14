@@ -192,10 +192,10 @@ final class _RawReceivePort implements RawReceivePort {
 
   // Set this port as active or inactive in the VM. If inactive, this port
   // will not be considered live even if it hasn't been explicitly closed.
-  // TODO(bkonyi): determine if we want to expose this as an option through
-  // RawReceivePort.
   @pragma("vm:external-name", "RawReceivePort_setActive")
-  external _setActive(bool active);
+  external void _setActive(bool active);
+  @pragma("vm:external-name", "RawReceivePort_getActive")
+  external bool _getActive();
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
@@ -209,6 +209,12 @@ final class _RawReceivePort implements RawReceivePort {
   void set handler(Function? value) {
     _handler = value;
   }
+
+  void set keepIsolateAlive(bool value) {
+    _setActive(value);
+  }
+
+  bool get keepIsolateAlive => _getActive();
 
   static final _portMap = <int, _RawReceivePort>{};
 }
@@ -411,12 +417,12 @@ final class Isolate {
     if (automaticPackageResolution) {
       if (packageRoot != null) {
         throw new ArgumentError("Cannot simultaneously request "
-            "automaticPackageResolution and specify a"
+            "automaticPackageResolution and specify a "
             "packageRoot.");
       }
       if (packageConfig != null) {
         throw new ArgumentError("Cannot simultaneously request "
-            "automaticPackageResolution and specify a"
+            "automaticPackageResolution and specify a "
             "packageConfig.");
       }
     } else {

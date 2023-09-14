@@ -714,6 +714,248 @@ InstanceCreationExpression
 ''');
   }
 
+  test_extensionType_generic_primary_unnamed() async {
+    await assertNoErrorsInCode(r'''
+extension type A<T>(T it) {}
+
+void f() {
+  A(0);
+}
+''');
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: self::@extensionType::A
+      type: A<int>
+    staticElement: ConstructorMember
+      base: self::@extensionType::A::@constructor::new
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: FieldFormalParameterMember
+          base: self::@extensionType::A::@constructor::new::@parameter::it
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticType: A<int>
+''');
+  }
+
+  test_extensionType_generic_secondary_unnamed() async {
+    await assertNoErrorsInCode(r'''
+extension type A<T>.named(T it) {
+  A(this.it);
+}
+
+void f() {
+  A(0);
+}
+''');
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: self::@extensionType::A
+      type: A<int>
+    staticElement: ConstructorMember
+      base: self::@extensionType::A::@constructor::new
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: FieldFormalParameterMember
+          base: self::@extensionType::A::@constructor::new::@parameter::it
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticType: A<int>
+''');
+  }
+
+  test_extensionType_notGeneric_primary_named() async {
+    await assertNoErrorsInCode(r'''
+extension type A.named(int it) {}
+
+void f() {
+  A.named(0);
+}
+''');
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: self::@extensionType::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: named
+      staticElement: self::@extensionType::A::@constructor::named
+      staticType: null
+    staticElement: self::@extensionType::A::@constructor::named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@extensionType::A::@constructor::named::@parameter::it
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
+  }
+
+  test_extensionType_notGeneric_primary_unnamed() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {}
+
+void f() {
+  A(0);
+}
+''');
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: self::@extensionType::A
+      type: A
+    staticElement: self::@extensionType::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@extensionType::A::@constructor::new::@parameter::it
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
+  }
+
+  test_extensionType_notGeneric_secondary_named() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  A.named(this.it);
+}
+
+void f() {
+  A.named(0);
+}
+''');
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: self::@extensionType::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: named
+      staticElement: self::@extensionType::A::@constructor::named
+      staticType: null
+    staticElement: self::@extensionType::A::@constructor::named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@extensionType::A::@constructor::named::@parameter::it
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
+  }
+
+  test_extensionType_notGeneric_secondary_unnamed() async {
+    await assertNoErrorsInCode(r'''
+extension type A.named(int it) {
+  A(this.it);
+}
+
+void f() {
+  A(0);
+}
+''');
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: self::@extensionType::A
+      type: A
+    staticElement: self::@extensionType::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@extensionType::A::@constructor::new::@parameter::it
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
+  }
+
+  test_extensionType_notGeneric_unresolved() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {}
+
+void f() {
+  new A.named(0);
+}
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 48, 5),
+    ]);
+
+    final node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: self::@extensionType::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: named
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+''');
+  }
+
   test_importPrefix() async {
     await assertErrorsInCode(r'''
 import 'dart:math' as prefix;

@@ -32,6 +32,8 @@ class DevCompilerTarget extends Target {
 
   Map<String, Class>? _nativeClasses;
 
+  DiagnosticReporter<Message, LocatedMessage>? _diagnosticReporter;
+
   @override
   int get enabledLateLowerings => LateLowering.all;
 
@@ -135,6 +137,10 @@ class DevCompilerTarget extends Target {
   bool _allowedTestLibrary(Uri uri) {
     // Multi-root scheme used by modular test framework.
     if (uri.isScheme('dev-dart-app')) return true;
+    // Test package used by expression evaluation tests.
+    if (uri.isScheme('package') && uri.path == 'eval_test/test.dart') {
+      return true;
+    }
     return allowedNativeTest(uri);
   }
 
@@ -173,24 +179,43 @@ class DevCompilerTarget extends Target {
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
-    final jsInteropReporter = JsInteropDiagnosticReporter(
-        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
-    var jsInteropChecks = JsInteropChecks(
+    _diagnosticReporter ??=
+        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>;
+    _performTransformations(coreTypes, hierarchy, libraries);
+  }
+
+  @override
+  void performTransformationsOnProcedure(
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      Procedure procedure,
+      Map<String, String>? environmentDefines,
+      {void Function(String)? logger}) {
+    _performTransformations(coreTypes, hierarchy, [procedure]);
+  }
+
+  void _performTransformations(
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    List<TreeNode> nodes,
+  ) {
+    final jsInteropReporter = JsInteropDiagnosticReporter(_diagnosticReporter!);
+    final jsInteropChecks = JsInteropChecks(
         coreTypes, hierarchy, jsInteropReporter, _nativeClasses!);
-    // Process and validate first before doing anything with exports.
-    for (var library in libraries) {
-      jsInteropChecks.visitLibrary(library);
+    for (var node in nodes) {
+      // Process and validate first before doing anything with exports.
+      node.accept(jsInteropChecks);
     }
-    var exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
+    final exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
         jsInteropReporter, jsInteropChecks.exportChecker);
-    var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
-    for (var library in libraries) {
-      _CovarianceTransformer(library).transform();
+    final jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
+    for (var node in nodes) {
+      _CovarianceTransformer(node).transform();
       // Export creator has static checks, so we still visit.
-      exportCreator.visitLibrary(library);
+      node.accept(exportCreator);
       if (!jsInteropReporter.hasJsInteropErrors) {
         // We can't guarantee calls are well-formed, so don't transform.
-        jsUtilOptimizer.visitLibrary(library);
+        node.accept(jsUtilOptimizer);
       }
     }
   }
@@ -300,9 +325,20 @@ class _CovarianceTransformer extends RecursiveVisitor {
   /// aren't in [_checkedMembers].
   final _privateFields = <Field>[];
 
-  final Library _library;
+  late final Library _library;
 
-  _CovarianceTransformer(this._library);
+  /// Create covariance transformer from a node.
+  ///
+  /// The [_node] is expected to be a [Library] in initial compilation
+  /// and a [Procedure] in the interactive expression compilation.
+  _CovarianceTransformer(TreeNode node) {
+    assert(
+      node is Library || node is Procedure,
+      'Unexpected node in _CovarianceTransformer',
+    );
+    if (node is Library) _library = node;
+    if (node is Procedure) _library = node.enclosingLibrary;
+  }
 
   /// Transforms [_library], eliminating unnecessary checks for private members.
   ///

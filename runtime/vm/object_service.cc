@@ -828,12 +828,12 @@ void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
         case ObjectPool::EntryType::kImmediate:
           imm = RawValueAt(i);
           jsentry.AddProperty("kind", "Immediate");
-          jsentry.AddProperty64("value", imm);
+          jsentry.AddPropertyF("value", "0x%" Px, imm);
           break;
         case ObjectPool::EntryType::kNativeFunction:
           imm = RawValueAt(i);
           jsentry.AddProperty("kind", "NativeFunction");
-          jsentry.AddProperty64("value", imm);
+          jsentry.AddPropertyF("value", "0x%" Px, imm);
           break;
         default:
           UNREACHABLE();

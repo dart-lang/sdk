@@ -8,8 +8,11 @@ import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
+
+typedef StaticOptions = Either2<bool, HoverOptions>;
 
 class HoverHandler
     extends SharedMessageHandler<TextDocumentPositionParams, Hover?> {
@@ -104,4 +107,22 @@ class HoverHandler
     final hover = computer.compute();
     return success(toHover(unit.lineInfo, hover));
   }
+}
+
+class HoverRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  HoverRegistrations(super.info);
+
+  @override
+  ToJsonable? get options =>
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes);
+
+  @override
+  Method get registrationMethod => Method.textDocument_hover;
+
+  @override
+  StaticOptions get staticOptions => Either2.t1(true);
+
+  @override
+  bool get supportsDynamic => clientDynamic.hover;
 }

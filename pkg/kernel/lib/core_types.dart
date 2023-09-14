@@ -347,6 +347,9 @@ class CoreTypes {
   late final Procedure lateInitializeOnceCheck = index.getTopLevelProcedure(
       'dart:_late_helper', '_lateInitializeOnceCheck');
 
+  late final Procedure wrapAwaitedExpression =
+      index.getTopLevelProcedure('dart:async', '_wrapAwaitedExpression');
+
   late final Field enumNameField =
       index.getField('dart:core', '_Enum', '_name');
 
@@ -1170,7 +1173,7 @@ class CoreTypes {
     // Object?.
     // TODO(johnniwinther): Is this correct?
     if (type is ExtensionType) {
-      return isTop(type.instantiatedRepresentationType);
+      return isTop(type.typeErasure);
     }
 
     return false;

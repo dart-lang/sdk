@@ -18,5 +18,5 @@ abstract class ObjectPoolEntry {
   int get offset;
   ObjectPoolEntryKind get kind;
   ObjectRef? get asObject;
-  int? get asInteger;
+  String? get asImmediate;
 }

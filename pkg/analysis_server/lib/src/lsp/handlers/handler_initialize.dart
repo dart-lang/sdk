@@ -37,20 +37,20 @@ class InitializeMessageHandler
     // The onlyAnalyzeProjectsWithOpenFiles flag allows opening huge folders
     // without setting them as analysis roots. Instead, analysis roots will be
     // based only on the open files.
-    if (!server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles) {
+    if (!server.onlyAnalyzeProjectsWithOpenFiles) {
       if (workspaceFolders != null) {
         for (var wf in workspaceFolders) {
           final uri = wf.uri;
           // Only file URIs are supported, but there's no way to signal this to
           // the LSP client (and certainly not before initialization).
           if (uri.isScheme('file')) {
-            workspacePaths.add(uri.toFilePath());
+            workspacePaths.add(pathContext.fromUri(uri));
           }
         }
       }
       if (rootUri != null) {
         if (rootUri.isScheme('file')) {
-          workspacePaths.add(rootUri.toFilePath());
+          workspacePaths.add(pathContext.fromUri(rootUri));
         }
       } else if (rootPath != null) {
         workspacePaths.add(rootPath);

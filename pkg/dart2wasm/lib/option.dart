@@ -39,9 +39,12 @@ class Flag extends Option<bool> {
 
 class ValueOption<T> extends Option<T> {
   ValueOption(String name, void applyToOptions(CompilerOptions o, T v),
-      T converter(dynamic v), {String? defaultsTo})
-      : super(name, (a) => a.addOption(name, defaultsTo: defaultsTo),
-            applyToOptions, converter);
+      T converter(dynamic v), {String? defaultsTo, bool hide = false})
+      : super(
+            name,
+            (a) => a.addOption(name, defaultsTo: defaultsTo, hide: hide),
+            applyToOptions,
+            converter);
 }
 
 class IntOption extends ValueOption<int> {
@@ -53,8 +56,9 @@ class IntOption extends ValueOption<int> {
 
 class StringOption extends ValueOption<String> {
   StringOption(String name, void applyToOptions(CompilerOptions o, String v),
-      {String? defaultsTo})
-      : super(name, applyToOptions, (v) => v, defaultsTo: defaultsTo);
+      {String? defaultsTo, bool hide = false})
+      : super(name, applyToOptions, (v) => v,
+            defaultsTo: defaultsTo, hide: hide);
 }
 
 class UriOption extends ValueOption<Uri> {

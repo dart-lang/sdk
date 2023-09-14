@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart'
@@ -16,6 +17,8 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:collection/collection.dart';
+
+typedef StaticOptions = Either2<bool, ReferenceOptions>;
 
 class ReferencesHandler
     extends LspMessageHandler<ReferenceParams, List<Location>?> {
@@ -125,4 +128,22 @@ class ReferencesHandler
 
     return node;
   }
+}
+
+class ReferencesRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  ReferencesRegistrations(super.info);
+
+  @override
+  ToJsonable? get options =>
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes);
+
+  @override
+  Method get registrationMethod => Method.textDocument_references;
+
+  @override
+  StaticOptions get staticOptions => Either2.t1(true);
+
+  @override
+  bool get supportsDynamic => clientDynamic.references;
 }

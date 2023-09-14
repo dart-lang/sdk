@@ -21,7 +21,7 @@ main() {
   // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
   var c3 = const C3();
   //       ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
 }
 
 abstract class I0 {

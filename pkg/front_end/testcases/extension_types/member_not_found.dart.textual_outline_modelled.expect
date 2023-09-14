@@ -1,0 +1,8 @@
+---- unknown chunk starts ----
+extension type A._(int value) {
+---- unknown chunk ends ----
+A.name1(this.value);
+---- unknown chunk starts ----
+}
+---- unknown chunk ends ----
+void method() => A.name2(1);

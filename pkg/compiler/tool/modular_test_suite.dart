@@ -30,6 +30,7 @@ main(List<String> args) async {
           Dart2jsCodegenStep(codeId0),
           Dart2jsCodegenStep(codeId1),
           Dart2jsEmissionStep(),
+          Dart2jsDumpInfoStep(),
           RunD8(),
         ], cacheSharedModules: true)),
   ]);

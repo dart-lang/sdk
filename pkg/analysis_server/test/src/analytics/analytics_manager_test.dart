@@ -377,13 +377,12 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     String? path,
     Map<String, String>? errors,
     List<String>? experiments,
-    bool? implicitCasts,
     List<String>? lints,
   }) {
     path ??= '$testPackageRootPath/analysis_options.yaml';
     var buffer = StringBuffer();
 
-    if (errors != null || experiments != null || implicitCasts != null) {
+    if (errors != null || experiments != null) {
       buffer.writeln('analyzer:');
     }
 
@@ -399,11 +398,6 @@ class AnalyticsManagerTest with ResourceProviderMixin {
       for (var experiment in experiments) {
         buffer.writeln('    - $experiment');
       }
-    }
-
-    if (implicitCasts != null) {
-      buffer.writeln('  strong-mode:');
-      buffer.writeln('    implicit-casts: $implicitCasts');
     }
 
     if (lints != null) {

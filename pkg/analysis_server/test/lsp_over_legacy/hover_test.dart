@@ -48,6 +48,21 @@ This is my class.
     );
   }
 
+  Future<void> test_loggedMethodName() async {
+    newFile(testFilePath, 'String s;');
+    await waitForTasksFinished();
+    await getHover(testFileUri, Position(character: 1, line: 0));
+
+    expect(
+      numberOfRecordedResponses(Method.textDocument_hover.toString()),
+      isPositive,
+    );
+    expect(
+      numberOfRecordedResponses('lsp.handle'),
+      isZero,
+    );
+  }
+
   MarkupContent _getMarkupContents(Hover hover) {
     return hover.contents.map(
       (t1) => t1,

@@ -1198,10 +1198,6 @@ abstract interface class Uri {
    * Encodes the string [component] according to the HTML 4.01 rules
    * for encoding the posting of a HTML form as a query string
    * component.
-   *
-   * Encode the string [component] according to the HTML 4.01 rules
-   * for encoding the posting of a HTML form as a query string
-   * component.
 
    * The component is first encoded to bytes using [encoding].
    * The default is to use [utf8] encoding, which preserves all

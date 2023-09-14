@@ -1,0 +1,39 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int field;
+  synthetic constructor •() → self::A
+    ;
+  method method() → core::int
+    ;
+  get getter() → core::int
+    ;
+  set setter(core::int value) → void
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+}
+extension type E(self::B it) implements self::B {
+  constructor • = self::E|;
+  tearoff • = self::E|_#new#tearOff;
+}
+extension type F(self::B it) implements self::E /* = self::B */ {
+  constructor • = self::F|;
+  tearoff • = self::F|_#new#tearOff;
+}
+static inline-class-member method E|(self::B it) → self::E /* = self::B */
+  ;
+static inline-class-member method E|_#new#tearOff(self::B it) → self::E /* = self::B */
+  return self::E|(it);
+static inline-class-member method F|(self::B it) → self::F /* = self::B */
+  ;
+static inline-class-member method F|_#new#tearOff(self::B it) → self::F /* = self::B */
+  return self::F|(it);
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

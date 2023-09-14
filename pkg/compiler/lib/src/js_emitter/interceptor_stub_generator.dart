@@ -74,8 +74,12 @@ class InterceptorStubGenerator {
         condition = js('(typeof receiver) == "string"');
       } else if (cls == _commonElements.jsNullClass) {
         condition = js('receiver == null');
+      } else if (cls == _commonElements.jsJavaScriptBigIntClass) {
+        condition = js('(typeof receiver) == "bigint"');
       } else if (cls == _commonElements.jsJavaScriptFunctionClass) {
         condition = js('(typeof receiver) == "function"');
+      } else if (cls == _commonElements.jsJavaScriptSymbolClass) {
+        condition = js('(typeof receiver) == "symbol"');
       } else {
         throw 'internal error';
       }
@@ -92,7 +96,9 @@ class InterceptorStubGenerator {
     bool hasNative = false;
     bool anyNativeClasses = _nativeCodegenEnqueuer.hasInstantiatedNativeClasses;
     bool hasJavaScriptFunction = false;
+    bool hasJavaScriptBigInt = false;
     bool hasJavaScriptObject = false;
+    bool hasJavaScriptSymbol = false;
 
     for (ClassEntity cls in classes) {
       if (cls == _commonElements.jsArrayClass ||
@@ -112,8 +118,12 @@ class InterceptorStubGenerator {
         hasNumber = true;
       else if (cls == _commonElements.jsStringClass)
         hasString = true;
+      else if (cls == _commonElements.jsJavaScriptBigIntClass)
+        hasJavaScriptBigInt = true;
       else if (cls == _commonElements.jsJavaScriptFunctionClass)
         hasJavaScriptFunction = true;
+      else if (cls == _commonElements.jsJavaScriptSymbolClass)
+        hasJavaScriptSymbol = true;
       else if (cls == _commonElements.jsJavaScriptObjectClass)
         hasJavaScriptObject = true;
       else {
@@ -190,10 +200,20 @@ class InterceptorStubGenerator {
 
     // If a program `hasNative` then we will insert a check for
     // `JavaScriptFunction` in the `hasNative` block of the interceptor logic.
-    // Otherwise, we have to insert a specific check for `JavScriptFunction.
-    if (hasJavaScriptFunction && !hasNative) {
-      statements.add(
-          buildInterceptorCheck(_commonElements.jsJavaScriptFunctionClass));
+    // Otherwise, we have to insert a specific check for `JavaScriptFunction.
+    if (!hasNative) {
+      if (hasJavaScriptFunction) {
+        statements.add(
+            buildInterceptorCheck(_commonElements.jsJavaScriptFunctionClass));
+      }
+      if (hasJavaScriptSymbol) {
+        statements.add(
+            buildInterceptorCheck(_commonElements.jsJavaScriptSymbolClass));
+      }
+      if (hasJavaScriptBigInt) {
+        statements.add(
+            buildInterceptorCheck(_commonElements.jsJavaScriptBigIntClass));
+      }
     }
 
     if (hasJavaScriptObject && !hasNative) {
@@ -215,12 +235,16 @@ class InterceptorStubGenerator {
       statements.add(js.statement(r'''{
           if (typeof receiver != "object") {
               if (typeof receiver == "function" ) return #;
+              if (typeof receiver == "symbol" ) return #;
+              if (typeof receiver == "bigint" ) return #;
               return receiver;
           }
           if (receiver instanceof #) return receiver;
           return #(receiver);
       }''', [
         interceptorFor(_commonElements.jsJavaScriptFunctionClass),
+        interceptorFor(_commonElements.jsJavaScriptSymbolClass),
+        interceptorFor(_commonElements.jsJavaScriptBigIntClass),
         _emitter.constructorAccess(_commonElements.objectClass),
         _emitter
             .staticFunctionAccess(_commonElements.getNativeInterceptorMethod)

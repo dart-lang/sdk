@@ -268,7 +268,17 @@ const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
 // "referenced."
 const _Protected protected = _Protected();
 
-// todo(pq): add a link to `implicit_reopen` once implemented.
+/// Used to annotate an instance member of an extension type that
+/// redeclares a member from a superinterface.
+///
+/// Tools, such as the analyzer, can provide feedback if
+///
+/// * the annotation is associated with anything other than a valid instance
+///   member of an extension type (a method, operator, getter, or setter) or
+/// * is applied to a member that does not redeclare a member from either the
+///   extended type or a superinterface.
+@experimental
+const _Redeclare redeclare = _Redeclare();
 
 /// Annotation for intentionally loosening restrictions on subtyping that would
 /// otherwise cause lint warnings to be produced by the `implicit_reopen` lint.
@@ -287,9 +297,10 @@ const _Protected protected = _Protected();
 ///   `final` based on the modifiers of its superinterfaces
 ///
 /// A declaration annotated with `@reopen` will suppress warnings from the
-/// `implicit_reopen` lint. That lint will otherwise warn when a subtype has
-/// restrictions that are not sufficient to enforce the restrictions declared
-/// by class modifiers on one or more superinterfaces.
+/// [`implicit_reopen`](https://dart.dev/tools/linter-rules/implicit_reopen)
+/// lint. That lint will otherwise warn when a subtype has restrictions that are
+/// not sufficient to enforce the restrictions declared by class modifiers on
+/// one or more superinterfaces.
 ///
 /// In addition, tools, such as the analyzer, can provide feedback if
 ///
@@ -518,6 +529,16 @@ class _OptionalTypeArgs {
 
 class _Protected {
   const _Protected();
+}
+
+@Target({
+  // todo(pq): restrict to instance members only
+  TargetKind.getter,
+  TargetKind.setter,
+  TargetKind.method,
+})
+class _Redeclare {
+  const _Redeclare();
 }
 
 @Target({

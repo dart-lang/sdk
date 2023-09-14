@@ -90,7 +90,6 @@ class ForwardingTestListener extends ForwardingListener {
       Token beginToken,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -102,7 +101,6 @@ class ForwardingTestListener extends ForwardingListener {
         beginToken,
         abstractToken,
         macroToken,
-        inlineToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -418,7 +416,6 @@ class ForwardingTestListener extends ForwardingListener {
       Token beginToken,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -430,7 +427,6 @@ class ForwardingTestListener extends ForwardingListener {
         beginToken,
         abstractToken,
         macroToken,
-        inlineToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -1482,9 +1478,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void handleRecoverClassHeader() {
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
     expectIn('ClassDeclaration');
-    listener?.handleRecoverClassHeader();
+    listener?.handleRecoverDeclarationHeader(kind);
   }
 
   @override

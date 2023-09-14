@@ -452,7 +452,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_RestrictedRange) {
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
   const Function& helper = Function::Handle(
-      lib.LookupLocalFunction(String::Handle(String::New("helper0"))));
+      lib.LookupFunctionAllowPrivate(String::Handle(String::New("helper0"))));
 
   SourceReport report(SourceReport::kCoverage);
   JSONStream js;
@@ -645,7 +645,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
   const Function& helper = Function::Handle(
-      lib.LookupLocalFunction(String::Handle(String::New("helper"))));
+      lib.LookupFunctionAllowPrivate(String::Handle(String::New("helper"))));
 
   SourceReport report(SourceReport::kCallSites);
   JSONStream js;

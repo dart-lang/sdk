@@ -882,10 +882,11 @@ static void ReplaceParameterStubs(Zone* zone,
   //    }
   //    class B extends A<X> { void f(X v) { ... } }
   //
-  // Conside when B.f is inlined into a callsite in A.g (e.g. due to polymorphic
-  // inlining). v is known to be X within the body of B.f, but not guaranteed to
-  // be X outside of it. Thus we must ensure that all operations with v that
-  // depend on its type being X are pinned to stay within the inlined body.
+  // Consider when B.f is inlined into a callsite in A.g (e.g. due to
+  // polymorphic inlining). v is known to be X within the body of B.f, but not
+  // guaranteed to be X outside of it. Thus we must ensure that all operations
+  // with v that depend on its type being X are pinned to stay within the
+  // inlined body.
   //
   // We achieve that by inserting redefinitions for parameters which potentially
   // have narrower types in callee compared to those in the interface target of
@@ -969,7 +970,8 @@ static void ReplaceParameterStubs(Zone* zone,
   for (intptr_t i = 0; i < defns->length(); ++i) {
     ConstantInstr* constant = (*defns)[i]->AsConstant();
     if (constant != nullptr && constant->HasUses()) {
-      constant->ReplaceUsesWith(caller_graph->GetConstant(constant->value()));
+      constant->ReplaceUsesWith(caller_graph->GetConstant(
+          constant->value(), constant->representation()));
     }
   }
 
@@ -977,7 +979,8 @@ static void ReplaceParameterStubs(Zone* zone,
   for (intptr_t i = 0; i < defns->length(); ++i) {
     ConstantInstr* constant = (*defns)[i]->AsConstant();
     if (constant != nullptr && constant->HasUses()) {
-      constant->ReplaceUsesWith(caller_graph->GetConstant(constant->value()));
+      constant->ReplaceUsesWith(caller_graph->GetConstant(
+          constant->value(), constant->representation()));
     }
 
     SpecialParameterInstr* param = (*defns)[i]->AsSpecialParameter();
@@ -1159,23 +1162,22 @@ class CallSiteInliner : public ValueObject {
     ConstantInstr* constant = argument->definition()->AsConstant();
     if (constant != nullptr) {
       return graph->GetConstant(constant->value());
-    } else {
-      ParameterInstr* param =
-          new (Z) ParameterInstr(/*env_index=*/i, /*param_index=*/i, -1,
-                                 graph->graph_entry(), kNoRepresentation);
-      if (i >= 0) {
-        // Compute initial parameter type using static and inferred types
-        // and combine it with an argument type from the caller.
-        param->UpdateType(
-            *CompileType::ComputeRefinedType(param->Type(), argument->Type()));
-      } else {
-        // Parameter stub for function type arguments.
-        // It doesn't correspond to a real parameter, so don't try to
-        // query its static/inferred type.
-        param->UpdateType(*argument->Type());
-      }
-      return param;
     }
+    ParameterInstr* param = new (Z) ParameterInstr(
+        /*env_index=*/i, /*param_index=*/i,
+        /*param_offset=*/-1, graph->graph_entry(), kNoRepresentation);
+    if (i >= 0) {
+      // Compute initial parameter type using static and inferred types
+      // and combine it with an argument type from the caller.
+      param->UpdateType(
+          *CompileType::ComputeRefinedType(param->Type(), argument->Type()));
+    } else {
+      // Parameter stub for function type arguments.
+      // It doesn't correspond to a real parameter, so don't try to
+      // query its static/inferred type.
+      param->UpdateType(*argument->Type());
+    }
+    return param;
   }
 
   bool TryInlining(const Function& function,
@@ -1243,10 +1245,10 @@ class CallSiteInliner : public ValueObject {
 
     // Type feedback may have been cleared for this function (ClearICDataArray),
     // but we need it for inlining.
-    if (!CompilerState::Current().is_aot() &&
-        (function.ic_data_array() == Array::null())) {
+    if (!CompilerState::Current().is_aot() && !function.ForceOptimize() &&
+        function.ic_data_array() == Array::null()) {
       TRACE_INLINING(THR_Print("     Bailout: type feedback cleared\n"));
-      PRINT_INLINING_TREE("Not compiled", &call_data->caller, &function,
+      PRINT_INLINING_TREE("No ICData", &call_data->caller, &function,
                           call_data->call);
       return false;
     }
@@ -1323,7 +1325,7 @@ class CallSiteInliner : public ValueObject {
         ZoneGrowableArray<const ICData*>* ic_data_array =
             new (Z) ZoneGrowableArray<const ICData*>();
         const bool clone_ic_data = Compiler::IsBackgroundCompilation();
-        ASSERT(CompilerState::Current().is_aot() ||
+        ASSERT(CompilerState::Current().is_aot() || function.ForceOptimize() ||
                function.ic_data_array() != Array::null());
         function.RestoreICDataMap(ic_data_array, clone_ic_data);
 
@@ -1348,10 +1350,11 @@ class CallSiteInliner : public ValueObject {
         } else if (call_data->call->IsClosureCall()) {
           // Closure functions only have one entry point.
         }
+        // context_level_array=nullptr below means we are not building var desc.
         kernel::FlowGraphBuilder builder(
-            parsed_function, ic_data_array, /* not building var desc */ nullptr,
+            parsed_function, ic_data_array, /*context_level_array=*/nullptr,
             exit_collector,
-            /* optimized = */ true, Compiler::kNoOSRDeoptId,
+            /*optimized=*/true, Compiler::kNoOSRDeoptId,
             caller_graph_->max_block_id() + 1,
             entry_kind == Code::EntryKind::kUnchecked);
         {
@@ -1485,7 +1488,11 @@ class CallSiteInliner : public ValueObject {
             CompilerPassState state(Thread::Current(), callee_graph,
                                     inliner_->speculative_policy_);
             state.call_specializer = &call_specializer;
-            CompilerPass::RunInliningPipeline(CompilerPass::kAOT, &state);
+            if (function.ForceOptimize()) {
+              CompilerPass::RunForceOptimizedInliningPipeline(&state);
+            } else {
+              CompilerPass::RunInliningPipeline(CompilerPass::kAOT, &state);
+            }
 #else
             UNREACHABLE();
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
@@ -1496,7 +1503,11 @@ class CallSiteInliner : public ValueObject {
             CompilerPassState state(Thread::Current(), callee_graph,
                                     inliner_->speculative_policy_);
             state.call_specializer = &call_specializer;
-            CompilerPass::RunInliningPipeline(CompilerPass::kJIT, &state);
+            if (function.ForceOptimize()) {
+              CompilerPass::RunForceOptimizedInliningPipeline(&state);
+            } else {
+              CompilerPass::RunInliningPipeline(CompilerPass::kJIT, &state);
+            }
           }
         }
 
@@ -1727,6 +1738,27 @@ class CallSiteInliner : public ValueObject {
     InlineExitCollector* exit_collector = call_data->exit_collector;
     exit_collector->PrepareGraphs(callee_graph);
     ReplaceParameterStubs(zone(), caller_graph_, call_data, nullptr);
+
+    // Inlined force-optimized idempotent functions get deopt-id and
+    // environment from the call, so when deoptimized, the call is repeated.
+    if (callee_graph->function().ForceOptimize()) {
+      // We should only reach here if `Function::CanBeInlined()` returned true,
+      // which only happens if the force-optimized function is idempotent.
+      ASSERT(CompilerState::Current().is_aot() ||
+             callee_graph->function().IsIdempotent());
+      for (BlockIterator block_it = callee_graph->postorder_iterator();
+           !block_it.Done(); block_it.Advance()) {
+        for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
+             it.Advance()) {
+          Instruction* current = it.Current();
+          if (current->env() != nullptr) {
+            call_data->call->env()->DeepCopyTo(zone(), current);
+            current->CopyDeoptIdFrom(*call_data->call);
+            current->env()->MarkAsLazyDeoptToBeforeDeoptId();
+          }
+        }
+      }
+    }
     exit_collector->ReplaceCall(callee_function_entry);
 
     ASSERT(!call_data->call->HasMoveArguments());
@@ -4478,11 +4510,24 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
 
       // Insert explicit unboxing instructions with truncation to avoid relying
       // on [SelectRepresentations] which doesn't mark them as truncating.
+      arg_target_offset_in_bytes = UnboxInstr::Create(
+          kUnboxedIntPtr, new (Z) Value(arg_target_offset_in_bytes),
+          call->deopt_id(), Instruction::kNotSpeculative);
+      arg_target_offset_in_bytes->AsUnboxInteger()->mark_truncating();
+      flow_graph->AppendTo(*entry, arg_target_offset_in_bytes, env,
+                           FlowGraph::kValue);
+      arg_source_offset_in_bytes = UnboxInstr::Create(
+          kUnboxedIntPtr, new (Z) Value(arg_source_offset_in_bytes),
+          call->deopt_id(), Instruction::kNotSpeculative);
+      arg_source_offset_in_bytes->AsUnboxInteger()->mark_truncating();
+      flow_graph->AppendTo(arg_target_offset_in_bytes,
+                           arg_source_offset_in_bytes, env, FlowGraph::kValue);
       arg_length_in_bytes =
           UnboxInstr::Create(kUnboxedIntPtr, new (Z) Value(arg_length_in_bytes),
                              call->deopt_id(), Instruction::kNotSpeculative);
       arg_length_in_bytes->AsUnboxInteger()->mark_truncating();
-      flow_graph->AppendTo(*entry, arg_length_in_bytes, env, FlowGraph::kValue);
+      flow_graph->AppendTo(arg_source_offset_in_bytes, arg_length_in_bytes, env,
+                           FlowGraph::kValue);
 
       *last = new (Z)
           MemoryCopyInstr(new (Z) Value(arg_source), new (Z) Value(arg_target),
@@ -4490,7 +4535,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
                           new (Z) Value(arg_target_offset_in_bytes),
                           new (Z) Value(arg_length_in_bytes),
                           /*src_cid=*/kTypedDataUint8ArrayCid,
-                          /*dest_cid=*/kTypedDataUint8ArrayCid, true);
+                          /*dest_cid=*/kTypedDataUint8ArrayCid,
+                          /*unboxed_inputs=*/true, /*can_overlap=*/true);
       flow_graph->AppendTo(arg_length_in_bytes, *last, env, FlowGraph::kEffect);
 
       *result = flow_graph->constant_null();

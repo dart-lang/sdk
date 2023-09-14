@@ -34,15 +34,12 @@ class DocumentationValidator {
     'CompileTimeErrorCode.AMBIGUOUS_IMPORT',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE',
+    // TODO(kallentu) This is always reported with
+    // `ARGUMENT_TYPE_NOT_ASSIGNABLE` or is reported as
+    // `CONST_EVAL_THROWS_EXCEPTION` in const constructor evaluation.
+    'CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.CONST_DEFERRED_CLASS',
-    // Produces two diagnostics when it should only produce one.
-    'CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT',
-    // These docs need to be published until there are few enough users that
-    // are on a pre-3.0 SDK that we're OK with the possibility of them
-    // encountering a broken link.
-    // todo(pq): remove (some time) post 3.0
-    'CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR',
     // The mock SDK doesn't define any internal libraries.
     'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
     // Also reports CompileTimeErrorCode.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
@@ -57,12 +54,8 @@ class DocumentationValidator {
     'CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.INVALID_URI',
-    // Produces two diagnostics when it should only produce one.
-    'CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE',
     // No example, by design.
     'CompileTimeErrorCode.MISSING_DART_LIBRARY',
-    // Produces two diagnostics when it should only produce one.
-    'CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.NON_SYNC_FACTORY',
     // Need a way to make auxiliary files that (a) are not included in the
@@ -74,8 +67,6 @@ class DocumentationValidator {
     'CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT',
     // Produces two diagnostic out of necessity.
     'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE',
-    // https://github.com/dart-lang/sdk/issues/45960
-    'CompileTimeErrorCode.RETURN_IN_GENERATOR',
     // Produces two diagnostic out of necessity.
     'CompileTimeErrorCode.TOP_LEVEL_CYCLE',
     // Produces two diagnostic out of necessity.
@@ -96,15 +87,7 @@ class DocumentationValidator {
     'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     // The code has been replaced but is not yet removed.
     'HintCode.DEPRECATED_MEMBER_USE',
-    // Produces two diagnostics when it should only produce one (see
-    // https://github.com/dart-lang/sdk/issues/43051)
-    'HintCode.UNNECESSARY_NULL_COMPARISON_FALSE',
-    // Also produces FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY.
-    'FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS',
 
-    // Produces two diagnostics when it should only produce one (see
-    // https://github.com/dart-lang/sdk/issues/43263)
-    'StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION',
     //
     // The following can't currently be verified because the examples aren't
     // Dart code.
@@ -274,6 +257,13 @@ class DocumentationValidator {
     for (var errorEntry in messages.entries) {
       var errorName = errorEntry.key;
       var errorCodeInfo = errorEntry.value;
+
+      // If the error code is no longer generated,
+      // the corresponding code snippets won't report it.
+      if (errorCodeInfo.isRemoved) {
+        continue;
+      }
+
       var docs = parseErrorCodeDocumentation(
           '$className.$errorName', errorCodeInfo.documentation);
       if (docs != null) {

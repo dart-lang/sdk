@@ -18,7 +18,6 @@ import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
-import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
@@ -58,26 +57,28 @@ const int pendingVariance = -1;
 // type variable.
 int computeTypeVariableBuilderVariance(TypeVariableBuilder variable,
     TypeBuilder? type, LibraryBuilder libraryBuilder) {
-  if (type is NamedTypeBuilder) {
-    assert(type.declaration != null);
-    TypeDeclarationBuilder? declaration = type.declaration;
-    if (declaration is TypeVariableBuilder) {
-      if (declaration == variable) {
-        return Variance.covariant;
-      } else {
-        return Variance.unrelated;
-      }
-    } else {
-      if (declaration is ClassBuilder) {
+  switch (type) {
+    case NamedTypeBuilder(
+        :TypeDeclarationBuilder? declaration,
+        :List<TypeBuilder>? arguments
+      ):
+      assert(declaration != null);
+      if (declaration is TypeVariableBuilder) {
+        if (declaration == variable) {
+          return Variance.covariant;
+        } else {
+          return Variance.unrelated;
+        }
+      } else if (declaration is ClassBuilder) {
         int result = Variance.unrelated;
-        if (type.arguments != null) {
-          for (int i = 0; i < type.arguments!.length; ++i) {
+        if (arguments != null) {
+          for (int i = 0; i < arguments.length; ++i) {
             result = Variance.meet(
                 result,
                 Variance.combine(
                     declaration.cls.typeParameters[i].variance,
                     computeTypeVariableBuilderVariance(
-                        variable, type.arguments![i], libraryBuilder)));
+                        variable, arguments[i], libraryBuilder)));
           }
         }
         return result;
@@ -124,42 +125,72 @@ int computeTypeVariableBuilderVariance(TypeVariableBuilder variable,
         }
         return result;
       }
-    }
-  } else if (type is FunctionTypeBuilder) {
-    int result = Variance.unrelated;
-    if (type.returnType is! OmittedTypeBuilder) {
-      result = Variance.meet(
-          result,
-          computeTypeVariableBuilderVariance(
-              variable, type.returnType, libraryBuilder));
-    }
-    if (type.typeVariables != null) {
-      for (TypeVariableBuilder typeVariable in type.typeVariables!) {
-        // If [variable] is referenced in the bound at all, it makes the
-        // variance of [variable] in the entire type invariant.  The invocation
-        // of [computeVariance] below is made to simply figure out if [variable]
-        // occurs in the bound.
-        if (typeVariable.bound != null &&
-            computeTypeVariableBuilderVariance(
-                    variable, typeVariable.bound!, libraryBuilder) !=
-                Variance.unrelated) {
-          result = Variance.invariant;
-        }
-      }
-    }
-    if (type.formals != null) {
-      for (ParameterBuilder formal in type.formals!) {
+      return Variance.unrelated;
+    case FunctionTypeBuilder(
+        :List<TypeVariableBuilder>? typeVariables,
+        :List<ParameterBuilder>? formals,
+        :TypeBuilder returnType
+      ):
+      int result = Variance.unrelated;
+      if (returnType is! OmittedTypeBuilder) {
         result = Variance.meet(
             result,
-            Variance.combine(
-                Variance.contravariant,
-                computeTypeVariableBuilderVariance(
-                    variable, formal.type, libraryBuilder)));
+            computeTypeVariableBuilderVariance(
+                variable, returnType, libraryBuilder));
       }
-    }
-    return result;
+      if (typeVariables != null) {
+        for (TypeVariableBuilder typeVariable in typeVariables) {
+          // If [variable] is referenced in the bound at all, it makes the
+          // variance of [variable] in the entire type invariant.  The
+          // invocation of [computeVariance] below is made to simply figure out
+          // if [variable] occurs in the bound.
+          if (typeVariable.bound != null &&
+              computeTypeVariableBuilderVariance(
+                      variable, typeVariable.bound!, libraryBuilder) !=
+                  Variance.unrelated) {
+            result = Variance.invariant;
+          }
+        }
+      }
+      if (formals != null) {
+        for (ParameterBuilder formal in formals) {
+          result = Variance.meet(
+              result,
+              Variance.combine(
+                  Variance.contravariant,
+                  computeTypeVariableBuilderVariance(
+                      variable, formal.type, libraryBuilder)));
+        }
+      }
+      return result;
+    case RecordTypeBuilder(
+        :List<RecordTypeFieldBuilder>? positionalFields,
+        :List<RecordTypeFieldBuilder>? namedFields
+      ):
+      int result = Variance.unrelated;
+      if (positionalFields != null) {
+        for (RecordTypeFieldBuilder field in positionalFields) {
+          result = Variance.meet(
+              result,
+              computeTypeVariableBuilderVariance(
+                  variable, field.type, libraryBuilder));
+        }
+      }
+      if (namedFields != null) {
+        for (RecordTypeFieldBuilder field in namedFields) {
+          result = Variance.meet(
+              result,
+              computeTypeVariableBuilderVariance(
+                  variable, field.type, libraryBuilder));
+        }
+      }
+      return result;
+    case FixedTypeBuilder():
+    case InvalidTypeBuilder():
+    case OmittedTypeBuilder():
+    case null:
+      return Variance.unrelated;
   }
-  return Variance.unrelated;
 }
 
 /// Combines syntactic nullabilities on types for performing type substitution.
@@ -187,18 +218,42 @@ TypeBuilder substituteRange(
     List<TypeBuilder> unboundTypes,
     List<TypeVariableBuilder> unboundTypeVariables,
     {final int variance = Variance.covariant}) {
-  if (type is NamedTypeBuilder) {
-    if (type.declaration is TypeVariableBuilder) {
-      if (variance == Variance.contravariant) {
-        TypeBuilder? replacement = lowerSubstitution[type.declaration];
-        if (replacement != null) {
-          return replacement.withNullabilityBuilder(
-              combineNullabilityBuildersForSubstitution(
-                  replacement.nullabilityBuilder, type.nullabilityBuilder));
-        }
-        return type;
-      }
-      TypeBuilder? replacement = upperSubstitution[type.declaration];
+  switch (type) {
+    case NamedTypeBuilder():
+      return _substituteNamedTypeBuilder(type, upperSubstitution,
+          lowerSubstitution, unboundTypes, unboundTypeVariables,
+          variance: variance);
+
+    case FunctionTypeBuilder():
+      return _substituteFunctionTypeBuilder(type, upperSubstitution,
+          lowerSubstitution, unboundTypes, unboundTypeVariables,
+          variance: variance);
+
+    case RecordTypeBuilder():
+      return _substituteRecordTypeBuilder(type, upperSubstitution,
+          lowerSubstitution, unboundTypes, unboundTypeVariables,
+          variance: variance);
+
+    case OmittedTypeBuilder():
+    case FixedTypeBuilder():
+    case InvalidTypeBuilder():
+      return type;
+  }
+}
+
+TypeBuilder _substituteNamedTypeBuilder(
+    NamedTypeBuilder type,
+    Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
+    Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
+    List<TypeBuilder> unboundTypes,
+    List<TypeVariableBuilder> unboundTypeVariables,
+    {final int variance = Variance.covariant}) {
+  TypeDeclarationBuilder? declaration = type.declaration;
+  List<TypeBuilder>? arguments = type.arguments;
+
+  if (declaration is TypeVariableBuilder) {
+    if (variance == Variance.contravariant) {
+      TypeBuilder? replacement = lowerSubstitution[declaration];
       if (replacement != null) {
         return replacement.withNullabilityBuilder(
             combineNullabilityBuildersForSubstitution(
@@ -206,207 +261,245 @@ TypeBuilder substituteRange(
       }
       return type;
     }
-    if (type.arguments == null || type.arguments!.length == 0) {
-      return type;
+    TypeBuilder? replacement = upperSubstitution[declaration];
+    if (replacement != null) {
+      return replacement.withNullabilityBuilder(
+          combineNullabilityBuildersForSubstitution(
+              replacement.nullabilityBuilder, type.nullabilityBuilder));
     }
-    List<TypeBuilder>? arguments;
-    TypeDeclarationBuilder? declaration = type.declaration;
+    return type;
+  }
+  if (arguments == null || arguments.length == 0) {
+    return type;
+  }
+  List<TypeBuilder>? newArguments;
+  if (declaration == null) {
+    assert(
+        identical(upperSubstitution, lowerSubstitution),
+        "Can only handle unbound named type builders identical "
+        "`upperSubstitution` and `lowerSubstitution`.");
+    for (int i = 0; i < arguments.length; ++i) {
+      TypeBuilder substitutedArgument = substituteRange(
+          arguments[i],
+          upperSubstitution,
+          lowerSubstitution,
+          unboundTypes,
+          unboundTypeVariables,
+          variance: variance);
+      if (substitutedArgument != arguments[i]) {
+        newArguments ??= arguments.toList();
+        newArguments[i] = substitutedArgument;
+      }
+    }
+  } else if (declaration is ClassBuilder) {
+    for (int i = 0; i < arguments.length; ++i) {
+      TypeBuilder substitutedArgument = substituteRange(
+          arguments[i],
+          upperSubstitution,
+          lowerSubstitution,
+          unboundTypes,
+          unboundTypeVariables,
+          variance: variance);
+      if (substitutedArgument != arguments[i]) {
+        newArguments ??= arguments.toList();
+        newArguments[i] = substitutedArgument;
+      }
+    }
+  } else if (declaration is ExtensionTypeDeclarationBuilder) {
+    for (int i = 0; i < arguments.length; ++i) {
+      TypeBuilder substitutedArgument = substituteRange(
+          arguments[i],
+          upperSubstitution,
+          lowerSubstitution,
+          unboundTypes,
+          unboundTypeVariables,
+          variance: variance);
+      if (substitutedArgument != arguments[i]) {
+        newArguments ??= arguments.toList();
+        newArguments[i] = substitutedArgument;
+      }
+    }
+  } else if (declaration is TypeAliasBuilder) {
+    for (int i = 0; i < arguments.length; ++i) {
+      TypeVariableBuilder variable = declaration.typeVariables![i];
+      TypeBuilder substitutedArgument = substituteRange(
+          arguments[i],
+          upperSubstitution,
+          lowerSubstitution,
+          unboundTypes,
+          unboundTypeVariables,
+          variance: Variance.combine(variance, variable.variance));
+      if (substitutedArgument != arguments[i]) {
+        newArguments ??= arguments.toList();
+        newArguments[i] = substitutedArgument;
+      }
+    }
+  } else if (declaration is InvalidTypeDeclarationBuilder) {
+    // Don't substitute.
+  } else {
+    assert(false, "Unexpected named type builder declaration: $declaration.");
+  }
+  if (newArguments != null) {
+    NamedTypeBuilder newTypeBuilder = type.withArguments(newArguments);
     if (declaration == null) {
-      assert(
-          identical(upperSubstitution, lowerSubstitution),
-          "Can only handle unbound named type builders identical "
-          "`upperSubstitution` and `lowerSubstitution`.");
-      for (int i = 0; i < type.arguments!.length; ++i) {
-        TypeBuilder substitutedArgument = substituteRange(
-            type.arguments![i],
-            upperSubstitution,
-            lowerSubstitution,
-            unboundTypes,
-            unboundTypeVariables,
-            variance: variance);
-        if (substitutedArgument != type.arguments![i]) {
-          arguments ??= type.arguments!.toList();
-          arguments[i] = substitutedArgument;
-        }
-      }
-    } else if (declaration is ClassBuilder) {
-      for (int i = 0; i < type.arguments!.length; ++i) {
-        TypeBuilder substitutedArgument = substituteRange(
-            type.arguments![i],
-            upperSubstitution,
-            lowerSubstitution,
-            unboundTypes,
-            unboundTypeVariables,
-            variance: variance);
-        if (substitutedArgument != type.arguments![i]) {
-          arguments ??= type.arguments!.toList();
-          arguments[i] = substitutedArgument;
-        }
-      }
-    } else if (declaration is TypeAliasBuilder) {
-      for (int i = 0; i < type.arguments!.length; ++i) {
-        TypeVariableBuilder variable = declaration.typeVariables![i];
-        TypeBuilder substitutedArgument = substituteRange(
-            type.arguments![i],
-            upperSubstitution,
-            lowerSubstitution,
-            unboundTypes,
-            unboundTypeVariables,
-            variance: Variance.combine(variance, variable.variance));
-        if (substitutedArgument != type.arguments![i]) {
-          arguments ??= type.arguments!.toList();
-          arguments[i] = substitutedArgument;
-        }
-      }
-    } else if (declaration is InvalidTypeDeclarationBuilder) {
-      // Don't substitute.
-    } else {
-      assert(false, "Unexpected named type builder declaration: $declaration.");
+      unboundTypes.add(newTypeBuilder);
     }
-    if (arguments != null) {
-      NamedTypeBuilder newTypeBuilder = type.withArguments(arguments);
-      if (declaration == null) {
-        unboundTypes.add(newTypeBuilder);
-      }
-      return newTypeBuilder;
-    }
-    return type;
-  } else if (type is FunctionTypeBuilder) {
-    List<TypeVariableBuilder>? variables;
-    if (type.typeVariables != null) {
-      variables = new List<TypeVariableBuilder>.filled(
-          type.typeVariables!.length, dummyTypeVariableBuilder);
-    }
-    List<ParameterBuilder>? formals;
-    if (type.formals != null) {
-      formals = new List<ParameterBuilder>.filled(
-          type.formals!.length, dummyFormalParameterBuilder);
-    }
-    TypeBuilder? returnType;
-    bool changed = false;
+    return newTypeBuilder;
+  }
+  return type;
+}
 
-    Map<TypeVariableBuilder, TypeBuilder>? functionTypeUpperSubstitution;
-    Map<TypeVariableBuilder, TypeBuilder>? functionTypeLowerSubstitution;
-    if (type.typeVariables != null) {
-      for (int i = 0; i < variables!.length; i++) {
-        TypeVariableBuilder variable = type.typeVariables![i];
-        TypeBuilder? bound;
-        if (variable.bound != null) {
-          bound = substituteRange(variable.bound!, upperSubstitution,
-              lowerSubstitution, unboundTypes, unboundTypeVariables,
-              variance: Variance.invariant);
-        }
-        if (bound != variable.bound) {
-          TypeVariableBuilder newTypeVariableBuilder = variables[i] =
-              new TypeVariableBuilder(variable.name, variable.parent,
-                  variable.charOffset, variable.fileUri,
-                  bound: bound, kind: TypeVariableKind.function);
-          unboundTypeVariables.add(newTypeVariableBuilder);
-          if (functionTypeUpperSubstitution == null) {
-            functionTypeUpperSubstitution = {}..addAll(upperSubstitution);
-            functionTypeLowerSubstitution = {}..addAll(lowerSubstitution);
-          }
-          functionTypeUpperSubstitution[variable] =
-              functionTypeLowerSubstitution![variable] =
-                  new NamedTypeBuilder.fromTypeDeclarationBuilder(
-                      newTypeVariableBuilder,
-                      const NullabilityBuilder.omitted(),
-                      instanceTypeVariableAccess:
-                          InstanceTypeVariableAccessState.Unexpected);
-          changed = true;
-        } else {
-          variables[i] = variable;
-        }
-      }
-    }
-    if (type.formals != null) {
-      for (int i = 0; i < formals!.length; i++) {
-        ParameterBuilder formal = type.formals![i];
-        TypeBuilder parameterType = substituteRange(
-            formal.type,
-            functionTypeUpperSubstitution ?? upperSubstitution,
-            functionTypeLowerSubstitution ?? lowerSubstitution,
-            unboundTypes,
-            unboundTypeVariables,
-            variance: Variance.combine(variance, Variance.contravariant));
-        if (parameterType != formal.type) {
-          formals[i] = new FunctionTypeParameterBuilder(
-              formal.metadata, formal.kind, parameterType, formal.name);
-          changed = true;
-        } else {
-          formals[i] = formal;
-        }
-      }
-    }
-    returnType = substituteRange(
-        type.returnType,
-        functionTypeUpperSubstitution ?? upperSubstitution,
-        functionTypeLowerSubstitution ?? lowerSubstitution,
-        unboundTypes,
-        unboundTypeVariables,
-        variance: variance);
-    changed = changed || returnType != type.returnType;
+TypeBuilder _substituteFunctionTypeBuilder(
+    FunctionTypeBuilder type,
+    Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
+    Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
+    List<TypeBuilder> unboundTypes,
+    List<TypeVariableBuilder> unboundTypeVariables,
+    {final int variance = Variance.covariant}) {
+  List<TypeVariableBuilder>? typeVariables = type.typeVariables;
+  List<ParameterBuilder>? formals = type.formals;
+  TypeBuilder returnType = type.returnType;
 
-    if (changed) {
-      return new FunctionTypeBuilder(returnType, variables, formals,
-          type.nullabilityBuilder, type.fileUri, type.charOffset);
-    }
-    return type;
-  } else if (type is RecordTypeBuilder) {
-    bool changed = false;
+  List<TypeVariableBuilder>? newTypeVariables;
+  if (typeVariables != null) {
+    newTypeVariables = new List<TypeVariableBuilder>.filled(
+        typeVariables.length, dummyTypeVariableBuilder);
+  }
+  List<ParameterBuilder>? newFormals;
+  TypeBuilder newReturnType;
+  bool changed = false;
 
-    List<RecordTypeFieldBuilder>? positional = type.positionalFields != null
-        ? new List<RecordTypeFieldBuilder>.of(type.positionalFields!)
-        : null;
-    List<RecordTypeFieldBuilder>? named = type.namedFields != null
-        ? new List<RecordTypeFieldBuilder>.of(type.namedFields!)
-        : null;
-    if (positional != null) {
-      for (int i = 0; i < positional.length; i++) {
-        RecordTypeFieldBuilder positionalFieldBuilder = positional[i];
-        TypeBuilder positionalFieldType = substituteRange(
-            positionalFieldBuilder.type,
-            upperSubstitution,
-            lowerSubstitution,
-            unboundTypes,
-            unboundTypeVariables,
-            variance: variance);
-        if (positionalFieldType != positionalFieldBuilder.type) {
-          positional[i] = new RecordTypeFieldBuilder(
-              positionalFieldBuilder.metadata,
-              positionalFieldType,
-              positionalFieldBuilder.name,
-              positionalFieldBuilder.charOffset);
-          changed = true;
+  Map<TypeVariableBuilder, TypeBuilder>? functionTypeUpperSubstitution;
+  Map<TypeVariableBuilder, TypeBuilder>? functionTypeLowerSubstitution;
+  if (typeVariables != null) {
+    for (int i = 0; i < newTypeVariables!.length; i++) {
+      TypeVariableBuilder variable = typeVariables[i];
+      TypeBuilder? bound;
+      if (variable.bound != null) {
+        bound = substituteRange(variable.bound!, upperSubstitution,
+            lowerSubstitution, unboundTypes, unboundTypeVariables,
+            variance: Variance.invariant);
+      }
+      if (bound != variable.bound) {
+        TypeVariableBuilder newTypeVariableBuilder = newTypeVariables[i] =
+            new TypeVariableBuilder(variable.name, variable.parent,
+                variable.charOffset, variable.fileUri,
+                bound: bound, kind: TypeVariableKind.function);
+        unboundTypeVariables.add(newTypeVariableBuilder);
+        if (functionTypeUpperSubstitution == null) {
+          functionTypeUpperSubstitution = {}..addAll(upperSubstitution);
+          functionTypeLowerSubstitution = {}..addAll(lowerSubstitution);
         }
+        functionTypeUpperSubstitution[variable] =
+            functionTypeLowerSubstitution![variable] =
+                new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+                    newTypeVariableBuilder, const NullabilityBuilder.omitted(),
+                    instanceTypeVariableAccess:
+                        InstanceTypeVariableAccessState.Unexpected);
+        changed = true;
+      } else {
+        newTypeVariables[i] = variable;
       }
     }
-    if (named != null) {
-      for (int i = 0; i < named.length; i++) {
-        RecordTypeFieldBuilder namedFieldBuilder = named[i];
-        TypeBuilder namedFieldType = substituteRange(
-            namedFieldBuilder.type,
-            upperSubstitution,
-            lowerSubstitution,
-            unboundTypes,
-            unboundTypeVariables,
-            variance: variance);
-        if (namedFieldType != namedFieldBuilder.type) {
-          named[i] = new RecordTypeFieldBuilder(
-              namedFieldBuilder.metadata,
-              namedFieldType,
-              namedFieldBuilder.name,
-              namedFieldBuilder.charOffset);
-          changed = true;
-        }
+  }
+  if (formals != null) {
+    newFormals = new List<ParameterBuilder>.filled(
+        formals.length, dummyFormalParameterBuilder);
+    for (int i = 0; i < formals.length; i++) {
+      ParameterBuilder formal = formals[i];
+      TypeBuilder parameterType = substituteRange(
+          formal.type,
+          functionTypeUpperSubstitution ?? upperSubstitution,
+          functionTypeLowerSubstitution ?? lowerSubstitution,
+          unboundTypes,
+          unboundTypeVariables,
+          variance: Variance.combine(variance, Variance.contravariant));
+      if (parameterType != formal.type) {
+        newFormals[i] = new FunctionTypeParameterBuilder(
+            formal.metadata, formal.kind, parameterType, formal.name);
+        changed = true;
+      } else {
+        newFormals[i] = formal;
       }
     }
+  }
+  newReturnType = substituteRange(
+      returnType,
+      functionTypeUpperSubstitution ?? upperSubstitution,
+      functionTypeLowerSubstitution ?? lowerSubstitution,
+      unboundTypes,
+      unboundTypeVariables,
+      variance: variance);
+  changed = changed || newReturnType != returnType;
 
-    if (changed) {
-      return new RecordTypeBuilder(positional, named, type.nullabilityBuilder,
-          type.fileUri, type.charOffset);
+  if (changed) {
+    return new FunctionTypeBuilderImpl(newReturnType, newTypeVariables,
+        newFormals, type.nullabilityBuilder, type.fileUri, type.charOffset);
+  }
+  return type;
+}
+
+TypeBuilder _substituteRecordTypeBuilder(
+    RecordTypeBuilder type,
+    Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
+    Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
+    List<TypeBuilder> unboundTypes,
+    List<TypeVariableBuilder> unboundTypeVariables,
+    {final int variance = Variance.covariant}) {
+  List<RecordTypeFieldBuilder>? positionalFields = type.positionalFields;
+  List<RecordTypeFieldBuilder>? namedFields = type.namedFields;
+
+  bool changed = false;
+  List<RecordTypeFieldBuilder>? newPositionalFields = positionalFields != null
+      ? new List<RecordTypeFieldBuilder>.of(positionalFields)
+      : null;
+  List<RecordTypeFieldBuilder>? newNamedFields = namedFields != null
+      ? new List<RecordTypeFieldBuilder>.of(namedFields)
+      : null;
+  if (newPositionalFields != null) {
+    for (int i = 0; i < newPositionalFields.length; i++) {
+      RecordTypeFieldBuilder positionalFieldBuilder = newPositionalFields[i];
+      TypeBuilder positionalFieldType = substituteRange(
+          positionalFieldBuilder.type,
+          upperSubstitution,
+          lowerSubstitution,
+          unboundTypes,
+          unboundTypeVariables,
+          variance: variance);
+      if (positionalFieldType != positionalFieldBuilder.type) {
+        newPositionalFields[i] = new RecordTypeFieldBuilder(
+            positionalFieldBuilder.metadata,
+            positionalFieldType,
+            positionalFieldBuilder.name,
+            positionalFieldBuilder.charOffset);
+        changed = true;
+      }
     }
-    return type;
+  }
+  if (newNamedFields != null) {
+    for (int i = 0; i < newNamedFields.length; i++) {
+      RecordTypeFieldBuilder namedFieldBuilder = newNamedFields[i];
+      TypeBuilder namedFieldType = substituteRange(
+          namedFieldBuilder.type,
+          upperSubstitution,
+          lowerSubstitution,
+          unboundTypes,
+          unboundTypeVariables,
+          variance: variance);
+      if (namedFieldType != namedFieldBuilder.type) {
+        newNamedFields[i] = new RecordTypeFieldBuilder(
+            namedFieldBuilder.metadata,
+            namedFieldType,
+            namedFieldBuilder.name,
+            namedFieldBuilder.charOffset);
+        changed = true;
+      }
+    }
+  }
+
+  if (changed) {
+    return new RecordTypeBuilderImpl(newPositionalFields, newNamedFields,
+        type.nullabilityBuilder, type.fileUri, type.charOffset);
   }
   return type;
 }
@@ -501,28 +594,54 @@ class TypeVariablesGraph implements Graph<int> {
     }, growable: false);
 
     void collectReferencesFrom(int index, TypeBuilder? type) {
-      if (type is NamedTypeBuilder) {
-        if (type.declaration is TypeVariableBuilder &&
-            this.variables.contains(type.declaration)) {
-          edges[variableIndices[type.declaration]!].add(index);
-        }
-        if (type.arguments != null) {
-          for (TypeBuilder argument in type.arguments!) {
-            collectReferencesFrom(index, argument);
+      switch (type) {
+        case NamedTypeBuilder(
+            :TypeDeclarationBuilder? declaration,
+            :List<TypeBuilder>? arguments
+          ):
+          if (declaration is TypeVariableBuilder &&
+              this.variables.contains(declaration)) {
+            edges[variableIndices[declaration]!].add(index);
           }
-        }
-      } else if (type is FunctionTypeBuilder) {
-        if (type.typeVariables != null) {
-          for (TypeVariableBuilder typeVariable in type.typeVariables!) {
-            collectReferencesFrom(index, typeVariable.bound);
+          if (arguments != null) {
+            for (TypeBuilder argument in arguments) {
+              collectReferencesFrom(index, argument);
+            }
           }
-        }
-        if (type.formals != null) {
-          for (ParameterBuilder parameter in type.formals!) {
-            collectReferencesFrom(index, parameter.type);
+        case FunctionTypeBuilder(
+            :List<TypeVariableBuilder>? typeVariables,
+            :List<ParameterBuilder>? formals,
+            :TypeBuilder returnType
+          ):
+          if (typeVariables != null) {
+            for (TypeVariableBuilder typeVariable in typeVariables) {
+              collectReferencesFrom(index, typeVariable.bound);
+            }
           }
-        }
-        collectReferencesFrom(index, type.returnType);
+          if (formals != null) {
+            for (ParameterBuilder parameter in formals) {
+              collectReferencesFrom(index, parameter.type);
+            }
+          }
+          collectReferencesFrom(index, returnType);
+        case RecordTypeBuilder(
+            :List<RecordTypeFieldBuilder>? positionalFields,
+            :List<RecordTypeFieldBuilder>? namedFields
+          ):
+          if (positionalFields != null) {
+            for (RecordTypeFieldBuilder field in positionalFields) {
+              collectReferencesFrom(index, field.type);
+            }
+          }
+          if (namedFields != null) {
+            for (RecordTypeFieldBuilder field in namedFields) {
+              collectReferencesFrom(index, field.type);
+            }
+          }
+        case FixedTypeBuilder():
+        case InvalidTypeBuilder():
+        case OmittedTypeBuilder():
+        case null:
       }
     }
 
@@ -547,35 +666,62 @@ List<NamedTypeBuilder> findVariableUsesInType(
   TypeBuilder? type,
 ) {
   List<NamedTypeBuilder> uses = <NamedTypeBuilder>[];
-  if (type is NamedTypeBuilder) {
-    if (type.declaration == variable) {
-      uses.add(type);
-    } else {
-      if (type.arguments != null) {
-        for (TypeBuilder argument in type.arguments!) {
-          uses.addAll(findVariableUsesInType(variable, argument));
+  switch (type) {
+    case NamedTypeBuilder(
+        :TypeDeclarationBuilder? declaration,
+        :List<TypeBuilder>? arguments
+      ):
+      if (declaration == variable) {
+        uses.add(type);
+      } else {
+        if (arguments != null) {
+          for (TypeBuilder argument in arguments) {
+            uses.addAll(findVariableUsesInType(variable, argument));
+          }
         }
       }
-    }
-  } else if (type is FunctionTypeBuilder) {
-    uses.addAll(findVariableUsesInType(variable, type.returnType));
-    if (type.typeVariables != null) {
-      for (TypeVariableBuilder dependentVariable in type.typeVariables!) {
-        if (dependentVariable.bound != null) {
-          uses.addAll(
-              findVariableUsesInType(variable, dependentVariable.bound));
-        }
-        if (dependentVariable.defaultType != null) {
-          uses.addAll(
-              findVariableUsesInType(variable, dependentVariable.defaultType));
+      break;
+    case FunctionTypeBuilder(
+        :List<TypeVariableBuilder>? typeVariables,
+        :List<ParameterBuilder>? formals,
+        :TypeBuilder returnType
+      ):
+      uses.addAll(findVariableUsesInType(variable, returnType));
+      if (typeVariables != null) {
+        for (TypeVariableBuilder dependentVariable in typeVariables) {
+          if (dependentVariable.bound != null) {
+            uses.addAll(
+                findVariableUsesInType(variable, dependentVariable.bound));
+          }
+          if (dependentVariable.defaultType != null) {
+            uses.addAll(findVariableUsesInType(
+                variable, dependentVariable.defaultType));
+          }
         }
       }
-    }
-    if (type.formals != null) {
-      for (ParameterBuilder formal in type.formals!) {
-        uses.addAll(findVariableUsesInType(variable, formal.type));
+      if (formals != null) {
+        for (ParameterBuilder formal in formals) {
+          uses.addAll(findVariableUsesInType(variable, formal.type));
+        }
       }
-    }
+    case RecordTypeBuilder(
+        :List<RecordTypeFieldBuilder>? positionalFields,
+        :List<RecordTypeFieldBuilder>? namedFields
+      ):
+      if (positionalFields != null) {
+        for (RecordTypeFieldBuilder field in positionalFields) {
+          uses.addAll(findVariableUsesInType(variable, field.type));
+        }
+      }
+      if (namedFields != null) {
+        for (RecordTypeFieldBuilder field in namedFields) {
+          uses.addAll(findVariableUsesInType(variable, field.type));
+        }
+      }
+    case FixedTypeBuilder():
+    case InvalidTypeBuilder():
+    case OmittedTypeBuilder():
+    case null:
   }
   return uses;
 }
@@ -613,91 +759,127 @@ List<Object> findInboundReferences(List<TypeVariableBuilder> variables) {
 /// [findInboundReferences].
 List<Object> findRawTypesWithInboundReferences(TypeBuilder? type) {
   List<Object> typesAndDependencies = <Object>[];
-  if (type is NamedTypeBuilder) {
-    if (type.arguments == null) {
-      TypeDeclarationBuilder? declaration = type.declaration;
-      if (declaration is DillClassBuilder) {
-        bool hasInbound = false;
-        List<TypeParameter> typeParameters = declaration.cls.typeParameters;
-        for (int i = 0; i < typeParameters.length && !hasInbound; ++i) {
-          if (containsTypeVariable(
-              typeParameters[i].bound, typeParameters.toSet())) {
-            hasInbound = true;
+  switch (type) {
+    case NamedTypeBuilder(
+        :TypeDeclarationBuilder? declaration,
+        :List<TypeBuilder>? arguments
+      ):
+      if (arguments == null) {
+        if (declaration is DillClassBuilder) {
+          bool hasInbound = false;
+          List<TypeParameter> typeParameters = declaration.cls.typeParameters;
+          for (int i = 0; i < typeParameters.length && !hasInbound; ++i) {
+            if (containsTypeVariable(
+                typeParameters[i].bound, typeParameters.toSet())) {
+              hasInbound = true;
+            }
           }
-        }
-        if (hasInbound) {
-          typesAndDependencies.add(type);
-          typesAndDependencies.add(const <Object>[]);
-        }
-      } else if (declaration is DillTypeAliasBuilder) {
-        bool hasInbound = false;
-        List<TypeParameter> typeParameters = declaration.typedef.typeParameters;
-        for (int i = 0; i < typeParameters.length && !hasInbound; ++i) {
-          if (containsTypeVariable(
-              typeParameters[i].bound, typeParameters.toSet())) {
-            hasInbound = true;
+          if (hasInbound) {
+            typesAndDependencies.add(type);
+            typesAndDependencies.add(const <Object>[]);
           }
-        }
-        if (hasInbound) {
-          typesAndDependencies.add(type);
-          typesAndDependencies.add(const <Object>[]);
-        }
-      } else if (declaration is ClassBuilder &&
-          declaration.typeVariables != null) {
-        List<Object> dependencies =
-            findInboundReferences(declaration.typeVariables!);
-        if (dependencies.length != 0) {
-          typesAndDependencies.add(type);
-          typesAndDependencies.add(dependencies);
-        }
-      } else if (declaration is TypeAliasBuilder) {
-        if (declaration.typeVariables != null) {
+        } else if (declaration is DillTypeAliasBuilder) {
+          bool hasInbound = false;
+          List<TypeParameter> typeParameters =
+              declaration.typedef.typeParameters;
+          for (int i = 0; i < typeParameters.length && !hasInbound; ++i) {
+            if (containsTypeVariable(
+                typeParameters[i].bound, typeParameters.toSet())) {
+              hasInbound = true;
+            }
+          }
+          if (hasInbound) {
+            typesAndDependencies.add(type);
+            typesAndDependencies.add(const <Object>[]);
+          }
+        } else if (declaration is ClassBuilder &&
+            declaration.typeVariables != null) {
           List<Object> dependencies =
               findInboundReferences(declaration.typeVariables!);
           if (dependencies.length != 0) {
             typesAndDependencies.add(type);
             typesAndDependencies.add(dependencies);
           }
-        }
-        if (declaration.type is FunctionTypeBuilder) {
-          FunctionTypeBuilder type = declaration.type as FunctionTypeBuilder;
-          if (type.typeVariables != null) {
+        } else if (declaration is ExtensionTypeDeclarationBuilder &&
+            declaration.typeParameters != null) {
+          List<Object> dependencies =
+              findInboundReferences(declaration.typeParameters!);
+          if (dependencies.length != 0) {
+            typesAndDependencies.add(type);
+            typesAndDependencies.add(dependencies);
+          }
+        } else if (declaration is TypeAliasBuilder) {
+          if (declaration.typeVariables != null) {
             List<Object> dependencies =
-                findInboundReferences(type.typeVariables!);
+                findInboundReferences(declaration.typeVariables!);
             if (dependencies.length != 0) {
               typesAndDependencies.add(type);
               typesAndDependencies.add(dependencies);
             }
           }
+          if (declaration.type is FunctionTypeBuilder) {
+            FunctionTypeBuilder type = declaration.type as FunctionTypeBuilder;
+            if (type.typeVariables != null) {
+              List<Object> dependencies =
+                  findInboundReferences(type.typeVariables!);
+              if (dependencies.length != 0) {
+                typesAndDependencies.add(type);
+                typesAndDependencies.add(dependencies);
+              }
+            }
+          }
         }
-      }
-    } else {
-      for (TypeBuilder argument in type.arguments!) {
-        typesAndDependencies
-            .addAll(findRawTypesWithInboundReferences(argument));
-      }
-    }
-  } else if (type is FunctionTypeBuilder) {
-    typesAndDependencies
-        .addAll(findRawTypesWithInboundReferences(type.returnType));
-    if (type.typeVariables != null) {
-      for (TypeVariableBuilder variable in type.typeVariables!) {
-        if (variable.bound != null) {
+      } else {
+        for (TypeBuilder argument in arguments) {
           typesAndDependencies
-              .addAll(findRawTypesWithInboundReferences(variable.bound));
+              .addAll(findRawTypesWithInboundReferences(argument));
         }
-        if (variable.defaultType != null) {
+      }
+    case FunctionTypeBuilder(
+        :List<TypeVariableBuilder>? typeVariables,
+        :List<ParameterBuilder>? formals,
+        :TypeBuilder returnType
+      ):
+      typesAndDependencies
+          .addAll(findRawTypesWithInboundReferences(returnType));
+      if (typeVariables != null) {
+        for (TypeVariableBuilder variable in typeVariables) {
+          if (variable.bound != null) {
+            typesAndDependencies
+                .addAll(findRawTypesWithInboundReferences(variable.bound));
+          }
+          if (variable.defaultType != null) {
+            typesAndDependencies.addAll(
+                findRawTypesWithInboundReferences(variable.defaultType));
+          }
+        }
+      }
+      if (formals != null) {
+        for (ParameterBuilder formal in formals) {
           typesAndDependencies
-              .addAll(findRawTypesWithInboundReferences(variable.defaultType));
+              .addAll(findRawTypesWithInboundReferences(formal.type));
         }
       }
-    }
-    if (type.formals != null) {
-      for (ParameterBuilder formal in type.formals!) {
-        typesAndDependencies
-            .addAll(findRawTypesWithInboundReferences(formal.type));
+    case RecordTypeBuilder(
+        :List<RecordTypeFieldBuilder>? positionalFields,
+        :List<RecordTypeFieldBuilder>? namedFields
+      ):
+      if (positionalFields != null) {
+        for (RecordTypeFieldBuilder field in positionalFields) {
+          typesAndDependencies
+              .addAll(findRawTypesWithInboundReferences(field.type));
+        }
       }
-    }
+      if (namedFields != null) {
+        for (RecordTypeFieldBuilder field in namedFields) {
+          typesAndDependencies
+              .addAll(findRawTypesWithInboundReferences(field.type));
+        }
+      }
+    case FixedTypeBuilder():
+    case InvalidTypeBuilder():
+    case OmittedTypeBuilder():
+    case null:
   }
   return typesAndDependencies;
 }
@@ -790,80 +972,110 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
   visited ??= new Set<TypeDeclarationBuilder>.identity();
   List<List<RawTypeCycleElement>> paths = <List<RawTypeCycleElement>>[];
 
-  if (start is NamedTypeBuilder) {
-    void visitTypeVariables(List<TypeVariableBuilder>? typeVariables) {
-      if (typeVariables == null) return;
+  switch (start) {
+    case NamedTypeBuilder(
+        :TypeDeclarationBuilder? declaration,
+        :List<TypeBuilder>? arguments
+      ):
+      void visitTypeVariables(List<TypeVariableBuilder>? typeVariables) {
+        if (typeVariables == null) return;
 
-      for (TypeVariableBuilder variable in typeVariables) {
-        if (variable.bound != null) {
-          for (List<RawTypeCycleElement> path
-              in findRawTypePathsToDeclaration(variable.bound, end, visited)) {
-            if (path.isNotEmpty) {
-              paths.add(<RawTypeCycleElement>[
-                new RawTypeCycleElement(start, null)
-              ]..addAll(path..first.typeVariable = variable));
+        for (TypeVariableBuilder variable in typeVariables) {
+          if (variable.bound != null) {
+            for (List<RawTypeCycleElement> path
+                in findRawTypePathsToDeclaration(
+                    variable.bound, end, visited)) {
+              if (path.isNotEmpty) {
+                paths.add(<RawTypeCycleElement>[
+                  new RawTypeCycleElement(start, null)
+                ]..addAll(path..first.typeVariable = variable));
+              }
             }
           }
         }
       }
-    }
 
-    if (start.arguments == null) {
-      TypeDeclarationBuilder? declaration = start.declaration;
-      if (declaration == end) {
-        paths.add(<RawTypeCycleElement>[new RawTypeCycleElement(start, null)]);
-      } else if (visited.add(start.declaration!)) {
-        if (declaration is ClassBuilder) {
-          visitTypeVariables(declaration.typeVariables);
-        } else if (declaration is TypeAliasBuilder) {
-          visitTypeVariables(declaration.typeVariables);
-          if (declaration.type is FunctionTypeBuilder) {
-            FunctionTypeBuilder type = declaration.type as FunctionTypeBuilder;
-            visitTypeVariables(type.typeVariables);
+      if (arguments == null) {
+        if (declaration == end) {
+          paths
+              .add(<RawTypeCycleElement>[new RawTypeCycleElement(start, null)]);
+        } else if (visited.add(start.declaration!)) {
+          if (declaration is ClassBuilder) {
+            visitTypeVariables(declaration.typeVariables);
+          } else if (declaration is TypeAliasBuilder) {
+            visitTypeVariables(declaration.typeVariables);
+            if (declaration.type is FunctionTypeBuilder) {
+              FunctionTypeBuilder type =
+                  declaration.type as FunctionTypeBuilder;
+              visitTypeVariables(type.typeVariables);
+            }
+          } else if (declaration is ExtensionBuilder) {
+            visitTypeVariables(declaration.typeParameters);
+          } else if (declaration is ExtensionTypeDeclarationBuilder) {
+            visitTypeVariables(declaration.typeParameters);
+          } else if (declaration is TypeVariableBuilder) {
+            // Do nothing. The type variable is handled by its parent
+            // declaration.
+          } else if (declaration is BuiltinTypeDeclarationBuilder) {
+            // Do nothing.
+          } else if (declaration is InvalidTypeDeclarationBuilder) {
+            // Do nothing.
+          } else {
+            unhandled(
+                '$declaration (${declaration.runtimeType})',
+                'findRawTypePathsToDeclaration',
+                declaration?.charOffset ?? -1,
+                declaration?.fileUri);
           }
-        } else if (declaration is ExtensionBuilder) {
-          visitTypeVariables(declaration.typeParameters);
-        } else if (declaration is ExtensionTypeDeclarationBuilder) {
-          visitTypeVariables(declaration.typeParameters);
-        } else if (declaration is TypeVariableBuilder) {
-          // Do nothing. The type variable is handled by its parent declaration.
-        } else if (declaration is BuiltinTypeDeclarationBuilder) {
-          // Do nothing.
-        } else if (declaration is InvalidTypeDeclarationBuilder) {
-          // Do nothing.
-        } else {
-          unhandled(
-              '$declaration (${declaration.runtimeType})',
-              'findRawTypePathsToDeclaration',
-              declaration?.charOffset ?? -1,
-              declaration?.fileUri);
+          visited.remove(declaration);
         }
-        visited.remove(declaration);
-      }
-    } else {
-      for (TypeBuilder argument in start.arguments!) {
-        paths.addAll(findRawTypePathsToDeclaration(argument, end, visited));
-      }
-    }
-  } else if (start is FunctionTypeBuilder) {
-    paths.addAll(findRawTypePathsToDeclaration(start.returnType, end, visited));
-    if (start.typeVariables != null) {
-      for (TypeVariableBuilder variable in start.typeVariables!) {
-        if (variable.bound != null) {
-          paths.addAll(
-              findRawTypePathsToDeclaration(variable.bound, end, visited));
-        }
-        if (variable.defaultType != null) {
-          paths.addAll(findRawTypePathsToDeclaration(
-              variable.defaultType, end, visited));
+      } else {
+        for (TypeBuilder argument in arguments) {
+          paths.addAll(findRawTypePathsToDeclaration(argument, end, visited));
         }
       }
-    }
-    if (start.formals != null) {
-      for (ParameterBuilder formal in start.formals!) {
-        paths.addAll(findRawTypePathsToDeclaration(formal.type, end, visited));
+    case FunctionTypeBuilder(
+        :List<TypeVariableBuilder>? typeVariables,
+        :List<ParameterBuilder>? formals,
+        :TypeBuilder returnType
+      ):
+      paths.addAll(findRawTypePathsToDeclaration(returnType, end, visited));
+      if (typeVariables != null) {
+        for (TypeVariableBuilder variable in typeVariables) {
+          if (variable.bound != null) {
+            paths.addAll(
+                findRawTypePathsToDeclaration(variable.bound, end, visited));
+          }
+          if (variable.defaultType != null) {
+            paths.addAll(findRawTypePathsToDeclaration(
+                variable.defaultType, end, visited));
+          }
+        }
       }
-    }
+      if (formals != null) {
+        for (ParameterBuilder formal in formals) {
+          paths
+              .addAll(findRawTypePathsToDeclaration(formal.type, end, visited));
+        }
+      }
+    case RecordTypeBuilder(
+        :List<RecordTypeFieldBuilder>? positionalFields,
+        :List<RecordTypeFieldBuilder>? namedFields
+      ):
+      if (positionalFields != null) {
+        for (RecordTypeFieldBuilder field in positionalFields) {
+          paths.addAll(findRawTypePathsToDeclaration(field.type, end, visited));
+        }
+      }
+      if (namedFields != null) {
+        for (RecordTypeFieldBuilder field in namedFields) {
+          paths.addAll(findRawTypePathsToDeclaration(field.type, end, visited));
+        }
+      }
+    case FixedTypeBuilder():
+    case InvalidTypeBuilder():
+    case OmittedTypeBuilder():
+    case null:
   }
   return paths;
 }
@@ -1064,66 +1276,51 @@ void breakCycles(List<List<RawTypeCycleElement>> cycles) {
 /// Finds generic function type sub-terms in [type].
 void findUnaliasedGenericFunctionTypes(TypeBuilder? type,
     {required List<FunctionTypeBuilder> result}) {
-  if (type is FunctionTypeBuilder) {
-    if (type.typeVariables != null && type.typeVariables!.length > 0) {
-      result.add(type);
-
-      for (TypeVariableBuilder typeVariable in type.typeVariables!) {
-        findUnaliasedGenericFunctionTypes(typeVariable.bound, result: result);
-        findUnaliasedGenericFunctionTypes(typeVariable.defaultType,
-            result: result);
-      }
-    }
-    findUnaliasedGenericFunctionTypes(type.returnType, result: result);
-    if (type.formals != null) {
-      for (ParameterBuilder formal in type.formals!) {
-        findUnaliasedGenericFunctionTypes(formal.type, result: result);
-      }
-    }
-  } else if (type is NamedTypeBuilder) {
-    if (type.arguments != null) {
-      for (TypeBuilder argument in type.arguments!) {
-        findUnaliasedGenericFunctionTypes(argument, result: result);
-      }
-    }
-  }
-}
-
-/// Finds generic function type sub-terms in [type] including the aliased ones.
-void findGenericFunctionTypes(TypeBuilder? type,
-    {required List<TypeBuilder> result}) {
-  if (type is FunctionTypeBuilder) {
-    if (type.typeVariables != null && type.typeVariables!.length > 0) {
-      result.add(type);
-
-      for (TypeVariableBuilder typeVariable in type.typeVariables!) {
-        findGenericFunctionTypes(typeVariable.bound, result: result);
-        findGenericFunctionTypes(typeVariable.defaultType, result: result);
-      }
-    }
-    findGenericFunctionTypes(type.returnType, result: result);
-    if (type.formals != null) {
-      for (ParameterBuilder formal in type.formals!) {
-        findGenericFunctionTypes(formal.type, result: result);
-      }
-    }
-  } else if (type is NamedTypeBuilder) {
-    if (type.arguments != null) {
-      for (TypeBuilder argument in type.arguments!) {
-        findGenericFunctionTypes(argument, result: result);
-      }
-    }
-
-    TypeDeclarationBuilder? declaration = type.declaration;
-    // TODO(cstefantsova): Unalias beyond the first layer for the check.
-    if (declaration is TypeAliasBuilder) {
-      TypeBuilder? rhsType = declaration.type;
-      if (rhsType is FunctionTypeBuilder &&
-          rhsType.typeVariables != null &&
-          rhsType.typeVariables!.isNotEmpty) {
+  switch (type) {
+    case FunctionTypeBuilder(
+        :List<TypeVariableBuilder>? typeVariables,
+        :List<ParameterBuilder>? formals,
+        :TypeBuilder returnType
+      ):
+      if (typeVariables != null && typeVariables.length > 0) {
         result.add(type);
+
+        for (TypeVariableBuilder typeVariable in typeVariables) {
+          findUnaliasedGenericFunctionTypes(typeVariable.bound, result: result);
+          findUnaliasedGenericFunctionTypes(typeVariable.defaultType,
+              result: result);
+        }
       }
-    }
+      findUnaliasedGenericFunctionTypes(returnType, result: result);
+      if (formals != null) {
+        for (ParameterBuilder formal in formals) {
+          findUnaliasedGenericFunctionTypes(formal.type, result: result);
+        }
+      }
+    case NamedTypeBuilder(:List<TypeBuilder>? arguments):
+      if (arguments != null) {
+        for (TypeBuilder argument in arguments) {
+          findUnaliasedGenericFunctionTypes(argument, result: result);
+        }
+      }
+    case RecordTypeBuilder(
+        :List<RecordTypeFieldBuilder>? positionalFields,
+        :List<RecordTypeFieldBuilder>? namedFields
+      ):
+      if (positionalFields != null) {
+        for (RecordTypeFieldBuilder field in positionalFields) {
+          findUnaliasedGenericFunctionTypes(field.type, result: result);
+        }
+      }
+      if (namedFields != null) {
+        for (RecordTypeFieldBuilder field in namedFields) {
+          findUnaliasedGenericFunctionTypes(field.type, result: result);
+        }
+      }
+    case FixedTypeBuilder():
+    case InvalidTypeBuilder():
+    case OmittedTypeBuilder():
+    case null:
   }
 }
 

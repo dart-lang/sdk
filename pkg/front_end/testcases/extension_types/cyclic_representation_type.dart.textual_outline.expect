@@ -1,0 +1,32 @@
+extension type E1(E1 it) {} extension type E2a(E2b it) {} extension type E2b(E2a it) {} extension type E3a(E3b it) {} extension type E3b(E3c it) {} extension type E3c(E3a it) {} extension type E4(E4 Function() it) {} extension type E5(void Function(E5) it) {} extension type E6((E6, int) it) {} extension type E7(void Function<T extends E7>() it) {} extension type E8<T>(List<E8> it) {}
+typedef Alias9 = E9;
+extension type E9(Alias9 it) {}
+typedef Alias10<T> = E10<T>;
+extension type E10<T>(Alias10<T> it) {}
+typedef Alias11 = E11 Function();
+extension type E11(Alias11 it) {}
+typedef Alias12 = void Function(E12);
+extension type E12(Alias12 it) {}
+typedef Alias13 = void Function<T extends E13>();
+extension type E13(Alias13 it) {}
+typedef Alias14<T> = int;
+extension type E14(Alias14<E14> it) {}
+typedef Alias15<T> = List<T>;
+extension type E15a(Alias15<E15b> it) {} extension type E15b(Alias15<E15a> it) {}
+typedef Alias16a<T> = List<E16b>;
+typedef Alias16b<T> = List<E16a>;
+extension type E16a(Alias16a<int> it) {} extension type E16b(Alias16b<int> it) {} extension type E17((int, {E17 a}) it) {}
+typedef Alias18a<T> = Alias18b<E18>;
+typedef Alias18b<T> = void Function(T);
+extension type E18(Alias18a<int> it) {} extension type E19a((E19b, E19b) it) {} extension type E19b(int it) {}
+typedef Alias20 = Alias20;
+extension type E20(Alias20 it) {}
+typedef Alias21 = int;
+extension type E21(Alias21<int> it) {}
+typedef Alias22a = Alias22b<int>;
+typedef Alias22b = int;
+extension type E22(Alias22a it) {}
+typedef Alias23<T extends E23> = List<T>;
+extension type E23(Alias23 it) {}
+typedef Alias24<T extends E24<T>> = List<T>;
+extension type E24<T>(Alias24 it) {}

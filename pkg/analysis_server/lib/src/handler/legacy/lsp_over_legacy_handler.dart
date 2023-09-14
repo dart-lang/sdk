@@ -32,16 +32,26 @@ class LspOverLegacyHandler extends LegacyHandler {
   InitializedStateMessageHandler get handler => _handlers[server]!;
 
   @override
+  bool get recordsOwnAnalytics => true;
+
+  @override
   Future<void> handle() async {
     final params = LspHandleParams.fromRequest(request);
     final lspMessageJson = params.lspMessage;
     final reporter = LspJsonReporter();
     final lspMessage = lspMessageJson is Map<String, Object?> &&
             RequestMessage.canParse(lspMessageJson, reporter)
-        ? RequestMessage.fromJson(lspMessageJson)
+        ? RequestMessage.fromJson({
+            // Pass across any clientRequestTime from the envelope so that we
+            // can record latency for LSP-over-Legacy requests.
+            'clientRequestTime': request.clientRequestTime,
+            ...lspMessageJson,
+          })
         : null;
 
     if (lspMessage != null) {
+      server.analyticsManager.startedRequestMessage(
+          request: lspMessage, startTime: DateTime.now());
       await handleRequest(lspMessage);
     } else {
       final message =
@@ -74,6 +84,7 @@ class LspOverLegacyHandler extends LegacyHandler {
       jsonrpc: jsonRpcVersion,
     );
 
+    server.analyticsManager.sentResponseMessage(response: lspResponse);
     sendResult(LspHandleResult(lspResponse.toJson()));
   }
 }

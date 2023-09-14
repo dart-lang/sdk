@@ -10,8 +10,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapKeyTypeNotAssignableTest);
-    defineReflectiveTests(
-        MapKeyTypeNotAssignableWithoutNullSafetyAndNoImplicitCastsTest);
     defineReflectiveTests(MapKeyTypeNotAssignableWithoutNullSafetyTest);
     defineReflectiveTests(MapKeyTypeNotAssignableWithStrictCastsTest);
   });
@@ -236,61 +234,6 @@ var v = <int, String>{...{'a': 'a'}};
 dynamic a = 'a';
 var v = <int, String>{...{a: 'a'}};
 ''');
-  }
-}
-
-@reflectiveTest
-class MapKeyTypeNotAssignableWithoutNullSafetyAndNoImplicitCastsTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
-  test_ifElement_falseBranch_key_dynamic() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-void f(bool c, dynamic a) {
-  <int, int>{if (c) 0: 0 else a: 0};
-}
-''', [
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 58, 1),
-    ]);
-  }
-
-  test_ifElement_falseBranch_key_supertype() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-void f(bool c, num a) {
-  <int, int>{if (c) 0: 0 else a: 0};
-}
-''', [
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 54, 1),
-    ]);
-  }
-
-  test_ifElement_trueBranch_key_dynamic() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-void f(bool c, dynamic a) {
-  <int, int>{if (c) a: 0 };
-}
-''', [
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 48, 1),
-    ]);
-  }
-
-  test_ifElement_trueBranch_key_supertype() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-void f(bool c, num a) {
-  <int, int>{if (c) a: 0};
-}
-''', [
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 44, 1),
-    ]);
-  }
-
-  test_spread_key_supertype() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-void f(Map<num, dynamic> a) {
-  <int, dynamic>{...a};
-}
-''', [
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 50, 1),
-    ]);
   }
 }
 

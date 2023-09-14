@@ -102,6 +102,7 @@ final class Service {
   ///
   /// Returns null if the running Dart environment does not support the service
   /// protocol.
+  @Since('3.2')
   static String? getIsolateId(Isolate isolate) {
     // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(isolate, 'isolate');

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // @dart=2.9
 
-// VMOptions=--use_slow_path --stress_write_barrier_elimination
+// VMOptions=--use_slow_path --runtime_allocate_old
 
 // Test that array allocation in noSuchMethod dispatcher is preserving the
 // length register correctly.

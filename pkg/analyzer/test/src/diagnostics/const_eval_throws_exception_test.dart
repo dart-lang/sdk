@@ -11,9 +11,105 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConstConstructorFieldTypeMismatchContextTest);
     defineReflectiveTests(ConstEvalThrowsExceptionTest);
     defineReflectiveTests(ConstEvalThrowsExceptionWithoutNullSafetyTest);
   });
+}
+
+@reflectiveTest
+class ConstConstructorFieldTypeMismatchContextTest
+    extends PubPackageResolutionTest {
+  test_generic_string_int() async {
+    await assertErrorsInCode(
+      r'''
+class C<T> {
+  final T x = y;
+  const C();
+}
+const int y = 1;
+var v = const C<String>();
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 27, 1),
+        error(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          70,
+          17,
+          contextMessages: [
+            ExpectedContextMessage(testFile.path, 27, 1,
+                text:
+                    "The exception is 'In a const constructor, a value of type 'int' can't be assigned to the field 'x', which has type 'String'.' and occurs here."),
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_notGeneric_int_int() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(x) : y = x;
+  final int y;
+}
+var v = const A('foo');
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        57,
+        14,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 29, 1,
+              text:
+                  "The exception is 'In a const constructor, a value of type 'String' can't be assigned to the field 'y', which has type 'int'.' and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
+  test_notGeneric_int_null() async {
+    var errors = expectedErrorsByNullability(nullable: [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        57,
+        13,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 29, 1,
+              text:
+                  "The exception is 'In a const constructor, a value of type 'Null' can't be assigned to the field 'y', which has type 'int'.' and occurs here."),
+        ],
+      ),
+    ], legacy: []);
+    await assertErrorsInCode(r'''
+class A {
+  const A(x) : y = x;
+  final int y;
+}
+var v = const A(null);
+''', errors);
+  }
+
+  test_notGeneric_null_forNonNullable_fromNullSafe() async {
+    await assertErrorsInCode('''
+class C {
+  final int f;
+  const C(a) : f = a;
+}
+
+const a = const C(null);
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        60,
+        13,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 44, 1,
+              text:
+                  "The exception is 'In a const constructor, a value of type 'Null' can't be assigned to the field 'f', which has type 'int'.' and occurs here."),
+        ],
+      ),
+    ]);
+  }
 }
 
 @reflectiveTest
@@ -32,8 +128,26 @@ main() {
   const C<int>(null);
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 92, 19),
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 115, 18),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        92,
+        19,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 51, 6,
+              text:
+                  "The error is in the field initializer of 'C', and occurs here."),
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        115,
+        18,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 51, 6,
+              text:
+                  "The error is in the field initializer of 'C', and occurs here."),
+        ],
+      ),
     ]);
   }
 
@@ -50,8 +164,26 @@ main() {
   const C<int>(null);
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 104, 21),
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 129, 18),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        104,
+        21,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 51, 12,
+              text:
+                  "The error is in the field initializer of 'C', and occurs here."),
+        ],
+      ),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        129,
+        18,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 51, 12,
+              text:
+                  "The error is in the field initializer of 'C', and occurs here."),
+        ],
+      ),
     ]);
   }
 
@@ -63,7 +195,81 @@ enum E {
   const E({int? x}) : x = x as int;
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 3),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        11,
+        3,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 57, 8,
+              text:
+                  "The error is in the field initializer of 'E', and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
+  test_enum_int_null() async {
+    await assertErrorsInCode(r'''
+const dynamic a = null;
+
+enum E {
+  v(a);
+  const E(int a);
+}
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        36,
+        4,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 38, 1,
+              text:
+                  "The exception is 'A value of type 'Null' can't be assigned to a parameter of type 'int' in a const constructor.' and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
+  test_enum_int_String() async {
+    await assertErrorsInCode(r'''
+const dynamic a = '0';
+
+enum E {
+  v(a);
+  const E(int a);
+}
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        35,
+        4,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 37, 1,
+              text:
+                  "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.' and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
+  test_redirectingConstructor_paramTypeMismatch() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A.a1(x) : this.a2(x);
+  const A.a2(String x);
+}
+var v = const A.a1(0);
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        74,
+        13,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 36, 1,
+              text:
+                  "The exception is 'A value of type 'int' can't be assigned to a parameter of type 'String' in a const constructor.' and occurs here."),
+        ],
+      ),
     ]);
   }
 
@@ -83,12 +289,12 @@ const f = const D('0.0');
         106,
         14,
         contextMessages: [
-          ExpectedContextMessage('/home/test/lib/test.dart', 90, 1,
-              text:
-                  "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here."),
-          ExpectedContextMessage('/home/test/lib/test.dart', 77, 1,
+          ExpectedContextMessage(testFile.path, 77, 1,
               text:
                   "The evaluated constructor 'C' is called by 'D' and 'D' is defined here."),
+          ExpectedContextMessage(testFile.path, 90, 1,
+              text:
+                  "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here."),
         ],
       ),
     ]);
@@ -104,7 +310,16 @@ class A {
 }
 var v = const A(3, 2);
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 61, 13),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        61,
+        13,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 36, 13,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
     ]);
   }
 
@@ -317,33 +532,6 @@ const c = [if (1 < 0) nil + 1];
 const dynamic nil = null;
 const c = [if (0 < 1) 3 else nil + 1];
 ''');
-  }
-
-  test_invalid_constructorFieldInitializer_fromSeparateLibrary() async {
-    newFile('$testPackageLibPath/lib.dart', r'''
-class A<T> {
-  final int f;
-  const A() : f = T.foo;
-}
-''');
-    await assertErrorsInCode(r'''
-import 'lib.dart';
-const a = const A();
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 29, 9),
-    ]);
-  }
-
-  test_redirectingConstructor_paramTypeMismatch() async {
-    await assertErrorsInCode(r'''
-class A {
-  const A.a1(x) : this.a2(x);
-  const A.a2(String x);
-}
-var v = const A.a1(0);
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 74, 13),
-    ]);
   }
 
   test_symbolConstructor_nonStringArgument() async {

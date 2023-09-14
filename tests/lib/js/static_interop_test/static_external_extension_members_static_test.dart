@@ -80,12 +80,9 @@ extension on StaticInterop {
 }
 
 @JS()
-inline class InlineClass {
-  final JSObject obj;
-  external InlineClass();
-}
+extension type ExtensionType(JSObject _) {}
 
-extension on InlineClass {
+extension on ExtensionType {
   external static JSNumber field;
   //                       ^
   // [web] External extension members with the keyword 'static' on JS interop and @Native types are disallowed.

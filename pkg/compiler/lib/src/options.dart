@@ -38,6 +38,10 @@ enum Dart2JSStage {
   cfeFromDill('cfe', emitsKernel: true, emitsJs: false),
   modularAnalysisFromDill('modular-analysis',
       dataOutputName: 'modular.data', emitsKernel: true, emitsJs: false),
+  deferredLoadIds('deferred-load-ids',
+      dataOutputName: 'deferred_load_ids.data',
+      emitsKernel: false,
+      emitsJs: false),
   closedWorld('closed-world',
       dataOutputName: 'world.data', emitsKernel: true, emitsJs: false),
   globalInference('global-inference',
@@ -109,6 +113,9 @@ enum Dart2JSStage {
       return options._fromDill
           ? Dart2JSStage.modularAnalysisFromDill
           : Dart2JSStage.modularAnalysis;
+    }
+    if (options._deferredLoadIdMapUri != null) {
+      return Dart2JSStage.deferredLoadIds;
     }
     if (options._writeClosedWorldUri != null) {
       return Dart2JSStage.closedWorld;
@@ -201,17 +208,12 @@ class FeatureOptions {
   /// (e.g. DartType).
   FeatureOption internValues = FeatureOption('intern-composite-values');
 
-  /// Whether to use deferred serialization strategy. This changes serialized
-  /// data structure to allow map value deserialization to be deferred.
-  FeatureOption deferredSerialization = FeatureOption('deferred-serialization');
-
   /// [FeatureOption]s which are shipped and cannot be toggled.
   late final List<FeatureOption> shipped = [newHolders, legacyJavaScript];
 
   /// [FeatureOption]s which default to enabled.
   late final List<FeatureOption> shipping = [
     useContentSecurityPolicy,
-    deferredSerialization,
     internValues,
   ];
 
@@ -431,6 +433,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// libraries are subdivided.
   Uri? deferredMapUri;
 
+  /// Location to generate a map containing mapping from user-defined deferred
+  /// import to Dart2js runtime load ID name.
+  Uri? _deferredLoadIdMapUri;
+
   /// Location where to generate an internal format representing the deferred
   /// graph.
   Uri? deferredGraphUri;
@@ -497,6 +503,18 @@ class CompilerOptions implements DiagnosticOptions {
   /// optimization. This includes resolution details, dependencies between
   /// elements, results of type inference, and data about generated code.
   bool dumpInfo = false;
+
+  /// Whether to read dump info requisite data and run dump info task. Loads all
+  /// data necessary for the dump info task without having to re-generate output
+  /// JS. Passing this flag alone will run the dump info task in JSON mode. Pass
+  /// `--dump-info=binary` as well to emit the binary version of the info dump.
+  Uri? dumpInfoReadUri;
+
+  /// Whether to write dump info requisite data after emitting JS. This contains
+  /// data captured from the JS printer and processed for the dump info task.
+  /// The file emitted to the URI can then be read in using [dumpInfoReadUri]
+  /// to run dump info as a standalone task (without re-emitting JS).
+  Uri? dumpInfoWriteUri;
 
   /// Whether to use the new dump-info binary format. This will be the default
   /// after a transitional period.
@@ -780,6 +798,7 @@ class CompilerOptions implements DiagnosticOptions {
       case Dart2JSStage.codegenAndJsEmitter:
       case Dart2JSStage.modularAnalysis:
       case Dart2JSStage.modularAnalysisFromDill:
+      case Dart2JSStage.deferredLoadIds:
         return null;
       case Dart2JSStage.closedWorld:
         return _readClosedWorldUri;
@@ -808,6 +827,8 @@ class CompilerOptions implements DiagnosticOptions {
       case Dart2JSStage.jsEmitter:
       case Dart2JSStage.codegenAndJsEmitter:
         return null;
+      case Dart2JSStage.deferredLoadIds:
+        return _deferredLoadIdMapUri;
       case Dart2JSStage.cfe:
       case Dart2JSStage.cfeFromDill:
       case Dart2JSStage.modularAnalysis:
@@ -869,6 +890,8 @@ class CompilerOptions implements DiagnosticOptions {
           _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)!
       ..compileForServer = _hasOption(options, Flags.serverMode)
       ..deferredMapUri = _extractUriOption(options, '--deferred-map=')
+      .._deferredLoadIdMapUri =
+          _extractUriOption(options, '${Flags.deferredLoadIdMapUri}=')
       ..deferredGraphUri =
           _extractUriOption(options, '${Flags.dumpDeferredGraph}=')
       ..fatalWarnings = _hasOption(options, Flags.fatalWarnings)
@@ -888,6 +911,10 @@ class CompilerOptions implements DiagnosticOptions {
       ..disableRtiOptimization =
           _hasOption(options, Flags.disableRtiOptimization)
       ..dumpInfo = _hasOption(options, Flags.dumpInfo)
+      ..dumpInfoReadUri =
+          _extractUriOption(options, '${Flags.readDumpInfoData}=')
+      ..dumpInfoWriteUri =
+          _extractUriOption(options, '${Flags.writeDumpInfoData}=')
       ..useDumpInfoBinaryFormat =
           _hasOption(options, "${Flags.dumpInfo}=binary")
       ..dumpSsaPattern =
@@ -982,6 +1009,7 @@ class CompilerOptions implements DiagnosticOptions {
     bool expectKernelOut = false;
     bool expectModularIn = false;
     bool expectModularOut = false;
+    bool expectDeferredLoadIdsOut = false;
     bool expectClosedWorldIn = false;
     bool expectClosedWorldOut = false;
     bool expectGlobalIn = false;
@@ -1014,6 +1042,10 @@ class CompilerOptions implements DiagnosticOptions {
       case Dart2JSStage.modularAnalysisFromDill:
         expectKernelOut = true;
         expectModularOut = true;
+        break;
+      case Dart2JSStage.deferredLoadIds:
+        expectKernelIn = true;
+        expectDeferredLoadIdsOut = true;
         break;
       case Dart2JSStage.closedWorld:
         expectClosedWorldOut = true;
@@ -1068,6 +1100,10 @@ class CompilerOptions implements DiagnosticOptions {
     if (modularAnalysisInputs != null && !expectModularIn) {
       return 'Cannot read modular analysis inputs in '
           'stage ${stage.name}.';
+    }
+
+    if (_deferredLoadIdMapUri != null && !expectDeferredLoadIdsOut) {
+      return 'Cannot write deferred load ID map during ${stage.name} stage.';
     }
 
     // Check closed world flags.
@@ -1231,6 +1267,14 @@ class CompilerOptions implements DiagnosticOptions {
     }
 
     environment['dart.web.assertions_enabled'] = '$enableUserAssertions';
+    environment['dart.tool.dart2js'] = '${true}';
+    // Eventually pragmas and commandline flags should be aligned so that users
+    // setting these flag is equivalent to setting the relevant pragmas
+    // globally.
+    // See: https://github.com/dart-lang/sdk/issues/49475
+    // https://github.com/dart-lang/sdk/blob/main/pkg/compiler/doc/pragmas.md
+    environment['dart.tool.dart2js.primitives:trust'] = '$trustPrimitives';
+    environment['dart.tool.dart2js.types:trust'] = '$omitImplicitChecks';
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.

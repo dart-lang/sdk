@@ -1,5 +1,4 @@
-method(Map m) => 
-switch (m) {}
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
+method(Map m) => switch (m) {
+      {} => 0,
+      _ => 1,
+    };

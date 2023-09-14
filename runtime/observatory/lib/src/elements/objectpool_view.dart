@@ -136,15 +136,9 @@ class ObjectPoolViewElement extends CustomElement implements Renderable {
       case M.ObjectPoolEntryKind.object:
         return [anyRef(_isolate, entry.asObject, _objects, queue: _r.queue)];
       case M.ObjectPoolEntryKind.immediate:
-        return [
-          new SpanElement()
-            ..text = 'Immediate 0x${entry.asInteger!.toRadixString(16)}'
-        ];
+        return [new SpanElement()..text = 'Immediate ${entry.asImmediate!}'];
       case M.ObjectPoolEntryKind.nativeEntry:
-        return [
-          new SpanElement()
-            ..text = 'NativeEntry 0x${entry.asInteger!.toRadixString(16)}'
-        ];
+        return [new SpanElement()..text = 'NativeEntry ${entry.asImmediate!}'];
     }
   }
 }

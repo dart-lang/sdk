@@ -78,7 +78,7 @@ class ConvertDocumentationIntoLine extends ParsedCorrectionProducer {
       }
     }
 
-    await builder.addDartFileEdit(file, (builder) {
+    await builder.addGenericFileEdit(file, (builder) {
       builder.addReplacement(range.node(comment), (builder) {
         for (var newLine in newLines) {
           builder.write(newLine);

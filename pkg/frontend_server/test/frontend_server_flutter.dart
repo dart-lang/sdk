@@ -2,9 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'dart:async' show StreamController;
-import 'dart:convert' show utf8, LineSplitter;
-import 'dart:io' show Directory, File, FileSystemEntity, IOSink, exitCode;
+import 'dart:async' show StreamController, Zone;
+import 'dart:convert' show Encoding, LineSplitter, utf8;
+import 'dart:io'
+    show
+        Directory,
+        File,
+        FileMode,
+        FileSystemEntity,
+        IOOverrides,
+        IOSink,
+        exitCode;
+import 'dart:typed_data' show BytesBuilder, Uint8List;
 
 import 'package:front_end/src/api_prototype/language_version.dart'
     show uriUsesLegacyLanguageVersion;
@@ -277,8 +286,27 @@ Future<List<String>> attemptStuff(
   Iterator<File> testFileIterator = testFiles.iterator;
   testFileIterator.moveNext();
 
-  final Future<int> result =
-      starter(args, input: inputStreamController.stream, output: ioSink);
+  Zone parentZone = Zone.current;
+  Map<String, _MockFile> files = {};
+
+  /// Each test writes a complete (modulo platform) dill, often taking around
+  /// 40 MB. With 1,500+ tests thats easily 50+ GB data to write. We don't
+  /// really need it as an actual file though, we just need to get a hold on it
+  /// below so we can run verification on it. We thus use [IOOverrides] to
+  /// "catch" dill files (`new File("whatnot.dill")`) so we can write those to
+  /// memory instead of to actual files.
+  /// This is specialized for how it's actually written in the production code
+  /// (via `openWrite`) and will fail if that changes (at which point it will
+  /// have to be updated).
+  final Future<int> result = IOOverrides.runZoned(() {
+    return starter(args, input: inputStreamController.stream, output: ioSink);
+  }, createFile: (String path) {
+    if (files[path] != null) return files[path]!;
+    File f = parentZone.run(() => File(path));
+    if (path.endsWith(".dill")) return files[path] = _MockFile(f);
+    return f;
+  });
+
   String testName =
       testFileIterator.current.path.substring(flutterDirectory.path.length);
 
@@ -304,14 +332,22 @@ Future<List<String>> attemptStuff(
       logger.logUnexpectedResult(testName);
     }
     if (!error) {
-      List<int> resultBytes = dillFile.readAsBytesSync();
+      Uint8List resultBytes = files[dillFile.path]!.writeSink!.bb.takeBytes();
       Component component = loadComponentFromBytes(platformData);
       component = loadComponentFromBytes(resultBytes, component);
       verifyComponent(
-          target, VerificationStage.afterModularTransformations, component);
+        target,
+        VerificationStage.afterModularTransformations,
+        component,
+        // We load the platform from dill so it's guranteed to not have changed
+        // and has been verified already.
+        skipPlatform: true,
+      );
       logger
           .log("        => verified in ${stopwatch2.elapsedMilliseconds} ms.");
     }
+
+    files.clear();
     stopwatch2.reset();
 
     inputStreamController.add('accept\n'.codeUnits);
@@ -475,5 +511,54 @@ class StdoutLogger extends Logger {
   @override
   void notice(String s) {
     print(s);
+  }
+}
+
+class _MockFile implements File {
+  final File _f;
+  _MockIOSink? writeSink;
+
+  _MockFile(this._f);
+
+  @override
+  bool existsSync() {
+    return _f.existsSync();
+  }
+
+  @override
+  Uint8List readAsBytesSync() {
+    return _f.readAsBytesSync();
+  }
+
+  @override
+  IOSink openWrite({FileMode mode = FileMode.write, Encoding encoding = utf8}) {
+    return writeSink = _MockIOSink();
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
+}
+
+class _MockIOSink implements IOSink {
+  BytesBuilder bb = BytesBuilder();
+  bool _closed = false;
+
+  @override
+  void add(List<int> data) {
+    if (_closed) throw "Adding to closed";
+    bb.add(data);
+  }
+
+  @override
+  Future close() {
+    _closed = true;
+    return Future.value();
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
   }
 }

@@ -503,6 +503,29 @@ bool true
 ''');
   }
 
+  test_instanceCreation_generic_noTypeArguments_inferred_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A<T> {
+  final T t;
+  const A(this.t);
+}
+const Object a = const A(0);
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+const b = a;
+''');
+
+    final result = _topLevelVar('b');
+    assertDartObjectText(result, r'''
+A<int>
+  t: int 0
+  variable: self::@variable::b
+''');
+  }
+
   /// https://github.com/dart-lang/sdk/issues/53029
   /// Dependencies of map patterns should be considered.
   test_mapPattern_dependencies() async {
@@ -517,6 +540,22 @@ void f(Object? x) {
   if (x case {a: _}) {}
 }
 ''');
+  }
+
+  test_typeParameter() async {
+    await assertErrorsInCode('''
+class A<X> {
+  const A();
+  void m() {
+    const x = X;
+  }
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
+      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 53, 1),
+    ]);
+    final result = _localVar('x');
+    _assertNull(result);
   }
 
   test_visitBinaryExpression_extensionMethod() async {
@@ -739,6 +778,44 @@ const x = kIsWeb ? a : b;
     ]);
     final result = _topLevelVar('x');
     _assertNull(result);
+  }
+
+  test_visitConstructorDeclaration_cycle() async {
+    await assertErrorsInCode('''
+class A {
+  final A a;
+  const A() : a = const A();
+}
+
+''', [
+      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 31, 1),
+    ]);
+  }
+
+  test_visitConstructorDeclaration_cycle_subclass_issue46735() async {
+    await assertErrorsInCode('''
+void main() {
+  const EmptyInjector();
+}
+
+abstract class BaseInjector {
+  final BaseInjector parent;
+
+  const BaseInjector([BaseInjector? parent])
+      : parent = parent ?? const EmptyInjector();
+}
+
+abstract class Injector implements BaseInjector {
+  const Injector();
+}
+
+class EmptyInjector extends BaseInjector implements Injector {
+  const EmptyInjector();
+}
+''', [
+      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 110, 12),
+      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 344, 13),
+    ]);
   }
 
   test_visitConstructorDeclaration_field_asExpression_nonConst() async {
@@ -1041,7 +1118,8 @@ class C<T> {
   const C({this.p = f});
 }
 ''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 83, 1),
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          83, 1),
     ]);
   }
 
@@ -1162,8 +1240,7 @@ class C<U> {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
           61, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 61,
-          1),
+      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 61, 1),
     ]);
   }
 
@@ -1607,8 +1684,7 @@ void f<T>(Object? x) {
   if (x case const (T)) {}
 }
 ''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          43, 1),
+      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 43, 1),
     ]);
   }
 
@@ -1618,8 +1694,7 @@ void f<T>(Object? x) {
   if (x case const (List<T>)) {}
 }
 ''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          43, 7),
+      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 43, 7),
     ]);
   }
 
@@ -1736,6 +1811,29 @@ void Function(int)
 ''');
   }
 
+  test_visitPropertyAccess_length_invalidTarget() async {
+    await assertErrorsInCode('''
+void main() {
+  const RequiresNonEmptyList([1]);
+}
+
+class RequiresNonEmptyList {
+  const RequiresNonEmptyList(List<int> numbers) : assert(numbers.length > 0);
+}
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
+        16,
+        31,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 138, 14,
+              text:
+                  "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
   test_visitRecordLiteral_objectField_generic() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
@@ -1769,6 +1867,22 @@ Record(int, String, {bool c})
   namedFields
     c: bool false
   variable: self::@variable::a
+''');
+  }
+
+  test_visitSetOrMapLiteral_double_zeros() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  final double x;
+  const C(this.x);
+}
+
+const cp0 = C(0.0);
+const cm0 = C(-0.0);
+
+main(){
+  print(const{cp0, cm0});
+}
 ''');
   }
 
@@ -2179,23 +2293,6 @@ const c = {1, ...{2, 3}, 4};
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type, typeProvider.setType(typeProvider.intType));
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3, 4]);
-  }
-
-  test_typeParameter() async {
-    await assertErrorsInCode('''
-class A<X> {
-  const A();
-  void m() {
-    const x = X;
-  }
-}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 53,
-          1),
-    ]);
-    final result = _localVar('x');
-    _assertNull(result);
   }
 
   test_visitAsExpression_instanceOfSameClass() async {
@@ -2834,7 +2931,7 @@ bool true
 ''');
   }
 
-  test_visitPropertyAccess_fromExtension() async {
+  test_visitPropertyAccess_length_extension() async {
     await assertErrorsInCode('''
 extension ExtObject on Object {
   int get length => 4;
@@ -2847,7 +2944,42 @@ class B {
 
 const b = B('');
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 128, 5),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD,
+        128,
+        5,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 105, 8,
+              text:
+                  "The error is in the field initializer of 'B', and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
+  test_visitPropertyAccess_length_unresolvedType() async {
+    await assertErrorsInCode('''
+class B {
+  final l;
+  const B(String o) : l = o.length;
+}
+
+const y = B(x);
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_TYPE_STRING,
+        70,
+        4,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 47, 8,
+              text:
+                  "The error is in the field initializer of 'B', and occurs here."),
+        ],
+      ),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1),
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 72, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 72,
+          1),
     ]);
   }
 
@@ -3156,7 +3288,16 @@ class A {
 const a = const A(null);
 ''', [
       error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 31, 9),
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 56, 13),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        56,
+        13,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 24, 17,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 64, 4),
     ]);
   }
@@ -3169,7 +3310,16 @@ class A<T> {
 
 const a = const A<int?>();
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 60, 15),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        60,
+        15,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 27, 18,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
     ]);
   }
 
@@ -3187,6 +3337,42 @@ const a = const A(null);
     assertDartObjectText(result, '''
 A
   variable: self::@variable::a
+''');
+  }
+
+  test_assertInitializer_enum_false() async {
+    await assertErrorsInCode('''
+enum E { a, b }
+class A {
+  const A(E e) : assert(e != E.a);
+}
+const c = const A(E.a);
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        73,
+        12,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 43, 16,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
+  test_assertInitializer_enum_true() async {
+    await assertNoErrorsInCode('''
+enum E { a, b }
+class A {
+  const A(E e) : assert(e != E.a);
+}
+const c = const A(E.b);
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+A
+  variable: self::@variable::c
 ''');
   }
 
@@ -3350,7 +3536,18 @@ class A<T> {
 const a = const A<int>();
 ''', [
       error(CompileTimeErrorCode.INVALID_CONSTANT, 62, 1),
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 77, 14),
+      error(
+        CompileTimeErrorCode.INVALID_CONSTANT,
+        77,
+        14,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 62, 1,
+              text:
+                  "The error is in the field initializer of 'A', and occurs here."),
+        ],
+      ),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 77,
+          14),
     ]);
     final result = _topLevelVar('a');
     _assertNull(result);
@@ -3383,6 +3580,8 @@ void main() {
   const Foo(bar: data);
 }
 ''', [
+      // TODO(kallentu): Fix [InvalidConstant.genericError] to handle
+      // NamedExpressions.
       error(CompileTimeErrorCode.INVALID_CONSTANT, 148, 4),
     ]);
   }
@@ -3402,6 +3601,39 @@ A<int>
   f: Type int
   variable: self::@variable::a
 ''');
+  }
+
+  test_superInitializer_paramTypeMismatch_indirect() async {
+    await assertErrorsInCode('''
+class C {
+  final double d;
+  const C(this.d);
+}
+class D extends C {
+  const D(d) : super(d);
+}
+class E extends D {
+  const E(e) : super(e);
+}
+const f = const E('0.0');
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        153,
+        14,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 77, 1,
+              text:
+                  "The evaluated constructor 'C' is called by 'D' and 'D' is defined here."),
+          ExpectedContextMessage(testFile.path, 124, 1,
+              text:
+                  "The evaluated constructor 'D' is called by 'E' and 'E' is defined here."),
+          ExpectedContextMessage(testFile.path, 90, 1,
+              text:
+                  "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here."),
+        ],
+      ),
+    ]);
   }
 
   test_superInitializer_typeParameter() async {
@@ -3483,7 +3715,16 @@ class A {
 }
 const a = const A(1);
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 71, 10),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        71,
+        10,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 31, 26,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
     ]);
   }
 
@@ -3494,7 +3735,16 @@ class A {
 }
 const a = const A();
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 56, 9),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        56,
+        9,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 23, 19,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
     ]);
   }
 
@@ -3531,7 +3781,16 @@ class A {
 }
 const a = const A(0);
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 55, 10),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        55,
+        10,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 28, 13,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
     ]);
   }
 

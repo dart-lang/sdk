@@ -79,10 +79,7 @@ extension JSClassExtension on JSClass {
 }
 
 @JS()
-inline class Inline {
-  final JSObject obj;
-  external Inline();
-}
+extension type ExtensionType(JSObject _) {}
 
 @JS()
 external void jsFunctionTest(JSFunction foo);
@@ -91,7 +88,7 @@ external void jsFunctionTest(JSFunction foo);
 external void useStaticInteropClass(JSClass foo);
 
 @JS()
-external void useStaticInteropInlineClass(Inline foo);
+external void useStaticInteropExtensionType(ExtensionType foo);
 
 void main() {
   jsFunctionTest(((double foo) => 4.0.toJS).toJS);

@@ -83,6 +83,9 @@ class SharedTypeAnalyzerErrors
     required covariant SharedPatternField original,
     required covariant SharedPatternField duplicate,
   }) {
+    if (objectOrRecordPattern is RecordPatternImpl) {
+      objectOrRecordPattern.hasDuplicateNamedField = true;
+    }
     _errorReporter.reportError(
       DiagnosticFactory().duplicatePatternField(
         source: _errorReporter.source,

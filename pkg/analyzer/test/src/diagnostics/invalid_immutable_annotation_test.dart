@@ -31,6 +31,14 @@ class A {
 ''');
   }
 
+  test_extensionType() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+@immutable
+extension type E(int i) {}
+''');
+  }
+
   test_method() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';

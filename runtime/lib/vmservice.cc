@@ -108,9 +108,8 @@ DEFINE_NATIVE_ENTRY(VMService_OnExit, 0, 0) {
 #ifndef PRODUCT
   if (FLAG_trace_service) {
     OS::PrintErr("vm-service: processed exit message.\n");
-    MessageHandler* message_handler = isolate->message_handler();
-    OS::PrintErr("vm-service: live ports = %" Pd "\n",
-                 message_handler->live_ports());
+    OS::PrintErr("vm-service: has live ports: %s\n",
+                 isolate->HasLivePorts() ? "yes" : "no");
   }
 #endif
   return Object::null();

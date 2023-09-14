@@ -17,7 +17,7 @@ static method test() → dynamic {
   for (var [int x] in 0) {} // Error.
                       ^" in 0 as{TypeError} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final dynamic #t1 = :sync-for-iterator.{core::Iterator::current}{Never};
+      final invalid-type #t1 = :sync-for-iterator.{core::Iterator::current}{Never};
       {
         hoisted core::int x;
         {

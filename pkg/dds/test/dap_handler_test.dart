@@ -35,7 +35,8 @@ void main() {
   });
 
   var nextSeq = 1;
-  Future<DapResponse> sendDapRequest(String request, Object? arguments) async {
+  Future<DapResponse> sendDapRequest(String request,
+      [Object? arguments]) async {
     final result = await service.sendDapRequest(
       jsonEncode(
         Request(
@@ -152,5 +153,29 @@ void main() {
     expect(await instanceToString(isolateId, originalInstanceId), 'MyClass');
     expect(await variableToString(variablesReference), 'MyClass');
     expect(await instanceToString(isolateId, mappedInstanceId), 'MyClass');
+  });
+
+  test('DAP includes Isolate IDs in Threads', () async {
+    await createProcess(pauseOnStart: false);
+    dds = await DartDevelopmentService.startDartDevelopmentService(
+      remoteVmServiceUri,
+    );
+    service = await vmServiceConnectUri(dds!.wsUri!.toString());
+
+    // Get the expected isolateId.
+    final isolateId = (await service.getVM()).isolates!.first.id!;
+
+    // Ask DAP for all threads.
+    final threadsResult = await sendDapRequest(Command.threads);
+    final threadsBody = threadsResult.dapResponse.body as Map<String, Object?>;
+
+    final threads = threadsBody['threads'] as List;
+    expect(threads, hasLength(1));
+    final thread = threads[0] as Map<String, Object?>;
+    expect(thread, {
+      'id': 1,
+      'name': 'main',
+      'isolateId': isolateId,
+    });
   });
 }

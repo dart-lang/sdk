@@ -1,1 +1,4 @@
-method(Map m) => switch (m) {};
+method(Map m) => switch (m) {
+      {} => 0,
+      _ => 1,
+    };

@@ -6,7 +6,15 @@ part of '../api.dart';
 
 /// The base interface used to add declarations to the program as well
 /// as augment existing ones.
-abstract interface class Builder {}
+///
+/// Can also be used to emit diagnostic messages back to the parent tool.
+abstract interface class Builder {
+  /// Attaches [diagnostic] to the result of this macro application phase.
+  ///
+  /// Note that this will not immediately send the result, these will all be
+  /// collected and reported at once when the macro completes this phase.
+  void report(Diagnostic diagnostic);
+}
 
 /// The interface for all introspection that is allowed during the type phase
 /// (and later).

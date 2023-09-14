@@ -17,7 +17,7 @@ class A extends core::Object {
     : dynamic #t6 = self::sideEffect(1), dynamic #t7 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 2)] self::sideEffect(2), self::A::f7 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 7)] self::sideEffect(7), dynamic #t8 = self::sideEffect(8), dynamic #t9 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 801)] self::sideEffect(801), super core::Object::•()
     ;
 }
-[@vm.unboxing-info.metadata=(i)->i]static method sideEffect([@vm.inferred-type.metadata=dart.core::_Smi] core::int x) → core::int {
+[@vm.unboxing-info.metadata=(i)->i]static method sideEffect([@vm.inferred-arg-type.metadata=dart.core::_Smi] core::int x) → core::int {
   core::print(x);
   return x;
 }

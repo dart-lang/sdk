@@ -9,6 +9,8 @@ import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/type_algebra.dart';
 
+import 'package:dart2wasm/list_factory_specializer.dart';
+
 void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
     ClassHierarchy hierarchy, DiagnosticReporter diagnosticReporter) {
   final transformer =
@@ -42,6 +44,8 @@ class _WasmTransformer extends Transformer {
       Nullability.nonNullable,
       [coreTypes.boolNonNullableRawType]);
 
+  final ListFactorySpecializer _listFactorySpecializer;
+
   StaticTypeContext get typeContext =>
       _cachedTypeContext ??= StaticTypeContext(_currentMember!, env);
 
@@ -54,7 +58,8 @@ class _WasmTransformer extends Transformer {
             .getClass('dart:core', '_Type')
             .getThisType(coreTypes, Nullability.nonNullable),
         _wasmBaseClass = coreTypes.index.getClass('dart:_wasm', '_WasmBase'),
-        _coreLibrary = coreTypes.index.getLibrary('dart:core');
+        _coreLibrary = coreTypes.index.getLibrary('dart:core'),
+        _listFactorySpecializer = ListFactorySpecializer(coreTypes);
 
   @override
   defaultMember(Member node) {
@@ -695,6 +700,12 @@ class _WasmTransformer extends Transformer {
       _enclosingIsAsyncStar = previousEnclosing;
       return result;
     }
+  }
+
+  @override
+  TreeNode visitStaticInvocation(StaticInvocation node) {
+    node.transformChildren(this);
+    return _listFactorySpecializer.transformStaticInvocation(node);
   }
 }
 

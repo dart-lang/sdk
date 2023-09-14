@@ -252,6 +252,9 @@ class MacroInstanceIdentifierImpl implements MacroInstanceIdentifier {
 /// Implementation of [MacroExecutionResult].
 class MacroExecutionResultImpl implements MacroExecutionResult {
   @override
+  final List<Diagnostic> diagnostics;
+
+  @override
   final Map<IdentifierImpl, List<DeclarationCode>> enumValueAugmentations;
 
   @override
@@ -270,6 +273,7 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
   final Map<IdentifierImpl, List<DeclarationCode>> typeAugmentations;
 
   MacroExecutionResultImpl({
+    required this.diagnostics,
     required this.enumValueAugmentations,
     required this.interfaceAugmentations,
     required this.libraryAugmentations,
@@ -279,6 +283,13 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
   });
 
   factory MacroExecutionResultImpl.deserialize(Deserializer deserializer) {
+    deserializer
+      ..moveNext()
+      ..expectList();
+    List<Diagnostic> diagnostics = [
+      for (; deserializer.moveNext();) deserializer.expectDiagnostic(),
+    ];
+
     deserializer
       ..moveNext()
       ..expectList();
@@ -358,6 +369,7 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
     };
 
     return new MacroExecutionResultImpl(
+      diagnostics: diagnostics,
       enumValueAugmentations: enumValueAugmentations,
       interfaceAugmentations: interfaceAugmentations,
       libraryAugmentations: libraryAugmentations,
@@ -369,6 +381,12 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
 
   @override
   void serialize(Serializer serializer) {
+    serializer.startList();
+    for (Diagnostic diagnostic in diagnostics) {
+      diagnostic.serialize(serializer);
+    }
+    serializer.endList();
+
     serializer.startList();
     for (IdentifierImpl enuum in enumValueAugmentations.keys) {
       enuum.serialize(serializer);

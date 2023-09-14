@@ -142,6 +142,19 @@ main() {
         writeModularAnalysis: '/some/path/prefix-modular.data',
         out: '/some/path/prefix-out.dill');
 
+    // Run deferred load ids only
+    await test([
+      '${Flags.stage}=deferred-load-ids',
+      'foo.dill',
+      '${Flags.deferredLoadIdMapUri}=load_ids.data'
+    ], writeDeferredLoadIds: 'load_ids.data');
+    await test([
+      '${Flags.stage}=deferred-load-ids',
+      'foo.dill',
+    ], writeDeferredLoadIds: 'deferred_load_ids.data');
+    await test(['foo.dill', '${Flags.deferredLoadIdMapUri}=load_ids.data'],
+        writeDeferredLoadIds: 'load_ids.data');
+
     // Run closed world only
     await test(['${Flags.stage}=closed-world', 'foo.dill'],
         writeClosedWorld: 'world.data', out: 'out.dill');
@@ -932,6 +945,7 @@ Future test(List<String> arguments,
     bool cfeModularAnalysis = false,
     String? readClosedWorld,
     String? writeClosedWorld,
+    String? writeDeferredLoadIds,
     String? readData,
     String? writeData,
     String? readCodegen,
@@ -988,6 +1002,15 @@ Future test(List<String> arguments,
           toUri(writeModularAnalysis),
           options.dataOutputUriForStage(Dart2JSStage.modularAnalysis),
           "Unexpected writeModularAnalysis uri");
+    }
+    if (writeDeferredLoadIds == null) {
+      Expect.notEquals(options.stage, Dart2JSStage.deferredLoadIds);
+    } else {
+      Expect.equals(options.stage, Dart2JSStage.deferredLoadIds);
+      Expect.equals(
+          toUri(writeDeferredLoadIds),
+          options.dataOutputUriForStage(Dart2JSStage.deferredLoadIds),
+          "Unexpected writeDeferredLoadIds uri");
     }
     if (readClosedWorld == null) {
       Expect.isFalse(options.stage.shouldReadClosedWorld);

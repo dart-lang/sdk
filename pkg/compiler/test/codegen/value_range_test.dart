@@ -216,7 +216,7 @@ main(int value) {
   return sum;
 }
 """,
-  BELOW_ZERO_CHECK,
+  REMOVED,
   """
 main(int value) {
   var a = List.filled(7, value);

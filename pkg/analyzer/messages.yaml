@@ -54,10 +54,31 @@ AnalysisOptionsErrorCode:
       Parameters:
       0: the error message from the parse error
 AnalysisOptionsHintCode:
-  STRONG_MODE_SETTING_DEPRECATED:
-    problemMessage: "The 'strong-mode: true' setting is deprecated."
-    correctionMessage: It is no longer necessary to explicitly enable strong mode.
-    comment: "An error code indicating that strong-mode: true is deprecated."
+  DEPRECATED_LINT:
+    problemMessage: "'{0}' is a deprecated lint rule and should not be used."
+    correctionMessage: Try removing '{0}'.
+    comment: |-
+      A hint code indicating reference to a deprecated lint.
+
+      Parameters:
+      0: the rule name
+  DEPRECATED_LINT_WITH_REPLACEMENT:
+    problemMessage: "'{0}' is deprecated and should be replaced by '{1}'."
+    correctionMessage: "Try replacing '{0}' with '{1}'."
+    comment: |-
+      A hint code indicating reference to a deprecated lint.
+
+      Parameters:
+      0: the deprecated lint name
+      1: the replacing rule name
+  DUPLICATE_RULE:
+    problemMessage: "The rule {0} is already specified and doesn't need to be specified again."
+    correctionMessage: "Try removing all but one specification of the rule."
+    comment: |-
+      Duplicate rules.
+
+      Parameters:
+      0: the rule name
 AnalysisOptionsWarningCode:
   ANALYSIS_OPTION_DEPRECATED:
     problemMessage: "The option '{0}' is no longer supported."
@@ -95,6 +116,15 @@ AnalysisOptionsWarningCode:
       0: the URI of the file to be included
       1: the path of the file containing the include directive
       2: the path of the context being analyzed
+  INCOMPATIBLE_LINT:
+    problemMessage: "The rule '{0}' is incompatible with the rule '{1}'."
+    correctionMessage: "Try removing one of the incompatible rules."
+    comment: |-
+      An error code indicating an incompatible rule.
+
+      Parameters:
+      0: the rule name
+      1: the incompatible rule
   INVALID_OPTION:
     problemMessage: "Invalid option specified for '{0}': {1}"
     comment: |-
@@ -147,10 +177,14 @@ AnalysisOptionsWarningCode:
       0: the rule name
       1: the SDK version in which the lint was removed
       2: the name of a replacing lint
-  SPEC_MODE_REMOVED:
-    problemMessage: "The option 'strong-mode: false' is no longer supported."
-    correctionMessage: "It's recommended to remove the 'strong-mode:' setting (and make your code Dart 2 compliant)."
-    comment: "An error code indicating that strong-mode: false is has been removed."
+  UNDEFINED_LINT:
+    problemMessage: "'{0}' is not a recognized lint rule."
+    correctionMessage: "Try using the name of a recognized lint rule."
+    comment: |-
+      An error code indicating an undefined lint rule.
+
+      Parameters:
+      0: the rule name
   UNRECOGNIZED_ERROR_CODE:
     problemMessage: "'{0}' isn't a recognized error code."
     comment: |-
@@ -2079,13 +2113,14 @@ CompileTimeErrorCode:
       1: the name of the conflicting field
       2: the name of the class defining the method with which the field conflicts
   CONFLICTING_GENERIC_INTERFACES:
-    problemMessage: "The class '{0}' can't implement both '{1}' and '{2}' because the type arguments are different."
+    problemMessage: "The {0} '{1}' can't implement both '{2}' and '{3}' because the type arguments are different."
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the class implementing the conflicting interface
-      1: the first conflicting type
-      2: the second conflicting type
+      0: the name of the kind of the element implementing the conflicting interface
+      1: the name of the element implementing the conflicting interface
+      2: the first conflicting type
+      3: the second conflicting type
     documentation: |-
       #### Description
 
@@ -2271,6 +2306,7 @@ CompileTimeErrorCode:
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     problemMessage: "Constant values from a deferred library can't be used as values in a 'const' constructor."
     correctionMessage: "Try removing the keyword 'const' from the constructor or removing the keyword 'deferred' from the import."
+    hasPublishedDocs: true
     comment: No parameters.
   CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH:
     problemMessage: "A value of type '{0}' can't be assigned to a parameter of type '{1}' in a const constructor."
@@ -2585,6 +2621,12 @@ CompileTimeErrorCode:
   CONST_EVAL_FOR_ELEMENT:
     problemMessage: "Constant expressions don't support 'for' elements."
     correctionMessage: "Try replacing the 'for' element with a spread, or removing 'const'."
+  CONST_EVAL_PROPERTY_ACCESS:
+    problemMessage: "The property '{0}' can't be accessed on the type '{1}' in a constant expression."
+    comment: |-
+      Parameters:
+      0: the name of the property being accessed
+      1: the type with the property being accessed
   CONST_EVAL_METHOD_INVOCATION:
     problemMessage: "Methods can't be invoked in constant expressions."
   CONST_EVAL_THROWS_EXCEPTION:
@@ -2628,6 +2670,9 @@ CompileTimeErrorCode:
       e2, e1 / e2, e1 ~/ e2, e1 > e2, e1 < e2, e1 >= e2, e1 <= e2 or e1 % e2,
       where e, e1 and e2 are constant expressions that evaluate to a numeric
       value or to null.
+  CONST_EVAL_TYPE_STRING:
+    problemMessage: "In constant expressions, operands of this operator must be of type 'String'."
+    comment: No parameters.
   CONST_EVAL_TYPE_TYPE:
     problemMessage: "In constant expressions, operands of this operator must be of type 'Type'."
   CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE:
@@ -2989,6 +3034,10 @@ CompileTimeErrorCode:
       const Map<String, int> map1 = {};
       const Map<String, int> map2 = {...map1};
       ```
+  CONST_TYPE_PARAMETER:
+    problemMessage: "Type parameters can't be used in a constant expression."
+    correctionMessage: Try replacing the type parameter with a different type.
+    comment: No parameters.
   CONST_WITH_NON_CONST:
     problemMessage: "The constructor being called isn't a const constructor."
     correctionMessage: "Try removing 'const' from the constructor invocation."
@@ -3294,6 +3343,7 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the non-type element
   DEFAULT_LIST_CONSTRUCTOR:
+    removedIn: "3.2"
     problemMessage: "The default 'List' constructor isn't available when null safety is enabled."
     correctionMessage: "Try using a list literal, 'List.filled' or 'List.generate'."
     hasPublishedDocs: true
@@ -4080,7 +4130,7 @@ CompileTimeErrorCode:
   EMPTY_MAP_PATTERN:
     problemMessage: A map pattern must have at least one entry.
     correctionMessage: Try replacing it with an object pattern 'Map()'.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5055,6 +5105,66 @@ CompileTimeErrorCode:
 
       If there are multiple cascaded accesses, you'll need to duplicate the
       extension override for each one.
+  EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER:
+    problemMessage: "Extension type constructors can't declare super formal parameters."
+    correctionMessage: Try removing the super formal parameter declaration.
+    comment: No parameters.
+  EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION:
+    problemMessage: "Extension type constructors can't include superinitializers."
+    correctionMessage: Try removing the superconstructor invocation.
+    comment: No parameters.
+  EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
+    problemMessage: "Extension types can't declare instance fields."
+    correctionMessage: Try replacing the field with a getter.
+    comment: No parameters.
+  EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
+    problemMessage: "Extension types can't declare members with the same name as a member declared by 'Object'."
+    correctionMessage: Try specifying a different name for the member.
+    comment: No parameters.
+  EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE:
+    problemMessage: "Extension types can't implement '{0}'."
+    correctionMessage: Try specifying a different type, or remove the type from the list.
+    comment: |-
+      Parameters:
+      0: the display string of the disallowed type
+  EXTENSION_TYPE_IMPLEMENTS_ITSELF:
+    problemMessage: "The extension type can't implement itself."
+    correctionMessage: Try removing the superinterface that references this extension type.
+    comment: No parameters.
+  EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE:
+    problemMessage: "'{0}' is not a supertype of '{1}', the representation type."
+    correctionMessage: Try specifying a different type, or remove the type from the list.
+    comment: |-
+      Parameters:
+      0: the implemented not extension type
+      1: the ultimate representation type
+  EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE:
+    problemMessage: "'{0}', the representation type of '{1}', is not a supertype of '{2}', the representation type of '{3}'."
+    correctionMessage: Try specifying a different type, or remove the type from the list.
+    comment: |-
+      Parameters:
+      0: the representation type of the implemented extension type
+      1: the name of the implemented extension type
+      2: the representation type of the this extension type
+      3: the name of the this extension type
+  EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT:
+    problemMessage: "The extension type '{0}' has more than one distinct member named '{1}' from implemented types."
+    correctionMessage: Try redeclaring the corresponding member in this extension type.
+    comment: |-
+      Parameters:
+      0: the name of the extension type
+      1: the name of the conflicting member
+  EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF:
+    problemMessage: "The extension type representation can't depend on itself."
+    correctionMessage: Try specifying a different type.
+    comment: No parameters.
+  EXTENSION_TYPE_WITH_ABSTRACT_MEMBER:
+    problemMessage: "'{0}' must have a method body because '{1}' is an extension type."
+    correctionMessage: "Try adding a body to '{0}'."
+    comment: |-
+      Parameters:
+      0: the name of the abstract method
+      1: the name of the enclosing extension type
   EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
     sharedName: EXTERNAL_WITH_INITIALIZER
     problemMessage: External fields can't have initializers.
@@ -8497,7 +8607,7 @@ CompileTimeErrorCode:
 
       ```dart
       int f(Null x) {
-        return [!x!].length;
+        return x.[!length!];
       }
       ```
 
@@ -9267,7 +9377,7 @@ CompileTimeErrorCode:
   MISSING_NAMED_PATTERN_FIELD_NAME:
     problemMessage: The getter name is not specified explicitly, and the pattern is not a variable.
     correctionMessage: Try specifying the getter name explicitly, or using a variable pattern.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -9275,6 +9385,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when, within an object pattern, the
       specification of a property and the pattern used to match the property's
       value doesn't have either:
+
       - a getter name before the colon
       - a variable pattern from which the getter name can be inferred
 
@@ -12227,17 +12338,17 @@ CompileTimeErrorCode:
       7.9 Superclasses: It is a compile-time error to specify an extends clause
       for class Object.
   OBSOLETE_COLON_FOR_DEFAULT_VALUE:
-    problemMessage: Using a colon as a separator before a default value is no longer supported.
+    problemMessage: Using a colon as the separator before a default value is no longer supported.
     correctionMessage: Try replacing the colon with an equal sign.
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a colon is used as the
-      separator before the default value of an optional parameter. While this
-      syntax used to be allowed, it's deprecated in favor of using an equal
-      sign.
+      The analyzer produces this diagnostic when a colon (`:`) is used as the
+      separator before the default value of an optional named parameter.
+      While this syntax used to be allowed, it was removed in favor of
+      using an equal sign (`=`).
 
       #### Example
 
@@ -13214,6 +13325,9 @@ CompileTimeErrorCode:
       const secondsPerHour = minutesPerHour * 60;
       const minutesPerHour = 60;
       ```
+  RECURSIVE_CONSTANT_CONSTRUCTOR:
+    problemMessage: "The constant constructor depends on itself."
+    comment: No parameters.
   RECURSIVE_CONSTRUCTOR_REDIRECT:
     problemMessage: "Constructors can't redirect to themselves either directly or indirectly."
     correctionMessage: Try changing one of the constructors in the loop to not redirect.
@@ -14093,7 +14207,7 @@ CompileTimeErrorCode:
   REST_ELEMENT_IN_MAP_PATTERN:
     problemMessage: A map pattern can't contain a rest pattern.
     correctionMessage: Try removing the rest pattern.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -14101,7 +14215,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a map pattern contains a rest
       pattern. Map patterns match a map with more keys
       than those explicitly given in the pattern (as long as the given keys match),
-      so a rest pattern is unnecesssary.
+      so a rest pattern is unnecessary.
 
       #### Example
 
@@ -14241,7 +14355,7 @@ CompileTimeErrorCode:
 
       ```dart
       Iterable<int> f() sync* {
-        [!return 3!];
+        [!return!] 3;
       }
       ```
 
@@ -18035,7 +18149,8 @@ FfiCode:
       argument whose value isn't a constant expression.
 
       The analyzer also produces this diagnostic when the value of the
-      `exceptionalReturn` argument of `Pointer.fromFunction`.
+      `exceptionalReturn` argument of `Pointer.fromFunction` or
+      `NativeCallable.isolateLocal`.
 
       For more information about FFI, see [C interop using dart:ffi][ffi].
 
@@ -18491,15 +18606,18 @@ FfiCode:
       }
       ```
   INVALID_EXCEPTION_VALUE:
-    problemMessage: "The method 'Pointer.fromFunction' can't have an exceptional return value (the second argument) when the return type of the function is either 'void', 'Handle' or 'Pointer'."
+    problemMessage: "The method {0} can't have an exceptional return value (the second argument) when the return type of the function is either 'void', 'Handle' or 'Pointer'."
     correctionMessage: Try removing the exceptional return value.
-    comment: No parameters.
+    comment: |-
+      Parameters:
+      0: the name of the method
     hasPublishedDocs: true
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when an invocation of the method
-      `Pointer.fromFunction` has a second argument (the exceptional return
+      `Pointer.fromFunction` or `NativeCallable.isolateLocal`
+      has a second argument (the exceptional return
       value) and the type to be returned from the invocation is either `void`,
       `Handle` or `Pointer`.
 
@@ -18788,15 +18906,18 @@ FfiCode:
       }
       ```
   MISSING_EXCEPTION_VALUE:
-    problemMessage: "The method 'Pointer.fromFunction' must have an exceptional return value (the second argument) when the return type of the function is neither 'void', 'Handle', nor 'Pointer'."
+    problemMessage: "The method {0} must have an exceptional return value (the second argument) when the return type of the function is neither 'void', 'Handle', nor 'Pointer'."
     correctionMessage: Try adding an exceptional return value.
-    comment: No parameters.
+    comment: |-
+      Parameters:
+      0: the name of the method
     hasPublishedDocs: true
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when an invocation of the method
-      `Pointer.fromFunction` doesn't have a second argument (the exceptional
+      `Pointer.fromFunction` or `NativeCallable.isolateLocal`
+      doesn't have a second argument (the exceptional
       return value) when the type to be returned from the invocation is neither
       `void`, `Handle`, nor `Pointer`.
 
@@ -18928,7 +19049,8 @@ FfiCode:
       #### Description
 
       The analyzer produces this diagnostic when an invocation of either
-      `Pointer.fromFunction` or `DynamicLibrary.lookupFunction` has a type
+      `Pointer.fromFunction`, `DynamicLibrary.lookupFunction`,
+      or a `NativeCallable` constructor, has a type
       argument(whether explicit or inferred) that isn't a native function type.
 
       For more information about FFI, see [C interop using dart:ffi][ffi].
@@ -18979,7 +19101,8 @@ FfiCode:
       #### Description
 
       The analyzer produces this diagnostic in two cases:
-      - In an invocation of `Pointer.fromFunction` where the type argument
+      - In an invocation of `Pointer.fromFunction`, or a
+        `NativeCallable` constructor where the type argument
         (whether explicit or inferred) isn't a supertype of the type of the
         function passed as the first argument to the method.
       - In an invocation of `DynamicLibrary.lookupFunction` where the first type
@@ -19040,7 +19163,7 @@ FfiCode:
     comment: |-
       Parameters:
       0: the return type that should be 'void'.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -19397,7 +19520,7 @@ FfiCode:
       }
       ```
   SUBTYPE_OF_FFI_CLASS_IN_EXTENDS:
-    removed: 3.0
+    removedIn: "3.0"
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't extend '{1}'."
     correctionMessage: "Try extending 'Struct' or 'Union'."
@@ -19448,7 +19571,7 @@ FfiCode:
       final class C {}
       ```
   SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS:
-    removed: 3.0
+    removedIn: "3.0"
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't implement '{1}'."
     correctionMessage: "Try implementing 'Allocator' or 'Finalizable'."
@@ -19458,7 +19581,7 @@ FfiCode:
       1: the name of the class being extended, implemented, or mixed in
     hasPublishedDocs: true
   SUBTYPE_OF_FFI_CLASS_IN_WITH:
-    removed: 3.0
+    removedIn: "3.0"
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't mix in '{1}'."
     correctionMessage: "Try extending 'Struct' or 'Union'."
@@ -19552,7 +19675,7 @@ HintCode:
       Note: Since this diagnostic is only produced in pre-null safe code, we do
       not plan to go through the exercise of converting it to a Warning.
   DEPRECATED_COLON_FOR_DEFAULT_VALUE:
-    problemMessage: Using a colon as a separator before a default value is deprecated and will not be supported in language version 3.0 and later.
+    problemMessage: Using a colon as the separator before a default value is deprecated and will not be supported in language version 3.0 and later.
     correctionMessage: Try replacing the colon with an equal sign.
     hasPublishedDocs: true
     comment: |-
@@ -19563,9 +19686,10 @@ HintCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a colon is used as the
-      separator before the default value of an optional parameter. While this
-      syntax is allowed, it's being deprecated in favor of using an equal sign.
+      The analyzer produces this diagnostic when a colon (`:`) is used as the
+      separator before the default value of an optional named parameter.
+      While this syntax is allowed, it is deprecated in favor of
+      using an equal sign (`=`).
 
       #### Example
 
@@ -19974,7 +20098,7 @@ HintCode:
       #### Example
 
       The following code produces this diagnostic because the value `1` was
-      matched in the preceeding case:
+      matched in the preceding case:
 
       ```dart
       void f(int x) {
@@ -20075,63 +20199,6 @@ HintCode:
   UNUSED_LOCAL_VARIABLE:
     aliasFor: WarningCode.UNUSED_LOCAL_VARIABLE
     comment: This is the deprecated alias for [WarningCode.UNUSED_LOCAL_VARIABLE].
-LanguageCode:
-  IMPLICIT_DYNAMIC_FIELD:
-    problemMessage: "Missing field type for '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the field
-  IMPLICIT_DYNAMIC_FUNCTION:
-    problemMessage: "Missing type arguments for generic function '{0}<{1}>'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the function
-      1: the names of the type arguments
-  IMPLICIT_DYNAMIC_INVOKE:
-    problemMessage: "Missing type arguments for calling generic function type '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of type
-  IMPLICIT_DYNAMIC_LIST_LITERAL:
-    problemMessage: Missing type argument for list literal.
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-  IMPLICIT_DYNAMIC_MAP_LITERAL:
-    problemMessage: Missing type arguments for map literal.
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-  IMPLICIT_DYNAMIC_METHOD:
-    problemMessage: "Missing type arguments for generic method '{0}<{1}>'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the function
-      1: the names of the type arguments
-  IMPLICIT_DYNAMIC_PARAMETER:
-    problemMessage: "Missing parameter type for '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the parameter
-  IMPLICIT_DYNAMIC_RETURN:
-    problemMessage: "Missing return type for '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the function or method
-  IMPLICIT_DYNAMIC_TYPE:
-    problemMessage: "Missing type arguments for generic type '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the type
-  IMPLICIT_DYNAMIC_VARIABLE:
-    problemMessage: "Missing variable type for '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the variable
 ManifestWarningCode:
   CAMERA_PERMISSIONS_INCOMPATIBLE:
     problemMessage: Camera permissions make app incompatible for Chrome OS, consider adding optional features "android.hardware.camera" and "android.hardware.camera.autofocus".
@@ -20418,6 +20485,9 @@ ParserErrorCode:
   MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
     problemMessage: "Can't have multiple groups of positional parameters in a single parameter list."
     correctionMessage: Try combining all of the groups into a single group.
+  MULTIPLE_REPRESENTATION_FIELDS:
+    problemMessage: Each extension type should have exactly one representation field.
+    correctionMessage: Try combining fields into a record, or removing extra fields.
   MULTIPLE_VARIABLES_IN_FOR_EACH:
     problemMessage: "A single loop variable must be declared in a for-each loop before the 'in', but {0} were found."
     correctionMessage: Try moving all but one of the declarations inside the loop body.
@@ -20465,6 +20535,9 @@ ParserErrorCode:
   POSITIONAL_PARAMETER_OUTSIDE_GROUP:
     problemMessage: "Positional parameters must be enclosed in square brackets ('[' and ']')."
     correctionMessage: Try surrounding the positional parameters in square brackets.
+  REPRESENTATION_FIELD_MODIFIER:
+    problemMessage: "Representation fields can't have modifiers."
+    correctionMessage: Try removing the modifier.
   SETTER_IN_FUNCTION:
     problemMessage: "Setters can't be defined within methods or functions."
     correctionMessage: Try moving the setter outside the method or function.
@@ -20533,7 +20606,7 @@ PubspecWarningCode:
       name: example
       flutter:
         assets:
-          - assets/
+          - [!assets/!]
       ```
 
       #### Common fixes
@@ -20565,7 +20638,7 @@ PubspecWarningCode:
       name: example
       flutter:
         assets:
-          - doesNotExist.gif
+          - [!doesNotExist.gif!]
       ```
 
       #### Common fixes
@@ -20594,7 +20667,7 @@ PubspecWarningCode:
       %uri="pubspec.yaml"
       name: example
       flutter:
-        assets: assets/
+        assets: [!assets/!]
       ```
 
       #### Common fixes
@@ -20629,7 +20702,7 @@ PubspecWarningCode:
       name: example
       flutter:
         assets:
-          - image.gif: true
+          - [!image.gif: true!]
       ```
 
       #### Common fixes
@@ -20666,7 +20739,7 @@ PubspecWarningCode:
       %uri="pubspec.yaml"
       name: example
       dependencies:
-        - meta
+        [!- meta!]
       ```
 
       #### Common fixes
@@ -20731,7 +20804,7 @@ PubspecWarningCode:
       ```yaml
       %uri="pubspec.yaml"
       name: example
-      flutter: true
+      flutter: [!true!]
       ```
 
       #### Common fixes
@@ -20808,16 +20881,16 @@ PubspecWarningCode:
       ```
   INVALID_PLATFORMS_FIELD:
     problemMessage: "The 'platforms' field must be a map with platforms as keys."
-    correctionMessage: "Try changing the 'platforms' field to a map with plaforms as keys."
-    hasPublishedDocs: false
+    correctionMessage: "Try changing the 'platforms' field to a map with platforms as keys."
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when a top-level `platforms`
       field is specified, but its value is not a map with keys.
-      See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
-      for details.
+      To learn more about specifying your package's supported platforms,
+      check out the [documentation on platform declarations](https://dart.dev/tools/pub/pubspec#platforms).
 
       #### Example
 
@@ -20857,7 +20930,7 @@ PubspecWarningCode:
   UNKNOWN_PLATFORM:
     problemMessage: "The platform '{0}' is not a recognized platform."
     correctionMessage: "Try correcting the platform name or removing it."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the unknown platform.
@@ -20866,8 +20939,8 @@ PubspecWarningCode:
 
       The analyzer produces this diagnostic when an unknown platform name is
       used as a key in the `platforms` map.
-      See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
-      for details.
+      To learn more about specifying your package's supported platforms,
+      check out the [documentation on platform declarations](https://dart.dev/tools/pub/pubspec#platforms).
 
       #### Example
 
@@ -20909,15 +20982,15 @@ PubspecWarningCode:
   PLATFORM_VALUE_DISALLOWED:
     problemMessage: "Keys in the `platforms` field can't have values."
     correctionMessage: "Try removing the value, while keeping the key."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when a key in the `platforms` map
       has a value.
-      See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
-      for details.
+      To learn more about specifying your package's supported platforms,
+      check out the [documentation on platform declarations](https://dart.dev/tools/pub/pubspec#platforms).
 
       #### Example
 
@@ -20995,7 +21068,7 @@ PubspecWarningCode:
       ```yaml
       %uri="pubspec.yaml"
       name:
-        - example
+        [!- example!]
       ```
 
       #### Common fixes
@@ -21029,7 +21102,7 @@ PubspecWarningCode:
       name: example
       dependencies:
         local_package:
-          path: doesNotExist
+          path: [!doesNotExist!]
       ```
 
       #### Common fixes
@@ -21061,7 +21134,7 @@ PubspecWarningCode:
       name: example
       dependencies:
         local_package:
-          path: E:\local_package
+          path: [!E:\local_package!]
       ```
 
       #### Common fixes
@@ -21091,7 +21164,7 @@ PubspecWarningCode:
       name: example
       dependencies:
         local_package:
-          path: local_package
+          path: [!local_package!]
       ```
 
       #### Common fixes
@@ -21131,7 +21204,7 @@ PubspecWarningCode:
       dependencies:
         meta: ^1.0.2
       dev_dependencies:
-        meta: ^1.0.2
+        [!meta!]: ^1.0.2
       ```
 
       #### Common fixes
@@ -22049,6 +22122,14 @@ WarningCode:
         C.c();
       }
       ```
+  DOC_IMPORT_CANNOT_BE_DEFERRED:
+    problemMessage: "Doc imports can't be deferred."
+    correctionMessage: Try removing the 'deferred' keyword.
+    hasPublishedDocs: false
+  DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
+    problemMessage: "Doc imports can't have configurations."
+    correctionMessage: Try removing the configurations.
+    hasPublishedDocs: false
   DUPLICATE_EXPORT:
     problemMessage: Duplicate export.
     correctionMessage: Try removing all but one export of the library.
@@ -23246,7 +23327,7 @@ WarningCode:
       ```
   INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION:
     problemMessage: "The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -24032,6 +24113,14 @@ WarningCode:
     problemMessage: "A record literal with exactly one positional field requires a trailing comma."
     correctionMessage: Try adding a trailing comma.
     hasPublishedDocs: true
+  REDECLARE_ON_NON_REDECLARING_MEMBER:
+    problemMessage: "The {0} doesn't redeclare a {0} declared in a superinterface."
+    correctionMessage: Try updating this member to match a declaration in a superinterface, or removing the redeclare annotation.
+    comment: |-
+      An error code indicating the use of a redeclare annotation on a member that does not redeclare.
+
+      Parameters:
+      0: the kind of member
   REMOVED_LINT_USE:
     problemMessage: "'{0}' was removed in Dart '{1}'"
     correctionMessage: "Remove the reference to '{0}'."
@@ -24106,6 +24195,168 @@ WarningCode:
 
       int g() => 0;
       ```
+  SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
+    removedIn: "3.2"
+    problemMessage: "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but this code is required to be able to run on earlier versions."
+    correctionMessage: "Try either importing 'dart:async' or updating the SDK constraints."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the class
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when either the class `Future` or
+      `Stream` is referenced in a library that doesn't import `dart:async` in
+      code that has an SDK constraint whose lower bound is less than 2.1.0. In
+      earlier versions, these classes weren't defined in `dart:core`, so the
+      import was necessary.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.1.0:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.0.0 <2.4.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces this
+      diagnostic:
+
+      ```dart
+      void f([!Future!] f) {}
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the classes to be referenced:
+
+      ```yaml
+      environment:
+        sdk: '>=2.1.0 <2.4.0'
+      ```
+
+      If you need to support older versions of the SDK, then import the
+      `dart:async` library.
+
+      ```dart
+      import 'dart:async';
+
+      void f(Future f) {}
+      ```
+  SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT:
+    removedIn: "3.2"
+    problemMessage: "The use of an as expression in a constant expression wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an `as` expression inside a
+      [constant context][] is found in code that has an SDK constraint whose
+      lower bound is less than 2.3.2. Using an `as` expression in a
+      [constant context][] wasn't supported in earlier versions, so this code
+      won't be able to run against earlier versions of the SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.3.2:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.1.0 <2.4.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces
+      this diagnostic:
+
+      ```dart
+      const num n = 3;
+      const int i = [!n as int!];
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the expression to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.3.2 <2.4.0'
+      ```
+
+      If you need to support older versions of the SDK, then either rewrite the
+      code to not use an `as` expression, or change the code so that the `as`
+      expression isn't in a [constant context][]:
+
+      ```dart
+      num x = 3;
+      int y = x as int;
+      ```
+  SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT:
+    removedIn: "3.2"
+    problemMessage: "The use of the operator '{0}' for 'bool' operands in a constant context wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the operator
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when any use of the `&`, `|`, or `^`
+      operators on the class `bool` inside a [constant context][] is found in
+      code that has an SDK constraint whose lower bound is less than 2.3.2. Using
+      these operators in a [constant context][] wasn't supported in earlier
+      versions, so this code won't be able to run against earlier versions of the
+      SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.3.2:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.1.0 <2.4.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces this
+      diagnostic:
+
+      ```dart
+      const bool a = true;
+      const bool b = false;
+      const bool c = a [!&!] b;
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the operators to be used:
+
+      ```yaml
+      environment:
+       sdk: '>=2.3.2 <2.4.0'
+      ```
+
+      If you need to support older versions of the SDK, then either rewrite the
+      code to not use these operators, or change the code so that the expression
+      isn't in a [constant context][]:
+
+      ```dart
+      const bool a = true;
+      const bool b = false;
+      bool c = a & b;
+      ```
   SDK_VERSION_CONSTRUCTOR_TEAROFFS:
     problemMessage: "Tearing off a constructor requires the 'constructor-tearoffs' language feature."
     correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'."
@@ -24160,6 +24411,121 @@ WarningCode:
       ```dart
       %language=2.14
       var setConstructor = () => Set.identity();
+      ```
+  SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT:
+    removedIn: "3.2"
+    problemMessage: "Using the operator '==' for non-primitive types wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the operator `==` is used on a
+      non-primitive type inside a [constant context][] is found in code that has
+      an SDK constraint whose lower bound is less than 2.3.2. Using this operator
+      in a [constant context][] wasn't supported in earlier versions, so this
+      code won't be able to run against earlier versions of the SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.3.2:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.1.0 <2.4.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces this
+      diagnostic:
+
+      ```dart
+      %language=2.9
+      class C {}
+      const C a = null;
+      const C b = null;
+      const bool same = a [!==!] b;
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the operator to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.3.2 <2.4.0'
+      ```
+
+      If you need to support older versions of the SDK, then either rewrite the
+      code to not use the `==` operator, or change the code so that the
+      expression isn't in a [constant context][]:
+
+      ```dart
+      %language=2.9
+      class C {}
+      const C a = null;
+      const C b = null;
+      bool same = a == b;
+      ```
+  SDK_VERSION_EXTENSION_METHODS:
+    removedIn: "3.2"
+    problemMessage: "Extension methods weren't supported until version 2.6.0, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an extension declaration or an
+      extension override is found in code that has an SDK constraint whose lower
+      bound is less than 2.6.0. Using extensions wasn't supported in earlier
+      versions, so this code won't be able to run against earlier versions of the
+      SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.6.0:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+       sdk: '>=2.4.0 <2.7.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces
+      this diagnostic:
+
+      ```dart
+      [!extension!] E on String {
+        void sayHello() {
+          print('Hello $this');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the syntax to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.6.0 <2.7.0'
+      ```
+
+      If you need to support older versions of the SDK, then rewrite the code to
+      not make use of extensions. The most common way to do this is to rewrite
+      the members of the extension as top-level functions (or methods) that take
+      the value that would have been bound to `this` as a parameter:
+
+      ```dart
+      void sayHello(String s) {
+        print('Hello $s');
+      }
       ```
   SDK_VERSION_GT_GT_GT_OPERATOR:
     problemMessage: "The operator '>>>' wasn't supported until version 2.14.0, but this code is required to be able to run on earlier versions."
@@ -24216,6 +24582,59 @@ WarningCode:
         return leftOperand ~/ divisor;
       }
       ```
+  SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT:
+    removedIn: "3.2"
+    problemMessage: "The use of an is expression in a constant context wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an `is` expression inside a
+      [constant context][] is found in code that has an SDK constraint whose
+      lower bound is less than 2.3.2. Using an `is` expression in a
+      [constant context][] wasn't supported in earlier versions, so this code
+      won't be able to run against earlier versions of the SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.3.2:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.1.0 <2.4.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces
+      this diagnostic:
+
+      ```dart
+      const Object x = 4;
+      const y = [!x is int!] ? 0 : 1;
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the expression to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.3.2 <2.4.0'
+      ```
+
+      If you need to support older versions of the SDK, then either rewrite the
+      code to not use the `is` operator, or, if that isn't possible, change the
+      code so that the `is` expression isn't in a
+      [constant context][]:
+
+      ```dart
+      const Object x = 4;
+      var y = x is int ? 0 : 1;
+      ```
   SDK_VERSION_NEVER:
     problemMessage: "The type 'Never' wasn't supported until version 2.12.0, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.
@@ -24264,6 +24683,54 @@ WarningCode:
       ```dart
       dynamic x;
       ```
+  SDK_VERSION_SET_LITERAL:
+    removedIn: "3.2"
+    problemMessage: "Set literals weren't supported until version 2.2, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a set literal is found in code
+      that has an SDK constraint whose lower bound is less than 2.2.0. Set
+      literals weren't supported in earlier versions, so this code won't be able
+      to run against earlier versions of the SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.2.0:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.1.0 <2.4.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces this
+      diagnostic:
+
+      ```dart
+      var s = [!<int>{}!];
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the syntax to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.2.0 <2.4.0'
+      ```
+
+      If you do need to support older versions of the SDK, then replace the set
+      literal with code that creates the set without the use of a literal:
+
+      ```dart
+      var s = new Set<int>();
+      ```
   SDK_VERSION_SINCE:
     problemMessage: "This API is available since SDK {0}, but constraints '{1}' don't guarantee it."
     correctionMessage: Try updating the SDK constraints.
@@ -24271,6 +24738,122 @@ WarningCode:
       Parameters:
       0: the version specified in the `@Since()` annotation
       1: the SDK version constraints
+  SDK_VERSION_UI_AS_CODE:
+    removedIn: "3.2"
+    problemMessage: "The for, if, and spread elements weren't supported until version 2.3.0, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a for, if, or spread element is
+      found in code that has an SDK constraint whose lower bound is less than
+      2.3.0. Using a for, if, or spread element wasn't supported in earlier
+      versions, so this code won't be able to run against earlier versions of the
+      SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.3.0:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.2.0 <2.4.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces
+      this diagnostic:
+
+      ```dart
+      var digits = [[!for (int i = 0; i < 10; i++) i!]];
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the syntax to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.3.0 <2.4.0'
+      ```
+
+      If you need to support older versions of the SDK, then rewrite the code to
+      not make use of those elements:
+
+      ```dart
+      var digits = _initializeDigits();
+
+      List<int> _initializeDigits() {
+        var digits = <int>[];
+        for (int i = 0; i < 10; i++) {
+          digits.add(i);
+        }
+        return digits;
+      }
+      ```
+  SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
+    removedIn: "3.2"
+    problemMessage: "The if and spread elements weren't supported in constant expressions until version 2.5.0, but this code is required to be able to run on earlier versions."
+    correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an if or spread element inside
+      a [constant context][] is found in code that has an SDK constraint whose
+      lower bound is less than 2.5.0. Using an if or spread element inside a
+      [constant context][] wasn't supported in earlier versions, so this code
+      won't be able to run against earlier versions of the SDK.
+
+      #### Example
+
+      Here's an example of a pubspec that defines an SDK constraint with a lower
+      bound of less than 2.5.0:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      environment:
+        sdk: '>=2.4.0 <2.6.0'
+      ```
+
+      In the package that has that pubspec, code like the following produces
+      this diagnostic:
+
+      ```dart
+      const a = [1, 2];
+      const b = [[!...a!]];
+      ```
+
+      #### Common fixes
+
+      If you don't need to support older versions of the SDK, then you can
+      increase the SDK constraint to allow the syntax to be used:
+
+      ```yaml
+      environment:
+        sdk: '>=2.5.0 <2.6.0'
+      ```
+
+      If you need to support older versions of the SDK, then rewrite the code to
+      not make use of those elements:
+
+      ```dart
+      const a = [1, 2];
+      const b = [1, 2];
+      ```
+
+      If that isn't possible, change the code so that the element isn't in a
+      [constant context][]:
+
+      ```dart
+      const a = [1, 2];
+      var b = [...a];
+      ```
   STRICT_RAW_TYPE:
     problemMessage: "The generic type '{0}' should have explicit type arguments but doesn't."
     correctionMessage: "Use explicit type arguments for '{0}'."

@@ -540,9 +540,6 @@ void IRRegExpMacroAssembler::Do(Definition* definition) {
 }
 
 Value* IRRegExpMacroAssembler::BindLoadLocal(const LocalVariable& local) {
-  if (local.IsConst()) {
-    return Bind(new (Z) ConstantInstr(*local.ConstValue()));
-  }
   ASSERT(!local.is_captured());
   return Bind(new (Z) LoadLocalInstr(local, InstructionSource()));
 }

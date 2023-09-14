@@ -24,6 +24,7 @@ jobs:
           days-before-stale: -1
           days-before-close: 14
           stale-issue-label: "needs-info"
+          operations-per-run: 100
           close-issue-message: >
             Without additional information we're not able to resolve this issue.
             Feel free to add more info or respond to any questions above and we

@@ -24,11 +24,11 @@ class T3 extends core::Object {
 }
 class Q<T extends core::Object? = dynamic> extends core::Object {
 [@vm.inferred-type.metadata=!] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]  final field self::Q::T% result;
-  constructor •([@vm.inferred-type.metadata=!] self::Q::T% result) → self::Q<self::Q::T%>
+  constructor •([@vm.inferred-arg-type.metadata=!] self::Q::T% result) → self::Q<self::Q::T%>
     : self::Q::result = result, super core::Object::•()
     ;
 }
-static method foo1([@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::T1>] core::List<self::T1> list) → dynamic {
+static method foo1([@vm.inferred-arg-type.metadata=dart.core::_GrowableList<#lib::T1>] core::List<self::T1> list) → dynamic {
   [@vm.direct-call.metadata=#lib::T3.run] [@vm.inferred-type.metadata=!? (skip check)] [@vm.direct-call.metadata=#lib::T1.go] [@vm.inferred-type.metadata=#lib::T3 (skip check)] [@vm.direct-call.metadata=#lib::Q.result] [@vm.inferred-type.metadata=!] [@vm.direct-call.metadata=dart._internal::ListIterable.first] [@vm.inferred-type.metadata=#lib::Q] [@vm.direct-call.metadata=dart.collection::ListBase.map] [@vm.inferred-type.metadata=dart._internal::MappedListIterable<#lib::T1, ?> (skip check)] list.{core::Iterable::map}<self::Q<self::T1>>((self::T1 t1) → self::Q<self::T1> => new self::Q::•<self::T1>(t1)){((self::T1) → self::Q<self::T1>) → core::Iterable<self::Q<self::T1>>}.{core::Iterable::first}{self::Q<self::T1>}.{self::Q::result}{self::T1}.{self::T1::go}(){() → self::T3}.{self::T3::run}(){() → dynamic};
 }
 static method foo2NewValue() → self::Q<dynamic>

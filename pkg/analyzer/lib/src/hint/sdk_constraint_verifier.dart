@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// A visitor that finds code that assumes a later version of the SDK than the
@@ -251,24 +252,5 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     } else {
       return true;
     }
-  }
-}
-
-extension on VersionConstraint {
-  bool requiresAtLeast(Version version) {
-    final self = this;
-    if (self is Version) {
-      return self >= version;
-    }
-    if (self is VersionRange) {
-      final min = self.min;
-      if (min == null) {
-        return false;
-      } else {
-        return min >= version;
-      }
-    }
-    // We don't know, but will not complain.
-    return true;
   }
 }

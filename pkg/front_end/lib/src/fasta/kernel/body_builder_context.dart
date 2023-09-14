@@ -13,7 +13,6 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
-import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../dill/dill_class_builder.dart';

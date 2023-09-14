@@ -366,6 +366,10 @@ class DartObjectImplTest {
     _assertEqualEqual(_boolValue(false), _doubleValue(2.0), _doubleValue(4.0));
   }
 
+  void test_equalEqual_double_false_zeros() {
+    _assertEqualEqual(_boolValue(false), _doubleValue(0.0), _doubleValue(-0.0));
+  }
+
   void test_equalEqual_double_true() {
     _assertEqualEqual(_boolValue(true), _doubleValue(2.0), _doubleValue(2.0));
   }

@@ -709,6 +709,8 @@ bool SampleBlock::HasStreamableSamples(const GrowableObjectArray& tag_table,
 }
 
 static void FlushSampleBlocks(Isolate* isolate) {
+  ASSERT(isolate != nullptr);
+
   SampleBlock* block = isolate->current_sample_block();
   if (block != nullptr) {
     isolate->set_current_sample_block(nullptr);
@@ -723,8 +725,11 @@ static void FlushSampleBlocks(Isolate* isolate) {
 }
 
 ProcessedSampleBuffer* SampleBlockBuffer::BuildProcessedSampleBuffer(
+    Isolate* isolate,
     SampleFilter* filter,
     ProcessedSampleBuffer* buffer) {
+  ASSERT(isolate != nullptr);
+
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
@@ -732,11 +737,11 @@ ProcessedSampleBuffer* SampleBlockBuffer::BuildProcessedSampleBuffer(
     buffer = new (zone) ProcessedSampleBuffer();
   }
 
-  FlushSampleBlocks(thread->isolate());
+  FlushSampleBlocks(isolate);
 
   for (intptr_t i = 0; i < capacity_; ++i) {
     SampleBlock* block = &blocks_[i];
-    if (block->TryAcquireStreaming(thread->isolate())) {
+    if (block->TryAcquireStreaming(isolate)) {
       block->BuildProcessedSampleBuffer(filter, buffer);
       if (filter->take_samples()) {
         block->StreamingToFree();
@@ -1456,8 +1461,6 @@ class CodeLookupTableBuilder : public ObjectVisitor {
 
 void CodeLookupTable::Build(Thread* thread) {
   ASSERT(thread != nullptr);
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != nullptr);
   Isolate* vm_isolate = Dart::vm_isolate();
   ASSERT(vm_isolate != nullptr);
 
@@ -1780,14 +1783,17 @@ void SampleBlockProcessor::Cleanup() {
 
 class StreamableSampleFilter : public SampleFilter {
  public:
-  explicit StreamableSampleFilter(Dart_Port port)
-      : SampleFilter(port, kNoTaskFilter, -1, -1, true) {}
+  StreamableSampleFilter(Dart_Port port, const Isolate* isolate)
+      : SampleFilter(port, kNoTaskFilter, -1, -1, true), isolate_(isolate) {}
 
   bool FilterSample(Sample* sample) override {
     const UserTag& tag =
-        UserTag::Handle(UserTag::FindTagById(sample->user_tag()));
+        UserTag::Handle(UserTag::FindTagById(isolate_, sample->user_tag()));
     return tag.streamable();
   }
+
+ private:
+  const Isolate* isolate_;
 };
 
 void Profiler::ProcessCompletedBlocks(Isolate* isolate) {
@@ -1799,9 +1805,9 @@ void Profiler::ProcessCompletedBlocks(Isolate* isolate) {
   DisableThreadInterruptsScope dtis(thread);
   StackZone zone(thread);
   HandleScope handle_scope(thread);
-  StreamableSampleFilter filter(isolate->main_port());
+  StreamableSampleFilter filter(isolate->main_port(), isolate);
   Profile profile;
-  profile.Build(thread, &filter, Profiler::sample_block_buffer());
+  profile.Build(thread, isolate, &filter, Profiler::sample_block_buffer());
   ServiceEvent event(isolate, ServiceEvent::kCpuSamples);
   event.set_cpu_profile(&profile);
   Service::HandleEvent(&event);

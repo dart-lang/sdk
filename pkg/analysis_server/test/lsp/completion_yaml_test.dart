@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/pub/pub_api.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:http/http.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../mocks.dart';
+import '../utils/test_code_extensions.dart';
 import 'completion.dart';
 import 'server_abstract.dart';
 
@@ -330,16 +332,17 @@ version: 1.0.0
 
 dependencies:
   ^''';
+    final code = TestCode.parse(content);
 
     await initialize();
-    await openFile(pubspecFileUri, withoutMarkers(content));
+    await openFile(pubspecFileUri, code.code);
     await pumpEventQueue();
 
     // Descriptions are included in the documentation field that is only added
     // when completions are resolved.
     final completion = await getResolvedCompletion(
       pubspecFileUri,
-      positionFromMarker(content),
+      code.position.position,
       'one: ',
     );
     expect(
@@ -397,6 +400,7 @@ version: 1.0.0
 
 dependencies:
   ^''';
+    final code = TestCode.parse(content);
 
     final expected = '''
 name: foo
@@ -406,7 +410,7 @@ dependencies:
   one: ^1.2.3''';
 
     await initialize();
-    await openFile(pubspecFileUri, withoutMarkers(content));
+    await openFile(pubspecFileUri, code.code);
 
     // Versions are currently only available if we've previously resolved on the
     // package name, so first complete/resolve that.
@@ -452,6 +456,7 @@ version: 1.0.0
 
 dependencies:
   one: ^''';
+    final code = TestCode.parse(content);
 
     final expected = '''
 name: foo
@@ -461,7 +466,7 @@ dependencies:
   one: ^1.2.4''';
 
     await initialize();
-    await openFile(pubspecFileUri, withoutMarkers(content));
+    await openFile(pubspecFileUri, code.code);
     await pumpEventQueue(times: 500);
 
     await verifyCompletions(
@@ -506,6 +511,7 @@ version: 1.0.0
 
 dependencies:
   one: ^''';
+    final code = TestCode.parse(content);
 
     final expected = '''
 name: foo
@@ -516,7 +522,7 @@ dependencies:
 
     newFile(pubspecFilePath, content);
     await initialize();
-    await openFile(pubspecFileUri, withoutMarkers(content));
+    await openFile(pubspecFileUri, code.code);
     await pumpEventQueue(times: 500);
 
     // Modify the underlying file which should trigger an update of the
@@ -567,10 +573,11 @@ version: 1.0.0
 
 dependencies:
   one: ^''';
+    final code = TestCode.parse(content);
 
     newFile(pubspecFilePath, content);
     await initialize();
-    await openFile(pubspecFileUri, withoutMarkers(content));
+    await openFile(pubspecFileUri, code.code);
     await pumpEventQueue(times: 500);
 
     // Delete the underlying file which should trigger eviction of the cache.
@@ -603,13 +610,14 @@ version: 1.0.0
 
 dependencies:
   on^''';
+    final code = TestCode.parse(content);
 
     await initialize();
     await openFile(pubspecFileUri, content);
     await pumpEventQueue();
 
     completionResults =
-        await getCompletion(pubspecFileUri, positionFromMarker(content));
+        await getCompletion(pubspecFileUri, code.position.position);
     expect(completionResults.length, equals(1));
     expect(completionResults.single.label, equals('one: '));
   }

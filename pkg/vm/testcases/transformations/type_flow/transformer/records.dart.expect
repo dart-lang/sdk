@@ -5,11 +5,11 @@ import "dart:core" as core;
 [@vm.inferred-type.metadata=dart.core::_GrowableList?<dart.core::Object>]static field dynamic list = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::Object>] core::_GrowableList::_literal2<core::Object>("abc", (42, {foo42: "foo42"}));
 static method recordLiteral() → dynamic
   return (#C1, #C2, {bar: #C3});
-[@vm.unboxing-info.metadata=(b)->i]static method recordFieldAccess1([@vm.inferred-type.metadata=dart.core::_Record](core::int, core::String) rec) → dynamic
+[@vm.unboxing-info.metadata=(b)->i]static method recordFieldAccess1([@vm.inferred-arg-type.metadata=dart.core::_Record](core::int, core::String) rec) → dynamic
   return rec.$1{core::int};
-[@vm.unboxing-info.metadata=(b)->i]static method recordFieldAccess2([@vm.inferred-type.metadata=dart.core::_Record]({required a: core::int, required b: core::String}) rec) → dynamic
+[@vm.unboxing-info.metadata=(b)->i]static method recordFieldAccess2([@vm.inferred-arg-type.metadata=dart.core::_Record]({required a: core::int, required b: core::String}) rec) → dynamic
   return rec.a{core::int};
-static method recordDynamicFieldAccess([@vm.inferred-type.metadata=!] dynamic x) → dynamic
+static method recordDynamicFieldAccess([@vm.inferred-arg-type.metadata=!] dynamic x) → dynamic
   return [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "foo42")] x{dynamic}.foo42;
 static method main() → dynamic {
   core::print(#C7);

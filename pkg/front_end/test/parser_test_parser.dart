@@ -184,7 +184,6 @@ class TestParser extends Parser {
       Token start,
       Token keyword,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -193,21 +192,13 @@ class TestParser extends Parser {
         '$start, '
         '$keyword, '
         '$macroToken, '
-        '$inlineToken, '
         '$sealedToken, '
         '$baseToken, '
         '$interfaceToken, '
         '$directiveState)');
     indent++;
-    var result = super.parseTopLevelKeywordDeclaration(
-        start,
-        keyword,
-        macroToken,
-        inlineToken,
-        sealedToken,
-        baseToken,
-        interfaceToken,
-        directiveState);
+    var result = super.parseTopLevelKeywordDeclaration(start, keyword,
+        macroToken, sealedToken, baseToken, interfaceToken, directiveState);
     indent--;
     return result;
   }
@@ -665,7 +656,6 @@ class TestParser extends Parser {
   Token parseClassOrNamedMixinApplication(
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -676,7 +666,6 @@ class TestParser extends Parser {
     doPrint('parseClassOrNamedMixinApplication('
         '$abstractToken, '
         '$macroToken, '
-        '$inlineToken, '
         '$sealedToken, '
         '$baseToken, '
         '$interfaceToken, '
@@ -688,7 +677,6 @@ class TestParser extends Parser {
     var result = super.parseClassOrNamedMixinApplication(
         abstractToken,
         macroToken,
-        inlineToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -741,21 +729,50 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseClassExtendsOpt(Token token) {
-    doPrint('parseClassExtendsOpt(' '$token)');
+  Token parseExtensionTypeHeaderRecovery(Token token, Token extensionKeyword) {
+    doPrint(
+        'parseExtensionTypeHeaderRecovery(' '$token, ' '$extensionKeyword)');
     indent++;
-    var result = super.parseClassExtendsOpt(token);
+    var result =
+        super.parseExtensionTypeHeaderRecovery(token, extensionKeyword);
     indent--;
     return result;
   }
 
   @override
-  Token parseClassExtendsSeenExtendsClause(Token extendsKeyword, Token token) {
-    doPrint(
-        'parseClassExtendsSeenExtendsClause(' '$extendsKeyword, ' '$token)');
+  Token parseDeclarationHeaderRecoveryInternal(Token token, Token begin,
+      Token declarationKeyword, DeclarationHeaderKind kind) {
+    doPrint('parseDeclarationHeaderRecoveryInternal('
+        '$token, '
+        '$begin, '
+        '$declarationKeyword, '
+        '$kind)');
+    indent++;
+    var result = super.parseDeclarationHeaderRecoveryInternal(
+        token, begin, declarationKeyword, kind);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseClassExtendsOpt(Token token, DeclarationHeaderKind kind) {
+    doPrint('parseClassExtendsOpt(' '$token, ' '$kind)');
+    indent++;
+    var result = super.parseClassExtendsOpt(token, kind);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseClassExtendsSeenExtendsClause(
+      Token extendsKeyword, Token token, DeclarationHeaderKind kind) {
+    doPrint('parseClassExtendsSeenExtendsClause('
+        '$extendsKeyword, '
+        '$token, '
+        '$kind)');
     indent++;
     var result =
-        super.parseClassExtendsSeenExtendsClause(extendsKeyword, token);
+        super.parseClassExtendsSeenExtendsClause(extendsKeyword, token, kind);
     indent--;
     return result;
   }
@@ -829,17 +846,24 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseExtensionTypeDeclarationRest(Token token, Token extensionKeyword,
-      Token typeKeyword, Token? constKeyword, Token name) {
-    doPrint('parseExtensionTypeDeclarationRest('
+  Token parseExtensionDeclaration(Token token, Token extensionKeyword) {
+    doPrint('parseExtensionDeclaration(' '$token, ' '$extensionKeyword)');
+    indent++;
+    var result = super.parseExtensionDeclaration(token, extensionKeyword);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseExtensionTypeDeclaration(
+      Token token, Token extensionKeyword, Token typeKeyword) {
+    doPrint('parseExtensionTypeDeclaration('
         '$token, '
         '$extensionKeyword, '
-        '$typeKeyword, '
-        '$constKeyword, '
-        '$name)');
+        '$typeKeyword)');
     indent++;
-    var result = super.parseExtensionTypeDeclarationRest(
-        token, extensionKeyword, typeKeyword, constKeyword, name);
+    var result = super
+        .parseExtensionTypeDeclaration(token, extensionKeyword, typeKeyword);
     indent--;
     return result;
   }
@@ -1113,13 +1137,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token ensureBlock(
-      Token token,
-      codes.Template<codes.Message Function(Token token)>? template,
-      String? missingBlockName) {
-    doPrint('ensureBlock(' '$token, ' '$template, ' '$missingBlockName)');
+  Token ensureBlock(Token token, BlockKind? missingBlockKind) {
+    doPrint('ensureBlock(' '$token, ' '$missingBlockKind)');
     indent++;
-    var result = super.ensureBlock(token, template, missingBlockName);
+    var result = super.ensureBlock(token, missingBlockKind);
     indent--;
     return result;
   }

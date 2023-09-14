@@ -3,7 +3,7 @@ name: analysis_server
 publish_to: none
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.2.0-edge <4.0.0'
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
@@ -83,7 +83,7 @@ dependency_overrides:
   js:
     path: ../js
   linter:
-    path: ../../third_party/pkg/linter
+    path: ../linter
   lints:
     path: ../../third_party/pkg/lints
   logging:

@@ -137,6 +137,11 @@ class ParserAstVisitor {
       visitExtensionMethod(method, method.beginToken, method.endToken);
       return;
     }
+    if (node is ExtensionTypeMethodEnd) {
+      ExtensionTypeMethodEnd method = node;
+      visitExtensionTypeMethod(method, method.beginToken, method.endToken);
+      return;
+    }
     if (node is MixinMethodEnd) {
       MixinMethodEnd method = node;
       visitMixinMethod(method, method.beginToken, method.endToken);
@@ -171,6 +176,13 @@ class ParserAstVisitor {
       // (e.g. to split up a field declaration).
       ExtensionFieldsEnd fields = node;
       visitExtensionFields(fields, fields.beginToken, fields.endToken);
+      return;
+    }
+    if (node is ExtensionTypeFieldsEnd) {
+      // TODO(jensj): Possibly this could go into more details too
+      // (e.g. to split up a field declaration).
+      ExtensionTypeFieldsEnd fields = node;
+      visitExtensionTypeFields(fields, fields.beginToken, fields.endToken);
       return;
     }
     if (node is MixinFieldsEnd) {
@@ -216,6 +228,11 @@ class ParserAstVisitor {
       visitExtension(ext, ext.extensionKeyword, ext.endToken);
       return;
     }
+    if (node is ExtensionTypeDeclarationEnd) {
+      ExtensionTypeDeclarationEnd ext = node;
+      visitExtensionTypeDeclaration(ext, ext.extensionKeyword, ext.endToken);
+      return;
+    }
     if (node is ClassConstructorEnd) {
       ClassConstructorEnd decl = node;
       visitClassConstructor(decl, decl.beginToken, decl.endToken);
@@ -226,6 +243,11 @@ class ParserAstVisitor {
       visitExtensionConstructor(decl, decl.beginToken, decl.endToken);
       return;
     }
+    if (node is ExtensionTypeConstructorEnd) {
+      ExtensionTypeConstructorEnd decl = node;
+      visitExtensionTypeConstructor(decl, decl.beginToken, decl.endToken);
+      return;
+    }
     if (node is ClassFactoryMethodEnd) {
       ClassFactoryMethodEnd decl = node;
       visitClassFactoryMethod(decl, decl.beginToken, decl.endToken);
@@ -234,6 +256,11 @@ class ParserAstVisitor {
     if (node is ExtensionFactoryMethodEnd) {
       ExtensionFactoryMethodEnd decl = node;
       visitExtensionFactoryMethod(decl, decl.beginToken, decl.endToken);
+      return;
+    }
+    if (node is ExtensionTypeFactoryMethodEnd) {
+      ExtensionTypeFactoryMethodEnd decl = node;
+      visitExtensionTypeFactoryMethod(decl, decl.beginToken, decl.endToken);
       return;
     }
     if (node is MetadataEnd) {
@@ -290,6 +317,10 @@ class ParserAstVisitor {
       ExtensionMethodEnd node, Token startInclusive, Token endInclusive) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitExtensionTypeMethod(
+      ExtensionTypeMethodEnd node, Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitMixinMethod(
       MixinMethodEnd node, Token startInclusive, Token endInclusive) {}
 
@@ -304,6 +335,10 @@ class ParserAstVisitor {
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitExtensionFields(
       ExtensionFieldsEnd node, Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitExtensionTypeFields(
+      ExtensionTypeFieldsEnd node, Token startInclusive, Token endInclusive) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitMixinFields(
@@ -340,6 +375,12 @@ class ParserAstVisitor {
     visitChildren(node);
   }
 
+  /// Note: Implementers can call visitChildren on this node.
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclarationEnd node,
+      Token startInclusive, Token endInclusive) {
+    visitChildren(node);
+  }
+
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitClassConstructor(
       ClassConstructorEnd node, Token startInclusive, Token endInclusive) {}
@@ -349,11 +390,19 @@ class ParserAstVisitor {
       ExtensionConstructorEnd node, Token startInclusive, Token endInclusive) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitExtensionTypeConstructor(ExtensionTypeConstructorEnd node,
+      Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitClassFactoryMethod(
       ClassFactoryMethodEnd node, Token startInclusive, Token endInclusive) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitExtensionFactoryMethod(ExtensionFactoryMethodEnd node,
+      Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitExtensionTypeFactoryMethod(ExtensionTypeFactoryMethodEnd node,
       Token startInclusive, Token endInclusive) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
@@ -1516,6 +1565,8 @@ class ParserASTListener extends AbstractParserAstListener {
                 end == "ClassMethod" ||
                 end == "ExtensionConstructor" ||
                 end == "ExtensionMethod" ||
+                end == "ExtensionTypeConstructor" ||
+                end == "ExtensionTypeMethod" ||
                 end == "MixinConstructor" ||
                 end == "MixinMethod" ||
                 end == "EnumConstructor" ||
@@ -1528,6 +1579,7 @@ class ParserASTListener extends AbstractParserAstListener {
                 end == "ClassFields" ||
                 end == "MixinFields" ||
                 end == "ExtensionFields" ||
+                end == "ExtensionTypeFields" ||
                 end == "EnumFields")) {
           // beginFields is ended by one of endTopLevelFields, endMixinFields,
           // endEnumFields or endExtensionFields.
@@ -1537,6 +1589,7 @@ class ParserASTListener extends AbstractParserAstListener {
             (end == "ClassFactoryMethod" ||
                 end == "MixinFactoryMethod" ||
                 end == "ExtensionFactoryMethod" ||
+                end == "ExtensionTypeFactoryMethod" ||
                 end == "EnumFactoryMethod")) {
           // beginFactoryMethod is ended by either endClassFactoryMethod,
           // endMixinFactoryMethod, endExtensionFactoryMethod, or

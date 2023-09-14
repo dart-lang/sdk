@@ -154,7 +154,8 @@ String ddcHtml(
   var ddcGenDir = '/root_build/$genDir';
   var packagePaths =
       testPackages.map((p) => '    "$p": "$ddcGenDir/pkg/$p",').join("\n");
-
+  // Seal the native JavaScript Object prototype to avoid pollution before
+  // loading the Dart SDK module.
   return """
 <!DOCTYPE html>
 <html>
@@ -169,6 +170,10 @@ String ddcHtml(
      .unittest-fail { background: #d55;}
      .unittest-error { background: #a11;}
   </style>
+  <script>
+  delete Object.prototype.__proto__;
+  Object.seal(Object.prototype);
+  </script>
 </head>
 <body>
 <h1>Running $testName</h1>

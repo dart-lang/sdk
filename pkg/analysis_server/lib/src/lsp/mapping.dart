@@ -49,6 +49,11 @@ final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
   ],
 };
 
+/// A regex used for splitting the display text in a completion so that
+/// filterText only includes the symbol name and not any additional text (such
+/// as parens, ` => `).
+final _completionFilterTextSplitPattern = RegExp(r'[ \(]');
+
 /// A regex to extract the type name from the parameter string of a setter
 /// completion item.
 final _completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
@@ -197,6 +202,8 @@ lsp.SymbolKind declarationKindToSymbolKind(
       case server.DeclarationKind.ENUM_CONSTANT:
         return const [lsp.SymbolKind.EnumMember, lsp.SymbolKind.Enum];
       case server.DeclarationKind.EXTENSION:
+        return const [lsp.SymbolKind.Class];
+      case server.DeclarationKind.EXTENSION_TYPE:
         return const [lsp.SymbolKind.Class];
       case server.DeclarationKind.FIELD:
         return const [lsp.SymbolKind.Field];
@@ -405,6 +412,14 @@ CompletionDetail getCompletionDetail(
     (final parameters?, '') => parameters,
     (final parameters?, _) => '$parameters → $returnType',
   };
+  final truncatedSignature = switch ((parameters, returnType)) {
+    (null, null) => '',
+    // Include a leading space when no parameters so return type isn't right
+    // against the completion label.
+    (null, final returnType?) => ' $returnType',
+    (_, null) || (_, '') => truncatedParameters,
+    (_, final returnType?) => '$truncatedParameters → $returnType',
+  };
 
   // Use the full signature in the details popup.
   var detail = fullSignature;
@@ -414,9 +429,14 @@ CompletionDetail getCompletionDetail(
     detail = '$detail\n\n(Deprecated)'.trim();
   }
 
+  final autoImportUri =
+      (suggestion.isNotImported ?? false) ? suggestion.libraryUri : null;
+
   return (
     detail: detail,
     truncatedParams: truncatedParameters,
+    truncatedSignature: truncatedSignature,
+    autoImportUri: autoImportUri,
   );
 }
 
@@ -855,18 +875,6 @@ lsp.CompletionItem toCompletionItem(
   required bool completeFunctionCalls,
   CompletionItemResolutionInfo? resolutionData,
 }) {
-  // Build separate display and filter labels. Displayed labels may have additional
-  // info appended (for example '(...)' on callables) that should not be included
-  // in filterText.
-  var label = suggestion.displayText ?? suggestion.completion;
-  assert(label.isNotEmpty);
-  final filterText = label;
-
-  // Trim any trailing comma from the (displayed) label.
-  if (label.endsWith(',')) {
-    label = label.substring(0, label.length - 1);
-  }
-
   // isCallable is used to suffix the label with parens so it's clear the item
   // is callable.
   //
@@ -895,6 +903,27 @@ lsp.CompletionItem toCompletionItem(
   final supportsInsertReplace = capabilities.insertReplaceCompletionRanges;
   final supportsAsIsInsertMode =
       capabilities.completionInsertTextModes.contains(InsertTextMode.asIs);
+  final useLabelDetails = capabilities.completionLabelDetails;
+
+  var label = suggestion.displayText ?? suggestion.completion;
+  assert(label.isNotEmpty);
+
+  // Displayed labels may have additional info appended (for example '(...)' on
+  // callables and ` => ` on getters) that should not be included in filterText,
+  // so strip anything from the first paren/space.
+  final filterText = label.split(_completionFilterTextSplitPattern).first;
+
+  // If we're using label details, we also don't want the label to include any
+  // additional symbols as noted above, because they will appear in the extra
+  // details fields.
+  if (useLabelDetails) {
+    label = filterText;
+  }
+
+  // Trim any trailing comma from the (displayed) label.
+  if (label.endsWith(',')) {
+    label = label.substring(0, label.length - 1);
+  }
 
   final element = suggestion.element;
   final completionKind = element != null
@@ -909,9 +938,10 @@ lsp.CompletionItem toCompletionItem(
         supportsCompletionDeprecatedFlag || supportsDeprecatedTag,
   );
 
-  // Include short params on the end of labels as long as the item doesn't have
-  // custom display text (which may already include params).
-  if (suggestion.displayText == null) {
+  // For legacy display, include short params on the end of labels as long as
+  // the item doesn't have custom display text (which may already include
+  // params).
+  if (!useLabelDetails && suggestion.displayText == null) {
     label += labelDetails.truncatedParams;
   }
 
@@ -948,6 +978,8 @@ lsp.CompletionItem toCompletionItem(
     labelDetails = (
       detail: labelMatch.group(1)!,
       truncatedParams: labelDetails.truncatedParams,
+      truncatedSignature: labelDetails.truncatedSignature,
+      autoImportUri: labelDetails.autoImportUri,
     );
   }
 
@@ -963,6 +995,12 @@ lsp.CompletionItem toCompletionItem(
     ]),
     data: resolutionData,
     detail: labelDetails.detail.nullIfEmpty,
+    labelDetails: useLabelDetails
+        ? CompletionItemLabelDetails(
+            detail: labelDetails.truncatedSignature.nullIfEmpty,
+            description: labelDetails.autoImportUri,
+          )
+        : null,
     documentation: cleanedDoc != null
         ? asMarkupContentOrString(formats, cleanedDoc)
         : null,
@@ -1461,4 +1499,13 @@ typedef CompletionDetail = ({
   /// differently and is appended immediately after the completion label. The
   /// return type is ommitted to reduce noise because this text is not subtle.
   String truncatedParams,
+
+  /// A signature with truncated params. Used for showing immediately after
+  /// the completion label when it can be formatted differently.
+  ///
+  /// () → String
+  String truncatedSignature,
+
+  /// The URI that will be auto-imported if this item is selected.
+  String? autoImportUri,
 });

@@ -571,8 +571,8 @@ class C {}
     DocumentationCommentToken docToken = DocumentationCommentToken(
         TokenType.MULTI_LINE_COMMENT, "/** [ some text", 5);
     createParser('');
-    List<CommentReference> references =
-        parser.parseCommentReferences(<DocumentationCommentToken>[docToken]);
+    var comment = parser.parseComment([docToken]);
+    var references = comment.references;
     expectNotNullIfNoErrors(references);
     assertNoErrors();
     expect(references, hasLength(1));
@@ -872,7 +872,6 @@ class C {}
   }
 
   void test_parseInstanceCreation_keyword_33647() {
-    enableOptionalNewAndConst = true;
     CompilationUnit unit = parseCompilationUnit('''
 var c = new Future<int>.sync(() => 3).then<int>((e) => e);
 ''');
@@ -886,7 +885,6 @@ var c = new Future<int>.sync(() => 3).then<int>((e) => e);
   }
 
   void test_parseInstanceCreation_noKeyword_33647() {
-    enableOptionalNewAndConst = true;
     CompilationUnit unit = parseCompilationUnit('''
 var c = Future<int>.sync(() => 3).then<int>((e) => e);
 ''');
@@ -900,7 +898,6 @@ var c = Future<int>.sync(() => 3).then<int>((e) => e);
   }
 
   void test_parseInstanceCreation_noKeyword_noPrefix() {
-    enableOptionalNewAndConst = true;
     createParser('f() => C<E>.n();');
     CompilationUnit unit = parser.parseCompilationUnit2();
     expect(unit, isNotNull);
@@ -918,7 +915,6 @@ var c = Future<int>.sync(() => 3).then<int>((e) => e);
   }
 
   void test_parseInstanceCreation_noKeyword_noPrefix_34403() {
-    enableOptionalNewAndConst = true;
     createParser('f() => C<E>.n<B>();');
     CompilationUnit unit = parser.parseCompilationUnit2();
     expect(unit, isNotNull);
@@ -935,7 +931,6 @@ var c = Future<int>.sync(() => 3).then<int>((e) => e);
   }
 
   void test_parseInstanceCreation_noKeyword_prefix() {
-    enableOptionalNewAndConst = true;
     createParser('f() => p.C<E>.n();');
     CompilationUnit unit = parser.parseCompilationUnit2();
     expect(unit, isNotNull);
@@ -952,7 +947,6 @@ var c = Future<int>.sync(() => 3).then<int>((e) => e);
   }
 
   void test_parseInstanceCreation_noKeyword_varInit() {
-    enableOptionalNewAndConst = true;
     createParser('''
 class C<T, S> {}
 void main() {final c = C<int, int Function(String)>();}

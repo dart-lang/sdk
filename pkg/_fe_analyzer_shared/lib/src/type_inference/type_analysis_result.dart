@@ -320,11 +320,15 @@ class PatternForInResult<Type extends Object, Error> {
   /// The static type of the elements of the for in expression.
   final Type elementType;
 
+  /// The static type of the collection of elements of the for in expression.
+  final Type expressionType;
+
   /// Error for when the expression is not an iterable.
   final Error? patternForInExpressionIsNotIterableError;
 
   PatternForInResult(
       {required this.elementType,
+      required this.expressionType,
       required this.patternForInExpressionIsNotIterableError});
 }
 

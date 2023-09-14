@@ -61,8 +61,9 @@ class ObjectDataSource implements DataSource {
 
   @override
   int readDeferred() {
+    final dataSize = readInt();
     final dataOffset = _index;
-    _index += readInt();
+    _index += dataSize;
     return dataOffset;
   }
 

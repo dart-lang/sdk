@@ -11,8 +11,7 @@ import '../identifiers.dart' show QualifiedName, flattenName;
 import '../scope.dart';
 
 import 'builder.dart';
-import 'class_builder.dart';
-import 'extension_type_declaration_builder.dart';
+import 'declaration_builder.dart';
 import 'library_builder.dart';
 import 'prefix_builder.dart';
 import 'type_alias_builder.dart';
@@ -55,7 +54,7 @@ class ConstructorReferenceBuilder {
       if (declaration is PrefixBuilder) {
         PrefixBuilder prefix = declaration;
         declaration = prefix.lookup(middle, name.charOffset, fileUri);
-      } else if (declaration is ClassBuilder) {
+      } else if (declaration is DeclarationBuilder) {
         declaration = declaration.findConstructorOrFactory(
             middle, name.charOffset, fileUri, accessingLibrary);
         if (suffix == null) {
@@ -70,10 +69,7 @@ class ConstructorReferenceBuilder {
         declaration = aliasBuilder.unaliasDeclaration(typeArguments);
       }
     }
-    if (declaration is ClassBuilder) {
-      target = declaration.findConstructorOrFactory(
-          suffix ?? "", charOffset, fileUri, accessingLibrary);
-    } else if (declaration is ExtensionTypeDeclarationBuilder) {
+    if (declaration is DeclarationBuilder) {
       target = declaration.findConstructorOrFactory(
           suffix ?? "", charOffset, fileUri, accessingLibrary);
     }

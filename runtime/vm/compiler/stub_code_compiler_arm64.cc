@@ -35,14 +35,15 @@ namespace compiler {
 //
 // WARNING: This might clobber all registers except for [R0], [THR] and [FP].
 // The caller should simply call LeaveStubFrame() and return.
-void StubCodeCompiler::EnsureIsNewOrRemembered(bool preserve_registers) {
+void StubCodeCompiler::EnsureIsNewOrRemembered() {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;
   __ tbnz(&done, R0, target::ObjectAlignment::kNewObjectBitPosition);
 
   {
-    LeafRuntimeScope rt(assembler, /*frame_size=*/0, preserve_registers);
+    LeafRuntimeScope rt(assembler, /*frame_size=*/0,
+                        /*preserve_registers=*/false);
     // R0 already loaded.
     __ mov(R1, THR);
     rt.Call(kEnsureRememberedAndMarkingDeferredRuntimeEntry,
@@ -510,7 +511,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
   // code size on this shared stub.
   {
-    __ mov(SP, CSP);
+    __ SetupDartSP();
 
     __ EnterFrame(0);
     __ PushRegisters(all_registers);
@@ -531,8 +532,6 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(0);
 
-    __ mov(CSP, SP);
-
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
@@ -549,7 +548,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
         FfiCallbackMetadata::kGetFfiCallbackMetadata, R4);
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 
+    __ mov(CSP, SP);
     __ blr(R4);
+    __ mov(SP, CSP);
     __ mov(THR, R0);
 
     __ LeaveFrame();
@@ -564,7 +565,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ PopRegisters(all_registers);
     __ LeaveFrame();
 
-    __ mov(CSP, SP);
+    __ RestoreCSP();
   }
 
   Label async_callback;
@@ -605,19 +606,19 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Exit the temporary isolate.
   {
-    __ mov(SP, CSP);
+    __ SetupDartSP();
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(0);
 
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_GetFfiCallbackMetadata, R4, R9);
+      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitTemporaryIsolate, R4, R9);
     } else {
       Label call;
       __ ldr(R4, compiler::Address::PC(2 * Instr::kInstrSize));
       __ b(&call);
-      __ Emit64(reinterpret_cast<int64_t>(&DLRT_GetFfiCallbackMetadata));
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitTemporaryIsolate));
       __ Bind(&call);
     }
 #else
@@ -631,7 +632,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ mov(THR, R0);
 
     __ LeaveFrame();
-    __ mov(CSP, SP);
+    __ RestoreCSP();
   }
 
   __ Bind(&done);
@@ -1529,7 +1530,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
   // array length). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
   __ ldr(AllocateArrayABI::kResultReg, Address(SP, 2 * target::kWordSize));
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
 
   // Pop arguments; result is popped in IP.
   __ Pop(AllocateArrayABI::kTypeArgumentsReg);
@@ -1854,7 +1855,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
 
   // R0: new object
   // Restore the frame pointer.
@@ -1930,7 +1931,7 @@ void StubCodeCompiler::GenerateCloneContextStub() {
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
 
   // R0: new object
   // Restore the frame pointer.
@@ -2280,7 +2281,7 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub() {
 
   // Write-barrier elimination is enabled for [cls] and we therefore need to
   // ensure that the object is in new-space or has remembered bit set.
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
 
   __ LeaveStubFrame();
 
@@ -2563,7 +2564,6 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     GenerateUsageCounterIncrement(/*scratch=*/R6);
   }
 
-  ASSERT(exactness == kIgnoreExactness);  // Unimplemented.
   ASSERT(num_args == 1 || num_args == 2);
 #if defined(DEBUG)
   {
@@ -2609,7 +2609,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   // R6: points directly to the first ic data array element.
 
   if (type == kInstanceCall) {
-    __ LoadTaggedClassIdMayBeSmi(R0, R0);
+    __ LoadTaggedClassIdMayBeSmi(R3, R0);
     __ LoadFieldFromOffset(ARGS_DESC_REG, R5,
                            target::CallSiteData::arguments_descriptor_offset());
     if (num_args == 2) {
@@ -2632,7 +2632,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     __ sub(R7, R7, Operand(1));
     // R0 <- [SP + (R7 << 3)]
     __ ldr(R0, Address(SP, R7, UXTX, Address::Scaled));
-    __ LoadTaggedClassIdMayBeSmi(R0, R0);
+    __ LoadTaggedClassIdMayBeSmi(R3, R0);
     if (num_args == 2) {
       __ AddImmediate(R1, R7, -1);
       // R1 <- [SP + (R1 << 3)]
@@ -2640,7 +2640,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
       __ LoadTaggedClassIdMayBeSmi(R1, R1);
     }
   }
-  // R0: first argument class ID as Smi.
+  // R3: first argument class ID as Smi.
   // R1: second argument class ID as Smi.
   // R4: args descriptor
 
@@ -2656,7 +2656,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     Label update;
 
     __ LoadCompressedSmiFromOffset(R2, R6, 0);
-    __ CompareObjectRegisters(R0, R2);  // Class id match?
+    __ CompareObjectRegisters(R3, R2);  // Class id match?
     if (num_args == 2) {
       __ b(&update, NE);  // Continue.
       __ LoadCompressedSmiFromOffset(R2, R6, target::kCompressedWordSize);
@@ -2733,18 +2733,57 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   }
 
   __ Bind(&found);
-  __ Comment("Update caller's counter");
   // R6: pointer to an IC data check group.
   const intptr_t target_offset =
       target::ICData::TargetIndexFor(num_args) * target::kCompressedWordSize;
   const intptr_t count_offset =
       target::ICData::CountIndexFor(num_args) * target::kCompressedWordSize;
+  const intptr_t exactness_offset =
+      target::ICData::ExactnessIndexFor(num_args) * target::kCompressedWordSize;
+
+  Label call_target_function_through_unchecked_entry;
+  if (exactness == kCheckExactness) {
+    Label exactness_ok;
+    ASSERT(num_args == 1);
+    __ LoadCompressedSmi(R1, Address(R6, exactness_offset));
+    __ CompareImmediate(
+        R1,
+        target::ToRawSmi(
+            StaticTypeExactnessState::HasExactSuperType().Encode()),
+        kObjectBytes);
+    __ BranchIf(LESS, &exactness_ok);
+    __ BranchIf(EQUAL, &call_target_function_through_unchecked_entry);
+
+    // Check trivial exactness.
+    // Note: UntaggedICData::receivers_static_type_ is guaranteed to be not null
+    // because we only emit calls to this stub when it is not null.
+    __ LoadCompressed(
+        R2, FieldAddress(R5, target::ICData::receivers_static_type_offset()));
+    __ LoadCompressed(R2, FieldAddress(R2, target::Type::arguments_offset()));
+    // R1 contains an offset to type arguments in words as a smi,
+    // hence TIMES_4. R0 is guaranteed to be non-smi because it is expected
+    // to have type arguments.
+#if defined(DART_COMPRESSED_POINTERS)
+    __ sxtw(R1, R1);
+#endif
+    __ LoadIndexedPayload(R3, R0, 0, R1, TIMES_COMPRESSED_HALF_WORD_SIZE,
+                          kObjectBytes);
+    __ CompareObjectRegisters(R2, R3);
+    __ BranchIf(EQUAL, &call_target_function_through_unchecked_entry);
+
+    // Update exactness state (not-exact anymore).
+    __ LoadImmediate(
+        R1, target::ToRawSmi(StaticTypeExactnessState::NotExact().Encode()));
+    __ StoreToOffset(R1, R6, exactness_offset, kObjectBytes);
+    __ Bind(&exactness_ok);
+  }
   __ LoadCompressedFromOffset(FUNCTION_REG, R6, target_offset);
 
   if (FLAG_optimization_counter_threshold >= 0) {
-    // Update counter, ignore overflow.
+    __ Comment("Update caller's counter");
     __ LoadCompressedSmiFromOffset(R1, R6, count_offset);
-    __ adds(R1, R1, Operand(target::ToRawSmi(1)), kObjectBytes);
+    // Ignore overflow.
+    __ add(R1, R1, Operand(target::ToRawSmi(1)), kObjectBytes);
     __ StoreToOffset(R1, R6, count_offset, kObjectBytes);
   }
 
@@ -2761,6 +2800,25 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
                            target::Function::entry_point_offset());
   }
   __ br(R2);
+
+  if (exactness == kCheckExactness) {
+    __ Bind(&call_target_function_through_unchecked_entry);
+    if (FLAG_optimization_counter_threshold >= 0) {
+      __ Comment("Update ICData counter");
+      __ LoadCompressedSmiFromOffset(R1, R6, count_offset);
+      // Ignore overflow.
+      __ add(R1, R1, Operand(target::ToRawSmi(1)), kObjectBytes);
+      __ StoreToOffset(R1, R6, count_offset, kObjectBytes);
+    }
+    __ Comment("Call target (via unchecked entry point)");
+    __ LoadCompressedFromOffset(FUNCTION_REG, R6, target_offset);
+    __ LoadCompressedFieldFromOffset(CODE_REG, FUNCTION_REG,
+                                     target::Function::code_offset());
+    __ LoadFieldFromOffset(
+        R2, FUNCTION_REG,
+        target::Function::entry_point_offset(CodeEntryKind::kUnchecked));
+    __ br(R2);
+  }
 
 #if !defined(PRODUCT)
   if (optimized == kUnoptimized) {
@@ -2803,7 +2861,9 @@ void StubCodeCompiler::GenerateOneArgCheckInlineCacheStub() {
 // R5: ICData
 // LR: return address
 void StubCodeCompiler::GenerateOneArgCheckInlineCacheWithExactnessCheckStub() {
-  __ Stop("Unimplemented");
+  GenerateNArgsCheckInlineCacheStub(
+      1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
+      kUnoptimized, kInstanceCall, kCheckExactness);
 }
 
 // R0: receiver
@@ -2858,7 +2918,9 @@ void StubCodeCompiler::GenerateOneArgOptimizedCheckInlineCacheStub() {
 // LR: return address
 void StubCodeCompiler::
     GenerateOneArgOptimizedCheckInlineCacheWithExactnessCheckStub() {
-  __ Stop("Unimplemented");
+  GenerateNArgsCheckInlineCacheStub(
+      1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL, kOptimized,
+      kInstanceCall, kCheckExactness);
 }
 
 // R0: receiver

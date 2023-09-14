@@ -59,6 +59,7 @@ namespace dart {
   V(RawReceivePort_get_id, 1)                                                  \
   V(RawReceivePort_closeInternal, 1)                                           \
   V(RawReceivePort_setActive, 2)                                               \
+  V(RawReceivePort_getActive, 1)                                               \
   V(SendPort_get_id, 1)                                                        \
   V(SendPort_get_hashcode, 1)                                                  \
   V(SendPort_sendInternal_, 2)                                                 \
@@ -172,7 +173,7 @@ namespace dart {
   V(TypedData_Int32x4Array_new, 2)                                             \
   V(TypedData_Float64x2Array_new, 2)                                           \
   V(TypedDataBase_length, 1)                                                   \
-  V(TypedDataBase_setRange, 7)                                                 \
+  V(TypedDataBase_setRange, 5)                                                 \
   V(TypedData_GetInt8, 2)                                                      \
   V(TypedData_SetInt8, 3)                                                      \
   V(TypedData_GetUint8, 2)                                                     \
@@ -365,9 +366,10 @@ namespace dart {
   V(VMService_AddUserTagsToStreamableSampleList, 1)                            \
   V(VMService_RemoveUserTagsFromStreamableSampleList, 1)                       \
   V(Ffi_asFunctionInternal, 2)                                                 \
-  V(Ffi_pointerFromFunction, 1)                                                \
-  V(Ffi_pointerAsyncFromFunction, 2)                                           \
-  V(Ffi_deleteAsyncFunctionPointer, 1)                                         \
+  V(Ffi_createNativeCallableListener, 2)                                       \
+  V(Ffi_createNativeCallableIsolateLocal, 3)                                   \
+  V(Ffi_deleteNativeCallable, 1)                                               \
+  V(Ffi_updateNativeCallableKeepIsolateAliveCounter, 1)                        \
   V(Ffi_dl_open, 1)                                                            \
   V(Ffi_dl_close, 1)                                                           \
   V(Ffi_dl_lookup, 2)                                                          \

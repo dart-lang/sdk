@@ -29,7 +29,7 @@ export 'identifier_context.dart' show IdentifierContext;
 
 export 'listener.dart' show Listener;
 
-export 'declaration_kind.dart' show DeclarationKind;
+export 'declaration_kind.dart' show DeclarationHeaderKind, DeclarationKind;
 
 export 'directive_context.dart' show DirectiveContext;
 

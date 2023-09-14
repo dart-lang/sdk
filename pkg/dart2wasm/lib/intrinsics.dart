@@ -16,8 +16,8 @@ typedef CodeGenCallback = void Function(w.InstructionsBuilder);
 
 /// Specialized code generation for external members.
 ///
-/// The code is generated either inlined at the call site, or as the body of the
-/// member in [generateMemberIntrinsic].
+/// The code is generated either inlined at the call site, or as the body of
+/// the member in [generateMemberIntrinsic].
 class Intrinsifier {
   final CodeGenerator codeGen;
 
@@ -26,7 +26,7 @@ class Intrinsifier {
   static const w.ValueType doubleType = w.NumType.f64;
 
   static final Map<w.ValueType, Map<w.ValueType, Map<String, CodeGenCallback>>>
-      binaryOperatorMap = {
+      _binaryOperatorMap = {
     boolType: {
       boolType: {
         '|': (b) => b.i32_or(),
@@ -46,6 +46,12 @@ class Intrinsifier {
         '<=': (b) => b.i64_le_s(),
         '>': (b) => b.i64_gt_s(),
         '>=': (b) => b.i64_ge_s(),
+        '_div_s': (b) => b.i64_div_s(),
+        '_shl': (b) => b.i64_shl(),
+        '_shr_s': (b) => b.i64_shr_s(),
+        '_shr_u': (b) => b.i64_shr_u(),
+        '_le_u': (b) => b.i64_le_u(),
+        '_lt_u': (b) => b.i64_lt_u(),
       }
     },
     doubleType: {
@@ -58,33 +64,13 @@ class Intrinsifier {
         '<=': (b) => b.f64_le(),
         '>': (b) => b.f64_gt(),
         '>=': (b) => b.f64_ge(),
+        '_copysign': (b) => b.f64_copysign(),
       }
     },
   };
 
-  /// Some Wasm intrinsics have no equivalent public member. Thus, these
-  /// intrinsics must be top level static members.
-  static final Map<w.ValueType, Map<w.ValueType, Map<String, CodeGenCallback>>>
-      privateBinaryOperatorMap = {
-    intType: {
-      intType: {
-        'div_s': (b) => b.i64_div_s(),
-        'shl': (b) => b.i64_shl(),
-        'shr_s': (b) => b.i64_shr_s(),
-        'shr_u': (b) => b.i64_shr_u(),
-        'le_u': (b) => b.i64_le_u(),
-        'lt_u': (b) => b.i64_lt_u(),
-      }
-    },
-    doubleType: {
-      doubleType: {
-        'copysign': (b) => b.f64_copysign(),
-      }
-    },
-  };
-
-  static final Map<w.ValueType, Map<String, CodeGenCallback>> unaryOperatorMap =
-      {
+  static final Map<w.ValueType, Map<String, CodeGenCallback>>
+      _unaryOperatorMap = {
     intType: {
       'unary-': (b) {
         b.i64_const(-1);
@@ -111,25 +97,18 @@ class Intrinsifier {
       'truncateToDouble': (b) {
         b.f64_trunc();
       },
-    },
-  };
-
-  /// See note on [privateBinaryOperatorMap].
-  static final Map<w.ValueType, Map<String, CodeGenCallback>>
-      privateUnaryOperatorMap = {
-    doubleType: {
-      'toInt': (b) {
+      '_toInt': (b) {
         b.i64_trunc_sat_f64_s();
       },
     },
   };
 
-  static final Map<String, w.ValueType> unaryResultMap = {
+  static final Map<String, w.ValueType> _unaryResultMap = {
     'toDouble': w.NumType.f64,
     'floorToDouble': w.NumType.f64,
     'ceilToDouble': w.NumType.f64,
     'truncateToDouble': w.NumType.f64,
-    'toInt': w.NumType.i64,
+    '_toInt': w.NumType.i64,
   };
 
   Translator get translator => codeGen.translator;
@@ -146,11 +125,13 @@ class Intrinsifier {
       op == '<=' ||
       op == '>' ||
       op == '>=' ||
-      op == 'le_u' ||
-      op == 'lt_u';
+      op == '_le_u' ||
+      op == '_lt_u';
 
   Intrinsifier(this.codeGen);
 
+  /// Generate inline code for an [InstanceGet] if the member is an inlined
+  /// intrinsic.
   w.ValueType? generateInstanceGetterIntrinsic(InstanceGet node) {
     Expression receiver = node.receiver;
     String name = node.name.text;
@@ -201,14 +182,6 @@ class Intrinsifier {
       return w.NumType.i64;
     }
 
-    // _HashAbstractImmutableBase._indexNullable
-    if (target == translator.hashImmutableIndexNullable) {
-      ClassInfo info = translator.classInfo[translator.hashFieldBaseClass]!;
-      codeGen.wrap(receiver, info.nonNullableType);
-      b.struct_get(info.struct, FieldIndex.hashBaseIndex);
-      return info.struct.fields[FieldIndex.hashBaseIndex].type.unpacked;
-    }
-
     // _Compound._typedDataBase
     if (cls == translator.ffiCompoundClass && name == '_typedDataBase') {
       // A compound (subclass of Struct or Union) is represented by its i32
@@ -229,43 +202,8 @@ class Intrinsifier {
     return null;
   }
 
-  w.ValueType? _generateUnaryIntrinsic(
-      String name,
-      Expression operand,
-      DartType operandType,
-      Map<w.ValueType, Map<String, CodeGenCallback>> operatorMap) {
-    w.ValueType opType = translator.translateType(operandType);
-    var code = operatorMap[opType]?[name];
-    if (code != null) {
-      codeGen.wrap(operand, opType);
-      code(b);
-      return unaryResultMap[name] ?? opType;
-    }
-    return null;
-  }
-
-  w.ValueType? _generateBinaryIntrinsic(
-      String name,
-      Expression left,
-      Expression right,
-      DartType leftDartType,
-      Map<w.ValueType, Map<w.ValueType, Map<String, CodeGenCallback>>>
-          operatorMap) {
-    DartType argType = dartTypeOf(right);
-    if (argType is VoidType) return null;
-    w.ValueType leftType = translator.translateType(leftDartType);
-    w.ValueType rightType = translator.translateType(argType);
-    var code = operatorMap[leftType]?[rightType]?[name];
-    if (code != null) {
-      w.ValueType outType = isComparison(name) ? w.NumType.i32 : leftType;
-      codeGen.wrap(left, leftType);
-      codeGen.wrap(right, rightType);
-      code(b);
-      return outType;
-    }
-    return null;
-  }
-
+  /// Generate inline code for an [InstanceInvocation] if the member is an
+  /// inlined intrinsic.
   w.ValueType? generateInstanceIntrinsic(InstanceInvocation node) {
     Expression receiver = node.receiver;
     DartType receiverType = dartTypeOf(receiver);
@@ -494,16 +432,37 @@ class Intrinsifier {
     }
 
     if (node.arguments.positional.length == 1) {
-      return _generateBinaryIntrinsic(node.name.text, node.receiver,
-          node.arguments.positional.single, receiverType, binaryOperatorMap);
+      // Binary operator
+      Expression left = node.receiver;
+      Expression right = node.arguments.positional.single;
+      DartType argType = dartTypeOf(right);
+      if (argType is VoidType) return null;
+      w.ValueType leftType = translator.translateType(receiverType);
+      w.ValueType rightType = translator.translateType(argType);
+      var code = _binaryOperatorMap[leftType]?[rightType]?[name];
+      if (code != null) {
+        w.ValueType outType = isComparison(name) ? w.NumType.i32 : leftType;
+        codeGen.wrap(left, leftType);
+        codeGen.wrap(right, rightType);
+        code(b);
+        return outType;
+      }
     } else if (node.arguments.positional.isEmpty) {
-      return _generateUnaryIntrinsic(
-          node.name.text, node.receiver, receiverType, unaryOperatorMap);
+      // Unary operator
+      Expression operand = node.receiver;
+      w.ValueType opType = translator.translateType(receiverType);
+      var code = _unaryOperatorMap[opType]?[name];
+      if (code != null) {
+        codeGen.wrap(operand, opType);
+        code(b);
+        return _unaryResultMap[name] ?? opType;
+      }
     }
 
     return null;
   }
 
+  /// Generate inline code for an [EqualsCall] with an unboxed receiver.
   w.ValueType? generateEqualsIntrinsic(EqualsCall node) {
     w.ValueType leftType = typeOfExp(node.left);
     w.ValueType rightType = typeOfExp(node.right);
@@ -543,18 +502,24 @@ class Intrinsifier {
     return null;
   }
 
+  /// Generate inline code for a [StaticGet] if the member is an inlined
+  /// intrinsic.
   w.ValueType? generateStaticGetterIntrinsic(StaticGet node) {
     Member target = node.target;
 
     // ClassID getters
-    String? className = translator.getPragma(target, "wasm:class-id");
-    if (className != null) {
-      List<String> libAndClass = className.split("#");
+    String? libAndClassName = translator.getPragma(target, "wasm:class-id");
+    if (libAndClassName != null) {
+      List<String> libAndClassNameParts = libAndClassName.split("#");
+      final String lib = libAndClassNameParts[0];
+      final String className = libAndClassNameParts[1];
       Class cls = translator.libraries
-          .firstWhere(
-              (l) => l.name == libAndClass[0] && l.importUri.scheme == 'dart')
+          .firstWhere((l) => l.name == lib && l.importUri.scheme == 'dart',
+              orElse: () => throw 'Library $lib not found (${target.location})')
           .classes
-          .firstWhere((c) => c.name == libAndClass[1]);
+          .firstWhere((c) => c.name == className,
+              orElse: () => throw 'Class $className not found in library $lib '
+                  '(${target.location})');
       int classId = translator.classInfo[cls]!.classId;
       b.i64_const(classId);
       return w.NumType.i64;
@@ -580,33 +545,8 @@ class Intrinsifier {
     return null;
   }
 
-  w.ValueType getID(Expression node) {
-    ClassInfo info = translator.topInfo;
-    codeGen.wrap(node, info.nonNullableType);
-    b.struct_get(info.struct, FieldIndex.classId);
-    b.i64_extend_i32_u();
-    return w.NumType.i64;
-  }
-
-  w.ValueType changeListClassID(StaticInvocation node, Class newClass) {
-    ClassInfo receiverInfo = translator.classInfo[translator.listBaseClass]!;
-    codeGen.wrap(
-        node.arguments.positional.single, receiverInfo.nonNullableType);
-    w.Local receiverLocal =
-        codeGen.function.addLocal(receiverInfo.nonNullableType);
-    b.local_tee(receiverLocal);
-    // We ignore the type argument and just update the classID of the
-    // receiver.
-    // TODO(joshualitt): If the amount of free space is significant, it
-    // might be worth doing a copy here.
-    ClassInfo newInfo = translator.classInfo[newClass]!;
-    ClassInfo topInfo = translator.topInfo;
-    b.i32_const(newInfo.classId);
-    b.struct_set(topInfo.struct, FieldIndex.classId);
-    b.local_get(receiverLocal);
-    return newInfo.nonNullableType;
-  }
-
+  /// Generate inline code for a [StaticInvocation] if the member is an inlined
+  /// intrinsic.
   w.ValueType? generateStaticIntrinsic(StaticInvocation node) {
     String name = node.name.text;
     Class? cls = node.target.enclosingClass;
@@ -667,24 +607,6 @@ class Intrinsifier {
           b.i32_wrap_i64();
           b.struct_set(translator.objectInfo.struct, FieldIndex.identityHash);
           return codeGen.voidMarker;
-      }
-    }
-
-    // dart:_double_helper and dart:_int_helper static functions.
-    if (node.target.enclosingLibrary.name == 'dart._double_helper' ||
-        node.target.enclosingLibrary.name == 'dart._int_helper') {
-      if (node.arguments.positional.length == 1) {
-        final operand = node.arguments.positional.single;
-        return _generateUnaryIntrinsic(node.name.text, operand,
-            dartTypeOf(operand), privateUnaryOperatorMap);
-      } else if (node.arguments.positional.length == 2) {
-        final left = node.arguments.positional[0];
-        return _generateBinaryIntrinsic(
-            node.name.text,
-            left,
-            node.arguments.positional[1],
-            dartTypeOf(left),
-            privateBinaryOperatorMap);
       }
     }
 
@@ -783,11 +705,15 @@ class Intrinsifier {
           b.f64_reinterpret_i64();
           return w.NumType.f64;
         case "getID":
-          return getID(node.arguments.positional.single);
+          ClassInfo info = translator.topInfo;
+          codeGen.wrap(node.arguments.positional.single, info.nonNullableType);
+          b.struct_get(info.struct, FieldIndex.classId);
+          b.i64_extend_i32_u();
+          return w.NumType.i64;
         case "makeListFixedLength":
-          return changeListClassID(node, translator.fixedLengthListClass);
+          return _changeListClassID(node, translator.fixedLengthListClass);
         case "makeFixedListUnmodifiable":
-          return changeListClassID(node, translator.immutableListClass);
+          return _changeListClassID(node, translator.immutableListClass);
       }
     }
 
@@ -1033,6 +959,32 @@ class Intrinsifier {
     return null;
   }
 
+  w.ValueType _changeListClassID(StaticInvocation node, Class newClass) {
+    ClassInfo receiverInfo = translator.classInfo[translator.listBaseClass]!;
+    codeGen.wrap(
+        node.arguments.positional.single, receiverInfo.nonNullableType);
+    w.Local receiverLocal =
+        codeGen.function.addLocal(receiverInfo.nonNullableType);
+    b.local_set(receiverLocal);
+
+    ClassInfo newInfo = translator.classInfo[newClass]!;
+    b.i32_const(newInfo.classId);
+    b.i32_const(initialIdentityHash);
+    b.local_get(receiverLocal);
+    b.struct_get(
+        receiverInfo.struct,
+        translator.typeParameterIndex[
+            translator.listBaseClass.typeParameters.single]!);
+    b.local_get(receiverLocal);
+    b.struct_get(receiverInfo.struct, FieldIndex.listLength);
+    b.local_get(receiverLocal);
+    b.struct_get(receiverInfo.struct, FieldIndex.listArray);
+    b.struct_new(newInfo.struct);
+    return newInfo.nonNullableType;
+  }
+
+  /// Generate inline code for a [ConstructorInvocation] if the constructor is
+  /// an inlined intrinsic.
   w.ValueType? generateConstructorIntrinsic(ConstructorInvocation node) {
     String name = node.name.text;
 
@@ -1048,6 +1000,8 @@ class Intrinsifier {
     return null;
   }
 
+  /// Generate inline code for a [FunctionInvocation] if the function is an
+  /// inlined intrinsic.
   w.ValueType? generateFunctionCallIntrinsic(FunctionInvocation node) {
     Expression receiver = node.receiver;
 
@@ -1102,6 +1056,7 @@ class Intrinsifier {
     return null;
   }
 
+  /// Generate Wasm function for an intrinsic member.
   bool generateMemberIntrinsic(Reference target, w.FunctionBuilder function,
       List<w.Local> paramLocals, w.Label? returnLabel) {
     Member member = target.asMember;
@@ -1145,6 +1100,7 @@ class Intrinsifier {
       w.Label notMasqueraded = b.block();
       w.Label recordType = b.block();
       w.Label functionType = b.block();
+      w.Label objectType = b.block();
       w.Label abstractClass = b.block();
 
       // Look up the type category by class ID and switch on it.
@@ -1157,6 +1113,7 @@ class Intrinsifier {
       b.local_tee(resultClassId);
       b.br_table([
         abstractClass,
+        objectType,
         functionType,
         recordType,
         if (masqueraded) notMasqueraded
@@ -1165,6 +1122,15 @@ class Intrinsifier {
       b.end(); // abstractClass
       // We should never see class IDs for abstract types.
       b.unreachable();
+
+      b.end(); // objectType
+      translator.constants.instantiateConstant(
+          function,
+          b,
+          TypeLiteralConstant(InterfaceType(translator.coreTypes.objectClass,
+              Nullability.nonNullable, const [])),
+          function.type.outputs.single);
+      b.return_();
 
       b.end(); // functionType
       w.StructType closureBase = translator.closureLayouter.closureBaseStruct;
@@ -1360,9 +1326,9 @@ class Intrinsifier {
         member.function.body == null) {
       String op = member.name.text;
       if (functionNode.requiredParameterCount == 0) {
-        CodeGenCallback? code = unaryOperatorMap[intType]![op];
+        CodeGenCallback? code = _unaryOperatorMap[intType]![op];
         if (code != null) {
-          w.ValueType resultType = unaryResultMap[op] ?? intType;
+          w.ValueType resultType = _unaryResultMap[op] ?? intType;
           w.ValueType inputType = function.type.inputs.single;
           w.ValueType outputType = function.type.outputs.single;
           b.local_get(function.locals[0]);
@@ -1372,7 +1338,7 @@ class Intrinsifier {
           return true;
         }
       } else if (functionNode.requiredParameterCount == 1) {
-        CodeGenCallback? code = binaryOperatorMap[intType]![intType]![op];
+        CodeGenCallback? code = _binaryOperatorMap[intType]![intType]![op];
         if (code != null) {
           w.ValueType leftType = function.type.inputs[0];
           w.ValueType rightType = function.type.inputs[1];
@@ -1403,7 +1369,7 @@ class Intrinsifier {
           translator.convertType(function, rightType, doubleType);
           // Inline double op
           CodeGenCallback doubleCode =
-              binaryOperatorMap[doubleType]![doubleType]![op]!;
+              _binaryOperatorMap[doubleType]![doubleType]![op]!;
           doubleCode(b);
           if (!isComparison(op)) {
             translator.convertType(function, doubleType, outputType);
@@ -1431,9 +1397,9 @@ class Intrinsifier {
         member.function.body == null) {
       String op = member.name.text;
       if (functionNode.requiredParameterCount == 0) {
-        CodeGenCallback? code = unaryOperatorMap[doubleType]![op];
+        CodeGenCallback? code = _unaryOperatorMap[doubleType]![op];
         if (code != null) {
-          w.ValueType resultType = unaryResultMap[op] ?? doubleType;
+          w.ValueType resultType = _unaryResultMap[op] ?? doubleType;
           w.ValueType inputType = function.type.inputs.single;
           w.ValueType outputType = function.type.outputs.single;
           b.local_get(function.locals[0]);
@@ -1659,8 +1625,7 @@ class Intrinsifier {
 
       // Both contexts are objects, compare for equality with `identical`. This
       // handles identical `this` values in instance tear-offs.
-      b.call(translator.functions
-          .getFunction(translator.coreTypes.identicalProcedure.reference));
+      codeGen.call(translator.coreTypes.identicalProcedure.reference);
       b.return_();
       b.end(); // contextCheckFail
 
@@ -1722,7 +1687,7 @@ class Intrinsifier {
       );
       b.local_get(posArgsNullableLocal);
       b.ref_as_non_null();
-      b.call(translator.functions.getFunction(translator.listOf.reference));
+      codeGen.call(translator.listOf.reference);
       b.end();
       b.local_set(posArgsLocal);
 
@@ -1730,8 +1695,7 @@ class Intrinsifier {
       // checkers and the dynamic call entry.
       final namedArgsListLocal = function.addLocal(listArgumentType);
       b.local_get(namedArgsLocal);
-      b.call(translator.functions
-          .getFunction(translator.namedParameterMapToList.reference));
+      codeGen.call(translator.namedParameterMapToList.reference);
       b.ref_cast(listArgumentType); // ref Object -> ref _ListBase
       b.local_set(namedArgsListLocal);
 
@@ -1753,6 +1717,7 @@ class Intrinsifier {
       return true;
     }
 
+    // Error._throw
     if (member.enclosingClass == translator.errorClass && name == "_throw") {
       final objectLocal = function.locals[0]; // ref #Top
       final stackTraceLocal = function.locals[1]; // ref Object
@@ -1767,38 +1732,9 @@ class Intrinsifier {
       b.br_on_cast_fail(
           notErrorBlock, objectLocal.type as w.RefType, errorRefType);
 
-      // Binaryen can merge struct types, so we need to check class ID in the
-      // slow path
       final errorLocal = function.addLocal(errorRefType);
       b.local_tee(errorLocal);
 
-      final classIdLocal = function.addLocal(w.NumType.i32);
-      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-      b.local_set(classIdLocal);
-
-      final errorBlock = b.block();
-
-      bool isErrorClass(Class cls) =>
-          cls == translator.errorClass ||
-          (cls.superclass != null && isErrorClass(cls.superclass!));
-
-      for (ClassInfo classInfo in translator.classes) {
-        final Class? cls = classInfo.cls;
-        if (cls == null || !isErrorClass(cls)) {
-          continue;
-        }
-
-        b.local_get(classIdLocal);
-        b.i32_const(classInfo.classId);
-        b.i32_eq();
-        b.br_if(errorBlock);
-      }
-
-      b.local_get(errorLocal);
-      b.br(notErrorBlock);
-      b.end(); // errorBlock
-
-      b.local_get(errorLocal);
       b.struct_get(errorClassInfo.struct, stackTraceFieldIndex);
       b.ref_is_null();
       b.if_();

@@ -1262,6 +1262,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
+    if (identical(node.bound, TypeParameter.unsetBoundSentinel)) {
+      problem(node, "Unset bound on type parameter $node");
+    }
+    if (identical(node.defaultType, TypeParameter.unsetDefaultTypeSentinel)) {
+      problem(node, "Unset default type on type parameter $node");
+    }
     if (inConstant) {
       // Don't expect the type parameters to have the current parent as parent.
       node.visitChildren(this);
@@ -1345,7 +1351,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     assert(treeNodeStack.isNotEmpty);
     for (int i = treeNodeStack.length - 1; i >= 0; --i) {
       TreeNode node = treeNodeStack[i];
-      if (withLocation && !_hasLocation(node)) continue;
+      if (withLocation && !_hasLocation(_getLocation(node), node)) continue;
       return node;
     }
     return null;
@@ -1357,8 +1363,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
     for (int i = treeNodeStack.length - 1; i >= 0; --i) {
       TreeNode node = treeNodeStack[i];
-      if (withLocation && !_hasLocation(node)) continue;
       Location? location = _getLocation(node);
+      if (withLocation && !_hasLocation(location, node)) continue;
       if (location != null && location.file == currentLibrary!.fileUri) {
         return node;
       }
@@ -1384,8 +1390,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     return null;
   }
 
-  bool _hasLocation(TreeNode node) {
-    Location? location = _getLocation(node);
+  bool _hasLocation(Location? location, TreeNode node) {
     return location != null && node.fileOffset != TreeNode.noOffset;
   }
 
@@ -1506,10 +1511,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void defaultDartType(DartType node) {
-    final TreeNode? localContext = this.localContext;
-    final TreeNode? remoteContext = this.remoteContext;
-
     if (!KnownTypes.isKnown(node)) {
+      final TreeNode? localContext = this.localContext;
+      final TreeNode? remoteContext = this.remoteContext;
       problem(localContext, "Unexpected appearance of the unknown type.",
           origin: remoteContext);
     }

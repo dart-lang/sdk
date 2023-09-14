@@ -45,6 +45,7 @@ import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/extension_type_declaration_builder.dart';
+import '../builder/inferable_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -56,6 +57,7 @@ import '../builder/prefix_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
+import '../builder/type_variable_builder.dart';
 import '../builder_graph.dart';
 import '../denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
@@ -1842,11 +1844,27 @@ severity: $severity
 
   void finishTypeVariables(Iterable<SourceLibraryBuilder> libraryBuilders,
       ClassBuilder object, TypeBuilder dynamicType) {
-    int count = 0;
+    Map<TypeVariableBuilder, SourceLibraryBuilder> unboundTypeVariableBuilders =
+        {};
     for (SourceLibraryBuilder library in libraryBuilders) {
-      count += library.finishTypeVariables(object, dynamicType);
+      library.collectUnboundTypeVariables(unboundTypeVariableBuilders);
     }
-    ticker.logMs("Resolved $count type-variable bounds");
+
+    // Ensure that type parameters are built after their dependencies by sorting
+    // them topologically using references in bounds.
+    List<TypeVariableBuilder> sortedTypeVariableBuilders =
+        sortTypeVariablesTopologically(unboundTypeVariableBuilders.keys);
+    for (TypeVariableBuilder builder in sortedTypeVariableBuilders) {
+      builder.finish(
+          unboundTypeVariableBuilders[builder]!, object, dynamicType);
+    }
+
+    for (SourceLibraryBuilder library in libraryBuilders) {
+      library.processPendingNullabilities();
+    }
+
+    ticker.logMs(
+        "Resolved ${sortedTypeVariableBuilders.length} type-variable bounds");
   }
 
   /// Computes variances of type parameters on typedefs in [libraryBuilders].
@@ -1973,7 +1991,7 @@ severity: $severity
         cls.supertype = null;
         cls.mixedInType = null;
         classBuilder.supertypeBuilder =
-            new NamedTypeBuilder.fromTypeDeclarationBuilder(
+            new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
                 objectClass, const NullabilityBuilder.omitted(),
                 instanceTypeVariableAccess:
                     InstanceTypeVariableAccessState.Unexpected);
@@ -2627,13 +2645,22 @@ severity: $severity
     ticker.logMs("Computed core types");
   }
 
-  void checkSupertypes(List<SourceClassBuilder> sourceClasses,
-      Class objectClass, Class enumClass, Class underscoreEnumClass) {
+  void checkSupertypes(
+      List<SourceClassBuilder> sourceClasses,
+      List<SourceExtensionTypeDeclarationBuilder>
+          sourceExtensionTypeDeclarations,
+      Class objectClass,
+      Class enumClass,
+      Class underscoreEnumClass) {
     for (SourceClassBuilder builder in sourceClasses) {
-      if (builder.libraryBuilder.loader == this && !builder.isPatch) {
-        builder.checkSupertypes(coreTypes, hierarchyBuilder, objectClass,
-            enumClass, underscoreEnumClass, _macroClassBuilder?.cls);
-      }
+      assert(builder.libraryBuilder.loader == this && !builder.isPatch);
+      builder.checkSupertypes(coreTypes, hierarchyBuilder, objectClass,
+          enumClass, underscoreEnumClass, _macroClassBuilder?.cls);
+    }
+    for (SourceExtensionTypeDeclarationBuilder builder
+        in sourceExtensionTypeDeclarations) {
+      assert(builder.libraryBuilder.loader == this && !builder.isPatch);
+      builder.checkSupertypes(coreTypes, hierarchyBuilder);
     }
     ticker.logMs("Checked supertypes");
   }

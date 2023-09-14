@@ -17,10 +17,9 @@ import 'dart:typed_data';
 /// TODO(joshualitt): Find a way to get rid of the explicit casts.
 T _box<T>(WasmExternRef? ref) => JSValue(ref) as T;
 
-// TODO(joshualitt): Eventually delete `dart:js_util` on Dart2Wasm and migrate
-// any used logic to this file.
+// This should match the global context we use in our static interop lowerings.
 @patch
-JSObject get globalJSObject => js_util.globalThis as JSObject;
+JSObject get globalContext => js_util.globalThis as JSObject;
 
 /// Helper for working with the [JSAny?] top type in a backend agnostic way.
 @patch

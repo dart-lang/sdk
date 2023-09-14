@@ -155,12 +155,17 @@ DEFINE_BACKEND(TailCall,
   __ set_constant_pool_allowed(true);
 }
 
+// TODO(http://dartbug.com/51229): We can use TMP for LDM/STM, which means we
+// only need one additional temporary for 8-byte moves. For 16-byte moves,
+// attempting to allocate three temporaries causes too much register pressure,
+// so just use two 8-byte sized moves there per iteration.
+static constexpr intptr_t kMaxMemoryCopyElementSize =
+    2 * compiler::target::kWordSize;
+
 LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   const intptr_t kNumInputs = 5;
-  const intptr_t kNumTemps = element_size_ == 16  ? 4
-                             : element_size_ == 8 ? 2
-                                                  : 1;
+  const intptr_t kNumTemps = element_size_ >= kMaxMemoryCopyElementSize ? 1 : 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(kSrcPos, Location::WritableRegister());
@@ -175,89 +180,149 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register src_reg = locs()->in(kSrcPos).reg();
-  const Register dest_reg = locs()->in(kDestPos).reg();
-  const Location src_start_loc = locs()->in(kSrcStartPos);
-  const Location dest_start_loc = locs()->in(kDestStartPos);
-  const Location length_loc = locs()->in(kLengthPos);
-  const bool constant_length = length_loc.IsConstant();
+void MemoryCopyInstr::EmitUnrolledCopy(FlowGraphCompiler* compiler,
+                                       Register dest_reg,
+                                       Register src_reg,
+                                       intptr_t num_elements,
+                                       bool reversed) {
+  const intptr_t num_bytes = num_elements * element_size_;
+  // The amount moved in a single load/store pair.
+  const intptr_t mov_size =
+      Utils::Minimum(element_size_, kMaxMemoryCopyElementSize);
+  const intptr_t mov_repeat = num_bytes / mov_size;
+  ASSERT(num_bytes % mov_size == 0);
+  // We can use TMP for all instructions below because element_size_ is
+  // guaranteed to fit in the offset portion of the instruction in the
+  // non-LDM/STM cases.
 
-  const Register temp_reg = locs()->temp(0).reg();
-  RegList temp_regs = 0;
-  for (intptr_t i = 0; i < locs()->temp_count(); i++) {
-    temp_regs |= 1 << locs()->temp(i).reg();
-  }
-
-  EmitComputeStartPointer(compiler, src_cid_, src_reg, src_start_loc);
-  EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_start_loc);
-
-  if (constant_length) {
-    const intptr_t mov_repeat =
-        Integer::Cast(length_loc.constant()).AsInt64Value();
+  if (mov_size == kMaxMemoryCopyElementSize) {
+    RegList temp_regs = (1 << TMP);
+    for (intptr_t i = 0; i < locs()->temp_count(); i++) {
+      temp_regs |= 1 << locs()->temp(i).reg();
+    }
+    auto block_mode = BlockAddressMode::IA_W;
+    if (reversed) {
+      // When reversed, start the src and dest registers with the end addresses
+      // and apply the negated offset prior to indexing.
+      block_mode = BlockAddressMode::DB_W;
+      __ AddImmediate(src_reg, num_bytes);
+      __ AddImmediate(dest_reg, num_bytes);
+    }
     for (intptr_t i = 0; i < mov_repeat; i++) {
-      compiler::Address src_address =
-          compiler::Address(src_reg, element_size_ * i);
-      compiler::Address dest_address =
-          compiler::Address(dest_reg, element_size_ * i);
-      switch (element_size_) {
-        case 1:
-          __ ldrb(temp_reg, src_address);
-          __ strb(temp_reg, dest_address);
-          break;
-        case 2:
-          __ ldrh(temp_reg, src_address);
-          __ strh(temp_reg, dest_address);
-          break;
-        case 4:
-          __ ldr(temp_reg, src_address);
-          __ str(temp_reg, dest_address);
-          break;
-        case 8:
-        case 16:
-          __ ldm(BlockAddressMode::IA_W, src_reg, temp_regs);
-          __ stm(BlockAddressMode::IA_W, dest_reg, temp_regs);
-          break;
-      }
+      __ ldm(block_mode, src_reg, temp_regs);
+      __ stm(block_mode, dest_reg, temp_regs);
     }
     return;
   }
 
-  const Register length_reg = length_loc.reg();
+  for (intptr_t i = 0; i < mov_repeat; i++) {
+    const intptr_t byte_index =
+        (reversed ? mov_repeat - (i + 1) : i) * mov_size;
+    switch (mov_size) {
+      case 1:
+        __ ldrb(TMP, compiler::Address(src_reg, byte_index));
+        __ strb(TMP, compiler::Address(dest_reg, byte_index));
+        break;
+      case 2:
+        __ ldrh(TMP, compiler::Address(src_reg, byte_index));
+        __ strh(TMP, compiler::Address(dest_reg, byte_index));
+        break;
+      case 4:
+        __ ldr(TMP, compiler::Address(src_reg, byte_index));
+        __ str(TMP, compiler::Address(dest_reg, byte_index));
+        break;
+      default:
+        UNREACHABLE();
+    }
+  }
+}
 
-  compiler::Label loop, done;
+void MemoryCopyInstr::PrepareLengthRegForLoop(FlowGraphCompiler* compiler,
+                                              Register length_reg,
+                                              compiler::Label* done) {
+  __ BranchIfZero(length_reg, done);
+}
 
+void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
+                                   Register dest_reg,
+                                   Register src_reg,
+                                   Register length_reg,
+                                   compiler::Label* done,
+                                   compiler::Label* copy_forwards) {
+  const intptr_t loop_subtract = unboxed_inputs() ? 1 : Smi::RawValue(1);
+  auto load_mode = compiler::Address::PostIndex;
+  auto load_multiple_mode = BlockAddressMode::IA_W;
+  if (copy_forwards != nullptr) {
+    // When reversed, start the src and dest registers with the end addresses
+    // and apply the negated offset prior to indexing.
+    load_mode = compiler::Address::NegPreIndex;
+    load_multiple_mode = BlockAddressMode::DB_W;
+    // Verify that the overlap actually exists by checking to see if
+    // dest_start < src_end.
+    const intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
+                           (unboxed_inputs() ? 0 : kSmiTagShift);
+    if (shift < 0) {
+      __ add(TMP, src_reg, compiler::Operand(length_reg, ASR, -shift));
+    } else {
+      __ add(TMP, src_reg, compiler::Operand(length_reg, LSL, shift));
+    }
+    __ CompareRegisters(dest_reg, TMP);
+    __ BranchIf(UNSIGNED_GREATER_EQUAL, copy_forwards);
+    // There is overlap, so mov TMP to src_reg and adjust dest_reg now.
+    __ MoveRegister(src_reg, TMP);
+    if (shift < 0) {
+      __ add(dest_reg, dest_reg, compiler::Operand(length_reg, ASR, -shift));
+    } else {
+      __ add(dest_reg, dest_reg, compiler::Operand(length_reg, LSL, shift));
+    }
+  }
+  // We can use TMP for all instructions below because element_size_ is
+  // guaranteed to fit in the offset portion of the instruction in the
+  // non-LDM/STM cases.
   compiler::Address src_address =
-      compiler::Address(src_reg, element_size_, compiler::Address::PostIndex);
+      compiler::Address(src_reg, element_size_, load_mode);
   compiler::Address dest_address =
-      compiler::Address(dest_reg, element_size_, compiler::Address::PostIndex);
-
-  const intptr_t loop_subtract = unboxed_length_ ? 1 : Smi::RawValue(1);
-  __ BranchIfZero(length_reg, &done);
-
+      compiler::Address(dest_reg, element_size_, load_mode);
+  // Used only for LDM/STM below.
+  RegList temp_regs = (1 << TMP);
+  for (intptr_t i = 0; i < locs()->temp_count(); i++) {
+    temp_regs |= 1 << locs()->temp(i).reg();
+  }
+  compiler::Label loop;
   __ Bind(&loop);
   switch (element_size_) {
     case 1:
-      __ ldrb(temp_reg, src_address);
-      __ strb(temp_reg, dest_address);
+      __ ldrb(TMP, src_address);
+      __ strb(TMP, dest_address);
       break;
     case 2:
-      __ ldrh(temp_reg, src_address);
-      __ strh(temp_reg, dest_address);
+      __ ldrh(TMP, src_address);
+      __ strh(TMP, dest_address);
       break;
     case 4:
-      __ ldr(temp_reg, src_address);
-      __ str(temp_reg, dest_address);
+      __ ldr(TMP, src_address);
+      __ str(TMP, dest_address);
       break;
     case 8:
+      COMPILE_ASSERT(8 == kMaxMemoryCopyElementSize);
+      ASSERT_EQUAL(Utils::CountOneBitsWord(temp_regs), 2);
+      __ ldm(load_multiple_mode, src_reg, temp_regs);
+      __ stm(load_multiple_mode, dest_reg, temp_regs);
+      break;
     case 16:
-      __ ldm(BlockAddressMode::IA_W, src_reg, temp_regs);
-      __ stm(BlockAddressMode::IA_W, dest_reg, temp_regs);
+      COMPILE_ASSERT(16 > kMaxMemoryCopyElementSize);
+      ASSERT_EQUAL(Utils::CountOneBitsWord(temp_regs), 2);
+      __ ldm(load_multiple_mode, src_reg, temp_regs);
+      __ stm(load_multiple_mode, dest_reg, temp_regs);
+      __ ldm(load_multiple_mode, src_reg, temp_regs);
+      __ stm(load_multiple_mode, dest_reg, temp_regs);
+      break;
+    default:
+      UNREACHABLE();
       break;
   }
   __ subs(length_reg, length_reg, compiler::Operand(loop_subtract));
   __ b(&loop, NOT_ZERO);
-  __ Bind(&done);
 }
 
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
@@ -311,7 +376,8 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
   }
   __ AddImmediate(array_reg, offset);
   const Register start_reg = start_loc.reg();
-  intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) - 1;
+  intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
+                   (unboxed_inputs() ? 0 : kSmiTagShift);
   if (shift < 0) {
     __ add(array_reg, array_reg, compiler::Operand(start_reg, ASR, -shift));
   } else {
@@ -1253,15 +1319,36 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
   const QRegister right = locs->in(1).fpu_reg();
   const DRegister dleft = EvenDRegisterOf(left);
   const DRegister dright = EvenDRegisterOf(right);
-  __ vcmpd(dleft, dright);
-  __ vmstat();
-  Condition true_condition = TokenKindToDoubleCondition(kind);
-  if (true_condition != NE) {
-    // Special case for NaN comparison. Result is always false unless
-    // relational operator is !=.
-    __ b(labels.false_label, VS);
+
+  switch (kind) {
+    case Token::kEQ:
+      __ vcmpd(dleft, dright);
+      __ vmstat();
+      return EQ;
+    case Token::kNE:
+      __ vcmpd(dleft, dright);
+      __ vmstat();
+      return NE;
+    case Token::kLT:
+      __ vcmpd(dright, dleft);  // Flip to handle NaN.
+      __ vmstat();
+      return GT;
+    case Token::kGT:
+      __ vcmpd(dleft, dright);
+      __ vmstat();
+      return GT;
+    case Token::kLTE:
+      __ vcmpd(dright, dleft);  // Flip to handle NaN.
+      __ vmstat();
+      return GE;
+    case Token::kGTE:
+      __ vcmpd(dleft, dright);
+      __ vmstat();
+      return GE;
+    default:
+      UNREACHABLE();
+      return VS;
   }
-  return true_condition;
 }
 
 Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
@@ -2749,7 +2836,6 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 DEFINE_UNIMPLEMENTED_INSTRUCTION(GuardFieldTypeInstr)
-DEFINE_UNIMPLEMENTED_INSTRUCTION(CheckConditionInstr)
 
 LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {

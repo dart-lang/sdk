@@ -27,7 +27,7 @@ group("most") {
     ":create_sdk",
     ":dart2js",
     ":dartanalyzer",
-    ":dartdevc",
+    ":ddc",
     ":runtime",
   ]
 }
@@ -48,17 +48,10 @@ group("runtime") {
     "runtime/bin:process_test",
     "runtime/bin:run_vm_tests",
     "runtime/vm:kernel_platform_files($host_toolchain)",
+    "utils/dartdev:dartdev",
+    "utils/dds:dds",
     "utils/kernel-service:kernel-service",
   ]
-
-  # TODO(bkonyi): this dep causes a segfault on Android XARM_X64 builds.
-  # See issue #41776.
-  if (dart_target_arch != "arm") {
-    deps += [
-      "utils/dartdev:dartdev",
-      "utils/dds:dds",
-    ]
-  }
 
   # This flag is set in runtime/runtime_args.gni
   # The analyze_snapshot tool is only supported on 64 bit AOT builds running
@@ -142,13 +135,13 @@ group("dartanalyzer") {
   deps = [ "utils/dartanalyzer" ]
 }
 
+# TODO(nshahan): Delete after updating the Flutter engine build.
 group("dartdevc") {
-  deps = [ "utils/dartdevc" ]
+  deps = [ "utils/dartdevc:dartdevc_files_stamp" ]
 }
 
 group("ddc") {
-  # TODO(nshahan): Update to the dartdevc snapshot target when it gets moved.
-  deps = [ "utils/ddc:ddc_stable_test" ]
+  deps = [ "utils/ddc:dartdevc" ]
 }
 
 group("analysis_server") {

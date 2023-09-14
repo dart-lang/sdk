@@ -11,8 +11,6 @@ mixin KernelNodes {
   Component get component;
 
   late final LibraryIndex index = LibraryIndex(component, [
-    "dart:_boxed_double",
-    "dart:_boxed_int",
     "dart:_internal",
     "dart:async",
     "dart:collection",
@@ -22,14 +20,6 @@ mixin KernelNodes {
     "dart:_string",
     "dart:_wasm",
   ]);
-
-  // dart:_boxed_double classes
-  late final Class boxedDoubleClass =
-      index.getClass("dart:_boxed_double", "BoxedDouble");
-
-  // dart:_boxed_int classes
-  late final Class boxedIntClass =
-      index.getClass("dart:_boxed_int", "BoxedInt");
 
   // dart:_internal classes
   late final Class symbolClass = index.getClass("dart:_internal", "Symbol");
@@ -44,6 +34,9 @@ mixin KernelNodes {
 
   // dart:core various classes
   late final Class boxedBoolClass = index.getClass("dart:core", "_BoxedBool");
+  late final Class boxedDoubleClass =
+      index.getClass("dart:core", "_BoxedDouble");
+  late final Class boxedIntClass = index.getClass("dart:core", "_BoxedInt");
   late final Class closureClass = index.getClass("dart:core", "_Closure");
   late final Class listBaseClass = index.getClass("dart:core", "_ListBase");
   late final Class fixedLengthListClass = index.getClass("dart:core", "_List");
@@ -66,8 +59,8 @@ mixin KernelNodes {
 
   // dart:core runtime type classes
   late final Class typeClass = index.getClass("dart:core", "_Type");
-  late final Class dynamicTypeClass =
-      index.getClass("dart:core", "_DynamicType");
+  late final Class abstractFunctionTypeClass =
+      index.getClass("dart:core", "_AbstractFunctionType");
   late final Class functionTypeClass =
       index.getClass("dart:core", "_FunctionType");
   late final Class functionTypeParameterTypeClass =
@@ -80,12 +73,13 @@ mixin KernelNodes {
       index.getClass("dart:core", "_InterfaceTypeParameterType");
   late final Class namedParameterClass =
       index.getClass("dart:core", "_NamedParameter");
-  late final Class neverTypeClass = index.getClass("dart:core", "_NeverType");
-  late final Class nullTypeClass = index.getClass("dart:core", "_NullType");
-  late final Class voidTypeClass = index.getClass("dart:core", "_VoidType");
+  late final Class bottomTypeClass = index.getClass("dart:core", "_BottomType");
+  late final Class topTypeClass = index.getClass("dart:core", "_TopType");
   late final Class stackTraceClass = index.getClass("dart:core", "StackTrace");
   late final Class typeUniverseClass =
       index.getClass("dart:core", "_TypeUniverse");
+  late final Class abstractRecordTypeClass =
+      index.getClass("dart:core", "_AbstractRecordType");
   late final Class recordTypeClass = index.getClass("dart:core", "_RecordType");
 
   // dart:core sync* support classes

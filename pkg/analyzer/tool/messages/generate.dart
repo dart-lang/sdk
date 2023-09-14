@@ -22,6 +22,7 @@ import 'dart:io';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:analyzer_utilities/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart';
 
 import 'error_code_info.dart';
@@ -119,8 +120,8 @@ class _AnalyzerErrorGenerator {
         ...analyzerMessages[errorClass.name]!.entries,
         if (errorClass.includeCfeMessages)
           ...cfeToAnalyzerErrorCodeTables.analyzerCodeToInfo.entries
-      ];
-      for (var entry in entries..sort((a, b) => a.key.compareTo(b.key))) {
+      ].where((error) => !error.value.isRemoved).sortedBy((e) => e.key);
+      for (var entry in entries) {
         var errorName = entry.key;
         var errorCodeInfo = entry.value;
 

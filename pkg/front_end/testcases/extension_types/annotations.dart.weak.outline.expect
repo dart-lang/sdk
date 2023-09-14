@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+@core::Deprecated::•("")
+extension type A(core::int i) {
+  method m = self::A|m;
+  tearoff m = self::A|get#m;
+  constructor • = self::A|;
+  tearoff • = self::A|_#new#tearOff;
+  constructor constructor = self::A|constructor;
+  tearoff constructor = self::A|_#constructor#tearOff;
+}
+static inline-class-member method A|(core::int i) → self::A /* = core::int */
+  ;
+static inline-class-member method A|_#new#tearOff(core::int i) → self::A /* = core::int */
+  return self::A|(i);
+@core::Deprecated::•("")
+static inline-class-member method A|constructor(core::int i) → self::A /* = core::int */
+  ;
+static inline-class-member method A|_#constructor#tearOff(core::int i) → self::A /* = core::int */
+  return self::A|constructor(i);
+@core::Deprecated::•("")
+static inline-class-member method A|m(lowered final self::A /* = core::int */ #this) → void
+  ;
+static inline-class-member method A|get#m(lowered final self::A /* = core::int */ #this) → () → void
+  return () → void => self::A|m(#this);
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:5:2 -> InstanceConstant(const Deprecated{Deprecated.message: ""})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:7:4 -> InstanceConstant(const Deprecated{Deprecated.message: ""})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:10:4 -> InstanceConstant(const Deprecated{Deprecated.message: ""})
+Extra constant evaluation: evaluated: 10, effectively constant: 3

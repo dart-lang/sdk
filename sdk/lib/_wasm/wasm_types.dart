@@ -182,7 +182,7 @@ class WasmIntArray<T extends _WasmInt> extends WasmArrayRef {
   external void write(int index, int value);
   external void copy(
       int offset, WasmIntArray<T> source, int sourceOffset, int size);
-  external void fill(int offset, T value, int size);
+  external void fill(int offset, int value, int size);
 }
 
 /// A Wasm array with float element type.
@@ -194,7 +194,7 @@ class WasmFloatArray<T extends _WasmFloat> extends WasmArrayRef {
   external void write(int index, double value);
   external void copy(
       int offset, WasmFloatArray<T> source, int sourceOffset, int size);
-  external void fill(int offset, T value, int size);
+  external void fill(int offset, double value, int size);
 }
 
 /// A Wasm array with reference element type, containing Dart objects.

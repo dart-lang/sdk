@@ -37,14 +37,6 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   set allowNativeClause(bool value);
 
-  /// Set a flag indicating whether the parser should parse instance creation
-  /// expressions that lack either the `new` or `const` keyword.
-  set enableOptionalNewAndConst(bool value);
-
-  /// Set a flag indicating whether the parser is to parse part-of directives
-  /// that specify a URI rather than a library name.
-  set enableUriInPartOf(bool value);
-
   /// The error listener to which scanner and parser errors will be reported.
   ///
   /// This field is typically initialized by invoking [createParser].
@@ -226,19 +218,6 @@ class FastaParserTestCase
 
   @override
   bool allowNativeClause = false;
-
-  @override
-  set enableOptionalNewAndConst(bool enable) {
-    // ignored
-  }
-
-  @override
-  set enableUriInPartOf(bool value) {
-    if (value == false) {
-      throw UnimplementedError(
-          'URIs in "part of" declarations cannot be disabled in Fasta.');
-    }
-  }
 
   @override
   GatheringErrorListener get listener => parserProxy.errorListener;
@@ -817,8 +796,7 @@ class ParserProxy extends analyzer.Parser {
     });
   }
 
-  List<CommentReference> parseCommentReferences(
-      List<DocumentationCommentToken> tokens) {
+  Comment parseComment(List<DocumentationCommentToken> tokens) {
     for (int index = 0; index < tokens.length - 1; ++index) {
       var next = tokens[index].next;
       if (next == null) {
@@ -827,14 +805,13 @@ class ParserProxy extends analyzer.Parser {
         expect(next, tokens[index + 1]);
       }
     }
-    expect(tokens[tokens.length - 1].next, isNull);
-    List<CommentReference> references =
-        astBuilder.parseCommentReferences(tokens.first);
+    expect(tokens.last.next, isNull);
+    var comment = astBuilder.parseDocComment(tokens.first);
     if (astBuilder.stack.isNotEmpty) {
       throw 'Expected empty stack, but found:'
           '\n  ${astBuilder.stack.values.join('\n  ')}';
     }
-    return references;
+    return comment;
   }
 
   @override
@@ -974,18 +951,6 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   /// A flag indicating whether parser is to parse async.
   bool parseAsync = true;
 
-  /// A flag indicating whether the parser should parse instance creation
-  /// expressions that lack either the `new` or `const` keyword.
-  bool enableOptionalNewAndConst = false;
-
-  /// A flag indicating whether the parser should parse mixin declarations.
-  /// https://github.com/dart-lang/language/issues/12
-  bool isMixinSupportEnabled = false;
-
-  /// A flag indicating whether the parser is to parse part-of directives that
-  /// specify a URI rather than a library name.
-  bool enableUriInPartOf = false;
-
   @override
   late final GatheringErrorListener listener;
 
@@ -1031,7 +996,6 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     );
     parser.allowNativeClause = allowNativeClause;
     parser.parseFunctionBodies = parseFunctionBodies;
-    parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     parser.currentToken = result.tokens;
   }
 
@@ -1149,7 +1113,6 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
       featureSet: FeatureSets.latestWithExperiments,
       lineInfo: lineInfo,
     );
-    parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     CompilationUnit unit = parser.parseCompilationUnit(result.tokens);
     expect(unit, isNotNull);
     if (codes != null) {
@@ -1178,7 +1141,6 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
       featureSet: FeatureSet.latestLanguageVersion(),
       lineInfo: lineInfo,
     );
-    parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     var unit = parser.parseCompilationUnit(result.tokens);
     return unit;
   }
@@ -1457,7 +1419,6 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
       featureSet: FeatureSet.latestLanguageVersion(),
       lineInfo: lineInfo,
     );
-    parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     Statement statement = parser.parseStatement(result.tokens);
     expect(statement, isNotNull);
     return statement;

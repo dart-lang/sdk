@@ -65,10 +65,10 @@ class StaticInteropMockValidator {
   /// even more complex when you have to account for extensions and supertypes
   /// having their own type parameters too. In order to properly handle all
   /// these cases, we'd have to keep constraints around and see what extensions
-  /// apply and what extensions don't. This may be simpler to do for inline
-  /// classes/extension types, as all the members are in the class and not in an
-  /// extension, but for now, we require that users must implement members with
-  /// type parameters based on their bounds.
+  /// apply and what extensions don't. This may be simpler to do for extension
+  /// types, as all the members are in the class and not in an extension, but
+  /// for now, we require that users must implement members with type parameters
+  /// based on their bounds.
   ///
   /// Returns whether the validation passed.
   bool _validateNoTypeParametersInTypeArgument(

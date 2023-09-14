@@ -32,9 +32,11 @@ class UnorderedIndexedSink<E> implements IndexedSink<E> {
   final int _startOffset;
 
   UnorderedIndexedSink(this._sinkWriter,
-      {Map<E?, int>? cache, int? startOffset})
+      {Map<E?, int>? cache, int? startOffset, bool identity = false})
       : // [cache] slot 1 is pre-allocated to `null`.
-        this._cache = cache ?? {null: 1},
+        this._cache = cache != null
+            ? (identity ? (Map.identity()..addAll(cache)) : cache)
+            : ((identity ? Map.identity() : {})..[null] = 1),
         this._startOffset = startOffset ?? 0;
 
   /// Write a reference to [value] to the data sink.
@@ -138,99 +140,5 @@ class UnorderedIndexedSource<E> implements IndexedSource<E> {
   Map<T?, int> reshapeCacheAsMap<T>([T Function(E? value)? getValue]) {
     return _cache.map((key, value) =>
         MapEntry(getValue == null ? value as T? : getValue(value), key));
-  }
-}
-
-/// Data sink helper that canonicalizes [E?] values using indices.
-///
-/// Writes a list index in place of already indexed values. This list index
-/// is the order in which we discover the indexable elements. On deserialization
-/// the indexable elements but be visited in the same order they were seen here
-/// so that the indices are maintained. Since the read order is assumed to be
-/// consistent, the actual data is written at the first occurrence of the
-/// indexable element.
-class OrderedIndexedSink<E> implements IndexedSink<E> {
-  final DataSink _sink;
-  final Map<E?, int> cache;
-
-  OrderedIndexedSink._(this._sink, this.cache);
-
-  factory OrderedIndexedSink(DataSink sink, {Map<E?, int>? cache}) {
-    // [cache] slot 0 is pre-allocated to `null`.
-    cache ??= {null: 0};
-    return OrderedIndexedSink._(sink, cache);
-  }
-
-  /// Write a reference to [value] to the data sink.
-  ///
-  /// If [value] has not been canonicalized yet, [writeValue] is called to
-  /// serialize the [value] itself.
-  @override
-  void write(E? value, void writeValue(E value)) {
-    const int pending = -1;
-    int? index = cache[value];
-    if (index == null) {
-      index = cache.length;
-      _sink.writeInt(index);
-      cache[value] = pending; // Increments length to allocate slot.
-      writeValue(value!); // `null` would have been found in slot 0.
-      cache[value] = index;
-    } else if (index == pending) {
-      throw ArgumentError("Cyclic dependency on cached value: $value");
-    } else {
-      _sink.writeInt(index);
-    }
-  }
-}
-
-/// Data source helper reads canonicalized [E?] values through indices.
-///
-/// Reads indexable elements treating their read order as their index. Since the
-/// read order is consistent with the write order, when a new index is
-/// discovered we assume the data is written immediately after. Subsequent
-/// occurrences of that index then refer to the same value. Indices will appear
-/// in ascending order.
-class OrderedIndexedSource<E> implements IndexedSource<E> {
-  final DataSource _source;
-  final List<E?> cache;
-
-  OrderedIndexedSource._(this._source, this.cache);
-
-  factory OrderedIndexedSource(DataSource source, {List<E?>? cache}) {
-    // [cache] slot 0 is pre-allocated to `null`.
-    cache ??= [null];
-    return OrderedIndexedSource._(source, cache);
-  }
-
-  /// Reads a reference to an [E] value from the data source.
-  ///
-  /// If the value hasn't yet been read, [readValue] is called to deserialize
-  /// the value itself.
-  @override
-  E? read(E readValue()) {
-    int index = _source.readInt();
-    if (index >= cache.length) {
-      assert(index == cache.length);
-      cache.add(null); // placeholder.
-      E value = readValue();
-      cache[index] = value;
-      return value;
-    } else {
-      E? value = cache[index];
-      if (value == null && index != 0) {
-        throw StateError('Unfilled index $index of $E');
-      }
-      return value;
-    }
-  }
-
-  @override
-  Map<T?, int> reshapeCacheAsMap<T>([T Function(E? value)? getValue]) {
-    var newCache = <T?, int>{};
-    for (int i = 0; i < cache.length; i++) {
-      final newKey = getValue == null ? cache[i] as T? : getValue(cache[i]);
-      newCache[newKey] = i;
-    }
-    return newCache;
   }
 }

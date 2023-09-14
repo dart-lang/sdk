@@ -1608,7 +1608,7 @@ type ExtensionType extends DartType {
   Byte nullability; // Index into the Nullability enum above.
   ExtensionTypeDeclarationReference extensionTypeDeclarationReference;
   List<DartType> typeArguments;
-  DartType instantiatedRepresentationType;
+  DartType typeErasure;
 }
 
 type TypedefType {

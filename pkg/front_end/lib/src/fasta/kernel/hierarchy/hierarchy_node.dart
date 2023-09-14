@@ -296,8 +296,8 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
         typeArguments.length,
         (int i) => _hierarchy.loader.computeTypeBuilder(typeArguments[i]),
         growable: false);
-    NamedTypeBuilder mixedInTypeBuilder =
-        _classBuilder.mixedInTypeBuilder as NamedTypeBuilder;
+    NamedTypeBuilderImpl mixedInTypeBuilder =
+        _classBuilder.mixedInTypeBuilder as NamedTypeBuilderImpl;
     mixedInTypeBuilder.arguments = inferredArguments;
     return mixinNode;
   }

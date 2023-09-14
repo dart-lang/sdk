@@ -16,12 +16,9 @@ import 'package:expect/minitest.dart';
 external dynamic eval(String code);
 
 @JS('library3.ExternalStatic')
-inline class ExternalStatic {
-  final JSObject obj;
+extension type ExternalStatic._(JSObject obj) {
   external ExternalStatic();
-  // TODO(srujzs): Uncomment the external factory test once the CFE supports
-  // them.
-  // external factory ExternalStatic.factory();
+  external factory ExternalStatic.factory();
   external ExternalStatic.multipleArgs(double a, String b);
   external ExternalStatic.differentArgs(double a, [String b = '']);
   ExternalStatic.nonExternal() : this.obj = ExternalStatic() as JSObject;
@@ -78,7 +75,7 @@ void main() {
   }
 
   testExternalConstructorCall(ExternalStatic());
-  // testExternalConstructorCall(ExternalStatic.factory());
+  testExternalConstructorCall(ExternalStatic.factory());
   testExternalConstructorCall(ExternalStatic.multipleArgs(0, ''));
   testExternalConstructorCall(ExternalStatic.differentArgs(0));
   testExternalConstructorCall(ExternalStatic.nonExternal());

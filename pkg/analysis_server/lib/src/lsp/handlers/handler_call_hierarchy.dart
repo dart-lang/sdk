@@ -9,12 +9,35 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_call_hierarchy.dart'
     as call_hierarchy;
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
+
+typedef StaticOptions
+    = Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>;
+
+class CallHierarchyRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  CallHierarchyRegistrations(super.info);
+
+  @override
+  ToJsonable? get options =>
+      CallHierarchyRegistrationOptions(documentSelector: [dartFiles]);
+
+  @override
+  Method get registrationMethod => Method.textDocument_prepareCallHierarchy;
+
+  @override
+  StaticOptions get staticOptions => Either3.t1(true);
+
+  @override
+  bool get supportsDynamic => clientDynamic.callHierarchy;
+}
 
 /// A handler for `callHierarchy/incoming` that returns the incoming calls for
 /// the target supplied by the client.
@@ -144,7 +167,7 @@ class OutgoingCallHierarchyHandler extends _AbstractCallHierarchyCallsHandler<
 /// The target returned by this handler will be sent back to the server for
 /// incoming/outgoing calls as the user navigates the call hierarchy in the
 /// client.
-class PrepareCallHierarchyHandler extends LspMessageHandler<
+class PrepareCallHierarchyHandler extends SharedMessageHandler<
     CallHierarchyPrepareParams,
     TextDocumentPrepareCallHierarchyResult> with _CallHierarchyUtils {
   PrepareCallHierarchyHandler(super.server);
@@ -222,7 +245,7 @@ class PrepareCallHierarchyHandler extends LspMessageHandler<
 /// An abstract base class for incoming and outgoing CallHierarchy handlers
 /// which perform largely the same task using different LSP classes.
 abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
-    extends LspMessageHandler<P, R> with _CallHierarchyUtils {
+    extends SharedMessageHandler<P, R> with _CallHierarchyUtils {
   _AbstractCallHierarchyCallsHandler(super.server);
 
   /// Gets the appropriate types of calls for this handler.
@@ -396,7 +419,7 @@ mixin _CallHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
       displayName: item.name,
       containerName: item.detail,
       kind: fromSymbolKind(item.kind),
-      file: item.uri.toFilePath(),
+      file: pathContext.fromUri(item.uri),
       nameRange: nameRange.result,
       codeRange: codeRange.result,
     );

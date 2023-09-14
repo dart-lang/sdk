@@ -271,15 +271,26 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     if (isSealed) {
       final result = <InterfaceType>[];
       for (final element in library.topLevelElements) {
-        if (element is ClassElement && element != this) {
-          final elementThis = element.thisType;
-          if (elementThis.asInstanceOf(this) != null) {
+        if (element is! InterfaceElement || identical(element, this)) {
+          continue;
+        }
+
+        final elementThis = element.thisType;
+        if (elementThis.asInstanceOf(this) == null) {
+          continue;
+        }
+
+        switch (element) {
+          case ClassElement _:
             if (element.isFinal || element.isSealed) {
               result.add(elementThis);
             } else {
               return null;
             }
-          }
+          case EnumElement _:
+            result.add(elementThis);
+          case MixinElement _:
+            return null;
         }
       }
       return result;
@@ -1556,6 +1567,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// protected.
   static const String _protectedVariableName = 'protected';
 
+  /// The name of the top-level variable used to mark a member as redeclaring.
+  static const String _redeclareVariableName = 'redeclare';
+
   /// The name of the top-level variable used to mark a class or mixin as being
   /// reopened.
   static const String _reopenVariableName = 'reopen';
@@ -1709,6 +1723,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isProxy => false;
+
+  @override
+  bool get isRedeclare => _isPackageMetaGetter(_redeclareVariableName);
 
   @override
   bool get isReopen => _isPackageMetaGetter(_reopenVariableName);
@@ -2107,6 +2124,18 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  bool get hasRedeclare {
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isRedeclare) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   bool get hasReopen {
     final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
@@ -2404,15 +2433,13 @@ abstract class ElementImpl implements Element {
 
   @override
   E? thisOrAncestorOfType<E extends Element>() {
-    Element? element = this;
-    while (element != null && element is! E) {
-      if (element is CompilationUnitElement) {
-        element = element.enclosingElement;
-      } else {
-        element = element.enclosingElement;
-      }
+    Element element = this;
+    while (element is! E) {
+      var ancestor = element.enclosingElement;
+      if (ancestor == null) return null;
+      element = ancestor;
     }
-    return element as E?;
+    return element;
   }
 
   @override
@@ -2964,18 +2991,30 @@ class ExtensionElementImpl extends InstanceElementImpl
 class ExtensionTypeElementImpl extends InterfaceElementImpl
     with _HasAugmentation<ExtensionTypeElementImpl>
     implements ExtensionTypeElement {
+  late AugmentedExtensionTypeElement augmentedInternal =
+      NotAugmentedExtensionTypeElementImpl(this);
+
   @override
   late final DartType typeErasure;
 
-  /// Whether the element has direct or indirect reference to itself.
-  bool hasSelfReference = false;
+  /// Whether the element has direct or indirect reference to itself,
+  /// in representation.
+  bool hasRepresentationSelfReference = false;
+
+  /// Whether the element has direct or indirect reference to itself,
+  /// in implemented superinterfaces.
+  bool hasImplementsSelfReference = false;
 
   ExtensionTypeElementImpl(super.name, super.nameOffset);
 
   @override
   AugmentedExtensionTypeElement? get augmented {
-    // TODO(scheglov) implement
-    return NotAugmentedExtensionTypeElementImpl(this);
+    if (isAugmentation) {
+      return augmentationTarget?.augmented;
+    } else {
+      linkedData?.read(this);
+      return augmentedInternal;
+    }
   }
 
   @override
@@ -5194,6 +5233,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasProtected => false;
+
+  @override
+  bool get hasRedeclare => false;
 
   @override
   bool get hasReopen => false;

@@ -1,0 +1,129 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type ExtensionType1(core::int it) {
+  constructor • = self::ExtensionType1|;
+  tearoff • = self::ExtensionType1|_#new#tearOff;
+}
+extension type ExtensionType2(core::int it) implements self::ExtensionType1 /* = core::int */, core::int {
+  constructor • = self::ExtensionType2|;
+  tearoff • = self::ExtensionType2|_#new#tearOff;
+}
+extension type ExtensionType3<T extends core::num>(T it) {
+  constructor • = self::ExtensionType3|;
+  tearoff • = self::ExtensionType3|_#new#tearOff;
+}
+extension type ExtensionType4(core::int it) {
+  get getter = self::ExtensionType4|get#getter;
+  method method = self::ExtensionType4|method;
+  tearoff method = self::ExtensionType4|get#method;
+  operator [] = self::ExtensionType4|[];
+  operator []= = self::ExtensionType4|[]=;
+  static field staticField = self::ExtensionType4|staticField;
+  static get staticGetter = get self::ExtensionType4|staticGetter;
+  static method staticMethod = self::ExtensionType4|staticMethod;
+  set setter = self::ExtensionType4|set#setter;
+  static set staticSetter = set self::ExtensionType4|staticSetter;
+  constructor • = self::ExtensionType4|;
+  tearoff • = self::ExtensionType4|_#new#tearOff;
+  constructor constructor = self::ExtensionType4|constructor;
+  tearoff constructor = self::ExtensionType4|_#constructor#tearOff;
+  constructor redirect = self::ExtensionType4|redirect;
+  tearoff redirect = self::ExtensionType4|_#redirect#tearOff;
+  static factory fact = self::ExtensionType4|fact;
+  static tearoff fact = self::ExtensionType4|_#fact#tearOff;
+  static redirecting-factory redirectingFactory = self::ExtensionType4|redirectingFactory;
+  static tearoff redirectingFactory = self::ExtensionType4|_#redirectingFactory#tearOff;
+}
+extension type ExtensionType5(core::int it) {
+  constructor • = self::ExtensionType5|;
+  tearoff • = self::ExtensionType5|_#new#tearOff;
+}
+extension type ExtensionType6(core::int it) {
+  constructor id = self::ExtensionType6|id;
+  tearoff id = self::ExtensionType6|_#id#tearOff;
+}
+extension type ExtensionType7<T extends core::num>(core::int it) {
+  constructor id = self::ExtensionType7|id;
+  tearoff id = self::ExtensionType7|_#id#tearOff;
+}
+static field core::int ExtensionType4|staticField = 42;
+static inline-class-member method ExtensionType1|(core::int it) → self::ExtensionType1 /* = core::int */ {
+  lowered final self::ExtensionType1 /* = core::int */ #this = it;
+  return #this;
+}
+static inline-class-member method ExtensionType1|_#new#tearOff(core::int it) → self::ExtensionType1 /* = core::int */
+  return self::ExtensionType1|(it);
+static inline-class-member method ExtensionType2|(core::int it) → self::ExtensionType2 /* = core::int */ {
+  lowered final self::ExtensionType2 /* = core::int */ #this = it;
+  return #this;
+}
+static inline-class-member method ExtensionType2|_#new#tearOff(core::int it) → self::ExtensionType2 /* = core::int */
+  return self::ExtensionType2|(it);
+static inline-class-member method ExtensionType3|<T extends core::num>(self::ExtensionType3|::T it) → self::ExtensionType3<self::ExtensionType3|::T> /* = self::ExtensionType3|::T */ {
+  lowered final self::ExtensionType3<self::ExtensionType3|::T> /* = self::ExtensionType3|::T */ #this = it;
+  return #this;
+}
+static inline-class-member method ExtensionType3|_#new#tearOff<T extends core::num>(self::ExtensionType3|_#new#tearOff::T it) → self::ExtensionType3<self::ExtensionType3|_#new#tearOff::T> /* = self::ExtensionType3|_#new#tearOff::T */
+  return self::ExtensionType3|<self::ExtensionType3|_#new#tearOff::T>(it);
+static inline-class-member method ExtensionType4|(core::int it) → self::ExtensionType4 /* = core::int */ {
+  lowered final self::ExtensionType4 /* = core::int */ #this = it;
+  return #this;
+}
+static inline-class-member method ExtensionType4|_#new#tearOff(core::int it) → self::ExtensionType4 /* = core::int */
+  return self::ExtensionType4|(it);
+static inline-class-member method ExtensionType4|constructor(core::int it) → self::ExtensionType4 /* = core::int */ {
+  lowered final self::ExtensionType4 /* = core::int */ #this = it;
+  return #this;
+}
+static inline-class-member method ExtensionType4|_#constructor#tearOff(core::int it) → self::ExtensionType4 /* = core::int */
+  return self::ExtensionType4|constructor(it);
+static inline-class-member method ExtensionType4|redirect(core::int it) → self::ExtensionType4 /* = core::int */ {
+  lowered final self::ExtensionType4 /* = core::int */ #this;
+  #this = self::ExtensionType4|(it);
+  return #this;
+}
+static inline-class-member method ExtensionType4|_#redirect#tearOff(core::int it) → self::ExtensionType4 /* = core::int */
+  return self::ExtensionType4|redirect(it);
+static inline-class-member method ExtensionType4|fact(core::int it) → self::ExtensionType4 /* = core::int */
+  return self::ExtensionType4|(it);
+static inline-class-member method ExtensionType4|_#fact#tearOff(core::int it) → self::ExtensionType4 /* = core::int */
+  return self::ExtensionType4|fact(it);
+static inline-class-member method ExtensionType4|redirectingFactory(core::int it) → self::ExtensionType4 /* = core::int */ /* redirection-target: self::ExtensionType4| */
+  return self::ExtensionType4|(it);
+static inline-class-member method ExtensionType4|_#redirectingFactory#tearOff(core::int it) → self::ExtensionType4 /* = core::int */
+  return self::ExtensionType4|(it);
+static inline-class-member method ExtensionType4|get#getter(lowered final self::ExtensionType4 /* = core::int */ #this) → core::int
+  return #this as{Unchecked} core::int;
+static inline-class-member method ExtensionType4|set#setter(lowered final self::ExtensionType4 /* = core::int */ #this, core::int value) → void {}
+static inline-class-member method ExtensionType4|method(lowered final self::ExtensionType4 /* = core::int */ #this) → core::int
+  return #this as{Unchecked} core::int;
+static inline-class-member method ExtensionType4|get#method(lowered final self::ExtensionType4 /* = core::int */ #this) → () → core::int
+  return () → core::int => self::ExtensionType4|method(#this);
+static inline-class-member method ExtensionType4|[](lowered final self::ExtensionType4 /* = core::int */ #this, core::int index) → core::int
+  return #this as{Unchecked} core::int;
+static inline-class-member method ExtensionType4|[]=(lowered final self::ExtensionType4 /* = core::int */ #this, core::int index, core::int value) → void {}
+static inline-class-member get ExtensionType4|staticGetter() → core::int
+  return 42;
+static inline-class-member set ExtensionType4|staticSetter(core::int value) → void {}
+static inline-class-member method ExtensionType4|staticMethod() → core::int
+  return 42;
+static inline-class-member method ExtensionType5|(core::int it) → self::ExtensionType5 /* = core::int */ {
+  lowered final self::ExtensionType5 /* = core::int */ #this = it;
+  return #this;
+}
+static inline-class-member method ExtensionType5|_#new#tearOff(core::int it) → self::ExtensionType5 /* = core::int */
+  return self::ExtensionType5|(it);
+static inline-class-member method ExtensionType6|id(core::int it) → self::ExtensionType6 /* = core::int */ {
+  lowered final self::ExtensionType6 /* = core::int */ #this = it;
+  return #this;
+}
+static inline-class-member method ExtensionType6|_#id#tearOff(core::int it) → self::ExtensionType6 /* = core::int */
+  return self::ExtensionType6|id(it);
+static inline-class-member method ExtensionType7|id<T extends core::num>(core::int it) → self::ExtensionType7<self::ExtensionType7|id::T> /* = core::int */ {
+  lowered final self::ExtensionType7<self::ExtensionType7|id::T> /* = core::int */ #this = it;
+  return #this;
+}
+static inline-class-member method ExtensionType7|_#id#tearOff<T extends core::num>(core::int it) → self::ExtensionType7<self::ExtensionType7|_#id#tearOff::T> /* = core::int */
+  return self::ExtensionType7|id<self::ExtensionType7|_#id#tearOff::T>(it);

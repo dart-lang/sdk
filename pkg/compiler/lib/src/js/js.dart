@@ -4,12 +4,18 @@
 
 library js;
 
+import 'package:compiler/src/common/codegen.dart';
 import 'package:js_ast/js_ast.dart';
 
 import '../common.dart';
+import '../js_backend/deferred_holder_expression.dart';
+import '../js_backend/string_reference.dart';
+import '../js_backend/type_reference.dart';
 import '../options.dart';
-import '../dump_info.dart' show DumpInfoTask;
+import '../dump_info.dart' show DumpInfoJsAstRegistry;
 import '../io/code_output.dart' show CodeBuffer, CodeOutputListener;
+import '../serialization/deferrable.dart';
+import '../serialization/serialization.dart';
 import 'js_source_mapping.dart';
 
 export 'package:js_ast/js_ast.dart';
@@ -33,7 +39,7 @@ String prettyPrint(Node node,
 
 CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
     JavaScriptSourceInformationStrategy sourceInformationStrategy,
-    {DumpInfoTask? monitor,
+    {DumpInfoJsAstRegistry? monitor,
     JavaScriptAnnotationMonitor annotationMonitor =
         const JavaScriptAnnotationMonitor(),
     bool allowVariableMinification = true,
@@ -65,7 +71,7 @@ class JavaScriptAnnotationMonitor {
 }
 
 class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
-  final DumpInfoTask? monitor;
+  final DumpInfoJsAstRegistry? monitor;
   final CodeBuffer outBuffer;
   final CodePositionListener codePositionListener;
   final JavaScriptAnnotationMonitor annotationMonitor;
@@ -129,7 +135,19 @@ class TokenCounter extends BaseVisitorVoid {
     } else if (node is ReferenceCountedAstNode) {
       node.markSeen(this);
     } else {
-      super.visitNode(node);
+      // The bodies of these are all created without [ReferenceCountedAstNode]
+      // so any instances of them can only be injected in via deferred
+      // expressions.
+      final deferredExpressionData = getNodeDeferredExpressionData(node);
+      if (deferredExpressionData != null) {
+        deferredExpressionData.modularNames.forEach(visitNode);
+        deferredExpressionData.modularExpressions.forEach(visitNode);
+        deferredExpressionData.stringReferences.forEach(visitNode);
+        deferredExpressionData.typeReferences.forEach(visitNode);
+        deferredExpressionData.deferredHolderExpressions.forEach(visitNode);
+      } else {
+        super.visitNode(node);
+      }
     }
   }
 
@@ -138,6 +156,148 @@ class TokenCounter extends BaseVisitorVoid {
 
 abstract class ReferenceCountedAstNode implements Node {
   void markSeen(TokenCounter visitor);
+}
+
+DeferredExpressionData? getNodeDeferredExpressionData(Node node) {
+  final annotations = node.annotations;
+  if (annotations.isEmpty) return null;
+  for (final annotation in annotations) {
+    if (annotation is DeferredExpressionData) return annotation;
+  }
+  return null;
+}
+
+/// Contains pointers to deferred expressions within a portion of the AST.
+///
+/// These objects are attached nodes that have been deserialized but whose
+/// bodies are kept in a serialized state. This allows us to skip deserializing
+/// the entire function body when we are trying to link these deferred
+/// expressions. A [DeferredExpressionData] will be added to
+/// [Node.annotations] for these functions. Visitors that just need these
+/// deferred expressions should then check the annotations for a [Node] and
+/// process them accordingly rather than deserializing all the [Node] children.
+class DeferredExpressionData {
+  final List<ModularName> modularNames;
+  final List<ModularExpression> modularExpressions;
+  final List<TypeReference> typeReferences;
+  final List<StringReference> stringReferences;
+  final List<DeferredHolderExpression> deferredHolderExpressions;
+
+  DeferredExpressionData(this.modularNames, this.modularExpressions)
+      : typeReferences = [],
+        stringReferences = [],
+        deferredHolderExpressions = [];
+  DeferredExpressionData._(
+      this.modularNames,
+      this.modularExpressions,
+      this.typeReferences,
+      this.stringReferences,
+      this.deferredHolderExpressions);
+
+  factory DeferredExpressionData.readFromDataSource(DataSourceReader source) {
+    final modularNames =
+        source.readListOrNull(() => source.readJsNode() as ModularName) ??
+            const [];
+    final modularExpressions =
+        source.readListOrNull(() => source.readJsNode() as ModularExpression) ??
+            const [];
+    final typeReferences =
+        source.readListOrNull(() => source.readJsNode() as TypeReference) ??
+            const [];
+    final stringReferences =
+        source.readListOrNull(() => source.readJsNode() as StringReference) ??
+            const [];
+    final deferredHolderExpressions = source.readListOrNull(
+            () => source.readJsNode() as DeferredHolderExpression) ??
+        const [];
+    return DeferredExpressionData._(modularNames, modularExpressions,
+        typeReferences, stringReferences, deferredHolderExpressions);
+  }
+
+  bool _serializing = false;
+
+  void writeToDataSink(DataSinkWriter sink) {
+    // Set [_serializing] so that we don't re-register nodes.
+    _serializing = true;
+    sink.writeList(modularNames, (ModularName node) => sink.writeJsNode(node));
+    sink.writeList(
+        modularExpressions, (ModularExpression node) => sink.writeJsNode(node));
+    sink.writeList(
+        typeReferences, (TypeReference node) => sink.writeJsNode(node));
+    sink.writeList(
+        stringReferences, (StringReference node) => sink.writeJsNode(node));
+    sink.writeList(deferredHolderExpressions,
+        (DeferredHolderExpression node) => sink.writeJsNode(node));
+    _serializing = false;
+  }
+
+  void prepareForSerialization() {
+    modularNames.clear();
+    modularExpressions.clear();
+  }
+
+  void registerModularName(ModularName node) {
+    if (_serializing) return;
+    modularNames.add(node);
+  }
+
+  void registerModularExpression(ModularExpression node) {
+    if (_serializing) return;
+    modularExpressions.add(node);
+  }
+
+  void registerTypeReference(TypeReference node) {
+    if (_serializing) return;
+    typeReferences.add(node);
+  }
+
+  void registerStringReference(StringReference node) {
+    if (_serializing) return;
+    stringReferences.add(node);
+  }
+
+  void registerDeferredHolderExpression(DeferredHolderExpression node) {
+    if (_serializing) return;
+    deferredHolderExpressions.add(node);
+  }
+}
+
+/// A code [Block] that has not been fully deserialized but instead holds a
+/// [Deferrable] to get the enclosed statements.
+///
+/// Each time [statements] is invoked, the enclosed [Statement] list will be
+/// deserialized so care should be taken to limit this.
+class DeferredBlock extends Statement implements Block {
+  @override
+  List<Statement> get statements => _statements.loaded();
+
+  final Deferrable<List<Statement>> _statements;
+
+  DeferredBlock(this._statements);
+
+  @override
+  T accept<T>(NodeVisitor<T> visitor) {
+    return visitor.visitBlock(this);
+  }
+
+  @override
+  R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
+    return visitor.visitBlock(this, arg);
+  }
+
+  @override
+  void visitChildren<T>(NodeVisitor<T> visitor) {
+    for (Statement statement in statements) {
+      statement.accept(visitor);
+    }
+  }
+
+  @override
+  void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
+    for (Statement statement in statements) {
+      statement.accept1(visitor, arg);
+    }
+  }
 }
 
 /// Represents the LiteralString resulting from unparsing [expression]. The

@@ -5,6 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -177,8 +178,6 @@ class B extends A {
   }
 
   test_in_initializer_instanceCreation() async {
-    // TODO(scheglov): the error CONST_EVAL_THROWS_EXCEPTION is redundant and
-    // ought to be suppressed. Or not?
     await assertErrorsInCode(r'''
 class A {
   A();
@@ -190,7 +189,16 @@ class B {
 var b = const B();
 ''', [
       error(CompileTimeErrorCode.INVALID_CONSTANT, 47, 7),
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 77, 9),
+      error(
+        CompileTimeErrorCode.INVALID_CONSTANT,
+        77,
+        9,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 47, 7,
+              text:
+                  "The error is in the field initializer of 'B', and occurs here."),
+        ],
+      ),
     ]);
   }
 

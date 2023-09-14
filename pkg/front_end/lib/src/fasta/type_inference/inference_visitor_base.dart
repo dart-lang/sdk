@@ -1025,10 +1025,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     } else {
       for (DartType implement
           in extensionType.extensionTypeDeclaration.implements) {
-        // TODO(johnniwinther): Handle non-extension type supertypes.
         if (implement is ExtensionType) {
-          ExtensionType supertype =
-              hierarchyBuilder.getExtensionTypeAsInstanceOf(
+          ExtensionType supertype = hierarchyBuilder
+              .getExtensionTypeAsInstanceOfExtensionTypeDeclaration(
                   extensionType, implement.extensionTypeDeclaration,
                   isNonNullableByDefault: isNonNullableByDefault)!;
           ObjectAccessTarget? target = _findDirectExtensionTypeMember(
@@ -1039,6 +1038,23 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           if (target != null) {
             return target;
           }
+        } else if (implement is InterfaceType) {
+          InterfaceType supertype =
+              hierarchyBuilder.getExtensionTypeAsInstanceOfClass(
+                  extensionType, implement.classNode,
+                  isNonNullableByDefault: isNonNullableByDefault)!;
+          Member? interfaceMember = _getInterfaceMember(
+              supertype.classNode, name, isSetter, fileOffset);
+          if (interfaceMember != null) {
+            return new ObjectAccessTarget.interfaceMember(
+                receiverType, interfaceMember,
+                isPotentiallyNullable: isReceiverTypePotentiallyNullable);
+          }
+        } else {
+          assert(
+              false,
+              "Unexpected supertype $implement extension type declaration of "
+              "$extensionType.");
         }
       }
       return null;

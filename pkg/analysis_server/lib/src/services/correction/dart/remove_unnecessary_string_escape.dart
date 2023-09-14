@@ -29,7 +29,7 @@ class RemoveUnnecessaryStringEscape extends ParsedCorrectionProducer {
     if (offset == null) {
       return;
     }
-    await builder.addDartFileEdit(file, (builder) {
+    await builder.addGenericFileEdit(file, (builder) {
       if (node is! InterpolationString) {
         builder.addDeletion(SourceRange(offset, 1));
         return;

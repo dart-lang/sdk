@@ -27,7 +27,7 @@ class ExportCreator extends Transformer {
   final ExportChecker _exportChecker;
   final Procedure _functionToJS;
   final Procedure _getProperty;
-  final Procedure _globalJSObject;
+  final Procedure _globalContext;
   final Class _jsAny;
   final Class _jsObject;
   final Procedure _setProperty;
@@ -48,8 +48,8 @@ class ExportCreator extends Transformer {
             'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
         _getProperty = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
             'dart:js_interop_unsafe', 'JSObjectUtilExtension|[]'),
-        _globalJSObject = _typeEnvironment.coreTypes.index
-            .getTopLevelProcedure('dart:js_interop', 'get:globalJSObject'),
+        _globalContext = _typeEnvironment.coreTypes.index
+            .getTopLevelProcedure('dart:js_interop', 'get:globalContext'),
         _jsAny = _typeEnvironment.coreTypes.index
             .getClass('dart:_js_types', 'JSAny'),
         _jsObject = _typeEnvironment.coreTypes.index
@@ -201,7 +201,7 @@ class ExportCreator extends Transformer {
 
     // Get the global 'Object' property.
     Expression getObjectProperty() => asJSObject(StaticInvocation(_getProperty,
-        Arguments([StaticGet(_globalJSObject), toJSString('Object')])))
+        Arguments([StaticGet(_globalContext), toJSString('Object')])))
       ..fileOffset = node.fileOffset;
 
     // Get a fresh object literal, using the proto to create it if one was

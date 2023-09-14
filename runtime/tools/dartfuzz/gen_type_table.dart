@@ -1398,6 +1398,7 @@ void visitCompilationUnit(
           (classElement.name == 'Stopwatch') ||
           (classElement.name == 'Finalizer') ||
           (classElement.name == 'Enum') ||
+          (classElement.name == 'Record') ||
           (classElement.name == 'OutOfMemoryError')) {
         continue;
       }

@@ -450,6 +450,22 @@ declared
 ''');
   }
 
+  test_declareGetter_static() async {
+    final library = await buildLibrary(r'''
+extension type A(int it) {
+  static int get foo => 0;
+}
+''');
+
+    final element = library.extensionType('A');
+    assertInterfaceText(element, r'''
+map
+  it: self::@extensionType::A::@getter::it
+declared
+  it: self::@extensionType::A::@getter::it
+''');
+  }
+
   test_declareMethod() async {
     final library = await buildLibrary(r'''
 extension type A(int it) {
@@ -465,6 +481,38 @@ map
 declared
   foo: self::@extensionType::A::@method::foo
   it: self::@extensionType::A::@getter::it
+''');
+  }
+
+  test_declareMethod_implementClass_implementExtensionType_wouldConflict() async {
+    final library = await buildLibrary(r'''
+class A {
+  void foo() {}
+}
+
+extension type B(A it) {
+  void foo() {}
+}
+
+extension type C(A it) implements A, B {
+  void foo() {}
+}
+''');
+
+    final element = library.extensionType('C');
+    assertInterfaceText(element, r'''
+map
+  foo: self::@extensionType::C::@method::foo
+  it: self::@extensionType::C::@getter::it
+declared
+  foo: self::@extensionType::C::@method::foo
+  it: self::@extensionType::C::@getter::it
+redeclared
+  foo
+    self::@extensionType::B::@method::foo
+    self::@class::A::@method::foo
+  it
+    self::@extensionType::B::@getter::it
 ''');
   }
 
@@ -683,34 +731,99 @@ declared
 ''');
   }
 
-  test_noDeclaration_implementClass_implementExtensionType() async {
+  test_declareSetter() async {
     final library = await buildLibrary(r'''
 extension type A(int it) {
-  void foo() {}
+  set foo(int _) {}
 }
-
-class B {
-  void foo() {}
-}
-
-class C extends B {}
-
-extension type D(C it) implements B, A {}
 ''');
 
-    final element = library.extensionType('D');
+    final element = library.extensionType('A');
     assertInterfaceText(element, r'''
 map
-  foo: self::@extensionType::A::@method::foo
-  it: self::@extensionType::D::@getter::it
+  foo=: self::@extensionType::A::@setter::foo
+  it: self::@extensionType::A::@getter::it
 declared
-  it: self::@extensionType::D::@getter::it
+  foo=: self::@extensionType::A::@setter::foo
+  it: self::@extensionType::A::@getter::it
+''');
+  }
+
+  test_declareSetter_static() async {
+    final library = await buildLibrary(r'''
+extension type A(int it) {
+  static set foo(int _) {}
+}
+''');
+
+    final element = library.extensionType('A');
+    assertInterfaceText(element, r'''
+map
+  it: self::@extensionType::A::@getter::it
+declared
+  it: self::@extensionType::A::@getter::it
+''');
+  }
+
+  test_noDeclaration_implementClass_generic_method() async {
+    final library = await buildLibrary(r'''
+class A<T> {
+  void foo(T a) {}
+}
+
+class B extends A<int> {}
+
+extension type C(B it) implements A<int> {}
+''');
+
+    final element = library.extensionType('C');
+    assertInterfaceText(element, r'''
+map
+  foo: MethodMember
+    base: self::@class::A::@method::foo
+    substitution: {T: int}
+  it: self::@extensionType::C::@getter::it
+declared
+  it: self::@extensionType::C::@getter::it
 redeclared
   foo
-    self::@extensionType::A::@method::foo
-    self::@class::B::@method::foo
+    MethodMember
+      base: self::@class::A::@method::foo
+      substitution: {T: int}
+''');
+  }
+
+  test_noDeclaration_implementClass_implementExtensionType_hasConflict() async {
+    final library = await buildLibrary(r'''
+class A {
+  void foo() {}
+}
+
+extension type B(A it) {
+  void foo() {}
+}
+
+extension type C(A it) implements A, B {}
+''');
+
+    final element = library.extensionType('C');
+    assertInterfaceText(element, r'''
+map
+  it: self::@extensionType::C::@getter::it
+declared
+  it: self::@extensionType::C::@getter::it
+redeclared
+  foo
+    self::@extensionType::B::@method::foo
+    self::@class::A::@method::foo
   it
-    self::@extensionType::A::@getter::it
+    self::@extensionType::B::@getter::it
+conflicts
+  HasExtensionAndNotExtensionMemberConflict
+    nonExtension
+      self::@class::A::@method::foo
+    extension
+      self::@extensionType::B::@method::foo
 ''');
   }
 
@@ -805,16 +918,18 @@ class B1 extends A {}
 
 class B2 extends A {}
 
-extension type C(Object it) implements B1, B2 {}
+abstract class C implements B1, B2 {}
+
+extension type D(C it) implements B1, B2 {}
 ''');
 
-    final element = library.extensionType('C');
+    final element = library.extensionType('D');
     assertInterfaceText(element, r'''
 map
   foo: self::@class::A::@method::foo
-  it: self::@extensionType::C::@getter::it
+  it: self::@extensionType::D::@getter::it
 declared
-  it: self::@extensionType::C::@getter::it
+  it: self::@extensionType::D::@getter::it
 redeclared
   foo
     self::@class::A::@method::foo
@@ -842,6 +957,36 @@ declared
 redeclared
   foo=
     self::@class::A::@setter::foo
+''');
+  }
+
+  test_noDeclaration_implementExtensionType_generic_method() async {
+    final library = await buildLibrary(r'''
+extension type A<T>(T it) {
+  void foo(T a) {}
+}
+
+extension type B(int it) implements A<int> {}
+''');
+
+    final element = library.extensionType('B');
+    assertInterfaceText(element, r'''
+map
+  foo: MethodMember
+    base: self::@extensionType::A::@method::foo
+    substitution: {T: int}
+  it: self::@extensionType::B::@getter::it
+declared
+  it: self::@extensionType::B::@getter::it
+redeclared
+  foo
+    MethodMember
+      base: self::@extensionType::A::@method::foo
+      substitution: {T: int}
+  it
+    PropertyAccessorMember
+      base: self::@extensionType::A::@getter::it
+      substitution: {T: int}
 ''');
   }
 
@@ -2282,6 +2427,20 @@ class _InterfacePrinter {
               'CandidatesConflict',
               conflict.candidates,
             );
+          case HasNonExtensionAndExtensionMemberConflict _:
+            _sink.writelnWithIndent(
+              'HasExtensionAndNotExtensionMemberConflict',
+            );
+            _sink.withIndent(() {
+              _elementPrinter.writeElementList(
+                'nonExtension',
+                conflict.nonExtension,
+              );
+              _elementPrinter.writeElementList(
+                'extension',
+                conflict.extension,
+              );
+            });
           case NotUniqueExtensionMemberConflict _:
             _elementPrinter.writeElementList(
               'NotUniqueExtensionMemberConflict',

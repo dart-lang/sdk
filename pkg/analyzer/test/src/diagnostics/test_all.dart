@@ -108,6 +108,7 @@ import 'const_deferred_class_test.dart' as const_deferred_class;
 import 'const_eval_extension_method_test.dart' as const_eval_extension_method;
 import 'const_eval_for_element_test.dart' as const_eval_for_element;
 import 'const_eval_method_invocation_test.dart' as const_eval_method_invocation;
+import 'const_eval_property_access_test.dart' as const_eval_property_access;
 import 'const_eval_throws_exception_test.dart' as const_eval_throws_exception;
 import 'const_eval_throws_idbze_test.dart' as const_eval_throws_idbze;
 import 'const_eval_type_bool_int_test.dart' as const_eval_type_bool_int;
@@ -115,6 +116,7 @@ import 'const_eval_type_bool_num_string_test.dart'
     as const_eval_type_bool_num_string;
 import 'const_eval_type_bool_test.dart' as const_eval_type_bool;
 import 'const_eval_type_num_test.dart' as const_eval_type_num;
+import 'const_eval_type_string_test.dart' as const_eval_type_string;
 import 'const_field_initializer_not_assignable_test.dart'
     as const_field_initializer_not_assignable;
 import 'const_initialized_with_non_constant_value_from_deferred_library_test.dart'
@@ -130,6 +132,7 @@ import 'const_set_element_not_primitive_equality_test.dart'
 import 'const_spread_expected_list_or_set_test.dart'
     as const_spread_expected_list_or_set;
 import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
+import 'const_type_parameter_test.dart' as const_type_parameter;
 import 'const_with_non_const_test.dart' as const_with_non_const;
 import 'const_with_non_constant_argument_test.dart'
     as const_with_non_constant_argument;
@@ -164,6 +167,10 @@ import 'deprecated_implements_function_test.dart'
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'division_optimization_test.dart' as division_optimization;
+import 'doc_import_cannot_be_deferred_test.dart'
+    as doc_import_cannot_be_deferred;
+import 'doc_import_cannot_have_configurations_test.dart'
+    as doc_import_cannot_have_configurations;
 import 'duplicate_augmentation_import_test.dart'
     as duplicate_augmentation_import;
 import 'duplicate_constructor_default_test.dart'
@@ -238,6 +245,28 @@ import 'extension_override_with_cascade_test.dart'
     as extension_override_with_cascade;
 import 'extension_override_without_access_test.dart'
     as extension_override_without_access;
+import 'extension_type_constructor_with_super_formal_parameter_test.dart'
+    as extension_type_constructor_with_super_formal_parameter;
+import 'extension_type_constructor_with_super_invocation_test.dart'
+    as extension_type_constructor_with_super_invocation;
+import 'extension_type_declares_instance_field_test.dart'
+    as extension_type_declares_instance_field;
+import 'extension_type_declares_member_of_object_test.dart'
+    as extension_type_declares_member_of_object;
+import 'extension_type_implements_disallowed_type_test.dart'
+    as extension_type_implements_disallowed_type;
+import 'extension_type_implements_itself_test.dart'
+    as extension_type_implements_itself;
+import 'extension_type_implements_not_supertype_of_erasure_test.dart'
+    as extension_type_implements_not_supertype_of_erasure;
+import 'extension_type_implements_representation_not_supertype_test.dart'
+    as extension_type_implements_representation_not_supertype;
+import 'extension_type_inherited_member_conflict_test.dart'
+    as extension_type_inherited_member_conflict;
+import 'extension_type_representation_depends_on_itself_test.dart'
+    as extension_type_representation_depends_on_itself;
+import 'extension_type_with_abstract_member_test.dart'
+    as extension_type_with_abstract_member;
 import 'external_field_constructor_initializer_test.dart'
     as external_field_constructor_initializer;
 import 'external_field_initializer_test.dart' as external_field_initializer;
@@ -320,11 +349,6 @@ import 'implements_repeated_test.dart' as implements_repeated;
 import 'implements_super_class_test.dart' as implements_super_class;
 import 'implements_type_alias_expands_to_type_parameter_test.dart'
     as implements_type_alias_expands_to_type_parameter;
-import 'implicit_dynamic_field_test.dart' as implicit_dynamic_field;
-import 'implicit_dynamic_function_test.dart' as implicit_dynamic_function;
-import 'implicit_dynamic_list_literal_test.dart'
-    as implicit_dynamic_list_literal;
-import 'implicit_dynamic_map_literal_test.dart' as implicit_dynamic_map_literal;
 import 'implicit_this_reference_in_initializer_test.dart'
     as implicit_this_reference_in_initializer;
 import 'import_deferred_library_with_load_function_test.dart'
@@ -675,6 +699,8 @@ import 'record_literal_one_positional_no_trailing_comma_test.dart'
     as record_literal_one_positional_no_trailing_comma;
 import 'recursive_compile_time_constant_test.dart'
     as recursive_compile_time_constant;
+import 'recursive_constant_constructor_test.dart'
+    as recursive_constant_constructor;
 import 'recursive_constructor_redirect_test.dart'
     as recursive_constructor_redirect;
 import 'recursive_factory_redirect_test.dart' as recursive_factory_redirect;
@@ -686,6 +712,8 @@ import 'recursive_interface_inheritance_test.dart'
     as recursive_interface_inheritance;
 import 'recursive_interface_inheritance_with_test.dart'
     as recursive_interface_inheritance_with;
+import 'redeclare_on_non_redeclaring_member_test.dart'
+    as redeclare_on_non_redeclaring_member;
 import 'redirect_generative_to_missing_constructor_test.dart'
     as redirect_generative_to_missing_constructor;
 import 'redirect_generative_to_non_generative_constructor_test.dart'
@@ -946,12 +974,14 @@ main() {
     const_eval_extension_method.main();
     const_eval_for_element.main();
     const_eval_method_invocation.main();
+    const_eval_property_access.main();
     const_eval_throws_exception.main();
     const_eval_throws_idbze.main();
     const_eval_type_bool_int.main();
     const_eval_type_bool_num_string.main();
     const_eval_type_bool.main();
     const_eval_type_num.main();
+    const_eval_type_string.main();
     const_field_initializer_not_assignable.main();
     const_initialized_with_non_constant_value_from_deferred_library.main();
     const_initialized_with_non_constant_value.main();
@@ -961,6 +991,7 @@ main() {
     const_set_element_not_primitive_equality.main();
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();
+    const_type_parameter.main();
     const_with_non_const.main();
     const_with_non_constant_argument.main();
     const_with_non_type.main();
@@ -985,6 +1016,8 @@ main() {
     deprecated_member_use.main();
     deprecated_mixin_function.main();
     division_optimization.main();
+    doc_import_cannot_be_deferred.main();
+    doc_import_cannot_have_configurations.main();
     duplicate_augmentation_import.main();
     duplicate_constructor_default.main();
     duplicate_constructor_name.main();
@@ -1036,6 +1069,17 @@ main() {
     extension_override_argument_not_assignable.main();
     extension_override_with_cascade.main();
     extension_override_without_access.main();
+    extension_type_constructor_with_super_formal_parameter.main();
+    extension_type_constructor_with_super_invocation.main();
+    extension_type_declares_instance_field.main();
+    extension_type_declares_member_of_object.main();
+    extension_type_implements_disallowed_type.main();
+    extension_type_implements_itself.main();
+    extension_type_implements_not_supertype_of_erasure.main();
+    extension_type_implements_representation_not_supertype.main();
+    extension_type_inherited_member_conflict.main();
+    extension_type_representation_depends_on_itself.main();
+    extension_type_with_abstract_member.main();
     external_field_constructor_initializer.main();
     external_field_initializer.main();
     external_variable_initializer.main();
@@ -1086,10 +1130,6 @@ main() {
     implements_repeated.main();
     implements_super_class.main();
     implements_type_alias_expands_to_type_parameter.main();
-    implicit_dynamic_field.main();
-    implicit_dynamic_function.main();
-    implicit_dynamic_list_literal.main();
-    implicit_dynamic_map_literal.main();
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
     import_internal_library.main();
@@ -1316,12 +1356,14 @@ main() {
     receiver_of_type_never.main();
     record_literal_one_positional_no_trailing_comma.main();
     recursive_compile_time_constant.main();
+    recursive_constant_constructor.main();
     recursive_constructor_redirect.main();
     recursive_factory_redirect.main();
     recursive_interface_inheritance_extends.main();
     recursive_interface_inheritance_implements.main();
     recursive_interface_inheritance.main();
     recursive_interface_inheritance_with.main();
+    redeclare_on_non_redeclaring_member.main();
     redirect_generative_to_missing_constructor.main();
     redirect_generative_to_non_generative_constructor.main();
     redirect_to_abstract_class_constructor.main();

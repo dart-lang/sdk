@@ -571,6 +571,34 @@ PrefixedIdentifier
 ''');
   }
 
+  test_ofExtensionType_read_nullableRepresentation() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int? it) {
+  int get foo => 0;
+}
+
+void f(A a) {
+  a.foo;
+}
+''');
+
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionType::A::@getter::foo
+    staticType: int
+  staticElement: self::@extensionType::A::@getter::foo
+  staticType: int
+''');
+  }
+
   test_ofExtensionType_write() async {
     await assertNoErrorsInCode(r'''
 extension type A(int it) {

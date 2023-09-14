@@ -338,21 +338,18 @@ class JsBackendStrategy {
       DataSinkWriter sink = DataSinkWriter(
           ObjectDataSink(data), _compiler.options,
           useDataKinds: useDataKinds);
-      sink.registerCodegenWriter(CodegenWriterImpl(closedWorld));
+      sink.registerCodegenWriter(
+          CodegenWriterImpl(closedWorld, result.deferredExpressionData));
       result.writeToDataSink(sink);
       sink.close();
       DataSourceReader source = DataSourceReader(
           ObjectDataSource(data), _compiler.options,
           useDataKinds: useDataKinds);
-      List<ModularName> modularNames = [];
-      List<ModularExpression> modularExpression = [];
-      source.registerCodegenReader(
-          CodegenReaderImpl(closedWorld, modularNames, modularExpression));
+      source.registerCodegenReader(CodegenReaderImpl(closedWorld));
       source.registerEntityLookup(entityLookup);
       source.registerComponentLookup(componentLookup);
       source.registerSourceLookup(sourceLookup);
-      result = CodegenResult.readFromDataSource(
-          source, modularNames, modularExpression);
+      result = CodegenResult.readFromDataSource(source);
     }
     if (result.code != null) {
       generatedCode[member] = result.code!;
@@ -363,7 +360,7 @@ class JsBackendStrategy {
     }
     WorldImpact worldImpact =
         _codegenImpactTransformer.transformCodegenImpact(result.impact);
-    _compiler.dumpInfoTask.registerImpact(member, worldImpact);
+    _compiler.dumpInfoRegistry.registerImpact(member, worldImpact);
     result.applyModularState(_namer, emitterTask.emitter);
     return worldImpact;
   }

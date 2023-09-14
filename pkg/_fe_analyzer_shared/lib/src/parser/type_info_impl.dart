@@ -137,6 +137,9 @@ class NoType implements TypeInfo {
   Token skipType(Token token) {
     return token;
   }
+
+  @override
+  String toString() => 'NoType()';
 }
 
 /// See documentation on the [prefixedType] const.
@@ -198,6 +201,11 @@ class PrefixedType implements TypeInfo {
   Token skipType(Token token) {
     return token.next!.next!.next!;
   }
+
+  @override
+  String toString() {
+    return 'PrefixedType()';
+  }
 }
 
 /// See documentation on the [simpleNullableTypeWith1Argument] const.
@@ -229,6 +237,11 @@ class SimpleNullableTypeWith1Argument extends SimpleTypeWith1Argument {
     token = super.skipType(token).next!;
     assert(optional('?', token));
     return token;
+  }
+
+  @override
+  String toString() {
+    return 'SimpleNullableTypeWith1Argument()';
   }
 }
 
@@ -288,6 +301,11 @@ class SimpleTypeWith1Argument implements TypeInfo {
     assert(token.isKeywordOrIdentifier);
     return typeArg.skip(token);
   }
+
+  @override
+  String toString() {
+    return 'SimpleTypeWith1Argument(typeArg: $typeArg)';
+  }
 }
 
 /// See documentation on the [simpleNullableType] const.
@@ -317,6 +335,11 @@ class SimpleNullableType extends SimpleType {
   @override
   Token skipType(Token token) {
     return token.next!.next!;
+  }
+
+  @override
+  String toString() {
+    return 'SimpleNullableType()';
   }
 }
 
@@ -371,6 +394,11 @@ class SimpleType implements TypeInfo {
   @override
   Token skipType(Token token) {
     return token.next!;
+  }
+
+  @override
+  String toString() {
+    return 'SimpleType()';
   }
 }
 
@@ -446,6 +474,11 @@ class VoidType implements TypeInfo {
       }
     }
     return token;
+  }
+
+  @override
+  String toString() {
+    return 'VoidType()';
   }
 }
 
@@ -1054,6 +1087,19 @@ class ComplexTypeInfo implements TypeInfo {
       }
     }
   }
+
+  @override
+  String toString() {
+    return 'ComplexTypeInfo('
+        'start: $start, '
+        'typeArguments: $typeArguments, '
+        'beforeQuestionMark: $beforeQuestionMark, '
+        'end: $end, typeVariableStarters: $typeVariableStarters, '
+        'gftHasReturnType: $gftHasReturnType, '
+        'isRecordType: $isRecordType, '
+        'gftReturnTypeHasRecordType: $gftReturnTypeHasRecordType, '
+        'recovered: $recovered)';
+  }
 }
 
 /// See [noTypeParamOrArg].
@@ -1077,6 +1123,11 @@ class NoTypeParamOrArg extends TypeParamOrArgInfo {
 
   @override
   Token skip(Token token) => token;
+
+  @override
+  String toString() {
+    return 'NoTypeParamOrArg()';
+  }
 }
 
 class SimpleTypeArgument1 extends TypeParamOrArgInfo {
@@ -1143,6 +1194,11 @@ class SimpleTypeArgument1 extends TypeParamOrArgInfo {
     assert(optional('>', token));
     return token;
   }
+
+  @override
+  String toString() {
+    return 'SimpleTypeArgument1()';
+  }
 }
 
 class SimpleTypeArgument1GtEq extends SimpleTypeArgument1 {
@@ -1168,6 +1224,11 @@ class SimpleTypeArgument1GtEq extends SimpleTypeArgument1 {
     beforeEndGroup.setNext(endGroup);
     return endGroup;
   }
+
+  @override
+  String toString() {
+    return 'SimpleTypeArgument1GtEq()';
+  }
 }
 
 class SimpleTypeArgument1GtGt extends SimpleTypeArgument1 {
@@ -1192,6 +1253,11 @@ class SimpleTypeArgument1GtGt extends SimpleTypeArgument1 {
     }
     beforeEndGroup.setNext(endGroup);
     return endGroup;
+  }
+
+  @override
+  String toString() {
+    return 'SimpleTypeArgument1GtGt()';
   }
 }
 
@@ -1573,6 +1639,17 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   Token skip(Token token) {
     assert(skipEnd != null);
     return skipEnd!;
+  }
+
+  @override
+  String toString() {
+    return 'ComplexTypeParamOrArgInfo('
+        'start: $start, '
+        'inDeclaration: $inDeclaration, '
+        'allowsVariance: $allowsVariance, '
+        'typeArgumentCount: $typeArgumentCount, '
+        'skipEnd: $skipEnd, '
+        'recovered: $recovered)';
   }
 }
 

@@ -994,6 +994,11 @@ void GCMarker::IncrementalMarkWithUnlimitedBudget(PageSpace* page_space) {
 
 void GCMarker::IncrementalMarkWithSizeBudget(PageSpace* page_space,
                                              intptr_t size) {
+  // Avoid setup overhead for tiny amounts of marking as the last bits of TLABs
+  // get filled in.
+  const intptr_t kMinimumMarkingStep = KB;
+  if (size < kMinimumMarkingStep) return;
+
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(),
                                 "IncrementalMarkWithSizeBudget");
 

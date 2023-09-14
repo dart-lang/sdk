@@ -6,6 +6,7 @@ class Command {
   static const initialize = 'initialize';
   static const configurationDone = 'configurationDone';
   static const attach = 'attach';
+  static const threads = 'threads';
   static const createVariableForInstance = r'$/createVariableForInstance';
   static const getVariablesInstanceId = r'$/getVariablesInstanceId';
 }

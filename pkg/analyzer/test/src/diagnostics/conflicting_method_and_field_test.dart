@@ -97,7 +97,7 @@ extension type B(int it) implements A {
   }
 
   test_extensionType_setter() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 extension type A(int it) {
   set foo(int _) {}
 }
@@ -105,6 +105,8 @@ extension type A(int it) {
 extension type B(int it) implements A {
   void foo() {}
 }
-''');
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 97, 3),
+    ]);
   }
 }

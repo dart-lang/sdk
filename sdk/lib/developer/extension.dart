@@ -141,6 +141,7 @@ void registerExtension(String method, ServiceExtensionHandler handler) {
 /// no-one will receive the event, and the call is effectively a no-op.
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
+@pragma("vm:idempotent")
 external bool get extensionStreamHasListener;
 
 /// Post an event of [eventKind] with payload of [eventData] to the "Extension"

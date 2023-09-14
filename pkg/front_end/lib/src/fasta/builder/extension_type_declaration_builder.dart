@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 
 import '../scope.dart';
+import '../source/source_library_builder.dart';
 import 'builder.dart';
 import 'builder_mixins.dart';
 import 'declaration_builder.dart';
@@ -21,6 +22,9 @@ abstract class ExtensionTypeDeclarationBuilder implements DeclarationBuilder {
 
   /// The type of the underlying representation.
   DartType get declaredRepresentationType;
+
+  /// The type builder of the underlying representation.
+  TypeBuilder? get declaredRepresentationTypeBuilder;
 
   /// Return the [ExtensionTypeDeclaration] built by this builder.
   ExtensionTypeDeclaration get extensionTypeDeclaration;
@@ -73,9 +77,15 @@ abstract class ExtensionTypeDeclarationBuilderImpl
       Uri fileUri,
       int charOffset,
       {required bool hasExplicitTypeArguments}) {
-    return new ExtensionType(extensionTypeDeclaration, nullability, arguments);
+    ExtensionType type =
+        new ExtensionType(extensionTypeDeclaration, nullability, arguments);
+    if (typeVariablesCount != 0 && library is SourceLibraryBuilder) {
+      library.registerBoundsCheck(type, fileUri, charOffset, typeUse,
+          inferred: !hasExplicitTypeArguments);
+    }
+    return type;
   }
 
   @override
-  String get debugName => "InlineClassBuilder";
+  String get debugName => "ExtensionTypeDeclarationBuilder";
 }
