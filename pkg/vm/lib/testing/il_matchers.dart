@@ -191,29 +191,40 @@ class _BoundMatcher implements Matcher {
 
 /// Matcher which matches a specified value [v].
 class _EqualsMatcher implements Matcher {
-  final dynamic v;
+  final dynamic expected;
 
-  _EqualsMatcher(this.v);
+  _EqualsMatcher(this.expected);
 
   @override
-  MatchStatus match(Env e, v) {
-    if (this.v == v) {
+  MatchStatus match(Env e, got) {
+    if (expected == got) {
       return MatchStatus.matched;
     }
 
     // Some instructions refer to obfuscated names, try to rename
-    // the expectation and try again.
-    if (this.v is String && v is String && e.rename(this.v) == v) {
-      return MatchStatus.matched;
+    // the expectation and try again. For strings of form "Instance of C"
+    // apply renaming to class name part only.
+    if (expected is String && got is String) {
+      const instanceOfPrefix = "Instance of ";
+
+      final String renamed;
+      if (expected.startsWith(instanceOfPrefix)) {
+        final className = expected.substring(instanceOfPrefix.length);
+        renamed = instanceOfPrefix + e.rename(className);
+      } else {
+        renamed = e.rename(expected);
+      }
+
+      if (renamed == got) {
+        return MatchStatus.matched;
+      }
     }
 
-    return this.v == v
-        ? MatchStatus.matched
-        : MatchStatus.fail('expected ${this.v} got $v');
+    return MatchStatus.fail('expected $expected got $got');
   }
 
   @override
-  String toString() => '$v';
+  String toString() => '$expected';
 }
 
 /// Matcher which matches the value which is equivalent to the binding
