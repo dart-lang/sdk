@@ -169,6 +169,8 @@ import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'division_optimization_test.dart' as division_optimization;
 import 'doc_directive_has_extra_arguments_test.dart'
     as doc_directive_has_extra_arguments;
+import 'doc_directive_has_unexpected_named_argument_test.dart'
+    as doc_directive_has_unexpected_named_argument;
 import 'doc_directive_missing_one_argument_test.dart'
     as doc_directive_missing_one_argument;
 import 'doc_directive_missing_three_arguments_test.dart'
@@ -1025,6 +1027,7 @@ main() {
     deprecated_mixin_function.main();
     division_optimization.main();
     doc_directive_has_extra_arguments.main();
+    doc_directive_has_unexpected_named_argument.main();
     doc_directive_missing_one_argument.main();
     doc_directive_missing_three_arguments.main();
     doc_directive_missing_two_arguments.main();

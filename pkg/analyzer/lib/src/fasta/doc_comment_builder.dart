@@ -282,16 +282,19 @@ class DocCommentBuilder {
       errorReporter: _errorReporter,
     );
 
-    if (name == 'animation') {
-      _docDirectives.add(parser.animationDirective());
-      return true;
-    }
-    if (name == 'youtube') {
-      _docDirectives.add(parser.youTubeDirective());
-      return true;
+    switch (name) {
+      case 'animation':
+        _docDirectives.add(parser.directive(DocDirectiveType.animation));
+        return true;
+      case 'example':
+        _docDirectives.add(parser.directive(DocDirectiveType.example));
+        return true;
+      case 'youtube':
+        _docDirectives.add(parser.directive(DocDirectiveType.youtube));
+        return true;
     }
     // TODO(srawlins): Handle other doc directives: api?,
-    // canonicalFor?, category, example, image, macro, samples?, subCategory.
+    // canonicalFor?, category, macro, subCategory.
     // TODO(srawlins): Handle block doc directives: inject-html, template.
     // TODO(srawlins): Handle unknown (misspelled?) directive.
     return false;
@@ -853,8 +856,7 @@ final class _DirectiveParser {
         _length = content.length,
         _errorReporter = errorReporter;
 
-  /// Parses an animation doc directive.
-  DocDirective animationDirective() {
+  DocDirective directive(DocDirectiveType type) {
     if (index == _length) {
       _end = _offset + index;
     }
@@ -865,25 +867,7 @@ final class _DirectiveParser {
       end: _end!,
       nameOffset: nameOffset,
       nameEnd: nameEnd,
-      name: DocDirectiveName.animation,
-      positionalArguments: positionalArguments,
-      namedArguments: namedArguments,
-    );
-  }
-
-  /// Parses a YouTube doc directive.
-  DocDirective youTubeDirective() {
-    if (index == _length) {
-      _end = _offset + index;
-    }
-    var (positionalArguments, namedArguments) = _parseArguments();
-    _readClosingCurlyBrace();
-    return DocDirective(
-      offset: _offset,
-      end: _end!,
-      nameOffset: nameOffset,
-      nameEnd: nameEnd,
-      name: DocDirectiveName.youtube,
+      type: type,
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
     );

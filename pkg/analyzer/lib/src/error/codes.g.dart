@@ -6056,12 +6056,23 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the actual number of arguments
-  ///  1: the expected number of arguments
+  ///  0: the name of the doc directive
+  ///  1: the actual number of arguments
+  ///  2: the expected number of arguments
   static const WarningCode DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS = WarningCode(
     'DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS',
-    "Doc directive has '{0}' arguments, but only '{1}' are expected.",
+    "The '{0}' directive has '{1}' arguments, but only '{2}' are expected.",
     correctionMessage: "Try removing the extra arguments.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the doc directive
+  ///  1: the name of the unexpected argument
+  static const WarningCode DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT =
+      WarningCode(
+    'DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT',
+    "The '{0}' directive has an unexpected named argument, '{1}'.",
+    correctionMessage: "Try removing the unexpected argument.",
   );
 
   static const WarningCode DOC_DIRECTIVE_MISSING_CLOSING_BRACE = WarningCode(

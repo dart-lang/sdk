@@ -414,6 +414,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.methods = holder.methods;
     element.typeParameters = holder.typeParameters;
 
+    // TODO(scheglov) We cannot do this anymore.
+    // Not for class augmentations, not for classes.
     _resolveConstructorFieldFormals(element);
   }
 
@@ -1244,10 +1246,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.constructors = holder.constructors;
     element.fields = holder.fields;
     element.methods = holder.methods;
-
-    // TODO(scheglov) We cannot do this anymore.
-    // Not for class augmentations, not for classes.
-    _resolveConstructorFieldFormals(element);
   }
 
   void _buildExecutableElementChildren({
@@ -1286,11 +1284,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     });
 
     element.accessors = holder.propertyAccessors;
-    element.constructors = holder.constructors;
     element.fields = holder.fields;
     element.methods = holder.methods;
-
-    _resolveConstructorFieldFormals(element);
   }
 
   void _buildSyntheticVariable({

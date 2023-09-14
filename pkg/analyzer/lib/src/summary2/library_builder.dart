@@ -536,6 +536,24 @@ class LibraryBuilder {
     _augmentedBuilders[name] = element;
   }
 
+  void resolveConstructorFieldFormals() {
+    for (final class_ in element.topLevelElements) {
+      if (class_ is! ClassElementImpl) continue;
+      if (class_.isMixinApplication) continue;
+
+      final augmented = class_.augmented;
+      if (augmented == null) continue;
+
+      for (final constructor in class_.constructors) {
+        for (final parameter in constructor.parameters) {
+          if (parameter is FieldFormalParameterElementImpl) {
+            parameter.field = augmented.getField(parameter.name);
+          }
+        }
+      }
+    }
+  }
+
   void resolveConstructors() {
     ConstructorInitializerResolver(linker, element).resolve();
   }

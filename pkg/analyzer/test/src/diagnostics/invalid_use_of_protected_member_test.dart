@@ -81,6 +81,75 @@ extension E on A {
     ]);
   }
 
+  test_extensionType_implementedMember() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class C {
+  @protected
+  void f(){}
+}
+extension type E(C c) implements C { }
+
+void main() {
+  E(C()).f();
+}
+''');
+  }
+
+  test_extensionType_implementedMember_outsideClassAndLibrary() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+import 'package:meta/meta.dart';
+class C {
+  @protected
+  void f(){}
+}
+extension type E(C c) implements C { }
+''');
+    newFile('$testPackageLibPath/lib2.dart', r'''
+import 'lib1.dart';
+void main() {
+  E(C()).f();
+}
+''');
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart', [
+      error(WarningCode.INVALID_USE_OF_PROTECTED_MEMBER, 43, 1),
+    ]);
+  }
+
+  test_extensionType_member() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+extension type E(int i) {
+  @protected
+  void f(){}
+}
+void main() {
+  E(1).f();
+}
+''');
+  }
+
+  test_extensionType_member_outsideClassAndLibrary() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+import 'package:meta/meta.dart';
+extension type E(int i) {
+  @protected
+  void f(){}
+}
+''');
+    newFile('$testPackageLibPath/lib2.dart', r'''
+import 'lib1.dart';
+void main() {
+  E(1).f();
+}
+''');
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart', [
+      error(WarningCode.INVALID_USE_OF_PROTECTED_MEMBER, 41, 1),
+    ]);
+  }
+
   test_field() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';

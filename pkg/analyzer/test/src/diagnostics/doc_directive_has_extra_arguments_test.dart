@@ -38,6 +38,15 @@ class C {}
 ''');
   }
 
+  test_example_hasExtraArgument() async {
+    await assertErrorsInCode('''
+/// {@example one two}
+class C {}
+''', [
+      error(WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS, 18, 3),
+    ]);
+  }
+
   test_youtube_hasExtraArgument() async {
     await assertErrorsInCode('''
 /// {@youtube 600 400 http://google.com foo}

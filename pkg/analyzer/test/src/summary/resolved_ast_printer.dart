@@ -1712,7 +1712,7 @@ Expected parent: (${parent.runtimeType}) $parent
     _sink.withIndent(() {
       _sink.writelnWithIndent(
           'offset: [${docDirective.offset}, ${docDirective.end}]');
-      _sink.writelnWithIndent('name: [${docDirective.name}]');
+      _sink.writelnWithIndent('type: [${docDirective.type}]');
       if (docDirective.positionalArguments.isNotEmpty) {
         _sink.writelnWithIndent('positionalArguments');
         _sink.withIndent(() {

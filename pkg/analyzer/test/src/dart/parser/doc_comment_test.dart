@@ -35,7 +35,7 @@ Comment
   docDirectives
     DocDirective
       offset: [26, 70]
-      name: [DocDirectiveName.animation]
+      type: [DocDirectiveType.animation]
       positionalArguments
         600
         400
@@ -66,7 +66,7 @@ Comment
   docDirectives
     DocDirective
       offset: [26, 74]
-      name: [DocDirectiveName.animation]
+      type: [DocDirectiveType.animation]
       positionalArguments
         600
         400
@@ -97,7 +97,7 @@ Comment
   docDirectives
     DocDirective
       offset: [26, 69]
-      name: [DocDirectiveName.animation]
+      type: [DocDirectiveType.animation]
       positionalArguments
         600
         400
@@ -1396,7 +1396,7 @@ Comment
   docDirectives
     DocDirective
       offset: [26, 63]
-      name: [DocDirectiveName.youtube]
+      type: [DocDirectiveType.youtube]
       positionalArguments
         600
         400
@@ -1421,7 +1421,7 @@ Comment
   docDirectives
     DocDirective
       offset: [4, 40]
-      name: [DocDirectiveName.youtube]
+      type: [DocDirectiveType.youtube]
       positionalArguments
         600
         400
@@ -1444,7 +1444,7 @@ Comment
   docDirectives
     DocDirective
       offset: [4, 23]
-      name: [DocDirectiveName.youtube]
+      type: [DocDirectiveType.youtube]
       positionalArguments
         600
         400
@@ -1466,7 +1466,7 @@ Comment
   docDirectives
     DocDirective
       offset: [4, 19]
-      name: [DocDirectiveName.youtube]
+      type: [DocDirectiveType.youtube]
       positionalArguments
         600
 ''');
@@ -1487,7 +1487,7 @@ Comment
   docDirectives
     DocDirective
       offset: [4, 16]
-      name: [DocDirectiveName.youtube]
+      type: [DocDirectiveType.youtube]
 ''');
   }
 }

@@ -2243,19 +2243,24 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+  void visitConstructorFieldInitializer(
+    covariant ConstructorFieldInitializerImpl node,
+  ) {
+    final augmented = enclosingClass!.augmented;
+    if (augmented == null) return;
+
     //
     // We visit the expression, but do not visit the field name because it needs
     // to be visited in the context of the constructor field initializer node.
     //
-    var fieldElement = enclosingClass!.getField(node.fieldName.name);
+    final fieldName = node.fieldName;
+    var fieldElement = augmented.getField(fieldName.name);
+    fieldName.staticElement = fieldElement;
     var fieldType = fieldElement?.type;
     var expression = node.expression;
     analyzeExpression(expression, fieldType);
     expression = popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(expression);
-    elementResolver.visitConstructorFieldInitializer(
-        node as ConstructorFieldInitializerImpl);
     if (fieldElement != null) {
       var enclosingConstructor = enclosingFunction as ConstructorElement;
       checkForFieldInitializerNotAssignable(node, fieldElement,
