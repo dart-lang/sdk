@@ -381,12 +381,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  ExpressionInferenceResult defaultBasicLiteral(
-      BasicLiteral node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
   ExpressionInferenceResult visitBlockExpression(
       BlockExpression node, DartType typeContext) {
     // This is only used for error cases. The spec doesn't use this and
@@ -11238,12 +11232,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     return new RelationalOperatorResolution(
         kind: kind, parameterType: parameterType, returnType: returnType);
-  }
-
-  @override
-  void defaultPattern(Pattern node, SharedMatchContext arg) {
-    problems.unhandled("$node (${node.runtimeType})", "InferenceVisitor",
-        node.fileOffset, helper.uri);
   }
 }
 

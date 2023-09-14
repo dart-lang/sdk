@@ -3246,9 +3246,6 @@ class Precedence implements ExpressionVisitor<int> {
   int visitLet(Let node) => EXPRESSION;
 
   @override
-  int defaultBasicLiteral(BasicLiteral node) => CALLEE;
-
-  @override
   int visitBlockExpression(BlockExpression node) => EXPRESSION;
 
   @override

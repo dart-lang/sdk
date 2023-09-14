@@ -38,6 +38,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 /// method, which emits appropriate conversion code if the produced type is not
 /// a subtype of the expected type.
 class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
+    with ExpressionVisitor1DefaultMixin<w.ValueType, w.ValueType>
     implements InitializerVisitor<void>, StatementVisitor<void> {
   final Translator translator;
   w.FunctionBuilder function;
@@ -146,11 +147,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b.block(const [], expectedTypes);
     b.unreachable();
     b.end();
-  }
-
-  @override
-  void defaultInitializer(Initializer node) {
-    unimplemented(node, node.runtimeType, const []);
   }
 
   @override
@@ -679,6 +675,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.call(targetFunction);
       return targetFunction.type.outputs;
     }
+  }
+
+  // TODO(johnniwinther): Remove this.
+  @override
+  TreeNode defaultInitializer(Initializer node) {
+    throw 'Unexpected initializer ${node.runtimeType}';
   }
 
   @override

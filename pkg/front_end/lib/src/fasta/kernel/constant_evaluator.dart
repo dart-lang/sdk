@@ -5397,9 +5397,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   }
 
   @override
-  Constant defaultBasicLiteral(BasicLiteral node) => defaultExpression(node);
-
-  @override
   Constant visitAwaitExpression(AwaitExpression node) =>
       defaultExpression(node);
 

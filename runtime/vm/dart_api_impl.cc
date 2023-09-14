@@ -82,6 +82,12 @@ DEFINE_FLAG(bool,
             dump_tables,
             false,
             "Dump common hash tables before snapshotting.");
+DEFINE_FLAG(bool,
+            enable_deprecated_wait_for,
+            false,
+            "Enable deprecated dart:cli waitFor. "
+            "This feature will be fully removed in Dart 3.4 release. "
+            "See https://dartbug.com/52121.");
 
 #define CHECK_ERROR_HANDLE(error)                                              \
   {                                                                            \
@@ -2110,6 +2116,17 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
 }
 
 DART_EXPORT Dart_Handle Dart_WaitForEvent(int64_t timeout_millis) {
+  if (!FLAG_enable_deprecated_wait_for) {
+    return Dart_NewUnhandledExceptionError(Dart_NewStringFromCString(
+        "Synchronous waiting using dart:cli waitFor "
+        "and C API Dart_WaitForEvent is deprecated and disabled by default. "
+        "This feature will be fully removed in Dart 3.4 release. "
+        "You can currently still enable it by passing "
+        "--enable_deprecated_wait_for "
+        "to the Dart VM. "
+        "See https://dartbug.com/52121."));
+  }
+
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
   CHECK_API_SCOPE(T);
