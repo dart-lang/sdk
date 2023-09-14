@@ -21,6 +21,7 @@ class CoreTypesUtil {
   final Procedure jsifyRawTarget;
   final Procedure jsObjectFromDartObjectTarget;
   final Procedure jsValueBoxTarget;
+  final Constructor jsValueConstructor;
   final Procedure jsValueUnboxTarget;
   final Procedure numToIntTarget;
   final Class wasmExternRefClass;
@@ -49,6 +50,10 @@ class CoreTypesUtil {
             .getClass('dart:_js_helper', 'JSValue')
             .procedures
             .firstWhere((p) => p.name.text == 'box'),
+        jsValueConstructor = coreTypes.index
+            .getClass('dart:_js_helper', 'JSValue')
+            .constructors
+            .single,
         jsValueUnboxTarget = coreTypes.index
             .getClass('dart:_js_helper', 'JSValue')
             .procedures
@@ -124,19 +129,20 @@ class CoreTypesUtil {
         // an `int` we check that the double is an integer, and then insert a
         // cast. We also let static interop types flow through without
         // conversion, both as arguments, and as the return type.
-        expression = convertAndCast(
+        expression = convertReturnType(
             returnType, invokeOneArg(dartifyRawTarget, invocation));
       }
       return expression;
     }
   }
 
-  // Handles any necessary type conversions. Today this is just for handling the
-  // case where a user wants us to coerce a JS number to an int instead of a
-  // double. This is okay as long as the value is an integer value.
-  Expression convertAndCast(DartType staticType, Expression expression) {
-    if (staticType == coreTypes.intNullableRawType ||
-        staticType == coreTypes.intNonNullableRawType) {
+  // Handles any necessary return type conversions. Today this is just for
+  // handling the case where a user wants us to coerce a JS number to an int
+  // instead of a double.
+  Expression convertReturnType(DartType returnType, Expression expression) {
+    Expression returnExpression = expression;
+    if (returnType == coreTypes.intNullableRawType ||
+        returnType == coreTypes.intNonNullableRawType) {
       // let v = [expression] as double? in
       //  if (v == null) {
       //    return null;
@@ -156,7 +162,7 @@ class CoreTypesUtil {
           initializer: invokeMethod(v, numToIntTarget),
           type: coreTypes.intNonNullableRawType,
           isSynthesized: true);
-      expression = Let(
+      returnExpression = Let(
           v,
           ConditionalExpression(
               variableCheckConstant(v, NullConstant()),
@@ -172,7 +178,7 @@ class CoreTypesUtil {
                       coreTypes.intNonNullableRawType)),
               coreTypes.intNullableRawType));
     }
-    return AsExpression(expression, staticType);
+    return AsExpression(returnExpression, returnType);
   }
 }
 
