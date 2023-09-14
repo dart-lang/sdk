@@ -16,7 +16,8 @@ import 'kernel_helpers.dart';
 ///
 /// This class can also analyze the nullability of local variables, if
 /// [enterFunction] and [exitFunction] are used.
-class NullableInference extends ExpressionVisitor<bool> {
+class NullableInference extends ExpressionVisitor<bool>
+    with ExpressionVisitorDefaultMixin<bool> {
   final StaticTypeContext _staticTypeContext;
   final JSTypeRep jsTypeRep;
   final CoreTypes coreTypes;

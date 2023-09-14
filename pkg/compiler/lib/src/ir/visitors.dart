@@ -13,7 +13,8 @@ import 'util.dart' show recordShapeOfRecordType;
 
 /// Visitor that converts string literals and concatenations of string literals
 /// into the string value.
-class Stringifier extends ir.ExpressionVisitor<String?> {
+class Stringifier extends ir.ExpressionVisitor<String?>
+    with ir.ExpressionVisitorDefaultMixin<String?> {
   @override
   String visitStringLiteral(ir.StringLiteral node) => node.value;
 

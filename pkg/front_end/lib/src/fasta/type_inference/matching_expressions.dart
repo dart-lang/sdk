@@ -28,13 +28,6 @@ class MatchingExpressionVisitor
   }
 
   @override
-  DelayedExpression defaultPattern(
-      Pattern node, CacheableExpression matchedExpression) {
-    throw new UnsupportedError(
-        "Unexpected pattern $node (${node.runtimeType}).");
-  }
-
-  @override
   DelayedExpression visitAndPattern(
       AndPattern node, CacheableExpression matchedExpression) {
     return new DelayedAndExpression(visitPattern(node.left, matchedExpression),

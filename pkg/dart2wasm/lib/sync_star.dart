@@ -41,7 +41,8 @@ class StateTarget {
 /// target indices to all control flow targets of these.
 ///
 /// Target indices are assigned in program order.
-class _YieldFinder extends StatementVisitor<void> {
+class _YieldFinder extends StatementVisitor<void>
+    with StatementVisitorDefaultMixin<void> {
   final SyncStarCodeGenerator codeGen;
 
   // The number of `yield` or `yield*` statements seen so far.

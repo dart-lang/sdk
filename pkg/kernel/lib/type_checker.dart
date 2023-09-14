@@ -171,14 +171,6 @@ class TypeCheckingVisitor
   }
 
   @override
-  TreeNode defaultMember(Member node) => throw 'Unused';
-
-  @override
-  DartType defaultBasicLiteral(BasicLiteral node) {
-    return defaultExpression(node);
-  }
-
-  @override
   DartType defaultExpression(Expression node) {
     throw 'Unexpected expression ${node.runtimeType}';
   }

@@ -196,11 +196,6 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
   _FunctionTypeGenerator(this.translator);
 
   @override
-  w.FunctionType defaultMember(Member node, Reference target) {
-    throw "No Wasm function for member: $node";
-  }
-
-  @override
   w.FunctionType visitField(Field node, Reference target) {
     if (!node.isInstanceMember) {
       if (target == node.fieldReference) {

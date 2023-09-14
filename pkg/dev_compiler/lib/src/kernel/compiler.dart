@@ -5195,10 +5195,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitInvalidNode(node);
 
   @override
-  js_ast.Expression defaultBasicLiteral(BasicLiteral node) =>
-      defaultExpression(node);
-
-  @override
   js_ast.Expression visitInvalidExpression(InvalidExpression node) =>
       defaultExpression(node);
 
