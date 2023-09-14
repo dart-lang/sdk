@@ -663,11 +663,6 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
-  TreeNode defaultBasicLiteral(BasicLiteral node) {
-    return defaultExpression(node);
-  }
-
-  @override
   TreeNode defaultExpression(Expression node) {
     throw 'Unimplemented clone for Kernel expression: $node';
   }
@@ -675,11 +670,6 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   @override
   TreeNode defaultInitializer(Initializer node) {
     throw 'Unimplemented clone for Kernel initializer: $node';
-  }
-
-  @override
-  TreeNode defaultMember(Member node) {
-    throw 'Unimplemented clone for Kernel member: $node';
   }
 
   @override
@@ -877,11 +867,6 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
         node.typeParameters.map(visitTypeParameter).toList(),
         clone(node.expression),
         node.typeArguments.map(visitType).toList());
-  }
-
-  @override
-  TreeNode defaultPattern(Pattern node) {
-    throw 'Unimplemented clone for Kernel member: $node';
   }
 
   @override

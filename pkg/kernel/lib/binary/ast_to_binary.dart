@@ -2929,30 +2929,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   // These are nodes that are never serialized directly.  Reaching one
   // during serialization is an error.
   @override
-  void defaultNode(Node node) {
-    throw new UnsupportedError(
-        'serialization of generic Node: ${node} (${node.runtimeType})');
-  }
-
-  @override
-  void defaultConstant(Constant node) {
-    throw new UnsupportedError(
-        'serialization of generic Constant: ${node} (${node.runtimeType})');
-  }
-
-  @override
-  void defaultBasicLiteral(BasicLiteral node) {
-    throw new UnsupportedError(
-        'serialization of generic BasicLiteral: ${node} (${node.runtimeType})');
-  }
-
-  @override
-  void defaultConstantReference(Constant node) {
-    throw new UnsupportedError('serialization of generic Constant reference: '
-        '${node} (${node.runtimeType})');
-  }
-
-  @override
   void defaultDartType(DartType node) {
     throw new UnsupportedError(
         'serialization of generic DartType: ${node} (${node.runtimeType})');
@@ -2968,18 +2944,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void defaultInitializer(Initializer node) {
     throw new UnsupportedError(
         'serialization of generic Initializer: ${node} (${node.runtimeType})');
-  }
-
-  @override
-  void defaultMember(Member node) {
-    throw new UnsupportedError(
-        'serialization of generic Member: ${node} (${node.runtimeType})');
-  }
-
-  @override
-  void defaultMemberReference(Member node) {
-    throw new UnsupportedError('serialization of generic Member reference: '
-        '${node} (${node.runtimeType})');
   }
 
   @override
@@ -3238,12 +3202,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitUnevaluatedConstantReference(UnevaluatedConstant node) {
     throw new UnsupportedError(
         'serialization of UnevaluatedConstant references');
-  }
-
-  @override
-  void defaultPattern(Pattern node) {
-    throw new UnsupportedError(
-        'serialization of generic Pattern: ${node} (${node.runtimeType})');
   }
 }
 

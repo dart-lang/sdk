@@ -14,8 +14,6 @@ import 'package:kernel/ast.dart';
 class CoverageVisitor implements Visitor<void> {
   Set<Object> visited = {};
   @override
-  void defaultNode(Node node) {}
-  @override
   void defaultTreeNode(TreeNode node) {}
   @override
   void visitLibrary(Library node) {
@@ -47,8 +45,6 @@ class CoverageVisitor implements Visitor<void> {
     node.visitChildren(this);
   }
 
-  @override
-  void defaultMember(Member node) {}
   @override
   void visitField(Field node) {
     visited.add(MemberKind.Field);
@@ -383,8 +379,6 @@ class CoverageVisitor implements Visitor<void> {
     node.visitChildren(this);
   }
 
-  @override
-  void defaultBasicLiteral(BasicLiteral node) {}
   @override
   void visitStringLiteral(StringLiteral node) {
     visited.add(ExpressionKind.StringLiteral);
@@ -724,8 +718,6 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void defaultPattern(Pattern node) {}
-  @override
   void visitConstantPattern(ConstantPattern node) {
     visited.add(PatternKind.ConstantPattern);
     node.visitChildren(this);
@@ -956,8 +948,6 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void defaultConstant(Constant node) {}
-  @override
   void visitNullConstant(NullConstant node) {
     visited.add(ConstantKind.NullConstant);
     node.visitChildren(this);
@@ -1075,15 +1065,11 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitExtensionTypeDeclarationReference(ExtensionTypeDeclaration node) {}
   @override
-  void defaultMemberReference(Member node) {}
-  @override
   void visitFieldReference(Field node) {}
   @override
   void visitConstructorReference(Constructor node) {}
   @override
   void visitProcedureReference(Procedure node) {}
-  @override
-  void defaultConstantReference(Constant node) {}
   @override
   void visitNullConstantReference(NullConstant node) {
     visited.add(ConstantKind.NullConstant);

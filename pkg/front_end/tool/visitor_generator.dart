@@ -20,7 +20,7 @@ String generateVisitor(AstModel astModel, VisitorStrategy strategy,
     switch (astClass.kind) {
       case AstClassKind.root:
       case AstClassKind.inner:
-        if (astClass.hasVisitMethod) {
+        if (astClass.hasDefaultMethod) {
           strategy.generateDefaultVisit(astModel, astClass, sb);
         }
         for (AstClass subclass in astClass.subclasses) {

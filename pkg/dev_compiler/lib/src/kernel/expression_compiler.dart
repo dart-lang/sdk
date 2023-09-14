@@ -25,7 +25,7 @@ import 'package:kernel/ast.dart'
         TreeNode,
         TypeParameter,
         VariableDeclaration,
-        Visitor,
+        VisitorDefault,
         VisitorNullMixin,
         VisitorVoidMixin;
 
@@ -80,7 +80,7 @@ class DartScope {
 /// - locals
 /// - formals
 /// - captured variables (for closures)
-class DartScopeBuilder extends Visitor<void> with VisitorVoidMixin {
+class DartScopeBuilder extends VisitorDefault<void> with VisitorVoidMixin {
   final Component _component;
   final int _line;
   final int _column;
@@ -199,7 +199,8 @@ class DartScopeBuilder extends Visitor<void> with VisitorVoidMixin {
 /// that do not have .fileEndOffset field.
 ///
 /// For example - [Block]
-class FileEndOffsetCalculator extends Visitor<int?> with VisitorNullMixin<int> {
+class FileEndOffsetCalculator extends VisitorDefault<int?>
+    with VisitorNullMixin<int> {
   static const int noOffset = -1;
 
   final int _startOffset;
