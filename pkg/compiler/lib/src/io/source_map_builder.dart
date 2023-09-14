@@ -29,8 +29,8 @@ class SourceMapBuilder {
   final Map<String, String> minifiedGlobalNames;
   final Map<String, String> minifiedInstanceNames;
 
-  /// Extension used to deobfuscate inlined stack frames.
-  final Map<int, List<FrameEntry>> frames;
+  /// Contains mapped source locations including inlined frame mappings.
+  final SourceLocations sourceLocations;
 
   SourceMapBuilder(
       this.version,
@@ -39,7 +39,7 @@ class SourceMapBuilder {
       this.locationProvider,
       this.minifiedGlobalNames,
       this.minifiedInstanceNames,
-      this.frames);
+      this.sourceLocations);
 
   void addMapping(int targetOffset, SourceLocation sourceLocation) {
     entries.add(SourceMapEntry(sourceLocation, targetOffset));
@@ -104,14 +104,12 @@ class SourceMapBuilder {
 
     minifiedGlobalNames.values.forEach(nameMap.register);
     minifiedInstanceNames.values.forEach(nameMap.register);
-    for (List<FrameEntry> entries in frames.values) {
-      for (var frame in entries) {
-        registerLocation(frame.pushLocation);
-        if (frame.inlinedMethodName != null) {
-          nameMap.register(frame.inlinedMethodName!);
-        }
+    sourceLocations.forEachFrameMarker((_, frame) {
+      registerLocation(frame.pushLocation);
+      if (frame.inlinedMethodName != null) {
+        nameMap.register(frame.inlinedMethodName!);
       }
-    }
+    });
 
     StringBuffer mappingsBuffer = StringBuffer();
     writeEntries(lineColumnMap, uriMap, nameMap, mappingsBuffer);
@@ -230,21 +228,19 @@ class SourceMapBuilder {
     var columnEncoder = DeltaEncoder();
     var nameEncoder = DeltaEncoder();
     buffer.write('"');
-    frames.forEach((int offset, List<FrameEntry> entries) {
-      for (var entry in entries) {
-        offsetEncoder.encode(buffer, offset);
-        if (entry.isPush) {
-          SourceLocation location = entry.pushLocation!;
-          uriEncoder.encode(buffer, uriMap[location.sourceUri!]!);
-          lineEncoder.encode(buffer, location.line - 1);
-          columnEncoder.encode(buffer, location.column - 1);
-          nameEncoder.encode(buffer, nameMap[entry.inlinedMethodName!]!);
-        } else {
-          // ; and , are not used by VLQ so we can distinguish them in the
-          // encoding, this is the same reason they are used in the mappings
-          // field.
-          buffer.write(entry.isEmptyPop ? ";" : ",");
-        }
+    sourceLocations.forEachFrameMarker((int offset, FrameEntry entry) {
+      offsetEncoder.encode(buffer, offset);
+      if (entry.isPush) {
+        SourceLocation location = entry.pushLocation!;
+        uriEncoder.encode(buffer, uriMap[location.sourceUri!]!);
+        lineEncoder.encode(buffer, location.line - 1);
+        columnEncoder.encode(buffer, location.column - 1);
+        nameEncoder.encode(buffer, nameMap[entry.inlinedMethodName!]!);
+      } else {
+        // ; and , are not used by VLQ so we can distinguish them in the
+        // encoding, this is the same reason they are used in the mappings
+        // field.
+        buffer.write(entry.isEmptyPop ? ";" : ",");
       }
     });
     buffer.write('"');
@@ -289,9 +285,10 @@ class SourceMapBuilder {
           locationProvider,
           minifiedGlobalNames,
           minifiedInstanceNames,
-          sourceLocations.frameMarkers);
+          sourceLocations);
       sourceLocations.forEachSourceLocation(sourceMapBuilder.addMapping);
       String sourceMap = sourceMapBuilder.build();
+      sourceLocations.close();
       String extension = 'js.map';
       if (index > 0) {
         if (name == '') {
