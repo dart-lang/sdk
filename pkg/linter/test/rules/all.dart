@@ -60,6 +60,8 @@ import 'depend_on_referenced_packages_test.dart'
 import 'deprecated_consistency_test.dart' as deprecated_consistency;
 import 'deprecated_member_use_from_same_package_test.dart'
     as deprecated_member_use_from_same_package;
+import 'diagnostic_describe_all_properties_test.dart'
+    as diagnostic_describe_all_properties;
 import 'directives_ordering_test.dart' as directives_ordering;
 import 'discarded_futures_test.dart' as discarded_futures;
 import 'do_not_use_environment_test.dart' as do_not_use_environment;
@@ -275,6 +277,7 @@ void main() {
   depend_on_referenced_packages.main();
   deprecated_consistency.main();
   deprecated_member_use_from_same_package.main();
+  diagnostic_describe_all_properties.main();
   directives_ordering.main();
   discarded_futures.main();
   do_not_use_environment.main();

@@ -186,7 +186,10 @@ class WasmTarget extends Target {
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
       importer.path.contains('tests/web/wasm') ||
-      importer.isScheme('package') && importer.path == 'js/js.dart';
+      importer.isScheme('package') &&
+          (importer.path == 'js/js.dart' ||
+              importer.path.startsWith('ui/') &&
+                  imported.toString() == 'dart:_wasm');
 
   void _patchHostEndian(CoreTypes coreTypes) {
     // Fix Endian.host to be a const field equal to Endian.little instead of

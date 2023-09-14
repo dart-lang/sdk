@@ -529,6 +529,18 @@ abstract class BuildContext {
   bool get mounted;
 }
 
+mixin Diagnosticable {
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {}
+}
+
+class DiagnosticableTree with Diagnosticable {
+  List<DiagnosticsNode> debugDescribeChildren() => const [];
+}
+
+class DiagnosticPropertiesBuilder {}
+
+class DiagnosticsNode {}
+
 class Key {
   Key(String value);
 }
