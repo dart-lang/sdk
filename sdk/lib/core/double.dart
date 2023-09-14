@@ -6,21 +6,21 @@ part of dart.core;
 
 /// A double-precision floating point number.
 ///
-/// Representation of Dart doubles containing double specific constants
-/// and operations and specializations of operations inherited from
-/// [num]. Dart doubles are 64-bit floating-point numbers as specified in the
-/// IEEE 754 standard.
+/// Representation of Dart doubles containing double specific constants and
+/// operations and specializations of operations inherited from [num]. Dart
+/// doubles are 64-bit floating-point numbers as specified in the IEEE 754
+/// standard.
 ///
-/// The [double] type is contagious. Operations on [double]s return
-/// [double] results.
+/// The [double] type is contagious. Operations on [double]s return [double]
+/// results.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// double.
 ///
 /// **See also:**
 /// * [num] the super class for [double].
-/// * [Numbers](https://dart.dev/guides/language/numbers) in
-/// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
+/// * [Numbers](https://dart.dev/guides/language/numbers) in [A tour of the Dart
+///   language](https://dart.dev/guides/language/language-tour).
 abstract final class double extends num {
   static const double nan = 0.0 / 0.0;
   static const double infinity = 1.0 / 0.0;
@@ -123,13 +123,13 @@ abstract final class double extends num {
   /// Rounds away from zero when there is no closest integer:
   ///  `(3.5).roundToDouble() == 4` and `(-3.5).roundToDouble() == -4`.
   ///
-  /// If this is already an integer valued double, including `-0.0`, or it is not
-  /// a finite value, the value is returned unmodified.
+  /// If this is already an integer valued double, including `-0.0`, or it is
+  /// not a finite value, the value is returned unmodified.
   ///
-  /// For the purpose of rounding, `-0.0` is considered to be below `0.0`,
-  /// and `-0.0` is therefore considered closer to negative numbers than `0.0`.
-  /// This means that for a value `d` in the range `-0.5 < d < 0.0`,
-  /// the result is `-0.0`.
+  /// For the purpose of rounding, `-0.0` is considered to be below `0.0`, and
+  /// `-0.0` is therefore considered closer to negative numbers than `0.0`. This
+  /// means that for a value `d` in the range `-0.5 < d < 0.0`, the result is
+  /// `-0.0`.
   /// ```dart
   /// print(3.0.roundToDouble()); // 3.0
   /// print(3.25.roundToDouble()); // 3.0
@@ -141,11 +141,11 @@ abstract final class double extends num {
 
   /// Returns the greatest integer double value no greater than `this`.
   ///
-  /// If this is already an integer valued double, including `-0.0`, or it is not
-  /// a finite value, the value is returned unmodified.
+  /// If this is already an integer valued double, including `-0.0`, or it is
+  /// not a finite value, the value is returned unmodified.
   ///
-  /// For the purpose of rounding, `-0.0` is considered to be below `0.0`.
-  /// A number `d` in the range `0.0 < d < 1.0` will return `0.0`.
+  /// For the purpose of rounding, `-0.0` is considered to be below `0.0`. A
+  /// number `d` in the range `0.0 < d < 1.0` will return `0.0`.
   /// ```dart
   /// print(1.99999.floorToDouble()); // 1.0
   /// print(2.0.floorToDouble()); // 2.0
@@ -158,11 +158,11 @@ abstract final class double extends num {
 
   /// Returns the least integer double value no smaller than `this`.
   ///
-  /// If this is already an integer valued double, including `-0.0`, or it is not
-  /// a finite value, the value is returned unmodified.
+  /// If this is already an integer valued double, including `-0.0`, or it is
+  /// not a finite value, the value is returned unmodified.
   ///
-  /// For the purpose of rounding, `-0.0` is considered to be below `0.0`.
-  /// A number `d` in the range `-1.0 < d < 0.0` will return `-0.0`.
+  /// For the purpose of rounding, `-0.0` is considered to be below `0.0`. A
+  /// number `d` in the range `-1.0 < d < 0.0` will return `-0.0`.
   /// ```dart
   /// print(1.99999.ceilToDouble()); // 2.0
   /// print(2.0.ceilToDouble()); // 2.0
@@ -176,12 +176,12 @@ abstract final class double extends num {
   /// Returns the integer double value obtained by discarding any fractional
   /// digits from `this`.
   ///
-  /// If this is already an integer valued double, including `-0.0`, or it is not
-  /// a finite value, the value is returned unmodified.
+  /// If this is already an integer valued double, including `-0.0`, or it is
+  /// not a finite value, the value is returned unmodified.
   ///
-  /// For the purpose of rounding, `-0.0` is considered to be below `0.0`.
-  /// A number `d` in the range `-1.0 < d < 0.0` will return `-0.0`, and
-  /// in the range `0.0 < d < 1.0` it will return 0.0.
+  /// For the purpose of rounding, `-0.0` is considered to be below `0.0`. A
+  /// number `d` in the range `-1.0 < d < 0.0` will return `-0.0`, and in the
+  /// range `0.0 < d < 1.0` it will return 0.0.
   /// ```dart
   /// print(2.5.truncateToDouble()); // 2.0
   /// print(2.00001.truncateToDouble()); // 2.0
