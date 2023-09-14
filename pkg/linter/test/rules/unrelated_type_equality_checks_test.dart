@@ -15,6 +15,9 @@ main() {
 @reflectiveTest
 class UnrelatedTypeEqualityChecksTest extends LintRuleTest {
   @override
+  bool get addFixnumPackageDep => true;
+
+  @override
   String get lintRule => 'unrelated_type_equality_checks';
 
   test_assignment_ok() async {
@@ -24,6 +27,50 @@ void m(int? a1, num a2) {
   var b2 = a2 == a1;
 }
 ''');
+  }
+
+  test_fixnum_int32_leftSide() async {
+    await assertNoDiagnostics(r'''
+import 'package:fixnum/fixnum.dart';
+
+void f(Int32 p) {
+  if (p == 0) {}
+}
+''');
+  }
+
+  test_fixnum_int32_rightSide() async {
+    await assertDiagnostics(r'''
+import 'package:fixnum/fixnum.dart';
+
+void f(Int32 p) {
+  if (0 == p) {}
+}
+''', [
+      lint(64, 2),
+    ]);
+  }
+
+  test_fixnum_int64_leftSide() async {
+    await assertNoDiagnostics(r'''
+import 'package:fixnum/fixnum.dart';
+
+void f(Int64 p) {
+  if (p == 0) {}
+}
+''');
+  }
+
+  test_fixnum_int64_rightSide() async {
+    await assertDiagnostics(r'''
+import 'package:fixnum/fixnum.dart';
+
+void f(Int64 p) {
+  if (0 == p) {}
+}
+''', [
+      lint(64, 2),
+    ]);
   }
 
   test_recordAndInterfaceType_unrelated() async {

@@ -96,10 +96,49 @@ enum DocDirectiveType {
   /// the URL. A named 'id' argument can also be given. For example:
   ///
   /// `{@animation 600 400 https://www.example.com/example.mp4 id=video1}`
+  ///
+  /// See documentation at
+  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#animations.
   animation(
     'animation',
     positionalParameters: ['width', 'height', 'url'],
     namedParameters: ['id'],
+  ),
+
+  /// A [DocDirective] declaring the associated library is the "canonical"
+  /// location for a certain element.
+  ///
+  /// Dartdoc uses some heuristics to decide what the public-facing libraries
+  /// are, and which public-facing library is the "canonical" location for an
+  /// element. When that heuristic needs to be overridden, a user can use this
+  /// directive. Example:
+  ///
+  /// `{@canonicalFor some_library.SomeClass}`
+  ///
+  /// See documentation at
+  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#canonicalization.
+  canonicalFor(
+    // TODO(srawlins): We have mostly used 'kebab-case' in directive names. This
+    // directive name is a rare departure from that style. Migrate users to use
+    // 'canonical-for'.
+    'canonicalFor',
+    positionalParameters: ['element'],
+  ),
+
+  /// A [DocDirective] declaring a categorization into a named category.
+  ///
+  /// This directive has one required argument: the category name. The category
+  /// name is allowed to contain whitespace.
+  // TODO(srawlins): I think allowing a category name, which is parsed as
+  // multiple positional arguments (or I guess named arguments if one contains)
+  // an equal sign!) is too loosy-goosey. We should just support quoting and
+  // require that a category name with spaces be wrapped in quotes.
+  ///
+  /// See documentation at
+  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#categories.
+  category(
+    'category',
+    restParametersAllowed: true,
   ),
 
   /// A [DocDirective] declaring an example file.
@@ -108,6 +147,9 @@ enum DocDirectiveType {
   /// argument, and a named 'lang' argument can also be given. For example:
   ///
   /// `{@example abc/def/xyz_component.dart region=template lang=html}`
+  ///
+  /// See documentation at
+  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#examples.
   example(
     'example',
     positionalParameters: ['path'],
@@ -121,12 +163,30 @@ enum DocDirectiveType {
   /// `{@macro some-macro}`
   macro('macro', positionalParameters: ['name']),
 
+  /// A [DocDirective] declaring a categorization into a named sub-category.
+  ///
+  /// This directive has one required argument: the sub-category name. The
+  /// sub-category name is allowed to contain whitespace.
+  ///
+  /// See documentation at
+  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#categories.
+  subCategory(
+    // TODO(srawlins): We have mostly used 'kebab-case' in directive names. This
+    // directive name is the sole departure from that style. Migrate users to
+    // use 'sub-category'.
+    'subCategory',
+    restParametersAllowed: true,
+  ),
+
   /// A [DocDirective] declaring an embedded YouTube video.
   ///
   /// This directive has three required arguments: the width, the height, and
   /// the URL. For example:
   ///
   /// `{@youtube 600 400 https://www.youtube.com/watch?v=abc123}`
+  ///
+  /// See documentation at
+  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#youtube-videos.
   youtube('youtube', positionalParameters: ['width', 'height', 'url']);
 
   /// The name of the directive, as written in a doc comment.
@@ -138,10 +198,17 @@ enum DocDirectiveType {
   /// The named parameter names, which are each optional.
   final List<String> namedParameters;
 
+  /// Whether "rest" parameters are allowed.
+  ///
+  /// In such a doc directive type, we do not enforce a maximum number of
+  /// arguments.
+  final bool restParametersAllowed;
+
   const DocDirectiveType(
     this.name, {
     this.positionalParameters = const <String>[],
     this.namedParameters = const <String>[],
+    this.restParametersAllowed = false,
   });
 }
 

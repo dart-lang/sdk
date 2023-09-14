@@ -248,6 +248,58 @@ extension on int? {
 ''');
   }
 
+  test_extensionType_interfaceType_isUsed_typeName_typeArgument() async {
+    await assertNoErrorsInCode(r'''
+extension type _E(int i) {}
+
+void f() {
+  Map<_E, int>();
+}
+''');
+  }
+
+  test_extensionType_interfaceType_notUsed() async {
+    await assertErrorsInCode(r'''
+extension type _E(int i) {}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 15, 2),
+    ]);
+  }
+
+  test_extensionType_member_notUsed() async {
+    await assertErrorsInCode('''
+extension type E(int i) {
+  void _f() {}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 33, 2),
+    ]);
+  }
+
+  test_extensionType_notUsed_variableDeclaration() async {
+    await assertErrorsInCode('''
+extension type _E(int i) {}
+void f() {
+  _E? v;
+  print(v);
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 15, 2),
+    ]);
+  }
+
+  test_extensionType_notUsed_variableDeclaration_typeArgument() async {
+    await assertErrorsInCode('''
+extension type _E(int i) {}
+main() {
+  List<_E>? v;
+  print(v);
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 15, 2),
+    ]);
+  }
+
   test_optionalParameter_isUsed_genericConstructor() async {
     await assertNoErrorsInCode('''
 class C<T> {

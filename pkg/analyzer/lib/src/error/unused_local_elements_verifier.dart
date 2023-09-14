@@ -547,6 +547,14 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    final declaredElement = node.declaredElement!;
+    _visitClassElement(declaredElement);
+
+    super.visitExtensionTypeDeclaration(node);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (final field in node.fields.variables) {
       _visitFieldElement(

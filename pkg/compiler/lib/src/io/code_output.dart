@@ -39,8 +39,11 @@ abstract class SourceLocations {
   void forEachSourceLocation(
       void f(int targetOffset, SourceLocation sourceLocation));
 
-  /// Recorded inlining data per target-offset.
-  Map<int, List<FrameEntry>> get frameMarkers;
+  /// Applies [f] to every target offset and associated frame entry. This is
+  /// mostly used to track inlining data.
+  void forEachFrameMarker(void f(int targetOffset, FrameEntry frameEntry));
+
+  void close();
 }
 
 class _SourceLocationsImpl implements SourceLocations {
@@ -48,14 +51,15 @@ class _SourceLocationsImpl implements SourceLocations {
   final String name;
   final AbstractCodeOutput codeOutput;
   Map<int, List<SourceLocation>> markers = {};
-  @override
   Map<int, List<FrameEntry>> frameMarkers = {};
+  bool _closed = false;
 
   _SourceLocationsImpl(this.name, this.codeOutput);
 
   @override
   void addSourceLocation(int targetOffset, SourceLocation sourceLocation) {
     assert(targetOffset <= codeOutput.length);
+    if (_closed) throw UnsupportedError('SourceLocations already closed.');
     List<SourceLocation> sourceLocations =
         markers.putIfAbsent(targetOffset, () => []);
     sourceLocations.add(sourceLocation);
@@ -65,6 +69,7 @@ class _SourceLocationsImpl implements SourceLocations {
   void addPush(int targetOffset, SourceLocation? sourceLocation,
       String inlinedMethodName) {
     assert(targetOffset <= codeOutput.length);
+    if (_closed) throw UnsupportedError('SourceLocations already closed.');
     List<FrameEntry> frames = frameMarkers[targetOffset] ??= [];
     frames.add(FrameEntry.push(sourceLocation, inlinedMethodName));
   }
@@ -72,6 +77,7 @@ class _SourceLocationsImpl implements SourceLocations {
   @override
   void addPop(int targetOffset, bool isEmpty) {
     assert(targetOffset <= codeOutput.length);
+    if (_closed) throw UnsupportedError('SourceLocations already closed.');
     List<FrameEntry> frames = frameMarkers[targetOffset] ??= [];
     frames.add(FrameEntry.pop(isEmpty));
   }
@@ -79,6 +85,7 @@ class _SourceLocationsImpl implements SourceLocations {
   @override
   void forEachSourceLocation(
       void f(int targetOffset, SourceLocation sourceLocation)) {
+    if (_closed) throw UnsupportedError('SourceLocations already closed.');
     markers.forEach((int targetOffset, List<SourceLocation> sourceLocations) {
       for (SourceLocation sourceLocation in sourceLocations) {
         f(targetOffset, sourceLocation);
@@ -86,8 +93,27 @@ class _SourceLocationsImpl implements SourceLocations {
     });
   }
 
+  @override
+  void forEachFrameMarker(void f(int targetOffset, FrameEntry sourceLocation)) {
+    if (_closed) throw UnsupportedError('SourceLocations already closed.');
+    frameMarkers.forEach((int targetOffset, List<FrameEntry> frameEntries) {
+      for (FrameEntry entry in frameEntries) {
+        f(targetOffset, entry);
+      }
+    });
+  }
+
+  @override
+  void close() {
+    if (_closed) throw UnsupportedError('SourceLocations already closed.');
+    _closed = true;
+    frameMarkers.clear();
+    markers.clear();
+  }
+
   void _merge(_SourceLocationsImpl other) {
     assert(name == other.name);
+    if (_closed) throw UnsupportedError('SourceLocations already closed.');
     int length = codeOutput.length;
     if (other.markers.length > 0) {
       other.markers

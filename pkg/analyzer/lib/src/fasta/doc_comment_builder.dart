@@ -286,15 +286,22 @@ class DocCommentBuilder {
       case 'animation':
         _docDirectives.add(parser.directive(DocDirectiveType.animation));
         return true;
+      case 'canonicalFor':
+        _docDirectives.add(parser.directive(DocDirectiveType.canonicalFor));
+        return true;
+      case 'category':
+        _docDirectives.add(parser.directive(DocDirectiveType.category));
+        return true;
       case 'example':
         _docDirectives.add(parser.directive(DocDirectiveType.example));
+        return true;
+      case 'subCategory':
+        _docDirectives.add(parser.directive(DocDirectiveType.subCategory));
         return true;
       case 'youtube':
         _docDirectives.add(parser.directive(DocDirectiveType.youtube));
         return true;
     }
-    // TODO(srawlins): Handle other doc directives: api?,
-    // canonicalFor?, category, macro, subCategory.
     // TODO(srawlins): Handle block doc directives: inject-html, template.
     // TODO(srawlins): Handle unknown (misspelled?) directive.
     return false;
