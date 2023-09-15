@@ -2,20 +2,16 @@ extension on Object {
   int get setter => 42;
   void set getter(int value) {}
 }
----- unknown chunk starts ----
 extension type InlineClass(int it) {
----- unknown chunk ends ----
-T genericMethod<T>(T t) => t;
-int call() => 321;
-int get getter => 42;
-int method() => 42;
-int operator +(int other) => 42;
-int operator -() => 87;
-int operator [](int index) => 123;
-test() {}
-void operator []=(int index, int value) {}
-void set setter(int value) {}
----- unknown chunk starts ----
+  T genericMethod<T>(T t) => t;
+  int call() => 321;
+  int get getter => 42;
+  int method() => 42;
+  int operator +(int other) => 42;
+  int operator -() => 87;
+  int operator [](int index) => 123;
+  test() {}
+  void operator []=(int index, int value) {}
+  void set setter(int value) {}
 }
----- unknown chunk ends ----
 test(InlineClass ic) {}

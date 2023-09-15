@@ -333,6 +333,11 @@ class _ExtensionDeclarationChunk extends _ClassChunk {
       : super(startToken, endToken);
 }
 
+class _ExtensionTypeDeclarationChunk extends _ClassChunk {
+  _ExtensionTypeDeclarationChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+}
+
 class _NamedMixinApplicationChunk extends _ClassChunk {
   _NamedMixinApplicationChunk(Token startToken, Token endToken)
       : super(startToken, endToken);
@@ -392,6 +397,10 @@ class _MetadataChunk extends _TokenChunk {
     printTokenRange(startToken, endToken, sb);
     sb.write("\n");
   }
+}
+
+class _ScriptTagChunk extends _TokenChunk {
+  _ScriptTagChunk(Token token) : super(token, token);
 }
 
 class _UnknownChunk extends _TokenChunk {
@@ -710,6 +719,11 @@ class TextualOutlineListener extends Listener {
   final Map<Token, _TokenChunk> unsortableElementStartToChunk = {};
 
   @override
+  void handleScript(Token token) {
+    unsortableElementStartToChunk[token] = new _ScriptTagChunk(token);
+  }
+
+  @override
   void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     elementStartToChunk[beginToken] =
@@ -771,9 +785,9 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
-    elementStartToChunk[enumKeyword] =
-        new _EnumChunk(enumKeyword, leftBrace.endGroup!);
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
+    elementStartToChunk[beginToken] = new _EnumChunk(beginToken, endToken);
   }
 
   @override
@@ -809,16 +823,23 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
-    classStartToChunk[mixinKeyword] =
-        new _MixinDeclarationChunk(mixinKeyword, endToken);
+  void endMixinDeclaration(Token beginToken, Token endToken) {
+    classStartToChunk[beginToken] =
+        new _MixinDeclarationChunk(beginToken, endToken);
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
-    classStartToChunk[extensionKeyword] =
-        new _ExtensionDeclarationChunk(extensionKeyword, endToken);
+  void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
+      Token onKeyword, Token endToken) {
+    classStartToChunk[beginToken] =
+        new _ExtensionDeclarationChunk(beginToken, endToken);
+  }
+
+  @override
+  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
+      Token typeKeyword, Token endToken) {
+    classStartToChunk[beginToken] =
+        new _ExtensionTypeDeclarationChunk(beginToken, endToken);
   }
 
   @override

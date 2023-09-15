@@ -347,7 +347,7 @@ List<String> processItem(ParserAstNode item, List<int> data) {
   } else if (item.isMixinDeclaration()) {
     MixinDeclarationEnd mixinDecl = item.asMixinDeclaration();
     return [
-      getCutContent(data, mixinDecl.mixinKeyword.offset,
+      getCutContent(data, mixinDecl.beginToken.offset,
           mixinDecl.endToken.offset + mixinDecl.endToken.length)
     ];
   } else if (item.isNamedMixinDeclaration()) {

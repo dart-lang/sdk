@@ -2504,9 +2504,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 }
 
-class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
-    with DartTypeVisitorDefaultMixin<TypeExpr>
-    implements RuntimeTypeTranslator {
+class RuntimeTypeTranslatorImpl
+    implements RuntimeTypeTranslator, DartTypeVisitor<TypeExpr> {
   final CoreTypes coreTypes;
   final Summary? summary;
   final Map<TypeParameter, TypeExpr>? functionTypeVariables;
@@ -2581,8 +2580,9 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     return result;
   }
 
+  // TODO(johnniwinther): Remove this when removing DartTypeVisitor.defaultDartType.
   @override
-  TypeExpr defaultDartType(DartType node) => unknownType;
+  TypeExpr defaultDartType(DartType node) => throw 'Should not be called.';
 
   @override
   TypeExpr visitDynamicType(DynamicType type) => RuntimeType(type, null);
@@ -2590,12 +2590,14 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
   TypeExpr visitVoidType(VoidType type) => RuntimeType(type, null);
   @override
   TypeExpr visitNeverType(NeverType type) => RuntimeType(type, null);
+  @override
+  TypeExpr visitNullType(NullType type) => RuntimeType(type, null);
 
   @override
-  visitTypedefType(TypedefType node) => translate(node.unalias);
+  TypeExpr visitTypedefType(TypedefType node) => translate(node.unalias);
 
   @override
-  visitInterfaceType(InterfaceType type) {
+  TypeExpr visitInterfaceType(InterfaceType type) {
     if (type.typeArguments.isEmpty) return RuntimeType(type, null);
 
     final substitution = Substitution.fromPairs(
@@ -2625,7 +2627,7 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
   }
 
   @override
-  visitFutureOrType(FutureOrType type) {
+  TypeExpr visitFutureOrType(FutureOrType type) {
     final typeArg = translate(type.typeArgument);
     if (typeArg == unknownType) return unknownType;
     if (typeArg is RuntimeType) {
@@ -2643,7 +2645,7 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
   }
 
   @override
-  visitTypeParameterType(TypeParameterType type) {
+  TypeExpr visitTypeParameterType(TypeParameterType type) {
     final functionTypeVariables = this.functionTypeVariables;
     if (functionTypeVariables != null) {
       final result = functionTypeVariables[type.parameter];
@@ -2671,10 +2673,25 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     summary!.add(extract);
     return extract;
   }
+
+  @override
+  TypeExpr visitFunctionType(FunctionType type) => unknownType;
+
+  @override
+  TypeExpr visitRecordType(RecordType type) => unknownType;
+
+  @override
+  TypeExpr visitExtensionType(ExtensionType type) => unknownType;
+
+  @override
+  TypeExpr visitIntersectionType(IntersectionType type) => unknownType;
+
+  @override
+  TypeExpr visitInvalidType(InvalidType type) =>
+      throw 'InvalidType is not supported (should result in a compile-time error earlier).';
 }
 
-class ConstantAllocationCollector extends ConstantVisitor<Type>
-    with ConstantVisitorDefaultMixin<Type> {
+class ConstantAllocationCollector implements ConstantVisitor<Type> {
   final SummaryCollector summaryCollector;
 
   final Map<Constant, Type> constants = <Constant, Type>{};
@@ -2690,11 +2707,6 @@ class ConstantAllocationCollector extends ConstantVisitor<Type>
   Type _getStaticType(Constant constant) =>
       summaryCollector._typesBuilder.fromStaticType(
           constant.getType(summaryCollector._staticTypeContext!), false);
-
-  @override
-  defaultConstant(Constant constant) {
-    throw 'There is no support for constant "$constant" in TFA yet!';
-  }
 
   @override
   Type visitNullConstant(NullConstant constant) {
@@ -2722,7 +2734,7 @@ class ConstantAllocationCollector extends ConstantVisitor<Type>
   }
 
   @override
-  visitSymbolConstant(SymbolConstant constant) {
+  Type visitSymbolConstant(SymbolConstant constant) {
     return summaryCollector._symbolType;
   }
 
@@ -2840,4 +2852,12 @@ class ConstantAllocationCollector extends ConstantVisitor<Type>
   Type visitTypeLiteralConstant(TypeLiteralConstant constant) {
     return summaryCollector._typeType;
   }
+
+  @override
+  Type visitTypedefTearOffConstant(TypedefTearOffConstant constant) =>
+      throw 'TypedefTearOffConstant is not supported (should be constant evaluated).';
+
+  @override
+  Type visitUnevaluatedConstant(UnevaluatedConstant constant) =>
+      throw 'UnevaluatedConstant is not supported (should be constant evaluated).';
 }

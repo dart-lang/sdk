@@ -1,3 +1,2 @@
 sealed mixin class A {}
-sealed
-mixin B {}
+sealed mixin B {}

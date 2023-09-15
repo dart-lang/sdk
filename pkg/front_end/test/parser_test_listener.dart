@@ -279,13 +279,15 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
+      Token? baseToken, Token mixinKeyword, Token name) {
+    seen(beginToken);
     seen(augmentToken);
     seen(baseToken);
     seen(mixinKeyword);
     seen(name);
     doPrint('beginMixinDeclaration('
+        '$beginToken, '
         '$augmentToken, '
         '$baseToken, '
         '$mixinKeyword, '
@@ -311,11 +313,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
+  void endMixinDeclaration(Token beginToken, Token endToken) {
     indent--;
-    seen(mixinKeyword);
+    seen(beginToken);
     seen(endToken);
-    doPrint('endMixinDeclaration(' '$mixinKeyword, ' '$endToken)');
+    doPrint('endMixinDeclaration(' '$beginToken, ' '$endToken)');
   }
 
   @override
@@ -341,13 +343,15 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
+  void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
+      Token onKeyword, Token endToken) {
     indent--;
+    seen(beginToken);
     seen(extensionKeyword);
     seen(onKeyword);
     seen(endToken);
     doPrint('endExtensionDeclaration('
+        '$beginToken, '
         '$extensionKeyword, '
         '$onKeyword, '
         '$endToken)');
@@ -362,13 +366,15 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endExtensionTypeDeclaration(
-      Token extensionKeyword, Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
+      Token typeKeyword, Token endToken) {
     indent--;
+    seen(beginToken);
     seen(extensionKeyword);
     seen(typeKeyword);
     seen(endToken);
     doPrint('endExtensionTypeDeclaration('
+        '$beginToken, '
         '$extensionKeyword, '
         '$typeKeyword, '
         '$endToken)');
@@ -521,11 +527,19 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
     indent--;
+    seen(beginToken);
     seen(enumKeyword);
     seen(leftBrace);
-    doPrint('endEnum(' '$enumKeyword, ' '$leftBrace, ' '$memberCount)');
+    seen(endToken);
+    doPrint('endEnum('
+        '$beginToken, '
+        '$enumKeyword, '
+        '$leftBrace, '
+        '$memberCount, '
+        '$endToken)');
   }
 
   @override
@@ -1169,7 +1183,7 @@ class ParserTestListener implements Listener {
 
   @override
   void beginNamedMixinApplication(
-      Token begin,
+      Token beginToken,
       Token? abstractToken,
       Token? macroToken,
       Token? sealedToken,
@@ -1179,7 +1193,7 @@ class ParserTestListener implements Listener {
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
-    seen(begin);
+    seen(beginToken);
     seen(abstractToken);
     seen(macroToken);
     seen(sealedToken);
@@ -1190,7 +1204,7 @@ class ParserTestListener implements Listener {
     seen(mixinToken);
     seen(name);
     doPrint('beginNamedMixinApplication('
-        '$begin, '
+        '$beginToken, '
         '$abstractToken, '
         '$macroToken, '
         '$sealedToken, '
@@ -2616,13 +2630,6 @@ class ParserTestListener implements Listener {
   void handleIdentifier(Token token, IdentifierContext context) {
     seen(token);
     doPrint('handleIdentifier(' '$token, ' '$context)');
-  }
-
-  @override
-  void handleShowHideIdentifier(Token? modifier, Token identifier) {
-    seen(modifier);
-    seen(identifier);
-    doPrint('handleShowHideIdentifier(' '$modifier, ' '$identifier)');
   }
 
   @override

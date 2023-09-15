@@ -1,8 +1,4 @@
----- unknown chunk starts ----
 extension type I(int _i) {
----- unknown chunk ends ----
-int get i => 0;
-set i(int val) {}
----- unknown chunk starts ----
+  int get i => 0;
+  set i(int val) {}
 }
----- unknown chunk ends ----

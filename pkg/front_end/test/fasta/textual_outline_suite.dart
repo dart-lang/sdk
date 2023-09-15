@@ -40,6 +40,10 @@ const List<Map<String, String>> EXPECTATIONS = [
     "group": "Fail",
   },
   {
+    "name": "UnknownChunk",
+    "group": "Fail",
+  },
+  {
     "name": "FormatterCrash",
     "group": "Fail",
   },
@@ -155,6 +159,11 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
           await context.match<TestDescription>(
               filename, result!, description.uri, description);
       if (expectMatch.outcome != Expectation.pass) return expectMatch;
+
+      if (containsUnknownChunk) {
+        return new Result(
+            null, context.expectationSet["UnknownChunk"], description.uri);
+      }
 
       if (formatterException != null) {
         bool hasUnreleasedExperiment = false;

@@ -397,10 +397,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
+      Token? baseToken, Token mixinKeyword, Token name) {
     listener?.beginMixinDeclaration(
-        augmentToken, baseToken, mixinKeyword, name);
+        beginToken, augmentToken, baseToken, mixinKeyword, name);
   }
 
   @override
@@ -410,7 +410,7 @@ class ForwardingListener implements Listener {
 
   @override
   void beginNamedMixinApplication(
-      Token begin,
+      Token beginToken,
       Token? abstractToken,
       Token? macroToken,
       Token? sealedToken,
@@ -421,7 +421,7 @@ class ForwardingListener implements Listener {
       Token? mixinToken,
       Token name) {
     listener?.beginNamedMixinApplication(
-        begin,
+        beginToken,
         abstractToken,
         macroToken,
         sealedToken,
@@ -754,8 +754,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
-    listener?.endEnum(enumKeyword, leftBrace, memberCount);
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
+    listener?.endEnum(
+        beginToken, enumKeyword, leftBrace, memberCount, endToken);
   }
 
   @override
@@ -831,9 +833,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
-    listener?.endExtensionDeclaration(extensionKeyword, onKeyword, endToken);
+  void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
+      Token onKeyword, Token endToken) {
+    listener?.endExtensionDeclaration(
+        beginToken, extensionKeyword, onKeyword, endToken);
   }
 
   @override
@@ -1082,8 +1085,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
-    listener?.endMixinDeclaration(mixinKeyword, endToken);
+  void endMixinDeclaration(Token beginToken, Token endToken) {
+    listener?.endMixinDeclaration(beginToken, endToken);
   }
 
   @override
@@ -1512,11 +1515,6 @@ class ForwardingListener implements Listener {
   @override
   void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
     listener?.handleFunctionBodySkipped(token, isExpressionBody);
-  }
-
-  @override
-  void handleShowHideIdentifier(Token? modifier, Token identifier) {
-    listener?.handleShowHideIdentifier(modifier, identifier);
   }
 
   @override
@@ -2092,10 +2090,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endExtensionTypeDeclaration(
-      Token extensionKeyword, Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
+      Token typeKeyword, Token endToken) {
     listener?.endExtensionTypeDeclaration(
-        extensionKeyword, typeKeyword, endToken);
+        beginToken, extensionKeyword, typeKeyword, endToken);
   }
 
   @override

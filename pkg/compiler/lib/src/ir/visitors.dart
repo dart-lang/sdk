@@ -226,17 +226,14 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   }
 }
 
-// TODO(fishythefish): Remove default mixin.
-class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue>
-    with ir.OnceConstantVisitorDefaultMixin<ConstantValue> {
+class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
   final IrToElementMap elementMap;
 
   ConstantValuefier(this.elementMap);
 
   DartTypes get _dartTypes => elementMap.commonElements.dartTypes;
 
-  @override
-  ConstantValue defaultConstant(ir.Constant node) {
+  static Never _unexpectedConstant(ir.Constant node) {
     throw UnsupportedError("Unexpected constant $node (${node.runtimeType}).");
   }
 
@@ -359,4 +356,17 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue>
   ConstantValue visitNullConstant(ir.NullConstant node) {
     return constant_system.createNull();
   }
+
+  @override
+  Never visitConstructorTearOffConstant(ir.ConstructorTearOffConstant node) =>
+      _unexpectedConstant(node);
+
+  @override
+  Never visitRedirectingFactoryTearOffConstant(
+          ir.RedirectingFactoryTearOffConstant node) =>
+      _unexpectedConstant(node);
+
+  @override
+  Never visitTypedefTearOffConstant(ir.TypedefTearOffConstant node) =>
+      _unexpectedConstant(node);
 }

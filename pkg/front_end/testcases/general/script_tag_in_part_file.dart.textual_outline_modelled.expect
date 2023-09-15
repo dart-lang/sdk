@@ -1,5 +1,3 @@
----- unknown chunk starts ----
 #!/usr/bin/env dart
----- unknown chunk ends ----
 part of 'script_tag_in_part_file_lib.dart';
 void run() => print("Running!");

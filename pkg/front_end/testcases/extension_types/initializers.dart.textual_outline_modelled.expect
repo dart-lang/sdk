@@ -1,23 +1,16 @@
----- unknown chunk starts ----
 extension type Class1._(int field) {
----- unknown chunk ends ----
-Class1(this.field);
----- unknown chunk starts ----
-} extension type Class2._(int field) {
----- unknown chunk ends ----
-Class2(int field) : this.field = field;
----- unknown chunk starts ----
-} extension type Class3._(int field) {} extension type Class4._(int field) {
----- unknown chunk ends ----
-Class4(this.field, this.nonexisting);
----- unknown chunk starts ----
-} extension type Class5._(int field) {
----- unknown chunk ends ----
-Class5(this.field) : this.field = 42;
----- unknown chunk starts ----
-} extension type Class6._(int field) {
----- unknown chunk ends ----
-Class6(this.field) : this.nonexisting = 42;
----- unknown chunk starts ----
+  Class1(this.field);
 }
----- unknown chunk ends ----
+extension type Class2._(int field) {
+  Class2(int field) : this.field = field;
+}
+extension type Class3._(int field) {}
+extension type Class4._(int field) {
+  Class4(this.field, this.nonexisting);
+}
+extension type Class5._(int field) {
+  Class5(this.field) : this.field = 42;
+}
+extension type Class6._(int field) {
+  Class6(this.field) : this.nonexisting = 42;
+}

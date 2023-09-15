@@ -1,3 +1,2 @@
 interface mixin class A {}
-interface
-mixin B {}
+interface mixin B {}

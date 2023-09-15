@@ -1,5 +1,2 @@
+final mixin B {}
 final mixin class A {}
----- unknown chunk starts ----
-final
----- unknown chunk ends ----
-mixin B {}

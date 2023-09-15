@@ -3,16 +3,21 @@ extension on dynamic {
   void set it(value) {}
 }
 extension type InlineClass(int it) {
-void test() {}
-} extension type GenericInlineClass<T>(T it) {
-void test(T t) {}
-} extension type FunctionInlineClass<T>(T Function() it) {
-void test(T Function() t) {}
-} extension type GenericFunctionInlineClass(T Function<T>() it) {
-void test() {}
-} extension type DynamicInlineClass(dynamic it) {
-void test() {}
-} extension type ErroneousInlineClass(int a, String b) {
-void test() {}
+  void test() {}
+}
+extension type GenericInlineClass<T>(T it) {
+  void test(T t) {}
+}
+extension type FunctionInlineClass<T>(T Function() it) {
+  void test(T Function() t) {}
+}
+extension type GenericFunctionInlineClass(T Function<T>() it) {
+  void test() {}
+}
+extension type DynamicInlineClass(dynamic it) {
+  void test() {}
+}
+extension type ErroneousInlineClass(int a, String b) {
+  void test() {}
 }
 void test( InlineClass inlineClass, GenericInlineClass<String> genericInlineClass, FunctionInlineClass<String> functionInlineClass, GenericFunctionInlineClass genericFunctionInlineClass, DynamicInlineClass dynamicInlineClass, ErroneousInlineClass erroneousInlineClass, PrivateInlineClass privateInlineClass) {}

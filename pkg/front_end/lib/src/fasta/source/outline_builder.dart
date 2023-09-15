@@ -760,51 +760,24 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void handleShowHideIdentifier(Token? modifier, Token identifier) {
-    debugEvent("ShowHideIdentifier");
-
-    assert(modifier == null ||
-        modifier.stringValue! == "get" ||
-        modifier.stringValue! == "set" ||
-        modifier.stringValue! == "operator");
-
-    if (modifier == null) {
-      handleIdentifier(
-          identifier, IdentifierContext.extensionShowHideElementMemberOrType);
-    } else if (modifier.stringValue! == "get") {
-      handleIdentifier(
-          identifier, IdentifierContext.extensionShowHideElementGetter);
-    } else if (modifier.stringValue! == "set") {
-      handleIdentifier(
-          identifier, IdentifierContext.extensionShowHideElementSetter);
-    } else if (modifier.stringValue! == "operator") {
-      handleIdentifier(
-          identifier, IdentifierContext.extensionShowHideElementOperator);
-    }
-  }
-
-  @override
   void handleIdentifier(Token token, IdentifierContext context) {
+    debugEvent("handleIdentifier");
     if (context == IdentifierContext.enumValueDeclaration) {
-      debugEvent("handleIdentifier");
       List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
       if (token.isSynthetic) {
         push(new ParserRecovery(token.charOffset));
       } else {
         push(new EnumConstantInfo(metadata, token.lexeme, token.charOffset));
       }
-    } else if (context == IdentifierContext.extensionShowHideElementGetter ||
-        context == IdentifierContext.extensionShowHideElementMemberOrType ||
-        context == IdentifierContext.extensionShowHideElementSetter) {
-      push(context);
-      super.handleIdentifier(token, context);
-      push(token.charOffset);
-    } else if (context == IdentifierContext.extensionShowHideElementOperator) {
-      push(context);
-      push(operatorFromString(token.stringValue!));
-      push(token.charOffset);
     } else {
-      super.handleIdentifier(token, context);
+      if (!token.isSynthetic) {
+        push(token.lexeme);
+      } else {
+        // This comes from a synthetic token which is inserted by the parser in
+        // an attempt to recover.  This almost always means that the parser has
+        // gotten very confused and we need to ignore the results.
+        push(new ParserRecovery(token.charOffset));
+      }
       push(token.charOffset);
     }
     if (inConstructor && context == IdentifierContext.methodDeclaration) {
@@ -1008,8 +981,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
+      Token? baseToken, Token mixinKeyword, Token name) {
     debugEvent("beginMixinDeclaration");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
@@ -1345,9 +1318,9 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endMixinDeclaration(Token mixinToken, Token endToken) {
+  void endMixinDeclaration(Token beginToken, Token endToken) {
     debugEvent("endMixinDeclaration");
-    assert(checkState(mixinToken, [
+    assert(checkState(beginToken, [
       /* interfaces */ ValueKinds.TypeBuilderListOrNull,
       /* supertypeConstraints */ unionOfKinds([
         ValueKinds.TypeBuilderListOrNull,
@@ -1373,7 +1346,7 @@ class OutlineBuilder extends StackListenerImpl {
     Object? name = pop();
     List<MetadataBuilder>? metadata =
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
-    checkEmpty(mixinToken.charOffset);
+    checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery) {
       libraryBuilder
           .endNestedDeclaration(
@@ -1381,7 +1354,7 @@ class OutlineBuilder extends StackListenerImpl {
           .resolveNamedTypes(typeVariables, libraryBuilder);
     } else {
       int startOffset =
-          metadata == null ? mixinToken.charOffset : metadata.first.charOffset;
+          metadata == null ? beginToken.charOffset : metadata.first.charOffset;
       if (libraryBuilder.isNonNullableByDefault) {
         String classNameForErrors = "${name}";
         if (supertypeConstraints != null) {
@@ -1458,8 +1431,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
+  void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
+      Token onKeyword, Token endToken) {
     assert(checkState(extensionKeyword, [
       unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder]),
       ValueKinds.TypeVariableListOrNull,
@@ -1520,8 +1493,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endExtensionTypeDeclaration(
-      Token extensionKeyword, Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
+      Token typeKeyword, Token endToken) {
     assert(checkState(extensionKeyword, [
       ValueKinds.TypeBuilderListOrNull,
       ValueKinds.TypeVariableListOrNull,
@@ -2774,7 +2747,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
     debugEvent("Enum");
 
     int elementsCount = pop() as int;
