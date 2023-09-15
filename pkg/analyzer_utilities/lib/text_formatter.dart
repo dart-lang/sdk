@@ -4,6 +4,8 @@
 
 /// Code for converting HTML into text, for use during code generation of
 /// analyzer and analysis server.
+library;
+
 import 'package:analyzer_utilities/html_dom.dart' as dom;
 import 'package:analyzer_utilities/tools.dart';
 
@@ -67,7 +69,6 @@ class _TextFormatter with CodeGenerator {
       switch (node.name) {
         case 'br':
           lineBreak(false);
-          break;
         case 'dl':
         case 'dt':
         case 'h1':
@@ -78,7 +79,6 @@ class _TextFormatter with CodeGenerator {
           lineBreak(true);
           addAll(node.nodes);
           lineBreak(true);
-          break;
         case 'div':
           lineBreak(false);
           if (node.classes.contains('hangingIndent')) {
@@ -91,12 +91,10 @@ class _TextFormatter with CodeGenerator {
             addAll(node.nodes);
             lineBreak(false);
           }
-          break;
         case 'ul':
           lineBreak(false);
           addAll(node.nodes);
           lineBreak(false);
-          break;
         case 'li':
           lineBreak(false);
           resolveVerticalSpace();
@@ -104,14 +102,12 @@ class _TextFormatter with CodeGenerator {
             addAll(node.nodes);
             lineBreak(false);
           });
-          break;
         case 'dd':
           lineBreak(true);
           indent(() {
             addAll(node.nodes);
             lineBreak(true);
           });
-          break;
         case 'pre':
           lineBreak(false);
           resolveVerticalSpace();
@@ -130,7 +126,6 @@ class _TextFormatter with CodeGenerator {
             writeln('</pre>');
           }
           lineBreak(false);
-          break;
         case 'a':
         case 'b':
         case 'body':
@@ -139,7 +134,6 @@ class _TextFormatter with CodeGenerator {
         case 'span':
         case 'tt':
           addAll(node.nodes);
-          break;
         case 'head':
           break;
         default:

@@ -1547,7 +1547,10 @@ static RedefinitionInstr* InsertRedefinition(FlowGraph* graph,
 
 // Find all Branch(v eq constant) (eq being one of ==, !=, === or !==) in the
 // graph and redefine |v| in the true successor to record information about
-// it being equal to the constant.
+// it being equal to the constant. For comparisons between boolean values
+// we also redefine |v| in the false successor - because booleans have
+// only two possible values (e.g. if |v| is |true| in true successor, then
+// it is |false| in false successor).
 //
 // We don't actually _replace_ |v| with |constant| in the dominated code
 // because it might complicate subsequent optimizations (e.g. lead to
@@ -1842,6 +1845,14 @@ bool ConstantPropagator::TransformDefinition(Definition* defn) {
     if (redef->inserted_by_constant_propagation()) {
       redef->ReplaceUsesWith(redef->value()->definition());
       return true;
+    }
+
+    if (IsConstant(defn->constant_value()) &&
+        !IsConstant(defn->OriginalDefinition()->constant_value())) {
+      // Redefinition might have become constant because some other
+      // redefinition narrowed it, we should ignore this and not
+      // replace it.
+      return false;
     }
   }
 

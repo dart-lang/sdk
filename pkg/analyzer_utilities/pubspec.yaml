@@ -3,7 +3,7 @@ name: analyzer_utilities
 publish_to: none
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: ^3.0.0
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:

@@ -20,7 +20,7 @@ Map<String, SinceInfo> _readSinceMap() {
 
   var sinceMap = <String, SinceInfo>{};
   for (var rule in registeredLints.map((l) => l.name)) {
-    var version = versionMap[rule] as String;
+    var version = versionMap[rule] as String?;
     sinceMap[rule] = SinceInfo(sinceDartSdk: version);
   }
 

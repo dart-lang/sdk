@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Tools for generating code in analyzer and analysis server.
+library;
+
 import 'dart:async';
 import 'dart:io';
 
