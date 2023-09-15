@@ -1439,6 +1439,9 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
 
   void sendResponseToServer(ResponseMessage response);
 
+  // This is the signature expected for LSP.
+  // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#:~:text=Response%3A-,result%3A%20null,-error%3A%20code%20and
+  // ignore: prefer_void_to_null
   Future<Null> sendShutdown() {
     final request = makeRequest(Method.shutdown, null);
     return expectSuccessfulResponseTo(request, (result) => result as Null);
