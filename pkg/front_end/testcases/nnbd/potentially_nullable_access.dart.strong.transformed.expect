@@ -507,7 +507,7 @@ static field core::Function? topLevelFunctionTearOff = invalid-expression "pkg/f
  - 'Function' is from 'dart:core'.
 Try accessing using ?. instead.
 var topLevelFunctionTearOff = nullableFunction.call;
-                                               ^^^^" in self::nullableFunction.call;
+                                               ^^^^" in self::nullableFunction;
 static field void topLevelFunctionTypeImplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:50:60: Error: Can't use an expression of type 'void Function()?' as a function because it's potentially null.
 Try calling using ?.call instead.
 var topLevelFunctionTypeImplicitCall = nullableFunctionType();
@@ -519,7 +519,7 @@ var topLevelFunctionTypeExplicitCall = nullableFunctionType.call();
 static field () →? void topLevelFunctionTypeTearOff = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:52:56: Error: Property 'call' cannot be accessed on 'void Function()?' because it is potentially null.
 Try accessing using ?. instead.
 var topLevelFunctionTypeTearOff = nullableFunctionType.call;
-                                                       ^^^^" in self::nullableFunctionType.call;
+                                                       ^^^^" in self::nullableFunctionType;
 static field dynamic topLevelFunctionField = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:53:43: Error: Can't use an expression of type 'Class?' as a function because it's potentially null.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
 Try calling using ?.call instead.
@@ -714,7 +714,7 @@ Try calling using ?. instead.
  - 'Function' is from 'dart:core'.
 Try accessing using ?. instead.
   var localFunctionTearOff = nullableFunction.call;
-                                              ^^^^" in self::nullableFunction.call;
+                                              ^^^^" in self::nullableFunction;
   void localFunctionTypeImplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:89:59: Error: Can't use an expression of type 'void Function()?' as a function because it's potentially null.
 Try calling using ?.call instead.
   var localFunctionTypeImplicitCall = nullableFunctionType();
@@ -726,7 +726,7 @@ Try calling using ?. instead.
   () →? void localFunctionTypeTearOff = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:91:55: Error: Property 'call' cannot be accessed on 'void Function()?' because it is potentially null.
 Try accessing using ?. instead.
   var localFunctionTypeTearOff = nullableFunctionType.call;
-                                                      ^^^^" in self::nullableFunctionType.call;
+                                                      ^^^^" in self::nullableFunctionType;
   dynamic localFunctionField = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:92:42: Error: Can't use an expression of type 'Class?' as a function because it's potentially null.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
 Try calling using ?.call instead.

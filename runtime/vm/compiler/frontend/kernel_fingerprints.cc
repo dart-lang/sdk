@@ -421,9 +421,9 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateGetterNameFingerprint();  // read interface_target_reference.
       return;
     case kFunctionTearOff:
-      ReadPosition();                    // read position.
-      CalculateExpressionFingerprint();  // read receiver.
-      return;
+      // Removed by lowering kernel transformation.
+      UNREACHABLE();
+      break;
     case kInstanceSet:
       ReadByte();                                // read kind.
       ReadPosition();                            // read position.

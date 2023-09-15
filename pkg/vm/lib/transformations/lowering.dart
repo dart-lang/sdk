@@ -126,4 +126,10 @@ class _Lowering extends Transformer {
     return forInLowering.transformForInStatement(
         node, _currentFunctionNode, _staticTypeContext);
   }
+
+  @override
+  visitFunctionTearOff(FunctionTearOff node) {
+    node.transformChildren(this);
+    return node.receiver;
+  }
 }

@@ -2517,9 +2517,9 @@ void KernelReaderHelper::SkipExpression() {
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kFunctionTearOff:
-      ReadPosition();    // read position.
-      SkipExpression();  // read receiver.
-      return;
+      // Removed by lowering kernel transformation.
+      UNREACHABLE();
+      break;
     case kInstanceSet:
       ReadByte();                          // read kind.
       ReadPosition();                      // read position.

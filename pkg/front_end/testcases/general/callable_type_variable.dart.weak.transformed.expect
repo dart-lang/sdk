@@ -21,7 +21,7 @@ class Class1<T extends core::Function> extends core::Object {
   method method() → dynamic {
     dynamic v1 = this.{self::Class1::field}{self::Class1::T}();
     dynamic v2 = let final core::int #t1 = 0 in this.{self::Class1::field}{self::Class1::T}(#t1);
-    self::Class1::T v3 = this.{self::Class1::field}{self::Class1::T}.call;
+    self::Class1::T v3 = this.{self::Class1::field}{self::Class1::T};
     dynamic v4 = this.{self::Class1::field}{self::Class1::T}();
     dynamic v5 = this.{self::Class1::field}{self::Class1::T}(0);
   }
@@ -36,7 +36,7 @@ class Class2<T extends (core::int) → core::String> extends core::Object {
     var v1 = field(); // error
                   ^" in this.{self::Class2::field}{self::Class2::T}{<inapplicable>}.();
     core::String v2 = let final core::int #t2 = 0 in this.{self::Class2::field}{self::Class2::T}(#t2){(core::int) → core::String};
-    self::Class2::T v3 = this.{self::Class2::field}{self::Class2::T}.call;
+    self::Class2::T v3 = this.{self::Class2::field}{self::Class2::T};
     invalid-type v4 = invalid-expression "pkg/front_end/testcases/general/callable_type_variable.dart:28:24: Error: Too few positional arguments: 1 required, 0 given.
     var v4 = field.call(); // error
                        ^" in this.{self::Class2::field}{self::Class2::T}{<inapplicable>}.();
@@ -49,4 +49,4 @@ static method main() → dynamic {}
 Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///callable_type_variable.dart:12:20 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///callable_type_variable.dart:26:20 -> IntConstant(0)
-Extra constant evaluation: evaluated: 30, effectively constant: 2
+Extra constant evaluation: evaluated: 28, effectively constant: 2

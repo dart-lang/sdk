@@ -1899,11 +1899,6 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   @override
-  TypeExpr visitFunctionTearOff(FunctionTearOff node) {
-    return _handlePropertyGet(node, node.receiver, null, Name('call'));
-  }
-
-  @override
   TypeExpr visitDynamicGet(DynamicGet node) {
     return _handlePropertyGet(node, node.receiver, null, node.name);
   }

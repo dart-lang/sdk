@@ -1055,7 +1055,9 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kInstanceTearOff:
       return BuildInstanceTearOff(position);
     case kFunctionTearOff:
-      return BuildFunctionTearOff(position);
+      // Removed by lowering kernel transformation.
+      UNREACHABLE();
+      break;
     case kInstanceSet:
       return BuildInstanceSet(position);
     case kDynamicSet:
@@ -2299,40 +2301,6 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceTearOff(TokenPosition* p) {
                                  kTypeArgsLen, 1, Array::null_array(),
                                  kNumArgsChecked, Function::null_function(),
                                  tearoff_interface_target, &result_type);
-  }
-
-  return instructions;
-}
-
-Fragment StreamingFlowGraphBuilder::BuildFunctionTearOff(TokenPosition* p) {
-  const intptr_t offset = ReaderOffset() - 1;     // Include the tag.
-  const TokenPosition position = ReadPosition();  // read position.
-  if (p != nullptr) *p = position;
-
-  const DirectCallMetadata direct_call =
-      direct_call_metadata_helper_.GetDirectTargetForPropertyGet(offset);
-  const InferredTypeMetadata result_type =
-      inferred_type_metadata_helper_.GetInferredType(offset);
-
-  Fragment instructions = BuildExpression();  // read receiver.
-
-  if (direct_call.check_receiver_for_null_) {
-    const auto receiver = MakeTemporary();
-    instructions += CheckNull(position, receiver, Symbols::GetCall());
-  }
-
-  if (!direct_call.target_.IsNull()) {
-    ASSERT(CompilerState::Current().is_aot());
-    instructions +=
-        StaticCall(position, direct_call.target_, 1, Array::null_array(),
-                   ICData::kNoRebind, &result_type);
-  } else {
-    const intptr_t kTypeArgsLen = 0;
-    const intptr_t kNumArgsChecked = 1;
-    instructions += InstanceCall(position, Symbols::GetCall(), Token::kGET,
-                                 kTypeArgsLen, 1, Array::null_array(),
-                                 kNumArgsChecked, Function::null_function(),
-                                 Function::null_function(), &result_type);
   }
 
   return instructions;

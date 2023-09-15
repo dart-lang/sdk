@@ -111,13 +111,13 @@ class CallableGetter extends core::Object {
 static field (dynamic) → dynamic closure = (dynamic x) → dynamic => x;
 static field dynamic int1 = self::closure(1){(dynamic) → dynamic};
 static field dynamic int2 = self::closure(1){(dynamic) → dynamic};
-static field dynamic int3 = self::closure.call(1){(dynamic) → dynamic};
-static field dynamic int4 = self::closure.call.call(1){(dynamic) → dynamic};
+static field dynamic int3 = self::closure(1){(dynamic) → dynamic};
+static field dynamic int4 = self::closure(1){(dynamic) → dynamic};
 static field self::Callable callable = new self::Callable::•();
 static field dynamic string1 = self::callable.{self::Callable::call}(1){(dynamic) → dynamic};
 static field dynamic string2 = self::callable.{self::Callable::call}(1){(dynamic) → dynamic};
 static field dynamic string3 = self::callable.{self::Callable::call}{(dynamic) → dynamic}(1){(dynamic) → dynamic};
-static field dynamic string4 = self::callable.{self::Callable::call}{(dynamic) → dynamic}.call(1){(dynamic) → dynamic};
+static field dynamic string4 = self::callable.{self::Callable::call}{(dynamic) → dynamic}(1){(dynamic) → dynamic};
 static field self::CallableGetter callableGetter = new self::CallableGetter::•();
 static field invalid-type string5 = invalid-expression "pkg/front_end/testcases/general/call.dart:63:29: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
@@ -135,10 +135,10 @@ var nothing2 = closure.call();
                            ^" in self::closure{<inapplicable>}.();
 static field invalid-type nothing3 = invalid-expression "pkg/front_end/testcases/general/call.dart:70:33: Error: Too few positional arguments: 1 required, 0 given.
 var nothing3 = closure.call.call();
-                                ^" in self::closure.call{<inapplicable>}.();
+                                ^" in self::closure{<inapplicable>}.();
 static field invalid-type nothing4 = invalid-expression "pkg/front_end/testcases/general/call.dart:71:38: Error: Too few positional arguments: 1 required, 0 given.
 var nothing4 = closure.call.call.call();
-                                     ^" in self::closure.call.call{<inapplicable>}.();
+                                     ^" in self::closure{<inapplicable>}.();
 static field invalid-type nothing5 = invalid-expression "pkg/front_end/testcases/general/call.dart:73:24: Error: Too few positional arguments: 1 required, 0 given.
 var nothing5 = callable();
                        ^" in self::callable.{self::Callable::call}{<inapplicable>}.(){() → invalid-type};
@@ -150,7 +150,7 @@ var nothing7 = callable.call.call();
                                  ^" in self::callable.{self::Callable::call}{(dynamic) → dynamic}{<inapplicable>}.();
 static field invalid-type nothing8 = invalid-expression "pkg/front_end/testcases/general/call.dart:76:39: Error: Too few positional arguments: 1 required, 0 given.
 var nothing8 = callable.call.call.call();
-                                      ^" in self::callable.{self::Callable::call}{(dynamic) → dynamic}.call{<inapplicable>}.();
+                                      ^" in self::callable.{self::Callable::call}{(dynamic) → dynamic}{<inapplicable>}.();
 static field invalid-type nothing9 = invalid-expression "pkg/front_end/testcases/general/call.dart:78:30: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
 Try changing 'call' to a method or explicitly invoke 'call'.
@@ -163,13 +163,13 @@ static method main() → dynamic {
   (dynamic) → dynamic closure = (dynamic x) → dynamic => x;
   dynamic int1 = closure(1){(dynamic) → dynamic};
   dynamic int2 = closure(1){(dynamic) → dynamic};
-  dynamic int3 = closure.call(1){(dynamic) → dynamic};
-  dynamic int4 = closure.call.call(1){(dynamic) → dynamic};
+  dynamic int3 = closure(1){(dynamic) → dynamic};
+  dynamic int4 = closure(1){(dynamic) → dynamic};
   self::Callable callable = new self::Callable::•();
   dynamic string1 = callable.{self::Callable::call}(1){(dynamic) → dynamic};
   dynamic string2 = callable.{self::Callable::call}(1){(dynamic) → dynamic};
   dynamic string3 = callable.{self::Callable::call}{(dynamic) → dynamic}(1){(dynamic) → dynamic};
-  dynamic string4 = callable.{self::Callable::call}{(dynamic) → dynamic}.call(1){(dynamic) → dynamic};
+  dynamic string4 = callable.{self::Callable::call}{(dynamic) → dynamic}(1){(dynamic) → dynamic};
   self::CallableGetter callableGetter = new self::CallableGetter::•();
   invalid-type string5 = invalid-expression "pkg/front_end/testcases/general/call.dart:29:31: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
@@ -187,10 +187,10 @@ Try changing 'call' to a method or explicitly invoke 'call'.
                              ^" in closure{<inapplicable>}.();
   invalid-type nothing3 = invalid-expression "pkg/front_end/testcases/general/call.dart:36:35: Error: Too few positional arguments: 1 required, 0 given.
   var nothing3 = closure.call.call();
-                                  ^" in closure.call{<inapplicable>}.();
+                                  ^" in closure{<inapplicable>}.();
   invalid-type nothing4 = invalid-expression "pkg/front_end/testcases/general/call.dart:37:40: Error: Too few positional arguments: 1 required, 0 given.
   var nothing4 = closure.call.call.call();
-                                       ^" in closure.call.call{<inapplicable>}.();
+                                       ^" in closure{<inapplicable>}.();
   invalid-type nothing5 = invalid-expression "pkg/front_end/testcases/general/call.dart:39:26: Error: Too few positional arguments: 1 required, 0 given.
   var nothing5 = callable();
                          ^" in callable.{self::Callable::call}{<inapplicable>}.(){() → invalid-type};
@@ -202,7 +202,7 @@ Try changing 'call' to a method or explicitly invoke 'call'.
                                    ^" in callable.{self::Callable::call}{(dynamic) → dynamic}{<inapplicable>}.();
   invalid-type nothing8 = invalid-expression "pkg/front_end/testcases/general/call.dart:42:41: Error: Too few positional arguments: 1 required, 0 given.
   var nothing8 = callable.call.call.call();
-                                        ^" in callable.{self::Callable::call}{(dynamic) → dynamic}.call{<inapplicable>}.();
+                                        ^" in callable.{self::Callable::call}{(dynamic) → dynamic}{<inapplicable>}.();
   invalid-type nothing9 = invalid-expression "pkg/front_end/testcases/general/call.dart:44:32: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
 Try changing 'call' to a method or explicitly invoke 'call'.
@@ -217,4 +217,4 @@ Try changing 'call' to a method or explicitly invoke 'call'.
 Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///call.dart:30:37 -> IntConstant(1)
 Evaluated: VariableGet @ org-dartlang-testcase:///call.dart:64:35 -> IntConstant(1)
-Extra constant evaluation: evaluated: 101, effectively constant: 2
+Extra constant evaluation: evaluated: 93, effectively constant: 2
