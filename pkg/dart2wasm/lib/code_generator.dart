@@ -2145,11 +2145,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   @override
-  w.ValueType visitFunctionTearOff(
-          FunctionTearOff node, w.ValueType expectedType) =>
-      wrap(node.receiver, expectedType);
-
-  @override
   w.ValueType visitInstanceTearOff(
       InstanceTearOff node, w.ValueType expectedType) {
     Member target = node.interfaceTarget;

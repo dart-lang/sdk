@@ -682,9 +682,9 @@ void ScopeBuilder::VisitExpression() {
       helper_.SkipInterfaceMemberNameReference();
       return;
     case kFunctionTearOff:
-      helper_.ReadPosition();  // read position.
-      VisitExpression();       // read receiver.
-      return;
+      // Removed by lowering kernel transformation.
+      UNREACHABLE();
+      break;
     case kInstanceSet:
       helper_.ReadByte();      // read kind.
       helper_.ReadPosition();  // read position.

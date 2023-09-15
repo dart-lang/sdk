@@ -4433,6 +4433,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // instance_reg: potential top (next object start).
     // fail if heap end unsigned less than or equal to new heap top.
     bleu(temp_reg, instance_reg, failure, distance);
+    CheckAllocationCanary(instance_reg, temp_reg);
 
     // Successfully allocated the object, now update temp to point to
     // next object start and store the class in the class field of object.
@@ -4472,6 +4473,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // end_address: potential next object start.
     lx(temp2, Address(THR, target::Thread::end_offset()));
     bgeu(end_address, temp2, failure);
+    CheckAllocationCanary(instance, temp2);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.

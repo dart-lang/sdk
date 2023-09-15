@@ -1368,6 +1368,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     // RDI: allocation size.
     __ cmpq(RCX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &slow_case);
+    __ CheckAllocationCanary(AllocateArrayABI::kResultReg);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -1432,6 +1433,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     __ addq(RDI, Immediate(target::kObjectAlignment));
     __ cmpq(RDI, RCX);
     __ j(UNSIGNED_LESS, &loop);
+    __ WriteAllocationCanary(RCX);
     __ ret();
 
     // Unable to allocate the array using the fast inline code, just call
@@ -1685,6 +1687,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // R10: number of context variables.
   __ cmpq(R13, Address(THR, target::Thread::end_offset()));
   __ j(ABOVE_EQUAL, slow_case);
+  __ CheckAllocationCanary(RAX);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -2096,6 +2099,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       // Check if the allocation fits into the remaining space.
       __ cmpq(kNewTopReg, Address(THR, target::Thread::end_offset()));
       __ j(ABOVE_EQUAL, &slow_case);
+      __ CheckAllocationCanary(AllocateObjectABI::kResultReg);
 
       __ movq(Address(THR, target::Thread::top_offset()), kNewTopReg);
     }  // kInstanceSizeReg = RSI
@@ -2133,6 +2137,8 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ cmpq(kNextFieldReg, kNewTopReg);
       __ j(UNSIGNED_LESS, &loop);
     }  // kNextFieldReg = RDI, kNullReg = R10
+
+    __ WriteAllocationCanary(kNewTopReg);  // Fix overshoot.
 
     if (is_cls_parameterized) {
       Label not_parameterized_case;
@@ -3615,6 +3621,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     /* RDI: allocation size. */
     __ cmpq(RCX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &call_runtime);
+    __ CheckAllocationCanary(RAX);
 
     /* Successfully allocated the object(s), now update top to point to */
     /* next object start and initialize the object. */
@@ -3670,6 +3677,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ cmpq(RDI, RCX);
     __ j(UNSIGNED_LESS, &loop, Assembler::kNearJump);
 
+    __ WriteAllocationCanary(RCX);  // Fix overshoot.
     __ ret();
 
     __ Bind(&call_runtime);

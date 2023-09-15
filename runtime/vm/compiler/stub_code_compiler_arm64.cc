@@ -1434,6 +1434,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     __ LoadFromOffset(TMP, THR, target::Thread::end_offset());
     __ CompareRegisters(R7, TMP);
     __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
+    __ CheckAllocationCanary(AllocateArrayABI::kResultReg);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -1506,6 +1507,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
     __ CompareRegisters(R3, R7);
     __ b(&loop, UNSIGNED_LESS);
+    __ WriteAllocationCanary(R7);  // Fix overshoot.
 
     // Done allocating and initializing the array.
     // AllocateArrayABI::kResultReg: new object.
@@ -1755,6 +1757,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   __ ldr(TMP, Address(THR, target::Thread::end_offset()));
   __ CompareRegisters(R3, TMP);
   __ b(slow_case, CS);  // Branch if unsigned higher or equal.
+  __ CheckAllocationCanary(R0);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -1834,6 +1837,10 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
     __ subs(R1, R1,
             Operand(target::kObjectAlignment / target::kCompressedWordSize));
     __ b(&loop, HI);
+#if defined(DEBUG)
+    __ ldr(TMP2, Address(THR, target::Thread::top_offset()));
+    __ WriteAllocationCanary(TMP2);  // Fix overshoot.
+#endif
 
     // Done allocating and initializing the context.
     // R0: new object.
@@ -2198,6 +2205,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
       __ CompareRegisters(kFieldReg, kNewTopReg);
       __ b(&loop, UNSIGNED_LESS);
+      __ WriteAllocationCanary(kNewTopReg);  // Fix overshoot.
     }  // kFieldReg = R4
 
     if (is_cls_parameterized) {
@@ -3683,6 +3691,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ ldr(R6, Address(THR, target::Thread::end_offset()));
     __ cmp(R1, Operand(R6));
     __ b(&call_runtime, CS);
+    __ CheckAllocationCanary(R0);
 
     /* Successfully allocated the object(s), now update top to point to */
     /* next object start and initialize the object. */
@@ -3726,6 +3735,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ stp(ZR, ZR, Address(R2, 2 * target::kWordSize, Address::PairPostIndex));
     __ cmp(R2, Operand(R1));
     __ b(&loop, UNSIGNED_LESS);
+    __ WriteAllocationCanary(R1);  // Fix overshoot.
 
     __ Ret();
 

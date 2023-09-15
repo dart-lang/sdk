@@ -710,6 +710,12 @@ class _WasmTransformer extends Transformer {
     node.transformChildren(this);
     return _listFactorySpecializer.transformStaticInvocation(node);
   }
+
+  @override
+  visitFunctionTearOff(FunctionTearOff node) {
+    node.transformChildren(this);
+    return node.receiver;
+  }
 }
 
 class _AsyncStarFrame {

@@ -624,12 +624,6 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   @override
-  visitFunctionTearOff(FunctionTearOff node) {
-    _annotateCallSite(node, null);
-    super.visitFunctionTearOff(node);
-  }
-
-  @override
   visitDynamicGet(DynamicGet node) {
     _annotateCallSite(node, null);
     super.visitDynamicGet(node);
@@ -1360,17 +1354,6 @@ class _TreeShakerPass1 extends RemovingTransformer {
 
   @override
   TreeNode visitDynamicGet(DynamicGet node, TreeNode? removalSentinel) {
-    node.transformOrRemoveChildren(this);
-    if (_isUnreachable(node)) {
-      return _makeUnreachableCall([node.receiver]);
-    } else {
-      return node;
-    }
-  }
-
-  @override
-  TreeNode visitFunctionTearOff(
-      FunctionTearOff node, TreeNode? removalSentinel) {
     node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.receiver]);

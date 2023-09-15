@@ -925,6 +925,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     // AllocateArrayABI::kLengthReg: array length as Smi).
     __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &slow_case);
+    __ CheckAllocationCanary(AllocateArrayABI::kResultReg);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -998,6 +999,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     __ addl(EDI, Immediate(target::kObjectAlignment));
     __ cmpl(EDI, EBX);
     __ j(UNSIGNED_LESS, &loop);
+    __ WriteAllocationCanary(EBX);  // Fix overshoot.
     __ ret();
 
     // Unable to allocate the array using the fast inline code, just call
@@ -1188,6 +1190,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
   __ j(ABOVE_EQUAL, slow_case, kJumpLength);
+  __ CheckAllocationCanary(EAX);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -1630,6 +1633,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
     // EBX: potential next object start.
     __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &slow_case);
+    __ CheckAllocationCanary(AllocateObjectABI::kResultReg);
     __ movl(Address(THR, target::Thread::top_offset()), EBX);
 
     // AllocateObjectABI::kResultReg: new object start (untagged).
@@ -1684,6 +1688,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       __ addl(ECX, Immediate(target::kObjectAlignment));
       __ cmpl(ECX, EBX);
       __ j(UNSIGNED_LESS, &loop);
+      __ WriteAllocationCanary(EBX);  // Fix overshoot.
     }
     if (is_cls_parameterized) {
       // AllocateObjectABI::kResultReg: new object (tagged).
@@ -3119,6 +3124,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     /* EDI: allocation size. */
     __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &call_runtime);
+    __ CheckAllocationCanary(EAX);
 
     /* Successfully allocated the object(s), now update top to point to */
     /* next object start and initialize the object. */
@@ -3175,6 +3181,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ addl(EDI, Immediate(target::kObjectAlignment));
     __ cmpl(EDI, EBX);
     __ j(UNSIGNED_LESS, &loop);
+    __ WriteAllocationCanary(EBX);  // Fix overshoot.
 
     __ ret();
 

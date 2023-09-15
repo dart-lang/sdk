@@ -1657,6 +1657,7 @@ static void TryAllocateString(Assembler* assembler,
   // RDI: allocation size.
   __ cmpq(RCX, Address(THR, target::Thread::end_offset()));
   __ j(ABOVE_EQUAL, &pop_and_fail);
+  __ CheckAllocationCanary(RAX);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.

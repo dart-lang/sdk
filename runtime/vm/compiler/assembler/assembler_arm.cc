@@ -3581,7 +3581,6 @@ void Assembler::TryAllocateObject(intptr_t cid,
                           target::ObjectAlignment::kObjectAlignment));
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
-    NOT_IN_PRODUCT(LoadAllocationTracingStateAddress(temp_reg, cid));
     ldr(instance_reg, Address(THR, target::Thread::top_offset()));
     // TODO(koda): Protect against unsigned overflow here.
     AddImmediate(instance_reg, instance_size);
@@ -3590,10 +3589,12 @@ void Assembler::TryAllocateObject(intptr_t cid,
     cmp(IP, Operand(instance_reg));
     // fail if heap end unsigned less than or equal to new heap top.
     b(failure, LS);
+    CheckAllocationCanary(instance_reg, temp_reg);
 
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
+    NOT_IN_PRODUCT(LoadAllocationTracingStateAddress(temp_reg, cid));
     NOT_IN_PRODUCT(MaybeTraceAllocation(temp_reg, failure));
 
     // Successfully allocated the object, now update top to point to
@@ -3631,6 +3632,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     ldr(temp2, Address(THR, target::Thread::end_offset()));
     cmp(end_address, Operand(temp2));
     b(failure, CS);
+    CheckAllocationCanary(instance, temp2);
 
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
