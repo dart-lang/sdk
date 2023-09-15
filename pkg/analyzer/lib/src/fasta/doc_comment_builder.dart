@@ -957,12 +957,12 @@ final class _DirectiveParser {
         return (positionalArguments, namedArguments);
       }
       var argument = _parseArgument();
-      // Remove when https://github.com/dart-lang/linter/issues/4361 is closed.
-      // ignore: unnecessary_parenthesis
-      (switch (argument) {
-        DocDirectivePositionalArgument() => positionalArguments.add(argument),
-        DocDirectiveNamedArgument() => namedArguments.add(argument),
-      });
+      switch (argument) {
+        case DocDirectivePositionalArgument():
+          positionalArguments.add(argument);
+        case DocDirectiveNamedArgument():
+          namedArguments.add(argument);
+      }
       index = _readWhitespace(content, index);
     }
 
