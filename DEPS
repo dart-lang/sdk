@@ -192,7 +192,7 @@ vars = {
   "web_socket_channel_rev": "af945f1ad3ac4193ed70b4ebfbdcba3b9f0198bc",
   "webdev_rev": "501ccc287783db685240d0f47c1cc9df68a43ae4",
   "webdriver_rev": "21976d657e6505ad113f714bd104420aee23faac",
-  "webkit_inspection_protocol_rev": "39a3c297ff573635e7936b015ce4f3466e4739d6",
+  "webkit_inspection_protocol_rev": "82f0c1c46dfdba5edf7c5fa84456233121dd69e1",
   "yaml_rev": "ae001879aa377afee2e70cf11b8716d6cc3e2658",
   "yaml_edit_rev": "4a9734dda12f63ef9eee4121f87ff4401e25a607",
 
