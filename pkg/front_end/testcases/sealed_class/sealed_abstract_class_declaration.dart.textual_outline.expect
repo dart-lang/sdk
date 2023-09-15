@@ -1,3 +1,2 @@
 abstract sealed class A {}
-sealed
-abstract class A {}
+sealed abstract class B {}

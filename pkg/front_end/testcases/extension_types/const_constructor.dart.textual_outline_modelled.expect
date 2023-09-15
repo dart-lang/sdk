@@ -1,13 +1,9 @@
----- unknown chunk starts ----
-extension type const Class(int i) {
----- unknown chunk ends ----
-Class.named(this.i);
-const factory Class.redirect(int i) = Class;
-factory Class.fact(int i) => Class(i);
-factory Class.redirect2(int i) = Class;
----- unknown chunk starts ----
-}
----- unknown chunk ends ----
 expect(expected, actual) {}
+extension type const Class(int i) {
+  Class.named(this.i);
+  const factory Class.redirect(int i) = Class;
+  factory Class.fact(int i) => Class(i);
+  factory Class.redirect2(int i) = Class;
+}
 main() {}
 test() {}

@@ -1,20 +1,20 @@
 extension type ExtensionType(int it) {
-ExtensionType.constructorAndMethod();
-void constructorAndMethod() {}
-factory ExtensionType.factoryAndMethod() => new ExtensionType.constructorAndMethod();
-void factoryAndMethod() {}
-factory ExtensionType.redirectingFactoryAndMethod() = ExtensionType.constructorAndMethod;
-void redirectingFactoryAndMethod() {}
-ExtensionType.constructorAndGetter();
-dynamic get constructorAndGetter => null;
-factory ExtensionType.factoryAndGetter() => new ExtensionType.constructorAndGetter();
-dynamic get factoryAndGetter => null;
-factory ExtensionType.redirectingFactoryAndGetter() = ExtensionType.constructorAndGetter;
-dynamic get redirectingFactoryAndGetter => null;
-ExtensionType.constructorAndSetter();
-void set constructorAndSetter(value) {}
-factory ExtensionType.factoryAndSetter() => new ExtensionType.constructorAndSetter();
-void set factoryAndSetter(value) {}
-factory ExtensionType.redirectingFactoryAndSetter() = ExtensionType.constructorAndSetter;
-void set redirectingFactoryAndSetter(value) {}
+  ExtensionType.constructorAndMethod();
+  void constructorAndMethod() {}
+  factory ExtensionType.factoryAndMethod() => new ExtensionType.constructorAndMethod();
+  void factoryAndMethod() {}
+  factory ExtensionType.redirectingFactoryAndMethod() = ExtensionType.constructorAndMethod;
+  void redirectingFactoryAndMethod() {}
+  ExtensionType.constructorAndGetter();
+  dynamic get constructorAndGetter => null;
+  factory ExtensionType.factoryAndGetter() => new ExtensionType.constructorAndGetter();
+  dynamic get factoryAndGetter => null;
+  factory ExtensionType.redirectingFactoryAndGetter() = ExtensionType.constructorAndGetter;
+  dynamic get redirectingFactoryAndGetter => null;
+  ExtensionType.constructorAndSetter();
+  void set constructorAndSetter(value) {}
+  factory ExtensionType.factoryAndSetter() => new ExtensionType.constructorAndSetter();
+  void set factoryAndSetter(value) {}
+  factory ExtensionType.redirectingFactoryAndSetter() = ExtensionType.constructorAndSetter;
+  void set redirectingFactoryAndSetter(value) {}
 }

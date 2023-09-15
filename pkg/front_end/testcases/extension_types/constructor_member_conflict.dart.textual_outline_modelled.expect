@@ -1,24 +1,20 @@
----- unknown chunk starts ----
 extension type ExtensionType(int it) {
----- unknown chunk ends ----
-ExtensionType.constructorAndGetter();
-ExtensionType.constructorAndMethod();
-ExtensionType.constructorAndSetter();
-dynamic get constructorAndGetter => null;
-dynamic get factoryAndGetter => null;
-dynamic get redirectingFactoryAndGetter => null;
-factory ExtensionType.factoryAndGetter() => new ExtensionType.constructorAndGetter();
-factory ExtensionType.factoryAndMethod() => new ExtensionType.constructorAndMethod();
-factory ExtensionType.factoryAndSetter() => new ExtensionType.constructorAndSetter();
-factory ExtensionType.redirectingFactoryAndGetter() = ExtensionType.constructorAndGetter;
-factory ExtensionType.redirectingFactoryAndMethod() = ExtensionType.constructorAndMethod;
-factory ExtensionType.redirectingFactoryAndSetter() = ExtensionType.constructorAndSetter;
-void constructorAndMethod() {}
-void factoryAndMethod() {}
-void redirectingFactoryAndMethod() {}
-void set constructorAndSetter(value) {}
-void set factoryAndSetter(value) {}
-void set redirectingFactoryAndSetter(value) {}
----- unknown chunk starts ----
+  ExtensionType.constructorAndGetter();
+  ExtensionType.constructorAndMethod();
+  ExtensionType.constructorAndSetter();
+  dynamic get constructorAndGetter => null;
+  dynamic get factoryAndGetter => null;
+  dynamic get redirectingFactoryAndGetter => null;
+  factory ExtensionType.factoryAndGetter() => new ExtensionType.constructorAndGetter();
+  factory ExtensionType.factoryAndMethod() => new ExtensionType.constructorAndMethod();
+  factory ExtensionType.factoryAndSetter() => new ExtensionType.constructorAndSetter();
+  factory ExtensionType.redirectingFactoryAndGetter() = ExtensionType.constructorAndGetter;
+  factory ExtensionType.redirectingFactoryAndMethod() = ExtensionType.constructorAndMethod;
+  factory ExtensionType.redirectingFactoryAndSetter() = ExtensionType.constructorAndSetter;
+  void constructorAndMethod() {}
+  void factoryAndMethod() {}
+  void redirectingFactoryAndMethod() {}
+  void set constructorAndSetter(value) {}
+  void set factoryAndSetter(value) {}
+  void set redirectingFactoryAndSetter(value) {}
 }
----- unknown chunk ends ----

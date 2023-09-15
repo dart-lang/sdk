@@ -433,8 +433,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
+      Token? baseToken, Token mixinKeyword, Token name) {
     assert(_classLikeBuilder == null);
     if (!enableClassModifiers) {
       if (baseToken != null) {
@@ -1498,7 +1498,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
     assert(optional('enum', enumKeyword));
     assert(optional('{', leftBrace));
     debugEvent("Enum");
@@ -1557,7 +1558,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token token) {
+      Token beginToken, Token extensionKeyword, Token onKeyword, Token token) {
     final builder = _classLikeBuilder as _ExtensionDeclarationBuilder;
 
     final type = pop() as TypeAnnotationImpl;
@@ -1629,8 +1630,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endExtensionTypeDeclaration(
-      Token extensionKeyword, Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
+      Token typeKeyword, Token endToken) {
     final implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
     final representation = pop(const NullValue<RepresentationDeclarationImpl>())
@@ -2502,7 +2503,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
+  void endMixinDeclaration(Token beginToken, Token endToken) {
     debugEvent("MixinDeclaration");
 
     final builder = _classLikeBuilder as _MixinDeclarationBuilder;

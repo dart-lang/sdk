@@ -1,5 +1,4 @@
 class Foo {}
----- unknown chunk starts ----
-extension type FooBar(Foo i) implements Foo {} extension type FooBaz(Foo i) implements Foo {}
----- unknown chunk ends ----
+extension type FooBar(Foo i) implements Foo {}
+extension type FooBaz(Foo i) implements Foo {}
 void main() {}

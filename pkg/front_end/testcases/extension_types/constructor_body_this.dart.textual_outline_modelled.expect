@@ -1,11 +1,7 @@
----- unknown chunk starts ----
-extension type V1.n0(int id) {
----- unknown chunk ends ----
-V1.n1([int x = 0]) : id = x {}
-V1.n2(int id) : this.n1(id);
-V1.new(this.id) {}
----- unknown chunk starts ----
-}
----- unknown chunk ends ----
 expect(expected, actual) {}
+extension type V1.n0(int id) {
+  V1.n1([int x = 0]) : id = x {}
+  V1.n2(int id) : this.n1(id);
+  V1.new(this.id) {}
+}
 main() {}

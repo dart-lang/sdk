@@ -979,16 +979,16 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
+      Token? baseToken, Token mixinKeyword, Token name) {
     debugEvent("beginMixinDeclaration");
     push(mixinKeyword);
   }
 
   @override
-  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
+  void endMixinDeclaration(Token beginToken, Token endToken) {
     debugEvent("endMixinDeclaration");
-    checkEmpty(mixinKeyword.charOffset);
+    checkEmpty(beginToken.charOffset);
   }
 
   @override
@@ -999,8 +999,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
+  void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
+      Token onKeyword, Token endToken) {
     debugEvent("endExtensionDeclaration");
     checkEmpty(extensionKeyword.charOffset);
   }
@@ -1062,8 +1062,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endExtensionTypeDeclaration(
-      Token extensionKeyword, Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
+      Token typeKeyword, Token endToken) {
     debugEvent("endExtensionTypeDeclaration");
     checkEmpty(extensionKeyword.charOffset);
   }
@@ -1088,7 +1088,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
     debugEvent("Enum");
     checkEmpty(enumKeyword.charOffset);
 

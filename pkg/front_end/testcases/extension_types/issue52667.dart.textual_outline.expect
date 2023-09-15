@@ -1,3 +1,4 @@
 class Foo {}
-extension type FooBar(Foo i) implements Foo {} extension type FooBaz(Foo i) implements Foo {}
+extension type FooBar(Foo i) implements Foo {}
+extension type FooBaz(Foo i) implements Foo {}
 void main() {}

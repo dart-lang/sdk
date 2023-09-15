@@ -181,7 +181,8 @@ class TestParser extends Parser {
 
   @override
   Token parseTopLevelKeywordDeclaration(
-      Token start,
+      Token beginToken,
+      Token modifierStart,
       Token keyword,
       Token? macroToken,
       Token? sealedToken,
@@ -189,7 +190,8 @@ class TestParser extends Parser {
       Token? interfaceToken,
       DirectiveContext? directiveState) {
     doPrint('parseTopLevelKeywordDeclaration('
-        '$start, '
+        '$beginToken, '
+        '$modifierStart, '
         '$keyword, '
         '$macroToken, '
         '$sealedToken, '
@@ -197,8 +199,15 @@ class TestParser extends Parser {
         '$interfaceToken, '
         '$directiveState)');
     indent++;
-    var result = super.parseTopLevelKeywordDeclaration(start, keyword,
-        macroToken, sealedToken, baseToken, interfaceToken, directiveState);
+    var result = super.parseTopLevelKeywordDeclaration(
+        beginToken,
+        modifierStart,
+        keyword,
+        macroToken,
+        sealedToken,
+        baseToken,
+        interfaceToken,
+        directiveState);
     indent--;
     return result;
   }
@@ -598,10 +607,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseEnum(Token enumKeyword) {
-    doPrint('parseEnum(' '$enumKeyword)');
+  Token parseEnum(Token beginToken, Token enumKeyword) {
+    doPrint('parseEnum(' '$beginToken, ' '$enumKeyword)');
     indent++;
-    var result = super.parseEnum(enumKeyword);
+    var result = super.parseEnum(beginToken, enumKeyword);
     indent--;
     return result;
   }
@@ -654,6 +663,7 @@ class TestParser extends Parser {
 
   @override
   Token parseClassOrNamedMixinApplication(
+      Token beginToken,
       Token? abstractToken,
       Token? macroToken,
       Token? sealedToken,
@@ -664,6 +674,7 @@ class TestParser extends Parser {
       Token? mixinToken,
       Token classKeyword) {
     doPrint('parseClassOrNamedMixinApplication('
+        '$beginToken, '
         '$abstractToken, '
         '$macroToken, '
         '$sealedToken, '
@@ -675,6 +686,7 @@ class TestParser extends Parser {
         '$classKeyword)');
     indent++;
     var result = super.parseClassOrNamedMixinApplication(
+        beginToken,
         abstractToken,
         macroToken,
         sealedToken,
@@ -701,11 +713,14 @@ class TestParser extends Parser {
 
   @override
   Token parseClass(
-      Token token, Token begin, Token classKeyword, String className) {
-    doPrint(
-        'parseClass(' '$token, ' '$begin, ' '$classKeyword, ' '$className)');
+      Token token, Token beginToken, Token classKeyword, String className) {
+    doPrint('parseClass('
+        '$token, '
+        '$beginToken, '
+        '$classKeyword, '
+        '$className)');
     indent++;
-    var result = super.parseClass(token, begin, classKeyword, className);
+    var result = super.parseClass(token, beginToken, classKeyword, className);
     indent--;
     return result;
   }
@@ -787,10 +802,16 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseMixin(Token? augmentToken, Token? baseToken, Token mixinKeyword) {
-    doPrint('parseMixin(' '$augmentToken, ' '$baseToken, ' '$mixinKeyword)');
+  Token parseMixin(Token beginToken, Token? augmentToken, Token? baseToken,
+      Token mixinKeyword) {
+    doPrint('parseMixin('
+        '$beginToken, '
+        '$augmentToken, '
+        '$baseToken, '
+        '$mixinKeyword)');
     indent++;
-    var result = super.parseMixin(augmentToken, baseToken, mixinKeyword);
+    var result =
+        super.parseMixin(beginToken, augmentToken, baseToken, mixinKeyword);
     indent--;
     return result;
   }
@@ -837,33 +858,39 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseExtension(Token extensionKeyword) {
-    doPrint('parseExtension(' '$extensionKeyword)');
+  Token parseExtension(Token beginToken, Token extensionKeyword) {
+    doPrint('parseExtension(' '$beginToken, ' '$extensionKeyword)');
     indent++;
-    var result = super.parseExtension(extensionKeyword);
+    var result = super.parseExtension(beginToken, extensionKeyword);
     indent--;
     return result;
   }
 
   @override
-  Token parseExtensionDeclaration(Token token, Token extensionKeyword) {
-    doPrint('parseExtensionDeclaration(' '$token, ' '$extensionKeyword)');
+  Token parseExtensionDeclaration(
+      Token beginToken, Token token, Token extensionKeyword) {
+    doPrint('parseExtensionDeclaration('
+        '$beginToken, '
+        '$token, '
+        '$extensionKeyword)');
     indent++;
-    var result = super.parseExtensionDeclaration(token, extensionKeyword);
+    var result =
+        super.parseExtensionDeclaration(beginToken, token, extensionKeyword);
     indent--;
     return result;
   }
 
   @override
-  Token parseExtensionTypeDeclaration(
-      Token token, Token extensionKeyword, Token typeKeyword) {
+  Token parseExtensionTypeDeclaration(Token beginToken, Token token,
+      Token extensionKeyword, Token typeKeyword) {
     doPrint('parseExtensionTypeDeclaration('
+        '$beginToken, '
         '$token, '
         '$extensionKeyword, '
         '$typeKeyword)');
     indent++;
-    var result = super
-        .parseExtensionTypeDeclaration(token, extensionKeyword, typeKeyword);
+    var result = super.parseExtensionTypeDeclaration(
+        beginToken, token, extensionKeyword, typeKeyword);
     indent--;
     return result;
   }

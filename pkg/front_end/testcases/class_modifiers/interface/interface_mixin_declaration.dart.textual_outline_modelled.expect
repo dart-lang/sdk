@@ -1,5 +1,2 @@
+interface mixin B {}
 interface mixin class A {}
----- unknown chunk starts ----
-interface
----- unknown chunk ends ----
-mixin B {}

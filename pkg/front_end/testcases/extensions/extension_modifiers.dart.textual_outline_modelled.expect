@@ -1,0 +1,2 @@
+abstract extension E1 on int {}
+static extension E2 on int {}

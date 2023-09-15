@@ -1,9 +1,7 @@
 @Deprecated('')
-extension type A(
-@Deprecated('')
-int i) {
-@Deprecated('')
-A.constructor(this.i);
-@Deprecated('')
-void m() {}
+extension type A(@Deprecated('') int i) {
+  @Deprecated('')
+  A.constructor(this.i);
+  @Deprecated('')
+  void m() {}
 }

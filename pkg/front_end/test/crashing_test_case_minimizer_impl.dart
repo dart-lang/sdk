@@ -1294,7 +1294,7 @@ worlds:
       } else if (child.isMixinDeclaration()) {
         MixinDeclarationEnd decl = child.asMixinDeclaration();
         helper.replacements.add(new _Replacement(
-            decl.mixinKeyword.offset - 1, decl.endToken.offset + 1));
+            decl.beginToken.offset - 1, decl.endToken.offset + 1));
         shouldCompile = true;
         what = "mixin";
       } else if (child.isNamedMixinDeclaration()) {

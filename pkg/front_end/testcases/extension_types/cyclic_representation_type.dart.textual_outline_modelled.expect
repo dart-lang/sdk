@@ -1,62 +1,47 @@
----- unknown chunk starts ----
-extension type E1(E1 it) {} extension type E2a(E2b it) {} extension type E2b(E2a it) {} extension type E3a(E3b it) {} extension type E3b(E3c it) {} extension type E3c(E3a it) {} extension type E4(E4 Function() it) {} extension type E5(void Function(E5) it) {} extension type E6((E6, int) it) {} extension type E7(void Function<T extends E7>() it) {} extension type E8<T>(List<E8> it) {}
----- unknown chunk ends ----
-typedef Alias9 = E9;
----- unknown chunk starts ----
-extension type E9(Alias9 it) {}
----- unknown chunk ends ----
-typedef Alias10<T> = E10<T>;
----- unknown chunk starts ----
+extension type E1(E1 it) {}
 extension type E10<T>(Alias10<T> it) {}
----- unknown chunk ends ----
-typedef Alias11 = E11 Function();
----- unknown chunk starts ----
 extension type E11(Alias11 it) {}
----- unknown chunk ends ----
-typedef Alias12 = void Function(E12);
----- unknown chunk starts ----
 extension type E12(Alias12 it) {}
----- unknown chunk ends ----
-typedef Alias13 = void Function<T extends E13>();
----- unknown chunk starts ----
 extension type E13(Alias13 it) {}
----- unknown chunk ends ----
-typedef Alias14<T> = int;
----- unknown chunk starts ----
 extension type E14(Alias14<E14> it) {}
----- unknown chunk ends ----
+extension type E15a(Alias15<E15b> it) {}
+extension type E15b(Alias15<E15a> it) {}
+extension type E16a(Alias16a<int> it) {}
+extension type E16b(Alias16b<int> it) {}
+extension type E17((int, {E17 a}) it) {}
+extension type E18(Alias18a<int> it) {}
+extension type E19a((E19b, E19b) it) {}
+extension type E19b(int it) {}
+extension type E20(Alias20 it) {}
+extension type E21(Alias21<int> it) {}
+extension type E22(Alias22a it) {}
+extension type E23(Alias23 it) {}
+extension type E24<T>(Alias24 it) {}
+extension type E2a(E2b it) {}
+extension type E2b(E2a it) {}
+extension type E3a(E3b it) {}
+extension type E3b(E3c it) {}
+extension type E3c(E3a it) {}
+extension type E4(E4 Function() it) {}
+extension type E5(void Function(E5) it) {}
+extension type E6((E6, int) it) {}
+extension type E7(void Function<T extends E7>() it) {}
+extension type E8<T>(List<E8> it) {}
+extension type E9(Alias9 it) {}
+typedef Alias10<T> = E10<T>;
+typedef Alias11 = E11 Function();
+typedef Alias12 = void Function(E12);
+typedef Alias13 = void Function<T extends E13>();
+typedef Alias14<T> = int;
 typedef Alias15<T> = List<T>;
----- unknown chunk starts ----
-extension type E15a(Alias15<E15b> it) {} extension type E15b(Alias15<E15a> it) {}
----- unknown chunk ends ----
 typedef Alias16a<T> = List<E16b>;
 typedef Alias16b<T> = List<E16a>;
----- unknown chunk starts ----
-extension type E16a(Alias16a<int> it) {} extension type E16b(Alias16b<int> it) {} extension type E17((int, {E17 a}) it) {}
----- unknown chunk ends ----
 typedef Alias18a<T> = Alias18b<E18>;
 typedef Alias18b<T> = void Function(T);
----- unknown chunk starts ----
-extension type E18(Alias18a<int> it) {} extension type E19a((E19b, E19b) it) {} extension type E19b(int it) {}
----- unknown chunk ends ----
 typedef Alias20 = Alias20;
----- unknown chunk starts ----
-extension type E20(Alias20 it) {}
----- unknown chunk ends ----
 typedef Alias21 = int;
----- unknown chunk starts ----
-extension type E21(Alias21<int> it) {}
----- unknown chunk ends ----
 typedef Alias22a = Alias22b<int>;
 typedef Alias22b = int;
----- unknown chunk starts ----
-extension type E22(Alias22a it) {}
----- unknown chunk ends ----
 typedef Alias23<T extends E23> = List<T>;
----- unknown chunk starts ----
-extension type E23(Alias23 it) {}
----- unknown chunk ends ----
 typedef Alias24<T extends E24<T>> = List<T>;
----- unknown chunk starts ----
-extension type E24<T>(Alias24 it) {}
----- unknown chunk ends ----
+typedef Alias9 = E9;

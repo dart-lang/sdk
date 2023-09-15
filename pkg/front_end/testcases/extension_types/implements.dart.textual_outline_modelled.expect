@@ -1,27 +1,19 @@
----- unknown chunk starts ----
-extension type A(int it) {
----- unknown chunk ends ----
-int methodA() => it + 5;
----- unknown chunk starts ----
-} extension type B<T>(T it) {
----- unknown chunk ends ----
-T methodB() => it;
----- unknown chunk starts ----
-} extension type C1(int it) implements A {
----- unknown chunk ends ----
-int methodC1() => it + 42;
----- unknown chunk starts ----
-} extension type C2(int it) implements A, B<int> {
----- unknown chunk ends ----
-int methodC2() => it + 87;
----- unknown chunk starts ----
-} extension type D1(int it) implements C1 {
----- unknown chunk ends ----
-int methodD1() => it + 123;
----- unknown chunk starts ----
-}
----- unknown chunk ends ----
 errors(A a, B<String> b1, B<num> b2, C1 c1, C2 c2, D1 d1) {}
 expect(expected, actual) {}
+extension type A(int it) {
+  int methodA() => it + 5;
+}
+extension type B<T>(T it) {
+  T methodB() => it;
+}
+extension type C1(int it) implements A {
+  int methodC1() => it + 42;
+}
+extension type C2(int it) implements A, B<int> {
+  int methodC2() => it + 87;
+}
+extension type D1(int it) implements C1 {
+  int methodD1() => it + 123;
+}
 main() {}
 method(A a, B<String> b1, B<num> b2, C1 c1, C2 c2, D1 d1) {}

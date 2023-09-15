@@ -194,8 +194,8 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Handle the beginning of a mixin declaration.
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {}
+  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
+      Token? baseToken, Token mixinKeyword, Token name) {}
 
   /// Handle an on clause in a mixin declaration. Substructures:
   /// - implemented types
@@ -229,7 +229,7 @@ class Listener implements UnescapeErrorListener {
   /// Handle the end of a mixin declaration.  Substructures:
   /// - mixin header
   /// - class or mixin body
-  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
+  void endMixinDeclaration(Token beginToken, Token endToken) {
     logEvent("MixinDeclaration");
   }
 
@@ -257,8 +257,8 @@ class Listener implements UnescapeErrorListener {
   /// - substructures from [beginExtensionDeclaration]
   /// - on type
   /// - body
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
+  void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
+      Token onKeyword, Token endToken) {
     logEvent('ExtensionDeclaration');
   }
 
@@ -273,8 +273,8 @@ class Listener implements UnescapeErrorListener {
   /// - primary constructor formals
   /// - implements clause
   /// - body
-  void endExtensionTypeDeclaration(
-      Token extensionKeyword, Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
+      Token typeKeyword, Token endToken) {
     logEvent('ExtensionTypeDeclaration');
   }
 
@@ -359,7 +359,8 @@ class Listener implements UnescapeErrorListener {
   /// Handle the end of an enum declaration.  Substructures:
   /// - [memberCount] times:
   ///   - Enum member
-  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
     logEvent("Enum");
   }
 
@@ -864,7 +865,7 @@ class Listener implements UnescapeErrorListener {
   ///
   /// At this point we have parsed the name and type parameter declarations.
   void beginNamedMixinApplication(
-      Token begin,
+      Token beginToken,
       Token? abstractToken,
       Token? macroToken,
       Token? sealedToken,

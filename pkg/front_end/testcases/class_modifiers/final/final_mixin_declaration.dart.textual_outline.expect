@@ -1,3 +1,2 @@
 final mixin class A {}
-final
-mixin B {}
+final mixin B {}

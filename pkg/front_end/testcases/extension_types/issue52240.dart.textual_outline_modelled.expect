@@ -1,9 +1,5 @@
----- unknown chunk starts ----
 extension type X._(int obj) {
----- unknown chunk ends ----
-X() : obj = 0;
-X.named() : obj = 0;
----- unknown chunk starts ----
+  X() : obj = 0;
+  X.named() : obj = 0;
 }
----- unknown chunk ends ----
 void main() {}

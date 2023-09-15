@@ -5,22 +5,18 @@ import 'dart:js_interop';
 @staticInterop
 class A {}
 @JS()
----- unknown chunk starts ----
 extension type B._(A a) {
----- unknown chunk ends ----
-external A field;
-external A method();
-external B(A a);
-external B.named(int i);
-external B get getter;
-external T genericMethod<T extends B>(T t);
-external static A staticField;
-external static A staticMethod();
-external static B get staticGetter;
-external static T staticGenericMethod<T extends B>(T t);
-external static void set staticSetter(B b);
-external void set setter(B b);
----- unknown chunk starts ----
+  external A field;
+  external A method();
+  external B(A a);
+  external B.named(int i);
+  external B get getter;
+  external T genericMethod<T extends B>(T t);
+  external static A staticField;
+  external static A staticMethod();
+  external static B get staticGetter;
+  external static T staticGenericMethod<T extends B>(T t);
+  external static void set staticSetter(B b);
+  external void set setter(B b);
 }
----- unknown chunk ends ----
 void method(A a) {}

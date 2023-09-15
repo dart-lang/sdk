@@ -9,26 +9,19 @@ library;
 //
 // pkg/front_end/testcases/sealed_class/sealed_abstract_class_declaration.dart:6:1: Error: A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract.
 // Try removing the 'abstract' keyword.
-// sealed abstract class A {}
+// sealed abstract class B {}
 // ^^^^^^
-//
-// pkg/front_end/testcases/sealed_class/sealed_abstract_class_declaration.dart:6:23: Error: 'A' is already declared in this scope.
-// sealed abstract class A {}
-//                       ^
-// pkg/front_end/testcases/sealed_class/sealed_abstract_class_declaration.dart:5:23: Context: Previous declaration of 'A'.
-// abstract sealed class A {}
-//                       ^
 //
 import self as self;
 import "dart:core" as core;
 
-abstract sealed class A#1#0 extends core::Object {
-  synthetic constructor •() → self::A#1#0
+abstract sealed class A extends core::Object {
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }
-abstract sealed class A extends core::Object {
-  synthetic constructor •() → self::A
+abstract sealed class B extends core::Object {
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
 }

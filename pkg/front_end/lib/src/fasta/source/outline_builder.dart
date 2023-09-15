@@ -981,8 +981,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
+      Token? baseToken, Token mixinKeyword, Token name) {
     debugEvent("beginMixinDeclaration");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
@@ -1318,9 +1318,9 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endMixinDeclaration(Token mixinToken, Token endToken) {
+  void endMixinDeclaration(Token beginToken, Token endToken) {
     debugEvent("endMixinDeclaration");
-    assert(checkState(mixinToken, [
+    assert(checkState(beginToken, [
       /* interfaces */ ValueKinds.TypeBuilderListOrNull,
       /* supertypeConstraints */ unionOfKinds([
         ValueKinds.TypeBuilderListOrNull,
@@ -1346,7 +1346,7 @@ class OutlineBuilder extends StackListenerImpl {
     Object? name = pop();
     List<MetadataBuilder>? metadata =
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
-    checkEmpty(mixinToken.charOffset);
+    checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery) {
       libraryBuilder
           .endNestedDeclaration(
@@ -1354,7 +1354,7 @@ class OutlineBuilder extends StackListenerImpl {
           .resolveNamedTypes(typeVariables, libraryBuilder);
     } else {
       int startOffset =
-          metadata == null ? mixinToken.charOffset : metadata.first.charOffset;
+          metadata == null ? beginToken.charOffset : metadata.first.charOffset;
       if (libraryBuilder.isNonNullableByDefault) {
         String classNameForErrors = "${name}";
         if (supertypeConstraints != null) {
@@ -1431,8 +1431,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
+  void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
+      Token onKeyword, Token endToken) {
     assert(checkState(extensionKeyword, [
       unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder]),
       ValueKinds.TypeVariableListOrNull,
@@ -1493,8 +1493,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endExtensionTypeDeclaration(
-      Token extensionKeyword, Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
+      Token typeKeyword, Token endToken) {
     assert(checkState(extensionKeyword, [
       ValueKinds.TypeBuilderListOrNull,
       ValueKinds.TypeVariableListOrNull,
@@ -2747,7 +2747,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
     debugEvent("Enum");
 
     int elementsCount = pop() as int;

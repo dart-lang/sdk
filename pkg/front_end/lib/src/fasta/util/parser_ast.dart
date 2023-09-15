@@ -199,7 +199,7 @@ class ParserAstVisitor {
     }
     if (node is MixinDeclarationEnd) {
       MixinDeclarationEnd declaration = node;
-      visitMixin(declaration, declaration.mixinKeyword, declaration.endToken);
+      visitMixin(declaration, declaration.beginToken, declaration.endToken);
       return;
     }
     if (node is EnumEnd) {
@@ -225,7 +225,7 @@ class ParserAstVisitor {
     }
     if (node is ExtensionDeclarationEnd) {
       ExtensionDeclarationEnd ext = node;
-      visitExtension(ext, ext.extensionKeyword, ext.endToken);
+      visitExtension(ext, ext.beginToken, ext.endToken);
       return;
     }
     if (node is ExtensionTypeDeclarationEnd) {
