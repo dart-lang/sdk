@@ -20,6 +20,7 @@ import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
@@ -276,6 +277,31 @@ class LibraryBuilder {
     }
   }
 
+  void buildClassSyntheticConstructors() {
+    bool hasConstructor(ClassElementImpl element) {
+      if (element.constructors.isNotEmpty) return true;
+      if (element.augmentation case final augmentation?) {
+        return hasConstructor(augmentation);
+      }
+      return false;
+    }
+
+    for (final classElement in element.topLevelElements) {
+      if (classElement is! ClassElementImpl) continue;
+      if (classElement.isMixinApplication) continue;
+      if (classElement.isAugmentation) continue;
+      if (hasConstructor(classElement)) continue;
+
+      final constructor = ConstructorElementImpl('', -1)..isSynthetic = true;
+      final containerRef = classElement.reference!.getChild('@constructor');
+      final reference = containerRef.getChild('new');
+      reference.element = constructor;
+      constructor.reference = reference;
+
+      classElement.constructors = [constructor].toFixedList();
+    }
+  }
+
   /// Build elements for declarations in the library units, add top-level
   /// declarations to the local scope, for combining into export scopes.
   void buildElements() {
@@ -296,7 +322,6 @@ class LibraryBuilder {
       }
       elementBuilder.buildDeclarationElements(linkingUnit.node);
     }
-    _buildClassSyntheticConstructors();
     _declareDartCoreDynamicNever();
   }
 
@@ -453,74 +478,89 @@ class LibraryBuilder {
       },
     );
 
-    final augmentationLibrary = await performance.runAsync(
+    final augmentationCode = await performance.runAsync(
       'executeTypesPhase',
       (performance) async {
         return await macroApplier.executeTypesPhase();
       },
     );
 
-    if (augmentationLibrary == null) {
+    if (augmentationCode == null) {
       return;
     }
 
-    var parseResult = parseString(
-      content: augmentationLibrary,
+    final libraryFileName = uri.pathSegments.lastOrNull;
+    if (libraryFileName == null) {
+      return;
+    }
+
+    if (!libraryFileName.endsWith('.dart')) {
+      return;
+    }
+
+    final augmentationFileName =
+        '${libraryFileName.substring(0, '.dart'.length - 1)}.macro.dart';
+    final augmentationUri = uri.resolve(augmentationFileName);
+    final augmentationUriStr = '$augmentationUri';
+    final augmentationSource = _sourceFactory.forUri2(augmentationUri)!;
+
+    final parseResult = parseString(
+      content: augmentationCode,
       featureSet: element.featureSet,
       throwIfDiagnostics: false,
     );
-    var unitNode = parseResult.unit as ast.CompilationUnitImpl;
+    final unitNode = parseResult.unit as ast.CompilationUnitImpl;
 
-    // For now we model augmentation libraries as parts.
-    var unitUri = uri.resolve('_macro_types.dart');
-    final unitSource = _sourceFactory.forUri2(unitUri)!;
-    var unitElement = CompilationUnitElementImpl(
-      source: unitSource,
-      librarySource: element.source,
+    final unitElement = CompilationUnitElementImpl(
+      source: augmentationSource,
+      librarySource: augmentationSource,
       lineInfo: parseResult.lineInfo,
-    )
-      ..enclosingElement = element
-      ..isSynthetic = true
-      ..uri = unitUri.toString();
+    );
+    unitElement.uri = augmentationUriStr;
 
-    var unitReference = reference.getChild('@unit').getChild('$unitUri');
-    _bindReference(unitReference, unitElement);
+    final augmentationReference =
+        reference.getChild('@augmentation').getChild(augmentationUriStr);
+    _bindReference(augmentationReference, unitElement);
 
-    element.parts = [
-      ...element.parts,
-      PartElementImpl(
-        uri: DirectiveUriWithUnitImpl(
-          relativeUriString: '_macro_types.dart',
-          relativeUri: unitUri,
-          unit: unitElement,
-        ),
+    final augmentation = LibraryAugmentationElementImpl(
+      augmentationTarget: element,
+      nameOffset: -1,
+    );
+    augmentation.definingCompilationUnit = unitElement;
+
+    augmentation.macroGenerated = MacroGenerationAugmentationLibrary(
+      code: augmentationCode,
+      informativeBytes: writeUnitInformative(unitNode),
+    );
+
+    final directiveUri = DirectiveUriWithAugmentationImpl(
+      relativeUriString: augmentationUriStr,
+      relativeUri: augmentationUri,
+      source: augmentationSource,
+      augmentation: augmentation,
+    );
+
+    element.augmentationImports = [
+      ...element.augmentationImports,
+      AugmentationImportElementImpl(
+        importKeywordOffset: -1,
+        uri: directiveUri,
       ),
     ];
 
     ElementBuilder(
       libraryBuilder: this,
-      container: element,
-      unitReference: unitReference,
+      container: augmentation,
+      unitReference: augmentationReference,
       unitElement: unitElement,
     ).buildDeclarationElements(unitNode);
 
-    // We move elements, so they don't have real offsets.
-    unitElement.accept(_FlushElementOffsets());
-
     units.add(
       LinkingUnit(
-        reference: unitReference,
+        reference: augmentationReference,
         node: unitNode,
-        container: element,
         element: unitElement,
-      ),
-    );
-
-    linker.macroGeneratedUnits.add(
-      LinkMacroGeneratedUnit(
-        uri: unitUri,
-        content: parseResult.content,
-        unit: parseResult.unit,
+        container: element,
       ),
     );
   }
@@ -690,31 +730,6 @@ class LibraryBuilder {
       importKeywordOffset: state.unlinked.importKeywordOffset,
       uri: uri,
     );
-  }
-
-  void _buildClassSyntheticConstructors() {
-    bool hasConstructor(ClassElementImpl element) {
-      if (element.constructors.isNotEmpty) return true;
-      if (element.augmentation case final augmentation?) {
-        return hasConstructor(augmentation);
-      }
-      return false;
-    }
-
-    for (final classElement in element.topLevelElements) {
-      if (classElement is! ClassElementImpl) continue;
-      if (classElement.isMixinApplication) continue;
-      if (classElement.isAugmentation) continue;
-      if (hasConstructor(classElement)) continue;
-
-      final constructor = ConstructorElementImpl('', -1)..isSynthetic = true;
-      final containerRef = classElement.reference!.getChild('@constructor');
-      final reference = containerRef.getChild('new');
-      reference.element = constructor;
-      constructor.reference = reference;
-
-      classElement.constructors = [constructor].toFixedList();
-    }
   }
 
   List<NamespaceCombinator> _buildCombinators(

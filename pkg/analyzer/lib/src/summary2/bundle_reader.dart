@@ -633,6 +633,13 @@ class LibraryReader {
     required LibraryOrAugmentationElementImpl augmentationTarget,
     required Source unitSource,
   }) {
+    final macroGenerated = _reader.readOptionalObject((reader) {
+      return MacroGenerationAugmentationLibrary(
+        code: _reader.readStringUtf8(),
+        informativeBytes: _reader.readUint8List(),
+      );
+    });
+
     final definingUnit = _readUnitElement(
       containerSource: unitSource,
       unitSource: unitSource,
@@ -645,6 +652,7 @@ class LibraryReader {
     );
     augmentation.definingCompilationUnit = definingUnit;
     augmentation.reference = definingUnit.reference!;
+    augmentation.macroGenerated = macroGenerated;
 
     final resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     _readLibraryOrAugmentationElement(augmentation);

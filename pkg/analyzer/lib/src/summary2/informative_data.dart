@@ -76,8 +76,7 @@ class InformativeDataApplier {
     var unitElements = libraryElement.units;
     for (var i = 0; i < unitElements.length; i++) {
       var unitElement = unitElements[i];
-      var unitUri = unitElement.source.uri;
-      var unitInfoBytes = _unitsInformativeBytes2[unitUri];
+      var unitInfoBytes = _getInfoUnitBytes(unitElement);
       if (unitInfoBytes != null) {
         var unitReader = SummaryDataReader(unitInfoBytes);
         var unitInfo = _InfoUnit(_infoDeclarationStore, unitReader);
@@ -704,6 +703,20 @@ class InformativeDataApplier {
         element.nameOffset = info.nameOffset;
       },
     );
+  }
+
+  Uint8List? _getInfoUnitBytes(CompilationUnitElement element) {
+    final uri = element.source.uri;
+    if (_unitsInformativeBytes2[uri] case final bytes?) {
+      return bytes;
+    }
+
+    switch (element.enclosingElement) {
+      case LibraryAugmentationElementImpl(:final macroGenerated?):
+        return macroGenerated.informativeBytes;
+    }
+
+    return null;
   }
 
   void _setupApplyConstantOffsetsForTypeAlias(

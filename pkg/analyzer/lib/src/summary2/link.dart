@@ -42,7 +42,6 @@ Future<LinkResult> link({
   );
   return LinkResult(
     resolutionBytes: linker.resolutionBytes,
-    macroGeneratedUnits: linker.macroGeneratedUnits,
   );
 }
 
@@ -59,8 +58,6 @@ class Linker {
   late InheritanceManager3 inheritance; // TODO(scheglov) cache it
 
   late Uint8List resolutionBytes;
-
-  final List<LinkMacroGeneratedUnit> macroGeneratedUnits = [];
 
   Linker(this.elementFactory, this.macroExecutor);
 
@@ -180,6 +177,10 @@ class Linker {
         }
       },
     );
+
+    for (final library in builders.values) {
+      library.buildClassSyntheticConstructors();
+    }
 
     macroDeclarationBuilder.transferToElements();
 
@@ -319,24 +320,10 @@ class Linker {
   }
 }
 
-class LinkMacroGeneratedUnit {
-  final Uri uri;
-  final String content;
-  final ast.CompilationUnit unit;
-
-  LinkMacroGeneratedUnit({
-    required this.uri,
-    required this.content,
-    required this.unit,
-  });
-}
-
 class LinkResult {
   final Uint8List resolutionBytes;
-  final List<LinkMacroGeneratedUnit> macroGeneratedUnits;
 
   LinkResult({
     required this.resolutionBytes,
-    required this.macroGeneratedUnits,
   });
 }
