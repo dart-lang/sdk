@@ -2305,6 +2305,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // instance_reg: potential next object start.
     cmpq(instance_reg, Address(THR, target::Thread::end_offset()));
     j(ABOVE_EQUAL, failure, distance);
+    CheckAllocationCanary(instance_reg);
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     movq(Address(THR, target::Thread::top_offset()), instance_reg);
@@ -2343,6 +2344,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // end_address: potential next object start.
     cmpq(end_address, Address(THR, target::Thread::end_offset()));
     j(ABOVE_EQUAL, failure);
+    CheckAllocationCanary(instance);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.

@@ -2793,6 +2793,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // instance_reg: potential next object start.
     cmpl(instance_reg, Address(THR, target::Thread::end_offset()));
     j(ABOVE_EQUAL, failure, distance);
+    CheckAllocationCanary(instance_reg);
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     movl(Address(THR, target::Thread::top_offset()), instance_reg);
@@ -2832,6 +2833,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // EBX: potential next object start.
     cmpl(end_address, Address(THR, target::Thread::end_offset()));
     j(ABOVE_EQUAL, failure);
+    CheckAllocationCanary(instance);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.

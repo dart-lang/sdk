@@ -745,6 +745,7 @@ class RRCommand extends Command {
     switch (displayName) {
       case 'app_jit':
       case 'precompiler':
+      case 'run_vm_unittest':
       case 'vm':
         return VMCommandOutput(this, output.exitCode, output.hasTimedOut,
             output.stdout, output.stderr, output.time, output.pid);

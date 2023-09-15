@@ -1173,6 +1173,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     __ ldr(TMP, Address(THR, target::Thread::end_offset()));
     __ cmp(R3, Operand(TMP));
     __ b(&slow_case, CS);
+    __ CheckAllocationCanary(AllocateArrayABI::kResultReg);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -1464,6 +1465,7 @@ static void GenerateAllocateContext(Assembler* assembler, Label* slow_case) {
   __ ldr(IP, Address(THR, target::Thread::end_offset()));
   __ cmp(R3, Operand(IP));
   __ b(slow_case, CS);  // Branch if unsigned higher or equal.
+  __ CheckAllocationCanary(R0);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -3367,6 +3369,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ ldr(IP, Address(THR, target::Thread::end_offset()));
     __ cmp(R1, Operand(IP));
     __ b(&call_runtime, CS);
+    __ CheckAllocationCanary(R0);
 
     __ str(R1, Address(THR, target::Thread::top_offset()));
     __ AddImmediate(R0, kHeapObjectTag);
@@ -3417,6 +3420,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ strd(R8, R9, R3, -2 * target::kWordSize, LS);
     __ b(&init_loop, CC);
     __ str(R8, Address(R3, -2 * target::kWordSize), HI);
+    __ WriteAllocationCanary(R1);  // Fix overshoot.
 
     __ Ret();
 

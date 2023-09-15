@@ -1447,6 +1447,24 @@ class Assembler : public MicroAssembler {
                         Register temp1,
                         Register temp2);
 
+  void CheckAllocationCanary(Register top, Register tmp = TMP) {
+#if defined(DEBUG)
+    Label okay;
+    lx(tmp, Address(top, 0));
+    subi(tmp, tmp, kAllocationCanary);
+    beqz(tmp, &okay, Assembler::kNearJump);
+    Stop("Allocation canary");
+    Bind(&okay);
+#endif
+  }
+  void WriteAllocationCanary(Register top) {
+#if defined(DEBUG)
+    ASSERT(top != TMP);
+    li(TMP, kAllocationCanary);
+    sx(TMP, Address(top, 0));
+#endif
+  }
+
   // Copy [size] bytes from [src] address to [dst] address.
   // [size] should be a multiple of word size.
   // Clobbers [src], [dst], [size] and [temp] registers.

@@ -262,6 +262,15 @@ class Page {
 
   void Unallocate(uword addr, intptr_t size) {
     ASSERT((addr + size) == top_);
+
+#if defined(DEBUG)
+    uword* cursor = reinterpret_cast<uword*>(addr);
+    uword* end = reinterpret_cast<uword*>(addr + size);
+    while (cursor < end) {
+      *cursor++ = kAllocationCanary;
+    }
+#endif
+
     top_ -= size;
   }
 

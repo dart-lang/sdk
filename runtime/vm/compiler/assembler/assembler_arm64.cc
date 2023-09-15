@@ -2037,6 +2037,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // fail if heap end unsigned less than or equal to new heap top.
     cmp(temp_reg, Operand(instance_reg));
     b(failure, LS);
+    CheckAllocationCanary(instance_reg, temp_reg);
 
     // Successfully allocated the object, now update temp to point to
     // next object start and store the class in the class field of object.
@@ -2077,6 +2078,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     ldr(temp2, Address(THR, target::Thread::end_offset()));
     cmp(end_address, Operand(temp2));
     b(failure, CS);
+    CheckAllocationCanary(instance, temp2);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
