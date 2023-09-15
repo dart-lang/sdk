@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         Assert,
         ConstructorReferenceContext,
         DeclarationKind,
+        IdentifierContext,
         MemberKind,
         Parser,
         optional;
@@ -421,6 +422,19 @@ class DietListener extends StackListenerImpl {
   @override
   void endInitializers(int count, Token beginToken, Token endToken) {
     debugEvent("Initializers");
+  }
+
+  @override
+  void handleIdentifier(Token token, IdentifierContext context) {
+    debugEvent("handleIdentifier");
+    if (!token.isSynthetic) {
+      push(token.lexeme);
+    } else {
+      // This comes from a synthetic token which is inserted by the parser in
+      // an attempt to recover.  This almost always means that the parser has
+      // gotten very confused and we need to ignore the results.
+      push(new ParserRecovery(token.charOffset));
+    }
   }
 
   @override
@@ -904,12 +918,6 @@ class DietListener extends StackListenerImpl {
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
       Token? commaToken, Token semicolonToken) {
     debugEvent("Assert");
-    // Do nothing
-  }
-
-  @override
-  void handleShowHideIdentifier(Token? modifier, Token? identifier) {
-    debugEvent("");
     // Do nothing
   }
 

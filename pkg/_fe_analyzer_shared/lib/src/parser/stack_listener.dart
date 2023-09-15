@@ -20,7 +20,6 @@ import '../scanner/scanner.dart' show Token;
 import '../util/stack_checker.dart';
 import '../util/value_kind.dart';
 import 'declaration_kind.dart';
-import 'identifier_context.dart' show IdentifierContext;
 
 import 'parser.dart' show Listener, MemberKind, lengthOfSpan;
 
@@ -186,19 +185,6 @@ abstract class StackListener extends Listener with StackChecker {
         templateInternalProblemUnhandled.withArguments(name, "$runtimeType"),
         /* charOffset = */ -1,
         uri);
-  }
-
-  @override
-  void handleIdentifier(Token token, IdentifierContext context) {
-    debugEvent("handleIdentifier");
-    if (!token.isSynthetic) {
-      push(token.lexeme);
-    } else {
-      // This comes from a synthetic token which is inserted by the parser in
-      // an attempt to recover.  This almost always means that the parser has
-      // gotten very confused and we need to ignore the results.
-      push(new ParserRecovery(token.charOffset));
-    }
   }
 
   @override

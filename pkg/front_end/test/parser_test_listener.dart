@@ -2619,13 +2619,6 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleShowHideIdentifier(Token? modifier, Token identifier) {
-    seen(modifier);
-    seen(identifier);
-    doPrint('handleShowHideIdentifier(' '$modifier, ' '$identifier)');
-  }
-
-  @override
   void handleIndexedExpression(
       Token? question, Token openSquareBracket, Token closeSquareBracket) {
     seen(question);

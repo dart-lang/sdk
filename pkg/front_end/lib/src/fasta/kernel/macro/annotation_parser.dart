@@ -2155,11 +2155,6 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleShowHideIdentifier(Token? modifier, Token identifier) {
-    _unexpected();
-  }
-
-  @override
   void handleSpreadExpression(Token spreadToken) {
     _unsupported();
   }

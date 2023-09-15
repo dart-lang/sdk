@@ -1515,11 +1515,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleShowHideIdentifier(Token? modifier, Token identifier) {
-    listener?.handleShowHideIdentifier(modifier, identifier);
-  }
-
-  @override
   void handleIdentifier(Token token, IdentifierContext context) {
     listener?.handleIdentifier(token, context);
   }

@@ -1870,13 +1870,6 @@ class Listener implements UnescapeErrorListener {
     logEvent("Identifier");
   }
 
-  /// Handle an identifier token in a show or hide clause.
-  ///
-  /// [context] indicates what kind of construct the identifier appears in.
-  void handleShowHideIdentifier(Token? modifier, Token identifier) {
-    logEvent("ShowHideIdentifier");
-  }
-
   void handleIndexedExpression(
       Token? question, Token openSquareBracket, Token closeSquareBracket) {
     logEvent("IndexedExpression");

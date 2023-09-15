@@ -2438,15 +2438,6 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleShowHideIdentifier(Token? modifier, Token identifier) {
-    ShowHideIdentifierHandle data = new ShowHideIdentifierHandle(
-        ParserAstType.HANDLE,
-        modifier: modifier,
-        identifier: identifier);
-    seen(data);
-  }
-
-  @override
   void handleIndexedExpression(
       Token? question, Token openSquareBracket, Token closeSquareBracket) {
     IndexedExpressionHandle data = new IndexedExpressionHandle(
@@ -7407,21 +7398,6 @@ class IdentifierHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "context": context,
-      };
-}
-
-class ShowHideIdentifierHandle extends ParserAstNode {
-  final Token? modifier;
-  final Token identifier;
-
-  ShowHideIdentifierHandle(ParserAstType type,
-      {this.modifier, required this.identifier})
-      : super("ShowHideIdentifier", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-        "modifier": modifier,
-        "identifier": identifier,
       };
 }
 
