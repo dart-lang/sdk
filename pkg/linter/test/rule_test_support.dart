@@ -510,11 +510,16 @@ class Container extends StatelessWidget {
   const Container({
     super.key,
     Color? color,
+    Decoration? decoration,
     double? width,
     double? height,
     Widget? child,
   });
 }
+
+class Decoration with Diagnosticable {}
+
+class BoxDecoration implements Decoration {}
 
 class Row implements Widget {}
 ''');
