@@ -106,9 +106,6 @@ void nativeNonNullAsserts(bool enable) {
   _nativeNonNullAsserts = enable;
 }
 
-/// A JavaScript Symbol used to store the Rti object on a native array.
-final arrayRti = JS('', r'Symbol("$ti")');
-
 /// A JavaScript Symbol used to store the Rti signature object on a function.
 ///
 /// Accessed by a call to `JS_GET_NAME(JsGetName.SIGNATURE_NAME)`.

@@ -25,9 +25,6 @@ class JSArray<E> extends JavaScriptObject
     // TODO(jmesserly): this uses special compiler magic to close over the
     // parameterized ES6 'JSArray' class.
     jsObjectSetPrototypeOf(list, JS('', 'JSArray.prototype'));
-    if (JS_GET_FLAG('NEW_RUNTIME_TYPES'))
-      JS('', '#.# = #', list, JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY),
-          JSArray<E>);
     return JS('-dynamic', '#', list);
   }
 
@@ -35,9 +32,6 @@ class JSArray<E> extends JavaScriptObject
   factory JSArray.fixed(@notNull Object list) {
     jsObjectSetPrototypeOf(list, JS('', 'JSArray.prototype'));
     JS('', r'#.fixed$length = Array', list);
-    if (JS_GET_FLAG('NEW_RUNTIME_TYPES'))
-      JS('', '#.# = #', list, JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY),
-          JSArray<E>);
     return JS('-dynamic', '#', list);
   }
 
@@ -45,11 +39,26 @@ class JSArray<E> extends JavaScriptObject
     jsObjectSetPrototypeOf(list, JS('', 'JSArray.prototype'));
     JS('', r'#.fixed$length = Array', list);
     JS('', r'#.immutable$list = Array', list);
-    if (JS_GET_FLAG('NEW_RUNTIME_TYPES'))
-      JS('', '#.# = #', list, JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY),
-          JSArray<E>);
     return JS('-dynamic', '#', list);
   }
+
+  /// Provides the Rti object for this.
+  ///
+  /// Only intended for use by the dart:_rti library.
+  ///
+  /// NOTE: The name of this getter is directly tied to the result of compiling
+  /// `JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY)`.
+  Object get arrayRti => JS_GET_FLAG('NEW_RUNTIME_TYPES')
+      ? dart.typeRep<JSArray<E>>()
+      : throw dart.throwUnimplementedInOldRti();
+
+  /// Unsupported action, only provided here to help diagnosis of an accidental
+  /// attempt to set the value manually.
+  ///
+  /// NOTE: The name of this setter is directly tied to the result of compiling
+  /// `JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY)`.
+  set arrayRti(_) =>
+      throw UnsupportedError('Setting arrayRti is not supported in DDC.');
 
   static void markFixedList(list) {
     // Functions are stored in the hidden class and not as properties in
