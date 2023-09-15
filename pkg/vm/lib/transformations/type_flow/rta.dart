@@ -419,8 +419,7 @@ class _MemberVisitor extends RecursiveVisitor {
   }
 }
 
-class _ConstantVisitor extends ConstantVisitor<void>
-    with ConstantVisitorDefaultMixin<void> {
+class _ConstantVisitor implements ConstantVisitor<void> {
   final RapidTypeAnalysis rta;
   final Set<Constant> visited = {};
 
@@ -431,9 +430,6 @@ class _ConstantVisitor extends ConstantVisitor<void>
       constant.accept(this);
     }
   }
-
-  @override
-  void defaultConstant(Constant node) {}
 
   @override
   void visitListConstant(ListConstant constant) {
@@ -500,6 +496,35 @@ class _ConstantVisitor extends ConstantVisitor<void>
   void visitInstantiationConstant(InstantiationConstant constant) {
     visit(constant.tearOffConstant);
   }
+
+  @override
+  void visitNullConstant(NullConstant constant) {}
+
+  @override
+  void visitBoolConstant(BoolConstant constant) {}
+
+  @override
+  void visitIntConstant(IntConstant constant) {}
+
+  @override
+  void visitDoubleConstant(DoubleConstant constant) {}
+
+  @override
+  void visitStringConstant(StringConstant constant) {}
+
+  @override
+  void visitSymbolConstant(SymbolConstant constant) {}
+
+  @override
+  void visitTypeLiteralConstant(TypeLiteralConstant constant) {}
+
+  @override
+  void visitTypedefTearOffConstant(TypedefTearOffConstant constant) =>
+      throw 'TypedefTearOffConstant is not supported (should be constant evaluated).';
+
+  @override
+  void visitUnevaluatedConstant(UnevaluatedConstant constant) =>
+      throw 'UnevaluatedConstant is not supported (should be constant evaluated).';
 }
 
 class _EntryPointsListenerImpl implements EntryPointsListener {

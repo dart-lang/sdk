@@ -2086,8 +2086,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
   }
 }
 
-class _TreeShakerConstantVisitor extends ConstantVisitor<Null>
-    with ConstantVisitorDefaultMixin<Null> {
+class _TreeShakerConstantVisitor implements ConstantVisitor<void> {
   final TreeShaker shaker;
   final _TreeShakerTypeVisitor typeVisitor;
   final Set<Constant> constants = new Set<Constant>();
@@ -2099,11 +2098,6 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null>
     if (constants.add(constant)) {
       constant.accept(this);
     }
-  }
-
-  @override
-  defaultConstant(Constant constant) {
-    throw 'There is no support for constant "$constant" in TFA yet!';
   }
 
   @override
@@ -2201,4 +2195,12 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null>
   visitTypeLiteralConstant(TypeLiteralConstant constant) {
     constant.type.accept(typeVisitor);
   }
+
+  @override
+  visitTypedefTearOffConstant(TypedefTearOffConstant constant) =>
+      throw 'TypedefTearOffConstant is not supported (should be constant evaluated).';
+
+  @override
+  visitUnevaluatedConstant(UnevaluatedConstant constant) =>
+      throw 'UnevaluatedConstant is not supported (should be constant evaluated).';
 }
